@@ -1,3 +1,5 @@
+import { Button } from "~/components/ui/button"
+
 export const meta = () => {
   return [
     { title: "New Remix App" },
@@ -32,6 +34,9 @@ export default function Index() {
           <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
             Remix Docs
           </a>
+        </li>
+        <li>
+        <Button>Click me</Button>
         </li>
       </ul>
     </div>
