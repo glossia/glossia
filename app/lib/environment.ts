@@ -51,7 +51,14 @@ export function getBaseURL(): URL {
   }
 }
 
+export function isTruthy(variable: string | undefined) {
+  return ["1", "true", "TRUE", "yes", "YES"].includes(variable ?? "")
+}
+
 export function validatePresenceOfRequiredEnvVariables() {
+  if (!isTruthy(process.env["GLOSSIA_VALIDATE_VARIABLES_PRESENCE"])) {
+    return;
+  }
   let missingVariables: string[] = []
   Object.values(environmentVariables).forEach((environmentVariable) => {
     if (environmentVariable.required && !process.env[environmentVariable.name]) {
