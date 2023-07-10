@@ -8,7 +8,8 @@
     "start": "remix-serve build",
     "test": "vitest run",
     "typecheck": "tsc",
-    "secret": "openssl rand -base64 40"
+    "secret": "openssl rand -base64 40",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^4.16.2",
