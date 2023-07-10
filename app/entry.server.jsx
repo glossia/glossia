@@ -11,6 +11,14 @@ import { RemixServer } from "@remix-run/react";
 import isbot from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
 
+import { validatePresenceOfRequiredEnvVariables } from './lib/environment.js'
+
+/**
+ * We ensure that all the required environment variables are present before continuing.
+ * That way our logic can assume the presence.
+ */
+validatePresenceOfRequiredEnvVariables();
+
 const ABORT_DELAY = 5_000;
 
 export default function handleRequest(
