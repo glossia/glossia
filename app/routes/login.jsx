@@ -5,6 +5,13 @@ import { Button } from "../components/ui/button.js";
 import { Form } from "@remix-run/react";
 import {Icons} from '../components/ui/icons.js'
 
+export const meta = () => {
+  return [
+    { title: "Sign in - Glossia" },
+    { name: "description", content: "Authenticate with Glossia to access the tools to localize your projects." },
+  ];
+};
+
 export default function Login() {
   return (
     <div className={cn("w-full h-screen flex flex-col justify-center items-center")}>
