@@ -45,7 +45,7 @@ export function getGitHubAppCallbackURL(): URL {
 
 export function getBaseURL(): URL {
   if (isProduction()) {
-    return new URL("https://glossia.ai")
+    return new URL("https://app.glossia.ai")
   } else {
     return new URL("http://localhost:3000")
   }
