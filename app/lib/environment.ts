@@ -9,11 +9,11 @@ const environmentVariables = {
   }
 }
 
-export function databaseUrl() {
+export function getDatabaseURL() {
   return process.env[environmentVariables.databaseUrl.name] as string
 }
 
-export function sessionCookieSalt(): string {
+export function getSessionCookieSalt(): string {
   return process.env[environmentVariables.sessionCookieSalt.name] as string
 }
 
