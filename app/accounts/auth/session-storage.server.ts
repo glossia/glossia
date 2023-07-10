@@ -1,5 +1,5 @@
 import { createCookieSessionStorage } from "@remix-run/node";
-import { getSessionCookieSalt } from '../lib/environment.js'
+import { getSessionCookieSalt, isProduction } from '../../lib/environment.js'
 
 export let sessionStorage = createCookieSessionStorage({
   cookie: {
@@ -8,7 +8,7 @@ export let sessionStorage = createCookieSessionStorage({
     path: "/",
     httpOnly: true,
     secrets: [getSessionCookieSalt()],
-    secure: process.env.NODE_ENV === "production",
+    secure: isProduction(),
   },
 });
 

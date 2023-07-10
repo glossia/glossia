@@ -1,4 +1,8 @@
 import { Button } from "~/components/ui/button"
+import { authenticator } from "../accounts/auth/authenticator.server"
+import type { LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
 export const meta = () => {
   return [
@@ -7,10 +11,18 @@ export const meta = () => {
   ];
 };
 
+export async function loader({request}: LoaderArgs) {
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: '/login'
+  })
+  return json({ user: user})
+}
+
 export default function Index() {
+  const data = useLoaderData<typeof loader>();
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
+      <h1>Welcome to Remix {data.user?.email}</h1>
       <ul>
         <li>
           <a

@@ -4,6 +4,6 @@ import type { CookieUser } from "./cookie-user.js";
 import { gitHubStrategy } from "./strategies/github-strategy.server.js";
 
 let authenticator = new Authenticator<CookieUser>(sessionStorage);
-authenticator.use(gitHubStrategy)
+authenticator.use(gitHubStrategy, 'github')
 
 export { authenticator }

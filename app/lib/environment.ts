@@ -6,7 +6,19 @@ const environmentVariables = {
   sessionCookieSalt: {
     name: 'SESSION_COOKIE_SALT',
     required: true
+  },
+  githubAppClentId: {
+    name: 'GITHUB_APP_CLIENT_ID',
+    required: true
+  },
+  githubAppClientSecret: {
+    name: 'GITHUB_APP_CLIENT_SECRET',
+    required: true
   }
+}
+
+export function isProduction() {
+  return process.env.NODE_ENV === 'production'
 }
 
 export function getDatabaseURL() {
@@ -15,6 +27,28 @@ export function getDatabaseURL() {
 
 export function getSessionCookieSalt(): string {
   return process.env[environmentVariables.sessionCookieSalt.name] as string
+}
+
+export function getGitHubAppClientId(): string {
+  return process.env[environmentVariables.githubAppClentId.name] as string
+}
+
+export function getGitHubAppClientSecret(): string {
+  return process.env[environmentVariables.githubAppClientSecret.name] as string
+}
+
+export function getGitHubAppCallbackURL(): URL {
+  let url = getBaseURL()
+  url.pathname = "/auth/github/callback"
+  return url
+}
+
+export function getBaseURL(): URL {
+  if (isProduction()) {
+    return new URL("https://glossia.ai")
+  } else {
+    return new URL("http://localhost:3000")
+  }
 }
 
 export function validatePresenceOfRequiredEnvVariables() {
