@@ -7,7 +7,7 @@ app = "glossia"
 primary_region = "ams"
 
 [deploy]
-  release_command = "npx prisma migrate"
+  release_command = "npx prisma migrate deploy"
 
 [http_service]
   internal_port = 3000
