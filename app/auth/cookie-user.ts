@@ -1,4 +1,4 @@
-export interface User {
+export interface CookieUser {
     id: number;
     email: string;
 }

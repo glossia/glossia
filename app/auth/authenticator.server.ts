@@ -1,5 +1,9 @@
 import { Authenticator } from "remix-auth";
 import { sessionStorage } from "./session-storage.server.js";
-import { User } from "./user.js";
+import type { CookieUser } from "./cookie-user.js";
+import { gitHubStrategy } from "./strategies/github-strategy.server.js";
 
-export let authenticator = new Authenticator<User>(sessionStorage);
+let authenticator = new Authenticator<CookieUser>(sessionStorage);
+authenticator.use(gitHubStrategy)
+
+export { authenticator }
