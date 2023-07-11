@@ -17,9 +17,10 @@ defmodule Glossia.Application do
       # Start Finch
       {Finch, name: Glossia.Finch},
       # Start the Endpoint (http/https)
-      GlossiaWeb.Endpoint
+      GlossiaWeb.Endpoint,
       # Start a worker by calling: Glossia.Worker.start_link(arg)
       # {Glossia.Worker, arg}
+      {Oban, Application.fetch_env!(:glossia, Oban)}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
