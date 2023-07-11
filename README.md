@@ -1,0 +1,13 @@
+# App
+
+[![App](https://github.com/glossia/app/actions/workflows/app.yml/badge.svg)](https://github.com/glossia/app/actions/workflows/app.yml)
+
+Glossia application powered by Elixir & Phoenix.
+
+## Development
+
+### Setup
+
+1. Clone the repository: `git clone git@github.com:glossia/app.git`
+2. Install the dependencies: `mix deps.get`
+3. Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
