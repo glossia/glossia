@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.PageController do
+defmodule GlossiaWeb.AuthController do
   use GlossiaWeb, :controller
-  plug Ueberauth
+  # plug Ueberauth
 end
