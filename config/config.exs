@@ -18,7 +18,7 @@ config :glossia, GlossiaWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Glossia.PubSub,
-  live_view: [signing_salt: "4DT7JWxc"]
+  live_view: [signing_salt: System.get_env("LIVE_VIEW_SIGNING_SALT")]
 
 # Configures the mailer
 #
@@ -70,8 +70,11 @@ config :glossia, Oban,
   queues: [default: 10]
 
 # Ueberauth
-# config :ueberauth, Ueberauth,
-#   providers: [
-#     facebook: { Ueberauth.Strategy.Facebook, [ opt1: "value", opts2: "value" ] },
-#     github: { Ueberauth.Strategy.Github, [ opt1: "value", opts2: "value" ] }
-#   ]
+config :ueberauth, Ueberauth,
+  providers: [
+    github: {Ueberauth.Strategy.Github, [default_scope: "user:email"]}
+  ]
+
+config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+  client_id: System.get_env("GITHUB_APP_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_APP_CLIENT_SECRET")

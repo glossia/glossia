@@ -198,7 +198,7 @@ defmodule GlossiaWeb.CoreComponents do
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="mt-10 space-y-8 bg-white">
         <%= render_slot(@inner_block, f) %>
-        <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
+        <div :for={action <- @actions} class="mt-2 flex flex-col items-center justify-between gap-2">
           <%= render_slot(action, f) %>
         </div>
       </div>
@@ -233,6 +233,36 @@ defmodule GlossiaWeb.CoreComponents do
     >
       <%= render_slot(@inner_block) %>
     </button>
+    """
+  end
+
+  @doc """
+  Renders a link button.
+
+  ## Examples
+
+      <.link_button>Send!</.link_button>
+      <.link_button phx-click="go" class="ml-2">Send!</.link_button>
+  """
+  attr :class, :string, default: nil
+  attr :href, :string, required: true
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  slot :inner_block, required: true
+
+  def link_button(assigns) do
+    ~H"""
+    <a
+      href={@href}
+      class={[
+        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
+        "text-sm font-semibold leading-6 text-white active:text-white/80 text-center",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </a>
     """
   end
 

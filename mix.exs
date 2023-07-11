@@ -52,7 +52,9 @@ defmodule Glossia.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:oban, "~> 2.14"},
-      {:ueberauth, "~> 0.10"}
+      {:ueberauth, "~> 0.10.5"},
+      {:dotenv, "~> 3.0.0", only: [:dev, :test]},
+      {:ueberauth_github, github: "ueberauth/ueberauth_github", branch: "master"}
     ]
   end
 

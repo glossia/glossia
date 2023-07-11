@@ -29,6 +29,9 @@ defmodule GlossiaWeb.UserLoginLive do
           <.button phx-disable-with="Signing in..." class="w-full">
             Sign in <span aria-hidden="true">→</span>
           </.button>
+          <.link_button href={~p"/auth/github"} phx-disable-with="Signing in..." class="w-full">
+            Sign in with GitHub <span aria-hidden="true">→</span>
+          </.link_button>
         </:actions>
       </.simple_form>
     </div>
