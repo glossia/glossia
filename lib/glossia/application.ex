@@ -7,7 +7,7 @@ defmodule Glossia.Application do
 
   @impl true
   def start(_type, _args) do
-    unless Mix.env() == :prod do
+    unless Application.get_env(:glossia, :env) == :prod do
       Dotenv.load()
       Mix.Task.run("loadconfig")
     end
