@@ -68,3 +68,10 @@ config :glossia, Oban,
   repo: Glossia.Repo,
   plugins: [Oban.Plugins.Pruner],
   queues: [default: 10]
+
+# Ueberauth
+# config :ueberauth, Ueberauth,
+#   providers: [
+#     facebook: { Ueberauth.Strategy.Facebook, [ opt1: "value", opts2: "value" ] },
+#     github: { Ueberauth.Strategy.Github, [ opt1: "value", opts2: "value" ] }
+#   ]
