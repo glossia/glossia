@@ -18,7 +18,11 @@ config :glossia, GlossiaWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Glossia.PubSub,
-  live_view: [signing_salt: System.get_env("LIVE_VIEW_SIGNING_SALT")]
+  live_view: [
+    signing_salt:
+      System.get_env("LIVE_VIEW_SIGNING_SALT") ||
+        "Eq/DO4cJ5lnv1Ykf5wW9+k4q/jJl9/bV0EJV/ZIJVlJoavWu7w7Yl6Y8jmPEK2Ks"
+  ]
 
 # Configures the mailer
 #

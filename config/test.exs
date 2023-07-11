@@ -36,4 +36,4 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 # Oban
-config :my_app, Oban, testing: :inline
+config :glossia, Oban, testing: :inline
