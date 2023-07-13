@@ -16,9 +16,11 @@ defmodule Glossia.Vm.Runner do
       ["--init"] ++ # Ensures that the default handlers work with the software running in the VM
       ["--volume", runner_directory() <> ":" <> "/runner"] ++
       ["--workdir", "/runner"] ++
-      ["-p", "1992:1992"] ++
+      ["--publish", "4000:4000"] ++ # The port in which the application runs in development.
+      ["--env", "GLOSSIA_URL=" <> "http://127.0.0.1:4000"] ++
       ["denoland/deno:" <> Application.get_env(:glossia, :versions)[:deno]] ++
       ["run"] ++
+      ["--allow-env=GLOSSIA_URL"] ++
       ["--allow-net"] ++
       ["./index.ts"]
     Logger.debug "Running: " <> (arguments |> Enum.join(" "))
