@@ -26,3 +26,27 @@ jobs:
       - name: Test
         working-directory: priv/static/runner
         run: deno test
+  lint:
+    name: Lint
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Lint
+        working-directory: priv/static/runner
+        run: deno lint
+  format:
+    name: Format
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Format
+        working-directory: priv/static/runner
+        run: deno fmt --check
