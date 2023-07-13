@@ -1,4 +1,4 @@
-name: Config
+name: Runner
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   pull_request:
 
 concurrency:
-  group: config-${{ github.head_ref }}
+  group: runner-${{ github.head_ref }}
   cancel-in-progress: true
 
 env:
