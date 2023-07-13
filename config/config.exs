@@ -84,3 +84,5 @@ config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_secret: System.get_env("GITHUB_APP_CLIENT_SECRET")
 
 config :glossia, :env, Mix.env()
+
+config :glossia, :versions, deno: "1.10.3"
