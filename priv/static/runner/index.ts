@@ -1,5 +1,5 @@
 console.log("Hello glossia");
 
 function something() {
-    console.log(   "asgas")
+  console.log("asgas");
 }
