@@ -1,0 +1,28 @@
+name: Config
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: config-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  DENO_VERSION: "1.35.0"
+
+jobs:
+  test:
+    name: Test
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Test
+        working-directory: priv/static/runner
+        run: deno test

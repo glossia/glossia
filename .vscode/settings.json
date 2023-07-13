@@ -5,5 +5,7 @@
   "tailwindCSS.includeLanguages": {
     "elixir": "html",
     "phoenix-heex": "html"
-  }
+  },
+  "deno.enablePaths": ["priv/static/runner"],
+  "deno.config": "priv/static/runner/deno.jsonc"
 }
