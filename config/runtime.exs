@@ -118,8 +118,8 @@ if config_env() == :prod do
 end
 
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
-  client_id: System.get_env("GITHUB_APP_CLIENT_ID"),
-  client_secret: System.get_env("GITHUB_APP_CLIENT_SECRET")
+  client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
+  client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, "")
 
 config :glossia, GlossiaWeb.Endpoint,
   live_view: [

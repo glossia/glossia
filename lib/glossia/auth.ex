@@ -10,15 +10,35 @@ defmodule Glossia.Auth do
   def find_or_create(%Auth{provider: :identity} = auth) do
     case validate_pass(auth.credentials) do
       :ok ->
-        {:ok, basic_info(auth)}
+        email = email_from_auth(auth)
+
+        user =
+          case Glossia.Accounts.get_user_by_email(email) do
+            %Glossia.Accounts.User{} = user -> user
+            _ -> Glossia.Accounts.register_user(%{email: email, password: generate_password()})
+          end
+
+        {:ok, basic_info(user)}
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
+  def generate_password do
+    :crypto.strong_rand_bytes(16) |> Base.encode64() |> binary_part(0, 16)
+  end
+
   def find_or_create(%Auth{} = auth) do
-    {:ok, basic_info(auth)}
+    email = email_from_auth(auth)
+
+    {:ok, user} =
+      case Glossia.Accounts.get_user_by_email(email) do
+        %Glossia.Accounts.User{} = user -> {:ok, user}
+        _ -> Glossia.Accounts.register_user(%{email: email, password: generate_password()})
+      end
+
+    {:ok, basic_info(user)}
   end
 
   # github does it this way
@@ -34,8 +54,16 @@ defmodule Glossia.Auth do
     nil
   end
 
-  defp basic_info(auth) do
-    %{id: auth.uid, name: name_from_auth(auth), avatar: avatar_from_auth(auth)}
+  defp basic_info(user) do
+    %{
+      id: user.id,
+      handle: user.account.handle,
+      email: user.email
+    }
+  end
+
+  def email_from_auth(auth) do
+    auth.info.email
   end
 
   defp name_from_auth(auth) do
