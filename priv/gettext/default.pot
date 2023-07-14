@@ -1,0 +1,10 @@
+#: lib/glossia_web/components/core_components.ex:504
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr ""
+
+#: lib/glossia_web/components/core_components.ex:76
+#: lib/glossia_web/components/core_components.ex:128
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr ""
