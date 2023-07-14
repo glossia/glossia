@@ -61,7 +61,7 @@
         <!-- Sidebar component, swap this element with another sidebar if you like -->
         <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
           <div class="flex h-16 shrink-0 items-center">
-            <img src="/images/logo.svg" class="h-8 w-auto" />
+            <img class="h-8 w-auto" src="/images/logo.svg" alt="Glossia" />
           </div>
           <nav class="flex flex-1 flex-col">
             <ul role="list" class="flex flex-1 flex-col gap-y-7">
@@ -256,10 +256,9 @@
   <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
     <!-- Sidebar component, swap this element with another sidebar if you like -->
     <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
-      <a href={~p"/"} class="flex flex-row space-x-2 h-16 shrink-0 items-center">
-        <img src="/images/logo.svg" class="h-8 w-auto" />
-        <h1 class="font-bold">Glossia</h1>
-      </a>
+      <div class="flex h-16 shrink-0 items-center">
+        <img class="h-8 w-auto" src="/images/logo.svg" alt="Your Company" />
+      </div>
       <nav class="flex flex-1 flex-col">
         <ul role="list" class="flex flex-1 flex-col gap-y-7">
           <li>
@@ -492,14 +491,14 @@
   </div>
 
   <main class="lg:pl-72">
-    <div class="xl:pr-96">
+    <div class="xl:pl-96">
       <div class="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
         <!-- Main area -->
       </div>
     </div>
   </main>
 
-  <aside class="fixed inset-y-0 right-0 hidden w-96 overflow-y-auto border-l border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block">
+  <aside class="fixed inset-y-0 left-72 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block">
     <!-- Secondary column (hidden on smaller screens) -->
   </aside>
 </div>

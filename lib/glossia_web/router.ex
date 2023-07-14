@@ -18,9 +18,10 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/", GlossiaWeb do
-    pipe_through :browser
+    pipe_through [:browser, :require_authenticated_user]
 
     get "/", PageController, :home
+    resources "/projects", ProjectController, only: [:new]
   end
 
   scope "/auth", GlossiaWeb do
