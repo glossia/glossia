@@ -77,3 +77,5 @@ config :ueberauth, Ueberauth,
 config :glossia, :env, Mix.env()
 
 config :glossia, :versions, deno: "1.10.3"
+
+config :tesla, :adapter, {Tesla.Adapter.Finch, name: Glossia.Finch}
