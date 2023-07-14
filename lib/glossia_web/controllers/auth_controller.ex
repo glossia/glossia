@@ -26,6 +26,7 @@ defmodule GlossiaWeb.AuthController do
     case Auth.find_or_create(auth) do
       {:ok, user} ->
         conn
+        |> GlossiaWeb.UserAuth.log_in_user(user)
         |> put_flash(:info, "Successfully authenticated.")
         |> put_session(:current_user, user)
         |> configure_session(renew: true)

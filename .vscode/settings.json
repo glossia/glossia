@@ -17,5 +17,16 @@
   "[javascript]": { 
     "editor.defaultFormatter": "denoland.vscode-deno", 
     "editor.formatOnSave": true 
-  }
+  },
+  "[elixir]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "JakeBecker.elixir-ls"
+  },
+  "files.associations": {
+    "*.heex": "phoenix-heex",
+  },
+  "[phoenix-heex]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "JakeBecker.elixir-ls"
+  },
 }
