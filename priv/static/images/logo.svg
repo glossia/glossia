@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="2204px" height="2204px" viewBox="0 0 2204 2204" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Logo</title>
-    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Logo">
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g>
             <rect id="Rectangle" fill="#C8BEFD" fill-rule="nonzero" x="0" y="0" width="2204" height="2204" rx="491.964"></rect>
             <path d="M952.458,501.267 L401.458,501.267 C374.287,501.267 352.261,523.293 352.261,550.463 L352.261,555.383 C352.261,582.553 374.287,604.579 401.458,604.579 L952.458,604.579 C979.628,604.579 1001.65,582.553 1001.65,555.383 L1001.65,550.463 C1001.65,523.293 979.628,501.267 952.458,501.267 Z" id="Path" fill="#000000" fill-rule="nonzero"></path>
             <path d="M1838.59,727.57 L1213.79,727.57 C1186.62,727.57 1164.6,749.596 1164.6,776.766 L1164.6,781.686 C1164.6,808.857 1186.62,830.883 1213.79,830.883 L1838.59,830.883 C1865.76,830.883 1887.78,808.857 1887.78,781.686 L1887.78,776.766 C1887.78,749.596 1865.76,727.57 1838.59,727.57 Z" id="Path" fill="#000000" fill-rule="nonzero"></path>
