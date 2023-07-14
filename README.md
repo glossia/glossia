@@ -11,3 +11,7 @@ Glossia application powered by Elixir & Phoenix.
 1. Clone the repository: `git clone git@github.com:glossia/app.git`
 2. Install the dependencies: `mix deps.get`
 3. Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+
+### Useful commands
+
+- Open a remote console with production: `flyctl ssh console --pty -C "/app/bin/glossia remote"`
