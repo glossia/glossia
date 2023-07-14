@@ -2,13 +2,15 @@ defmodule Glossia.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Glossia.Accounts.{Account}
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
 
-    belongs_to :account, Account
+    belongs_to :account, Account, on_replace: :raise
 
     timestamps()
   end
@@ -38,7 +40,7 @@ defmodule Glossia.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password, :account_id])
+    |> cast(attrs, [:email, :password])
     |> validate_email(opts)
     |> validate_password(opts)
   end

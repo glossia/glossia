@@ -6,7 +6,7 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{User, UserToken, UserNotifier}
+  alias Glossia.Accounts.{User, Account, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -75,9 +75,28 @@ defmodule Glossia.Accounts do
 
   """
   def register_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
+    registration_changeset = %User{} |> User.registration_changeset(attrs)
+
+    {email, existing_user} =
+      case registration_changeset |> Ecto.Changeset.get_change(:email) do
+        nil -> {nil, nil}
+        email -> {email, Repo.get_by(User, email: email) |> Repo.preload(:account)}
+      end
+
+    registration_changeset =
+      case {email, existing_user} do
+        {nil, _} ->
+          registration_changeset
+
+        {email, nil} ->
+          handle = email |> String.split("@") |> hd
+          registration_changeset |> Ecto.Changeset.put_assoc(:account, %Account{handle: handle})
+
+        _ ->
+          registration_changeset
+      end
+
+    registration_changeset |> Repo.insert()
   end
 
   @doc """
