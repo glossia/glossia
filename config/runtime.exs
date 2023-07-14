@@ -1,4 +1,7 @@
 import Config
+import Dotenvy
+
+source(["#{config_env()}.env", "#{config_env()}.override.env", ".env", System.get_env()])
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -113,3 +116,25 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+  client_id: System.get_env("GITHUB_APP_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_APP_CLIENT_SECRET")
+
+config :glossia, GlossiaWeb.Endpoint,
+  live_view: [
+    signing_salt:
+      env!(
+        "LIVE_VIEW_SIGNING_SALT",
+        :string,
+        "Eq/DO4cJ5lnv1Ykf5wW9+k4q/jJl9/bV0EJV/ZIJVlJoavWu7w7Yl6Y8jmPEK2Ks"
+      )
+  ]
+
+config :glossia, GlossiaWeb.Endpoint,
+  secret_key_base:
+    env!(
+      "SECRET_KEY_BASE",
+      :string,
+      "Wsi8PTaGsZV1pYCP/AfGtpByH12WDCofgiFVGDfk7iMCWUN5mwSgkSBYrQNIOdZ7"
+    )

@@ -7,7 +7,7 @@ defmodule GlossiaWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_glossia_key",
-    signing_salt: System.get_env("SESSION_COOKIE_SIGNING_SALT") || "",
+    signing_salt: "1YJLDOEElsf0Hwky+QOJ74mzTj1xUBstZj+GEMCFCZxpqdnLskZkAUJDCpr/yHqs",
     same_site: "Lax"
   ]
 

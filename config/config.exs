@@ -17,12 +17,7 @@ config :glossia, GlossiaWeb.Endpoint,
     formats: [html: GlossiaWeb.ErrorHTML, json: GlossiaWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Glossia.PubSub,
-  live_view: [
-    signing_salt:
-      System.get_env("LIVE_VIEW_SIGNING_SALT") ||
-        "Eq/DO4cJ5lnv1Ykf5wW9+k4q/jJl9/bV0EJV/ZIJVlJoavWu7w7Yl6Y8jmPEK2Ks"
-  ]
+  pubsub_server: Glossia.PubSub
 
 # Configures the mailer
 #
@@ -78,10 +73,6 @@ config :ueberauth, Ueberauth,
   providers: [
     github: {Ueberauth.Strategy.Github, [default_scope: "user:email"]}
   ]
-
-config :ueberauth, Ueberauth.Strategy.Github.OAuth,
-  client_id: System.get_env("GITHUB_APP_CLIENT_ID"),
-  client_secret: System.get_env("GITHUB_APP_CLIENT_SECRET")
 
 config :glossia, :env, Mix.env()
 
