@@ -1,4 +1,7 @@
 defmodule GlossiaWeb.Telemetry do
+  @moduledoc """
+  A supervisor that runs all the telemetry utilities
+  """
   use Supervisor
   import Telemetry.Metrics
 

@@ -1,4 +1,7 @@
 defmodule Glossia.Accounts.User do
+  @moduledoc """
+  A struct that represents the users table.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

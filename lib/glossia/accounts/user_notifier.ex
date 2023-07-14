@@ -1,4 +1,7 @@
 defmodule Glossia.Accounts.UserNotifier do
+  @moduledoc """
+  A module with utilities to send notifications to the user.
+  """
   import Swoosh.Email
 
   alias Glossia.Mailer

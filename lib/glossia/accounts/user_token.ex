@@ -1,4 +1,8 @@
 defmodule Glossia.Accounts.UserToken do
+  @moduledoc """
+  A model that represents the user_tokens table, which contains tokens
+  associated to a given user.
+  """
   use Ecto.Schema
   import Ecto.Query
   alias Glossia.Accounts.UserToken

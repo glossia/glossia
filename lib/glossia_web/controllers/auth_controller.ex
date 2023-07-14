@@ -17,8 +17,6 @@ defmodule GlossiaWeb.AuthController do
   end
 
   def callback(%{assigns: %{ueberauth_failure: error}} = conn, _params) do
-    dbg(error)
-
     conn
     |> put_flash(:error, "Failed to authenticate.")
     |> redirect(to: "/")

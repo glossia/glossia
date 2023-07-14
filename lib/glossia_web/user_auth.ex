@@ -1,4 +1,7 @@
 defmodule GlossiaWeb.UserAuth do
+  @moduledoc """
+  This module provides utilities for authenticating users.
+  """
   use GlossiaWeb, :verified_routes
 
   import Plug.Conn
