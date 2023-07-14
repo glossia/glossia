@@ -27,10 +27,11 @@ defmodule GlossiaWeb.Router do
   scope "/auth", GlossiaWeb do
     pipe_through [:browser]
 
+    get "/login", AuthController, :login
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
-    delete "/logout", AuthController, :delete
+    delete "/logout", AuthController, :logout
   end
 
   # Other scopes may use custom stacks.

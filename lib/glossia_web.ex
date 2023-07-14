@@ -52,7 +52,7 @@ defmodule GlossiaWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {GlossiaWeb.Layouts, :app}
+        layout: {GlossiaWeb.Layouts, :root}
 
       unquote(html_helpers())
     end

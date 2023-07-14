@@ -443,6 +443,7 @@
             </ul>
           </li>
           <li class="-mx-6 mt-auto">
+            <%= Phoenix.HTML.Link.link("Logout", to: ~p"/auth/logout", method: :delete) %>
             <a
               href="#"
               class="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50"
