@@ -100,3 +100,14 @@ config :glossia, :versions, deno: "1.10.3"
 
 config :tesla, :adapter, {Tesla.Adapter.Finch, name: Glossia.Finch}
 config :oauth2, adapter: {Tesla.Adapter.Finch, name: Glossia.Finch}
+
+config :glossia, :seo_metadata, %{
+  title: "Glossia",
+  description: "AI Localization on Autopilot. Experience localization like never before.",
+  domain: "glossia.ai",
+  base_url: "https://glossia.ai" |> URI.parse(),
+  github_url: "https://github.com/glossia",
+  language: "en-us",
+  twitter_handle: "@glossiaai",
+  author: "Glossia"
+}

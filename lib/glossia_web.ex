@@ -1,11 +1,11 @@
 defmodule GlossiaWeb do
-  use Boundary, deps: [Glossia], exports: [Endpoint, Router, UserAuth]
+  use Boundary, deps: [Glossia], exports: [Endpoint, Router, UserAuth, SEO]
 
   @moduledoc """
   The module that represents the web interface of Glossia
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  def static_paths, do: ~w(assets fonts images favicons robots.txt)
 
   def router do
     quote do
@@ -70,6 +70,8 @@ defmodule GlossiaWeb do
   def marketing_html do
     quote do
       use Phoenix.Component
+
+      use GlossiaWeb.SEO
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
