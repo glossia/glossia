@@ -78,7 +78,7 @@ defmodule Glossia.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind app", "tailwind marketing", "esbuild app", "esbuild marketing"],
       "assets.deploy": [
-        "tailwind aa --minify",
+        "tailwind app --minify",
         "tailwind marketing --minify",
         "esbuild app --minify",
         "esbuild marketing --minify",
