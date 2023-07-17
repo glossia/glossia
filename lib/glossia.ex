@@ -1,5 +1,5 @@
 defmodule Glossia do
-  use Boundary, exports: [Accounts, Accounts.User, Auth, Mailer]
+  use Boundary, exports: [Accounts, Accounts.User, Auth, Mailer, Analytics]
 
   @moduledoc """
   Glossia keeps the contexts that define your domain
