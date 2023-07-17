@@ -1,0 +1,6 @@
+- SEO in marketing pages
+- Blog
+- Add to Google Search console
+- Update URLs
+- Blog
+- RSS

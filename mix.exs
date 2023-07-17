@@ -60,7 +60,10 @@ defmodule Glossia.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:boundary, "~> 0.9", runtime: false},
       {:tentacat, "~> 2.0"},
-      {:posthog, "~> 0.1"}
+      {:posthog, "~> 0.1"},
+      {:nimble_publisher, "~> 0.1.1"},
+      {:makeup_elixir, ">= 0.0.0"},
+      {:makeup_erlang, ">= 0.0.0"}
     ]
   end
 

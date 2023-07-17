@@ -5,7 +5,7 @@ defmodule GlossiaWeb.SEO do
   """
   defmacro __before_compile__(_env) do
     quote do
-      def metadata(_, _), do: %{}
+      def get_seo_metadata(_, _), do: %{}
     end
   end
 
@@ -18,7 +18,7 @@ defmodule GlossiaWeb.SEO do
             assigns: assigns
           }) do
         app_metadata = Application.get_env(:glossia, :seo_metadata)
-        view_metadata = html_view.metadata(action, assigns)
+        view_metadata = html_view.get_seo_metadata(action, assigns)
 
         view_metadata =
           view_metadata
