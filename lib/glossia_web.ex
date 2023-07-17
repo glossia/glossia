@@ -28,7 +28,7 @@ defmodule GlossiaWeb do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json],
-        layouts: [html: GlossiaWeb.Layouts]
+        layouts: [html: GlossiaWeb.AppLayouts]
 
       import Plug.Conn
       import GlossiaWeb.Gettext
@@ -40,7 +40,7 @@ defmodule GlossiaWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {GlossiaWeb.Layouts, :root}
+        layout: {GlossiaWeb.AppLayouts, :root}
 
       unquote(html_helpers(:app))
     end
@@ -76,7 +76,7 @@ defmodule GlossiaWeb do
         only: [get_csrf_token: 0, view_module: 1, view_template: 1]
 
       # Include general helpers for rendering HTML
-      unquote(html_helpers(:app))
+      unquote(html_helpers(:marketing))
     end
   end
 

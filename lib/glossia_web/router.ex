@@ -9,10 +9,29 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, html: {GlossiaWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+  end
+
+  pipeline :app do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug :fetch_current_user
+    plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
+  end
+
+  pipeline :marketing do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug :fetch_current_user
+    plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
   end
 
   pipeline :api do

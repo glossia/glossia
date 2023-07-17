@@ -3,9 +3,13 @@ defmodule GlossiaWeb.HomeController do
 
   def index(conn, _params) do
     if conn.assigns[:current_user] do
-      render(conn, :index_authenticated)
+      conn
+      |> put_root_layout(html: {GlossiaWeb.AppLayouts, :root})
+      |> render(:index_authenticated)
     else
-      conn |> put_root_layout(html: {GlossiaWeb.Layouts, :marketing}) |> render(:index_marketing)
+      conn
+      |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+      |> render(:index_marketing)
     end
   end
 end
