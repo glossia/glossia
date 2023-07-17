@@ -11,7 +11,7 @@ defmodule GlossiaWeb.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_user
+    plug :fetch_and_track_current_user
   end
 
   pipeline :app do
@@ -20,7 +20,7 @@ defmodule GlossiaWeb.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_user
+    plug :fetch_and_track_current_user
     plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
   end
 
@@ -30,7 +30,7 @@ defmodule GlossiaWeb.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_user
+    plug :fetch_and_track_current_user
     plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
   end
 

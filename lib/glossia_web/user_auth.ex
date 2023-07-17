@@ -93,9 +93,14 @@ defmodule GlossiaWeb.UserAuth do
   Authenticates the user by looking into the session
   and remember me token.
   """
-  def fetch_current_user(conn, _opts) do
+  def fetch_and_track_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
     user = user_token && Accounts.get_user_by_session_token(user_token)
+
+    if user do
+      Glossia.Analytics.track_visit(user)
+    end
+
     assign(conn, :current_user, user)
   end
 

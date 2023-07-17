@@ -15,7 +15,3 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
-
-config :posthog,
-  api_url: "<ph_instance_address>",
-  api_key: "<ph_project_api_key>"
