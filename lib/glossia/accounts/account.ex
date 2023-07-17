@@ -1,6 +1,10 @@
 defmodule Glossia.Accounts.Account do
   use Boundary
 
+  @type t :: %__MODULE__{
+          handle: String.t()
+        }
+
   @moduledoc """
   A module that represents the accounts table
   """

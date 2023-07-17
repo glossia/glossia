@@ -1,5 +1,5 @@
 defmodule Glossia.Mailer do
-  use Boundary, deps: [], exports: []
+  use Boundary
 
   @moduledoc """
   A module to deliver emails.

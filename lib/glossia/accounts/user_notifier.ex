@@ -1,4 +1,6 @@
 defmodule Glossia.Accounts.UserNotifier do
+  use Boundary, deps: [Glossia.Mailer]
+
   @moduledoc """
   A module with utilities to send notifications to the user.
   """
