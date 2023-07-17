@@ -1,4 +1,6 @@
 defmodule Glossia.Accounts.Account do
+  use Boundary
+
   @moduledoc """
   A module that represents the accounts table
   """

@@ -35,9 +35,6 @@ defmodule GlossiaWeb.AuthController do
         conn
         |> GlossiaWeb.UserAuth.log_in_user(user)
         |> put_flash(:info, "Successfully authenticated.")
-        |> put_session(:current_user, user)
-        |> configure_session(renew: true)
-        |> redirect(to: "/")
 
       {:error, reason} ->
         conn

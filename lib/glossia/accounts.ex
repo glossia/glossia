@@ -8,9 +8,40 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{User, Account, UserToken, UserNotifier}
+  alias Glossia.Accounts.{User, Account, Credential, UserToken, UserNotifier}
 
   ## Database getters
+
+  @type find_or_create_attrs :: %{
+          provider: Credential.provider(),
+          provider_id: number(),
+          token: String.t(),
+          refresh_token: String.t(),
+          expires_at: number(),
+          user_id: number()
+        }
+  @spec find_and_update_or_create_credential(attrs :: find_or_create_attrs) ::
+          {:ok, Credential.t()} | {:error, Ecto.Changeset.t()}
+  def find_and_update_or_create_credential(attrs) do
+    case Repo.get_by(Credential, provider: attrs.provider, provider_id: attrs.provider_id) do
+      # We create the credentials
+      nil ->
+        %Credential{}
+        |> Credential.create_changeset(%{
+          provider: attrs.provider,
+          provider_id: attrs.provider_id,
+          token: attrs.token,
+          refresh_token: attrs.refresh_token,
+          expires_at: attrs.expires_at |> DateTime.from_unix!(:second),
+          user_id: attrs.user_id
+        })
+        |> Repo.insert()
+
+      # We update the credentials to point to the user
+      %Credential{} = credential ->
+        credential |> Credential.update_user_changeset(%{user_id: attrs.user_id}) |> Repo.update()
+    end
+  end
 
   @doc """
   Gets a user by email.
@@ -26,6 +57,12 @@ defmodule Glossia.Accounts do
   """
   def get_user_by_email(email) when is_binary(email) do
     Repo.get_by(User, email: email) |> Repo.preload(:account)
+  end
+
+  @spec get_credentials_by_provider_and_id(provider :: Credential.provider(), id :: number) ::
+          Credential.t() | nil
+  def get_credentials_by_provider_and_id(provider, id) do
+    Repo.get_by(Credential, provider: provider, provider_id: id)
   end
 
   @doc """

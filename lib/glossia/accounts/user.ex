@@ -1,11 +1,17 @@
 defmodule Glossia.Accounts.User do
+  use Boundary, deps: [Glossia.Accounts.Account, Glossia.Accounts.Credential]
+
+  @type t :: %__MODULE__{
+          email: String.t()
+        }
+
   @moduledoc """
   A struct that represents the users table.
   """
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Glossia.Accounts.{Account}
+  alias Glossia.Accounts.{Account, Credential}
 
   schema "users" do
     field :email, :string
@@ -13,6 +19,7 @@ defmodule Glossia.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
 
+    has_many :credentials, Credential, on_delete: :delete_all
     belongs_to :account, Account, on_replace: :raise
 
     timestamps()
