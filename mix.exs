@@ -59,7 +59,8 @@ defmodule Glossia.MixProject do
       {:exile, "~> 0.6.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:boundary, "~> 0.9", runtime: false},
-      {:tentacat, "~> 2.0"}
+      {:tentacat, "~> 2.0"},
+      {:posthog, "~> 0.1"}
     ]
   end
 

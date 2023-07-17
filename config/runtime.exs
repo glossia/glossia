@@ -115,6 +115,10 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Hackney
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  config :posthog,
+    api_url: env!("POSTHOG_API_URL", :string),
+    api_key: env!("POSTHOG_API_KEY", :string)
 end
 
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
