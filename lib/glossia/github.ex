@@ -4,6 +4,11 @@ defmodule Glossia.Github do
   """
   use Boundary, deps: [], exports: []
 
+  @doc """
+  Given a user session it traverses the installations the user has access
+  to and returns the repositories of those installations.
+  """
+  @spec user_repositories(auth :: Tentacat.Client.auth()) :: [map()]
   def user_repositories(auth) do
     {200, installation_data, _response} = user_installations(auth)
 
@@ -17,11 +22,18 @@ defmodule Glossia.Github do
     end)
   end
 
+  @doc """
+  Given a user session, it returns all the app installations the user has access to.
+  """
   @spec user_installations(auth :: Tentacat.Client.auth()) :: Tentacat.response()
   def user_installations(auth) do
     Tentacat.App.Installations.list_for_user(client(auth))
   end
 
+  @doc """
+  Given a user session and an installation id it returns all the repositories the installation
+  has access to.
+  """
   @spec user_installation_repositories(
           auth :: Tentacat.Client.auth(),
           installation_id :: integer()
@@ -29,11 +41,6 @@ defmodule Glossia.Github do
           Tentacat.response()
   def user_installation_repositories(auth, installation_id) do
     Tentacat.App.Installations.list_repositories_for_user(client(auth), installation_id)
-  end
-
-  @spec repositories(auth :: Tentacat.Client.auth()) :: Tentacat.response()
-  def repositories(auth) do
-    Tentacat.get("/user/repos", client(auth))
   end
 
   @spec client(auth :: Tentacat.Client.auth()) :: Tentacat.Client.t()
