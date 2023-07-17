@@ -79,11 +79,10 @@
     <section class="grid grid-cols-1 items-baseline gap-y-10 gap-6">
       <div class="max-w-xl mx-auto text-center">
         <div>
-          <h2 class="text-5xl font-display text-black">
-            AI Localization on Autopilot. Experience localization like never before.
-          </h2>
+          <h2 class="text-5xl font-display text-black">The True Continuous Localization</h2>
+          <h2 class="text-5xl font-display text-black">powered by AI</h2>
           <p class="xl:text-xl tracking-tight text-black mt-3">
-            Plug your repositories into Glossia, pick your languages, then sit back and relax. Our AI churns out top-notch translations faster than you can say "Lost in Translation", all within a quirky, chat-based playground.
+            Experience localization like never before.
           </p>
         </div>
       </div>
@@ -150,7 +149,17 @@
         of streamlined efficiency!
       </p>
     </div>
-    <ol role="list" class="divide-y-2 mt-16 flex flex-wrap gap-3 mx-auto justify-center"></ol>
+    <ol role="list" class="divide-y-2 mt-16 flex flex-wrap gap-3 mx-auto justify-center">
+      <%= for framework <- frameworks() do %>
+        <li>
+          <a href={framework.url} aria-label={framework.alt}>
+            <span class="text-black items-center shadow-[5px_5px_black] inline-flex px-8 focus:outline-none justify-center text-center bg-white border-black ease-in-out hover:text-white transform transition hover:shadow-none border-2 duration-200 hover:bg-green-300 lg:w-auto py-3 rounded-xl w-full">
+              <img src={"/images/frameworks/" <> framework.image} class="h-8" />
+            </span>
+          </a>
+        </li>
+      <% end %>
+    </ol>
   </div>
 </section>
 <!-- FAQ -->
@@ -166,53 +175,42 @@
         <div class="space-y-6">
           <details class="p-8 border-2 border-black shadow bg-white">
             <summary class="text-2xl tracking-tight text-black focus:text-violet-500 items-center justify-between">
-              How long does it take to learn web development?
+              How is Glossia different from Google Translate?
             </summary>
             <p class="xl:text-2xl tracking-tight text-black pt-6">
-              It depends on your dedication and the amount of time you put into
-              it. Some people can learn the basics in a few weeks, while others
-              may take months or even years to become proficient.
+              While traditional machine translation engines such as Google Translate rely heavily on rule-based or statistical models (although they are integrating Neural Machine Translation and AI), Glossia dances to a different tune. We harness the power of AI for translations, but the true star of the show is how we seamlessly integrate into your software project and streamline the localization process.
             </p>
           </details>
           <details class="p-8 border-2 border-black shadow bg-white">
             <summary class="text-2xl tracking-tight text-black focus:text-violet-500 items-center justify-between">
-              Do I need to know HTML and CSS to become a web developer?
+              Can I trust Glossia with my data?
             </summary>
             <p class="xl:text-2xl tracking-tight text-black pt-6">
-              Yes, HTML and CSS are the building blocks of web development. You
-              should have a good understanding of both to create websites. Q: Do
-              I need to learn JavaScript to be a web dev
+              Absolutely! At Glossia, we don't just respect your data; we treasure it. We're fully GDPR compliant, and we don't store or copy your data to our AI service.
             </p>
           </details>
           <details class="p-8 border-2 border-black shadow bg-white">
             <summary class="text-2xl tracking-tight text-black focus:text-violet-500 items-center justify-between">
-              What are some popular web development frameworks?
+              Will Glossia offer an API?
             </summary>
             <p class="xl:text-2xl tracking-tight text-black pt-6">
-              There are many popular web development frameworks, including
-              React, Angular, and Vue.js. Each has its own advantages and
-              disadvantages, so it's important to choose the one that best fits
-              your needs.
+              Glossia is always evolving, and an API is on our radar. So, stay tuned and don't forget to subscribe to our blog for all the latest updates.
             </p>
           </details>
           <details class="p-8 border-2 border-black shadow bg-white">
             <summary class="text-2xl tracking-tight text-black focus:text-violet-500 items-center justify-between">
-              Can I create a website without using a framework?
+              Do I need a background in software development to use Glossia?
             </summary>
             <p class="xl:text-2xl tracking-tight text-black pt-6">
-              es, it's possible to create a website without using a framework.
-              However, frameworks can make the process faster and more
-              efficient, especially for larger projects.
+              For now, some software development knowledge is necessary to start using Glossia. But don't worry, we're tirelessly working towards simplifying the process. Our vision is to make Glossia so user-friendly that you won't need to be a coding wizard to use it.
             </p>
           </details>
           <details class="p-8 border-2 border-black shadow bg-white">
             <summary class="text-2xl tracking-tight text-black focus:text-violet-500 items-center justify-between">
-              How much can I expect to earn as a web developer?
+              How does Glossia ensure translation quality?
             </summary>
             <p class="xl:text-2xl tracking-tight text-black pt-6">
-              Salaries for web developers vary depending on your experience,
-              location, and skills. However, the average salary for a web
-              developer in the United States is around $75,000 per year.
+              Quality is at the heart of Glossia. Our AI-powered system learns and improves over time, but we also rely on the invaluable human touch and feedback. Glossia believes in a synergy between AI and human translators, ensuring top-notch translation quality while reducing costs and increasing speed.
             </p>
           </details>
         </div>
