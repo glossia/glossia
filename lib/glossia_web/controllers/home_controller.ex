@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.HomeController do
+  use Boundary
+
   use GlossiaWeb, :controller
 
   def index(conn, _params) do
@@ -16,6 +18,8 @@ defmodule GlossiaWeb.HomeController do
 
   def blog(conn, _params) do
     conn
+    |> assign(:posts, Glossia.Blog.all_posts())
+    |> assign(:authors, Glossia.Blog.all_authors())
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
     |> render(:blog)

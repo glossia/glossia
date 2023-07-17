@@ -1,6 +1,6 @@
 %{
   title: "The revolution that the AI industry needs",
-  author: "mjsesalm",
+  author_id: "mjsesalm",
   description: "Download 53 Procreate Brushes from top Flabbergasted creators and take your illustration art to the next level!",
   tags: ~w(hello)
 }
