@@ -9,6 +9,7 @@ defmodule GlossiaWeb.HomeController do
     else
       conn
       |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+      |> put_layout(false)
       |> render(:index_marketing)
     end
   end
