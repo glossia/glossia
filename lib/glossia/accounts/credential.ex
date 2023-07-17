@@ -7,7 +7,7 @@ defmodule Glossia.Accounts.Credential do
   @type provider :: :github
   @type t :: %__MODULE__{
           provider: provider(),
-          provider_id: number(),
+          provider_id: integer(),
           token: String.t(),
           refresh_token: String.t(),
           expires_at: DateTime.t()
@@ -41,7 +41,7 @@ defmodule Glossia.Accounts.Credential do
   end
 
   @type update_user_changeset_attrs :: %{
-          user_id: number()
+          user_id: integer()
         }
   @spec update_user_changeset(credential :: __MODULE__.t(), attrs :: update_user_changeset_attrs) ::
           Ecto.Changeset.t()

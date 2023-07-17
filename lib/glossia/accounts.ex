@@ -14,11 +14,11 @@ defmodule Glossia.Accounts do
 
   @type find_or_create_attrs :: %{
           provider: Credential.provider(),
-          provider_id: number(),
+          provider_id: integer(),
           token: String.t(),
           refresh_token: String.t(),
-          expires_at: number(),
-          user_id: number()
+          expires_at: integer(),
+          user_id: integer()
         }
   @spec find_and_update_or_create_credential(attrs :: find_or_create_attrs) ::
           {:ok, Credential.t()} | {:error, Ecto.Changeset.t()}

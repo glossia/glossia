@@ -58,7 +58,8 @@ defmodule Glossia.MixProject do
       {:ueberauth_github, github: "ueberauth/ueberauth_github", branch: "master"},
       {:exile, "~> 0.6.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:boundary, "~> 0.9", runtime: false}
+      {:boundary, "~> 0.9", runtime: false},
+      {:tentacat, "~> 2.0"}
     ]
   end
 
