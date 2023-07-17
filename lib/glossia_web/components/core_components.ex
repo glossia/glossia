@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.CoreComponents do
+  use Boundary, deps: [GlossiaWeb.Gettext]
+
   @moduledoc """
   Provides core UI components.
 

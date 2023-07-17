@@ -1,4 +1,6 @@
 defmodule GlossiaWeb do
+  use Boundary, deps: [Glossia], exports: [Endpoint, Router, UserAuth, CoreComponents]
+
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, components, channels, and so on.

@@ -1,4 +1,6 @@
 defmodule Glossia.Release do
+  use Boundary, deps: [], exports: []
+
   @moduledoc """
   Used for executing DB release tasks when run in production without Mix
   installed.

@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.Gettext do
+  use Boundary
+
   @moduledoc """
   A module providing Internationalization with a gettext-based API.
 

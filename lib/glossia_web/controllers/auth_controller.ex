@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.AuthController do
+  use Boundary, deps: [Glossia, GlossiaWeb]
+
   use GlossiaWeb, :controller
   plug Ueberauth
 
@@ -21,7 +23,7 @@ defmodule GlossiaWeb.AuthController do
     |> halt()
   end
 
-  def callback(%{assigns: %{ueberauth_failure: error}} = conn, _params) do
+  def callback(%{assigns: %{ueberauth_failure: _error}} = conn, _params) do
     conn
     |> put_flash(:error, "Failed to authenticate.")
     |> redirect(to: "/")

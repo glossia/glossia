@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.UserRegistrationLive do
+  use Boundary, deps: [Glossia, GlossiaWeb]
+
   use GlossiaWeb, :live_view
 
   alias Glossia.Accounts
