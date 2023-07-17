@@ -1,5 +1,5 @@
 defmodule GlossiaWeb.ProjectHTML do
-  use GlossiaWeb, :html
+  use GlossiaWeb, :app_html
 
   embed_templates "project_html/*"
 end

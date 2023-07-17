@@ -1,22 +1,8 @@
 defmodule GlossiaWeb do
-  use Boundary, deps: [Glossia], exports: [Endpoint, Router, UserAuth, CoreComponents]
+  use Boundary, deps: [Glossia], exports: [Endpoint, Router, UserAuth]
 
   @moduledoc """
-  The entrypoint for defining your web interface, such
-  as controllers, components, channels, and so on.
-
-  This can be used in your application as:
-
-      use GlossiaWeb, :controller
-      use GlossiaWeb, :html
-
-  The definitions below will be executed for every controller,
-  component, etc, so keep them short and clean, focused
-  on imports, uses and aliases.
-
-  Do NOT define functions inside the quoted expressions
-  below. Instead, define additional modules and import
-  those modules here.
+  The module that represents the web interface of Glossia
   """
 
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
@@ -56,7 +42,7 @@ defmodule GlossiaWeb do
       use Phoenix.LiveView,
         layout: {GlossiaWeb.Layouts, :root}
 
-      unquote(html_helpers())
+      unquote(html_helpers(:app))
     end
   end
 
@@ -64,11 +50,11 @@ defmodule GlossiaWeb do
     quote do
       use Phoenix.LiveComponent
 
-      unquote(html_helpers())
+      unquote(html_helpers(:app))
     end
   end
 
-  def html do
+  def app_html do
     quote do
       use Phoenix.Component
 
@@ -77,16 +63,37 @@ defmodule GlossiaWeb do
         only: [get_csrf_token: 0, view_module: 1, view_template: 1]
 
       # Include general helpers for rendering HTML
-      unquote(html_helpers())
+      unquote(html_helpers(:app))
     end
   end
 
-  defp html_helpers do
+  def marketing_html do
+    quote do
+      use Phoenix.Component
+
+      # Import convenience functions from controllers
+      import Phoenix.Controller,
+        only: [get_csrf_token: 0, view_module: 1, view_template: 1]
+
+      # Include general helpers for rendering HTML
+      unquote(html_helpers(:app))
+    end
+  end
+
+  defp html_helpers(surface) do
+    components_import_ast =
+      case surface do
+        :app -> quote(do: import(GlossiaWeb.AppComponents))
+        :marketing -> quote(do: import(GlossiaWeb.MarketingComponents))
+        _ -> nil
+      end
+
     quote do
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
-      import GlossiaWeb.CoreComponents
+
+      unquote(components_import_ast)
+
       import GlossiaWeb.Gettext
 
       # Shortcut for generating JS commands

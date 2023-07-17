@@ -11,13 +11,13 @@ msgstr ""
 "Language: es_ES\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/glossia_web/components/core_components.ex:504
+#: lib/glossia_web/components/app_components.ex:504
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
 
-#: lib/glossia_web/components/core_components.ex:76
-#: lib/glossia_web/components/core_components.ex:128
+#: lib/glossia_web/components/app_components.ex:76
+#: lib/glossia_web/components/app_components.ex:128
 #, elixir-autogen, elixir-format
 msgid "close"
 msgstr ""

@@ -24,8 +24,10 @@ config :glossia, GlossiaWeb.Endpoint,
   code_reloader: true,
   debug_errors: true,
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    esbuild_app: {Esbuild, :install_and_run, [:app, ~w(--sourcemap=inline --watch)]},
+    esbuild_marketing: {Esbuild, :install_and_run, [:marketing, ~w(--sourcemap=inline --watch)]},
+    tailwind_app: {Tailwind, :install_and_run, [:app, ~w(--watch)]},
+    tailwind_marketing: {Tailwind, :install_and_run, [:marketing, ~w(--watch)]}
   ]
 
 # ## SSL Support

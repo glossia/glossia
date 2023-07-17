@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  class="scroll-smooth selection:bg-black selection:text-lila-500 no-touchevents hydrated"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <link phx-track-static rel="stylesheet" href={~p"/assets/marketing.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/marketing.js"}>
+    </script>
+  </head>
+  <body class="border-x-2 border-black bg-white">
+    <main class="h-full">
+      <.flash_group flash={@flash} />
+      <%= @inner_content %>
+    </main>
+  </body>
+</html>

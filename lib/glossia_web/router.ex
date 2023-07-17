@@ -3,6 +3,8 @@ defmodule GlossiaWeb.Router do
 
   import GlossiaWeb.UserAuth
 
+  # Pipelines
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -17,10 +19,12 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_authenticated_user]
+  # Routes
 
-    get "/", PageController, :home
+  scope "/", GlossiaWeb do
+    pipe_through [:browser]
+
+    get "/", HomeController, :index
     resources "/projects", ProjectController, only: [:new]
   end
 
@@ -33,11 +37,6 @@ defmodule GlossiaWeb.Router do
     post "/:provider/callback", AuthController, :callback
     delete "/logout", AuthController, :logout
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", GlossiaWeb do
-  #   pipe_through :api
-  # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:glossia, :dev_routes) do
@@ -53,44 +52,6 @@ defmodule GlossiaWeb.Router do
 
       live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-  end
-
-  ## Authentication routes
-
-  scope "/", GlossiaWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
-
-    live_session :redirect_if_user_is_authenticated,
-      on_mount: [{GlossiaWeb.UserAuth, :redirect_if_user_is_authenticated}] do
-      live "/users/register", UserRegistrationLive, :new
-      live "/users/log_in", UserLoginLive, :new
-      live "/users/reset_password", UserForgotPasswordLive, :new
-      live "/users/reset_password/:token", UserResetPasswordLive, :edit
-    end
-
-    post "/users/log_in", UserSessionController, :create
-  end
-
-  scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    live_session :require_authenticated_user,
-      on_mount: [{GlossiaWeb.UserAuth, :ensure_authenticated}] do
-      live "/users/settings", UserSettingsLive, :edit
-      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-    end
-  end
-
-  scope "/", GlossiaWeb do
-    pipe_through [:browser]
-
-    delete "/users/log_out", UserSessionController, :delete
-
-    live_session :current_user,
-      on_mount: [{GlossiaWeb.UserAuth, :mount_current_user}] do
-      live "/users/confirm/:token", UserConfirmationLive, :edit
-      live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
   end
 end

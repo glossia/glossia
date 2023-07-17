@@ -1,5 +1,5 @@
 defmodule GlossiaWeb.ErrorHTML do
-  use GlossiaWeb, :html
+  use GlossiaWeb, :app_html
 
   # If you want to customize your error pages,
   # uncomment the embed_templates/1 call below

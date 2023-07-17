@@ -1,4 +1,7 @@
 defmodule Glossia.VCS do
+  @moduledoc """
+  It provides utilities for interacting with version control systems.
+  """
   use Boundary, deps: [Glossia.Repo], exports: []
 
   alias Glossia.{Repo}

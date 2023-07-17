@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.CoreComponents do
+defmodule GlossiaWeb.AppComponents do
   use Boundary, deps: [GlossiaWeb.Gettext]
 
   @moduledoc """
