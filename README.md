@@ -1,8 +1,8 @@
-# App
+# Glossia
 
-[![App](https://github.com/glossia/app/actions/workflows/app.yml/badge.svg)](https://github.com/glossia/app/actions/workflows/app.yml)
+[![Glossia](https://github.com/glossia/app/actions/workflows/glossia.yml/badge.svg)](https://github.com/glossia/app/actions/workflows/glossia.yml)
 
-Glossia application powered by Elixir & Phoenix.
+Glossia's monolith repository.
 
 ## Development
 
