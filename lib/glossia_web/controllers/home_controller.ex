@@ -13,4 +13,25 @@ defmodule GlossiaWeb.HomeController do
       |> render(:index_marketing)
     end
   end
+
+  def blog(conn, _params) do
+    conn
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:blog)
+  end
+
+  def beta(conn, _params) do
+    conn
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:beta)
+  end
+
+  def beta_added(conn, _params) do
+    conn
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:beta_added)
+  end
 end

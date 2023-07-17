@@ -44,6 +44,9 @@ defmodule GlossiaWeb.Router do
     pipe_through [:browser]
 
     get "/", HomeController, :index
+    get "/blog", HomeController, :blog
+    get "/beta", HomeController, :beta
+    get "/beta-added", HomeController, :beta_added
     resources "/projects", ProjectController, only: [:new]
   end
 
