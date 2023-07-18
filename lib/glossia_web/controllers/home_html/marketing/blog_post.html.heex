@@ -1,14 +1,14 @@
 <section>
   <div class="py-[5.75rem] 2xl:max-w-7xl mx-auto 2xl:border-x-2 border-b-2 border-black">
     <div class="relative px-8 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-[48rem] prose-2xl prose prose-h3:lg:text-6xl text-black prose-h3:text-black prose-a:font-semibold prose-a:text-violet-600 hover:prose-a:text-black prose-img:border-2 prose-img:border-black prose-img:shadow">
+      <div class="mx-auto max-w-[48rem] prose-lg prose prose-h3:lg:text-6xl text-black prose-h3:text-black prose-a:font-semibold prose-a:text-violet-600 hover:prose-a:text-black prose-img:border-2 prose-img:border-black prose-img:shadow">
         <div class="my-10 flex-col-reverse items-start inline-flex lg:items-center justify-between w-full lg:flex-row">
           <div><%= @post.date |> Timex.from_now() |> String.capitalize() %></div>
           <div>
             Written by: <a href={@author.linkedin_url}><%= @author.name %></a>
           </div>
         </div>
-        <h1 class="font-display"><em><%= @post.title %></em></h1>
+        <h1 class="font-display break-words"><em><%= @post.title %></em></h1>
         <p><em><%= @post.description %></em></p>
         <div class="not-prose flex flex-wrap space-x-3">
           <%= for tag <- @post.tags do %>
