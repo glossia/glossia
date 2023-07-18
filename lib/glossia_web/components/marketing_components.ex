@@ -28,6 +28,7 @@ defmodule GlossiaWeb.MarketingComponents do
           >
             <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
+                x-bind:class="{'hidden': open, 'inline-flex': !open }"
                 class="inline-flex"
                 d="M4 6h16M4 12h16M4 18h16"
                 stroke-linecap="round"
@@ -36,6 +37,7 @@ defmodule GlossiaWeb.MarketingComponents do
               >
               </path>
               <path
+                x-bind:class="{'hidden': !open, 'inline-flex': open }"
                 class="hidden"
                 d="M6 18L18 6M6 6l12 12"
                 stroke-linecap="round"
@@ -46,7 +48,10 @@ defmodule GlossiaWeb.MarketingComponents do
             </svg>
           </button>
         </div>
-        <nav class="flex-col items-center flex-grow hidden md:flex md:flex-row md:justify-start md:mt-0 lg:p-0 py-2 md:py-0 md:px-0 md:pb-0 px-5">
+        <nav
+          x-bind:class="{'flex': open, 'hidden': !open}"
+          class="flex-col items-center flex-grow hidden md:flex md:flex-row md:justify-start md:mt-0 lg:p-0 py-2 md:py-0 md:px-0 md:pb-0 px-5"
+        >
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition md:ml-8 lg:ml-16 2xl:ml-0"
             href="/"

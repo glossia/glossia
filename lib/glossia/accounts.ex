@@ -8,6 +8,14 @@ defmodule Glossia.Accounts do
 
   alias Glossia.Accounts.{User, Account, Organization, Credential, UserToken}
 
+  # @type find_or_create_organization_attrs :: %{
+  #         handle: String.t(),
+  #         owner_id: integer()
+  #       }
+  # @spec find_or_create_account(attrs :: map()) :: Account.t()
+  # def find_or_create_organization(attrs) do
+  # end
+
   def find_and_update_or_create_credential(attrs) do
     case Repo.get_by(Credential, provider: attrs.provider, provider_id: attrs.provider_id) do
       # We create the credentials
