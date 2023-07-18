@@ -8,6 +8,7 @@ defmodule Glossia.Accounts.Account do
         }
 
   use Ecto.Schema
+  import Ecto.Changeset
   alias Glossia.Projects.Project
 
   schema "accounts" do
@@ -15,5 +16,16 @@ defmodule Glossia.Accounts.Account do
 
     has_many(:projects, Project)
     timestamps()
+  end
+
+  @type create_account_changeset_attrs :: %{
+          handle: String.t()
+        }
+  @spec create_acccount_changeset(attrs :: create_account_changeset_attrs()) :: Ecto.Changeset.t()
+  def create_acccount_changeset(attrs) do
+    %__MODULE__{}
+    |> cast(attrs, [:handle])
+    |> validate_required([:handle])
+    |> unique_constraint(:handle)
   end
 end

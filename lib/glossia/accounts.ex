@@ -6,7 +6,7 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{User, Account, Credential, UserToken}
+  alias Glossia.Accounts.{User, Account, Organization, Credential, UserToken}
 
   def find_and_update_or_create_credential(attrs) do
     case Repo.get_by(Credential, provider: attrs.provider, provider_id: attrs.provider_id) do
@@ -56,6 +56,10 @@ defmodule Glossia.Accounts do
       end
 
     registration_changeset |> Repo.insert()
+  end
+
+  def register_organization(attrs) do
+    Repo.insert(Organization.create_organization_changeset(attrs))
   end
 
   def change_user_password(user, attrs \\ %{}) do

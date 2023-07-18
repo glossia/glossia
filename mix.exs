@@ -62,7 +62,8 @@ defmodule Glossia.MixProject do
       {:nimble_publisher, "~> 0.1.1"},
       {:makeup_elixir, "~> 0.16.0"},
       {:makeup_erlang, "~> 0.1.0"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
     ]
   end
 
