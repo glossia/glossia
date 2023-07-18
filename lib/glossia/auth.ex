@@ -7,9 +7,7 @@ defmodule Glossia.Auth do
 
   alias Ueberauth.Auth
   alias Glossia.Accounts
-  alias Glossia.Accounts.{User}
 
-  @spec update_credential(user :: User.t(), auth :: Ueberauth.Auth.t()) :: User.t()
   defp update_credential(user, auth) do
     {:ok, _} =
       Accounts.find_and_update_or_create_credential(%{
@@ -56,34 +54,4 @@ defmodule Glossia.Auth do
   def email_from_auth(auth) do
     auth.info.email
   end
-
-  defp name_from_auth(auth) do
-    if auth.info.name do
-      auth.info.name
-    else
-      name =
-        [auth.info.first_name, auth.info.last_name]
-        |> Enum.filter(&(&1 != nil and &1 != ""))
-
-      if Enum.empty?(name) do
-        auth.info.nickname
-      else
-        Enum.join(name, " ")
-      end
-    end
-  end
-
-  defp validate_pass(%{other: %{password: nil}}) do
-    {:error, "Password required"}
-  end
-
-  defp validate_pass(%{other: %{password: pw, password_confirmation: pw}}) do
-    :ok
-  end
-
-  defp validate_pass(%{other: %{password: _}}) do
-    {:error, "Passwords do not match"}
-  end
-
-  defp validate_pass(_), do: {:error, "Password Required"}
 end
