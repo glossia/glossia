@@ -12,6 +12,7 @@ module.exports = {
     "../lib/glossia_web/controllers/home_html/beta.html.heex",
     "../lib/glossia_web/controllers/home_html/beta_added.html.heex",
     "../lib/glossia_web/controllers/home_html/blog.html.heex",
+    "../lib/glossia_web/controllers/home_html/blog_post.html.heex",
   ],
   theme: {
     fontSize: {

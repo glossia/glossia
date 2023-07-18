@@ -15,8 +15,8 @@ defmodule Glossia.Blog do
   @posts Enum.sort_by(@posts, & &1.date, {:desc, Date})
   @tags @posts |> Enum.flat_map(& &1.tags) |> Enum.uniq() |> Enum.sort()
 
-  @external_resource Path.relative_to_cwd("priv/blog/authors.json")
-  @authors File.read!("priv/blog/authors.json")
+  @authors "priv/blog/authors.json"
+           |> File.read!()
            |> Jason.decode!(keys: :atoms)
            |> Enum.map(fn {key, value} -> struct!(Author, Map.put(value, :id, key)) end)
 

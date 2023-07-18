@@ -1,6 +1,4 @@
 defmodule GlossiaWeb.HomeController do
-  use Boundary
-
   use GlossiaWeb, :controller
 
   def index(conn, _params) do
@@ -23,6 +21,21 @@ defmodule GlossiaWeb.HomeController do
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
     |> render(:blog)
+  end
+
+  def blog_post(%{request_path: slug} = conn, _params) do
+    post = Glossia.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
+
+    author =
+      Glossia.Blog.all_authors()
+      |> Enum.find(&(&1.id == String.to_atom(post.author_id)))
+
+    conn
+    |> assign(:post, post)
+    |> assign(:author, author)
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:blog_post)
   end
 
   def beta(conn, _params) do

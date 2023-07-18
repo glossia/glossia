@@ -45,6 +45,7 @@ defmodule GlossiaWeb.Router do
 
     get "/", HomeController, :index
     get "/blog", HomeController, :blog
+    get "/blog/posts/:year/:month/:day/:id", HomeController, :blog_post
     get "/beta", HomeController, :beta
     get "/beta-added", HomeController, :beta_added
     resources "/projects", ProjectController, only: [:new]
