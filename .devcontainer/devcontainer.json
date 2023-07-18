@@ -3,6 +3,13 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "elixir",
 	"workspaceFolder": "/workspace",
+    "postAttachCommand": "mix phx.server",
+	"portsAttributes": {
+        "4000": {
+            "label": "Application",
+            "onAutoForward": "openPreview"
+        }
+    },
 
 	// Configure tool-specific properties.
 	"customizations": {
