@@ -8,11 +8,7 @@ module.exports = {
     "../js/**/*.js",
     "../lib/glossia_web/components/marketing_components*",
     "../lib/glossia_web/components/marketing_layouts/*",
-    "../lib/glossia_web/controllers/home_html/index_marketing.html.heex",
-    "../lib/glossia_web/controllers/home_html/beta.html.heex",
-    "../lib/glossia_web/controllers/home_html/beta_added.html.heex",
-    "../lib/glossia_web/controllers/home_html/blog.html.heex",
-    "../lib/glossia_web/controllers/home_html/blog_post.html.heex",
+    "../lib/glossia_web/controllers/home_html/marketing/*",
   ],
   theme: {
     fontSize: {

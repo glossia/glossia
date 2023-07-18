@@ -5,7 +5,7 @@ defmodule GlossiaWeb.HomeController do
     if conn.assigns[:current_user] do
       conn
       |> put_root_layout(html: {GlossiaWeb.AppLayouts, :root})
-      |> render(:index_authenticated)
+      |> render(:index_app)
     else
       conn
       |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
@@ -20,7 +20,7 @@ defmodule GlossiaWeb.HomeController do
     |> assign(:authors, Glossia.Blog.all_authors())
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:blog)
+    |> render(:blog_marketing)
   end
 
   def blog_post(%{request_path: slug} = conn, _params) do
@@ -35,20 +35,20 @@ defmodule GlossiaWeb.HomeController do
     |> assign(:author, author)
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:blog_post)
+    |> render(:blog_post_marketing)
   end
 
   def beta(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:beta)
+    |> render(:beta_marketing)
   end
 
   def beta_added(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:beta_added)
+    |> render(:beta_added_marketing)
   end
 end
