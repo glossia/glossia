@@ -1,7 +1,7 @@
 %{
   title: "Understanding Localization in Business: The Secret Sauce to Global Success",
   author_id: "mjsesalm",
-  description: "xxxxx",
+  description: "Boost global success with localization: your ticket to winning the worldwide audience with Glossia's AI magic!",
   tags: ["Global Business", "International Markets", "User Experience", "Cultural Sensitivity"]
 }
 ---
