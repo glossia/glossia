@@ -1,6 +1,4 @@
 defmodule Glossia.Vm.Runner do
-  use Boundary, deps: [], exports: []
-
   @moduledoc """
   This module provides utilities for running the runner executable using Docker in development
   and a virtualization solution by cloud providers in the case of production.

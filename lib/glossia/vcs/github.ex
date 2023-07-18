@@ -2,7 +2,6 @@ defmodule Glossia.VCS.Github do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
-  use Boundary, deps: [], exports: []
 
   @doc """
   Given a user session it traverses the installations the user has access

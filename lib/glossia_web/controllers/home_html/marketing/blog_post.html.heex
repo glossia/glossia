@@ -1,10 +1,3 @@
-<section
-  aria-labelledby="post"
-  id="post"
-  class="mx-auto 2xl:max-w-7xl bg-violet-300 border-b-2 2xl:border-x-2 border-black"
->
-  <img class="h-[56vh] w-full object-contain" />
-</section>
 <section>
   <div class="py-[5.75rem] 2xl:max-w-7xl mx-auto 2xl:border-x-2 border-b-2 border-black">
     <div class="relative px-8 sm:px-6 lg:px-8">
@@ -12,7 +5,7 @@
         <div class="inline-flex items-center justify-between w-full">
           <p><%= @post.date |> Timex.from_now() %></p>
           <p>
-            Written by: <%= @author.name %>
+            Written by: <a href={@author.linkedin_url}><%= @author.name %></a>
           </p>
         </div>
         <h1 class="font-display"><em><%= @post.title %></em></h1>
@@ -20,7 +13,7 @@
         <div class="not-prose flex flex-wrap space-x-3">
           <%= for tag <- @post.tags do %>
             <span class="inline-flex items-center  ">
-              <div class="text-lila-900 hover:text-black duration-200">
+              <div class="text-lila-900 duration-200">
                 <%= tag %>
               </div>
             </span>

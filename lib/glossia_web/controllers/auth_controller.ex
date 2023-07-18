@@ -1,6 +1,4 @@
 defmodule GlossiaWeb.AuthController do
-  use Boundary, deps: [Glossia, GlossiaWeb]
-
   use GlossiaWeb, :controller
   plug Ueberauth
 

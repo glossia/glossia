@@ -1,13 +1,10 @@
 defmodule GlossiaWeb.MarketingComponents do
-  use Boundary, deps: [GlossiaWeb.SEO]
-
   use GlossiaWeb, :verified_routes
   use GlossiaWeb.SEO
 
   @moduledoc """
   It provides marketing components
   """
-  use Boundary, deps: [GlossiaWeb.Gettext]
 
   use Phoenix.Component
 

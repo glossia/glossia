@@ -2,7 +2,6 @@ defmodule Glossia.Blog do
   @moduledoc """
   A module that loads Markdown-writen blog posts at compile-time.
   """
-  use Boundary, deps: [], exports: []
 
   alias Glossia.Blog.{Post, Author}
 

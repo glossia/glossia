@@ -1,6 +1,4 @@
 defmodule Glossia.Application do
-  use Boundary, top_level?: true, deps: [Glossia, GlossiaWeb]
-
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false

@@ -3,7 +3,6 @@ defmodule Glossia.Blog.Post do
   A struct that represents a blog post.
   Posts are loaded and serialized at compile-time by `Glossia.Blog`.
   """
-  use Boundary, deps: [], exports: []
 
   @type t :: %__MODULE__{
           slug: String.t(),

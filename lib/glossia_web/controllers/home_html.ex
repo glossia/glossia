@@ -21,6 +21,13 @@ defmodule GlossiaWeb.HomeHTML do
     }
   end
 
+  def get_seo_metadata(:blog_post, %{post: %{title: title, description: description}}) do
+    %{
+      title: title,
+      description: description
+    }
+  end
+
   def get_seo_metadata(:beta_added, _) do
     %{
       title: "Successful Subscription to Glossia Beta Testing!",

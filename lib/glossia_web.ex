@@ -1,6 +1,4 @@
 defmodule GlossiaWeb do
-  use Boundary, deps: [Glossia], exports: [Endpoint, Router, UserAuth, SEO]
-
   @moduledoc """
   The module that represents the web interface of Glossia
   """

@@ -1,6 +1,4 @@
 defmodule GlossiaWeb.Endpoint do
-  use Boundary, deps: [GlossiaWeb]
-
   use Phoenix.Endpoint, otp_app: :glossia
 
   # The session will be stored in the cookie and signed,

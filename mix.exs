@@ -9,8 +9,7 @@ defmodule Glossia.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps(),
-      compilers: [:boundary] ++ Mix.compilers()
+      deps: deps()
     ]
   end
 
@@ -58,7 +57,6 @@ defmodule Glossia.MixProject do
       {:ueberauth_github, github: "ueberauth/ueberauth_github", branch: "master"},
       {:exile, "~> 0.6.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:boundary, "~> 0.9", runtime: false},
       {:tentacat, "~> 2.0"},
       {:posthog, "~> 0.1"},
       {:nimble_publisher, "~> 0.1.1"},

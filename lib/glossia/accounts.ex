@@ -1,6 +1,4 @@
 defmodule Glossia.Accounts do
-  use Boundary, deps: [Glossia.Repo, Glossia.Mailer], exports: [Account, User]
-
   @moduledoc """
   The Accounts context.
   """

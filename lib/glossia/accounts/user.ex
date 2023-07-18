@@ -1,6 +1,4 @@
 defmodule Glossia.Accounts.User do
-  use Boundary, deps: [Glossia.Accounts.Account, Glossia.Accounts.Credential]
-
   @type t :: %__MODULE__{
           email: String.t(),
           password: String.t(),

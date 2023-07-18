@@ -3,7 +3,6 @@ defmodule Glossia.Blog.Author do
   A struct that represents a blog author.
   Authors are loaded and serialized at compile-time by `Glossia.Blog`.
   """
-  use Boundary, deps: [], exports: []
 
   @type t :: %__MODULE__{
           id: String.t(),

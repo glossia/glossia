@@ -1,6 +1,4 @@
 defmodule Glossia.Auth do
-  use Boundary, deps: [Glossia.Accounts], exports: []
-
   @moduledoc """
   Retrieve the user information from an auth request
   """

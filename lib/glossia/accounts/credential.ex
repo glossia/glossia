@@ -1,6 +1,4 @@
 defmodule Glossia.Accounts.Credential do
-  use Boundary, deps: []
-
   alias Glossia.Accounts.{User}
   import Ecto.Changeset
 

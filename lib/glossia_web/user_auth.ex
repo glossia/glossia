@@ -1,6 +1,4 @@
 defmodule GlossiaWeb.UserAuth do
-  use Boundary, deps: [GlossiaWeb]
-
   @moduledoc """
   This module provides utilities for authenticating users.
   """
