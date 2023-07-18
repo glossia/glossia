@@ -16,6 +16,7 @@ defmodule Glossia.Accounts.Organization do
 
   schema "organizations" do
     belongs_to :account, Account
+
     timestamps()
   end
 
