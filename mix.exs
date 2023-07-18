@@ -60,8 +60,8 @@ defmodule Glossia.MixProject do
       {:tentacat, "~> 2.0"},
       {:posthog, "~> 0.1"},
       {:nimble_publisher, "~> 0.1.1"},
-      {:makeup_elixir, ">= 0.0.0"},
-      {:makeup_erlang, ">= 0.0.0"},
+      {:makeup_elixir, "~> 0.16.0"},
+      {:makeup_erlang, "~> 0.1.0"},
       {:timex, "~> 3.0"}
     ]
   end
