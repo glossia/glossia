@@ -9,25 +9,6 @@ defmodule Glossia.Auth do
   alias Glossia.Accounts
   alias Glossia.Accounts.{User}
 
-  def find_or_create(%Auth{provider: :identity} = auth) do
-    case validate_pass(auth.credentials) do
-      :ok ->
-        email = email_from_auth(auth)
-
-        user =
-          case Accounts.get_user_by_email(email) do
-            %User{} = user -> user
-            _ -> Accounts.register_user(%{email: email, password: generate_password()})
-          end
-
-        user = user |> update_credential(auth)
-        {:ok, basic_info(user)}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
   @spec update_credential(user :: User.t(), auth :: Ueberauth.Auth.t()) :: User.t()
   defp update_credential(user, auth) do
     {:ok, _} =
@@ -62,19 +43,6 @@ defmodule Glossia.Auth do
     user = user |> update_credential(auth)
 
     {:ok, basic_info(user)}
-  end
-
-  # github does it this way
-  defp avatar_from_auth(%{info: %{urls: %{avatar_url: image}}}), do: image
-
-  # facebook does it this way
-  defp avatar_from_auth(%{info: %{image: image}}), do: image
-
-  # default case if nothing matches
-  defp avatar_from_auth(auth) do
-    Logger.warning("#{auth.provider} needs to find an avatar URL!")
-    Logger.debug(Jason.encode!(auth))
-    nil
   end
 
   defp basic_info(user) do

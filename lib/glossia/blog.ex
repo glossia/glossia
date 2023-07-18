@@ -3,7 +3,7 @@ defmodule Glossia.Blog do
   A module that loads Markdown-writen blog posts at compile-time.
   """
 
-  alias Glossia.Blog.{Post, Author}
+  alias Glossia.Blog.{Post}
 
   use NimblePublisher,
     build: Post,
@@ -14,17 +14,10 @@ defmodule Glossia.Blog do
   @posts Enum.sort_by(@posts, & &1.date, {:desc, Date})
   @tags @posts |> Enum.flat_map(& &1.tags) |> Enum.uniq() |> Enum.sort()
 
-  @authors "priv/blog/authors.json"
-           |> File.read!()
-           |> Jason.decode!(keys: :atoms)
-           |> Enum.map(fn {key, value} -> struct!(Author, Map.put(value, :id, key)) end)
 
   @spec all_posts() :: [Glossia.Blog.Post.t()]
   def all_posts, do: @posts
 
   @spec all_tags() :: [String.t()]
   def all_tags, do: @tags
-
-  @spec all_authors() :: [Glossia.Blog.Author.t()]
-  def all_authors, do: @authors
 end

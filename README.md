@@ -15,3 +15,4 @@ Glossia's monolith repository.
 ### Useful commands
 
 - Open a remote console with production: `flyctl ssh console --pty -C "/app/bin/glossia remote"`
+- Generate a graph of dependencies: `mix xref graph`

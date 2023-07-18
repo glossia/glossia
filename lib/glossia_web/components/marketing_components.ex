@@ -290,8 +290,7 @@ defmodule GlossiaWeb.MarketingComponents do
   end
 
   defp image(_conn) do
-    # metadata_image = get_metadata(conn)[:image]
-    static_asset_url("/images/avatar.jpeg")
+    static_asset_url("/images/logo.jpg")
   end
 
   defp static_asset_url(path) do
