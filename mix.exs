@@ -56,14 +56,12 @@ defmodule Glossia.MixProject do
       {:dotenvy, "~> 0.8.0"},
       {:ueberauth_github, github: "ueberauth/ueberauth_github", branch: "master"},
       {:exile, "~> 0.6.0"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:tentacat, "~> 2.0"},
       {:posthog, "~> 0.1"},
       {:nimble_publisher, "~> 0.1.1"},
       {:makeup_elixir, "~> 0.16.0"},
       {:makeup_erlang, "~> 0.1.0"},
-      {:timex, "~> 3.0"},
-      {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
+      {:timex, "~> 3.0"}
     ]
   end
 

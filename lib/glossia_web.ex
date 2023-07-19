@@ -85,7 +85,6 @@ defmodule GlossiaWeb do
       case surface do
         :app -> quote(do: import(GlossiaWeb.AppComponents))
         :marketing -> quote(do: import(GlossiaWeb.MarketingComponents))
-        _ -> nil
       end
 
     quote do

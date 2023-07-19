@@ -14,11 +14,22 @@ defmodule GlossiaWeb.SEO do
       @before_compile unquote(__MODULE__)
 
       def get_seo_metadata(%{
-            private: %{phoenix_action: action, phoenix_view: %{"html" => html_view}},
+        private:  %{ phoenix_view: %{ _: html_view}, phoenix_template: template},
+        assigns: assigns
+      } = conn) do
+        get_seo_metata(template, html_view, assigns)
+      end
+
+      def get_seo_metadata(%{
+            private: %{phoenix_action: template, phoenix_view: %{"html" => html_view}},
             assigns: assigns
           }) do
+            get_seo_metata(template, html_view, assigns)
+      end
+
+      def get_seo_metata(template, html_view, assigns) do
         app_metadata = Application.get_env(:glossia, :seo_metadata)
-        view_metadata = html_view.get_seo_metadata(action, assigns)
+        view_metadata = html_view.get_seo_metadata(template, assigns)
 
         view_metadata =
           view_metadata
@@ -28,6 +39,7 @@ defmodule GlossiaWeb.SEO do
 
         Map.merge(app_metadata, view_metadata)
       end
+
     end
   end
 end
