@@ -13,10 +13,12 @@ defmodule GlossiaWeb.SEO do
     quote do
       @before_compile unquote(__MODULE__)
 
-      def get_seo_metadata(%{
-        private:  %{ phoenix_view: %{ _: html_view}, phoenix_template: template},
-        assigns: assigns
-      } = conn) do
+      def get_seo_metadata(
+            %{
+              private: %{phoenix_view: %{_: html_view}, phoenix_template: template},
+              assigns: assigns
+            } = conn
+          ) do
         get_seo_metata(template, html_view, assigns)
       end
 
@@ -24,7 +26,7 @@ defmodule GlossiaWeb.SEO do
             private: %{phoenix_action: template, phoenix_view: %{"html" => html_view}},
             assigns: assigns
           }) do
-            get_seo_metata(template, html_view, assigns)
+        get_seo_metata(template, html_view, assigns)
       end
 
       def get_seo_metata(template, html_view, assigns) do
@@ -39,7 +41,6 @@ defmodule GlossiaWeb.SEO do
 
         Map.merge(app_metadata, view_metadata)
       end
-
     end
   end
 end

@@ -25,7 +25,7 @@ defmodule GlossiaWeb do
   def controller do
     quote do
       use Phoenix.Controller,
-        formats: [:html, :json],
+        formats: [:html, :json, :xml],
         layouts: [html: GlossiaWeb.AppLayouts]
 
       import Plug.Conn
@@ -100,6 +100,17 @@ defmodule GlossiaWeb do
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
+    end
+  end
+
+  def xml do
+    quote do
+      use Phoenix.Component
+
+      import Phoenix.HTML
+
+      # Include general helpers for rendering HTML
+      unquote(html_helpers(:marketing))
     end
   end
 

@@ -65,4 +65,24 @@ defmodule GlossiaWeb.HomeController do
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
     |> render(:about_marketing)
   end
+
+  def feed(conn, _params) do
+    %{title: title, description: description, language: language, base_url: base_url} =
+      Application.fetch_env!(:glossia, :seo_metadata)
+
+    posts = Glossia.Blog.all_posts()
+    last_build_date = posts |> List.first() |> Map.get(:date)
+
+    conn
+    |> put_resp_content_type("text/xml")
+    |> render("feed.xml",
+      layout: false,
+      posts: posts,
+      title: title,
+      description: description,
+      language: language,
+      base_url: base_url,
+      last_build_date: last_build_date
+    )
+  end
 end

@@ -34,6 +34,10 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
   end
 
+  pipeline :rss do
+    plug :accepts, ["xml"]
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -49,6 +53,12 @@ defmodule GlossiaWeb.Router do
     get "/beta-added", HomeController, :beta_added
     get "/blog", HomeController, :blog
     get "/blog/posts/:year/:month/:day/:id", HomeController, :blog_post
+  end
+
+  # RSS
+  scope "/", GlossiaWeb do
+    pipe_through :rss
+    get "/blog/feed.xml", HomeController, :feed
   end
 
   scope "/auth", GlossiaWeb do
