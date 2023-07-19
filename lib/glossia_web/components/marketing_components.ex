@@ -135,6 +135,16 @@ defmodule GlossiaWeb.MarketingComponents do
                         </a>
                       </li>
                       <li>
+                        <a class="text-lg text-black hover:text-lila-400" href={~p"/team"}>
+                          Team
+                        </a>
+                      </li>
+                      <li>
+                        <a class="text-lg text-black hover:text-lila-400" href={~p"/about"}>
+                          About
+                        </a>
+                      </li>
+                      <li>
                         <a
                           class="text-lg text-black hover:text-lila-400"
                           href="https://twitter.com/glossiaai"

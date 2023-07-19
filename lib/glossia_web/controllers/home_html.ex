@@ -36,6 +36,14 @@ defmodule GlossiaWeb.HomeHTML do
     }
   end
 
+  def get_seo_metadata(:team, _) do
+    %{
+      title: "Our Team",
+      description:
+        "Meet the team of innovative minds behind Glossia, the leading AI-powered localization tool transforming how businesses communicate across borders. Our diverse team of experts, dedicated to improving global communication, is committed to making localization more efficient and accurate than ever."
+    }
+  end
+
   def frameworks do
     [
       %{image: "rails.svg", url: "https://rubyonrails.org", alt: "The Ruby on Rails framework"},

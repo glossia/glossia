@@ -38,17 +38,17 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # Routes
-
+  # Marketing pages
   scope "/", GlossiaWeb do
     pipe_through [:browser]
 
     get "/", HomeController, :index
+    get "/beta", HomeController, :beta
+    get "/about", HomeController, :about
+    get "/team", HomeController, :team
+    get "/beta-added", HomeController, :beta_added
     get "/blog", HomeController, :blog
     get "/blog/posts/:year/:month/:day/:id", HomeController, :blog_post
-    get "/beta", HomeController, :beta
-    get "/beta-added", HomeController, :beta_added
-    resources "/projects", ProjectController, only: [:new]
   end
 
   scope "/auth", GlossiaWeb do

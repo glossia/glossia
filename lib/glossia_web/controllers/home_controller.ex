@@ -51,4 +51,18 @@ defmodule GlossiaWeb.HomeController do
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
     |> render(:beta_added_marketing)
   end
+
+  def team(conn, _params) do
+    conn
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:team_marketing)
+  end
+
+  def about(conn, _params) do
+    conn
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:about_marketing)
+  end
 end
