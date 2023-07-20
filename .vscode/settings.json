@@ -6,8 +6,8 @@
     "elixir": "html",
     "phoenix-heex": "html"
   },
-  "deno.enablePaths": ["priv/static/runner"],
-  "deno.config": "priv/static/runner/deno.jsonc",
+  "deno.enablePaths": ["priv/static/builder"],
+  "deno.config": "priv/static/builder/deno.jsonc",
   "deno.enable": true,
   "deno.lint": true,
   "[typescript]": { 

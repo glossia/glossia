@@ -1,6 +1,6 @@
-defmodule Glossia.Vm.Runner do
+defmodule Glossia.Vm.Builder do
   @moduledoc """
-  This module provides utilities for running the runner executable using Docker in development
+  This module provides utilities for running the builder executable using Docker in development
   and a virtualization solution by cloud providers in the case of production.
   """
   require Logger
@@ -19,8 +19,8 @@ defmodule Glossia.Vm.Runner do
     arguments =
       ["/usr/bin/env", "docker", "run"] ++
         ["--init"] ++
-        ["--volume", runner_directory() <> ":" <> "/runner"] ++
-        ["--workdir", "/runner"] ++
+        ["--volume", builder_directory() <> ":" <> "/builder"] ++
+        ["--workdir", "/builder"] ++
         ["--publish", "4000:4000"] ++
         ["--env", "GLOSSIA_URL=" <> "http://127.0.0.1:4000"] ++
         ["denoland/deno:" <> Application.get_env(:glossia, :versions)[:deno]] ++
@@ -37,9 +37,9 @@ defmodule Glossia.Vm.Runner do
       ["--allow-net"]
   end
 
-  def runner_directory() do
+  def builder_directory() do
     app_dir = Application.app_dir(:glossia)
-    Path.join([app_dir, "priv", "static", "runner"])
+    Path.join([app_dir, "priv", "static", "builder"])
   end
 
   def docker_available?() do
