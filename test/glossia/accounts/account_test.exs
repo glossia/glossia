@@ -31,7 +31,7 @@ defmodule Glossia.Accounts.AccountTest do
 
     test "validates the exclussion of the handle" do
       # Given
-      attrs = %{handle: Account.reserved_handles() |> Enum.random()}
+      attrs = %{handle: "about"}
 
       # When
       {:error, changeset} = %Account{} |> Account.changeset(attrs) |> Repo.insert()

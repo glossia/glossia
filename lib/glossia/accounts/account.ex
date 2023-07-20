@@ -31,7 +31,11 @@ defmodule Glossia.Accounts.Account do
     "dev",
     "security-policy",
     "changelog",
-    "releases"
+    "releases",
+    "settings",
+    "mission",
+    "vision",
+    "team"
   ]
 
   @type create_account_changeset_attrs :: %{

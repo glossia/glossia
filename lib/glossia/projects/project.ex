@@ -32,6 +32,9 @@ defmodule Glossia.Projects.Project do
 
   # Changesets
 
+  @doc """
+  It returns the base `Ecto.Changeset` to create and update projects.
+  """
   @type changeset_attrs :: %{
           handle: String.t(),
           repository_id: String.t(),
