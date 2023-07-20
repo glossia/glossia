@@ -6,7 +6,7 @@ defmodule Glossia.AccountsFixtures do
 
   alias Glossia.Accounts.Organization
 
-  def unique_user_email, do: "user#{System.unique_integer([:positive, :monotonic])}@example.com"
+  def unique_user_email, do: "user#{System.unique_integer([:positive])}@example.com"
   def valid_user_password, do: "hello world!"
 
   def valid_user_attributes(attrs \\ %{}) do
@@ -21,7 +21,7 @@ defmodule Glossia.AccountsFixtures do
   creating user or organization accounts.
   """
   @spec unique_handle :: String.t()
-  def unique_handle, do: "#{System.unique_integer([:positive, :monotonic])}"
+  def unique_handle, do: "#{System.unique_integer([:positive])}"
 
   @type organization_fixture_attrs :: %{
           handle: String.t() | nil

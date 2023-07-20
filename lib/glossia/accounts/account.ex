@@ -48,6 +48,7 @@ defmodule Glossia.Accounts.Account do
     |> validate_required([:handle])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_exclusion(:handle, @reserved_handles)
+    |> validate_length(:handle, min: 3, max: 20)
     |> unique_constraint(:handle)
   end
 

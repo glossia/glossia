@@ -52,5 +52,29 @@ defmodule Glossia.Accounts.AccountTest do
       errors = errors_on(changeset)
       assert %{handle: ["must be alphanumeric"]} = errors
     end
+
+    test "validates the handles are at least 3 characters" do
+      # Given
+      attrs = %{handle: "2"}
+
+      # When
+      {:error, changeset} = %Account{} |> Account.changeset(attrs) |> Repo.insert()
+
+      # Then
+      errors = errors_on(changeset)
+      assert %{handle: ["should be at least 3 character(s)"]} = errors
+    end
+
+    test "validates the handles are at most 20 characters" do
+      # Given
+      attrs = %{handle: "asdgasdgasdgasdgasdgasgagsasdgas"}
+
+      # When
+      {:error, changeset} = %Account{} |> Account.changeset(attrs) |> Repo.insert()
+
+      # Then
+      errors = errors_on(changeset)
+      assert %{handle: ["should be at most 20 character(s)"]} = errors
+    end
   end
 end
