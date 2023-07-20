@@ -62,12 +62,6 @@ defmodule GlossiaWeb.Router do
     get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
   end
 
-  scope "/", GlossiaWeb do
-    pipe_through [:browser]
-
-    get "/:account/:project", ProjectController, :show
-  end
-
   # RSS
   scope "/", GlossiaWeb do
     pipe_through :rss
@@ -107,5 +101,11 @@ defmodule GlossiaWeb.Router do
       live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser]
+
+    get "/:account/:project", ProjectController, :show
   end
 end
