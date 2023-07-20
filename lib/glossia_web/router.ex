@@ -80,7 +80,7 @@ defmodule GlossiaWeb.Router do
   scope "/webhooks", GlossiaWeb do
     pipe_through [:webhooks]
 
-    get "/github", WebhookController, :github
+    post "/github", WebhookController, :github
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
