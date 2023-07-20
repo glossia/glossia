@@ -7,6 +7,6 @@ defmodule Glossia.Projects do
   alias Glossia.Projects.Project
 
   def create_project(opts) do
-    Repo.insert(Project.create_changeset(opts))
+    # Project.changeset(%Project{}, %{}) |> Repo.insert()
   end
 end

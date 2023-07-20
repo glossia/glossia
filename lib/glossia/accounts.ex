@@ -56,7 +56,7 @@ defmodule Glossia.Accounts do
       # We create the credentials
       nil ->
         %Credentials{}
-        |> Credentials.create_changeset(%{
+        |> Credentials.changeset(%{
           provider: attrs.provider,
           provider_id: attrs.provider_id,
           token: attrs.token,

@@ -13,6 +13,8 @@ defmodule Glossia.Projects.Project do
   use Ecto.Schema
   import Ecto.Changeset
 
+  # Schema
+
   schema "projects" do
     field :handle, :string
     field :repository_id, :string
@@ -22,8 +24,17 @@ defmodule Glossia.Projects.Project do
     timestamps()
   end
 
-  def create_changeset(attrs) do
-    %__MODULE__{}
+  # Changesets
+
+  @type changeset_attrs :: %{
+          handle: String.t(),
+          repository_id: String.t(),
+          vcs: :github,
+          account_id: integer()
+        }
+  @spec changeset(project :: t(), attrs :: changeset_attrs) :: Ecto.Changeset.t()
+  def changeset(project, attrs) do
+    project
     |> cast(attrs, [:handle, :repository_id, :vcs, :account_id])
     |> validate_required([:handle, :repository_id, :vcs, :account_id])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")

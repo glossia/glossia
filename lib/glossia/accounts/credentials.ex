@@ -28,12 +28,12 @@ defmodule Glossia.Accounts.Credentials do
   end
 
   @doc """
-  It returns an Ecto.Changeset to create a new credential.
+  It returns the default changeset for the credentials table.
   """
-  @spec create_changeset(credential :: __MODULE__.t(), attrs :: map()) ::
+  @spec changeset(credentials :: t(), attrs :: map()) ::
           Ecto.Changeset.t()
-  def create_changeset(credential, attrs) do
-    credential
+  def changeset(credentials, attrs \\ %{}) do
+    credentials
     |> cast(attrs, [:provider, :provider_id, :token, :refresh_token, :expires_at, :user_id])
     |> validate_required([:provider, :provider_id, :token, :refresh_token, :expires_at, :user_id])
   end
@@ -41,7 +41,7 @@ defmodule Glossia.Accounts.Credentials do
   @type update_user_changeset_attrs :: %{
           user_id: integer()
         }
-  @spec update_user_changeset(credential :: __MODULE__.t(), attrs :: update_user_changeset_attrs) ::
+  @spec update_user_changeset(credential :: t(), attrs :: update_user_changeset_attrs) ::
           Ecto.Changeset.t()
   def update_user_changeset(credential, attrs) do
     credential
