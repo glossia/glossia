@@ -42,10 +42,11 @@ defmodule Glossia.Accounts.Account do
 
   """
   @spec changeset(account :: t(), attrs :: create_account_changeset_attrs()) :: Ecto.Changeset.t()
-  def changeset(account \\ %__MODULE__{}, attrs) do
+  def changeset(account, attrs) do
     account
     |> cast(attrs, [:handle])
     |> validate_required([:handle])
+    |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_exclusion(:handle, @reserved_handles)
     |> unique_constraint(:handle)
   end

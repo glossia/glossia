@@ -9,7 +9,7 @@ defmodule Glossia.Accounts.AccountTest do
       attrs = %{}
 
       # When
-      changeset = Account.changeset(attrs)
+      changeset = Account.changeset(%Account{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -19,10 +19,10 @@ defmodule Glossia.Accounts.AccountTest do
     test "validates the uniqueness of handle" do
       # Given
       attrs = %{handle: "glossia"}
-      Account.changeset(attrs) |> Repo.insert!()
+      %Account{} |> Account.changeset(attrs) |> Repo.insert!()
 
       # When
-      {:error, changeset} = Account.changeset(attrs) |> Repo.insert()
+      {:error, changeset} = %Account{} |> Account.changeset(attrs) |> Repo.insert()
 
       # Then
       errors = errors_on(changeset)
@@ -34,11 +34,23 @@ defmodule Glossia.Accounts.AccountTest do
       attrs = %{handle: Account.reserved_handles() |> Enum.random()}
 
       # When
-      {:error, changeset} = Account.changeset(attrs) |> Repo.insert()
+      {:error, changeset} = %Account{} |> Account.changeset(attrs) |> Repo.insert()
 
       # Then
       errors = errors_on(changeset)
       assert %{handle: ["is reserved"]} = errors
+    end
+
+    test "validates the handles are alphanumeric" do
+      # Given
+      attrs = %{handle: "invalid.handle"}
+
+      # When
+      {:error, changeset} = %Account{} |> Account.changeset(attrs) |> Repo.insert()
+
+      # Then
+      errors = errors_on(changeset)
+      assert %{handle: ["must be alphanumeric"]} = errors
     end
   end
 end
