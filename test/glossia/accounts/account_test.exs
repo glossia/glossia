@@ -3,13 +3,13 @@ defmodule Glossia.Accounts.AccountTest do
 
   alias Glossia.Accounts.Account
 
-  describe "create_acccount_changeset" do
+  describe "changeset" do
     test "validates the presence of handle" do
       # Given
       attrs = %{}
 
       # When
-      changeset = Account.create_acccount_changeset(attrs)
+      changeset = Account.changeset(attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -19,10 +19,10 @@ defmodule Glossia.Accounts.AccountTest do
     test "validates the uniqueness of handle" do
       # Given
       attrs = %{handle: "glossia"}
-      Account.create_acccount_changeset(attrs) |> Repo.insert!()
+      Account.changeset(attrs) |> Repo.insert!()
 
       # When
-      {:error, changeset} = Account.create_acccount_changeset(attrs) |> Repo.insert()
+      {:error, changeset} = Account.changeset(attrs) |> Repo.insert()
 
       # Then
       errors = errors_on(changeset)

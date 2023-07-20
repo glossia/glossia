@@ -38,7 +38,7 @@ defmodule Glossia.Accounts do
   def register_organization(attrs) do
     Ecto.Multi.new()
     |> Ecto.Multi.run(:account, fn repo, _changes ->
-      Account.create_acccount_changeset(attrs) |> repo.insert()
+      Account.changeset(%Account{}, attrs) |> repo.insert()
     end)
     |> Ecto.Multi.run(:organization, fn repo, %{account: account} ->
       Organization.create_organization_changeset(%{account_id: account.id})

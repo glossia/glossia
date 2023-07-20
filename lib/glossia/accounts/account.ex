@@ -11,6 +11,8 @@ defmodule Glossia.Accounts.Account do
   import Ecto.Changeset
   alias Glossia.Projects.Project
 
+  # Schema
+
   schema "accounts" do
     field :handle, :string
 
@@ -18,14 +20,41 @@ defmodule Glossia.Accounts.Account do
     timestamps()
   end
 
+  # Changesets
+
+  @reserved_handles [
+    "docs",
+    "about",
+    "terms",
+    "cookies",
+    "blog",
+    "dev",
+    "security-policy",
+    "changelog",
+    "releases"
+  ]
+
   @type create_account_changeset_attrs :: %{
           handle: String.t()
         }
-  @spec create_acccount_changeset(attrs :: create_account_changeset_attrs()) :: Ecto.Changeset.t()
-  def create_acccount_changeset(attrs) do
-    %__MODULE__{}
+
+  @doc """
+
+  """
+  @spec changeset(account :: t(), attrs :: create_account_changeset_attrs()) :: Ecto.Changeset.t()
+  def changeset(account \\ %__MODULE__{}, attrs) do
+    account
     |> cast(attrs, [:handle])
     |> validate_required([:handle])
+    |> validate_exclusion(:handle, @reserved_handles)
     |> unique_constraint(:handle)
+  end
+
+  @doc """
+  Returns a list of handles that are reserved for Glossia.
+  """
+  @spec reserved_handles() :: [String.t()]
+  def reserved_handles do
+    @reserved_handles
   end
 end
