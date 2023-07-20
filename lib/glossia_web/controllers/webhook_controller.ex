@@ -17,7 +17,7 @@ defmodule GlossiaWeb.WebhookController do
   defp verify_github_signature(conn, secret) do
     {:ok, body, conn} = Plug.Conn.read_body(conn)
 
-    {signing_algo, expected_signature} =
+    [signing_algo, expected_signature] =
       conn
       |> Plug.Conn.get_req_header("x-hub-signature")
       |> List.first()
