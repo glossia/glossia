@@ -1,4 +1,4 @@
-defmodule Glossia.Accounts.Credential do
+defmodule Glossia.Accounts.Credentials do
   alias Glossia.Accounts.{User}
   import Ecto.Changeset
 

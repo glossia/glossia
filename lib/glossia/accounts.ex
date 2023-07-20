@@ -6,22 +6,14 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{User, Account, Organization, Credential, UserToken}
-
-  # @type find_or_create_organization_attrs :: %{
-  #         handle: String.t(),
-  #         owner_id: integer()
-  #       }
-  # @spec find_or_create_account(attrs :: map()) :: Account.t()
-  # def find_or_create_organization(attrs) do
-  # end
+  alias Glossia.Accounts.{User, Account, Organization, Credentials, UserToken}
 
   def find_and_update_or_create_credential(attrs) do
-    case Repo.get_by(Credential, provider: attrs.provider, provider_id: attrs.provider_id) do
+    case Repo.get_by(Credentials, provider: attrs.provider, provider_id: attrs.provider_id) do
       # We create the credentials
       nil ->
-        %Credential{}
-        |> Credential.create_changeset(%{
+        %Credentials{}
+        |> Credentials.create_changeset(%{
           provider: attrs.provider,
           provider_id: attrs.provider_id,
           token: attrs.token,
@@ -32,8 +24,10 @@ defmodule Glossia.Accounts do
         |> Repo.insert()
 
       # We update the credentials to point to the user
-      %Credential{} = credential ->
-        credential |> Credential.update_user_changeset(%{user_id: attrs.user_id}) |> Repo.update()
+      %Credentials{} = credential ->
+        credential
+        |> Credentials.update_user_changeset(%{user_id: attrs.user_id})
+        |> Repo.update()
     end
   end
 

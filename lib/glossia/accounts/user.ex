@@ -4,7 +4,7 @@ defmodule Glossia.Accounts.User do
           password: String.t(),
           hashed_password: String.t(),
           confirmed_at: DateTime.t(),
-          credentials: [Credential.t()],
+          credentials: [Credentials.t()],
           account: [Account.t()]
         }
 
@@ -14,7 +14,7 @@ defmodule Glossia.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Glossia.Accounts.{Account, Credential}
+  alias Glossia.Accounts.{Account, Credentials}
 
   schema "users" do
     field :email, :string
