@@ -34,6 +34,10 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
   end
 
+  pipeline :webhooks do
+    plug :accepts, ["json"]
+  end
+
   pipeline :rss do
     plug :accepts, ["xml"]
   end
@@ -42,7 +46,7 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # Marketing pages
+  # Marketing
   scope "/", GlossiaWeb do
     pipe_through [:browser]
 
@@ -61,6 +65,7 @@ defmodule GlossiaWeb.Router do
     get "/blog/feed.xml", MarketingController, :feed
   end
 
+  # Authentication
   scope "/auth", GlossiaWeb do
     pipe_through [:browser]
 
@@ -69,6 +74,13 @@ defmodule GlossiaWeb.Router do
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
     delete "/logout", AuthController, :logout
+  end
+
+  # Webhooks
+  scope "/webhooks", GlossiaWeb do
+    pipe_through [:webhooks]
+
+    get "/github", WebhookController, :github
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
