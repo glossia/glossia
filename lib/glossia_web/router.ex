@@ -46,6 +46,9 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :project do
+  end
+
   # Marketing
   scope "/", GlossiaWeb do
     pipe_through [:browser]
@@ -57,6 +60,12 @@ defmodule GlossiaWeb.Router do
     get "/beta-added", MarketingController, :beta_added
     get "/blog", MarketingController, :blog
     get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser]
+
+    get "/:account/:project", ProjectController, :show
   end
 
   # RSS
