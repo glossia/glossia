@@ -28,5 +28,17 @@ defmodule Glossia.Accounts.AccountTest do
       errors = errors_on(changeset)
       assert %{handle: ["has already been taken"]} = errors
     end
+
+    test "validates the exclussion of the handle" do
+      # Given
+      attrs = %{handle: Account.reserved_handles() |> Enum.random()}
+
+      # When
+      {:error, changeset} = Account.changeset(attrs) |> Repo.insert()
+
+      # Then
+      errors = errors_on(changeset)
+      assert %{handle: ["is reserved"]} = errors
+    end
   end
 end
