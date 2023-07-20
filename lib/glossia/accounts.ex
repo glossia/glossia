@@ -8,6 +8,27 @@ defmodule Glossia.Accounts do
 
   alias Glossia.Accounts.{User, Account, Organization, Credentials, UserToken}
 
+  @type register_organization_attrs :: %{
+          handle: String.t()
+        }
+  @spec register_organization(attrs :: register_organization_attrs()) ::
+          {:ok, Organization.t()} | {:error, :account | :organization, Ecto.Changeset.t()}
+  def register_organization(attrs) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:account, fn repo, _changes ->
+      Account.create_acccount_changeset(attrs) |> repo.insert()
+    end)
+    |> Ecto.Multi.run(:organization, fn repo, %{account: account} ->
+      Organization.create_organization_changeset(%{account_id: account.id})
+      |> repo.insert()
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, organization} -> {:ok, organization}
+      {:error, entity, changeset, _} -> {:error, entity, changeset}
+    end
+  end
+
   def find_and_update_or_create_credential(attrs) do
     case Repo.get_by(Credentials, provider: attrs.provider, provider_id: attrs.provider_id) do
       # We create the credentials

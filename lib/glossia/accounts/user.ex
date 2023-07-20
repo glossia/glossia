@@ -14,7 +14,7 @@ defmodule Glossia.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Glossia.Accounts.{Account, Credentials}
+  alias Glossia.Accounts.{Account, Credentials, Organization}
 
   schema "users" do
     field :email, :string
@@ -24,6 +24,13 @@ defmodule Glossia.Accounts.User do
 
     has_many :credentials, Credential, on_delete: :delete_all
     belongs_to :account, Account, on_replace: :raise
+
+    many_to_many(
+      :organizations,
+      Organization,
+      join_through: "organization_users",
+      on_replace: :delete
+    )
 
     timestamps()
   end

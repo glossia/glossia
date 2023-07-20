@@ -6,14 +6,23 @@ defmodule Glossia.AccountsTest do
   describe "register_organization" do
     test "it registers the organization successfully" do
       # Given
-      attrs = %{account: %{handle: "glossia"}}
+      attrs = %{handle: "glossia"}
 
       # When
-      # {:ok, organization} = Accounts.register_organization(attrs)
+      assert {:ok, organization} = Accounts.register_organization(attrs)
+    end
+
+    test "errors when an organization with the same handle already exists" do
+      # Given
+      attrs = %{handle: "glossia"}
+
+      # When
+      assert {:ok, organization} = Accounts.register_organization(attrs)
+      assert {:error, :account, account_changeset} = Accounts.register_organization(attrs)
 
       # Then
-      # errors = errors_on(changeset)
-      # assert %{account: ["can't be blank"]} = errors
+      errors = errors_on(account_changeset)
+      assert %{handle: ["has already been taken"]} = errors
     end
   end
 end
