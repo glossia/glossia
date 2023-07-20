@@ -8,7 +8,7 @@ module.exports = {
     "../js/**/*.js",
     "../lib/glossia_web/components/marketing_components*",
     "../lib/glossia_web/components/marketing_layouts/*",
-    "../lib/glossia_web/controllers/home_html/marketing/*",
+    "../lib/glossia_web/controllers/marketing_html/marketing/*",
     "../lib/glossia_web/controllers/error_html/*",
   ],
   theme: {

@@ -1,9 +1,9 @@
-defmodule GlossiaWeb.HomeHTML do
+defmodule GlossiaWeb.MarketingHTML do
   use GlossiaWeb, :app_html
   use GlossiaWeb, :marketing_html
 
-  embed_templates "home_html/app/*", suffix: "_app"
-  embed_templates "home_html/marketing/*", suffix: "_marketing"
+  embed_templates "marketing_html/app/*", suffix: "_app"
+  embed_templates "marketing_html/marketing/*", suffix: "_marketing"
 
   def get_seo_metadata(:beta, _) do
     %{

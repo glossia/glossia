@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.HomeController do
+defmodule GlossiaWeb.MarketingController do
   use GlossiaWeb, :controller
 
   def index(conn, _params) do

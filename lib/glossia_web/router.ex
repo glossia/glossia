@@ -46,19 +46,19 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through [:browser]
 
-    get "/", HomeController, :index
-    get "/beta", HomeController, :beta
-    get "/about", HomeController, :about
-    get "/team", HomeController, :team
-    get "/beta-added", HomeController, :beta_added
-    get "/blog", HomeController, :blog
-    get "/blog/posts/:year/:month/:day/:id", HomeController, :blog_post
+    get "/", MarketingController, :index
+    get "/beta", MarketingController, :beta
+    get "/about", MarketingController, :about
+    get "/team", MarketingController, :team
+    get "/beta-added", MarketingController, :beta_added
+    get "/blog", MarketingController, :blog
+    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
   end
 
   # RSS
   scope "/", GlossiaWeb do
     pipe_through :rss
-    get "/blog/feed.xml", HomeController, :feed
+    get "/blog/feed.xml", MarketingController, :feed
   end
 
   scope "/auth", GlossiaWeb do

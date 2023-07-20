@@ -1,7 +1,7 @@
-defmodule GlossiaWeb.HomeXML do
+defmodule GlossiaWeb.MarketingXML do
   use GlossiaWeb, :xml
 
-  embed_templates "home_xml/*"
+  embed_templates "marketing_xml/*"
 
   use Timex
 
