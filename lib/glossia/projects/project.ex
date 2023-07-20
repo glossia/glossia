@@ -9,9 +9,11 @@ defmodule Glossia.Projects.Project do
           handle: String.t(),
           account: Account.t() | nil,
           repository_id: String.t(),
-          vcs: :github
+          vcs: vcs(),
+          visibility: visibility()
         }
   @type vcs :: :github
+  @type visibility :: :public | :private
 
   # Module dependencies
 
@@ -25,6 +27,7 @@ defmodule Glossia.Projects.Project do
     field :handle, :string
     field :repository_id, :string
     field :vcs, Ecto.Enum, values: [{:github, 1}]
+    field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
 
     timestamps()
@@ -44,8 +47,8 @@ defmodule Glossia.Projects.Project do
   @spec changeset(project :: t(), attrs :: changeset_attrs) :: Ecto.Changeset.t()
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:handle, :repository_id, :vcs, :account_id])
-    |> validate_required([:handle, :repository_id, :vcs, :account_id])
+    |> cast(attrs, [:handle, :repository_id, :vcs, :account_id, :visibility])
+    |> validate_required([:handle, :repository_id, :vcs, :account_id, :visibility])
     |> validate_inclusion(:vcs, [:github])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
