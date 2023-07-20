@@ -23,6 +23,10 @@ defmodule GlossiaWeb.WebhookController do
       |> List.first()
       |> String.split("=")
 
+    secret = to_string(secret)
+    body = to_string(body)
+    expected_signature = to_string(expected_signature)
+
     case signing_algo do
       "sha1" ->
         computed_signature =
