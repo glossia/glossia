@@ -4,6 +4,8 @@ defmodule Glossia.AccountsFixtures do
   entities via the `Glossia.Accounts` context.
   """
 
+  alias Glossia.Accounts.Organization
+
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
 
@@ -12,6 +14,26 @@ defmodule Glossia.AccountsFixtures do
       email: unique_user_email(),
       password: valid_user_password()
     })
+  end
+
+  @doc """
+  It returns a unique identifier that can be used as a handle when
+  creating user or organization accounts.
+  """
+  @spec unique_handle :: String.t()
+  def unique_handle, do: "#{System.unique_integer()}"
+
+  @type organization_fixture_attrs :: %{
+          handle: String.t() | nil
+        }
+  @spec organization_fixture(attrs :: organization_fixture_attrs) ::
+          Organization.t()
+  def organization_fixture(attrs \\ %{}) do
+    {:ok, organization} =
+      Enum.into(attrs, %{handle: unique_handle()})
+      |> Glossia.Accounts.register_organization()
+
+    organization
   end
 
   def user_fixture(attrs \\ %{}) do

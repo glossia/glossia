@@ -9,21 +9,24 @@ defmodule Glossia.Accounts.OrganizationUser do
           organization: Organization.t(),
           user: User.t()
         }
+  @type(role :: :admin, :user)
 
   # Schema
 
   schema "organization_users" do
-    field :role, Ecto.Enum, values: [admin: 1]
+    field :role, Ecto.Enum, values: [{:admin, 1}, {:user, 2}]
     belongs_to :organization, Organization, primary_key: true
     belongs_to :user, User, primary_key: true
+
+    timestamps()
   end
 
   # Changesets
 
   @required_fields ~w(user_id organization_id role)a
-  def changeset(user_project, params \\ %{}) do
-    user_project
-    |> cast(params, @required_fields)
+  def changeset(organization_user, attrs \\ %{}) do
+    organization_user
+    |> cast(attrs, @required_fields)
     |> validate_required(@required_fields)
     |> foreign_key_constraint(:organization_id)
     |> foreign_key_constraint(:user_id)

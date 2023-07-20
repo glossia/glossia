@@ -6,7 +6,29 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{User, Account, Organization, Credentials, UserToken}
+  alias Glossia.Accounts.{User, Account, Organization, OrganizationUser, Credentials, UserToken}
+
+  @doc """
+  It makes the given user an admin of the given organization.
+  """
+  @spec add_user_to_organization(
+          user_id :: integer(),
+          organization_id :: integer(),
+          role :: OrganizationUser.role()
+        ) ::
+          {:ok, OrganizationUser.t()} | {:error, Ecto.Changeset.t()}
+  def add_user_to_organization(user_id, organization_id, role) do
+    OrganizationUser.changeset(%OrganizationUser{}, %{
+      user_id: user_id,
+      organization_id: organization_id,
+      role: role
+    })
+    |> Repo.insert()
+  end
+
+  @doc """
+  It registers a new organization with the given handle.
+  """
 
   @type register_organization_attrs :: %{
           handle: String.t()
@@ -24,7 +46,7 @@ defmodule Glossia.Accounts do
     end)
     |> Repo.transaction()
     |> case do
-      {:ok, organization} -> {:ok, organization}
+      {:ok, %{organization: organization, account: _}} -> {:ok, organization}
       {:error, entity, changeset, _} -> {:error, entity, changeset}
     end
   end
@@ -79,10 +101,6 @@ defmodule Glossia.Accounts do
       end
 
     registration_changeset |> Repo.insert()
-  end
-
-  def register_organization(attrs) do
-    Repo.insert(Organization.create_organization_changeset(attrs))
   end
 
   def change_user_password(user, attrs \\ %{}) do

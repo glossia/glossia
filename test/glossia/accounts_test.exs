@@ -9,7 +9,7 @@ defmodule Glossia.AccountsTest do
       attrs = %{handle: "glossia"}
 
       # When
-      assert {:ok, organization} = Accounts.register_organization(attrs)
+      assert {:ok, _} = Accounts.register_organization(attrs)
     end
 
     test "errors when an organization with the same handle already exists" do
@@ -17,12 +17,34 @@ defmodule Glossia.AccountsTest do
       attrs = %{handle: "glossia"}
 
       # When
-      assert {:ok, organization} = Accounts.register_organization(attrs)
+      assert {:ok, _} = Accounts.register_organization(attrs)
       assert {:error, :account, account_changeset} = Accounts.register_organization(attrs)
 
       # Then
       errors = errors_on(account_changeset)
       assert %{handle: ["has already been taken"]} = errors
+    end
+  end
+
+  describe "add_user_to_organization" do
+    test "makes a user admin of the organization" do
+      # Given
+      organization = Glossia.AccountsFixtures.organization_fixture()
+      user = Glossia.AccountsFixtures.user_fixture()
+
+      # When
+      assert {:ok, _} =
+               Glossia.Accounts.add_user_to_organization(user.id, organization.id, :admin)
+    end
+
+    test "makes a user member of the organization" do
+      # Given
+      organization = Glossia.AccountsFixtures.organization_fixture()
+      user = Glossia.AccountsFixtures.user_fixture()
+
+      # When
+      assert {:ok, _} =
+               Glossia.Accounts.add_user_to_organization(user.id, organization.id, :user)
     end
   end
 end

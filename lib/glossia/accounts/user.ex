@@ -22,7 +22,7 @@ defmodule Glossia.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
 
-    has_many :credentials, Credential, on_delete: :delete_all
+    has_many :credentials, Credentials, on_delete: :delete_all
     belongs_to :account, Account, on_replace: :raise
 
     many_to_many(
