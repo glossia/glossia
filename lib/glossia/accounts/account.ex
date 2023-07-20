@@ -35,7 +35,16 @@ defmodule Glossia.Accounts.Account do
     "settings",
     "mission",
     "vision",
-    "team"
+    "team",
+    "organizations",
+    "projects",
+    "api",
+    "pricing",
+    "support",
+    "contact",
+    "status",
+    "security",
+    "privacy"
   ]
 
   @type create_account_changeset_attrs :: %{
