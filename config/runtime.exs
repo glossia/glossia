@@ -119,6 +119,12 @@ if config_env() == :prod do
   config :posthog,
     api_url: env!("POSTHOG_API_URL", :string),
     api_key: env!("POSTHOG_API_KEY", :string)
+
+  config :appsignal, :config,
+    otp_app: :glossia,
+    name: "glossia",
+    push_api_key: env!("APP_SIGNAL_PUSH_API_KEY", :string),
+    env: :prod
 end
 
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
