@@ -22,9 +22,7 @@ defmodule Glossia.VCS.Github.WebhookProcessor do
 
     with repository_id <- payload |> get_in(["repository", "full_name"]),
          installation_id <- payload |> get_in(["installation", "id"]),
-         commit_sha <- payload |> get_in(["after"]),
-         {:project, %Glossia.Projects.Project{} = project} <-
-           {:project, Glossia.Projects.find_project_by_repository(repository_id, :github)} do
+         commit_sha <- payload |> get_in(["after"]) do
       installation_id
       |> Glossia.VCS.Github.get_client_for_installation()
       |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
