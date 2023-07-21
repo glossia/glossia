@@ -6,7 +6,8 @@ defmodule Glossia.VCS.Github.WebhookProcessor do
   """
   @spec process_webhook(event :: String.t(), payload :: map()) :: nil
   def process_webhook(event, payload) do
-    Logger.debug("Processing GitHub webhook: #{event}")
+    Logger.info("Processing GitHub webhook: #{event}")
+    Logger.info("GitHub Payload: #{inspect(payload)}")
 
     case event do
       "push" ->
@@ -18,7 +19,7 @@ defmodule Glossia.VCS.Github.WebhookProcessor do
   end
 
   defp process_push_webhook(payload) do
-    Logger.debug("Processing the push event")
+    Logger.info("Processing the push event")
 
     with repository_id <- payload |> get_in(["repository", "full_name"]),
          installation_id <- payload |> get_in(["installation", "id"]),
