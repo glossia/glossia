@@ -62,7 +62,7 @@ defmodule Glossia.MixProject do
       {:makeup_elixir, "~> 0.16.0"},
       {:makeup_erlang, "~> 0.1.0"},
       {:timex, "~> 3.0"},
-      {:joken, "~> 2.5.0"},
+      {:joken, "~> 2.6.0"},
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"}
     ]
