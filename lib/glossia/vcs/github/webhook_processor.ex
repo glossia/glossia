@@ -25,12 +25,15 @@ defmodule Glossia.VCS.Github.WebhookProcessor do
          commit_sha <- payload |> get_in(["after"]) do
       Logger.info("Creating state for repository #{repository_id} and commit #{commit_sha}")
 
-      installation_id
-      |> Glossia.VCS.Github.get_client_for_installation()
-      |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
-        state: "pending",
-        description: "Translating"
-      })
+      {200, _, _} =
+        installation_id
+        |> Glossia.VCS.Github.get_client_for_installation()
+        |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
+          state: "pending",
+          target_url: "https://glossia.ai",
+          context: "translation",
+          description: "Translating"
+        })
     else
       {:project, nil} ->
         # Non-existing project
