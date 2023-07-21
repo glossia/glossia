@@ -17,10 +17,7 @@ defmodule GlossiaWeb.ErrorHTML do
   # The default is to render a plain text page based on
   # the template name. For example, "404.html" becomes
   # "Not Found".
-  def render(template, assigns) do
-    assigns =
-      assigns |> assign(:error_message, Phoenix.Controller.status_message_from_template(template))
-
+  def render(_template, assigns) do
     ~H"""
     <section>
       <div class="items-center flex h-screen justify-center">
@@ -28,7 +25,7 @@ defmodule GlossiaWeb.ErrorHTML do
           <div class="2xl:max-w-7xl mx-auto">
             <div class="text-center">
               <h1 class="text-4xl sm:text-6xl mx-auto font-bold text-black tracking-widest md:tracking-normal uppercase md:text-7xl lg:text-9xl xl:text-13xl">
-                <%= @message %>
+                <%= error_message("#{@reason.plug_status}") %>
               </h1>
               <div class="flex-col flex gap-3 mt-10 sm:flex-row justify-center">
                 <a
@@ -44,5 +41,9 @@ defmodule GlossiaWeb.ErrorHTML do
       </div>
     </section>
     """
+  end
+
+  def error_message(template) do
+    Phoenix.Controller.status_message_from_template(template)
   end
 end
