@@ -10,12 +10,13 @@ defmodule Glossia.VCS.Github do
           attrs :: %{
             state: String.t(),
             target_url: String.t() | nil,
+            description: String.t() | nil,
             context: String.t() | nil
           }
         ) ::
           Tentacat.response()
   def create_commit_status(client, repository_id, commit_sha, attrs) do
-    Tentacat.post("/repos/#{repository_id}/statuses/#{commit_sha}", client, attrs)
+    Tentacat.post("repos/#{repository_id}/statuses/#{commit_sha}", client, attrs)
   end
 
   @doc """
