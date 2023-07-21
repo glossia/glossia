@@ -31,7 +31,7 @@ defmodule Glossia.VCS.Github.WebhookProcessor do
         |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
           state: "pending",
           target_url: "https://glossia.ai",
-          context: "translation",
+          context: "Glossia / Translating",
           description: "Translating"
         })
     else
