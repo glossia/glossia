@@ -3,7 +3,7 @@ defmodule GlossiaWeb do
   The module that represents the web interface of Glossia
   """
 
-  def static_paths, do: ~w(assets fonts images favicons robots.txt)
+  def static_paths, do: ~w(assets fonts images schemas favicons robots.txt)
 
   def router do
     quote do
