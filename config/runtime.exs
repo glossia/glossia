@@ -123,8 +123,9 @@ end
 
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
-  client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, ""),
-  webhooks_secret: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, "")
+  client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, "")
+
+config :glossia, :secrets, github_webhooks: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, "")
 
 config :glossia, GlossiaWeb.Endpoint,
   live_view: [

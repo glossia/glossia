@@ -63,7 +63,7 @@ defmodule Glossia.VCS.Github do
   defp signature_from_req_headers(req_headers) do
     case List.keyfind(req_headers, "x-hub-signature", 0) do
       {"x-hub-signature", full_signature} ->
-        "sha256=" <> signature = full_signature
+        "sha1=" <> signature = full_signature
         signature
 
       _ ->
@@ -86,10 +86,10 @@ defmodule Glossia.VCS.Github do
   end
 
   defp generate_payload_signature(payload, app_secret) do
-    {:ok, :crypto.mac(:hmac, :sha256, app_secret, payload) |> Base.encode16(case: :lower)}
+    {:ok, :crypto.mac(:hmac, :sha, app_secret, payload) |> Base.encode16(case: :lower)}
   end
 
   defp webhook_secret do
-    Application.get_env(:glossia, Ueberauth.Strategy.Github.OAuth)[:webhooks_secret]
+    Application.get_env(:glossia, :secrets)[:github_webhooks]
   end
 end

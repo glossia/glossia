@@ -16,7 +16,7 @@ config :glossia, GlossiaWeb.Endpoint,
   render_errors: [
     formats: [html: GlossiaWeb.ErrorHTML, json: GlossiaWeb.ErrorJSON],
     root_layout: [html: {GlossiaWeb.MarketingLayouts, :root}],
-    layout: [html: {GlossiaWeb.MarketingLayouts, :base}]
+    layout: [html: {GlossiaWeb.MarketingLayouts, :error}]
   ],
   pubsub_server: Glossia.PubSub
 
