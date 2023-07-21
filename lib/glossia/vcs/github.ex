@@ -3,6 +3,21 @@ defmodule Glossia.VCS.Github do
   An interface to interact with GitHub's API.
   """
 
+  @spec create_commit_status(
+          client :: Tentacat.Client.t(),
+          repository_id :: integer(),
+          commit_sha :: String.t(),
+          attrs :: %{
+            state: String.t(),
+            target_url: String.t() | nil,
+            context: String.t() | nil
+          }
+        ) ::
+          Tentacat.response()
+  def create_commit_status(client, repository_id, commit_sha, attrs) do
+    Tentacat.post("/repos/#{repository_id}/statuses/#{commit_sha}", client, attrs)
+  end
+
   @doc """
   Given a user session it traverses the installations the user has access
   to and returns the repositories of those installations.
@@ -24,9 +39,9 @@ defmodule Glossia.VCS.Github do
   @doc """
   Given a user session, it returns all the app installations the user has access to.
   """
-  @spec user_installations(auth :: Tentacat.Client.auth()) :: Tentacat.response()
-  def user_installations(auth) do
-    Tentacat.App.Installations.list_for_user(client(auth))
+  @spec user_installations(client :: Tentacat.Client.t()) :: Tentacat.response()
+  def user_installations(client) do
+    Tentacat.App.Installations.list_for_user(client)
   end
 
   @doc """
@@ -34,12 +49,12 @@ defmodule Glossia.VCS.Github do
   has access to.
   """
   @spec user_installation_repositories(
-          auth :: Tentacat.Client.auth(),
+          client :: Tentacat.Client.t(),
           installation_id :: integer()
         ) ::
           Tentacat.response()
-  def user_installation_repositories(auth, installation_id) do
-    Tentacat.App.Installations.list_repositories_for_user(client(auth), installation_id)
+  def user_installation_repositories(client, installation_id) do
+    Tentacat.App.Installations.list_repositories_for_user(client, installation_id)
   end
 
   @doc """
@@ -63,9 +78,35 @@ defmodule Glossia.VCS.Github do
     Glossia.VCS.Github.WebhookProcessor.process_webhook(event, payload)
   end
 
-  @spec client(auth :: Tentacat.Client.auth()) :: Tentacat.Client.t()
-  defp client(auth) do
-    Tentacat.Client.new(auth)
+  @spec get_client_for_installation(
+          installation_id :: integer(),
+          app_jwk_token :: String.t() | nil
+        ) ::
+          Tentacat.Client.t()
+  def get_client_for_installation(installation_id, app_jwk_token \\ nil) do
+    app_jwt_token = app_jwk_token || Glossia.VCS.Github.AppToken.generate_and_sign!()
+
+    {201, %{"token" => access_token}, _} =
+      Tentacat.Client.new(%{jwt: app_jwt_token})
+      |> Tentacat.App.Installations.token(installation_id)
+
+    %{access_token: access_token} |> Tentacat.Client.new()
+  end
+
+  def get_client_for_repository(repository_id) do
+    app_jwt_token = Glossia.VCS.Github.AppToken.generate_and_sign!()
+
+    Tentacat.get(
+      "repos/#{repository_id}/installation",
+      Tentacat.Client.new(%{jwt: app_jwt_token})
+    )
+    |> case do
+      {200, %{"id" => installation_id}, _} ->
+        get_client_for_installation(installation_id, app_jwt_token)
+
+      {404, %{}, _} ->
+        nil
+    end
   end
 
   defp signature_from_req_headers(req_headers) do

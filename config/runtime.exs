@@ -126,6 +126,13 @@ config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, "")
 
 config :glossia, :secrets, github_webhooks: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, "")
+config :glossia, :secrets, github_app_id: env!("GITHUB_APP_ID", :string, "")
+
+config :joken,
+  github: [
+    signer_alg: "RS256",
+    key_pem: env!("GITHUB_APP_PRIVATE_KEY_BASE_64", :string, "") |> Base.decode64!()
+  ]
 
 config :glossia, GlossiaWeb.Endpoint,
   live_view: [
