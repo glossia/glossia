@@ -12,6 +12,11 @@ defmodule GlossiaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_and_track_current_user
+
+    plug Plug.Parsers,
+      parsers: [:urlencoded, :multipart, :json],
+      pass: ["*/*"],
+      json_decoder: Phoenix.json_library()
   end
 
   pipeline :app do
@@ -22,6 +27,11 @@ defmodule GlossiaWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_and_track_current_user
     plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
+
+    plug Plug.Parsers,
+      parsers: [:urlencoded, :multipart, :json],
+      pass: ["*/*"],
+      json_decoder: Phoenix.json_library()
   end
 
   pipeline :marketing do
@@ -32,10 +42,19 @@ defmodule GlossiaWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_and_track_current_user
     plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
+
+    plug Plug.Parsers,
+      parsers: [:urlencoded, :multipart, :json],
+      pass: ["*/*"],
+      json_decoder: Phoenix.json_library()
   end
 
   pipeline :webhooks do
     plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.RawBodyPassthrough, length: 4_000_000
+    # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
+    # as it relies on the `:raw_body` being inside the `conn.assigns`.
+    plug GlossiaWeb.Plugs.RequirePayloadSignatureMatch
   end
 
   pipeline :rss do
