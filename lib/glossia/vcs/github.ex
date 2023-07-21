@@ -55,6 +55,14 @@ defmodule Glossia.VCS.Github do
     end
   end
 
+  @doc """
+  It processes a webhook sent by GitHub.
+  """
+  @spec process_webhook(event :: String.t(), payload :: map()) :: nil
+  def process_webhook(event, payload) do
+    Glossia.VCS.Github.WebhookProcessor.process_webhook(event, payload)
+  end
+
   @spec client(auth :: Tentacat.Client.auth()) :: Tentacat.Client.t()
   defp client(auth) do
     Tentacat.Client.new(auth)

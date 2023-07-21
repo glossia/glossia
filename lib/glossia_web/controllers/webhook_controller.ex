@@ -4,6 +4,9 @@ defmodule GlossiaWeb.WebhookController do
   require Logger
 
   def github(conn, _params) do
+    event = conn |> get_req_header("X-GitHub-Event")
+    payload = conn.assigns.raw_body |> Jason.decode!()
+    Glossia.VCS.Github.process_webhook(event, payload)
     json(conn, nil)
   end
 end

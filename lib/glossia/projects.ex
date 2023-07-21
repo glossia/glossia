@@ -9,9 +9,20 @@ defmodule Glossia.Projects do
   @doc """
   Creates a new project with the given attributes.
   """
-  @spec create_project(opts :: Project.changeset_attrs()) ::
-          {:ok, Project.t()} | {:error, Ecto.Changeset.t()}
-  def create_project(opts) do
-    Project.changeset(%Project{}, opts) |> Repo.insert()
+  @spec create_project(attrs :: Project.changeset_attrs()) :: nil
+  def create_project(attrs) do
+    %Project{} |> Project.changeset(attrs) |> Repo.insert()
+  end
+
+  @doc """
+  It finds a repository given the id and the vcs.
+  """
+  @spec find_project_by_repository(
+          repository_id :: String.t(),
+          vcs :: Project.vcs()
+        ) ::
+          Project.t() | nil
+  def find_project_by_repository(repository_id, vcs) do
+    Project.find_by_repository_query(repository_id, vcs) |> Repo.one()
   end
 end
