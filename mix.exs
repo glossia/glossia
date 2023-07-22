@@ -64,7 +64,9 @@ defmodule Glossia.MixProject do
       {:timex, "~> 3.0"},
       {:joken, "~> 2.6.0"},
       {:appsignal, "~> 2.0"},
-      {:appsignal_phoenix, "~> 2.0"}
+      {:appsignal_phoenix, "~> 2.0"},
+      {:plug_attack, "~> 0.4.2"},
+      {:remote_ip, "1.1.0"}
     ]
   end
 

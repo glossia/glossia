@@ -2,6 +2,20 @@ defmodule Glossia.VCS.Github do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
+  @behaviour Glossia.VCS
+
+  @impl true
+  def get_file_content(repository_id, path) do
+    client = get_client_for_repository(repository_id)
+    [owner, repo] = repository_id |> String.split("/")
+
+    case Tentacat.Contents.find(client, owner, repo, path) do
+      {200, content, _} -> {:ok, content}
+      {302, content, _} -> {:ok, content}
+      {403, _, _} -> {:error, :forbidden}
+      {404, _, _} -> {:error, :not_found}
+    end
+  end
 
   @spec create_commit_status(
           client :: Tentacat.Client.t(),

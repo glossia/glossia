@@ -20,7 +20,8 @@ defmodule Glossia.Application do
       GlossiaWeb.Endpoint,
       # Start a worker by calling: Glossia.Worker.start_link(arg)
       # {Glossia.Worker, arg}
-      {Oban, Application.fetch_env!(:glossia, Oban)}
+      {Oban, Application.fetch_env!(:glossia, Oban)},
+      {PlugAttack.Storage.Ets, name: GlossiaWeb.Plugs.Attack.Storage, clean_period: 60_000}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -25,4 +25,7 @@ defmodule Glossia.Projects do
   def find_project_by_repository(repository_id, vcs) do
     Project.find_by_repository_query(repository_id, vcs) |> Repo.one()
   end
+
+  def get_project_configuration() do
+  end
 end

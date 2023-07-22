@@ -1,10 +1,9 @@
 defmodule Glossia.VCS do
   @moduledoc """
-  It provides utilities for interacting with version control systems.
   """
 
-  @spec repositories(user :: Glossia.Accounts.User.t()) :: [map()]
-  def repositories(_user) do
-    []
-  end
+  @callback get_file_content(
+              repository_id :: String.t(),
+              path :: String.t()
+            ) :: {:ok, String.t()} | {:error, atom()}
 end

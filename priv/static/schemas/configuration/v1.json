@@ -4,6 +4,8 @@
   "properties": {
     "languages": {
       "type": "array",
+      "title": "Languages",
+      "description": "The lanuages this project is available in",
       "items": [
         {
           "type": "string"
