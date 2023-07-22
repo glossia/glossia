@@ -105,6 +105,19 @@ config :oauth2, adapter: {Tesla.Adapter.Finch, name: Glossia.Finch}
 config :glossia, :seo_metadata, %{
   title: "Glossia",
   description: "AI Localization on Autopilot. Experience localization like never before.",
+  keywords: [
+    "l10n",
+    "i18n",
+    "openai",
+    "localization",
+    "translation",
+    "ai",
+    "machine translation",
+    "machine learning",
+    "neural machine translation",
+    "llm",
+    "glossia"
+  ],
   domain: "glossia.ai",
   base_url: "https://glossia.ai" |> URI.parse(),
   github_url: "https://github.com/glossia",

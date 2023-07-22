@@ -21,10 +21,11 @@ defmodule GlossiaWeb.MarketingHTML do
     }
   end
 
-  def get_seo_metadata(:blog_post, %{post: %{title: title, description: description}}) do
+  def get_seo_metadata(:blog_post, %{post: %{title: title, description: description, tags: tags}}) do
     %{
       title: title,
-      description: description
+      description: description,
+      keywords: tags
     }
   end
 

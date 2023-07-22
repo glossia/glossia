@@ -263,6 +263,7 @@ defmodule GlossiaWeb.MarketingComponents do
     <meta property="article:published_time" content="2022-09-07T00:00:00+00:00" />
     <meta name="description" content={get_seo_metadata(@conn)[:description]} />
     <meta name="author" content={Application.fetch_env!(:glossia, :seo_metadata).author} />
+    <meta name="keywords" content={get_seo_metadata(@conn)[:keywords] |> Enum.join(",")} />
     <!-- Open graph -->
     <meta property="og:title" content={get_seo_metadata(@conn)[:title]} />
     <meta property="og:description" content={get_seo_metadata(@conn)[:description]} />
