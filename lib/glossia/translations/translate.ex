@@ -6,7 +6,7 @@ defmodule Glossia.Translations.Translate do
 
   # Modules
   require Logger
-  use Oban.Worker, queue: :translations
+  use Oban.Worker, queue: :translations, max_attempts: 1
   alias Glossia.Translations.Translation
   alias Glossia.Repo
 
@@ -54,11 +54,11 @@ defmodule Glossia.Translations.Translate do
   end
 
   defp create_commit_status(
+         description: description,
+         state: state,
          commit_sha: commit_sha,
          repository_id: repository_id,
-         vcs: vcs,
-         state: state,
-         description: description
+         vcs: vcs
        ) do
     Glossia.VCS.create_commit_status(
       vcs: vcs,

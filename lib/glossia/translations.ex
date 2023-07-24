@@ -9,15 +9,15 @@ defmodule Glossia.Translations do
   @moduledoc """
   The `Glossia.Translations` context provides an interface to manage translations.
   """
-  @spec translate(String.t(), String.t(), String.t(), Glossia.VCS.t()) ::
+  @spec translate([
+          {:commit_sha, String.t()},
+          {:repository_id, String.t()},
+          {:vcs, atom()}
+        ]) ::
           {:ok, nil} | {:error, any()}
-  def translate(commit_sha, repository_id, installation_id, vcs) do
-    %{
-      commit_sha: commit_sha,
-      repository_id: repository_id,
-      installation_id: installation_id,
-      vcs: vcs
-    }
+  def translate(attrs) do
+    attrs
+    |> Enum.into(%{})
     |> Translate.new()
     |> Oban.insert()
     |> case do

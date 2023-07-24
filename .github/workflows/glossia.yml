@@ -7,7 +7,7 @@ on:
   pull_request:
 
 concurrency:
-  group: app-${{ github.head_ref }}
+  group: glossia-${{ github.head_ref }}
   cancel-in-progress: true
 
 env:

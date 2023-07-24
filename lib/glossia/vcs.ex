@@ -3,7 +3,6 @@ defmodule Glossia.VCS do
   It provides a standard interface for interacting with version control system providers
   like Github, Gitlab, Bitbucket, etc.
   """
-
   use Boundary, deps: [], exports: []
 
   # Public / Webhooks

@@ -28,7 +28,6 @@ defmodule Glossia.VCS.Github do
       attrs
       |> Keyword.drop([:commit_sha, :repository_id])
       |> Enum.into(%{})
-      |> Map.update(:state, "pending", &Atom.to_string/1)
 
     case Tentacat.post("repos/#{repository_id}/statuses/#{commit_sha}", client, params) do
       {status, _, _} when status in 200..299 ->
@@ -100,7 +99,9 @@ defmodule Glossia.VCS.Github do
     repository_id = payload["repository"]["full_name"]
     commit_sha = payload["after"]
     installation_id = payload["installation"]["id"]
-    {Glossia.Translations, :translate, [commit_sha, repository_id, installation_id, :github]}
+
+    {Glossia.Translations, :translate,
+     [commit_sha: commit_sha, repository_id: repository_id, vcs: :github]}
   end
 
   @impl Glossia.VCS
