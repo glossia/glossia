@@ -20,6 +20,7 @@ defmodule Glossia.Translations.Translate do
           } = args
       }) do
     Logger.info("Creating state for repository #{repository_id} and commit #{commit_sha}")
+    vcs = String.to_atom(vcs)
 
     Glossia.VCS.create_commit_status(commit_sha, repository_id, vcs, %{
       state: "pending",
