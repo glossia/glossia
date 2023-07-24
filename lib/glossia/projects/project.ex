@@ -17,6 +17,7 @@ defmodule Glossia.Projects.Project do
   # Module dependencies
 
   alias Glossia.Accounts.Account
+  alias Glossia.Translations.Translation
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
@@ -29,6 +30,7 @@ defmodule Glossia.Projects.Project do
     field :vcs, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
+    has_many(:translations, Translation)
 
     timestamps()
   end

@@ -9,7 +9,8 @@ defmodule Glossia.Projects do
   @doc """
   Creates a new project with the given attributes.
   """
-  @spec create_project(attrs :: Project.changeset_attrs()) :: nil
+  @spec create_project(attrs :: Project.changeset_attrs()) ::
+          {:ok, Project.t()} | {:error, Ecto.Changeset.t()}
   def create_project(attrs) do
     %Project{} |> Project.changeset(attrs) |> Repo.insert()
   end

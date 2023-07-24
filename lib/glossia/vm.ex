@@ -1,4 +1,6 @@
 defmodule Glossia.Vm do
+  use Boundary, deps: [], exports: []
+
   @moduledoc """
   It provides utilities to interact with virtualized environments where builds run.
   """

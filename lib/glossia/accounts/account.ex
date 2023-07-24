@@ -2,11 +2,14 @@ defmodule Glossia.Accounts.Account do
   @moduledoc """
   A module that represents the accounts table
   """
+
+  # Types
   @type t :: %__MODULE__{
           handle: String.t(),
           projects: [Project.t()] | nil
         }
 
+  # Modules
   use Ecto.Schema
   import Ecto.Changeset
   alias Glossia.Projects.Project

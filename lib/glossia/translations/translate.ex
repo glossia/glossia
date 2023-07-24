@@ -16,35 +16,25 @@ defmodule Glossia.Translations.Translate do
           %{
             "commit_sha" => commit_sha,
             "repository_id" => repository_id,
-            "installation_id" => installation_id,
             "vcs" => vcs
           } = args
       }) do
     Logger.info("Creating state for repository #{repository_id} and commit #{commit_sha}")
 
-    {200, _, _} =
-      installation_id
-      |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
-        state: "pending",
-        target_url: "https://glossia.ai",
-        context: "Glossia / Translating",
-        description: "Translating"
-      })
-
-    Glossia.Vm.run_builder()
-  end
-
-  defp update_state(client, commit_sha, repository_id) do
-    client
-    |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
+    Glossia.VCS.create_commit_status(commit_sha, repository_id, vcs, %{
       state: "pending",
       target_url: "https://glossia.ai",
       context: "Glossia / Translating",
       description: "Translating"
     })
-  end
 
-  defp get_client(installation_id) do
-    installation_id |> Glossia.VCS.Github.get_client_for_installation()
+    Glossia.Vm.run_builder()
+
+    Glossia.VCS.create_commit_status(commit_sha, repository_id, vcs, %{
+      state: "success",
+      target_url: "https://glossia.ai",
+      context: "Glossia / Translating",
+      description: "Translating"
+    })
   end
 end

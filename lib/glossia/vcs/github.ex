@@ -2,50 +2,45 @@ defmodule Glossia.VCS.Github do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
-  @behaviour Glossia.VCS
+  @behaviour Glossia.VCS.Provider
 
-  @impl true
-  def get_file_content(repository_id, path) do
+  @impl Glossia.VCS.Provider
+  def get_file_content(path, repository_id) do
     client = get_client_for_repository(repository_id)
     [owner, repo] = repository_id |> String.split("/")
 
     case Tentacat.Contents.find(client, owner, repo, path) do
-      {200, content, _} -> {:ok, content}
-      {302, content, _} -> {:ok, content}
-      {403, _, _} -> {:error, :forbidden}
-      {404, _, _} -> {:error, :not_found}
+      {status, content, _} when status in 200..299 -> {:ok, content}
+      {_, body, response} -> {:error, body, response}
     end
   end
 
-  @spec create_commit_status(
-          client :: Tentacat.Client.t(),
-          repository_id :: integer(),
-          commit_sha :: String.t(),
-          attrs :: %{
-            state: String.t(),
-            target_url: String.t() | nil,
-            description: String.t() | nil,
-            context: String.t() | nil
-          }
-        ) ::
-          Tentacat.response()
-  def create_commit_status(client, repository_id, commit_sha, attrs) do
-    Tentacat.post("repos/#{repository_id}/statuses/#{commit_sha}", client, attrs)
+  @impl Glossia.VCS.Provider
+  def create_commit_status(commit_sha, repository_id, attrs) do
+    client = get_client_for_repository(repository_id)
+
+    case Tentacat.post("repos/#{repository_id}/statuses/#{commit_sha}", client, attrs) do
+      {status, _, _} when status in 200..299 ->
+        :ok
+
+      {_, body, response} ->
+        {:error, body, response}
+    end
   end
 
   @doc """
   Given a user session it traverses the installations the user has access
   to and returns the repositories of those installations.
   """
-  @spec user_repositories(auth :: Tentacat.Client.auth()) :: [map()]
-  def user_repositories(auth) do
-    {200, installation_data, _response} = user_installations(auth)
+  @spec get_user_repositories(auth :: Tentacat.Client.auth()) :: [map()]
+  def get_user_repositories(auth) do
+    {200, installation_data, _response} = get_user_installations(auth)
 
     installation_data["installations"]
     |> Enum.map(& &1["id"])
     |> Enum.flat_map(fn installation_id ->
       {200, repositories_data, _response} =
-        user_installation_repositories(auth, installation_id)
+        get_user_installation_repositories(auth, installation_id)
 
       repositories_data["repositories"]
     end)
@@ -54,8 +49,8 @@ defmodule Glossia.VCS.Github do
   @doc """
   Given a user session, it returns all the app installations the user has access to.
   """
-  @spec user_installations(client :: Tentacat.Client.t()) :: Tentacat.response()
-  def user_installations(client) do
+  @spec get_user_installations(client :: Tentacat.Client.t()) :: Tentacat.response()
+  def get_user_installations(client) do
     Tentacat.App.Installations.list_for_user(client)
   end
 
@@ -63,12 +58,12 @@ defmodule Glossia.VCS.Github do
   Given a user session and an installation id it returns all the repositories the installation
   has access to.
   """
-  @spec user_installation_repositories(
+  @spec get_user_installation_repositories(
           client :: Tentacat.Client.t(),
           installation_id :: integer()
         ) ::
           Tentacat.response()
-  def user_installation_repositories(client, installation_id) do
+  def get_user_installation_repositories(client, installation_id) do
     Tentacat.App.Installations.list_repositories_for_user(client, installation_id)
   end
 
@@ -89,8 +84,18 @@ defmodule Glossia.VCS.Github do
   It processes a webhook sent by GitHub.
   """
   @impl Glossia.VCS
-  def process_webhook(event, payload) do
-    Glossia.VCS.Github.WebhookProcessor.process_webhook(event, payload)
+  def get_webhook_processor(event, payload) when event == "push" do
+    Logger.info("Processing GitHub webhook: #{event}")
+    repository_id = payload["repository"]["full_name"]
+    commit_sha = payload["after"]
+    installation_id = payload["installation"]["id"]
+    {Glossia.Translations, :translate, [commit_sha, repository_id, installation_id, :github]}
+  end
+
+  @impl Glossia.VCS
+  def get_webhook_processor(event, payload) do
+    Logger.info("Processing an unsupported GitHub webhook event: #{event}")
+    nil
   end
 
   @spec get_client_for_installation(
@@ -108,6 +113,7 @@ defmodule Glossia.VCS.Github do
     %{access_token: access_token} |> Tentacat.Client.new()
   end
 
+  @impl Glossia.VCS
   def get_client_for_repository(repository_id) do
     app_jwt_token = Glossia.VCS.Github.AppToken.generate_and_sign!()
 
