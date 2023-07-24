@@ -1,7 +1,7 @@
 defmodule Glossia.VCS do
   @moduledoc """
   It provides a standard interface for interacting with version control system providers
-  like Github, Gitlab, Bitbucket, etc.
+  like GitHub, Gitlab, Bitbucket, etc.
   """
   use Boundary, deps: [], exports: []
 
@@ -15,7 +15,19 @@ defmodule Glossia.VCS do
   def get_webhook_processor(event, payload, vcs) do
     case vcs do
       :github ->
-        Glossia.VCS.Github.get_webhook_processor(event, payload)
+        Glossia.VCS.GitHub.get_webhook_processor(event, payload)
+    end
+  end
+
+  @spec is_webhook_payload_valid?(
+          req_headers :: Keyword.t(),
+          payload :: map(),
+          vcs :: Glossia.VCS.Provider.t()
+        ) :: boolean()
+  def is_webhook_payload_valid?(req_headers, payload, vcs) do
+    case vcs do
+      :github ->
+        Glossia.VCS.GitHub.is_webhook_payload_valid?(req_headers, payload)
     end
   end
 
@@ -34,7 +46,7 @@ defmodule Glossia.VCS do
   def create_commit_status(attrs) do
     case Keyword.fetch!(attrs, :vcs) do
       :github ->
-        Glossia.VCS.Github.create_commit_status(attrs)
+        Glossia.VCS.GitHub.create_commit_status(attrs)
     end
   end
 end

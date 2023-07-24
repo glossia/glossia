@@ -92,7 +92,7 @@ config :glossia, Oban,
 # Ueberauth
 config :ueberauth, Ueberauth,
   providers: [
-    github: {Ueberauth.Strategy.Github, [default_scope: "user:email"]}
+    github: {Ueberauth.Strategy.GitHub, [default_scope: "user:email"]}
   ]
 
 config :glossia, :env, Mix.env()

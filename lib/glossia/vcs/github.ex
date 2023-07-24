@@ -1,4 +1,4 @@
-defmodule Glossia.VCS.Github do
+defmodule Glossia.VCS.GitHub do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
@@ -116,7 +116,7 @@ defmodule Glossia.VCS.Github do
         ) ::
           Tentacat.Client.t()
   def get_client_for_installation(installation_id, app_jwk_token \\ nil) do
-    app_jwt_token = app_jwk_token || Glossia.VCS.Github.AppToken.generate_and_sign!()
+    app_jwt_token = app_jwk_token || Glossia.VCS.GitHub.AppToken.generate_and_sign!()
 
     {201, %{"token" => access_token}, _} =
       Tentacat.Client.new(%{jwt: app_jwt_token})
@@ -127,7 +127,7 @@ defmodule Glossia.VCS.Github do
 
   @impl Glossia.VCS
   def get_client_for_repository(repository_id) do
-    app_jwt_token = Glossia.VCS.Github.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.VCS.GitHub.AppToken.generate_and_sign!()
 
     Tentacat.get(
       "repos/#{repository_id}/installation",

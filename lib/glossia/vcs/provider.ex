@@ -10,6 +10,11 @@ defmodule Glossia.VCS.Provider do
   """
   @callback get_webhook_processor(event :: String.t(), payload :: map()) :: nil
 
+  @doc """
+  Given the request headers and the payload it validates the payload signature.
+  """
+  @callback is_webhook_payload_valid?(req_headers :: Keyword.t(), payload :: map()) :: boolean()
+
   # Callbacks / APIs
 
   @doc """

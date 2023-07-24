@@ -127,7 +127,7 @@ if config_env() == :prod do
     env: :prod
 end
 
-config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+config :ueberauth, Ueberauth.Strategy.GitHub.OAuth,
   client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
   client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, "")
 
