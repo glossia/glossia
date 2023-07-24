@@ -9,10 +9,9 @@ defmodule Glossia.Projects.Project do
           handle: String.t(),
           account: Account.t() | nil,
           repository_id: String.t(),
-          vcs: vcs(),
+          vcs: Glossia.VCS.t(),
           visibility: visibility()
         }
-  @type vcs :: :github
   @type visibility :: :public | :private
 
   # Module dependencies
@@ -42,7 +41,7 @@ defmodule Glossia.Projects.Project do
   @type changeset_attrs :: %{
           handle: String.t(),
           repository_id: String.t(),
-          vcs: :github,
+          vcs: Glossia.VCS.t(),
           account_id: integer()
         }
   @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()

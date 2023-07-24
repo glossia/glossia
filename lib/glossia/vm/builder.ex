@@ -8,12 +8,17 @@ defmodule Glossia.Vm.Builder do
   @timeout 60 * 3
 
   def run() do
+    if Application.get_env(:glossia, :env) == :prod do
+      run_remotely()
+    else
+      run_locally()
+    end
   end
 
   def run_remotely() do
   end
 
-  def run_locally!() do
+  def run_locally() do
     # Ensures that the default handlers work with the software running in the VM
     # The port in which the application runs in development.
     arguments =
