@@ -30,14 +30,18 @@ defmodule Glossia.Translations.Translate do
       "Translating project #{project.id} for commit #{commit_sha} in repository #{project.repository_id}"
     )
 
-    commit_status_attrs = [commit_sha: commit_sha, repository_id: project.repository_id]
+    commit_status_attrs = [
+      commit_sha: commit_sha,
+      repository_id: project.repository_id,
+      vcs: project.vcs
+    ]
 
     commit_status_attrs
     |> Keyword.put_new(:state, "pending")
     |> Keyword.put_new(:description, "Translating")
     |> create_commit_status()
 
-    Glossia.Vm.run_builder()
+    Glossia.VM.run_builder()
 
     commit_status_attrs
     |> Keyword.put_new(:state, "success")

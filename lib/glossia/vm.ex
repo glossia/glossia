@@ -1,4 +1,4 @@
-defmodule Glossia.Vm do
+defmodule Glossia.VM do
   use Boundary, deps: [], exports: []
 
   @moduledoc """
@@ -7,6 +7,6 @@ defmodule Glossia.Vm do
 
   @spec run_builder() :: any()
   def run_builder() do
-    Glossia.Vm.Builder.run()
+    Glossia.VM.Builder.run()
   end
 end

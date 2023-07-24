@@ -1,5 +1,5 @@
 defmodule Glossia.Translations do
-  use Boundary, deps: [Glossia.Vm, Glossia.VCS, Glossia.Projects], exports: []
+  use Boundary, deps: [Glossia.VM, Glossia.VCS, Glossia.Projects], exports: []
 
   # Modules
   alias Glossia.Translations.Translate
