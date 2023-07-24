@@ -17,7 +17,7 @@ defmodule GlossiaWeb.MarketingController do
   def blog(conn, _params) do
     conn
     |> assign(:posts, Glossia.Blog.all_posts())
-    |> assign(:authors, Glossia.Blog.Authors.all())
+    |> assign(:authors, Glossia.Blog.all_authors())
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
     |> render(:blog_marketing)
@@ -27,7 +27,7 @@ defmodule GlossiaWeb.MarketingController do
     post = Glossia.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
 
     author =
-      Glossia.Blog.Authors.all()
+      Glossia.Blog.all_authors()
       |> Enum.find(&(&1.id == String.to_atom(post.author_id)))
 
     conn

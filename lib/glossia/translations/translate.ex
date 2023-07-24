@@ -34,7 +34,7 @@ defmodule Glossia.Translations.Translate do
     Glossia.Vm.run_builder()
   end
 
-  defp update_state(client, commit_sha) do
+  defp update_state(client, commit_sha, repository_id) do
     client
     |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
       state: "pending",

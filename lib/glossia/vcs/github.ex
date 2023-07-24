@@ -88,7 +88,7 @@ defmodule Glossia.VCS.Github do
   @doc """
   It processes a webhook sent by GitHub.
   """
-  @spec process_webhook(event :: String.t(), payload :: map()) :: nil
+  @impl Glossia.VCS
   def process_webhook(event, payload) do
     Glossia.VCS.Github.WebhookProcessor.process_webhook(event, payload)
   end
