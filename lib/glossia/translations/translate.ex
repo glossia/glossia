@@ -1,4 +1,4 @@
-defmodule Glossia.Translations.TranslateBuild do
+defmodule Glossia.Translations.Translate do
   @moduledoc """
   A translate build represents a translation job that's being run in a virtualized environment.
   Locally we use Docker when present, and in production we use Google Cloud Build.
@@ -24,7 +24,6 @@ defmodule Glossia.Translations.TranslateBuild do
 
     {200, _, _} =
       installation_id
-      |> Glossia.VCS.Github.get_client_for_installation()
       |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
         state: "pending",
         target_url: "https://glossia.ai",
@@ -33,5 +32,19 @@ defmodule Glossia.Translations.TranslateBuild do
       })
 
     Glossia.Vm.run_builder()
+  end
+
+  defp update_state(client, commit_sha) do
+    client
+    |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
+      state: "pending",
+      target_url: "https://glossia.ai",
+      context: "Glossia / Translating",
+      description: "Translating"
+    })
+  end
+
+  defp get_client(installation_id) do
+    installation_id |> Glossia.VCS.Github.get_client_for_installation()
   end
 end

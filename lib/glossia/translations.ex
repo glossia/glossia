@@ -1,6 +1,6 @@
 defmodule Glossia.Translations do
   # Modules
-  alias Glossia.Translations.TranslateBuild
+  alias Glossia.Translations.Translate
 
   # Public
 
@@ -16,7 +16,7 @@ defmodule Glossia.Translations do
       installation_id: installation_id,
       vcs: vcs
     }
-    |> TranslateBuild.new()
+    |> Translate.new()
     |> Oban.insert()
     |> case do
       {:ok, _} -> {:ok, nil}

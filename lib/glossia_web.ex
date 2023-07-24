@@ -3,6 +3,8 @@ defmodule GlossiaWeb do
   The module that represents the web interface of Glossia
   """
 
+  use Boundary, deps: [Glossia], exports: [Endpoint]
+
   def static_paths, do: ~w(assets fonts images schemas favicons robots.txt)
 
   def router do
