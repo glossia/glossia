@@ -14,32 +14,56 @@ defmodule Glossia.Translations.Translate do
 
   @impl Oban.Worker
   def perform(%Oban.Job{
-        args:
-          %{
-            "commit_sha" => commit_sha,
-            "repository_id" => repository_id,
-            "vcs" => vcs
-          } = args
+        args: %{
+          "commit_sha" => commit_sha,
+          "repository_id" => repository_id,
+          "vcs" => vcs
+        }
       }) do
-    Logger.info("Creating state for repository #{repository_id} and commit #{commit_sha}")
     vcs = String.to_atom(vcs)
+    project = Glossia.Projects.find_project_by_repository(repository_id, vcs)
+    translate(commit_sha: commit_sha, project: project)
+  end
 
-    # {:ok, translation} = %Translation{} |> Translation.changeset() |> Repo.insert()
+  def translate(commit_sha: commit_sha, project: %Glossia.Projects.Project{} = project) do
+    Logger.info(
+      "Translating project #{project.id} for commit #{commit_sha} in repository #{project.repository_id}"
+    )
 
-    Glossia.VCS.create_commit_status(commit_sha, repository_id, vcs, %{
-      state: "pending",
-      target_url: "https://glossia.ai",
-      context: "Glossia / Translating",
-      description: "Translating"
-    })
+    commit_status_attrs = [commit_sha: commit_sha, repository_id: project.repository_id]
+
+    commit_status_attrs
+    |> Keyword.put_new(:state, "pending")
+    |> Keyword.put_new(:description, "Translating")
+    |> create_commit_status()
 
     Glossia.Vm.run_builder()
 
-    Glossia.VCS.create_commit_status(commit_sha, repository_id, vcs, %{
-      state: "success",
+    commit_status_attrs
+    |> Keyword.put_new(:state, "success")
+    |> Keyword.put_new(:description, "Translated")
+    |> create_commit_status()
+  end
+
+  def translate(commit_sha: _, project: nil) do
+    # Noop
+  end
+
+  defp create_commit_status(
+         commit_sha: commit_sha,
+         repository_id: repository_id,
+         vcs: vcs,
+         state: state,
+         description: description
+       ) do
+    Glossia.VCS.create_commit_status(
+      vcs: vcs,
+      commit_sha: commit_sha,
+      repository_id: repository_id,
+      state: state,
       target_url: "https://glossia.ai",
-      context: "Glossia / Translating",
-      description: "Translating"
-    })
+      context: "Glossia",
+      description: description
+    )
   end
 end

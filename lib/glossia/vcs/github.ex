@@ -19,10 +19,18 @@ defmodule Glossia.VCS.Github do
   end
 
   @impl Glossia.VCS.Provider
-  def create_commit_status(commit_sha, repository_id, attrs) do
+  def create_commit_status(attrs) do
+    repository_id = attrs |> Keyword.fetch!(:repository_id)
+    commit_sha = attrs |> Keyword.fetch!(:commit_sha)
     client = get_client_for_repository(repository_id)
 
-    case Tentacat.post("repos/#{repository_id}/statuses/#{commit_sha}", client, attrs) do
+    params =
+      attrs
+      |> Keyword.drop([:commit_sha, :repository_id])
+      |> Enum.into(%{})
+      |> Map.update(:state, "pending", &Atom.to_string/1)
+
+    case Tentacat.post("repos/#{repository_id}/statuses/#{commit_sha}", client, params) do
       {status, _, _} when status in 200..299 ->
         :ok
 

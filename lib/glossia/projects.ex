@@ -1,4 +1,6 @@
 defmodule Glossia.Projects do
+  use Boundary, deps: [], exports: [Project]
+
   @moduledoc """
   The projects context
   """

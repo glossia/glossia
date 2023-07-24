@@ -32,11 +32,15 @@ defmodule Glossia.VCS.Provider do
             description: String.t() | nil,
             context: String.t() | nil
           }
-          | :ok
-          | {:error, map(), any()}
+
   @callback create_commit_status(
-              commit_sha :: String.t(),
-              repository_id :: String.t(),
-              attrs :: create_commit_status_attrs()
-            ) :: Tentacat.response()
+              attrs :: [
+                {:commit_sha, String.t()},
+                {:repository_id, String.t()},
+                {:state, String.t()},
+                {:target_url, String.t() | nil},
+                {:description, String.t() | nil},
+                {:context, String.t() | nil}
+              ]
+            ) :: :ok | {:error, map(), any()}
 end
