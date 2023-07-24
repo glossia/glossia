@@ -2,6 +2,9 @@ defmodule Glossia.VCS.Github do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
+
+  require Logger
+
   @behaviour Glossia.VCS.Provider
 
   @impl Glossia.VCS.Provider

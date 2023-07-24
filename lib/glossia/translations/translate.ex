@@ -23,6 +23,7 @@ defmodule Glossia.Translations.Translate do
       }) do
     Logger.info("Creating state for repository #{repository_id} and commit #{commit_sha}")
     vcs = String.to_atom(vcs)
+
     # {:ok, translation} = %Translation{} |> Translation.changeset() |> Repo.insert()
 
     Glossia.VCS.create_commit_status(commit_sha, repository_id, vcs, %{
