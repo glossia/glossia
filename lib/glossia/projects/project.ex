@@ -55,6 +55,7 @@ defmodule Glossia.Projects.Project do
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
     |> unique_constraint(:handle)
+    |> unique_constraint([:repository_id, :vcs])
     |> assoc_constraint(:account)
   end
 

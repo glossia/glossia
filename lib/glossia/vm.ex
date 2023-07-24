@@ -1,12 +1,19 @@
 defmodule Glossia.VM do
   use Boundary, deps: [], exports: []
 
+  require Logger
+
   @moduledoc """
   It provides utilities to interact with virtualized environments where builds run.
   """
+  def translate(translation_id: translation_id) do
+    Logger.info("Translating #{translation_id}...")
+    logs_path = "/translations/#{translation_id}.log"
 
-  @spec run_builder() :: any()
-  def run_builder() do
-    Glossia.VM.Builder.run()
+    Glossia.VM.Builder.run(
+      command: "translate",
+      env: %{GLOSSIA_TRANSLATION_ID: translation_id},
+      logs_path: logs_path
+    )
   end
 end

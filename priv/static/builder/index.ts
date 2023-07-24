@@ -1,2 +1,4 @@
 const glossiaURL = Deno.env.get("GLOSSIA_URL");
-console.log(`Talking to ${glossiaURL}`);
+const glossiaTranslationId = Deno.env.get("GLOSSIA_TRANSLATION_ID");
+
+console.log(`Translating ${glossiaTranslationId}`);
