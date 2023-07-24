@@ -67,6 +67,12 @@ defmodule GlossiaWeb.MarketingComponents do
           </a>
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
+            href={~p"/blog"}
+          >
+            Docs
+          </a>
+          <a
+            class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
             href="https://discord.gg/zqZxSBXKf8"
           >
             Discord

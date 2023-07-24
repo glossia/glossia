@@ -66,7 +66,8 @@ defmodule Glossia.MixProject do
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
       {:plug_attack, "~> 0.4.2"},
-      {:remote_ip, "1.1.0"}
+      {:remote_ip, "1.1.0"},
+      {:ex_json_schema, "~> 0.9.3"}
     ]
   end
 
