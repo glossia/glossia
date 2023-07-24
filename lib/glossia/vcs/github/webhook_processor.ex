@@ -23,21 +23,7 @@ defmodule Glossia.VCS.Github.WebhookProcessor do
     with repository_id <- payload |> get_in(["repository", "full_name"]),
          installation_id <- payload |> get_in(["installation", "id"]),
          commit_sha <- payload |> get_in(["after"]) do
-      Logger.info("Creating state for repository #{repository_id} and commit #{commit_sha}")
-
-      {200, _, _} =
-        installation_id
-        |> Glossia.VCS.Github.get_client_for_installation()
-        |> Glossia.VCS.Github.create_commit_status(repository_id, commit_sha, %{
-          state: "pending",
-          target_url: "https://glossia.ai",
-          context: "Glossia / Translating",
-          description: "Translating"
-        })
-    else
-      {:project, nil} ->
-        # Non-existing project
-        nil
+      Glossia.Translations.translate(commit_sha, repository_id, installation_id, :github)
     end
   end
 end
