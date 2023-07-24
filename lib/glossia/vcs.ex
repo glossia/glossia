@@ -16,7 +16,7 @@ defmodule Glossia.VCS do
   def get_webhook_processor(event, payload, vcs) do
     case vcs do
       :github ->
-        Glossia.VCS.Github.process_webhook(event, payload)
+        Glossia.VCS.Github.get_webhook_processor(event, payload)
     end
   end
 

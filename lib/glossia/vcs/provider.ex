@@ -8,7 +8,7 @@ defmodule Glossia.VCS.Provider do
   @doc """
   Processes a webhook event from a VCS provider.
   """
-  @callback process_webhook(event :: String.t(), payload :: map()) :: nil
+  @callback get_webhook_processor(event :: String.t(), payload :: map()) :: nil
 
   # Callbacks / APIs
 
