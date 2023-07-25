@@ -71,7 +71,8 @@ defmodule Glossia.MixProject do
       {:ex_json_schema, "~> 0.9.3"},
       {:boundary, "~> 0.9", runtime: false},
       {:google_api_storage, "~> 0.19.0"},
-      {:goth, "~> 1.2.0"}
+      {:goth, "~> 1.4.1"},
+      {:google_api_cloud_build, "~> 0.49"}
     ]
   end
 

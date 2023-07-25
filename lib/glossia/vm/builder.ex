@@ -15,13 +15,34 @@ defmodule Glossia.VM.Builder do
     end
   end
 
-  def run_remotely(command: _, logs_path: _, env: _) do
-    # Not implemented yet
+  def run_remotely(command: command, logs_path: _, env: env) do
+    # https://cloud.google.com/build/docs/api/reference/rest/v1/projects.builds/create
+    # https://github.com/googleapis/elixir-google-api/blob/main/clients/cloud_build/lib/google_api/cloud_build/v1/api/projects.ex#L213
+    project_id = Application.get_env(:glossia, :secrets)[:google_cloud_project_id]
+
+    {:ok, operation} =
+      GoogleApi.CloudBuild.V1.Connection.new()
+      |> GoogleApi.CloudBuild.V1.Api.Projects.cloudbuild_projects_builds_create(
+        project_id,
+        body: %GoogleApi.CloudBuild.V1.Model.Build{
+          steps: [
+            %GoogleApi.CloudBuild.V1.Model.BuildStep{
+              name: docker_image(),
+              args: deno_arguments(command: command, env: env),
+              env:
+                docker_env_variables()
+                |> Enum.reduce([], fn {k, v}, acc -> ["#{k}=#{v}" | acc] end)
+            }
+          ]
+        }
+      )
   end
 
   def run_locally(command: command, logs_path: logs_path, env: env) do
     docker_env_flags =
-      Enum.reduce(env, [], fn {k, v}, acc ->
+      docker_env_variables()
+      |> Enum.into(env)
+      |> Enum.reduce([], fn {k, v}, acc ->
         ["--env", "#{Atom.to_string(k)}=#{v}" | acc]
       end)
 
@@ -32,11 +53,8 @@ defmodule Glossia.VM.Builder do
         ["--workdir", "/builder"] ++
         ["--publish", "4000:4000"] ++
         docker_env_flags ++
-        ["--env", "GLOSSIA_URL=" <> "http://127.0.0.1:4000"] ++
-        ["denoland/deno:" <> Application.get_env(:glossia, :versions)[:deno]] ++
-        default_deno_arguments() ++
-        ["--allow-env=#{Enum.join(deno_allow_env_variables(env), ",")}"] ++
-        ["./index.ts", command]
+        [docker_image()] ++
+        deno_arguments(command: command, env: env)
 
     logs_path = File.cwd!() |> Path.join(["/tmp/logs", logs_path])
     logs_path |> Path.dirname() |> File.mkdir_p!()
@@ -46,14 +64,31 @@ defmodule Glossia.VM.Builder do
     |> Stream.run()
   end
 
+  @spec docker_env_variables() :: map()
+  def docker_env_variables() do
+    glossia_url =
+      if Application.get_env(:glossia, :env) == :prod do
+        "https://glossia.ai"
+      else
+        "http://127.0.0.1:4000"
+      end
+
+    %{GLOSSIA_URL: glossia_url}
+  end
+
+  def deno_arguments(command: command, env: env) do
+    ["run", "--allow-net"] ++
+      ["--allow-env=#{Enum.join(deno_allow_env_variables(env), ",")}"] ++ ["./index.ts", command]
+  end
+
+  def docker_image() do
+    "denoland/deno:" <> Application.get_env(:glossia, :versions)[:deno]
+  end
+
   def deno_allow_env_variables(env) do
     Enum.reduce(env, [], fn {k, v}, acc ->
       [Atom.to_string(k) | acc]
     end) ++ ["GLOSSIA_URL"]
-  end
-
-  def default_deno_arguments do
-    ["run", "--allow-net"]
   end
 
   def builder_directory() do

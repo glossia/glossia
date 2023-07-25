@@ -125,6 +125,12 @@ if config_env() == :prod do
     name: "glossia",
     push_api_key: env!("APP_SIGNAL_PUSH_API_KEY", :string),
     env: :prod
+
+  config :glossia, :secrets,
+    google_application_credentials_json_base_64:
+      env!("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE_64", :string, "")
+
+  config :glossia, :secrets, google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, "")
 end
 
 config :ueberauth, Ueberauth.Strategy.GitHub.OAuth,
