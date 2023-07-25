@@ -135,7 +135,11 @@ defmodule Glossia.VM.Builder do
     }
   end
 
-  def deno_arguments(command: command, env: env) do
+  @doc """
+  It returns the arguments to pass to the `deno` executable.
+  """
+  @spec deno_arguments(attrs :: [command: String.t(), env: map()]) :: [String.t()]
+  defp deno_arguments(command: command, env: env) do
     path =
       if Application.get_env(:glossia, :env) == :prod do
         Application.get_env(:glossia, :url) <> "/builder/index.ts"

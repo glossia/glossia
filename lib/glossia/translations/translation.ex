@@ -47,7 +47,8 @@ defmodule Glossia.Translations.Translation do
         {:timeout, 8},
         {:cancelled, 9},
         {:expired, 10}
-      ]
+      ],
+      default: :status_unknown
 
     belongs_to :project, Glossia.Projects.Project
 
