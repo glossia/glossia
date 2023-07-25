@@ -39,6 +39,8 @@ defmodule Glossia.VM.Builder do
           ]
         }
       )
+
+    dbg(operation)
   end
 
   def run_locally(command: command, logs_path: logs_path, env: env) do
