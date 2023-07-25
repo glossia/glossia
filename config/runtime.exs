@@ -166,3 +166,9 @@ config :glossia, GlossiaWeb.Endpoint,
       :string,
       "Wsi8PTaGsZV1pYCP/AfGtpByH12WDCofgiFVGDfk7iMCWUN5mwSgkSBYrQNIOdZ7"
     )
+
+if config_env() == :prod do
+  config :glossia, :url, "https://glossia.ai"
+else
+  config :glossia, :url, "http://127.0.0.1:4000"
+end

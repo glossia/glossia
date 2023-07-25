@@ -71,23 +71,23 @@ defmodule Glossia.VM.Builder do
 
   @spec docker_env_variables() :: map()
   def docker_env_variables() do
-    glossia_url =
-      if Application.get_env(:glossia, :env) == :prod do
-        "https://glossia.ai"
-      else
-        "http://127.0.0.1:4000"
-      end
-
     %{
-      GLOSSIA_URL: glossia_url,
+      GLOSSIA_URL: Application.get_env(:glossia, :url),
       GLOSSIA_APP_SIGNAL_API_KEY:
         Application.get_env(:glossia, :secrets)[:app_signal_builder_api_key]
     }
   end
 
   def deno_arguments(command: command, env: env) do
-    ["run", "--allow-net"] ++
-      ["--allow-env=#{Enum.join(deno_allow_env_variables(env), ",")}"] ++ ["./index.ts", command]
+    path =
+      if Application.get_env(:glossia, :env) == :prod do
+        Application.get_env(:glossia, :url) <> "/builder/index.ts"
+      else
+        "./index.ts"
+      end
+
+    ["run", "--allow-net", "--allow-env=#{Enum.join(deno_allow_env_variables(env), ",")}"] ++
+      [path, command]
   end
 
   def docker_image() do
