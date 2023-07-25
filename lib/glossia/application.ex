@@ -11,6 +11,13 @@ defmodule Glossia.Application do
   def start(_type, _args) do
     Oban.Telemetry.attach_default_logger()
 
+    :telemetry.attach(
+      "oban-errors",
+      [:oban, :job, :exception],
+      &Glossia.ErrorReporter.handle_event/4,
+      []
+    )
+
     children =
       [
         # Start the Telemetry supervisor

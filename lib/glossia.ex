@@ -3,5 +3,7 @@ defmodule Glossia do
   Glossia keeps the contexts that define your domain
   and business logic.
   """
-  use Boundary, deps: [], exports: [Auth, Blog, VCS, Accounts, Analytics, Projects, Changelog]
+  use Boundary,
+    deps: [],
+    exports: [Auth, ErrorReporter, Blog, VCS, Accounts, Analytics, Projects, Changelog]
 end
