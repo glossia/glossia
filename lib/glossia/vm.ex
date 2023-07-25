@@ -12,8 +12,8 @@ defmodule Glossia.VM do
 
     Glossia.VM.Builder.run(
       command: "translate",
-      env: %{GLOSSIA_TRANSLATION_ID: translation_id},
-      logs_path: logs_path
+      logs_path: logs_path,
+      env: %{GLOSSIA_TRANSLATION_ID: translation_id}
     )
   end
 end
