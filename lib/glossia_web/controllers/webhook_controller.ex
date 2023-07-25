@@ -9,7 +9,7 @@ defmodule GlossiaWeb.WebhookController do
 
     Glossia.VCS.get_webhook_processor(event, payload, :github)
     |> case do
-      {module, function, attrs} -> module |> apply(function, attrs)
+      {module, function, attrs} -> module |> apply(function, Map.to_list(attrs))
       nil -> nil
     end
 

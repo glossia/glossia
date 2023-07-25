@@ -93,18 +93,17 @@ defmodule Glossia.VCS.GitHub do
   @doc """
   It processes a webhook sent by GitHub.
   """
-  @impl Glossia.VCS
+  @impl Glossia.VCS.Provider
   def get_webhook_processor(event, payload) when event == "push" do
     Logger.info("Processing GitHub webhook: #{event}")
     repository_id = payload["repository"]["full_name"]
     commit_sha = payload["after"]
-    installation_id = payload["installation"]["id"]
 
     {Glossia.Translations, :translate,
      [commit_sha: commit_sha, repository_id: repository_id, vcs: :github]}
   end
 
-  @impl Glossia.VCS
+  @impl Glossia.VCS.Provider
   def get_webhook_processor(event, payload) do
     Logger.info("Processing an unsupported GitHub webhook event: #{event}")
     nil
