@@ -77,6 +77,12 @@ defmodule GlossiaWeb.MarketingComponents do
           >
             Discord
           </a>
+          <a
+            class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
+            href={~p"/changelog"}
+          >
+            Changelog
+          </a>
 
           <a
             class="text-lila-500 md:ml-auto text-lg bg-black border-l-2 border-black duration-500 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hover:bg-lila-900 hover:text-lila-500 inline-flex items-center justify-center px-6 text-center transform transition py-2 md:py-8"
@@ -148,6 +154,11 @@ defmodule GlossiaWeb.MarketingComponents do
                       <li>
                         <a class="text-lg text-black hover:text-lila-400" href={~p"/about"}>
                           About
+                        </a>
+                      </li>
+                      <li>
+                        <a class="text-lg text-black hover:text-lila-400" href={~p"/changelog"}>
+                          Changelog
                         </a>
                       </li>
                       <li>

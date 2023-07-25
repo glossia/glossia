@@ -79,6 +79,7 @@ defmodule GlossiaWeb.Router do
     get "/beta-added", MarketingController, :beta_added
     get "/blog", MarketingController, :blog
     get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+    get "/changelog", MarketingController, :changelog
   end
 
   # RSS
