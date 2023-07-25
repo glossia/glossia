@@ -55,7 +55,7 @@ defmodule Glossia.MixProject do
       {:oban, "~> 2.14"},
       {:ueberauth, "~> 0.10.5"},
       {:dotenvy, "~> 0.8.0"},
-      {:ueberauth_github, github: "ueberauth/ueberauth_github", branch: "master"},
+      {:ueberauth_github, "~> 0.8.3"},
       {:exile, "~> 0.6.0"},
       {:tentacat, "~> 2.0"},
       {:posthog, "~> 0.1"},
