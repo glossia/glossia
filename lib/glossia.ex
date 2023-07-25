@@ -5,5 +5,15 @@ defmodule Glossia do
   """
   use Boundary,
     deps: [],
-    exports: [Auth, ErrorReporter, Blog, VCS, Accounts, Analytics, Projects, Changelog]
+    exports: [
+      Auth,
+      ErrorReporter,
+      Blog,
+      VCS,
+      Accounts,
+      Analytics,
+      Projects,
+      Changelog,
+      Translations
+    ]
 end

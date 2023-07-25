@@ -134,6 +134,7 @@ defmodule Glossia.Builder.VM do
   defp get_docker_env_variables() do
     %{
       GLOSSIA_URL: Application.get_env(:glossia, :url),
+      GLOSSIA_API_KEY: Application.get_env(:glossia, :secrets)[:builder_api_key],
       GLOSSIA_APP_SIGNAL_API_KEY:
         Application.get_env(:glossia, :secrets)[:app_signal_builder_api_key]
     }
@@ -151,7 +152,7 @@ defmodule Glossia.Builder.VM do
     deno_allow_env_flags =
       (Enum.reduce(env, [], fn {k, _}, acc ->
          [Atom.to_string(k) | acc]
-       end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY"])
+       end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY", "GLOSSIA_API_KEY"])
       |> Enum.join(",")
 
     ["run", "--allow-net", "--allow-env=#{deno_allow_env_flags}", path, command]
