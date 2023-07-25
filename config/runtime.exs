@@ -131,6 +131,9 @@ if config_env() == :prod do
       env!("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE_64", :string, "")
 
   config :glossia, :secrets, google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, "")
+
+  config :glossia, :secrets,
+    app_signal_builder_api_key: env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
 end
 
 config :ueberauth, Ueberauth.Strategy.GitHub.OAuth,

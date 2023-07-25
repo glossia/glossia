@@ -20,11 +20,14 @@ defmodule Glossia.VM.Builder do
     # https://github.com/googleapis/elixir-google-api/blob/main/clients/cloud_build/lib/google_api/cloud_build/v1/api/projects.ex#L213
     project_id = Application.get_env(:glossia, :secrets)[:google_cloud_project_id]
 
+    {:ok, token} = Goth.fetch(Glossia.Goth)
+
     {:ok, operation} =
-      GoogleApi.CloudBuild.V1.Connection.new()
+      GoogleApi.CloudBuild.V1.Connection.new(token.token)
       |> GoogleApi.CloudBuild.V1.Api.Projects.cloudbuild_projects_builds_create(
         project_id,
         body: %GoogleApi.CloudBuild.V1.Model.Build{
+          timeout: @timeout,
           steps: [
             %GoogleApi.CloudBuild.V1.Model.BuildStep{
               name: docker_image(),
@@ -73,7 +76,11 @@ defmodule Glossia.VM.Builder do
         "http://127.0.0.1:4000"
       end
 
-    %{GLOSSIA_URL: glossia_url}
+    %{
+      GLOSSIA_URL: glossia_url,
+      GLOSSIA_APP_SIGNAL_API_KEY:
+        Application.get_env(:glossia, :secrets)[:app_signal_builder_api_key]
+    }
   end
 
   def deno_arguments(command: command, env: env) do
@@ -88,7 +95,7 @@ defmodule Glossia.VM.Builder do
   def deno_allow_env_variables(env) do
     Enum.reduce(env, [], fn {k, v}, acc ->
       [Atom.to_string(k) | acc]
-    end) ++ ["GLOSSIA_URL"]
+    end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY"]
   end
 
   def builder_directory() do
