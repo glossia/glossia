@@ -5,7 +5,7 @@ defmodule GlossiaWeb do
 
   use Boundary, deps: [Glossia], exports: [Endpoint]
 
-  def static_paths, do: ~w(assets fonts images schemas favicons robots.txt)
+  def static_paths, do: ~w(assets fonts images schemas favicons robots.txt builder)
 
   def router do
     quote do
