@@ -9,14 +9,13 @@ defmodule GlossiaWeb.Plugs.FetchCurrentProject do
   of a `Plug.Conn` can only be read from once.
   """
 
-  import Plug.Conn
   alias Plug.Conn
 
   @spec init(Keyword.t()) :: Keyword.t()
   def init(options), do: options
 
   @spec call(Conn.t(), term()) :: Conn.t()
-  def call(%Conn{method: method} = conn, opts) do
+  def call(%Conn{} = conn, _opts) do
     conn
   end
 end

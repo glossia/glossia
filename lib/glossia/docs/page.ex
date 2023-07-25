@@ -15,7 +15,7 @@ defmodule Glossia.Docs.Page do
   @enforce_keys [:slug, :title, :body, :description, :tags]
   defstruct [:slug, :title, :body, :description, :tags]
 
-  def build(filename, attrs, body) do
+  def build(_filename, _attrs, _body) do
     struct!(__MODULE__,
       slug: "slug",
       title: "title",

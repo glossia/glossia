@@ -78,7 +78,9 @@ defmodule Glossia.Translations.TranslationTest do
         commit_sha: "1234567890",
         repository_id: "1234567890",
         vcs: :github,
-        project_id: project.id
+        project_id: project.id,
+        build_id: "a-b-c",
+        status: :status_unknown
       }
 
       %Translation{} |> Translation.changeset(attrs) |> Repo.insert!()

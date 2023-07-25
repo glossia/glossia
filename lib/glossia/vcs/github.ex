@@ -80,6 +80,7 @@ defmodule Glossia.VCS.GitHub do
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
+  @impl Glossia.VCS.Provider
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -104,7 +105,7 @@ defmodule Glossia.VCS.GitHub do
   end
 
   @impl Glossia.VCS.Provider
-  def get_webhook_processor(event, payload) do
+  def get_webhook_processor(event, _payload) do
     Logger.info("Processing an unsupported GitHub webhook event: #{event}")
     nil
   end
@@ -124,7 +125,6 @@ defmodule Glossia.VCS.GitHub do
     %{access_token: access_token} |> Tentacat.Client.new()
   end
 
-  @impl Glossia.VCS
   def get_client_for_repository(repository_id) do
     app_jwt_token = Glossia.VCS.GitHub.AppToken.generate_and_sign!()
 

@@ -6,14 +6,16 @@ defmodule Glossia.VM do
   @moduledoc """
   It provides utilities to interact with virtualized environments where builds run.
   """
-  def translate(translation_id: translation_id) do
+  @spec translate(
+          attrs :: [translation_id: integer(), status_update_cb: (String.t(), atom() -> nil)]
+        ) :: :ok
+  def translate(translation_id: translation_id, status_update_cb: status_update_cb) do
     Logger.info("Translating #{translation_id}...")
-    logs_path = "/translations/#{translation_id}.log"
 
     Glossia.VM.Builder.run(
       command: "translate",
-      logs_path: logs_path,
-      env: %{GLOSSIA_TRANSLATION_ID: translation_id}
+      env: %{GLOSSIA_TRANSLATION_ID: translation_id},
+      status_update_cb: status_update_cb
     )
   end
 end

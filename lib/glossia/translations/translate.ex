@@ -76,7 +76,12 @@ defmodule Glossia.Translations.Translate do
     |> Keyword.put_new(:description, "Translating")
     |> create_commit_status()
 
-    Glossia.VM.translate(translation_id: translation.id)
+    Glossia.VM.translate(
+      translation_id: translation.id,
+      status_update_cb: fn build_id, status ->
+        update_translation_status(translation: translation, build_id: build_id, status: status)
+      end
+    )
 
     commit_status_attrs
     |> Keyword.put_new(:state, "success")
@@ -84,6 +89,11 @@ defmodule Glossia.Translations.Translate do
     |> create_commit_status()
 
     :ok
+  end
+
+  defp update_translation_status(translation: translation, build_id: build_id, status: status) do
+    {:ok, _} =
+      translation |> Translation.changeset(%{build_id: build_id, status: status}) |> Repo.update()
   end
 
   defp create_commit_status(
