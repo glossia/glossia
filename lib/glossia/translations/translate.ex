@@ -76,7 +76,7 @@ defmodule Glossia.Translations.Translate do
     |> Keyword.put_new(:description, "Translating")
     |> create_commit_status()
 
-    Glossia.VM.translate(
+    Glossia.Builder.translate(
       translation_id: translation.id,
       status_update_cb: fn build_id, status ->
         update_translation_status(translation: translation, build_id: build_id, status: status)

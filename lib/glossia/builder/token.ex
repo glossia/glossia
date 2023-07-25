@@ -1,4 +1,4 @@
-defmodule Glossia.Translations.TranslationAPIToken do
+defmodule Glossia.Builder.Token do
   use Joken.Config, default_signer: :builder
 
   def token_config do

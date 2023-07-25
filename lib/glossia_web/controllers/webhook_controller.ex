@@ -15,6 +15,7 @@ defmodule GlossiaWeb.WebhookController do
           vcs: :github
         )
 
+      _ ->
         nil
     end
 
