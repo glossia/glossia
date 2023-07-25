@@ -27,7 +27,7 @@ defmodule Glossia.VM.Builder do
       |> GoogleApi.CloudBuild.V1.Api.Projects.cloudbuild_projects_builds_create(
         project_id,
         body: %GoogleApi.CloudBuild.V1.Model.Build{
-          timeout: "#{@timeout}",
+          timeout: "#{@timeout}s",
           steps: [
             %GoogleApi.CloudBuild.V1.Model.BuildStep{
               name: docker_image(),
