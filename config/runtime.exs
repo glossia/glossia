@@ -147,7 +147,8 @@ config :joken,
   github: [
     signer_alg: "RS256",
     key_pem: env!("GITHUB_APP_PRIVATE_KEY_BASE_64", :string, "") |> Base.decode64!()
-  ]
+  ],
+  builder: Joken.Signer.create("HS256", env!("BUILDER_SIGNER_JWT_KEY", :string, ""))
 
 config :glossia, GlossiaWeb.Endpoint,
   live_view: [

@@ -100,8 +100,7 @@ defmodule Glossia.VCS.GitHub do
     repository_id = payload["repository"]["full_name"]
     commit_sha = payload["after"]
 
-    {Glossia.Translations, :translate,
-     [commit_sha: commit_sha, repository_id: repository_id, vcs: :github]}
+    {:translate, %{commit_sha: commit_sha, repository_id: repository_id, vcs: :github}}
   end
 
   @impl Glossia.VCS.Provider

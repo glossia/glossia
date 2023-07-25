@@ -83,6 +83,13 @@ defmodule GlossiaWeb.Router do
     get "/changelog", MarketingController, :changelog
   end
 
+  # Builder API
+  scope "/api/builder", GlossiaWeb do
+    pipe_through [:api]
+
+    get "/translations", API.Builder.TranslationController, :show
+  end
+
   # RSS
   scope "/", GlossiaWeb do
     pipe_through :rss

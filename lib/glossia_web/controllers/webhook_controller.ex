@@ -7,10 +7,15 @@ defmodule GlossiaWeb.WebhookController do
     event = conn |> get_req_header("x-github-event") |> List.first()
     payload = conn.assigns.raw_body |> Jason.decode!()
 
-    Glossia.VCS.get_webhook_processor(event, payload, :github)
-    |> case do
-      {module, function, attrs} -> module |> apply(function, [attrs])
-      nil -> nil
+    case Glossia.VCS.get_webhook_processor(event, payload, :github) do
+      {:translate, %{commit_sha: commit_sha, repository_id: repository_id, vcs: :github}} ->
+        Glossia.Translations.translate(
+          commit_sha: commit_sha,
+          repository_id: repository_id,
+          vcs: :github
+        )
+
+        nil
     end
 
     json(conn, nil)
