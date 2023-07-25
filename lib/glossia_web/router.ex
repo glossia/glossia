@@ -66,6 +66,7 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :project do
+    plug GlossiaWeb.Plugs.FetchCurrentProject
   end
 
   # Marketing
@@ -124,7 +125,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/", GlossiaWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :project]
 
     get "/:account/:project", ProjectController, :show
   end
