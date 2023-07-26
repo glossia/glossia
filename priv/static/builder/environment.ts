@@ -25,3 +25,11 @@ export function getGitRepositoryVCS() {
 export function getGitCommitSHA() {
   return Deno.env.get("GLOSSIA_GIT_COMMIT_SHA");
 }
+
+export function getGitRef() {
+  return Deno.env.get("GLOSSIA_GIT_REF");
+}
+
+export function getGitDefaultBranch() {
+  return Deno.env.get("GLOSSIA_GIT_DEFAULT_BRANCH");
+}

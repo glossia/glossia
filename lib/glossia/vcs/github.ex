@@ -99,8 +99,17 @@ defmodule Glossia.VCS.GitHub do
     Logger.info("Processing GitHub webhook: #{event}")
     repository_id = payload["repository"]["full_name"]
     commit_sha = payload["after"]
+    ref = payload["ref"]
+    default_branch = payload["repository"]["default_branch"]
 
-    {:push, %{commit_sha: commit_sha, repository_id: repository_id, vcs: :github}}
+    {:push,
+     %{
+       commit_sha: commit_sha,
+       repository_id: repository_id,
+       ref: ref,
+       default_branch: default_branch,
+       vcs: :github
+     }}
   end
 
   @impl Glossia.VCS.ProviderBehaviour

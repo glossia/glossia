@@ -18,18 +18,20 @@ defmodule Glossia.Builds.Worker do
           "git_access_token" => git_access_token,
           "project_id" => project_id,
           "event" => event,
+          "git_default_branch" => git_default_branch,
+          "git_ref" => git_ref,
           "git_commit_sha" => git_commit_sha,
           "git_repository_id" => git_repository_id,
           "git_vcs" => git_vcs
         }
       }) do
-    git_vcs = String.to_atom(git_vcs)
-
     case Repo.get_by(Build, git_commit_sha: git_commit_sha, project_id: project_id) do
       nil ->
         build(%{
           git_access_token: git_access_token,
           event: event,
+          git_default_branch: git_default_branch,
+          git_ref: git_ref,
           git_commit_sha: git_commit_sha,
           git_repository_id: git_repository_id,
           git_vcs: git_vcs,
@@ -47,6 +49,8 @@ defmodule Glossia.Builds.Worker do
         git_commit_sha: git_commit_sha,
         git_repository_id: git_repository_id,
         git_vcs: git_vcs,
+        git_ref: git_ref,
+        git_default_branch: git_default_branch,
         project_id: project_id
       }) do
     build =
@@ -74,6 +78,8 @@ defmodule Glossia.Builds.Worker do
     Glossia.Builds.VM.run(
       command: "translate",
       env: %{
+        GLOSSIA_GIT_REF: git_ref,
+        GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
         GLOSSIA_GIT_REPOSITORY_ID: git_repository_id,
         GLOSSIA_GIT_REPOSITORY_VCS: git_vcs,
         GLOSSIA_GIT_COMMIT_SHA: git_commit_sha,

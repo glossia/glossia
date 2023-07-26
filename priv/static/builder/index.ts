@@ -23,7 +23,7 @@ try {
     const tempDirPath = await Deno.makeTempDir();
     console.log(`Cloning ${remoteURL} into ${tempDirPath}`);
     await simpleGit()
-      .clone(remoteURL);
+      .clone(remoteURL, tempDirPath, {});
     console.log(`Successfully cloned`);
   }
 } catch (err) {
