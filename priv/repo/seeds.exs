@@ -16,14 +16,14 @@ organization =
   end
 
 project =
-  Repo.get_by(Project, repository_id: "glossia/glossia", vcs: :github)
+  Repo.get_by(Project, git_repository_id: "glossia/glossia", git_vcs: :github)
   |> case do
     nil ->
       {:ok, project} =
         Projects.create_project(%{
           handle: "glossia",
           repository_id: "glossia/glossia",
-          vcs: :github,
+          git_vcs: :github,
           account_id: organization.id
         })
 

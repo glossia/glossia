@@ -5,9 +5,9 @@ defmodule Glossia.Builds.Build do
 
   # Types
   @type t :: %__MODULE__{
-          commit_sha: String.t(),
-          repository_id: String.t() | nil,
-          vcs: Glossia.VCS.t(),
+          git_commit_sha: String.t(),
+          git_repository_id: String.t() | nil,
+          git_vcs: Glossia.VCS.t(),
           project: Glossia.Projects.Project.t() | nil
         }
 
@@ -31,9 +31,9 @@ defmodule Glossia.Builds.Build do
   # Schema
 
   schema "builds" do
-    field :commit_sha, :string
-    field :repository_id, :string
-    field :vcs, Ecto.Enum, values: [{:github, 1}]
+    field :git_commit_sha, :string
+    field :git_repository_id, :string
+    field :git_vcs, Ecto.Enum, values: [{:github, 1}]
     field :remote_id, :string
     field :event, Ecto.Enum, values: [{:git_push, 1}]
 
@@ -61,9 +61,24 @@ defmodule Glossia.Builds.Build do
 
   def changeset(build, attrs) do
     build
-    |> cast(attrs, [:commit_sha, :repository_id, :vcs, :project_id, :status, :remote_id, :event])
-    |> validate_required([:commit_sha, :repository_id, :vcs, :project_id, :status, :event])
-    |> validate_inclusion(:vcs, [:github])
+    |> cast(attrs, [
+      :git_commit_sha,
+      :git_repository_id,
+      :git_vcs,
+      :project_id,
+      :status,
+      :remote_id,
+      :event
+    ])
+    |> validate_required([
+      :git_commit_sha,
+      :git_repository_id,
+      :git_vcs,
+      :project_id,
+      :status,
+      :event
+    ])
+    |> validate_inclusion(:git_vcs, [:github])
     |> validate_inclusion(:event, [:git_push])
     |> validate_inclusion(:status, [
       :status_unknown,
@@ -77,7 +92,7 @@ defmodule Glossia.Builds.Build do
       :cancelled,
       :expired
     ])
-    |> unique_constraint([:commit_sha, :repository_id, :vcs])
+    |> unique_constraint([:git_commit_sha, :git_repository_id, :git_vcs])
     |> assoc_constraint(:project)
   end
 end

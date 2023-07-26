@@ -56,11 +56,11 @@ defmodule Glossia.Builds.Worker do
     build =
       Repo.insert!(
         Build.changeset(%Build{}, %{
-          git_commit_sha: git_commit_sha,
           project_id: project_id,
+          event: event,
+          git_commit_sha: git_commit_sha,
           git_repository_id: git_repository_id,
-          git_vcs: git_vcs,
-          event: event
+          git_vcs: git_vcs
         })
       )
 
@@ -119,9 +119,9 @@ defmodule Glossia.Builds.Worker do
       end
 
     Glossia.VCS.create_commit_status(
-      git_vcs: git_vcs,
-      git_commit_sha: git_commit_sha,
-      git_repository_id: git_repository_id,
+      vcs: git_vcs,
+      commit_sha: git_commit_sha,
+      repository_id: git_repository_id,
       state: state,
       target_url: "https://glossia.ai",
       context: context,

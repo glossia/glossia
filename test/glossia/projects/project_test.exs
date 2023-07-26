@@ -7,7 +7,7 @@ defmodule Glossia.Projects.ProjectTest do
     test "validates that handle is required" do
       # Given
       project = %Project{}
-      attrs = %{repository_id: "glossia/glossia", vcs: :github, account_id: 1}
+      attrs = %{git_repository_id: "glossia/glossia", git_vcs: :github, account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -20,33 +20,33 @@ defmodule Glossia.Projects.ProjectTest do
     test "validates that repository_id is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", vcs: :github, account_id: 1}
+      attrs = %{handle: "glossia", git_vcs: :github, account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
 
       # Then
       errors = errors_on(changeset)
-      assert %{repository_id: ["can't be blank"]} = errors
+      assert %{git_repository_id: ["can't be blank"]} = errors
     end
 
     test "validates that vcs is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", repository_id: "glossia/glossia", account_id: 1}
+      attrs = %{handle: "glossia", git_repository_id: "glossia/glossia", account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs: ["can't be blank"]} = errors
+      assert %{git_vcs: ["can't be blank"]} = errors
     end
 
     test "validates that account_id is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", repository_id: "glossia/glossia", vcs: :github}
+      attrs = %{handle: "glossia", git_repository_id: "glossia/glossia", git_vcs: :github}
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -62,8 +62,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        repository_id: "glossia/glossia",
-        vcs: :invalid_vcs,
+        git_repository_id: "glossia/glossia",
+        git_vcs: :invalid_vcs,
         account_id: 1
       }
 
@@ -72,7 +72,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs: ["is invalid"]} = errors
+      assert %{git_vcs: ["is invalid"]} = errors
     end
 
     test "validates that handle is alphanumeric" do
@@ -81,8 +81,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "invalid handle",
-        repository_id: "glossia/glossia",
-        vcs: :github,
+        git_repository_id: "glossia/glossia",
+        git_vcs: :github,
         account_id: 1
       }
 
@@ -100,8 +100,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "a",
-        repository_id: "glossia/glossia",
-        vcs: :github,
+        git_repository_id: "glossia/glossia",
+        git_vcs: :github,
         account_id: 1
       }
 
@@ -119,8 +119,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "aasdgasgasgdasdgasdgasgasdgasgsags",
-        repository_id: "glossia/glossia",
-        vcs: :github,
+        git_repository_id: "glossia/glossia",
+        git_vcs: :github,
         account_id: 1
       }
 

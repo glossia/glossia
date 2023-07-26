@@ -10,8 +10,8 @@ defmodule Glossia.Projects.Project do
   @type t :: %__MODULE__{
           handle: String.t(),
           account: Account.t() | nil,
-          repository_id: String.t(),
-          vcs: Glossia.VCS.t(),
+          git_repository_id: String.t(),
+          git_vcs: Glossia.VCS.t(),
           visibility: visibility()
         }
   @type visibility :: :public | :private
@@ -28,8 +28,8 @@ defmodule Glossia.Projects.Project do
 
   schema "projects" do
     field :handle, :string
-    field :repository_id, :string
-    field :vcs, Ecto.Enum, values: [{:github, 1}]
+    field :git_repository_id, :string
+    field :git_vcs, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
     has_many(:builds, Build)
@@ -44,26 +44,28 @@ defmodule Glossia.Projects.Project do
   """
   @type changeset_attrs :: %{
           handle: String.t(),
-          repository_id: String.t(),
-          vcs: Glossia.VCS.t(),
+          git_repository_id: String.t(),
+          git_vcs: Glossia.VCS.t(),
           account_id: integer()
         }
   @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:handle, :repository_id, :vcs, :account_id, :visibility])
-    |> validate_required([:handle, :repository_id, :vcs, :account_id])
-    |> validate_inclusion(:vcs, [:github])
+    |> cast(attrs, [:handle, :git_repository_id, :git_vcs, :account_id, :visibility])
+    |> validate_required([:handle, :git_repository_id, :git_vcs, :account_id])
+    |> validate_inclusion(:git_vcs, [:github])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
     |> unique_constraint(:handle)
-    |> unique_constraint([:repository_id, :vcs])
+    |> unique_constraint([:git_repository_id, :git_vcs])
     |> assoc_constraint(:account)
   end
 
   # Queries
 
-  def find_by_repository_query(repository_id, vcs) do
-    from(p in __MODULE__, where: p.repository_id == ^repository_id and p.vcs == ^vcs)
+  def find_by_repository_query(git_repository_id, git_vcs) do
+    from(p in __MODULE__,
+      where: p.git_repository_id == ^git_repository_id and p.git_vcs == ^git_vcs
+    )
   end
 end
