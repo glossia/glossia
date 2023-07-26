@@ -18,21 +18,21 @@ defmodule Glossia.Builds.Worker do
           "git_access_token" => git_access_token,
           "project_id" => project_id,
           "event" => event,
-          "commit_sha" => commit_sha,
-          "repository_id" => repository_id,
-          "vcs" => vcs
+          "git_commit_sha" => git_commit_sha,
+          "git_repository_id" => git_repository_id,
+          "git_vcs" => git_vcs
         }
       }) do
-    vcs = String.to_atom(vcs)
+    git_vcs = String.to_atom(git_vcs)
 
-    case Repo.get_by(Build, commit_sha: commit_sha, project_id: project_id) do
+    case Repo.get_by(Build, git_commit_sha: git_commit_sha, project_id: project_id) do
       nil ->
         build(%{
           git_access_token: git_access_token,
           event: event,
-          commit_sha: commit_sha,
-          repository_id: repository_id,
-          vcs: vcs,
+          git_commit_sha: git_commit_sha,
+          git_repository_id: git_repository_id,
+          git_vcs: git_vcs,
           project_id: project_id
         })
 
@@ -44,26 +44,26 @@ defmodule Glossia.Builds.Worker do
   def build(%{
         git_access_token: git_access_token,
         event: event,
-        commit_sha: commit_sha,
-        repository_id: repository_id,
-        vcs: vcs,
+        git_commit_sha: git_commit_sha,
+        git_repository_id: git_repository_id,
+        git_vcs: git_vcs,
         project_id: project_id
       }) do
     build =
       Repo.insert!(
         Build.changeset(%Build{}, %{
-          commit_sha: commit_sha,
+          git_commit_sha: git_commit_sha,
           project_id: project_id,
-          repository_id: repository_id,
-          vcs: vcs,
+          git_repository_id: git_repository_id,
+          git_vcs: git_vcs,
           event: event
         })
       )
 
     commit_status_attrs = [
-      commit_sha: commit_sha,
-      repository_id: repository_id,
-      vcs: vcs
+      git_commit_sha: git_commit_sha,
+      git_repository_id: git_repository_id,
+      git_vcs: git_vcs
     ]
 
     commit_status_attrs
@@ -74,6 +74,9 @@ defmodule Glossia.Builds.Worker do
     Glossia.Builds.VM.run(
       command: "translate",
       env: %{
+        GLOSSIA_GIT_REPOSITORY_ID: git_repository_id,
+        GLOSSIA_GIT_REPOSITORY_VCS: git_vcs,
+        GLOSSIA_GIT_COMMIT_SHA: git_commit_sha,
         GLOSSIA_BUILD_ID: build.id,
         GLOSSIA_EVENT: event,
         GLOSSIA_GIT_ACCESS_TOKEN: git_access_token
@@ -99,9 +102,9 @@ defmodule Glossia.Builds.Worker do
   defp create_commit_status(
          description: description,
          state: state,
-         commit_sha: commit_sha,
-         repository_id: repository_id,
-         vcs: vcs
+         git_commit_sha: git_commit_sha,
+         git_repository_id: git_repository_id,
+         git_vcs: git_vcs
        ) do
     context =
       case Application.get_env(:glossia, :env) do
@@ -110,9 +113,9 @@ defmodule Glossia.Builds.Worker do
       end
 
     Glossia.VCS.create_commit_status(
-      vcs: vcs,
-      commit_sha: commit_sha,
-      repository_id: repository_id,
+      git_vcs: git_vcs,
+      git_commit_sha: git_commit_sha,
+      git_repository_id: git_repository_id,
       state: state,
       target_url: "https://glossia.ai",
       context: context,

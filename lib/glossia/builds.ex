@@ -8,15 +8,15 @@ defmodule Glossia.Builds do
   @doc """
   It triggers a build in a virtualized environment.
   """
-  @spec trigger_build(%{
+  @spec trigger_git_event_build(%{
           project_id: number(),
           event: atom(),
-          commit_sha: String.t(),
-          repository_id: String.t(),
-          vcs: atom()
+          git_commit_sha: String.t(),
+          git_repository_id: String.t(),
+          git_vcs: atom()
         }) ::
           {:ok, nil} | {:error, any()}
-  def trigger_build(attrs) do
+  def trigger_git_event_build(attrs) do
     attrs
     |> Worker.new()
     |> Oban.insert()

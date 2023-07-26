@@ -4,6 +4,9 @@ import {
   getBuildId,
   getEvent,
   getGitAccessToken,
+  getGitCommitSHA,
+  getGitRepositoryId,
+  getGitRepositoryVCS,
 } from "./environment.ts";
 
 export function outputHeadingTableWithContext() {
@@ -12,7 +15,10 @@ export function outputHeadingTableWithContext() {
     .addRow("Build ID", getBuildId())
     .addRow("Event", getEvent())
     .addRow("Git access token", getGitAccessToken())
-    .addRow("App Signal API key", getAppSignalAPIKey());
+    .addRow("App Signal API key", getAppSignalAPIKey())
+    .addRow("Git repository", getGitRepositoryId())
+    .addRow("Git repository VCS", getGitRepositoryVCS())
+    .addRow("Git commit SHA", getGitCommitSHA());
 
   console.log(table.toString());
 }
