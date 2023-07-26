@@ -11,12 +11,15 @@ defmodule GlossiaWeb.WebhookController do
       {:push, %{commit_sha: commit_sha, repository_id: repository_id, vcs: vcs}} ->
         case Glossia.Projects.find_project_by_repository(repository_id, vcs) do
           %Glossia.Projects.Project{} = project ->
+            git_access_token = Glossia.VCS.generate_token_for_cloning(repository_id, :github)
+
             Glossia.Builds.trigger_build(%{
               project_id: project.id,
               event: :git_push,
               commit_sha: commit_sha,
               repository_id: repository_id,
-              vcs: :github
+              vcs: :github,
+              git_access_token: git_access_token
             })
 
           nil ->

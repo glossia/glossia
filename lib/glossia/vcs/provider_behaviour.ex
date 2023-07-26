@@ -48,4 +48,6 @@ defmodule Glossia.VCS.ProviderBehaviour do
                 {:context, String.t() | nil}
               ]
             ) :: :ok | {:error, map(), any()}
+
+  @callback generate_token_for_cloning(repository_id :: String.t()) :: String.t()
 end

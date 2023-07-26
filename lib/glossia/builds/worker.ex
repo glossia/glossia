@@ -15,6 +15,7 @@ defmodule Glossia.Builds.Worker do
   @impl Oban.Worker
   def perform(%Oban.Job{
         args: %{
+          "git_access_token" => git_access_token,
           "project_id" => project_id,
           "event" => event,
           "commit_sha" => commit_sha,
@@ -27,6 +28,7 @@ defmodule Glossia.Builds.Worker do
     case Repo.get_by(Build, commit_sha: commit_sha, project_id: project_id) do
       nil ->
         build(%{
+          git_access_token: git_access_token,
           event: event,
           commit_sha: commit_sha,
           repository_id: repository_id,
@@ -40,6 +42,7 @@ defmodule Glossia.Builds.Worker do
   end
 
   def build(%{
+        git_access_token: git_access_token,
         event: event,
         commit_sha: commit_sha,
         repository_id: repository_id,
@@ -70,7 +73,11 @@ defmodule Glossia.Builds.Worker do
 
     Glossia.Builds.VM.run(
       command: "translate",
-      env: %{GLOSSIA_BUILD_ID: build.id, GLOSSIA_EVENT: event},
+      env: %{
+        GLOSSIA_BUILD_ID: build.id,
+        GLOSSIA_EVENT: event,
+        GLOSSIA_GIT_ACCESS_TOKEN: git_access_token
+      },
       status_update_cb: fn build_id, status ->
         update_build_status(build: build, build_id: build_id, status: status)
       end

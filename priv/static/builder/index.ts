@@ -1,16 +1,15 @@
 import { createAppsignalClient } from "https://deno.land/x/appsignal@v1.0.1/mod.ts";
-
-const appSignalApiKey = Deno.env.get("GLOSSIA_APP_SIGNAL_API_KEY");
-const apiKey = Deno.env.get("GLOSSIA_API_KEY");
+import { getAppSignalAPIKey } from "./environment.ts";
+import { outputHeadingTableWithContext } from "./output.ts";
 
 let sendErrorReport: any = () => {};
-if (appSignalApiKey) {
-  sendErrorReport = createAppsignalClient(appSignalApiKey, "deno");
+const appSignalAPIKey = getAppSignalAPIKey();
+if (appSignalAPIKey) {
+  sendErrorReport = createAppsignalClient(appSignalAPIKey, "deno");
 }
 
 try {
-  const glossiaTranslationId = Deno.env.get("GLOSSIA_BUILD_ID");
-  console.log(`Translating ${glossiaTranslationId}`);
+  outputHeadingTableWithContext();
 } catch (err) {
   await sendErrorReport(err, {});
 }

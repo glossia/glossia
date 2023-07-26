@@ -116,10 +116,10 @@ defmodule Glossia.VCS.GitHub do
           Tentacat.Client.t()
   def get_client_for_installation(installation_id, app_jwk_token \\ nil) do
     app_jwt_token = app_jwk_token || Glossia.VCS.GitHub.AppToken.generate_and_sign!()
+    client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     {201, %{"token" => access_token}, _} =
-      Tentacat.Client.new(%{jwt: app_jwt_token})
-      |> Tentacat.App.Installations.token(installation_id)
+      Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{})
 
     %{access_token: access_token} |> Tentacat.Client.new()
   end
@@ -127,17 +127,32 @@ defmodule Glossia.VCS.GitHub do
   def get_client_for_repository(repository_id) do
     app_jwt_token = Glossia.VCS.GitHub.AppToken.generate_and_sign!()
 
-    Tentacat.get(
-      "repos/#{repository_id}/installation",
-      Tentacat.Client.new(%{jwt: app_jwt_token})
-    )
-    |> case do
-      {200, %{"id" => installation_id}, _} ->
-        get_client_for_installation(installation_id, app_jwt_token)
+    {200, %{"id" => installation_id}, _} =
+      Tentacat.get(
+        "repos/#{repository_id}/installation",
+        Tentacat.Client.new(%{jwt: app_jwt_token})
+      )
 
-      {404, %{}, _} ->
-        nil
-    end
+    get_client_for_installation(installation_id, app_jwt_token)
+  end
+
+  @impl Glossia.VCS.ProviderBehaviour
+  def generate_token_for_cloning(repository_id) do
+    app_jwt_token = Glossia.VCS.GitHub.AppToken.generate_and_sign!()
+    client = Tentacat.Client.new(%{jwt: app_jwt_token})
+
+    {200, %{"id" => installation_id}, _} =
+      Tentacat.get(
+        "repos/#{repository_id}/installation",
+        client
+      )
+
+    {201, %{"token" => access_token}, _} =
+      Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
+        repositories: [repository_id |> String.split("/") |> List.last()]
+      })
+
+    access_token
   end
 
   defp signature_from_req_headers(req_headers) do

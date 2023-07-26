@@ -31,6 +31,17 @@ defmodule Glossia.VCS do
     end
   end
 
+  @spec generate_token_for_cloning(
+          repository_id :: String.t(),
+          vcs :: Glossia.VCS.ProviderBehaviour.t()
+        ) :: String.t()
+  def generate_token_for_cloning(repository_id, vcs) do
+    case vcs do
+      :github ->
+        Glossia.VCS.GitHub.generate_token_for_cloning(repository_id)
+    end
+  end
+
   # Public / APIs
 
   @type commit_status_state :: :pending | :success
