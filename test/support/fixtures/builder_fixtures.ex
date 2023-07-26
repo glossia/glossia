@@ -1,13 +1,12 @@
-defmodule Glossia.TranslationsFixtures do
+defmodule Glossia.BuilderFixtures do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Translations` context.
   """
 
   alias Glossia.Repo
-  alias Glossia.Translations.Translation
 
-  def translation_fixture(attr \\ %{}) do
+  def build_fixture(attr \\ %{}) do
     attrs =
       if attr[:project_id] do
         attr
@@ -16,14 +15,15 @@ defmodule Glossia.TranslationsFixtures do
         attr |> Map.put(:project_id, project.id)
       end
 
-    attrs |> Enum.into(default_translation_attrs()) |> Repo.insert()
+    attrs |> Enum.into(default_build_args()) |> Repo.insert()
   end
 
-  def default_translation_attrs() do
+  defp default_build_args() do
     %{
       commit_sha: "123",
       repository_id: "glossia/glossia",
-      vcs: :github
+      vcs: :github,
+      event: :git_push
     }
   end
 end

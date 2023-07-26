@@ -13,7 +13,11 @@ defmodule Glossia do
       Accounts,
       Analytics,
       Projects,
+      Projects.Project,
       Changelog,
-      Translations
+      Builder,
+      # Tests
+      DataCase,
+      AccountsFixtures
     ]
 end

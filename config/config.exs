@@ -87,7 +87,7 @@ import_config "#{config_env()}.exs"
 config :glossia, Oban,
   repo: Glossia.Repo,
   plugins: [Oban.Plugins.Pruner],
-  queues: [default: 10, translations: 50]
+  queues: [default: 10, builds: 50]
 
 # Ueberauth
 config :ueberauth, Ueberauth,

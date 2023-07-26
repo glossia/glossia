@@ -4,8 +4,6 @@ defmodule Glossia.ProjectsFixtures do
   entities via the `Glossia.Projects` context.
   """
 
-  alias Glossia.Projects.Project
-
   def project_fixture(attrs \\ %{}) do
     attrs =
       case attrs[:account_id] do

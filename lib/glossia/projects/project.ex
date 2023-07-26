@@ -1,4 +1,6 @@
 defmodule Glossia.Projects.Project do
+  use Boundary
+
   @moduledoc """
   A module that represents the projects table
   """
@@ -17,7 +19,7 @@ defmodule Glossia.Projects.Project do
   # Module dependencies
 
   alias Glossia.Accounts.Account
-  alias Glossia.Translations.Translation
+  alias Glossia.Builder.Build
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
@@ -30,7 +32,7 @@ defmodule Glossia.Projects.Project do
     field :vcs, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
-    has_many(:translations, Translation)
+    has_many(:builds, Build)
 
     timestamps()
   end

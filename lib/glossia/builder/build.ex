@@ -1,7 +1,6 @@
-defmodule Glossia.Translations.Translation do
+defmodule Glossia.Builder.Build do
   @moduledoc """
-  This module represents the translations table. A translation
-  is tied to a repository and commit sha.
+  This module represents the builds table.
   """
 
   # Types
@@ -11,6 +10,8 @@ defmodule Glossia.Translations.Translation do
           vcs: Glossia.VCS.t(),
           project: Glossia.Projects.Project.t() | nil
         }
+
+  @type event :: :git_push
   @type status ::
           :status_unknown
           | :pending
@@ -29,11 +30,12 @@ defmodule Glossia.Translations.Translation do
 
   # Schema
 
-  schema "translations" do
+  schema "builds" do
     field :commit_sha, :string
     field :repository_id, :string
     field :vcs, Ecto.Enum, values: [{:github, 1}]
-    field :build_id, :string
+    field :remote_id, :string
+    field :event, Ecto.Enum, values: [{:git_push, 1}]
 
     field :status, Ecto.Enum,
       values: [
@@ -57,11 +59,12 @@ defmodule Glossia.Translations.Translation do
 
   # Changesets
 
-  def changeset(translation, attrs) do
-    translation
-    |> cast(attrs, [:commit_sha, :repository_id, :vcs, :project_id, :status, :build_id])
-    |> validate_required([:commit_sha, :repository_id, :vcs, :project_id, :status])
+  def changeset(build, attrs) do
+    build
+    |> cast(attrs, [:commit_sha, :repository_id, :vcs, :project_id, :status, :remote_id, :event])
+    |> validate_required([:commit_sha, :repository_id, :vcs, :project_id, :status, :event])
     |> validate_inclusion(:vcs, [:github])
+    |> validate_inclusion(:event, [:git_push])
     |> validate_inclusion(:status, [
       :status_unknown,
       :pending,

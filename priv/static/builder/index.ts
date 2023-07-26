@@ -9,7 +9,7 @@ if (appSignalApiKey) {
 }
 
 try {
-  const glossiaTranslationId = Deno.env.get("GLOSSIA_TRANSLATION_ID");
+  const glossiaTranslationId = Deno.env.get("GLOSSIA_BUILD_ID");
   console.log(`Translating ${glossiaTranslationId}`);
 } catch (err) {
   await sendErrorReport(err, {});

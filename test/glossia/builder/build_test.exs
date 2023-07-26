@@ -1,8 +1,8 @@
-defmodule Glossia.Translations.TranslationTest do
+defmodule Glossia.Builder.BuildTest do
   use Glossia.DataCase
 
   alias Glossia.Repo
-  alias Glossia.Translations.Translation
+  alias Glossia.Builder.Build
 
   describe "changeset" do
     test "validates the presence of commit_sha" do
@@ -10,7 +10,7 @@ defmodule Glossia.Translations.TranslationTest do
       attrs = %{}
 
       # When
-      changeset = Translation.changeset(%Translation{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -22,7 +22,7 @@ defmodule Glossia.Translations.TranslationTest do
       attrs = %{commit_sha: "1234567890"}
 
       # When
-      changeset = Translation.changeset(%Translation{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -34,7 +34,7 @@ defmodule Glossia.Translations.TranslationTest do
       attrs = %{commit_sha: "1234567890", repository_id: "1234567890"}
 
       # When
-      changeset = Translation.changeset(%Translation{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -46,7 +46,7 @@ defmodule Glossia.Translations.TranslationTest do
       attrs = %{commit_sha: "1234567890", repository_id: "1234567890", vcs: :github}
 
       # When
-      changeset = Translation.changeset(%Translation{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -59,11 +59,12 @@ defmodule Glossia.Translations.TranslationTest do
         commit_sha: "1234567890",
         repository_id: "1234567890",
         vcs: :gitlab,
-        project_id: 1
+        project_id: 1,
+        event: :git_push
       }
 
       # When
-      changeset = Translation.changeset(%Translation{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -80,13 +81,14 @@ defmodule Glossia.Translations.TranslationTest do
         vcs: :github,
         project_id: project.id,
         build_id: "a-b-c",
-        status: :status_unknown
+        status: :status_unknown,
+        event: :git_push
       }
 
-      %Translation{} |> Translation.changeset(attrs) |> Repo.insert!()
+      %Build{} |> Build.changeset(attrs) |> Repo.insert!()
 
       # When
-      {:error, changeset} = %Translation{} |> Translation.changeset(attrs) |> Repo.insert()
+      {:error, changeset} = %Build{} |> Build.changeset(attrs) |> Repo.insert()
 
       # Then
       errors = errors_on(changeset)
