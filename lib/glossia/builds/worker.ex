@@ -65,9 +65,9 @@ defmodule Glossia.Builds.Worker do
       )
 
     commit_status_attrs = [
-      git_commit_sha: git_commit_sha,
-      git_repository_id: git_repository_id,
-      git_vcs: git_vcs
+      commit_sha: git_commit_sha,
+      repository_id: git_repository_id,
+      vcs: git_vcs
     ]
 
     commit_status_attrs

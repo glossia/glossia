@@ -18,12 +18,13 @@ if (appSignalAPIKey) {
 try {
   outputHeadingTableWithContext();
   if (getEvent() === "push") {
+    // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
     const remoteURL =
       `https://${getGitAccessToken()}@${getGitRepositoryVCS()}.com/${getGitRepositoryId()}.git`;
     const tempDirPath = await Deno.makeTempDir();
     console.log(`Cloning ${remoteURL} into ${tempDirPath}`);
     await simpleGit()
-      .clone(remoteURL, tempDirPath, {});
+      .clone(remoteURL, tempDirPath, { "--filter": "tree:0" });
     console.log(`Successfully cloned`);
   }
 } catch (err) {
