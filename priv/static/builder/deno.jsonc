@@ -1,5 +1,4 @@
 {
     "imports": {
-        "simple-git": "npm:simple-git@~3.19.1"
     }
 }
