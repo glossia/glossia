@@ -56,7 +56,6 @@ defmodule Glossia.MixProject do
       {:ueberauth, "~> 0.10.5"},
       {:dotenvy, "~> 0.8.0"},
       {:ueberauth_github, "~> 0.8.3"},
-      {:exile, "~> 0.6.0"},
       {:tentacat, "~> 2.0"},
       {:posthog, "~> 0.1"},
       {:nimble_publisher, "~> 1.0.0"},
@@ -73,7 +72,8 @@ defmodule Glossia.MixProject do
       {:google_api_storage, "~> 0.19.0"},
       {:goth, "~> 1.4.1"},
       {:google_api_cloud_build, "~> 0.49"},
-      {:rambo, "~> 0.3.4"}
+      {:rambo, "~> 0.3.4"},
+      {:mox, "~> 0.5.2", only: :test}
     ]
   end
 

@@ -182,8 +182,8 @@ defmodule Glossia.Builder.VM do
   """
   @spec docker_available?() :: boolean()
   def docker_available?() do
-    case Exile.stream(["/usr/bin/env", "which", "docker"]) |> Enum.to_list() do
-      [_, {:exit, {:status, 0}}] -> true
+    case Rambo.run("/usr/bin/env", ["which", "docker"], log: false) do
+      {:ok, _} -> true
       _ -> false
     end
   end

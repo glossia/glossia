@@ -5,9 +5,9 @@ defmodule Glossia.VCS.GitHub do
 
   require Logger
 
-  @behaviour Glossia.VCS.Provider
+  @behaviour Glossia.VCS.ProviderBehaviour
 
-  @impl Glossia.VCS.Provider
+  @impl Glossia.VCS.ProviderBehaviour
   def get_file_content(path, repository_id) do
     client = get_client_for_repository(repository_id)
     [owner, repo] = repository_id |> String.split("/")
@@ -18,7 +18,7 @@ defmodule Glossia.VCS.GitHub do
     end
   end
 
-  @impl Glossia.VCS.Provider
+  @impl Glossia.VCS.ProviderBehaviour
   def create_commit_status(attrs) do
     repository_id = attrs |> Keyword.fetch!(:repository_id)
     commit_sha = attrs |> Keyword.fetch!(:commit_sha)
@@ -80,7 +80,7 @@ defmodule Glossia.VCS.GitHub do
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
-  @impl Glossia.VCS.Provider
+  @impl Glossia.VCS.ProviderBehaviour
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -94,7 +94,7 @@ defmodule Glossia.VCS.GitHub do
   @doc """
   It processes a webhook sent by GitHub.
   """
-  @impl Glossia.VCS.Provider
+  @impl Glossia.VCS.ProviderBehaviour
   def get_webhook_processor(event, payload) when event == "push" do
     Logger.info("Processing GitHub webhook: #{event}")
     repository_id = payload["repository"]["full_name"]
@@ -103,7 +103,7 @@ defmodule Glossia.VCS.GitHub do
     {:translate, %{commit_sha: commit_sha, repository_id: repository_id, vcs: :github}}
   end
 
-  @impl Glossia.VCS.Provider
+  @impl Glossia.VCS.ProviderBehaviour
   def get_webhook_processor(event, _payload) do
     Logger.info("Processing an unsupported GitHub webhook event: #{event}")
     nil

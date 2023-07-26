@@ -10,7 +10,7 @@ defmodule Glossia.VCS do
   @spec get_webhook_processor(
           event :: String.t(),
           payload :: map(),
-          vcs :: Glossia.VCS.Provider.t()
+          vcs :: Glossia.VCS.ProviderBehaviour.t()
         ) :: nil | {module(), atom(), list()}
   def get_webhook_processor(event, payload, vcs) do
     case vcs do
@@ -22,7 +22,7 @@ defmodule Glossia.VCS do
   @spec is_webhook_payload_valid?(
           req_headers :: Keyword.t(),
           payload :: map(),
-          vcs :: Glossia.VCS.Provider.t()
+          vcs :: Glossia.VCS.ProviderBehaviour.t()
         ) :: boolean()
   def is_webhook_payload_valid?(req_headers, payload, vcs) do
     case vcs do
@@ -37,7 +37,7 @@ defmodule Glossia.VCS do
   @spec create_commit_status([
           {:commit_sha, String.t()},
           {:repository_id, String.t()},
-          {:vcs, Glossia.VCS.Provider.t()},
+          {:vcs, Glossia.VCS.ProviderBehaviour.t()},
           {:state, commit_status_state},
           {:target_url, String.t() | nil},
           {:description, String.t() | nil},

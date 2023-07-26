@@ -1,4 +1,4 @@
-defmodule Glossia.VCS.Provider do
+defmodule Glossia.VCS.ProviderBehaviour do
   # Types
 
   @type t :: :github
@@ -22,7 +22,7 @@ defmodule Glossia.VCS.Provider do
 
   ## Examples
 
-    iex > Glossia.VCS.Provider.get_file_content("glossia.jsonc", "glossia/glossia")
+    iex > Glossia.VCS.ProviderBehaviour.get_file_content("glossia.jsonc", "glossia/glossia")
     {:ok, "..."}
   """
   @callback get_file_content(
