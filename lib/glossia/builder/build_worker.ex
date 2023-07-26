@@ -52,7 +52,8 @@ defmodule Glossia.Builder.BuildWorker do
           commit_sha: commit_sha,
           project_id: project_id,
           repository_id: repository_id,
-          vcs: vcs
+          vcs: vcs,
+          event: event
         })
       )
 

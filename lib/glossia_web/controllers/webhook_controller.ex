@@ -13,7 +13,7 @@ defmodule GlossiaWeb.WebhookController do
           %Glossia.Projects.Project{} = project ->
             Glossia.Builder.trigger_build(%{
               project_id: project.id,
-              event: :push,
+              event: :git_push,
               commit_sha: commit_sha,
               repository_id: repository_id,
               vcs: :github
