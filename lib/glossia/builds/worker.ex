@@ -1,4 +1,4 @@
-defmodule Glossia.Builder.BuildWorker do
+defmodule Glossia.Builds.Worker do
   @moduledoc """
   A translate build represents a translation job that's being run in a virtualized environment.
   Locally we use Docker when present, and in production we use Google Cloud Build.
@@ -6,7 +6,7 @@ defmodule Glossia.Builder.BuildWorker do
 
   # Modules
   require Logger
-  alias Glossia.Builder.Build
+  alias Glossia.Builds.Build
   alias Glossia.Repo
   use Oban.Worker
 
@@ -68,7 +68,7 @@ defmodule Glossia.Builder.BuildWorker do
     |> Keyword.put_new(:description, "Translating")
     |> create_commit_status()
 
-    Glossia.Builder.VM.run(
+    Glossia.Builds.VM.run(
       command: "translate",
       env: %{GLOSSIA_BUILD_ID: build.id, GLOSSIA_EVENT: event},
       status_update_cb: fn build_id, status ->

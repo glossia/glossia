@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.API.Builder.TranslationController do
+defmodule GlossiaWeb.API.Builds.TranslationController do
   use GlossiaWeb, :controller
 
   def show(conn, %{"translation_id" => translation_id}) do

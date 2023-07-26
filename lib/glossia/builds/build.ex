@@ -1,4 +1,4 @@
-defmodule Glossia.Builder.Build do
+defmodule Glossia.Builds.Build do
   @moduledoc """
   This module represents the builds table.
   """

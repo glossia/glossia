@@ -1,8 +1,8 @@
-defmodule Glossia.Builder.BuildTest do
+defmodule Glossia.Builds.BuildTest do
   use Glossia.DataCase
 
   alias Glossia.Repo
-  alias Glossia.Builder.Build
+  alias Glossia.Builds.Build
 
   describe "changeset" do
     test "validates the presence of commit_sha" do

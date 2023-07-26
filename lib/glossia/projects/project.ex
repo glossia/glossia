@@ -19,7 +19,7 @@ defmodule Glossia.Projects.Project do
   # Module dependencies
 
   alias Glossia.Accounts.Account
-  alias Glossia.Builder.Build
+  alias Glossia.Builds.Build
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]

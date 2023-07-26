@@ -1,8 +1,8 @@
-defmodule Glossia.Builder do
-  use Boundary, deps: [Glossia.VCS, Glossia.Repo], exports: []
+defmodule Glossia.Builds do
+  use Boundary, deps: [Glossia.VCS, Glossia.Repo], exports: [Build]
 
   # Modules
-  alias Glossia.Builder.BuildWorker
+  alias Glossia.Builds.Worker
   require Logger
 
   @doc """
@@ -18,7 +18,7 @@ defmodule Glossia.Builder do
           {:ok, nil} | {:error, any()}
   def trigger_build(attrs) do
     attrs
-    |> BuildWorker.new()
+    |> Worker.new()
     |> Oban.insert()
     |> case do
       {:ok, _} -> {:ok, nil}

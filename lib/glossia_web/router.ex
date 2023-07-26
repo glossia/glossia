@@ -66,7 +66,7 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :builder_api do
-    plug GlossiaWeb.Plugs.AuthorizeBuilderAPIKey
+    plug GlossiaWeb.Plugs.AuthorizeBuildsAPIKey
   end
 
   pipeline :project do
@@ -87,11 +87,11 @@ defmodule GlossiaWeb.Router do
     get "/changelog", MarketingController, :changelog
   end
 
-  # Builder API
+  # Builds API
   scope "/api", GlossiaWeb.API do
     pipe_through [:api]
 
-    scope "/builder", Builder do
+    scope "/builder", Builds do
       pipe_through [:builder_api]
 
       get "/translations/:translation_id", TranslationController, :show

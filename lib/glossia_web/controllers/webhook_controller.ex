@@ -11,7 +11,7 @@ defmodule GlossiaWeb.WebhookController do
       {:push, %{commit_sha: commit_sha, repository_id: repository_id, vcs: vcs}} ->
         case Glossia.Projects.find_project_by_repository(repository_id, vcs) do
           %Glossia.Projects.Project{} = project ->
-            Glossia.Builder.trigger_build(%{
+            Glossia.Builds.trigger_build(%{
               project_id: project.id,
               event: :git_push,
               commit_sha: commit_sha,

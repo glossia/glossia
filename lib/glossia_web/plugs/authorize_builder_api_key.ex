@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.Plugs.AuthorizeBuilderAPIKey do
+defmodule GlossiaWeb.Plugs.AuthorizeBuildsAPIKey do
   @moduledoc """
 
   """

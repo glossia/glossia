@@ -15,7 +15,8 @@ defmodule Glossia do
       Projects,
       Projects.Project,
       Changelog,
-      Builder,
+      Builds,
+      Builds.Build,
       # Tests
       DataCase,
       AccountsFixtures
