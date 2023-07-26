@@ -56,7 +56,7 @@ defmodule Glossia.VCS do
         ]) :: :ok | {:error, map(), any()}
   def create_commit_status(attrs) do
     case Keyword.fetch!(attrs, :vcs) do
-      :github ->
+      "github" ->
         Glossia.VCS.GitHub.create_commit_status(attrs)
     end
   end
