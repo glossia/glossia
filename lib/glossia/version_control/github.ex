@@ -3,11 +3,15 @@ defmodule Glossia.VersionControl.GitHub do
   An interface to interact with GitHub's API.
   """
 
+  # Modules
   require Logger
 
-  @behaviour Glossia.VersionControl.ProviderBehaviour
+  # Behaviors
+  @behaviour Glossia.VersionControl.Platform
 
-  @impl Glossia.VersionControl.ProviderBehaviour
+  # Glossia.VersionControl.Platform behavior
+
+  @impl true
   def get_file_content(path, repository_id) do
     client = get_client_for_repository(repository_id)
     [owner, repo] = repository_id |> String.split("/")
@@ -18,7 +22,7 @@ defmodule Glossia.VersionControl.GitHub do
     end
   end
 
-  @impl Glossia.VersionControl.ProviderBehaviour
+  @impl true
   def create_commit_status(attrs) do
     repository_id = attrs |> Keyword.fetch!(:repository_id)
     commit_sha = attrs |> Keyword.fetch!(:commit_sha)
@@ -80,7 +84,7 @@ defmodule Glossia.VersionControl.GitHub do
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
-  @impl Glossia.VersionControl.ProviderBehaviour
+  @impl true
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -94,7 +98,7 @@ defmodule Glossia.VersionControl.GitHub do
   @doc """
   It processes a webhook sent by GitHub.
   """
-  @impl Glossia.VersionControl.ProviderBehaviour
+  @impl true
   def get_webhook_processor(event, payload) when event == "push" do
     Logger.info("Processing GitHub webhook: #{event}")
     repository_id = payload["repository"]["full_name"]
@@ -112,40 +116,13 @@ defmodule Glossia.VersionControl.GitHub do
      }}
   end
 
-  @impl Glossia.VersionControl.ProviderBehaviour
+  @impl true
   def get_webhook_processor(event, _payload) do
     Logger.info("Processing an unsupported GitHub webhook event: #{event}")
     nil
   end
 
-  @spec get_client_for_installation(
-          installation_id :: integer(),
-          app_jwk_token :: String.t() | nil
-        ) ::
-          Tentacat.Client.t()
-  def get_client_for_installation(installation_id, app_jwk_token \\ nil) do
-    app_jwt_token = app_jwk_token || Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
-    client = Tentacat.Client.new(%{jwt: app_jwt_token})
-
-    {201, %{"token" => access_token}, _} =
-      Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{})
-
-    %{access_token: access_token} |> Tentacat.Client.new()
-  end
-
-  def get_client_for_repository(repository_id) do
-    app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
-
-    {200, %{"id" => installation_id}, _} =
-      Tentacat.get(
-        "repos/#{repository_id}/installation",
-        Tentacat.Client.new(%{jwt: app_jwt_token})
-      )
-
-    get_client_for_installation(installation_id, app_jwt_token)
-  end
-
-  @impl Glossia.VersionControl.ProviderBehaviour
+  @impl true
   def generate_token_for_cloning(repository_id) do
     app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
@@ -162,6 +139,35 @@ defmodule Glossia.VersionControl.GitHub do
       })
 
     access_token
+  end
+
+  # Private
+
+  @spec get_client_for_installation(
+          installation_id :: integer(),
+          app_jwk_token :: String.t() | nil
+        ) ::
+          Tentacat.Client.t()
+  defp get_client_for_installation(installation_id, app_jwk_token \\ nil) do
+    app_jwt_token = app_jwk_token || Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
+    client = Tentacat.Client.new(%{jwt: app_jwt_token})
+
+    {201, %{"token" => access_token}, _} =
+      Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{})
+
+    %{access_token: access_token} |> Tentacat.Client.new()
+  end
+
+  defp get_client_for_repository(repository_id) do
+    app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
+
+    {200, %{"id" => installation_id}, _} =
+      Tentacat.get(
+        "repos/#{repository_id}/installation",
+        Tentacat.Client.new(%{jwt: app_jwt_token})
+      )
+
+    get_client_for_installation(installation_id, app_jwt_token)
   end
 
   defp signature_from_req_headers(req_headers) do

@@ -1,4 +1,4 @@
-defmodule Glossia.VersionControl.ProviderBehaviour do
+defmodule Glossia.VersionControl.Platform do
   # Types
 
   @type t :: :github
@@ -22,7 +22,7 @@ defmodule Glossia.VersionControl.ProviderBehaviour do
 
   ## Examples
 
-    iex > Glossia.VersionControl.ProviderBehaviour.get_file_content("glossia.jsonc", "glossia/glossia")
+    iex > Glossia.VersionControl.Platform.get_file_content("glossia.jsonc", "glossia/glossia")
     {:ok, "..."}
   """
   @callback get_file_content(
