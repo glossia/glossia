@@ -7,7 +7,6 @@ import {
   getGitRepositoryVCS,
 } from "./environment.ts";
 import { outputHeadingTableWithContext } from "./output.ts";
-const { simpleGit } = await import("npm:simple-git@~3.19.1");
 
 let sendErrorReport: any = () => {};
 const appSignalAPIKey = getAppSignalAPIKey();
@@ -23,9 +22,11 @@ try {
       `https://${getGitAccessToken()}@${getGitRepositoryVCS()}.com/${getGitRepositoryId()}.git`;
     const tempDirPath = await Deno.makeTempDir();
     console.log(`Cloning ${remoteURL} into ${tempDirPath}`);
-    await simpleGit()
-      .clone(remoteURL, tempDirPath, { "--filter": "tree:0" });
-    console.log(`Successfully cloned`);
+
+    const cloneCommand = new Deno.Command("/usr/bin/env", {
+      args: ["git", "clone", remoteURL, tempDirPath, "--filter=tree:0"],
+    });
+    await cloneCommand.output();
   }
 } catch (err) {
   await sendErrorReport(err, {});
