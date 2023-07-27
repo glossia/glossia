@@ -6,15 +6,15 @@ defmodule Glossia.VersionControl do
 
   # Public / Webhooks
 
-  @spec get_webhook_processor(
-          event :: String.t(),
-          payload :: map(),
-          vcs :: Glossia.VersionControl.Platform.t()
-        ) :: nil | {module(), atom(), list()}
-  def get_webhook_processor(event, payload, vcs) do
-    case vcs do
+  @spec process_webhook_event(%{
+          event: String.t(),
+          payload: map(),
+          vcs_platform: Glossia.VersionControl.Platform.t()
+        }) :: nil | {module(), atom(), list()}
+  def process_webhook_event(%{vcs_platform: vcs_platform} = attrs) do
+    case vcs_platform do
       :github ->
-        Glossia.VersionControl.GitHub.get_webhook_processor(event, payload)
+        Glossia.VersionControl.GitHub.process_webhook_event(attrs)
     end
   end
 
@@ -30,14 +30,14 @@ defmodule Glossia.VersionControl do
     end
   end
 
-  @spec generate_token_for_cloning(
-          repository_id :: String.t(),
-          vcs :: Glossia.VersionControl.Platform.t()
-        ) :: String.t()
-  def generate_token_for_cloning(repository_id, vcs) do
-    case vcs do
+  @spec generate_token_for_cloning(%{
+          vcs_id: String.t(),
+          vcs_platform: Glossia.VersionControl.Platform.t()
+        }) :: String.t()
+  def generate_token_for_cloning(%{vcs_id: vcs_id, vcs_platform: vcs_platform}) do
+    case vcs_platform do
       :github ->
-        Glossia.VersionControl.GitHub.generate_token_for_cloning(repository_id)
+        Glossia.VersionControl.GitHub.generate_token_for_cloning(vcs_id)
     end
   end
 

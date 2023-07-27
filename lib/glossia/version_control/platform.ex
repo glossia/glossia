@@ -8,7 +8,10 @@ defmodule Glossia.VersionControl.Platform do
   @doc """
   Processes a webhook event from a VersionControl provider.
   """
-  @callback get_webhook_processor(event :: String.t(), payload :: map()) :: {atom(), struct()}
+  @callback process_webhook_event(%{
+              event: String.t(),
+              payload: map()
+            }) :: nil | {module(), atom(), list()}
 
   @doc """
   Given the request headers and the payload it validates the payload signature.
@@ -41,5 +44,5 @@ defmodule Glossia.VersionControl.Platform do
               }
             ) :: :ok | {:error, map(), any()}
 
-  @callback generate_token_for_cloning(repository_id :: String.t()) :: String.t()
+  @callback generate_token_for_cloning(vcs_id :: String.t()) :: String.t()
 end

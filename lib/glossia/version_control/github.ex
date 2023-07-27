@@ -97,43 +97,43 @@ defmodule Glossia.VersionControl.GitHub do
   It processes a webhook sent by GitHub.
   """
   @impl true
-  def get_webhook_processor(event, payload) when event == "push" do
+  def process_webhook_event(%{event: event, payload: payload}) when event == "push" do
     Logger.info("Processing GitHub webhook: #{event}")
-    repository_id = payload["repository"]["full_name"]
-    commit_sha = payload["after"]
-    ref = payload["ref"]
-    default_branch = payload["repository"]["default_branch"]
+    vcs_id = payload["repository"]["full_name"]
+    git_commit_sha = payload["after"]
+    git_ref = payload["ref"]
+    git_default_branch = payload["repository"]["default_branch"]
 
-    {:push,
-     %{
-       commit_sha: commit_sha,
-       repository_id: repository_id,
-       ref: ref,
-       default_branch: default_branch,
-       vcs: :github
-     }}
+    %{
+      event: :git_push,
+      vcs_id: vcs_id,
+      vcs_platform: :github,
+      git_commit_sha: git_commit_sha,
+      git_ref: git_ref,
+      git_default_branch: git_default_branch
+    }
   end
 
   @impl true
-  def get_webhook_processor(event, _payload) do
+  def process_webhook_event(%{event: event}) do
     Logger.info("Processing an unsupported GitHub webhook event: #{event}")
     nil
   end
 
   @impl true
-  def generate_token_for_cloning(repository_id) do
+  def generate_token_for_cloning(vcs_id) do
     app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(
-        "repos/#{repository_id}/installation",
+        "repos/#{vcs_id}/installation",
         client
       )
 
     {201, %{"token" => access_token}, _} =
       Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
-        repositories: [repository_id |> String.split("/") |> List.last()]
+        repositories: [vcs_id |> String.split("/") |> List.last()]
       })
 
     access_token

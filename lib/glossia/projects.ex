@@ -20,15 +20,12 @@ defmodule Glossia.Projects do
   @doc """
   It finds a repository given the id and the vcs.
   """
-  @spec find_project_by_repository(
-          repository_id :: String.t(),
-          vcs :: Project.vcs()
-        ) ::
+  @spec find_project_by_repository(%{
+          vcs_id: String.t(),
+          vcs_platform: Project.vcs()
+        }) ::
           Project.t() | nil
-  def find_project_by_repository(repository_id, vcs) do
-    Project.find_by_repository_query(repository_id, vcs) |> Repo.one()
-  end
-
-  def get_project_configuration() do
+  def find_project_by_repository(attrs) do
+    Project.find_by_repository_query(attrs) |> Repo.one()
   end
 end
