@@ -23,17 +23,15 @@ defmodule Glossia.VersionControl.GitHub do
   end
 
   @impl true
-  def create_commit_status(attrs) do
-    repository_id = attrs |> Keyword.fetch!(:repository_id)
-    commit_sha = attrs |> Keyword.fetch!(:commit_sha)
-    client = get_client_for_repository(repository_id)
+  def create_commit_status(%{vcs_id: vcs_id, git_commit_sha: git_commit_sha} = attrs) do
+    client = get_client_for_repository(vcs_id)
 
     params =
       attrs
-      |> Keyword.drop([:commit_sha, :repository_id])
+      |> Map.drop([:git_commit_sha, :vcs_id])
       |> Enum.into(%{})
 
-    case Tentacat.post("repos/#{repository_id}/statuses/#{commit_sha}", client, params) do
+    case Tentacat.post("repos/#{vcs_id}/statuses/#{git_commit_sha}", client, params) do
       {status, _, _} when status in 200..299 ->
         :ok
 
@@ -158,12 +156,12 @@ defmodule Glossia.VersionControl.GitHub do
     %{access_token: access_token} |> Tentacat.Client.new()
   end
 
-  defp get_client_for_repository(repository_id) do
+  defp get_client_for_repository(vcs_id) do
     app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(
-        "repos/#{repository_id}/installation",
+        "repos/#{vcs_id}/installation",
         Tentacat.Client.new(%{jwt: app_jwt_token})
       )
 

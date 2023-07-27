@@ -26,12 +26,12 @@ defmodule Glossia.Builds.BuildTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{git_repository_id: ["can't be blank"]} = errors
+      assert %{vcs_id: ["can't be blank"]} = errors
     end
 
     test "validates the presence of vcs" do
       # Given
-      attrs = %{git_commit_sha: "1234567890", git_repository_id: "1234567890"}
+      attrs = %{git_commit_sha: "1234567890", vcs_id: "1234567890"}
 
       # When
       changeset = Build.changeset(%Build{}, attrs)
@@ -45,7 +45,7 @@ defmodule Glossia.Builds.BuildTest do
       # Given
       attrs = %{
         git_commit_sha: "1234567890",
-        git_repository_id: "1234567890",
+        vcs_id: "1234567890",
         vcs_platform: :github
       }
 
@@ -61,7 +61,7 @@ defmodule Glossia.Builds.BuildTest do
       # Given
       attrs = %{
         git_commit_sha: "1234567890",
-        git_repository_id: "1234567890",
+        vcs_id: "1234567890",
         vcs_platform: :gitlab,
         project_id: 1,
         event: :git_push

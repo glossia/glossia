@@ -12,7 +12,7 @@ defmodule Glossia.Builds do
           project_id: number(),
           event: atom(),
           git_commit_sha: String.t(),
-          git_repository_id: String.t(),
+          vcs_id: String.t(),
           vcs_platform: atom()
         }) ::
           {:ok, nil} | {:error, any()}

@@ -21,7 +21,7 @@ defmodule Glossia.Builds.Worker do
           "git_default_branch" => git_default_branch,
           "git_ref" => git_ref,
           "git_commit_sha" => git_commit_sha,
-          "git_repository_id" => git_repository_id,
+          "vcs_id" => vcs_id,
           "vcs_platform" => vcs_platform
         }
       }) do
@@ -33,7 +33,7 @@ defmodule Glossia.Builds.Worker do
           git_default_branch: git_default_branch,
           git_ref: git_ref,
           git_commit_sha: git_commit_sha,
-          git_repository_id: git_repository_id,
+          vcs_id: vcs_id,
           vcs_platform: vcs_platform,
           project_id: project_id
         })
@@ -43,44 +43,27 @@ defmodule Glossia.Builds.Worker do
     end
   end
 
-  def build(%{
-        git_access_token: git_access_token,
-        event: event,
-        git_commit_sha: git_commit_sha,
-        git_repository_id: git_repository_id,
-        vcs_platform: vcs_platform,
-        git_ref: git_ref,
-        git_default_branch: git_default_branch,
-        project_id: project_id
-      }) do
-    build =
-      Repo.insert!(
-        Build.changeset(%Build{}, %{
-          project_id: project_id,
+  def build(
+        %{
           event: event,
+          vcs_id: vcs_id,
+          vcs_platform: vcs_platform,
+          git_ref: git_ref,
           git_commit_sha: git_commit_sha,
-          git_repository_id: git_repository_id,
-          vcs_platform: vcs_platform
-        })
-      )
+          git_default_branch: git_default_branch,
+          git_access_token: git_access_token
+        } = attrs
+      ) do
+    build =
+      Repo.insert!(Build.changeset(%Build{}, attrs))
 
-    commit_status_attrs = [
-      git_commit_sha: git_commit_sha,
-      git_repository_id: git_repository_id,
-      vcs_platform: vcs_platform
-    ]
-
-    commit_status_attrs
-    |> Keyword.put_new(:state, "pending")
-    |> Keyword.put_new(:description, "Translating")
-    |> create_commit_status()
+    attrs |> update_commit_status(:translating)
 
     Glossia.Builds.VM.run(
-      command: "translate",
       env: %{
         GLOSSIA_GIT_REF: git_ref,
         GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
-        GLOSSIA_GIT_REPOSITORY_ID: git_repository_id,
+        GLOSSIA_VCS_ID: vcs_id,
         GLOSSIA_VCS_PLATFORM: vcs_platform,
         GLOSSIA_GIT_COMMIT_SHA: git_commit_sha,
         GLOSSIA_BUILD_ID: build.id,
@@ -92,40 +75,54 @@ defmodule Glossia.Builds.Worker do
       end
     )
 
-    commit_status_attrs
-    |> Keyword.put_new(:state, "success")
-    |> Keyword.put_new(:description, "Translated")
-    |> create_commit_status()
+    attrs |> update_commit_status(:translated)
 
     :ok
+  end
+
+  defp update_commit_status(attrs, :translating) do
+    attrs
+    |> Map.put_new(:state, "pending")
+    |> Map.put_new(:description, "Translating")
+    |> update_commit_status()
+  end
+
+  defp update_commit_status(attrs, :translated) do
+    attrs
+    |> Map.put_new(:state, "success")
+    |> Map.put_new(:description, "Translated")
+    |> update_commit_status()
+  end
+
+  def update_commit_status(attrs) do
+    context = Application.get_env(:glossia, :env) |> get_commit_status_context_for_env()
+
+    attrs
+    |> Map.put_new(:target_url, "")
+    |> Map.put_new(:context, context)
+    |> Glossia.VersionControl.create_commit_status()
+
+    # Glossia.VersionControl.create_commit_status(
+    #   vcs_platform: vcs_platform,
+    #   commit_sha: git_commit_sha,
+    #   vcs_id: vcs_id,
+    #   state: state,
+    #   target_url: "https://glossia.ai",
+    #   context: context,
+    #   description: description
+    # )
+  end
+
+  def get_commit_status_context_for_env(:prod) do
+    "Glossia"
+  end
+
+  def get_commit_status_context_for_env(_) do
+    "Glossia (Dev)"
   end
 
   defp update_build_status(build: build, build_id: build_id, status: status) do
     {:ok, _} =
       build |> Build.changeset(%{build_id: build_id, status: status}) |> Repo.update()
-  end
-
-  defp create_commit_status(
-         description: description,
-         state: state,
-         git_commit_sha: git_commit_sha,
-         git_repository_id: git_repository_id,
-         vcs_platform: vcs_platform
-       ) do
-    context =
-      case Application.get_env(:glossia, :env) do
-        :prod -> "Glossia"
-        _ -> "Glossia (#{Application.get_env(:glossia, :env)})"
-      end
-
-    Glossia.VersionControl.create_commit_status(
-      vcs_platform: vcs_platform,
-      commit_sha: git_commit_sha,
-      repository_id: git_repository_id,
-      state: state,
-      target_url: "https://glossia.ai",
-      context: context,
-      description: description
-    )
   end
 end

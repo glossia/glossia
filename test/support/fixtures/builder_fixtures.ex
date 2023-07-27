@@ -23,7 +23,7 @@ defmodule Glossia.BuildsFixtures do
   defp default_build_args() do
     %{
       git_commit_sha: "123",
-      git_repository_id: "glossia/glossia",
+      vcs_id: "glossia/glossia",
       vcs_platform: :github,
       event: :git_push
     }

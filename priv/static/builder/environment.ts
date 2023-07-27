@@ -14,11 +14,11 @@ export function getGitAccessToken() {
   return Deno.env.get("GLOSSIA_GIT_ACCESS_TOKEN");
 }
 
-export function getGitRepositoryId() {
-  return Deno.env.get("GLOSSIA_GIT_REPOSITORY_ID");
+export function getVCSId() {
+  return Deno.env.get("GLOSSIA_VCS_ID");
 }
 
-export function getSVNPlatform() {
+export function getVCSPlatform() {
   return Deno.env.get("GLOSSIA_VCS_PLATFORM");
 }
 

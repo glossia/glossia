@@ -30,23 +30,15 @@ defmodule Glossia.VersionControl.Platform do
               repository_id :: String.t()
             ) :: {:ok, String.t()} | {:error, map(), any()}
 
-  @type create_commit_status_attrs ::
-          %{
-            state: String.t(),
-            target_url: String.t() | nil,
-            description: String.t() | nil,
-            context: String.t() | nil
-          }
-
   @callback create_commit_status(
-              attrs :: [
-                {:commit_sha, String.t()},
-                {:repository_id, String.t()},
-                {:state, String.t()},
-                {:target_url, String.t() | nil},
-                {:description, String.t() | nil},
-                {:context, String.t() | nil}
-              ]
+              attrs :: %{
+                state: String.t(),
+                vcs_id: String.t(),
+                git_commit_sha: String.t(),
+                target_url: String.t() | nil,
+                description: String.t() | nil,
+                context: String.t() | nil
+              }
             ) :: :ok | {:error, map(), any()}
 
   @callback generate_token_for_cloning(repository_id :: String.t()) :: String.t()

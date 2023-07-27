@@ -44,19 +44,19 @@ defmodule Glossia.VersionControl do
   # Public / APIs
 
   @type commit_status_state :: :pending | :success
-  @spec create_commit_status([
-          {:commit_sha, String.t()},
-          {:repository_id, String.t()},
-          {:platform, Glossia.VersionControl.Platform.t()},
-          {:state, commit_status_state},
-          {:target_url, String.t() | nil},
-          {:description, String.t() | nil},
-          {:context, String.t() | nil}
-        ]) :: :ok | {:error, map(), any()}
-  def create_commit_status(attrs) do
-    case Keyword.fetch!(attrs, :platform) do
+  @spec create_commit_status(%{
+          vcs_id: String.t(),
+          vcs_platform: Glossia.VersionControl.Platform.t(),
+          state: commit_status_state(),
+          target_url: String.t() | nil,
+          description: String.t() | nil,
+          context: String.t() | nil
+        }) :: :ok | {:error, map(), any()}
+
+  def create_commit_status(%{platform: platform} = attrs) do
+    case platform do
       "github" ->
-        Glossia.VersionControl.GitHub.create_commit_status(attrs)
+        attrs |> Glossia.VersionControl.GitHub.create_commit_status()
     end
   end
 end

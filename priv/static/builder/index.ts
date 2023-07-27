@@ -4,8 +4,6 @@ import {
   getAppSignalAPIKey,
   getEvent,
   getGitAccessToken,
-  getGitRepositoryId,
-  getGitRepositoryVersionControl,
 } from "./environment.ts";
 import { outputHeadingTableWithContext } from "./output.ts";
 

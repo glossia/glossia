@@ -9,22 +9,20 @@ defmodule Glossia.Builds.VM do
 
   @spec run(
           attrs :: [
-            command: String.t(),
             env: map(),
             status_update_cb: (String.t(), atom() -> nil)
           ]
         ) ::
           {:ok, String.t()}
-  def run(command: command, env: env, status_update_cb: status_update_cb) do
+  def run(env: env, status_update_cb: status_update_cb) do
     if Application.get_env(:glossia, :env) == :prod do
-      run_using_google_cloud_build(command: command, env: env, status_update_cb: status_update_cb)
+      run_using_google_cloud_build(env: env, status_update_cb: status_update_cb)
     else
-      run_using_docker(command: command, env: env, status_update_cb: status_update_cb)
+      run_using_docker(env: env, status_update_cb: status_update_cb)
     end
   end
 
   defp run_using_google_cloud_build(
-         command: command,
          env: env,
          status_update_cb: status_update_cb
        ) do
@@ -43,7 +41,7 @@ defmodule Glossia.Builds.VM do
           steps: [
             %GoogleApi.CloudBuild.V1.Model.BuildStep{
               name: get_docker_image(),
-              args: get_deno_args(command: command, env: env),
+              args: get_deno_args(env: env),
               env:
                 env
                 |> Enum.into(get_docker_env_variables())
@@ -93,7 +91,7 @@ defmodule Glossia.Builds.VM do
     end
   end
 
-  defp run_using_docker(command: command, env: env, status_update_cb: status_update_cb) do
+  defp run_using_docker(env: env, status_update_cb: status_update_cb) do
     docker_env_flags =
       get_docker_env_variables()
       |> Enum.into(env)
@@ -109,7 +107,7 @@ defmodule Glossia.Builds.VM do
         ["--publish", "4000:4000"] ++
         docker_env_flags ++
         [get_docker_image()] ++
-        get_deno_args(command: command, env: env)
+        get_deno_args(env: env)
 
     task =
       Task.async(fn ->
@@ -139,8 +137,8 @@ defmodule Glossia.Builds.VM do
     }
   end
 
-  @spec get_deno_args(attrs :: [command: String.t(), env: map()]) :: [String.t()]
-  defp get_deno_args(command: command, env: env) do
+  @spec get_deno_args(attrs :: [env: map()]) :: [String.t()]
+  defp get_deno_args(env: env) do
     path =
       if Application.get_env(:glossia, :env) == :prod do
         Application.get_env(:glossia, :url) <> "/builder/index.ts"
@@ -159,8 +157,7 @@ defmodule Glossia.Builds.VM do
       "--allow-net",
       "--allow-run",
       "--allow-env=#{deno_allow_env_flags}",
-      path,
-      command
+      path
     ]
   end
 

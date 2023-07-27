@@ -25,7 +25,7 @@ defmodule GlossiaWeb.WebhookController do
               project_id: project.id,
               event: :git_push,
               git_commit_sha: commit_sha,
-              git_repository_id: repository_id,
+              vcs_id: repository_id,
               vcs_platform: :github,
               git_access_token: git_access_token,
               git_ref: ref,
