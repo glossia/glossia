@@ -7,7 +7,7 @@ import {
   getGitRepositoryVCS,
 } from "./environment.ts";
 import { outputHeadingTableWithContext } from "./output.ts";
-import { simpleGit } from "npm:simple-git@~3.19.1";
+const { simpleGit } = await import("npm:simple-git@~3.19.1");
 
 let sendErrorReport: any = () => {};
 const appSignalAPIKey = getAppSignalAPIKey();
