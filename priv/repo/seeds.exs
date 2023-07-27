@@ -22,7 +22,7 @@ project =
       {:ok, project} =
         Projects.create_project(%{
           handle: "glossia",
-          repository_id: "glossia/glossia",
+          git_repository_id: "glossia/glossia",
           git_vcs: :github,
           account_id: organization.id
         })
