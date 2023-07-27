@@ -1,4 +1,4 @@
-defmodule Glossia.Builds.VM do
+defmodule Glossia.Builds.VirtualMachine do
   @moduledoc """
   This module provides utilities for running the builder executable using Docker in development
   and a virtualization solution by cloud providers in the case of production.

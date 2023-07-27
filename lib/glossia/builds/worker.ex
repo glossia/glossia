@@ -59,7 +59,7 @@ defmodule Glossia.Builds.Worker do
 
     attrs |> update_commit_status(:translating)
 
-    Glossia.Builds.VM.run(
+    Glossia.Builds.VirtualMachine.run(
       env: %{
         GLOSSIA_GIT_REF: git_ref,
         GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
