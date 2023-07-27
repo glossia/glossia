@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 import { createAppsignalClient } from "https://deno.land/x/appsignal@v1.0.1/mod.ts";
 import {
   getAppSignalAPIKey,
