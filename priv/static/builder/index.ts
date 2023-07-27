@@ -21,8 +21,9 @@ try {
     // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
     const remoteURL =
       `https://${getGitAccessToken()}@${getGitRepositoryVCS()}.com/${getGitRepositoryId()}.git`;
+    console.log(`Cloning ${remoteURL}`);
+
     const tempDirPath = await Deno.makeTempDir();
-    console.log(`Cloning ${remoteURL} into ${tempDirPath}`);
 
     const cloneCommand = new Deno.Command("/usr/bin/env", {
       args: ["git", "clone", remoteURL, tempDirPath, "--filter=tree:0"],
