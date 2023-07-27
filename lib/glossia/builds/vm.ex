@@ -155,7 +155,15 @@ defmodule Glossia.Builds.VM do
        end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY", "GLOSSIA_API_KEY"])
       |> Enum.join(",")
 
-    ["run", "--allow-net", "--unstable", "--allow-env=#{deno_allow_env_flags}", path, command]
+    [
+      "run",
+      "--allow-net",
+      "--allow-run",
+      "--unstable",
+      "--allow-env=#{deno_allow_env_flags}",
+      path,
+      command
+    ]
   end
 
   @doc """
