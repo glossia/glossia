@@ -1,7 +1,6 @@
 defmodule Glossia.Builds.BuildTest do
   use Glossia.DataCase
 
-  alias Glossia.Repo
   alias Glossia.Builds.Build
 
   describe "changeset" do

@@ -7,7 +7,9 @@ defmodule Glossia.Builds.Build do
   @type t :: %__MODULE__{
           git_commit_sha: String.t(),
           vcs_id: String.t() | nil,
-          vcs_platform: Glossia.VersionControl.t(),
+          vcs_platform: Glossia.VersionControl.Platform.t(),
+          vm_id: String.t() | nil,
+          status: status(),
           project: Glossia.Projects.Project.t() | nil
         }
 
@@ -34,7 +36,7 @@ defmodule Glossia.Builds.Build do
     field :git_commit_sha, :string
     field :vcs_id, :string
     field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
-    field :remote_id, :string
+    field :vm_id, :string
     field :event, Ecto.Enum, values: [{:git_push, 1}]
 
     field :status, Ecto.Enum,
@@ -67,7 +69,7 @@ defmodule Glossia.Builds.Build do
       :vcs_platform,
       :project_id,
       :status,
-      :remote_id,
+      :vm_id,
       :event
     ])
     |> validate_required([
