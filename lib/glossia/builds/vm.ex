@@ -159,7 +159,6 @@ defmodule Glossia.Builds.VM do
       "run",
       "--allow-net",
       "--allow-run",
-      "--unstable",
       "--allow-env=#{deno_allow_env_flags}",
       path,
       command
