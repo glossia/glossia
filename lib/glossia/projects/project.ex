@@ -11,7 +11,7 @@ defmodule Glossia.Projects.Project do
           handle: String.t(),
           account: Account.t() | nil,
           type: type(),
-          git_repository_id: String.t(),
+          vcs_id: String.t(),
           git_vcs: Glossia.VCS.t(),
           visibility: visibility()
         }
@@ -31,7 +31,7 @@ defmodule Glossia.Projects.Project do
   schema "projects" do
     field :handle, :string
     field :type, Ecto.Enum, values: [{:git, 1}], default: :git
-    field :git_repository_id, :string
+    field :vcs_id, :string
     field :git_vcs, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
@@ -47,29 +47,29 @@ defmodule Glossia.Projects.Project do
   """
   @type changeset_attrs :: %{
           handle: String.t(),
-          git_repository_id: String.t(),
+          vcs_id: String.t(),
           git_vcs: Glossia.VCS.t(),
           account_id: integer()
         }
   @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:handle, :git_repository_id, :git_vcs, :account_id, :visibility, :type])
-    |> validate_required([:handle, :git_repository_id, :git_vcs, :account_id, :type])
+    |> cast(attrs, [:handle, :vcs_id, :git_vcs, :account_id, :visibility, :type])
+    |> validate_required([:handle, :vcs_id, :git_vcs, :account_id, :type])
     |> validate_inclusion(:git_vcs, [:github])
     |> validate_inclusion(:type, [:git])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
     |> unique_constraint(:handle)
-    |> unique_constraint([:git_repository_id, :git_vcs])
+    |> unique_constraint([:vcs_id, :git_vcs])
     |> assoc_constraint(:account)
   end
 
   # Queries
 
-  def find_by_repository_query(git_repository_id, git_vcs) do
+  def find_by_repository_query(vcs_id, git_vcs) do
     from(p in __MODULE__,
-      where: p.git_repository_id == ^git_repository_id and p.git_vcs == ^git_vcs
+      where: p.vcs_id == ^vcs_id and p.git_vcs == ^git_vcs
     )
   end
 end

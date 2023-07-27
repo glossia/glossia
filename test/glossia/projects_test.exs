@@ -9,12 +9,12 @@ defmodule Glossia.ProjectsTest do
       {:ok, project} = Glossia.ProjectsFixtures.project_fixture()
 
       # When
-      got = Projects.find_project_by_repository(project.git_repository_id, project.git_vcs)
+      got = Projects.find_project_by_repository(project.vcs_id, project.git_vcs)
 
       # Then
       assert got.id == project.id
       assert got.handle == project.handle
-      assert got.git_repository_id == project.git_repository_id
+      assert got.vcs_id == project.vcs_id
     end
   end
 end

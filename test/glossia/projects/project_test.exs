@@ -7,7 +7,7 @@ defmodule Glossia.Projects.ProjectTest do
     test "validates that handle is required" do
       # Given
       project = %Project{}
-      attrs = %{git_repository_id: "glossia/glossia", git_vcs: :github, account_id: 1}
+      attrs = %{vcs_id: "glossia/glossia", git_vcs: :github, account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -27,13 +27,13 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{git_repository_id: ["can't be blank"]} = errors
+      assert %{vcs_id: ["can't be blank"]} = errors
     end
 
     test "validates that vcs is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", git_repository_id: "glossia/glossia", account_id: 1}
+      attrs = %{handle: "glossia", vcs_id: "glossia/glossia", account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -46,7 +46,7 @@ defmodule Glossia.Projects.ProjectTest do
     test "validates that account_id is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", git_repository_id: "glossia/glossia", git_vcs: :github}
+      attrs = %{handle: "glossia", vcs_id: "glossia/glossia", git_vcs: :github}
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -62,7 +62,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        git_repository_id: "glossia/glossia",
+        vcs_id: "glossia/glossia",
         git_vcs: :invalid_vcs,
         account_id: 1
       }
@@ -81,7 +81,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "invalid handle",
-        git_repository_id: "glossia/glossia",
+        vcs_id: "glossia/glossia",
         git_vcs: :github,
         account_id: 1
       }
@@ -100,7 +100,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "a",
-        git_repository_id: "glossia/glossia",
+        vcs_id: "glossia/glossia",
         git_vcs: :github,
         account_id: 1
       }
@@ -119,7 +119,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "aasdgasgasgdasdgasdgasgasdgasgsags",
-        git_repository_id: "glossia/glossia",
+        vcs_id: "glossia/glossia",
         git_vcs: :github,
         account_id: 1
       }
