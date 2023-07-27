@@ -8,6 +8,7 @@ import {
   getGitRepositoryVCS,
 } from "./environment.ts";
 import { outputHeadingTableWithContext } from "./output.ts";
+import { jsonSchemaToZod } from "npm:json-schema-to-zod@1.1.1";
 
 let sendErrorReport: any = () => {};
 const appSignalAPIKey = getAppSignalAPIKey();
