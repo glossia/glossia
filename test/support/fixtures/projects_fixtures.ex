@@ -26,7 +26,7 @@ defmodule Glossia.ProjectsFixtures do
     %{
       handle: "handle#{Glossia.TestHelpers.unique_integer()}",
       vcs_id: "#{Glossia.TestHelpers.unique_integer()}/#{Glossia.TestHelpers.unique_integer()}",
-      git_vcs: :github,
+      vcs_platform: :github,
       account_id: 1
     }
   end
