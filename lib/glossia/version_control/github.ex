@@ -148,7 +148,7 @@ defmodule Glossia.VersionControl.GitHub do
           app_jwk_token :: String.t() | nil
         ) ::
           Tentacat.Client.t()
-  defp get_client_for_installation(installation_id, app_jwk_token \\ nil) do
+  defp get_client_for_installation(installation_id, app_jwk_token) do
     app_jwt_token = app_jwk_token || Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 

@@ -13,7 +13,7 @@ defmodule Glossia.Builds do
           event: atom(),
           git_commit_sha: String.t(),
           git_repository_id: String.t(),
-          git_vcs: atom()
+          vcs_platform: atom()
         }) ::
           {:ok, nil} | {:error, any()}
   def trigger_git_event_build(attrs) do

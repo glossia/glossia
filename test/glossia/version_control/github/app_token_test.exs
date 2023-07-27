@@ -5,7 +5,7 @@ defmodule Glossia.VersionControl.GitHub.AppTokenTest do
 
   test "generates a token" do
     # Given
-    {:ok, token, claims} = AppToken.generate_and_sign(%{foo: "bar"})
+    {:ok, token, _} = AppToken.generate_and_sign(%{foo: "bar"})
 
     # When
     assert {:ok, %{"foo" => "bar"}} = AppToken.verify_and_validate(token)

@@ -7,7 +7,7 @@ defmodule Glossia.Builds.Build do
   @type t :: %__MODULE__{
           git_commit_sha: String.t(),
           git_repository_id: String.t() | nil,
-          git_vcs: Glossia.VersionControl.t(),
+          vcs_platform: Glossia.VersionControl.t(),
           project: Glossia.Projects.Project.t() | nil
         }
 
@@ -33,7 +33,7 @@ defmodule Glossia.Builds.Build do
   schema "builds" do
     field :git_commit_sha, :string
     field :git_repository_id, :string
-    field :git_vcs, Ecto.Enum, values: [{:github, 1}]
+    field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
     field :remote_id, :string
     field :event, Ecto.Enum, values: [{:git_push, 1}]
 
@@ -64,7 +64,7 @@ defmodule Glossia.Builds.Build do
     |> cast(attrs, [
       :git_commit_sha,
       :git_repository_id,
-      :git_vcs,
+      :vcs_platform,
       :project_id,
       :status,
       :remote_id,
@@ -73,12 +73,12 @@ defmodule Glossia.Builds.Build do
     |> validate_required([
       :git_commit_sha,
       :git_repository_id,
-      :git_vcs,
+      :vcs_platform,
       :project_id,
       :status,
       :event
     ])
-    |> validate_inclusion(:git_vcs, [:github])
+    |> validate_inclusion(:vcs_platform, [:github])
     |> validate_inclusion(:event, [:git_push])
     |> validate_inclusion(:status, [
       :status_unknown,
@@ -92,7 +92,7 @@ defmodule Glossia.Builds.Build do
       :cancelled,
       :expired
     ])
-    |> unique_constraint([:git_commit_sha, :git_repository_id, :git_vcs])
+    |> unique_constraint([:git_commit_sha, :git_repository_id, :vcs_platform])
     |> assoc_constraint(:project)
   end
 end

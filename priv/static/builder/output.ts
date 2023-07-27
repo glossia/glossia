@@ -8,7 +8,7 @@ import {
   getGitDefaultBranch,
   getGitRef,
   getGitRepositoryId,
-  getGitRepositoryVersionControl,
+  getSVNPlatform,
 } from "./environment.ts";
 
 export function outputHeadingTableWithContext() {
@@ -18,8 +18,8 @@ export function outputHeadingTableWithContext() {
     .addRow("Event", getEvent())
     .addRow("Git access token", getGitAccessToken())
     .addRow("App Signal API key", getAppSignalAPIKey())
+    .addRow("VCS Platform", getSVNPlatform())
     .addRow("Git repository", getGitRepositoryId())
-    .addRow("Git repository VersionControl", getGitRepositoryVersionControl())
     .addRow("Git commit SHA", getGitCommitSHA())
     .addRow("Git ref", getGitRef())
     .addRow("Git default branch", getGitDefaultBranch());

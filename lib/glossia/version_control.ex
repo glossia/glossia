@@ -47,14 +47,14 @@ defmodule Glossia.VersionControl do
   @spec create_commit_status([
           {:commit_sha, String.t()},
           {:repository_id, String.t()},
-          {:vcs, Glossia.VersionControl.Platform.t()},
+          {:platform, Glossia.VersionControl.Platform.t()},
           {:state, commit_status_state},
           {:target_url, String.t() | nil},
           {:description, String.t() | nil},
           {:context, String.t() | nil}
         ]) :: :ok | {:error, map(), any()}
   def create_commit_status(attrs) do
-    case Keyword.fetch!(attrs, :vcs) do
+    case Keyword.fetch!(attrs, :platform) do
       "github" ->
         Glossia.VersionControl.GitHub.create_commit_status(attrs)
     end

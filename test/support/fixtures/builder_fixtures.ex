@@ -24,7 +24,7 @@ defmodule Glossia.BuildsFixtures do
     %{
       git_commit_sha: "123",
       git_repository_id: "glossia/glossia",
-      git_vcs: :github,
+      vcs_platform: :github,
       event: :git_push
     }
   end

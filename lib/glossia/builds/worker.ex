@@ -22,7 +22,7 @@ defmodule Glossia.Builds.Worker do
           "git_ref" => git_ref,
           "git_commit_sha" => git_commit_sha,
           "git_repository_id" => git_repository_id,
-          "git_vcs" => git_vcs
+          "vcs_platform" => vcs_platform
         }
       }) do
     case Repo.get_by(Build, git_commit_sha: git_commit_sha, project_id: project_id) do
@@ -34,7 +34,7 @@ defmodule Glossia.Builds.Worker do
           git_ref: git_ref,
           git_commit_sha: git_commit_sha,
           git_repository_id: git_repository_id,
-          git_vcs: git_vcs,
+          vcs_platform: vcs_platform,
           project_id: project_id
         })
 
@@ -48,7 +48,7 @@ defmodule Glossia.Builds.Worker do
         event: event,
         git_commit_sha: git_commit_sha,
         git_repository_id: git_repository_id,
-        git_vcs: git_vcs,
+        vcs_platform: vcs_platform,
         git_ref: git_ref,
         git_default_branch: git_default_branch,
         project_id: project_id
@@ -60,14 +60,14 @@ defmodule Glossia.Builds.Worker do
           event: event,
           git_commit_sha: git_commit_sha,
           git_repository_id: git_repository_id,
-          git_vcs: git_vcs
+          vcs_platform: vcs_platform
         })
       )
 
     commit_status_attrs = [
       git_commit_sha: git_commit_sha,
       git_repository_id: git_repository_id,
-      git_vcs: git_vcs
+      vcs_platform: vcs_platform
     ]
 
     commit_status_attrs
@@ -81,7 +81,7 @@ defmodule Glossia.Builds.Worker do
         GLOSSIA_GIT_REF: git_ref,
         GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
         GLOSSIA_GIT_REPOSITORY_ID: git_repository_id,
-        GLOSSIA_GIT_REPOSITORY_VersionControl: git_vcs,
+        GLOSSIA_VCS_PLATFORM: vcs_platform,
         GLOSSIA_GIT_COMMIT_SHA: git_commit_sha,
         GLOSSIA_BUILD_ID: build.id,
         GLOSSIA_EVENT: event,
@@ -110,7 +110,7 @@ defmodule Glossia.Builds.Worker do
          state: state,
          git_commit_sha: git_commit_sha,
          git_repository_id: git_repository_id,
-         git_vcs: git_vcs
+         vcs_platform: vcs_platform
        ) do
     context =
       case Application.get_env(:glossia, :env) do
@@ -119,7 +119,7 @@ defmodule Glossia.Builds.Worker do
       end
 
     Glossia.VersionControl.create_commit_status(
-      vcs: git_vcs,
+      vcs_platform: vcs_platform,
       commit_sha: git_commit_sha,
       repository_id: git_repository_id,
       state: state,
