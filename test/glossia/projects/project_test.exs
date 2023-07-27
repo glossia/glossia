@@ -131,5 +131,37 @@ defmodule Glossia.Projects.ProjectTest do
       errors = errors_on(changeset)
       assert %{handle: ["should be at most 20 character(s)"]} = errors
     end
+
+    test "validates the inclusion of git_vcs in the supported types" do
+      # Given
+      project = %Project{}
+
+      attrs = %{
+        git_vcs: :invalid
+      }
+
+      # When
+      changeset = Project.changeset(project, attrs)
+
+      # Then
+      errors = errors_on(changeset)
+      assert %{git_vcs: ["is invalid"]} = errors
+    end
+
+    test "validates the inclusion of type in the supported types" do
+      # Given
+      project = %Project{}
+
+      attrs = %{
+        type: :invalid
+      }
+
+      # When
+      changeset = Project.changeset(project, attrs)
+
+      # Then
+      errors = errors_on(changeset)
+      assert %{type: ["is invalid"]} = errors
+    end
   end
 end

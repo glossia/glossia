@@ -15,6 +15,7 @@ defmodule Glossia.Projects.Project do
           visibility: visibility()
         }
   @type visibility :: :public | :private
+  @type type :: :git
 
   # Module dependencies
 
@@ -28,6 +29,7 @@ defmodule Glossia.Projects.Project do
 
   schema "projects" do
     field :handle, :string
+    field :type, Ecto.Enum, values: [{:git, 1}], default: :git
     field :git_repository_id, :string
     field :git_vcs, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
@@ -51,9 +53,10 @@ defmodule Glossia.Projects.Project do
   @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:handle, :git_repository_id, :git_vcs, :account_id, :visibility])
-    |> validate_required([:handle, :git_repository_id, :git_vcs, :account_id])
+    |> cast(attrs, [:handle, :git_repository_id, :git_vcs, :account_id, :visibility, :type])
+    |> validate_required([:handle, :git_repository_id, :git_vcs, :account_id, :type])
     |> validate_inclusion(:git_vcs, [:github])
+    |> validate_inclusion(:type, [:git])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
     |> unique_constraint(:handle)
