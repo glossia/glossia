@@ -18,7 +18,7 @@ defmodule GlossiaWeb.Plugs.AuthorizeBuildsAPIKey do
       ["Bearer " <> token] ->
         if Plug.Crypto.secure_compare(
              token,
-             Application.get_env(:glossia, :secrets)[:builder_api_key]
+             Application.get_env(:glossia, :builder_api_key)
            ) do
           conn
         else

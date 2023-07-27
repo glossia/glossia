@@ -194,6 +194,6 @@ defmodule Glossia.VCS.GitHub do
   end
 
   defp webhook_secret do
-    Application.get_env(:glossia, :secrets)[:github_webhooks]
+    Application.get_env(:glossia, :github_app_webhooks_secret)
   end
 end

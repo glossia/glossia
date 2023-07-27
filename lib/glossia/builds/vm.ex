@@ -30,7 +30,7 @@ defmodule Glossia.Builds.VM do
        ) do
     # https://cloud.google.com/build/docs/api/reference/rest/v1/projects.builds/create
     # https://github.com/googleapis/elixir-google-api/blob/main/clients/cloud_build/lib/google_api/cloud_build/v1/api/projects.ex#L213
-    project_id = Application.get_env(:glossia, :secrets)[:google_cloud_project_id]
+    project_id = Application.get_env(:glossia, :google_cloud_project_id)
 
     {:ok, token} = Goth.fetch(Glossia.Goth)
 
@@ -134,9 +134,8 @@ defmodule Glossia.Builds.VM do
   defp get_docker_env_variables() do
     %{
       GLOSSIA_URL: Application.get_env(:glossia, :url),
-      GLOSSIA_API_KEY: Application.get_env(:glossia, :secrets)[:builder_api_key],
-      GLOSSIA_APP_SIGNAL_API_KEY:
-        Application.get_env(:glossia, :secrets)[:app_signal_builder_api_key]
+      GLOSSIA_API_KEY: Application.get_env(:glossia, :builder_api_key),
+      GLOSSIA_APP_SIGNAL_API_KEY: Application.get_env(:glossia, :app_signal_builder_api_key)
     }
   end
 

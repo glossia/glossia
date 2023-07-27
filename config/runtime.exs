@@ -120,38 +120,41 @@ if config_env() == :prod do
     api_url: env!("POSTHOG_API_URL", :string),
     api_key: env!("POSTHOG_API_KEY", :string)
 
+  # App Signal
   config :appsignal, :config,
     otp_app: :glossia,
     name: "glossia",
     push_api_key: env!("APP_SIGNAL_PUSH_API_KEY", :string),
     env: :prod
 
-  config :glossia, :secrets,
+  # Glossia Production Variables
+  config :glossia,
     google_application_credentials_json_base_64:
-      env!("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE_64", :string, "")
-
-  config :glossia, :secrets, google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, "")
-
-  config :glossia, :secrets,
+      env!("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE_64", :string, ""),
+    google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, ""),
     app_signal_builder_api_key: env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
 end
 
+# Ueberauth
 config :ueberauth, Ueberauth.Strategy.GitHub.OAuth,
   client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
   client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, "")
 
-config :glossia, :secrets, github_webhooks: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, "")
-config :glossia, :secrets, github_app_id: env!("GITHUB_APP_ID", :string, "")
-config :glossia, :secrets, builder_api_key: env!("BUILDER_API_KEY", :string, "")
-# config :glossia, :secrets, build_jwt_signing_key: env!("BUILD_JWT_SIGNING_KEY", :string, "")
+# Glossia
+config :glossia,
+  github_app_webhooks_secret: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, ""),
+  github_app_id: env!("GITHUB_APP_ID", :string, ""),
+  builder_api_key: env!("BUILDER_API_KEY", :string, ""),
+  url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000")
+
+# Joken
 
 config :joken,
   github: [
     signer_alg: "RS256",
     key_pem: env!("GITHUB_APP_PRIVATE_KEY_BASE_64", :string, "") |> Base.decode64!()
-  ]
-
-config :joken, build: env!("BUILD_JWT_SIGNING_KEY", :string, "")
+  ],
+  build: env!("BUILD_JWT_SIGNING_KEY", :string, "")
 
 config :glossia, GlossiaWeb.Endpoint,
   live_view: [
@@ -170,9 +173,3 @@ config :glossia, GlossiaWeb.Endpoint,
       :string,
       "Wsi8PTaGsZV1pYCP/AfGtpByH12WDCofgiFVGDfk7iMCWUN5mwSgkSBYrQNIOdZ7"
     )
-
-if config_env() == :prod do
-  config :glossia, :url, "https://glossia.ai"
-else
-  config :glossia, :url, "http://127.0.0.1:4000"
-end

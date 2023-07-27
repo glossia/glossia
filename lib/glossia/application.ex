@@ -51,7 +51,7 @@ defmodule Glossia.Application do
   end
 
   defp google_cloud_children() do
-    case Application.get_env(:glossia, :secrets)[:google_application_credentials_json_base_64] do
+    case Application.get_env(:glossia, :google_application_credentials_json_base_64) do
       "" ->
         []
 
