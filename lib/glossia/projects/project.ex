@@ -10,6 +10,7 @@ defmodule Glossia.Projects.Project do
   @type t :: %__MODULE__{
           handle: String.t(),
           account: Account.t() | nil,
+          type: type(),
           git_repository_id: String.t(),
           git_vcs: Glossia.VCS.t(),
           visibility: visibility()
