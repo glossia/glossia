@@ -1,13 +1,13 @@
-defmodule Glossia.VCS.GitHub do
+defmodule Glossia.VersionControl.GitHub do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
 
   require Logger
 
-  @behaviour Glossia.VCS.ProviderBehaviour
+  @behaviour Glossia.VersionControl.ProviderBehaviour
 
-  @impl Glossia.VCS.ProviderBehaviour
+  @impl Glossia.VersionControl.ProviderBehaviour
   def get_file_content(path, repository_id) do
     client = get_client_for_repository(repository_id)
     [owner, repo] = repository_id |> String.split("/")
@@ -18,7 +18,7 @@ defmodule Glossia.VCS.GitHub do
     end
   end
 
-  @impl Glossia.VCS.ProviderBehaviour
+  @impl Glossia.VersionControl.ProviderBehaviour
   def create_commit_status(attrs) do
     repository_id = attrs |> Keyword.fetch!(:repository_id)
     commit_sha = attrs |> Keyword.fetch!(:commit_sha)
@@ -80,7 +80,7 @@ defmodule Glossia.VCS.GitHub do
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
-  @impl Glossia.VCS.ProviderBehaviour
+  @impl Glossia.VersionControl.ProviderBehaviour
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -94,7 +94,7 @@ defmodule Glossia.VCS.GitHub do
   @doc """
   It processes a webhook sent by GitHub.
   """
-  @impl Glossia.VCS.ProviderBehaviour
+  @impl Glossia.VersionControl.ProviderBehaviour
   def get_webhook_processor(event, payload) when event == "push" do
     Logger.info("Processing GitHub webhook: #{event}")
     repository_id = payload["repository"]["full_name"]
@@ -112,7 +112,7 @@ defmodule Glossia.VCS.GitHub do
      }}
   end
 
-  @impl Glossia.VCS.ProviderBehaviour
+  @impl Glossia.VersionControl.ProviderBehaviour
   def get_webhook_processor(event, _payload) do
     Logger.info("Processing an unsupported GitHub webhook event: #{event}")
     nil
@@ -124,7 +124,7 @@ defmodule Glossia.VCS.GitHub do
         ) ::
           Tentacat.Client.t()
   def get_client_for_installation(installation_id, app_jwk_token \\ nil) do
-    app_jwt_token = app_jwk_token || Glossia.VCS.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = app_jwk_token || Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     {201, %{"token" => access_token}, _} =
@@ -134,7 +134,7 @@ defmodule Glossia.VCS.GitHub do
   end
 
   def get_client_for_repository(repository_id) do
-    app_jwt_token = Glossia.VCS.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(
@@ -145,9 +145,9 @@ defmodule Glossia.VCS.GitHub do
     get_client_for_installation(installation_id, app_jwt_token)
   end
 
-  @impl Glossia.VCS.ProviderBehaviour
+  @impl Glossia.VersionControl.ProviderBehaviour
   def generate_token_for_cloning(repository_id) do
-    app_jwt_token = Glossia.VCS.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     {200, %{"id" => installation_id}, _} =

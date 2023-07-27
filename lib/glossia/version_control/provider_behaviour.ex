@@ -1,4 +1,4 @@
-defmodule Glossia.VCS.ProviderBehaviour do
+defmodule Glossia.VersionControl.ProviderBehaviour do
   # Types
 
   @type t :: :github
@@ -6,7 +6,7 @@ defmodule Glossia.VCS.ProviderBehaviour do
   # Callbacks / Webhooks
 
   @doc """
-  Processes a webhook event from a VCS provider.
+  Processes a webhook event from a VersionControl provider.
   """
   @callback get_webhook_processor(event :: String.t(), payload :: map()) :: {atom(), struct()}
 
@@ -22,7 +22,7 @@ defmodule Glossia.VCS.ProviderBehaviour do
 
   ## Examples
 
-    iex > Glossia.VCS.ProviderBehaviour.get_file_content("glossia.jsonc", "glossia/glossia")
+    iex > Glossia.VersionControl.ProviderBehaviour.get_file_content("glossia.jsonc", "glossia/glossia")
     {:ok, "..."}
   """
   @callback get_file_content(

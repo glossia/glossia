@@ -8,7 +8,7 @@ import {
   getGitDefaultBranch,
   getGitRef,
   getGitRepositoryId,
-  getGitRepositoryVCS,
+  getGitRepositoryVersionControl,
 } from "./environment.ts";
 
 export function outputHeadingTableWithContext() {
@@ -19,7 +19,7 @@ export function outputHeadingTableWithContext() {
     .addRow("Git access token", getGitAccessToken())
     .addRow("App Signal API key", getAppSignalAPIKey())
     .addRow("Git repository", getGitRepositoryId())
-    .addRow("Git repository VCS", getGitRepositoryVCS())
+    .addRow("Git repository VersionControl", getGitRepositoryVersionControl())
     .addRow("Git commit SHA", getGitCommitSHA())
     .addRow("Git ref", getGitRef())
     .addRow("Git default branch", getGitDefaultBranch());

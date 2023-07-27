@@ -15,7 +15,11 @@ defmodule GlossiaWeb.Plugs.RequirePayloadSignatureMatch do
 
   @spec call(Conn.t(), term()) :: Conn.t()
   def call(%Conn{method: method} = conn, _opts) when method == "POST" or method == "PUT" do
-    case Glossia.VCS.is_webhook_payload_valid?(conn.req_headers, conn.assigns.raw_body, :github) do
+    case Glossia.VersionControl.is_webhook_payload_valid?(
+           conn.req_headers,
+           conn.assigns.raw_body,
+           :github
+         ) do
       true ->
         conn
 

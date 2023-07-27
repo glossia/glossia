@@ -7,7 +7,7 @@ defmodule Glossia.Builds.Build do
   @type t :: %__MODULE__{
           git_commit_sha: String.t(),
           git_repository_id: String.t() | nil,
-          git_vcs: Glossia.VCS.t(),
+          git_vcs: Glossia.VersionControl.t(),
           project: Glossia.Projects.Project.t() | nil
         }
 

@@ -1,5 +1,5 @@
 defmodule Glossia.Builds do
-  use Boundary, deps: [Glossia.VCS, Glossia.Repo], exports: [Build]
+  use Boundary, deps: [Glossia.VersionControl, Glossia.Repo], exports: [Build]
 
   # Modules
   alias Glossia.Builds.Worker

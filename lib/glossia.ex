@@ -9,7 +9,7 @@ defmodule Glossia do
       Auth,
       ErrorReporter,
       Blog,
-      VCS,
+      VersionControl,
       Accounts,
       Analytics,
       Projects,

@@ -81,7 +81,7 @@ defmodule Glossia.Builds.Worker do
         GLOSSIA_GIT_REF: git_ref,
         GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
         GLOSSIA_GIT_REPOSITORY_ID: git_repository_id,
-        GLOSSIA_GIT_REPOSITORY_VCS: git_vcs,
+        GLOSSIA_GIT_REPOSITORY_VersionControl: git_vcs,
         GLOSSIA_GIT_COMMIT_SHA: git_commit_sha,
         GLOSSIA_BUILD_ID: build.id,
         GLOSSIA_EVENT: event,
@@ -118,7 +118,7 @@ defmodule Glossia.Builds.Worker do
         _ -> "Glossia (#{Application.get_env(:glossia, :env)})"
       end
 
-    Glossia.VCS.create_commit_status(
+    Glossia.VersionControl.create_commit_status(
       vcs: git_vcs,
       commit_sha: git_commit_sha,
       repository_id: git_repository_id,

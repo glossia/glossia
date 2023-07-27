@@ -18,8 +18,8 @@ export function getGitRepositoryId() {
   return Deno.env.get("GLOSSIA_GIT_REPOSITORY_ID");
 }
 
-export function getGitRepositoryVCS() {
-  return Deno.env.get("GLOSSIA_GIT_REPOSITORY_VCS");
+export function getGitRepositoryVersionControl() {
+  return Deno.env.get("GLOSSIA_GIT_REPOSITORY_VersionControl");
 }
 
 export function getGitCommitSHA() {

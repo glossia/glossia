@@ -7,7 +7,7 @@ defmodule GlossiaWeb.WebhookController do
     event = conn |> get_req_header("x-github-event") |> List.first()
     payload = conn.assigns.raw_body |> Jason.decode!()
 
-    case Glossia.VCS.get_webhook_processor(event, payload, :github) do
+    case Glossia.VersionControl.get_webhook_processor(event, payload, :github) do
       {:push,
        %{
          commit_sha: commit_sha,
@@ -18,7 +18,8 @@ defmodule GlossiaWeb.WebhookController do
        }} ->
         case Glossia.Projects.find_project_by_repository(repository_id, vcs) do
           %Glossia.Projects.Project{} = project ->
-            git_access_token = Glossia.VCS.generate_token_for_cloning(repository_id, :github)
+            git_access_token =
+              Glossia.VersionControl.generate_token_for_cloning(repository_id, :github)
 
             Glossia.Builds.trigger_git_event_build(%{
               project_id: project.id,
