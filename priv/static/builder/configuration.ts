@@ -26,7 +26,11 @@ export async function loadConfigurations(
   ) {
     configurationFilePaths.push(configurationFilePath.path);
   }
-  const ajv = new Ajv({ strict: false });
+  const ajv = new Ajv({
+    strict: false,
+    strictTuples: false,
+    strictSchema: false,
+  });
   const validate = ajv.compile(configurationV1JSONSchema);
 
   const configurations: Configuration[] = await Promise.all(
