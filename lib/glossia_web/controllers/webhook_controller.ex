@@ -3,6 +3,8 @@ defmodule GlossiaWeb.WebhookController do
 
   require Logger
 
+  # Public
+
   def github(conn, _params) do
     event = conn |> get_req_header("x-github-event") |> List.first()
     payload = conn.assigns.raw_body |> Jason.decode!()
@@ -16,6 +18,8 @@ defmodule GlossiaWeb.WebhookController do
 
     json(conn, nil)
   end
+
+  # Private
 
   defp find_project_and_update_project_id(attrs) do
     case attrs |> Glossia.Projects.find_project_by_repository() do
