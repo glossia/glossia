@@ -156,6 +156,7 @@ defmodule Glossia.Builds.VirtualMachine do
       "run",
       "--allow-net",
       "--allow-run",
+      "--allow-write",
       "--allow-env=#{deno_allow_env_flags}",
       path
     ]
