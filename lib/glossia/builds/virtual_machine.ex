@@ -168,7 +168,7 @@ defmodule Glossia.Builds.VirtualMachine do
   """
   @spec get_docker_image() :: String.t()
   def get_docker_image() do
-    "denoland/deno:ubuntu-" <> Application.get_env(:glossia, :versions)[:deno]
+    "denoland/deno:" <> Application.get_env(:glossia, :versions)[:deno]
   end
 
   @doc """
