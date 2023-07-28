@@ -53,8 +53,8 @@ defmodule Glossia.VersionControl do
           context: String.t() | nil
         }) :: :ok | {:error, map(), any()}
 
-  def create_commit_status(%{platform: platform} = attrs) do
-    case platform do
+  def create_commit_status(%{vcs_platform: vcs_platform} = attrs) do
+    case vcs_platform do
       "github" ->
         attrs |> Glossia.VersionControl.GitHub.create_commit_status()
     end
