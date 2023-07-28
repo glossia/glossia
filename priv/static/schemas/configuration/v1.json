@@ -1,11 +1,29 @@
 {
   "type": "object",
+  "type": "object",
   "properties": {
     "languages": {
-      "type": "array",
-      "title": "Languages",
-      "description": "The lanuages this project is available in"
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [
+        "source",
+        "target"
+      ]
     }
   },
-  "required": ["languages"]
+  "required": [
+    "languages"
+  ]
 }

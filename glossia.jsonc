@@ -1,4 +1,7 @@
 {
     "$schema": "https://glossia.ai/schemas/configuration/v1.json",
-    "languages": ["es", "es"]
+    "languages": {
+        "source": "en",
+        "target": ["es"]
+    }
 }
