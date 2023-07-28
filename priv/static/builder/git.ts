@@ -58,7 +58,7 @@ export async function clone(
 export async function installGitIfNeeded() {
   // Install
   const installCommand = new Deno.Command("/usr/bin", {
-    args: ["apk", "add", "git"],
+    args: ["sudo", "apk", "add", "git"],
     stdin: "null",
   });
   const installResult = await installCommand.spawn();
