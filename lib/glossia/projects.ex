@@ -26,6 +26,6 @@ defmodule Glossia.Projects do
         }) ::
           Project.t() | nil
   def find_project_by_repository(attrs) do
-    Project.find_by_repository_query(attrs) |> Repo.one()
+    Project.find_project_by_repository(attrs) |> Repo.one()
   end
 end

@@ -21,7 +21,7 @@ defmodule Glossia.Builds do
     |> Worker.new()
     |> Oban.insert()
     |> case do
-      {:ok, _} -> {:ok, nil}
+      {:ok, _} -> :ok
       {:error, error} -> {:error, error}
     end
   end

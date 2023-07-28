@@ -21,14 +21,22 @@ defmodule GlossiaWeb.WebhookController do
 
   # Private
 
-  defp find_project_and_update_project_id(attrs) do
+  defp find_project_and_update_project_id(nil) do
+    nil
+  end
+
+  defp find_project_and_update_project_id(%{} = attrs) do
     case attrs |> Glossia.Projects.find_project_by_repository() do
       nil -> attrs
       project -> attrs |> Map.put(:project_id, project.id)
     end
   end
 
-  defp generate_vcs_token_for_cloning_and_update_git_access_token(attrs) do
+  defp generate_vcs_token_for_cloning_and_update_git_access_token(nil) do
+    nil
+  end
+
+  defp generate_vcs_token_for_cloning_and_update_git_access_token(%{} = attrs) do
     case attrs |> Map.has_key?(:project_id) do
       true ->
         attrs
@@ -39,7 +47,11 @@ defmodule GlossiaWeb.WebhookController do
     end
   end
 
-  defp trigger_build_when_project_present(attrs) do
+  defp trigger_build_when_project_present(nil) do
+    :ok
+  end
+
+  defp trigger_build_when_project_present(%{} = attrs) do
     case attrs |> Map.has_key?(:project_id) do
       true -> attrs |> Glossia.Builds.trigger_git_event_build()
       _ -> :ok
