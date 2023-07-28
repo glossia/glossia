@@ -1,18 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://glossia.ai/schemas/configuration/v1.json",
   "type": "object",
   "properties": {
     "languages": {
       "type": "object",
       "properties": {
         "source": {
-          "type": "string"
+          "$ref": "https://glossia.ai/schemas/language.json"
         },
         "target": {
           "type": "array",
           "items": [
             {
-              "type": "string"
+              "$ref": "https://glossia.ai/schemas/language.json"
             }
           ]
         }
