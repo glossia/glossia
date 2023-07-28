@@ -7,19 +7,44 @@ import {
 
 // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
 export async function cloneGitRepository(
-  { into: directory }: { into: string },
+  { root }: { root: string },
 ) {
-  const remoteURL =
-    `https://${getGitAccessToken()}@${getVCSPlatform()}.com/${getVCSId()}.git`;
+  clone({
+    root: root,
+    gitCommitSHA: getGitCommitSHA()!,
+    gitAccessToken: getGitAccessToken()!,
+    vcsPlatform: getVCSPlatform()!,
+    vcsId: getVCSId()!,
+  });
+}
+
+export async function clone(
+  { root, gitAccessToken, vcsPlatform, vcsId, gitCommitSHA }: {
+    root: string;
+    gitCommitSHA: string;
+    gitAccessToken: string | undefined;
+    vcsPlatform: string;
+    vcsId: string;
+  },
+) {
+  const remoteURL = gitAccessToken
+    ? `https://${getGitAccessToken()}@${vcsPlatform}.com/${vcsId}.git`
+    : `https://${vcsPlatform}.com/${vcsId}.git`;
   console.log(`Cloning ${remoteURL}`);
+  const cloneArgs = ["git", "clone", remoteURL, root, "--filter=tree:0"];
+  console.log("Running:", cloneArgs.join(" "));
   const cloneCommand = new Deno.Command("/usr/bin/env", {
-    args: ["git", "clone", remoteURL, directory, "--filter=tree:0"],
+    args: cloneArgs,
+    stdin: "null",
   });
-  await cloneCommand.output();
+  await cloneCommand.spawn();
+  const checkoutArgs = ["git", "checkout", gitCommitSHA];
+  console.log("Running:", checkoutArgs.join(" "));
   const checkoutCommand = new Deno.Command("/usr/bin/env", {
-    args: ["git", "checkout", getGitCommitSHA()!],
-    cwd: directory,
+    args: checkoutArgs,
+    cwd: root,
+    stdin: "null",
   });
-  await checkoutCommand.output();
+  await checkoutCommand.spawn();
   console.log(`Repository cloned`);
 }

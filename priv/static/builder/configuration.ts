@@ -26,12 +26,19 @@ export async function loadConfigurations(
   ) {
     configurationFilePaths.push(configurationFilePath.path);
   }
-  // const ajv = new Ajv({
-  //   strict: false,
-  //   strictTuples: false,
-  //   strictSchema: false,
-  // });
-  // const validate = ajv.compile(configurationV1JSONSchema);
+  const ajv = new Ajv({
+    strict: false,
+    strictTuples: false,
+    strictSchema: false,
+    loadSchema: async (uri) => {
+      const res = await fetch(uri);
+      if (res.status >= 400) {
+        throw new Error("Loading error: " + res.statusText);
+      }
+      return res.json();
+    },
+  });
+  const validate = ajv.compile(configurationV1JSONSchema);
 
   const configurations: Configuration[] = await Promise.all(
     configurationFilePaths.map(async (configurationFilePath) => {
@@ -40,16 +47,16 @@ export async function loadConfigurations(
         await Deno.readTextFile(configurationFilePath),
       );
       console.log(`Validating configuration file ${configurationFilePath}`);
-      // if (!validate(configurationFile)) {
-      //   let error = null;
-      //   if (validate.errors) {
-      //     error = validate.errors![validate.errors!.length - 1];
-      //   }
-      //   console.error(
-      //     `The validation of the configuration file at path ${configurationFilePath} failed:`,
-      //     error,
-      //   );
-      // }
+      if (!validate(configurationFile)) {
+        let error = null;
+        if (validate.errors) {
+          error = validate.errors![validate.errors!.length - 1];
+        }
+        console.error(
+          `The validation of the configuration file at path ${configurationFilePath} failed:`,
+          error,
+        );
+      }
       return {
         ...(configurationFile as any),
         path: configurationFilePath,
@@ -57,9 +64,9 @@ export async function loadConfigurations(
     }),
   );
 
-  // if (validate.errors) {
-  //   throw new Error("Invalid configuration");
-  // }
+  if (validate.errors) {
+    throw new Error("Invalid configuration");
+  }
 
   return configurations;
 }
