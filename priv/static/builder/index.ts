@@ -18,6 +18,7 @@ try {
   console.log(`Event: "${getEvent()}"`);
   console.log(getEvent() === "git_push");
   if (getEvent() === "git_push") {
+    console.log("Cloning repository");
     // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
     const remoteURL =
       `https://${getGitAccessToken()}@${getGitRepositoryVersionControl()}.com/${getGitRepositoryId()}.git`;
