@@ -23,15 +23,15 @@ defmodule Glossia.VersionControl.GitHub do
   end
 
   @impl true
-  def create_commit_status(%{vcs_id: vcs_id, git_commit_sha: git_commit_sha} = attrs) do
+  def create_commit_status(%{vcs_id: vcs_id, commit_sha: commit_sha} = attrs) do
     client = get_client_for_repository(vcs_id)
 
     params =
       attrs
-      |> Map.drop([:git_commit_sha, :vcs_id])
+      |> Map.drop([:commit_sha, :vcs_id])
       |> Enum.into(%{})
 
-    case Tentacat.post("repos/#{vcs_id}/statuses/#{git_commit_sha}", client, params) do
+    case Tentacat.post("repos/#{vcs_id}/statuses/#{commit_sha}", client, params) do
       {status, _, _} when status in 200..299 ->
         :ok
 
@@ -100,7 +100,7 @@ defmodule Glossia.VersionControl.GitHub do
   def process_webhook_event(%{event: event, payload: payload}) when event == "push" do
     Logger.info("Processing GitHub webhook: #{event}")
     vcs_id = payload["repository"]["full_name"]
-    git_commit_sha = payload["after"]
+    commit_sha = payload["after"]
     git_ref = payload["ref"]
     git_default_branch = payload["repository"]["default_branch"]
 
@@ -108,7 +108,7 @@ defmodule Glossia.VersionControl.GitHub do
       event: :push,
       vcs_id: vcs_id,
       vcs_platform: :github,
-      git_commit_sha: git_commit_sha,
+      commit_sha: commit_sha,
       git_ref: git_ref,
       git_default_branch: git_default_branch
     }

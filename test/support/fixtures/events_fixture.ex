@@ -22,7 +22,7 @@ defmodule Glossia.EventsFixture do
 
   defp default_build_args() do
     %{
-      git_commit_sha: "123",
+      commit_sha: "123",
       vcs_id: "glossia/glossia",
       vcs_platform: :github,
       event: :push

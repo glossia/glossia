@@ -37,7 +37,7 @@ defmodule Glossia.VersionControl.Platform do
               attrs :: %{
                 state: String.t(),
                 vcs_id: String.t(),
-                git_commit_sha: String.t(),
+                commit_sha: String.t(),
                 target_url: String.t() | nil,
                 description: String.t() | nil,
                 context: String.t() | nil

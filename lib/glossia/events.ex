@@ -11,7 +11,7 @@ defmodule Glossia.Events do
   @spec process_git_event(%{
           project_id: number(),
           event: atom(),
-          git_commit_sha: String.t(),
+          commit_sha: String.t(),
           vcs_id: String.t(),
           vcs_platform: atom()
         }) ::

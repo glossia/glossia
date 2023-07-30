@@ -5,7 +5,7 @@ defmodule Glossia.Events.GitEvent do
 
   # Types
   @type t :: %__MODULE__{
-          git_commit_sha: String.t(),
+          commit_sha: String.t(),
           vcs_id: String.t() | nil,
           vcs_platform: Glossia.VersionControl.Platform.t(),
           vm_id: String.t() | nil,
@@ -33,7 +33,7 @@ defmodule Glossia.Events.GitEvent do
   # Schema
 
   schema "git_events" do
-    field :git_commit_sha, :string
+    field :commit_sha, :string
     field :vcs_id, :string
     field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
@@ -64,7 +64,7 @@ defmodule Glossia.Events.GitEvent do
   def changeset(event, attrs) do
     event
     |> cast(attrs, [
-      :git_commit_sha,
+      :commit_sha,
       :vcs_id,
       :vcs_platform,
       :project_id,
@@ -73,7 +73,7 @@ defmodule Glossia.Events.GitEvent do
       :event
     ])
     |> validate_required([
-      :git_commit_sha,
+      :commit_sha,
       :vcs_id,
       :vcs_platform,
       :project_id,
@@ -94,7 +94,7 @@ defmodule Glossia.Events.GitEvent do
       :cancelled,
       :expired
     ])
-    |> unique_constraint([:git_commit_sha, :vcs_id, :vcs_platform])
+    |> unique_constraint([:commit_sha, :event, :vcs_id, :vcs_platform])
     |> assoc_constraint(:project)
   end
 end

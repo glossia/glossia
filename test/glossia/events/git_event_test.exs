@@ -13,12 +13,12 @@ defmodule Glossia.Events.GitEventTests do
 
       # Then
       errors = errors_on(changeset)
-      assert %{git_commit_sha: ["can't be blank"]} = errors
+      assert %{commit_sha: ["can't be blank"]} = errors
     end
 
     test "validates the presence of repository_id" do
       # Given
-      attrs = %{git_commit_sha: "1234567890"}
+      attrs = %{commit_sha: "1234567890"}
 
       # When
       changeset = GitEvent.changeset(%GitEvent{}, attrs)
@@ -30,7 +30,7 @@ defmodule Glossia.Events.GitEventTests do
 
     test "validates the presence of vcs" do
       # Given
-      attrs = %{git_commit_sha: "1234567890", vcs_id: "1234567890"}
+      attrs = %{commit_sha: "1234567890", vcs_id: "1234567890"}
 
       # When
       changeset = GitEvent.changeset(%GitEvent{}, attrs)
@@ -43,7 +43,7 @@ defmodule Glossia.Events.GitEventTests do
     test "validates the presence of project_id" do
       # Given
       attrs = %{
-        git_commit_sha: "1234567890",
+        commit_sha: "1234567890",
         vcs_id: "1234567890",
         vcs_platform: :github
       }
@@ -59,7 +59,7 @@ defmodule Glossia.Events.GitEventTests do
     test "validate the inclusion of vcs" do
       # Given
       attrs = %{
-        git_commit_sha: "1234567890",
+        commit_sha: "1234567890",
         vcs_id: "1234567890",
         vcs_platform: :gitlab,
         project_id: 1,
@@ -75,28 +75,25 @@ defmodule Glossia.Events.GitEventTests do
     end
 
     test "validate the uniqueness of commit_sha, repository_id and vcs" do
-      # TODO
-      # # Given
-      # {:ok, project} = Glossia.ProjectsFixtures.project_fixture()
+      # Given
+      {:ok, project} = Glossia.ProjectsFixtures.project_fixture()
 
-      # attrs = %{
-      #   git_commit_sha: "1234567890",
-      #   git_repository_id: "1234567890",
-      #   vcs_platform: :github,
-      #   project_id: project.id,
-      #   GitEvent_id: "a-b-c",
-      #   status: :status_unknown,
-      #   event: :git_push
-      # }
+      attrs = %{
+        commit_sha: "1234567890",
+        vcs_id: "1234567890",
+        vcs_platform: :github,
+        project_id: project.id,
+        event: :push
+      }
 
-      # %GitEvent{} |> GitEvent.changeset(attrs) |> Repo.insert!()
+      %GitEvent{} |> GitEvent.changeset(attrs) |> Repo.insert!()
 
-      # # When
-      # {:error, changeset} = %GitEvent{} |> GitEvent.changeset(attrs) |> Repo.insert()
+      # When
+      {:error, changeset} = %GitEvent{} |> GitEvent.changeset(attrs) |> Repo.insert()
 
-      # # Then
-      # errors = errors_on(changeset)
-      # assert %{git_commit_sha: ["has already been taken"]} = errors
+      # Then
+      errors = errors_on(changeset)
+      assert %{commit_sha: ["has already been taken"]} = errors
     end
   end
 end

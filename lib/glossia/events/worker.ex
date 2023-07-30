@@ -19,19 +19,19 @@ defmodule Glossia.Events.Worker do
           "event" => event,
           "git_default_branch" => git_default_branch,
           "git_ref" => git_ref,
-          "git_commit_sha" => git_commit_sha,
+          "commit_sha" => commit_sha,
           "vcs_id" => vcs_id,
           "vcs_platform" => vcs_platform
         }
       }) do
-    case Repo.get_by(GitEvent, git_commit_sha: git_commit_sha, project_id: project_id) do
+    case Repo.get_by(GitEvent, commit_sha: commit_sha, project_id: project_id) do
       nil ->
         trigger_build(%{
           git_access_token: git_access_token,
           event: event,
           git_default_branch: git_default_branch,
           git_ref: git_ref,
-          git_commit_sha: git_commit_sha,
+          commit_sha: commit_sha,
           vcs_id: vcs_id,
           vcs_platform: vcs_platform,
           project_id: project_id
@@ -48,7 +48,7 @@ defmodule Glossia.Events.Worker do
           vcs_id: vcs_id,
           vcs_platform: vcs_platform,
           git_ref: git_ref,
-          git_commit_sha: git_commit_sha,
+          commit_sha: commit_sha,
           git_default_branch: git_default_branch,
           git_access_token: git_access_token
         } = attrs
@@ -60,13 +60,16 @@ defmodule Glossia.Events.Worker do
 
     Glossia.Builds.run(
       env: %{
-        GLOSSIA_GIT_REF: git_ref,
-        GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
+        # Event
+        GLOSSIA_EVENT: event,
+        # VCS
         GLOSSIA_VCS_ID: vcs_id,
         GLOSSIA_VCS_PLATFORM: vcs_platform,
-        GLOSSIA_GIT_COMMIT_SHA: git_commit_sha,
+        # Git
+        GLOSSIA_GIT_REF: git_ref,
+        GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
+        GLOSSIA_GIT_COMMIT_SHA: commit_sha,
         GLOSSIA_GIT_EVENT_ID: git_event.id,
-        GLOSSIA_EVENT: event,
         GLOSSIA_GIT_ACCESS_TOKEN: git_access_token
       },
       update_status_cb: fn vm_id, status ->
@@ -100,16 +103,6 @@ defmodule Glossia.Events.Worker do
     |> Map.put_new(:target_url, "")
     |> Map.put_new(:context, context)
     |> Glossia.VersionControl.create_commit_status()
-
-    # Glossia.VersionControl.create_commit_status(
-    #   vcs_platform: vcs_platform,
-    #   commit_sha: git_commit_sha,
-    #   vcs_id: vcs_id,
-    #   state: state,
-    #   target_url: "https://glossia.ai",
-    #   context: context,
-    #   description: description
-    # )
   end
 
   def get_commit_status_context_for_env(:prod) do
