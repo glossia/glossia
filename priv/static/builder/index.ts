@@ -15,6 +15,8 @@ try {
   outputHeadingTableWithContext();
   if (getEvent() === "git_push") {
     await processGitPush();
+  } else {
+    console.info(`No event handler for ${getEvent()}`);
   }
 } catch (err) {
   console.error(err);
