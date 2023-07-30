@@ -82,6 +82,8 @@ defmodule Glossia.Builds.VirtualMachine do
       GoogleApi.CloudBuild.V1.Connection.new(token.token)
       |> GoogleApi.CloudBuild.V1.Api.Projects.cloudbuild_projects_builds_get(project_id, build_id)
 
+    Logger.info("Fetch the build status for #{build_id}", build)
+
     %{status: status} = build
     status = status |> String.downcase() |> String.to_atom()
     update_status_cb.(build_id, status)
