@@ -101,16 +101,16 @@ defmodule Glossia.VersionControl.GitHub do
     Logger.info("Processing GitHub webhook: #{event}")
     vcs_id = payload["repository"]["full_name"]
     commit_sha = payload["after"]
-    git_ref = payload["ref"]
-    git_default_branch = payload["repository"]["default_branch"]
+    ref = payload["ref"]
+    default_branch = payload["repository"]["default_branch"]
 
     %{
       event: :push,
       vcs_id: vcs_id,
       vcs_platform: :github,
       commit_sha: commit_sha,
-      git_ref: git_ref,
-      git_default_branch: git_default_branch
+      ref: ref,
+      default_branch: default_branch
     }
   end
 

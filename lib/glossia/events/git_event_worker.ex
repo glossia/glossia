@@ -14,11 +14,11 @@ defmodule Glossia.Events.GitEventWorker do
   @impl Oban.Worker
   def perform(%Oban.Job{
         args: %{
-          "git_access_token" => git_access_token,
+          "access_token" => access_token,
           "project_id" => project_id,
           "event" => event,
-          "git_default_branch" => git_default_branch,
-          "git_ref" => git_ref,
+          "default_branch" => default_branch,
+          "ref" => ref,
           "commit_sha" => commit_sha,
           "vcs_id" => vcs_id,
           "vcs_platform" => vcs_platform
@@ -27,10 +27,10 @@ defmodule Glossia.Events.GitEventWorker do
     case Repo.get_by(GitEvent, commit_sha: commit_sha, project_id: project_id) do
       nil ->
         trigger_build(%{
-          git_access_token: git_access_token,
+          access_token: access_token,
           event: event,
-          git_default_branch: git_default_branch,
-          git_ref: git_ref,
+          default_branch: default_branch,
+          ref: ref,
           commit_sha: commit_sha,
           vcs_id: vcs_id,
           vcs_platform: vcs_platform,
@@ -47,10 +47,10 @@ defmodule Glossia.Events.GitEventWorker do
           event: event,
           vcs_id: vcs_id,
           vcs_platform: vcs_platform,
-          git_ref: git_ref,
+          ref: ref,
           commit_sha: commit_sha,
-          git_default_branch: git_default_branch,
-          git_access_token: git_access_token
+          default_branch: default_branch,
+          access_token: access_token
         } = attrs
       ) do
     git_event =
@@ -66,11 +66,11 @@ defmodule Glossia.Events.GitEventWorker do
         GLOSSIA_VCS_ID: vcs_id,
         GLOSSIA_VCS_PLATFORM: vcs_platform,
         # Git
-        GLOSSIA_GIT_REF: git_ref,
-        GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
+        GLOSSIA_GIT_REF: ref,
+        GLOSSIA_GIT_DEFAULT_BRANCH: default_branch,
         GLOSSIA_GIT_COMMIT_SHA: commit_sha,
         GLOSSIA_GIT_EVENT_ID: git_event.id,
-        GLOSSIA_GIT_ACCESS_TOKEN: git_access_token
+        GLOSSIA_GIT_ACCESS_TOKEN: access_token
       },
       update_status_cb: fn vm_id, status ->
         update_git_event_status(git_event: git_event, vm_id: vm_id, status: status)

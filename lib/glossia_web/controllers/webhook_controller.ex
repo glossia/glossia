@@ -13,7 +13,8 @@ defmodule GlossiaWeb.WebhookController do
       %{event: event, payload: payload, vcs_platform: :github}
       |> Glossia.VersionControl.process_webhook_event()
       |> find_project_and_update_project_id()
-      |> generate_vcs_token_for_cloning_and_update_git_access_token()
+      |> generate_vcs_token_for_cloning_and_update_access_token()
+      |> filter_only_default_branch_events()
       |> trigger_build_when_project_present()
 
     json(conn, nil)
@@ -32,18 +33,32 @@ defmodule GlossiaWeb.WebhookController do
     end
   end
 
-  defp generate_vcs_token_for_cloning_and_update_git_access_token(nil) do
+  defp generate_vcs_token_for_cloning_and_update_access_token(nil) do
     nil
   end
 
-  defp generate_vcs_token_for_cloning_and_update_git_access_token(%{} = attrs) do
+  defp generate_vcs_token_for_cloning_and_update_access_token(%{} = attrs) do
     case attrs |> Map.has_key?(:project_id) do
       true ->
         attrs
-        |> Map.put(:git_access_token, Glossia.VersionControl.generate_token_for_cloning(attrs))
+        |> Map.put(:access_token, Glossia.VersionControl.generate_token_for_cloning(attrs))
 
       false ->
         attrs
+    end
+  end
+
+  def filter_only_default_branch_events(nil) do
+    :ok
+  end
+
+  def filter_only_default_branch_events(%{} = attrs) do
+    default_branch = Map.fetch!(attrs, :default_branch)
+    ["refs", "heads" | tail ] = Map.fetch!(attrs, :default_branch) |> String.split("/")
+    branch = tail |> Enum.join("/")
+    case branch == default_branch do
+      true -> attrs
+      false -> nil
     end
   end
 
