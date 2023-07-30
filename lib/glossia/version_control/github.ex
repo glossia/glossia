@@ -105,7 +105,7 @@ defmodule Glossia.VersionControl.GitHub do
     git_default_branch = payload["repository"]["default_branch"]
 
     %{
-      event: :git_push,
+      event: :push,
       vcs_id: vcs_id,
       vcs_platform: :github,
       git_commit_sha: git_commit_sha,

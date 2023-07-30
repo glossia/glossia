@@ -2,8 +2,8 @@ export function getAppSignalAPIKey() {
   return Deno.env.get("GLOSSIA_APP_SIGNAL_API_KEY");
 }
 
-export function getBuildId() {
-  return Deno.env.get("GLOSSIA_BUILD_ID");
+export function getGitEventID() {
+  return Deno.env.get("GLOSSIA_GIT_EVENT_ID");
 }
 
 export function getEvent() {

@@ -1,12 +1,11 @@
-defmodule Glossia.Builds.Worker do
+defmodule Glossia.Events.Worker do
   @moduledoc """
-  A translate build represents a translation job that's being run in a virtualized environment.
-  Locally we use Docker when present, and in production we use Google Cloud Build.
+  It processes the events that are triggered by the version control system.
   """
 
   # Modules
   require Logger
-  alias Glossia.Builds.Build
+  alias Glossia.Events.GitEvent
   alias Glossia.Repo
   use Oban.Worker
 
@@ -25,9 +24,9 @@ defmodule Glossia.Builds.Worker do
           "vcs_platform" => vcs_platform
         }
       }) do
-    case Repo.get_by(Build, git_commit_sha: git_commit_sha, project_id: project_id) do
+    case Repo.get_by(GitEvent, git_commit_sha: git_commit_sha, project_id: project_id) do
       nil ->
-        build(%{
+        trigger_build(%{
           git_access_token: git_access_token,
           event: event,
           git_default_branch: git_default_branch,
@@ -38,12 +37,12 @@ defmodule Glossia.Builds.Worker do
           project_id: project_id
         })
 
-      %Build{} ->
+      %GitEvent{} ->
         :ok
     end
   end
 
-  def build(
+  def trigger_build(
         %{
           event: event,
           vcs_id: vcs_id,
@@ -54,24 +53,24 @@ defmodule Glossia.Builds.Worker do
           git_access_token: git_access_token
         } = attrs
       ) do
-    build =
-      Repo.insert!(Build.changeset(%Build{}, attrs))
+    git_event =
+      Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
 
     attrs |> update_commit_status(:translating)
 
-    Glossia.Builds.VirtualMachine.run(
+    Glossia.Builds.run(
       env: %{
         GLOSSIA_GIT_REF: git_ref,
         GLOSSIA_GIT_DEFAULT_BRANCH: git_default_branch,
         GLOSSIA_VCS_ID: vcs_id,
         GLOSSIA_VCS_PLATFORM: vcs_platform,
         GLOSSIA_GIT_COMMIT_SHA: git_commit_sha,
-        GLOSSIA_BUILD_ID: build.id,
+        GLOSSIA_GIT_EVENT_ID: git_event.id,
         GLOSSIA_EVENT: event,
         GLOSSIA_GIT_ACCESS_TOKEN: git_access_token
       },
-      status_update_cb: fn build_id, status ->
-        update_build_status(build: build, build_id: build_id, status: status)
+      update_status_cb: fn vm_id, status ->
+        update_git_event_status(git_event: git_event, vm_id: vm_id, status: status)
       end
     )
 
@@ -121,8 +120,8 @@ defmodule Glossia.Builds.Worker do
     "Glossia (Dev)"
   end
 
-  defp update_build_status(build: build, build_id: build_id, status: status) do
+  defp update_git_event_status(git_event: git_event, vm_id: vm_id, status: status) do
     {:ok, _} =
-      build |> Build.changeset(%{build_id: build_id, status: status}) |> Repo.update()
+      git_event |> GitEvent.changeset(%{vm_id: vm_id, status: status}) |> Repo.update()
   end
 end

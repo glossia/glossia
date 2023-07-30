@@ -17,21 +17,21 @@ defmodule Glossia.Builds.VirtualMachine do
   @spec run(
           attrs :: [
             env: map(),
-            status_update_cb: (String.t(), atom() -> nil)
+            update_status_cb: (String.t(), atom() -> nil)
           ]
         ) ::
           {:ok, String.t()}
-  def run(env: env, status_update_cb: status_update_cb) do
+  def run(env: env, update_status_cb: update_status_cb) do
     if Application.get_env(:glossia, :env) == :prod do
-      run_using_google_cloud_build(env: env, status_update_cb: status_update_cb)
+      run_using_google_cloud_build(env: env, update_status_cb: update_status_cb)
     else
-      run_using_docker(env: env, status_update_cb: status_update_cb)
+      run_using_docker(env: env, update_status_cb: update_status_cb)
     end
   end
 
   defp run_using_google_cloud_build(
          env: env,
-         status_update_cb: status_update_cb
+         update_status_cb: update_status_cb
        ) do
     # https://cloud.google.com/build/docs/api/reference/rest/v1/projects.builds/create
     # https://github.com/googleapis/elixir-google-api/blob/main/clients/cloud_build/lib/google_api/cloud_build/v1/api/projects.ex#L213
@@ -61,19 +61,19 @@ defmodule Glossia.Builds.VirtualMachine do
     # https://cloud.google.com/build/docs/api/reference/rest/v1/projects.builds#status
     %{"id" => build_id, "status" => status, "projectId" => project_id} = build
     status = status |> String.downcase() |> String.to_atom()
-    status_update_cb.(build_id, status)
+    update_status_cb.(build_id, status)
 
     monitor_google_cloud_build(
       build_id: build_id,
       project_id: project_id,
-      status_update_cb: status_update_cb
+      update_status_cb: update_status_cb
     )
   end
 
   defp monitor_google_cloud_build(
          build_id: build_id,
          project_id: project_id,
-         status_update_cb: status_update_cb
+         update_status_cb: update_status_cb
        ) do
     :timer.sleep(2000)
     {:ok, token} = Goth.fetch(Glossia.Goth)
@@ -84,21 +84,21 @@ defmodule Glossia.Builds.VirtualMachine do
 
     %{status: status} = build
     status = status |> String.downcase() |> String.to_atom()
-    status_update_cb.(build_id, status)
+    update_status_cb.(build_id, status)
 
     if [:status_unknown, :pending, :queued, :working] |> Enum.member?(status) do
       # The build is still running
       monitor_google_cloud_build(
         build_id: build_id,
         project_id: project_id,
-        status_update_cb: status_update_cb
+        update_status_cb: update_status_cb
       )
     else
       :ok
     end
   end
 
-  defp run_using_docker(env: env, status_update_cb: status_update_cb) do
+  defp run_using_docker(env: env, update_status_cb: update_status_cb) do
     docker_env_flags =
       get_docker_env_variables()
       |> Enum.into(env)
@@ -121,9 +121,9 @@ defmodule Glossia.Builds.VirtualMachine do
         Rambo.run("/usr/bin/env", arguments, log: &log_docker_output/1)
       end)
 
-    status_update_cb.("#{task.pid}", :working)
+    update_status_cb.("#{task.pid}", :working)
     Task.await(task)
-    status_update_cb.("#{task.pid}", :success)
+    update_status_cb.("#{task.pid}", :success)
     :ok
   end
 

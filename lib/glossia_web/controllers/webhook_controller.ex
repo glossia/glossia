@@ -53,7 +53,7 @@ defmodule GlossiaWeb.WebhookController do
 
   defp trigger_build_when_project_present(%{} = attrs) do
     case attrs |> Map.has_key?(:project_id) do
-      true -> attrs |> Glossia.Builds.trigger_git_event_build()
+      true -> attrs |> Glossia.Events.process_git_event()
       _ -> :ok
     end
   end

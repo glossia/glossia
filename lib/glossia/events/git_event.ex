@@ -1,6 +1,6 @@
-defmodule Glossia.Builds.Build do
+defmodule Glossia.Events.GitEvent do
   @moduledoc """
-  This module represents the builds table.
+  This module represents a Git event received for a particular project.
   """
 
   # Types
@@ -13,7 +13,7 @@ defmodule Glossia.Builds.Build do
           project: Glossia.Projects.Project.t() | nil
         }
 
-  @type event :: :git_push
+  @type event :: :push
   @type status ::
           :status_unknown
           | :pending
@@ -32,12 +32,12 @@ defmodule Glossia.Builds.Build do
 
   # Schema
 
-  schema "builds" do
+  schema "git_events" do
     field :git_commit_sha, :string
     field :vcs_id, :string
     field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
-    field :event, Ecto.Enum, values: [{:git_push, 1}]
+    field :event, Ecto.Enum, values: [{:push, 1}]
 
     field :status, Ecto.Enum,
       values: [
@@ -61,8 +61,8 @@ defmodule Glossia.Builds.Build do
 
   # Changesets
 
-  def changeset(build, attrs) do
-    build
+  def changeset(event, attrs) do
+    event
     |> cast(attrs, [
       :git_commit_sha,
       :vcs_id,
@@ -81,7 +81,7 @@ defmodule Glossia.Builds.Build do
       :event
     ])
     |> validate_inclusion(:vcs_platform, [:github])
-    |> validate_inclusion(:event, [:git_push])
+    |> validate_inclusion(:event, [:push])
     |> validate_inclusion(:status, [
       :status_unknown,
       :pending,

@@ -1,7 +1,7 @@
-defmodule Glossia.Builds.BuildTest do
+defmodule Glossia.Events.GitEventTests do
   use Glossia.DataCase
 
-  alias Glossia.Builds.Build
+  alias Glossia.Events.GitEvent
 
   describe "changeset" do
     test "validates the presence of commit_sha" do
@@ -9,7 +9,7 @@ defmodule Glossia.Builds.BuildTest do
       attrs = %{}
 
       # When
-      changeset = Build.changeset(%Build{}, attrs)
+      changeset = GitEvent.changeset(%GitEvent{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -21,7 +21,7 @@ defmodule Glossia.Builds.BuildTest do
       attrs = %{git_commit_sha: "1234567890"}
 
       # When
-      changeset = Build.changeset(%Build{}, attrs)
+      changeset = GitEvent.changeset(%GitEvent{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -33,7 +33,7 @@ defmodule Glossia.Builds.BuildTest do
       attrs = %{git_commit_sha: "1234567890", vcs_id: "1234567890"}
 
       # When
-      changeset = Build.changeset(%Build{}, attrs)
+      changeset = GitEvent.changeset(%GitEvent{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -49,7 +49,7 @@ defmodule Glossia.Builds.BuildTest do
       }
 
       # When
-      changeset = Build.changeset(%Build{}, attrs)
+      changeset = GitEvent.changeset(%GitEvent{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -63,11 +63,11 @@ defmodule Glossia.Builds.BuildTest do
         vcs_id: "1234567890",
         vcs_platform: :gitlab,
         project_id: 1,
-        event: :git_push
+        event: :push
       }
 
       # When
-      changeset = Build.changeset(%Build{}, attrs)
+      changeset = GitEvent.changeset(%GitEvent{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -84,15 +84,15 @@ defmodule Glossia.Builds.BuildTest do
       #   git_repository_id: "1234567890",
       #   vcs_platform: :github,
       #   project_id: project.id,
-      #   build_id: "a-b-c",
+      #   GitEvent_id: "a-b-c",
       #   status: :status_unknown,
       #   event: :git_push
       # }
 
-      # %Build{} |> Build.changeset(attrs) |> Repo.insert!()
+      # %GitEvent{} |> GitEvent.changeset(attrs) |> Repo.insert!()
 
       # # When
-      # {:error, changeset} = %Build{} |> Build.changeset(attrs) |> Repo.insert()
+      # {:error, changeset} = %GitEvent{} |> GitEvent.changeset(attrs) |> Repo.insert()
 
       # # Then
       # errors = errors_on(changeset)

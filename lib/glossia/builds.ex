@@ -1,28 +1,15 @@
 defmodule Glossia.Builds do
-  use Boundary, deps: [Glossia.VersionControl, Glossia.Repo], exports: [Build]
+  use Boundary, deps: [], exports: []
 
-  # Modules
-  alias Glossia.Builds.Worker
-  require Logger
+  @spec run(
+          attrs :: [
+            env: map(),
+            update_status_cb: (String.t(), atom() -> nil)
+          ]
+        ) ::
+          {:ok, String.t()}
 
-  @doc """
-  It triggers a build in a virtualized environment.
-  """
-  @spec trigger_git_event_build(%{
-          project_id: number(),
-          event: atom(),
-          git_commit_sha: String.t(),
-          vcs_id: String.t(),
-          vcs_platform: atom()
-        }) ::
-          {:ok, nil} | {:error, any()}
-  def trigger_git_event_build(attrs) do
-    attrs
-    |> Worker.new()
-    |> Oban.insert()
-    |> case do
-      {:ok, _} -> :ok
-      {:error, error} -> {:error, error}
-    end
+  def run(env: env, update_status_cb: update_status_cb) do
+    Glossia.Builds.VirtualMachine.run(env: env, update_status_cb: update_status_cb)
   end
 end

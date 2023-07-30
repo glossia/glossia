@@ -1,13 +1,13 @@
-defmodule Glossia.BuildsFixtures do
+defmodule Glossia.EventsFixture do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Translations` context.
   """
 
-  alias Glossia.Builds.Build
+  alias Glossia.Events.GitEvent
   alias Glossia.Repo
 
-  def build_fixture(attr \\ %{}) do
+  def git_event_fixture(attr \\ %{}) do
     attrs =
       if attr[:project_id] do
         attr
@@ -17,7 +17,7 @@ defmodule Glossia.BuildsFixtures do
       end
 
     attrs = attrs |> Enum.into(default_build_args())
-    Build.changeset(%Build{}, attrs) |> Repo.insert()
+    GitEvent.changeset(%GitEvent{}, attrs) |> Repo.insert()
   end
 
   defp default_build_args() do
@@ -25,7 +25,7 @@ defmodule Glossia.BuildsFixtures do
       git_commit_sha: "123",
       vcs_id: "glossia/glossia",
       vcs_platform: :github,
-      event: :git_push
+      event: :push
     }
   end
 end

@@ -154,7 +154,7 @@ config :joken,
     signer_alg: "RS256",
     key_pem: env!("GITHUB_APP_PRIVATE_KEY_BASE_64", :string, "") |> Base.decode64!()
   ],
-  build: env!("BUILD_JWT_SIGNING_KEY", :string, "")
+  event: env!("BUILD_JWT_SIGNING_KEY", :string, "")
 
 config :glossia, GlossiaWeb.Endpoint,
   live_view: [
