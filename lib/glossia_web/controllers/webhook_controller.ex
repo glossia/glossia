@@ -28,7 +28,7 @@ defmodule GlossiaWeb.WebhookController do
 
   defp find_project_and_update_project_id(%{} = attrs) do
     case attrs |> Glossia.Projects.find_project_by_repository() do
-      nil -> attrs
+      nil ->
         Logger.info("Could not find a project associated to the repository", attrs)
       project ->
         Logger.info("Found project with id #{project.id}")

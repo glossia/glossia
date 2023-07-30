@@ -14,10 +14,11 @@ defmodule Glossia.Builds.VirtualMachine do
                     |> String.replace("# ID: ", "")
                     |> String.trim()
 
+                    # %{ vm_id: vm_id, status: status,  vm_logs_url: vm_logs_url}
   @spec run(
           attrs :: [
             env: map(),
-            update_status_cb: (String.t(), atom() -> nil)
+            update_status_cb: (%{ vm_id: String.t(), status: atom(), vm_logs_url: String.t() | nil} -> nil)
           ]
         ) ::
           {:ok, String.t()}
@@ -59,41 +60,42 @@ defmodule Glossia.Builds.VirtualMachine do
       )
 
     # https://cloud.google.com/build/docs/api/reference/rest/v1/projects.builds#status
-    %{"id" => build_id, "status" => status, "projectId" => project_id} = build
+    %{"id" => vm_id, "status" => status, "projectId" => project_id, "logUrl" => vm_logs_url} = build
     status = status |> String.downcase() |> String.to_atom()
-    update_status_cb.(build_id, status)
+    update_status_cb.(%{ vm_id: vm_id, status: status,  vm_logs_url: vm_logs_url})
 
-    monitor_google_cloud_build(
-      build_id: build_id,
+    monitor_google_cloud_build(%{
+      vm_id: vm_id,
       project_id: project_id,
       update_status_cb: update_status_cb
-    )
+    })
   end
 
-  defp monitor_google_cloud_build(
-         build_id: build_id,
-         project_id: project_id,
-         update_status_cb: update_status_cb
-       ) do
+  defp monitor_google_cloud_build(%{
+    vm_id: vm_id,
+    project_id: project_id,
+    update_status_cb: update_status_cb
+  }) do
     :timer.sleep(2000)
     {:ok, token} = Goth.fetch(Glossia.Goth)
 
     {:ok, %GoogleApi.CloudBuild.V1.Model.Build{} = build} =
       GoogleApi.CloudBuild.V1.Connection.new(token.token)
-      |> GoogleApi.CloudBuild.V1.Api.Projects.cloudbuild_projects_builds_get(project_id, build_id)
+      |> GoogleApi.CloudBuild.V1.Api.Projects.cloudbuild_projects_builds_get(project_id, vm_id)
 
-    Logger.info("Fetch the build status for #{build_id}", build)
-
-    %{status: status} = build
+    %{status: status, logUrl: vm_logs_url} = build
     status = status |> String.downcase() |> String.to_atom()
-    update_status_cb.(build_id, status)
+    update_status_cb.(%{ vm_id: vm_id, status: status,  vm_logs_url: vm_logs_url})
+
 
     if [:status_unknown, :pending, :queued, :working] |> Enum.member?(status) do
       # The build is still running
       monitor_google_cloud_build(
-        build_id: build_id,
-        project_id: project_id,
-        update_status_cb: update_status_cb
+        %{
+          vm_id: vm_id,
+          update_status_cb: update_status_cb,
+          project_id: project_id
+        }
       )
     else
       :ok
@@ -123,9 +125,9 @@ defmodule Glossia.Builds.VirtualMachine do
         Rambo.run("/usr/bin/env", arguments, log: &log_docker_output/1)
       end)
 
-    update_status_cb.("#{task.pid}", :working)
+    update_status_cb.(%{ vm_id: "#{task.pid}", status: :working,  vm_logs_url: nil})
     Task.await(task)
-    update_status_cb.("#{task.pid}", :success)
+    update_status_cb.(%{ vm_id: "#{task.pid}", status: :success,  vm_logs_url: nil})
     :ok
   end
 

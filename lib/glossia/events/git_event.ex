@@ -37,6 +37,7 @@ defmodule Glossia.Events.GitEvent do
     field :vcs_id, :string
     field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
+    field :vm_logs_url, :string
     field :event, Ecto.Enum, values: [{:push, 1}]
 
     field :status, Ecto.Enum,
@@ -70,6 +71,7 @@ defmodule Glossia.Events.GitEvent do
       :project_id,
       :status,
       :vm_id,
+      :vm_logs_url,
       :event
     ])
     |> validate_required([

@@ -72,8 +72,8 @@ defmodule Glossia.Events.GitEventWorker do
         GLOSSIA_GIT_EVENT_ID: git_event.id,
         GLOSSIA_GIT_ACCESS_TOKEN: access_token
       },
-      update_status_cb: fn vm_id, status ->
-        update_git_event_status(git_event: git_event, vm_id: vm_id, status: status)
+      update_status_cb: fn %{ vm_id: vm_id, status: status, vm_logs_url: vm_logs_url} ->
+        update_git_event_status(%{git_event: git_event, vm_id: vm_id, status: status, vm_logs_url: vm_logs_url})
       end
     )
 
@@ -113,8 +113,8 @@ defmodule Glossia.Events.GitEventWorker do
     "Glossia (Dev)"
   end
 
-  defp update_git_event_status(git_event: git_event, vm_id: vm_id, status: status) do
+  defp update_git_event_status(%{git_event: git_event, vm_id: vm_id, status: status, vm_logs_url: vm_logs_url}) do
     {:ok, _} =
-      git_event |> GitEvent.changeset(%{vm_id: vm_id, status: status}) |> Repo.update()
+      git_event |> GitEvent.changeset(%{vm_id: vm_id, vm_logs_url: vm_logs_url, status: status}) |> Repo.update()
   end
 end
