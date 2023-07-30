@@ -1,5 +1,5 @@
 {
-    "$schema": "https://glossia.ai/schemas/configuration/v1.json",
+    "$schema": "https://glossia.ai/schemas/configuration.json",
     "languages": {
         "source": "en",
         "target": ["es"]

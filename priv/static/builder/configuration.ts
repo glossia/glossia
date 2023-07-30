@@ -18,7 +18,7 @@ type Configuration = {
  * @returns {Promise<(data: any) => boolean>} A function that validates the configuration
  */
 export async function getConfigurationValidate() {
-  const configurationSchema = await import("../schemas/configuration/v1.json", {
+  const configurationSchema = await import("../schemas/configuration.json", {
     assert: { type: "json" },
   });
   const languageSchema = await import("../schemas/language.json", {

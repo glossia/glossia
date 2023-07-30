@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://glossia.ai/schemas/configuration/v1.json",
+  "$id": "http://glossia.ai/schemas/configuration.json",
   "type": "object",
   "properties": {
     "languages": {
