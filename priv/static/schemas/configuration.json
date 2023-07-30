@@ -2,8 +2,10 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://glossia.ai/schemas/configuration.json",
   "type": "object",
+  "description": "The configuration for a for a group of content",
   "properties": {
     "languages": {
+      "description": "Source and target languages for a the components in this configuration.",
       "type": "object",
       "properties": {
         "source": {
@@ -18,13 +20,12 @@
           ]
         }
       },
-      "required": [
-        "source",
-        "target"
-      ]
+      "required": ["source", "target"]
+    },
+    "files": {
+      "description": "A wildcard pattern to obtain the files to be translated.",
+      "type": "string"
     }
   },
-  "required": [
-    "languages"
-  ]
+  "required": ["languages", "files"]
 }

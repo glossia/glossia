@@ -3,5 +3,6 @@
     "languages": {
         "source": "en",
         "target": ["es"]
-    }
+    },
+    "files": "src/**/*.{js,jsx,ts,tsx}"
 }
