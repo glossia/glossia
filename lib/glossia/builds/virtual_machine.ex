@@ -141,7 +141,7 @@ defmodule Glossia.Builds.VirtualMachine do
   defp get_deno_args(env: env) do
     path =
       if Application.get_env(:glossia, :env) == :prod do
-        Application.get_env(:glossia, :url) <> "/builder/index.ts"
+        Application.get_env(:glossia, :url) <> "/builder/src/index.ts"
       else
         "./index.ts"
       end
@@ -168,7 +168,7 @@ defmodule Glossia.Builds.VirtualMachine do
   """
   @spec get_docker_image() :: String.t()
   def get_docker_image() do
-    "denoland/deno:" <> Application.get_env(:glossia, :versions)[:deno]
+    "pepicrft/deno:alpine-git-1.35.3"
   end
 
   @doc """
