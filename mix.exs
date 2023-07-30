@@ -76,6 +76,7 @@ defmodule Glossia.MixProject do
       {:mox, "~> 1.0.0", only: :test},
       {:stripity_stripe, "~> 2.17.3"},
       {:open_api_spex, "~> 3.17.3"}
+      # {:policy_wonk, "~> 1.0.0"}
     ]
   end
 
