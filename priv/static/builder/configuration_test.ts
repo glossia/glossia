@@ -1,6 +1,7 @@
 import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { loadConfigurations } from "./configuration.ts";
 import { getRootDirectory, runInTemporaryDirectory } from "./test-helpers.ts";
+import { assertRejects } from "https://deno.land/std@0.196.0/assert/assert_rejects.ts";
 
 Deno.test("returns all the configurations", async () => {
   // Given
@@ -23,6 +24,12 @@ Deno.test("throws when there's an invalid configuration", async () => {
     );
 
     // When/Then
-    await loadConfigurations({ root: temporaryDirectory });
+    await assertRejects(
+      async () => {
+        await loadConfigurations({ root: temporaryDirectory });
+      },
+      Error,
+      "Invalid configuration files found",
+    );
   });
 });

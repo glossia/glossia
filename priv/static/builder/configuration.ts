@@ -26,15 +26,18 @@ export async function getConfigurationValidate() {
   });
 
   const ajv = new Ajv({
-    schemas: [configurationSchema.default, languageSchema.default],
     strict: true,
     strictSchema: true,
     strictTypes: true,
     strictRequired: true,
     validateSchema: true,
+    strictTuples: false,
     allErrors: true,
   });
-  return ajv.compile(configurationSchema);
+
+  ajv.addSchema(languageSchema.default, languageSchema.default["$id"]);
+
+  return ajv.compile(configurationSchema.default);
 }
 
 export async function loadConfigurations(

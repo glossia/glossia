@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://glossia.ai/schemas/language.json",
+  "$id": "https://glossia.ai/schemas/language.json",
   "type": "string",
   "enum": [
     "af",
