@@ -73,7 +73,7 @@ defmodule Glossia.MixProject do
       {:goth, "~> 1.4.1"},
       {:google_api_cloud_build, "~> 0.49"},
       {:rambo, "~> 0.3.4"},
-      {:mox, "~> 0.5.2", only: :test},
+      {:mox, "~> 1.0.0", only: :test},
       {:stripity_stripe, "~> 2.17.3"}
     ]
   end
