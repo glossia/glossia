@@ -2,7 +2,7 @@ defmodule Glossia.Events do
   use Boundary, deps: [Glossia.VersionControl, Glossia.Repo, Glossia.Builds], exports: [GitEvent]
 
   # Modules
-  alias Glossia.Events.Worker
+  alias Glossia.Events.GitEventWorker
   require Logger
 
   @doc """
@@ -18,7 +18,7 @@ defmodule Glossia.Events do
           {:ok, nil} | {:error, any()}
   def process_git_event(attrs) do
     attrs
-    |> Worker.new()
+    |> GitEventWorker.new()
     |> Oban.insert()
     |> case do
       {:ok, _} -> :ok

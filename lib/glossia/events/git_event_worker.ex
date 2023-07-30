@@ -1,4 +1,4 @@
-defmodule Glossia.Events.Worker do
+defmodule Glossia.Events.GitEventWorker do
   @moduledoc """
   It processes the events that are triggered by the version control system.
   """
@@ -61,7 +61,7 @@ defmodule Glossia.Events.Worker do
     Glossia.Builds.run(
       env: %{
         # Event
-        GLOSSIA_EVENT: event,
+        GLOSSIA_EVENT: "git" <> "_" <> event,
         # VCS
         GLOSSIA_VCS_ID: vcs_id,
         GLOSSIA_VCS_PLATFORM: vcs_platform,
