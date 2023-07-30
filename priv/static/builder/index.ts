@@ -4,9 +4,11 @@ import { getAppSignalAPIKey, getEvent } from "./environment.ts";
 import { processGitPush } from "./events/git_push.ts";
 import { outputHeadingTableWithContext } from "./output.ts";
 
-let sendErrorReport: any = () => {};
+let sendErrorReport = () => {};
 const appSignalAPIKey = getAppSignalAPIKey();
 if (appSignalAPIKey) {
+  // deno-lint-ignore ban-ts-comment
+  // @ts-ignore
   sendErrorReport = createAppsignalClient(appSignalAPIKey, "deno");
 }
 

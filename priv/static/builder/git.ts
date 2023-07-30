@@ -9,7 +9,7 @@ import {
 export async function cloneGitRepository(
   { root }: { root: string },
 ) {
-  clone({
+  await clone({
     root: root,
     gitCommitSHA: getGitCommitSHA()!,
     gitAccessToken: getGitAccessToken()!,

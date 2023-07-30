@@ -83,7 +83,12 @@ defmodule GlossiaWeb.MarketingComponents do
           >
             Changelog
           </a>
-
+          <a
+            class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
+            href="https://community.glossia.ai/"
+          >
+            Community
+          </a>
           <a
             class="text-lila-500 md:ml-auto text-lg bg-black border-l-2 border-black duration-500 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hover:bg-lila-900 hover:text-lila-500 inline-flex items-center justify-center px-6 text-center transform transition py-2 md:py-8"
             href={~p"/beta"}
@@ -135,47 +140,71 @@ defmodule GlossiaWeb.MarketingComponents do
                 </div>
               </div>
               <div>
-                <div class="md:gap-8 grid mt-12 lg:mt-0">
-                  <div>
-                    <ul class="space-y-2" role="list">
-                      <li>
-                        <a
-                          class="text-lg text-black hover:text-lila-400"
-                          href="https://discord.gg/zqZxSBXKf8"
-                        >
-                          Discord
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-lg text-black hover:text-lila-400" href={~p"/team"}>
-                          Team
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-lg text-black hover:text-lila-400" href={~p"/about"}>
-                          About
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-lg text-black hover:text-lila-400" href={~p"/changelog"}>
-                          Changelog
-                        </a>
-                      </li>
-                      <li>
-                        <a class="text-lg text-black hover:text-lila-400" href={~p"/blog/feed.xml"}>
-                          Feed
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          class="text-lg text-black hover:text-lila-400"
-                          href="https://twitter.com/glossiaai"
-                        >
-                          @glossiaai
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
+                <div class="mt-12 grid grid-rows-3 sm:grid-rows-2 sm:grid-cols-2 gap-y-10 md:grid-cols-3 md:gap-x-20 lg:mt-0">
+                  <ul class="space-y-2" role="list">
+                    <li class="text-lg text-black font-bold">Resources</li>
+                    <li>
+                      <a class="text-lg text-black hover:text-lila-400" href={~p"/changelog"}>
+                        Changelog
+                      </a>
+                    </li>
+                    <li>
+                      <a class="text-lg text-black hover:text-lila-400" href={~p"/blog/feed.xml"}>
+                        Feed
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        class="text-lg text-black hover:text-lila-400"
+                        href="https://status.glossia.ai"
+                      >
+                        Status
+                      </a>
+                    </li>
+                  </ul>
+                  <ul class="space-y-2" role="list">
+                    <li class="text-lg text-black font-bold">Contact</li>
+
+                    <li>
+                      <a
+                        class="text-lg text-black hover:text-lila-400"
+                        href="https://twitter.com/glossiaai"
+                      >
+                        Twitter
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        class="text-lg text-black hover:text-lila-400"
+                        href="https://discord.gg/zqZxSBXKf8"
+                      >
+                        Discord
+                      </a>
+                    </li>
+
+                    <li>
+                      <a
+                        class="text-lg text-black hover:text-lila-400"
+                        href="https://community.glossia.ai"
+                      >
+                        Community
+                      </a>
+                    </li>
+                  </ul>
+                  <ul class="space-y-2" role="list">
+                    <li class="text-lg text-black font-bold">Company</li>
+
+                    <li>
+                      <a class="text-lg text-black hover:text-lila-400" href={~p"/team"}>
+                        Team
+                      </a>
+                    </li>
+                    <li>
+                      <a class="text-lg text-black hover:text-lila-400" href={~p"/about"}>
+                        About
+                      </a>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -184,7 +213,7 @@ defmodule GlossiaWeb.MarketingComponents do
             <div class="w-full justify-between lg:inline-flex lg:items-center lg:space-y-0 space-y-3">
               <div>
                 <p class="text-black text-sm">
-                  María José Salmerón -
+                  María José Salmerón & Pedro Piñera Buendía -
                   <span class="text-grayer">© Copyright 2023 . All rights reserved.</span>
                 </p>
               </div>
@@ -203,7 +232,7 @@ defmodule GlossiaWeb.MarketingComponents do
                     clip-rule="evenodd"></path>
                 </svg>
               </a> -->
-                  <a href="https://twitter.com/glossiaai" class="text-black hover:text-lila-900">
+                  <%!-- <a href="https://twitter.com/glossiaai" class="text-black hover:text-lila-900">
                     <span class="sr-only">Twitter</span>
                     <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84">
@@ -221,7 +250,7 @@ defmodule GlossiaWeb.MarketingComponents do
                       >
                       </path>
                     </svg>
-                  </a>
+                  </a> --%>
                 </div>
               </div>
             </div>

@@ -58,7 +58,9 @@ export async function loadConfigurations(
         );
       }
       return {
-        ...(configurationFile as any),
+        // deno-lint-ignore ban-ts-comment
+        // @ts-ignore
+        ...(configurationFile),
         path: configurationFilePath,
       };
     }),
