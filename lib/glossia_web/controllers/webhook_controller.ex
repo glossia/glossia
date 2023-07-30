@@ -31,7 +31,7 @@ defmodule GlossiaWeb.WebhookController do
       nil -> attrs
         Logger.info("Could not find a project associated to the repository", attrs)
       project ->
-        Logger.info("Found project", project)
+        Logger.info("Found project with id #{project.id}")
         attrs |> Map.put(:project_id, project.id)
     end
   end
