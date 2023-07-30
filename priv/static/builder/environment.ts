@@ -33,3 +33,9 @@ export function getGitRef() {
 export function getGitDefaultBranch() {
   return Deno.env.get("GLOSSIA_GIT_DEFAULT_BRANCH");
 }
+
+export function getEnvironment(): "production" | "development" {
+  return Deno.env.get("GLOSSIA_ENV") === "production"
+    ? "production"
+    : "development";
+}

@@ -13,6 +13,8 @@ type Configuration = {
 
 /**
  * It returns a function that validates the configuration.
+ * Documentation: https://ajv.js.org/guide/managing-schemas.html
+ *
  * @returns {Promise<(data: any) => boolean>} A function that validates the configuration
  */
 export async function getConfigurationValidate() {

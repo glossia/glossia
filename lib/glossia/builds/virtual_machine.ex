@@ -138,6 +138,7 @@ defmodule Glossia.Builds.VirtualMachine do
   @spec get_docker_env_variables() :: map()
   defp get_docker_env_variables() do
     %{
+      GLOSSIA_ENV: "production",
       GLOSSIA_URL: Application.get_env(:glossia, :url),
       GLOSSIA_API_KEY: Application.get_env(:glossia, :builder_api_key),
       GLOSSIA_APP_SIGNAL_API_KEY: Application.get_env(:glossia, :app_signal_builder_api_key)
