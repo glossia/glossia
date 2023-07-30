@@ -1,5 +1,5 @@
 import { dirname, join } from "https://deno.land/std@0.196.0/path/posix.ts";
-import { generateTranslationPayload } from "./translation.ts";
+import { generateTranslationPayload } from "./vcs.ts";
 import { getRootDirectory, runInTemporaryDirectory } from "./test-helpers.ts";
 import { assertRejects } from "https://deno.land/std@0.196.0/assert/assert_rejects.ts";
 import { assertEquals } from "https://deno.land/std@0.196.0/assert/assert_equals.ts";
