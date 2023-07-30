@@ -123,3 +123,7 @@ config :glossia, :seo_metadata, %{
   twitter_handle: "@glossiaai",
   author: "Glossia"
 }
+
+config :mime, :types, %{
+  "application/typescript" => ["ts"]
+}

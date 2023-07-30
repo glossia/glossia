@@ -148,7 +148,7 @@ defmodule Glossia.Builds.VirtualMachine do
   defp get_deno_args(env: env) do
     path =
       if Application.get_env(:glossia, :env) == :prod do
-        Application.get_env(:glossia, :url) <> "/builder/src/index.ts"
+        Application.get_env(:glossia, :url) <> "/builder/index.ts"
       else
         "./index.ts"
       end

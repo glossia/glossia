@@ -49,7 +49,8 @@ defmodule Glossia.Accounts.Account do
     "security",
     "privacy",
     "webhooks",
-    "webhook"
+    "webhook",
+    "builder"
   ]
 
   @type create_account_changeset_attrs :: %{

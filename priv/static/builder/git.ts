@@ -21,7 +21,7 @@ export async function cloneGitRepository(
 export async function clone(
   { root, gitAccessToken, vcsPlatform, vcsId, gitCommitSHA }: {
     root: string;
-    gitCommitSHA: string;
+    gitCommitSHA: string | undefined;
     gitAccessToken: string | undefined;
     vcsPlatform: string;
     vcsId: string;
@@ -41,17 +41,20 @@ export async function clone(
   if (!(await cloneProcess.status).success) {
     throw new Error("Failed to clone repository");
   }
-  const checkoutArgs = ["git", "checkout", gitCommitSHA];
-  console.log("Running:", checkoutArgs.join(" "));
-  const checkoutCommand = new Deno.Command("/usr/bin/env", {
-    args: checkoutArgs,
-    cwd: root,
-    stdin: "null",
-  });
-  const checkoutProcess = await checkoutCommand.spawn();
-  if (!(await checkoutProcess.status).success) {
-    throw new Error("Failed to checkout the commit");
+  if (gitCommitSHA) {
+    const checkoutArgs = ["git", "checkout", gitCommitSHA];
+    console.log("Running:", checkoutArgs.join(" "));
+    const checkoutCommand = new Deno.Command("/usr/bin/env", {
+      args: checkoutArgs,
+      cwd: root,
+      stdin: "null",
+    });
+    const checkoutProcess = await checkoutCommand.spawn();
+    if (!(await checkoutProcess.status).success) {
+      throw new Error("Failed to checkout the commit");
+    }
   }
+
   console.log(`Repository cloned`);
 }
 
@@ -64,25 +67,5 @@ export async function installGitIfNeeded() {
   const installResult = await installCommand.spawn();
   if (!(await installResult.status).success) {
     throw new Error("Failed to install git");
-  }
-
-  // Configure name
-  const configureNameCommand = new Deno.Command("/usr/bin", {
-    args: ["git", "config", "--global", "user.name", "Glossia"],
-    stdin: "null",
-  });
-  const configureNameResult = await configureNameCommand.spawn();
-  if (!(await configureNameResult.status).success) {
-    throw new Error("Failed to configure git name");
-  }
-
-  // Configure email
-  const configureEmailCommand = new Deno.Command("/usr/bin", {
-    args: ["git", "config", "--global", "user.email", "github@glossia.ai"],
-    stdin: "null",
-  });
-  const configureEmailResult = await configureEmailCommand.spawn();
-  if (!(await configureEmailResult.status).success) {
-    throw new Error("Failed to configure git email");
   }
 }
