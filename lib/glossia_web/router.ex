@@ -67,6 +67,7 @@ defmodule GlossiaWeb.Router do
 
   pipeline :builder_api do
     plug :accepts, ["json"]
+    plug GlossiaWeb.Resources, :project
   end
 
   # Marketing
@@ -89,7 +90,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/builder-api", GlossiaWeb.BuilderAPI do
-    # get "/translations/:translation_id", TranslationController, :show
+    pipe_through [:builder_api]
   end
 
   # RSS

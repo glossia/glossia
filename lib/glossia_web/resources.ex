@@ -1,6 +1,6 @@
 defmodule GlossiaWeb.Resources do
-  # use PolicyWonk.Resource
-  # use PolicyWonk.Load
+  use PolicyWonk.Resource
+  use PolicyWonk.Load
 
   def load_resource(_conn, :project, _) do
     # case Plug.Conn.get_req_header(conn, "authorization") do
