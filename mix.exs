@@ -67,7 +67,7 @@ defmodule Glossia.MixProject do
       {:appsignal_phoenix, "~> 2.0"},
       {:plug_attack, "~> 0.4.2"},
       {:remote_ip, "1.1.0"},
-      {:ex_json_schema, "~> 0.9.3"},
+      {:ex_json_schema, "~> 0.10.0"},
       {:boundary, "~> 0.9", runtime: false},
       {:google_api_storage, "~> 0.19.0"},
       {:goth, "~> 1.4.1"},
