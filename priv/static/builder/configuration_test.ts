@@ -7,4 +7,5 @@ Deno.test("returns all the configurations", async () => {
 
   // When
   const got = await loadConfigurations({ root: rootDirectory });
+  console.log(got);
 });
