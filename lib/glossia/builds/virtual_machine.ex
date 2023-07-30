@@ -7,6 +7,13 @@ defmodule Glossia.Builds.VirtualMachine do
 
   @timeout 60 * 3
 
+  @external_resource "priv/static/builder/Dockerfile"
+  @docker_image_tag File.read!("priv/static/builder/Dockerfile")
+                    |> String.split("\n")
+                    |> List.first()
+                    |> String.replace("# ID: ", "")
+                    |> String.trim()
+
   @spec run(
           attrs :: [
             env: map(),
@@ -168,7 +175,7 @@ defmodule Glossia.Builds.VirtualMachine do
   """
   @spec get_docker_image() :: String.t()
   def get_docker_image() do
-    "pepicrft/deno:alpine-git-1.35.3"
+    @docker_image_tag
   end
 
   @doc """
