@@ -9,8 +9,12 @@ defmodule Glossia.Events do
   It proces
   """
   @spec process_git_event(%{
+          access_token: String.t(),
+          git_access_token: String.t(),
           project_id: number(),
           event: atom(),
+          default_branch: String.t(),
+          ref: String.t(),
           commit_sha: String.t(),
           vcs_id: String.t(),
           vcs_platform: atom()

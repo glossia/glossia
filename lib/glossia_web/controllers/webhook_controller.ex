@@ -13,6 +13,7 @@ defmodule GlossiaWeb.WebhookController do
       %{event: event, payload: payload, vcs_platform: :github}
       |> Glossia.VersionControl.process_webhook_event()
       |> find_project_and_update_project_id()
+      |> generate_project_token_for_authentication()
       |> generate_vcs_token_for_cloning_and_update_access_token()
       |> filter_only_default_branch_events()
       |> trigger_build_when_project_present()
@@ -26,7 +27,7 @@ defmodule GlossiaWeb.WebhookController do
     nil
   end
 
-  defp find_project_and_update_project_id(%{} = attrs) do
+  defp find_project_and_update_project_id(%{vcs_id: _vcs_id, vcs_platform: _vcs_platform} = attrs) do
     case attrs |> Glossia.Projects.find_project_by_repository() do
       nil ->
         Logger.info("Could not find a project associated to the repository", attrs)
@@ -37,21 +38,22 @@ defmodule GlossiaWeb.WebhookController do
     end
   end
 
+  def generate_project_token_for_authentication(nil) do
+    nil
+  end
+
+  def generate_project_token_for_authentication(%{project_id: project_id} = attrs) do
+    attrs
+    |> Map.put(:access_token, Glossia.Projects.generate_token_for_project_with_id(project_id))
+  end
+
   defp generate_vcs_token_for_cloning_and_update_access_token(nil) do
     nil
   end
 
-  defp generate_vcs_token_for_cloning_and_update_access_token(%{} = attrs) do
-    case attrs |> Map.has_key?(:project_id) do
-      true ->
-        Logger.info("Generating token for cloning the project", attrs)
-
-        attrs
-        |> Map.put(:access_token, Glossia.VersionControl.generate_token_for_cloning(attrs))
-
-      false ->
-        attrs
-    end
+  defp generate_vcs_token_for_cloning_and_update_access_token(%{project_id: _project_id} = attrs) do
+    attrs
+    |> Map.put(:git_access_token, Glossia.VersionControl.generate_token_for_cloning(attrs))
   end
 
   def filter_only_default_branch_events(nil) do
@@ -60,13 +62,8 @@ defmodule GlossiaWeb.WebhookController do
 
   def filter_only_default_branch_events(%{} = attrs) do
     default_branch = Map.fetch!(attrs, :default_branch)
-
-    branch =
-      case Map.fetch!(attrs, :ref) |> String.split("/") do
-        ["refs", "heads" | tail] -> tail |> Enum.join("/")
-        name when is_binary(name) -> name
-        _ -> nil
-      end
+    ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")
+    branch = tail |> Enum.join("/")
 
     case branch == default_branch do
       true ->

@@ -34,7 +34,16 @@ defmodule Glossia.Projects do
   """
   @spec generate_token_for_project(Project.t()) :: String.t()
   def generate_token_for_project(project) do
-    {:ok, token, _claims} = ProjectToken.generate_token(project)
+    {:ok, token, _claims} = ProjectToken.generate_token_for_project_with_id(project.id)
+    token
+  end
+
+  @doc """
+  It generates a token for the given project id to authenticate requests coming from builds.
+  """
+  @spec generate_token_for_project_with_id(String.t()) :: String.t()
+  def generate_token_for_project_with_id(project_id) do
+    {:ok, token, _claims} = ProjectToken.generate_token_for_project_with_id(project_id)
     token
   end
 

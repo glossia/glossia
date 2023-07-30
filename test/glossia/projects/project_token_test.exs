@@ -10,7 +10,7 @@ defmodule Glossia.Events.ProjectTokenTest do
       {:ok, project} = project_fixture()
 
       # When
-      {:ok, token, _claims} = project |> generate_token()
+      {:ok, token, _claims} = project.id |> generate_token_for_project_with_id()
 
       # Then
       assert token != ""
@@ -23,7 +23,7 @@ defmodule Glossia.Events.ProjectTokenTest do
       {:ok, project} = project_fixture()
 
       # When
-      {:ok, token, _claims} = project |> generate_token()
+      {:ok, token, _claims} = project.id |> generate_token_for_project_with_id()
       {:ok, project_id} = token |> get_project_id_from_token()
 
       # Then

@@ -1,5 +1,6 @@
 import AsciiTable from "https://deno.land/x/ascii_table/mod.ts";
 import {
+  getAccessToken,
   getAppSignalAPIKey,
   getEvent,
   getGitAccessToken,
@@ -14,6 +15,7 @@ import {
 export function outputHeadingTableWithContext() {
   const table = new AsciiTable("Build information");
   table
+    .addRow("Access token", getAccessToken())
     .addRow("Git event ID", getGitEventID())
     .addRow("Event", getEvent())
     .addRow("Git access token", getGitAccessToken())

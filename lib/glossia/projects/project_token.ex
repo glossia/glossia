@@ -1,8 +1,6 @@
 defmodule Glossia.Projects.ProjectToken do
   use Joken.Config, default_signer: :project
 
-  alias Glossia.Projects.Project
-
   def token_config do
     %{}
 
@@ -19,9 +17,9 @@ defmodule Glossia.Projects.ProjectToken do
   @doc """
   Given a project it generates a token to authenticate requests to the API.
   """
-  @spec generate_and_sign(Project.t()) ::
+  @spec generate_token_for_project_with_id(String.t()) ::
           {:ok, Joken.bearer_token(), Joken.claims()} | {:error, Joken.error_reason()}
-  def generate_token(%Project{id: id}) do
+  def generate_token_for_project_with_id(id) do
     __MODULE__.generate_and_sign(%{"project_id" => id})
   end
 

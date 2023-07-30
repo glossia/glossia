@@ -15,6 +15,7 @@ defmodule Glossia.Events.GitEventWorker do
   def perform(%Oban.Job{
         args: %{
           "access_token" => access_token,
+          "git_access_token" => git_access_token,
           "project_id" => project_id,
           "event" => event,
           "default_branch" => default_branch,
@@ -27,6 +28,7 @@ defmodule Glossia.Events.GitEventWorker do
     case Repo.get_by(GitEvent, commit_sha: commit_sha, project_id: project_id) do
       nil ->
         trigger_build(%{
+          git_access_token: git_access_token,
           access_token: access_token,
           event: event,
           default_branch: default_branch,
@@ -50,7 +52,8 @@ defmodule Glossia.Events.GitEventWorker do
           ref: ref,
           commit_sha: commit_sha,
           default_branch: default_branch,
-          access_token: access_token
+          access_token: access_token,
+          git_access_token: git_access_token
         } = attrs
       ) do
     git_event =
@@ -62,6 +65,8 @@ defmodule Glossia.Events.GitEventWorker do
       env: %{
         # Event
         GLOSSIA_EVENT: "git" <> "_" <> event,
+        GLOSSIA_ACCESS_TOKEN: access_token,
+
         # VCS
         GLOSSIA_VCS_ID: vcs_id,
         GLOSSIA_VCS_PLATFORM: vcs_platform,
@@ -70,7 +75,7 @@ defmodule Glossia.Events.GitEventWorker do
         GLOSSIA_GIT_DEFAULT_BRANCH: default_branch,
         GLOSSIA_GIT_COMMIT_SHA: commit_sha,
         GLOSSIA_GIT_EVENT_ID: git_event.id,
-        GLOSSIA_GIT_ACCESS_TOKEN: access_token
+        GLOSSIA_GIT_ACCESS_TOKEN: git_access_token
       },
       update_status_cb: fn %{vm_id: vm_id, status: status, vm_logs_url: vm_logs_url} ->
         update_git_event_status(%{
