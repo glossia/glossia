@@ -24,7 +24,7 @@ export async function runInTemporaryDirectory<T>(
  * Returns the root directory of the project.
  * @returns {Promise<string>} The root directory of the project.
  */
-export async function getRootDirectory() {
+export function getRootDirectory() {
   const __dirname = new URL(".", import.meta.url).pathname;
   const rootPath = joinPath(__dirname, "..", "..", "..");
   return rootPath;
