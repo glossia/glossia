@@ -57,15 +57,3 @@ export async function clone(
 
   console.log(`Repository cloned`);
 }
-
-export async function installGitIfNeeded() {
-  // Install
-  const installCommand = new Deno.Command("/usr/bin", {
-    args: ["sudo", "apk", "add", "git"],
-    stdin: "null",
-  });
-  const installResult = await installCommand.spawn();
-  if (!(await installResult.status).success) {
-    throw new Error("Failed to install git");
-  }
-}
