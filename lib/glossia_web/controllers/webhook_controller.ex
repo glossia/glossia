@@ -29,7 +29,10 @@ defmodule GlossiaWeb.WebhookController do
   defp find_project_and_update_project_id(%{} = attrs) do
     case attrs |> Glossia.Projects.find_project_by_repository() do
       nil -> attrs
-      project -> attrs |> Map.put(:project_id, project.id)
+        Logger.info("Could not find a project associated to the repository", attrs)
+      project ->
+        Logger.info("Found project", project)
+        attrs |> Map.put(:project_id, project.id)
     end
   end
 
@@ -40,6 +43,7 @@ defmodule GlossiaWeb.WebhookController do
   defp generate_vcs_token_for_cloning_and_update_access_token(%{} = attrs) do
     case attrs |> Map.has_key?(:project_id) do
       true ->
+        Logger.info("Generating token for cloning the project", attrs)
         attrs
         |> Map.put(:access_token, Glossia.VersionControl.generate_token_for_cloning(attrs))
 
@@ -54,15 +58,18 @@ defmodule GlossiaWeb.WebhookController do
 
   def filter_only_default_branch_events(%{} = attrs) do
     default_branch = Map.fetch!(attrs, :default_branch)
-    branch = case Map.fetch!(attrs, :default_branch) |> String.split("/") do
+    branch = case Map.fetch!(attrs, :ref) |> String.split("/") do
       ["refs", "heads" | tail ] -> tail |> String.join("/")
       name when is_binary(name) -> name
       _ -> nil
     end
 
     case branch == default_branch do
-      true -> attrs
-      false -> nil
+      true ->
+        attrs
+      false ->
+        Logger.info("Ignoring event for branch #{branch} as it is not the default branch #{default_branch}")
+        nil
     end
   end
 
@@ -72,7 +79,9 @@ defmodule GlossiaWeb.WebhookController do
 
   defp trigger_build_when_project_present(%{} = attrs) do
     case attrs |> Map.has_key?(:project_id) do
-      true -> attrs |> Glossia.Events.process_git_event()
+      true ->
+        Logger.info("Triggering build to process the git event", attrs)
+        attrs |> Glossia.Events.process_git_event()
       _ -> :ok
     end
   end
