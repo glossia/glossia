@@ -27,9 +27,12 @@ export async function getConfigurationValidate() {
 
   const ajv = new Ajv({
     schemas: [configurationSchema.default, languageSchema.default],
-    strict: false,
-    strictTuples: false,
-    strictSchema: false,
+    strict: true,
+    strictSchema: true,
+    strictTypes: true,
+    strictRequired: true,
+    validateSchema: true,
+    allErrors: true,
   });
   return ajv.compile(configurationSchema);
 }
@@ -58,12 +61,17 @@ async function loadAndValidateConfigurations(
 ): Promise<Configuration[]> {
   return await Promise.all(
     configurationFilePaths.map(async (configurationFilePath) => {
-      console.log(`Reading configuration ${configurationFilePath}`);
+      console.info(`Reading configuration ${configurationFilePath}`);
       const configurationFile = parse(
         await Deno.readTextFile(configurationFilePath),
       );
-      console.log(`Validating configuration file ${configurationFilePath}`);
-      if (!validate(configurationFile)) {
+      console.info(
+        `Validating configuration file ${configurationFilePath}`,
+        configurationFile,
+      );
+      const isValid = validate(configurationFile);
+      console.info(`The validity of the configuration file is ${isValid}`);
+      if (!isValid) {
         let error = null;
         if (validate.errors) {
           error = validate.errors![validate.errors!.length - 1];
