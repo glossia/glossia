@@ -19,5 +19,7 @@ try {
   }
 } catch (err) {
   console.error(err);
+  // deno-lint-ignore ban-ts-comment
+  // @ts-ignore
   await sendErrorReport(err, {});
 }
