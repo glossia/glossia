@@ -51,10 +51,10 @@ defmodule GlossiaWeb.Router do
 
   pipeline :webhooks do
     plug :accepts, ["json"]
-    plug GlossiaWeb.Plugs.RawBodyPassthrough, length: 4_000_000
+    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
     # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
     # as it relies on the `:raw_body` being inside the `conn.assigns`.
-    plug GlossiaWeb.Plugs.RequirePayloadSignatureMatch
+    plug GlossiaWeb.Plugs.RequirePayloadSignatureMatchPlug
   end
 
   pipeline :rss do
@@ -65,12 +65,8 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
-  pipeline :builder_api do
-    plug GlossiaWeb.Plugs.AuthorizeBuildsAPIKey
-  end
-
   pipeline :project do
-    plug GlossiaWeb.Plugs.FetchCurrentProject
+    plug GlossiaWeb.Plugs.FetchCurrentProjectPlug
   end
 
   # Marketing
@@ -87,16 +83,16 @@ defmodule GlossiaWeb.Router do
     get "/changelog", MarketingController, :changelog
   end
 
-  # Builds API
+  # API
   scope "/api", GlossiaWeb.API do
     pipe_through [:api]
-
-    scope "/builder", Builds do
-      pipe_through [:builder_api]
-
-      get "/translations/:translation_id", TranslationController, :show
-    end
   end
+
+  # scope "/builder", Builds do
+  #   pipe_through [:builder_api]
+
+  #   get "/translations/:translation_id", TranslationController, :show
+  # end
 
   # RSS
   scope "/", GlossiaWeb do

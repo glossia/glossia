@@ -1,7 +1,7 @@
-defmodule GlossiaWeb.Plugs.AuthorizeBuildsAPIKey do
-  @moduledoc """
+defmodule GlossiaWeb.Plugs.FetchCurrentProjectPlug do
+    @moduledoc """
 
-  """
+    """
 
   import Plug.Conn
   alias Plug.Conn
@@ -17,9 +17,9 @@ defmodule GlossiaWeb.Plugs.AuthorizeBuildsAPIKey do
 
       ["Bearer " <> token] ->
         if Plug.Crypto.secure_compare(
-             token,
-             Application.get_env(:glossia, :builder_api_key)
-           ) do
+            token,
+            Application.get_env(:glossia, :builder_api_key)
+          ) do
           conn
         else
           send_json_response(conn, 401, %{"error" => "Invalid token"})

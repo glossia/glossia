@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.Plugs.RequirePayloadSignatureMatch do
+defmodule GlossiaWeb.Plugs.RequirePayloadSignatureMatchPlug do
   @moduledoc """
   This plug will verify that the payload from a webhook request matches the accompanying header signature, based on a previously shared `webhook_secret`.
 

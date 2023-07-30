@@ -33,7 +33,7 @@ defmodule Glossia.Application do
         # Start a worker by calling: Glossia.Worker.start_link(arg)
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
-        {PlugAttack.Storage.Ets, name: GlossiaWeb.Plugs.Attack.Storage, clean_period: 60_000}
+        {PlugAttack.Storage.Ets, name: GlossiaWeb.Plugs.AttackPlug.Storage, clean_period: 60_000}
       ] ++ google_cloud_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html

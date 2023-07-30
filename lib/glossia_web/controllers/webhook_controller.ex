@@ -59,7 +59,7 @@ defmodule GlossiaWeb.WebhookController do
   def filter_only_default_branch_events(%{} = attrs) do
     default_branch = Map.fetch!(attrs, :default_branch)
     branch = case Map.fetch!(attrs, :ref) |> String.split("/") do
-      ["refs", "heads" | tail ] -> tail |> String.join("/")
+      ["refs", "heads" | tail ] -> tail |> Enum.join("/")
       name when is_binary(name) -> name
       _ -> nil
     end
