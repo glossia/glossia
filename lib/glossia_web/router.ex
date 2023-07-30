@@ -65,6 +65,10 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :builder_api do
+    plug :accepts, ["json"]
+  end
+
   pipeline :project do
     plug GlossiaWeb.Plugs.FetchCurrentProjectPlug
   end
@@ -88,11 +92,9 @@ defmodule GlossiaWeb.Router do
     pipe_through [:api]
   end
 
-  # scope "/builder", Builds do
-  #   pipe_through [:builder_api]
-
-  #   get "/translations/:translation_id", TranslationController, :show
-  # end
+  scope "/builder-api", GlossiaWeb.BuilderAPI do
+    # get "/translations/:translation_id", TranslationController, :show
+  end
 
   # RSS
   scope "/", GlossiaWeb do

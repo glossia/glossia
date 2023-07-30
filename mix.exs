@@ -74,7 +74,8 @@ defmodule Glossia.MixProject do
       {:google_api_cloud_build, "~> 0.49"},
       {:rambo, "~> 0.3.4"},
       {:mox, "~> 1.0.0", only: :test},
-      {:stripity_stripe, "~> 2.17.3"}
+      {:stripity_stripe, "~> 2.17.3"},
+      {:open_api_spex, "~> 3.17.3"}
     ]
   end
 
