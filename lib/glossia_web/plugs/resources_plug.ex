@@ -17,20 +17,16 @@ defmodule GlossiaWeb.Plugs.ResourcesPlug do
            {:current_project, Projects.get_project_from_token(String.trim(token))} do
       {:ok, :current_project, project}
     else
-      {:auth_header, nil} -> {:error, :missing_authorization_header}
-      {:current_project, nil} -> {:error, {:current_project, :not_found}}
+      {:auth_header, nil} -> {:ok, :current_project, nil}
+      {:current_project, nil} -> {:ok, :current_project, nil}
     end
   end
 
-  def resource_error(conn, :missing_authorization_header) do
-    body = %{errors: [%{detail: "Missing authorization header"}]} |> Jason.encode!()
+  def resource_error(conn, detail) do
+    body = %{errors: [%{detail: detail}]} |> Jason.encode!()
 
     conn
     |> Plug.Conn.put_resp_content_type("application/json")
     |> Plug.Conn.send_resp(401, body)
-  end
-
-  def resource_error(conn, {:current_project, :not_found}) do
-    conn
   end
 end

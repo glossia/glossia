@@ -11,9 +11,7 @@ defmodule GlossiaWeb.Plugs.ResourcesPlugTest do
     conn = conn |> ResourcesPlug.call(opts)
 
     # Then
-    assert response_content_type(conn, :json) =~ "application/json"
-    %{"errors" => [%{"detail" => detail}]} = json_response(conn, 401)
-    assert detail =~ "Missing authorization header"
+    assert conn.assigns[:current_project] == nil
   end
 
   test "doesn't assign a project if the token is invalid", %{conn: conn} do
