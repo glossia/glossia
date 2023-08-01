@@ -10,6 +10,10 @@ export function getEvent() {
   return Deno.env.get("GLOSSIA_EVENT");
 }
 
+export function url() {
+  return Deno.env.get("GLOSSIA_URL");
+}
+
 export function getGitAccessToken() {
   return Deno.env.get("GLOSSIA_GIT_ACCESS_TOKEN") ??
     Deno.env.get("GITHUB_TOKEN");
