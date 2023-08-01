@@ -67,7 +67,7 @@ defmodule GlossiaWeb.Router do
 
   pipeline :builder_api do
     plug :accepts, ["json"]
-    plug GlossiaWeb.Plugs.ResourcesPlug, :current_project
+    plug GlossiaWeb.Auth.Resources, :current_project
   end
 
   # Marketing

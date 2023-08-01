@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.Plugs.ResourcesPlug do
+defmodule GlossiaWeb.Auth.Policies do
   @moduledoc """
   This module provides a plug to load authenticated resources to use them
   to authorize requests.
@@ -20,7 +20,7 @@ defmodule GlossiaWeb.Plugs.ResourcesPlug do
     end
   end
 
-  def policy_error(conn, :current_project) do
-    MyAppWeb.ErrorHandlers.unauthenticated(conn, "Must be logged in")
-  end
+  # def policy_error(conn, :current_project) do
+  #   MyAppWeb.ErrorHandlers.unauthenticated(conn, "Must be logged in")
+  # end
 end

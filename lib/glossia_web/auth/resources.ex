@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.Plugs.ResourcesPlug do
+defmodule GlossiaWeb.Auth.Resources do
   @moduledoc """
   This module provides a plug to load authenticated resources to use them
   to authorize requests.
