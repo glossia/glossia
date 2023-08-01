@@ -25,7 +25,7 @@ jobs:
             deno-version: ${{ env.DENO_VERSION }}
       - name: Test
         working-directory: priv/static/builder
-        run: deno test
+        run: deno test -A
   lint:
     name: Lint
     runs-on: 'ubuntu-latest'
