@@ -161,7 +161,7 @@ defmodule Glossia.Builds.VirtualMachine do
     deno_allow_env_flags =
       (Enum.reduce(env, [], fn {k, _}, acc ->
          [Atom.to_string(k) | acc]
-       end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY", "GLOSSIA_API_KEY"])
+       end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY", "GLOSSIA_API_KEY", "GITHUB_TOKEN"])
       |> Enum.join(",")
 
     [

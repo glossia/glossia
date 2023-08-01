@@ -15,7 +15,7 @@ export function getGitAccessToken() {
 }
 
 export function getAccessToken() {
-  return Deno.env.get("GLOSSIA_ACCESS_TOKEN");
+  return Deno.env.get("GLOSSIA_ACCESS_TOKEN") ?? Deno.env.get("GITHUB_TOKEN");
 }
 
 export function getVCSId() {
