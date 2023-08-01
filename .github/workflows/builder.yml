@@ -26,6 +26,8 @@ jobs:
       - name: Test
         working-directory: priv/static/builder
         run: deno test -A
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   lint:
     name: Lint
     runs-on: 'ubuntu-latest'
