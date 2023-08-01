@@ -28,7 +28,7 @@ export async function clone(
   },
 ) {
   const remoteURL = gitAccessToken
-    ? `https://x-access-token:${getGitAccessToken()}@${vcsPlatform}.com/${vcsId}.git`
+    ? `https://x-access-token:${gitAccessToken}@${vcsPlatform}.com/${vcsId}.git`
     : `https://${vcsPlatform}.com/${vcsId}.git`;
   console.log(`Cloning ${remoteURL}`);
   const cloneArgs = ["git", "clone", remoteURL, root, "--filter=tree:0"];
