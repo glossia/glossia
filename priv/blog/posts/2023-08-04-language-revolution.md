@@ -1,7 +1,7 @@
 %{
   title: "Revolutionizing the Language Frontier for a Connected World",
   author_id: "pepicrft",
-  description: "Glossia is forging a new path in multilingual accessibility. By harnessing AI and innovation, we’re making the internet a place where everyone’s voice can be heard. Join us in shaping the future.",
+  description: "Glossia is forging a new path in multilingual accessibility. By harnessing AI and innovation, we’re making the internet a place where everyone’s voice can be heard",
   tags: ["Translation", "Artificial Intelligence", "Language barriers", "Open Source"]
 }
 ---
