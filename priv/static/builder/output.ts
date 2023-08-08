@@ -8,15 +8,15 @@ import {
   getGitDefaultBranch,
   getGitEventID,
   getGitRef,
+  getURL,
   getVCSId,
   getVCSPlatform,
-  url,
 } from "./environment.ts";
 
 export function outputHeadingTableWithContext() {
   const table = new AsciiTable("Build information");
   table
-    .addRow("URL", url())
+    .addRow("URL", getURL())
     .addRow("Access token", getAccessToken())
     .addRow("Git event ID", getGitEventID())
     .addRow("Event", getEvent())

@@ -10,7 +10,7 @@ export function getEvent() {
   return Deno.env.get("GLOSSIA_EVENT");
 }
 
-export function url() {
+export function getURL() {
   return Deno.env.get("GLOSSIA_URL");
 }
 
