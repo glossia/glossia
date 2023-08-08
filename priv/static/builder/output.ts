@@ -11,7 +11,7 @@ import {
   getURL,
   getVCSId,
   getVCSPlatform,
-} from "./environment.ts";
+} from "./utils/environment.ts";
 
 export function outputHeadingTableWithContext() {
   const table = new AsciiTable("Build information");
