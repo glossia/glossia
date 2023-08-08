@@ -11,8 +11,12 @@ import {
   getURL,
   getVCSId,
   getVCSPlatform,
-} from "./utils/environment.ts";
+} from "../utils/environment.ts";
 
+/**
+ * Outputs a table with build metadata at the top of the logs.
+ * This table is useful for debugging purposes.
+ */
 export function outputHeadingTableWithContext() {
   const table = new AsciiTable("Build information");
   table
