@@ -67,17 +67,17 @@ function getMarkdownErrorMessageFromManifestLoadingErrors(
   const errorMessages = errors.sort().map((error) => {
     switch (error.type) {
       case "invalid_json":
-        return `- The configuration file at path "${
+        return `- The configuration file at path \`${
           relative(options.root, error.filePath)
-        }" contains invalid JSON.`;
+        }\` contains invalid JSON.`;
       case "missing_file":
-        return `- The configuration file at path "${
+        return `- The configuration file at path \`${
           relative(options.root, error.filePath)
-        }" doesn't exist.`;
+        }\` doesn't exist.`;
       case "invalid_schema":
-        return `- The configuration file at path "${
+        return `- The configuration file at path \`${
           relative(options.root, error.filePath)
-        }" doesn't comply with the schema:
+        }\` doesn't comply with the schema:
 ${error.errors.map((error) => `  - ${error}`).join("\n")}`;
     }
   });
