@@ -2,7 +2,7 @@ import Ajv from "https://esm.sh/ajv@~8.12.0";
 import { parse } from "https://deno.land/std@0.195.0/jsonc/mod.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import { Result } from "../result.ts";
-import { relativeToWorkingDirectory } from "../path.ts";
+import { relative } from "https://deno.land/std@0.196.0/path/mod.ts";
 
 export type ConfigurationManifest = {
   // The path to the manifest file.
@@ -54,9 +54,7 @@ export async function loadAndValidateConfigurationManifest(
   }
   const validate = await getConfigurationValidate();
   console.info(
-    `Reading configuration file at path: ${
-      relativeToWorkingDirectory(configurationManifestPath)
-    }`,
+    `Reading configuration file at path: ${configurationManifestPath}`,
   );
   let configurationFile: any;
   try {

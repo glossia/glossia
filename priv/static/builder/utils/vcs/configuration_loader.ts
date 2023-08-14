@@ -6,7 +6,7 @@ import {
 } from "./configuration_manifest.ts";
 import { isSuccess } from "../result.ts";
 import { HandledError } from "../errors.ts";
-import { relativeToWorkingDirectory } from "../path.ts";
+import { relative } from "https://deno.land/std@0.196.0/path/mod.ts";
 
 type LoadConfigurationFilePathsOptions = { root: string };
 
@@ -54,7 +54,7 @@ export async function loadConfigurationManifests(
   }
   if (errors.length > 0) {
     throw new HandledError(
-      getMarkdownErrorMessageFromManifestLoadingErrors(errors),
+      getMarkdownErrorMessageFromManifestLoadingErrors(errors, options),
     );
   }
   return configurationManifests;
@@ -62,20 +62,21 @@ export async function loadConfigurationManifests(
 
 function getMarkdownErrorMessageFromManifestLoadingErrors(
   errors: ManifestLoadingError[],
+  options: { root: string },
 ) {
   const errorMessages = errors.sort().map((error) => {
     switch (error.type) {
       case "invalid_json":
         return `- The configuration file at path "${
-          relativeToWorkingDirectory(error.filePath)
+          relative(options.root, error.filePath)
         }" contains invalid JSON.`;
       case "missing_file":
         return `- The configuration file at path "${
-          relativeToWorkingDirectory(error.filePath)
+          relative(options.root, error.filePath)
         }" doesn't exist.`;
       case "invalid_schema":
         return `- The configuration file at path "${
-          relativeToWorkingDirectory(error.filePath)
+          relative(options.root, error.filePath)
         }" doesn't comply with the schema:
 ${error.errors.map((error) => `  - ${error}`).join("\n")}`;
     }
