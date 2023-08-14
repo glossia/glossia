@@ -1,0 +1,74 @@
+{
+    "languages": {
+        "source": "en",
+        "target": ["es", "it", "de"]
+    },
+    "files": "posts/*/{language}.md",
+    "context": "This is a context that applies to all the languages"
+}
+
+{
+    "languages": {
+        "source": "en",
+        "target": ["es", "it", "de"]
+    },
+    "files": "posts/*/{language}.md",
+    "context": {
+        "*": "This is a context for all the languages",
+        "it": "This is context only for italian",
+        "it,de": "this is context only for it, and de"
+    }
+}
+
+/**
+{
+  "languages": {
+    "source": "en",
+    "target": ["de, "it"] 
+  },
+  "context": "This is an ecommerce platform....
+}
+
+
+{
+    "files": "*/{language}.md",
+    "context": {
+      "*": "This is a blog for the ecommerce platform, the content are blog posts that are targetting",
+      "it,de": "This blog is for the European market, and therefore, people are more concerned about privacty and regulartions ke"
+    }
+}
+**/
+
+
+/*
+glossia.jsonc
+
+blog/
+  marketing/
+    src/
+      navigation_bar/
+        glossia.jsonc
+        NavigationBar.js
+        content/
+          en.yml
+          de.yml
+          it.yml
+  posts/
+    glossia.jsonc 
+    post-1/
+      en.md
+      de.md
+      it.md
+    post-2/
+      en.md
+      de.md
+      it.md
+    post-3/
+      en.md
+      de.md
+      it.md
+
+
+
+
+*/

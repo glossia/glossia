@@ -42,35 +42,6 @@ export async function generateTranslationPayload(
   return translationModules;
 }
 
-/**
- * It returns a function that validates the configuration.
- * Documentation: https://ajv.js.org/guide/managing-schemas.html
- *
- * @returns {Promise<(data: any) => boolean>} A function that validates the configuration
- */
-export async function getConfigurationValidate() {
-  const configurationSchema = await import("../schemas/configuration.json", {
-    assert: { type: "json" },
-  });
-  const languageSchema = await import("../schemas/language.json", {
-    assert: { type: "json" },
-  });
-
-  const ajv = new Ajv({
-    strict: true,
-    strictSchema: true,
-    strictTypes: true,
-    strictRequired: true,
-    validateSchema: true,
-    strictTuples: false,
-    allErrors: true,
-  });
-
-  ajv.addSchema(languageSchema.default, languageSchema.default["$id"]);
-
-  return ajv.compile(configurationSchema.default);
-}
-
 async function loadConfigurationsResolvingFiles(
   configurationFilePaths: string[],
   validate: ValidateFunction<unknown>,

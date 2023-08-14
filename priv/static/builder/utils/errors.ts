@@ -1,6 +1,16 @@
 import { createAppsignalClient } from "https://deno.land/x/appsignal@v1.0.1/mod.ts";
 import { getAppSignalAPIKey } from "./environment.ts";
 
+type ErrorType = "abort";
+
+export class HandledError extends Error {
+  type: ErrorType;
+  constructor(msg: string, type: ErrorType = "abort") {
+    super(msg);
+    this.type = type;
+  }
+}
+
 export type RunReportingErrorsOptions = {
   reportFunction: ReturnType<typeof getReportFunction>;
 };
