@@ -31,7 +31,6 @@ class MockEnv implements Deno.Env {
     return this.env.has(key);
   }
   toObject(): { [index: string]: string } {
-    // TODO: Implement
-    throw new Error("Method not implemented.");
+    return Object.fromEntries(this.env);
   }
 }

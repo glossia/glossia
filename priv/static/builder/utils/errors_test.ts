@@ -1,9 +1,15 @@
 import { assertEquals } from "https://deno.land/std@0.196.0/assert/assert_equals.ts";
-import { runReportingErrors } from "./errors.ts";
+import { HandledError, runReportingErrors } from "./errors.ts";
 import { assertRejects } from "https://deno.land/std@0.196.0/assert/assert_rejects.ts";
-import { getEvent } from "./environment.ts";
-import { getMockedEnv } from "./environment_test_helpers.ts";
-import { assertThrows } from "https://deno.land/std@0.196.0/assert/assert_throws.ts";
+
+Deno.test("it strips the markdown from the error message", () => {
+  // Given/When
+  const got = new HandledError("# test");
+
+  // Then
+  assertEquals(got.message, "test");
+  assertEquals(got.markdownMessage, "# test");
+});
 
 Deno.test("runReportingErrors reports the errors thrown by the callback", async () => {
   const errorMessage = "test";

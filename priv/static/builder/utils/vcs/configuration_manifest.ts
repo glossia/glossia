@@ -1,10 +1,12 @@
 import Ajv from "https://esm.sh/ajv@~8.12.0";
 import { parse } from "https://deno.land/std@0.195.0/jsonc/mod.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
-import { HandledError } from "../errors.ts";
 import { Result } from "../result.ts";
 
-type ConfigurationManifest = {
+export type ConfigurationManifest = {
+  // The path to the manifest file.
+  path: string;
+
   /** The languages a piece of content is translated from and into. */
   languages: {
     /** The language used as a based language to translate from. */
@@ -19,6 +21,18 @@ type ConfigurationManifest = {
   files: string;
 };
 
+export type ManifestLoadingError =
+  | { type: "missing_file"; filePath: string }
+  | {
+    type: "invalid_json";
+    filePath: string;
+  }
+  | {
+    type: "invalid_schema";
+    errors: string[];
+    filePath: string;
+  };
+
 /**
  * It loads and validates a configuration manifest at a given path.
  * @param configurationManifestPath {string} The absolute path to the glossia.jsonc manifest file to load
@@ -29,14 +43,13 @@ export async function loadAndValidateConfigurationManifest(
 ): Promise<
   Result<
     ConfigurationManifest,
-    { type: "missing_file" } | { type: "invalid_json" } | {
-      type: "invalid_schema";
-      errors: string[];
-    }
+    ManifestLoadingError
   >
 > {
   if (!(await exists(configurationManifestPath))) {
-    return { failure: { type: "missing_file" } };
+    return {
+      failure: { type: "missing_file", filePath: configurationManifestPath },
+    };
   }
   const validate = await getConfigurationValidate();
   console.info(
@@ -49,7 +62,9 @@ export async function loadAndValidateConfigurationManifest(
     );
   } catch (error) {
     if (error instanceof SyntaxError) {
-      return { failure: { type: "invalid_json" } };
+      return {
+        failure: { type: "invalid_json", filePath: configurationManifestPath },
+      };
     } else {
       throw error;
     }
@@ -70,9 +85,20 @@ export async function loadAndValidateConfigurationManifest(
         errors.push(validationError.message);
       }
     });
-    return { failure: { type: "invalid_schema", errors: errors } };
+    return {
+      failure: {
+        type: "invalid_schema",
+        errors: errors,
+        filePath: configurationManifestPath,
+      },
+    };
   } else {
-    return { success: configurationFile as ConfigurationManifest };
+    return {
+      success: {
+        ...configurationFile,
+        path: configurationManifestPath,
+      } as ConfigurationManifest,
+    };
   }
 }
 
