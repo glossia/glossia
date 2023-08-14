@@ -6,18 +6,6 @@ defmodule Glossia.VersionControl do
 
   # Public / Webhooks
 
-  @spec process_webhook_event(%{
-          event: String.t(),
-          payload: map(),
-          vcs_platform: Glossia.VersionControl.Platform.t()
-        }) :: nil | {module(), atom(), list()}
-  def process_webhook_event(%{vcs_platform: vcs_platform} = attrs) do
-    case vcs_platform do
-      :github ->
-        Glossia.VersionControl.GitHub.process_webhook_event(attrs)
-    end
-  end
-
   @spec is_webhook_payload_valid?(
           req_headers :: Keyword.t(),
           payload :: map(),

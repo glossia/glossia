@@ -93,33 +93,6 @@ defmodule Glossia.VersionControl.GitHub do
     end
   end
 
-  @doc """
-  It processes a webhook sent by GitHub.
-  """
-  @impl true
-  def process_webhook_event(%{event: event, payload: payload}) when event == "push" do
-    Logger.info("Processing GitHub webhook: #{event}")
-    vcs_id = payload["repository"]["full_name"]
-    commit_sha = payload["after"]
-    ref = payload["ref"]
-    default_branch = payload["repository"]["default_branch"]
-
-    %{
-      event: :push,
-      vcs_id: vcs_id,
-      vcs_platform: :github,
-      commit_sha: commit_sha,
-      ref: ref,
-      default_branch: default_branch
-    }
-  end
-
-  @impl true
-  def process_webhook_event(%{event: event}) do
-    Logger.info("Processing an unsupported GitHub webhook event: #{event}")
-    nil
-  end
-
   @impl true
   def generate_token_for_cloning(vcs_id) do
     app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()

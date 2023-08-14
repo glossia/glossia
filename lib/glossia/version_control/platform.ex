@@ -3,16 +3,6 @@ defmodule Glossia.VersionControl.Platform do
 
   @type t :: :github
 
-  # Callbacks / Webhooks
-
-  @doc """
-  Processes a webhook event from a VersionControl provider.
-  """
-  @callback process_webhook_event(%{
-              event: String.t(),
-              payload: map()
-            }) :: nil | {module(), atom(), list()}
-
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
