@@ -5,31 +5,64 @@ defmodule Glossia.Projects do
   The projects context
   """
 
+  # Modules
+  require Logger
   alias Glossia.Repo
   alias Glossia.Projects.{Project, ProjectToken}
 
   @doc """
+  It simulates a git push event using the latest commit from the default branch of a project.
+  """
+  @spec simulate_git_push_event(Project.t()) :: :ok
+  def simulate_git_push_event(project) do
+    project |> process_git_event(%{event: "push", default_branch: "main", commit_sha: "TODO", ref: "refs/head/main"})
+  end
+
+  @doc """
   Given a git event, it processes it.
   """
-  @type process_git_event_opts_t :: [event: String.t(), default_branch: String.t(), commit_sha: String.t(), ref: String.t()]
+  @type process_git_event_opts_t :: %{
+          event: String.t(),
+          default_branch: String.t(),
+          commit_sha: String.t(),
+          ref: String.t()
+        }
   @spec process_git_event(project :: Project.t(), opts :: process_git_event_opts_t) :: :ok
 
-  def process_git_event(project, opts) do
-    event = opts |> Keyword.fetch!(:event)
-    default_branch = opts |> Keyword.fetch!(:default_branch)
-    commit_sha = opts |> Keyword.fetch!(:commit_sha)
-    ref = opts |> Keyword.get(:ref)
+  def process_git_event(
+        project,
+        %{event: "push" = event, commit_sha: commit_sha, ref: ref} = opts
+      ) do
+    default_branch = opts |> Map.fetch!(:default_branch)
 
-    :ok = %{ event: event, vcs_id: project.vcs_id, vcs_platform: project.vcs_platform, project_id: project.id, commit_sha: commit_sha, default_branch: default_branch, ref: ref}
+    :ok =
+      %{
+        event: event,
+        commit_sha: commit_sha,
+        default_branch: default_branch,
+        ref: ref,
+        vcs_id: project.vcs_id,
+        vcs_platform: project.vcs_platform,
+        project_id: project.id
+      }
       |> Map.put(:access_token, generate_token_for_project(project))
-      |> Map.put(:git_access_token, Glossia.VersionControl.generate_token_for_cloning(%{ vcs_id: project.vcs_id, vcs_platform: project.vcs_platform }))
+      |> Map.put(
+        :git_access_token,
+        Glossia.VersionControl.generate_token_for_cloning(%{
+          vcs_id: project.vcs_id,
+          vcs_platform: project.vcs_platform
+        })
+      )
       |> Glossia.Events.process_git_event()
-
 
     # TODO: Ignore events that are coming from a branch other than the default.
     # ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")
     # branch = tail |> Enum.join("/")
     :ok
+  end
+
+  def process_git_event(project, %{} = opts) do
+    Logger.info("Ignoring event for project with id #{project.id}", opts)
   end
 
   @doc """

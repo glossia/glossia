@@ -19,8 +19,8 @@
     "editor.formatOnSave": true 
   },
   "[elixir]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "JakeBecker.elixir-ls"
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "saratravi.elixir-formatter"
   },
   "files.associations": {
     "*.heex": "phoenix-heex",

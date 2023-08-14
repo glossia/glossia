@@ -11,15 +11,25 @@ defmodule GlossiaWeb.WebhookController do
   def github(conn, _params) do
     event = conn |> get_req_header("x-github-event") |> List.first()
     payload = conn.assigns.raw_body |> Jason.decode!()
-    default_branch = payload |> Map.fetch!(:repository) |> Map.fetch!(:default_branch)
+    default_branch = payload |> get_in([:repository, :default_branch])
     ref = payload |> Map.get(:ref)
     commit_sha = payload |> Map.get(:after)
 
-    project = Projects.find_project_by_repository(%{vcs_id: payload.repository.id, vcs_platform: :github})
+    project =
+      Projects.find_project_by_repository(%{vcs_id: payload.repository.id, vcs_platform: :github})
 
     case project do
-      %Project{} = project -> project |> Projects.process_git_event(event: event, ref: ref, default_branch: default_branch, commit_sha: commit_sha)
-      _ -> nil
+      %Project{} = project ->
+        project
+        |> Projects.process_git_event(%{
+          event: event,
+          ref: ref,
+          default_branch: default_branch,
+          commit_sha: commit_sha
+        })
+
+      _ ->
+        nil
     end
 
     json(conn, nil)
