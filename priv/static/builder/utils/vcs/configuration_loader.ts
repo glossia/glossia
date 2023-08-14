@@ -6,6 +6,7 @@ import {
 } from "./configuration_manifest.ts";
 import { isSuccess } from "../result.ts";
 import { HandledError } from "../errors.ts";
+import { relativeToWorkingDirectory } from "../path.ts";
 
 type LoadConfigurationFilePathsOptions = { root: string };
 
@@ -65,11 +66,17 @@ function getMarkdownErrorMessageFromManifestLoadingErrors(
   const errorMessages = errors.sort().map((error) => {
     switch (error.type) {
       case "invalid_json":
-        return `- The configuration file at path "${error.filePath}" contains invalid JSON.`;
+        return `- The configuration file at path "${
+          relativeToWorkingDirectory(error.filePath)
+        }" contains invalid JSON.`;
       case "missing_file":
-        return `- The configuration file at path "${error.filePath}" doesn't exist.`;
+        return `- The configuration file at path "${
+          relativeToWorkingDirectory(error.filePath)
+        }" doesn't exist.`;
       case "invalid_schema":
-        return `- The configuration file at path "${error.filePath}" doesn't comply with the schema:
+        return `- The configuration file at path "${
+          relativeToWorkingDirectory(error.filePath)
+        }" doesn't comply with the schema:
 ${error.errors.map((error) => `  - ${error}`).join("\n")}`;
     }
   });

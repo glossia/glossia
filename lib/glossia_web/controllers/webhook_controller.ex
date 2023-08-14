@@ -9,8 +9,7 @@ defmodule GlossiaWeb.WebhookController do
     event = conn |> get_req_header("x-github-event") |> List.first()
     payload = conn.assigns.raw_body |> Jason.decode!()
 
-    :ok =
-      %{event: event, payload: payload, vcs_platform: :github}
+    %{event: event, payload: payload, vcs_platform: :github}
       |> Glossia.VersionControl.process_webhook_event()
       |> find_project_and_update_project_id()
       |> generate_project_token_for_authentication()

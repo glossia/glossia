@@ -152,7 +152,7 @@ defmodule Glossia.Builds.VirtualMachine do
     {:ok, token} = Goth.fetch(Glossia.Goth)
     object = "log-#{build_id}.txt"
 
-    {:ok, logs} =
+    {:ok, %{ body: body }} =
       GoogleApi.CloudBuild.V1.Connection.new(token.token)
       |> GoogleApi.Storage.V1.Api.Objects.storage_objects_get(
         @google_cloud_build_logs_bucket_name,
@@ -162,7 +162,7 @@ defmodule Glossia.Builds.VirtualMachine do
 
     regex = ~r/---GLOSSIA_ERROR_START---(.*?)---GLOSSIA_ERROR_END---/s
 
-    [[_, content]] = Regex.scan(regex, logs)
+    [[_, content]] = Regex.scan(regex, body)
     String.trim(content)
   end
 
