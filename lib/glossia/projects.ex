@@ -1,5 +1,5 @@
 defmodule Glossia.Projects do
-  use Boundary, deps: [Glossia.Repo], exports: [Project]
+  use Boundary, deps: [Glossia.Repo, Glossia.Events, Glossia.VersionControl], exports: [Project]
 
   @moduledoc """
   The projects context
@@ -7,6 +7,30 @@ defmodule Glossia.Projects do
 
   alias Glossia.Repo
   alias Glossia.Projects.{Project, ProjectToken}
+
+  @doc """
+  Given a git event, it processes it.
+  """
+  @type process_git_event_opts_t :: [event: String.t(), default_branch: String.t(), commit_sha: String.t(), ref: String.t()]
+  @spec process_git_event(project :: Project.t(), opts :: process_git_event_opts_t) :: :ok
+
+  def process_git_event(project, opts) do
+    event = opts |> Keyword.fetch!(:event)
+    default_branch = opts |> Keyword.fetch!(:default_branch)
+    commit_sha = opts |> Keyword.fetch!(:commit_sha)
+    ref = opts |> Keyword.get(:ref)
+
+    :ok = %{ event: event, vcs_id: project.vcs_id, vcs_platform: project.vcs_platform, project_id: project.id, commit_sha: commit_sha, default_branch: default_branch, ref: ref}
+      |> Map.put(:access_token, generate_token_for_project(project))
+      |> Map.put(:git_access_token, Glossia.VersionControl.generate_token_for_cloning(%{ vcs_id: project.vcs_id, vcs_platform: project.vcs_platform }))
+      |> Glossia.Events.process_git_event()
+
+
+    # TODO: Ignore events that are coming from a branch other than the default.
+    # ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")
+    # branch = tail |> Enum.join("/")
+    :ok
+  end
 
   @doc """
   Creates a new project with the given attributes.
@@ -26,7 +50,7 @@ defmodule Glossia.Projects do
         }) ::
           Project.t() | nil
   def find_project_by_repository(attrs) do
-    Project.find_project_by_repository(attrs) |> Repo.one()
+    Project.find_project_by_repository_query(attrs) |> Repo.one()
   end
 
   @doc """

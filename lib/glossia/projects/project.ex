@@ -67,7 +67,7 @@ defmodule Glossia.Projects.Project do
 
   # Queries
 
-  def find_project_by_repository(%{vcs_platform: vcs_platform, vcs_id: vcs_id}) do
+  def find_project_by_repository_query(%{vcs_platform: vcs_platform, vcs_id: vcs_id}) do
     from(p in __MODULE__,
       where: p.vcs_id == ^vcs_id and p.vcs_platform == ^vcs_platform
     )

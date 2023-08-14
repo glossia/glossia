@@ -47,7 +47,7 @@ defmodule GlossiaWeb.MarketingController do
     |> render(:docs_marketing)
   end
 
-  def docs(conn, params) do
+  def docs(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
