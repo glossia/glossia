@@ -2,14 +2,14 @@ defmodule Glossia.Builds do
   use Boundary, deps: [], exports: []
 
   @spec run(
-          attrs :: [
+          attrs :: %{
             env: map(),
-            update_status_cb: (String.t(), atom() -> nil)
-          ]
+            update_status_cb: Glossia.Builds.VirtualMachine.update_status_cb_t()
+          }
         ) ::
-          {:ok, String.t()}
+          :ok
 
-  def run(env: env, update_status_cb: update_status_cb) do
-    Glossia.Builds.VirtualMachine.run(env: env, update_status_cb: update_status_cb)
+  def run(%{env: env, update_status_cb: update_status_cb}) do
+    Glossia.Builds.VirtualMachine.run(%{env: env, update_status_cb: update_status_cb})
   end
 end

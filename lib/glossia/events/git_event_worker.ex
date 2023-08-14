@@ -61,7 +61,7 @@ defmodule Glossia.Events.GitEventWorker do
 
     attrs |> update_commit_status(:translating)
 
-    Glossia.Builds.run(
+    Glossia.Builds.run(%{
       env: %{
         # Event
         GLOSSIA_EVENT: "git" <> "_" <> event,
@@ -77,15 +77,21 @@ defmodule Glossia.Events.GitEventWorker do
         GLOSSIA_GIT_EVENT_ID: git_event.id,
         GLOSSIA_GIT_ACCESS_TOKEN: git_access_token
       },
-      update_status_cb: fn %{vm_id: vm_id, status: status, vm_logs_url: vm_logs_url} ->
+      update_status_cb: fn %{
+                             vm_id: vm_id,
+                             status: status,
+                             vm_logs_url: vm_logs_url,
+                             markdown_error_message: markdown_error_message
+                           } ->
         update_git_event_status(%{
           git_event: git_event,
           vm_id: vm_id,
           status: status,
-          vm_logs_url: vm_logs_url
+          vm_logs_url: vm_logs_url,
+          markdown_error_message: markdown_error_message
         })
       end
-    )
+    })
 
     attrs |> update_commit_status(:translated)
 
@@ -127,11 +133,17 @@ defmodule Glossia.Events.GitEventWorker do
          git_event: git_event,
          vm_id: vm_id,
          status: status,
-         vm_logs_url: vm_logs_url
+         vm_logs_url: vm_logs_url,
+         markdown_error_message: markdown_error_message
        }) do
     {:ok, _} =
       git_event
-      |> GitEvent.changeset(%{vm_id: vm_id, vm_logs_url: vm_logs_url, status: status})
+      |> GitEvent.changeset(%{
+        vm_id: vm_id,
+        vm_logs_url: vm_logs_url,
+        status: status,
+        markdown_error_message: markdown_error_message
+      })
       |> Repo.update()
   end
 end

@@ -13,17 +13,24 @@ defmodule Glossia.Builds.VirtualMachine do
                     |> List.first()
                     |> String.replace("# ID: ", "")
                     |> String.trim()
+  @google_cloud_build_logs_bucket_name "glossia-builder-logs"
 
-  # %{ vm_id: vm_id, status: status,  vm_logs_url: vm_logs_url}
+  @type update_status_cb_t ::
+          (%{
+             vm_id: String.t(),
+             status: atom(),
+             vm_logs_url: String.t() | nil,
+             markdown_error_message: String.t() | nil
+           } ->
+             nil)
   @spec run(
-          attrs :: [
+          attrs :: %{
             env: map(),
-            update_status_cb:
-              (%{vm_id: String.t(), status: atom(), vm_logs_url: String.t() | nil} -> nil)
-          ]
+            update_status_cb: update_status_cb_t
+          }
         ) ::
-          {:ok, String.t()}
-  def run(env: env, update_status_cb: update_status_cb) do
+          :ok
+  def run(%{env: env, update_status_cb: update_status_cb}) do
     if Application.get_env(:glossia, :env) == :prod do
       run_using_google_cloud_build(env: env, update_status_cb: update_status_cb)
     else
@@ -47,6 +54,7 @@ defmodule Glossia.Builds.VirtualMachine do
         project_id,
         body: %GoogleApi.CloudBuild.V1.Model.Build{
           timeout: "#{@timeout}s",
+          logsBucket: "gs://#{@google_cloud_build_logs_bucket_name}",
           steps: [
             %GoogleApi.CloudBuild.V1.Model.BuildStep{
               name: get_docker_image(),
@@ -65,7 +73,13 @@ defmodule Glossia.Builds.VirtualMachine do
       build
 
     status = status |> String.downcase() |> String.to_atom()
-    update_status_cb.(%{vm_id: vm_id, status: status, vm_logs_url: vm_logs_url})
+
+    update_status_cb.(%{
+      vm_id: vm_id,
+      status: status,
+      vm_logs_url: vm_logs_url,
+      markdown_error_message: nil
+    })
 
     monitor_google_cloud_build(%{
       vm_id: vm_id,
@@ -88,7 +102,38 @@ defmodule Glossia.Builds.VirtualMachine do
 
     %{status: status, logUrl: vm_logs_url} = build
     status = status |> String.downcase() |> String.to_atom()
-    update_status_cb.(%{vm_id: vm_id, status: status, vm_logs_url: vm_logs_url})
+
+    update_status_cb.(%{
+      vm_id: vm_id,
+      status: status,
+      vm_logs_url: vm_logs_url,
+      markdown_error_message: nil
+    })
+
+    # failure
+    cond do
+      [:status_unknown, :pending, :queued, :working] |> Enum.member?(status) ->
+        monitor_google_cloud_build(%{
+          vm_id: vm_id,
+          project_id: project_id,
+          update_status_cb: update_status_cb
+        })
+
+      [:failure] |> Enum.member?(status) ->
+        markdown_error_message = get_markdown_error_message_from_google_cloud_build(vm_id)
+
+        update_status_cb.(%{
+          vm_id: vm_id,
+          status: status,
+          vm_logs_url: vm_logs_url,
+          markdown_error_message: markdown_error_message
+        })
+
+        :ok
+
+      true ->
+        :ok
+    end
 
     if [:status_unknown, :pending, :queued, :working] |> Enum.member?(status) do
       # The build is still running
@@ -100,6 +145,24 @@ defmodule Glossia.Builds.VirtualMachine do
     else
       :ok
     end
+  end
+
+  defp get_markdown_error_message_from_google_cloud_build(build_id) do
+    {:ok, token} = Goth.fetch(Glossia.Goth)
+    object = "log-#{build_id}.txt"
+
+    {:ok, logs} =
+      GoogleApi.CloudBuild.V1.Connection.new(token.token)
+      |> GoogleApi.Storage.V1.Api.Objects.storage_objects_get(
+        @google_cloud_build_logs_bucket_name,
+        object,
+        alt: "media"
+      )
+
+    regex = ~r/---GLOSSIA_ERROR_START---(.*?)---GLOSSIA_ERROR_END---/s
+
+    [[_, content]] = Regex.scan(regex, logs)
+    String.trim(content)
   end
 
   defp run_using_docker(env: env, update_status_cb: update_status_cb) do
@@ -125,9 +188,22 @@ defmodule Glossia.Builds.VirtualMachine do
         Rambo.run("/usr/bin/env", arguments, log: &log_docker_output/1)
       end)
 
-    update_status_cb.(%{vm_id: "#{task.pid}", status: :working, vm_logs_url: nil})
+    update_status_cb.(%{
+      vm_id: "#{task.pid}",
+      status: :working,
+      vm_logs_url: nil,
+      markdown_error_message: nil
+    })
+
     Task.await(task)
-    update_status_cb.(%{vm_id: "#{task.pid}", status: :success, vm_logs_url: nil})
+
+    update_status_cb.(%{
+      vm_id: "#{task.pid}",
+      status: :success,
+      vm_logs_url: nil,
+      markdown_error_message: nil
+    })
+
     :ok
   end
 

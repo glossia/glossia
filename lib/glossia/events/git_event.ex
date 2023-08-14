@@ -38,6 +38,7 @@ defmodule Glossia.Events.GitEvent do
     field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
     field :vm_logs_url, :string
+    field :markdown_error_message, :string
     field :event, Ecto.Enum, values: [{:push, 1}]
 
     field :status, Ecto.Enum,
@@ -72,7 +73,8 @@ defmodule Glossia.Events.GitEvent do
       :status,
       :vm_id,
       :vm_logs_url,
-      :event
+      :event,
+      :markdown_error_message
     ])
     |> validate_required([
       :commit_sha,

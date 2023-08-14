@@ -69,15 +69,16 @@ defmodule Glossia.MixProject do
       {:remote_ip, "1.1.0"},
       {:ex_json_schema, "~> 0.10.0"},
       {:boundary, "~> 0.9", runtime: false},
-      {:google_api_storage, "~> 0.34.0"},
       {:goth, "~> 1.4.1"},
       {:google_api_cloud_build, "~> 0.49"},
+      {:google_api_storage, "~> 0.34.0"},
       {:rambo, "~> 0.3.4"},
       {:mox, "~> 1.0.0", only: :test},
       {:stripity_stripe, "~> 2.17.3"},
       {:open_api_spex, "~> 3.17.3"},
       {:plug, "~> 1.14"},
-      {:policy_wonk, "~> 1.0.0"}
+      {:policy_wonk, "~> 1.0.0"},
+      {:req, "~> 0.3.11"}
     ]
   end
 
