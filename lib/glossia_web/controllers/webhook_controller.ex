@@ -10,6 +10,10 @@ defmodule GlossiaWeb.WebhookController do
 
   def github(conn, _params) do
     event = conn |> get_req_header("x-github-event") |> List.first()
+    conn |> github_event(event)
+  end
+
+  defp github_event(conn, "push" = event) do
     payload = conn.assigns.raw_body |> Jason.decode!()
     ref = payload |> get_in(["ref"])
     commit_sha = payload |> get_in(["after"])
@@ -33,6 +37,10 @@ defmodule GlossiaWeb.WebhookController do
         nil
     end
 
+    json(conn, nil)
+  end
+
+  defp github_event(conn, _) do
     json(conn, nil)
   end
 end

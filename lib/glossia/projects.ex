@@ -15,7 +15,13 @@ defmodule Glossia.Projects do
   """
   @spec simulate_git_push_event(Project.t()) :: :ok
   def simulate_git_push_event(project) do
-    project |> process_git_event(%{event: "push", default_branch: "main", commit_sha: "TODO", ref: "refs/head/main"})
+    project
+    |> process_git_event(%{
+      event: "push",
+      default_branch: "main",
+      commit_sha: "TODO",
+      ref: "refs/head/main"
+    })
   end
 
   @doc """

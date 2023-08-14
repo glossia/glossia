@@ -148,11 +148,11 @@ defmodule Glossia.Builds.VirtualMachine do
   end
 
   defp get_markdown_error_message_from_google_cloud_build(build_id) do
-    Logger.info("Fetching the logs from Google Cloud Build", %{ build_id: build_id })
+    Logger.info("Fetching the logs from Google Cloud Build", %{build_id: build_id})
     {:ok, token} = Goth.fetch(Glossia.Goth)
     object = "log-#{build_id}.txt"
 
-    {:ok, %{ body: body }} =
+    {:ok, %{body: body}} =
       GoogleApi.CloudBuild.V1.Connection.new(token.token)
       |> GoogleApi.Storage.V1.Api.Objects.storage_objects_get(
         @google_cloud_build_logs_bucket_name,
