@@ -8,6 +8,7 @@ defmodule Glossia.Blog.Authors do
                |> Enum.map(fn {key, value} ->
                  struct!(Glossia.Blog.Author, Map.put(value, :id, key))
                end)
+  @external_resource "priv/blog/authors.json"
 
   def all, do: @all_authors
 end

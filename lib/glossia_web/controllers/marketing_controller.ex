@@ -15,6 +15,8 @@ defmodule GlossiaWeb.MarketingController do
   end
 
   def blog(conn, _params) do
+    dbg(Glossia.Blog.all_authors())
+
     conn
     |> assign(:posts, Glossia.Blog.all_posts())
     |> assign(:authors, Glossia.Blog.all_authors())
@@ -36,6 +38,20 @@ defmodule GlossiaWeb.MarketingController do
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
     |> render(:blog_post_marketing)
+  end
+
+  def docs(conn, %{"id" => []}) do
+    conn
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:docs_marketing)
+  end
+
+  def docs(conn, params) do
+    conn
+    |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
+    |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
+    |> render(:docs_marketing)
   end
 
   def beta(conn, _params) do

@@ -8,11 +8,19 @@ defmodule GlossiaWeb.MarketingComponents do
 
   use Phoenix.Component
 
+  attr :class, :string, default: "", required: false
+
   def navigation(assigns) do
     ~H"""
-    <div class="mx-auto w-full bg-lila-500 2xl:border-2 justify-center sticky top-0 z-20 2xl:max-w-7xl border-y-2 border-black">
+    <div class={[
+      "mx-auto w-full bg-lila-500 2xl:border-2 justify-center sticky top-0 z-20 border-y-2 border-black",
+      @class
+    ]}>
       <div
-        class="mx-auto w-full flex flex-col lg:flex-row py-6 md:py-0 lg:items-center lg:justify-between 2xl:max-w-7xl px-8 md:px-0"
+        class={[
+          "mx-auto w-full flex flex-col lg:flex-row py-6 md:py-0 lg:items-center lg:justify-between px-8 md:px-0",
+          @class
+        ]}
         x-data="{ open: false }"
       >
         <div class="text-black items-center flex justify-between flex-row">
@@ -50,7 +58,7 @@ defmodule GlossiaWeb.MarketingComponents do
         </div>
         <nav
           x-bind:class="{'flex': open, 'hidden': !open}"
-          class="flex-col items-center flex-grow hidden md:flex md:flex-row md:justify-start md:mt-0 lg:p-0 py-2 md:py-0 md:px-0 md:pb-0 px-5"
+          class="flex-col items-center flex-grow hidden md:flex md:flex-row md:justify-start md:mt-0 lg:p-0 py-2 md:py-0 md:px-0 md:pb-0 px-5 2xl:max-w-screen-2xl mx-auto"
         >
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition md:ml-8 lg:ml-16 2xl:ml-0"
@@ -65,12 +73,12 @@ defmodule GlossiaWeb.MarketingComponents do
           >
             Blog
           </a>
-          <a
+          <%!-- <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
-            href={~p"/blog"}
+            href={~p"/docs"}
           >
             Docs
-          </a>
+          </a> --%>
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
             href="https://discord.gg/zqZxSBXKf8"
@@ -104,7 +112,7 @@ defmodule GlossiaWeb.MarketingComponents do
   def footer(assigns) do
     ~H"""
     <footer class="bg-white border-t-2 border-black">
-      <div class="p-8 lg:p-20 2xl:px-0 2xl:max-w-7xl mx-auto">
+      <div class="p-8 lg:p-20 2xl:px-0 2xl:max-w-screen-2xl mx-auto">
         <div class="h-full space-y-12">
           <div>
             <div class="w-full justify-between lg:inline-flex lg:items-start h-full gap-3">
@@ -263,8 +271,8 @@ defmodule GlossiaWeb.MarketingComponents do
 
   def cta(assigns) do
     ~H"""
-    <section class="relative flex items-center w-full border-y-2 border-black bg-green-400 2xl:max-w-7xl mx-auto mb-20">
-      <div class="items-center w-full mx-auto 2xl:max-w-7xl p-8 lg:p-20 2xl:px-0 2xl:border-x-2 border-black">
+    <section class="relative flex items-center w-full border-y-2 border-black bg-green-400 2xl:max-w-screen-2xl mx-auto mb-20">
+      <div class="items-center w-full mx-auto 2xl:max-w-screen-2xl p-8 lg:p-20 2xl:px-0 2xl:border-x-2 border-black">
         <div class="items-center gap-12 h-full">
           <div class="text-center max-w-3xl mx-auto">
             <p class="text-3xl font-display lg:text-5xl text-black">
