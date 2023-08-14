@@ -33,10 +33,20 @@ export async function runReportingErrors(
   try {
     await cb();
   } catch (err) {
-    console.error(err);
+    if (err instanceof HandledError) {
+      ouptutHandledError(err);
+    } else {
+      console.error(err);
+    }
     await reportFunction(err, {});
     throw err;
   }
+}
+
+function ouptutHandledError(err: HandledError) {
+  console.error("---GLOSSIA_ERROR_START---");
+  console.error(err.markdownMessage);
+  console.error("---GLOSSIA_ERROR_END---");
 }
 
 /**
