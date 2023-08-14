@@ -57,7 +57,7 @@ defmodule GlossiaWeb.WebhookController do
   end
 
   def filter_only_default_branch_events(nil) do
-    :ok
+    nil
   end
 
   def filter_only_default_branch_events(%{} = attrs) do
@@ -79,7 +79,7 @@ defmodule GlossiaWeb.WebhookController do
   end
 
   defp trigger_build_when_project_present(nil) do
-    :ok
+    nil
   end
 
   defp trigger_build_when_project_present(%{} = attrs) do
@@ -87,7 +87,7 @@ defmodule GlossiaWeb.WebhookController do
       true ->
         Logger.info("Triggering build to process the git event", attrs)
         attrs |> Glossia.Events.process_git_event()
-
+        :ok
       _ ->
         :ok
     end

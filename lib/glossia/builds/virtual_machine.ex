@@ -148,6 +148,7 @@ defmodule Glossia.Builds.VirtualMachine do
   end
 
   defp get_markdown_error_message_from_google_cloud_build(build_id) do
+    Logger.info("Fetching the logs from Google Cloud Build", %{ build_id: build_id })
     {:ok, token} = Goth.fetch(Glossia.Goth)
     object = "log-#{build_id}.txt"
 
