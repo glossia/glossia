@@ -4,17 +4,18 @@
   class="scroll-smooth selection:bg-black selection:text-lila-500 no-touchevents hydrated"
 >
   <head>
+    <!-- Meta -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
+    <.meta conn={@conn} />
+    <!-- Assets -->
     <link phx-track-static rel="stylesheet" href={~p"/assets/marketing.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/marketing.js"}>
     </script>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <.meta conn={@conn} />
-
     <link
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"

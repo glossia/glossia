@@ -10,7 +10,7 @@ defmodule GlossiaWeb.MarketingController do
       conn
       |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
       |> put_layout(false)
-      |> render(:index_marketing)
+      |> render(:index)
     end
   end
 
@@ -22,7 +22,7 @@ defmodule GlossiaWeb.MarketingController do
     |> assign(:authors, Glossia.Blog.all_authors())
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:blog_marketing)
+    |> render(:blog)
   end
 
   def blog_post(%{request_path: slug} = conn, _params) do
@@ -37,35 +37,35 @@ defmodule GlossiaWeb.MarketingController do
     |> assign(:author, author)
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:blog_post_marketing)
+    |> render(:blog_post)
   end
 
   def docs(conn, %{"id" => []}) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:docs_marketing)
+    |> render(:docs)
   end
 
   def docs(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:docs_marketing)
+    |> render(:docs)
   end
 
   def beta(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:beta_marketing)
+    |> render(:beta)
   end
 
   def beta_added(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:beta_added_marketing)
+    |> render(:beta_added)
   end
 
   def changelog(conn, _params) do
@@ -73,21 +73,21 @@ defmodule GlossiaWeb.MarketingController do
     |> assign(:updates, Glossia.Changelog.all_updates())
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:changelog_marketing)
+    |> render(:changelog)
   end
 
   def team(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:team_marketing)
+    |> render(:team)
   end
 
   def about(conn, _params) do
     conn
     |> put_root_layout(html: {GlossiaWeb.MarketingLayouts, :root})
     |> put_layout(html: {GlossiaWeb.MarketingLayouts, :base})
-    |> render(:about_marketing)
+    |> render(:about)
   end
 
   def feed(conn, _params) do

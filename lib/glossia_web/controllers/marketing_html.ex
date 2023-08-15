@@ -3,7 +3,7 @@ defmodule GlossiaWeb.MarketingHTML do
   use GlossiaWeb, :marketing_html
 
   embed_templates "marketing_html/app/*", suffix: "_app"
-  embed_templates "marketing_html/marketing/*", suffix: "_marketing"
+  embed_templates "marketing_html/marketing/*"
 
   def get_seo_metadata(:beta, _) do
     %{
