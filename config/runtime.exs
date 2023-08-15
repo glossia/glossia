@@ -135,17 +135,16 @@ if config_env() == :prod do
     app_signal_builder_api_key: env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
 end
 
-# Ueberauth
-config :ueberauth, Ueberauth.Strategy.GitHub.OAuth,
-  client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
-  client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, "")
-
 # Glossia
 config :glossia,
   github_app_webhooks_secret: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, ""),
   github_app_id: env!("GITHUB_APP_ID", :string, ""),
   builder_api_key: env!("BUILDER_API_KEY", :string, ""),
   url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000")
+
+config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+  client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
+  client_secret: env!("GITHUB_APP_CLIENT_SECRET", :string, "")
 
 # Joken
 
