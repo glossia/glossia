@@ -14,6 +14,7 @@ Deno.test("it strips the markdown from the error message", () => {
 Deno.test("runReportingErrors reports the errors thrown by the callback", async () => {
   const errorMessage = "test";
   let gotError: Error | undefined;
+  // deno-lint-ignore no-explicit-any
   let gotMetadata: any | undefined;
 
   await assertRejects(
