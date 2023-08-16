@@ -1,7 +1,7 @@
 import { cloneGitRepository } from "../utils/git.ts";
 import { glossiaFetch } from "../utils/http.ts";
 import { loadConfigurationManifests } from "../utils/vcs/configuration_loader.ts";
-import { generateTranslationPayload } from "../utils/vcs/translate-payload.ts";
+import { generateTranslationPayload } from "../utils/vcs/translation.ts";
 
 export default async function gitPush() {
   const tempDirPath = await Deno.makeTempDir();
