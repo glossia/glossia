@@ -5,7 +5,7 @@
   "description": "The configuration for a for a group of content",
   "properties": {
     "context": {
-      "description": "Source and target languages for a the components in this configuration.",
+      "description": "Source and target contexts for a the components in this configuration.",
       "type": "object",
       "properties": {
         "source": {
