@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.AppComponents do
+defmodule GlossiaWeb.SharedComponents do
   @moduledoc """
   A set of components that are shared across all the layouts
   """
