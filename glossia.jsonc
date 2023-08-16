@@ -1,8 +1,14 @@
 {
-    "$schema": "https://glossia.ai/schemas/configuration.json",
-    "languages": {
-        "source": "en",
-        "target": ["es"]
+  "$schema": "https://glossia.ai/schemas/configuration.json",
+  "context": {
+    "source": {
+      "language": "en"
     },
-    "files": "priv/gettext/{language}/LC_MESSAGES/*.po"
+    "target": [
+      {
+        "language": "es"
+      }
+    ]
+  },
+  "files": "priv/gettext/{language}/LC_MESSAGES/*.po"
 }

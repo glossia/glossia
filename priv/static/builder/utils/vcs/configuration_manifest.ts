@@ -3,16 +3,20 @@ import { parse } from "https://deno.land/std@0.195.0/jsonc/mod.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import { Result } from "../result.ts";
 
+export type ConfigurationManifestContext = {
+  language: string;
+};
+
 export type ConfigurationManifest = {
   // The path to the manifest file.
   path: string;
 
-  /** The languages a piece of content is translated from and into. */
-  languages: {
-    /** The language used as a based language to translate from. */
-    source: string;
-    /** The languages a piece of content should be translated into. */
-    target: string[];
+  /** The source and target contexts necessary to translate */
+  context: {
+    /** The base context of the source language. */
+    source: ConfigurationManifestContext;
+    /** The target contexts of the target languages. */
+    target: ConfigurationManifestContext[];
   };
   /**
    * A wildcard to resolve all the files that should be translated. The wildcard
@@ -119,6 +123,9 @@ async function getConfigurationValidate() {
   const languageSchema = await import("../../../schemas/language.json", {
     assert: { type: "json" },
   });
+  const contextSchema = await import("../../../schemas/context.json", {
+    assert: { type: "json" },
+  });
 
   const ajv = new Ajv({
     strict: true,
@@ -131,6 +138,7 @@ async function getConfigurationValidate() {
   });
 
   ajv.addSchema(languageSchema.default, languageSchema.default["$id"]);
+  ajv.addSchema(contextSchema.default, contextSchema.default["$id"]);
 
   return ajv.compile(configurationSchema.default);
 }

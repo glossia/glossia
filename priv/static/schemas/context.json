@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://glossia.ai/schemas/context.json",
+  "type": "object",
+  "description": "The context associated to either a source or target content file.",
+  "properties": {
+    "language": {
+      "$ref": "https://glossia.ai/schemas/language.json"
+    }
+  },
+  "required": ["language"]
+}

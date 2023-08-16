@@ -10,9 +10,9 @@ Deno.test("loadAndValidateConfigurationManifest loads the file successfully when
     // Given
     const configurationManifestPath = join(tmpDir, "glossia.jsonc");
     const configurationManifest = {
-      languages: {
-        source: "es",
-        target: ["en", "es"],
+      context: {
+        source: { language: "es" },
+        target: [{ language: "en" }, { language: "es" }],
       },
       files: "posts/*/{language}.md",
     };
@@ -29,12 +29,12 @@ Deno.test("loadAndValidateConfigurationManifest loads the file successfully when
     // Then
     if (isSuccess(got)) {
       assertEquals(
-        got.success.languages.source,
-        configurationManifest.languages.source,
+        got.success.context.source,
+        configurationManifest.context.source,
       );
       assertEquals(
-        got.success.languages.target,
-        configurationManifest.languages.target,
+        got.success.context.target,
+        configurationManifest.context.target,
       );
       assertEquals(got.success.files, configurationManifest.files);
     } else {

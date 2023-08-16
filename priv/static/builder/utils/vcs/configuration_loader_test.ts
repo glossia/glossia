@@ -35,16 +35,22 @@ Deno.test("loadConfigurationManifests loads all the manifests when they are vali
     const nestedConfigFilePath = join(tmpDir, "subdir/glossia.jsonc");
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path"> = {
-      languages: {
-        source: "es",
-        target: ["de"],
+      context: {
+        source: { language: "es" },
+        target: [{
+          language: "de",
+        }],
       },
       files: "*/{language}.md",
     };
     const nestedConfigurationFile: Omit<ConfigurationManifest, "path"> = {
-      languages: {
-        source: "es",
-        target: ["de"],
+      context: {
+        source: {
+          language: "es",
+        },
+        target: [{
+          language: "de",
+        }],
       },
       files: "*/{language}.md",
     };
@@ -70,10 +76,10 @@ Deno.test("loadConfigurationManifests loads all the manifests when they are vali
 
     assertEquals(first.path, rootConfigFilePath);
     assertEquals(first.files, rootConfigurationFile.files);
-    assertEquals(first.languages, rootConfigurationFile.languages);
+    assertEquals(first.context, rootConfigurationFile.context);
     assertEquals(second.path, nestedConfigFilePath);
     assertEquals(second.files, nestedConfigurationFile.files);
-    assertEquals(second.languages, nestedConfigurationFile.languages);
+    assertEquals(second.context, nestedConfigurationFile.context);
   });
 });
 
@@ -84,9 +90,9 @@ Deno.test("loadConfigurationManifests throws if a configuration file is an inval
     const nestedConfigFilePath = join(tmpDir, "subdir/glossia.jsonc");
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path"> = {
-      languages: {
-        source: "es",
-        target: ["de"],
+      context: {
+        source: { language: "es" },
+        target: [{ language: "de" }],
       },
       files: "*/{language}.md",
     };
@@ -119,9 +125,9 @@ Deno.test("loadConfigurationManifests throws if a configuration file doesn't fol
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path" | "files"> =
       {
-        languages: {
-          source: "es",
-          target: ["de"],
+        context: {
+          source: { language: "es" },
+          target: [{ language: "de" }],
         },
         // Missing
         // files: "*/{language}.md",
