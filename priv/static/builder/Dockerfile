@@ -1,6 +1,6 @@
-# ID: pepicrft/deno:alpine-git-1.35.3
-FROM denoland/deno:alpine-1.35.3
-# docker build . -t pepicrft/deno:alpine-git-1.35.3 && docker push pepicrft/deno:alpine-git-1.35.3
+# ID: pepicrft/deno:alpine-git-1.36.1
+FROM denoland/deno:alpine-1.36.1
+# docker build . -t pepicrft/deno:alpine-git-1.36.1 && docker push pepicrft/deno:alpine-git-1.36.1
 
 # Make sure apk registry is up to date
 RUN apk update

@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DENO_VERSION: "1.35.3"
+  DENO_VERSION: "1.36.1"
 
 jobs:
   test:
