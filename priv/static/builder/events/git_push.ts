@@ -14,6 +14,7 @@ export default async function gitPush() {
   const payload = await generateTranslationPayload(configurationManifests, {
     root: tempDirPath,
   });
+  console.info("Translation payload generated", payload);
   console.info("Creating translation");
   await glossiaFetch("/builder/api/translations", {
     method: "POST",
