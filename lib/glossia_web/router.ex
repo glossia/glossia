@@ -46,6 +46,12 @@ defmodule GlossiaWeb.Router do
 
   pipeline :builder_api do
     plug :accepts, ["json"]
+
+    plug Plug.Parsers,
+      parsers: [:urlencoded, :multipart, :json],
+      pass: ["*/*"],
+      json_decoder: Phoenix.json_library()
+
     plug GlossiaWeb.Auth.Resources, :current_project
     plug GlossiaWeb.Auth.Policies, :current_project
   end
@@ -66,8 +72,12 @@ defmodule GlossiaWeb.Router do
   end
 
   # API
-  scope "/builder-api", GlossiaWeb.BuilderAPI do
-    pipe_through [:builder_api]
+  scope "/builder", GlossiaWeb.Builder do
+    scope "/api", API do
+      pipe_through [:builder_api]
+
+      post "/translations", TranslationController, :create
+    end
   end
 
   # RSS
