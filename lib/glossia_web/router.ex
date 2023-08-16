@@ -7,46 +7,25 @@ defmodule GlossiaWeb.Router do
 
   pipeline :browser do
     plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-    plug :fetch_and_track_current_user
 
     plug Plug.Parsers,
       parsers: [:urlencoded, :multipart, :json],
       pass: ["*/*"],
       json_decoder: Phoenix.json_library()
-  end
 
-  pipeline :app do
-    plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_and_track_current_user
-    plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
-
-    plug Plug.Parsers,
-      parsers: [:urlencoded, :multipart, :json],
-      pass: ["*/*"],
-      json_decoder: Phoenix.json_library()
   end
 
   pipeline :marketing do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-    plug :fetch_and_track_current_user
     plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
+  end
 
-    plug Plug.Parsers,
-      parsers: [:urlencoded, :multipart, :json],
-      pass: ["*/*"],
-      json_decoder: Phoenix.json_library()
+  pipeline :app do
+    plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
   end
 
   pipeline :webhooks do
@@ -73,7 +52,7 @@ defmodule GlossiaWeb.Router do
 
   # Marketing
   scope "/", GlossiaWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :marketing]
 
     get "/", MarketingController, :index
     get "/beta", MarketingController, :beta
@@ -87,29 +66,26 @@ defmodule GlossiaWeb.Router do
   end
 
   # API
-  scope "/api", GlossiaWeb.API do
-    pipe_through [:api]
-  end
-
   scope "/builder-api", GlossiaWeb.BuilderAPI do
     pipe_through [:builder_api]
   end
 
   # RSS
   scope "/", GlossiaWeb do
-    pipe_through :rss
+    pipe_through [:rss]
     get "/blog/feed.xml", MarketingController, :feed
   end
 
   # Authentication
   scope "/auth", GlossiaWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :app]
 
     get "/login", AuthController, :login
+    post "/logout", AuthController, :logout
+
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
-    delete "/logout", AuthController, :logout
   end
 
   # Webhooks
@@ -135,10 +111,4 @@ defmodule GlossiaWeb.Router do
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
-
-  # scope "/", GlossiaWeb do
-  #   pipe_through [:browser, :project]
-
-  #   get "/:account/:project", ProjectController, :show
-  # end
 end

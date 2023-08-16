@@ -85,8 +85,14 @@ defmodule GlossiaWeb do
   defp html_helpers(surface) do
     components_import_ast =
       case surface do
-        :app -> quote(do: import(GlossiaWeb.AppComponents))
-        :marketing -> quote(do: import(GlossiaWeb.MarketingComponents))
+        :app -> quote do
+          import(GlossiaWeb.SharedComponents)
+          import(GlossiaWeb.AppComponents)
+        end
+        :marketing -> quote do
+          import(GlossiaWeb.SharedComponents)
+          import(GlossiaWeb.MarketingComponents)
+        end
       end
 
     quote do
