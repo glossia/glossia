@@ -17,3 +17,8 @@ Glossia's monolith repository.
 - Open a remote console with production: `flyctl ssh console --pty -C "/app/bin/glossia remote"`
 - Generate a graph of dependencies: `mix xref graph`
 - Seed data: `mix run priv/repo/seeds.exs`
+
+#### Gettext
+- Extract content: `mix gettext.extract`
+- It merges the content into the English file: `mix gettext.merge priv/gettext`
+- Extract content and merge: `mix gettext.extract --merge`

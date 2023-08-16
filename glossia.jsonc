@@ -4,5 +4,5 @@
         "source": "en",
         "target": ["es"]
     },
-    "files": "src/**/*.{js,jsx,ts,tsx}"
+    "files": "priv/gettext/{language}/LC_MESSAGES/*.po"
 }

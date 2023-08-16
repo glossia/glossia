@@ -7,6 +7,7 @@ defmodule GlossiaWeb.MarketingComponents do
   """
 
   use Phoenix.Component
+  import GlossiaWeb.Gettext
 
   attr :class, :string, default: "", required: false
 
@@ -64,14 +65,14 @@ defmodule GlossiaWeb.MarketingComponents do
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition md:ml-8 lg:ml-16 2xl:ml-0"
             href="/"
           >
-            Home
+            <%= gettext("Home") %>
           </a>
 
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
             href={~p"/blog"}
           >
-            Blog
+            <%= gettext("Blog") %>
           </a>
           <%!-- <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
@@ -83,25 +84,25 @@ defmodule GlossiaWeb.MarketingComponents do
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
             href="https://discord.gg/zqZxSBXKf8"
           >
-            Discord
+            <%= gettext("Discord") %>
           </a>
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
             href={~p"/changelog"}
           >
-            Changelog
+            <%= gettext("Changelog") %>
           </a>
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
             href="https://community.glossia.ai/"
           >
-            Community
+            <%= gettext("Community") %>
           </a>
           <a
             class="text-lila-500 md:ml-auto text-lg bg-black border-l-2 border-black duration-500 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hover:bg-lila-900 hover:text-lila-500 inline-flex items-center justify-center px-6 text-center transform transition py-2 md:py-8"
             href={~p"/beta"}
           >
-            <span>Join the list for beta testers</span>
+            <%= gettext("Join the list for beta testers") %>
           </a>
         </nav>
       </div>
