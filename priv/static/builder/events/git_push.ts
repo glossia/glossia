@@ -10,6 +10,7 @@ export default async function gitPush() {
   const configurationManifests = await loadConfigurationManifests({
     root: tempDirPath,
   });
+  console.info("Configuration manifests loaded", configurationManifests);
   console.info("Generating translation payload");
   const payload = await generateTranslationPayload(configurationManifests, {
     root: tempDirPath,
