@@ -3,6 +3,7 @@ import { isFailure, Result } from "../result.ts";
 import { ConfigurationManifest } from "./configuration_manifest.ts";
 import { join, relative } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { HandledError } from "../errors.ts";
+import { expandGlob } from "https://deno.land/std@0.196.0/fs/mod.ts";
 
 type TranslationPayloadModuleContext = {
   language: string;
@@ -14,7 +15,7 @@ type TranslationPayloadModule = {
     context: TranslationPayloadModuleContext;
   };
   target: {
-    path: string;
+    path: string[];
     context: TranslationPayloadModuleContext;
   }[];
 };
@@ -150,7 +151,7 @@ async function generateTranslationPayloadModule(
 async function resolveFilePathWithContext(
   path: string,
   context: Record<string, string>,
-): Promise<Result<string, { type: "not_found"; path: string }>> {
+): Promise<string[]> {
   let outputPath: string = path;
   for (const prop in context) {
     // deno-lint-ignore no-prototype-builtins
@@ -158,8 +159,13 @@ async function resolveFilePathWithContext(
       outputPath = outputPath.replace(`{${prop}}`, context[prop]);
     }
   }
-  if (!(await exists(outputPath))) {
-    return { failure: { type: "not_found", path: path } };
+
+  const outputPaths: string[] = [];
+  for await (
+    const configurationFilePath of expandGlob(outputPath)
+  ) {
+    outputPaths.push(configurationFilePath.path);
   }
-  return { success: outputPath };
+
+  return outputPaths;
 }
