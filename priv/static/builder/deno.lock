@@ -37,6 +37,8 @@
     "https://deno.land/std@0.196.0/assert/mod.ts": "08d55a652c22c5da0215054b21085cec25a5da47ce4a6f9de7d9ad36df35bdee",
     "https://deno.land/std@0.196.0/assert/unimplemented.ts": "d56fbeecb1f108331a380f72e3e010a1f161baa6956fd0f7cf3e095ae1a4c75a",
     "https://deno.land/std@0.196.0/assert/unreachable.ts": "4600dc0baf7d9c15a7f7d234f00c23bca8f3eba8b140286aaca7aa998cf9a536",
+    "https://deno.land/std@0.196.0/collections/_utils.ts": "5114abc026ddef71207a79609b984614e66a63a4bda17d819d56b0e72c51527e",
+    "https://deno.land/std@0.196.0/collections/deep_merge.ts": "9db788ba56cb05b65c77166b789e58e125dff159b7f41bf4d19dc1cba19ecb8b",
     "https://deno.land/std@0.196.0/fmt/colors.ts": "a7eecffdf3d1d54db890723b303847b6e0a1ab4b528ba6958b8f2e754cf1b3bc",
     "https://deno.land/std@0.196.0/fs/_util.ts": "fbf57dcdc9f7bc8128d60301eece608246971a7836a3bb1e78da75314f08b978",
     "https://deno.land/std@0.196.0/fs/copy.ts": "b4f7fe87190d7b310c88a2d9ff845210c0a2b7b0a094ec509747359023beb7d6",

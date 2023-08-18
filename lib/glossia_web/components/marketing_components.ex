@@ -11,6 +11,40 @@ defmodule GlossiaWeb.MarketingComponents do
 
   attr :class, :string, default: "", required: false
 
+  @doc """
+  It returns the <head> child elements to load the fonts necessary for the marketing pages.
+  """
+  def head_fonts(assigns) do
+    ~H"""
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.cdnfonts.com/css/source-sans-pro" rel="stylesheet" />
+    """
+  end
+
+  @doc """
+  It returns the <script> elements to load AlpineJS.
+  """
+  def head_alpine(assigns) do
+    ~H"""
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js">
+    </script>
+    """
+  end
+
+  @doc """
+  It returns <head> elements for the Atom and RSS feeds.
+  """
+  def head_feeds(assigns) do
+    ~H"""
+    <link href={~p"/blog/feed.xml"} type="application/atom+xml" rel="alternate" title="Atom feed" />
+    """
+  end
+
   def navigation(assigns) do
     ~H"""
     <div class={[
@@ -311,7 +345,7 @@ defmodule GlossiaWeb.MarketingComponents do
     """
   end
 
-  def meta(assigns) do
+  def head_og(assigns) do
     ~H"""
     <title><%= get_seo_metadata(@conn)[:title] %></title>
     <meta property="article:published_time" content="2022-09-07T00:00:00+00:00" />
