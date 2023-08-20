@@ -32,6 +32,6 @@ What’s more, we’re building Glossia as **an extensible platform** that integ
 
 We’re all about **openness** at Glossia. Transparency, open-source, community vibe – we’re laying it all on the table. Our long-term goal is to open source Glossia, create a thriving ecosystem, and keep you in the loop every step of the way.
 
-Our plan might sound ambitious, but we’re driven by a relentless passion to make it happen. If you’re intrigued and want to be part of shaping Glossia or considering early investment, reach out at [hello@glossia.ai](https://glossia.ai).
+Our plan might sound ambitious, but we’re driven by a relentless passion to make it happen. If you’re intrigued and want to be part of shaping Glossia or considering early investment, reach out at [hola@glossia.ai](https://glossia.ai).
 
 Join us in this innovative journey to transform the digital world. We’re opening doors and breaking down barriers, one language at a time. See you soon, Language Rockstars! 🚀

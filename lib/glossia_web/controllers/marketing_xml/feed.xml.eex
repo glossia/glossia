@@ -8,7 +8,7 @@
   <updated><%= @last_build_date |> to_rfc3339 %></updated>
   <author>
     <name>Glossia</name>
-    <email>hello@glossia.ai</email>
+    <email>hola@glossia.ai</email>
   </author>
   <id><%= URI.merge(URI.parse(@base_url), ~p"/") |> to_string() %></id>
   <%= for post <- @posts do %>
