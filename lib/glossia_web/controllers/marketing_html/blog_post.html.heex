@@ -1,0 +1,69 @@
+<section>
+  <div class="py-[5.75rem] 2xl:max-w-7xl mx-auto 2xl:border-x-2 border-b-2 border-black">
+    <div class="relative px-8 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-[48rem] prose-lg prose prose-h3:lg:text-6xl text-black prose-h3:text-black prose-a:font-semibold prose-a:text-violet-600 hover:prose-a:text-black prose-img:border-2 prose-img:border-black prose-img:shadow">
+        <div class="my-10 flex-col-reverse items-start inline-flex lg:items-center justify-between w-full lg:flex-row">
+          <div><%= @post.date |> Timex.from_now() |> String.capitalize() %></div>
+          <div>
+            Written by: <a href={@author.linkedin_url}><%= @author.name %></a>
+          </div>
+        </div>
+        <h1 class="font-display break-words"><em><%= @post.title %></em></h1>
+        <p><em><%= @post.description %></em></p>
+        <div class="not-prose flex flex-wrap space-x-3">
+          <%= for tag <- @post.tags do %>
+            <span class="inline-flex items-center  ">
+              <div class="text-lila-900 duration-200">
+                <%= tag %>
+              </div>
+            </span>
+          <% end %>
+        </div>
+        <%= raw(@post.body) %>
+      </div>
+      <div class="border-black mx-auto border-t-2 max-w-[48rem] mt-12 pt-3">
+        <div class="items-center inline-flex gap-3">
+          <p>Share:</p>
+          <a href="#">
+            <span>
+              <svg
+                class="text-black w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+                xmlns="http://www.w3.org/2000/svg"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="6" r="3"></circle>
+                <circle cx="18" cy="18" r="3"></circle>
+                <line x1="8.7" x2="15.3" y1="10.7" y2="7.3"></line>
+                <line x1="8.7" x2="15.3" y1="13.3" y2="16.7"></line>
+              </svg>
+            </span>
+          </a>
+          <a href="">
+            <span>
+              <svg
+                class="text-black w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+                xmlns="http://www.w3.org/2000/svg"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
+                <path d="M9 4h6a2 2 0 0 1 2 2v14l-5 -3l-5 3v-14a2 2 0 0 1 2 -2"></path>
+              </svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

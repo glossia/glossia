@@ -1,0 +1,17 @@
+{
+  "$schema": "https://glossia.ai/schemas/configuration.json",
+  "context": {
+    "description": "It represents the structured content of Glossia, an AI-based localization platform. The content is presented in a web app and site.",
+    "source": {
+      "language": "en"
+    },
+    "target": [
+      {
+        "language": "es"
+      }
+    ]
+  },
+  
+  // A glob pattern to match the localizable files.
+  "files": "priv/gettext/{language}/LC_MESSAGES/*.po"
+}

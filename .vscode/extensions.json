@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "JakeBecker.elixir-ls",
+    "bradlc.vscode-tailwindcss",
+    "samuel-pordeus.elixir-test",
+    "denoland.vscode-deno",
+    "mrorz.language-gettext"
+  ]
+}

@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+  --astro-code-color-text: #141520;
+  --astro-code-color-background: #ffffff;
+  --astro-code-token-constant: #14152080;
+  --astro-code-token-string: #14152050;
+  --astro-code-token-comment: #14152060;
+  --astro-code-token-keyword: #DE5E75;
+  --astro-code-token-parameter: #ffffff;
+  --astro-code-token-function: #FCA446;
+  --astro-code-token-string-expression: #5534F9;
+  --astro-code-token-punctuation: #ffffff;
+  --astro-code-token-link: #ffffff;
+}
+/* Transition on the summary tag by faking the bottom maring*/
+details summary {
+  cursor: pointer;
+  transition: margin 150ms ease-out !important;
+}
+details[open] summary {
+  margin-bottom: 10px;
+}

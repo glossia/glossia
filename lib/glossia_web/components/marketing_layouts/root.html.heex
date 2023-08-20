@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  class="scroll-smooth selection:bg-black selection:text-lila-500 no-touchevents hydrated"
+>
+  <head>
+    <.head_base />
+    <.head_og conn={@conn} />
+    <.head_fonts />
+    <.head_assets surface="app" />
+    <.head_posthog />
+    <.head_alpine />
+    <.head_feeds />
+  </head>
+  <body class="border-x-2 border-black bg-white">
+    <main class="h-full">
+      <%= @inner_content %>
+    </main>
+  </body>
+</html>
