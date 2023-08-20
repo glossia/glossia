@@ -45,6 +45,7 @@ defmodule GlossiaWeb.MarketingComponents do
     """
   end
 
+  attr :class, :string, required: false, default: ""
   def navigation(assigns) do
     ~H"""
     <div class={[
