@@ -25,12 +25,20 @@
    <a href="https://github.com/glossia/glossia/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
    <a href="https://github.com/glossia/glossia/pulse"><img src="https://img.shields.io/github/commit-activity/m/glossia/glossia" alt="Commits-per-month"></a>
    <a href="https://contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
-
 </p>
+
+## Why Glossia?
+
+We believe **AI holds the transformative power to revolutionize the world of continuous localization**, stripping away the complexities of legacy systems. While sectors like software development thrive on the open-source collaborative spirit of platforms like [GitHub](https://github.com), the localization industry remains entangled in proprietary confines, stifling innovation. These silos often lead organizations down a maze of expensive, convoluted systems that challenge comprehension. But we envision a different path.
+
+**Glossia is spearheading change.** We champion **openness**, crafting our innovations with the world watching and inviting all to contribute. This inclusive approach harnesses a tapestry of diverse thoughts and the electric energy of a passionate community eager to redefine the industry. We're delving deep, **reimagining the foundational translation memory, exploring its AI-driven evolution for more intuitive designs.** *Our goal?* A system that's both simplified and potent, seamlessly integrating with content-rich platforms across the web, from [Shopify](https://shopify.com) to [Canva](https://canva.com). At Glossia, we're all in on AI, championing a universally accessible future of localization. Join us on this journey.
+
 
 ## Development
 
-### Setup
+Glossia's website and app run on [Elixir](https://elixir-lang.org/) and [Phoenix](https://www.phoenixframework.org/), with [Deno](https://deno.land/) handling one-off tasks in transient Linux environments.
+
+### Local set up
 
 1. Clone the repository: `git clone git@github.com:glossia/app.git`
 2. Install the dependencies: `mix deps.get`
@@ -41,9 +49,7 @@
 - Open a remote console with production: `flyctl ssh console --pty -C "/app/bin/glossia remote"`
 - Generate a graph of dependencies: `mix xref graph`
 - Seed data: `mix run priv/repo/seeds.exs`
-
-#### Gettext
-
-- Extract content: `mix gettext.extract`
-- It merges the content into the English file: `mix gettext.merge priv/gettext`
-- Extract content and merge: `mix gettext.extract --merge`
+- **Gettext**
+  - Extract content: `mix gettext.extract`
+  - It merges the content into the English file: `mix gettext.merge priv/gettext`
+  - Extract content and merge: `mix gettext.extract --merge`
