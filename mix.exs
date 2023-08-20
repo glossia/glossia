@@ -68,7 +68,7 @@ defmodule Glossia.MixProject do
       {:plug_attack, "~> 0.4.2"},
       {:remote_ip, "1.1.0"},
       {:ex_json_schema, "~> 0.10.0"},
-      {:boundary, "~> 0.9", runtime: false},
+      {:boundary, "~> 0.10", runtime: false},
       {:goth, "~> 1.4.1"},
       {:google_api_cloud_build, "~> 0.49"},
       {:google_api_storage, "~> 0.34.0"},
