@@ -20,6 +20,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/glossia/glossia/actions/workflows/glossia.yml"><img src="https://github.com/glossia/glossia/actions/workflows/glossia.yml/badge.svg"/></a>
    <a href="https://discord.gg/zqZxSBXKf8"><img src="https://img.shields.io/badge/Discord-go.cal.com%2Fdiscord-%234A154B" alt="Join Cal.com Discord"></a>
    <a href="https://github.com/glossia/glossia/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
    <a href="https://github.com/glossia/glossia/pulse"><img src="https://img.shields.io/github/commit-activity/m/glossia/glossia" alt="Commits-per-month"></a>
