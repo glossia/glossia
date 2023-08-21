@@ -1,20 +1,24 @@
-import { exists } from "https://deno.land/std@0.196.0/fs/mod.ts";
-import {
-  ConfigurationManifest,
-  ConfigurationManifestContext,
-} from "./configuration_manifest.ts";
+import { ConfigurationManifest } from "./configuration_manifest.ts";
 import {
   dirname,
   join,
   relative,
 } from "https://deno.land/std@0.196.0/path/posix.ts";
-import { expandGlob } from "https://deno.land/std@0.196.0/fs/mod.ts";
 import { getGitCommitSHA } from "../environment.ts";
 import { isDirectory, resolveGlob } from "../fs.ts";
 import { deepMerge } from "https://deno.land/std@0.196.0/collections/deep_merge.ts";
 import { basename } from "https://deno.land/std@0.196.0/path/mod.ts";
 import { fileExtension } from "https://deno.land/x/file_extension/mod.ts";
+import {
+  crypto,
+  toHashString,
+} from "https://deno.land/std@0.196.0/crypto/mod.ts";
 
+/**
+ * TODO
+ *  - Rename into translation_request.ts
+ * - Document the code in this module
+ */
 type TranslationPayloadModuleContext = {
   language: string;
 };
@@ -78,7 +82,10 @@ export async function generateTranslationModuleFromManifest(
     tree: {},
     contextAttributes: [],
   });
-  const flatTree = flattenedTree(tree);
+  const flatTree = await flattenedTree(tree, {
+    rootDirectory: dirname(configurationManifest.path),
+    sourceContext: configurationManifest.context.source,
+  });
   const contexts = [
     { ...configurationManifest.context.source, type: "source" },
     ...(configurationManifest.context.target.map((context) => ({
@@ -127,12 +134,16 @@ type PayloadGeneratorFlattenedTree = {
   };
 };
 
-function flattenedTree(
+async function flattenedTree(
   tree: PayloadGeneratorFileTree,
-): PayloadGeneratorFlattenedTree {
+  { rootDirectory, sourceContext }: {
+    rootDirectory: string;
+    sourceContext: Record<string, string>;
+  },
+): Promise<PayloadGeneratorFlattenedTree> {
   const result: PayloadGeneratorFlattenedTree = {};
 
-  function recurse(
+  async function recurse(
     { node, path }: {
       node: PayloadGeneratorFileTreeNode;
       path: string[];
@@ -147,16 +158,26 @@ function flattenedTree(
 
       result[pathWithPlaceholders] = {
         format: format,
-        items: Object.fromEntries(node.paths.map((path) => [path, {
-          type: "source",
-          checksum: {
-            saved: "456",
-            current: "123",
-          },
-          context: {
-            ...extractPlaceholderFromPath(path, pathWithPlaceholders),
-          },
-        }])),
+        items: Object.fromEntries(
+          await Promise.all(node.paths.map(async (path) => {
+            const context = extractPlaceholderFromPath(
+              path,
+              pathWithPlaceholders,
+            );
+            return [path, {
+              type: isSourceContext(context, sourceContext)
+                ? "source"
+                : "target",
+              checksum: {
+                current: {
+                  algorithm: "sha256",
+                  value: await computeSha256(join(rootDirectory, path)),
+                },
+              },
+              context,
+            }];
+          })),
+        ),
       };
     } else if (node.type === "directory" && node.children) {
       for (let [key, childNode] of Object.entries(node.children)) {
@@ -166,16 +187,35 @@ function flattenedTree(
           }
         }
 
-        recurse({ node: childNode, path: path.concat(key) });
+        await recurse({ node: childNode, path: path.concat(key) });
       }
     }
   }
 
   for (const rootKey of Object.keys(tree)) {
-    recurse({ node: tree[rootKey], path: [rootKey] });
+    await recurse({ node: tree[rootKey], path: [rootKey] });
   }
 
   return result;
+}
+
+function isSourceContext(
+  context: Record<string, string>,
+  sourceContext: Record<string, string>,
+) {
+  return Object.entries(sourceContext).every(
+    ([key, value]) => context.hasOwnProperty(key) && context[key] === value,
+  );
+}
+
+async function computeSha256(filepath: string) {
+  const content = await Deno.readFile(filepath);
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    content,
+  );
+  const hashString = toHashString(hash);
+  return hashString;
 }
 
 function extractPlaceholderFromPath(
