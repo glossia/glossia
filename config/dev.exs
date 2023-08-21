@@ -80,3 +80,7 @@ config :phoenix, :plug_init_mode, :runtime
 config :swoosh, :api_client, false
 
 config :appsignal, :config, active: false
+
+# OpenAPI
+
+config :open_api_spex, :cache_adapter, OpenApiSpex.Plug.NoneCache

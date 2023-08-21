@@ -46,6 +46,7 @@ defmodule GlossiaWeb.MarketingComponents do
   end
 
   attr :class, :string, required: false, default: ""
+
   def navigation(assigns) do
     ~H"""
     <div class={[
@@ -157,7 +158,9 @@ defmodule GlossiaWeb.MarketingComponents do
 
                 <div>
                   <h3 class="text-sm text-black mt-12">
-                    <%= gettext("Please provide us with your email, and you will be one of the first to try the tool.") %>
+                    <%= gettext(
+                      "Please provide us with your email, and you will be one of the first to try the tool."
+                    ) %>
                   </h3>
                   <a
                     class="mt-4 items-center w-full border-black flex border-2 bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 font-medium hover:bg-lila-500 hover:text-black justify-center px-5 py-3 rounded-xl text-base text-white"
