@@ -42,18 +42,23 @@ defmodule GlossiaWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-  end
-
-  pipeline :api do
-    plug :accepts, ["json"]
 
     plug Plug.Parsers,
       parsers: [:urlencoded, :multipart, :json],
       pass: ["*/*"],
       json_decoder: Phoenix.json_library()
 
+    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.OpenAPI.APISpec
+  end
+
+  pipeline :auth_api do
     plug GlossiaWeb.Auth.Resources, :current_project
     plug GlossiaWeb.Auth.Policies, :current_project
+  end
+
+  # API Docs
+  scope "/" do
+    get "/docs/api", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
   end
 
   # Marketing
@@ -73,10 +78,16 @@ defmodule GlossiaWeb.Router do
 
   # API
   scope "/api", GlossiaWeb.API do
-    pipe_through [:api]
+    pipe_through [:api, :auth_api]
 
     resources "/projects/:owner/:project/translation-requests", TranslationRequestController,
       only: [:create]
+  end
+
+  scope "/api" do
+    pipe_through [:api]
+
+    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
   end
 
   # RSS
