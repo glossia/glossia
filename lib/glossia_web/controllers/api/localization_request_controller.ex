@@ -5,20 +5,18 @@ defmodule GlossiaWeb.API.LocalizationRequestController do
 
   tags ["localization-requesets"]
 
-  alias GlossiaWeb.OpenAPI.Schemas.{
-    LocalizationRequestCreateResponse,
-    LocalizationRequestCreateParams
+  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.{
+    CreateResponse,
+    CreateParams
   }
 
   operation :create,
-    summary: "Creates a new translation request",
-    parameters: [
-      id: [in: :path, description: "User ID", type: :integer, example: 1001]
-    ],
+    summary: "Creates a new localization request",
+    parameters: [],
     request_body:
-      {"Translation request params", "application/json", LocalizationRequestCreateParams},
+      {"Localization request params", "application/json", CreateParams},
     responses: [
-      ok: {"Translation request response", "application/json", LocalizationRequestCreateResponse}
+      ok: {"Localization request response", "application/json", CreateResponse}
     ]
 
   def create(conn, _params) do
