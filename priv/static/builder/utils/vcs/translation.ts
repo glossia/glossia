@@ -87,13 +87,13 @@ export async function generateTranslationModuleFromManifest(
     }))),
   ];
   contexts.forEach((context) => {
-    const pathWithPlaceholdersReplaced = pathReplacingPlaceholders(
+    const flatTree = pathReplacingPlaceholders(
       configurationManifest.files,
       context,
     );
   });
-  console.info(configurationManifest);
   console.info(flatTree);
+  // console.info(JSON.stringify(tree, null, 2));
 
   // "files": "priv/gettext/{language}/LC_MESSAGES/*.po"
   /**
@@ -132,14 +132,20 @@ function flattenedTree(
 ): PayloadGeneratorFlattenedTree {
   const result: PayloadGeneratorFlattenedTree = {};
 
-  function recurse(node: PayloadGeneratorFileTreeNode, path: string[] = []) {
+  function recurse(
+    { node, path }: {
+      node: PayloadGeneratorFileTreeNode;
+      path: string[];
+    },
+  ) {
     if (node.type === "file" && node.paths) {
       let format: PayloadGeneratorFlattenedTreeFormat | undefined;
       if (node.paths.length > 0) {
         format = getFormatFromFilePath(node.paths[0]);
       }
+      const pathWithPlaceholders = path.join("/");
 
-      result[path.join("/")] = {
+      result[pathWithPlaceholders] = {
         format: format,
         items: Object.fromEntries(node.paths.map((path) => [path, {
           type: "source",
@@ -148,7 +154,7 @@ function flattenedTree(
             current: "123",
           },
           context: {
-            language: "es",
+            ...extractPlaceholderFromPath(path, pathWithPlaceholders),
           },
         }])),
       };
@@ -160,16 +166,42 @@ function flattenedTree(
           }
         }
 
-        recurse(childNode, path.concat(key));
+        recurse({ node: childNode, path: path.concat(key) });
       }
     }
   }
 
   for (const rootKey of Object.keys(tree)) {
-    recurse(tree[rootKey], [rootKey]);
+    recurse({ node: tree[rootKey], path: [rootKey] });
   }
 
   return result;
+}
+
+function extractPlaceholderFromPath(
+  path: string,
+  pattern: string,
+): Record<string, string> {
+  const placeholderNames: string[] = [];
+
+  // Convert pattern into a regex pattern, capturing placeholders.
+  const regexPattern = pattern.replace(/\{(\w+)\}/g, (_match, p1) => {
+    placeholderNames.push(p1);
+    return "([a-zA-Z0-9_-]+)"; // Match alphanumeric, underscores, and dashes.
+  });
+
+  const regex = new RegExp(regexPattern);
+  const matches = path.match(regex);
+
+  if (matches) {
+    const result: Record<string, string> = {};
+    for (let i = 0; i < placeholderNames.length; i++) {
+      result[placeholderNames[i]] = matches[i + 1];
+    }
+    return result;
+  }
+
+  return {};
 }
 
 function getFormatFromFilePath(
