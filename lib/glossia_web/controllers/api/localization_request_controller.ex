@@ -1,13 +1,13 @@
-defmodule GlossiaWeb.API.TranslationRequestController do
+defmodule GlossiaWeb.API.LocalizationRequestController do
   # Modules
   use GlossiaWeb, :controller
   use OpenApiSpex.ControllerSpecs
 
-  tags ["translation-requests"]
+  tags ["localization-requesets"]
 
   alias GlossiaWeb.OpenAPI.Schemas.{
-    TranslationRequestCreateResponse,
-    TranslationRequestCreateParams
+    LocalizationRequestCreateResponse,
+    LocalizationRequestCreateParams
   }
 
   operation :create,
@@ -16,9 +16,9 @@ defmodule GlossiaWeb.API.TranslationRequestController do
       id: [in: :path, description: "User ID", type: :integer, example: 1001]
     ],
     request_body:
-      {"Translation request params", "application/json", TranslationRequestCreateParams},
+      {"Translation request params", "application/json", LocalizationRequestCreateParams},
     responses: [
-      ok: {"Translation request response", "application/json", TranslationRequestCreateResponse}
+      ok: {"Translation request response", "application/json", LocalizationRequestCreateResponse}
     ]
 
   def create(conn, _params) do

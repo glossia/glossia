@@ -16,8 +16,8 @@ import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import {
   Context,
   FileFormat,
-  TranslationRequestPayloadItem,
-  TranslationRequestPayloadModule,
+  LocalizationRequestPayloadItem,
+  LocalizationRequestPayloadModule,
 } from "./types.ts";
 
 type GenerateModulesPayloadOptions = { rootDirectory: string };
@@ -31,7 +31,7 @@ type GenerateModulesPayloadOptions = { rootDirectory: string };
 export async function generateModulesPayload(
   configurationManifest: ConfigurationManifest,
   options: GenerateModulesPayloadOptions,
-): Promise<TranslationRequestPayloadModule[]> {
+): Promise<LocalizationRequestPayloadModule[]> {
   const tree = await resolveFileTree({
     relativePath: configurationManifest.files,
     basePath: dirname(configurationManifest.path),
@@ -55,8 +55,8 @@ async function getPayloadFromTree(
     description?: string;
     sourceContext: Record<string, string>;
   },
-): Promise<TranslationRequestPayloadModule[]> {
-  const result: TranslationRequestPayloadModule[] = [];
+): Promise<LocalizationRequestPayloadModule[]> {
+  const result: LocalizationRequestPayloadModule[] = [];
 
   async function recurse(
     { node, path }: {
@@ -78,8 +78,8 @@ async function getPayloadFromTree(
         return;
         // Unsupported format so we skip the files
       }
-      let sourceItem: TranslationRequestPayloadItem | undefined;
-      const targetItems: TranslationRequestPayloadItem[] = [];
+      let sourceItem: LocalizationRequestPayloadItem | undefined;
+      const targetItems: LocalizationRequestPayloadItem[] = [];
 
       for (const path of node.children) {
         const context = getContextFromFilePath(
@@ -128,7 +128,7 @@ async function getPayloadFromTree(
         format: format,
         description: description,
         localizables: {
-          source: sourceItem as TranslationRequestPayloadItem,
+          source: sourceItem as LocalizationRequestPayloadItem,
           target: targetItems,
         },
       });

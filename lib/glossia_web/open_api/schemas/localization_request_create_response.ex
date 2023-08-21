@@ -1,11 +1,11 @@
-defmodule GlossiaWeb.OpenAPI.Schemas.TranslationRequestCreateResponse do
+defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequestCreateResponse do
   # Modules
   alias OpenApiSpex.Schema
   require OpenApiSpex
 
   OpenApiSpex.schema(%{
-    title: "Translation request create response",
-    description: "The response generated when creating a new translation request.",
+    title: "Localization request create response",
+    description: "The response generated when creating a new localization request.",
     type: :object,
     properties:
       %{

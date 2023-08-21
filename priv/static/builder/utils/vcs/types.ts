@@ -14,22 +14,22 @@ export type FileFormat =
   | "portable-object"
   | "portable-object-template";
 
-export type TranslationRequestPayload = {
+export type LocalizationRequestPayload = {
   id: string;
-  modules: TranslationRequestPayloadModule[];
+  modules: LocalizationRequestPayloadModule[];
 };
 
-export type TranslationRequestPayloadModule = {
+export type LocalizationRequestPayloadModule = {
   id: string;
   description?: string;
   format: FileFormat;
   localizables: {
-    source: TranslationRequestPayloadItem;
-    target: TranslationRequestPayloadItem[];
+    source: LocalizationRequestPayloadItem;
+    target: LocalizationRequestPayloadItem[];
   };
 };
 
-export type TranslationRequestPayloadItem = {
+export type LocalizationRequestPayloadItem = {
   id: string;
   context: Context;
   checksum: {

@@ -1,6 +1,6 @@
 export const snapshot = {};
 
-snapshot[`generateTranslationRequestPayload with Glossia's configuration 1`] = `
+snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = `
 {
   id: "test-sha",
   modules: [

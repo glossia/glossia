@@ -1,7 +1,7 @@
 import { cloneGitRepository } from "../utils/git.ts";
 import { glossiaFetch } from "../utils/http.ts";
 import { loadConfigurationManifests } from "../utils/vcs/configuration_loader.ts";
-import { generateTranslationRequestPayload } from "../utils/vcs/translation_request.ts";
+import { generateLocalizationRequestPayload } from "../utils/vcs/translation_request.ts";
 
 export default async function gitPush() {
   const tempDirPath = await Deno.makeTempDir();
@@ -12,7 +12,7 @@ export default async function gitPush() {
   });
   console.info("Configuration manifests loaded", configurationManifests);
   console.info("Generating translation payload");
-  const payload = await generateTranslationRequestPayload(
+  const payload = await generateLocalizationRequestPayload(
     configurationManifests,
     {
       rootDirectory: tempDirPath,

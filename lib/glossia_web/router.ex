@@ -80,7 +80,7 @@ defmodule GlossiaWeb.Router do
   scope "/api", GlossiaWeb.API do
     pipe_through [:api, :auth_api]
 
-    resources "/projects/:owner/:project/translation-requests", TranslationRequestController,
+    resources "/projects/:owner/:project/localization-requests", LocalizationRequestController,
       only: [:create]
   end
 

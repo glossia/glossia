@@ -1,6 +1,6 @@
 import { ConfigurationManifest } from "./configuration_manifest.ts";
 import { getGitCommitSHA } from "../environment.ts";
-import { TranslationRequestPayload } from "./types.ts";
+import { LocalizationRequestPayload } from "./types.ts";
 import { generateModulesPayload } from "./file_tree.ts";
 
 type GenerateTranslationPayloadOptions = {
@@ -19,10 +19,10 @@ type GenerateTranslationPayloadOptions = {
  * @param options {GenerateTranslationPayloadOptions} Options to generate the payload.
  * @returns {Promise<TranslationPayload>} A translation payload.
  */
-export async function generateTranslationRequestPayload(
+export async function generateLocalizationRequestPayload(
   configurationManifests: ConfigurationManifest[],
   options: GenerateTranslationPayloadOptions,
-): Promise<TranslationRequestPayload> {
+): Promise<LocalizationRequestPayload> {
   // The id uniquely represents a content change snapshot.
   const id = getGitCommitSHA(options.env) as string;
 
