@@ -1,4 +1,9 @@
 import { fileExtension } from "https://deno.land/x/file_extension/mod.ts";
+import {
+  crypto,
+  toHashString,
+} from "https://deno.land/std@0.196.0/crypto/mod.ts";
+import { Context } from "./translation_request.ts";
 
 /**
  * The file format of a file.
@@ -69,4 +74,52 @@ export function extractPlaceholderValuesFromFilePath(
   }
 
   return {};
+}
+
+/**
+ * Calculates the SHA256 hash of the given file.
+ * @param filepath {string} The absolute path to the file.
+ * @returns {Promise<string>} The SHA256 hash of the file.
+ */
+export async function getFileSHA256(
+  filepath: string,
+  context: Context,
+) {
+  const content = await Deno.readFile(filepath);
+
+  const contextTextEncoder = new TextEncoder();
+  const encodedContextText = contextTextEncoder.encode(
+    Object.keys(context).sort().map((key) => {
+      if (context[key as keyof Context]) {
+        return `${key}=${context[key as keyof Context]}`;
+      } else {
+        return undefined;
+      }
+    }).join(
+      ",",
+    ),
+  );
+  const contextHash = toHashString(
+    await crypto.subtle.digest(
+      "SHA-256",
+      encodedContextText,
+    ),
+  );
+
+  const fileHash = toHashString(
+    await crypto.subtle.digest(
+      "SHA-256",
+      content,
+    ),
+  );
+
+  const hashTextEncoder = new TextEncoder();
+  const encodedHashText = hashTextEncoder.encode(contextHash + fileHash);
+  const hash = toHashString(
+    await crypto.subtle.digest(
+      "SHA-256",
+      encodedHashText,
+    ),
+  );
+  return hash;
 }

@@ -1,9 +1,10 @@
 import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
-import { generateTranslationModuleFromManifest } from "./translation_request.ts";
 import { dirname } from "https://deno.land/std@0.196.0/path/posix.ts";
+import { loadTree } from "./file_tree.ts";
+import { assertSnapshot } from "https://deno.land/std@0.196.0/testing/snapshot.ts";
 
-Deno.test("resolveTree with Glossia's configuration", async () => {
+Deno.test("loadTree with Glossia's configuration", async (t) => {
   await runInTemporaryDirectory(async (temporaryDirectory) => {
     /**
      * priv/
@@ -30,18 +31,18 @@ Deno.test("resolveTree with Glossia's configuration", async () => {
     await Deno.writeTextFile(esPOPath, "");
 
     // When
-    const got = await generateTranslationModuleFromManifest({
-      path: join(temporaryDirectory, "glossia.jsonc"),
-      context: {
-        source: { language: "en" },
-        target: [{ language: "es" }],
+    const tree = await loadTree({
+      configurationManifest: {
+        path: join(temporaryDirectory, "glossia.jsonc"),
+        context: {
+          source: { language: "en" },
+          target: [{ language: "es" }],
+        },
+        files: "priv/gettext/{language}/LC_MESSAGES/*.po",
       },
-      files: "priv/gettext/{language}/LC_MESSAGES/*.po",
-    }, {
-      root: temporaryDirectory,
     });
 
-    // console.log(tree);
-    // console.log(JSON.stringify(got, null, 2));
+    // Then
+    assertSnapshot(t, tree);
   });
 });
