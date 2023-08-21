@@ -1,6 +1,6 @@
 export const snapshot = {};
 
-snapshot[`loadTree with Glossia's configuration 1`] = `
+snapshot[`generatePayload with Glossia's configuration 1`] = `
 {
   "priv/gettext/{language}/LC_MESSAGES/default.po": {
     format: "portable-object",

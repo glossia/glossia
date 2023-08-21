@@ -10,8 +10,8 @@ import { deepMerge } from "https://deno.land/std@0.196.0/collections/deep_merge.
 import { basename } from "https://deno.land/std@0.196.0/path/mod.ts";
 
 import {
-  extractPlaceholderValuesFromFilePath,
   FileFormat,
+  getContextFromFilePath,
   getFileFormat,
   getFileSHA256,
 } from "./utilities.ts";

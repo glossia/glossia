@@ -5,8 +5,8 @@ import {
 } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { Context } from "./translation_request.ts";
 import {
-  extractPlaceholderValuesFromFilePath,
   FileFormat,
+  getContextFromFilePath,
   getFileFormat,
   getFileSHA256,
 } from "./utilities.ts";
@@ -16,38 +16,50 @@ import { basename } from "https://deno.land/std@0.196.0/path/mod.ts";
 import { ConfigurationManifest } from "./configuration_manifest.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 
-type PayloadGeneratorFlattenedTree = {
+type TranslationRequestPayloadItem = {
+  context: Context;
+  id: string;
+};
+
+type TranslationRequestPayload = {
   [name: string]: {
-    format?: FileFormat;
-    items: { source: {}; target: {}[] };
+    format: FileFormat;
+    items: {
+      source: TranslationRequestPayloadItem;
+      target: TranslationRequestPayloadItem[];
+    };
   };
 };
 
-type LoadTreeOptions = {
-  configurationManifest: ConfigurationManifest;
-};
-
-export async function loadTree(options: LoadTreeOptions) {
+/**
+ * Resolves the file tree using the given configuration manifest and returns
+ * a payload to initiate a translation request.
+ * @param options {ConfigurationManifest} The configuration manifest.
+ * @returns
+ */
+export async function generatePayload(
+  configurationManifest: ConfigurationManifest,
+): Promise<TranslationRequestPayload> {
   const tree = await resolveFileTree({
-    relativePath: options.configurationManifest.files,
-    basePath: dirname(options.configurationManifest.path),
-    rootDirectory: dirname(options.configurationManifest.path),
+    relativePath: configurationManifest.files,
+    basePath: dirname(configurationManifest.path),
+    rootDirectory: dirname(configurationManifest.path),
     parentTree: {},
   });
-  return await flattenedTree(tree, {
-    rootDirectory: dirname(options.configurationManifest.path),
-    sourceContext: options.configurationManifest.context.source,
+  return getPayloadFromTree(tree, {
+    rootDirectory: dirname(configurationManifest.path),
+    sourceContext: configurationManifest.context.source,
   });
 }
 
-async function flattenedTree(
+async function getPayloadFromTree(
   tree: FileTree,
   { rootDirectory, sourceContext }: {
     rootDirectory: string;
     sourceContext: Record<string, string>;
   },
-): Promise<PayloadGeneratorFlattenedTree> {
-  const result: PayloadGeneratorFlattenedTree = {};
+): Promise<TranslationRequestPayload> {
+  const result: TranslationRequestPayload = {};
 
   async function recurse(
     { node, path }: {
@@ -62,12 +74,15 @@ async function flattenedTree(
       }
       const pathWithPlaceholders = path.join("/");
 
-      result[pathWithPlaceholders] = {
-        format: format,
-        items: { source: {}, target: [] },
-      };
+      if (!format) {
+        return;
+        // Unsupported format so we skip the files
+      }
+      let sourceItem: TranslationRequestPayloadItem | undefined;
+      const targetItems: TranslationRequestPayloadItem[] = [];
+
       for (const path of node.children) {
-        const context = extractPlaceholderValuesFromFilePath(
+        const context = getContextFromFilePath(
           path,
           pathWithPlaceholders,
         );
@@ -102,11 +117,19 @@ async function flattenedTree(
           context,
         };
         if (isSourceContext(context, sourceContext)) {
-          result[pathWithPlaceholders].items.source = item;
+          sourceItem = item;
         } else {
-          result[pathWithPlaceholders].items.target.push(item);
+          targetItems.push(item);
         }
       }
+
+      result[pathWithPlaceholders] = {
+        format: format,
+        items: {
+          source: sourceItem as TranslationRequestPayloadItem,
+          target: targetItems,
+        },
+      };
     } else if (node.type === "directory" && node.children) {
       for (let [key, childNode] of Object.entries(node.children)) {
         if (childNode.contextPlaceholders.length > 0) {

@@ -1,7 +1,7 @@
 import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
 import {
-  extractPlaceholderValuesFromFilePath,
+  getContextFromFilePath,
   getFileFormat,
   getFileSHA256,
 } from "./utilities.ts";
@@ -76,12 +76,12 @@ Deno.test("getFileFormat when the format is po", async () => {
   });
 });
 
-Deno.test("extractPlaceholdersFromFile extracts all the placeholders", () => {
+Deno.test("getContextFromFilePath extracts all the placeholders", () => {
   // Given
   const path = "priv/{language}/foo/{country}/strings.json";
 
   // When
-  const got = extractPlaceholderValuesFromFilePath(
+  const got = getContextFromFilePath(
     "priv/en/foo/US/strings.json",
     path,
   );

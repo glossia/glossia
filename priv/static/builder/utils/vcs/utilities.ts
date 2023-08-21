@@ -1,4 +1,4 @@
-import { fileExtension } from "https://deno.land/x/file_extension/mod.ts";
+import { fileExtension } from "https://deno.land/x/file_extension@v2.1.0/mod.ts";
 import {
   crypto,
   toHashString,
@@ -50,10 +50,10 @@ export function getFileFormat(
  * @param pattern {string} The pattern to extract placeholders from.
  * @returns {Record<string, string>} The placeholders and their values.
  */
-export function extractPlaceholderValuesFromFilePath(
+export function getContextFromFilePath(
   path: string,
   pattern: string,
-): Record<string, string> {
+): Context {
   const placeholderNames: string[] = [];
 
   // Convert pattern into a regex pattern, capturing placeholders.
@@ -66,14 +66,18 @@ export function extractPlaceholderValuesFromFilePath(
   const matches = path.match(regex);
 
   if (matches) {
-    const result: Record<string, string> = {};
+    // deno-lint-ignore ban-ts-comment
+    // @ts-ignore
+    const result: Context = {};
     for (let i = 0; i < placeholderNames.length; i++) {
-      result[placeholderNames[i]] = matches[i + 1];
+      result[placeholderNames[i] as keyof Context] = matches[i + 1];
     }
     return result;
   }
 
-  return {};
+  // TODO: We should probably throw an error here if required
+  // placeholders such as language are missing.
+  return {} as Context;
 }
 
 /**

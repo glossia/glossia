@@ -1,10 +1,10 @@
 import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
 import { dirname } from "https://deno.land/std@0.196.0/path/posix.ts";
-import { loadTree } from "./file_tree.ts";
+import { generatePayload } from "./file_tree.ts";
 import { assertSnapshot } from "https://deno.land/std@0.196.0/testing/snapshot.ts";
 
-Deno.test("loadTree with Glossia's configuration", async (t) => {
+Deno.test("generatePayload with Glossia's configuration", async (t) => {
   await runInTemporaryDirectory(async (temporaryDirectory) => {
     /**
      * priv/
@@ -31,15 +31,13 @@ Deno.test("loadTree with Glossia's configuration", async (t) => {
     await Deno.writeTextFile(esPOPath, "");
 
     // When
-    const tree = await loadTree({
-      configurationManifest: {
-        path: join(temporaryDirectory, "glossia.jsonc"),
-        context: {
-          source: { language: "en" },
-          target: [{ language: "es" }],
-        },
-        files: "priv/gettext/{language}/LC_MESSAGES/*.po",
+    const tree = await generatePayload({
+      path: join(temporaryDirectory, "glossia.jsonc"),
+      context: {
+        source: { language: "en" },
+        target: [{ language: "es" }],
       },
+      files: "priv/gettext/{language}/LC_MESSAGES/*.po",
     });
 
     // Then
