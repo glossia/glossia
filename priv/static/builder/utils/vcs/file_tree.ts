@@ -3,9 +3,7 @@ import {
   join,
   relative,
 } from "https://deno.land/std@0.196.0/path/posix.ts";
-import { Context } from "./translation_request.ts";
 import {
-  FileFormat,
   getContextFromFilePath,
   getFileFormat,
   getFileSHA256,
@@ -15,21 +13,14 @@ import { deepMerge } from "https://deno.land/std@0.196.0/collections/deep_merge.
 import { basename } from "https://deno.land/std@0.196.0/path/mod.ts";
 import { ConfigurationManifest } from "./configuration_manifest.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
+import {
+  Context,
+  FileFormat,
+  TranslationRequestPayloadItem,
+  TranslationRequestPayloadModule,
+} from "./types.ts";
 
-type TranslationRequestPayloadItem = {
-  context: Context;
-  id: string;
-};
-
-type TranslationRequestPayload = {
-  [name: string]: {
-    format: FileFormat;
-    items: {
-      source: TranslationRequestPayloadItem;
-      target: TranslationRequestPayloadItem[];
-    };
-  };
-};
+type GenerateModulesPayloadOptions = { rootDirectory: string };
 
 /**
  * Resolves the file tree using the given configuration manifest and returns
@@ -37,29 +28,33 @@ type TranslationRequestPayload = {
  * @param options {ConfigurationManifest} The configuration manifest.
  * @returns
  */
-export async function generatePayload(
+export async function generateModulesPayload(
   configurationManifest: ConfigurationManifest,
-): Promise<TranslationRequestPayload> {
+  options: GenerateModulesPayloadOptions,
+): Promise<TranslationRequestPayloadModule[]> {
   const tree = await resolveFileTree({
     relativePath: configurationManifest.files,
     basePath: dirname(configurationManifest.path),
-    rootDirectory: dirname(configurationManifest.path),
+    rootDirectory: options.rootDirectory,
+    manifestDirectory: dirname(configurationManifest.path),
     parentTree: {},
   });
   return getPayloadFromTree(tree, {
-    rootDirectory: dirname(configurationManifest.path),
+    rootDirectory: options.rootDirectory,
     sourceContext: configurationManifest.context.source,
+    manifestDirectory: dirname(configurationManifest.path),
   });
 }
 
 async function getPayloadFromTree(
   tree: FileTree,
-  { rootDirectory, sourceContext }: {
+  { rootDirectory, sourceContext, manifestDirectory }: {
     rootDirectory: string;
+    manifestDirectory: string;
     sourceContext: Record<string, string>;
   },
-): Promise<TranslationRequestPayload> {
-  const result: TranslationRequestPayload = {};
+): Promise<TranslationRequestPayloadModule[]> {
+  const result: TranslationRequestPayloadModule[] = [];
 
   async function recurse(
     { node, path }: {
@@ -72,7 +67,10 @@ async function getPayloadFromTree(
       if (node.children.length > 0) {
         format = getFileFormat(node.children[0]);
       }
-      const pathWithPlaceholders = path.join("/");
+      const pathWithPlaceholders = relative(
+        rootDirectory,
+        join(manifestDirectory, path.join("/")),
+      );
 
       if (!format) {
         return;
@@ -91,7 +89,7 @@ async function getPayloadFromTree(
           `.glossia.${basename(path)}.json`,
         );
         const checksumPath = join(
-          rootDirectory,
+          manifestDirectory,
           checksumRelativePath,
         );
         let cachedChecksum = { id: checksumRelativePath };
@@ -123,13 +121,14 @@ async function getPayloadFromTree(
         }
       }
 
-      result[pathWithPlaceholders] = {
+      result.push({
+        id: pathWithPlaceholders,
         format: format,
         items: {
           source: sourceItem as TranslationRequestPayloadItem,
           target: targetItems,
         },
-      };
+      });
     } else if (node.type === "directory" && node.children) {
       for (let [key, childNode] of Object.entries(node.children)) {
         if (childNode.contextPlaceholders.length > 0) {
@@ -207,7 +206,10 @@ type ResolveFileTreeOptions = {
   /** The base path from the previous recursion iteration.. This is used to construct absolute paths. */
   basePath: string;
 
-  /** The directory from where the recursion started. */
+  /** The directory containing the manifest configuration file */
+  manifestDirectory: string;
+
+  /** The root directory of the project */
   rootDirectory: string;
 
   /** The parent tree to add children to. */
@@ -263,6 +265,7 @@ async function resolveFileTree(
           ),
           basePath: childPath,
           rootDirectory: options.rootDirectory,
+          manifestDirectory: options.manifestDirectory,
           parentTree: {},
         }),
       );

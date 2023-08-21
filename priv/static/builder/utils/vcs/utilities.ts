@@ -3,17 +3,7 @@ import {
   crypto,
   toHashString,
 } from "https://deno.land/std@0.196.0/crypto/mod.ts";
-import { Context } from "./translation_request.ts";
-
-/**
- * The file format of a file.
- */
-export type FileFormat =
-  | "markdown"
-  | "yaml"
-  | "json"
-  | "toml"
-  | "portable-object";
+import { Context, FileFormat } from "./types.ts";
 
 /**
  * Returns the file format of the given file.
