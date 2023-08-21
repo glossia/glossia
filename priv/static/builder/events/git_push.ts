@@ -1,7 +1,7 @@
 import { cloneGitRepository } from "../utils/git.ts";
 import { glossiaFetch } from "../utils/http.ts";
 import { loadConfigurationManifests } from "../utils/vcs/configuration_loader.ts";
-import { generateTranslationPayload } from "../utils/vcs/translation.ts";
+import { generateTranslationRequestPayload } from "../utils/vcs/translation_request.ts";
 
 export default async function gitPush() {
   const tempDirPath = await Deno.makeTempDir();
@@ -12,9 +12,13 @@ export default async function gitPush() {
   });
   console.info("Configuration manifests loaded", configurationManifests);
   console.info("Generating translation payload");
-  const payload = await generateTranslationPayload(configurationManifests, {
-    root: tempDirPath,
-  });
+  const payload = await generateTranslationRequestPayload(
+    configurationManifests,
+    {
+      rootDirectory: tempDirPath,
+      env: Deno.env,
+    },
+  );
   console.info("Translation payload generated", payload);
   console.info("Creating translation");
   await glossiaFetch("/builder/api/translations", {
