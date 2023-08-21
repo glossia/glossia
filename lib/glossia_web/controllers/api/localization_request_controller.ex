@@ -13,8 +13,7 @@ defmodule GlossiaWeb.API.LocalizationRequestController do
   operation :create,
     summary: "Creates a new localization request",
     parameters: [],
-    request_body:
-      {"Localization request params", "application/json", CreateParams},
+    request_body: {"Localization request params", "application/json", CreateParams},
     responses: [
       ok: {"Localization request response", "application/json", CreateResponse}
     ]
