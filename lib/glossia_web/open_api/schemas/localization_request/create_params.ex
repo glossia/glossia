@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequestCreateParams do
+defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.CreateParams do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema

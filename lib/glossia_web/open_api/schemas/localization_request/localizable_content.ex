@@ -2,7 +2,7 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequestLocalizableContent do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
-  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequestContext
+  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.Context
 
   OpenApiSpex.schema(%{
     title: "Localizable content",
@@ -14,7 +14,7 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequestLocalizableContent do
         description:
           "An identifier that uniquely identifies the localizable content in the module."
       },
-      context: LocalizationRequestContext
+      context: Context
     },
     required: [:id]
   })

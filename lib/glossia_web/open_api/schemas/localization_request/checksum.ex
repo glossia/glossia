@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequestChecksum do
+defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.Checksum do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
