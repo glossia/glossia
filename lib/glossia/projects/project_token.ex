@@ -8,7 +8,7 @@ defmodule Glossia.Projects.ProjectToken do
     |> add_claim("iat", fn -> (DateTime.utc_now() |> DateTime.to_unix()) - 60 end)
 
     # JWT expiration time (10 minute maximum)
-    |> add_claim("exp", fn -> (DateTime.utc_now() |> DateTime.to_unix()) + 10 * 60 end)
+    |> add_claim("exp", fn -> (DateTime.utc_now() |> DateTime.to_unix()) + 3 * 60 end)
 
     # GitHub App's identifier
     |> add_claim("iss", fn -> "glossia" end)

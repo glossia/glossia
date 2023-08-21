@@ -162,8 +162,12 @@ defmodule Glossia.Builds.VirtualMachine do
 
     regex = ~r/---GLOSSIA_ERROR_START---(.*?)---GLOSSIA_ERROR_END---/s
 
-    [[_, content]] = Regex.scan(regex, body)
-    String.trim(content)
+    if String.match?(body, regex) do
+      [[_, content]] = Regex.scan(regex, body)
+      String.trim(content)
+    else
+      nil
+    end
   end
 
   defp run_using_docker(env: env, update_status_cb: update_status_cb) do
