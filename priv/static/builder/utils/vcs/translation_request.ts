@@ -8,11 +8,11 @@ import { getGitCommitSHA } from "../environment.ts";
 import { isDirectory, resolveGlob } from "../fs.ts";
 import { deepMerge } from "https://deno.land/std@0.196.0/collections/deep_merge.ts";
 import { basename } from "https://deno.land/std@0.196.0/path/mod.ts";
-import { fileExtension } from "https://deno.land/x/file_extension/mod.ts";
 import {
   crypto,
   toHashString,
 } from "https://deno.land/std@0.196.0/crypto/mod.ts";
+import { FileFormat, getFileFormat } from "./utilities.ts";
 
 /**
  * TODO
@@ -75,12 +75,11 @@ export async function generateTranslationModuleFromManifest(
   configurationManifest: ConfigurationManifest,
   options: GenerateTranslationPayloadOptions,
 ): Promise<TranslationPayloadModule[]> {
-  const tree = await resolveTree({
+  const tree = await resolveFileTree({
     relativePath: configurationManifest.files,
     basePath: dirname(configurationManifest.path),
-    rootPath: dirname(configurationManifest.path),
-    tree: {},
-    contextAttributes: [],
+    rootDirectory: dirname(configurationManifest.path),
+    parentTree: {},
   });
   const flatTree = await flattenedTree(tree, {
     rootDirectory: dirname(configurationManifest.path),
@@ -120,22 +119,15 @@ function pathReplacingPlaceholders(
   return path;
 }
 
-type PayloadGeneratorFlattenedTreeFormat =
-  | "markdown"
-  | "yaml"
-  | "json"
-  | "toml"
-  | "portable-object";
-
 type PayloadGeneratorFlattenedTree = {
   [name: string]: {
-    format?: PayloadGeneratorFlattenedTreeFormat;
+    format?: FileFormat;
     items: { [id: string]: {} };
   };
 };
 
 async function flattenedTree(
-  tree: PayloadGeneratorFileTree,
+  tree: FileTree,
   { rootDirectory, sourceContext }: {
     rootDirectory: string;
     sourceContext: Record<string, string>;
@@ -145,21 +137,21 @@ async function flattenedTree(
 
   async function recurse(
     { node, path }: {
-      node: PayloadGeneratorFileTreeNode;
+      node: FileTreeNode;
       path: string[];
     },
   ) {
-    if (node.type === "file" && node.paths) {
-      let format: PayloadGeneratorFlattenedTreeFormat | undefined;
-      if (node.paths.length > 0) {
-        format = getFormatFromFilePath(node.paths[0]);
+    if (node.type === "file" && node.children) {
+      let format: FileFormat | undefined;
+      if (node.children.length > 0) {
+        format = getFileFormat(node.children[0]);
       }
       const pathWithPlaceholders = path.join("/");
 
       result[pathWithPlaceholders] = {
         format: format,
         items: Object.fromEntries(
-          await Promise.all(node.paths.map(async (path) => {
+          await Promise.all(node.children.map(async (path) => {
             const context = extractPlaceholderFromPath(
               path,
               pathWithPlaceholders,
@@ -181,8 +173,8 @@ async function flattenedTree(
       };
     } else if (node.type === "directory" && node.children) {
       for (let [key, childNode] of Object.entries(node.children)) {
-        if (childNode.placeholders.length > 0) {
-          for (const placeholder of childNode.placeholders) {
+        if (childNode.contextPlaceholders.length > 0) {
+          for (const placeholder of childNode.contextPlaceholders) {
             key = key.replace(`{${placeholder}}`, `{${placeholder}}`);
           }
         }
@@ -244,64 +236,83 @@ function extractPlaceholderFromPath(
   return {};
 }
 
-function getFormatFromFilePath(
-  path: string,
-): PayloadGeneratorFlattenedTreeFormat | undefined {
-  const extension = fileExtension(path);
-  switch (extension) {
-    case "md":
-      return "markdown";
-    case "yaml":
-      return "yaml";
-    case "yml":
-      return "yaml";
-    case "json":
-      return "json";
-    case "toml":
-      return "toml";
-    case "po":
-      return "portable-object";
-    default:
-      return undefined;
-  }
-}
-
-type PayloadGeneratorFileTreeNode = {
+/**
+ * A type that represents a directory tree node.
+ */
+type FileTreeDirectoryNode = {
   type: "directory";
-  placeholders: string[];
-  children: PayloadGeneratorFileTree;
-} | { type: "file"; placeholders: string[]; paths: string[] };
-
-type PayloadGeneratorFileTree = {
-  [name: string]: PayloadGeneratorFileTreeNode;
+  /**
+   * When the path component representing this node contains placeholders, for example {language}, those are captured here.
+   */
+  contextPlaceholders: string[];
+  children: FileTree;
 };
 
-async function resolveTree(
-  { relativePath, basePath, tree, contextAttributes, rootPath }: {
-    relativePath: string;
-    basePath: string;
-    rootPath: string;
-    tree: PayloadGeneratorFileTree;
-    contextAttributes: string[];
-  },
-): Promise<PayloadGeneratorFileTree> {
-  // There aren't more components to traverse.
-  const nextRelativePathComponent = relativePath.split("/").slice(0, 1).shift();
+/**
+ * A type that represents a file tree node.
+ */
+type FileTreeFileNode = {
+  type: "file";
+  /**
+   * When the path component representing this node contains placeholders, for example {language}, those are captured here.
+   */
+  contextPlaceholders: string[];
+  children: string[];
+};
 
-  if (!nextRelativePathComponent) return tree;
+/**
+ * A type that represents a file tree node. It can be either a file or a directory.
+ */
+type FileTreeNode = FileTreeDirectoryNode | FileTreeFileNode;
+
+/**
+ * A type that represents a file tree.
+ * It's a recursive structure that represents a directory and its children.
+ */
+type FileTree = {
+  [name: string]: FileTreeNode;
+};
+
+/**
+ * The options necessary to resolve a file tree recursively navigating the file system
+ * down from the given root directory.
+ */
+type ResolveFileTreeOptions = {
+  /** The relative path for the current recursion iteration.  */
+  relativePath: string;
+
+  /** The base path from the previous recursion iteration.. This is used to construct absolute paths. */
+  basePath: string;
+
+  /** The directory from where the recursion started. */
+  rootDirectory: string;
+
+  /** The parent tree to add children to. */
+  parentTree: FileTree;
+};
+
+async function resolveFileTree(
+  options: ResolveFileTreeOptions,
+): Promise<FileTree> {
+  // There aren't more components to traverse.
+  const nextRelativePathComponent = options.relativePath.split("/").slice(0, 1)
+    .shift();
+
+  if (!nextRelativePathComponent) return options.parentTree;
 
   const regex = /\{(\w+)\}/g;
 
   // deno-lint-ignore ban-ts-comment
   // @ts-ignore
-  const placeholders = [...nextRelativePathComponent.matchAll(regex)].map((
-    match,
-  ) => match[1]);
+  const contextPlaceholders = [...nextRelativePathComponent.matchAll(regex)]
+    .map((
+      match,
+    ) => match[1]);
   const globPattern = nextRelativePathComponent.replace(/\{[^}]+\}/g, "*");
   const childrenPaths = await resolveGlob(globPattern, {
-    root: basePath,
+    root: options.basePath,
   });
-  let childrenDirectories: PayloadGeneratorFileTree = {};
+  let childrenDirectories: FileTree = {};
   let areFiles = false;
   for (const childPath of childrenPaths) {
     if (!(await isDirectory(childPath))) {
@@ -312,35 +323,34 @@ async function resolveTree(
 
   if (areFiles) {
     for (const childPath of childrenPaths) {
-      tree[basename(childPath)] = {
+      options.parentTree[basename(childPath)] = {
         type: "file",
-        placeholders,
-        paths: [relative(rootPath, childPath)],
+        contextPlaceholders,
+        children: [relative(options.rootDirectory, childPath)],
       };
     }
   } else {
     for (const childPath of childrenPaths) {
       childrenDirectories = deepMerge(
         childrenDirectories,
-        await resolveTree({
-          relativePath: relativePath.replace(
+        await resolveFileTree({
+          relativePath: options.relativePath.replace(
             `${nextRelativePathComponent}/`,
             "",
           ),
           basePath: childPath,
-          rootPath: rootPath,
-          tree: {},
-          contextAttributes,
+          rootDirectory: options.rootDirectory,
+          parentTree: {},
         }),
       );
 
-      tree[nextRelativePathComponent] = {
+      options.parentTree[nextRelativePathComponent] = {
         type: "directory",
-        placeholders,
+        contextPlaceholders,
         children: childrenDirectories,
       };
     }
   }
 
-  return tree;
+  return options.parentTree;
 }

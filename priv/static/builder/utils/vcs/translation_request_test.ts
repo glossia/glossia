@@ -1,6 +1,6 @@
 import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
-import { generateTranslationModuleFromManifest } from "./translation.ts";
+import { generateTranslationModuleFromManifest } from "./translation_request.ts";
 import { dirname } from "https://deno.land/std@0.196.0/path/posix.ts";
 
 Deno.test("resolveTree with Glossia's configuration", async () => {
