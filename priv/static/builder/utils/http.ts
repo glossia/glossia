@@ -20,7 +20,10 @@ export async function glossiaFetch<T>(
   try {
     jsonData = await jsonResponse.json();
   } catch (error) {
-    console.error("Error parsing JSON response from Glossia", error);
+    console.error(
+      "Error parsing JSON response from Glossia",
+      jsonResponse.text(),
+    );
     throw error;
   }
   console.info("Glossia responded", {
