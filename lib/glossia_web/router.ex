@@ -76,7 +76,8 @@ defmodule GlossiaWeb.Router do
     get "/changelog", MarketingController, :changelog
   end
 
-  # API
+  # Authenticated API endpoints:
+  # These endpoints authenticate and authorize the authenticated entities
   scope "/api", GlossiaWeb.API do
     pipe_through [:api, :auth_api]
 
@@ -84,10 +85,14 @@ defmodule GlossiaWeb.Router do
       only: [:create]
   end
 
+  # Unauthenticated API endpoints:
+  # There are some endpoints, like the one that returns the OpenAPI spec, that don't
+  # require being authenticated because they don't return resource-tied data.
   scope "/api" do
     pipe_through [:api]
 
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+    match(:*, "/*path", GlossiaWeb.API.APIController, :not_found)
   end
 
   # RSS
