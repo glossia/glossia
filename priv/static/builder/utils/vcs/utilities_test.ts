@@ -1,6 +1,9 @@
 import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
-import { getFileFormat } from "./utilities.ts";
+import {
+  extractPlaceholderValuesFromFilePath,
+  getFileFormat,
+} from "./utilities.ts";
 import { assertEquals } from "https://deno.land/std@0.196.0/assert/assert_equals.ts";
 
 Deno.test("getFileFormat when the format is markdown", async () => {
@@ -69,4 +72,19 @@ Deno.test("getFileFormat when the format is po", async () => {
     // Then
     assertEquals(got, "portable-object");
   });
+});
+
+Deno.test("extractPlaceholdersFromFile extracts all the placeholders", () => {
+  // Given
+  const path = "priv/{language}/foo/{country}/strings.json";
+
+  // When
+  const got = extractPlaceholderValuesFromFilePath(
+    "priv/en/foo/US/strings.json",
+    path,
+  );
+
+  // Then
+  assertEquals(got["language"], "en");
+  assertEquals(got["country"], "US");
 });

@@ -12,7 +12,11 @@ import {
   crypto,
   toHashString,
 } from "https://deno.land/std@0.196.0/crypto/mod.ts";
-import { FileFormat, getFileFormat } from "./utilities.ts";
+import {
+  extractPlaceholderValuesFromFilePath,
+  FileFormat,
+  getFileFormat,
+} from "./utilities.ts";
 
 /**
  * TODO
@@ -152,7 +156,7 @@ async function flattenedTree(
         format: format,
         items: Object.fromEntries(
           await Promise.all(node.children.map(async (path) => {
-            const context = extractPlaceholderFromPath(
+            const context = extractPlaceholderValuesFromFilePath(
               path,
               pathWithPlaceholders,
             );
@@ -208,32 +212,6 @@ async function computeSha256(filepath: string) {
   );
   const hashString = toHashString(hash);
   return hashString;
-}
-
-function extractPlaceholderFromPath(
-  path: string,
-  pattern: string,
-): Record<string, string> {
-  const placeholderNames: string[] = [];
-
-  // Convert pattern into a regex pattern, capturing placeholders.
-  const regexPattern = pattern.replace(/\{(\w+)\}/g, (_match, p1) => {
-    placeholderNames.push(p1);
-    return "([a-zA-Z0-9_-]+)"; // Match alphanumeric, underscores, and dashes.
-  });
-
-  const regex = new RegExp(regexPattern);
-  const matches = path.match(regex);
-
-  if (matches) {
-    const result: Record<string, string> = {};
-    for (let i = 0; i < placeholderNames.length; i++) {
-      result[placeholderNames[i]] = matches[i + 1];
-    }
-    return result;
-  }
-
-  return {};
 }
 
 /**
