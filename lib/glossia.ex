@@ -18,6 +18,7 @@ defmodule Glossia do
       Builds,
       Events,
       Events.GitEvent,
+      Version,
       # Tests
       DataCase,
       AccountsFixtures

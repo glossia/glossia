@@ -5,11 +5,13 @@ defmodule GlossiaWeb.SharedComponents do
 
   # Modules
   import Phoenix.Controller,
-        only: [get_csrf_token: 0]
+    only: [get_csrf_token: 0]
+
   use GlossiaWeb, :verified_routes
   use Phoenix.Component
 
   attr :surface, :string, required: true
+
   def head_assets(assigns) do
     ~H"""
     <link phx-track-static rel="stylesheet" href={"/assets/#{@surface}.css"} />

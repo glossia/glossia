@@ -75,7 +75,8 @@ defmodule GlossiaWeb.Router do
   scope "/api", GlossiaWeb.API do
     pipe_through [:api]
 
-    resources "/projects/:owner/:project/translation-requests", TranslationRequestController, only: [:create]
+    resources "/projects/:owner/:project/translation-requests", TranslationRequestController,
+      only: [:create]
   end
 
   # RSS
