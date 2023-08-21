@@ -11,7 +11,7 @@ defmodule GlossiaWeb.Auth.PoliciesTest do
     conn = conn |> Policies.call(opts)
 
     # Then
-    assert %{"errors" => [%{"detail" => "You need authenticate as a project"}]} =
+    assert %{"errors" => [%{"detail" => "You need to be authenticated to access this resource"}]} =
              json_response(conn, 401)
   end
 end
