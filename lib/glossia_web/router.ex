@@ -44,7 +44,7 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
-  pipeline :builder_api do
+  pipeline :api do
     plug :accepts, ["json"]
 
     plug Plug.Parsers,
@@ -72,12 +72,10 @@ defmodule GlossiaWeb.Router do
   end
 
   # API
-  scope "/builder", GlossiaWeb.Builder do
-    scope "/api", API do
-      pipe_through [:builder_api]
+  scope "/api", GlossiaWeb.API do
+    pipe_through [:api]
 
-      post "/translations", TranslationController, :create
-    end
+    resources "/projects/:owner/:project/translation-requests", TranslationRequestController, only: [:create]
   end
 
   # RSS
