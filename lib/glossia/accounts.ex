@@ -140,4 +140,13 @@ defmodule Glossia.Accounts do
     Repo.delete_all(UserToken.token_and_context_query(token, "session"))
     :ok
   end
+
+  @doc """
+  It finds the account with the given handle.
+  When not found, it returns nil.
+  """
+  @spec find_account_by_handle(any) :: Account.t() | nil
+  def find_account_by_handle(handle) do
+    Account.account_by_handle_query(handle) |> Repo.one()
+  end
 end
