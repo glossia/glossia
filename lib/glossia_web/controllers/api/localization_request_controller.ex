@@ -20,7 +20,7 @@ defmodule GlossiaWeb.API.LocalizationRequestController do
     ]
 
   def create(conn, _params) do
-    GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :translation_request})
+    GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
     json(conn, %{"hello" => "yay"})
   end
 end
