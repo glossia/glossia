@@ -11,7 +11,10 @@ export type ConfigurationManifest = {
   // The path to the manifest file.
   path: string;
 
-  /** The source and target contexts necessary to translate */
+  // A description of the content that should be localized.
+  description?: string;
+
+  /** The source and target contexts necessary to localize */
   context: {
     /** The base context of the source language. */
     source: ConfigurationManifestContext;
@@ -19,7 +22,7 @@ export type ConfigurationManifest = {
     target: ConfigurationManifestContext[];
   };
   /**
-   * A wildcard to resolve all the files that should be translated. The wildcard
+   * A wildcard to resolve all the files that should be localized. The wildcard
    * should contain the {language} token to resolve it with all the languages.
    */
   files: string;
