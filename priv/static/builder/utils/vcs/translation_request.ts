@@ -27,8 +27,8 @@ export async function generateTranslationRequestPayload(
   const id = getGitCommitSHA(options.env) as string;
 
   const modules = (await Promise.all(
-    configurationManifests.map((manifest) =>
-      generateModulesPayload(manifest, options)
+    configurationManifests.map(async (manifest) =>
+      await generateModulesPayload(manifest, options)
     ),
   )).flatMap((modules) => modules);
 

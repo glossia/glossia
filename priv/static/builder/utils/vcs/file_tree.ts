@@ -40,6 +40,7 @@ export async function generateModulesPayload(
     parentTree: {},
   });
   return getPayloadFromTree(tree, {
+    description: configurationManifest.description,
     rootDirectory: options.rootDirectory,
     sourceContext: configurationManifest.context.source,
     manifestDirectory: dirname(configurationManifest.path),
@@ -48,9 +49,10 @@ export async function generateModulesPayload(
 
 async function getPayloadFromTree(
   tree: FileTree,
-  { rootDirectory, sourceContext, manifestDirectory }: {
+  { rootDirectory, sourceContext, manifestDirectory, description }: {
     rootDirectory: string;
     manifestDirectory: string;
+    description?: string;
     sourceContext: Record<string, string>;
   },
 ): Promise<TranslationRequestPayloadModule[]> {
@@ -124,7 +126,8 @@ async function getPayloadFromTree(
       result.push({
         id: pathWithPlaceholders,
         format: format,
-        items: {
+        description: description,
+        localizables: {
           source: sourceItem as TranslationRequestPayloadItem,
           target: targetItems,
         },

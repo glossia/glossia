@@ -20,8 +20,9 @@ export type TranslationRequestPayload = {
 
 export type TranslationRequestPayloadModule = {
   id: string;
+  description?: string;
   format: FileFormat;
-  items: {
+  localizables: {
     source: TranslationRequestPayloadItem;
     target: TranslationRequestPayloadItem[];
   };

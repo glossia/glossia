@@ -5,9 +5,10 @@ snapshot[`generateTranslationRequestPayload with Glossia's configuration 1`] = `
   id: "test-sha",
   modules: [
     {
+      description: "This is test content",
       format: "portable-object",
       id: "priv/gettext/{language}/LC_MESSAGES/default.po",
-      items: {
+      localizables: {
         source: {
           checksum: {
             cached: {

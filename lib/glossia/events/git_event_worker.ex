@@ -59,7 +59,7 @@ defmodule Glossia.Events.GitEventWorker do
     git_event =
       Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
 
-    attrs |> update_commit_status(:translating)
+    attrs |> update_commit_status(:localizing)
 
     Glossia.Builds.run(%{
       env: %{
@@ -93,22 +93,22 @@ defmodule Glossia.Events.GitEventWorker do
       end
     })
 
-    attrs |> update_commit_status(:translated)
+    attrs |> update_commit_status(:localized)
 
     :ok
   end
 
-  defp update_commit_status(attrs, :translating) do
+  defp update_commit_status(attrs, :localizing) do
     attrs
     |> Map.put_new(:state, "pending")
-    |> Map.put_new(:description, "Translating")
+    |> Map.put_new(:description, "Localizing")
     |> update_commit_status()
   end
 
-  defp update_commit_status(attrs, :translated) do
+  defp update_commit_status(attrs, :localized) do
     attrs
     |> Map.put_new(:state, "success")
-    |> Map.put_new(:description, "Translated")
+    |> Map.put_new(:description, "Localized")
     |> update_commit_status()
   end
 
