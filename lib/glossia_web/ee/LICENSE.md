@@ -5,21 +5,22 @@ With regard to the Glossia Software:
 
 This software and associated documentation files (the "Software") may only be
 used in production, if you (and any entity that you represent) have agreed to,
-and are in compliance with, the Glossia Subscription Terms available
-at https://glossia.ai/terms, or other agreements governing
-the use of the Software, as mutually agreed by you and Glossia, Inc ("Glossia"),
-and otherwise have a valid Glossia Enterprise Edition subscription ("Commercial Subscription")
-for the correct number of hosts as defined in the "Commercial Terms ("Hosts"). Subject to the foregoing sentence,
-you are free to modify this Software and publish patches to the Software. You agree
-that Glossia and/or its licensors (as applicable) retain all right, title and interest in
-and to all such modifications and/or patches, and all such modifications and/or
+and are in compliance with, the PostHog Subscription Terms of Service, available
+at https://glossia.ai/terms (the “Enterprise Terms”), or other
+agreement governing the use of the Software, as agreed by you and Glossia,
+and otherwise have a valid Glossia Enterprise license for the
+correct number of user seats. Subject to the foregoing sentence, you are free to
+modify this Software and publish patches to the Software. You agree that Glossia
+and/or its licensors (as applicable) retain all right, title and interest in and
+to all such modifications and/or patches, and all such modifications and/or
 patches may only be used, copied, modified, displayed, distributed, or otherwise
-exploited with a valid Commercial Subscription for the correct number of hosts.
-Notwithstanding the foregoing, you may copy and modify the Software for development
-and testing purposes, without requiring a subscription. You agree that Glossia and/or
-its licensors (as applicable) retain all right, title and interest in and to all such
-modifications. You are not granted any other rights beyond what is expressly stated herein.
-Subject to the foregoing, it is forbidden to copy, merge, publish, distribute, sublicense,
+exploited with a valid Glossia Enterprise license for the correct
+number of user seats. Notwithstanding the foregoing, you may copy and modify
+the Software for development and testing purposes, without requiring a
+subscription. You agree that Glossia and/or its licensors (as applicable) retain
+all right, title and interest in and to all such modifications. You are not
+granted any other rights beyond what is expressly stated herein. Subject to the
+foregoing, it is forbidden to copy, merge, publish, distribute, sublicense,
 and/or sell the Software.
 
 This Commercial License applies only to the part of this Software that is not distributed under
