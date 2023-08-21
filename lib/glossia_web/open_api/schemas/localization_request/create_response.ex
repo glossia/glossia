@@ -1,6 +1,5 @@
 defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.CreateResponse do
   # Modules
-  alias OpenApiSpex.Schema
   require OpenApiSpex
 
   OpenApiSpex.schema(%{

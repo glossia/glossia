@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.API.LocalizationRequestController do
+defmodule GlossiaWeb.API.Project.LocalizationRequestController do
   # Modules
   use GlossiaWeb, :controller
   use OpenApiSpex.ControllerSpecs

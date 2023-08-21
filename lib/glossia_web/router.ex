@@ -81,8 +81,9 @@ defmodule GlossiaWeb.Router do
   scope "/api", GlossiaWeb.API do
     pipe_through [:api, :auth_api]
 
-    resources "/projects/:owner/:project/localization-requests", LocalizationRequestController,
-      only: [:create]
+    scope "/projects/:owner/:project", Project do
+      resources "localization-requests", LocalizationRequestController, only: [:create]
+    end
   end
 
   # Unauthenticated API endpoints:
