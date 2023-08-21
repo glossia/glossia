@@ -3,7 +3,7 @@ defmodule GlossiaWeb.API.LocalizationRequestController do
   use GlossiaWeb, :controller
   use OpenApiSpex.ControllerSpecs
 
-  tags ["localization-requesets"]
+  tags ["localization-requests"]
 
   alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.{
     CreateResponse,
@@ -20,7 +20,7 @@ defmodule GlossiaWeb.API.LocalizationRequestController do
     ]
 
   def create(conn, _params) do
-    GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
+    GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :translation_request})
     json(conn, %{"hello" => "yay"})
   end
 end
