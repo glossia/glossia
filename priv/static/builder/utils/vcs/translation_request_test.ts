@@ -1,7 +1,6 @@
 import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
 import { dirname } from "https://deno.land/std@0.196.0/path/posix.ts";
-import { generateModulesPayload } from "./file_tree.ts";
 import { assertSnapshot } from "https://deno.land/std@0.196.0/testing/snapshot.ts";
 import { generateTranslationRequestPayload } from "./translation_request.ts";
 import { getMockedEnv } from "../environment_test_helpers.ts";
@@ -10,6 +9,7 @@ Deno.test("generateTranslationRequestPayload with Glossia's configuration", asyn
   await runInTemporaryDirectory(async (temporaryDirectory) => {
     /**
      * priv/
+     *  glossia.jsonc
      *  gettext/
      *   {language}/
      *     LC_MESSAGES/

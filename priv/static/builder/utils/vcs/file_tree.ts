@@ -154,7 +154,11 @@ function isSourceContext(
   sourceContext: Record<string, string>,
 ) {
   return Object.entries(sourceContext).every(
-    ([key, value]) => context.hasOwnProperty(key) && context[key] === value,
+    ([key, value]) =>
+      // deno-lint-ignore ban-ts-comment
+      // @ts-ignore
+      // deno-lint-ignore no-prototype-builtins
+      context.hasOwnProperty(key) && context[key] === value,
   );
 }
 

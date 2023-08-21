@@ -31,7 +31,7 @@ export async function isDirectory(path: string): Promise<boolean> {
   try {
     const stat = await Deno.stat(path);
     return stat.isDirectory;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
