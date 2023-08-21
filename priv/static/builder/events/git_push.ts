@@ -21,7 +21,7 @@ export default async function gitPush() {
   );
   console.info("Translation payload generated", payload);
   console.info("Creating translation");
-  await glossiaFetch("/builder/api/translations", {
+  await glossiaFetch("/api/translations", {
     method: "POST",
     body: JSON.stringify(payload),
     headers: {

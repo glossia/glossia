@@ -16,7 +16,13 @@ export async function glossiaFetch<T>(
       "authorization": `Bearer ${getAccessToken()}`,
     },
   });
-  const jsonData = await jsonResponse.json();
+  let jsonData;
+  try {
+    jsonData = await jsonResponse.json();
+  } catch (error) {
+    console.error("Error parsing JSON response from Glossia", error);
+    throw error;
+  }
   console.info("Glossia responded", {
     status: jsonResponse.status,
     body: jsonData,
