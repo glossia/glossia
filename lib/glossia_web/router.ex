@@ -3,7 +3,7 @@ defmodule GlossiaWeb.Router do
 
   import GlossiaWeb.UserAuth
 
-  # Pipelines
+  ##### Base pipelines #####
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -20,25 +20,32 @@ defmodule GlossiaWeb.Router do
     plug :fetch_and_track_current_user
   end
 
+  #### Documentation Routes ####
+
+  scope "/" do
+    get "/docs/api", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
+  end
+
+  ##### Marketing Routes #####
   pipeline :marketing do
     plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
   end
 
-  pipeline :app do
-    plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :marketing]
+
+    get "/", MarketingController, :index
+    get "/beta", MarketingController, :beta
+    get "/about", MarketingController, :about
+    get "/team", MarketingController, :team
+    get "/beta-added", MarketingController, :beta_added
+    get "/blog", MarketingController, :blog
+    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+    get "/docs/*id", MarketingController, :docs
+    get "/changelog", MarketingController, :changelog
   end
 
-  pipeline :webhooks do
-    plug :accepts, ["json"]
-    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
-    # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
-    # as it relies on the `:raw_body` being inside the `conn.assigns`.
-    plug GlossiaWeb.Plugs.RequirePayloadSignatureMatchPlug
-  end
-
-  pipeline :rss do
-    plug :accepts, ["xml"]
-  end
+  ##### API Routes #####
 
   pipeline :api do
     plug :accepts, ["json"]
@@ -56,33 +63,13 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Auth.Policies, :current_project
   end
 
-  # API Docs
-  scope "/" do
-    get "/docs/api", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
-  end
-
-  # Marketing
-  scope "/", GlossiaWeb do
-    pipe_through [:browser, :marketing]
-
-    get "/", MarketingController, :index
-    get "/beta", MarketingController, :beta
-    get "/about", MarketingController, :about
-    get "/team", MarketingController, :team
-    get "/beta-added", MarketingController, :beta_added
-    get "/blog", MarketingController, :blog
-    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-    get "/docs/*id", MarketingController, :docs
-    get "/changelog", MarketingController, :changelog
-  end
-
   # Authenticated API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/api", GlossiaWeb.API do
     pipe_through [:api, :auth_api]
 
     scope "/projects/:owner/:project", Project do
-      resources "localization-requests", LocalizationRequestController, only: [:create]
+      resources "/localization-requests", LocalizationRequestController, only: [:create]
     end
   end
 
@@ -96,13 +83,34 @@ defmodule GlossiaWeb.Router do
     match(:*, "/*path", GlossiaWeb.API.APIController, :not_found)
   end
 
-  # RSS
+  ##### RSS Routes #####
+  pipeline :rss do
+    plug :accepts, ["xml"]
+  end
   scope "/", GlossiaWeb do
     pipe_through [:rss]
     get "/blog/feed.xml", MarketingController, :feed
   end
 
-  # Authentication
+  ##### Webhook Routes #####
+  pipeline :webhooks do
+    plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
+    # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
+    # as it relies on the `:raw_body` being inside the `conn.assigns`.
+    plug GlossiaWeb.Plugs.RequirePayloadSignatureMatchPlug
+  end
+
+  scope "/webhooks", GlossiaWeb do
+    pipe_through [:webhooks]
+    post "/github", WebhookController, :github
+  end
+
+  ##### App Routes #####
+  pipeline :app do
+    plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
+  end
+
   scope "/auth", GlossiaWeb do
     pipe_through [:browser, :app]
 
@@ -114,12 +122,6 @@ defmodule GlossiaWeb.Router do
     post "/:provider/callback", AuthController, :callback
   end
 
-  # Webhooks
-  scope "/webhooks", GlossiaWeb do
-    pipe_through [:webhooks]
-
-    post "/github", WebhookController, :github
-  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:glossia, :dev_routes) do
