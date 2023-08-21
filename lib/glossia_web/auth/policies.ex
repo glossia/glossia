@@ -19,7 +19,7 @@ defmodule GlossiaWeb.Auth.Policies do
     end
   end
 
-  def policy(assigns, {:create, :localization_request}) do
+  def policy(assigns, {:create, :test}) do
     case assigns[:current_project] do
       %Project{} -> :ok
       _ -> {:error, :unauthorized}
