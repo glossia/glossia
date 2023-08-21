@@ -11,7 +11,8 @@ export type FileFormat =
   | "yaml"
   | "json"
   | "toml"
-  | "portable-object";
+  | "portable-object"
+  | "portable-object-template";
 
 export type TranslationRequestPayload = {
   id: string;

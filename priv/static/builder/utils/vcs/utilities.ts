@@ -27,6 +27,8 @@ export function getFileFormat(
       return "toml";
     case "po":
       return "portable-object";
+    case "pot":
+      return "portable-object-template";
     default:
       return undefined;
   }
