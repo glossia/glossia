@@ -1,4 +1,4 @@
-defmodule Glossia.VersionControl.GitHub do
+defmodule Glossia.ContentSources.GitHub do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
@@ -7,9 +7,9 @@ defmodule Glossia.VersionControl.GitHub do
   require Logger
 
   # Behaviors
-  @behaviour Glossia.VersionControl.Platform
+  @behaviour Glossia.ContentSources.Platform
 
-  # Glossia.VersionControl.Platform behavior
+  # Glossia.ContentSources.Platform behavior
 
   @impl true
   def get_file_content(path, repository_id) do
@@ -95,7 +95,7 @@ defmodule Glossia.VersionControl.GitHub do
 
   @impl true
   def generate_token_for_cloning(vcs_id) do
-    app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.ContentSources.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     {200, %{"id" => installation_id}, _} =
@@ -120,7 +120,7 @@ defmodule Glossia.VersionControl.GitHub do
         ) ::
           Tentacat.Client.t()
   defp get_client_for_installation(installation_id, app_jwk_token) do
-    app_jwt_token = app_jwk_token || Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = app_jwk_token || Glossia.ContentSources.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     {201, %{"token" => access_token}, _} =
@@ -130,7 +130,7 @@ defmodule Glossia.VersionControl.GitHub do
   end
 
   defp get_client_for_repository(vcs_id) do
-    app_jwt_token = Glossia.VersionControl.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.ContentSources.GitHub.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(

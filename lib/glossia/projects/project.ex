@@ -13,7 +13,7 @@ defmodule Glossia.Projects.Project do
           type: type(),
           visibility: visibility(),
           vcs_id: String.t(),
-          vcs_platform: Glossia.VersionControl.t()
+          vcs_platform: Glossia.ContentSources.t()
         }
   @type visibility :: :public | :private
   @type type :: :git
@@ -48,7 +48,7 @@ defmodule Glossia.Projects.Project do
   @type changeset_attrs :: %{
           handle: String.t(),
           vcs_id: String.t(),
-          vcs_platform: Glossia.VersionControl.t(),
+          vcs_platform: Glossia.ContentSources.t(),
           account_id: integer()
         }
   @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()

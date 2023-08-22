@@ -1,5 +1,5 @@
 defmodule Glossia.Projects do
-  use Boundary, deps: [Glossia.Repo, Glossia.Events, Glossia.VersionControl], exports: [Project]
+  use Boundary, deps: [Glossia.Repo, Glossia.Events, Glossia.ContentSources], exports: [Project]
 
   @moduledoc """
   The projects context
@@ -41,6 +41,7 @@ defmodule Glossia.Projects do
       ) do
     default_branch = opts |> Map.fetch!(:default_branch)
     project = project |> Repo.preload(:account)
+
     :ok =
       %{
         event: event,
@@ -56,7 +57,7 @@ defmodule Glossia.Projects do
       |> Map.put(:access_token, generate_token_for_project(project))
       |> Map.put(
         :git_access_token,
-        Glossia.VersionControl.generate_token_for_cloning(%{
+        Glossia.ContentSources.generate_token_for_cloning(%{
           vcs_id: project.vcs_id,
           vcs_platform: project.vcs_platform
         })
