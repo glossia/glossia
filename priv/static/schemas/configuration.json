@@ -18,10 +18,6 @@
               "$ref": "https://glossia.ai/schemas/target_context.json"
             }
           ]
-        },
-        "description": {
-          "description": "A description of the localizable content to be localized.",
-          "type": "string"
         }
       },
       "required": ["source", "target"]
