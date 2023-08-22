@@ -10,6 +10,7 @@ defmodule Glossia.Accounts.Account do
         }
 
   # Modules
+  import Ecto.Query, only: [from: 2]
   use Ecto.Schema
   import Ecto.Changeset
   alias Glossia.Projects.Project
@@ -78,5 +79,15 @@ defmodule Glossia.Accounts.Account do
   @spec reserved_handles() :: [String.t()]
   def reserved_handles do
     @reserved_handles
+  end
+
+  # Queries
+
+  @doc """
+  It returns the query to find an account by its handle.
+  """
+  @spec account_by_handle_query(any) :: Ecto.Query.t()
+  def account_by_handle_query(handle) do
+    from(a in __MODULE__, where: a.handle == ^handle)
   end
 end

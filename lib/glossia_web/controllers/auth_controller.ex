@@ -6,9 +6,7 @@ defmodule GlossiaWeb.AuthController do
   alias Ueberauth.Strategy.Helpers
   alias Glossia.Auth
 
-  @max_age 60 * 60 * 24 * 60
   @remember_me_cookie "_glossia_web_user_remember_me"
-  @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
 
   def login(conn, _params) do
     render(conn, :login)

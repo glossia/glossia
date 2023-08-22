@@ -62,4 +62,22 @@ defmodule Glossia.ProjectsTest do
       assert got_project.id == project.id
     end
   end
+
+  describe "find_project_by_owner_and_project_handle" do
+    test "it returns the project if it exists" do
+      # Given
+      {:ok, project} = Glossia.ProjectsFixtures.project_fixture()
+      project = project |> Repo.preload(:account)
+
+      # When
+      got_project =
+        Projects.find_project_by_owner_and_project_handle(
+          project.account.handle,
+          project.handle
+        )
+
+      # Then
+      assert project.id == got_project.id
+    end
+  end
 end

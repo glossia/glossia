@@ -3,7 +3,7 @@ defmodule GlossiaWeb.Router do
 
   import GlossiaWeb.UserAuth
 
-  # Pipelines
+  ##### Base pipelines #####
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -20,48 +20,22 @@ defmodule GlossiaWeb.Router do
     plug :fetch_and_track_current_user
   end
 
-  pipeline :marketing do
-    plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
+  # Loads the project from the slug in the URL
+  pipeline :project do
+    plug GlossiaWeb.Plugs.AssignProjectFromURLPlug
   end
 
-  pipeline :app do
-    plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
-  end
+  #### Documentation Routes ####
 
-  pipeline :webhooks do
-    plug :accepts, ["json"]
-    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
-    # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
-    # as it relies on the `:raw_body` being inside the `conn.assigns`.
-    plug GlossiaWeb.Plugs.RequirePayloadSignatureMatchPlug
-  end
-
-  pipeline :rss do
-    plug :accepts, ["xml"]
-  end
-
-  pipeline :api do
-    plug :accepts, ["json"]
-
-    plug Plug.Parsers,
-      parsers: [:urlencoded, :multipart, :json],
-      pass: ["*/*"],
-      json_decoder: Phoenix.json_library()
-
-    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.OpenAPI.APISpec
-  end
-
-  pipeline :auth_api do
-    plug GlossiaWeb.Auth.Resources, :current_project
-    plug GlossiaWeb.Auth.Policies, :current_project
-  end
-
-  # API Docs
   scope "/" do
     get "/docs/api", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
   end
 
-  # Marketing
+  ##### Marketing Routes #####
+  pipeline :marketing do
+    plug :put_root_layout, html: {GlossiaWeb.MarketingLayouts, :root}
+  end
+
   scope "/", GlossiaWeb do
     pipe_through [:browser, :marketing]
 
@@ -76,13 +50,32 @@ defmodule GlossiaWeb.Router do
     get "/changelog", MarketingController, :changelog
   end
 
+  ##### API Routes #####
+
+  pipeline :api do
+    plug :accepts, ["json"]
+
+    plug Plug.Parsers,
+      parsers: [:urlencoded, :multipart, :json],
+      pass: ["*/*"],
+      json_decoder: Phoenix.json_library()
+
+    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.OpenAPI.APISpec
+  end
+
+  pipeline :auth_api do
+    plug GlossiaWeb.Auth.Resources, :authenticated_project
+    plug GlossiaWeb.Auth.Policies, :authenticated_project
+  end
+
   # Authenticated API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/api", GlossiaWeb.API do
-    pipe_through [:api, :auth_api]
+    pipe_through [:api, :auth_api, :project]
 
-    resources "/projects/:owner/:project/localization-requests", LocalizationRequestController,
-      only: [:create]
+    scope "/projects/:owner_handle/:project_handle", Project do
+      resources "/localization-requests", LocalizationRequestController, only: [:create, :index]
+    end
   end
 
   # Unauthenticated API endpoints:
@@ -95,13 +88,35 @@ defmodule GlossiaWeb.Router do
     match(:*, "/*path", GlossiaWeb.API.APIController, :not_found)
   end
 
-  # RSS
+  ##### RSS Routes #####
+  pipeline :rss do
+    plug :accepts, ["xml"]
+  end
+
   scope "/", GlossiaWeb do
     pipe_through [:rss]
     get "/blog/feed.xml", MarketingController, :feed
   end
 
-  # Authentication
+  ##### Webhook Routes #####
+  pipeline :webhooks do
+    plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
+    # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
+    # as it relies on the `:raw_body` being inside the `conn.assigns`.
+    plug GlossiaWeb.Plugs.RequirePayloadSignatureMatchPlug
+  end
+
+  scope "/webhooks", GlossiaWeb do
+    pipe_through [:webhooks]
+    post "/github", WebhookController, :github
+  end
+
+  ##### App Routes #####
+  pipeline :app do
+    plug :put_root_layout, html: {GlossiaWeb.AppLayouts, :root}
+  end
+
   scope "/auth", GlossiaWeb do
     pipe_through [:browser, :app]
 
@@ -111,13 +126,6 @@ defmodule GlossiaWeb.Router do
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
-  end
-
-  # Webhooks
-  scope "/webhooks", GlossiaWeb do
-    pipe_through [:webhooks]
-
-    post "/github", WebhookController, :github
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
