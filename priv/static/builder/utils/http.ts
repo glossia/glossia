@@ -17,20 +17,23 @@ export async function glossiaFetch<T>(
     },
   });
   const text = await response.text();
-
-  let jsonData;
-  try {
-    jsonData = JSON.parse(text);
-  } catch (error) {
-    console.error(
-      "Error parsing JSON response from Glossia",
-      text,
-    );
-    throw error;
+  // deno-lint-ignore no-explicit-any
+  let serializedResponseBody: any = text;
+  if (response.headers.get("content-type") == "application/json") {
+    try {
+      serializedResponseBody = JSON.parse(text);
+    } catch (error) {
+      console.error(
+        "Error parsing JSON response from Glossia",
+        text,
+      );
+      throw error;
+    }
   }
   console.info("Glossia responded", {
     status: response.status,
-    body: jsonData,
+    body: serializedResponseBody,
   });
-  return jsonData;
+
+  return serializedResponseBody;
 }
