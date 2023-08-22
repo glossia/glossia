@@ -10,15 +10,15 @@ defmodule GlossiaWeb.Auth.Resources do
   alias Glossia.Projects
   alias Glossia.Projects.Project
 
-  def resource(conn, :current_project, _) do
+  def resource(conn, :session_project, _) do
     with {:auth_header, "Bearer" <> " " <> token} <-
            {:auth_header, Plug.Conn.get_req_header(conn, "authorization") |> List.first()},
-         {:current_project, %Project{} = project} <-
-           {:current_project, Projects.get_project_from_token(String.trim(token))} do
-      {:ok, :current_project, project}
+         {:session_project, %Project{} = project} <-
+           {:session_project, Projects.get_project_from_token(String.trim(token))} do
+      {:ok, :session_project, project}
     else
-      {:auth_header, nil} -> {:ok, :current_project, nil}
-      {:current_project, nil} -> {:ok, :current_project, nil}
+      {:auth_header, nil} -> {:ok, :session_project, nil}
+      {:session_project, nil} -> {:ok, :session_project, nil}
     end
   end
 

@@ -64,14 +64,14 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :auth_api do
-    plug GlossiaWeb.Auth.Resources, :current_project
-    plug GlossiaWeb.Auth.Policies, :current_project
+    plug GlossiaWeb.Auth.Resources, :session_project
+    plug GlossiaWeb.Auth.Policies, :session_project
   end
 
   # Authenticated API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/api", GlossiaWeb.API do
-    pipe_through [:api, :project]
+    pipe_through [:api, :auth_api, :project]
 
     scope "/projects/:owner_handle/:project_handle", Project do
       resources "/localization-requests", LocalizationRequestController, only: [:create, :index]

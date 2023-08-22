@@ -22,4 +22,8 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
     GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :translation_request})
     json(conn, %{"hello" => "yay"})
   end
+
+  def index(conn, _params) do
+    conn |> json(%{"status" => "not-implemented"})
+  end
 end
