@@ -68,14 +68,10 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Auth.Policies, :authenticated_project
   end
 
-  pipeline :api_open_api do
-    plug OpenApiSpex.Plug.CastAndValidate, json_render_error_v2: true
-  end
-
   # Authenticated API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/api", GlossiaWeb.API do
-    pipe_through [:api, :api_auth, :project, :api_open_api]
+    pipe_through [:api, :api_auth, :project]
 
     scope "/projects/:owner_handle/:project_handle", Project do
       resources "/localization-requests", LocalizationRequestController, only: [:create, :index]

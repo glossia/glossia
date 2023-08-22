@@ -3,6 +3,8 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
   use GlossiaWeb, :controller
   use OpenApiSpex.ControllerSpecs
 
+  plug OpenApiSpex.Plug.CastAndValidate, json_render_error_v2: true
+
   tags ["localization-requests"]
 
   alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.{
