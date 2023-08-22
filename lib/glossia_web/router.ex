@@ -64,8 +64,8 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :auth_api do
-    plug GlossiaWeb.Auth.Resources, :session_project
-    plug GlossiaWeb.Auth.Policies, :session_project
+    plug GlossiaWeb.Auth.Resources, :authenticated_project
+    plug GlossiaWeb.Auth.Policies, :authenticated_project
   end
 
   # Authenticated API endpoints:

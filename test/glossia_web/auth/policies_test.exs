@@ -3,10 +3,10 @@ defmodule GlossiaWeb.Auth.PoliciesTest do
   use GlossiaWeb.ConnCase
   alias GlossiaWeb.Auth.Policies
 
-  describe "session_project" do
+  describe "authenticated_project" do
     test "returns unauthorized if the project is missing", %{conn: conn} do
       # Given
-      opts = Policies.init(:session_project)
+      opts = Policies.init(:authenticated_project)
 
       # When
       conn = conn |> Policies.call(opts)
@@ -23,7 +23,7 @@ defmodule GlossiaWeb.Auth.PoliciesTest do
     test "authorized? returns true when the current and url projects are the same", %{conn: conn} do
       # Given
       {:ok, project} = Glossia.ProjectsFixtures.project_fixture()
-      conn = conn |> assign(:session_project, project) |> assign(:url_project, project)
+      conn = conn |> assign(:authenticated_project, project) |> assign(:url_project, project)
 
       # When
       authorized = conn |> Policies.authorized?({:create, :localization_request})
@@ -37,10 +37,10 @@ defmodule GlossiaWeb.Auth.PoliciesTest do
     } do
       # Given
       {:ok, url_project} = Glossia.ProjectsFixtures.project_fixture()
-      {:ok, session_project} = Glossia.ProjectsFixtures.project_fixture()
+      {:ok, authenticated_project} = Glossia.ProjectsFixtures.project_fixture()
 
       conn =
-        conn |> assign(:session_project, session_project) |> assign(:url_project, url_project)
+        conn |> assign(:authenticated_project, authenticated_project) |> assign(:url_project, url_project)
 
       # When
       authorized = conn |> Policies.authorized?({:create, :localization_request})

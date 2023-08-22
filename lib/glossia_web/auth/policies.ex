@@ -9,8 +9,8 @@ defmodule GlossiaWeb.Auth.Policies do
   use PolicyWonk.Enforce
   alias Glossia.Projects.Project
 
-  def policy(assigns, :session_project) do
-    case assigns[:session_project] do
+  def policy(assigns, :authenticated_project) do
+    case assigns[:authenticated_project] do
       %Project{} ->
         :ok
 
@@ -24,10 +24,10 @@ defmodule GlossiaWeb.Auth.Policies do
   end
 
   def policy(assigns, {actions, :localization_request}) when is_list(actions) do
-    case {assigns[:session_project], assigns[:url_project]} do
-      {%Project{} = session_project, %Project{} = url_project} ->
+    case {assigns[:authenticated_project], assigns[:url_project]} do
+      {%Project{} = authenticated_project, %Project{} = url_project} ->
         # The authenticated project and the project in the URL must be the same
-        if session_project.id == url_project.id, do: :ok, else: {:error, :unauthorized}
+        if authenticated_project.id == url_project.id, do: :ok, else: {:error, :unauthorized}
 
       _ ->
         {:error, :unauthorized}
