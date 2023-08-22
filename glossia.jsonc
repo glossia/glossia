@@ -1,8 +1,8 @@
 {
   "$schema": "https://glossia.ai/schemas/configuration.json",
   "context": {
-    "description": "It represents the structured content of Glossia, an AI-based localization platform. The content is presented in a web app and site.",
     "source": {
+      "description": "It represents the structured content of Glossia, an AI-based localization platform. The content is presented in a web app and site.",
       "language": "en"
     },
     "target": [

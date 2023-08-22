@@ -24,23 +24,28 @@ export type LocalizationRequestPayloadModule = {
   description?: string;
   format: FileFormat;
   localizables: {
-    source: LocalizationRequestPayloadItem;
-    target: LocalizationRequestPayloadItem[];
+    source: LocalizationRequestPayloadLocalizable;
+    target: LocalizationRequestPayloadLocalizable[];
   };
 };
 
-export type LocalizationRequestPayloadItem = {
+export type LocalizationRequestPayloadLocalizableChecksum = {
+  algorithm: string;
+  value: string;
+};
+
+export type LocalizationRequestPayloadLocalizable = {
   id: string;
   context: Context;
   checksum: {
-    current: {
-      algorithm: string;
-      value: string;
+    cache_id: string;
+    content: {
+      current: LocalizationRequestPayloadLocalizableChecksum;
+      cached?: LocalizationRequestPayloadLocalizableChecksum;
     };
-    cached: {
-      id: string;
-      algorithm?: string;
-      value?: string;
+    context: {
+      current: LocalizationRequestPayloadLocalizableChecksum;
+      cached?: LocalizationRequestPayloadLocalizableChecksum;
     };
   };
 };

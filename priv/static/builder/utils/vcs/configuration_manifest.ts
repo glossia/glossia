@@ -7,19 +7,23 @@ export type ConfigurationManifestContext = {
   language: string;
 };
 
+export type ConfigurationManifestSourceContext =
+  ConfigurationManifestContext & {
+    description: string;
+  };
+
+export type ConfigurationManifestTargetContext = ConfigurationManifestContext;
+
 export type ConfigurationManifest = {
   // The path to the manifest file.
   path: string;
 
-  // A description of the content that should be localized.
-  description?: string;
-
   /** The source and target contexts necessary to localize */
   context: {
     /** The base context of the source language. */
-    source: ConfigurationManifestContext;
+    source: ConfigurationManifestSourceContext;
     /** The target contexts of the target languages. */
-    target: ConfigurationManifestContext[];
+    target: ConfigurationManifestTargetContext[];
   };
   /**
    * A wildcard to resolve all the files that should be localized. The wildcard
@@ -31,14 +35,14 @@ export type ConfigurationManifest = {
 export type ManifestLoadingError =
   | { type: "missing_file"; filePath: string }
   | {
-    type: "invalid_json";
-    filePath: string;
-  }
+      type: "invalid_json";
+      filePath: string;
+    }
   | {
-    type: "invalid_schema";
-    errors: string[];
-    filePath: string;
-  };
+      type: "invalid_schema";
+      errors: string[];
+      filePath: string;
+    };
 
 /**
  * It loads and validates a configuration manifest at a given path.
@@ -46,13 +50,8 @@ export type ManifestLoadingError =
  * @returns {Promise<ConfigurationManifest>} A promise that resolves with the configuration if the manifest can be loaded successfully. The promise rejects with an error if either the file doesn't exist, the format is invalid (we expect a documented JSON), or it doesn't comply with the schema.
  */
 export async function loadAndValidateConfigurationManifest(
-  configurationManifestPath: string,
-): Promise<
-  Result<
-    ConfigurationManifest,
-    ManifestLoadingError
-  >
-> {
+  configurationManifestPath: string
+): Promise<Result<ConfigurationManifest, ManifestLoadingError>> {
   if (!(await exists(configurationManifestPath))) {
     return {
       failure: { type: "missing_file", filePath: configurationManifestPath },
@@ -60,13 +59,13 @@ export async function loadAndValidateConfigurationManifest(
   }
   const validate = await getConfigurationValidate();
   console.info(
-    `Reading configuration file at path: ${configurationManifestPath}`,
+    `Reading configuration file at path: ${configurationManifestPath}`
   );
   // deno-lint-ignore no-explicit-any
   let configurationFile: any;
   try {
     configurationFile = parse(
-      await Deno.readTextFile(configurationManifestPath),
+      await Deno.readTextFile(configurationManifestPath)
     );
   } catch (error) {
     if (error instanceof SyntaxError) {
