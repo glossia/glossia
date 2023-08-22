@@ -50,21 +50,27 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.CreateParams do
       "id" => 123,
       "modules" => [
         %{
-          "description" => "This is a test content",
           "format" => "portable-object-template",
           "id" => "priv/gettext/{language}/LC_MESSAGES/default.po",
           "localizables" => %{
             "source" => %{
               "checksum" => %{
-                "cached" => %{
-                  "id" => "priv/gettext/en/LC_MESSAGES/.glossia.default.po.json"
+                "cache_id" => "priv/gettext/en/LC_MESSAGES/.glossia.default.po.json",
+                "context" => %{
+                  "current" => %{
+                    "algorithm" => "sha256",
+                    "value" => "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  }
                 },
-                "current" => %{
-                  "algorithm" => "sha256",
-                  "value" => "1d4bd15c1549dd6adfde21daf5831eb94e2fcc2f224324f976b69a1737bdeca7"
+                "content" => %{
+                  "current" => %{
+                    "algorithm" => "sha256",
+                    "value" => "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dba75"
+                  }
                 }
               },
               "context" => %{
+                "description" => "This is a test content",
                 "language" => "en"
               },
               "id" => "priv/gettext/en/LC_MESSAGES/default.po"
@@ -72,12 +78,20 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.CreateParams do
             "target" => [
               %{
                 "checksum" => %{
-                  "cached" => %{
-                    "id" => "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json"
+                  "cache_id" => "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json",
+                  "context" => %{
+                    "current" => %{
+                      "algorithm" => "sha256",
+                      "value" =>
+                        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852bccc"
+                    }
                   },
-                  "current" => %{
-                    "algorithm" => "sha256",
-                    "value" => "f80530784135f6416d99fab5df43492f8977621658bf75c02a92fc44c8dc0b5b"
+                  "content" => %{
+                    "current" => %{
+                      "algorithm" => "sha256",
+                      "value" =>
+                        "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dbaaa"
+                    }
                   }
                 },
                 "context" => %{
