@@ -2,18 +2,7 @@ import Ajv from "https://esm.sh/ajv@~8.12.0";
 import { parse } from "https://deno.land/std@0.195.0/jsonc/mod.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import { Result } from "../result.ts";
-
-export type ConfigurationManifestContext = {
-  language: string;
-};
-
-export type ConfigurationManifestSourceContext =
-  & ConfigurationManifestContext
-  & {
-    description: string;
-  };
-
-export type ConfigurationManifestTargetContext = ConfigurationManifestContext;
+import { SourceContext, TargetContext } from "./types.ts";
 
 export type ConfigurationManifest = {
   // The path to the manifest file.
@@ -22,9 +11,9 @@ export type ConfigurationManifest = {
   /** The source and target contexts necessary to localize */
   context: {
     /** The base context of the source language. */
-    source: ConfigurationManifestSourceContext;
+    source: SourceContext;
     /** The target contexts of the target languages. */
-    target: ConfigurationManifestTargetContext[];
+    target: TargetContext[];
   };
   /**
    * A wildcard to resolve all the files that should be localized. The wildcard
@@ -126,9 +115,18 @@ async function getConfigurationValidate() {
   const languageSchema = await import("../../../schemas/language.json", {
     assert: { type: "json" },
   });
-  const contextSchema = await import("../../../schemas/context.json", {
-    assert: { type: "json" },
-  });
+  const sourceContextSchema = await import(
+    "../../../schemas/source_context.json",
+    {
+      assert: { type: "json" },
+    }
+  );
+  const targetContextSchema = await import(
+    "../../../schemas/target_context.json",
+    {
+      assert: { type: "json" },
+    }
+  );
 
   const ajv = new Ajv({
     strict: true,
@@ -141,7 +139,14 @@ async function getConfigurationValidate() {
   });
 
   ajv.addSchema(languageSchema.default, languageSchema.default["$id"]);
-  ajv.addSchema(contextSchema.default, contextSchema.default["$id"]);
+  ajv.addSchema(
+    sourceContextSchema.default,
+    sourceContextSchema.default["$id"],
+  );
+  ajv.addSchema(
+    targetContextSchema.default,
+    targetContextSchema.default["$id"],
+  );
 
   return ajv.compile(configurationSchema.default);
 }
