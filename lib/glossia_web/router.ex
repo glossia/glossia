@@ -20,6 +20,11 @@ defmodule GlossiaWeb.Router do
     plug :fetch_and_track_current_user
   end
 
+  # Loads the project from the slug in the URL
+  pipeline :project do
+    plug GlossiaWeb.Plugs.FetchProjectFromSlugPlug
+  end
+
   #### Documentation Routes ####
 
   scope "/" do
@@ -66,10 +71,10 @@ defmodule GlossiaWeb.Router do
   # Authenticated API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/api", GlossiaWeb.API do
-    pipe_through [:api, :auth_api]
+    pipe_through [:api, :project]
 
     scope "/projects/:owner/:project", Project do
-      resources "/localization-requests", LocalizationRequestController, only: [:create]
+      resources "/localization-requests", LocalizationRequestController, only: [:create, :index]
     end
   end
 
@@ -87,6 +92,7 @@ defmodule GlossiaWeb.Router do
   pipeline :rss do
     plug :accepts, ["xml"]
   end
+
   scope "/", GlossiaWeb do
     pipe_through [:rss]
     get "/blog/feed.xml", MarketingController, :feed
@@ -121,7 +127,6 @@ defmodule GlossiaWeb.Router do
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
   end
-
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:glossia, :dev_routes) do

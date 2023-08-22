@@ -72,4 +72,17 @@ defmodule Glossia.Projects.Project do
       where: p.vcs_id == ^vcs_id and p.vcs_platform == ^vcs_platform
     )
   end
+
+  @doc """
+  It returns the query to find a project by its owner and project handle.
+  """
+  @spec find_project_by_owner_and_project_handle_query(owner :: String.t(), project :: String.t()) ::
+          Ecto.Query.t()
+  def find_project_by_owner_and_project_handle_query(owner, project) do
+    from(p in __MODULE__,
+      join: a in assoc(p, :account),
+      where: p.handle == ^project and a.handle == ^owner,
+      select: p
+    )
+  end
 end

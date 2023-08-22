@@ -93,6 +93,15 @@ defmodule Glossia.Projects do
   end
 
   @doc """
+  It finds a project given the owner and the project handle.
+  """
+  @spec find_project_by_owner_and_project_handle(owner :: String.t(), project :: String.t()) ::
+          Project.t() | nil
+  def find_project_by_owner_and_project_handle(owner, project) do
+    Project.find_project_by_owner_and_project_handle_query(owner, project) |> Repo.one()
+  end
+
+  @doc """
   It generates a token for the given project to authenticate requests coming from builds.
   """
   @spec generate_token_for_project(Project.t()) :: String.t()
