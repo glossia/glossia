@@ -19,6 +19,9 @@ defmodule Glossia do
       Events,
       Events.GitEvent,
       Version,
+      API,
+      Localizations,
+      {Localizations.API.Schemas, []},
       # Tests
       DataCase,
       AccountsFixtures

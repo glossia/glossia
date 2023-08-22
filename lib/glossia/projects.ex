@@ -40,7 +40,7 @@ defmodule Glossia.Projects do
         %{event: "push" = event, commit_sha: commit_sha, ref: ref} = opts
       ) do
     default_branch = opts |> Map.fetch!(:default_branch)
-
+    project = project |> Repo.preload(:account)
     :ok =
       %{
         event: event,
@@ -49,7 +49,9 @@ defmodule Glossia.Projects do
         ref: ref,
         vcs_id: project.vcs_id,
         vcs_platform: project.vcs_platform,
-        project_id: project.id
+        project_id: project.id,
+        project_handle: project.handle,
+        account_handle: project.account.handle
       }
       |> Map.put(:access_token, generate_token_for_project(project))
       |> Map.put(
