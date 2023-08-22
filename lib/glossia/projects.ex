@@ -41,6 +41,7 @@ defmodule Glossia.Projects do
       ) do
     default_branch = opts |> Map.fetch!(:default_branch)
     project = project |> Repo.preload(:account)
+
     :ok =
       %{
         event: event,
