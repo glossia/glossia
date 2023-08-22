@@ -22,7 +22,7 @@ defmodule GlossiaWeb.Router do
 
   # Loads the project from the slug in the URL
   pipeline :project do
-    plug GlossiaWeb.Plugs.FetchProjectFromSlugPlug
+    plug GlossiaWeb.Plugs.AssignProjectFromURLPlug
   end
 
   #### Documentation Routes ####
@@ -73,7 +73,7 @@ defmodule GlossiaWeb.Router do
   scope "/api", GlossiaWeb.API do
     pipe_through [:api, :project]
 
-    scope "/projects/:owner/:project", Project do
+    scope "/projects/:owner_handle/:project_handle", Project do
       resources "/localization-requests", LocalizationRequestController, only: [:create, :index]
     end
   end
