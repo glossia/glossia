@@ -2,6 +2,7 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.Checksum do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
+  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.Checksum.ChecksumValue
 
   OpenApiSpex.schema(%{
     title: "Localization content checksum",
@@ -9,30 +10,44 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.Checksum do
       "The checksum of a localizable content for Glossia to determine whether a piece of content should be translated or not.",
     type: :object,
     properties: %{
-      cached: %Schema{
-        type: :object,
-        description: "The checksum cached from the last localization request",
-        properties: %{
-          id: %Schema{
-            type: :string,
-            description: "A unique identifier to persist the checksum back to the content source."
-          }
-        },
-        required: [:id]
+      cache_id: %Schema{
+        type: :string,
+        description: "A unique identifier to persist the checksum back to the content source."
       },
-      current: %Schema{
+      content: %Schema{
         type: :object,
-        description: "The checksum of the current content",
+        description: "The checksum of the localizable content",
         properties: %{
-          algorithm: %Schema{
-            type: :string,
-            description: "The algorithm used to generate the checksum."
-          },
-          value: %Schema{type: :string, description: "The value of the checksum."}
+          current: ChecksumValue,
+          cached: ChecksumValue
         },
-        required: [:algorithm, :value]
+        required: [:current]
+      },
+      context: %Schema{
+        type: :object,
+        description: "The checksum of the context",
+        properties: %{
+          current: ChecksumValue,
+          cached: ChecksumValue
+        },
+        required: [:current]
       }
     },
-    required: [:cached, :current]
+    required: [:cache_id]
   })
+
+  defmodule ChecksumValue do
+    OpenApiSpex.schema(%{
+      type: :object,
+      description: "The checksum of the current localizable content",
+      properties: %{
+        algorithm: %Schema{
+          type: :string,
+          description: "The algorithm used to generate the checksum."
+        },
+        value: %Schema{type: :string, description: "The value of the checksum."}
+      },
+      required: [:algorithm, :value]
+    })
+  end
 end

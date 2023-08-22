@@ -2,7 +2,8 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.CreateParams do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
-  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequestLocalizableContent
+  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.SourceLocalizableContent
+  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.TargetLocalizableContent
 
   OpenApiSpex.schema(%{
     title: "Localization request create params",
@@ -30,11 +31,11 @@ defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.CreateParams do
               type: :object,
               description: "The localizable content of the module.",
               properties: %{
-                source: LocalizationRequestLocalizableContent,
+                source: SourceLocalizableContent,
                 target: %Schema{
                   type: :array,
                   description: "The target localizable content of the module.",
-                  items: LocalizationRequestLocalizableContent
+                  items: TargetLocalizableContent
                 }
               },
               required: [:source, :target]
