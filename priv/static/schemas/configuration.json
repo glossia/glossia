@@ -9,19 +9,15 @@
       "type": "object",
       "properties": {
         "source": {
-          "$ref": "https://glossia.ai/schemas/context.json"
+          "$ref": "https://glossia.ai/schemas/source_context.json"
         },
         "target": {
           "type": "array",
           "items": [
             {
-              "$ref": "https://glossia.ai/schemas/context.json"
+              "$ref": "https://glossia.ai/schemas/target_context.json"
             }
           ]
-        },
-        "description": {
-          "description": "A description of the localizable content to be localized.",
-          "type": "string"
         }
       },
       "required": ["source", "target"]

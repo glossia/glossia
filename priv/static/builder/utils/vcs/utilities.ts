@@ -10,9 +10,7 @@ import { Context, FileFormat } from "./types.ts";
  * @param path {string} The absolute path to the file.
  * @returns {FileFormat | undefined}
  */
-export function getFileFormat(
-  path: string,
-): FileFormat | undefined {
+export function getFileFormat(path: string): FileFormat | undefined {
   const extension = fileExtension(path);
   switch (extension) {
     case "md":
@@ -42,10 +40,7 @@ export function getFileFormat(
  * @param pattern {string} The pattern to extract placeholders from.
  * @returns {Record<string, string>} The placeholders and their values.
  */
-export function getContextFromFilePath(
-  path: string,
-  pattern: string,
-): Context {
+export function getContextFromFilePath(path: string, pattern: string): Context {
   const placeholderNames: string[] = [];
 
   // Convert pattern into a regex pattern, capturing placeholders.
@@ -77,45 +72,32 @@ export function getContextFromFilePath(
  * @param filepath {string} The absolute path to the file.
  * @returns {Promise<string>} The SHA256 hash of the file.
  */
-export async function getFileSHA256(
-  filepath: string,
-  context: Context,
-) {
+export async function getFileSHA256(filepath: string) {
   const content = await Deno.readFile(filepath);
+  return toHashString(await crypto.subtle.digest("SHA-256", content));
+}
 
+/**
+ * Calculates the SHA256 hash of the given context.
+ * @param context {Context} The context.
+ * @returns {Promise<string>} The SHA256 hash of the context.
+ */
+export async function getContextSHA256(context: Context) {
   const contextTextEncoder = new TextEncoder();
   const encodedContextText = contextTextEncoder.encode(
-    Object.keys(context).sort().map((key) => {
-      if (context[key as keyof Context]) {
-        return `${key}=${context[key as keyof Context]}`;
-      } else {
-        return undefined;
-      }
-    }).join(
-      ",",
-    ),
+    Object.keys(context)
+      .sort()
+      .map((key) => {
+        if (context[key as keyof Context]) {
+          return `${key}=${context[key as keyof Context]}`;
+        } else {
+          return undefined;
+        }
+      })
+      .join(","),
   );
   const contextHash = toHashString(
-    await crypto.subtle.digest(
-      "SHA-256",
-      encodedContextText,
-    ),
+    await crypto.subtle.digest("SHA-256", encodedContextText),
   );
-
-  const fileHash = toHashString(
-    await crypto.subtle.digest(
-      "SHA-256",
-      content,
-    ),
-  );
-
-  const hashTextEncoder = new TextEncoder();
-  const encodedHashText = hashTextEncoder.encode(contextHash + fileHash);
-  const hash = toHashString(
-    await crypto.subtle.digest(
-      "SHA-256",
-      encodedHashText,
-    ),
-  );
-  return hash;
+  return contextHash;
 }

@@ -35,9 +35,8 @@ Deno.test("generateLocalizationRequestPayload with Glossia's configuration", asy
     // When
     const payload = await generateLocalizationRequestPayload([{
       path: join(temporaryDirectory, "priv/glossia.jsonc"),
-      description: "This is test content",
       context: {
-        source: { language: "en" },
+        source: { language: "en", description: "This is a test content" },
         target: [{ language: "es" }],
       },
       files: "gettext/{language}/LC_MESSAGES/*.po",
