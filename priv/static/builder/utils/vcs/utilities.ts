@@ -94,10 +94,10 @@ export async function getContextSHA256(context: Context) {
           return undefined;
         }
       })
-      .join(",")
+      .join(","),
   );
   const contextHash = toHashString(
-    await crypto.subtle.digest("SHA-256", encodedContextText)
+    await crypto.subtle.digest("SHA-256", encodedContextText),
   );
   return contextHash;
 }

@@ -36,7 +36,7 @@ Deno.test("loadConfigurationManifests loads all the manifests when they are vali
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path"> = {
       context: {
-        source: { language: "es" },
+        source: { language: "es", description: "This is a test content" },
         target: [{
           language: "de",
         }],
@@ -47,6 +47,7 @@ Deno.test("loadConfigurationManifests loads all the manifests when they are vali
       context: {
         source: {
           language: "es",
+          description: "This is a test content",
         },
         target: [{
           language: "de",
@@ -91,7 +92,7 @@ Deno.test("loadConfigurationManifests throws if a configuration file is an inval
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path"> = {
       context: {
-        source: { language: "es" },
+        source: { language: "es", description: "This is a test content" },
         target: [{ language: "de" }],
       },
       files: "*/{language}.md",
@@ -126,7 +127,7 @@ Deno.test("loadConfigurationManifests throws if a configuration file doesn't fol
     const rootConfigurationFile: Omit<ConfigurationManifest, "path" | "files"> =
       {
         context: {
-          source: { language: "es" },
+          source: { language: "es", description: "This is a test content" },
           target: [{ language: "de" }],
         },
         // Missing

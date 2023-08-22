@@ -5,21 +5,29 @@ snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = 
   id: "test-sha",
   modules: [
     {
-      description: "This is test content",
       format: "portable-object",
       id: "priv/gettext/{language}/LC_MESSAGES/default.po",
       localizables: {
         source: {
           checksum: {
-            cached: {
-              id: "priv/gettext/en/LC_MESSAGES/.glossia.default.po.json",
+            cache_id: "priv/gettext/en/LC_MESSAGES/.glossia.default.po.json",
+            content: {
+              cached: undefined,
+              current: {
+                algorithm: "sha256",
+                value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              },
             },
-            current: {
-              algorithm: "sha256",
-              value: "1d4bd15c1549dd6adfde21daf5831eb94e2fcc2f224324f976b69a1737bdeca7",
+            context: {
+              cached: undefined,
+              current: {
+                algorithm: "sha256",
+                value: "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dba75",
+              },
             },
           },
           context: {
+            description: "This is a test content",
             language: "en",
           },
           id: "priv/gettext/en/LC_MESSAGES/default.po",
@@ -27,12 +35,20 @@ snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = 
         target: [
           {
             checksum: {
-              cached: {
-                id: "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json",
+              cache_id: "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json",
+              content: {
+                cached: undefined,
+                current: {
+                  algorithm: "sha256",
+                  value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                },
               },
-              current: {
-                algorithm: "sha256",
-                value: "f80530784135f6416d99fab5df43492f8977621658bf75c02a92fc44c8dc0b5b",
+              context: {
+                cached: undefined,
+                current: {
+                  algorithm: "sha256",
+                  value: "c4440b47d1b3c0deffd05b9121b0a9e21941878cd1302a39228e900e5c2d545e",
+                },
               },
             },
             context: {

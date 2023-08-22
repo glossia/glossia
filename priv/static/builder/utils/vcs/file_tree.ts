@@ -12,16 +12,15 @@ import {
 import { isDirectory, resolveGlob } from "../fs.ts";
 import { deepMerge } from "https://deno.land/std@0.196.0/collections/deep_merge.ts";
 import { basename } from "https://deno.land/std@0.196.0/path/mod.ts";
-import {
-  ConfigurationManifest,
-  ConfigurationManifestSourceContext,
-} from "./configuration_manifest.ts";
+import { ConfigurationManifest } from "./configuration_manifest.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import {
   FileFormat,
-  LocalizationRequestPayloadLocalizable,
   LocalizationRequestPayloadLocalizableChecksum,
   LocalizationRequestPayloadModule,
+  LocalizationRequestPayloadSourceLocalizable,
+  LocalizationRequestPayloadTargetLocalizable,
+  SourceContext,
 } from "./types.ts";
 
 type GenerateModulesPayloadOptions = { rootDirectory: string };
@@ -34,7 +33,7 @@ type GenerateModulesPayloadOptions = { rootDirectory: string };
  */
 export async function generateModulesPayload(
   configurationManifest: ConfigurationManifest,
-  options: GenerateModulesPayloadOptions
+  options: GenerateModulesPayloadOptions,
 ): Promise<LocalizationRequestPayloadModule[]> {
   const tree = await resolveFileTree({
     relativePath: configurationManifest.files,
@@ -60,7 +59,7 @@ async function getPayloadFromTree(
     rootDirectory: string;
     manifestDirectory: string;
     sourceContext: Record<string, string>;
-  }
+  },
 ): Promise<LocalizationRequestPayloadModule[]> {
   const result: LocalizationRequestPayloadModule[] = [];
 
@@ -78,28 +77,31 @@ async function getPayloadFromTree(
       }
       const pathWithPlaceholders = relative(
         rootDirectory,
-        join(manifestDirectory, path.join("/"))
+        join(manifestDirectory, path.join("/")),
       );
 
       if (!format) {
         return;
         // Unsupported format so we skip the files
       }
-      let sourceLocalizable: LocalizationRequestPayloadLocalizable | undefined;
-      const targetLocalizablees: LocalizationRequestPayloadLocalizable[] = [];
+      let sourceLocalizable:
+        | LocalizationRequestPayloadSourceLocalizable
+        | undefined;
+      const targetLocalizablees: LocalizationRequestPayloadTargetLocalizable[] =
+        [];
 
       for (const path of node.children) {
         const context = getContextFromFilePath(path, pathWithPlaceholders);
         const checksumRelativePath = join(
           dirname(path),
-          `.glossia.${basename(path)}.json`
+          `.glossia.${basename(path)}.json`,
         );
         const checksumPath = join(manifestDirectory, checksumRelativePath);
         let cachedChecksum:
           | {
-              content: LocalizationRequestPayloadLocalizableChecksum;
-              context: LocalizationRequestPayloadLocalizableChecksum;
-            }
+            content: LocalizationRequestPayloadLocalizableChecksum;
+            context: LocalizationRequestPayloadLocalizableChecksum;
+          }
           | undefined;
 
         if (await exists(checksumPath)) {
@@ -135,7 +137,7 @@ async function getPayloadFromTree(
         if (isSourceContext(context, sourceContext)) {
           sourceLocalizable = {
             ...item,
-            context: sourceContext as ConfigurationManifestSourceContext,
+            context: sourceContext as SourceContext,
           };
         } else {
           targetLocalizablees.push(item);
@@ -146,7 +148,8 @@ async function getPayloadFromTree(
         id: pathWithPlaceholders,
         format: format,
         localizables: {
-          source: sourceLocalizable as LocalizationRequestPayloadLocalizable,
+          source:
+            sourceLocalizable as LocalizationRequestPayloadSourceLocalizable,
           target: targetLocalizablees,
         },
       });
@@ -172,14 +175,14 @@ async function getPayloadFromTree(
 
 function isSourceContext(
   context: Record<string, string>,
-  sourceContext: Record<string, string>
+  sourceContext: Record<string, string>,
 ) {
   return Object.entries(context).every(
     ([key, value]) =>
       // deno-lint-ignore ban-ts-comment
       // @ts-ignore
       // deno-lint-ignore no-prototype-builtins
-      context.hasOwnProperty(key) && sourceContext[key] === value
+      context.hasOwnProperty(key) && sourceContext[key] === value,
   );
 }
 
@@ -250,7 +253,7 @@ function hasPathAnyComponents(path: string) {
 }
 
 async function resolveFileTree(
-  options: ResolveFileTreeOptions
+  options: ResolveFileTreeOptions,
 ): Promise<FileTree> {
   // There aren't more components to traverse.
   const nextRelativePathComponent = options.relativePath
@@ -275,11 +278,12 @@ async function resolveFileTree(
   let childrenDirectories: FileTree = {};
   const nextRelativePath = options.relativePath.replace(
     new RegExp(`${nextRelativePathComponent.replaceAll("*", "\\*")}/?`),
-    ""
+    "",
   );
 
-  const hasNextRelativePathAnyComponent =
-    hasPathAnyComponents(nextRelativePath);
+  const hasNextRelativePathAnyComponent = hasPathAnyComponents(
+    nextRelativePath,
+  );
 
   for (const childPath of childrenPaths) {
     const _isDirectory = await isDirectory(childPath);
@@ -300,7 +304,7 @@ async function resolveFileTree(
           rootDirectory: options.rootDirectory,
           manifestDirectory: options.manifestDirectory,
           parentTree: {},
-        })
+        }),
       );
 
       options.parentTree[nextRelativePathComponent] = {

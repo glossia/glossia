@@ -3,6 +3,12 @@ export type Context = {
   country?: string;
 };
 
+export type SourceContext = Context & {
+  description: string;
+};
+
+export type TargetContext = Context;
+
 /**
  * The file format of a file.
  */
@@ -21,22 +27,26 @@ export type LocalizationRequestPayload = {
 
 export type LocalizationRequestPayloadModule = {
   id: string;
-  description?: string;
   format: FileFormat;
   localizables: {
-    source: LocalizationRequestPayloadLocalizable;
-    target: LocalizationRequestPayloadLocalizable[];
+    source: LocalizationRequestPayloadSourceLocalizable;
+    target: LocalizationRequestPayloadTargetLocalizable[];
   };
 };
+
+export type LocalizationRequestPayloadSourceLocalizable =
+  LocalizationRequestPayloadLocalizable<SourceContext>;
+export type LocalizationRequestPayloadTargetLocalizable =
+  LocalizationRequestPayloadLocalizable<TargetContext>;
 
 export type LocalizationRequestPayloadLocalizableChecksum = {
   algorithm: string;
   value: string;
 };
 
-export type LocalizationRequestPayloadLocalizable = {
+export type LocalizationRequestPayloadLocalizable<C extends Context> = {
   id: string;
-  context: Context;
+  context: C;
   checksum: {
     cache_id: string;
     content: {

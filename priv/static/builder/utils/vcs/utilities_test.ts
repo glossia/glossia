@@ -2,6 +2,7 @@ import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
 import {
   getContextFromFilePath,
+  getContextSHA256,
   getFileFormat,
   getFileSHA256,
 } from "./utilities.ts";
@@ -98,8 +99,8 @@ Deno.test("getFileSHA256 returns the same value when the content hasn't changed"
     await Deno.writeTextFile(filePath, "bar");
 
     // When
-    const lhsHash = await getFileSHA256(filePath, { language: "es" });
-    const rhsHash = await getFileSHA256(filePath, { language: "es" });
+    const lhsHash = await getFileSHA256(filePath);
+    const rhsHash = await getFileSHA256(filePath);
 
     // Then
     assertEquals(lhsHash, rhsHash);
@@ -113,62 +114,56 @@ Deno.test("getFileSHA256 returns a different value when the content changes", as
     await Deno.writeTextFile(filePath, "bar");
 
     // When
-    const lhsHash = await getFileSHA256(filePath, { language: "es" });
+    const lhsHash = await getFileSHA256(filePath);
     await Deno.writeTextFile(filePath, "foo");
-    const rhsHash = await getFileSHA256(filePath, { language: "es" });
+    const rhsHash = await getFileSHA256(filePath);
 
     // Then
     assertNotEquals(lhsHash, rhsHash);
   });
 });
 
-Deno.test("getFileSHA256 returns a different value when the context changes", async () => {
-  await runInTemporaryDirectory(async (temporaryDirectory) => {
-    // Given
-    const filePath = join(temporaryDirectory, "foo.txt");
-    await Deno.writeTextFile(filePath, "bar");
-
-    // When
-    const lhsHash = await getFileSHA256(filePath, { language: "es" });
-    const rhsHash = await getFileSHA256(filePath, { language: "de" });
-
-    // Then
-    assertNotEquals(lhsHash, rhsHash);
+Deno.test("getContextSHA256 returns the same value regardles off the order of the context keys", async () => {
+  // When
+  const lhsHash = await getContextSHA256({
+    language: "es",
+    country: "MX",
   });
+  const rhsHash = await getContextSHA256({
+    country: "MX",
+    language: "es",
+  });
+
+  // Then
+  assertEquals(lhsHash, rhsHash);
 });
 
-Deno.test("getFileSHA256 returns the same value when the context doesn't change", async () => {
-  await runInTemporaryDirectory(async (temporaryDirectory) => {
-    // Given
-    const filePath = join(temporaryDirectory, "foo.txt");
-    await Deno.writeTextFile(filePath, "bar");
-
-    // When
-    const lhsHash = await getFileSHA256(filePath, { language: "es" });
-    const rhsHash = await getFileSHA256(filePath, { language: "es" });
-
-    // Then
-    assertEquals(lhsHash, rhsHash);
+Deno.test("getContextSHA256 returns the same value when the contexsts are the same", async () => {
+  // When
+  const lhsHash = await getContextSHA256({
+    language: "es",
+    country: "MX",
   });
+  const rhsHash = await getContextSHA256({
+    language: "es",
+    country: "MX",
+  });
+
+  // Then
+  assertEquals(lhsHash, rhsHash);
 });
 
-Deno.test("getFileSHA256 returns the same value regardles off the order of the context keys", async () => {
-  await runInTemporaryDirectory(async (temporaryDirectory) => {
-    // Given
-    const filePath = join(temporaryDirectory, "foo.txt");
-    await Deno.writeTextFile(filePath, "bar");
-
-    // When
-    const lhsHash = await getFileSHA256(filePath, {
-      language: "es",
-      country: "MX",
-    });
-    const rhsHash = await getFileSHA256(filePath, {
-      country: "MX",
-      language: "es",
-    });
-
-    // Then
-    assertEquals(lhsHash, rhsHash);
+Deno.test("getContextSHA256 returns the same value when the contexsts are the not the same", async () => {
+  // When
+  const lhsHash = await getContextSHA256({
+    language: "es",
+    country: "MX",
   });
+  const rhsHash = await getContextSHA256({
+    language: "en",
+    country: "US",
+  });
+
+  // Then
+  assertNotEquals(lhsHash, rhsHash);
 });

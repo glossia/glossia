@@ -8,7 +8,8 @@ export type ConfigurationManifestContext = {
 };
 
 export type ConfigurationManifestSourceContext =
-  ConfigurationManifestContext & {
+  & ConfigurationManifestContext
+  & {
     description: string;
   };
 
@@ -35,14 +36,14 @@ export type ConfigurationManifest = {
 export type ManifestLoadingError =
   | { type: "missing_file"; filePath: string }
   | {
-      type: "invalid_json";
-      filePath: string;
-    }
+    type: "invalid_json";
+    filePath: string;
+  }
   | {
-      type: "invalid_schema";
-      errors: string[];
-      filePath: string;
-    };
+    type: "invalid_schema";
+    errors: string[];
+    filePath: string;
+  };
 
 /**
  * It loads and validates a configuration manifest at a given path.
@@ -50,7 +51,7 @@ export type ManifestLoadingError =
  * @returns {Promise<ConfigurationManifest>} A promise that resolves with the configuration if the manifest can be loaded successfully. The promise rejects with an error if either the file doesn't exist, the format is invalid (we expect a documented JSON), or it doesn't comply with the schema.
  */
 export async function loadAndValidateConfigurationManifest(
-  configurationManifestPath: string
+  configurationManifestPath: string,
 ): Promise<Result<ConfigurationManifest, ManifestLoadingError>> {
   if (!(await exists(configurationManifestPath))) {
     return {
@@ -59,13 +60,13 @@ export async function loadAndValidateConfigurationManifest(
   }
   const validate = await getConfigurationValidate();
   console.info(
-    `Reading configuration file at path: ${configurationManifestPath}`
+    `Reading configuration file at path: ${configurationManifestPath}`,
   );
   // deno-lint-ignore no-explicit-any
   let configurationFile: any;
   try {
     configurationFile = parse(
-      await Deno.readTextFile(configurationManifestPath)
+      await Deno.readTextFile(configurationManifestPath),
     );
   } catch (error) {
     if (error instanceof SyntaxError) {
