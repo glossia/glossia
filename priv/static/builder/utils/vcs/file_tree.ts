@@ -42,11 +42,75 @@ export async function generateModulesPayload(
     manifestDirectory: dirname(configurationManifest.path),
     parentTree: {},
   });
-  return getPayloadFromTree(tree, {
+  let modules = await getPayloadFromTree(tree, {
     rootDirectory: options.rootDirectory,
     sourceContext: configurationManifest.context.source,
     manifestDirectory: dirname(configurationManifest.path),
   });
+  modules = await payloadAddingAbsentLocalizableTargets(modules, {
+    configurationManifest,
+  });
+
+  return modules;
+}
+
+type PayloadAddingAbsentLocalizableTargetsOptions = {
+  configurationManifest: ConfigurationManifest;
+};
+
+/**
+ * When we resolve the tree and flatten it, we do it using the file-system as the source of truth. As a consequence,
+ * target languages that haven't been added to the file system yet won't be present in the payload.
+ * This function ensures those files are present and includes them in the payload. That way, the server will see
+ * that they need to be translated
+ * @param modules {LocalizationRequestPayloadModule[]} The modules to add the absent localizable targets to.
+ * @param options {PayloadAddingAbsentLocalizableTargetsOptions} The options necessary to add the absent localizable targets.
+ * @returns {LocalizationRequestPayloadModule[]} The modules with the absent localizable targets added.
+ */
+function payloadAddingAbsentLocalizableTargets(
+  modules: LocalizationRequestPayloadModule[],
+  options: PayloadAddingAbsentLocalizableTargetsOptions,
+): LocalizationRequestPayloadModule[] {
+  return modules.map((module) => {
+    const id = module.id;
+    for (const context of options.configurationManifest.context.target) {
+      let path = id;
+      for (const contextAttribute of Object.entries(context)) {
+        path = path.replace(
+          `{${contextAttribute[0]}}`,
+          contextAttribute[1],
+        );
+      }
+      if (module.localizables.target.find((target) => target.id === path)) {
+        continue;
+      }
+      module = {
+        ...module,
+        localizables: {
+          ...module.localizables,
+          target: [
+            ...module.localizables.target,
+            {
+              id: path,
+              context: context,
+              checksum: {
+                cache_id: getChecksumJSONPathFromRelativePath(path),
+              },
+            },
+          ],
+        },
+      };
+      return module;
+    }
+    return module;
+  });
+}
+
+function getChecksumJSONPathFromRelativePath(path: string) {
+  return join(
+    dirname(path),
+    `.glossia.${basename(path)}.json`,
+  );
 }
 
 async function getPayloadFromTree(
@@ -92,10 +156,7 @@ async function getPayloadFromTree(
 
       for (const path of node.children) {
         const context = getContextFromFilePath(path, pathWithPlaceholders);
-        const checksumRelativePath = join(
-          dirname(path),
-          `.glossia.${basename(path)}.json`,
-        );
+        const checksumRelativePath = getChecksumJSONPathFromRelativePath(path);
         const checksumPath = join(manifestDirectory, checksumRelativePath);
         let cachedChecksum:
           | {

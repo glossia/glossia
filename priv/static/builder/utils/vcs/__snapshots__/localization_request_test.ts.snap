@@ -56,6 +56,15 @@ snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = 
             },
             id: "priv/gettext/es/LC_MESSAGES/default.po",
           },
+          {
+            checksum: {
+              cache_id: "priv/gettext/fr/LC_MESSAGES/.glossia.default.po.json",
+            },
+            context: {
+              language: "fr",
+            },
+            id: "priv/gettext/fr/LC_MESSAGES/default.po",
+          },
         ],
       },
     },
