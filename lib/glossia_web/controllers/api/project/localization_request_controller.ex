@@ -18,8 +18,8 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
       ok: {"Localization request response", "application/json", CreateResponse}
     ]
 
-  def create(conn, _params) do
+  def create(conn = %{body_params: %CreateParams{} = localization_request}, _params) do
     GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
-    json(conn, %{"hello" => "yay"})
+    json(conn, localization_request)
   end
 end
