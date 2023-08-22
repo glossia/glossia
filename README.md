@@ -53,3 +53,11 @@ Glossia's website and app run on [Elixir](https://elixir-lang.org/) and [Phoenix
   - Extract content: `mix gettext.extract`
   - It merges the content into the English file: `mix gettext.merge priv/gettext`
   - Extract content and merge: `mix gettext.extract --merge`
+
+## Supporters
+
+<a href="https://appsignal.com/">
+  <img src="resources/logos/appsignal.svg" width="150" alt="AppSignal's logo"/>
+</a>
+
+AppSignal supports Glossia by giving us access to its [open source plan](https://www.appsignal.com/open-source) for application performance monitoring.
