@@ -120,6 +120,22 @@ export function getGitRef(env: Deno.Env = Deno.env) {
 }
 
 /**
+ * It returns the owner handle from the event that led to triggering this build.
+ * @param env {Deno.Env} An object containing the enviornment variables of the system.
+ */
+export function getOwnerHandle(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_OWNER_HANDLE");
+}
+
+/**
+ * It returns the project handle from the event that led to triggering this build.
+ * @param env {Deno.Env} An object containing the enviornment variables of the system.
+ */
+export function getProjectHandle(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_PROJECT_HANDLE");
+}
+
+/**
  * It returns the default branch from Git repository.
  * This value is only present when the event is a git event.
  * @param env {Deno.Env} An object containing the enviornment variables of the system.

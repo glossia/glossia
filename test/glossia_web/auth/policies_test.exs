@@ -40,7 +40,9 @@ defmodule GlossiaWeb.Auth.PoliciesTest do
       {:ok, authenticated_project} = Glossia.ProjectsFixtures.project_fixture()
 
       conn =
-        conn |> assign(:authenticated_project, authenticated_project) |> assign(:url_project, url_project)
+        conn
+        |> assign(:authenticated_project, authenticated_project)
+        |> assign(:url_project, url_project)
 
       # When
       authorized = conn |> Policies.authorized?({:create, :localization_request})

@@ -25,7 +25,9 @@ defmodule Glossia.Events.GitEventWorker do
           "vcs_platform" => vcs_platform
         }
       }) do
-    case Repo.get_by(GitEvent, commit_sha: commit_sha, project_id: project_id) do
+    git_event = Repo.get_by(GitEvent, commit_sha: commit_sha, project_id: project_id)
+
+    case git_event do
       nil ->
         trigger_build(%{
           git_access_token: git_access_token,
@@ -53,11 +55,14 @@ defmodule Glossia.Events.GitEventWorker do
           commit_sha: commit_sha,
           default_branch: default_branch,
           access_token: access_token,
-          git_access_token: git_access_token
+          git_access_token: git_access_token,
+          project_id: project_id
         } = attrs
       ) do
     git_event =
       Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
+
+    project = Glossia.Projects.find_project_by_id(project_id) |> Repo.preload(:account)
 
     attrs |> update_commit_status(:localizing)
 
@@ -66,10 +71,13 @@ defmodule Glossia.Events.GitEventWorker do
         # Event
         GLOSSIA_EVENT: "git" <> "_" <> event,
         GLOSSIA_ACCESS_TOKEN: access_token,
+        GLOSSIA_OWNER_HANDLE: project.account.handle,
+        GLOSSIA_PROJECT_HANDLE: project.handle,
 
         # VCS
         GLOSSIA_VCS_ID: vcs_id,
         GLOSSIA_VCS_PLATFORM: vcs_platform,
+
         # Git
         GLOSSIA_GIT_REF: ref,
         GLOSSIA_GIT_DEFAULT_BRANCH: default_branch,

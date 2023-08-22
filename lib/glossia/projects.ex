@@ -93,6 +93,14 @@ defmodule Glossia.Projects do
   end
 
   @doc """
+  It finds a project given the id.
+  """
+  @spec find_project_by_id(id :: number()) :: Project.t() | nil
+  def find_project_by_id(id) do
+    Repo.get_by(Project, id: id)
+  end
+
+  @doc """
   It finds a project given the owner and the project handle.
   """
   @spec find_project_by_owner_and_project_handle(owner :: String.t(), project :: String.t()) ::

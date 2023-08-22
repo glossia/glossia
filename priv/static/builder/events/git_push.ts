@@ -1,3 +1,4 @@
+import { getOwnerHandle, getProjectHandle } from "../utils/environment.ts";
 import { cloneGitRepository } from "../utils/git.ts";
 import { glossiaFetch } from "../utils/http.ts";
 import { loadConfigurationManifests } from "../utils/vcs/configuration_loader.ts";
@@ -11,7 +12,7 @@ export default async function gitPush() {
     root: tempDirPath,
   });
   console.info("Configuration manifests loaded", configurationManifests);
-  console.info("Generating translation payload");
+  console.info("Generating localization request payload");
   const payload = await generateLocalizationRequestPayload(
     configurationManifests,
     {
@@ -19,14 +20,20 @@ export default async function gitPush() {
       env: Deno.env,
     },
   );
-  console.info("Translation payload generated", payload);
-  console.info("Creating translation");
-  await glossiaFetch("/api/translation-requests", {
-    method: "POST",
-    body: JSON.stringify(payload),
-    headers: {
-      "content-type": "application/json",
+  console.info(
+    "Localization request payload generated",
+    JSON.stringify(payload, null, 2),
+  );
+  console.info("Creating localization request");
+  await glossiaFetch(
+    `/api/projects/${getOwnerHandle()}/${getProjectHandle()}/localization-requests`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "content-type": "application/json",
+      },
     },
-  });
-  console.info("Translation delegated to the server");
+  );
+  console.info("Localization request sent to the server");
 }

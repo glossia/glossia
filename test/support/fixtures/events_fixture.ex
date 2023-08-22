@@ -1,7 +1,7 @@
 defmodule Glossia.EventsFixture do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Glossia.Translations` context.
+  entities via the `Glossia.Localizations` context.
   """
 
   alias Glossia.Events.GitEvent

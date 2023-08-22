@@ -24,7 +24,7 @@ type GenerateModulesPayloadOptions = { rootDirectory: string };
 
 /**
  * Resolves the file tree using the given configuration manifest and returns
- * a payload to initiate a translation request.
+ * a payload to initiate a localization request.
  * @param options {ConfigurationManifest} The configuration manifest.
  * @returns
  */
