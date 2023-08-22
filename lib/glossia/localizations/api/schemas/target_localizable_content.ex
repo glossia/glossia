@@ -1,9 +1,9 @@
-defmodule GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.TargetLocalizableContent do
+defmodule Glossia.Localizations.API.Schemas.TargetLocalizableContent do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
-  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.TargetContext
-  alias GlossiaWeb.OpenAPI.Schemas.LocalizationRequest.Checksum
+  alias Glossia.Localizations.API.Schemas.TargetContext
+  alias Glossia.Localizations.API.Schemas.Checksum
 
   OpenApiSpex.schema(%{
     title: "Target localizable content",

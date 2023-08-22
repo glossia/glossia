@@ -17,7 +17,9 @@ defmodule Glossia.Events do
           ref: String.t(),
           commit_sha: String.t(),
           vcs_id: String.t(),
-          vcs_platform: atom()
+          vcs_platform: atom(),
+          project_handle: String.t(),
+          account_handle: String.t()
         }) ::
           {:ok, nil} | {:error, any()}
   def process_git_event(attrs) do

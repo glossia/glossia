@@ -1,5 +1,5 @@
-defmodule Glossia.Localizations.Localization do
-  use Boundary, deps: [], exports: []
+defmodule Glossia.Localizations do
+  use Boundary, deps: [], exports: [API.Schemas.LocalizationRequest]
 
   def localize() do
   end
