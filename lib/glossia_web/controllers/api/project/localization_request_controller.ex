@@ -20,6 +20,6 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
 
   def create(conn = %{body_params: %CreateParams{} = localization_request}, _params) do
     GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
-    json(conn, localization_request)
+    conn |> send_resp(201, "")
   end
 end
