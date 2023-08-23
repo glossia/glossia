@@ -1,0 +1,23 @@
+defmodule Glossia.Localizations.Workers.ProcessLocalizationRequestWorker do
+  @moduledoc """
+  It processes the events that are triggered by the version control system.
+  """
+
+  # Modules
+  require Logger
+  # alias Glossia.Repo
+  use Oban.Worker
+
+  # Impl: Oban.Worker
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{
+        args: %{
+          "request" => request,
+          "project" => project
+        }
+      }) do
+      Logger.info("Processing localization request", request)
+  end
+
+end

@@ -2,11 +2,13 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
   # Modules
   use GlossiaWeb, :controller
   use OpenApiSpex.ControllerSpecs
+  alias Glossia.Localizations
 
   plug OpenApiSpex.Plug.CastAndValidate, json_render_error_v2: true
 
   tags ["localization-requests"]
 
+  alias Glossia.Projects.Project
   alias Glossia.API.Schemas.LocalizationRequest.CreateResponse
   alias Glossia.Localizations.API.Schemas.LocalizationRequest
 
@@ -18,9 +20,15 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
       ok: {"Localization request response", "application/json", CreateResponse}
     ]
 
-  def create(conn = %{body_params: %LocalizationRequest{} = localization_request}, _params) do
-    GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
-    dbg(localization_request)
-    conn |> send_resp(201, "")
+  @spec create(conn :: %{body_params: LocalizationRequest.t(), assigns: %{ current_project: Project.t() }}, params :: map()) :: Plug.Conn.t()
+  def create(conn = %{body_params: %LocalizationRequest{} = request}, _params) do
+    # GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
+    result = Localizations.process_localization_request(request, %{
+      project: conn.assigns[:current_project]
+    })
+    case result do
+      :ok -> conn |> put_status(:ok) |> json(%CreateResponse{})
+      {:error, _error} -> conn |> put_status(:internal_server_error) |> json(%CreateResponse{})
+    end
   end
 end

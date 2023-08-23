@@ -1,4 +1,5 @@
 defmodule Glossia.API.Schemas.LocalizationRequest.CreateResponse do
+
   # Modules
   require OpenApiSpex
 
@@ -8,7 +9,6 @@ defmodule Glossia.API.Schemas.LocalizationRequest.CreateResponse do
     type: :object,
     properties:
       %{
-        # data: User
       }
   })
 end
