@@ -1,6 +1,6 @@
 defmodule Glossia.API.Spec do
   alias OpenApiSpex.{Components, Info, OpenApi, Paths, Server, SecurityScheme}
-  alias GlossiaWeb.{Endpoint, Router}
+  alias Glossia.Web.{Endpoint, Router}
   @behaviour OpenApi
 
   @impl OpenApi

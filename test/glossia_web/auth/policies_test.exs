@@ -1,7 +1,7 @@
-defmodule GlossiaWeb.Auth.PoliciesTest do
+defmodule Glossia.Web.Auth.PoliciesTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
-  use GlossiaWeb.ConnCase
-  alias GlossiaWeb.Auth.Policies
+  use Glossia.Web.ConnCase
+  alias Glossia.Web.Auth.Policies
 
   describe "authenticated_project" do
     test "returns unauthorized if the project is missing", %{conn: conn} do

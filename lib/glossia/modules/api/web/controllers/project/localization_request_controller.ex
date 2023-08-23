@@ -1,6 +1,6 @@
 defmodule Glossia.Modules.API.Web.Controllers.Project.LocalizationRequestController do
   # Modules
-  use GlossiaWeb, :controller
+  use Glossia.Web, :controller
   use OpenApiSpex.ControllerSpecs
   alias Glossia.Localizations
 
@@ -23,7 +23,7 @@ defmodule Glossia.Modules.API.Web.Controllers.Project.LocalizationRequestControl
 
   @spec create(conn :: %{body_params: LocalizationRequest.t(), assigns: %{ current_project: Project.t() }}, params :: map()) :: Plug.Conn.t()
   def create(conn = %{body_params: %LocalizationRequest{} = request}, _params) do
-    # GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
+    # Glossia.Web.Auth.Policies.enforce!(conn, {:create, :localization_request})
     result = Localizations.process_localization_request(request, %{
       project: conn.assigns[:current_project]
     })

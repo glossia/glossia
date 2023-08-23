@@ -3,8 +3,9 @@ defmodule Glossia.Blog do
   A module that loads Markdown-writen blog posts at compile-time.
   """
 
+  # Modules
   alias Glossia.Blog.{Post}
-
+  use Boundary
   use NimblePublisher,
     build: Post,
     from: Application.app_dir(:glossia, "priv/blog/posts/**/*.md"),

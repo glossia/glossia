@@ -1,3 +1,3 @@
 defmodule Glossia.Modules do
-  use Boundary, deps: [], exports: [API, Localizations]
+  use Boundary, deps: [Glossia.Web], exports: [API, Localizations]
 end

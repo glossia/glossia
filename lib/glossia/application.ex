@@ -1,5 +1,5 @@
 defmodule Glossia.Application do
-  use Boundary, top_level?: true, deps: [Glossia, GlossiaWeb]
+  use Boundary, top_level?: true, deps: [Glossia]
 
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
@@ -21,7 +21,7 @@ defmodule Glossia.Application do
     children =
       [
         # Start the Telemetry supervisor
-        GlossiaWeb.Telemetry,
+        Glossia.Web.Telemetry,
         # Start the Ecto repository
         Glossia.Repo,
         # Start the PubSub system
@@ -29,11 +29,11 @@ defmodule Glossia.Application do
         # Start Finch
         {Finch, name: Glossia.Finch},
         # Start the Endpoint (http/https)
-        GlossiaWeb.Endpoint,
+        Glossia.Web.Endpoint,
         # Start a worker by calling: Glossia.Worker.start_link(arg)
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
-        {PlugAttack.Storage.Ets, name: GlossiaWeb.Plugs.AttackPlug.Storage, clean_period: 60_000}
+        {PlugAttack.Storage.Ets, name: Glossia.Web.Plugs.AttackPlug.Storage, clean_period: 60_000}
       ] ++ google_cloud_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -46,7 +46,7 @@ defmodule Glossia.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    GlossiaWeb.Endpoint.config_change(changed, removed)
+    Glossia.Web.Endpoint.config_change(changed, removed)
     :ok
   end
 

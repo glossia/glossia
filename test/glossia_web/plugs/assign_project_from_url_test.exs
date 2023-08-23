@@ -1,9 +1,9 @@
-defmodule GlossiaWeb.Plugs.AssignProjectFromURLPlugTest do
+defmodule Glossia.Web.Plugs.AssignProjectFromURLPlugTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
-  use GlossiaWeb.ConnCase
+  use Glossia.Web.ConnCase
   alias Glossia.ProjectsFixtures
   alias Glossia.Repo
-  alias GlossiaWeb.Plugs.AssignProjectFromURLPlug
+  alias Glossia.Web.Plugs.AssignProjectFromURLPlug
 
   test "assigns the project when the project exists", %{conn: conn} do
     # Given

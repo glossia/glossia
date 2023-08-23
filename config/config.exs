@@ -11,12 +11,12 @@ config :glossia,
   ecto_repos: [Glossia.Repo]
 
 # Configures the endpoint
-config :glossia, GlossiaWeb.Endpoint,
+config :glossia, Glossia.Web.Endpoint,
   url: [host: "localhost"],
   render_errors: [
-    formats: [html: GlossiaWeb.ErrorHTML, json: GlossiaWeb.ErrorJSON],
-    root_layout: [html: {GlossiaWeb.MarketingLayouts, :root}],
-    layout: [html: {GlossiaWeb.MarketingLayouts, :error}]
+    formats: [html: Glossia.Web.ErrorHTML, json: Glossia.Web.ErrorJSON],
+    root_layout: [html: {Glossia.Web.MarketingLayouts, :root}],
+    layout: [html: {Glossia.Web.MarketingLayouts, :error}]
   ],
   pubsub_server: Glossia.PubSub
 

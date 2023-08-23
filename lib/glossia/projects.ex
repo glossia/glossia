@@ -1,11 +1,6 @@
 defmodule Glossia.Projects do
-  use Boundary, deps: [Glossia.Repo, Glossia.Events, Glossia.ContentSources], exports: [Project]
-
-  @moduledoc """
-  The projects context
-  """
-
   # Modules
+  use Boundary, deps: [Glossia.Repo, Glossia.Events, Glossia.ContentSources], exports: [Project]
   require Logger
   alias Glossia.Repo
   alias Glossia.Projects.{Project, ProjectToken}
