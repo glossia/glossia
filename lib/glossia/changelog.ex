@@ -4,7 +4,7 @@ defmodule Glossia.Changelog do
   """
 
   alias Glossia.Changelog.{Update}
-
+  use Boundary
   use NimblePublisher,
     build: Update,
     from: Application.app_dir(:glossia, "priv/changelog/updates/**/*.md"),

@@ -2,7 +2,7 @@ defmodule Glossia.Accounts do
   @moduledoc """
   The Accounts context.
   """
-
+  use Boundary, deps: [Glossia.Repo, Glossia.Mailer], exports: [User]
   import Ecto.Query, warn: false
   alias Glossia.Repo
 

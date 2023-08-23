@@ -7,7 +7,7 @@ defmodule Glossia.Events.GitEvent do
   @type t :: %__MODULE__{
           commit_sha: String.t(),
           vcs_id: String.t() | nil,
-          vcs_platform: Glossia.ContentSources.Platform.t(),
+          vcs_platform: Glossia.Foundation.ContentSources.Platform.t(),
           vm_id: String.t() | nil,
           status: status(),
           project: Glossia.Projects.Project.t() | nil

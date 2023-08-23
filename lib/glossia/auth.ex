@@ -2,9 +2,11 @@ defmodule Glossia.Auth do
   @moduledoc """
   Retrieve the user information from an auth request
   """
+
+  # Modules
+  use Boundary, deps: [Glossia.Accounts]
   require Logger
   require Jason
-
   alias Ueberauth.Auth
   alias Glossia.Accounts
 
