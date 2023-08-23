@@ -70,10 +70,10 @@ defmodule GlossiaWeb.Router do
 
   # Authenticated API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
-  scope "/api", GlossiaWeb.API do
+  scope "/api" do
     pipe_through [:api, :api_auth, :project]
 
-    scope "/projects/:owner_handle/:project_handle", Project do
+    scope "/projects/:owner_handle/:project_handle", Glossia.Modules.API.Web.Controllers.Project do
       resources "/localization-requests", LocalizationRequestController, only: [:create, :index]
     end
   end

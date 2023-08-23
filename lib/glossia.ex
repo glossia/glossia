@@ -4,7 +4,9 @@ defmodule Glossia do
   and business logic.
   """
   use Boundary,
-    deps: [],
+    deps: [
+      # GlossiaWeb
+    ],
     exports: [
       Auth,
       ErrorReporter,
@@ -19,12 +21,9 @@ defmodule Glossia do
       Events,
       Events.GitEvent,
       Version,
-      API,
-      {API.Schemas, []},
-      Localizations,
-      {Localizations.API.Schemas, []},
-      # Tests
-      DataCase,
-      AccountsFixtures
+      Modules,
+      Modules.API,
+      Modules.API.Web,
+      {Modules.API.Web, []},
     ]
 end

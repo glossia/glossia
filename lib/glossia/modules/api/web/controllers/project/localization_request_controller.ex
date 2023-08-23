@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.API.Project.LocalizationRequestController do
+defmodule Glossia.Modules.API.Web.Controllers.Project.LocalizationRequestController do
   # Modules
   use GlossiaWeb, :controller
   use OpenApiSpex.ControllerSpecs
@@ -9,8 +9,9 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
   tags ["localization-requests"]
 
   alias Glossia.Projects.Project
-  alias Glossia.API.Schemas.LocalizationRequest.CreateResponse
-  alias Glossia.Localizations.API.Schemas.LocalizationRequest
+  alias Glossia.Modules.Localizations
+  alias Glossia.Modules.API.Core.Schemas.LocalizationRequest.CreateResponse
+  alias Glossia.Modules.Localizations.Core.API.Schemas.LocalizationRequest
 
   operation :create,
     summary: "Creates a new localization request",
