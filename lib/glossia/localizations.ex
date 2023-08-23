@@ -15,7 +15,9 @@ defmodule Glossia.Localizations do
   - `request` - The localization request to process.
   - `opts` - The options to process the localization request.
   """
-  @spec process_localization_request_opts(request :: LocalizationRequest, opts :: process_localization_request_opts)
+  @spec process_localization_request(request :: LocalizationRequest, opts :: process_localization_request_opts()) :: :ok
   def process_localization_request(request, opts) do
+    # TODO
+    :ok
   end
 end

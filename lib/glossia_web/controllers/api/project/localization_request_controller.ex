@@ -18,9 +18,10 @@ defmodule GlossiaWeb.API.Project.LocalizationRequestController do
     responses: [
       ok: {"Localization request response", "application/json", CreateResponse}
     ]
-  def create(conn = %{body_params: %LocalizationRequest{} = localization_request}, _params) do
+  @spec create(any, any) :: none
+  def create(conn = %{body_params: %LocalizationRequest{} = request}, _params) do
     GlossiaWeb.Auth.Policies.enforce!(conn, {:create, :localization_request})
-    Localizations.process_localization_request(request, conn.assigns[:current_project])
-    conn |> json(:ok, %CreateResponse{})
+    Localizations.process_localization_request(request, %{project: conn.assigns[:current_project]})
+    conn |> put_status(:ok) |> json(%CreateResponse{})
   end
 end
