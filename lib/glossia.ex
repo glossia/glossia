@@ -20,6 +20,7 @@ defmodule Glossia do
       Events.GitEvent,
       Version,
       API,
+      {API.Schemas, []},
       Localizations,
       {Localizations.API.Schemas, []},
       # Tests

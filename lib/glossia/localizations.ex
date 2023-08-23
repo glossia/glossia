@@ -3,6 +3,7 @@ defmodule Glossia.Localizations do
 
   # Modules
   alias Glossia.Localizations.API.Schemas.LocalizationRequest
+  alias Glossia.Localizations.Workers.ProcessLocalizationRequestWorker
 
   # Types
   @type process_localization_request_opts :: %{ project: Glossia.Project.t() }
@@ -15,9 +16,14 @@ defmodule Glossia.Localizations do
   - `request` - The localization request to process.
   - `opts` - The options to process the localization request.
   """
-  @spec process_localization_request(request :: LocalizationRequest, opts :: process_localization_request_opts()) :: :ok
-  def process_localization_request(request, opts) do
-    # TODO
-    :ok
+  @spec process_localization_request(request :: LocalizationRequest.t(), opts :: process_localization_request_opts()) :: :ok | {:error, term()}
+  def process_localization_request(request, %{project: project } = _opts) do
+    %{ request: request, project: project}
+    |> ProcessLocalizationRequestWorker.new()
+    |> Oban.insert()
+    |> case do
+      {:ok, _} -> :ok
+      {:error, error} -> {:error, error}
+    end
   end
 end
