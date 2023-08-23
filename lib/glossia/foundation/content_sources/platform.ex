@@ -1,4 +1,4 @@
-defmodule Glossia.ContentSources.Platform do
+defmodule Glossia.Foundation.ContentSources.Platform do
   # Types
 
   @type t :: :github
@@ -15,7 +15,7 @@ defmodule Glossia.ContentSources.Platform do
 
   ## Examples
 
-    iex > Glossia.ContentSources.Platform.get_file_content("glossia.jsonc", "glossia/glossia")
+    iex > Glossia.Foundation.ContentSources.Platform.get_file_content("glossia.jsonc", "glossia/glossia")
     {:ok, "..."}
   """
   @callback get_file_content(

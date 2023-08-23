@@ -1,4 +1,4 @@
-defmodule Glossia.ContentSources.ContentSource do
+defmodule Glossia.Foundation.ContentSources.ContentSource do
   @type version_t :: :latest | {:version, String.t()}
 
   @doc """
