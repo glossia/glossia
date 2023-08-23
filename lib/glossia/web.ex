@@ -1,10 +1,7 @@
 defmodule Glossia.Web do
-  @moduledoc """
-  The module that represents the web interface of Glossia
-  """
-
   use Boundary,
     deps: [
+      Glossia,
       Glossia.Accounts,
       Glossia.Analytics,
       Glossia.Projects,
@@ -13,7 +10,16 @@ defmodule Glossia.Web do
       Glossia.Auth,
       Glossia.ContentSources,
     ],
-    exports: [Endpoint, Router, {Plugs, []}]
+    exports: [
+      {Plugs, []},
+      AuthController,
+      WebhookController,
+      MarketingController,
+      UserAuth,
+      API.APIController,
+      Auth.Resources,
+      Auth.Policies
+    ]
 
   def static_paths, do: ~w(assets fonts images schemas favicons robots.txt builder)
 
@@ -138,8 +144,8 @@ defmodule Glossia.Web do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Glossia.Web.Endpoint,
-        router: Glossia.Web.Router,
+        endpoint: Glossia.Endpoint,
+        router: Glossia.Router,
         statics: Glossia.Web.static_paths()
     end
   end

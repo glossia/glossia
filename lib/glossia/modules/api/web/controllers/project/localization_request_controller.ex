@@ -9,7 +9,7 @@ defmodule Glossia.Modules.API.Web.Controllers.Project.LocalizationRequestControl
   tags ["localization-requests"]
 
   alias Glossia.Projects.Project
-  alias Glossia.Modules.Localizations
+  alias Glossia.Modules.Localizations.Core, as: Localizations
   alias Glossia.Modules.API.Core.Schemas.LocalizationRequest.CreateResponse
   alias Glossia.Modules.Localizations.Core.API.Schemas.LocalizationRequest
 

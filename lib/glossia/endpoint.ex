@@ -1,4 +1,4 @@
-defmodule Glossia.Web.Endpoint do
+defmodule Glossia.Endpoint do
   use Phoenix.Endpoint, otp_app: :glossia
 
   plug RemoteIp
@@ -44,5 +44,5 @@ defmodule Glossia.Web.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug Glossia.Web.Router
+  plug Glossia.Router
 end

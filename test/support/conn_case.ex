@@ -1,4 +1,6 @@
 defmodule Glossia.Web.ConnCase do
+  use Boundary, dirty_xrefs: [Glossia.AccountsFixtures, Glossia.DataCase]
+
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -20,7 +22,7 @@ defmodule Glossia.Web.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint Glossia.Web.Endpoint
+      @endpoint Glossia.Endpoint
 
       use Glossia.Web, :verified_routes
 

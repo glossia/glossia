@@ -1,6 +1,8 @@
-defmodule Glossia.Web.Router do
-  use Glossia.Web, :router
+defmodule Glossia.Router do
 
+  # Modules
+  use Boundary, deps: [Glossia.Web, Glossia.Modules.API.Web]
+  use Glossia.Web, :router
   import Glossia.Web.UserAuth
 
   ##### Base pipelines #####
