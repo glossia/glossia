@@ -57,6 +57,7 @@ Glossia's website and app run on [Elixir](https://elixir-lang.org/) and [Phoenix
 ### Resources
 
 - `Plug.Conn` [status codes](https://hexdocs.pm/plug/Plug.Conn.Status.html#code/1-known-status-codes)
+- Elixir [Typespecs](https://hexdocs.pm/elixir/1.12/typespecs.html)
 
 ## Supporters
 
