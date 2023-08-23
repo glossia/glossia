@@ -1,4 +1,4 @@
-defmodule Glossia.Modules.Localizations.Core.Workers.ProcessLocalizationRequestWorker do
+defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationRequestWorker do
   @moduledoc """
   It processes the events that are triggered by the version control system.
   """

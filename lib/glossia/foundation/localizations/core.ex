@@ -1,9 +1,9 @@
-defmodule Glossia.Modules.Localizations.Core do
+defmodule Glossia.Foundation.Localizations.Core do
   use Boundary, deps: [], exports: [API.Schemas.LocalizationRequest]
 
   # Modules
   alias Glossia.Localizations.API.Schemas.LocalizationRequest
-  alias Glossia.Modules.Localizations.Core.Workers.ProcessLocalizationRequestWorker
+  alias Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationRequestWorker
 
   # Types
   @type process_localization_request_opts :: %{project: Glossia.Project.t()}

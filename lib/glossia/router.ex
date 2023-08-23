@@ -1,7 +1,7 @@
 defmodule Glossia.Router do
 
   # Modules
-  use Boundary, deps: [Glossia.Web, Glossia.Modules.API.Web]
+  use Boundary, deps: [Glossia.Web, Glossia.Foundation.API.Web]
   use Glossia.Web, :router
   import Glossia.Web.UserAuth
 
@@ -75,7 +75,7 @@ defmodule Glossia.Router do
   scope "/api" do
     pipe_through [:api, :api_auth, :project]
 
-    scope "/projects/:owner_handle/:project_handle", Glossia.Modules.API.Web.Controllers.Project do
+    scope "/projects/:owner_handle/:project_handle", Glossia.Foundation.API.Web.Controllers.Project do
       resources "/localization-requests", LocalizationRequestController, only: [:create, :index]
     end
   end

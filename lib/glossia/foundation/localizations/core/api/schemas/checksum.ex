@@ -1,4 +1,4 @@
-defmodule Glossia.Modules.Localizations.Core.API.Schemas.Checksum do
+defmodule Glossia.Foundation.Localizations.Core.API.Schemas.Checksum do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema

@@ -1,3 +1,3 @@
-defmodule Glossia.Modules.API.Core do
+defmodule Glossia.Foundation.API.Core do
   use Boundary, exports: [Schemas.LocalizationRequest.CreateResponse]
 end
