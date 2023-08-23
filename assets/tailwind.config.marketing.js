@@ -6,11 +6,11 @@ const plugin = require("tailwindcss/plugin");
 module.exports = {
   content: [
     "../js/**/*.js",
-    "../lib/glossia_web/components/shared_components.ex",
-    "../lib/glossia_web/components/marketing_components*",
-    "../lib/glossia_web/components/marketing_layouts/*",
-    "../lib/glossia_web/controllers/marketing_html/*",
-    "../lib/glossia_web/controllers/error_html/*",
+    "../lib/glossia/web/components/shared_components.ex",
+    "../lib/glossia/web/components/marketing_components*",
+    "../lib/glossia/web/components/marketing_layouts/*",
+    "../lib/glossia/web/controllers/marketing_html/*",
+    "../lib/glossia/web/controllers/error_html/*",
   ],
   theme: {
     fontSize: {
