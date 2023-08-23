@@ -1,5 +1,7 @@
 defmodule Glossia.Events do
-  use Boundary, deps: [Glossia.Foundation.ContentSources, Glossia.Repo, Glossia.Builds], exports: [GitEvent]
+  use Boundary,
+    deps: [Glossia.Foundation.ContentSources, Glossia.Repo, Glossia.Builds],
+    exports: [GitEvent]
 
   # Modules
   alias Glossia.Events.GitEventWorker

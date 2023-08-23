@@ -120,7 +120,9 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
         ) ::
           Tentacat.Client.t()
   defp get_client_for_installation(installation_id, app_jwk_token) do
-    app_jwt_token = app_jwk_token || Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token =
+      app_jwk_token || Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
+
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     {201, %{"token" => access_token}, _} =

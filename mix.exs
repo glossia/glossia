@@ -56,7 +56,7 @@ defmodule Glossia.MixProject do
       {:dotenvy, "~> 0.8.0"},
       {:ueberauth, "~> 0.10.5"},
       {:ueberauth_github, "~> 0.8"},
-      {:tentacat, "~> 2.0"},
+      {:tentacat, "~> 2.2"},
       {:posthog, "~> 0.1"},
       {:nimble_publisher, "~> 1.0.0"},
       {:makeup_elixir, "~> 0.16.0"},
@@ -78,7 +78,8 @@ defmodule Glossia.MixProject do
       {:open_api_spex, "~> 3.18.0"},
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
-      {:req, "~> 0.3.11"}
+      {:req, "~> 0.3.11"},
+      {:openai_ex, "~> 0.2.3"}
     ]
   end
 
@@ -104,5 +105,9 @@ defmodule Glossia.MixProject do
         "phx.digest"
       ]
     ]
+  end
+
+  def plan do
+    System.get_env("GLOSSIA_PLAN", "cloud") |> String.to_atom()
   end
 end

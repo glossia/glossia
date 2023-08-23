@@ -17,7 +17,6 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
           "project" => _project
         }
       }) do
-      Logger.info("Processing localization request", request)
+    Logger.info("Processing localization request", request)
   end
-
 end

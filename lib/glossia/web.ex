@@ -8,7 +8,7 @@ defmodule Glossia.Web do
       Glossia.Changelog,
       Glossia.Blog,
       Glossia.Auth,
-      Glossia.Foundation.ContentSources,
+      Glossia.Foundation.ContentSources
     ],
     exports: [
       {Plugs, []},

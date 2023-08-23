@@ -21,12 +21,20 @@ defmodule Glossia.Foundation.API.Web.Controllers.Project.LocalizationRequestCont
       ok: {"Localization request response", "application/json", CreateResponse}
     ]
 
-  @spec create(conn :: %{body_params: LocalizationRequest.t(), assigns: %{ current_project: Project.t() }}, params :: map()) :: Plug.Conn.t()
+  @spec create(
+          conn :: %{
+            body_params: LocalizationRequest.t(),
+            assigns: %{current_project: Project.t()}
+          },
+          params :: map()
+        ) :: Plug.Conn.t()
   def create(conn = %{body_params: %LocalizationRequest{} = request}, _params) do
     # Glossia.Web.Auth.Policies.enforce!(conn, {:create, :localization_request})
-    result = Localizations.process_localization_request(request, %{
-      project: conn.assigns[:current_project]
-    })
+    result =
+      Localizations.process_localization_request(request, %{
+        project: conn.assigns[:current_project]
+      })
+
     case result do
       :ok -> conn |> put_status(:ok) |> json(%CreateResponse{})
       {:error, _error} -> conn |> put_status(:internal_server_error) |> json(%CreateResponse{})
