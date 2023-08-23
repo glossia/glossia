@@ -6,6 +6,7 @@ defmodule Glossia.Blog do
   # Modules
   alias Glossia.Blog.{Post}
   use Boundary
+
   use NimblePublisher,
     build: Post,
     from: Application.app_dir(:glossia, "priv/blog/posts/**/*.md"),
