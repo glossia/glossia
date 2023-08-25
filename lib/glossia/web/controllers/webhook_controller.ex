@@ -22,7 +22,7 @@ defmodule Glossia.Web.WebhookController do
     default_branch = payload |> get_in(["repository", "default_branch"])
     github = GitHub.new({:repository, vcs_id})
 
-    with {:should_localize, {:ok, true}} <-
+    with {:should_localize, true} <-
            {:should_localize, GitHub.should_localize?(github, commit_sha)},
          {:project, %Project{} = project} <-
            {:project,
