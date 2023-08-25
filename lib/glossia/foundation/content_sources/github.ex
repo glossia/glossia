@@ -8,10 +8,155 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
 
   # Behaviors
   @behaviour Glossia.Foundation.ContentSources.Platform
+  @behaviour Glossia.Foundation.ContentSources.ContentSource
 
-  # Glossia.Foundation.ContentSources.Platform behavior
+  # Struct
+  defstruct [:client, :owner, :repo]
 
-  @impl true
+  def new({:repository, repository_id}) do
+    [owner, repo] = repository_id |> String.split("/")
+    new(owner: owner, repo: repo)
+  end
+
+  def new(owner: owner, repo: repo) do
+    client = get_client_for_repository("#{owner}/#{repo}")
+    %__MODULE__{client: client, owner: owner, repo: repo}
+  end
+
+  # Glossia.Foundation.ContentSources.ContentSource behavior
+
+  @impl Glossia.Foundation.ContentSources.ContentSource
+  def get_content(github, file_path, {:version, commit_sha}) do
+    Logger.debug("Fetching the content of a file", %{
+      owner: github.owner,
+      repo: github.repo,
+      file_path: file_path,
+      commit_sha: commit_sha
+    })
+
+    case Tentacat.Contents.find_in(
+           github.client,
+           github.owner,
+           github.repo,
+           file_path,
+           commit_sha
+         ) do
+      {status, payload, _response} when status in 200..299 ->
+        %{"content" => content, "encoding" => "base64"} = payload
+        {:ok, Base.decode64!(content, ignore: :whitespace)}
+
+      {_, body, _response} ->
+        {:error, body}
+    end
+  end
+
+  def get_content(github, file_path, :latest) do
+    Logger.debug("Fetching the latest content of a file", %{
+      owner: github.owner,
+      repo: github.repo,
+      file_path: file_path
+    })
+
+    with {:most_recent_commit, {:ok, commit_sha}} <-
+           {:most_recent_commit, get_most_recent_version(github)} do
+      github |> get_content(file_path, {:version, commit_sha})
+    else
+      {:most_recent_commit, {:error, body}} -> {:error, body}
+    end
+  end
+
+  @impl Glossia.Foundation.ContentSources.ContentSource
+  def get_most_recent_version(github) do
+    Logger.debug("Fetching the most recent version", %{owner: github.owner, repo: github.repo})
+
+    with {:repository, {status, %{"default_branch" => default_branch}, _}} when status in 200..299 <-
+           {:repository, Tentacat.Repositories.repo_get(github.client, github.owner, github.repo)},
+         {:commits, {status, [most_recent_commit | _], _}} when status in 200..299 <-
+           {:commits,
+            Tentacat.get(
+              "repos/#{github.owner}/#{github.repo}/commits?#{default_branch}",
+              github.client
+            )} do
+      %{"sha" => commit_sha} = most_recent_commit
+      {:ok, commit_sha}
+    else
+      {:repository, {_, body, _}} -> {:error, body}
+      {:commits, {_, body, _}} -> {:error, body}
+    end
+  end
+
+  @impl Glossia.Foundation.ContentSources.ContentSource
+  def update_content(
+        github,
+        %{
+          title: commit_title,
+          description: commit_description,
+          version: commit_sha,
+          content: content
+        } = opts
+      )
+      when length(content) > 0 do
+    Logger.debug(
+      "Updating the content",
+      opts |> Map.merge(%{owner: github.owner, repo: github.repo})
+    )
+
+    with {:branch, {status, [%{"name" => branch} | _], _}} when status in 200..299 <-
+           {:branch,
+            Tentacat.get(
+              "repos/#{github.owner}/#{github.repo}/commits/#{commit_sha}/branches-where-head",
+              github.client
+            )},
+         {:commit, {status, %{"commit" => %{"tree" => %{"sha" => commit_tree_sha}}}, _}}
+         when status in 200..299 <-
+           {:commit, Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo)},
+         {:tree, tree} <-
+           {:tree,
+            %{
+              base_tree: commit_tree_sha,
+              tree:
+                Enum.map(content, fn [id: path, content: content] ->
+                  %{path: path, mode: "100644", type: "blob", content: content}
+                end)
+            }},
+         {:tree_creation, {status, %{"sha" => created_tree}, _}} when status in 200..299 <-
+           {:tree_creation,
+            Tentacat.post("repos/#{github.owner}/#{github.repo}/git/trees", github.client, tree)},
+         {:commit_creation, {status, %{"sha" => created_commit_sha, "html_url" => commit_url}, _}}
+         when status in 200..299 <-
+           {:commit_creation,
+            Tentacat.post("repos/#{github.owner}/#{github.repo}/git/commits", github.client, %{
+              message: "#{commit_title}\n#{commit_description}",
+              parents: [commit_sha],
+              tree: created_tree
+            })},
+         {:reference_update, {status, _, _}} when status in 200..299 <-
+           {:reference_update,
+            Tentacat.patch(
+              "repos/#{github.owner}/#{github.repo}/git/refs/heads/#{branch}",
+              github.client,
+              %{sha: created_commit_sha, force: false}
+            )} do
+      {:ok, %{id: created_commit_sha, url: commit_url}}
+    else
+      {:branch, {200, [] = _, _}} -> {:error, :newer_version_exists}
+      {:branch, {_, body, _}} -> {:error, body}
+      {:tree_creation, {_, body, _}} -> {:error, body}
+    end
+  end
+
+  @impl Glossia.Foundation.ContentSources.ContentSource
+  def should_localize?(github, commit_sha) do
+    with {:commit, {status, payload, _}} when status in 200..299 <-
+           {:commit, Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo)} do
+      %{"author" => %{"login" => login}} = payload
+      login != app_bot_user()
+    else
+      {:commit, {_, body, _}} -> {:error, body}
+    end
+  end
+
+  @impl Glossia.Foundation.ContentSources.Platform
   def get_file_content(path, repository_id) do
     client = get_client_for_repository(repository_id)
     [owner, repo] = repository_id |> String.split("/")
@@ -22,7 +167,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl true
+  @impl Glossia.Foundation.ContentSources.Platform
   def create_commit_status(%{vcs_id: vcs_id, commit_sha: commit_sha} = attrs) do
     client = get_client_for_repository(vcs_id)
 
@@ -82,7 +227,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
-  @impl true
+  @impl Glossia.Foundation.ContentSources.Platform
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -93,7 +238,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl true
+  @impl Glossia.Foundation.ContentSources.Platform
   def generate_token_for_cloning(vcs_id) do
     app_jwt_token = Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
@@ -113,6 +258,10 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   end
 
   # Private
+
+  def app_bot_user() do
+    Application.get_env(:glossia, :github_app_bot_user)
+  end
 
   @spec get_client_for_installation(
           installation_id :: integer(),

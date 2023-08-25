@@ -5,6 +5,7 @@ defmodule Glossia.Web.WebhookController do
 
   alias Glossia.Projects
   alias Glossia.Projects.Project
+  alias Glossia.Foundation.ContentSources.GitHub
 
   # Public
 
@@ -19,25 +20,23 @@ defmodule Glossia.Web.WebhookController do
     commit_sha = payload |> get_in(["after"])
     vcs_id = payload |> get_in(["repository", "full_name"])
     default_branch = payload |> get_in(["repository", "default_branch"])
+    github = GitHub.new({:repository, vcs_id})
 
-    project =
-      Projects.find_project_by_repository(%{vcs_id: vcs_id, vcs_platform: :github})
-
-    case project do
-      %Project{} = project ->
-        project
-        |> Projects.process_git_event(%{
-          event: event,
-          ref: ref,
-          default_branch: default_branch,
-          commit_sha: commit_sha
-        })
-
-      _ ->
-        nil
+    with {:should_localize, {:ok, true}} <-
+           {:should_localize, GitHub.should_localize?(github, commit_sha)},
+         {:project, %Project{} = project} <-
+           {:project,
+            Projects.find_project_by_repository(%{vcs_id: vcs_id, vcs_platform: :github})} do
+      Projects.process_git_event(project, %{
+        event: event,
+        ref: ref,
+        default_branch: default_branch,
+        commit_sha: commit_sha
+      })
+    else
+      {:should_localize, _} -> json(conn, nil)
+      {:project, nil} -> json(conn, nil)
     end
-
-    json(conn, nil)
   end
 
   defp github_event(conn, _) do
