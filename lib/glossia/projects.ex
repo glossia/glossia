@@ -55,7 +55,7 @@ defmodule Glossia.Projects do
       |> Map.put(:access_token, generate_token_for_project(project))
       |> Map.put(
         :git_access_token,
-        Glossia.Foundation.ContentSources.generate_token_for_cloning(%{
+        Glossia.Foundation.ContentSources.GitHub.generate_token_for_cloning(%{
           vcs_id: project.vcs_id,
           vcs_platform: project.vcs_platform
         })

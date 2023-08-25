@@ -130,7 +130,8 @@ defmodule Glossia.Events.GitEventWorker do
     attrs
     |> Map.put_new(:target_url, "")
     |> Map.put_new(:context, context)
-    |> Glossia.Foundation.ContentSources.create_commit_status()
+    # TODO: Not assume GitHub
+    |> Glossia.Foundation.ContentSources.GitHub.create_commit_status()
   end
 
   def get_commit_status_context_for_env(:prod) do

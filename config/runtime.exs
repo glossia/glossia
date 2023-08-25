@@ -139,6 +139,7 @@ end
 config :glossia,
   github_app_webhooks_secret: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, ""),
   github_app_id: env!("GITHUB_APP_ID", :string, ""),
+  github_app_bot_user: env!("GITHUB_APP_BOT_USER", :string, ""),
   builder_api_key: env!("BUILDER_API_KEY", :string, ""),
   url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000"),
   open_api_key: env!("OPEN_API_KEY", :string, "")
