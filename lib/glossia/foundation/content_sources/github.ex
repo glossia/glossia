@@ -28,6 +28,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
 
   @impl true
   def get_content(github, file_path, {:version, commit_sha}) do
+    Logger.debug("Fetching the content of a file", %{ owner: github.owner, repo: github.repo, file_path: file_path, commit_sha: commit_sha })
     case Tentacat.Contents.find_in(github.client, github.owner, github.repo, file_path, commit_sha) do
       {status, payload, _response} when status in 200..299 ->
         %{"content" => content, "encoding" => "base64"} = payload
@@ -39,6 +40,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   end
 
   def get_content(github, file_path, :latest) do
+    Logger.debug("Fetching the latest content of a file", %{ owner: github.owner, repo: github.repo, file_path: file_path })
     with {:most_recent_commit, {:ok, commit_sha}} <- {:most_recent_commit, get_most_recent_version(github)} do
       github |> get_content(file_path, {:version, commit_sha})
     else
@@ -47,6 +49,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   end
 
   def get_most_recent_version(github) do
+    Logger.debug("Fetching the most recent version", %{ owner: github.owner, repo: github.repo })
     with {:repository, {status, %{ "default_branch" => default_branch}, _} } when status in 200..299  <- {:repository, Tentacat.Repositories.repo_get(github.client, github.owner, github.repo)},
     {:commits, {status, [most_recent_commit | _], _}} when status in 200..299 <- {:commits, Tentacat.get("repos/#{github.owner}/#{github.repo}/commits?#{default_branch}", github.client)} do
       %{ "sha" => commit_sha } = most_recent_commit
