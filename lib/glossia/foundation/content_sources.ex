@@ -9,7 +9,7 @@ defmodule Glossia.Foundation.ContentSources do
   @doc """
   It returns all the content sources available at runtime.
   """
-  @spec content_source(id :: String.t()) :: ContentSource.t() | nil
+  @spec content_source(id :: atom()) :: ContentSource.t() | nil
   def content_source(id) do
     [{:github, GitHub}]
     |> Enum.filter(fn {_, module} -> Utilities.module_compiled?(module) end)

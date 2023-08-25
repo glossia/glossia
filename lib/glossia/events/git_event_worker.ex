@@ -60,7 +60,7 @@ defmodule Glossia.Events.GitEventWorker do
           default_branch: default_branch,
           access_token: access_token,
           git_access_token: git_access_token,
-          project_id: project_id,
+          project_id: _project_id,
           project_handle: project_handle,
           account_handle: account_handle
         } = attrs
@@ -69,7 +69,7 @@ defmodule Glossia.Events.GitEventWorker do
       Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
 
     # TODO: Not assume GitHub here
-    github = Glossia.Foundation.ContentSources.GitHub.new({:repository, project_id})
+    github = Glossia.Foundation.ContentSources.GitHub.new({:repository, vcs_id})
 
     Glossia.Foundation.ContentSources.GitHub.update_state(
       github,
