@@ -8,6 +8,54 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
 
   # Behaviors
   @behaviour Glossia.Foundation.ContentSources.Platform
+  @behaviour Glossia.Foundation.ContentSources.ContentSource
+
+  # Struct
+  defstruct [:client, :owner, :repo]
+  @enforce_keys [:client, :owner, :repo]
+
+  def new({:repository, repository_id}) do
+    [owner, repo] = repository_id |> String.split("/")
+    new([owner: owner, repo: repo])
+  end
+
+  def new([owner: owner, repo: repo]) do
+    client = get_client_for_repository("#{owner}/#{repo}")
+    %__MODULE__{client: client, owner: owner, repo: repo}
+  end
+
+  # Glossia.Foundation.ContentSources.ContentSource behavior
+
+  @impl true
+  def get_content(github, file_path, {:version, commit_sha}) do
+    case Tentacat.Contents.find_in(github.client, github.owner, github.repo, file_path, commit_sha) do
+      {status, payload, _response} when status in 200..299 ->
+        %{"content" => content, "encoding" => "base64"} = payload
+        {:ok, Base.decode64!(content, ignore: :whitespace)}
+
+      {_, body, _response} ->
+        {:error, body}
+    end
+  end
+
+  def get_content(github, file_path, :latest) do
+    with {:most_recent_commit, {:ok, commit_sha}} <- {:most_recent_commit, get_most_recent_version(github)} do
+      github |> get_content(file_path, {:version, commit_sha})
+    else
+      {:most_recent_commit, {:error, body}} -> {:error, body}
+    end
+  end
+
+  def get_most_recent_version(github) do
+    with {:repository, {status, %{ "default_branch" => default_branch}, _} } when status in 200..299  <- {:repository, Tentacat.Repositories.repo_get(github.client, github.owner, github.repo)},
+    {:commits, {status, [most_recent_commit | _], _}} when status in 200..299 <- {:commits, Tentacat.get("repos/#{github.owner}/#{github.repo}/commits?#{default_branch}", github.client)} do
+      %{ "sha" => commit_sha } = most_recent_commit
+      {:ok, commit_sha}
+    else
+      {:repository, {_, body, _}} -> {:error, body}
+      {:commits, {_, body, _}} -> {:error, body}
+    end
+  end
 
   # Glossia.Foundation.ContentSources.Platform behavior
 
