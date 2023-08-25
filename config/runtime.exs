@@ -173,3 +173,7 @@ config :glossia, Glossia.Endpoint,
       :string,
       "Wsi8PTaGsZV1pYCP/AfGtpByH12WDCofgiFVGDfk7iMCWUN5mwSgkSBYrQNIOdZ7"
     )
+
+# Tentact
+config :tentacat, :pagination, :auto
+config :tentacat, :extra_headers, [{"X-GitHub-Api-Version", "2022-11-28"}]

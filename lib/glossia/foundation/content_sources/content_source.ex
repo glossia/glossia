@@ -9,9 +9,12 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
   - `content_id` - The content id. What it refers to depends on the content source. For example, in the case of a Git repository is the path to the file.
   - `version` - The version of the content. It can be `:latest` or a specific version. In the case of content sources like GitHub, it represents the commit SHA when pulling a specific version.
   """
-  @callback get_content(content_source :: module(), content_id :: String.t(), version :: version_t) ::
+  @callback get_content(
+              content_source :: module(),
+              content_id :: String.t(),
+              version :: version_t
+            ) ::
               {:ok, String.t()} | {:error, any()}
-
 
   @doc """
   It returns the most recent version. In the case of a Git content source, it returns
@@ -25,5 +28,36 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
       iex> Glossia.Foundation.ContentSources.GitHub.get_most_recent_version(github_content_source)
       {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback get_most_recent_version(content_source :: module()) :: {:ok, String.t()} | {:error, any()}
+  @callback get_most_recent_version(content_source :: module()) ::
+              {:ok, String.t()} | {:error, any()}
+
+  @type update_content_opts_t :: %{
+          title: String.t(),
+          description: String.t(),
+          version: String.t(),
+          content: [[id: String.t(), content: String.t()]]
+        }
+
+  @doc """
+  It updates the content in a content source. In the case of Git, it does so by creating a new commit
+  and including the changes in it.
+
+  # Parameters
+  - `module` - An instance of the content source module, which might contain state, for example the session information.
+  - `opts` - The options to configure the updating of the content.
+
+  ## Examples
+
+    iex> Glossia.Foundation.ContentSources.GitHub.update_content(github_content_source, %{
+      title: "My new title",
+      description: "My new description",
+      version: "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67",
+      content: [
+        {id: "README.md", content: "My new content"}
+      ]
+    })
+    {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
+  """
+  @callback update_content(content_source :: module(), opts :: update_content_opts_t()) ::
+              {:ok, String.t()} | {:error, any()} | {:error, :newer_version_exists}
 end
