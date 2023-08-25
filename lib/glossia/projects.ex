@@ -40,6 +40,11 @@ defmodule Glossia.Projects do
     default_branch = opts |> Map.fetch!(:default_branch)
     project = project |> Repo.preload(:account)
 
+    # TODO: Not assume GitHub here
+    github = Glossia.Foundation.ContentSources.GitHub.new({:repository, project.vcs_id})
+    content_source_module = Glossia.Foundation.ContentSources.content_source(:github)
+    {:ok, access_token} = content_source_module.generate_auth_token(github)
+
     :ok =
       %{
         event: event,
@@ -55,10 +60,7 @@ defmodule Glossia.Projects do
       |> Map.put(:access_token, generate_token_for_project(project))
       |> Map.put(
         :git_access_token,
-        Glossia.Foundation.ContentSources.GitHub.generate_token_for_cloning(%{
-          vcs_id: project.vcs_id,
-          vcs_platform: project.vcs_platform
-        })
+        access_token
       )
       |> Glossia.Events.process_git_event()
 

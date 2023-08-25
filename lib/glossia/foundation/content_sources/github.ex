@@ -7,7 +7,6 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   require Logger
 
   # Behaviors
-  @behaviour Glossia.Foundation.ContentSources.Platform
   @behaviour Glossia.Foundation.ContentSources.ContentSource
 
   # Struct
@@ -156,27 +155,21 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.Foundation.ContentSources.Platform
-  def get_file_content(path, repository_id) do
-    client = get_client_for_repository(repository_id)
-    [owner, repo] = repository_id |> String.split("/")
-
-    case Tentacat.Contents.find(client, owner, repo, path) do
-      {status, content, _} when status in 200..299 -> {:ok, content}
-      {_, body, response} -> {:error, body, response}
-    end
-  end
-
-  @impl Glossia.Foundation.ContentSources.Platform
-  def create_commit_status(%{vcs_id: vcs_id, commit_sha: commit_sha} = attrs) do
-    client = get_client_for_repository(vcs_id)
-
+  @impl Glossia.Foundation.ContentSources.ContentSource
+  def update_state(github, state, version, opts \\ []) do
     params =
-      attrs
-      |> Map.drop([:commit_sha, :vcs_id])
-      |> Enum.into(%{})
+      %{
+        state: Atom.to_string(state),
+        context:
+          if(Application.get_env(:glossia, :env) == :prod, do: "Glossia", else: "Glossia (Dev)")
+      }
+      |> Map.merge(Map.new(opts))
 
-    case Tentacat.post("repos/#{vcs_id}/statuses/#{commit_sha}", client, params) do
+    case Tentacat.post(
+           "repos/#{github.owner}/#{github.repo}/statuses/#{version}",
+           github.client,
+           params
+         ) do
       {status, _, _} when status in 200..299 ->
         :ok
 
@@ -185,49 +178,29 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @doc """
-  Given a user session it traverses the installations the user has access
-  to and returns the repositories of those installations.
-  """
-  @spec get_user_repositories(auth :: Tentacat.Client.auth()) :: [map()]
-  def get_user_repositories(auth) do
-    {200, installation_data, _response} = get_user_installations(auth)
+  @impl Glossia.Foundation.ContentSources.ContentSource
+  def generate_auth_token(github) do
+    app_jwt_token = Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
+    client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
-    installation_data["installations"]
-    |> Enum.map(& &1["id"])
-    |> Enum.flat_map(fn installation_id ->
-      {200, repositories_data, _response} =
-        get_user_installation_repositories(auth, installation_id)
+    {200, %{"id" => installation_id}, _} =
+      Tentacat.get(
+        "repos/#{github.owner}/#{github.repo}/installation",
+        client
+      )
 
-      repositories_data["repositories"]
-    end)
-  end
+    {201, %{"token" => access_token}, _} =
+      Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
+        repositories: [github.repo]
+      })
 
-  @doc """
-  Given a user session, it returns all the app installations the user has access to.
-  """
-  @spec get_user_installations(client :: Tentacat.Client.t()) :: Tentacat.response()
-  def get_user_installations(client) do
-    Tentacat.App.Installations.list_for_user(client)
-  end
-
-  @doc """
-  Given a user session and an installation id it returns all the repositories the installation
-  has access to.
-  """
-  @spec get_user_installation_repositories(
-          client :: Tentacat.Client.t(),
-          installation_id :: integer()
-        ) ::
-          Tentacat.response()
-  def get_user_installation_repositories(client, installation_id) do
-    Tentacat.App.Installations.list_repositories_for_user(client, installation_id)
+    access_token
   end
 
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
-  @impl Glossia.Foundation.ContentSources.Platform
+  @impl Glossia.Foundation.ContentSources.ContentSource
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -236,25 +209,6 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
       signature ->
         is_payload_signature_valid?(signature, payload)
     end
-  end
-
-  @impl Glossia.Foundation.ContentSources.Platform
-  def generate_token_for_cloning(vcs_id) do
-    app_jwt_token = Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
-    client = Tentacat.Client.new(%{jwt: app_jwt_token})
-
-    {200, %{"id" => installation_id}, _} =
-      Tentacat.get(
-        "repos/#{vcs_id}/installation",
-        client
-      )
-
-    {201, %{"token" => access_token}, _} =
-      Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
-        repositories: [vcs_id |> String.split("/") |> List.last()]
-      })
-
-    access_token
   end
 
   # Private

@@ -5,7 +5,7 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
   It returns the content from a content source.
 
   ## Parameters
-  - `module` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
   - `content_id` - The content id. What it refers to depends on the content source. For example, in the case of a Git repository is the path to the file.
   - `version` - The version of the content. It can be `:latest` or a specific version. In the case of content sources like GitHub, it represents the commit SHA when pulling a specific version.
   """
@@ -21,7 +21,7 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
   the most recent commit sha in the default branch.
 
   ## Parameters
-  - `module` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
 
   ## Examples
 
@@ -43,7 +43,7 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
   and including the changes in it.
 
   # Parameters
-  - `module` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
   - `opts` - The options to configure the updating of the content.
 
   ## Examples
@@ -69,7 +69,7 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
   not trigger a localization.
 
   # Parameters
-  - `module` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
   - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
 
   # Example
@@ -78,4 +78,28 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
       false
   """
   @callback should_localize?(content_source :: module(), version :: String.t()) :: boolean()
+
+  @type update_status_t :: :error | :failure | :pending | :success
+
+  @doc """
+  It updates the state of a localization in the content source. For example, in the case of GitHub,
+  it updates the status of a commit.
+
+  # Parameters
+  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
+  - `state` - The state of the localization.
+  - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
+  - `opts` - The options to configure the updating of the state.
+  """
+  @callback update_state(
+              content_source :: module(),
+              state :: update_status_t(),
+              version :: String.t(),
+              opts :: [{:target_url, String.t() | nil}, {:description, String.t() | nil}]
+            ) :: :ok | {:error, any()}
+
+  @callback generate_auth_token(content_source :: module()) :: {:ok, String.t()} | {:error, any()}
+
+  # TODO: Export a plug instead that does the validation
+  @callback is_webhook_payload_valid?(req_headers :: Keyword.t(), payload :: map()) :: boolean()
 end

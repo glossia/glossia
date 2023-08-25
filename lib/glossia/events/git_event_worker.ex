@@ -60,7 +60,7 @@ defmodule Glossia.Events.GitEventWorker do
           default_branch: default_branch,
           access_token: access_token,
           git_access_token: git_access_token,
-          project_id: _,
+          project_id: project_id,
           project_handle: project_handle,
           account_handle: account_handle
         } = attrs
@@ -68,7 +68,16 @@ defmodule Glossia.Events.GitEventWorker do
     git_event =
       Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
 
-    attrs |> update_commit_status(:localizing)
+    # TODO: Not assume GitHub here
+    github = Glossia.Foundation.ContentSources.GitHub.new({:repository, project_id})
+
+    Glossia.Foundation.ContentSources.GitHub.update_state(
+      github,
+      :pending,
+      commit_sha,
+      target_url: "",
+      description: "Localizing"
+    )
 
     Glossia.Builds.run(%{
       env: %{
@@ -105,41 +114,15 @@ defmodule Glossia.Events.GitEventWorker do
       end
     })
 
-    attrs |> update_commit_status(:localized)
+    Glossia.Foundation.ContentSources.GitHub.update_state(
+      github,
+      :pending,
+      commit_sha,
+      target_url: "",
+      description: "Localized"
+    )
 
     :ok
-  end
-
-  defp update_commit_status(attrs, :localizing) do
-    attrs
-    |> Map.put_new(:state, "pending")
-    |> Map.put_new(:description, "Localizing")
-    |> update_commit_status()
-  end
-
-  defp update_commit_status(attrs, :localized) do
-    attrs
-    |> Map.put_new(:state, "success")
-    |> Map.put_new(:description, "Localized")
-    |> update_commit_status()
-  end
-
-  def update_commit_status(attrs) do
-    context = Application.get_env(:glossia, :env) |> get_commit_status_context_for_env()
-
-    attrs
-    |> Map.put_new(:target_url, "")
-    |> Map.put_new(:context, context)
-    # TODO: Not assume GitHub
-    |> Glossia.Foundation.ContentSources.GitHub.create_commit_status()
-  end
-
-  def get_commit_status_context_for_env(:prod) do
-    "Glossia"
-  end
-
-  def get_commit_status_context_for_env(_) do
-    "Glossia (Dev)"
   end
 
   defp update_git_event_status(%{
