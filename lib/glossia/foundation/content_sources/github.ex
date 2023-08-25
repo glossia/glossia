@@ -183,18 +183,18 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     app_jwt_token = Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
-    {200, %{"id" => installation_id}, _} =
-      Tentacat.get(
-        "repos/#{github.owner}/#{github.repo}/installation",
-        client
-      )
-
-    {201, %{"token" => access_token}, _} =
-      Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
-        repositories: [github.repo]
-      })
-
-    access_token
+    with {:installation, {status, %{"id" => installation_id}, _}} when status in 200..299 <- {:installation, Tentacat.get(
+      "repos/#{github.owner}/#{github.repo}/installation",
+      client
+    )},
+    {:access_token, {status, %{"token" => access_token}, _}} when status in 200..299 <- {:access_token, Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
+      repositories: [github.repo]
+    })} do
+      {:ok, access_token}
+    else
+      {:installation, {_, body, _}} -> {:error, body}
+      {:access_token, {_, body, _}} -> {:error, body}
+    end
   end
 
   @doc """
