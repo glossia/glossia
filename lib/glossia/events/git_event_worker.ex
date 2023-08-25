@@ -116,7 +116,7 @@ defmodule Glossia.Events.GitEventWorker do
 
     Glossia.Foundation.ContentSources.GitHub.update_state(
       github,
-      :pending,
+      :sucess,
       commit_sha,
       target_url: "",
       description: "Localized"
