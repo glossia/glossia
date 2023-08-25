@@ -59,5 +59,5 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
     {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
   @callback update_content(content_source :: module(), opts :: update_content_opts_t()) ::
-              {:ok, String.t()} | {:error, any()} | {:error, :newer_version_exists}
+              {:ok, %{ id: String.t(), url: String.t() | nil}} | {:error, any()} | {:error, :newer_version_exists}
 end

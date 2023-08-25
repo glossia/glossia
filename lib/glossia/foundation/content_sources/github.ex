@@ -122,7 +122,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
          {:tree_creation, {status, %{"sha" => created_tree}, _}} when status in 200..299 <-
            {:tree_creation,
             Tentacat.post("repos/#{github.owner}/#{github.repo}/git/trees", github.client, tree)},
-         {:commit_creation, {status, %{"sha" => created_commit_sha}, _}} when status in 200..299 <-
+         {:commit_creation, {status, %{"sha" => created_commit_sha, "html_url" => commit_url }, _}} when status in 200..299 <-
            {:commit_creation,
             Tentacat.post("repos/#{github.owner}/#{github.repo}/git/commits", github.client, %{
               message: "#{commit_title}\n#{commit_description}",
@@ -136,8 +136,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
               github.client,
               %{sha: created_commit_sha, force: false}
             )} do
-      dbg(payload)
-      {:ok, branch}
+      {:ok, %{ id: created_commit_sha, url: commit_url }}
     else
       {:branch, {200, [] = body, _}} -> {:error, :newer_version_exists}
       {:branch, {_, body, _}} -> {:error, body}
