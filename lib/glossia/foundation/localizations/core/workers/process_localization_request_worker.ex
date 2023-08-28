@@ -5,7 +5,8 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
 
   # Modules
   require Logger
-  # alias Glossia.Repo
+  alias Glossia.Projects
+  alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   use Oban.Worker
 
   # Impl: Oban.Worker
@@ -14,9 +15,102 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
   def perform(%Oban.Job{
         args: %{
           "request" => request,
-          "project" => _project
+          "project" => %{"id" => project_id}
         }
       }) do
     Logger.info("Processing localization request", request)
+    version = request["id"]
+    project = get_project(project_id)
+
+    content_to_update = []
+
+    content_to_update = [
+      content_to_update
+      | localize_into_new_languages(
+          get_modules_with_new_languages_that_require_localization(request)
+        )
+    ]
+
+    ContentSources.new(project.vcs_platform, project.vcs_id)
+    |> update_content(version, content_to_update)
+  end
+
+  # Private
+
+  defp update_content(content_source, version, content) do
+    ContentSources.update_content(content_source, %{
+      # TODO: Improve
+      title: "Localization",
+      description: "",
+      version: version,
+      content: content
+    })
+  end
+
+  defp localize_into_new_languages(modules) do
+    Logger.info("Localizing the content into new languages", modules)
+    # TODO
+  end
+
+  defp get_project(project_id) do
+    Projects.find_project_by_id(project_id)
+  end
+
+  defp get_modules_with_new_languages_that_require_localization(request) do
+    Enum.flat_map(request["modules"], fn module ->
+      format = module["format"]
+      id = module["id"]
+      source_localizable = module["localizables"]["source"]
+      source_id = source_localizable["id"]
+      source_context = source_localizable["context"]
+      target_localizables = module["localizables"]["target"]
+
+      # Checksums
+      source_context_current_checksum = source_localizable["checksum"]["context"]["current"]
+      source_content_current_checksum = source_localizable["checksum"]["content"]["current"]
+      source_context_cached_checksum = source_localizable["checksum"]["context"]["cached"]
+      source_content_cached_checksum = source_localizable["checksum"]["content"]["cached"]
+
+      # The source content or context hasn't changed
+      if source_context_current_checksum == source_context_cached_checksum &&
+           source_content_current_checksum == source_content_cached_checksum do
+        []
+      else
+        Enum.flat_map(target_localizables, fn target_localizable ->
+          # From the target localizables we select those that already exist but
+          # need to reflect the changes.
+          target_id = target_localizable["id"]
+          target_context = target_localizable["context"]
+
+          target_context_cached_checksum = target_localizable["checksum"]["context"]["cached"]
+          target_content_cached_checksum = target_localizable["checksum"]["content"]["cached"]
+
+          if !target_context_cached_checksum || !target_content_cached_checksum do
+            [
+              %{
+                id: id,
+                format: format,
+                source: %{
+                  id: source_id,
+                  context: source_context,
+                  checksum_cache_id: source_localizable["checksum"]["cache_id"]
+                },
+                target: %{
+                  id: target_id,
+                  context: target_context,
+                  checksum_cache_id: target_localizable["checksum"]["cache_id"]
+                }
+              }
+            ]
+          else
+            []
+          end
+        end)
+      end
+    end)
+  end
+
+  defp get_modules_with_changed_source_context_or_content() do
+    # get_modules_with_changed_source_context_or_content
   end
 end

@@ -1,5 +1,7 @@
 defmodule Glossia.Foundation.Localizations.Core do
-  use Boundary, deps: [], exports: [API.Schemas.LocalizationRequest]
+  use Boundary,
+    deps: [Glossia.Foundation.ContentSources.Core],
+    exports: [API.Schemas.LocalizationRequest]
 
   # Modules
   alias Glossia.Localizations.API.Schemas.LocalizationRequest
