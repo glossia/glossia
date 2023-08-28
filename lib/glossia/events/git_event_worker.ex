@@ -68,11 +68,11 @@ defmodule Glossia.Events.GitEventWorker do
     git_event =
       Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
 
-    # TODO: Not assume GitHub here
-    github = Glossia.Foundation.ContentSources.GitHub.new({:repository, vcs_id})
+    {content_source_module, content_source} =
+      Glossia.Foundation.ContentSources.Core.new(String.to_atom(vcs_platform), vcs_id)
 
-    Glossia.Foundation.ContentSources.GitHub.update_state(
-      github,
+    content_source_module.update_state(
+      content_source,
       :pending,
       commit_sha,
       target_url: "",
@@ -114,8 +114,8 @@ defmodule Glossia.Events.GitEventWorker do
       end
     })
 
-    Glossia.Foundation.ContentSources.GitHub.update_state(
-      github,
+    content_source_module.update_state(
+      content_source,
       :sucess,
       commit_sha,
       target_url: "",

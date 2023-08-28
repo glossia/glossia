@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.ContentSources.GitHub.AppToken do
+defmodule Glossia.Foundation.ContentSources.Core.GitHub.AppToken do
   use Joken.Config, default_signer: :github
 
   def token_config do

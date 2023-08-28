@@ -1,7 +1,7 @@
 defmodule Glossia.Projects do
   # Modules
   use Boundary,
-    deps: [Glossia.Repo, Glossia.Events, Glossia.Foundation.ContentSources],
+    deps: [Glossia.Repo, Glossia.Events, Glossia.Foundation.ContentSources.Core],
     exports: [Project]
 
   require Logger
@@ -40,10 +40,10 @@ defmodule Glossia.Projects do
     default_branch = opts |> Map.fetch!(:default_branch)
     project = project |> Repo.preload(:account)
 
-    # TODO: Not assume GitHub here
-    github = Glossia.Foundation.ContentSources.GitHub.new({:repository, project.vcs_id})
-    content_source_module = Glossia.Foundation.ContentSources.content_source(:github)
-    {:ok, access_token} = content_source_module.generate_auth_token(github)
+    {content_source_module, content_source} =
+      Glossia.Foundation.ContentSources.Core.new(project.vcs_platform, project.vcs_id)
+
+    {:ok, access_token} = content_source_module.generate_auth_token(content_source)
 
     :ok =
       %{
