@@ -18,6 +18,10 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
     %__MODULE__{content_source: :github, client: client, owner: owner, repo: repo}
   end
 
+  def new() do
+    %__MODULE__{content_source: :github}
+  end
+
   # Glossia.Foundation.ContentSources.Core.ContentSource behavior
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource

@@ -17,10 +17,11 @@ defmodule Glossia.Foundation.ContentSources.Core do
   """
   @spec new(content_source :: atom(), id :: String.t()) :: {atom(), ContentSource.t()}
   def new(content_source_id, id) do
-    case content_source(content_source_id) do
-      nil -> raise "Content source #{content_source_id} not found"
-      module -> module.new(id)
-    end
+    content_source(content_source_id).new(id)
+  end
+
+  def new(content_source_id) do
+    content_source(content_source_id).new()
   end
 
   # Glossia.Foundation.ContentSources.Core.ContentSource behavior
