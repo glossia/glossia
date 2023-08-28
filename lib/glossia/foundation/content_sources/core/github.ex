@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.ContentSources.GitHub do
+defmodule Glossia.Foundation.ContentSources.Core.GitHub do
   @moduledoc """
   An interface to interact with GitHub's API.
   """
@@ -7,24 +7,24 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   require Logger
 
   # Behaviors
-  @behaviour Glossia.Foundation.ContentSources.ContentSource
+  @behaviour Glossia.Foundation.ContentSources.Core.ContentSource
 
   # Struct
-  defstruct [:client, :owner, :repo]
+  defstruct [:content_source, :client, :owner, :repo]
 
-  def new({:repository, repository_id}) do
-    [owner, repo] = repository_id |> String.split("/")
-    new(owner: owner, repo: repo)
-  end
-
-  def new(owner: owner, repo: repo) do
+  def new(id) do
+    [owner, repo] = id |> String.split("/")
     client = get_client_for_repository("#{owner}/#{repo}")
-    %__MODULE__{client: client, owner: owner, repo: repo}
+    %__MODULE__{content_source: :github, client: client, owner: owner, repo: repo}
   end
 
-  # Glossia.Foundation.ContentSources.ContentSource behavior
+  def new() do
+    %__MODULE__{content_source: :github}
+  end
 
-  @impl Glossia.Foundation.ContentSources.ContentSource
+  # Glossia.Foundation.ContentSources.Core.ContentSource behavior
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def get_content(github, file_path, {:version, commit_sha}) do
     Logger.debug("Fetching the content of a file", %{
       owner: github.owner,
@@ -64,7 +64,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.Foundation.ContentSources.ContentSource
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def get_most_recent_version(github) do
     Logger.debug("Fetching the most recent version", %{owner: github.owner, repo: github.repo})
 
@@ -84,7 +84,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.Foundation.ContentSources.ContentSource
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def update_content(
         github,
         %{
@@ -144,7 +144,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.Foundation.ContentSources.ContentSource
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def should_localize?(github, commit_sha) do
     with {:commit, {status, payload, _}} when status in 200..299 <-
            {:commit, Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo)} do
@@ -155,7 +155,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.Foundation.ContentSources.ContentSource
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def update_state(github, state, version, opts \\ []) do
     params =
       %{
@@ -178,18 +178,22 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.Foundation.ContentSources.ContentSource
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def generate_auth_token(github) do
-    app_jwt_token = Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
-    with {:installation, {status, %{"id" => installation_id}, _}} when status in 200..299 <- {:installation, Tentacat.get(
-      "repos/#{github.owner}/#{github.repo}/installation",
-      client
-    )},
-    {:access_token, {status, %{"token" => access_token}, _}} when status in 200..299 <- {:access_token, Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
-      repositories: [github.repo]
-    })} do
+    with {:installation, {status, %{"id" => installation_id}, _}} when status in 200..299 <-
+           {:installation,
+            Tentacat.get(
+              "repos/#{github.owner}/#{github.repo}/installation",
+              client
+            )},
+         {:access_token, {status, %{"token" => access_token}, _}} when status in 200..299 <-
+           {:access_token,
+            Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{
+              repositories: [github.repo]
+            })} do
       {:ok, access_token}
     else
       {:installation, {_, body, _}} -> {:error, body}
@@ -200,8 +204,8 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   @doc """
   Given the request headers and the payload it validates the payload signature.
   """
-  @impl Glossia.Foundation.ContentSources.ContentSource
-  def is_webhook_payload_valid?(req_headers, payload) do
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def is_webhook_payload_valid?(_, req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
         false
@@ -224,7 +228,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
           Tentacat.Client.t()
   defp get_client_for_installation(installation_id, app_jwk_token) do
     app_jwt_token =
-      app_jwk_token || Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
+      app_jwk_token || Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
 
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
@@ -235,7 +239,7 @@ defmodule Glossia.Foundation.ContentSources.GitHub do
   end
 
   defp get_client_for_repository(vcs_id) do
-    app_jwt_token = Glossia.Foundation.ContentSources.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(

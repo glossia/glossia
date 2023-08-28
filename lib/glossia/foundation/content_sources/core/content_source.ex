@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.ContentSources.ContentSource do
+defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
   @type version_t :: :latest | {:version, String.t()}
 
   @doc """
@@ -25,7 +25,7 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
 
   ## Examples
 
-      iex> Glossia.Foundation.ContentSources.GitHub.get_most_recent_version(github_content_source)
+      iex> Glossia.Foundation.ContentSources.Core.GitHub.get_most_recent_version(github_content_source)
       {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
   @callback get_most_recent_version(content_source :: module()) ::
@@ -48,7 +48,7 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
 
   ## Examples
 
-    iex> Glossia.Foundation.ContentSources.GitHub.update_content(github_content_source, %{
+    iex> Glossia.Foundation.ContentSources.Core.GitHub.update_content(github_content_source, %{
       title: "My new title",
       description: "My new description",
       version: "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67",
@@ -74,7 +74,7 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
 
   # Example
 
-      iex> Glossia.Foundation.ContentSources.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
+      iex> Glossia.Foundation.ContentSources.Core.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
       false
   """
   @callback should_localize?(content_source :: module(), version :: String.t()) :: boolean()
@@ -101,5 +101,9 @@ defmodule Glossia.Foundation.ContentSources.ContentSource do
   @callback generate_auth_token(content_source :: module()) :: {:ok, String.t()} | {:error, any()}
 
   # TODO: Export a plug instead that does the validation
-  @callback is_webhook_payload_valid?(req_headers :: Keyword.t(), payload :: map()) :: boolean()
+  @callback is_webhook_payload_valid?(
+              content_source :: module(),
+              req_headers :: Keyword.t(),
+              payload :: map()
+            ) :: boolean()
 end
