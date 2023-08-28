@@ -33,6 +33,7 @@ defmodule Glossia.Web.WebhookController do
         default_branch: default_branch,
         commit_sha: commit_sha
       })
+      json(conn, nil)
     else
       {:should_localize, _} -> json(conn, nil)
       {:project, nil} -> json(conn, nil)
