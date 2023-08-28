@@ -7,6 +7,7 @@ defmodule Glossia.Projects do
   require Logger
   alias Glossia.Repo
   alias Glossia.Projects.{Project, ProjectToken}
+  alias Glossia.Foundation.ContentSources.Core, as: ContentSources
 
   @doc """
   It simulates a git push event using the latest commit from the default branch of a project.
@@ -40,10 +41,9 @@ defmodule Glossia.Projects do
     default_branch = opts |> Map.fetch!(:default_branch)
     project = project |> Repo.preload(:account)
 
-    {content_source_module, content_source} =
-      Glossia.Foundation.ContentSources.Core.new(project.vcs_platform, project.vcs_id)
+    content_source = ContentSources.new(project.vcs_platform, project.vcs_id)
 
-    {:ok, access_token} = content_source_module.generate_auth_token(content_source)
+    {:ok, access_token} = content_source.generate_auth_token(content_source)
 
     :ok =
       %{

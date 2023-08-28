@@ -8,6 +8,7 @@ defmodule Glossia.Events.GitEventWorker do
   alias Glossia.Events.GitEvent
   alias Glossia.Repo
   use Oban.Worker
+  alias Glossia.Foundation.ContentSources.Core, as: ContentSources
 
   # Impl: Oban.Worker
 
@@ -68,10 +69,9 @@ defmodule Glossia.Events.GitEventWorker do
     git_event =
       Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
 
-    {content_source_module, content_source} =
-      Glossia.Foundation.ContentSources.Core.new(String.to_atom(vcs_platform), vcs_id)
+    content_source = ContentSources.new(String.to_atom(vcs_platform), vcs_id)
 
-    content_source_module.update_state(
+    ContentSources.update_state(
       content_source,
       :pending,
       commit_sha,
@@ -114,7 +114,7 @@ defmodule Glossia.Events.GitEventWorker do
       end
     })
 
-    content_source_module.update_state(
+    ContentSources.update_state(
       content_source,
       :sucess,
       commit_sha,

@@ -7,6 +7,9 @@ defmodule Glossia.Foundation.ContentSources.Core do
   alias Glossia.Foundation.ContentSources.Core.ContentSource
   alias Glossia.Foundation.ContentSources.Core.GitHub
 
+  # Behaviors
+  @behaviour Glossia.Foundation.ContentSources.Core.ContentSource
+
   @doc """
   Given an atom representing the content source and its identifier, it returns a tuple
   with the content source module and an instance of it. If the content source can't be
@@ -16,20 +19,61 @@ defmodule Glossia.Foundation.ContentSources.Core do
   def new(content_source_id, id) do
     case content_source(content_source_id) do
       nil -> raise "Content source #{content_source_id} not found"
-      module -> {module, module.new(id)}
+      module -> module.new(id)
     end
+  end
+
+  # Glossia.Foundation.ContentSources.Core.ContentSource behavior
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def get_content(content_source, content_id, content_version) do
+    content_source(content_source.id).get_content(content_source, content_id, content_version)
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def generate_auth_token(content_source) do
+    content_source(content_source.id).generate_auth_token(content_source)
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def get_most_recent_version(content_source) do
+    content_source(content_source.id).get_most_recent_version(content_source)
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def update_content(content_source, opts) do
+    content_source(content_source.id).update_content(content_source, opts)
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def should_localize?(content_source, version) do
+    content_source(content_source.id).should_localize?(content_source, version)
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def update_state(content_source, state, version, opts) do
+    content_source(content_source.id).update_state(content_source, state, version, opts)
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def is_webhook_payload_valid?(content_source, req_headers, payload) do
+    content_source(content_source.id).is_webhook_payload_valid?(req_headers, payload)
   end
 
   # Private
 
   @spec content_source(id :: atom()) :: module() | nil
   defp content_source(id) do
-    [{:github, GitHub}]
+    content_sources()
     |> Enum.filter(fn {_, module} -> Utilities.module_compiled?(module) end)
     |> Enum.find(fn {content_source_id, _} -> content_source_id == id end)
     |> case do
       {_, module} -> module
-      nil -> nil
+      nil -> "Content source #{id} not found"
     end
+  end
+
+  defp content_sources() do
+    [{:github, GitHub}]
   end
 end

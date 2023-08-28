@@ -17,6 +17,7 @@ defmodule Glossia.Web.Plugs.RequirePayloadSignatureMatchPlug do
   def call(%Conn{method: method} = conn, _opts) when method == "POST" or method == "PUT" do
     # TODO: - Not assume GitHub
     case Glossia.Foundation.ContentSources.Core.GitHub.is_webhook_payload_valid?(
+           nil,
            conn.req_headers,
            conn.assigns.raw_body
          ) do

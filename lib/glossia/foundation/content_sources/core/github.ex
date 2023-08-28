@@ -10,12 +10,12 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
   @behaviour Glossia.Foundation.ContentSources.Core.ContentSource
 
   # Struct
-  defstruct [:client, :owner, :repo]
+  defstruct [:content_source, :client, :owner, :repo]
 
   def new(id) do
     [owner, repo] = id |> String.split("/")
     client = get_client_for_repository("#{owner}/#{repo}")
-    %__MODULE__{client: client, owner: owner, repo: repo}
+    %__MODULE__{content_source: :github, client: client, owner: owner, repo: repo}
   end
 
   # Glossia.Foundation.ContentSources.Core.ContentSource behavior
@@ -201,7 +201,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
   Given the request headers and the payload it validates the payload signature.
   """
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
-  def is_webhook_payload_valid?(req_headers, payload) do
+  def is_webhook_payload_valid?(_, req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
         false
