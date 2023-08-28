@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.ContentSources.Core do
   # TODO: GitHub should not be exported directly
-  use Boundary, deps: [Glossia.Foundation.Utilities], exports: [ContentSource, GitHub]
+  use Boundary, deps: [Glossia.Foundation.Utilities], exports: [ContentSource]
 
   # Modules
   alias Glossia.Foundation.Utilities
