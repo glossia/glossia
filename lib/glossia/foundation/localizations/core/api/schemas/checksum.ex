@@ -2,7 +2,7 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.Checksum do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
-  alias Glossia.Localizations.API.Schemas.Checksum.ChecksumValue
+  alias Glossia.Foundation.Localizations.Core.API.Schemas.Checksum.Value, as: ChecksumValue
 
   OpenApiSpex.schema(%{
     title: "Localization content checksum",
@@ -35,19 +35,4 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.Checksum do
     },
     required: [:cache_id]
   })
-
-  defmodule ChecksumValue do
-    OpenApiSpex.schema(%{
-      type: :object,
-      description: "The checksum of the current localizable content",
-      properties: %{
-        algorithm: %Schema{
-          type: :string,
-          description: "The algorithm used to generate the checksum."
-        },
-        value: %Schema{type: :string, description: "The value of the checksum."}
-      },
-      required: [:algorithm, :value]
-    })
-  end
 end

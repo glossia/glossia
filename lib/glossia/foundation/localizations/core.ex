@@ -1,12 +1,14 @@
 defmodule Glossia.Foundation.Localizations.Core do
-  use Boundary, deps: [], exports: [API.Schemas.LocalizationRequest]
+  use Boundary,
+    deps: [Glossia.Foundation.ContentSources.Core, Glossia.Projects],
+    exports: [API.Schemas.LocalizationRequest]
 
   # Modules
   alias Glossia.Localizations.API.Schemas.LocalizationRequest
   alias Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationRequestWorker
 
   # Types
-  @type process_localization_request_opts :: %{project: Glossia.Project.t()}
+  @type process_localization_request_opts :: %{project_id: number()}
 
   @doc """
   It processes a localization request
@@ -20,8 +22,8 @@ defmodule Glossia.Foundation.Localizations.Core do
           request :: LocalizationRequest.t(),
           opts :: process_localization_request_opts()
         ) :: :ok | {:error, term()}
-  def process_localization_request(request, %{project: project} = _opts) do
-    %{request: request, project: project}
+  def process_localization_request(request, %{project_id: project_id} = _opts) do
+    %{request: request, project_id: project_id}
     |> ProcessLocalizationRequestWorker.new()
     |> Oban.insert()
     |> case do

@@ -1,44 +1,41 @@
 defmodule Glossia.Features.LLMs.OpenAIChatGPT do
   @behaviour Glossia.Foundation.LLMs.Behaviors.LLM
 
-  # Struct
-  defstruct [:api_key]
+  # Impl:  Glossia.Foundation.LLMs.Behaviors.LLM
 
-  def new() do
-    %__MODULE__{
-      api_key: api_key()
-    }
-  end
-
-  # Modules
-  alias OpenaiEx.ChatCompletion
-  alias OpenaiEx.ChatMessage
-
-  @impl true
-  def complete_chat(llm, model, messages) when is_list(messages) and llm.api_key != "" do
-    chat_completion =
-      ChatCompletion.new(
-        model: model,
-        messages:
-          messages
-          |> Enum.map(fn message ->
-            %{role: Atom.to_string(message.role), content: message.content}
-          end)
+  @impl Glossia.Foundation.LLMs.Behaviors.LLM
+  def complete_chat(model, messages) when is_list(messages) do
+    req =
+      Req.new(
+        url: "https://api.openai.com/v1/chat/completions",
+        method: :post,
+        receive_timeout: default_timeout(),
+        auth: {:bearer, api_key()},
+        json: %{
+          model: model,
+          messages: messages
+        }
       )
 
-    llm.api_key |> OpenaiEx.new() |> ChatCompletion.create(chat_completion)
+    case Req.request(req) do
+      {:ok, %{body: body}} -> {:ok, Useful.atomize_map_keys(body)}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
-  def complete_chat(llm, _, _) when llm.api_key == "" do
-    {:error, "OPEN_API_KEY environment variable not present"}
+  defp default_timeout() do
+    200_000
   end
 
-  @impl true
+  @impl Glossia.Foundation.LLMs.Behaviors.LLM
   def configured?() do
     api_key() != ""
   end
 
   defp api_key() do
-    Application.get_env(:glossia, :open_api_key)
+    case Application.get_env(:glossia, :openai_chatgpt_secret_key) do
+      "" -> raise "OpenAI ChatGPT secret key not configured"
+      key -> key
+    end
   end
 end

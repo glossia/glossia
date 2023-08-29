@@ -142,7 +142,7 @@ config :glossia,
   github_app_bot_user: env!("GITHUB_APP_BOT_USER", :string, ""),
   builder_api_key: env!("BUILDER_API_KEY", :string, ""),
   url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000"),
-  open_api_key: env!("OPEN_API_KEY", :string, "")
+  openai_chatgpt_secret_key: env!("OPENAI_CHATGPT_SECRET_KEY", :string, "")
 
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),

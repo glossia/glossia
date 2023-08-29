@@ -116,7 +116,7 @@ defmodule Glossia.Events.GitEventWorker do
 
     ContentSources.update_state(
       content_source,
-      :sucess,
+      :success,
       commit_sha,
       target_url: "",
       description: "Localized"

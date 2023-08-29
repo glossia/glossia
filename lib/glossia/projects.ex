@@ -43,7 +43,7 @@ defmodule Glossia.Projects do
 
     content_source = ContentSources.new(project.vcs_platform, project.vcs_id)
 
-    {:ok, access_token} = content_source.generate_auth_token(content_source)
+    {:ok, access_token} = ContentSources.generate_auth_token(content_source)
 
     :ok =
       %{
