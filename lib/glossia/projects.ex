@@ -41,7 +41,8 @@ defmodule Glossia.Projects do
     default_branch = opts |> Map.fetch!(:default_branch)
     project = project |> Repo.preload(:account)
 
-    content_source = ContentSources.new(project.vcs_platform, project.vcs_id)
+    content_source =
+      ContentSources.new(project.content_source_platform, project.content_source_id)
 
     {:ok, access_token} = ContentSources.generate_auth_token(content_source)
 
@@ -51,8 +52,8 @@ defmodule Glossia.Projects do
         commit_sha: commit_sha,
         default_branch: default_branch,
         ref: ref,
-        vcs_id: project.vcs_id,
-        vcs_platform: project.vcs_platform,
+        content_source_id: project.content_source_id,
+        content_source_platform: project.content_source_platform,
         project_id: project.id,
         project_handle: project.handle,
         account_handle: project.account.handle
@@ -87,8 +88,8 @@ defmodule Glossia.Projects do
   It finds a repository given the id and the vcs.
   """
   @spec find_project_by_repository(%{
-          vcs_id: String.t(),
-          vcs_platform: Project.vcs()
+          content_source_id: String.t(),
+          content_source_platform: Project.vcs()
         }) ::
           Project.t() | nil
   def find_project_by_repository(attrs) do

@@ -8,8 +8,8 @@ Deno.test("getEvent throws an error when the event is unsupported", () => {
   }, "This instance of the builder doesn't support the event 'invalid'");
 });
 
-Deno.test("getVCSPlatform throws an error when the VCS platform is unsupported", () => {
+Deno.test("getContentSourcePlatform throws an error when the VCS platform is unsupported", () => {
   assertThrows(() => {
-    getEvent(getMockedEnv({ GLOSSIA_VCS_PLATFORM: "invalid" }));
+    getEvent(getMockedEnv({ GLOSSIA_CONTENT_SOURCE_PLATFORM: "invalid" }));
   }, "This instance of the builder doesn't support the VCS platform 'invalid'");
 });

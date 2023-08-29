@@ -6,8 +6,8 @@ defmodule Glossia.Events.GitEvent do
   # Types
   @type t :: %__MODULE__{
           commit_sha: String.t(),
-          vcs_id: String.t() | nil,
-          vcs_platform: Glossia.Foundation.ContentSources.Platform.t(),
+          content_source_id: String.t() | nil,
+          content_source_platform: Glossia.Foundation.ContentSources.Platform.t(),
           vm_id: String.t() | nil,
           status: status(),
           project: Glossia.Projects.Project.t() | nil
@@ -34,8 +34,8 @@ defmodule Glossia.Events.GitEvent do
 
   schema "git_events" do
     field :commit_sha, :string
-    field :vcs_id, :string
-    field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
+    field :content_source_id, :string
+    field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
     field :vm_logs_url, :string
     field :markdown_error_message, :string
@@ -67,8 +67,8 @@ defmodule Glossia.Events.GitEvent do
     event
     |> cast(attrs, [
       :commit_sha,
-      :vcs_id,
-      :vcs_platform,
+      :content_source_id,
+      :content_source_platform,
       :project_id,
       :status,
       :vm_id,
@@ -78,13 +78,13 @@ defmodule Glossia.Events.GitEvent do
     ])
     |> validate_required([
       :commit_sha,
-      :vcs_id,
-      :vcs_platform,
+      :content_source_id,
+      :content_source_platform,
       :project_id,
       :status,
       :event
     ])
-    |> validate_inclusion(:vcs_platform, [:github])
+    |> validate_inclusion(:content_source_platform, [:github])
     |> validate_inclusion(:event, [:push])
     |> validate_inclusion(:status, [
       :status_unknown,
@@ -98,7 +98,9 @@ defmodule Glossia.Events.GitEvent do
       :cancelled,
       :expired
     ])
-    |> unique_constraint([:commit_sha, :event, :vcs_id, :vcs_platform])
+    |> unique_constraint([:commit_sha, :event, :content_source_id, :content_source_platform],
+      name: "git_events_commit_sha_event_content_source_id_content_source_pl"
+    )
     |> assoc_constraint(:project)
   end
 end

@@ -18,15 +18,18 @@ defmodule Glossia.Web.WebhookController do
     payload = conn.assigns.raw_body |> Jason.decode!()
     ref = payload |> get_in(["ref"])
     commit_sha = payload |> get_in(["after"])
-    vcs_id = payload |> get_in(["repository", "full_name"])
+    content_source_id = payload |> get_in(["repository", "full_name"])
     default_branch = payload |> get_in(["repository", "default_branch"])
-    content_source = ContentSources.new(:github, vcs_id)
+    content_source = ContentSources.new(:github, content_source_id)
 
     with {:should_localize, true} <-
            {:should_localize, ContentSources.should_localize?(content_source, commit_sha)},
          {:project, %Project{} = project} <-
            {:project,
-            Projects.find_project_by_repository(%{vcs_id: vcs_id, vcs_platform: :github})} do
+            Projects.find_project_by_repository(%{
+              content_source_id: content_source_id,
+              content_source_platform: :github
+            })} do
       Projects.process_git_event(project, %{
         event: event,
         ref: ref,

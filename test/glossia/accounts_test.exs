@@ -7,7 +7,7 @@ defmodule Glossia.AccountsTest do
   describe "register_organization" do
     test "it registers the organization successfully" do
       # Given
-      attrs = %{handle: "glossia"}
+      attrs = %{handle: Glossia.AccountsFixtures.unique_handle()}
 
       # When
       assert {:ok, _} = Accounts.register_organization(attrs)
@@ -15,7 +15,7 @@ defmodule Glossia.AccountsTest do
 
     test "errors when an organization with the same handle already exists" do
       # Given
-      attrs = %{handle: "glossia"}
+      attrs = %{handle: Glossia.AccountsFixtures.unique_handle()}
 
       # When
       assert {:ok, _} = Accounts.register_organization(attrs)

@@ -18,8 +18,8 @@ defmodule Glossia.Events do
           default_branch: String.t(),
           ref: String.t(),
           commit_sha: String.t(),
-          vcs_id: String.t(),
-          vcs_platform: atom(),
+          content_source_id: String.t(),
+          content_source_platform: atom(),
           project_handle: String.t(),
           account_handle: String.t()
         }) ::
