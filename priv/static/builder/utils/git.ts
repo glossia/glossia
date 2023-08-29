@@ -1,8 +1,8 @@
 import {
+  getContentSourceId,
+  getContentSourcePlatform,
   getGitAccessToken,
   getGitCommitSHA,
-  getVCSId,
-  getVCSPlatform,
 } from "./environment.ts";
 
 // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
@@ -13,8 +13,8 @@ export async function cloneGitRepository(
     root: root,
     gitCommitSHA: getGitCommitSHA()!,
     gitAccessToken: getGitAccessToken()!,
-    vcsPlatform: getVCSPlatform()!,
-    vcsId: getVCSId()!,
+    vcsPlatform: getContentSourcePlatform()!,
+    vcsId: getContentSourceId()!,
   });
 }
 

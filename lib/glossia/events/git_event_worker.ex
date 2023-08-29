@@ -22,8 +22,8 @@ defmodule Glossia.Events.GitEventWorker do
           "default_branch" => default_branch,
           "ref" => ref,
           "commit_sha" => commit_sha,
-          "vcs_id" => vcs_id,
-          "vcs_platform" => vcs_platform,
+          "content_source_id" => content_source_id,
+          "content_source_platform" => content_source_platform,
           "project_handle" => project_handle,
           "account_handle" => account_handle
         }
@@ -39,8 +39,8 @@ defmodule Glossia.Events.GitEventWorker do
           default_branch: default_branch,
           ref: ref,
           commit_sha: commit_sha,
-          vcs_id: vcs_id,
-          vcs_platform: vcs_platform,
+          content_source_id: content_source_id,
+          content_source_platform: content_source_platform,
           project_id: project_id,
           project_handle: project_handle,
           account_handle: account_handle
@@ -54,8 +54,8 @@ defmodule Glossia.Events.GitEventWorker do
   def trigger_build(
         %{
           event: event,
-          vcs_id: vcs_id,
-          vcs_platform: vcs_platform,
+          content_source_id: content_source_id,
+          content_source_platform: content_source_platform,
           ref: ref,
           commit_sha: commit_sha,
           default_branch: default_branch,
@@ -69,7 +69,8 @@ defmodule Glossia.Events.GitEventWorker do
     git_event =
       Repo.insert!(GitEvent.changeset(%GitEvent{}, attrs))
 
-    content_source = ContentSources.new(String.to_atom(vcs_platform), vcs_id)
+    content_source =
+      ContentSources.new(String.to_atom(content_source_platform), content_source_id)
 
     ContentSources.update_state(
       content_source,
@@ -87,9 +88,9 @@ defmodule Glossia.Events.GitEventWorker do
         GLOSSIA_OWNER_HANDLE: account_handle,
         GLOSSIA_PROJECT_HANDLE: project_handle,
 
-        # VCS
-        GLOSSIA_VCS_ID: vcs_id,
-        GLOSSIA_VCS_PLATFORM: vcs_platform,
+        # Content Source
+        GLOSSIA_CONTENT_SOURCE_ID: content_source_id,
+        GLOSSIA_CONTENT_SOURCE_PLATFORM: content_source_platform,
 
         # Git
         GLOSSIA_GIT_REF: ref,

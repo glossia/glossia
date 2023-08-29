@@ -7,7 +7,12 @@ defmodule Glossia.Projects.ProjectTest do
     test "validates that handle is required" do
       # Given
       project = %Project{}
-      attrs = %{vcs_id: "glossia/glossia", vcs_platform: :github, account_id: 1}
+
+      attrs = %{
+        content_source_id: "glossia/glossia",
+        content_source_platform: :github,
+        account_id: 1
+      }
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -20,33 +25,38 @@ defmodule Glossia.Projects.ProjectTest do
     test "validates that repository_id is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", vcs_platform: :github, account_id: 1}
+      attrs = %{handle: "glossia", content_source_platform: :github, account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs_id: ["can't be blank"]} = errors
+      assert %{content_source_id: ["can't be blank"]} = errors
     end
 
     test "validates that vcs is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", vcs_id: "glossia/glossia", account_id: 1}
+      attrs = %{handle: "glossia", content_source_id: "glossia/glossia", account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs_platform: ["can't be blank"]} = errors
+      assert %{content_source_platform: ["can't be blank"]} = errors
     end
 
     test "validates that account_id is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", vcs_id: "glossia/glossia", vcs_platform: :github}
+
+      attrs = %{
+        handle: "glossia",
+        content_source_id: "glossia/glossia",
+        content_source_platform: :github
+      }
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -62,8 +72,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        vcs_id: "glossia/glossia",
-        vcs_platform: :invalid_vcs,
+        content_source_id: "glossia/glossia",
+        content_source_platform: :invalid_vcs,
         account_id: 1
       }
 
@@ -72,7 +82,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs_platform: ["is invalid"]} = errors
+      assert %{content_source_platform: ["is invalid"]} = errors
     end
 
     test "validates that handle is alphanumeric" do
@@ -81,8 +91,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "invalid handle",
-        vcs_id: "glossia/glossia",
-        vcs_platform: :github,
+        content_source_id: "glossia/glossia",
+        content_source_platform: :github,
         account_id: 1
       }
 
@@ -100,8 +110,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "a",
-        vcs_id: "glossia/glossia",
-        vcs_platform: :github,
+        content_source_id: "glossia/glossia",
+        content_source_platform: :github,
         account_id: 1
       }
 
@@ -119,8 +129,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "aasdgasgasgdasdgasdgasgasdgasgsags",
-        vcs_id: "glossia/glossia",
-        vcs_platform: :github,
+        content_source_id: "glossia/glossia",
+        content_source_platform: :github,
         account_id: 1
       }
 
@@ -132,12 +142,12 @@ defmodule Glossia.Projects.ProjectTest do
       assert %{handle: ["should be at most 20 character(s)"]} = errors
     end
 
-    test "validates the inclusion of vcs_platform in the supported types" do
+    test "validates the inclusion of content_source_platform in the supported types" do
       # Given
       project = %Project{}
 
       attrs = %{
-        vcs_platform: :invalid
+        content_source_platform: :invalid
       }
 
       # When
@@ -145,7 +155,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs_platform: ["is invalid"]} = errors
+      assert %{content_source_platform: ["is invalid"]} = errors
     end
 
     test "validates the inclusion of type in the supported types" do

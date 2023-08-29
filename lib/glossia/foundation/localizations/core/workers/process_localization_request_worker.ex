@@ -28,7 +28,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
         )
 
     _ =
-      ContentSources.new(project.vcs_platform, project.vcs_id)
+      ContentSources.new(project.content_source_platform, project.content_source_id)
       |> ContentSources.update_content(%{
         # TODO: Improve
         title: "Localization",

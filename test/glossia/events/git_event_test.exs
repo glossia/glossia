@@ -25,27 +25,27 @@ defmodule Glossia.Events.GitEventTests do
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs_id: ["can't be blank"]} = errors
+      assert %{content_source_id: ["can't be blank"]} = errors
     end
 
     test "validates the presence of vcs" do
       # Given
-      attrs = %{commit_sha: "1234567890", vcs_id: "1234567890"}
+      attrs = %{commit_sha: "1234567890", content_source_id: "1234567890"}
 
       # When
       changeset = GitEvent.changeset(%GitEvent{}, attrs)
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs_platform: ["can't be blank"]} = errors
+      assert %{content_source_platform: ["can't be blank"]} = errors
     end
 
     test "validates the presence of project_id" do
       # Given
       attrs = %{
         commit_sha: "1234567890",
-        vcs_id: "1234567890",
-        vcs_platform: :github
+        content_source_id: "1234567890",
+        content_source_platform: :github
       }
 
       # When
@@ -60,8 +60,8 @@ defmodule Glossia.Events.GitEventTests do
       # Given
       attrs = %{
         commit_sha: "1234567890",
-        vcs_id: "1234567890",
-        vcs_platform: :gitlab,
+        content_source_id: "1234567890",
+        content_source_platform: :gitlab,
         project_id: 1,
         event: :push
       }
@@ -71,7 +71,7 @@ defmodule Glossia.Events.GitEventTests do
 
       # Then
       errors = errors_on(changeset)
-      assert %{vcs_platform: ["is invalid"]} = errors
+      assert %{content_source_platform: ["is invalid"]} = errors
     end
 
     test "validate the uniqueness of commit_sha, repository_id and vcs" do
@@ -80,8 +80,8 @@ defmodule Glossia.Events.GitEventTests do
 
       attrs = %{
         commit_sha: "1234567890",
-        vcs_id: "1234567890",
-        vcs_platform: :github,
+        content_source_id: "1234567890",
+        content_source_platform: :github,
         project_id: project.id,
         event: :push
       }

@@ -248,12 +248,12 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
     %{access_token: access_token} |> Tentacat.Client.new()
   end
 
-  defp get_client_for_repository(vcs_id) do
+  defp get_client_for_repository(content_source_id) do
     app_jwt_token = Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(
-        "repos/#{vcs_id}/installation",
+        "repos/#{content_source_id}/installation",
         Tentacat.Client.new(%{jwt: app_jwt_token})
       )
 

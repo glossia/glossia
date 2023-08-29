@@ -25,8 +25,9 @@ defmodule Glossia.ProjectsFixtures do
   defp project_fixture_default_attrs() do
     %{
       handle: "handle#{Glossia.TestHelpers.unique_integer()}",
-      vcs_id: "#{Glossia.TestHelpers.unique_integer()}/#{Glossia.TestHelpers.unique_integer()}",
-      vcs_platform: :github,
+      content_source_id:
+        "#{Glossia.TestHelpers.unique_integer()}/#{Glossia.TestHelpers.unique_integer()}",
+      content_source_platform: :github,
       account_id: 1
     }
   end

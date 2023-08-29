@@ -73,8 +73,8 @@ export function getAccessToken(env: Deno.Env = Deno.env) {
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getVCSId(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_VCS_ID");
+export function getContentSourceId(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_CONTENT_SOURCE_ID");
 }
 
 type VCSPlatform = "github";
@@ -84,10 +84,10 @@ type VCSPlatform = "github";
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getVCSPlatform(
+export function getContentSourcePlatform(
   env: Deno.Env = Deno.env,
 ): VCSPlatform | undefined {
-  const platform = env.get("GLOSSIA_VCS_PLATFORM");
+  const platform = env.get("GLOSSIA_CONTENT_SOURCE_PLATFORM");
   if (!platform) return undefined;
   switch (platform) {
     case "github":

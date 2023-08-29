@@ -12,8 +12,8 @@ defmodule Glossia.Projects.Project do
           account: Account.t() | nil,
           type: type(),
           visibility: visibility(),
-          vcs_id: String.t(),
-          vcs_platform: Glossia.Foundation.ContentSources.t()
+          content_source_id: String.t(),
+          content_source_platform: Glossia.Foundation.ContentSources.t()
         }
   @type visibility :: :public | :private
   @type type :: :git
@@ -31,8 +31,8 @@ defmodule Glossia.Projects.Project do
   schema "projects" do
     field :handle, :string
     field :type, Ecto.Enum, values: [{:git, 1}], default: :git
-    field :vcs_id, :string
-    field :vcs_platform, Ecto.Enum, values: [{:github, 1}]
+    field :content_source_id, :string
+    field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
     has_many(:git_events, GitEvent)
@@ -47,29 +47,47 @@ defmodule Glossia.Projects.Project do
   """
   @type changeset_attrs :: %{
           handle: String.t(),
-          vcs_id: String.t(),
-          vcs_platform: Glossia.Foundation.ContentSources.t(),
+          content_source_id: String.t(),
+          content_source_platform: Glossia.Foundation.ContentSources.t(),
           account_id: integer()
         }
   @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:handle, :vcs_id, :vcs_platform, :account_id, :visibility, :type])
-    |> validate_required([:handle, :vcs_id, :vcs_platform, :account_id, :type])
-    |> validate_inclusion(:vcs_platform, [:github])
+    |> cast(attrs, [
+      :handle,
+      :content_source_id,
+      :content_source_platform,
+      :account_id,
+      :visibility,
+      :type
+    ])
+    |> validate_required([
+      :handle,
+      :content_source_id,
+      :content_source_platform,
+      :account_id,
+      :type
+    ])
+    |> validate_inclusion(:content_source_platform, [:github])
     |> validate_inclusion(:type, [:git])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
     |> unique_constraint(:handle)
-    |> unique_constraint([:vcs_id, :vcs_platform])
+    |> unique_constraint([:content_source_id, :content_source_platform])
     |> assoc_constraint(:account)
   end
 
   # Queries
 
-  def find_project_by_repository_query(%{vcs_platform: vcs_platform, vcs_id: vcs_id}) do
+  def find_project_by_repository_query(%{
+        content_source_platform: content_source_platform,
+        content_source_id: content_source_id
+      }) do
     from(p in __MODULE__,
-      where: p.vcs_id == ^vcs_id and p.vcs_platform == ^vcs_platform
+      where:
+        p.content_source_id == ^content_source_id and
+          p.content_source_platform == ^content_source_platform
     )
   end
 

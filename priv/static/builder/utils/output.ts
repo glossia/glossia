@@ -2,6 +2,8 @@ import AsciiTable from "https://deno.land/x/ascii_table/mod.ts";
 import {
   getAccessToken,
   getAppSignalAPIKey,
+  getContentSourceId,
+  getContentSourcePlatform,
   getEvent,
   getGitAccessToken,
   getGitCommitSHA,
@@ -11,8 +13,6 @@ import {
   getOwnerHandle,
   getProjectHandle,
   getURL,
-  getVCSId,
-  getVCSPlatform,
 } from "../utils/environment.ts";
 
 /**
@@ -29,8 +29,8 @@ export function outputHeadingTableWithContext() {
     .addRow("Git event ID", getGitEventID())
     .addRow("Event", getEvent())
     .addRow("App Signal API key", getAppSignalAPIKey())
-    .addRow("VCS Platform", getVCSPlatform())
-    .addRow("VCS ID", getVCSId())
+    .addRow("Content Source Platform", getContentSourcePlatform())
+    .addRow("Content Source ID", getContentSourceId())
     .addRow("Git access token", getGitAccessToken())
     .addRow("Git commit SHA", getGitCommitSHA())
     .addRow("Git ref", getGitRef())
