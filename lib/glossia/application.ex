@@ -27,7 +27,14 @@ defmodule Glossia.Application do
         # Start the PubSub system
         {Phoenix.PubSub, name: Glossia.PubSub},
         # Start Finch
-        {Finch, name: Glossia.Finch},
+        {Finch,
+         name: Glossia.Finch,
+         pools: %{
+           "https://api.openai.com" => [
+             size: 10,
+             conn_opts: [recv_timeout: :timer.minutes(5), send_timeout: :timer.minutes(5)]
+           ]
+         }},
         # Start the Endpoint (http/https)
         Glossia.Endpoint,
         # Start a worker by calling: Glossia.Worker.start_link(arg)

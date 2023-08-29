@@ -58,7 +58,11 @@ defmodule Glossia.Foundation.ContentSources.Core do
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def is_webhook_payload_valid?(content_source, req_headers, payload) do
-    content_source(content_source.id).is_webhook_payload_valid?(req_headers, payload)
+    content_source(content_source.id).is_webhook_payload_valid?(
+      content_source,
+      req_headers,
+      payload
+    )
   end
 
   # Private

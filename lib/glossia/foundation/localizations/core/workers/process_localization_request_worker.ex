@@ -13,42 +13,36 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
   # Impl: Oban.Worker
 
   @impl Oban.Worker
-  def perform(%Oban.Job{
-        args: %{
-          "request" => request,
-          "project" => %{"id" => project_id}
-        }
-      }) do
-    request = request |> Useful.atomize_map_keys()
+  def perform(job) do
+    request = job.args["request"] |> Useful.atomize_map_keys()
     Logger.info("Processing localization request", request)
-    version = request["id"]
-    project = get_project(project_id)
+    version = request[:id]
+    project = get_project(job.args["project_id"])
 
+    content =
+      localize_into_new_languages(
+        get_modules_with_new_languages_that_require_localization(request)
+      ) ++
+        update_localized_content_due_to_content_or_context_changes(
+          get_modules_with_changed_source_context_or_content(request)
+        )
 
-    content_to_update = localize_into_new_languages(
-      get_modules_with_new_languages_that_require_localization(request)
-    ) ++ update_localized_content_due_to_content_or_context_changes(get_modules_with_changed_source_context_or_content((request)))
-
-    _ = ContentSources.new(project.vcs_platform, project.vcs_id)
-    |> update_content(version, content_to_update)
-
+    _ =
+      ContentSources.new(project.vcs_platform, project.vcs_id)
+      |> ContentSources.update_content(%{
+        # TODO: Improve
+        title: "Localization",
+        description: "",
+        version: version,
+        content: content
+      })
   end
 
   # Private
 
-  defp update_content(content_source, version, content) do
-    ContentSources.update_content(content_source, %{
-      # TODO: Improve
-      title: "Localization",
-      description: "",
-      version: version,
-      content: content
-    })
-  end
-
   @spec localize_into_new_languages(modules :: [map()]) :: [[id: String.t(), content: String.t()]]
   defp localize_into_new_languages(modules) do
-    Logger.info("Localizing the content into new languages", modules)
+    Logger.info("Localizing the content into new languages")
     # TODO
     []
   end
@@ -63,7 +57,9 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
     Projects.find_project_by_id(project_id)
   end
 
-  @spec get_modules_with_new_languages_that_require_localization(request :: LocalizationRequest.t()) :: [map()]
+  @spec get_modules_with_new_languages_that_require_localization(
+          request :: LocalizationRequest.t()
+        ) :: [map()]
   defp get_modules_with_new_languages_that_require_localization(request) do
     Enum.flat_map(request[:modules], fn module ->
       format = module[:format]
@@ -118,7 +114,9 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
     end)
   end
 
-  @spec get_modules_with_new_languages_that_require_localization(request :: LocalizationRequest.t()) :: [map()]
+  @spec get_modules_with_new_languages_that_require_localization(
+          request :: LocalizationRequest.t()
+        ) :: [map()]
   defp get_modules_with_changed_source_context_or_content(_request) do
     []
     # TODO

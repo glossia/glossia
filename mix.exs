@@ -79,7 +79,6 @@ defmodule Glossia.MixProject do
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
       {:req, "~> 0.3.11"},
-      {:openai_ex, "~> 0.2.3"},
       {:useful, "~> 1.12.1"}
     ]
   end

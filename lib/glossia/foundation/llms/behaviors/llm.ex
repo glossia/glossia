@@ -31,7 +31,7 @@ defmodule Glossia.Foundation.LLMs.Behaviors.LLM do
   - `model` - The model to use for completion.
   - `messages` - The messages to use for completion.
   """
-  @callback complete_chat(llm :: module(), model :: String.t(), messages :: [chat_message_t()]) ::
+  @callback complete_chat(model :: String.t(), messages :: [chat_message_t()]) ::
               {:ok, chat_completion_t()}
 
   @doc """

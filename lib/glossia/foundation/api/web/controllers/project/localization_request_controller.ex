@@ -24,15 +24,16 @@ defmodule Glossia.Foundation.API.Web.Controllers.Project.LocalizationRequestCont
   @spec create(
           conn :: %{
             body_params: LocalizationRequest.t(),
-            assigns: %{current_project: Project.t()}
+            assigns: %{authenticated_project: Project.t()}
           },
           params :: map()
         ) :: Plug.Conn.t()
   def create(conn = %{body_params: %LocalizationRequest{} = request}, _params) do
-    # Glossia.Web.Auth.Policies.enforce!(conn, {:create, :localization_request})
+    Glossia.Web.Auth.Policies.enforce!(conn, {:create, :localization_request})
+
     result =
       Localizations.process_localization_request(request, %{
-        project: conn.assigns[:current_project]
+        project_id: conn.assigns[:authenticated_project].id
       })
 
     case result do

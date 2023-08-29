@@ -10,16 +10,16 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
   @behaviour Glossia.Foundation.ContentSources.Core.ContentSource
 
   # Struct
-  defstruct [:content_source, :client, :owner, :repo]
+  defstruct [:id, :client, :owner, :repo]
 
   def new(id) do
     [owner, repo] = id |> String.split("/")
     client = get_client_for_repository("#{owner}/#{repo}")
-    %__MODULE__{content_source: :github, client: client, owner: owner, repo: repo}
+    %__MODULE__{id: :github, client: client, owner: owner, repo: repo}
   end
 
   def new() do
-    %__MODULE__{content_source: :github}
+    %__MODULE__{id: :github}
   end
 
   # Glossia.Foundation.ContentSources.Core.ContentSource behavior
@@ -142,6 +142,16 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
       {:branch, {_, body, _}} -> {:error, body}
       {:tree_creation, {_, body, _}} -> {:error, body}
     end
+  end
+
+  def update_content(
+        _github,
+        %{
+          content: content
+        } = opts
+      )
+      when length(content) == 0 do
+    # Noop
   end
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
