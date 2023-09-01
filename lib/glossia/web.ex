@@ -4,10 +4,10 @@ defmodule Glossia.Web do
       Glossia,
       Glossia.Accounts,
       Glossia.Analytics,
-      Glossia.Projects,
       Glossia.Blog,
       Glossia.Auth,
-      Glossia.Foundation.ContentSources.Core
+      Glossia.Foundation.ContentSources.Core,
+      Glossia.Foundation.Projects.Core
     ],
     exports: [
       {Plugs, []},

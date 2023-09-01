@@ -19,7 +19,9 @@ defmodule Glossia.ProjectsFixtures do
           attrs
       end
 
-    attrs |> Enum.into(project_fixture_default_attrs()) |> Glossia.Projects.create_project()
+    attrs
+    |> Enum.into(project_fixture_default_attrs())
+    |> Glossia.Foundation.Projects.Core.create_project()
   end
 
   defp project_fixture_default_attrs() do

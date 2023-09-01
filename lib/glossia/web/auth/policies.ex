@@ -7,7 +7,7 @@ defmodule Glossia.Web.Auth.Policies do
   # Modules
   use PolicyWonk.Policy
   use PolicyWonk.Enforce
-  alias Glossia.Projects.Project
+  alias Glossia.Foundation.Projects.Core.Project
 
   def policy(assigns, :authenticated_project) do
     case assigns[:authenticated_project] do

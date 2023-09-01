@@ -6,8 +6,8 @@ defmodule Glossia.Web.Plugs.AssignProjectFromURLPlug do
   # Modules
   import Plug.Conn
   alias Plug.Conn
-  alias Glossia.Projects
-  alias Glossia.Projects.Project
+  alias Glossia.Foundation.Projects.Core, as: Projects
+  alias Glossia.Foundation.Projects.Core.Project
 
   @spec init(Keyword.t()) :: Keyword.t()
   def init(options), do: options

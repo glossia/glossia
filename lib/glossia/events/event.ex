@@ -10,7 +10,7 @@ defmodule Glossia.Events.Event do
           content_source_platform: Glossia.Foundation.ContentSources.Platform.t(),
           vm_id: String.t() | nil,
           status: status(),
-          project: Glossia.Projects.Project.t() | nil,
+          project: Glossia.Foundation.Projects.Core.Project.t() | nil,
           metadata: map()
         }
 
@@ -58,7 +58,7 @@ defmodule Glossia.Events.Event do
       ],
       default: :status_unknown
 
-    belongs_to :project, Glossia.Projects.Project
+    belongs_to :project, Glossia.Foundation.Projects.Core.Project
 
     timestamps()
   end

@@ -1,4 +1,4 @@
-defmodule Glossia.Projects.Project do
+defmodule Glossia.Foundation.Projects.Core.Project do
   use Boundary
 
   @moduledoc """

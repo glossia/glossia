@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.API.Web.Controllers.Project.LocalizationRequestCont
 
   tags ["localization-requests"]
 
-  alias Glossia.Projects.Project
+  alias Glossia.Foundation.Projects.Core.Project
   alias Glossia.Foundation.Localizations.Core, as: Localizations
   alias Glossia.Foundation.API.Core.Schemas.LocalizationRequest.CreateResponse
   alias Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest

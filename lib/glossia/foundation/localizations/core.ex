@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Localizations.Core do
   use Boundary,
-    deps: [Glossia.Foundation.ContentSources.Core, Glossia.Projects],
+    deps: [Glossia.Foundation.ContentSources.Core, Glossia.Foundation.Projects.Core],
     exports: [API.Schemas.LocalizationRequest]
 
   # Modules

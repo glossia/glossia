@@ -3,8 +3,8 @@ defmodule Glossia.Web.WebhookController do
 
   require Logger
 
-  alias Glossia.Projects
-  alias Glossia.Projects.Project
+  alias Glossia.Foundation.Projects.Core, as: Projects
+  alias Glossia.Foundation.Projects.Core.Project
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
 
   # Public
