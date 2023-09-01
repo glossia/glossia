@@ -10,7 +10,7 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
   - `version` - The version of the content. It can be `:latest` or a specific version. In the case of content sources like GitHub, it represents the commit SHA when pulling a specific version.
   """
   @callback get_content(
-              content_source :: module(),
+              content_source :: any(),
               content_id :: String.t(),
               version :: version_t
             ) ::
@@ -28,7 +28,7 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
       iex> Glossia.Foundation.ContentSources.Core.GitHub.get_most_recent_version(github_content_source)
       {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback get_most_recent_version(content_source :: module()) ::
+  @callback get_most_recent_version(content_source :: any()) ::
               {:ok, String.t()} | {:error, any()}
 
   @type update_content_opts_t :: %{
@@ -58,7 +58,7 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
     })
     {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback update_content(content_source :: module(), opts :: update_content_opts_t()) ::
+  @callback update_content(content_source :: any(), opts :: update_content_opts_t()) ::
               {:ok, %{id: String.t(), url: String.t() | nil}}
               | {:error, any()}
               | {:error, :newer_version_exists}
@@ -77,7 +77,7 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
       iex> Glossia.Foundation.ContentSources.Core.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
       false
   """
-  @callback should_localize?(content_source :: module(), version :: String.t()) :: boolean()
+  @callback should_localize?(content_source :: any(), version :: String.t()) :: boolean()
 
   @type update_status_t :: :error | :failure | :pending | :success
 
@@ -92,17 +92,17 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
   - `opts` - The options to configure the updating of the state.
   """
   @callback update_state(
-              content_source :: module(),
+              content_source :: any(),
               state :: update_status_t(),
               version :: String.t(),
               opts :: [{:target_url, String.t() | nil}, {:description, String.t() | nil}]
             ) :: :ok | {:error, any()}
 
-  @callback generate_auth_token(content_source :: module()) :: {:ok, String.t()} | {:error, any()}
+  @callback generate_auth_token(content_source :: any()) :: {:ok, String.t()} | {:error, any()}
 
   # TODO: Export a plug instead that does the validation
   @callback is_webhook_payload_valid?(
-              content_source :: module(),
+              content_source :: any(),
               req_headers :: Keyword.t(),
               payload :: map()
             ) :: boolean()

@@ -8,26 +8,26 @@ export function getAppSignalAPIKey(env: Deno.Env = Deno.env) {
 }
 
 /**
- * It returns the unique identifier of the git event persisted in Glossia's database.
+ * It returns the unique identifier of the event persisted in Glossia's database.
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getGitEventID(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_GIT_EVENT_ID");
+export function getEventId(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_EVENT_ID");
 }
 
-type Event = "git_push";
+type Event = "new_version";
 
 /**
  * It returns the event that triggered the builder.
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getEvent(env: Deno.Env = Deno.env): Event {
-  const event = env.get("GLOSSIA_EVENT");
+export function getEventType(env: Deno.Env = Deno.env): Event {
+  const event = env.get("GLOSSIA_EVENT_TYPE");
   switch (event) {
-    case "git_push":
-      return "git_push";
+    case "new_version":
+      return "new_version";
     default:
       throw new Error(
         `This instance of the builder doesn't support the event '${event}'`,
@@ -48,13 +48,12 @@ export function getURL(env: Deno.Env = Deno.env) {
 }
 
 /**
- * It returns the access token that should be used to authenticate Git operations against
- * the Git platform (e.g. GitHub.)
+ * It returns the access token that should be used to authenticate operations against the content source.
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getGitAccessToken(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_GIT_ACCESS_TOKEN") ??
+export function getContentSourceAccessToken(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_CONTENT_SOURCE_ACCESS_TOKEN") ??
     env.get("GITHUB_TOKEN");
 }
 
@@ -100,23 +99,12 @@ export function getContentSourcePlatform(
 }
 
 /**
- * It returns the SHA of the commit that led to triggering this build.
- * This value is only present when the event is a git event.
+ * It returns the content version associated to the event.
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getGitCommitSHA(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_GIT_COMMIT_SHA");
-}
-
-/**
- * It returns the branch reference from the event that led to triggering this build.
- * This value is only present when the event is a git event.
- * @param env {Deno.Env} An object containing the enviornment variables of the system.
- * @returns
- */
-export function getGitRef(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_GIT_REF");
+export function getEventVersion(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_EVENT_VERSION");
 }
 
 /**
@@ -133,16 +121,6 @@ export function getOwnerHandle(env: Deno.Env = Deno.env) {
  */
 export function getProjectHandle(env: Deno.Env = Deno.env) {
   return env.get("GLOSSIA_PROJECT_HANDLE");
-}
-
-/**
- * It returns the default branch from Git repository.
- * This value is only present when the event is a git event.
- * @param env {Deno.Env} An object containing the enviornment variables of the system.
- * @returns
- */
-export function getGitDefaultBranch(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_GIT_DEFAULT_BRANCH");
 }
 
 type Environment = "production" | "development";

@@ -1,19 +1,20 @@
-defmodule Glossia.Events.GitEvent do
+defmodule Glossia.Events.Event do
   @moduledoc """
   This module represents a Git event received for a particular project.
   """
 
   # Types
   @type t :: %__MODULE__{
-          commit_sha: String.t(),
+          version: String.t(),
           content_source_id: String.t() | nil,
           content_source_platform: Glossia.Foundation.ContentSources.Platform.t(),
           vm_id: String.t() | nil,
           status: status(),
-          project: Glossia.Projects.Project.t() | nil
+          project: Glossia.Projects.Project.t() | nil,
+          metadata: map(),
         }
 
-  @type event :: :push
+  @type event :: :new_version
   @type status ::
           :status_unknown
           | :pending
@@ -32,14 +33,15 @@ defmodule Glossia.Events.GitEvent do
 
   # Schema
 
-  schema "git_events" do
-    field :commit_sha, :string
+  schema "events" do
+    field :version, :string
     field :content_source_id, :string
     field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
     field :vm_logs_url, :string
     field :markdown_error_message, :string
-    field :event, Ecto.Enum, values: [{:push, 1}]
+    field :type, Ecto.Enum, values: [{:new_version, 1}]
+    field :metadata, :map
 
     field :status, Ecto.Enum,
       values: [
@@ -66,26 +68,26 @@ defmodule Glossia.Events.GitEvent do
   def changeset(event, attrs) do
     event
     |> cast(attrs, [
-      :commit_sha,
+      :version,
       :content_source_id,
       :content_source_platform,
       :project_id,
       :status,
       :vm_id,
       :vm_logs_url,
-      :event,
+      :type,
       :markdown_error_message
     ])
     |> validate_required([
-      :commit_sha,
+      :version,
       :content_source_id,
       :content_source_platform,
       :project_id,
       :status,
-      :event
+      :type
     ])
     |> validate_inclusion(:content_source_platform, [:github])
-    |> validate_inclusion(:event, [:push])
+    |> validate_inclusion(:type, [:new_version])
     |> validate_inclusion(:status, [
       :status_unknown,
       :pending,
@@ -98,8 +100,8 @@ defmodule Glossia.Events.GitEvent do
       :cancelled,
       :expired
     ])
-    |> unique_constraint([:commit_sha, :event, :content_source_id, :content_source_platform],
-      name: "git_events_commit_sha_event_content_source_id_content_source_pl"
+    |> unique_constraint([:version, :type, :content_source_id, :content_source_platform],
+      name: "events_version_type_content_source_id_content_source_platform_i"
     )
     |> assoc_constraint(:project)
   end

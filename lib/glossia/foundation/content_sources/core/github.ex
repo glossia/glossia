@@ -148,7 +148,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
         _github,
         %{
           content: content
-        } = opts
+        }
       )
       when length(content) == 0 do
     # Noop

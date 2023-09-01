@@ -1,5 +1,5 @@
 import { ConfigurationManifest } from "./configuration_manifest.ts";
-import { getGitCommitSHA } from "../environment.ts";
+import { getEventVersion } from "../environment.ts";
 import { LocalizationRequestPayload } from "./types.ts";
 import { generateModulesPayload } from "./file_tree.ts";
 
@@ -24,7 +24,7 @@ export async function generateLocalizationRequestPayload(
   options: GenerateLocalizationPayloadOptions,
 ): Promise<LocalizationRequestPayload> {
   // The id uniquely represents a content change snapshot.
-  const id = getGitCommitSHA(options.env) as string;
+  const id = getEventVersion(options.env) as string;
 
   const modules = (await Promise.all(
     configurationManifests.map(async (manifest) =>

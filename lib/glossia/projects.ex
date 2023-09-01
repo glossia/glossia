@@ -12,33 +12,28 @@ defmodule Glossia.Projects do
   @doc """
   It simulates a git push event using the latest commit from the default branch of a project.
   """
-  @spec simulate_git_push_event(Project.t()) :: :ok
-  def simulate_git_push_event(project) do
+  @spec simulate_new_content_event(Project.t()) :: :ok
+  def simulate_new_content_event(project) do
     project
-    |> process_git_event(%{
-      event: "push",
-      default_branch: "main",
+    |> process_event(%{
+      type: "new_content",
       commit_sha: "TODO",
-      ref: "refs/head/main"
     })
   end
 
   @doc """
   Given a git event, it processes it.
   """
-  @type process_git_event_opts_t :: %{
-          event: String.t(),
-          default_branch: String.t(),
-          commit_sha: String.t(),
-          ref: String.t()
+  @type process_event_opts_t :: %{
+          type: String.t(),
+          version: String.t(),
         }
-  @spec process_git_event(project :: Project.t(), opts :: process_git_event_opts_t) :: :ok
+  @spec process_event(project :: Project.t(), opts :: process_event_opts_t) :: :ok
 
-  def process_git_event(
+  def process_event(
         project,
-        %{event: "push" = event, commit_sha: commit_sha, ref: ref} = opts
+        %{type: "new_content", version: version}
       ) do
-    default_branch = opts |> Map.fetch!(:default_branch)
     project = project |> Repo.preload(:account)
 
     content_source =
@@ -48,10 +43,8 @@ defmodule Glossia.Projects do
 
     :ok =
       %{
-        event: event,
-        commit_sha: commit_sha,
-        default_branch: default_branch,
-        ref: ref,
+        type: "new_version",
+        version: version,
         content_source_id: project.content_source_id,
         content_source_platform: project.content_source_platform,
         project_id: project.id,
@@ -60,10 +53,10 @@ defmodule Glossia.Projects do
       }
       |> Map.put(:access_token, generate_token_for_project(project))
       |> Map.put(
-        :git_access_token,
+        :content_source_access_token,
         access_token
       )
-      |> Glossia.Events.process_git_event()
+      |> Glossia.Events.process_event()
 
     # TODO: Ignore events that are coming from a branch other than the default.
     # ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")

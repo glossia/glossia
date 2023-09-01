@@ -1,4 +1,4 @@
-import { getGitAccessToken } from "./environment.ts";
+import { getContentSourceAccessToken } from "./environment.ts";
 import { clone } from "./git.ts";
 import { runInTemporaryDirectory } from "../tests/test-helpers.ts";
 
@@ -10,7 +10,7 @@ Deno.test("clone clones the repository", async () => {
       vcsPlatform: "github",
       vcsId: "glossia/glossia",
       gitCommitSHA: undefined,
-      gitAccessToken: getGitAccessToken(),
+      gitAccessToken: getContentSourceAccessToken(),
     });
   });
 });

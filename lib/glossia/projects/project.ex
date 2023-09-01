@@ -21,7 +21,7 @@ defmodule Glossia.Projects.Project do
   # Module dependencies
 
   alias Glossia.Accounts.Account
-  alias Glossia.Events.GitEvent
+  alias Glossia.Events.Event
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
@@ -35,7 +35,7 @@ defmodule Glossia.Projects.Project do
     field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
-    has_many(:git_events, GitEvent)
+    has_many(:events, Event)
 
     timestamps()
   end

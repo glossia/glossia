@@ -2,14 +2,12 @@ import AsciiTable from "https://deno.land/x/ascii_table/mod.ts";
 import {
   getAccessToken,
   getAppSignalAPIKey,
+  getContentSourceAccessToken,
   getContentSourceId,
   getContentSourcePlatform,
-  getEvent,
-  getGitAccessToken,
-  getGitCommitSHA,
-  getGitDefaultBranch,
-  getGitEventID,
-  getGitRef,
+  getEventId,
+  getEventType,
+  getEventVersion,
   getOwnerHandle,
   getProjectHandle,
   getURL,
@@ -26,15 +24,13 @@ export function outputHeadingTableWithContext() {
     .addRow("Owner", getOwnerHandle())
     .addRow("Project", getProjectHandle())
     .addRow("Access token", getAccessToken())
-    .addRow("Git event ID", getGitEventID())
-    .addRow("Event", getEvent())
+    .addRow("Event ID", getEventId())
+    .addRow("Event type", getEventType())
+    .addRow("Event version", getEventVersion())
     .addRow("App Signal API key", getAppSignalAPIKey())
     .addRow("Content Source Platform", getContentSourcePlatform())
     .addRow("Content Source ID", getContentSourceId())
-    .addRow("Git access token", getGitAccessToken())
-    .addRow("Git commit SHA", getGitCommitSHA())
-    .addRow("Git ref", getGitRef())
-    .addRow("Git default branch", getGitDefaultBranch());
+    .addRow("Content Soruce access token", getContentSourceAccessToken());
 
   console.log(table.toString());
 }

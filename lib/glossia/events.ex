@@ -1,32 +1,30 @@
 defmodule Glossia.Events do
   use Boundary,
     deps: [Glossia.Foundation.ContentSources.Core, Glossia.Repo, Glossia.Builds],
-    exports: [GitEvent]
+    exports: [Event]
 
   # Modules
-  alias Glossia.Events.GitEventWorker
+  alias Glossia.Events.EventWorker
   require Logger
 
   @doc """
   It proces
   """
-  @spec process_git_event(%{
+  @spec process_event(%{
           access_token: String.t(),
-          git_access_token: String.t(),
+          content_source_access_token: String.t(),
           project_id: number(),
-          event: atom(),
-          default_branch: String.t(),
-          ref: String.t(),
-          commit_sha: String.t(),
+          type: atom(),
+          version: String.t(),
           content_source_id: String.t(),
           content_source_platform: atom(),
           project_handle: String.t(),
           account_handle: String.t()
         }) ::
           {:ok, nil} | {:error, any()}
-  def process_git_event(attrs) do
+  def process_event(attrs) do
     attrs
-    |> GitEventWorker.new()
+    |> EventWorker.new()
     |> Oban.insert()
     |> case do
       {:ok, _} -> :ok

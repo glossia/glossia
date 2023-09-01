@@ -79,7 +79,8 @@ defmodule Glossia.MixProject do
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
       {:req, "~> 0.3.11"},
-      {:useful, "~> 1.12.1"}
+      {:useful, "~> 1.12.1"},
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
     ]
   end
 

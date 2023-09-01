@@ -4,10 +4,10 @@ defmodule Glossia.EventsFixture do
   entities via the `Glossia.Localizations` context.
   """
 
-  alias Glossia.Events.GitEvent
+  alias Glossia.Events.Event
   alias Glossia.Repo
 
-  def git_event_fixture(attr \\ %{}) do
+  def event_fixture(attr \\ %{}) do
     attrs =
       if attr[:project_id] do
         attr
@@ -17,15 +17,15 @@ defmodule Glossia.EventsFixture do
       end
 
     attrs = attrs |> Enum.into(default_build_args())
-    GitEvent.changeset(%GitEvent{}, attrs) |> Repo.insert()
+    Event.changeset(%Event{}, attrs) |> Repo.insert()
   end
 
   defp default_build_args() do
     %{
-      commit_sha: "123",
+      version: "123",
       content_source_id: "glossia/glossia",
       content_source_platform: :github,
-      event: :push
+      type: :push
     }
   end
 end

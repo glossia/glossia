@@ -14,12 +14,10 @@ defmodule Glossia.Web.WebhookController do
     conn |> github_event(event)
   end
 
-  defp github_event(conn, "push" = event) do
+  defp github_event(conn, "push") do
     payload = conn.assigns.raw_body |> Jason.decode!()
-    ref = payload |> get_in(["ref"])
     commit_sha = payload |> get_in(["after"])
     content_source_id = payload |> get_in(["repository", "full_name"])
-    default_branch = payload |> get_in(["repository", "default_branch"])
     content_source = ContentSources.new(:github, content_source_id)
 
     with {:should_localize, true} <-
@@ -30,11 +28,9 @@ defmodule Glossia.Web.WebhookController do
               content_source_id: content_source_id,
               content_source_platform: :github
             })} do
-      Projects.process_git_event(project, %{
-        event: event,
-        ref: ref,
-        default_branch: default_branch,
-        commit_sha: commit_sha
+      Projects.process_event(project, %{
+        type: "new_content",
+        version: commit_sha
       })
 
       json(conn, nil)

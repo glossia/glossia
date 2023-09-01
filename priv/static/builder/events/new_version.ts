@@ -1,10 +1,20 @@
-import { getOwnerHandle, getProjectHandle } from "../utils/environment.ts";
+import {
+  getContentSourcePlatform,
+  getOwnerHandle,
+  getProjectHandle,
+} from "../utils/environment.ts";
 import { cloneGitRepository } from "../utils/git.ts";
 import { glossiaFetch } from "../utils/http.ts";
 import { loadConfigurationManifests } from "../utils/vcs/configuration_loader.ts";
 import { generateLocalizationRequestPayload } from "../utils/vcs/localization_request.ts";
 
-export default async function gitPush() {
+export default async function newVersion() {
+  if (getContentSourcePlatform() === "github") {
+    return await newGitHubContentVersion();
+  }
+}
+
+async function newGitHubContentVersion() {
   const tempDirPath = await Deno.makeTempDir();
   await cloneGitRepository({ root: tempDirPath });
   console.info("Loading configuration manifests");
