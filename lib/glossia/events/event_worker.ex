@@ -18,7 +18,7 @@ defmodule Glossia.Events.EventWorker do
           "access_token" => access_token,
           "content_source_access_token" => content_source_access_token,
           "project_id" => project_id,
-          "event" => event,
+          "type" => type,
           "version" => version,
           "content_source_id" => content_source_id,
           "content_source_platform" => content_source_platform,
@@ -32,7 +32,7 @@ defmodule Glossia.Events.EventWorker do
       nil ->
         trigger_build(%{
           access_token: access_token,
-          type: event,
+          type: type,
           version: version,
           project_id: project_id,
           project_handle: project_handle,
