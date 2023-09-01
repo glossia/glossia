@@ -1,4 +1,6 @@
-defmodule Glossia.Builds.VirtualMachine do
+defmodule Glossia.Foundation.VirtualMachine.Core do
+  use Boundary
+
   @moduledoc """
   This module provides utilities for running the builder executable using Docker in development
   and a virtualization solution by cloud providers in the case of production.

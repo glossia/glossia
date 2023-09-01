@@ -9,6 +9,7 @@ defmodule Glossia.Events.EventWorker do
   alias Glossia.Repo
   use Oban.Worker
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
+  alias Glossia.Foundation.VirtualMachine.Core, as: VirtualMachine
 
   # Impl: Oban.Worker
 
@@ -73,7 +74,7 @@ defmodule Glossia.Events.EventWorker do
       description: "Localizing"
     )
 
-    Glossia.Builds.run(%{
+    VirtualMachine.run(%{
       env: %{
         # Project
         GLOSSIA_ACCESS_TOKEN: access_token,
