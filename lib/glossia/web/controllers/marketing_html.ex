@@ -37,14 +37,6 @@ defmodule Glossia.Web.MarketingHTML do
     }
   end
 
-  def get_seo_metadata(:changelog, _) do
-    %{
-      title: "Changelog",
-      description:
-        "Explore the comprehensive changelog for Glossia, the leading AI-powered translation tool. Find out about our most recent updates, feature enhancements, bug fixes, and performance upgrades, optimized to enhance your translation experience. Stay up-to-date with our ever-improving language translation capabilities. Unlock the power of efficient multilingual communication with Glossia."
-    }
-  end
-
   def get_seo_metadata(:team, _) do
     %{
       title: "Our Team",

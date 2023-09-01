@@ -14,11 +14,6 @@ msgstr ""
 msgid "Blog"
 msgstr ""
 
-#: lib/glossia_web/components/marketing_components.ex:93
-#, elixir-autogen, elixir-format
-msgid "Changelog"
-msgstr ""
-
 #: lib/glossia_web/components/marketing_components.ex:99
 #, elixir-autogen, elixir-format
 msgid "Community"

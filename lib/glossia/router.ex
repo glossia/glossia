@@ -50,7 +50,6 @@ defmodule Glossia.Router do
     get "/blog", MarketingController, :blog
     get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
     get "/docs/*id", MarketingController, :docs
-    get "/changelog", MarketingController, :changelog
   end
 
   ##### API Routes #####

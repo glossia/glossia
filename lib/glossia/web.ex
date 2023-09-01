@@ -5,7 +5,6 @@ defmodule Glossia.Web do
       Glossia.Accounts,
       Glossia.Analytics,
       Glossia.Projects,
-      Glossia.Changelog,
       Glossia.Blog,
       Glossia.Auth,
       Glossia.Foundation.ContentSources.Core
