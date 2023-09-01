@@ -1,4 +1,4 @@
-defmodule Glossia.Accounts.UserNotifier do
+defmodule Glossia.Foundation.Accounts.Core.UserNotifier do
   @moduledoc """
   A module with utilities to send notifications to the user.
   """

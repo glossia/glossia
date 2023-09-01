@@ -1,5 +1,5 @@
 defmodule Glossia.Web.ConnCase do
-  use Boundary, dirty_xrefs: [Glossia.AccountsFixtures, Glossia.DataCase]
+  use Boundary, dirty_xrefs: [Glossia.Foundation.Accounts.CoreFixtures, Glossia.DataCase]
 
   @moduledoc """
   This module defines the test case to be used by
@@ -47,7 +47,7 @@ defmodule Glossia.Web.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn}) do
-    user = Glossia.AccountsFixtures.user_fixture()
+    user = Glossia.Foundation.Accounts.CoreFixtures.user_fixture()
     %{conn: log_in_user(conn, user), user: user}
   end
 
@@ -57,7 +57,7 @@ defmodule Glossia.Web.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user) do
-    token = Glossia.Accounts.generate_user_session_token(user)
+    token = Glossia.Foundation.Accounts.Core.generate_user_session_token(user)
 
     conn
     |> Phoenix.ConnTest.init_test_session(%{})

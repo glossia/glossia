@@ -9,7 +9,7 @@ defmodule Glossia.ProjectsFixtures do
       case attrs[:account_id] do
         nil ->
           organization =
-            Glossia.AccountsFixtures.organization_fixture(%{
+            Glossia.Foundation.Accounts.CoreFixtures.organization_fixture(%{
               handle: "#{Glossia.TestHelpers.unique_integer()}"
             })
 

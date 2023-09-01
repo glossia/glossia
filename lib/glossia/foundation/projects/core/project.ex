@@ -20,7 +20,7 @@ defmodule Glossia.Foundation.Projects.Core.Project do
 
   # Module dependencies
 
-  alias Glossia.Accounts.Account
+  alias Glossia.Foundation.Accounts.Core.Account
   alias Glossia.Foundation.Events.Core.Event
   use Ecto.Schema
   import Ecto.Changeset

@@ -1,4 +1,4 @@
-defmodule Glossia.Accounts do
+defmodule Glossia.Foundation.Accounts.Core do
   @moduledoc """
   The Accounts context.
   """
@@ -6,7 +6,7 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{User, Account, Organization, OrganizationUser, Credentials, UserToken}
+  alias Glossia.Foundation.Accounts.Core.{User, Account, Organization, OrganizationUser, Credentials, UserToken}
 
   @doc """
   It makes the given user an admin of the given organization.

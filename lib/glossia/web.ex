@@ -2,7 +2,7 @@ defmodule Glossia.Web do
   use Boundary,
     deps: [
       Glossia,
-      Glossia.Accounts,
+      Glossia.Foundation.Accounts.Core,
       Glossia.Auth,
       Glossia.Features.Blog.Core,
       Glossia.Foundation.ContentSources.Core,

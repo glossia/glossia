@@ -4,11 +4,11 @@ defmodule Glossia.Auth do
   """
 
   # Modules
-  use Boundary, deps: [Glossia.Accounts]
+  use Boundary, deps: [Glossia.Foundation.Accounts.Core]
   require Logger
   require Jason
   alias Ueberauth.Auth
-  alias Glossia.Accounts
+  alias Glossia.Foundation.Accounts.Core, as: Accounts
 
   defp update_credential(user, auth) do
     {:ok, _} =

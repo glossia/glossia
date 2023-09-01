@@ -1,7 +1,7 @@
-defmodule Glossia.Accounts.OrganizationUser do
+defmodule Glossia.Foundation.Accounts.Core.OrganizationUser do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Glossia.Accounts.{Organization, User}
+  alias Glossia.Foundation.Accounts.Core.{Organization, User}
 
   # Type
   @type t :: %__MODULE__{

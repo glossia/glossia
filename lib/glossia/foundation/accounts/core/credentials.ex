@@ -1,5 +1,5 @@
-defmodule Glossia.Accounts.Credentials do
-  alias Glossia.Accounts.{User}
+defmodule Glossia.Foundation.Accounts.Core.Credentials do
+  alias Glossia.Foundation.Accounts.Core.{User}
   import Ecto.Changeset
 
   @type provider :: :github

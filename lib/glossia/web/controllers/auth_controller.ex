@@ -24,7 +24,7 @@ defmodule Glossia.Web.AuthController do
     |> halt()
 
     user_token = get_session(conn, :user_token)
-    user_token && Glossia.Accounts.delete_user_session_token(user_token)
+    user_token && Glossia.Foundation.Accounts.Core.delete_user_session_token(user_token)
 
     # TODO
     # if live_socket_id = get_session(conn, :live_socket_id) do
