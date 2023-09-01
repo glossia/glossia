@@ -78,7 +78,7 @@ defmodule Glossia.MixProject do
       {:open_api_spex, "~> 3.18.0"},
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
-      {:req, "~> 0.3.11"},
+      {:req, "~> 0.4.0"},
       {:useful, "~> 1.12.1"},
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
     ]
