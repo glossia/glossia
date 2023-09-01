@@ -6,5 +6,4 @@ defmodule Glossia.Foundation.Analytics.Core do
       Posthog.capture("visit", %{distinct_id: user.email, email: user.email})
     end
   end
-
 end

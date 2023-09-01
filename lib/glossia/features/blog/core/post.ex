@@ -1,7 +1,7 @@
-defmodule Glossia.Blog.Post do
+defmodule Glossia.Features.Blog.Core.Post do
   @moduledoc """
   A struct that represents a blog post.
-  Posts are loaded and serialized at compile-time by `Glossia.Blog`.
+  Posts are loaded and serialized at compile-time by `Glossia.Features.Blog.Core`.
   """
 
   @type t :: %__MODULE__{

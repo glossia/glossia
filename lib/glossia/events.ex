@@ -1,6 +1,10 @@
 defmodule Glossia.Events do
   use Boundary,
-    deps: [Glossia.Foundation.ContentSources.Core, Glossia.Repo, Glossia.Foundation.VirtualMachine.Core],
+    deps: [
+      Glossia.Foundation.ContentSources.Core,
+      Glossia.Repo,
+      Glossia.Foundation.VirtualMachine.Core
+    ],
     exports: [Event]
 
   # Modules

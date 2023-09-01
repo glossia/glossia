@@ -1,7 +1,7 @@
-defmodule Glossia.Blog.Author do
+defmodule Glossia.Features.Blog.Core.Author do
   @moduledoc """
   A struct that represents a blog author.
-  Authors are loaded and serialized at compile-time by `Glossia.Blog`.
+  Authors are loaded and serialized at compile-time by `Glossia.Features.Blog.Core`.
   """
 
   @type t :: %__MODULE__{

@@ -15,21 +15,19 @@ defmodule Glossia.Web.MarketingController do
   end
 
   def blog(conn, _params) do
-    dbg(Glossia.Blog.all_authors())
-
     conn
-    |> assign(:posts, Glossia.Blog.all_posts())
-    |> assign(:authors, Glossia.Blog.all_authors())
+    |> assign(:posts, Glossia.Features.Blog.Core.all_posts())
+    |> assign(:authors, Glossia.Features.Blog.Core.all_authors())
     |> put_root_layout(html: {Glossia.Web.MarketingLayouts, :root})
     |> put_layout(html: {Glossia.Web.MarketingLayouts, :base})
     |> render(:blog)
   end
 
   def blog_post(%{request_path: slug} = conn, _params) do
-    post = Glossia.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
+    post = Glossia.Features.Blog.Core.all_posts() |> Enum.find(&(&1.slug == slug))
 
     author =
-      Glossia.Blog.all_authors()
+      Glossia.Features.Blog.Core.all_authors()
       |> Enum.find(&(&1.id == String.to_atom(post.author_id)))
 
     conn
@@ -86,7 +84,7 @@ defmodule Glossia.Web.MarketingController do
     %{title: title, description: description, language: language, base_url: base_url} =
       Application.fetch_env!(:glossia, :seo_metadata)
 
-    posts = Glossia.Blog.all_posts()
+    posts = Glossia.Features.Blog.Core.all_posts()
     last_build_date = posts |> List.first() |> Map.get(:date)
 
     conn

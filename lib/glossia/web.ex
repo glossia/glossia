@@ -3,8 +3,8 @@ defmodule Glossia.Web do
     deps: [
       Glossia,
       Glossia.Accounts,
-      Glossia.Blog,
       Glossia.Auth,
+      Glossia.Features.Blog.Core,
       Glossia.Foundation.ContentSources.Core,
       Glossia.Foundation.Projects.Core,
       Glossia.Foundation.Analytics.Core
