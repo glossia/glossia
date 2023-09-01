@@ -124,12 +124,6 @@ defmodule Glossia.Web.MarketingComponents do
           </a>
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
-            href={~p"/changelog"}
-          >
-            <%= gettext("Changelog") %>
-          </a>
-          <a
-            class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
             href="https://community.glossia.ai/"
           >
             <%= gettext("Community") %>
@@ -189,11 +183,6 @@ defmodule Glossia.Web.MarketingComponents do
                 <div class="mt-12 grid grid-rows-3 sm:grid-rows-2 sm:grid-cols-2 gap-y-10 md:grid-cols-3 md:gap-x-20 lg:mt-0">
                   <ul class="space-y-2" role="list">
                     <li class="text-lg text-black font-bold">Resources</li>
-                    <li>
-                      <a class="text-lg text-black hover:text-lila-400" href={~p"/changelog"}>
-                        Changelog
-                      </a>
-                    </li>
                     <li>
                       <a class="text-lg text-black hover:text-lila-400" href={~p"/blog/feed.xml"}>
                         Feed

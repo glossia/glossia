@@ -68,14 +68,6 @@ defmodule Glossia.Web.MarketingController do
     |> render(:beta_added)
   end
 
-  def changelog(conn, _params) do
-    conn
-    |> assign(:updates, Glossia.Changelog.all_updates())
-    |> put_root_layout(html: {Glossia.Web.MarketingLayouts, :root})
-    |> put_layout(html: {Glossia.Web.MarketingLayouts, :base})
-    |> render(:changelog)
-  end
-
   def team(conn, _params) do
     conn
     |> put_root_layout(html: {Glossia.Web.MarketingLayouts, :root})
