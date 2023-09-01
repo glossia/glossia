@@ -17,7 +17,7 @@ defmodule Glossia.Projects do
     project
     |> process_event(%{
       type: "new_content",
-      commit_sha: "TODO",
+      commit_sha: "TODO"
     })
   end
 
@@ -26,7 +26,7 @@ defmodule Glossia.Projects do
   """
   @type process_event_opts_t :: %{
           type: String.t(),
-          version: String.t(),
+          version: String.t()
         }
   @spec process_event(project :: Project.t(), opts :: process_event_opts_t) :: :ok
 

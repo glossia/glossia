@@ -1,6 +1,8 @@
 defmodule Glossia.Router do
   # Modules
-  use Boundary, deps: [Glossia.Web, Glossia.Foundation.API.Web]
+  use Boundary,
+    deps: [Glossia.Web, Glossia.Foundation.API.Web, Glossia.Foundation.ContentSources.Web]
+
   use Glossia.Web, :router
   import Glossia.Web.UserAuth
 
@@ -106,7 +108,7 @@ defmodule Glossia.Router do
     plug Glossia.Web.Plugs.RawBodyPassthroughPlug, length: 4_000_000
     # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
     # as it relies on the `:raw_body` being inside the `conn.assigns`.
-    plug Glossia.Web.Plugs.RequirePayloadSignatureMatchPlug
+    plug Glossia.Foundation.ContentSources.Web.Plug
   end
 
   scope "/webhooks", Glossia.Web do

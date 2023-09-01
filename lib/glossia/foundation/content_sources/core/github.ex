@@ -289,7 +289,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
     {:ok, :crypto.mac(:hmac, :sha, app_secret, payload) |> Base.encode16(case: :lower)}
   end
 
-  defp webhook_secret do
+  def webhook_secret do
     Application.get_env(:glossia, :github_app_webhooks_secret)
   end
 end

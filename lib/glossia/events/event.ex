@@ -11,7 +11,7 @@ defmodule Glossia.Events.Event do
           vm_id: String.t() | nil,
           status: status(),
           project: Glossia.Projects.Project.t() | nil,
-          metadata: map(),
+          metadata: map()
         }
 
   @type event :: :new_version
