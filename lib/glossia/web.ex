@@ -3,11 +3,11 @@ defmodule Glossia.Web do
     deps: [
       Glossia,
       Glossia.Accounts,
-      Glossia.Analytics,
       Glossia.Blog,
       Glossia.Auth,
       Glossia.Foundation.ContentSources.Core,
-      Glossia.Foundation.Projects.Core
+      Glossia.Foundation.Projects.Core,
+      Glossia.Foundation.Analytics.Core
     ],
     exports: [
       {Plugs, []},

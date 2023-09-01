@@ -1,7 +1,4 @@
-defmodule Glossia.Analytics do
-  @moduledoc """
-  An interface to send analytics
-  """
+defmodule Glossia.Foundation.Analytics.Core do
   use Boundary
 
   def track_visit(user) do
@@ -9,4 +6,5 @@ defmodule Glossia.Analytics do
       Posthog.capture("visit", %{distinct_id: user.email, email: user.email})
     end
   end
+
 end
