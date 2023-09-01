@@ -26,7 +26,7 @@ defmodule Glossia.Events.EventWorker do
           "account_handle" => account_handle
         }
       }) do
-        git_event = Repo.get_by(Event, version: version, project_id: project_id)
+    git_event = Repo.get_by(Event, version: version, project_id: project_id)
 
     case git_event do
       nil ->
@@ -39,7 +39,7 @@ defmodule Glossia.Events.EventWorker do
           account_handle: account_handle,
           content_source_id: content_source_id,
           content_source_platform: content_source_platform,
-          content_source_access_token: content_source_access_token,
+          content_source_access_token: content_source_access_token
         })
 
       %Event{} ->
@@ -59,8 +59,6 @@ defmodule Glossia.Events.EventWorker do
           account_handle: account_handle
         } = attrs
       ) do
-
-
     event =
       Repo.insert!(Event.changeset(%Event{}, attrs))
 

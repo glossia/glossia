@@ -83,7 +83,7 @@ defmodule Glossia.Events.EventTest do
         version: "1234567890",
         content_source_id: "1234567890",
         content_source_platform: :github,
-        project_id: project.id,
+        project_id: project.id
       }
 
       %Event{} |> Event.changeset(attrs) |> Repo.insert!()

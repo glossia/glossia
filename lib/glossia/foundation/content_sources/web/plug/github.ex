@@ -1,4 +1,4 @@
-defmodule Glossia.Web.Plugs.RequirePayloadSignatureMatchPlug do
+defmodule Glossia.Foundation.ContentSources.Web.Plug.GitHub do
   @moduledoc """
   This plug will verify that the payload from a webhook request matches the accompanying header signature, based on a previously shared `webhook_secret`.
 
@@ -15,7 +15,8 @@ defmodule Glossia.Web.Plugs.RequirePayloadSignatureMatchPlug do
   def init(options), do: options
 
   @spec call(Conn.t(), term()) :: Conn.t()
-  def call(%Conn{method: method} = conn, _opts) when method == "POST" or method == "PUT" do
+  def call(%Conn{method: method, request_path: "/webhooks/github"} = conn, _opts)
+      when method == "POST" or method == "PUT" do
     content_source = ContentSources.new(:github)
 
     case ContentSources.is_webhook_payload_valid?(
@@ -34,5 +35,7 @@ defmodule Glossia.Web.Plugs.RequirePayloadSignatureMatchPlug do
     end
   end
 
-  def call(conn, _opts), do: Conn.assign(conn, :cached_body, %{})
+  def call(conn, _opts) do
+    Conn.assign(conn, :cached_body, %{})
+  end
 end
