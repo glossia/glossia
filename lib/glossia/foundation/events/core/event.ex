@@ -1,4 +1,4 @@
-defmodule Glossia.Events.Event do
+defmodule Glossia.Foundation.Events.Core.Event do
   @moduledoc """
   This module represents a Git event received for a particular project.
   """

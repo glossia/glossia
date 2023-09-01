@@ -21,7 +21,7 @@ defmodule Glossia.Foundation.Projects.Core.Project do
   # Module dependencies
 
   alias Glossia.Accounts.Account
-  alias Glossia.Events.Event
+  alias Glossia.Foundation.Events.Core.Event
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]

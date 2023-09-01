@@ -1,10 +1,10 @@
-defmodule Glossia.EventsFixture do
+defmodule Glossia.Foundation.EventsFixture do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Localizations` context.
   """
 
-  alias Glossia.Events.Event
+  alias Glossia.Foundation.Events.Core.Event
   alias Glossia.Repo
 
   def event_fixture(attr \\ %{}) do

@@ -1,11 +1,11 @@
-defmodule Glossia.Events.EventWorker do
+defmodule Glossia.Foundation.Events.Core.EventWorker do
   @moduledoc """
   It processes the events that are triggered by the version control system.
   """
 
   # Modules
   require Logger
-  alias Glossia.Events.Event
+  alias Glossia.Foundation.Events.Core.Event
   alias Glossia.Repo
   use Oban.Worker
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources

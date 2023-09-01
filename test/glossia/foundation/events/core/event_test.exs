@@ -1,7 +1,7 @@
-defmodule Glossia.Events.EventTest do
+defmodule Glossia.Foundation.Events.Core.EventTest do
   use Glossia.DataCase
 
-  alias Glossia.Events.Event
+  alias Glossia.Foundation.Events.Core.Event
 
   describe "changeset" do
     test "validates the presence of version" do

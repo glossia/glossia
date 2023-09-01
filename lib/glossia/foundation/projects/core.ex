@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Projects.Core do
   use Boundary,
-    deps: [Glossia.Repo, Glossia.Events, Glossia.Foundation.ContentSources.Core],
+    deps: [Glossia.Repo, Glossia.Foundation.Events.Core, Glossia.Foundation.ContentSources.Core],
     exports: [Project, ProjectToken]
 
   # Modules
@@ -56,7 +56,7 @@ defmodule Glossia.Foundation.Projects.Core do
         :content_source_access_token,
         access_token
       )
-      |> Glossia.Events.process_event()
+      |> Glossia.Foundation.Events.Core.process_event()
 
     # TODO: Ignore events that are coming from a branch other than the default.
     # ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")

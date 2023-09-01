@@ -1,4 +1,4 @@
-defmodule Glossia.Events do
+defmodule Glossia.Foundation.Events.Core do
   use Boundary,
     deps: [
       Glossia.Foundation.ContentSources.Core,
@@ -8,7 +8,7 @@ defmodule Glossia.Events do
     exports: [Event]
 
   # Modules
-  alias Glossia.Events.EventWorker
+  alias Glossia.Foundation.Events.Core.EventWorker
   require Logger
 
   @doc """
