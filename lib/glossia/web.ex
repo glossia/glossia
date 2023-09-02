@@ -7,7 +7,8 @@ defmodule Glossia.Web do
       Glossia.Foundation.Auth.Core,
       Glossia.Foundation.ContentSources.Core,
       Glossia.Foundation.Projects.Core,
-      Glossia.Foundation.Analytics.Core
+      Glossia.Foundation.Analytics.Core,
+      Glossia.Foundation.Application.Web
     ],
     exports: [
       {Plugs, []},
@@ -19,8 +20,6 @@ defmodule Glossia.Web do
       Auth.Resources,
       Auth.Policies
     ]
-
-  def static_paths, do: ~w(assets fonts images schemas favicons robots.txt builder)
 
   def router do
     quote do
@@ -145,7 +144,7 @@ defmodule Glossia.Web do
       use Phoenix.VerifiedRoutes,
         endpoint: Glossia.App.Endpoint,
         router: Glossia.Router,
-        statics: Glossia.Web.static_paths()
+        statics: Glossia.Foundation.Application.Web.static_paths()
     end
   end
 
