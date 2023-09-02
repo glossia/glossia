@@ -142,7 +142,7 @@ defmodule Glossia.Web do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Glossia.App.Endpoint,
+        endpoint: Glossia.Application.Endpoint,
         router: Glossia.Router,
         statics: Glossia.Foundation.Application.Web.static_paths()
     end

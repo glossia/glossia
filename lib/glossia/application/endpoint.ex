@@ -1,4 +1,4 @@
-defmodule Glossia.App.Endpoint do
+defmodule Glossia.Application.Endpoint do
   use Phoenix.Endpoint, otp_app: :glossia
 
   plug RemoteIp
