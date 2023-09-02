@@ -8,7 +8,7 @@
 import Config
 
 config :glossia,
-  ecto_repos: [Glossia.Repo]
+  ecto_repos: [Glossia.Foundation.Database.Core.Repo]
 
 # Configures the endpoint
 config :glossia, Glossia.Endpoint,
@@ -85,7 +85,7 @@ import_config "#{config_env()}.exs"
 
 # Oban
 config :glossia, Oban,
-  repo: Glossia.Repo,
+  repo: Glossia.Foundation.Database.Core.Repo,
   plugins: [Oban.Plugins.Pruner],
   queues: [default: 10, builds: 50]
 

@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.MakeBuildIdOptional do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.MakeBuildIdOptional do
   use Ecto.Migration
 
   def change do

@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.AddUniqueIndexToBuilds do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddUniqueIndexToBuilds do
   use Ecto.Migration
 
   def change do

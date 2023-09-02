@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.RenameGitCommitShaToCommitSha do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameGitCommitShaToCommitSha do
   use Ecto.Migration
 
   def change do

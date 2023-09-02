@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.CreateUsersAuthTables do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.CreateUsersAuthTables do
   use Ecto.Migration
 
   def change do

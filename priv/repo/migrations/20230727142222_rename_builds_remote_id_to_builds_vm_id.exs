@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.RenameBuildsRemoteIdToBuildsVmId do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameBuildsRemoteIdToBuildsVmId do
   use Ecto.Migration
 
   def change do

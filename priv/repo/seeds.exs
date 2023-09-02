@@ -1,4 +1,4 @@
-alias Glossia.Repo
+alias Glossia.Foundation.Database.Core.Repo
 alias Glossia.Foundation.Accounts.Core, as: Accounts
 alias Glossia.Foundation.Accounts.Core.Account
 alias Glossia.Foundation.Projects.Core, as: Projects

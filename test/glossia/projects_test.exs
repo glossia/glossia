@@ -1,7 +1,7 @@
 defmodule Glossia.ProjectsTest do
   use Glossia.DataCase
 
-  alias Glossia.Repo
+  alias Glossia.Foundation.Database.Core.Repo
   alias Glossia.Foundation.Projects.Core, as: Projects
 
   describe "find_project_by_repository" do

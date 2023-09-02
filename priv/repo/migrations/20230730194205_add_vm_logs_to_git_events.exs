@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.AddVmLogsToGitEvents do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddVmLogsToGitEvents do
   use Ecto.Migration
 
   def change do

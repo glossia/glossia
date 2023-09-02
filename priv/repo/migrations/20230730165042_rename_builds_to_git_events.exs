@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.RenameBuildsToGitEvents do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameBuildsToGitEvents do
   use Ecto.Migration
 
   def change do

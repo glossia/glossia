@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.RenameBuildsGitVcsToVcsPlatform do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameBuildsGitVcsToVcsPlatform do
   use Ecto.Migration
 
   def change do

@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.AddOrganizationUsers do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddOrganizationUsers do
   use Ecto.Migration
 
   def change do

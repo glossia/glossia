@@ -1,11 +1,11 @@
 defmodule Glossia.Foundation.Projects.Core do
   use Boundary,
-    deps: [Glossia.Repo, Glossia.Foundation.Builds.Core, Glossia.Foundation.ContentSources.Core],
+    deps: [Glossia.Foundation.Database.Core, Glossia.Foundation.Builds.Core, Glossia.Foundation.ContentSources.Core],
     exports: [Project, ProjectToken]
 
   # Modules
   require Logger
-  alias Glossia.Repo
+  alias Glossia.Foundation.Database.Core.Repo
   alias Glossia.Foundation.Projects.Core.{Project, ProjectToken}
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
 

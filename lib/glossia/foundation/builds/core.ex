@@ -5,7 +5,7 @@ defmodule Glossia.Foundation.Builds.Core do
   use Boundary,
   deps: [
     Glossia.Foundation.ContentSources.Core,
-    Glossia.Repo,
+    Glossia.Foundation.Database.Core,
     Glossia.Foundation.VirtualMachine.Core
   ],
   exports: [Build]

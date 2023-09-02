@@ -1,7 +1,7 @@
 import Config
 
 # Configure your database
-config :glossia, Glossia.Repo,
+config :glossia, Glossia.Foundation.Database.Core.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",

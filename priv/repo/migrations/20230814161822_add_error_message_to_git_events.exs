@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.AddErrorMessageToGitEvents do
+defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddErrorMessageToGitEvents do
   use Ecto.Migration
 
   def change do
