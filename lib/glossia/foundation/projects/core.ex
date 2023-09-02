@@ -86,7 +86,6 @@ defmodule Glossia.Foundation.Projects.Core do
   @doc """
   It finds a project given the id.
   """
-  @spec find_project_by_id(id :: number()) :: Project.t() | nil
   def find_project_by_id(id) do
     Repo.get_by(Project, id: id)
   end
