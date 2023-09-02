@@ -4,7 +4,7 @@ defmodule Glossia.Web.AuthController do
   plug Ueberauth
 
   alias Ueberauth.Strategy.Helpers
-  alias Glossia.Auth
+  alias Glossia.Foundation.Auth.Core, as: Auth
 
   @remember_me_cookie "_glossia_web_user_remember_me"
 

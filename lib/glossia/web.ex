@@ -2,9 +2,9 @@ defmodule Glossia.Web do
   use Boundary,
     deps: [
       Glossia,
-      Glossia.Foundation.Accounts.Core,
-      Glossia.Auth,
       Glossia.Features.Blog.Core,
+      Glossia.Foundation.Accounts.Core,
+      Glossia.Foundation.Auth.Core,
       Glossia.Foundation.ContentSources.Core,
       Glossia.Foundation.Projects.Core,
       Glossia.Foundation.Analytics.Core
