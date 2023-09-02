@@ -11,7 +11,7 @@ config :glossia,
   ecto_repos: [Glossia.Foundation.Database.Core.Repo]
 
 # Configures the endpoint
-config :glossia, Glossia.Endpoint,
+config :glossia, Glossia.App.Endpoint,
   url: [host: "localhost"],
   render_errors: [
     formats: [html: Glossia.Web.ErrorHTML, json: Glossia.Web.ErrorJSON],
