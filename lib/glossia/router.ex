@@ -62,7 +62,7 @@ defmodule Glossia.Router do
       pass: ["*/*"],
       json_decoder: Phoenix.json_library()
 
-    plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.API.Spec
+    plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.Foundation.API.Core.Spec
   end
 
   pipeline :api_auth do

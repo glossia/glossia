@@ -5,7 +5,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
 
   # Modules
   require Logger
-  alias Glossia.Projects
+  alias Glossia.Foundation.Projects.Core, as: Projects
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest
   use Oban.Worker

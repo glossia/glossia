@@ -4,7 +4,7 @@ defmodule Glossia.Foundation.Accounts.Core.UserNotifier do
   """
   import Swoosh.Email
 
-  alias Glossia.Mailer
+  alias Glossia.Foundation.Utilities.Core.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

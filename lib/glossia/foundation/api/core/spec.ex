@@ -1,6 +1,7 @@
-defmodule Glossia.API.Spec do
+defmodule Glossia.Foundation.API.Core.Spec do
   alias OpenApiSpex.{Components, Info, OpenApi, Paths, Server, SecurityScheme}
   alias Glossia.{Endpoint, Router}
+  alias Glossia.Foundation.Utilities.Core.Version
   @behaviour OpenApi
 
   @impl OpenApi
@@ -12,7 +13,7 @@ defmodule Glossia.API.Spec do
       ],
       info: %Info{
         title: "Glossia API",
-        version: Glossia.Version.current_version()
+        version: Version.current_version()
       },
       # Populate the paths from a phoenix router
       paths: Paths.from_router(Router),

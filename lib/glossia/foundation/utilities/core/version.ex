@@ -1,6 +1,4 @@
-defmodule Glossia.Version do
-  use Boundary
-
+defmodule Glossia.Foundation.Utilities.Core.Version do
   # Module
 
   @current File.read!("priv/version.txt")
