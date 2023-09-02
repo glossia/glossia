@@ -1,13 +1,13 @@
-defmodule Glossia.Foundation.EventsFixture do
+defmodule Glossia.Foundation.BuildsFixture do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Localizations` context.
   """
 
-  alias Glossia.Foundation.Events.Core.Event
+  alias Glossia.Foundation.Builds.Core.Build
   alias Glossia.Repo
 
-  def event_fixture(attr \\ %{}) do
+  def build_fixture(attr \\ %{}) do
     attrs =
       if attr[:project_id] do
         attr
@@ -17,7 +17,7 @@ defmodule Glossia.Foundation.EventsFixture do
       end
 
     attrs = attrs |> Enum.into(default_build_args())
-    Event.changeset(%Event{}, attrs) |> Repo.insert()
+    Build.changeset(%Build{}, attrs) |> Repo.insert()
   end
 
   defp default_build_args() do

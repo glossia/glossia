@@ -1,11 +1,7 @@
-defmodule Glossia.Foundation.Events.Core.EventWorker do
-  @moduledoc """
-  It processes the events that are triggered by the version control system.
-  """
-
+defmodule Glossia.Foundation.Builds.Core.BuildWorker do
   # Modules
   require Logger
-  alias Glossia.Foundation.Events.Core.Event
+  alias Glossia.Foundation.Builds.Core.Build
   alias Glossia.Repo
   use Oban.Worker
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
@@ -27,9 +23,9 @@ defmodule Glossia.Foundation.Events.Core.EventWorker do
           "account_handle" => account_handle
         }
       }) do
-    git_event = Repo.get_by(Event, version: version, project_id: project_id)
+    build = Repo.get_by(Build, version: version, project_id: project_id)
 
-    case git_event do
+    case build do
       nil ->
         trigger_build(%{
           access_token: access_token,
@@ -43,7 +39,7 @@ defmodule Glossia.Foundation.Events.Core.EventWorker do
           content_source_access_token: content_source_access_token
         })
 
-      %Event{} ->
+      %Build{} ->
         :ok
     end
   end
@@ -60,8 +56,8 @@ defmodule Glossia.Foundation.Events.Core.EventWorker do
           account_handle: account_handle
         } = attrs
       ) do
-    event =
-      Repo.insert!(Event.changeset(%Event{}, attrs))
+    build =
+      Repo.insert!(Build.changeset(%Build{}, attrs))
 
     content_source =
       ContentSources.new(String.to_atom(content_source_platform), content_source_id)
@@ -82,9 +78,9 @@ defmodule Glossia.Foundation.Events.Core.EventWorker do
         GLOSSIA_PROJECT_HANDLE: project_handle,
 
         # Event
-        GLOSSIA_EVENT_TYPE: event.type,
-        GLOSSIA_EVENT_ID: event.id,
-        GLOSSIA_EVENT_VERSION: event.version,
+        GLOSSIA_BUILD_TYPE: build.type,
+        GLOSSIA_BUILD_ID: build.id,
+        GLOSSIA_BUILD_VERSION: build.version,
 
         # Content Source
         GLOSSIA_CONTENT_SOURCE_ID: content_source_id,
@@ -97,8 +93,8 @@ defmodule Glossia.Foundation.Events.Core.EventWorker do
                              vm_logs_url: vm_logs_url,
                              markdown_error_message: markdown_error_message
                            } ->
-        update_event_status(%{
-          event: event,
+        update_build_status(%{
+          build: build,
           vm_id: vm_id,
           status: status,
           vm_logs_url: vm_logs_url,
@@ -118,16 +114,16 @@ defmodule Glossia.Foundation.Events.Core.EventWorker do
     :ok
   end
 
-  defp update_event_status(%{
-         event: event,
+  defp update_build_status(%{
+         build: build,
          vm_id: vm_id,
          status: status,
          vm_logs_url: vm_logs_url,
          markdown_error_message: markdown_error_message
        }) do
     {:ok, _} =
-      event
-      |> Event.changeset(%{
+      build
+      |> Build.changeset(%{
         vm_id: vm_id,
         vm_logs_url: vm_logs_url,
         status: status,

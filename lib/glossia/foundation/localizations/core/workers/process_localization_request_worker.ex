@@ -40,15 +40,13 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
 
   # Private
 
-  @spec localize_into_new_languages(modules :: [map()]) :: [[id: String.t(), content: String.t()]]
-  defp localize_into_new_languages(modules) do
+  defp localize_into_new_languages(_modules) do
     Logger.info("Localizing the content into new languages")
     # TODO
     []
   end
 
-  @spec localize_into_new_languages(modules :: [map()]) :: [[id: String.t(), content: String.t()]]
-  defp update_localized_content_due_to_content_or_context_changes(modules) do
+  defp update_localized_content_due_to_content_or_context_changes(_modules) do
     # TODO
     []
   end

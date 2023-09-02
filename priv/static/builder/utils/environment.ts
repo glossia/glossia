@@ -12,8 +12,8 @@ export function getAppSignalAPIKey(env: Deno.Env = Deno.env) {
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getEventId(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_EVENT_ID");
+export function getBuildId(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_BUILD_ID");
 }
 
 type Event = "new_version";
@@ -23,8 +23,8 @@ type Event = "new_version";
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getEventType(env: Deno.Env = Deno.env): Event {
-  const event = env.get("GLOSSIA_EVENT_TYPE");
+export function getBuildType(env: Deno.Env = Deno.env): Event {
+  const event = env.get("GLOSSIA_BUILD_TYPE");
   switch (event) {
     case "new_version":
       return "new_version";
@@ -103,8 +103,8 @@ export function getContentSourcePlatform(
  * @param env {Deno.Env} An object containing the enviornment variables of the system.
  * @returns
  */
-export function getEventVersion(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_EVENT_VERSION");
+export function getBuildVersion(env: Deno.Env = Deno.env) {
+  return env.get("GLOSSIA_BUILD_VERSION");
 }
 
 /**

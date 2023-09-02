@@ -1,15 +1,15 @@
 import { assertThrows } from "https://deno.land/std@0.196.0/assert/assert_throws.ts";
 import { getMockedEnv } from "./environment_test_helpers.ts";
-import { getEventType } from "./environment.ts";
+import { getBuildType } from "./environment.ts";
 
-Deno.test("getEvent throws an error when the event is unsupported", () => {
+Deno.test("getBuildType throws an error when the event is unsupported", () => {
   assertThrows(() => {
-    getEventType(getMockedEnv({ GLOSSIA_EVENT_TYPE: "invalid" }));
+    getBuildType(getMockedEnv({ GLOSSIA_BUILD_TYPE: "invalid" }));
   }, "This instance of the builder doesn't support the event 'invalid'");
 });
 
 Deno.test("getContentSourcePlatform throws an error when the VCS platform is unsupported", () => {
   assertThrows(() => {
-    getEventType(getMockedEnv({ GLOSSIA_CONTENT_SOURCE_PLATFORM: "invalid" }));
+    getBuildType(getMockedEnv({ GLOSSIA_CONTENT_SOURCE_PLATFORM: "invalid" }));
   }, "This instance of the builder doesn't support the VCS platform 'invalid'");
 });

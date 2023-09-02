@@ -28,7 +28,7 @@ defmodule Glossia.Web.WebhookController do
               content_source_id: content_source_id,
               content_source_platform: :github
             })} do
-      Projects.process_event(project, %{
+      Projects.trigger_build(project, %{
         type: "new_content",
         version: commit_sha
       })

@@ -1,7 +1,7 @@
-defmodule Glossia.Foundation.Events.Core.EventTest do
+defmodule Glossia.Foundation.Builds.Core.BuildTest do
   use Glossia.DataCase
 
-  alias Glossia.Foundation.Events.Core.Event
+  alias Glossia.Foundation.Builds.Core.Build
 
   describe "changeset" do
     test "validates the presence of version" do
@@ -9,7 +9,7 @@ defmodule Glossia.Foundation.Events.Core.EventTest do
       attrs = %{}
 
       # When
-      changeset = Event.changeset(%Event{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -21,7 +21,7 @@ defmodule Glossia.Foundation.Events.Core.EventTest do
       attrs = %{version: "1234567890"}
 
       # When
-      changeset = Event.changeset(%Event{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -33,7 +33,7 @@ defmodule Glossia.Foundation.Events.Core.EventTest do
       attrs = %{version: "1234567890", content_source_id: "1234567890"}
 
       # When
-      changeset = Event.changeset(%Event{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -49,7 +49,7 @@ defmodule Glossia.Foundation.Events.Core.EventTest do
       }
 
       # When
-      changeset = Event.changeset(%Event{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -67,7 +67,7 @@ defmodule Glossia.Foundation.Events.Core.EventTest do
       }
 
       # When
-      changeset = Event.changeset(%Event{}, attrs)
+      changeset = Build.changeset(%Build{}, attrs)
 
       # Then
       errors = errors_on(changeset)
@@ -86,10 +86,10 @@ defmodule Glossia.Foundation.Events.Core.EventTest do
         project_id: project.id
       }
 
-      %Event{} |> Event.changeset(attrs) |> Repo.insert!()
+      %Build{} |> Build.changeset(attrs) |> Repo.insert!()
 
       # When
-      {:error, changeset} = %Event{} |> Event.changeset(attrs) |> Repo.insert()
+      {:error, changeset} = %Build{} |> Build.changeset(attrs) |> Repo.insert()
 
       # Then
       errors = errors_on(changeset)

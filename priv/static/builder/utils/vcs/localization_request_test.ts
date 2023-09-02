@@ -42,7 +42,7 @@ Deno.test("generateLocalizationRequestPayload with Glossia's configuration", asy
       files: "gettext/{language}/LC_MESSAGES/*.po",
     }], {
       rootDirectory: join(temporaryDirectory),
-      env: getMockedEnv({ "GLOSSIA_EVENT_VERSION": "test-sha" }),
+      env: getMockedEnv({ "GLOSSIA_BUILD_VERSION": "test-sha" }),
     });
 
     // Then

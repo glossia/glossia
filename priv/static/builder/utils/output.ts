@@ -2,12 +2,12 @@ import AsciiTable from "https://deno.land/x/ascii_table/mod.ts";
 import {
   getAccessToken,
   getAppSignalAPIKey,
+  getBuildId,
+  getBuildType,
+  getBuildVersion,
   getContentSourceAccessToken,
   getContentSourceId,
   getContentSourcePlatform,
-  getEventId,
-  getEventType,
-  getEventVersion,
   getOwnerHandle,
   getProjectHandle,
   getURL,
@@ -24,9 +24,9 @@ export function outputHeadingTableWithContext() {
     .addRow("Owner", getOwnerHandle())
     .addRow("Project", getProjectHandle())
     .addRow("Access token", getAccessToken())
-    .addRow("Event ID", getEventId())
-    .addRow("Event type", getEventType())
-    .addRow("Event version", getEventVersion())
+    .addRow("Event ID", getBuildId())
+    .addRow("Event type", getBuildType())
+    .addRow("Event version", getBuildVersion())
     .addRow("App Signal API key", getAppSignalAPIKey())
     .addRow("Content Source Platform", getContentSourcePlatform())
     .addRow("Content Source ID", getContentSourceId())

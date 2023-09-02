@@ -21,7 +21,7 @@ defmodule Glossia.Foundation.Projects.Core.Project do
   # Module dependencies
 
   alias Glossia.Foundation.Accounts.Core.Account
-  alias Glossia.Foundation.Events.Core.Event
+  alias Glossia.Foundation.Builds.Core.Build
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
@@ -35,7 +35,7 @@ defmodule Glossia.Foundation.Projects.Core.Project do
     field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
-    has_many(:events, Event)
+    has_many(:builds, Build)
 
     timestamps()
   end

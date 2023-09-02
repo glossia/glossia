@@ -1,8 +1,8 @@
 import {
+  getBuildVersion,
   getContentSourceAccessToken,
   getContentSourceId,
   getContentSourcePlatform,
-  getEventVersion,
 } from "./environment.ts";
 
 // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
@@ -11,7 +11,7 @@ export async function cloneGitRepository(
 ) {
   await clone({
     root: root,
-    gitCommitSHA: getEventVersion()!,
+    gitCommitSHA: getBuildVersion()!,
     gitAccessToken: getContentSourceAccessToken()!,
     vcsPlatform: getContentSourcePlatform()!,
     vcsId: getContentSourceId()!,

@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Projects.Core do
   use Boundary,
-    deps: [Glossia.Repo, Glossia.Foundation.Events.Core, Glossia.Foundation.ContentSources.Core],
+    deps: [Glossia.Repo, Glossia.Foundation.Builds.Core, Glossia.Foundation.ContentSources.Core],
     exports: [Project, ProjectToken]
 
   # Modules
@@ -15,7 +15,7 @@ defmodule Glossia.Foundation.Projects.Core do
   @spec simulate_new_content_event(Project.t()) :: :ok
   def simulate_new_content_event(project) do
     project
-    |> process_event(%{
+    |> trigger_build(%{
       type: "new_content",
       commit_sha: "TODO"
     })
@@ -24,13 +24,7 @@ defmodule Glossia.Foundation.Projects.Core do
   @doc """
   Given a git event, it processes it.
   """
-  @type process_event_opts_t :: %{
-          type: String.t(),
-          version: String.t()
-        }
-  @spec process_event(project :: Project.t(), opts :: process_event_opts_t) :: :ok
-
-  def process_event(
+  def trigger_build(
         project,
         %{type: "new_content", version: version}
       ) do
@@ -56,7 +50,7 @@ defmodule Glossia.Foundation.Projects.Core do
         :content_source_access_token,
         access_token
       )
-      |> Glossia.Foundation.Events.Core.process_event()
+      |> Glossia.Foundation.Builds.Core.trigger_build()
 
     # TODO: Ignore events that are coming from a branch other than the default.
     # ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")

@@ -1,8 +1,4 @@
-defmodule Glossia.Foundation.Events.Core.Event do
-  @moduledoc """
-  This module represents a Git event received for a particular project.
-  """
-
+defmodule Glossia.Foundation.Builds.Core.Build do
   # Types
   @type t :: %__MODULE__{
           version: String.t(),
@@ -33,7 +29,7 @@ defmodule Glossia.Foundation.Events.Core.Event do
 
   # Schema
 
-  schema "events" do
+  schema "builds" do
     field :version, :string
     field :content_source_id, :string
     field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
@@ -101,7 +97,7 @@ defmodule Glossia.Foundation.Events.Core.Event do
       :expired
     ])
     |> unique_constraint([:version, :type, :content_source_id, :content_source_platform],
-      name: "events_version_type_content_source_id_content_source_platform_i"
+      name: "builds_version_type_content_source_id_content_source_platform_i"
     )
     |> assoc_constraint(:project)
   end
