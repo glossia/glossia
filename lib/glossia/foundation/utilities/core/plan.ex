@@ -1,4 +1,4 @@
-defmodule Glossia.Plan do
+defmodule Glossia.Foundation.Utilities.Core.Plan do
   @type plan_t :: :community | :cloud | :enterprise
 
   @doc """

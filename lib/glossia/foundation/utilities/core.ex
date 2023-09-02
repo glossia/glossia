@@ -1,5 +1,5 @@
 defmodule Glossia.Foundation.Utilities.Core do
-  use Boundary, deps: [], exports: [Release, Version, Mailer]
+  use Boundary, deps: [], exports: [Release, Version, Mailer, Plan, ErrorReporter]
 
   def module_compiled?(module) do
     function_exported?(module, :__info__, 1)

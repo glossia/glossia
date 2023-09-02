@@ -14,7 +14,7 @@ defmodule Glossia.Application do
     :telemetry.attach(
       "oban-errors",
       [:oban, :job, :exception],
-      &Glossia.ErrorReporter.handle_event/4,
+      &Glossia.Foundation.Utilities.Core.ErrorReporter.handle_event/4,
       []
     )
 
