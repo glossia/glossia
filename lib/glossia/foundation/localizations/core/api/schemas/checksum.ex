@@ -15,22 +15,12 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.Checksum do
         description: "A unique identifier to persist the checksum back to the content source."
       },
       content: %Schema{
-        type: :object,
+        type: ChecksumValue,
         description: "The checksum of the localizable content",
-        properties: %{
-          current: ChecksumValue,
-          cached: ChecksumValue
-        },
-        required: [:current]
       },
-      context: %Schema{
-        type: :object,
-        description: "The checksum of the context",
-        properties: %{
-          current: ChecksumValue,
-          cached: ChecksumValue
-        },
-        required: [:current]
+      cache: %Schema{
+        type: ChecksumValue,
+        description: "The cached checksum value",
       }
     },
     required: [:cache_id]

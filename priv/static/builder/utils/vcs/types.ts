@@ -49,13 +49,7 @@ export type LocalizationRequestPayloadLocalizable<C extends Context> = {
   context: C;
   checksum: {
     cache_id: string;
-    content?: {
-      current: LocalizationRequestPayloadLocalizableChecksum;
-      cached?: LocalizationRequestPayloadLocalizableChecksum;
-    };
-    context?: {
-      current: LocalizationRequestPayloadLocalizableChecksum;
-      cached?: LocalizationRequestPayloadLocalizableChecksum;
-    };
+    cache?: LocalizationRequestPayloadLocalizableChecksum;
+    content?: LocalizationRequestPayloadLocalizableChecksum;
   };
 };
