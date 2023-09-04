@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Accounts.CoreFixtures do
+defmodule Glossia.Foundation.AccountsFixtures do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Foundation.Accounts.Core` context.

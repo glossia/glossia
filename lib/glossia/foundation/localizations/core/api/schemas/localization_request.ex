@@ -10,7 +10,7 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest 
     description: "The parameters used to create a new localization request.",
     type: :object,
     properties: %{
-      id: %Schema{
+      version: %Schema{
         type: :string,
         description:
           "A string that uniquely identifies the localization request in time. For example, for content hosted in Git repositories, that's the commit SHA."
@@ -45,7 +45,7 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest 
         }
       }
     },
-    required: [:id, :modules],
+    required: [:version, :modules],
     example: %{
       "id" => 123,
       "modules" => [

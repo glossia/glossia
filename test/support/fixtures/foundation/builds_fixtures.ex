@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.BuildsFixture do
+defmodule Glossia.Foundation.BuildsFixtures do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Localizations` context.
@@ -12,7 +12,7 @@ defmodule Glossia.Foundation.BuildsFixture do
       if attr[:project_id] do
         attr
       else
-        {:ok, project} = Glossia.ProjectsFixtures.project_fixture()
+        {:ok, project} = Glossia.Foundation.ProjectsFixtures.project_fixture()
         attr |> Map.put(:project_id, project.id)
       end
 

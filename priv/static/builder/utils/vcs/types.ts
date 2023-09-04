@@ -21,7 +21,7 @@ export type FileFormat =
   | "portable-object-template";
 
 export type LocalizationRequestPayload = {
-  id: string;
+  version: string;
   modules: LocalizationRequestPayloadModule[];
 };
 

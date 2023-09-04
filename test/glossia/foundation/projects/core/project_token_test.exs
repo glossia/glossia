@@ -1,7 +1,7 @@
 defmodule Glossia.Foundation.Projects.Core.ProjectTokenTest do
   use Glossia.DataCase
 
-  import Glossia.ProjectsFixtures
+  import Glossia.Foundation.ProjectsFixtures
   import Glossia.Foundation.Projects.Core.ProjectToken
 
   describe "generate_token" do
