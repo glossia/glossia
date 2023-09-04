@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
   require Logger
   alias Glossia.Foundation.Projects.Core, as: Projects
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
-  alias Glossia.Foundation.Localizations.Core.Workers.LocalizationRequestChangesParser
+  alias Glossia.Foundation.Localizations.Core.Workers.LocalizationRequestParser
 
   # Impl: Oban.Worker
 
@@ -21,7 +21,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
 
     content =
       localize_into_new_languages(
-        LocalizationRequestChangesParser.get_modules_with_new_languages_that_require_localization(request)
+        LocalizationRequestParser.get_modules_with_new_languages_that_require_localization(request)
       ) ++
         update_localized_content_due_to_content_or_context_changes(
           get_modules_with_changed_source_context_or_content(request)
