@@ -9,6 +9,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
   alias Glossia.Foundation.Projects.Core, as: Projects
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.Localizations.Core.Workers.LocalizationRequestParser
+  alias Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer
 
   # Impl: Oban.Worker
 
@@ -16,20 +17,18 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
   def perform(job) do
     request = job.args["request"] |> Useful.atomize_map_keys()
     Logger.info("Processing localization request", request)
-    version = request[:id]
+    version = request[:version]
     project = get_project(job.args["project_id"])
 
-    content = LocalizationRequestParser.parse_localization_request(request)
+    content_source =
+      ContentSources.new(project.content_source_platform, project.content_source_id)
+
+    content_changes = LocalizationRequestParser.parse_localization_request(request)
+    content_update = LLMLocalizer.localize(content_source, version, content_changes)
 
     _ =
-      ContentSources.new(project.content_source_platform, project.content_source_id)
-      |> ContentSources.update_content(%{
-        # TODO: Improve
-        title: "Localization",
-        description: "",
-        version: version,
-        content: content
-      })
+      content_source
+      |> ContentSources.update_content(Map.merge(content_update, %{version: version}))
   end
 
   # Private
