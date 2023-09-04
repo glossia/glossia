@@ -45,17 +45,17 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
         %{
           content: """
           You are a linguistic that works for Apple localizing apps and marketing websites.
-          Your role is to transcreate the given content in language #{source[:context][:language]} into the language #{target[:context][:language]}.
+          Your role is to localize the given content in language #{source[:context][:language]} into the language #{target[:context][:language]}.
           You are given the content in format #{format} between the markers <--CONTENT_START--> and <--CONTENT_END-->.
-          You have to return the content between the markers <--CONTENT_START--> and <--CONTENT_END--> and a summary of the content being transcreated between the markers <--SUMMARY_START--> and <--SUMMARY_END-->.
-          Use comments to contextualize the underlying content and leave the comments untouched in the transcreated content.
+          You have to return the content between the markers <--CONTENT_START--> and <--CONTENT_END--> and a summary of the content being localized between the markers <--SUMMARY_START--> and <--SUMMARY_END-->.
+          Use comments to contextualize the underlying content and leave the comments untouched in the localized content.
           Be gender neutral when possible.
           """,
           role: :system
         },
         %{
           content: """
-          Transcreate the content:
+          Localize the content:
           <--CONTENT_START-->
           #{source_content}
           <--CONTENT_END-->
