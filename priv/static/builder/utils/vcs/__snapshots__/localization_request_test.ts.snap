@@ -10,20 +10,11 @@ snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = 
       localizables: {
         source: {
           checksum: {
+            cache: undefined,
             cache_id: "priv/gettext/en/LC_MESSAGES/.glossia.default.po.json",
             content: {
-              cached: undefined,
-              current: {
-                algorithm: "sha256",
-                value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-              },
-            },
-            context: {
-              cached: undefined,
-              current: {
-                algorithm: "sha256",
-                value: "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dba75",
-              },
+              algorithm: "sha256",
+              value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             },
           },
           context: {
@@ -35,20 +26,11 @@ snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = 
         target: [
           {
             checksum: {
+              cache: undefined,
               cache_id: "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json",
               content: {
-                cached: undefined,
-                current: {
-                  algorithm: "sha256",
-                  value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-                },
-              },
-              context: {
-                cached: undefined,
-                current: {
-                  algorithm: "sha256",
-                  value: "c4440b47d1b3c0deffd05b9121b0a9e21941878cd1302a39228e900e5c2d545e",
-                },
+                algorithm: "sha256",
+                value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
               },
             },
             context: {

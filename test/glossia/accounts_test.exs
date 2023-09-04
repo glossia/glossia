@@ -7,7 +7,7 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
   describe "register_organization" do
     test "it registers the organization successfully" do
       # Given
-      attrs = %{handle: Glossia.Foundation.Accounts.CoreFixtures.unique_handle()}
+      attrs = %{handle: Glossia.Foundation.AccountsFixtures.unique_handle()}
 
       # When
       assert {:ok, _} = Accounts.register_organization(attrs)
@@ -15,7 +15,7 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
 
     test "errors when an organization with the same handle already exists" do
       # Given
-      attrs = %{handle: Glossia.Foundation.Accounts.CoreFixtures.unique_handle()}
+      attrs = %{handle: Glossia.Foundation.AccountsFixtures.unique_handle()}
 
       # When
       assert {:ok, _} = Accounts.register_organization(attrs)
@@ -30,33 +30,42 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
   describe "add_user_to_organization" do
     test "makes a user admin of the organization" do
       # Given
-      organization = Glossia.Foundation.Accounts.CoreFixtures.organization_fixture()
-      user = Glossia.Foundation.Accounts.CoreFixtures.user_fixture()
+      organization = Glossia.Foundation.AccountsFixtures.organization_fixture()
+      user = Glossia.Foundation.AccountsFixtures.user_fixture()
 
       # When
       assert {:ok, _} =
-               Glossia.Foundation.Accounts.Core.add_user_to_organization(user.id, organization.id, :admin)
+               Glossia.Foundation.Accounts.Core.add_user_to_organization(
+                 user.id,
+                 organization.id,
+                 :admin
+               )
     end
 
     test "makes a user member of the organization" do
       # Given
-      organization = Glossia.Foundation.Accounts.CoreFixtures.organization_fixture()
-      user = Glossia.Foundation.Accounts.CoreFixtures.user_fixture()
+      organization = Glossia.Foundation.AccountsFixtures.organization_fixture()
+      user = Glossia.Foundation.AccountsFixtures.user_fixture()
 
       # When
       assert {:ok, _} =
-               Glossia.Foundation.Accounts.Core.add_user_to_organization(user.id, organization.id, :user)
+               Glossia.Foundation.Accounts.Core.add_user_to_organization(
+                 user.id,
+                 organization.id,
+                 :user
+               )
     end
   end
 
   describe "find_account_by_handle" do
     test "it finds the account by handle" do
       # Given
-      user = Glossia.Foundation.Accounts.CoreFixtures.user_fixture()
+      user = Glossia.Foundation.AccountsFixtures.user_fixture()
       handle = user.account.handle
 
       # When
-      assert %Account{handle: ^handle} = Glossia.Foundation.Accounts.Core.find_account_by_handle(handle)
+      assert %Account{handle: ^handle} =
+               Glossia.Foundation.Accounts.Core.find_account_by_handle(handle)
     end
 
     test "it returns nil when the account doesn't exist" do

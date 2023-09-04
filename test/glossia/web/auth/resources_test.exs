@@ -27,7 +27,7 @@ defmodule Glossia.Web.Auth.ResourcesTest do
 
   test "it assigns the project if it exists", %{conn: conn} do
     # Given
-    {:ok, project} = Glossia.ProjectsFixtures.project_fixture()
+    {:ok, project} = Glossia.Foundation.ProjectsFixtures.project_fixture()
     token = Glossia.Foundation.Projects.Core.generate_token_for_project(project)
     opts = Resources.init(:authenticated_project)
 

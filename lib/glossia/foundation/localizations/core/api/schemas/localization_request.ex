@@ -10,7 +10,7 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest 
     description: "The parameters used to create a new localization request.",
     type: :object,
     properties: %{
-      id: %Schema{
+      version: %Schema{
         type: :string,
         description:
           "A string that uniquely identifies the localization request in time. For example, for content hosted in Git repositories, that's the commit SHA."
@@ -45,7 +45,7 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest 
         }
       }
     },
-    required: [:id, :modules],
+    required: [:version, :modules],
     example: %{
       "id" => 123,
       "modules" => [
@@ -56,17 +56,13 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest 
             "source" => %{
               "checksum" => %{
                 "cache_id" => "priv/gettext/en/LC_MESSAGES/.glossia.default.po.json",
-                "context" => %{
-                  "current" => %{
-                    "algorithm" => "sha256",
-                    "value" => "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-                  }
+                "cache" => %{
+                  "algorithm" => "sha256",
+                  "value" => "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
                 },
                 "content" => %{
-                  "current" => %{
-                    "algorithm" => "sha256",
-                    "value" => "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dba75"
-                  }
+                  "algorithm" => "sha256",
+                  "value" => "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dba75"
                 }
               },
               "context" => %{
@@ -79,19 +75,13 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest 
               %{
                 "checksum" => %{
                   "cache_id" => "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json",
-                  "context" => %{
-                    "current" => %{
-                      "algorithm" => "sha256",
-                      "value" =>
-                        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852bccc"
-                    }
+                  "cache" => %{
+                    "algorithm" => "sha256",
+                    "value" => "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852bccc"
                   },
                   "content" => %{
-                    "current" => %{
-                      "algorithm" => "sha256",
-                      "value" =>
-                        "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dbaaa"
-                    }
+                    "algorithm" => "sha256",
+                    "value" => "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dbaaa"
                   }
                 },
                 "context" => %{

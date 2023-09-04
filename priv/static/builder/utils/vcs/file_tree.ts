@@ -160,8 +160,8 @@ async function getPayloadFromTree(
         const checksumPath = join(manifestDirectory, checksumRelativePath);
         let cachedChecksum:
           | {
-            content: LocalizationRequestPayloadLocalizableChecksum;
-            context: LocalizationRequestPayloadLocalizableChecksum;
+            algorithm: string;
+            value: string;
           }
           | undefined;
 
@@ -178,19 +178,10 @@ async function getPayloadFromTree(
           id: path,
           checksum: {
             cache_id: checksumRelativePath,
+            cache: cachedChecksum,
             content: {
-              current: {
-                algorithm: "sha256",
-                value: await getFileSHA256(join(rootDirectory, path)),
-              },
-              cached: cachedChecksum?.content,
-            },
-            context: {
-              current: {
-                algorithm: "sha256",
-                value: await getContextSHA256(context),
-              },
-              cached: cachedChecksum?.context,
+              algorithm: "sha256",
+              value: await getFileSHA256(join(rootDirectory, path)),
             },
           },
           context,

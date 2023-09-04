@@ -23,9 +23,6 @@ export async function generateLocalizationRequestPayload(
   configurationManifests: ConfigurationManifest[],
   options: GenerateLocalizationPayloadOptions,
 ): Promise<LocalizationRequestPayload> {
-  // The id uniquely represents a content change snapshot.
-  const id = getBuildVersion(options.env) as string;
-
   const modules = (await Promise.all(
     configurationManifests.map(async (manifest) =>
       await generateModulesPayload(manifest, options)
@@ -33,7 +30,7 @@ export async function generateLocalizationRequestPayload(
   )).flatMap((modules) => modules);
 
   return {
-    id,
+    version: getBuildVersion(options.env) as string,
     modules,
   };
 }

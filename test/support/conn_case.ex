@@ -1,5 +1,5 @@
 defmodule Glossia.Web.ConnCase do
-  use Boundary, dirty_xrefs: [Glossia.Foundation.Accounts.CoreFixtures, Glossia.DataCase]
+  use Boundary, dirty_xrefs: [Glossia.Foundation.AccountsFixtures, Glossia.DataCase]
 
   @moduledoc """
   This module defines the test case to be used by
@@ -47,7 +47,7 @@ defmodule Glossia.Web.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn}) do
-    user = Glossia.Foundation.Accounts.CoreFixtures.user_fixture()
+    user = Glossia.Foundation.AccountsFixtures.user_fixture()
     %{conn: log_in_user(conn, user), user: user}
   end
 
