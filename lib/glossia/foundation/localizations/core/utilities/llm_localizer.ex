@@ -4,6 +4,8 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
   require Logger
 
   def localize(content_source, version, content_changes) do
+    Logger.info("Localizing", content_changes)
+
     updates =
       content_changes
       |> Enum.flat_map(fn module -> localize_module(content_source, module, version) end)
@@ -44,18 +46,10 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
       llm.complete_chat("gpt-4", [
         %{
           content: """
-          You are a linguistic that works for Apple localizing apps and marketing websites.
+          You are a linguistic that works for Apple creating content for apps and marketing websites.
           Your role is to localize the given content in language #{source[:context][:language]} into the language #{target[:context][:language]}.
-          You are given the content in format #{format} between the markers <--CONTENT_START--> and <--CONTENT_END-->.
-          You have to return the content between the markers <--CONTENT_START--> and <--CONTENT_END--> and a summary of the content being localized between the markers <--SUMMARY_START--> and <--SUMMARY_END-->.
-          Use comments to contextualize the underlying content and leave the comments untouched in the localized content.
-          Be gender neutral when possible.
-          """,
-          role: :system
-        },
-        %{
-          content: """
-          Localize the content:
+          Comments start with #, are not localized, and they represent the context of the content below.
+          You are given the content in format #{format} between the markers <--CONTENT_START--> and <--CONTENT_END--> and you have to return the content between the markers <--CONTENT_START--> and <--CONTENT_END--> and a summary of the content being localized between the markers <--SUMMARY_START--> and <--SUMMARY_END-->. Please, be gender neutral when localizing the following content:
           <--CONTENT_START-->
           #{source_content}
           <--CONTENT_END-->
@@ -63,8 +57,6 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
           role: :user
         }
       ])
-
-    Logger.info(content)
 
     {:ok, extracted_content} = extract(content, :content)
     {:ok, extracted_summary} = extract(content, :summary)
