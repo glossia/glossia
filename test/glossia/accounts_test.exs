@@ -35,7 +35,11 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
 
       # When
       assert {:ok, _} =
-               Glossia.Foundation.Accounts.Core.add_user_to_organization(user.id, organization.id, :admin)
+               Glossia.Foundation.Accounts.Core.add_user_to_organization(
+                 user.id,
+                 organization.id,
+                 :admin
+               )
     end
 
     test "makes a user member of the organization" do
@@ -45,7 +49,11 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
 
       # When
       assert {:ok, _} =
-               Glossia.Foundation.Accounts.Core.add_user_to_organization(user.id, organization.id, :user)
+               Glossia.Foundation.Accounts.Core.add_user_to_organization(
+                 user.id,
+                 organization.id,
+                 :user
+               )
     end
   end
 
@@ -56,7 +64,8 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
       handle = user.account.handle
 
       # When
-      assert %Account{handle: ^handle} = Glossia.Foundation.Accounts.Core.find_account_by_handle(handle)
+      assert %Account{handle: ^handle} =
+               Glossia.Foundation.Accounts.Core.find_account_by_handle(handle)
     end
 
     test "it returns nil when the account doesn't exist" do

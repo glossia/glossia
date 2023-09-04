@@ -16,11 +16,11 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.Checksum do
       },
       content: %Schema{
         type: ChecksumValue,
-        description: "The checksum of the localizable content",
+        description: "The checksum of the localizable content"
       },
       cache: %Schema{
         type: ChecksumValue,
-        description: "The cached checksum value",
+        description: "The cached checksum value"
       }
     },
     required: [:cache_id]

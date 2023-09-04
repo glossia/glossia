@@ -1,5 +1,5 @@
 defmodule Glossia.Foundation.Auth.Core do
-   @moduledoc """
+  @moduledoc """
   Retrieve the user information from an auth request
   """
 

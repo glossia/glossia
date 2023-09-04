@@ -1,3 +1,2 @@
 defmodule Nora do
-
 end

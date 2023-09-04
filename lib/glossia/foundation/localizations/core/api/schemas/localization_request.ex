@@ -77,13 +77,11 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest 
                   "cache_id" => "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json",
                   "cache" => %{
                     "algorithm" => "sha256",
-                    "value" =>
-                      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852bccc"
+                    "value" => "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852bccc"
                   },
                   "content" => %{
                     "algorithm" => "sha256",
-                    "value" =>
-                      "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dbaaa"
+                    "value" => "0c9dbab264861da7904ff1e5a2c2684782633e6bd8a24ef137f5091fb65dbaaa"
                   }
                 },
                 "context" => %{

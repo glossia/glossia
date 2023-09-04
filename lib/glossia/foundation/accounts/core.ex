@@ -2,11 +2,21 @@ defmodule Glossia.Foundation.Accounts.Core do
   @moduledoc """
   The Accounts context.
   """
-  use Boundary, deps: [Glossia.Foundation.Utilities.Core, Glossia.Foundation.Database.Core], exports: [User]
+  use Boundary,
+    deps: [Glossia.Foundation.Utilities.Core, Glossia.Foundation.Database.Core],
+    exports: [User]
+
   import Ecto.Query, warn: false
   alias Glossia.Foundation.Database.Core.Repo
 
-  alias Glossia.Foundation.Accounts.Core.{User, Account, Organization, OrganizationUser, Credentials, UserToken}
+  alias Glossia.Foundation.Accounts.Core.{
+    User,
+    Account,
+    Organization,
+    OrganizationUser,
+    Credentials,
+    UserToken
+  }
 
   @doc """
   It makes the given user an admin of the given organization.

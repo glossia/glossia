@@ -1,6 +1,10 @@
 defmodule Glossia.Foundation.Projects.Core do
   use Boundary,
-    deps: [Glossia.Foundation.Database.Core, Glossia.Foundation.Builds.Core, Glossia.Foundation.ContentSources.Core],
+    deps: [
+      Glossia.Foundation.Database.Core,
+      Glossia.Foundation.Builds.Core,
+      Glossia.Foundation.ContentSources.Core
+    ],
     exports: [Project, ProjectToken]
 
   # Modules
