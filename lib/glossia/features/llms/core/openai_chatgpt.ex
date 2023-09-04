@@ -1,9 +1,7 @@
-defmodule Glossia.Features.LLMs.OpenAIChatGPT do
-  @behaviour Glossia.Foundation.LLMs.Behaviors.LLM
+defmodule Glossia.Features.LLMs.Core.OpenAIChatGPT do
+  @behaviour Glossia.Foundation.LLMs.Core.LLM
 
-  # Impl:  Glossia.Foundation.LLMs.Behaviors.LLM
-
-  @impl Glossia.Foundation.LLMs.Behaviors.LLM
+  @impl true
   def complete_chat(model, messages) when is_list(messages) do
     req =
       Req.new(
@@ -27,7 +25,7 @@ defmodule Glossia.Features.LLMs.OpenAIChatGPT do
     200_000
   end
 
-  @impl Glossia.Foundation.LLMs.Behaviors.LLM
+  @impl true
   def configured?() do
     api_key() != ""
   end

@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.LLMs.Behaviors.LLM do
+defmodule Glossia.Foundation.LLMs.Core.LLM do
   @type chat_completion_role_t :: :system | :user | :assistant | :function
 
   @type chat_message_t :: %{

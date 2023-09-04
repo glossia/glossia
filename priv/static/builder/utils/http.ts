@@ -32,7 +32,7 @@ export async function glossiaFetch<T>(
   }
   console.info("Glossia responded", {
     status: response.status,
-    body: serializedResponseBody,
+    body: JSON.stringify(serializedResponseBody),
   });
 
   return serializedResponseBody;

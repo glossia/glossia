@@ -8,6 +8,9 @@
     "target": [
       {
         "language": "es"
+      },
+      {
+        "language": "de"
       }
     ]
   },
