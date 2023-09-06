@@ -14,14 +14,8 @@ defmodule Glossia.Foundation.Localizations.Core.API.Schemas.Checksum do
         type: :string,
         description: "A unique identifier to persist the checksum back to the content source."
       },
-      content: %Schema{
-        type: ChecksumValue,
-        description: "The checksum of the localizable content"
-      },
-      cache: %Schema{
-        type: ChecksumValue,
-        description: "The cached checksum value"
-      }
+      content: ChecksumValue,
+      cache: ChecksumValue
     },
     required: [:cache_id]
   })

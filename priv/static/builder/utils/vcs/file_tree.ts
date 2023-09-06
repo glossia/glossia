@@ -73,6 +73,7 @@ function payloadAddingAbsentLocalizableTargets(
 ): LocalizationRequestPayloadModule[] {
   return modules.map((module) => {
     const id = module.id;
+
     for (const context of options.configurationManifest.context.target) {
       let path = id;
       for (const contextAttribute of Object.entries(context)) {
@@ -100,7 +101,6 @@ function payloadAddingAbsentLocalizableTargets(
           ],
         },
       };
-      return module;
     }
     return module;
   });
