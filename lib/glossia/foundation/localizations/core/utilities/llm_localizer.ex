@@ -4,7 +4,6 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
   require Logger
 
   def localize(content_source, version, content_changes) do
-    Logger.info("Localizing", content_changes)
 
     updates =
       content_changes

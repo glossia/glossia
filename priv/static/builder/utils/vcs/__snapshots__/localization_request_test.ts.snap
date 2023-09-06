@@ -2,7 +2,6 @@ export const snapshot = {};
 
 snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = `
 {
-  id: "test-sha",
   modules: [
     {
       format: "portable-object",
@@ -51,5 +50,6 @@ snapshot[`generateLocalizationRequestPayload with Glossia's configuration 1`] = 
       },
     },
   ],
+  version: "test-sha",
 }
 `;
