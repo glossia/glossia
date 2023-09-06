@@ -24,7 +24,7 @@ defmodule Glossia.Foundation.Localizations.Core do
         ) :: :ok | {:error, term()}
   def process_localization_request(request, %{project_id: project_id} = _opts) do
     %{request: request, project_id: project_id}
-    |> ProcessLocalizationRequestWorker.new(max_attempts: 1)
+    |> ProcessLocalizationRequestWorker.new()
     |> Oban.insert()
     |> case do
       {:ok, _} -> :ok
