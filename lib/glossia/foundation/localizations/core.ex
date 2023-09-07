@@ -11,7 +11,7 @@ defmodule Glossia.Foundation.Localizations.Core do
 
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Localizations.API.Schemas.LocalizationRequest
-  alias Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationRequestWorker
+  alias Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker
   alias Glossia.Foundation.Projects.Core, as: Projects
 
   # Types
@@ -44,7 +44,7 @@ defmodule Glossia.Foundation.Localizations.Core do
       end
 
     %{request: request, project_id: project_id, unique_id: unique_id}
-    |> ProcessLocalizationRequestWorker.new(replace: [:args])
+    |> LocalizeWorker.new(replace: [:args])
     |> Oban.insert()
     |> case do
       {:ok, _} -> :ok
