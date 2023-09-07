@@ -32,5 +32,6 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
       {:error, :newer_version_exists} -> :ok
       {:error, error} -> {:error, error}
     end
+    :ok
   end
 end
