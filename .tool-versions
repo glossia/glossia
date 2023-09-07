@@ -2,3 +2,4 @@ elixir 1.15.5
 flyctl 0.1.77
 deno   1.36.4
 node 20.5.0
+erlang 26.0.1

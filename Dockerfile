@@ -11,7 +11,7 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.15.0-erlang-26.0.1-debian-bullseye-20230612-slim
 #
-ARG ELIXIR_VERSION=1.15.4
+ARG ELIXIR_VERSION=1.15.5
 ARG OTP_VERSION=26.0.1
 ARG DEBIAN_VERSION=bullseye-20230612-slim
 
@@ -33,6 +33,12 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
+
+# Add Oban Web repository
+RUN if [ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ] && [ -n "$OBAN_WEB_AUTH_KEY" ]; then mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY; fi
+
+#fetch-public-key
+#auth-key
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
