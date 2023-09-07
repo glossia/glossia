@@ -7,9 +7,10 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
     updates =
       content_changes
       |> Enum.map(fn module ->
-        Task.start_link(fn ->
+        {:ok, pid} = Task.start_link(fn ->
           __MODULE__.localize_module(content_source, module, version)
         end)
+        pid
       end)
       |> Enum.map(&Task.await/1)
       |> Enum.flat_map(& &1)
@@ -32,7 +33,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
       ContentSources.get_content(content_source, module[:source][:id], {:version, version})
 
     Enum.map(module[:target], fn {type, target} ->
-      Task.start_link(fn ->
+      {:ok, pid} = Task.start_link(fn ->
         __MODULE__.localize_localizable(
           target[:id],
           source_content,
@@ -42,6 +43,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
           type
         )
       end)
+      pid
     end)
     |> Enum.map(&Task.await/1)
   end
