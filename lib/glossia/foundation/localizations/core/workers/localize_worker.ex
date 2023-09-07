@@ -9,7 +9,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
   alias Glossia.Foundation.Projects.Core, as: Projects
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.Localizations.Core.Workers.LocalizationRequestParser
-  alias Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer
+  alias Glossia.Foundation.Localizations.Core.Utilities.Localizer
 
   # Impl: Oban.Worker
 
@@ -24,7 +24,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
       ContentSources.new(project.content_source_platform, project.content_source_id)
 
     content_changes = LocalizationRequestParser.parse_localization_request(request)
-    content_update = LLMLocalizer.localize(content_source, version, content_changes)
+    content_update = Localizer.localize(content_source, version, content_changes)
 
     # TODO
     # - Update the lockfiles to ensure translations happen incrementally
