@@ -12,7 +12,9 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
         end)
         pid
       end)
-      |> Enum.map(&Task.await/1)
+      |> Enum.map(fn pid ->
+        Task.await(pid, 120_000)
+      end)
       |> Enum.flat_map(& &1)
 
     {title, description} = {"Localization", "Localization is done"}
@@ -45,7 +47,9 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
       end)
       pid
     end)
-    |> Enum.map(&Task.await/1)
+    |> Enum.map(fn pid ->
+      Task.await(pid, 120_000)
+    end)
   end
 
   def localize_localizable(id, source_content, source, format, target, :new_target_localizable) do
