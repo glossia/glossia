@@ -26,9 +26,12 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
     content_changes = LocalizationRequestParser.parse_localization_request(request)
     content_update = LLMLocalizer.localize(content_source, version, content_changes)
 
-    _ =
-      content_source
+    content_source
       |> ContentSources.update_content(Map.merge(content_update, %{version: version}))
+      |> case do
+        {:error, :newer_version_exists} -> :ok
+        {:error, error} -> {:error, error}
+      end
   end
 
   # Private
