@@ -4,7 +4,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
   """
 
   # Modules
-  use Oban.Worker
+  use Oban.Worker, unique: [keys: [:unique_id], states: [:available, :scheduled, :executing]]
   require Logger
   alias Glossia.Foundation.Projects.Core, as: Projects
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources

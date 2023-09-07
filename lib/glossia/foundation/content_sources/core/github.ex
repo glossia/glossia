@@ -155,6 +155,25 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
   end
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def get_content_branch_id(github, %{version: commit_sha} = opts) do
+    Logger.debug(
+      "Getting the branch id",
+      opts |> Map.merge(%{owner: github.owner, repo: github.repo})
+    )
+    with {:branch, {status, [%{"name" => branch} | _], _}} when status in 200..299 <-
+      {:branch,
+       Tentacat.get(
+         "repos/#{github.owner}/#{github.repo}/commits/#{commit_sha}/branches-where-head",
+         github.client
+       )} do
+        branch
+       else
+        {:branch, {200, [] = _, _}} -> nil
+        {:branch, {_, _, _}} -> nil
+       end
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def should_localize?(github, commit_sha) do
     with {:commit, {status, payload, _}} when status in 200..299 <-
            {:commit, Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo)} do

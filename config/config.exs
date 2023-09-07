@@ -99,7 +99,7 @@ config :ueberauth, Ueberauth,
 config :glossia, :env, Mix.env()
 
 supported_plans = [:community, :cloud, :enterprise]
-plan = System.fetch_env!("GLOSSIA_PLAN") |> String.to_atom()
+plan = System.get_env("GLOSSIA_PLAN", "cloud") |> String.to_atom()
 
 if Enum.member?(supported_plans, plan) do
   config :glossia, :plan, plan

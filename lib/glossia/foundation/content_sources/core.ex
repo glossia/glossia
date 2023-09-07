@@ -46,6 +46,11 @@ defmodule Glossia.Foundation.ContentSources.Core do
   end
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def get_content_branch_id(content_source, opts) do
+    content_source(content_source.id).get_content_branch_id(content_source, opts)
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def should_localize?(content_source, version) do
     content_source(content_source.id).should_localize?(content_source, version)
   end

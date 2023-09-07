@@ -10,8 +10,6 @@ defmodule Glossia.Web.SharedComponents do
   use Glossia.Web, :verified_routes
   use Phoenix.Component
 
-  attr :surface, :string, required: true
-
   def head_alpine(assigns) do
     ~H"""
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js">
@@ -19,6 +17,7 @@ defmodule Glossia.Web.SharedComponents do
     """
   end
 
+  attr :surface, :string, required: true
   def head_assets(assigns) do
     ~H"""
     <link phx-track-static rel="stylesheet" href={"/assets/#{@surface}.css"} />
