@@ -16,6 +16,8 @@ env:
   ELIXIR_VERSION: 1.14.1
   MIX_ENV: test
   GLOSSIA_PLAN: cloud
+  OBAN_WEB_FETCH_PUBLIC_KEY: ${{ secrets.OBAN_WEB_FETCH_PUBLIC_KEY }}
+  OBAN_WEB_AUTH_KEY: ${{ secrets.OBAN_WEB_AUTH_KEY}}
 
 jobs:
   test:
@@ -46,6 +48,9 @@ jobs:
             _build
             _site
           key: mix-${{ hashFiles('mix.lock') }}
+
+      - name: Add Oban Web repository
+        run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
 
       - run: mix deps.get
 
