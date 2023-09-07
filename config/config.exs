@@ -101,7 +101,7 @@ supported_plans = [:community, :cloud, :enterprise]
 plan = System.get_env("GLOSSIA_PLAN", "cloud") |> String.to_atom()
 
 if Enum.member?(supported_plans, plan) do
-  config :glossia, :plan, System.get_env("GLOSSIA_PLAN", "cloud") |> String.to_atom()
+  config :glossia, :plan, System.get_env("GLOSSIA_PLAN", "community") |> String.to_atom()
 else
   raise """
   Invalid plan: #{inspect(plan)}.

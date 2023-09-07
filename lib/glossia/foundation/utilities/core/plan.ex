@@ -9,9 +9,9 @@ defmodule Glossia.Foundation.Utilities.Core.Plan do
   - `plan` - The plan or list of plans to compile the code for.
   - `do` - The block of code to compile.
   """
-  defmacro only_for(plans, do: block) when is_list(plans) do
+  defmacro only_for_plans(plans, do: block) when is_list(plans) do
     quote do
-      if Enum.member?(unquote(plans), Application.compile_env(:glossia, :plan, :community)) do
+      if Enum.member?(unquote(plans), Application.compile_env!(:glossia, :plan)) do
         unquote(block)
       end
     end
@@ -22,6 +22,6 @@ defmodule Glossia.Foundation.Utilities.Core.Plan do
   """
   @spec current() :: plan_t
   def current() do
-    Application.get_env(:glossia, :plan, :community)
+    Application.fetch_env!(:glossia, :plan)
   end
 end

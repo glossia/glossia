@@ -86,7 +86,6 @@ defmodule Glossia.MixProject do
       :cloud -> dependencies ++ [{:oban_web, "~> 2.10.0-rc.2", repo: "oban"}]
       _ -> dependencies
     end
-    dependencies
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

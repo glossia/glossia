@@ -1,10 +1,15 @@
 defmodule Glossia.Router do
   # Modules
   use Boundary,
-    deps: [Glossia.Web, Glossia.Foundation.API.Web, Glossia.Foundation.ContentSources.Web]
+    deps: [Glossia.Web, Glossia.Foundation.API.Web, Glossia.Foundation.ContentSources.Web, Glossia.Foundation.Utilities.Core]
 
   use Glossia.Web, :router
   import Glossia.Web.UserAuth
+  import Glossia.Foundation.Utilities.Core.Plan
+
+  only_for_plans([:cloud]) do
+    import Oban.Web.Router
+  end
 
   ##### Base pipelines #####
 
@@ -129,6 +134,10 @@ defmodule Glossia.Router do
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
+  end
+
+  scope "/admin" do
+
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
