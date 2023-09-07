@@ -3,17 +3,18 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
   alias Glossia.Foundation.LLMs.Core, as: LLMs
   require Logger
 
+  @task_timeout 120_000
+
   def localize(content_source, version, content_changes) do
     updates =
       content_changes
       |> Enum.map(fn module ->
-        {:ok, pid} = Task.start_link(fn ->
+        Task.Supervisor.async(Glossia.TaskSupervisor, fn ->
           __MODULE__.localize_module(content_source, module, version)
         end)
-        pid
       end)
-      |> Enum.map(fn pid ->
-        Task.await(pid, 120_000)
+      |> Enum.map(fn task ->
+        Task.await(task,  @task_timeout)
       end)
       |> Enum.flat_map(& &1)
 
@@ -35,7 +36,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
       ContentSources.get_content(content_source, module[:source][:id], {:version, version})
 
     Enum.map(module[:target], fn {type, target} ->
-      {:ok, pid} = Task.start_link(fn ->
+      Task.Supervisor.async(Glossia.TaskSupervisor, fn ->
         __MODULE__.localize_localizable(
           target[:id],
           source_content,
@@ -45,10 +46,9 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
           type
         )
       end)
-      pid
     end)
-    |> Enum.map(fn pid ->
-      Task.await(pid, 120_000)
+    |> Enum.map(fn task ->
+      Task.await(task,  @task_timeout)
     end)
   end
 
