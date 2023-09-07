@@ -7,10 +7,6 @@ defmodule Glossia.Router do
   import Glossia.Web.UserAuth
   import Glossia.Foundation.Utilities.Core.Plan
 
-  only_for_plans([:cloud]) do
-    import Oban.Web.Router
-  end
-
   ##### Base pipelines #####
 
   pipeline :browser do
@@ -137,7 +133,12 @@ defmodule Glossia.Router do
   end
 
   scope "/admin" do
+    pipe_through [:browser, :app]
 
+    only_for_plans([:cloud]) do
+      import Oban.Web.Router
+      oban_dashboard "/oban"
+    end
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

@@ -86,6 +86,7 @@ import_config "#{config_env()}.exs"
 # Oban
 config :glossia, Oban,
   repo: Glossia.Foundation.Database.Core.Repo,
+  notifier: Oban.Notifiers.PG,
   plugins: [Oban.Plugins.Pruner],
   queues: [default: 10, builds: 50]
 
@@ -98,10 +99,10 @@ config :ueberauth, Ueberauth,
 config :glossia, :env, Mix.env()
 
 supported_plans = [:community, :cloud, :enterprise]
-plan = System.get_env("GLOSSIA_PLAN", "cloud") |> String.to_atom()
+plan = System.fetch_env!("GLOSSIA_PLAN") |> String.to_atom()
 
 if Enum.member?(supported_plans, plan) do
-  config :glossia, :plan, System.get_env("GLOSSIA_PLAN", "community") |> String.to_atom()
+  config :glossia, :plan, plan
 else
   raise """
   Invalid plan: #{inspect(plan)}.

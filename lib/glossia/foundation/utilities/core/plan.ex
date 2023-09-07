@@ -11,7 +11,7 @@ defmodule Glossia.Foundation.Utilities.Core.Plan do
   """
   defmacro only_for_plans(plans, do: block) when is_list(plans) do
     quote do
-      if Enum.member?(unquote(plans), Application.compile_env!(:glossia, :plan)) do
+      if Enum.member?(unquote(plans),  Application.compile_env!(:glossia, :plan)) do
         unquote(block)
       end
     end
