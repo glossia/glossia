@@ -19,4 +19,4 @@ jobs:
     steps:
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only --build-arg OBAN_WEB_FETCH_PUBLIC_KEY=$OBAN_WEB_FETCH_PUBLIC_KEY --build-arg OBAN_WEB_AUTH_KEY=$OBAN_WEB_AUTH_KEY
+      - run: flyctl deploy --remote-only --build-arg OBAN_WEB_FETCH_PUBLIC_KEY=$OBAN_WEB_FETCH_PUBLIC_KEY --build-arg OBAN_WEB_AUTH_KEY=$OBAN_WEB_AUTH_KEY GLOSSIA_PLAN=cloud

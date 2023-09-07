@@ -10,9 +10,6 @@ kill_signal = "SIGTERM"
 [deploy]
   release_command = "/app/bin/migrate"
 
-[build.args]
-  GLOSSIA_PLAN="cloud"
-
 [env]
   PHX_HOST = "glossia.fly.dev"
   PORT = "8080"
