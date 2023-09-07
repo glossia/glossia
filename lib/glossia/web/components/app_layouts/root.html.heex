@@ -5,6 +5,10 @@
     <.live_title suffix=" · Glossia">
       <%= assigns[:page_title] || "Glossia" %>
     </.live_title>
+    <style>
+      [x-cloak]{display:none}
+    </style>
+    <.head_alpine />
     <.head_assets surface="app" />
     <.head_posthog />
   </head>

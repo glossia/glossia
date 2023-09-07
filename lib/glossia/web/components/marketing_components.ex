@@ -27,16 +27,6 @@ defmodule Glossia.Web.MarketingComponents do
   end
 
   @doc """
-  It returns the <script> elements to load AlpineJS.
-  """
-  def head_alpine(assigns) do
-    ~H"""
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js">
-    </script>
-    """
-  end
-
-  @doc """
   It returns <head> elements for the Atom and RSS feeds.
   """
   def head_feeds(assigns) do

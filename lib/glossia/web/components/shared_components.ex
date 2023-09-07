@@ -12,6 +12,13 @@ defmodule Glossia.Web.SharedComponents do
 
   attr :surface, :string, required: true
 
+  def head_alpine(assigns) do
+    ~H"""
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js">
+    </script>
+    """
+  end
+
   def head_assets(assigns) do
     ~H"""
     <link phx-track-static rel="stylesheet" href={"/assets/#{@surface}.css"} />
