@@ -1,5 +1,6 @@
 defmodule Glossia.Foundation.Utilities.Core.Plan do
   @type plan_t :: :community | :cloud | :enterprise
+  @plan Application.compile_env!(:glossia, :plan)
 
   @doc """
   A macro to selectively compile code based on the plan of this instance of Glossia.
@@ -10,9 +11,10 @@ defmodule Glossia.Foundation.Utilities.Core.Plan do
   - `do` - The block of code to compile.
   """
   defmacro only_for_plans(plans, do: block) when is_list(plans) do
-    quote do
-      if Enum.member?(unquote(plans),  Application.compile_env!(:glossia, :plan)) do
-        unquote(block)
+    if Enum.member?(plans, @plan) do
+      block
+    else
+      quote do
       end
     end
   end

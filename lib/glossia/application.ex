@@ -4,10 +4,14 @@ defmodule Glossia.Application do
   @moduledoc false
 
   use Application
+  import Glossia.Foundation.Utilities.Core.Plan
 
   @impl true
   def start(_type, _args) do
     Oban.Telemetry.attach_default_logger()
+    only_for_plans([:cloud]) do
+      Oban.Web.Telemetry.attach_default_logger()
+    end
 
     :telemetry.attach(
       "oban-errors",
