@@ -26,6 +26,13 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
     content_changes = LocalizationRequestParser.parse_localization_request(request)
     content_update = LLMLocalizer.localize(content_source, version, content_changes)
 
+    # TODO
+    # - Update the lockfiles to ensure translations happen incrementally
+    # - Set the right title and description
+    # - Create a localization request in the database
+    # - Update the costs as localizations are happening
+    # - Update the Stripe plan accordingly
+
     content_source
     |> ContentSources.update_content(Map.merge(content_update, %{version: version}))
     |> case do
