@@ -21,8 +21,7 @@ FROM ${BUILDER_IMAGE} as builder
 
 ARG OBAN_WEB_FETCH_PUBLIC_KEY=""
 ARG OBAN_WEB_AUTH_KEY=""
-ENV OBAN_WEB_FETCH_PUBLIC_KEY=${OBAN_WEB_FETCH_PUBLIC_KEY}
-ENV OBAN_WEB_AUTH_KEY=${OBAN_WEB_AUTH_KEY}
+ARG GLOSSIA_PLAN
 
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
