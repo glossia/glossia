@@ -39,7 +39,7 @@ RUN mix local.hex --force && \
 ENV MIX_ENV="prod"
 
 # Add Oban Web repository
-RUN [[ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ]] && [[ -n "$OBAN_WEB_AUTH_KEY" ]] && mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY
+RUN if [ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ] && [ -n "$OBAN_WEB_AUTH_KEY" ]; then mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY ; fi
 
 #fetch-public-key
 #auth-key
