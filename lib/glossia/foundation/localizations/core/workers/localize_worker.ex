@@ -38,8 +38,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
     |> case do
       {:error, :newer_version_exists} -> :ok
       {:error, error} -> {:error, error}
+      {:ok, _} -> :ok
     end
-
-    :ok
   end
 end
