@@ -18,7 +18,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
     request = job.args["request"] |> Useful.atomize_map_keys()
     Logger.info("Processing localization request", request)
     version = request[:version]
-    project = get_project(job.args["project_id"])
+    project = Projects.find_project_by_id(job.args["project_id"])
 
     content_source =
       ContentSources.new(project.content_source_platform, project.content_source_id)
@@ -27,16 +27,10 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.ProcessLocalizationReque
     content_update = LLMLocalizer.localize(content_source, version, content_changes)
 
     content_source
-      |> ContentSources.update_content(Map.merge(content_update, %{version: version}))
-      |> case do
-        {:error, :newer_version_exists} -> :ok
-        {:error, error} -> {:error, error}
-      end
-  end
-
-  # Private
-
-  defp get_project(project_id) do
-    Projects.find_project_by_id(project_id)
+    |> ContentSources.update_content(Map.merge(content_update, %{version: version}))
+    |> case do
+      {:error, :newer_version_exists} -> :ok
+      {:error, error} -> {:error, error}
+    end
   end
 end

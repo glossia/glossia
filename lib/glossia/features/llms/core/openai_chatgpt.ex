@@ -15,10 +15,33 @@ defmodule Glossia.Features.LLMs.Core.OpenAIChatGPT do
         }
       )
 
+    # "prompt_tokens": 9,
+    # "completion_tokens": 12,
     case Req.request(req) do
-      {:ok, %{body: body}} -> {:ok, Useful.atomize_map_keys(body)}
-      {:error, reason} -> {:error, reason}
+      {:ok, %{body: body}} ->
+        atomized_body = Useful.atomize_map_keys(body)
+        {:ok, %{payload: atomized_body, cost: get_cost(atomized_body[:usage], model)}}
+
+      {:error, reason} ->
+        {:error, reason}
     end
+  end
+
+  defp get_cost(usage, model) do
+    %{
+      input_tokens: usage[:prompt_tokens],
+      input_price_usd: usage[:prompt_tokens] * input_token_price(model),
+      output_tokens: usage[:completion_tokens],
+      output_price_usd: usage[:completion_tokens] * output_token_price(model)
+    }
+  end
+
+  def input_token_price("gpt-4") do
+    0.003 / 1000
+  end
+
+  def output_token_price("gpt-4") do
+    0.006 / 1000
   end
 
   defp default_timeout() do

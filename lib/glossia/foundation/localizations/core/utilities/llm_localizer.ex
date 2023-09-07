@@ -4,7 +4,6 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
   require Logger
 
   def localize(content_source, version, content_changes) do
-
     updates =
       content_changes
       |> Enum.flat_map(fn module -> localize_module(content_source, module, version) end)
@@ -41,7 +40,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
   def localize_localizable(id, source_content, source, format, target, :new_target_localizable) do
     llm = LLMs.default()
 
-    {:ok, %{choices: [%{message: %{content: content}} | _]}} =
+    {:ok, %{ payload: %{ choices: [%{message: %{content: content}} | _] }, cost: cost }} =
       llm.complete_chat("gpt-4", [
         %{
           content: """
