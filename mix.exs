@@ -32,7 +32,7 @@ defmodule Glossia.MixProject do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [
+    dependencies = [
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.7.6"},
       {:phoenix_ecto, "~> 4.4"},
@@ -82,6 +82,11 @@ defmodule Glossia.MixProject do
       {:useful, "~> 1.12.1"},
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
     ]
+    case plan() do
+      :cloud -> dependencies ++ [{:oban_web, "~> 2.10.0-rc.2", repo: "oban"}]
+      _ -> dependencies
+    end
+    dependencies
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
