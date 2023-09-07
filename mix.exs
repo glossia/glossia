@@ -82,6 +82,7 @@ defmodule Glossia.MixProject do
       {:useful, "~> 1.12.1"},
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
     ]
+
     case plan() do
       :cloud -> dependencies ++ [{:oban_web, "~> 2.10.0-rc.2", repo: "oban"}]
       _ -> dependencies

@@ -9,6 +9,7 @@ defmodule Glossia.Application do
   @impl true
   def start(_type, _args) do
     Oban.Telemetry.attach_default_logger()
+
     only_for_plans([:cloud]) do
       Oban.Web.Telemetry.attach_default_logger()
     end

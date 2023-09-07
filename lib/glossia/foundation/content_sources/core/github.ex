@@ -160,17 +160,18 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
       "Getting the branch id",
       opts |> Map.merge(%{owner: github.owner, repo: github.repo})
     )
+
     with {:branch, {status, [%{"name" => branch} | _], _}} when status in 200..299 <-
-      {:branch,
-       Tentacat.get(
-         "repos/#{github.owner}/#{github.repo}/commits/#{commit_sha}/branches-where-head",
-         github.client
-       )} do
-        branch
-       else
-        {:branch, {200, [] = _, _}} -> nil
-        {:branch, {_, _, _}} -> nil
-       end
+           {:branch,
+            Tentacat.get(
+              "repos/#{github.owner}/#{github.repo}/commits/#{commit_sha}/branches-where-head",
+              github.client
+            )} do
+      branch
+    else
+      {:branch, {200, [] = _, _}} -> nil
+      {:branch, {_, _, _}} -> nil
+    end
   end
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource

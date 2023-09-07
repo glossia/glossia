@@ -6,7 +6,13 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
   def localize(content_source, version, content_changes) do
     updates =
       content_changes
-      |> Enum.flat_map(fn module -> localize_module(content_source, module, version) end)
+      |> Enum.map(fn module ->
+        Task.start_link(fn ->
+          __MODULE__.localize_module(content_source, module, version)
+        end)
+      end)
+      |> Enum.map(&Task.await/1)
+      |> Enum.flat_map(& &1)
 
     {title, description} = {"Localization", "Localization is done"}
 
@@ -26,21 +32,24 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.LLMLocalizer do
       ContentSources.get_content(content_source, module[:source][:id], {:version, version})
 
     Enum.map(module[:target], fn {type, target} ->
-      localize_localizable(
-        target[:id],
-        source_content,
-        module[:source],
-        module[:format],
-        target,
-        type
-      )
+      Task.start_link(fn ->
+        __MODULE__.localize_localizable(
+          target[:id],
+          source_content,
+          module[:source],
+          module[:format],
+          target,
+          type
+        )
+      end)
     end)
+    |> Enum.map(&Task.await/1)
   end
 
   def localize_localizable(id, source_content, source, format, target, :new_target_localizable) do
     llm = LLMs.default()
 
-    {:ok, %{ payload: %{ choices: [%{message: %{content: content}} | _] }, cost: cost }} =
+    {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: cost}} =
       llm.complete_chat("gpt-4", [
         %{
           content: """

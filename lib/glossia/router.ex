@@ -1,7 +1,12 @@
 defmodule Glossia.Router do
   # Modules
   use Boundary,
-    deps: [Glossia.Web, Glossia.Foundation.API.Web, Glossia.Foundation.ContentSources.Web, Glossia.Foundation.Utilities.Core]
+    deps: [
+      Glossia.Web,
+      Glossia.Foundation.API.Web,
+      Glossia.Foundation.ContentSources.Web,
+      Glossia.Foundation.Utilities.Core
+    ]
 
   use Glossia.Web, :router
   import Glossia.Web.UserAuth
@@ -137,7 +142,7 @@ defmodule Glossia.Router do
 
     only_for_plans([:cloud]) do
       import Oban.Web.Router
-      oban_dashboard "/oban"
+      oban_dashboard("/oban")
     end
   end
 

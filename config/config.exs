@@ -88,7 +88,8 @@ config :glossia, Oban,
   repo: Glossia.Foundation.Database.Core.Repo,
   notifier: Oban.Notifiers.PG,
   plugins: [Oban.Plugins.Pruner],
-  queues: [default: 10, builds: 50]
+  queues: [default: 10, builds: 50],
+  shutdown_grace_period: :timer.minutes(3)
 
 # Ueberauth
 config :ueberauth, Ueberauth,

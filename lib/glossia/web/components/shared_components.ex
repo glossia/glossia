@@ -18,6 +18,7 @@ defmodule Glossia.Web.SharedComponents do
   end
 
   attr :surface, :string, required: true
+
   def head_assets(assigns) do
     ~H"""
     <link phx-track-static rel="stylesheet" href={"/assets/#{@surface}.css"} />
