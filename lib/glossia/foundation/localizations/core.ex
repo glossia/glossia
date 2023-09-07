@@ -26,7 +26,7 @@ defmodule Glossia.Foundation.Localizations.Core do
   def process_localization_request(request, %{project_id: project_id} = _opts) do
     project = Projects.find_project_by_id(project_id)
     content_source = ContentSources.new(project.content_source_platform, project.content_source_id)
-    version = request["version"]
+    version = request.version
     unique_id = case ContentSources.get_content_branch_id(content_source, %{ version: version }) do
       nil -> version
       id -> id
