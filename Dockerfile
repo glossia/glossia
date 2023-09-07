@@ -16,8 +16,13 @@ ARG OTP_VERSION=26.0.1
 ARG DEBIAN_VERSION=bullseye-20230612-slim
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG OBAN_WEB_FETCH_PUBLIC_KEY
+ARG OBAN_WEB_AUTH_KEY
 
 FROM ${BUILDER_IMAGE} as builder
+
+ENV OBAN_WEB_FETCH_PUBLIC_KEY=$OBAN_WEB_FETCH_PUBLIC_KEY
+ENV OBAN_WEB_AUTH_KEY=$OBAN_WEB_AUTH_KEY
 
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
@@ -34,7 +39,7 @@ RUN mix local.hex --force && \
 ENV MIX_ENV="prod"
 
 # Add Oban Web repository
-RUN mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY
+RUN if [ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ] && [ -n "$OBAN_WEB_AUTH_KEY" ]; then mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY fi
 
 #fetch-public-key
 #auth-key
