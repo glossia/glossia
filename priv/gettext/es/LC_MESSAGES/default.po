@@ -1,0 +1,53 @@
+## Los "msgid" en este archivo provienen de archivos POT (.pot).
+###
+### No agregue, cambie o elimine "msgid" manualmente aquí ya que
+### están vinculados a los que se encuentran en el archivo POT correspondiente
+### (con el mismo dominio).
+###
+### Use "mix gettext.extract --merge" o "mix gettext.merge"
+### para fusionar archivos POT en archivos PO.
+msgid ""
+msgstr ""
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/glossia_web/components/app_components.ex:646
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr "Acciones"
+
+#: lib/glossia_web/components/app_components.ex:76
+#: lib/glossia_web/components/app_components.ex:270
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr "cerrar"
+
+#: lib/glossia_web/components/marketing_components.ex:75
+#, elixir-autogen, elixir-format
+msgid "Blog"
+msgstr "Blog"
+
+#: lib/glossia_web/components/marketing_components.ex:99
+#, elixir-autogen, elixir-format
+msgid "Community"
+msgstr "Comunidad"
+
+#: lib/glossia_web/components/marketing_components.ex:87
+#, elixir-autogen, elixir-format
+msgid "Discord"
+msgstr "Discord"
+
+#: lib/glossia_web/components/marketing_components.ex:68
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr "Inicio"
+
+#: lib/glossia_web/components/marketing_components.ex:105
+#, elixir-autogen, elixir-format
+msgid "Join the list for beta testers"
+msgstr "Únete a la lista de beta testers"
+
+#: lib/glossia_web/components/marketing_components.ex:125
+#, elixir-autogen, elixir-format
+msgid "Please provide us with your email, and you will be one of the first to try the tool."
+msgstr "Por favor, proporciona tu correo electrónico, y serás uno de los primeros en probar la herramienta."
