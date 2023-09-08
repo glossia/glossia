@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
   require Logger
   alias Glossia.Foundation.Projects.Core, as: Projects
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
-  alias Glossia.Foundation.Localizations.Core.Workers.LocalizationRequestParser
+  alias Glossia.Foundation.Localizations.Core.Utilities.Parser
   alias Glossia.Foundation.Localizations.Core.Utilities.Localizer
 
   # Impl: Oban.Worker
@@ -23,7 +23,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
     content_source =
       ContentSources.new(project.content_source_platform, project.content_source_id)
 
-    content_changes = LocalizationRequestParser.parse_localization_request(request)
+    content_changes = Parser.parse_localization_request(request)
     content_update = Localizer.localize(content_source, version, content_changes)
 
     # TODO
