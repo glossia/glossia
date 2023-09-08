@@ -111,10 +111,10 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Parser do
   end
 
   def get_llm_content_start_delimiter(token) do
-    "<--#{String.upcase(Atom.to_string(token))}_START-->"
+    "<#{String.upcase(Atom.to_string(token))}_START>"
   end
 
   def get_llm_content_end_delimiter(token) do
-    "<--#{String.upcase(Atom.to_string(token))}_END-->"
+    "<#{String.upcase(Atom.to_string(token))}_END>"
   end
 end
