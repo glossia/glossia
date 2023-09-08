@@ -1,100 +1,99 @@
-
-## `msgid`s in dieser Datei kommen aus POT (.pot) Dateien.
+## `msgid`s in dieser Datei stammen aus POT (.pot) Dateien.
 ##
 ## Fügen Sie hier keine `msgid`s manuell hinzu, ändern oder entfernen Sie sie nicht,
-## sie sind an die entsprechenden in der entsprechenden POT-Datei gebunden
-## (mit der selben Domain).
+## da sie an die in der entsprechenden POT-Datei gebunden sind
+## (mit der gleichen Domain).
 ##
 ## Verwenden Sie `mix gettext.extract --merge` oder `mix gettext.merge`
-## um POT-Dateien in PO-Dateien zu mergen.
+## um POT-Dateien in PO-Dateien zusammenzuführen.
 msgid ""
 msgstr ""
 "Language: de\n"
 
-## Aus Ecto.Changeset.cast/4
+## From Ecto.Changeset.cast/4
 msgid "can't be blank"
 msgstr "darf nicht leer sein"
 
-## Aus Ecto.Changeset.unique_constraint/3
+## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
 msgstr "ist bereits vergeben"
 
-## Aus Ecto.Changeset.put_change/3
+## From Ecto.Changeset.put_change/3
 msgid "is invalid"
 msgstr "ist ungültig"
 
-## Aus Ecto.Changeset.validate_acceptance/3
+## From Ecto.Changeset.validate_acceptance/3
 msgid "must be accepted"
 msgstr "muss akzeptiert werden"
 
-## Aus Ecto.Changeset.validate_format/3
+## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
 msgstr "hat ein ungültiges Format"
 
-## Aus Ecto.Changeset.validate_subset/3
+## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
 msgstr "hat einen ungültigen Eintrag"
 
-## Aus Ecto.Changeset.validate_exclusion/3
+## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
 msgstr "ist reserviert"
 
-## Aus Ecto.Changeset.validate_confirmation/3
+## From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
 msgstr "stimmt nicht mit der Bestätigung überein"
 
-## Aus Ecto.Changeset.no_assoc_constraint/3
+## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr "ist noch mit diesem Eintrag verknüpft"
+msgstr "ist immer noch mit diesem Eintrag verbunden"
 
 msgid "are still associated with this entry"
-msgstr "sind immer noch mit diesem Eintrag verknüpft"
+msgstr "sind immer noch mit diesem Eintrag verbunden"
 
-## Aus Ecto.Changeset.validate_length/3
+## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
 msgstr[0] "sollte %{count} Element(e) haben"
-msgstr[1] "sollte %{count} Elemente haben"
+msgstr[1] "sollte %{count} Element(e) haben"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
 msgstr[0] "sollte %{count} Zeichen sein"
-msgstr[1] "sollten %{count} Zeichen sein"
+msgstr[1] "sollte %{count} Zeichen sein"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
 msgstr[0] "sollte %{count} Byte(s) sein"
-msgstr[1] "sollten %{count} Bytes sein"
+msgstr[1] "sollte %{count} Byte(s) sein"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "sollte mindestens %{count} Element(en) haben"
-msgstr[1] "sollte mindestens %{count} Elemente haben"
+msgstr[0] "sollte mindestens %{count} Element(e) haben"
+msgstr[1] "sollte mindestens %{count} Element(e) haben"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "sollte mindestens %{count} Zeichen haben"
-msgstr[1] "sollten mindestens %{count} Zeichen haben"
+msgstr[0] "sollte mindestens %{count} Zeichen sein"
+msgstr[1] "sollte mindestens %{count} Zeichen sein"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
 msgstr[0] "sollte mindestens %{count} Byte(s) sein"
-msgstr[1] "sollten mindestens %{count} Bytes sein"
+msgstr[1] "sollte mindestens %{count} Byte(s) sein"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "sollte maximal %{count} Element(e) haben"
-msgstr[1] "sollte maximal %{count} Elemente haben"
+msgstr[0] "sollte höchstens %{count} Element(e) haben"
+msgstr[1] "sollte höchstens %{count} Element(e) haben"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "sollte maximal %{count} Zeichen sein"
-msgstr[1] "sollten maximal %{count} Zeichen sein"
+msgstr[0] "sollte höchstens %{count} Zeichen sein"
+msgstr[1] "sollte höchstens %{count} Zeichen sein"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "sollte maximal %{count} Byte(s) sein"
-msgstr[1] "sollten maximal %{count} Bytes sein"
+msgstr[0] "sollte höchstens %{count} Byte(s) sein"
+msgstr[1] "sollte höchstens %{count} Byte(s) sein"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
