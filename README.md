@@ -33,6 +33,9 @@ We believe **AI holds the transformative power to revolutionize the world of con
 
 **Glossia is spearheading change.** We champion **openness**, crafting our innovations with the world watching and inviting all to contribute. This inclusive approach harnesses a tapestry of diverse thoughts and the electric energy of a passionate community eager to redefine the industry. We're delving deep, **reimagining the foundational translation memory, exploring its AI-driven evolution for more intuitive designs.** *Our goal?* A system that's both simplified and potent, seamlessly integrating with content-rich platforms across the web, from [Shopify](https://shopify.com) to [Canva](https://canva.com). At Glossia, we're all in on AI, championing a universally accessible future of localization. Join us on this journey.
 
+## Usage
+
+You can check [out our documentation](./priv/docs/README.md) if you would like to use Glossia in your projects. Note that the project is a work in progress and changing rapidly so we recommend joining our [Discord server](https://discord.gg/zqZxSBXKf8) to let us know about your project and give you a hand on getting onboarded.
 
 ## Development
 
