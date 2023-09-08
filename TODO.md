@@ -1,6 +1,5 @@
-- Update the lockfiles to ensure translations happen incrementally
-- Set the right title and description
 - Create a localization request in the database
+- Support changes in the source language when a target language already exists
 - Update the costs as localizations are happening
 - Update the Stripe plan accordingly
 - Decide what to do with the content that needs to be removed (e.g. when deleting a language)
