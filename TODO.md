@@ -5,3 +5,5 @@
 - Update the Stripe plan accordingly
 - Decide what to do with the content that needs to be removed (e.g. when deleting a language)
 - Make sure the GitHub status is updated accordingly when the translation completes.
+- Disable retries in the build and localization jobs
+- Handle deploys more gracefully.
