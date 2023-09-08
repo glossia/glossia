@@ -1,8 +1,8 @@
 
 ## `msgid`s en este archivo provienen de archivos POT (.pot).
 ##
-## No agregue, cambie o elimine `msgid`s manualmente aquí ya que
-## estos están vinculados a los de el archivo POT correspondiente
+## No añada, cambie, o elimine `msgid`s manualmente aquí ya que
+## están vinculados a los del archivo POT correspondiente
 ## (con el mismo dominio).
 ##
 ## Use `mix gettext.extract --merge` o `mix gettext.merge`
@@ -54,47 +54,47 @@ msgstr "todavía están asociados con esta entrada"
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
 msgstr[0] "debería tener %{count} elemento(s)"
-msgstr[1] "debería tener %{count} elementos"
+msgstr[1] "deberían tener %{count} elemento(s)"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] "debería tener %{count} carácter(es)"
-msgstr[1] "debería tener %{count} caracteres"
+msgstr[0] "debería ser %{count} carácter(es)"
+msgstr[1] "deberían ser %{count} carácter(es)"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
 msgstr[0] "debería ser %{count} byte(s)"
-msgstr[1] "debería ser %{count} bytes"
+msgstr[1] "deberían ser %{count} byte(s)"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
 msgstr[0] "debería tener al menos %{count} elemento(s)"
-msgstr[1] "debería tener al menos %{count} elementos"
+msgstr[1] "deberían tener al menos %{count} elemento(s)"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "debería tener al menos %{count} carácter(es)"
-msgstr[1] "debería tener al menos %{count} caracteres"
+msgstr[0] "debería ser al menos %{count} carácter(es)"
+msgstr[1] "deberían ser al menos %{count} carácter(es)"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
 msgstr[0] "debería ser al menos %{count} byte(s)"
-msgstr[1] "debería ser al menos %{count} bytes"
+msgstr[1] "deberían ser al menos %{count} byte(s)"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
 msgstr[0] "debería tener como máximo %{count} elemento(s)"
-msgstr[1] "debería tener como máximo %{count} elementos"
+msgstr[1] "deberían tener como máximo %{count} elemento(s)"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "debería tener como máximo %{count} carácter(es)"
-msgstr[1] "debería tener como máximo %{count} caracteres"
+msgstr[0] "debería ser como máximo %{count} carácter(es)"
+msgstr[1] "deberían ser como máximo %{count} carácter(es)"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
 msgstr[0] "debería ser como máximo %{count} byte(s)"
-msgstr[1] "debería ser como máximo %{count} bytes"
+msgstr[1] "deberían ser como máximo %{count} byte(s)"
 
 ## De Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"

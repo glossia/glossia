@@ -1,16 +1,16 @@
 
-## "msgid"s in dieser Datei stammen aus POT (.pot) Dateien.
+## "msgid"s in diesem File kommen aus POT (.pot) Dateien.
 ###
-### Fügen Sie hier keine "msgid"s manuell hinzu, ändern oder entfernen Sie sie,
-### da sie mit denjenigen in der entsprechenden POT-Datei verknüpft sind
-### (mit der gleichen Domäne).
+### Fügen Sie hier keine "msgid"s manuell hinzu, ändern Sie sie oder entfernen Sie sie
+### da sie an die in der entsprechenden POT Datei gebunden sind
+### (mit der selben Domain).
 ###
 ### Verwenden Sie "mix gettext.extract --merge" oder "mix gettext.merge"
-### um POT-Dateien in PO-Dateien zusammenzuführen.
+### um POT Dateien in PO Dateien zusammenzufassen.
 msgid ""
 msgstr ""
-"Language: de\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Sprache: de\n"
+"Plural-Formen: nplurals=2; plural=(n != 1);\n"
 
 #: lib/glossia_web/components/app_components.ex:646
 #, elixir-autogen, elixir-format
@@ -46,9 +46,9 @@ msgstr "Startseite"
 #: lib/glossia_web/components/marketing_components.ex:105
 #, elixir-autogen, elixir-format
 msgid "Join the list for beta testers"
-msgstr "Treten Sie der Liste der Betatester bei"
+msgstr "Tritt der Liste der Beta-Tester bei"
 
 #: lib/glossia_web/components/marketing_components.ex:125
 #, elixir-autogen, elixir-format
 msgid "Please provide us with your email, and you will be one of the first to try the tool."
-msgstr "Bitte geben Sie uns Ihre E-Mail und Sie gehören zu den Ersten, die das Tool ausprobieren dürfen."
+msgstr "Bitte geben Sie uns Ihre E-Mail-Adresse, und Sie gehören zu den Ersten, die das Tool ausprobieren."
