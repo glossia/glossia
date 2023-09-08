@@ -95,4 +95,26 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Parser do
     |> Base.encode16()
     |> String.downcase()
   end
+
+  @doc """
+  This function parses the ouptut of the LLMs API to extract a piecen of content that's
+  included between two delimiters.
+  """
+  def parse_llm_output(text, token) do
+    pattern =
+      ~r/#{get_llm_content_start_delimiter(token)}(.*?)#{get_llm_content_end_delimiter(token)}/s
+
+    case Regex.scan(pattern, text) do
+      [[_full_match, content]] -> {:ok, content |> String.trim()}
+      _ -> {:error, "Content not found"}
+    end
+  end
+
+  def get_llm_content_start_delimiter(token) do
+    "<--#{String.upcase(Atom.to_string(token))}_START-->"
+  end
+
+  def get_llm_content_end_delimiter(token) do
+    "<--#{String.upcase(Atom.to_string(token))}_END-->"
+  end
 end
