@@ -1,0 +1,5 @@
+- Update the lockfiles to ensure translations happen incrementally
+- Set the right title and description
+- Create a localization request in the database
+- Update the costs as localizations are happening
+- Update the Stripe plan accordingly
