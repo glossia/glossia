@@ -1,3 +1,4 @@
+- Start building the UI to debug things locally without having to push to production
 - Create a localization request in the database
 - Support changes in the source language when a target language already exists
 - Update the costs as localizations are happening
