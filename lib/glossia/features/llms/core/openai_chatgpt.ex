@@ -2,7 +2,8 @@ defmodule Glossia.Features.LLMs.Core.OpenAIChatGPT do
   @behaviour Glossia.Foundation.LLMs.Core.LLM
 
   @impl true
-  def complete_chat(model, messages) when is_list(messages) do
+  def complete_chat(model, messages, opts \\ []) when is_list(messages) do
+    temperature = Keyword.get(opts, :temperature, 0.2)
     req =
       Req.new(
         url: "https://api.openai.com/v1/chat/completions",
@@ -11,7 +12,8 @@ defmodule Glossia.Features.LLMs.Core.OpenAIChatGPT do
         auth: {:bearer, api_key()},
         json: %{
           model: model,
-          messages: messages
+          messages: messages,
+          temperature: temperature
         }
       )
 
