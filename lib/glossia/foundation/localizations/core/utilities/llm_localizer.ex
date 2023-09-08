@@ -14,7 +14,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
         end)
       end)
       |> Enum.map(fn task ->
-        Task.await(task,  @task_timeout)
+        Task.await(task, @task_timeout)
       end)
       |> Enum.flat_map(& &1)
 
@@ -68,7 +68,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
       end)
     end)
     |> Enum.map(fn task ->
-      Task.await(task,  @task_timeout)
+      Task.await(task, @task_timeout)
     end)
   end
 
