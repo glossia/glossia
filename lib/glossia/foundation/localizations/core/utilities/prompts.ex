@@ -38,7 +38,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Prompts do
   end
 
   defp get_content_comments_sentence("portable-object") do
-    "From the given content, leave comments untouched (they start with # or multiple #). In other words, you localize the lines that contain a key-value pair representing a piece of content."
+    "Ignore the lines that start with #"
   end
 
   defp get_content_comments_sentence(_format) do

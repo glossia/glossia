@@ -47,6 +47,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
           role: :user
         }
       ])
+
     {:ok, extracted_title} = Parser.parse_llm_output(content, :title)
     {:ok, extracted_description} = Parser.parse_llm_output(content, :description)
 
@@ -75,9 +76,15 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
       end)
       |> Enum.flat_map(& &1)
 
+    source_checksum_content =
+      %{
+        algorithm: Atom.to_string(hashing_algorithm()),
+        value: Checksum.get_source_content_checksum(source_content, hashing_algorithm())
+      }
+      |> Jason.encode!()
+
     [
-      {module[:source][:checksum_cache_id],
-       Checksum.get_source_content_checksum(source_content, hashing_algorithm()), nil}
+      {module[:source][:checksum_cache_id], source_checksum_content, nil}
       | target_updates
     ]
   end
