@@ -1,8 +1,10 @@
 defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
+  # Modules
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.LLMs.Core, as: LLMs
   alias Glossia.Foundation.Localizations.Core.Utilities.Prompts
   alias Glossia.Foundation.Localizations.Core.Utilities.Parser
+  alias Glossia.Foundation.Localizations.Core.Utilities.Checksum
   require Logger
 
   @task_timeout 120_000
@@ -20,7 +22,9 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
       end)
       |> Enum.flat_map(& &1)
 
-    summaries = Enum.map(updates, fn {_, _, summary} -> summary end)
+    summaries =
+      Enum.map(updates, fn {_, _, summary} -> summary end) |> Enum.filter(fn x -> x != nil end)
+
     {title, description} = title_and_description_from_summaries(summaries)
 
     %{
@@ -54,21 +58,29 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
     {:ok, source_content} =
       ContentSources.get_content(content_source, module[:source][:id], {:version, version})
 
-    Enum.map(module[:target], fn {type, target} ->
-      Task.Supervisor.async(Glossia.TaskSupervisor, fn ->
-        __MODULE__.localize_localizable(
-          target[:id],
-          source_content,
-          module[:source],
-          module[:format],
-          target,
-          type
-        )
+    target_updates =
+      Enum.map(module[:target], fn {type, target} ->
+        Task.Supervisor.async(Glossia.TaskSupervisor, fn ->
+          __MODULE__.localize_localizable(
+            target[:id],
+            source_content,
+            module[:source],
+            module[:format],
+            target,
+            type
+          )
+        end)
       end)
-    end)
-    |> Enum.map(fn task ->
-      Task.await(task, @task_timeout)
-    end)
+      |> Enum.map(fn task ->
+        Task.await(task, @task_timeout)
+      end)
+      |> Enum.flat_map(& &1)
+
+    [
+      {module[:source][:checksum_cache_id],
+       Checksum.get_source_content_checksum(source_content, hashing_algorithm()), nil}
+      | target_updates
+    ]
   end
 
   def localize_localizable(
@@ -81,19 +93,21 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
       ) do
     llm = LLMs.default()
 
+    prompt =
+      Prompts.get_localize_prompt(
+        source_content,
+        source,
+        format,
+        target,
+        type,
+        :content,
+        :summary
+      )
+
     {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: cost}} =
       llm.complete_chat("gpt-4", [
         %{
-          content:
-            Prompts.get_localize_prompt(
-              source_content,
-              source,
-              format,
-              target,
-              type,
-              :content,
-              :summary
-            ),
+          content: prompt,
           role: :user
         }
       ])
@@ -101,6 +115,28 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
     {:ok, extracted_content} = Parser.parse_llm_output(content, :content)
     {:ok, extracted_summary} = Parser.parse_llm_output(content, :summary)
 
-    {id, extracted_content, extracted_summary}
+    checksum_content =
+      %{
+        value:
+          Checksum.get_localized_content_checksum(
+            source_content,
+            source,
+            format,
+            target,
+            type,
+            hashing_algorithm()
+          ),
+        algorithm: Atom.to_string(hashing_algorithm())
+      }
+      |> Jason.encode!()
+
+    [
+      {id, extracted_content, extracted_summary},
+      {target[:checksum_cache_id], checksum_content, nil}
+    ]
+  end
+
+  def hashing_algorithm do
+    :sha256
   end
 end
