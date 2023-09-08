@@ -27,7 +27,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Prompts do
     """
     You are a linguistic that speaks #{source_language_name} and #{target_language_name} natively.
     Your role is to localize the given content in language #{source[:context][:language]} into the language #{target[:context][:language]}.
-    From the given content, you don't localize the content. In other words, you localize the lines that contain a key-value pair representing a piece of content.
+    #{get_content_comments_sentence(format)}
     You are given the content in format #{format} between the markers #{Parser.get_llm_content_start_delimiter(content_token)} and #{Parser.get_llm_content_end_delimiter(content_token)} and you have to return the content between the markers #{Parser.get_llm_content_start_delimiter(content_token)} and #{Parser.get_llm_content_end_delimiter(content_token)}.
     Include a summary about the content being localized and the source and target languages between the markers #{Parser.get_llm_content_start_delimiter(summary_token)} and #{Parser.get_llm_content_end_delimiter(summary_token)}.
     Be gender neutral when localizing the following content:
@@ -35,5 +35,13 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Prompts do
     #{source_content}
     #{Parser.get_llm_content_end_delimiter(content_token)}
     """
+  end
+
+  defp get_content_comments_sentence("portable-object") do
+    "From the given content, you don't localize the comments (they start with #). In other words, you localize the lines that contain a key-value pair representing a piece of content."
+  end
+
+  defp get_content_comments_sentence(_format) do
+    "From the given content, you don't localize the comments. In other words, you localize the lines that contain a key-value pair representing a piece of content."
   end
 end
