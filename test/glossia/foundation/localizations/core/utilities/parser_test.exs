@@ -76,13 +76,13 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.ParserTest do
 
   describe "get_llm_content_start_delimiter" do
     test "returns the right value" do
-      assert get_llm_content_start_delimiter(:title) == "<--TITLE_START-->"
+      assert get_llm_content_start_delimiter(:title) == "<TITLE_START>"
     end
   end
 
   describe "get_llm_content_end_delimiter" do
     test "returns the right value" do
-      assert get_llm_content_end_delimiter(:title) == "<--TITLE_END-->"
+      assert get_llm_content_end_delimiter(:title) == "<TITLE_END>"
     end
   end
 
