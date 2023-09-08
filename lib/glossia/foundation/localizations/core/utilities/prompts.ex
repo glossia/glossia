@@ -1,5 +1,6 @@
 defmodule Glossia.Foundation.Localizations.Core.Utilities.Prompts do
   alias Glossia.Foundation.Localizations.Core.Utilities.Parser
+  alias Glossia.Foundation.Localizations.Core.Utilities.Languages
 
   def get_title_and_description_prompt_for_summaries(summaries, title_token, description_token)
       when is_list(summaries) do
@@ -20,10 +21,13 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Prompts do
         content_token,
         summary_token
       ) do
+    source_language_name = Languages.get_language_from_iso_639_1_code(source[:context][:language])
+    target_language_name = Languages.get_language_from_iso_639_1_code(target[:context][:language])
+
     """
-    You are a linguistic that works for Apple creating content for apps and marketing websites.
+    You are a linguistic that speaks #{source_language_name} and #{target_language_name} natively.
     Your role is to localize the given content in language #{source[:context][:language]} into the language #{target[:context][:language]}.
-    Comments start with #, are not localized, and they represent the context of the content below.
+    From the given content, you don't localize the content. In other words, you localize the lines that contain a key-value pair representing a piece of content.
     You are given the content in format #{format} between the markers #{Parser.get_llm_content_start_delimiter(content_token)} and #{Parser.get_llm_content_end_delimiter(content_token)} and you have to return the content between the markers #{Parser.get_llm_content_start_delimiter(content_token)} and #{Parser.get_llm_content_end_delimiter(content_token)}.
     Include a summary about the content being localized and the source and target languages between the markers #{Parser.get_llm_content_start_delimiter(summary_token)} and #{Parser.get_llm_content_end_delimiter(summary_token)}.
     Be gender neutral when localizing the following content:
