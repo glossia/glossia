@@ -106,7 +106,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Parser do
 
     case Regex.scan(pattern, text) do
       [[_full_match, content]] -> {:ok, content |> String.trim()}
-      _ -> {:error, "Content not found", text}
+      _ -> {:error, "Section not found", token, text}
     end
   end
 
