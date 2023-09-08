@@ -73,4 +73,33 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.ParserTest do
              ]
     end
   end
+
+  describe "get_llm_content_start_delimiter" do
+    test "returns the right value" do
+      assert get_llm_content_start_delimiter(:title) == "<--TITLE_START-->"
+    end
+  end
+
+  describe "get_llm_content_end_delimiter" do
+    test "returns the right value" do
+      assert get_llm_content_end_delimiter(:title) == "<--TITLE_END-->"
+    end
+  end
+
+  describe "parse_llm_output" do
+    test "extracts the content between delimiters" do
+      # Given
+      text = """
+      #{get_llm_content_start_delimiter(:content)}
+      GLOSSIA
+      #{get_llm_content_end_delimiter(:content)}
+      """
+
+      # When
+      got = parse_llm_output(text, :content)
+
+      # Then
+      assert got == {:ok, "GLOSSIA"}
+    end
+  end
 end

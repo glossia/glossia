@@ -1,6 +1,8 @@
 defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.LLMs.Core, as: LLMs
+  alias Glossia.Foundation.Localizations.Core.Utilities.Prompts
+  alias Glossia.Foundation.Localizations.Core.Utilities.Parser
   require Logger
 
   @task_timeout 120_000
@@ -31,22 +33,19 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
   def title_and_description_from_summaries(summaries) do
     llm = LLMs.default()
 
+    prompt =
+      Prompts.get_title_and_description_prompt_for_summaries(summaries, :title, :description)
+
     {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: cost}} =
       llm.complete_chat("gpt-4", [
         %{
-          content: """
-          You are a linguistic that works for Apple creating content for apps and marketing websites.
-          You are given a list of summaries of localization work that has happenend.
-          Come up with a 60-character title and return it between the markers <--TITLE_START--> and <--TITLE_END-->, and a description and return it between the markers <--DESCRIPTION_START--> and <--DESCRIPTION_END-->.
-          Here are the summaries of the work:
-          #{Enum.join(Enum.map(summaries, fn summary -> "- #{summary}" end), "\n")}
-          """,
+          content: prompt,
           role: :user
         }
       ])
 
-    {:ok, extracted_title} = extract(content, :title)
-    {:ok, extracted_description} = extract(content, :description)
+    {:ok, extracted_title} = Parser.parse_llm_output(content, :title)
+    {:ok, extracted_description} = Parser.parse_llm_output(content, :description)
 
     {extracted_title, extracted_description}
   end
@@ -72,40 +71,36 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
     end)
   end
 
-  def localize_localizable(id, source_content, source, format, target, :new_target_localizable) do
+  def localize_localizable(
+        id,
+        source_content,
+        source,
+        format,
+        target,
+        :new_target_localizable = type
+      ) do
     llm = LLMs.default()
 
     {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: cost}} =
       llm.complete_chat("gpt-4", [
         %{
-          content: """
-          You are a linguistic that works for Apple creating content for apps and marketing websites.
-          Your role is to localize the given content in language #{source[:context][:language]} into the language #{target[:context][:language]}.
-          Comments start with #, are not localized, and they represent the context of the content below.
-          You are given the content in format #{format} between the markers <--CONTENT_START--> and <--CONTENT_END--> and you have to return the content between the markers <--CONTENT_START--> and <--CONTENT_END-->.
-          Include a summary about the content being localized and the source and target languages between the markers <--SUMMARY_START--> and <--SUMMARY_END-->.
-          Be gender neutral when localizing the following content:
-          <--CONTENT_START-->
-          #{source_content}
-          <--CONTENT_END-->
-          """,
+          content:
+            Prompts.get_localize_prompt(
+              source_content,
+              source,
+              format,
+              target,
+              type,
+              :content,
+              :summary
+            ),
           role: :user
         }
       ])
 
-    {:ok, extracted_content} = extract(content, :content)
-    {:ok, extracted_summary} = extract(content, :summary)
+    {:ok, extracted_content} = Parser.parse_llm_output(content, :content)
+    {:ok, extracted_summary} = Parser.parse_llm_output(content, :summary)
 
     {id, extracted_content, extracted_summary}
-  end
-
-  def extract(text, token) do
-    stringified_token = String.upcase(Atom.to_string(token))
-    pattern = ~r/<--#{stringified_token}_START-->(.*?)<--#{stringified_token}_END-->/s
-
-    case Regex.scan(pattern, text) do
-      [[_full_match, content]] -> {:ok, content}
-      _ -> {:error, "Content not found"}
-    end
   end
 end

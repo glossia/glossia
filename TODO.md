@@ -3,3 +3,4 @@
 - Create a localization request in the database
 - Update the costs as localizations are happening
 - Update the Stripe plan accordingly
+- Decide what to do with the content that needs to be removed (e.g. when deleting a language)
