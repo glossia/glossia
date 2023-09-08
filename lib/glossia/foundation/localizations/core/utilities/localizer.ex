@@ -47,7 +47,6 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
           role: :user
         }
       ])
-    Logger.info("Localizer title and description response", content)
     {:ok, extracted_title} = Parser.parse_llm_output(content, :title)
     {:ok, extracted_description} = Parser.parse_llm_output(content, :description)
 
@@ -111,8 +110,6 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
           role: :user
         }
       ])
-
-    Logger.info("Localized localizable response", content)
 
     {:ok, extracted_content} = Parser.parse_llm_output(content, :content)
     {:ok, extracted_summary} = Parser.parse_llm_output(content, :summary)
