@@ -56,7 +56,7 @@ defmodule Glossia.Foundation.Projects.Core do
       )
       |> Glossia.Foundation.Builds.Core.trigger_build()
 
-    # TODO: Ignore events that are coming from a branch other than the default.
+    # We should ignore events that are coming from a branch other than the default.
     # ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")
     # branch = tail |> Enum.join("/")
     :ok

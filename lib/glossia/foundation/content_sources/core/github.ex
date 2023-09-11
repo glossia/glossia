@@ -56,11 +56,9 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
       file_path: file_path
     })
 
-    with {:most_recent_commit, {:ok, commit_sha}} <-
-           {:most_recent_commit, get_most_recent_version(github)} do
-      github |> get_content(file_path, {:version, commit_sha})
-    else
-      {:most_recent_commit, {:error, body}} -> {:error, body}
+    case get_most_recent_version(github) do
+      {:ok, commit_sha} -> github |> get_content(file_path, {:version, commit_sha})
+      {:error, body} -> {:error, body}
     end
   end
 
@@ -150,7 +148,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
           content: content
         }
       )
-      when length(content) == 0 do
+      when Enum.empty?(content) do
     # Noop
   end
 
@@ -161,27 +159,30 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
       opts |> Map.merge(%{owner: github.owner, repo: github.repo})
     )
 
-    with {:branch, {status, [%{"name" => branch} | _], _}} when status in 200..299 <-
-           {:branch,
-            Tentacat.get(
-              "repos/#{github.owner}/#{github.repo}/commits/#{commit_sha}/branches-where-head",
-              github.client
-            )} do
-      branch
-    else
-      {:branch, {200, [] = _, _}} -> nil
-      {:branch, {_, _, _}} -> nil
+    case Tentacat.get(
+           "repos/#{github.owner}/#{github.repo}/commits/#{commit_sha}/branches-where-head",
+           github.client
+         ) do
+      {status, [%{"name" => branch} | _], _} when status in 200..299 ->
+        branch
+
+      {200, [] = _, _} ->
+        nil
+
+      {_, _, _} ->
+        nil
     end
   end
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def should_localize?(github, commit_sha) do
-    with {:commit, {status, payload, _}} when status in 200..299 <-
-           {:commit, Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo)} do
-      %{"author" => %{"login" => login}} = payload
-      login != app_bot_user()
-    else
-      {:commit, {_, body, _}} -> {:error, body}
+    case Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo) do
+      {status, payload, _} when status in 200..299 ->
+        %{"author" => %{"login" => login}} = payload
+        login != app_bot_user()
+
+      {_, body, _} ->
+        {:error, body}
     end
   end
 

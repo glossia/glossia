@@ -4,6 +4,7 @@
     "bradlc.vscode-tailwindcss",
     "samuel-pordeus.elixir-test",
     "denoland.vscode-deno",
-    "mrorz.language-gettext"
+    "mrorz.language-gettext",
+    "pantajoe.vscode-elixir-credo"
   ]
 }

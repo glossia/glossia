@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Prompts do
     You are an English linguistic and you are given a list of summaries of localization work that has happened.
     Write a 60-character title and return it between the markers #{Parser.get_llm_content_start_delimiter(title_token)} and #{Parser.get_llm_content_end_delimiter(title_token)}, and a description and return it between the markers #{Parser.get_llm_content_start_delimiter(description_token)} and #{Parser.get_llm_content_end_delimiter(description_token)}.
     Here are the summaries of the work:
-    #{Enum.join(Enum.map(summaries, fn summary -> "- #{summary}" end), "\n")}
+    #{Enum.map_join(summaries, "\n", fn summary -> "- #{summary}" end)}
     """
   end
 

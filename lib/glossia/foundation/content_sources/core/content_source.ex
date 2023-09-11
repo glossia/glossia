@@ -110,7 +110,6 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
 
   @callback generate_auth_token(content_source :: any()) :: {:ok, String.t()} | {:error, any()}
 
-  # TODO: Export a plug instead that does the validation
   @callback is_webhook_payload_valid?(
               content_source :: any(),
               req_headers :: Keyword.t(),
