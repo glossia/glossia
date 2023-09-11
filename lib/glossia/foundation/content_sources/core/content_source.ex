@@ -87,7 +87,7 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
       iex> Glossia.Foundation.ContentSources.Core.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
       false
   """
-  @callback should_localize?(content_source :: any(), version :: String.t()) :: boolean()
+  @callback should_localize?(content_source :: module(), version :: String.t()) :: boolean()
 
   @type update_status_t :: :error | :failure | :pending | :success
 

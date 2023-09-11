@@ -148,7 +148,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
           content: content
         }
       )
-      when Enum.empty?(content) do
+      when length(content) == 0 do
     # Noop
   end
 

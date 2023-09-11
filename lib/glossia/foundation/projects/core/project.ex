@@ -10,13 +10,12 @@ defmodule Glossia.Foundation.Projects.Core.Project do
   @type t :: %__MODULE__{
           handle: String.t(),
           account: Account.t() | nil,
-          type: type(),
           visibility: visibility(),
           content_source_id: String.t(),
-          content_source_platform: Glossia.Foundation.ContentSources.t()
+          content_source_platform: content_source_platform()
         }
   @type visibility :: :public | :private
-  @type type :: :git
+  @type content_source_platform :: :github
 
   # Module dependencies
 
@@ -30,7 +29,6 @@ defmodule Glossia.Foundation.Projects.Core.Project do
 
   schema "projects" do
     field :handle, :string
-    field :type, Ecto.Enum, values: [{:git, 1}], default: :git
     field :content_source_id, :string
     field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
@@ -48,7 +46,7 @@ defmodule Glossia.Foundation.Projects.Core.Project do
   @type changeset_attrs :: %{
           handle: String.t(),
           content_source_id: String.t(),
-          content_source_platform: Glossia.Foundation.ContentSources.t(),
+          content_source_platform: module(),
           account_id: integer()
         }
   @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
@@ -60,17 +58,14 @@ defmodule Glossia.Foundation.Projects.Core.Project do
       :content_source_platform,
       :account_id,
       :visibility,
-      :type
     ])
     |> validate_required([
       :handle,
       :content_source_id,
       :content_source_platform,
       :account_id,
-      :type
     ])
     |> validate_inclusion(:content_source_platform, [:github])
-    |> validate_inclusion(:type, [:git])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
     |> unique_constraint(:handle)

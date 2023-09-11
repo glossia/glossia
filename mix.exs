@@ -80,8 +80,8 @@ defmodule Glossia.MixProject do
       {:policy_wonk, "~> 1.0.0"},
       {:req, "~> 0.4.0"},
       {:useful, "~> 1.12.1"},
-      {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false}
     ]
 
     case plan() do
