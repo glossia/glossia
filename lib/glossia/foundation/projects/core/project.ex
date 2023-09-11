@@ -1,5 +1,6 @@
 defmodule Glossia.Foundation.Projects.Core.Project do
   use Boundary
+  alias Glossia.Foundation.Accounts.Core.Account
 
   @moduledoc """
   A module that represents the projects table

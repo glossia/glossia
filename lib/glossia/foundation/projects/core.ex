@@ -80,7 +80,7 @@ defmodule Glossia.Foundation.Projects.Core do
   """
   @spec find_project_by_repository(%{
           content_source_id: String.t(),
-          content_source_platform: Project.vcs()
+          content_source_platform: Project.content_source_platform()
         }) ::
           Project.t() | nil
   def find_project_by_repository(attrs) do

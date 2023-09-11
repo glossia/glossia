@@ -3,7 +3,6 @@ defmodule Glossia.Foundation.ContentSources.Core do
 
   # Modules
   alias Glossia.Foundation.Utilities.Core, as: Utilities
-  alias Glossia.Foundation.ContentSources.Core.ContentSource
   alias Glossia.Foundation.ContentSources.Core.GitHub
 
   # Behaviors

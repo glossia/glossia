@@ -40,7 +40,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
     prompt =
       Prompts.get_title_and_description_prompt_for_summaries(summaries, :title, :description)
 
-    {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: cost}} =
+    {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: _cost}} =
       llm.complete_chat("gpt-4", [
         %{
           content: prompt,
@@ -110,7 +110,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
         :summary
       )
 
-    {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: cost}} =
+    {:ok, %{payload: %{choices: [%{message: %{content: content}} | _]}, cost: _cost}} =
       llm.complete_chat("gpt-4", [
         %{
           content: prompt,
