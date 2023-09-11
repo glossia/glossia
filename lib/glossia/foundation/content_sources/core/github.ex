@@ -148,6 +148,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
           content: content
         }
       )
+      # credo:disable-for-next-line
       when length(content) == 0 do
     # Noop
   end
