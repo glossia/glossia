@@ -50,10 +50,10 @@ defmodule Glossia.Web.AuthController do
         |> Glossia.Web.UserAuth.log_in_user(user)
         |> put_flash(:info, "Successfully authenticated.")
 
-      # _ ->
-      #   conn
-      #   |> put_flash(:error, "Error while authenticating.")
-      #   |> redirect(to: "/")
+        # _ ->
+        #   conn
+        #   |> put_flash(:error, "Error while authenticating.")
+        #   |> redirect(to: "/")
     end
   end
 

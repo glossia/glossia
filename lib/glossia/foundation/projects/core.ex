@@ -28,7 +28,7 @@ defmodule Glossia.Foundation.Projects.Core do
   @doc """
   Given a git event, it processes it.
   """
-  @spec trigger_build(Project.t(), %{ type: String.t(), version: String.t() }) :: :ok
+  @spec trigger_build(Project.t(), %{type: String.t(), version: String.t()}) :: :ok
   def trigger_build(
         project,
         %{type: "new_content", version: version}

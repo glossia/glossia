@@ -8,7 +8,7 @@ defmodule Glossia.Features.Blog.Core.Authors do
                |> File.read!()
                |> Jason.decode!(keys: :atoms)
                |> Enum.map(fn {key, value} ->
-                Author.new!(Map.put(value, :id, key))
+                 Author.new!(Map.put(value, :id, key))
                end)
   @external_resource "priv/blog/authors.json"
 

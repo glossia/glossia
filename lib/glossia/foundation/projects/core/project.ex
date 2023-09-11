@@ -58,13 +58,13 @@ defmodule Glossia.Foundation.Projects.Core.Project do
       :content_source_id,
       :content_source_platform,
       :account_id,
-      :visibility,
+      :visibility
     ])
     |> validate_required([
       :handle,
       :content_source_id,
       :content_source_platform,
-      :account_id,
+      :account_id
     ])
     |> validate_inclusion(:content_source_platform, [:github])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
