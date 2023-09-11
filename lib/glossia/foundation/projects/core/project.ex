@@ -50,7 +50,7 @@ defmodule Glossia.Foundation.Projects.Core.Project do
           content_source_platform: module(),
           account_id: integer()
         }
-  @spec changeset(project :: t(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
+  @spec changeset(project :: any(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
   def changeset(project, attrs) do
     project
     |> cast(attrs, [

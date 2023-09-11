@@ -10,7 +10,8 @@ defmodule Glossia.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      compilers: [:boundary] ++ Mix.compilers()
+      test_coverage: [ignore_modules: [~r/\.TypeEnsurer$/]],
+      compilers: [:domo_compiler, :boundary] ++ Mix.compilers() ++ [:domo_phoenix_hot_reload]
     ]
   end
 
@@ -80,6 +81,8 @@ defmodule Glossia.MixProject do
       {:policy_wonk, "~> 1.0.0"},
       {:req, "~> 0.4.0"},
       {:useful, "~> 1.12.1"},
+      {:typed_struct, "~> 0.3.0"},
+      {:domo, "~> 1.5"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false}
     ]

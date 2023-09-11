@@ -28,6 +28,7 @@ defmodule Glossia.Foundation.Projects.Core do
   @doc """
   Given a git event, it processes it.
   """
+  @spec trigger_build(Project.t(), %{ type: String.t(), version: String.t() }) :: :ok
   def trigger_build(
         project,
         %{type: "new_content", version: version}
@@ -72,7 +73,8 @@ defmodule Glossia.Foundation.Projects.Core do
   @spec create_project(attrs :: Project.changeset_attrs()) ::
           {:ok, Project.t()} | {:error, Ecto.Changeset.t()}
   def create_project(attrs) do
-    %Project{} |> Project.changeset(attrs) |> Repo.insert()
+    changeset = %Project{} |> Project.changeset(attrs)
+    changeset |> Repo.insert()
   end
 
   @doc """

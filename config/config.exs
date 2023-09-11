@@ -18,7 +18,8 @@ config :glossia, Glossia.Application.Endpoint,
     root_layout: [html: {Glossia.Web.MarketingLayouts, :root}],
     layout: [html: {Glossia.Web.MarketingLayouts, :error}]
   ],
-  pubsub_server: Glossia.PubSub
+  pubsub_server: Glossia.PubSub,
+  reloadable_compilers: [:phoenix, :domo_compiler] ++ Mix.compilers() ++ [:domo_phoenix_hot_reload]
 
 # Configures the mailer
 #
