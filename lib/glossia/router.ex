@@ -5,7 +5,8 @@ defmodule Glossia.Router do
       Glossia.Web,
       Glossia.Foundation.API.Web,
       Glossia.Foundation.ContentSources.Web,
-      Glossia.Foundation.Utilities.Core
+      Glossia.Foundation.Utilities.Core,
+      Glossia.Foundation.Accounts.Web
     ]
 
   use Glossia.Web, :router
@@ -126,7 +127,7 @@ defmodule Glossia.Router do
     plug :put_root_layout, html: {Glossia.Web.AppLayouts, :root}
   end
 
-  scope "/auth", Glossia.Web do
+  scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
     pipe_through [:browser, :app]
 
     get "/login", AuthController, :login

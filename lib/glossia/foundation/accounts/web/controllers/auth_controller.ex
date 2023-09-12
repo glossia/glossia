@@ -1,4 +1,4 @@
-defmodule Glossia.Web.AuthController do
+defmodule Glossia.Foundation.Accounts.Web.Controllers.AuthController do
   use Glossia.Web, :controller
 
   plug Ueberauth

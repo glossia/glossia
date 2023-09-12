@@ -12,7 +12,6 @@ defmodule Glossia.Web do
     ],
     exports: [
       {Plugs, []},
-      AuthController,
       WebhookController,
       MarketingController,
       UserAuth,
