@@ -3,7 +3,6 @@ defmodule Glossia.Foundation.ContentSources.Core do
 
   # Modules
   alias Glossia.Foundation.Utilities.Core, as: Utilities
-  alias Glossia.Foundation.ContentSources.Core.ContentSource
   alias Glossia.Foundation.ContentSources.Core.GitHub
 
   # Behaviors
@@ -14,7 +13,7 @@ defmodule Glossia.Foundation.ContentSources.Core do
   with the content source module and an instance of it. If the content source can't be
   found, it returns `nil`.
   """
-  @spec new(content_source :: atom(), id :: String.t()) :: {atom(), ContentSource.t()}
+  @spec new(content_source :: atom(), id :: String.t()) :: module()
   def new(content_source_id, id) do
     content_source(content_source_id).new(id)
   end
@@ -51,6 +50,7 @@ defmodule Glossia.Foundation.ContentSources.Core do
   end
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  @spec should_localize?(content_source :: module(), version :: String.t()) :: boolean()
   def should_localize?(content_source, version) do
     content_source(content_source.id).should_localize?(content_source, version)
   end

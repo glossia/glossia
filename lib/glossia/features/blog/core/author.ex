@@ -1,17 +1,16 @@
 defmodule Glossia.Features.Blog.Core.Author do
   @moduledoc """
   A struct that represents a blog author.
-  Authors are loaded and serialized at compile-time by `Glossia.Features.Blog.Core`.
   """
 
-  @type t :: %__MODULE__{
-          id: String.t(),
-          name: String.t(),
-          github_handle: String.t(),
-          twitter_handle: String.t(),
-          linkedin_url: String.t()
-        }
+  use TypedStruct
+  use Domo
 
-  @enforce_keys [:id, :name, :twitter_handle, :github_handle, :linkedin_url]
-  defstruct [:id, :name, :twitter_handle, :github_handle, :linkedin_url]
+  typedstruct(enforce: true) do
+    field :id, atom()
+    field :name, String.t()
+    field :twitter_handle, String.t()
+    field :github_handle, String.t()
+    field :linkedin_url, String.t()
+  end
 end

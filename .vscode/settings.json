@@ -29,5 +29,5 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "JakeBecker.elixir-ls"
   },
-  "elixirLS.dialyzerEnabled": false
+  "elixirLS.dialyzerEnabled": true
 }

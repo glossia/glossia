@@ -53,6 +53,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Parser do
                 cache -> [cache[:value], cache[:algorithm]]
               end
 
+            # credo:disable-for-next-line Credo.Check.Refactor.Nesting
             if !target_cache_checksum_value || !target_cache_checksum_algorithm do
               [
                 {

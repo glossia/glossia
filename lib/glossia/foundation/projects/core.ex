@@ -28,6 +28,7 @@ defmodule Glossia.Foundation.Projects.Core do
   @doc """
   Given a git event, it processes it.
   """
+  @spec trigger_build(Project.t(), %{type: String.t(), version: String.t()}) :: :ok
   def trigger_build(
         project,
         %{type: "new_content", version: version}
@@ -56,7 +57,7 @@ defmodule Glossia.Foundation.Projects.Core do
       )
       |> Glossia.Foundation.Builds.Core.trigger_build()
 
-    # TODO: Ignore events that are coming from a branch other than the default.
+    # We should ignore events that are coming from a branch other than the default.
     # ["refs", "heads" | tail] = Map.fetch!(attrs, :ref) |> String.split("/")
     # branch = tail |> Enum.join("/")
     :ok
@@ -72,7 +73,8 @@ defmodule Glossia.Foundation.Projects.Core do
   @spec create_project(attrs :: Project.changeset_attrs()) ::
           {:ok, Project.t()} | {:error, Ecto.Changeset.t()}
   def create_project(attrs) do
-    %Project{} |> Project.changeset(attrs) |> Repo.insert()
+    changeset = %Project{} |> Project.changeset(attrs)
+    changeset |> Repo.insert()
   end
 
   @doc """
@@ -80,7 +82,7 @@ defmodule Glossia.Foundation.Projects.Core do
   """
   @spec find_project_by_repository(%{
           content_source_id: String.t(),
-          content_source_platform: Project.vcs()
+          content_source_platform: Project.content_source_platform()
         }) ::
           Project.t() | nil
   def find_project_by_repository(attrs) do

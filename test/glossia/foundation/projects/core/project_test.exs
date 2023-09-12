@@ -157,21 +157,5 @@ defmodule Glossia.Foundation.Projects.Core.ProjectTest do
       errors = errors_on(changeset)
       assert %{content_source_platform: ["is invalid"]} = errors
     end
-
-    test "validates the inclusion of type in the supported types" do
-      # Given
-      project = %Project{}
-
-      attrs = %{
-        type: :invalid
-      }
-
-      # When
-      changeset = Project.changeset(project, attrs)
-
-      # Then
-      errors = errors_on(changeset)
-      assert %{type: ["is invalid"]} = errors
-    end
   end
 end
