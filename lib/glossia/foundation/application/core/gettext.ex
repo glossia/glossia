@@ -1,11 +1,11 @@
-defmodule Glossia.Web.Gettext do
+defmodule Glossia.Foundation.Application.Core.Gettext do
   @moduledoc """
   A module providing Internationalization with a gettext-based API.
 
   By using [Gettext](https://hexdocs.pm/gettext),
   your module gains a set of macros for translations, for example:
 
-      import Glossia.Web.Gettext
+      import Glossia.Foundation.Application.Core.Gettext
 
       # Simple translation
       gettext("Here is the string to translate")

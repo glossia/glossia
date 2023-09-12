@@ -17,7 +17,7 @@ defmodule Glossia.Web.AppComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import Glossia.Web.Gettext
+  import Glossia.Foundation.Application.Core.Gettext
 
   @doc """
   Renders a modal.
@@ -822,9 +822,9 @@ defmodule Glossia.Web.AppComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(Glossia.Web.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Glossia.Foundation.Application.Core.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(Glossia.Web.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Glossia.Foundation.Application.Core.Gettext, "errors", msg, opts)
     end
   end
 

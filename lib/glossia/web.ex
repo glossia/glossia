@@ -8,7 +8,8 @@ defmodule Glossia.Web do
       Glossia.Foundation.ContentSources.Core,
       Glossia.Foundation.Projects.Core,
       Glossia.Foundation.Analytics.Core,
-      Glossia.Foundation.Application.Web
+      Glossia.Foundation.Application.Web,
+      Glossia.Foundation.Application.Core
     ],
     exports: [
       {Plugs, []},
@@ -44,7 +45,7 @@ defmodule Glossia.Web do
         layouts: [html: Glossia.Web.AppLayouts]
 
       import Plug.Conn
-      import Glossia.Web.Gettext
+      import Glossia.Foundation.Application.Core.Gettext
 
       unquote(verified_routes())
     end
@@ -117,7 +118,7 @@ defmodule Glossia.Web do
 
       unquote(components_import_ast)
 
-      import Glossia.Web.Gettext
+      import Glossia.Foundation.Application.Core.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
