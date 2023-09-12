@@ -29,7 +29,7 @@ defmodule Glossia.Foundation.API.Web.Controllers.Project.LocalizationRequestCont
           params :: map()
         ) :: Plug.Conn.t()
   def create(%{body_params: %LocalizationRequest{} = request} = conn, _params) do
-    Glossia.Web.Auth.Policies.enforce!(conn, {:create, :localization_request})
+    Glossia.Foundation.Accounts.Web.Policies.enforce!(conn, {:create, :localization_request})
 
     result =
       Localizations.process_localization_request(request, %{

@@ -16,9 +16,7 @@ defmodule Glossia.Web do
       WebhookController,
       MarketingController,
       UserAuth,
-      API.APIController,
-      Auth.Resources,
-      Auth.Policies
+      API.APIController
     ]
 
   def router do

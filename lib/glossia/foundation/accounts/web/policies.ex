@@ -1,4 +1,4 @@
-defmodule Glossia.Web.Auth.Policies do
+defmodule Glossia.Foundation.Accounts.Web.Policies do
   @moduledoc """
   This module provides a plug to load authenticated resources to use them
   to authorize requests.
