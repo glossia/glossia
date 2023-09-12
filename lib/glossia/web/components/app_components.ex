@@ -822,7 +822,14 @@ defmodule Glossia.Web.AppComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(Glossia.Foundation.Application.Core.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(
+        Glossia.Foundation.Application.Core.Gettext,
+        "errors",
+        msg,
+        msg,
+        count,
+        opts
+      )
     else
       Gettext.dgettext(Glossia.Foundation.Application.Core.Gettext, "errors", msg, opts)
     end

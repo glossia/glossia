@@ -1,4 +1,4 @@
-defmodule Glossia.Web.SEO do
+defmodule Glossia.Foundation.Application.Core.SEO do
   @moduledoc """
   Component modules can use this module and return the SEO metadata
   to use fora particular route.

@@ -1,6 +1,6 @@
 defmodule Glossia.Web.MarketingComponents do
   use Glossia.Web, :verified_routes
-  use Glossia.Web.SEO
+  use Glossia.Foundation.Application.Core.SEO
 
   @moduledoc """
   It provides marketing components

@@ -8,7 +8,6 @@ defmodule Glossia.Router do
       Glossia.Foundation.Utilities.Core,
       Glossia.Foundation.Accounts.Web,
       Glossia.Foundation.Application.Web
-
     ]
 
   use Glossia.Web, :router

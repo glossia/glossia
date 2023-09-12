@@ -83,7 +83,7 @@ defmodule Glossia.Web do
     quote do
       use Phoenix.Component
 
-      use Glossia.Web.SEO
+      use Glossia.Foundation.Application.Core.SEO
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
