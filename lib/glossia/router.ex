@@ -6,7 +6,9 @@ defmodule Glossia.Router do
       Glossia.Foundation.API.Web,
       Glossia.Foundation.ContentSources.Web,
       Glossia.Foundation.Utilities.Core,
-      Glossia.Foundation.Accounts.Web
+      Glossia.Foundation.Accounts.Web,
+      Glossia.Foundation.Application.Web
+
     ]
 
   use Glossia.Web, :router
@@ -111,7 +113,7 @@ defmodule Glossia.Router do
   ##### Webhook Routes #####
   pipeline :webhooks do
     plug :accepts, ["json"]
-    plug Glossia.Web.Plugs.RawBodyPassthroughPlug, length: 4_000_000
+    plug Glossia.Foundation.Application.Web.Plugs.RawBodyPassthroughPlug, length: 4_000_000
     # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
     # as it relies on the `:raw_body` being inside the `conn.assigns`.
     plug Glossia.Foundation.ContentSources.Web.Plug

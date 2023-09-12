@@ -1,4 +1,4 @@
-defmodule Glossia.Web.Plugs.AttackPlug do
+defmodule Glossia.Foundation.Application.Web.Plugs.AttackPlug do
   use PlugAttack
 
   rule "allow local", conn do

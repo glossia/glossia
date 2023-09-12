@@ -44,7 +44,7 @@ defmodule Glossia.Application do
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
         {PlugAttack.Storage.Ets,
-         name: Glossia.Web.Plugs.AttackPlug.Storage, clean_period: 60_000},
+         name: Glossia.Foundation.Application.Web.Plugs.AttackPlug.Storage, clean_period: 60_000},
         {Task.Supervisor, name: Glossia.TaskSupervisor}
       ] ++ google_cloud_children()
 
