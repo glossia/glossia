@@ -86,11 +86,9 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
   def update_content(
         _github,
         %{
-          content: content
+          content: []
         }
-      )
-      # credo:disable-for-next-line
-      when length(content) == 0 do
+      ) do
     # Noop
   end
 
@@ -103,8 +101,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
           version: commit_sha,
           content: content
         } = opts
-      )
-      when length(content) > 0 do
+      ) do
     Logger.debug(
       "Updating the content",
       opts |> Map.merge(%{owner: github.owner, repo: github.repo})

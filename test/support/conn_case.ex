@@ -1,5 +1,5 @@
 defmodule Glossia.Web.ConnCase do
-  use Boundary, dirty_xrefs: [Glossia.Foundation.AccountsFixtures, Glossia.DataCase]
+  use Boundary, top_level?: true, check: [in: false, out: false]
 
   @moduledoc """
   This module defines the test case to be used by
@@ -13,7 +13,7 @@ defmodule Glossia.Web.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use Glossia.Foundation.Application.Web.ConnCase, async: true`, although
+  by setting `use Glossia.Web.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 

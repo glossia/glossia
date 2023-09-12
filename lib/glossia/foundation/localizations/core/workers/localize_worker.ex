@@ -25,6 +25,7 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
 
     content_changes = Parser.parse_localization_request(request)
     content_updates = Localizer.localize(content_source, version, content_changes)
+
     content_source
     |> ContentSources.update_content(Map.merge(content_updates, %{version: version}))
     |> case do

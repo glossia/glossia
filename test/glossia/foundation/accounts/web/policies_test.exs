@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Accounts.Web.PoliciesTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
-  use Glossia.Foundation.Application.Web.ConnCase
+  use Glossia.Web.ConnCase
   alias Glossia.Foundation.Accounts.Web.Policies
 
   describe "authenticated_project" do

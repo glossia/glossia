@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlugTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
-  use Glossia.Foundation.Application.Web.ConnCase
+  use Glossia.Web.ConnCase
   alias Glossia.Foundation.ProjectsFixtures
   alias Glossia.Foundation.Database.Core.Repo
   alias Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug

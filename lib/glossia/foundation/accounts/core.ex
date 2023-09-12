@@ -3,7 +3,11 @@ defmodule Glossia.Foundation.Accounts.Core do
   The Accounts context.
   """
   use Boundary,
-    deps: [Glossia.Foundation.Utilities.Core, Glossia.Foundation.Database.Core, Glossia.Foundation.Analytics.Core],
+    deps: [
+      Glossia.Foundation.Utilities.Core,
+      Glossia.Foundation.Database.Core,
+      Glossia.Foundation.Analytics.Core
+    ],
     exports: [User]
 
   import Ecto.Query, warn: false
