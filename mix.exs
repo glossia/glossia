@@ -74,7 +74,6 @@ defmodule Glossia.MixProject do
       {:google_api_cloud_build, "~> 0.49"},
       {:google_api_storage, "~> 0.34.0"},
       {:rambo, "~> 0.3.4"},
-      {:mox, "~> 1.0.0", only: :test},
       {:stripity_stripe, "~> 2.17.3"},
       {:open_api_spex, "~> 3.18.0"},
       {:plug, "~> 1.14"},
@@ -84,7 +83,8 @@ defmodule Glossia.MixProject do
       {:typed_struct, "~> 0.3.0"},
       {:domo, "~> 1.5"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
+      {:mox, "~> 1.0", only: :test}
     ]
 
     case plan() do
