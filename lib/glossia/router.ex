@@ -7,7 +7,8 @@ defmodule Glossia.Router do
       Glossia.Foundation.ContentSources.Web,
       Glossia.Foundation.Utilities.Core,
       Glossia.Foundation.Accounts.Web,
-      Glossia.Foundation.Application.Web
+      Glossia.Foundation.Application.Web,
+      Glossia.Foundation.Projects.Web
     ]
 
   use Glossia.Web, :router
@@ -33,7 +34,7 @@ defmodule Glossia.Router do
 
   # Loads the project from the slug in the URL
   pipeline :project do
-    plug Glossia.Web.Plugs.AssignProjectFromURLPlug
+    plug Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug
   end
 
   #### Documentation Routes ####

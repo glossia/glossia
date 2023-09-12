@@ -1,4 +1,4 @@
-defmodule Glossia.Web.Plugs.AssignProjectFromURLPlug do
+defmodule Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug do
   @moduledoc """
   This plug will extract the project owner and handle from the URL and load the project from the database.
   """
