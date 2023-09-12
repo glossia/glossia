@@ -24,7 +24,7 @@ defmodule Glossia.Application do
     children =
       [
         # Start the Telemetry supervisor
-        Glossia.Web.Telemetry,
+        Glossia.Foundation.Application.Core.Telemetry,
         # Start the Ecto repository
         Glossia.Foundation.Database.Core.Repo,
         # Start the PubSub system

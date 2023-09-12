@@ -1,4 +1,4 @@
-defmodule Glossia.Web.Telemetry do
+defmodule Glossia.Foundation.Application.Core.Telemetry do
   @moduledoc """
   A supervisor that runs all the telemetry utilities
   """
