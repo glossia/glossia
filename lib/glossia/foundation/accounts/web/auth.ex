@@ -1,4 +1,4 @@
-defmodule Glossia.Web.UserAuth do
+defmodule Glossia.Foundation.Accounts.Web.Auth do
   @moduledoc """
   This module provides utilities for authenticating users.
   """

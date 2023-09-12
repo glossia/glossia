@@ -84,6 +84,18 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def update_content(
+        _github,
+        %{
+          content: content
+        }
+      )
+      # credo:disable-for-next-line
+      when length(content) == 0 do
+    # Noop
+  end
+
+  @impl Glossia.Foundation.ContentSources.Core.ContentSource
+  def update_content(
         github,
         %{
           title: commit_title,
@@ -140,17 +152,6 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
       {:branch, {_, body, _}} -> {:error, body}
       {:tree_creation, {_, body, _}} -> {:error, body}
     end
-  end
-
-  def update_content(
-        _github,
-        %{
-          content: content
-        }
-      )
-      # credo:disable-for-next-line
-      when length(content) == 0 do
-    # Noop
   end
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource

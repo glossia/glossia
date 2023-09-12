@@ -24,19 +24,13 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
       ContentSources.new(project.content_source_platform, project.content_source_id)
 
     content_changes = Parser.parse_localization_request(request)
-
-    case Localizer.localize(content_source, version, content_changes) do
-      %{content: content} = content_updates when content != [] ->
-        content_source
-        |> ContentSources.update_content(Map.merge(content_updates, %{version: version}))
-        |> case do
-          {:error, :newer_version_exists} -> :ok
-          {:error, error} -> {:error, error}
-          {:ok, _} -> :ok
-        end
-
-      _ ->
-        :ok
+    content_updates = Localizer.localize(content_source, version, content_changes)
+    content_source
+    |> ContentSources.update_content(Map.merge(content_updates, %{version: version}))
+    |> case do
+      {:error, :newer_version_exists} -> :ok
+      {:error, error} -> {:error, error}
+      {:ok, _} -> :ok
     end
   end
 end

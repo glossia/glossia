@@ -12,7 +12,7 @@ defmodule Glossia.Router do
     ]
 
   use Glossia.Web, :router
-  import Glossia.Web.UserAuth
+  import Glossia.Foundation.Accounts.Web.Auth
   import Glossia.Foundation.Utilities.Core.Plan
 
   ##### Base pipelines #####

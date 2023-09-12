@@ -5,7 +5,8 @@ defmodule Glossia.Foundation.Accounts.Web do
       Glossia.Foundation.Application.Web,
       Glossia.Foundation.Accounts.Core,
       Glossia.Foundation.Auth.Core,
-      Glossia.Foundation.Projects.Core
+      Glossia.Foundation.Projects.Core,
+      Glossia.Foundation.Analytics.Core
     ],
-    exports: [Controllers.AuthController, Resources, Policies]
+    exports: [Controllers.AuthController, Resources, Policies, Auth]
 end

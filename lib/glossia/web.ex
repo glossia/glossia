@@ -15,7 +15,6 @@ defmodule Glossia.Web do
       {Plugs, []},
       WebhookController,
       MarketingController,
-      UserAuth,
       API.APIController
     ]
 
