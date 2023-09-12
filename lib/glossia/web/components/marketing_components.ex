@@ -1,5 +1,5 @@
 defmodule Glossia.Web.MarketingComponents do
-  use Glossia.Web, :verified_routes
+  use Glossia.Foundation.Application.Web, :verified_routes
   use Glossia.Foundation.Application.Core.SEO
 
   @moduledoc """

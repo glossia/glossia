@@ -1,6 +1,6 @@
 defmodule Glossia.Web.MarketingHTML do
-  use Glossia.Web, :app_html
-  use Glossia.Web, :marketing_html
+  use Glossia.Foundation.Application.Web, :app_html
+  use Glossia.Foundation.Application.Web, :marketing_html
 
   embed_templates "marketing_html/app/*", suffix: "_app"
   embed_templates "marketing_html/*"

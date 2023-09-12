@@ -1,5 +1,5 @@
 defmodule Glossia.Foundation.Accounts.Web.Controllers.AuthController do
-  use Glossia.Web, :controller
+  use Glossia.Foundation.Application.Web, :controller
 
   plug Ueberauth
 

@@ -2,7 +2,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   @moduledoc """
   This module provides utilities for authenticating users.
   """
-  use Glossia.Web, :verified_routes
+  use Glossia.Foundation.Application.Web, :verified_routes
 
   import Plug.Conn
   import Phoenix.Controller
@@ -78,7 +78,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
     user_token && Accounts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
-      Glossia.Application.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+      Glossia.Foundation.Application.Web.Endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
     conn

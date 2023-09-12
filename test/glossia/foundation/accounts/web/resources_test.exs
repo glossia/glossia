@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Accounts.Web.ResourcesTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
-  use Glossia.Web.ConnCase
+  use Glossia.Foundation.Application.Web.ConnCase
   alias Glossia.Foundation.Accounts.Web.Resources
 
   test "returns a 401 response if the authorization header is missing", %{conn: conn} do

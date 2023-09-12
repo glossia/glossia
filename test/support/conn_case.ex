@@ -13,7 +13,7 @@ defmodule Glossia.Web.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use Glossia.Web.ConnCase, async: true`, although
+  by setting `use Glossia.Foundation.Application.Web.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -22,9 +22,9 @@ defmodule Glossia.Web.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint Glossia.Application.Endpoint
+      @endpoint Glossia.Foundation.Application.Web.Endpoint
 
-      use Glossia.Web, :verified_routes
+      use Glossia.Foundation.Application.Web, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn

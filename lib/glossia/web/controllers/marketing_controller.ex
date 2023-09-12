@@ -1,5 +1,5 @@
 defmodule Glossia.Web.MarketingController do
-  use Glossia.Web, :controller
+  use Glossia.Foundation.Application.Web, :controller
 
   def index(conn, _params) do
     if conn.assigns[:current_user] do

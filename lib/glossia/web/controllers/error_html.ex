@@ -1,6 +1,6 @@
 defmodule Glossia.Web.ErrorHTML do
-  use Glossia.Web, :app_html
-  use Glossia.Web, :marketing_html
+  use Glossia.Foundation.Application.Web, :app_html
+  use Glossia.Foundation.Application.Web, :marketing_html
 
   # embed_templates "error_html/*"
 

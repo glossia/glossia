@@ -1,6 +1,8 @@
-defmodule Glossia.Application.Router do
+defmodule Glossia.Foundation.Application.Web.Router do
+  use Boundary, top_level?: true, check: [out: false]
+
   # Modules
-  use Glossia.Web, :router
+  use Glossia.Foundation.Application.Web, :router
   import Glossia.Foundation.Accounts.Web.Auth
   import Glossia.Foundation.Utilities.Core.Plan
 

@@ -2,18 +2,7 @@ defmodule Glossia.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
-  use Boundary,
-    deps: [
-      Glossia.Foundation.Application.Web,
-      Glossia.Foundation.Utilities.Core,
-      Glossia.Web,
-      Glossia.Foundation.API.Web,
-      Glossia.Foundation.ContentSources.Web,
-      Glossia.Foundation.Utilities.Core,
-      Glossia.Foundation.Accounts.Web,
-      Glossia.Foundation.Application.Web,
-      Glossia.Foundation.Projects.Web
-    ]
+  use Boundary, check: [in: false, out: false]
 
   use Application
   import Glossia.Foundation.Utilities.Core.Plan
@@ -51,7 +40,7 @@ defmodule Glossia.Application do
            ]
          }},
         # Start the Endpoint (http/https)
-        Glossia.Application.Endpoint,
+        Glossia.Foundation.Application.Web.Endpoint,
         # Start a worker by calling: Glossia.Worker.start_link(arg)
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
@@ -70,7 +59,7 @@ defmodule Glossia.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    Glossia.Application.Endpoint.config_change(changed, removed)
+    Glossia.Foundation.Application.Web.Endpoint.config_change(changed, removed)
     :ok
   end
 

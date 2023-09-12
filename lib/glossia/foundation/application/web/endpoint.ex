@@ -1,4 +1,6 @@
-defmodule Glossia.Application.Endpoint do
+defmodule Glossia.Foundation.Application.Web.Endpoint do
+  use Boundary, top_level?: true, check: [out: false, in: false]
+
   use Phoenix.Endpoint, otp_app: :glossia
 
   plug RemoteIp
@@ -44,5 +46,5 @@ defmodule Glossia.Application.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug Glossia.Application.Router
+  plug Glossia.Foundation.Application.Web.Router
 end

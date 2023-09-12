@@ -1,5 +1,5 @@
 defmodule Glossia.Web.ProjectController do
-  use Glossia.Web, :controller
+  use Glossia.Foundation.Application.Web, :controller
 
   def show(conn, _params) do
     render(conn, :new)

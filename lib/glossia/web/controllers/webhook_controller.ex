@@ -1,5 +1,5 @@
 defmodule Glossia.Web.WebhookController do
-  use Glossia.Web, :controller
+  use Glossia.Foundation.Application.Web, :controller
 
   require Logger
 

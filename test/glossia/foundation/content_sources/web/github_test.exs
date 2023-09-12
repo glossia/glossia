@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.ContentSources.Web.Plug.GitHubTest do
   # Modules
-  use Glossia.Web.ConnCase
+  use Glossia.Foundation.Application.Web.ConnCase
   alias Glossia.Foundation.ContentSources.Web.Plug.GitHub
   import Plug.Conn
 
