@@ -139,7 +139,7 @@ defmodule Glossia.Web do
     quote do
       use Phoenix.VerifiedRoutes,
         endpoint: Glossia.Application.Endpoint,
-        router: Glossia.Router,
+        router: Glossia.Application.Router,
         statics: Glossia.Foundation.Application.Web.static_paths()
     end
   end

@@ -44,5 +44,5 @@ defmodule Glossia.Application.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug Glossia.Router
+  plug Glossia.Application.Router
 end

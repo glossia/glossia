@@ -1,16 +1,5 @@
-defmodule Glossia.Router do
+defmodule Glossia.Application.Router do
   # Modules
-  use Boundary,
-    deps: [
-      Glossia.Web,
-      Glossia.Foundation.API.Web,
-      Glossia.Foundation.ContentSources.Web,
-      Glossia.Foundation.Utilities.Core,
-      Glossia.Foundation.Accounts.Web,
-      Glossia.Foundation.Application.Web,
-      Glossia.Foundation.Projects.Web
-    ]
-
   use Glossia.Web, :router
   import Glossia.Foundation.Accounts.Web.Auth
   import Glossia.Foundation.Utilities.Core.Plan

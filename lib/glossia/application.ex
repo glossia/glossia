@@ -2,7 +2,19 @@ defmodule Glossia.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
-  use Boundary, deps: [Glossia.Foundation.Application.Web, Glossia.Router, Glossia.Foundation.Utilities.Core]
+  use Boundary,
+    deps: [
+      Glossia.Foundation.Application.Web,
+      Glossia.Foundation.Utilities.Core,
+      Glossia.Web,
+      Glossia.Foundation.API.Web,
+      Glossia.Foundation.ContentSources.Web,
+      Glossia.Foundation.Utilities.Core,
+      Glossia.Foundation.Accounts.Web,
+      Glossia.Foundation.Application.Web,
+      Glossia.Foundation.Projects.Web
+    ]
+
   use Application
   import Glossia.Foundation.Utilities.Core.Plan
 
