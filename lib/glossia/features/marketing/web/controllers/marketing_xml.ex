@@ -1,4 +1,4 @@
-defmodule Glossia.Web.MarketingXML do
+defmodule Glossia.Features.Marketing.Web.Controllers.MarketingXML do
   use Glossia.Foundation.Application.Web, :xml
 
   embed_templates "marketing_xml/*"

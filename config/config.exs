@@ -15,8 +15,8 @@ config :glossia, Glossia.Foundation.Application.Web.Endpoint,
   url: [host: "localhost"],
   render_errors: [
     formats: [html: Glossia.Web.ErrorHTML, json: Glossia.Web.ErrorJSON],
-    root_layout: [html: {Glossia.Web.MarketingLayouts, :root}],
-    layout: [html: {Glossia.Web.MarketingLayouts, :error}]
+    root_layout: [html: {Glossia.Features.Marketing.Web.Components.Layouts, :root}],
+    layout: [html: {Glossia.Features.Marketing.Web.Components.Layouts, :error}]
   ],
   pubsub_server: Glossia.PubSub,
   reloadable_compilers:

@@ -1,4 +1,4 @@
-defmodule Glossia.Web.MarketingHTML do
+defmodule Glossia.Features.Marketing.Web.Controllers.MarketingHTML do
   use Glossia.Foundation.Application.Web, :app_html
   use Glossia.Foundation.Application.Web, :marketing_html
 

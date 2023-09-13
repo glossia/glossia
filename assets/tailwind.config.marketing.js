@@ -6,10 +6,7 @@ const plugin = require("tailwindcss/plugin");
 module.exports = {
   content: [
     "../js/**/*.js",
-    "../lib/glossia/web/components/shared_components.ex",
-    "../lib/glossia/web/components/marketing_components*",
-    "../lib/glossia/web/components/marketing_layouts/*",
-    "../lib/glossia/web/controllers/marketing_html/*",
+    "../lib/glossia/features/marketing/web/**",
     "../lib/glossia/web/controllers/error_html/*",
   ],
   theme: {

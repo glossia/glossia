@@ -88,7 +88,7 @@ defmodule Glossia.Foundation.Application.Web do
         :marketing ->
           quote do
             import(Glossia.Web.SharedComponents)
-            import(Glossia.Web.MarketingComponents)
+            import(Glossia.Features.Marketing.Web.Components.Components)
           end
       end
 

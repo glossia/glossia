@@ -1,4 +1,4 @@
-defmodule Glossia.Web.MarketingLayouts do
+defmodule Glossia.Features.Marketing.Web.Components.Layouts do
   @moduledoc """
   A module that embeds all the available layouts at compile time.
   """

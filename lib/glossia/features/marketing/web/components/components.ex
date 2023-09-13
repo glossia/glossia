@@ -1,4 +1,4 @@
-defmodule Glossia.Web.MarketingComponents do
+defmodule Glossia.Features.Marketing.Web.Components.Components do
   use Glossia.Foundation.Application.Web, :verified_routes
   use Glossia.Foundation.Application.Core.SEO
 

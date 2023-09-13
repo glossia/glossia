@@ -36,10 +36,10 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
   ##### Marketing Routes #####
   pipeline :marketing do
-    plug :put_root_layout, html: {Glossia.Web.MarketingLayouts, :root}
+    plug :put_root_layout, html: {Glossia.Features.Marketing.Web.Components.Layouts, :root}
   end
 
-  scope "/", Glossia.Web do
+  scope "/", Glossia.Features.Marketing.Web.Controllers do
     pipe_through [:browser, :marketing]
 
     get "/", MarketingController, :index
@@ -96,7 +96,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :accepts, ["xml"]
   end
 
-  scope "/", Glossia.Web do
+  scope "/", Glossia.Features.Marketing.Web.Controllers do
     pipe_through [:rss]
     get "/blog/feed.xml", MarketingController, :feed
   end
