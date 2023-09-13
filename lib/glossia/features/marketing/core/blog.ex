@@ -1,12 +1,11 @@
-defmodule Glossia.Features.Blog.Core do
+defmodule Glossia.Features.Marketing.Core.Blog do
   @moduledoc """
   A module that loads Markdown-writen blog posts at compile-time.
   """
 
   # Modules
-  alias Glossia.Features.Blog.Core.Authors
-  alias Glossia.Features.Blog.Core.{Post, Author}
-  use Boundary
+  alias Glossia.Features.Marketing.Core.Blog.Authors
+  alias Glossia.Features.Marketing.Core.Blog.{Post, Author}
 
   use NimblePublisher,
     build: Post,
