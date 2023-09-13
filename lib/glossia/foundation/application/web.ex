@@ -22,7 +22,7 @@ defmodule Glossia.Foundation.Application.Web do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json, :xml],
-        layouts: [html: Glossia.Web.AppLayouts]
+        layouts: [html: Glossia.Foundation.Application.Web.Layouts.App]
 
       import Plug.Conn
       import Glossia.Foundation.Application.Core.Gettext
@@ -34,7 +34,7 @@ defmodule Glossia.Foundation.Application.Web do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {Glossia.Web.AppLayouts, :root}
+        layout: {Glossia.Foundation.Application.Web.Layouts.App, :root}
 
       unquote(html_helpers(:app))
     end
@@ -81,13 +81,13 @@ defmodule Glossia.Foundation.Application.Web do
       case surface do
         :app ->
           quote do
-            import(Glossia.Web.SharedComponents)
-            import(Glossia.Web.AppComponents)
+            import(Glossia.Foundation.Application.Web.Components.Shared)
+            import(Glossia.Foundation.Application.Web.Components.App)
           end
 
         :marketing ->
           quote do
-            import(Glossia.Web.SharedComponents)
+            import(Glossia.Foundation.Application.Web.Components.Shared)
             import(Glossia.Features.Marketing.Web.Components.Components)
           end
       end

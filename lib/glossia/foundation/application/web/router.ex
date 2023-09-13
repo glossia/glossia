@@ -117,7 +117,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
   ##### App Routes #####
   pipeline :app do
-    plug :put_root_layout, html: {Glossia.Web.AppLayouts, :root}
+    plug :put_root_layout, html: {Glossia.Foundation.Application.Web.Layouts.App, :root}
   end
 
   scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do

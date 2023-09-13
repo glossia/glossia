@@ -1,4 +1,4 @@
-defmodule Glossia.Web.AppComponents do
+defmodule Glossia.Foundation.Application.Web.Components.App do
   @moduledoc """
   Provides core UI components.
 
