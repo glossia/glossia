@@ -35,21 +35,23 @@ defmodule Glossia.Foundation.Application.Web.Router do
   end
 
   ##### Marketing Routes #####
-  pipeline :marketing do
-    plug :put_root_layout, html: {Glossia.Features.Marketing.Web.Layouts, :root}
-  end
+  only_for_plans([:cloud]) do
+    pipeline :marketing do
+      plug :put_root_layout, html: {Glossia.Features.Marketing.Web.Layouts, :root}
+    end
 
-  scope "/", Glossia.Features.Marketing.Web.Controllers do
-    pipe_through [:browser, :marketing]
+    scope "/", Glossia.Features.Marketing.Web.Controllers do
+      pipe_through [:browser, :marketing]
 
-    get "/", MarketingController, :index
-    get "/beta", MarketingController, :beta
-    get "/about", MarketingController, :about
-    get "/team", MarketingController, :team
-    get "/beta-added", MarketingController, :beta_added
-    get "/blog", MarketingController, :blog
-    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-    get "/docs/*id", MarketingController, :docs
+      get "/", MarketingController, :index
+      get "/beta", MarketingController, :beta
+      get "/about", MarketingController, :about
+      get "/team", MarketingController, :team
+      get "/beta-added", MarketingController, :beta_added
+      get "/blog", MarketingController, :blog
+      get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+      get "/docs/*id", MarketingController, :docs
+    end
   end
 
   ##### API Routes #####
@@ -92,13 +94,15 @@ defmodule Glossia.Foundation.Application.Web.Router do
   end
 
   ##### RSS Routes #####
-  pipeline :rss do
-    plug :accepts, ["xml"]
-  end
+  only_for_plans([:cloud]) do
+    pipeline :rss do
+      plug :accepts, ["xml"]
+    end
 
-  scope "/", Glossia.Features.Marketing.Web.Controllers do
-    pipe_through [:rss]
-    get "/blog/feed.xml", MarketingController, :feed
+    scope "/", Glossia.Features.Marketing.Web.Controllers do
+      pipe_through [:rss]
+      get "/blog/feed.xml", MarketingController, :feed
+    end
   end
 
   ##### Webhook Routes #####
