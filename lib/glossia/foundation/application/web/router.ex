@@ -36,7 +36,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
   ##### Marketing Routes #####
   pipeline :marketing do
-    plug :put_root_layout, html: {Glossia.Features.Marketing.Web.Components.Layouts, :root}
+    plug :put_root_layout, html: {Glossia.Features.Marketing.Web.Layouts, :root}
   end
 
   scope "/", Glossia.Features.Marketing.Web.Controllers do
