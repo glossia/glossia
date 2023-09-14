@@ -1,4 +1,4 @@
-defmodule Glossia.Web.WebhookController do
+defmodule Glossia.Foundation.ContentSources.Web.Controllers.GitHub.WebhookController do
   use Glossia.Foundation.Application.Web, :controller
 
   require Logger

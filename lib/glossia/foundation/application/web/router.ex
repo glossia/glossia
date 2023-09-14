@@ -108,9 +108,9 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug Glossia.Foundation.ContentSources.Web.Plug
   end
 
-  scope "/webhooks", Glossia.Web do
+  scope "/webhooks" do
     pipe_through [:webhooks]
-    post "/github", WebhookController, :github
+    post "/github", Glossia.Foundation.ContentSources.Web.Controllers.GitHub.WebhookController, :github
   end
 
   ##### App Routes #####
