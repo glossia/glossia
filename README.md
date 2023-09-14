@@ -69,3 +69,9 @@ Glossia's website and app run on [Elixir](https://elixir-lang.org/) and [Phoenix
 </a>
 
 AppSignal supports Glossia by giving us access to its [open source plan](https://www.appsignal.com/open-source) for application performance monitoring.
+
+<a href="https://gitbook.com/">
+  <img src="resources/logos/gitbook.svg" width="150" alt="GitBook's logo"/>
+</a>
+
+GitBook supports Glossia by giving us access to its [open source plan](https://docs.gitbook.com/account-management/plans/apply-for-the-non-profit-open-source-plan). GitBook is our platform of choice for knowledge management.
