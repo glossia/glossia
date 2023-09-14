@@ -4,7 +4,7 @@ defmodule Glossia.Foundation.ContentSources.Web.Controllers.GitHub.WebhookContro
   require Logger
 
   alias Glossia.Foundation.Projects.Core, as: Projects
-  alias Glossia.Foundation.Projects.Core.Project
+  alias Glossia.Foundation.Projects.Core.Models.Project
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
 
   # Public

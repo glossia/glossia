@@ -24,6 +24,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_and_track_authenticated_user
+    plug Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuthenticatedPlug
   end
 
   # Loads the project from the slug in the URL

@@ -5,12 +5,12 @@ defmodule Glossia.Foundation.Projects.Core do
       Glossia.Foundation.Builds.Core,
       Glossia.Foundation.ContentSources.Core
     ],
-    exports: [Project, ProjectToken]
+    exports: [Models.Project, Models.ProjectToken]
 
   # Modules
   require Logger
   alias Glossia.Foundation.Database.Core.Repo
-  alias Glossia.Foundation.Projects.Core.{Project, ProjectToken}
+  alias Glossia.Foundation.Projects.Core.Models.{Project, ProjectToken}
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
 
   @doc """

@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Accounts.Web.Resources do
   use PolicyWonk.Resource
   use PolicyWonk.Load
   alias Glossia.Foundation.Projects.Core, as: Projects
-  alias Glossia.Foundation.Projects.Core.Project
+  alias Glossia.Foundation.Projects.Core.Models.Project
 
   def resource(conn, :authenticated_project, _) do
     with {:auth_header, "Bearer" <> " " <> token} <-

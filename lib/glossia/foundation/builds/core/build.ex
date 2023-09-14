@@ -6,7 +6,7 @@ defmodule Glossia.Foundation.Builds.Core.Build do
           content_source_platform: Glossia.Foundation.ContentSources.Platform.t(),
           vm_id: String.t() | nil,
           status: status(),
-          project: Glossia.Foundation.Projects.Core.Project.t() | nil,
+          project: Glossia.Foundation.Projects.Core.Models.Project.t() | nil,
           metadata: map()
         }
 
@@ -54,7 +54,7 @@ defmodule Glossia.Foundation.Builds.Core.Build do
       ],
       default: :status_unknown
 
-    belongs_to :project, Glossia.Foundation.Projects.Core.Project
+    belongs_to :project, Glossia.Foundation.Projects.Core.Models.Project
 
     timestamps()
   end

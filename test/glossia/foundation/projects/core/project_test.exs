@@ -1,7 +1,7 @@
-defmodule Glossia.Foundation.Projects.Core.ProjectTest do
+defmodule Glossia.Foundation.Projects.Core.Models.ProjectTest do
   use Glossia.DataCase
 
-  alias Glossia.Foundation.Projects.Core.Project
+  alias Glossia.Foundation.Projects.Core.Models.Project
 
   describe "changeset" do
     test "validates that handle is required" do

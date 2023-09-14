@@ -13,7 +13,7 @@ defmodule Glossia.Foundation.Accounts.Core.Account do
   import Ecto.Query, only: [from: 2]
   use Ecto.Schema
   import Ecto.Changeset
-  alias Glossia.Foundation.Projects.Core.Project
+  alias Glossia.Foundation.Projects.Core.Models.Project
 
   # Schema
 
