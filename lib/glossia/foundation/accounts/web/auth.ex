@@ -91,7 +91,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   Authenticates the user by looking into the session
   and remember me token.
   """
-  def fetch_and_track_current_user(conn, _opts) do
+  def fetch_and_track_authenticated_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
     user = user_token && Accounts.get_user_by_session_token(user_token)
 
@@ -99,7 +99,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
       Glossia.Foundation.Analytics.Core.track_visit(user)
     end
 
-    assign(conn, :current_user, user)
+    assign(conn, :authenticated_user, user)
   end
 
   defp ensure_user_token(conn) do
@@ -120,7 +120,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   Used for routes that require the user to not be authenticated.
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
-    if conn.assigns[:current_user] do
+    if conn.assigns[:authenticated_user] do
       conn
       |> redirect(to: signed_in_path(conn))
       |> halt()
@@ -136,7 +136,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   they use the application at all, here would be a good place.
   """
   def require_authenticated_user(conn, _opts) do
-    if conn.assigns[:current_user] do
+    if conn.assigns[:authenticated_user] do
       conn
     else
       conn

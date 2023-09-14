@@ -2,7 +2,7 @@ defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
   use Glossia.Features.Marketing.Web.Helpers, :controller
 
   def index(conn, _params) do
-    if conn.assigns[:current_user] do
+    if conn.assigns[:authenticated_user] do
       conn
       |> put_root_layout(html: {Glossia.Foundation.Application.Web.Layouts.App, :root})
       |> render(:index_app)

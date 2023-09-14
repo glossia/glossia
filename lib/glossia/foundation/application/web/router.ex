@@ -23,7 +23,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_and_track_current_user
+    plug :fetch_and_track_authenticated_user
   end
 
   # Loads the project from the slug in the URL
