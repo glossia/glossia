@@ -1,10 +1,12 @@
 defmodule Glossia.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
       app: :glossia,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
