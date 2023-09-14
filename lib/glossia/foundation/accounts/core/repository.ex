@@ -21,7 +21,10 @@ defmodule Glossia.Foundation.Accounts.Core.Repository do
   @spec get_user_and_organization_accounts(User.t()) :: [Account.t()]
   def get_user_and_organization_accounts(user) do
     user_account = get_user_account(user)
-    user_organization_accounts = get_user_organizations(user) |> Repo.preload(:account) |> Enum.map(&(&1.account))
+
+    user_organization_accounts =
+      get_user_organizations(user) |> Repo.preload(:account) |> Enum.map(& &1.account)
+
     [user_account | user_organization_accounts]
   end
 

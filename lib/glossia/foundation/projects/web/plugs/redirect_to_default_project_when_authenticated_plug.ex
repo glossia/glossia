@@ -12,11 +12,13 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuth
         %{request_path: "/"} = conn,
         _opts
       ) do
-        case Auth.authenticated_user(conn) do
-          nil -> conn
-          user ->
-            dbg(conn)
-        end
+    case Auth.authenticated_user(conn) do
+      nil ->
+        conn
+
+      user ->
+        dbg(conn)
+    end
   end
 
   def call(conn, _opts), do: conn

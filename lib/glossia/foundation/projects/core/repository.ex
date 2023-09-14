@@ -28,7 +28,6 @@ defmodule Glossia.Foundation.Projects.Core.Repository do
     #     select: {o.id, o.name}
     #   )
 
-
     # 1. Fetch the user organizations
     # 2. Fetch the user's account
   end
