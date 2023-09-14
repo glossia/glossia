@@ -28,12 +28,6 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug
   end
 
-  #### Documentation Routes ####
-
-  scope "/" do
-    get "/docs/api", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
-  end
-
   ##### Marketing Routes #####
   only_for_plans([:cloud]) do
     pipeline :marketing do
@@ -72,9 +66,9 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug Glossia.Foundation.Accounts.Web.Policies, :authenticated_project
   end
 
-  # Authenticated API endpoints:
+  # Authenticated builder API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
-  scope "/api" do
+  scope "/builder-api" do
     pipe_through [:api, :api_auth, :project]
 
     scope "/projects/:owner_handle/:project_handle",
@@ -83,14 +77,14 @@ defmodule Glossia.Foundation.Application.Web.Router do
     end
   end
 
-  # Unauthenticated API endpoints:
+  # Unauthenticated builder API endpoints:
   # There are some endpoints, like the one that returns the OpenAPI spec, that don't
   # require being authenticated because they don't return resource-tied data.
-  scope "/api" do
+  scope "/builder-api" do
     pipe_through [:api]
 
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []
-    match(:*, "/*path", Glossia.Web.API.APIController, :not_found)
+    match(:*, "/*path", Glossia.Foundation.Builds.Web.Controllers.APIController, :not_found)
   end
 
   ##### RSS Routes #####

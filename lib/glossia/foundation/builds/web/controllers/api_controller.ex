@@ -1,4 +1,4 @@
-defmodule Glossia.Web.API.APIController do
+defmodule Glossia.Foundation.Builds.Web.Controllers.APIController do
   # Modules
   use Glossia.Foundation.Application.Web, :controller
 

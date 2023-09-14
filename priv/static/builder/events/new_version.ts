@@ -36,7 +36,7 @@ async function newGitHubContentVersion() {
   );
   console.info("Creating localization request");
   await glossiaFetch(
-    `/api/projects/${getOwnerHandle()}/${getProjectHandle()}/localization-requests`,
+    `/builder-api/projects/${getOwnerHandle()}/${getProjectHandle()}/localization-requests`,
     {
       method: "POST",
       body: JSON.stringify(payload),
