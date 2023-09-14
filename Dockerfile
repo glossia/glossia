@@ -21,7 +21,8 @@ FROM ${BUILDER_IMAGE} as builder
 
 ARG OBAN_WEB_FETCH_PUBLIC_KEY=""
 ARG OBAN_WEB_AUTH_KEY=""
-ARG GLOSSIA_PLAN
+ARG GLOSSIA_PLAN="community"
+ENV GLOSSIA_PLAN=$GLOSSIA_PLAN
 
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
@@ -38,7 +39,9 @@ RUN mix local.hex --force && \
 ENV MIX_ENV="prod"
 
 # Add Oban Web repository
-RUN if [ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ] && [ -n "$OBAN_WEB_AUTH_KEY" ]; then mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY ; fi
+RUN if [ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ] && [ -n "$OBAN_WEB_AUTH_KEY" ]; then \
+      mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY; \
+    fi
 
 #fetch-public-key
 #auth-key
@@ -57,6 +60,15 @@ RUN mix deps.compile
 COPY priv priv
 
 COPY lib lib
+
+# Community doesn't legally have access to the enterprise features.
+RUN if [ -n "$GLOSSIA_PLAN" = "community" ]; then \
+        rm -rf lib/glossia/features/enterprise \
+    fi
+# Neither enteprise nor community should have the marketing features.
+RUN if if [ "$GLOSSIA_PLAN" = "community" ] && [ "$GLOSSIA_PLAN" = "enterprise" ]; then \
+        rm -rf lib/glossia/features/marketing \
+    fi
 
 COPY assets assets
 
