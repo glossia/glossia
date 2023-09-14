@@ -1,4 +1,4 @@
-defmodule Glossia.ProjectsTest do
+defmodule Glossia.Foundation.Projects.CoreTest do
   use Glossia.DataCase
 
   alias Glossia.Foundation.Database.Core.Repo
