@@ -8,12 +8,12 @@ defmodule Glossia.Foundation.Accounts.Core do
       Glossia.Foundation.Database.Core,
       Glossia.Foundation.Analytics.Core
     ],
-    exports: [User, Repository]
+    exports: [Models.User, Repository]
 
   import Ecto.Query, warn: false
   alias Glossia.Foundation.Database.Core.Repo
 
-  alias Glossia.Foundation.Accounts.Core.{
+  alias Glossia.Foundation.Accounts.Core.Models.{
     User,
     Account,
     Organization,

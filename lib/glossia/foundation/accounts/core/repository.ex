@@ -1,10 +1,10 @@
 defmodule Glossia.Foundation.Accounts.Core.Repository do
   # Modules
   @behaviour __MODULE__.Behaviour
-  alias Glossia.Foundation.Accounts.Core.Organization
-  alias Glossia.Foundation.Accounts.Core.OrganizationUser
-  alias Glossia.Foundation.Accounts.Core.Account
-  alias Glossia.Foundation.Accounts.Core.User
+  alias Glossia.Foundation.Accounts.Core.Models.Organization
+  alias Glossia.Foundation.Accounts.Core.Models.OrganizationUser
+  alias Glossia.Foundation.Accounts.Core.Models.Account
+  alias Glossia.Foundation.Accounts.Core.Models.User
   alias Glossia.Foundation.Database.Core.Repo
   import Ecto.Query, only: [from: 2]
 

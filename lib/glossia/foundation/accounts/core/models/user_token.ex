@@ -1,11 +1,11 @@
-defmodule Glossia.Foundation.Accounts.Core.UserToken do
+defmodule Glossia.Foundation.Accounts.Core.Models.UserToken do
   @moduledoc """
   A model that represents the user_tokens table, which contains tokens
   associated to a given user.
   """
   use Ecto.Schema
   import Ecto.Query
-  alias Glossia.Foundation.Accounts.Core.UserToken
+  alias Glossia.Foundation.Accounts.Core.Models.UserToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -21,7 +21,7 @@ defmodule Glossia.Foundation.Accounts.Core.UserToken do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :user, Glossia.Foundation.Accounts.Core.User
+    belongs_to :user, Glossia.Foundation.Accounts.Core.Models.User
 
     timestamps(updated_at: false)
   end

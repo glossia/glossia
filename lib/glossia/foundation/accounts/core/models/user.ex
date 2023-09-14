@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Accounts.Core.User do
+defmodule Glossia.Foundation.Accounts.Core.Models.User do
   @type t :: %__MODULE__{
           email: String.t(),
           password: String.t(),
@@ -15,7 +15,7 @@ defmodule Glossia.Foundation.Accounts.Core.User do
   import Ecto.Changeset
 
   alias Glossia.Foundation.Projects.Core.Models.Project
-  alias Glossia.Foundation.Accounts.Core.{Account, Credentials, Organization}
+  alias Glossia.Foundation.Accounts.Core.Models.{Account, Credentials, Organization}
 
   schema "users" do
     field :email, :string
@@ -162,7 +162,7 @@ defmodule Glossia.Foundation.Accounts.Core.User do
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(
-        %Glossia.Foundation.Accounts.Core.User{hashed_password: hashed_password},
+        %Glossia.Foundation.Accounts.Core.Models.User{hashed_password: hashed_password},
         password
       )
       when is_binary(hashed_password) and byte_size(password) > 0 do

@@ -3,9 +3,9 @@ defmodule Glossia.Foundation.Projects.Core.Repository do
   @behaviour __MODULE__.Behaviour
   alias Glossia.Foundation.Database.Core.Repo
   alias Glossia.Foundation.Projects.Core.Models.Project
-  alias Glossia.Foundation.Accounts.Core.User
-  # alias Glossia.Foundation.Accounts.Core.OrganizationUser
-  # alias Glossia.Foundation.Accounts.Core.Organization
+  alias Glossia.Foundation.Accounts.Core.Models.User
+  # alias Glossia.Foundation.Accounts.Core.Models.OrganizationUser
+  # alias Glossia.Foundation.Accounts.Core.Models.Organization
   # import Ecto.Query, only: [from: 2]
 
   @doc """
@@ -35,7 +35,10 @@ defmodule Glossia.Foundation.Projects.Core.Repository do
 
   @spec update_last_visited_project_for_user(User.t(), Project.t()) :: User.t()
   def update_last_visited_project_for_user(user, project) do
-    Repo.update!(user |> Ecto.Changeset.cast(%{last_visited_project_id: project.id}, [:last_visited_project_id]))
+    Repo.update!(
+      user
+      |> Ecto.Changeset.cast(%{last_visited_project_id: project.id}, [:last_visited_project_id])
+    )
   end
 
   defmodule Behaviour do

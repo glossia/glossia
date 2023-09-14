@@ -1,7 +1,7 @@
-defmodule Glossia.Foundation.Accounts.Core.AccountTest do
+defmodule Glossia.Foundation.Accounts.Core.Models.AccountTest do
   use Glossia.DataCase
 
-  alias Glossia.Foundation.Accounts.Core.Account
+  alias Glossia.Foundation.Accounts.Core.Models.Account
 
   describe "changeset" do
     test "validates the presence of handle" do

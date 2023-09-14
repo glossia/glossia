@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Projects.Core.Models.Project do
   use Boundary
-  alias Glossia.Foundation.Accounts.Core.Account
+  alias Glossia.Foundation.Accounts.Core.Models.Account
 
   @moduledoc """
   A module that represents the projects table
@@ -20,7 +20,7 @@ defmodule Glossia.Foundation.Projects.Core.Models.Project do
 
   # Module dependencies
 
-  alias Glossia.Foundation.Accounts.Core.Account
+  alias Glossia.Foundation.Accounts.Core.Models.Account
   alias Glossia.Foundation.Builds.Core.Build
   use Ecto.Schema
   import Ecto.Changeset

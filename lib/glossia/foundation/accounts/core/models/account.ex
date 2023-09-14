@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Accounts.Core.Account do
+defmodule Glossia.Foundation.Accounts.Core.Models.Account do
   @moduledoc """
   A module that represents the accounts table
   """

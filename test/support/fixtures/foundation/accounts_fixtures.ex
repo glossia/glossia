@@ -6,7 +6,7 @@ defmodule Glossia.Foundation.AccountsFixtures do
   entities via the `Glossia.Foundation.Accounts.Core` context.
   """
 
-  alias Glossia.Foundation.Accounts.Core.Organization
+  alias Glossia.Foundation.Accounts.Core.Models.Organization
   alias Glossia.Foundation.Database.Core.Repo
 
   def unique_user_email, do: "user#{Glossia.TestHelpers.unique_integer()}@example.com"

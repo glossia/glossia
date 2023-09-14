@@ -33,7 +33,7 @@ defmodule Glossia.Foundation.Auth.Core do
 
     {:ok, user} =
       case Accounts.get_user_by_email(email) do
-        %Accounts.User{} = user ->
+        %Accounts.Models.User{} = user ->
           {:ok, user}
 
         _ ->

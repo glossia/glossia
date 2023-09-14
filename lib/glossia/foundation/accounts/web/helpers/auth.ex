@@ -10,7 +10,7 @@ defmodule Glossia.Foundation.Accounts.Web.Helpers.Auth do
   @doc """
   If there's a user authenticated in the given connection it returns the user, otherwise it returns nil.
   """
-  @spec authenticated_user(Conn.t()) :: Glossia.Foundation.Accounts.Core.User.t() | nil
+  @spec authenticated_user(Conn.t()) :: Glossia.Foundation.Accounts.Core.Models.User.t() | nil
   def authenticated_user(conn) do
     conn.assigns[:authenticated_user]
   end
