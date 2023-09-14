@@ -1,4 +1,4 @@
-defmodule Glossia.Features.LLMs.Core.OpenAIChatGPT do
+defmodule Glossia.Features.Community.LLMs.Core.OpenAIChatGPT do
   @behaviour Glossia.Foundation.LLMs.Core.LLM
 
   @impl true

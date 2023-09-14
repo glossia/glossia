@@ -2,7 +2,7 @@ Copyright (c) 2023-present Glossia, Inc.
 
 Portions of this software are licensed as follows:
 
-* All content that resides under https://github.com/glossia/glossia/tree/main/lib/glossia/features/ee directory of this repository (Commercial License) is licensed under the license defined in "lib/glossia/features/ee/LICENSE.md".
+* All content that resides under https://github.com/glossia/glossia/tree/main/lib/glossia/features/enterprise directory of this repository (Commercial License) is licensed under the license defined in "lib/glossia/features/ee/LICENSE.md".
 * All third party components incorporated into the Glossia Software are licensed under the original license provided by the owner of the applicable component.
 * Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined below.
 
