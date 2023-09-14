@@ -1,23 +1,6 @@
 defmodule Glossia.Foundation.Application.Web do
   use Boundary, top_level?: true, check: [in: false, out: false]
 
-  def router do
-    quote do
-      use Phoenix.Router, helpers: false
-
-      # Import common connection and controller functions to use in pipelines
-      import Plug.Conn
-      import Phoenix.Controller
-      import Phoenix.LiveView.Router
-    end
-  end
-
-  def channel do
-    quote do
-      use Phoenix.Channel
-    end
-  end
-
   def controller do
     quote do
       use Phoenix.Controller,
@@ -51,6 +34,7 @@ defmodule Glossia.Foundation.Application.Web do
   def app_html do
     quote do
       use Phoenix.Component
+      use PrimerLive
 
       # Import convenience functions from controllers
       import Phoenix.Controller,

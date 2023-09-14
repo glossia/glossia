@@ -2,7 +2,10 @@ defmodule Glossia.Foundation.Application.Web.Router do
   use Boundary, top_level?: true, check: [out: false]
 
   # Modules
-  use Glossia.Foundation.Application.Web, :router
+  use Phoenix.Router, helpers: false
+  import Plug.Conn
+  import Phoenix.Controller
+  import Phoenix.LiveView.Router
   import Glossia.Foundation.Accounts.Web.Auth
   import Glossia.Foundation.Utilities.Core.Plan
 

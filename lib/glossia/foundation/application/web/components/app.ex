@@ -19,6 +19,13 @@ defmodule Glossia.Foundation.Application.Web.Components.App do
   alias Phoenix.LiveView.JS
   import Glossia.Foundation.Application.Core.Gettext
 
+  def primer(assigns) do
+    ~H"""
+    <link phx-track-static rel="stylesheet" href={"/primer_live/primer-live.min.css"}>
+    <script defer phx-track-static type="text/javascript" src={"/primer_live/primer-live.min.js"}></script>
+    """
+  end
+
   @doc """
   Renders a modal.
 
