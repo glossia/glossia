@@ -1,4 +1,4 @@
-defmodule Glossia.Web.ErrorHTML do
+defmodule Glossia.Foundation.Application.Web.Controllers.ErrorHTML do
   use Glossia.Foundation.Application.Web, :app_html
   use Glossia.Foundation.Application.Web, :marketing_html
 

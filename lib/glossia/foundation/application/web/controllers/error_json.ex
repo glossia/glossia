@@ -1,4 +1,4 @@
-defmodule Glossia.Web.ErrorJSON do
+defmodule Glossia.Foundation.Application.Web.Controllers.ErrorJSON do
   # If you want to customize a particular status code,
   # you may add your own clauses, such as:
   #
