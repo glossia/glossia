@@ -3,7 +3,8 @@ defmodule Glossia.Foundation.Projects.Core do
     deps: [
       Glossia.Foundation.Database.Core,
       Glossia.Foundation.Builds.Core,
-      Glossia.Foundation.ContentSources.Core
+      Glossia.Foundation.ContentSources.Core,
+      Glossia.Foundation.Accounts.Core
     ],
     exports: [Models.Project, Models.ProjectToken]
 

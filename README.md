@@ -52,6 +52,8 @@ Glossia's website and app run on [Elixir](https://elixir-lang.org/) and [Phoenix
 - Open a remote console with production: `flyctl ssh console --pty -C "/app/bin/glossia remote"`
 - Generate a graph of dependencies: `mix xref graph`
 - Seed data: `mix run priv/repo/seeds.exs`
+- Generate a diagram from the database schema: `mix ecto.gen.erd && dot -Tpng ecto_erd.dot -o erd.png`
+
 - **Gettext**
   - Extract content: `mix gettext.extract`
   - It merges the content into the English file: `mix gettext.merge priv/gettext`
