@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.API.Web.Controllers.Project.LocalizationRequestController do
   # Modules
-  use Glossia.Foundation.Application.Web, :controller
+  use Glossia.Foundation.Application.Web.Helpers.App, :controller
   use OpenApiSpex.ControllerSpecs
   alias Glossia.Localizations
 

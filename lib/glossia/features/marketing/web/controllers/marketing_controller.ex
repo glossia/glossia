@@ -1,5 +1,5 @@
 defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
-  use Glossia.Foundation.Application.Web, :controller
+  use Glossia.Features.Marketing.Web.Helpers, :controller
 
   def index(conn, _params) do
     if conn.assigns[:current_user] do
@@ -8,7 +8,6 @@ defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
       |> render(:index_app)
     else
       conn
-      |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
       |> put_layout(false)
       |> render(:index)
     end
@@ -18,8 +17,6 @@ defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
     conn
     |> assign(:posts, Glossia.Features.Marketing.Core.Blog.all_posts())
     |> assign(:authors, Glossia.Features.Marketing.Core.Blog.all_authors())
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:blog)
   end
 
@@ -33,50 +30,36 @@ defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
     conn
     |> assign(:post, post)
     |> assign(:author, author)
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:blog_post)
   end
 
   def docs(conn, %{"id" => []}) do
     conn
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:docs)
   end
 
   def docs(conn, _params) do
     conn
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:docs)
   end
 
   def beta(conn, _params) do
     conn
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:beta)
   end
 
   def beta_added(conn, _params) do
     conn
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:beta_added)
   end
 
   def team(conn, _params) do
     conn
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:team)
   end
 
   def about(conn, _params) do
     conn
-    |> put_root_layout(html: {Glossia.Features.Marketing.Web.Layouts, :root})
-    |> put_layout(html: {Glossia.Features.Marketing.Web.Layouts, :base})
     |> render(:about)
   end
 

@@ -24,7 +24,7 @@ defmodule Glossia.Web.ConnCase do
       # The default endpoint for testing
       @endpoint Glossia.Foundation.Application.Web.Endpoint
 
-      use Glossia.Foundation.Application.Web, :verified_routes
+      use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn

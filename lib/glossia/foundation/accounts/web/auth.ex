@@ -2,7 +2,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   @moduledoc """
   This module provides utilities for authenticating users.
   """
-  use Glossia.Foundation.Application.Web, :verified_routes
+  use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
 
   import Plug.Conn
   import Phoenix.Controller

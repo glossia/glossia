@@ -7,7 +7,6 @@ defmodule Glossia.Foundation.Application.Web.Components.Shared do
   import Phoenix.Controller,
     only: [get_csrf_token: 0]
 
-  use Glossia.Foundation.Application.Web, :verified_routes
   use Phoenix.Component
 
   def head_alpine(assigns) do
