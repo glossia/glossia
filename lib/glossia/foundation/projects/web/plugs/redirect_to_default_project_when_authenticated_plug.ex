@@ -16,8 +16,8 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuth
       nil ->
         conn
 
-      user ->
-        dbg(conn)
+      _user ->
+        conn
     end
   end
 

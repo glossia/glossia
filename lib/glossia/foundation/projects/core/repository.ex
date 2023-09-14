@@ -1,6 +1,7 @@
 defmodule Glossia.Foundation.Projects.Core.Repository do
   # Modules
   @behaviour __MODULE__.Behaviour
+  alias Glossia.Foundation.Database.Core.Repo
   alias Glossia.Foundation.Projects.Core.Models.Project
   alias Glossia.Foundation.Accounts.Core.User
   # alias Glossia.Foundation.Accounts.Core.OrganizationUser
@@ -14,7 +15,7 @@ defmodule Glossia.Foundation.Projects.Core.Repository do
       * `user` - The user to get the default project for
   """
   @spec get_user_default_project(User.t()) :: Project.t() | nil
-  def get_user_default_project(user) do
+  def get_user_default_project(_user) do
     # user_accounts =
     #   from(a in Accounts,
     #     join: o in Organization,
@@ -32,7 +33,13 @@ defmodule Glossia.Foundation.Projects.Core.Repository do
     # 2. Fetch the user's account
   end
 
+  @spec update_last_visited_project_for_user(User.t(), Project.t()) :: User.t()
+  def update_last_visited_project_for_user(user, project) do
+    Repo.update!(user |> Ecto.Changeset.cast(%{last_visited_project_id: project.id}, [:last_visited_project_id]))
+  end
+
   defmodule Behaviour do
     @callback get_user_default_project(User.t()) :: Project.t() | nil
+    @callback update_last_visited_project_for_user(User.t(), Project.t()) :: User.t()
   end
 end
