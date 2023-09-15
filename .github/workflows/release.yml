@@ -84,7 +84,7 @@ jobs:
           context: .
           push: true
           build-args: "GLOSSIA_PLAN=enterprise"
-          tags: "glossia/enterprise:latest,glossia/enterprise:${{ needs.pre-release.outputs.version }}"
+          tags: "${{env.REGISTRY}}/glossia/enterprise:latest,${{env.REGISTRY}}/glossia/enterprise:${{ needs.pre-release.outputs.version }}"
           labels: "enterprise"
   build_and_push_community:
     needs: pre-release
@@ -108,7 +108,7 @@ jobs:
           context: .
           push: true
           build-args: "GLOSSIA_PLAN=community"
-          tags: "glossia/enterprise:latest,glossia/community:${{ needs.pre-release.outputs.version }}"
+          tags: "${{env.REGISTRY}}/glossia/enterprise:latest,${{env.REGISTRY}}/glossia/community:${{ needs.pre-release.outputs.version }}"
           labels: "community"
 
   publish:
