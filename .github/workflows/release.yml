@@ -57,6 +57,11 @@ jobs:
         with:
           latest-version: ${{ steps.semvers.outputs.version }}
           release-notes: ${{ steps.changelog.outputs.changelog }}
+      - name: Commit
+        id: auto-commit-action
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "[Release] Release ${{ steps.semvers.outputs.version }}"
   build_and_push_enterprise:
     needs: pre-release
     name: Build Enterprise image
@@ -119,12 +124,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        ref: ${{ github.head_ref }}
-    - name: Commit
-      id: auto-commit-action
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: "[Release] Glossia ${{ needs.pre-release.outputs.version }}"
+        ref: ${{ needs.pre-release.outputs.commit_hash }}
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
