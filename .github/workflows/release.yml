@@ -6,11 +6,9 @@ on:
       version:
         description: Custom version for the release (ex. x.x.x), if not specified, next minor.
         required: false
-      publish:
-        description: Should publish?
-        required: false
-        type: boolean
-        default: true
+  schedule:
+    # Every Monday at 11:00
+    - cron: '0 10 * * 1'
 
 env:
   REGISTRY: ghcr.io
@@ -107,36 +105,18 @@ jobs:
           tags: "glossia/enterprise:latest,glossia/community:${{ needs.pre-release.outputs.version }}"
           labels: "community"
 
-  # publish:
-  #   runs-on: macos-13
-  #   needs: pre-release
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       ref: ${{ needs.pre-release.outputs.commit_hash }}
-  #   - uses: ruby/setup-ruby@v1
-  #     with:
-  #       ruby-version: ${{ env.RUBY_VERSION }}
-  #   - uses: actions/cache@v3
-  #     with:
-  #       path: vendor/bundle
-  #       key: ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-${{ hashFiles('Gemfile.lock') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-
-  #   - name: Bundle install
-  #     run: |
-  #       bundle config path vendor/bundle
-  #       bundle install --jobs 4 --retry 3
-  #   - name: Fourier release
-  #     if: ${{ github.event.inputs.publish == 'true' }}
-  #     run: ./fourier release tuist ${{ needs.pre-release.outputs.version }} $(cat .xcode-version) $(cat .xcode-version-libraries)
-  #   - name: Create GitHub Release
-  #     if: ${{ github.event.inputs.publish == 'true' }}
-  #     uses: softprops/action-gh-release@v1
-  #     with:
-  #       token: ${{ secrets.GH_RELEASE_TOKEN }}
-  #       files: build/*
-  #       name: ${{ needs.pre-release.outputs.version }}
-  #       tag_name: ${{ needs.pre-release.outputs.version }}
-  #       body: ${{ needs.pre-release.outputs.changelog }}
-  #       target_commitish: ${{ needs.pre-release.outputs.commit_hash }}
+  publish:
+    runs-on: ubuntu-latest
+    needs: [pre-release, build_and_push_community, build_and_push_enterprise]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.pre-release.outputs.commit_hash }}
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: ${{ needs.pre-release.outputs.version }}
+        tag_name: ${{ needs.pre-release.outputs.version }}
+        body: ${{ needs.pre-release.outputs.changelog }}
+        target_commitish: ${{ needs.pre-release.outputs.commit_hash }}
