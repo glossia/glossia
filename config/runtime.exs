@@ -123,23 +123,29 @@ if config_env() == :prod do
     config :posthog, api_url: posthog_api_url, api_key: posthog_api_key
   end
 
-
   # App Signal
-  appsignal_api_key =  env!("APP_SIGNAL_PUSH_API_KEY", :string, "")
+  appsignal_api_key = env!("APP_SIGNAL_PUSH_API_KEY", :string, "")
+
   if appsignal_api_key != "" do
     config :appsignal, :config,
       otp_app: :glossia,
       name: "glossia",
-      push_api_key:,
-      env: :prod
+      push_api_key: appsignal_api_key,
+      env: :prod,
+      active: true
+  end
+
+  appsignal_builder_api_key = env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
+
+  if appsignal_builder_api_key != "" do
+    config :glossia, app_signal_builder_api_key: env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
   end
 
   # Glossia Production Variables
   config :glossia,
     google_application_credentials_json_base_64:
       env!("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE_64", :string, ""),
-    google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, ""),
-    app_signal_builder_api_key: env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
+    google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, "")
 end
 
 # Glossia

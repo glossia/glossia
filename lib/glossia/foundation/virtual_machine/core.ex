@@ -224,12 +224,22 @@ defmodule Glossia.Foundation.VirtualMachine.Core do
 
   @spec get_docker_env_variables() :: map()
   defp get_docker_env_variables() do
-    %{
+    variables = %{
       GLOSSIA_ENV: "production",
       GLOSSIA_URL: Application.get_env(:glossia, :url),
-      GLOSSIA_API_KEY: Application.get_env(:glossia, :builder_api_key),
-      GLOSSIA_APP_SIGNAL_API_KEY: Application.get_env(:glossia, :app_signal_builder_api_key)
+      GLOSSIA_API_KEY: Application.get_env(:glossia, :builder_api_key)
     }
+
+    app_signal_builder_api_key = Application.get_env(:glossia, :app_signal_builder_api_key)
+
+    if app_signal_builder_api_key do
+      variables
+      |> Map.merge(%{
+        GLOSSIA_APP_SIGNAL_API_KEY: Application.get_env(:glossia, :app_signal_builder_api_key)
+      })
+    else
+      variables
+    end
   end
 
   @spec get_deno_args(attrs :: [env: map()]) :: [String.t()]
