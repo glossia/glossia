@@ -7,7 +7,7 @@ module.exports = {
   content: [
     "../js/**/*.js",
     "../lib/glossia/features/cloud/marketing/web/**",
-    "../lib/glossia/web/controllers/error_html/*",
+    "../lib/glossia/foundation/application/web/controllers/error_html/*",
   ],
   theme: {
     fontSize: {
