@@ -10,7 +10,7 @@ Traditionally, teams faced a tough choice: pay a premium for human translation o
 
 ## Why now
 
-At Glossia, we envision our role analogous to what compilers do for computers. Compilers translate code into binaries, transforming intricate webs of dependencies and relationships into optimized versions for specific platforms. Similarly, Glossia deciphers language, but with a unique twist.
+At Glossia, we envision our role analogous to what [compilers](https://community.glossia.ai/t/building-a-languages-compiler/22) do for computers. Compilers translate code into binaries, transforming intricate webs of dependencies and relationships into optimized versions for specific platforms. Similarly, Glossia deciphers language, but with a unique twist.
 
 While compilers approach code with strict logic, translating human languages isn't as straightforward. Unlike the precise rules in coding, spoken and written languages brim with cultural nuances and linguistic subtleties that often defy conventional logic. However, the advent of AI has been revolutionary. For the first time, we possess technology that can grasp these linguistic intricacies, thanks to advanced models that are continually enriched by the feedback from linguistic experts. **With AI, a 'compiler' for human languages isn't just a dream—it's our reality.**
 
@@ -26,13 +26,44 @@ Now, turning our attention to tools like Google Translate and DeepL: while they 
 
 ## Open source
 
+Glossia stands as a proud testament to the [open-source](https://en.wikipedia.org/wiki/Open_source) ethos. For those rooted in the localization industry, our commitment to open source may seem unconventional, akin to generously sharing trade secrets. Yet, the broader software world has consistently debunked this notion. It's evident that much of today's cutting-edge innovation and the bedrock of our digital infrastructure stem from open-source endeavors.
+
+We posit that this very paradigm shift is overdue in the localization landscape, especially given the exciting emergence of Language Learning Models (LLMs) as a foundational technology. Open source isn't merely a distribution model; **it's a crucible for collaboration and diverse discourse.** Despite the rich diversity inherent in the localization industry, certain voices tend to dominate the narrative. Glossia aims to recalibrate this balance, offering a platform where myriad perspectives converge, and a community where everyone feels empowered to shape the future of localization.
+
+Our belief is twofold: open source not only **democratizes but also ignites inspiration.** We envision catalyzing a new wave of tools — tools that willingly unveil their APIs, ardently champion interoperability through standards, and embrace a culture of shared knowledge. In fostering such a collaborative ecosystem, we anticipate benefits that ripple across the sector, ushering in an era where localization tools parallel the quality and dynamism characteristic of today's best software solutions.
+
 ## Plans
 
+Contrary to popular belief, open source doesn't equate to 'free of charge'. Maintaining and advancing Glossia demands full-time dedication, and that requires resources – both to compensate our dedicated team and to sustain the infrastructure that powers the software. To support these needs, we've crafted a range of plans aimed at ensuring the continued growth and vitality of the project. The best plan for you will hinge on your specific requirements, but we're confident there's an option that aligns with your organization's needs. For clarity, here's a comparison table to guide your choice:
 
-## Next steps
+| Feature              | Status    | Community               | Cloud                     | Enterprise                      |
+| -------------------- | --------- | ----------------------- | ------------------------- | ------------------------------- |
+| **Hosting**          | Available | You                     | Us                        | You                             |
+| **LLMs**             |           |                         |                           |                                 |
+| OpenAI ChatGPT       | Available | ✅                      | ✅                        | ✅                              |
+| Azure ChatGPT        | Planned   | ◻️                      | ✅                        | ✅                              |
+| **Content Sources**  |           |                         |                           |                                 |
+| GitHub               | Available | ✅                      | ✅                        | ✅                              |
+| GitLab               | Planned   | ◻️                      | ✅                        | ✅                              |
+| Figma                | Planned   | ◻️                      | ✅                        | ✅                              |
+| Shopify Store        | Planned   | ◻️                      | ✅                        | ✅                              |
+| **Authentication**   |           |                         |                           |                                 |
+| Email                | Available | ✅                      | ✅                        | ✅                              |
+| GitHub               | Available | ◻️                      | ✅                        | ✅                              |
+| SAML SSO (e.g. Okta) | Planned   | ◻️                      | ◻️                        | ✅                              |
+| **Access control**   | Planned   | Simple                  | Role-based                | Role-based                      |
+| **Apps**             |           |                         |                           |                                 |
+| REST API             | Planned   | ◻️                      | ✅                        | ✅                              |
+| Webhooks             | Planned   | ◻️                      | ✅                        | ✅                              |
+| **Support**          |           | Low-priority via GitHub | Medium-priority via Email | High priority via Slack Connect |
+| **Legal terms**      |           | Fixed                   | Fixed                     | Custom                          |
 
+<br/>
 
+> ### Note about enterprise
+>
+> The enterprise plan operates under a specific license that necessitates a separate agreement. For details, kindly reach out to us at [enterprise@glossia.ai](mailto:enterprise@glossia.ai). Unauthorized hosting of the enterprise version is prohibited, and we will pursue legal remedies if necessary.
 
+## What's next
 
-
-
+The subsequent steps depend on your chosen plan. For the Cloud plan, simply sign up on [Glossia](https://glossia.ai) and start your first project. If you've opted for the Enterprise or Community plans, we advise you to consult the [self-hosting guide](./self-host-glossia.md) and follow its instructions.
