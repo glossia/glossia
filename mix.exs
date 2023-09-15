@@ -55,7 +55,7 @@ defmodule Glossia.MixProject do
       {:gettext, "~> 0.23"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:oban, "~> 2.14"},
+      {:oban, "2.15.4"},
       {:dotenvy, "~> 0.8.0"},
       {:ueberauth, "~> 0.10.5"},
       {:ueberauth_github, "~> 0.8"},
@@ -90,9 +90,9 @@ defmodule Glossia.MixProject do
       {:primer_live, "~> 0.5"},
       {:ecto_erd, "~> 0.5", only: :dev}
     ]
-
     case plan() do
-      :cloud -> dependencies ++ [{:oban_web, "~> 2.10.0-rc.2", repo: "oban"}]
+      :cloud ->
+        dependencies ++ [{:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true}]
       _ -> dependencies
     end
   end

@@ -38,17 +38,18 @@ RUN mix local.hex --force && \
 # set build ENV
 ENV MIX_ENV="prod"
 
-# Add Oban Web repository
-RUN if [ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ] && [ -n "$OBAN_WEB_AUTH_KEY" ]; then \
-      mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY; \
-    fi
-
 #fetch-public-key
 #auth-key
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
-RUN mix deps.get --only $MIX_ENV
+
+# Docker setup
+COPY scripts/docker-setup.sh ./scripts/docker-setup.sh
+RUN ./scripts/docker-setup.sh
+
+# We need to remove the Oban repo from the lockfile, otherwise it causes mix deps.get to fail
+RUN GLOSSIA_PLAN=$GLOSSIA_PLAN mix deps.get --only $MIX_ENV
 RUN mkdir config
 
 # copy compile-time config files before we compile dependencies
@@ -56,20 +57,8 @@ RUN mkdir config
 # to be re-compiled.
 COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
-
 COPY priv priv
-
 COPY lib lib
-
-# Community doesn't legally have access to the enterprise features.
-RUN if [ -n "$GLOSSIA_PLAN" = "community" ]; then \
-        rm -rf lib/glossia/features/enterprise \
-    fi
-# Neither enteprise nor community should have the marketing features.
-RUN if if [ "$GLOSSIA_PLAN" = "community" ] && [ "$GLOSSIA_PLAN" = "enterprise" ]; then \
-        rm -rf lib/glossia/features/marketing \
-    fi
-
 COPY assets assets
 
 # compile assets
