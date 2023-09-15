@@ -83,3 +83,65 @@ jobs:
       - run: mix deps.get
 
       - run: mix credo
+  # There are some issues to be addressed before it can be enabled
+  # dialyzer:
+  #   name: Dialyzer
+  #   runs-on: 'ubuntu-latest'
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+
+  #     - uses: erlef/setup-elixir@v1
+  #       with:
+  #         otp-version: ${{ env.OTP_VERSION }}
+  #         elixir-version: ${{ env.ELIXIR_VERSION }}
+
+  #     - name: Restore Cache
+  #       uses: actions/cache@v3
+  #       id: mix-cache
+  #       with:
+  #         path: |
+  #           deps
+  #           _build
+  #           _site
+  #         key: mix-${{ hashFiles('mix.lock') }}
+
+  #     - name: Add Oban Web repository
+  #       run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
+
+  #     - run: mix deps.get
+
+  #     - run: mix dialyzer
+  community_dry_run:
+    name: Community Image Dry Run
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.6
+        with:
+          key: docker-community-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia --build-arg GLOSSIA_PLAN=community
+  enterprise_dry_run:
+    name: Enterprise Image Dry Run
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.6
+        with:
+          key: docker-enterprise-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia --build-arg GLOSSIA_PLAN=enterprise
+  cloud_dry_run:
+    name: Cloud Image Dry Run
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.6
+        with:
+          key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia --build-arg GLOSSIA_PLAN=cloud --build-arg OBAN_WEB_FETCH_PUBLIC_KEY=${{env.OBAN_WEB_FETCH_PUBLIC_KEY}} --build-arg OBAN_WEB_AUTH_KEY=${{env.OBAN_WEB_AUTH_KEY}}
