@@ -1,9 +1,9 @@
-defmodule Glossia.Features.Marketing.Web.Helpers do
+defmodule Glossia.Features.Cloud.Marketing.Web.Helpers do
   def controller do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json, :xml],
-        layouts: [html: {Glossia.Features.Marketing.Web.Layouts, :base}]
+        layouts: [html: {Glossia.Features.Cloud.Marketing.Web.Layouts, :base}]
 
       unquote(Glossia.Foundation.Application.Web.Helpers.Shared.controller())
     end
@@ -22,7 +22,7 @@ defmodule Glossia.Features.Marketing.Web.Helpers do
       unquote(Glossia.Foundation.Application.Web.Helpers.Shared.html())
 
       import Glossia.Foundation.Application.Web.Components.Shared
-      import Glossia.Features.Marketing.Web.Components
+      import Glossia.Features.Cloud.Marketing.Web.Components
 
       unquote(Glossia.Foundation.Application.Web.Helpers.Shared.verified_routes())
     end

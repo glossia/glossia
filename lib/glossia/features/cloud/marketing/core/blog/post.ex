@@ -1,4 +1,4 @@
-defmodule Glossia.Features.Marketing.Core.Blog.Post do
+defmodule Glossia.Features.Cloud.Marketing.Core.Blog.Post do
   @moduledoc """
   A struct that represents a blog post.
   """

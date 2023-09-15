@@ -1,6 +1,6 @@
-defmodule Glossia.Features.Marketing.Web.Controllers.MarketingHTML do
+defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingHTML do
   use Glossia.Foundation.Application.Web.Helpers.App, :html
-  use Glossia.Features.Marketing.Web.Helpers, :html
+  use Glossia.Features.Cloud.Marketing.Web.Helpers, :html
 
   embed_templates "marketing_html/app/*", suffix: "_app"
   embed_templates "marketing_html/*"

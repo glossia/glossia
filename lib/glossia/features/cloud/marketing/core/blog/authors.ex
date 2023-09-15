@@ -1,5 +1,5 @@
-defmodule Glossia.Features.Marketing.Core.Blog.Authors do
-  alias Glossia.Features.Marketing.Core.Blog.Author
+defmodule Glossia.Features.Cloud.Marketing.Core.Blog.Authors do
+  alias Glossia.Features.Cloud.Marketing.Core.Blog.Author
 
   @moduledoc """
   An interface that provides all the authors

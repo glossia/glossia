@@ -1,5 +1,5 @@
-defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
-  use Glossia.Features.Marketing.Web.Helpers, :controller
+defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController do
+  use Glossia.Features.Cloud.Marketing.Web.Helpers, :controller
 
   def index(conn, _params) do
     if conn.assigns[:authenticated_user] do
@@ -15,16 +15,16 @@ defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
 
   def blog(conn, _params) do
     conn
-    |> assign(:posts, Glossia.Features.Marketing.Core.Blog.all_posts())
-    |> assign(:authors, Glossia.Features.Marketing.Core.Blog.all_authors())
+    |> assign(:posts, Glossia.Features.Cloud.Marketing.Core.Blog.all_posts())
+    |> assign(:authors, Glossia.Features.Cloud.Marketing.Core.Blog.all_authors())
     |> render(:blog)
   end
 
   def blog_post(%{request_path: slug} = conn, _params) do
-    post = Glossia.Features.Marketing.Core.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
+    post = Glossia.Features.Cloud.Marketing.Core.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
 
     author =
-      Glossia.Features.Marketing.Core.Blog.all_authors()
+      Glossia.Features.Cloud.Marketing.Core.Blog.all_authors()
       |> Enum.find(&(&1.id == String.to_atom(post.author_id)))
 
     conn
@@ -67,7 +67,7 @@ defmodule Glossia.Features.Marketing.Web.Controllers.MarketingController do
     %{title: title, description: description, language: language, base_url: base_url} =
       Application.fetch_env!(:glossia, :seo_metadata)
 
-    posts = Glossia.Features.Marketing.Core.Blog.all_posts()
+    posts = Glossia.Features.Cloud.Marketing.Core.Blog.all_posts()
     last_build_date = posts |> List.first() |> Map.get(:date)
 
     conn

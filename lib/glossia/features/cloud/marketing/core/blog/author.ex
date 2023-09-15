@@ -1,4 +1,4 @@
-defmodule Glossia.Features.Marketing.Core.Blog.Author do
+defmodule Glossia.Features.Cloud.Marketing.Core.Blog.Author do
   @moduledoc """
   A struct that represents a blog author.
   """
