@@ -12,56 +12,119 @@ on:
         type: boolean
         default: true
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
-  prepare-release:
-    name: Prepare release
+  pre-release:
+    name: Release preparation
     runs-on: ubuntu-latest
     permissions:
-        contents: write
+      contents: write
     outputs:
       version: ${{ steps.semvers.outputs.version }}
       changelog: ${{ steps.changelog.outputs.changelog }}
       commit_hash: ${{ steps.auto-commit-action.outputs.commit_hash }}
     steps:
-    - uses: actions/checkout@v3
-      with:
-        ref: ${{ github.head_ref }}
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    - name: 'Get Previous tag'
-      id: previoustag
-      uses: "WyriHaximus/github-action-get-previous-tag@v1"
-    - name: 'Get next minor version'
-      if: ${{ github.event.inputs.version == '' }}
-      id: calculated_semvers
-      uses: "WyriHaximus/github-action-next-semvers@v1"
-      with:
-        version: ${{ steps.previoustag.outputs.tag }}
-    - name: 'Set version'
-      run: echo '::set-output name=version::${{ steps.calculated_semvers.outputs.minor }}${{ github.event.inputs.version }}'
-      id: semvers
-    - name: Update version
-      run: |
-        sed -i 's/@version ".*"/@version \"${{ steps.semvers.outputs.version }}"/' mix.exs
-    - name: "Build Changelog"
-      id: changelog
-      uses: mikepenz/release-changelog-builder-action@v2
-      with:
-        configuration: ".github/changelog-configuration.json"
-        toTag: "main"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Update Changelog
-      uses: stefanzweifel/changelog-updater-action@v1
-      with:
-        latest-version: ${{ steps.semvers.outputs.version }}
-        release-notes: ${{ steps.changelog.outputs.changelog }}
-    - name: Commit
-      id: auto-commit-action
-      uses: stefanzweifel/git-auto-commit-action@v4
-      if: ${{ github.event.inputs.publish == 'true' }}
-      with:
-        commit_message: "[Release] Glossia ${{ steps.semvers.outputs.version }}"
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Get Previous tag"
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      - name: "Get next minor version"
+        if: ${{ github.event.inputs.version == '' }}
+        id: calculated_semvers
+        uses: "WyriHaximus/github-action-next-semvers@v1"
+        with:
+          version: ${{ steps.previoustag.outputs.tag }}
+      - name: "Set version"
+        run: echo '::set-output name=version::${{ steps.calculated_semvers.outputs.minor }}${{ github.event.inputs.version }}'
+        id: semvers
+      - name: Update version
+        run: |
+          sed -i 's/@version ".*"/@version \"${{ steps.semvers.outputs.version }}"/' mix.exs
+      - name: "Build Changelog"
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v2
+        with:
+          configuration: ".github/changelog-configuration.json"
+          toTag: "main"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update Changelog
+        uses: stefanzweifel/changelog-updater-action@v1
+        with:
+          latest-version: ${{ steps.semvers.outputs.version }}
+          release-notes: ${{ steps.changelog.outputs.changelog }}
+  build_and_push_enterprise:
+    needs: pre-release
+    name: Build Enterprise image
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/glossia/enterprise
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: "GLOSSIA_PLAN=enterprise"
+          tags: "glossia/enterprise:latest,glossia/enterprise:${{ needs.prepare-release.outputs.version }}"
+          labels: "enterprise"
+  build_and_push_community:
+    needs: pre-release
+    name: Build Community image
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: "GLOSSIA_PLAN=community"
+          tags: "glossia/enterprise:latest,glossia/community:${{ needs.prepare-release.outputs.version }}"
+          labels: "community"
+
+  # build_community:
+  #   name: Build Community image
+  #   runs-on: 'ubuntu-latest'
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+  #     - name: Cache Docker images.
+  #       uses: ScribeMD/docker-cache@0.3.6
+  #       with:
+  #         key: docker-enterprise-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+  #     - run: docker build . -t glossia --build-arg GLOSSIA_PLAN=enterprise
+
+    #   - name: Commit
+    #     id: auto-commit-action
+    #     uses: stefanzweifel/git-auto-commit-action@v4
+    #     if: ${{ github.event.inputs.publish == 'true' }}
+    #     with:
+    #       commit_message: "[Release] Glossia ${{ steps.semvers.outputs.version }}"
 #   release:
 #     runs-on: macos-13
 #     needs: prepare-release
