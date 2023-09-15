@@ -116,9 +116,13 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 
-  config :posthog,
-    api_url: env!("POSTHOG_API_URL", :string),
-    api_key: env!("POSTHOG_API_KEY", :string)
+  posthog_api_url = env!("POSTHOG_API_URL", :string, "")
+  posthog_api_key = env!("POSTHOG_API_KEY", :string, "")
+
+  if posthog_api_url != "" && posthog_api_key != "" do
+    config :posthog, api_url: posthog_api_url, api_key: posthog_api_key
+  end
+
 
   # App Signal
   config :appsignal, :config,

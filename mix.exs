@@ -60,7 +60,6 @@ defmodule Glossia.MixProject do
       {:ueberauth, "~> 0.10.5"},
       {:ueberauth_github, "~> 0.8"},
       {:tentacat, "~> 2.2"},
-      {:posthog, "~> 0.1"},
       {:nimble_publisher, "~> 1.0.0"},
       {:makeup_elixir, "~> 0.16.0"},
       {:makeup_erlang, "~> 0.1.0"},
@@ -92,7 +91,10 @@ defmodule Glossia.MixProject do
     ]
     case plan() do
       :cloud ->
-        dependencies ++ [{:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true}]
+        dependencies ++ [
+          {:posthog, "~> 0.1"},
+          {:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true}
+        ]
       _ -> dependencies
     end
   end
