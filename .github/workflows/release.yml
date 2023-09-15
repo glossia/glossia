@@ -80,7 +80,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@6dfb6f1404065e66f9af1a56a7d39ad09efaaf9a
         with:
           images: ${{ env.REGISTRY }}/glossia/enterprise
       - name: Build and push
