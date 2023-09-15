@@ -34,11 +34,30 @@ Our belief is twofold: open source not only **democratizes but also ignites insp
 
 ## Plans
 
+Contrary to popular belief, open source doesn't equate to 'free of charge'. Maintaining and advancing Glossia demands full-time dedication, and that requires resources – both to compensate our dedicated team and to sustain the infrastructure that powers the software. To support these needs, we've crafted a range of plans aimed at ensuring the continued growth and vitality of the project. The best plan for you will hinge on your specific requirements, but we're confident there's an option that aligns with your organization's needs. For clarity, here's a comparison table to guide your choice:
 
-## Next steps
+| Feature            | Status | Community | Cloud | Enterprise |
+| ------------------ | --- | --------- | ----- | ---------- |
+| Self-hosting       | Available | ✅        | ◻️    | ✅         |
+| **LLMs**           | |           |       |            |
+| OpenAI ChatGPT     | Available | ✅        | ✅    | ✅         |
+| Azure ChatGPT      | Planned | ◻️        | ✅    | ✅         |
+| **Content Sources**  |         |           |       |            |
+| GitHub     | Available | ✅        | ✅    | ✅         |
+| GitLab     | Planned | ◻️        | ✅    | ✅         |
+| Figma      | Planned | ◻️        | ✅    | ✅         |
+| Shopify Store      | Planned | ◻️        | ✅    | ✅         |
+| **Authentication** | |           |       |            |
+| Email | Available | ✅ | ✅ | ✅ |
+| GitHub | Available | ◻️ | ✅ | ✅ |
+| SAML SSO (e.g. Okta) | Planned | ◻️ | ◻️ | ✅ |
+| **Access control** | Planned | Simple | Role-based | Role-based |
+| **Apps** |  | | |  |
+| REST API | Planned | ◻️ | ◻️ | ✅ |
+| Webhooks | Planned | ◻️ | ◻️ | ✅ |
+| **Support** | | Low-priority via GitHub | Medium-priority via Email | High priority via Slack Connect |
+| **Legal terms** | | Fixed | Fixed | Custom |
 
-
-
-
-
+> ### Note about enterprise
+> The enterprise plan operates under a specific license that necessitates a separate agreement. For details, kindly reach out to us at [enterprise@glossia.ai](mailto:enterprise@glossia.ai). Unauthorized hosting of the enterprise version is prohibited, and we will pursue legal remedies if necessary.
 
