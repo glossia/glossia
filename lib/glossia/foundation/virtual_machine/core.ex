@@ -226,8 +226,7 @@ defmodule Glossia.Foundation.VirtualMachine.Core do
   defp get_docker_env_variables() do
     variables = %{
       GLOSSIA_ENV: "production",
-      GLOSSIA_URL: Application.get_env(:glossia, :url),
-      GLOSSIA_API_KEY: Application.get_env(:glossia, :builder_api_key)
+      GLOSSIA_URL: Application.get_env(:glossia, :url)
     }
 
     app_signal_builder_api_key = Application.get_env(:glossia, :app_signal_builder_api_key)
@@ -254,7 +253,7 @@ defmodule Glossia.Foundation.VirtualMachine.Core do
     deno_allow_env_flags =
       (Enum.reduce(env, [], fn {k, _}, acc ->
          [Atom.to_string(k) | acc]
-       end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY", "GLOSSIA_API_KEY", "GITHUB_TOKEN"])
+       end) ++ ["GLOSSIA_URL", "GLOSSIA_APP_SIGNAL_API_KEY", "GITHUB_TOKEN"])
       |> Enum.join(",")
 
     [
