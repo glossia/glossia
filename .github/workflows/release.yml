@@ -16,6 +16,8 @@ jobs:
   prepare-release:
     name: Prepare release
     runs-on: ubuntu-latest
+    permissions:
+        contents: write
     outputs:
       version: ${{ steps.semvers.outputs.version }}
       changelog: ${{ steps.changelog.outputs.changelog }}
