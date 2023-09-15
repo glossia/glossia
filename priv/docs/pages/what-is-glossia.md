@@ -26,6 +26,12 @@ Now, turning our attention to tools like Google Translate and DeepL: while they 
 
 ## Open source
 
+Glossia stands as a proud testament to the [open-source](https://en.wikipedia.org/wiki/Open_source) ethos. For those rooted in the localization industry, our commitment to open source may seem unconventional, akin to generously sharing trade secrets. Yet, the broader software world has consistently debunked this notion. It's evident that much of today's cutting-edge innovation and the bedrock of our digital infrastructure stem from open-source endeavors.
+
+We posit that this very paradigm shift is overdue in the localization landscape, especially given the exciting emergence of Language Learning Models (LLMs) as a foundational technology. Open source isn't merely a distribution model; **it's a crucible for collaboration and diverse discourse.** Despite the rich diversity inherent in the localization industry, certain voices tend to dominate the narrative. Glossia aims to recalibrate this balance, offering a platform where myriad perspectives converge, and a community where everyone feels empowered to shape the future of localization.
+
+Our belief is twofold: open source not only **democratizes but also ignites inspiration.** We envision catalyzing a new wave of tools — tools that willingly unveil their APIs, ardently champion interoperability through standards, and embrace a culture of shared knowledge. In fostering such a collaborative ecosystem, we anticipate benefits that ripple across the sector, ushering in an era where localization tools parallel the quality and dynamism characteristic of today's best software solutions.
+
 ## Plans
 
 
