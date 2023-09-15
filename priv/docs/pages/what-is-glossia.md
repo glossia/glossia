@@ -38,7 +38,7 @@ Contrary to popular belief, open source doesn't equate to 'free of charge'. Main
 
 | Feature              | Status    | Community               | Cloud                     | Enterprise                      |
 | -------------------- | --------- | ----------------------- | ------------------------- | ------------------------------- |
-| **Hosting**          | Available |          You               | Us                        | You                              |
+| **Hosting**          | Available | You                     | Us                        | You                             |
 | **LLMs**             |           |                         |                           |                                 |
 | OpenAI ChatGPT       | Available | ✅                      | ✅                        | ✅                              |
 | Azure ChatGPT        | Planned   | ◻️                      | ✅                        | ✅                              |
