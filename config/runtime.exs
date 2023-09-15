@@ -160,7 +160,7 @@ config :glossia,
   github_app_webhooks_secret: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, ""),
   github_app_id: env!("GITHUB_APP_ID", :string, ""),
   github_app_bot_user: env!("GITHUB_APP_BOT_USER", :string, ""),
-  url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000"),
+  url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000")
 
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
