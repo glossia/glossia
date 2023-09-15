@@ -119,7 +119,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        ref: ${{ needs.pre-release.outputs.commit_hash }}
+        ref: ${{ github.head_ref }}
+    - name: Commit
+      id: auto-commit-action
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "[Release] Glossia ${{ needs.pre-release.outputs.version }}"
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
