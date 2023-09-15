@@ -24,7 +24,7 @@ jobs:
       changelog: ${{ steps.changelog.outputs.changelog }}
       commit_hash: ${{ steps.auto-commit-action.outputs.commit_hash }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
@@ -123,7 +123,7 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         ref: ${{ needs.pre-release.outputs.commit_hash }}
     - name: Create GitHub Release
