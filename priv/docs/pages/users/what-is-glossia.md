@@ -47,7 +47,7 @@ Contrary to popular belief, open source doesn't equate to 'free of charge'. Main
 | GitLab               | Planned   | ◻️                      | ✅                        | ✅                              |
 | Figma                | Planned   | ◻️                      | ✅                        | ✅                              |
 | Shopify Store        | Planned   | ◻️                      | ✅                        | ✅                              |
-| **Fine-tuning**   |           |                         |                           |                                 |
+| **Human in-the-loop**   |           |                         |                           |                                 |
 | Glossary | Planned | ◻️                      | ✅                        | ✅                              |
 | Context graph | Planned | ◻️                      | ✅                        | ✅                              |
 | **Authentication**   |           |                         |                           |                                 |
