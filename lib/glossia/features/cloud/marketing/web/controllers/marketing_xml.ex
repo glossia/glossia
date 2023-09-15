@@ -1,4 +1,4 @@
-defmodule Glossia.Features.Marketing.Web.Controllers.MarketingXML do
+defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingXML do
   use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
   use Phoenix.Component
 

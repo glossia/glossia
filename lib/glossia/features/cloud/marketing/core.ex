@@ -1,4 +1,4 @@
-defmodule Glossia.Features.Marketing.Core do
+defmodule Glossia.Features.Cloud.Marketing.Core do
   use Boundary,
     exports: [
       Blog,

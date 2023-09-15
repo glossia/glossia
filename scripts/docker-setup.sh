@@ -17,8 +17,8 @@ fi
 
 # Neither enteprise nor community should have the marketing features.
 if [ "$GLOSSIA_PLAN" = "community" ] || [ "$GLOSSIA_PLAN" = "enterprise" ]; then 
-    echo "Deleting marketing features";
-    rm -rf lib/glossia/features/marketing; 
+    echo "Deleting cloud features";
+    rm -rf lib/glossia/features/cloud; 
 fi
 
 if [ "$GLOSSIA_PLAN" = "cloud" ] && [ -n "$OBAN_WEB_FETCH_PUBLIC_KEY" ] && [ -n "$OBAN_WEB_AUTH_KEY" ]; then 
