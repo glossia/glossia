@@ -7,6 +7,7 @@ This directory is a temporary home for Glossia's documentation until we build a 
 ### Users
 
 - [What is Glossia](./pages/users/what-is-glossia.md)
+- [Self-host Glossia](./pages/users/self-host-glossia.md)
 
 ### Contributors
 
