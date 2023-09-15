@@ -60,14 +60,11 @@ defmodule Glossia.MixProject do
       {:ueberauth, "~> 0.10.5"},
       {:ueberauth_github, "~> 0.8"},
       {:tentacat, "~> 2.2"},
-      {:posthog, "~> 0.1"},
       {:nimble_publisher, "~> 1.0.0"},
       {:makeup_elixir, "~> 0.16.0"},
       {:makeup_erlang, "~> 0.1.0"},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.6.0"},
-      {:appsignal, "~> 2.0"},
-      {:appsignal_phoenix, "~> 2.0"},
       {:plug_attack, "~> 0.4.2"},
       {:remote_ip, "1.1.0"},
       {:ex_json_schema, "~> 0.10.0"},
@@ -90,10 +87,19 @@ defmodule Glossia.MixProject do
       {:primer_live, "~> 0.5"},
       {:ecto_erd, "~> 0.5", only: :dev}
     ]
+
     case plan() do
       :cloud ->
-        dependencies ++ [{:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true}]
-      _ -> dependencies
+        dependencies ++
+          [
+            {:posthog, "~> 0.1"},
+            {:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true},
+            {:appsignal, "~> 2.0"},
+            {:appsignal_phoenix, "~> 2.0"}
+          ]
+
+      _ ->
+        dependencies
     end
   end
 

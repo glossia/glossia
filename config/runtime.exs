@@ -116,23 +116,36 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 
-  config :posthog,
-    api_url: env!("POSTHOG_API_URL", :string),
-    api_key: env!("POSTHOG_API_KEY", :string)
+  posthog_api_url = env!("POSTHOG_API_URL", :string, "")
+  posthog_api_key = env!("POSTHOG_API_KEY", :string, "")
+
+  if posthog_api_url != "" && posthog_api_key != "" do
+    config :posthog, api_url: posthog_api_url, api_key: posthog_api_key
+  end
 
   # App Signal
-  config :appsignal, :config,
-    otp_app: :glossia,
-    name: "glossia",
-    push_api_key: env!("APP_SIGNAL_PUSH_API_KEY", :string),
-    env: :prod
+  appsignal_api_key = env!("APP_SIGNAL_PUSH_API_KEY", :string, "")
+
+  if appsignal_api_key != "" do
+    config :appsignal, :config,
+      otp_app: :glossia,
+      name: "glossia",
+      push_api_key: appsignal_api_key,
+      env: :prod,
+      active: true
+  end
+
+  appsignal_builder_api_key = env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
+
+  if appsignal_builder_api_key != "" do
+    config :glossia, app_signal_builder_api_key: env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
+  end
 
   # Glossia Production Variables
   config :glossia,
     google_application_credentials_json_base_64:
       env!("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE_64", :string, ""),
-    google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, ""),
-    app_signal_builder_api_key: env!("APP_SIGNAL_BUILDER_API_KEY", :string, "")
+    google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, "")
 end
 
 # Glossia
@@ -140,7 +153,6 @@ config :glossia,
   github_app_webhooks_secret: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, ""),
   github_app_id: env!("GITHUB_APP_ID", :string, ""),
   github_app_bot_user: env!("GITHUB_APP_BOT_USER", :string, ""),
-  builder_api_key: env!("BUILDER_API_KEY", :string, ""),
   url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000"),
   openai_chatgpt_secret_key: env!("OPENAI_CHATGPT_SECRET_KEY", :string, "")
 
