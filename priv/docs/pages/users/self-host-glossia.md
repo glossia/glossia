@@ -27,6 +27,18 @@ To configure Glossia, utilize the environment variables listed below. Keep in mi
 | --- | --- | --- | --- | --- |
 | `DATABASE_URL` | The URL to the Postgres database | | Yes | | `postgres://{user}:{pass}@url.../dummy` |
 
+## Large language models
+
+One of the following large language models must be configured:
+
+| Environment variable | Description | Default value | Required | Example |
+| --- | --- | --- | --- | --- |
+| **OpenAI** | | | | |
+| `OPENAI_CHATGPT_SECRET_KEY` | The OpenAI ChatGPT Key | | | | `sk-CEISDMkDvyeXV0loTXAnT3Blbk444BVWf9kp6bupYJPZ2s5` |
+
+
+<br/>
+
 > **Note:** The above table is incomplete and we are working on bringing it up to date.
 
 ## Deployment
