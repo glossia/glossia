@@ -5,7 +5,8 @@
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
-      "automergeType": "pr"
+      "automergeType": "pr",
+      "labels": ["changelog:updated-dependencies"]
     }
   ]
 }
