@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Custom version for the release (ex. x.x.x), if not specified, next minor.
+        required: false
+      publish:
+        description: Should publish?
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semvers.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+      commit_hash: ${{ steps.auto-commit-action.outputs.commit_hash }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+        fetch-depth: 0
+        token: ${{ secrets.GH_RELEASE_TOKEN }}
+    - name: 'Get Previous tag'
+      id: previoustag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+    - name: 'Get next minor version'
+      if: ${{ github.event.inputs.version == '' }}
+      id: calculated_semvers
+      uses: "WyriHaximus/github-action-next-semvers@v1"
+      with:
+        version: ${{ steps.previoustag.outputs.tag }}
+    - name: 'Set version'
+      run: echo '::set-output name=version::${{ steps.calculated_semvers.outputs.minor }}${{ github.event.inputs.version }}'
+      id: semvers
+    - name: Update version
+      run: |
+        sed -i 's/@version ".*"/@version \"${{ steps.semvers.outputs.version }}"/' mix.exs
+    - name: "Build Changelog"
+      id: changelog
+      uses: mikepenz/release-changelog-builder-action@v2
+      with:
+        configuration: ".github/workflows/changelog-configuration.json"
+        toTag: "main"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Update Changelog
+      uses: stefanzweifel/changelog-updater-action@v1
+      with:
+        latest-version: ${{ steps.semvers.outputs.version }}
+        release-notes: ${{ steps.changelog.outputs.changelog }}
+    - name: Commit
+      id: auto-commit-action
+      uses: stefanzweifel/git-auto-commit-action@v4
+      if: ${{ github.event.inputs.publish == 'true' }}
+      with:
+        commit_message: "[Release] Glossia ${{ steps.semvers.outputs.version }}"
+#   release:
+#     runs-on: macos-13
+#     needs: prepare-release
+#     steps:
+#     - uses: actions/checkout@v3
+#       with:
+#         ref: ${{ needs.prepare-release.outputs.commit_hash }}
+#     - uses: ruby/setup-ruby@v1
+#       with:
+#         ruby-version: ${{ env.RUBY_VERSION }}
+#     - uses: actions/cache@v3
+#       with:
+#         path: vendor/bundle
+#         key: ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-${{ hashFiles('Gemfile.lock') }}
+#         restore-keys: |
+#           ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-
+#     - name: Bundle install
+#       run: |
+#         bundle config path vendor/bundle
+#         bundle install --jobs 4 --retry 3
+#     - name: Fourier release
+#       if: ${{ github.event.inputs.publish == 'true' }}
+#       run: ./fourier release tuist ${{ needs.prepare-release.outputs.version }} $(cat .xcode-version) $(cat .xcode-version-libraries)
+#     - name: Create GitHub Release
+#       if: ${{ github.event.inputs.publish == 'true' }}
+#       uses: softprops/action-gh-release@v1
+#       with:
+#         token: ${{ secrets.GH_RELEASE_TOKEN }}
+#         files: build/*
+#         name: ${{ needs.prepare-release.outputs.version }}
+#         tag_name: ${{ needs.prepare-release.outputs.version }}
+#         body: ${{ needs.prepare-release.outputs.changelog }}
+#         target_commitish: ${{ needs.prepare-release.outputs.commit_hash }}
