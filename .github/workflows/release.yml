@@ -83,7 +83,7 @@ jobs:
           context: .
           push: true
           build-args: "GLOSSIA_PLAN=enterprise"
-          tags: "glossia/enterprise:latest,glossia/enterprise:${{ needs.prepare-release.outputs.version }}"
+          tags: "glossia/enterprise:latest,glossia/enterprise:${{ needs.pre-release.outputs.version }}"
           labels: "enterprise"
   build_and_push_community:
     needs: pre-release
@@ -104,57 +104,39 @@ jobs:
           context: .
           push: true
           build-args: "GLOSSIA_PLAN=community"
-          tags: "glossia/enterprise:latest,glossia/community:${{ needs.prepare-release.outputs.version }}"
+          tags: "glossia/enterprise:latest,glossia/community:${{ needs.pre-release.outputs.version }}"
           labels: "community"
 
-  # build_community:
-  #   name: Build Community image
-  #   runs-on: 'ubuntu-latest'
-  #   timeout-minutes: 15
+  # publish:
+  #   runs-on: macos-13
+  #   needs: pre-release
   #   steps:
-  #     - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
-  #     - name: Cache Docker images.
-  #       uses: ScribeMD/docker-cache@0.3.6
-  #       with:
-  #         key: docker-enterprise-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
-  #     - run: docker build . -t glossia --build-arg GLOSSIA_PLAN=enterprise
-
-    #   - name: Commit
-    #     id: auto-commit-action
-    #     uses: stefanzweifel/git-auto-commit-action@v4
-    #     if: ${{ github.event.inputs.publish == 'true' }}
-    #     with:
-    #       commit_message: "[Release] Glossia ${{ steps.semvers.outputs.version }}"
-#   release:
-#     runs-on: macos-13
-#     needs: prepare-release
-#     steps:
-#     - uses: actions/checkout@v3
-#       with:
-#         ref: ${{ needs.prepare-release.outputs.commit_hash }}
-#     - uses: ruby/setup-ruby@v1
-#       with:
-#         ruby-version: ${{ env.RUBY_VERSION }}
-#     - uses: actions/cache@v3
-#       with:
-#         path: vendor/bundle
-#         key: ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-${{ hashFiles('Gemfile.lock') }}
-#         restore-keys: |
-#           ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-
-#     - name: Bundle install
-#       run: |
-#         bundle config path vendor/bundle
-#         bundle install --jobs 4 --retry 3
-#     - name: Fourier release
-#       if: ${{ github.event.inputs.publish == 'true' }}
-#       run: ./fourier release tuist ${{ needs.prepare-release.outputs.version }} $(cat .xcode-version) $(cat .xcode-version-libraries)
-#     - name: Create GitHub Release
-#       if: ${{ github.event.inputs.publish == 'true' }}
-#       uses: softprops/action-gh-release@v1
-#       with:
-#         token: ${{ secrets.GH_RELEASE_TOKEN }}
-#         files: build/*
-#         name: ${{ needs.prepare-release.outputs.version }}
-#         tag_name: ${{ needs.prepare-release.outputs.version }}
-#         body: ${{ needs.prepare-release.outputs.changelog }}
-#         target_commitish: ${{ needs.prepare-release.outputs.commit_hash }}
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       ref: ${{ needs.pre-release.outputs.commit_hash }}
+  #   - uses: ruby/setup-ruby@v1
+  #     with:
+  #       ruby-version: ${{ env.RUBY_VERSION }}
+  #   - uses: actions/cache@v3
+  #     with:
+  #       path: vendor/bundle
+  #       key: ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-${{ hashFiles('Gemfile.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.RUBY_VERSION }}-gems-
+  #   - name: Bundle install
+  #     run: |
+  #       bundle config path vendor/bundle
+  #       bundle install --jobs 4 --retry 3
+  #   - name: Fourier release
+  #     if: ${{ github.event.inputs.publish == 'true' }}
+  #     run: ./fourier release tuist ${{ needs.pre-release.outputs.version }} $(cat .xcode-version) $(cat .xcode-version-libraries)
+  #   - name: Create GitHub Release
+  #     if: ${{ github.event.inputs.publish == 'true' }}
+  #     uses: softprops/action-gh-release@v1
+  #     with:
+  #       token: ${{ secrets.GH_RELEASE_TOKEN }}
+  #       files: build/*
+  #       name: ${{ needs.pre-release.outputs.version }}
+  #       tag_name: ${{ needs.pre-release.outputs.version }}
+  #       body: ${{ needs.pre-release.outputs.changelog }}
+  #       target_commitish: ${{ needs.pre-release.outputs.commit_hash }}
