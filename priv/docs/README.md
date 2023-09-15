@@ -4,4 +4,10 @@ This directory is a temporary home for Glossia's documentation until we build a 
 
 ## Table of contents
 
-- [What is Glossia](./pages/what-is-glossia.md)
+### Users
+
+- [What is Glossia](./pages/users/what-is-glossia.md)
+
+### Contributors
+
+- [Resources](./pages/contributors/resources.md)
