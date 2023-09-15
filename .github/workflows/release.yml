@@ -39,7 +39,7 @@ jobs:
         with:
           version: ${{ steps.previoustag.outputs.tag }}
       - name: "Set version"
-        run: echo '::set-output name=version::${{ steps.calculated_semvers.outputs.minor }}${{ github.event.inputs.version }}'
+        run: echo "name=version::${{ steps.calculated_semvers.outputs.minor }}${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
         id: semvers
       - name: Update version
         run: |
