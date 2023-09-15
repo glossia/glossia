@@ -1,7 +1,7 @@
 import Config
 import Dotenvy
 
-source(["#{config_env()}.env", "#{config_env()}.override.env", ".env", System.get_env()])
+source([".env.#{config_env()}", "#{config_env()}.override.env", ".env", System.get_env()])
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -148,13 +148,19 @@ if config_env() == :prod do
     google_cloud_project_id: env!("GOOGLE_CLOUD_PROJECT_ID", :string, "")
 end
 
+openai_chatgpt_secret_key = env!("OPENAI_CHATGPT_SECRET_KEY", :string, "")
+if openai_chatgpt_secret_key == "" do
+  raise "The required environment variable OPENAI_CHATGPT_SECRET_KEY is missing."
+else
+  config :glossia, openai_chatgpt_secret_key: openai_chatgpt_secret_key
+end
+
 # Glossia
 config :glossia,
   github_app_webhooks_secret: env!("GITHUB_APP_WEBHOOKS_SECRET", :string, ""),
   github_app_id: env!("GITHUB_APP_ID", :string, ""),
   github_app_bot_user: env!("GITHUB_APP_BOT_USER", :string, ""),
-  url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000"),
-  openai_chatgpt_secret_key: env!("OPENAI_CHATGPT_SECRET_KEY", :string, "")
+  url: if(config_env() == :prod, do: "https://glossia.ai", else: "http://127.0.0.1:4000")
 
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: env!("GITHUB_APP_CLIENT_ID", :string, ""),
