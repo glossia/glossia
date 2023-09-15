@@ -65,8 +65,6 @@ defmodule Glossia.MixProject do
       {:makeup_erlang, "~> 0.1.0"},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.6.0"},
-      {:appsignal, "~> 2.0"},
-      {:appsignal_phoenix, "~> 2.0"},
       {:plug_attack, "~> 0.4.2"},
       {:remote_ip, "1.1.0"},
       {:ex_json_schema, "~> 0.10.0"},
@@ -93,7 +91,9 @@ defmodule Glossia.MixProject do
       :cloud ->
         dependencies ++ [
           {:posthog, "~> 0.1"},
-          {:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true}
+          {:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true},
+          {:appsignal, "~> 2.0"},
+          {:appsignal_phoenix, "~> 2.0"}
         ]
       _ -> dependencies
     end

@@ -125,11 +125,14 @@ if config_env() == :prod do
 
 
   # App Signal
-  config :appsignal, :config,
-    otp_app: :glossia,
-    name: "glossia",
-    push_api_key: env!("APP_SIGNAL_PUSH_API_KEY", :string),
-    env: :prod
+  appsignal_api_key =  env!("APP_SIGNAL_PUSH_API_KEY", :string, "")
+  if appsignal_api_key != "" do
+    config :appsignal, :config,
+      otp_app: :glossia,
+      name: "glossia",
+      push_api_key:,
+      env: :prod
+  end
 
   # Glossia Production Variables
   config :glossia,
