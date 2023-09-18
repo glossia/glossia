@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuthenticatedPlug do
+defmodule Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug do
   alias Glossia.Foundation.Accounts.Web.Helpers.Auth
 
   @moduledoc """
@@ -7,18 +7,12 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuth
   @spec init(Keyword.t()) :: Keyword.t()
   def init(options), do: options
 
-  @spec call(Plug.Conn.t(), term()) :: Plug.Conn.t()
+  @spec call(Conn.t(), term()) :: Conn.t()
   def call(
         %{request_path: "/"} = conn,
         _opts
       ) do
-    case Auth.authenticated_user(conn) do
-      nil ->
-        conn
 
-      _user ->
-        conn
-    end
   end
 
   def call(conn, _opts), do: conn

@@ -24,7 +24,6 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_and_track_authenticated_user
-    plug Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuthenticatedPlug
   end
 
   # Loads the project from the slug in the URL
@@ -125,6 +124,13 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :put_root_layout, html: {Glossia.Foundation.Application.Web.Layouts.App, :root}
   end
 
+  pipeline :app_project do
+    plug Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug
+    plug Glossia.Foundation.Projects.Web.Policies, {:show, :project}
+    plug Glossia.Foundation.Projects.Web.Plugs.RedirectToProjectIfNeededPlug
+    plug Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug
+  end
+
   scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
     pipe_through [:browser, :app]
 
@@ -134,6 +140,12 @@ defmodule Glossia.Foundation.Application.Web.Router do
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
+  end
+
+  scope "/" do
+    pipe_through [:browser, :app, :app_project]
+
+    get "/:owner_handle/:project_handle", Glossia.Foundation.Projects.Web.Controllers.ProjectController, :show
   end
 
   scope "/admin" do

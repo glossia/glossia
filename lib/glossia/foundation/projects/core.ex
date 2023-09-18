@@ -10,9 +10,33 @@ defmodule Glossia.Foundation.Projects.Core do
 
   # Modules
   require Logger
+  @behaviour __MODULE__.Behaviour
+  alias __MODULE__.Repository
   alias Glossia.Foundation.Database.Core.Repo
   alias Glossia.Foundation.Projects.Core.Models.{Project, ProjectToken}
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
+
+  @doc """
+  Given a user, it returns the project it should be redirected to when the user
+  navigates to "/" being authenticated.
+
+  ## Parameters
+
+        * `user` - The user.
+  """
+  @spec get_project_user_should_be_redirected_to(User.t()) :: Project.t() | nil
+  def get_project_user_should_be_redirected_to(user) do
+    case user.last_visited_project_id do
+      nil ->
+        Glossia.Foundation.Accounts.Core.get_user_and_organization_accounts(user)
+          |> Repository.get_account_projects()
+          |> List.first()
+      last_visited_project_id ->
+        Repository.get_project_by_id(last_visited_project_id)
+    end
+  end
+
+  defdelegate update_last_visited_project_for_user(user, project), to: Repository
 
   @doc """
   Given a git event, it processes it.
@@ -124,5 +148,10 @@ defmodule Glossia.Foundation.Projects.Core do
       {:error, _} ->
         nil
     end
+  end
+
+  defmodule Behaviour do
+    @callback get_project_user_should_be_redirected_to(User.t()) :: Project.t() | nil
+    @callback update_last_visited_project_for_user(User.t(), Project.t()) :: User.t()
   end
 end
