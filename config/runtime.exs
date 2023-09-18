@@ -149,6 +149,7 @@ if config_env() == :prod do
 end
 
 openai_chatgpt_secret_key = env!("OPENAI_CHATGPT_SECRET_KEY", :string, "")
+
 if openai_chatgpt_secret_key == "" do
   raise "The required environment variable OPENAI_CHATGPT_SECRET_KEY is missing."
 else

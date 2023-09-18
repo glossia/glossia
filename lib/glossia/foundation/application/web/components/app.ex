@@ -364,36 +364,29 @@ defmodule Glossia.Foundation.Application.Web.Components.App do
       <.button>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
-  attr :type, :string, default: nil
-  attr :class, :string, default: nil
-  attr :rest, :global, include: ~w(disabled form name value)
 
-  slot :inner_block, required: true
+  # attr :type, :string, default: nil
+  # attr :class, :string, default: nil
+  # attr :rest, :global, include: ~w(disabled form name value)
 
-  def button(assigns) do
-    ~H"""
-    <button
-      type={@type}
-      class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
-        @class
-      ]}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </button>
-    """
-  end
+  # slot :inner_block, required: true
 
-  @doc """
-  Renders a link button.
+  # def button(assigns) do
+  #   ~H"""
+  #   <button
+  #     type={@type}
+  #     class={[
+  #       "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
+  #       "text-sm font-semibold leading-6 text-white active:text-white/80",
+  #       @class
+  #     ]}
+  #     {@rest}
+  #   >
+  #     <%= render_slot(@inner_block) %>
+  #   </button>
+  #   """
+  # end
 
-  ## Examples
-
-      <.link_button>Send!</.link_button>
-      <.link_button phx-click="go" class="ml-2">Send!</.link_button>
-  """
   attr :class, :string, default: nil
   attr :href, :string, required: true
   attr :rest, :global, include: ~w(disabled form name value)
