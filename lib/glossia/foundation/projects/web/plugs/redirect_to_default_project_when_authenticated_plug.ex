@@ -7,7 +7,7 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuth
   @spec init(Keyword.t()) :: Keyword.t()
   def init(options), do: options
 
-  @spec call(Conn.t(), term()) :: Conn.t()
+  @spec call(Plug.Conn.t(), term()) :: Plug.Conn.t()
   def call(
         %{request_path: "/"} = conn,
         _opts
