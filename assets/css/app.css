@@ -1,5 +1,2 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
-
-/* This file is for your main application CSS */
+@import "https://unpkg.com/open-props";
+@import "../../lib/glossia/foundation/accounts/web/controllers/auth_html/login.css";

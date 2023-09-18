@@ -1,0 +1,14 @@
+.acc-Login {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--gray-0);
+}
+
+.acc-Login_Box {
+    margin: var(--size-1);
+    max-width: var(--size-15);
+}

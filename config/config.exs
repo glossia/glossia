@@ -53,18 +53,6 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
-# Configure tailwind (the version is required)
-config :tailwind,
-  version: "3.2.7",
-  app: [
-    args: ~w(
-      --config=tailwind.config.app.js
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
-    ),
-    cd: Path.expand("../assets", __DIR__)
-  ]
-
 config :tailwind,
   version: "3.2.7",
   marketing: [

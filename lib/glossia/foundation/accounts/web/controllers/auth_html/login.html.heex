@@ -1,7 +1,21 @@
-<div>
-  <h1>Authenticate</h1>
-  <p>You can authenticate with the following providers</p>
-  <a href={~p"/auth/github"}>
-    GitHub
-  </a>
+<div class="acc-Login">
+  <.box class="acc-Login_Box">
+    <:header_title>
+      Authenticate
+    </:header_title>
+    <:row>
+      <p>You can authenticate with the following providers</p>
+      <.button>
+        <.octicon name="mark-github-16" />
+        <span>Log in with GitHub</span>
+      </.button>
+
+      <div class="my-3">
+        <.alert state="warning">
+          Glossia's still cooking – some bites might be crunchy! 🍪
+          Got bugs? Buzz us on <a href="https://discord.gg/zqZxSBXKf8" target="_blank">Discord</a>! 🐞🎙️
+        </.alert>
+      </div>
+    </:row>
+  </.box>
 </div>
