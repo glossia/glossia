@@ -109,7 +109,9 @@ jobs:
       - name: Add Oban Web repository
         run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
 
-      - run: mix deps.get
+      - env:
+          MIX_ENV: dev
+        run: mix deps.get
 
       - env:
           MIX_ENV: dev

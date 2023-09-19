@@ -93,7 +93,7 @@ defmodule Glossia.MixProject do
         dependencies ++
           [
             {:posthog, "~> 0.1"},
-            {:oban_web, "~> 2.10.0-rc.2", repo: "oban", optional: true},
+            {:oban_web, "~> 2.10.0-rc.2", repo: "oban"},
             {:appsignal, "~> 2.0"},
             {:appsignal_phoenix, "~> 2.0"}
           ]
