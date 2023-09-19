@@ -6,7 +6,7 @@ defmodule Glossia.Foundation.Projects.Core do
       Glossia.Foundation.ContentSources.Core,
       Glossia.Foundation.Accounts.Core
     ],
-    exports: [Models.Project, Models.ProjectToken, Policies]
+    exports: [Models.Project, Models.ProjectToken, Policies, Repository]
 
   # Modules
   require Logger
