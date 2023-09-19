@@ -8,7 +8,6 @@ defmodule Glossia.Foundation.API.Web.Controllers.Project.LocalizationRequestCont
 
   tags ["localization-requests"]
 
-  alias Glossia.Foundation.Projects.Core.Models.Project
   alias Glossia.Foundation.Localizations.Core, as: Localizations
   alias Glossia.Foundation.API.Core.Schemas.LocalizationRequest.CreateResponse
   alias Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest
@@ -21,14 +20,10 @@ defmodule Glossia.Foundation.API.Web.Controllers.Project.LocalizationRequestCont
       ok: {"Localization request response", "application/json", CreateResponse}
     ]
 
-  @spec create(
-          conn :: %{
-            body_params: LocalizationRequest.t(),
-            assigns: %{authenticated_project: Project.t()}
-          },
-          params :: map()
-        ) :: Plug.Conn.t()
-  def create(%{body_params: %LocalizationRequest{} = request} = conn, _params) do
+  @spec create(conn :: Plug.Conn.t(), any) :: Plug.Conn.t()
+  @dialyzer {:nowarn_function, create: 2}
+  def create(conn, _params) do
+    %{body_params: %LocalizationRequest{} = request} = conn
     Glossia.Foundation.Accounts.Web.Policies.enforce!(conn, {:create, :localization_request})
 
     result =

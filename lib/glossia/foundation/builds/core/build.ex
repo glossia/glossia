@@ -3,7 +3,8 @@ defmodule Glossia.Foundation.Builds.Core.Build do
   @type t :: %__MODULE__{
           version: String.t(),
           content_source_id: String.t() | nil,
-          content_source_platform: Glossia.Foundation.ContentSources.Platform.t(),
+          content_source_platform:
+            Glossia.Foundation.ContentSources.Core.ContentSource.content_source_t(),
           vm_id: String.t() | nil,
           status: status(),
           project: Glossia.Foundation.Projects.Core.Models.Project.t() | nil,

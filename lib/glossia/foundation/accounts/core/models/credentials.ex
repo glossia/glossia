@@ -1,5 +1,6 @@
 defmodule Glossia.Foundation.Accounts.Core.Models.Credentials do
-  alias Glossia.Foundation.Accounts.Core.{User}
+  # Modules
+  alias Glossia.Foundation.Accounts.Core.Models.{User}
   import Ecto.Changeset
 
   @type provider :: :github
@@ -30,7 +31,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Credentials do
   @doc """
   It returns the default changeset for the credentials table.
   """
-  @spec changeset(credentials :: t(), attrs :: map()) ::
+  @spec changeset(credentials :: Ecto.Schema.t(), attrs :: map()) ::
           Ecto.Changeset.t()
   def changeset(credentials, attrs \\ %{}) do
     credentials

@@ -5,7 +5,7 @@ defmodule Glossia.Foundation.ContentSources.Web.Plug do
   @spec init(Keyword.t()) :: Keyword.t()
   def init(options), do: options
 
-  @spec call(Conn.t(), term()) :: Plug.Conn.t()
+  @spec call(Plug.Conn.t(), term()) :: Plug.Conn.t()
   def call(conn, opts) do
     conn |> GitHub.call(GitHub.init(opts))
   end

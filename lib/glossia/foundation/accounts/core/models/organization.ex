@@ -26,12 +26,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Organization do
   end
 
   # Changesets
-  @type create_organization_changeset_attrs :: %{
-          account: map()
-        }
-
-  @spec create_organization_changeset(attrs :: create_organization_changeset_attrs) ::
-          Ecto.Changeset.t()
+  @spec create_organization_changeset(attrs :: map()) :: Ecto.Changeset.t()
   def create_organization_changeset(attrs) do
     %__MODULE__{}
     |> cast(attrs, [:account_id])
