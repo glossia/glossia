@@ -10,8 +10,6 @@ defmodule Glossia.Foundation.Accounts.Core do
     ],
     exports: [Models.User, Repository]
 
-  @behaviour __MODULE__.Behaviour
-  alias __MODULE__.Repository
   import Ecto.Query, warn: false
   alias Glossia.Foundation.Database.Core.Repo
 
@@ -23,9 +21,6 @@ defmodule Glossia.Foundation.Accounts.Core do
     Credentials,
     UserToken
   }
-
-  @spec get_user_and_organization_accounts(User.t()) :: [Account.t()]
-  defdelegate get_user_and_organization_accounts(user), to: Repository
 
   @doc """
   It makes the given user an admin of the given organization.
@@ -167,9 +162,5 @@ defmodule Glossia.Foundation.Accounts.Core do
   @spec find_account_by_handle(any) :: Account.t() | nil
   def find_account_by_handle(handle) do
     Account.account_by_handle_query(handle) |> Repo.one()
-  end
-
-  defmodule Behaviour do
-    @callback get_user_and_organization_accounts(User.t()) :: [Account.t()]
   end
 end

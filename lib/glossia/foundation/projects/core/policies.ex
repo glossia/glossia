@@ -21,7 +21,7 @@ defmodule Glossia.Foundation.Projects.Core.Policies do
   end
 
   def policy(%{project: project, user: user}, {:read, :project}) do
-    if Glossia.Foundation.Accounts.Core.get_user_and_organization_accounts(user)
+    if Glossia.Foundation.Accounts.Core.Repository.get_user_and_organization_accounts(user)
        |> Enum.map(& &1.id)
        |> Enum.member?(project.account_id) do
       :ok
