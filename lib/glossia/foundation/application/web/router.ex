@@ -64,15 +64,16 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.Foundation.API.Core.Spec
   end
 
-  pipeline :api_auth do
-    plug Glossia.Foundation.Accounts.Web.Resources, :authenticated_project
-    plug Glossia.Foundation.Accounts.Web.Policies, :authenticated_project
+  pipeline :builder_api_auth do
+    # The build environments authenticate projects using a token generated for them.
+    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :authenticated_project
+    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, :authenticated_project
   end
 
   # Authenticated builder API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/builder-api" do
-    pipe_through [:api, :api_auth, :project]
+    pipe_through [:api, :builder_api_auth, :project]
 
     scope "/projects/:owner_handle/:project_handle",
           Glossia.Foundation.API.Web.Controllers.Project do
@@ -126,7 +127,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
   pipeline :app_project do
     plug Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug
-    plug Glossia.Foundation.Projects.Web.Policies, {:show, :project}
+    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:show, :project}
     plug Glossia.Foundation.Projects.Web.Plugs.RedirectToProjectIfNeededPlug
     plug Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug
   end
@@ -145,7 +146,9 @@ defmodule Glossia.Foundation.Application.Web.Router do
   scope "/" do
     pipe_through [:browser, :app, :app_project]
 
-    get "/:owner_handle/:project_handle", Glossia.Foundation.Projects.Web.Controllers.ProjectController, :show
+    get "/:owner_handle/:project_handle",
+        Glossia.Foundation.Projects.Web.Controllers.ProjectController,
+        :show
   end
 
   scope "/admin" do

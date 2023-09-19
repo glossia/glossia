@@ -20,6 +20,7 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug do
     case Projects.find_project_by_owner_and_project_handle(owner, project) do
       %Project{} = project ->
         assign(conn, :url_project, project)
+
       _ ->
         conn
     end

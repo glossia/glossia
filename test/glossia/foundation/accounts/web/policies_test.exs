@@ -3,22 +3,6 @@ defmodule Glossia.Foundation.Accounts.Web.PoliciesTest do
   use Glossia.Web.ConnCase
   alias Glossia.Foundation.Accounts.Web.Policies
 
-  describe "authenticated_project" do
-    test "returns unauthorized if the project is missing", %{conn: conn} do
-      # Given
-      opts = Policies.init(:authenticated_project)
-
-      # When
-      conn = conn |> Policies.call(opts)
-
-      # Then
-      assert %{
-               "errors" => [%{"detail" => "You need to be authenticated to access this resource"}]
-             } =
-               json_response(conn, 401)
-    end
-  end
-
   describe "localization request" do
     test "authorized? returns true when the current and url projects are the same", %{conn: conn} do
       # Given

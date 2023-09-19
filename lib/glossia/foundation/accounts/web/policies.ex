@@ -9,16 +9,6 @@ defmodule Glossia.Foundation.Accounts.Web.Policies do
   use PolicyWonk.Enforce
   alias Glossia.Foundation.Projects.Core.Models.Project
 
-  def policy(assigns, :authenticated_project) do
-    case assigns[:authenticated_project] do
-      %Project{} ->
-        :ok
-
-      _ ->
-        {:error, :unauthorized}
-    end
-  end
-
   def policy(assigns, {:create, :localization_request}) do
     policy(assigns, {[:create], :localization_request})
   end

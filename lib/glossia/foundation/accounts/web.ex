@@ -6,7 +6,8 @@ defmodule Glossia.Foundation.Accounts.Web do
       Glossia.Foundation.Projects.Core,
       Glossia.Foundation.Analytics.Core
     ],
-    exports: [Controllers.AuthController, Resources, Policies, Auth, Helpers.Auth]
+    exports: [Controllers.AuthController, Policies, Auth, Helpers.Auth]
+
   @behaviour __MODULE__.Behaviour
 
   defdelegate user_authenticated?(conn), to: __MODULE__.Helpers.Auth
@@ -14,6 +15,7 @@ defmodule Glossia.Foundation.Accounts.Web do
 
   defmodule Behaviour do
     @callback user_authenticated?(Plug.Conn.t()) :: boolean
-    @callback authenticated_user(Plug.Conn.t()) :: Glossia.Foundation.Accounts.Core.Models.User.t() | nil
+    @callback authenticated_user(Plug.Conn.t()) ::
+                Glossia.Foundation.Accounts.Core.Models.User.t() | nil
   end
 end

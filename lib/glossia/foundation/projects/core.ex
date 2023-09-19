@@ -6,7 +6,7 @@ defmodule Glossia.Foundation.Projects.Core do
       Glossia.Foundation.ContentSources.Core,
       Glossia.Foundation.Accounts.Core
     ],
-    exports: [Models.Project, Models.ProjectToken]
+    exports: [Models.Project, Models.ProjectToken, Policies]
 
   # Modules
   require Logger
@@ -29,8 +29,9 @@ defmodule Glossia.Foundation.Projects.Core do
     case user.last_visited_project_id do
       nil ->
         Glossia.Foundation.Accounts.Core.get_user_and_organization_accounts(user)
-          |> Repository.get_account_projects()
-          |> List.first()
+        |> Repository.get_account_projects()
+        |> List.first()
+
       last_visited_project_id ->
         Repository.get_project_by_id(last_visited_project_id)
     end

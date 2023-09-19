@@ -1,8 +1,18 @@
-defmodule Glossia.Foundation.Projects.Web.Policies do
+defmodule Glossia.Foundation.Projects.Core.Policies do
   # Modules
   use PolicyWonk.Policy
-  use PolicyWonk.Enforce
   use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
+  alias Glossia.Foundation.Projects.Core.Models.Project
+
+  # Policy: {:authenticated_project}
+
+  def policy(%{authenticated_project: %Project{}}, :authenticated_project) do
+    :ok
+  end
+
+  def policy(_, :authenticated_project) do
+    {:error, :unauthorized}
+  end
 
   # Policy: {:read, :project}
 

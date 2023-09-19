@@ -1,9 +1,16 @@
-defmodule Glossia.Foundation.Projects.Web.PoliciesTest do
+defmodule Glossia.Foundation.Projects.Core.PoliciesTest do
   use Glossia.Web.ConnCase
   alias Glossia.Foundation.Database.Core.Repo
   alias Glossia.Foundation.ProjectsFixtures
   alias Glossia.Foundation.AccountsFixtures
-  alias Glossia.Foundation.Projects.Web.Policies
+  alias Glossia.Foundation.Projects.Core.Policies
+
+  describe "authenticated_project" do
+    test "returns unauthorized if the project is missing" do
+      # When/Then
+      assert {:error, :unauthorized} == Policies.policy(%{}, :authenticated_project)
+    end
+  end
 
   describe "{:read, :project}" do
     test "when project and user are absent" do
