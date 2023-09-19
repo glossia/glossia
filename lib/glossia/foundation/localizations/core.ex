@@ -10,7 +10,6 @@ defmodule Glossia.Foundation.Localizations.Core do
     exports: [API.Schemas.LocalizationRequest]
 
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
-  alias Glossia.Localizations.API.Schemas.LocalizationRequest
   alias Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker
   alias Glossia.Foundation.Projects.Core, as: Projects
 
@@ -26,7 +25,7 @@ defmodule Glossia.Foundation.Localizations.Core do
   - `opts` - The options to process the localization request.
   """
   @spec process_localization_request(
-          request :: LocalizationRequest.t(),
+          request :: any(),
           opts :: process_localization_request_opts()
         ) :: :ok | {:error, term()}
   def process_localization_request(request, %{project_id: project_id} = _opts) do

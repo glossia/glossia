@@ -1,6 +1,8 @@
 defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
   @type version_t :: :latest | {:version, String.t()}
 
+  @type content_source_t :: :github
+
   @doc """
   It returns the content from a content source.
 
@@ -10,7 +12,7 @@ defmodule Glossia.Foundation.ContentSources.Core.ContentSource do
   - `version` - The version of the content. It can be `:latest` or a specific version. In the case of content sources like GitHub, it represents the commit SHA when pulling a specific version.
   """
   @callback get_content(
-              content_source :: any(),
+              content_source :: content_source_t(),
               content_id :: String.t(),
               version :: version_t
             ) ::

@@ -113,9 +113,11 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
               "repos/#{github.owner}/#{github.repo}/commits/#{commit_sha}/branches-where-head",
               github.client
             )},
-         {:commit, {status, %{"commit" => %{"tree" => %{"sha" => commit_tree_sha}}}, _}}
+         {:fetch_head_commit,
+          {status, %{"commit" => %{"tree" => %{"sha" => commit_tree_sha}}}, _}}
          when status in 200..299 <-
-           {:commit, Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo)},
+           {:fetch_head_commit,
+            Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo)},
          {:tree, tree} <-
            {:tree,
             %{
@@ -145,9 +147,12 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
             )} do
       {:ok, %{id: created_commit_sha, url: commit_url}}
     else
+      {:fetch_head_commit, {_, body, _}} -> {:error, body}
+      {:commit_creation, {_, body, _}} -> {:error, body}
       {:branch, {200, [] = _, _}} -> {:error, :newer_version_exists}
       {:branch, {_, body, _}} -> {:error, body}
       {:tree_creation, {_, body, _}} -> {:error, body}
+      {:reference_update, {_, body, _}} -> {:error, body}
     end
   end
 
@@ -258,7 +263,11 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
           Tentacat.Client.t()
   defp get_client_for_installation(installation_id, app_jwk_token) do
     app_jwt_token =
-      app_jwk_token || Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
+      if app_jwk_token != nil do
+        app_jwk_token
+      else
+        Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
+      end
 
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 

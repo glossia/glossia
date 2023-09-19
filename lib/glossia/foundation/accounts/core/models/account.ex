@@ -3,17 +3,17 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Account do
   A module that represents the accounts table
   """
 
-  # Types
-  @type t :: %__MODULE__{
-          handle: String.t(),
-          projects: [Project.t()] | nil
-        }
-
   # Modules
   import Ecto.Query, only: [from: 2]
   use Ecto.Schema
   import Ecto.Changeset
   alias Glossia.Foundation.Projects.Core.Models.Project
+
+  # Types
+  @type t :: %__MODULE__{
+          handle: String.t(),
+          projects: [Project.t()] | nil
+        }
 
   # Schema
 
@@ -62,7 +62,8 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Account do
   @doc """
 
   """
-  @spec changeset(account :: t(), attrs :: create_account_changeset_attrs()) :: Ecto.Changeset.t()
+  @spec changeset(account :: Ecto.Schema.t(), attrs :: create_account_changeset_attrs()) ::
+          Ecto.Changeset.t()
   def changeset(account, attrs) do
     account
     |> cast(attrs, [:handle])

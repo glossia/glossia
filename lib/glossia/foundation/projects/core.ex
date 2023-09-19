@@ -15,18 +15,6 @@ defmodule Glossia.Foundation.Projects.Core do
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
 
   @doc """
-  It simulates a git push event using the latest commit from the default branch of a project.
-  """
-  @spec simulate_new_content_event(Project.t()) :: :ok
-  def simulate_new_content_event(project) do
-    project
-    |> trigger_build(%{
-      type: "new_content",
-      commit_sha: "TODO"
-    })
-  end
-
-  @doc """
   Given a git event, it processes it.
   """
   @spec trigger_build(Project.t(), %{type: String.t(), version: String.t()}) :: :ok

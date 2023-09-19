@@ -83,35 +83,39 @@ jobs:
       - run: mix deps.get
 
       - run: mix credo
-  # There are some issues to be addressed before it can be enabled
-  # dialyzer:
-  #   name: Dialyzer
-  #   runs-on: 'ubuntu-latest'
-  #   timeout-minutes: 15
-  #   steps:
-  #     - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
 
-  #     - uses: erlef/setup-elixir@v1
-  #       with:
-  #         otp-version: ${{ env.OTP_VERSION }}
-  #         elixir-version: ${{ env.ELIXIR_VERSION }}
+  dialyzer:
+    name: Dialyzer
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
 
-  #     - name: Restore Cache
-  #       uses: actions/cache@v3
-  #       id: mix-cache
-  #       with:
-  #         path: |
-  #           deps
-  #           _build
-  #           _site
-  #         key: mix-${{ hashFiles('mix.lock') }}
+      - uses: erlef/setup-elixir@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
 
-  #     - name: Add Oban Web repository
-  #       run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
+      - name: Restore Cache
+        uses: actions/cache@v3
+        id: mix-cache
+        with:
+          path: |
+            deps
+            _build
+            _site
+          key: mix-${{ hashFiles('mix.lock') }}
 
-  #     - run: mix deps.get
+      - name: Add Oban Web repository
+        run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
 
-  #     - run: mix dialyzer
+      - env:
+          MIX_ENV: dev
+        run: mix deps.get
+
+      - env:
+          MIX_ENV: dev
+        run: mix dialyzer
   community_dry_run:
     name: Community Image Dry Run
     runs-on: 'ubuntu-latest'

@@ -1,13 +1,4 @@
 defmodule Glossia.Foundation.Accounts.Core.Models.User do
-  @type t :: %__MODULE__{
-          email: String.t(),
-          password: String.t(),
-          hashed_password: String.t(),
-          confirmed_at: DateTime.t(),
-          credentials: [Credentials.t()],
-          account: [Account.t()]
-        }
-
   @moduledoc """
   A struct that represents the users table.
   """
@@ -16,6 +7,16 @@ defmodule Glossia.Foundation.Accounts.Core.Models.User do
 
   alias Glossia.Foundation.Projects.Core.Models.Project
   alias Glossia.Foundation.Accounts.Core.Models.{Account, Credentials, Organization}
+
+  # Types
+  @type t :: %__MODULE__{
+          email: String.t(),
+          password: String.t(),
+          hashed_password: String.t(),
+          confirmed_at: DateTime.t(),
+          credentials: [Credentials.t()],
+          account: [Account.t()]
+        }
 
   schema "users" do
     field :email, :string
