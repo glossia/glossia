@@ -25,6 +25,15 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug do
     end
   end
 
+  def resource(%Plug.Conn{params: %{"owner_handle" => owner, "project_handle" => project}}, :url_project, _) do
+    case Projects.find_project_by_owner_and_project_handle(owner, project) do
+      %Project{} = project ->
+        {:ok, :url_project, project}
+      _ ->
+        {:ok, :url_project, nil}
+    end
+  end
+
   def resource_error(conn, detail) do
     body = %{errors: [%{detail: detail}]} |> Jason.encode!()
 

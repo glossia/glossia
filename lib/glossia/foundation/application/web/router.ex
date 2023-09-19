@@ -28,7 +28,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
   # Loads the project from the slug in the URL
   pipeline :project do
-    plug Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug
+    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
   end
 
   ##### Marketing Routes #####
@@ -126,7 +126,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
   end
 
   pipeline :app_project do
-    plug Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug
+    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
     plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:show, :project}
     plug Glossia.Foundation.Projects.Web.Plugs.RedirectToProjectIfNeededPlug
     plug Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug
