@@ -25,9 +25,7 @@ defmodule Glossia.Foundation.Accounts.Core do
   }
 
   @spec get_user_and_organization_accounts(User.t()) :: [Account.t()]
-  defdelegate get_user_and_organization_accounts(user) do
-    Repository.get_user_and_organization_accounts(user)
-  end
+  defdelegate get_user_and_organization_accounts(user), to: Repository
 
   @doc """
   It makes the given user an admin of the given organization.

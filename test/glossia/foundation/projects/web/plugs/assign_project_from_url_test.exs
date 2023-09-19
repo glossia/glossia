@@ -7,7 +7,7 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlugTest do
 
   test "assigns the project when the project exists", %{conn: conn} do
     # Given
-    {:ok, project} = ProjectsFixtures.project_fixture()
+    project = ProjectsFixtures.project_fixture()
     project = project |> Repo.preload(:account)
     project_handle = project.handle
     owner_handle = project.account.handle

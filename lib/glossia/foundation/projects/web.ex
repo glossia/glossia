@@ -7,5 +7,5 @@ defmodule Glossia.Foundation.Projects.Web do
       Plugs.AssignProjectFromURLPlug,
       Controllers.ProjectController
     ],
-    deps: [Glossia.Foundation.Projects.Core, Glossia.Foundation.Accounts.Web]
+    deps: [Glossia.Foundation.Projects.Core, Glossia.Foundation.Accounts.Web, Glossia.Foundation.Accounts.Core]
 end
