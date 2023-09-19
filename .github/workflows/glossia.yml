@@ -111,7 +111,9 @@ jobs:
 
       - run: mix deps.get
 
-      - run: mix dialyzer
+      - env:
+          MIX_ENV: dev
+        run: mix dialyzer
   community_dry_run:
     name: Community Image Dry Run
     runs-on: 'ubuntu-latest'
