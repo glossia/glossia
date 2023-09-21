@@ -96,7 +96,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
     user = user_token && Accounts.get_user_by_session_token(user_token)
 
     if user do
-      Glossia.Foundation.Analytics.Core.track_visit(user)
+      Glossia.Foundation.Analytics.Core.Tracker.track_visit(user)
     end
 
     assign(conn, :authenticated_user, user)
