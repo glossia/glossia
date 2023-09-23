@@ -65,7 +65,6 @@ defmodule Glossia.MixProject do
       {:makeup_erlang, "~> 0.1.0"},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.6.0"},
-      {:plug_attack, "~> 0.4.2"},
       {:remote_ip, "1.1.0"},
       {:ex_json_schema, "~> 0.10.0"},
       {:boundary, "~> 0.10", runtime: false},

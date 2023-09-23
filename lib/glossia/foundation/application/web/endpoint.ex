@@ -4,7 +4,6 @@ defmodule Glossia.Foundation.Application.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :glossia
 
   plug RemoteIp
-  plug Glossia.Foundation.Application.Web.Plugs.AttackPlug
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.

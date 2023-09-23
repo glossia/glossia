@@ -44,8 +44,6 @@ defmodule Glossia.Application do
         # Start a worker by calling: Glossia.Worker.start_link(arg)
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
-        {PlugAttack.Storage.Ets,
-         name: Glossia.Foundation.Application.Web.Plugs.AttackPlug.Storage, clean_period: 60_000},
         {Task.Supervisor, name: Glossia.TaskSupervisor}
       ] ++ google_cloud_children()
 
