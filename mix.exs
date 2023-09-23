@@ -81,7 +81,7 @@ defmodule Glossia.MixProject do
       {:useful, "~> 1.12.1"},
       {:typed_struct, "~> 0.3.0"},
       {:domo, "~> 1.5"},
-      {:application_module, "~> 0.4.0"},
+      {:modulex, "~> 0.5.0"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.0", only: :test},

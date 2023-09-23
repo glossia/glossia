@@ -1,5 +1,5 @@
 defmodule Glossia.Foundation.Analytics.Core.Tracker do
-  use Application.Module
+  use Modulex
 
   defimplementation do
     import Glossia.Foundation.Utilities.Core.Plan

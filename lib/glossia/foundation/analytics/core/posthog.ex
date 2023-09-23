@@ -1,5 +1,5 @@
 defmodule Glossia.Foundation.Analytics.Core.Posthog do
-  use Application.Module
+  use Modulex
 
   defbehaviour do
     @callback capture(event :: String.t(), metadata :: map()) :: any()
