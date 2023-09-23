@@ -11,15 +11,15 @@ defmodule Glossia.Foundation.Accounts.Core.Policies do
   end
 
   def policy(%{authenticated_user: nil}, :authenticated_user_present) do
-    {:error, :unauthorized}
+    {:error, :authenticated_user_absent}
   end
 
   def policy(%{}, :authenticated_user_present) do
-    {:error, :unauthorized}
+    {:error, :authenticated_user_absent}
   end
 
-  def policy_error(conn, :unauthorized) do
+  def policy_error(conn, _) do
+    # Handled at the plug level
     conn
-    |> Plug.Conn.send_resp(401, "Unauthorized")
   end
 end
