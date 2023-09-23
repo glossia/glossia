@@ -1,9 +1,14 @@
 defmodule Glossia.Foundation.Projects.Web do
   use Boundary,
     exports: [
-      Plugs.AssignProjectFromURLPlug,
-      Plugs.RedirectToDefaultProjectWhenAuthenticatedPlug,
+      Plugs.RedirectToProjectIfNeededPlug,
+      Plugs.SaveLastVisitedProjectPlug,
+      Plugs.ResourcesPlug,
       Controllers.ProjectController
     ],
-    deps: [Glossia.Foundation.Projects.Core, Glossia.Foundation.Accounts.Web]
+    deps: [
+      Glossia.Foundation.Projects.Core,
+      Glossia.Foundation.Accounts.Web,
+      Glossia.Foundation.Accounts.Core
+    ]
 end

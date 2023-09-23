@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Accounts.Web.Resources do
+defmodule Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug do
   @moduledoc """
   This module provides a plug to load authenticated resources to use them
   to authorize requests.
@@ -7,9 +7,12 @@ defmodule Glossia.Foundation.Accounts.Web.Resources do
   # Modules
   use PolicyWonk.Resource
   use PolicyWonk.Load
+
   alias Glossia.Foundation.Projects.Core, as: Projects
   alias Glossia.Foundation.Projects.Core.Models.Project
 
+  @spec resource(Plug.Conn.t(), :authenticated_project, any) ::
+          {:ok, :authenticated_project, nil | Glossia.Foundation.Projects.Core.Models.Project.t()}
   def resource(conn, :authenticated_project, _) do
     with {:auth_header, "Bearer" <> " " <> token} <-
            {:auth_header, Plug.Conn.get_req_header(conn, "authorization") |> List.first()},
@@ -19,6 +22,20 @@ defmodule Glossia.Foundation.Accounts.Web.Resources do
     else
       {:auth_header, nil} -> {:ok, :authenticated_project, nil}
       {:authenticated_project, nil} -> {:ok, :authenticated_project, nil}
+    end
+  end
+
+  def resource(
+        %Plug.Conn{params: %{"owner_handle" => owner, "project_handle" => project}},
+        :url_project,
+        _
+      ) do
+    case Projects.find_project_by_owner_and_project_handle(owner, project) do
+      %Project{} = project ->
+        {:ok, :url_project, project}
+
+      _ ->
+        {:ok, :url_project, nil}
     end
   end
 

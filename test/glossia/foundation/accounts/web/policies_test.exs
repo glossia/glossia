@@ -3,26 +3,10 @@ defmodule Glossia.Foundation.Accounts.Web.PoliciesTest do
   use Glossia.Web.ConnCase
   alias Glossia.Foundation.Accounts.Web.Policies
 
-  describe "authenticated_project" do
-    test "returns unauthorized if the project is missing", %{conn: conn} do
-      # Given
-      opts = Policies.init(:authenticated_project)
-
-      # When
-      conn = conn |> Policies.call(opts)
-
-      # Then
-      assert %{
-               "errors" => [%{"detail" => "You need to be authenticated to access this resource"}]
-             } =
-               json_response(conn, 401)
-    end
-  end
-
   describe "localization request" do
     test "authorized? returns true when the current and url projects are the same", %{conn: conn} do
       # Given
-      {:ok, project} = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
       conn = conn |> assign(:authenticated_project, project) |> assign(:url_project, project)
 
       # When
@@ -36,8 +20,8 @@ defmodule Glossia.Foundation.Accounts.Web.PoliciesTest do
       conn: conn
     } do
       # Given
-      {:ok, url_project} = Glossia.Foundation.ProjectsFixtures.project_fixture()
-      {:ok, authenticated_project} = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      url_project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      authenticated_project = Glossia.Foundation.ProjectsFixtures.project_fixture()
 
       conn =
         conn

@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuthenticatedPlug do
+defmodule Glossia.Foundation.Projects.Web.Plugs.RedirectToProjectIfNeededPlug do
   alias Glossia.Foundation.Accounts.Web.Helpers.Auth
 
   @moduledoc """

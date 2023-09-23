@@ -14,7 +14,7 @@ defmodule Glossia.Foundation.BuildsFixtures do
       if attr[:project_id] do
         attr
       else
-        {:ok, project} = Glossia.Foundation.ProjectsFixtures.project_fixture()
+        project = Glossia.Foundation.ProjectsFixtures.project_fixture()
         attr |> Map.put(:project_id, project.id)
       end
 

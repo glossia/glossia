@@ -24,12 +24,11 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_and_track_authenticated_user
-    plug Glossia.Foundation.Projects.Web.Plugs.RedirectToDefaultProjectWhenAuthenticatedPlug
   end
 
   # Loads the project from the slug in the URL
   pipeline :project do
-    plug Glossia.Foundation.Projects.Web.Plugs.AssignProjectFromURLPlug
+    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
   end
 
   ##### Marketing Routes #####
@@ -65,15 +64,16 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.Foundation.API.Core.Spec
   end
 
-  pipeline :api_auth do
-    plug Glossia.Foundation.Accounts.Web.Resources, :authenticated_project
-    plug Glossia.Foundation.Accounts.Web.Policies, :authenticated_project
+  pipeline :builder_api_auth do
+    # The build environments authenticate projects using a token generated for them.
+    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :authenticated_project
+    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, :authenticated_project
   end
 
   # Authenticated builder API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/builder-api" do
-    pipe_through [:api, :api_auth, :project]
+    pipe_through [:api, :builder_api_auth, :project]
 
     scope "/projects/:owner_handle/:project_handle",
           Glossia.Foundation.API.Web.Controllers.Project do
@@ -125,6 +125,13 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :put_root_layout, html: {Glossia.Foundation.Application.Web.Layouts.App, :root}
   end
 
+  pipeline :app_project do
+    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
+    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:show, :project}
+    plug Glossia.Foundation.Projects.Web.Plugs.RedirectToProjectIfNeededPlug
+    plug Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug
+  end
+
   scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
     pipe_through [:browser, :app]
 
@@ -134,6 +141,14 @@ defmodule Glossia.Foundation.Application.Web.Router do
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
+  end
+
+  scope "/" do
+    pipe_through [:browser, :app, :app_project]
+
+    get "/:owner_handle/:project_handle",
+        Glossia.Foundation.Projects.Web.Controllers.ProjectController,
+        :show
   end
 
   scope "/admin" do

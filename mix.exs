@@ -81,11 +81,13 @@ defmodule Glossia.MixProject do
       {:useful, "~> 1.12.1"},
       {:typed_struct, "~> 0.3.0"},
       {:domo, "~> 1.5"},
+      {:modulex, "~> 0.7.0"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.0", only: :test},
       {:primer_live, "~> 0.5"},
-      {:ecto_erd, "~> 0.5", only: :dev}
+      {:ecto_erd, "~> 0.5", only: :dev},
+      {:hammox, "~> 0.7", only: :test}
     ]
 
     case plan() do

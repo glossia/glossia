@@ -2,7 +2,6 @@ defmodule Glossia.Foundation.ContentSources.Core do
   use Boundary, deps: [Glossia.Foundation.Utilities.Core], exports: [ContentSource]
 
   # Modules
-  alias Glossia.Foundation.Utilities.Core, as: Utilities
   alias Glossia.Foundation.ContentSources.Core.GitHub
 
   # Behaviors
@@ -74,7 +73,7 @@ defmodule Glossia.Foundation.ContentSources.Core do
   @spec content_source(id :: atom()) :: module() | nil
   defp content_source(id) do
     content_sources()
-    |> Enum.filter(fn {_, module} -> Utilities.module_compiled?(module) end)
+    # |> Enum.filter(fn {_, module} -> Utilities.module_compiled?(module) end)
     |> Enum.find(fn {content_source_id, _} -> content_source_id == id end)
     |> case do
       {_, module} -> module

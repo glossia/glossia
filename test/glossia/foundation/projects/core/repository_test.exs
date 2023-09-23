@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Projects.Core.RepositoryTest do
     test "updates the last visited project" do
       # Given
       user = AccountsFixtures.user_fixture()
-      {:ok, project} = ProjectsFixtures.project_fixture()
+      project = ProjectsFixtures.project_fixture()
 
       # When
       got = Repository.update_last_visited_project_for_user(user, project)

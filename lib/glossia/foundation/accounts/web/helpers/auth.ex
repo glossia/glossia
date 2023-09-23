@@ -15,4 +15,13 @@ defmodule Glossia.Foundation.Accounts.Web.Helpers.Auth do
   def authenticated_user(conn) do
     conn.assigns[:authenticated_user]
   end
+
+  @doc """
+  It assigns the given user to the given connection.
+  """
+  @spec assign_authenticated_user(Plug.Conn.t(), Glossia.Foundation.Accounts.Core.Models.User.t()) ::
+          Plug.Conn.t()
+  def assign_authenticated_user(conn, user) do
+    Plug.Conn.assign(conn, :authenticated_user, user)
+  end
 end

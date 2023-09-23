@@ -94,7 +94,8 @@ defmodule Glossia.Foundation.Projects.Core.Models.Project do
           Ecto.Query.t()
   def find_project_by_owner_and_project_handle_query(owner, project) do
     from(p in __MODULE__,
-      join: a in assoc(p, :account),
+      join: a in Account,
+      on: p.account_id == a.id,
       where: p.handle == ^project and a.handle == ^owner,
       select: p
     )
