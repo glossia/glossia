@@ -4,13 +4,13 @@ defmodule Glossia.Foundation.Projects.Core.Policies do
   use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
   alias Glossia.Foundation.Projects.Core.Models.Project
 
-  # Policy: {:authenticated_project}
+  # Policy: {:authenticated_project_present}
 
-  def policy(%{authenticated_project: %Project{}}, :authenticated_project) do
+  def policy(%{authenticated_project: %Project{}}, :authenticated_project_present) do
     :ok
   end
 
-  def policy(_, :authenticated_project) do
+  def policy(_, :authenticated_project_present) do
     {:error, :unauthorized}
   end
 
@@ -20,7 +20,7 @@ defmodule Glossia.Foundation.Projects.Core.Policies do
     :ok
   end
 
-  def policy(%{project: project, user: user}, {:read, :project}) do
+  def policy(%{project: %Project{} = project, user: user}, {:read, :project}) do
     if Glossia.Foundation.Accounts.Core.Repository.get_user_and_organization_accounts(user)
        |> Enum.map(& &1.id)
        |> Enum.member?(project.account_id) do
@@ -28,6 +28,10 @@ defmodule Glossia.Foundation.Projects.Core.Policies do
     else
       {:error, :unauthorized}
     end
+  end
+
+  def policy(%{project: nil, user: _}, {:read, :project}) do
+    {:error, :unauthorized}
   end
 
   def policy(

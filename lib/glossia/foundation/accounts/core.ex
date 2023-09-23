@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Accounts.Core do
       Glossia.Foundation.Database.Core,
       Glossia.Foundation.Analytics.Core
     ],
-    exports: [Models.User, Repository]
+    exports: [Models.User, Repository, Policies]
 
   import Ecto.Query, warn: false
   alias Glossia.Foundation.Database.Core.Repo
@@ -143,11 +143,6 @@ defmodule Glossia.Foundation.Accounts.Core do
     {token, user_token} = UserToken.build_session_token(user)
     Repo.insert!(user_token)
     token
-  end
-
-  def get_user_by_session_token(token) do
-    {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query) |> Repo.preload(:account)
   end
 
   def delete_user_session_token(token) do

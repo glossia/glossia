@@ -16,6 +16,10 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   @remember_me_cookie "_glossia_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
 
+  def remember_me_cookie do
+    @remember_me_cookie
+  end
+
   @doc """
   Logs the user in.
 
@@ -88,35 +92,6 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   end
 
   @doc """
-  Authenticates the user by looking into the session
-  and remember me token.
-  """
-  def fetch_and_track_authenticated_user(conn, _opts) do
-    {user_token, conn} = ensure_user_token(conn)
-    user = user_token && Accounts.get_user_by_session_token(user_token)
-
-    if user do
-      Glossia.Foundation.Analytics.Core.Tracker.track_visit(user)
-    end
-
-    assign(conn, :authenticated_user, user)
-  end
-
-  defp ensure_user_token(conn) do
-    if token = get_session(conn, :user_token) do
-      {token, conn}
-    else
-      conn = fetch_cookies(conn, signed: [@remember_me_cookie])
-
-      if token = conn.cookies[@remember_me_cookie] do
-        {token, put_token_in_session(conn, token)}
-      else
-        {nil, conn}
-      end
-    end
-  end
-
-  @doc """
   Used for routes that require the user to not be authenticated.
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
@@ -147,7 +122,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
     end
   end
 
-  defp put_token_in_session(conn, token) do
+  def put_token_in_session(conn, token) do
     conn
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")

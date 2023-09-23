@@ -6,7 +6,6 @@ defmodule Glossia.Foundation.Application.Web.Router do
   import Plug.Conn
   import Phoenix.Controller
   import Phoenix.LiveView.Router
-  import Glossia.Foundation.Accounts.Web.Auth
   import Glossia.Foundation.Utilities.Core.Plan
 
   ##### Base pipelines #####
@@ -23,15 +22,13 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_and_track_authenticated_user
   end
 
   # Loads the project from the slug in the URL
-  pipeline :project do
+  pipeline :load_url_project do
     plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
   end
 
-  ##### Marketing Routes #####
   only_for_plans([:cloud]) do
     pipeline :marketing do
       plug :put_root_layout, html: {Glossia.Features.Cloud.Marketing.Web.Layouts, :root}
@@ -64,16 +61,24 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.Foundation.API.Core.Spec
   end
 
-  pipeline :builder_api_auth do
+  pipeline :load_authenticated_project do
     # The build environments authenticate projects using a token generated for them.
     plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :authenticated_project
-    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, :authenticated_project
+  end
+
+  pipeline :ensure_authenticated_project_present do
+    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, :authenticated_project_present
   end
 
   # Authenticated builder API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/builder-api" do
-    pipe_through [:api, :builder_api_auth, :project]
+    pipe_through [
+      :api,
+      :load_authenticated_project,
+      :ensure_authenticated_project_present,
+      :load_url_project
+    ]
 
     scope "/projects/:owner_handle/:project_handle",
           Glossia.Foundation.API.Web.Controllers.Project do
@@ -121,15 +126,23 @@ defmodule Glossia.Foundation.Application.Web.Router do
   end
 
   ##### App Routes #####
+
   pipeline :app do
     plug :put_root_layout, html: {Glossia.Foundation.Application.Web.Layouts.App, :root}
   end
 
-  pipeline :app_project do
-    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
-    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:show, :project}
+  pipeline :authenticated_user_present do
+    plug Glossia.Foundation.Accounts.Web.Plugs.ResourcesPlug, :authenticated_user
+    plug Glossia.Foundation.Accounts.Web.Plugs.PoliciesPlug, :authenticated_user_present
+  end
+
+  pipeline :track_project do
     plug Glossia.Foundation.Projects.Web.Plugs.RedirectToProjectIfNeededPlug
     plug Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug
+  end
+
+  pipeline :authorize_project_access do
+    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:show, :project}
   end
 
   scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
@@ -144,15 +157,27 @@ defmodule Glossia.Foundation.Application.Web.Router do
   end
 
   scope "/" do
-    pipe_through [:browser, :app, :app_project]
+    pipe_through [
+      :browser,
+      :app,
+      :authenticated_user_present,
+      :load_url_project,
+      :authorize_project_access,
+      :track_project
+    ]
 
     get "/:owner_handle/:project_handle",
         Glossia.Foundation.Projects.Web.Controllers.ProjectController,
         :show
   end
 
+  scope "/" do
+    pipe_through [:browser, :app, :authenticated_user_present]
+    get "/new", Glossia.Foundation.Projects.Web.Controllers.ProjectController, :new
+  end
+
   scope "/admin" do
-    pipe_through [:browser, :app]
+    pipe_through [:browser, :app, :authenticated_user_present]
 
     only_for_plans([:cloud]) do
       import Oban.Web.Router

@@ -39,6 +39,10 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug do
     end
   end
 
+  def resource(_conn, :url_project, _) do
+    {:ok, :url_project, nil}
+  end
+
   def resource_error(conn, detail) do
     body = %{errors: [%{detail: detail}]} |> Jason.encode!()
 

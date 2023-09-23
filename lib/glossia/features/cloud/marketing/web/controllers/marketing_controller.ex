@@ -2,15 +2,9 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController d
   use Glossia.Features.Cloud.Marketing.Web.Helpers, :controller
 
   def index(conn, _params) do
-    if conn.assigns[:authenticated_user] do
-      conn
-      |> put_root_layout(html: {Glossia.Foundation.Application.Web.Layouts.App, :root})
-      |> render(:index_app)
-    else
-      conn
-      |> put_layout(false)
-      |> render(:index)
-    end
+    conn
+    |> put_layout(false)
+    |> render(:index)
   end
 
   def blog(conn, _params) do
