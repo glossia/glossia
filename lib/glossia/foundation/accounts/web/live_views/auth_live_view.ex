@@ -7,7 +7,7 @@ defmodule Glossia.Foundation.Accounts.Web.LiveViews.AuthLiveView do
   def on_mount(:authenticated_user, _params, %{"user_token" => user_token}, socket) do
     case Repository.get_user_by_session_token(user_token) do
       nil ->
-        {:cont, redirect(socket, ~p"/auth/login")}
+        {:halt, redirect(socket, to: ~p"/auth/login")}
 
       user ->
         {:cont, assign(socket, :authenticated_user, user)}

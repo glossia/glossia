@@ -8,6 +8,6 @@ defmodule Glossia.Foundation.GitHub.Core.Metadata do
 
   defbehaviour do
     @callback app_client_id() :: String.t()
-    @callback app_client_secret() :: String.t(0)
+    @callback app_client_secret() :: String.t()
   end
 end

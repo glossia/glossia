@@ -143,21 +143,19 @@ defmodule Glossia.Foundation.Projects.Core do
     alias Glossia.Foundation.Accounts.Core.Models.User
     alias Glossia.Foundation.Projects.Core.Models.Project
 
+    @callback create_project(attrs :: map()) :: {:ok, Project.t()} | {:error, Ecto.Changeset.t()}
+    @callback find_project_by_id(id :: number()) :: Project.t() | nil
     @callback find_project_by_owner_and_project_handle(owner :: String.t(), handle :: String.t()) ::
                 Project.t() | nil
-    @callback find_project_by_id(id :: number()) :: Project.t() | nil
-    @callback get_project_user_should_be_redirected_to(User.t()) :: Project.t() | nil
-    @callback trigger_build(Project.t(), %{type: String.t(), version: String.t()}) :: :ok
-    @callback get_project_user_should_be_redirected_to(User.t()) :: Project.t() | nil
-    @callback create_project(attrs :: Project.changeset_attrs()) ::
-                {:ok, Project.t()} | {:error, Ecto.Changeset.t()}
     @callback find_project_by_repository(%{
                 content_source_id: String.t(),
                 content_source_platform: Project.content_source_platform()
-              }) ::
-                Project.t() | nil
-    @callback generate_token_for_project(Project.t()) :: String.t()
+              }) :: Project.t() | nil
     @callback generate_token_for_project_with_id(String.t()) :: String.t()
+    @callback generate_token_for_project(Project.t()) :: String.t()
     @callback get_project_from_token(String.t()) :: Project.t() | nil
+    @callback get_project_user_should_be_redirected_to(User.t()) :: Project.t() | nil
+    @callback get_project_user_should_be_redirected_to(User.t()) :: Project.t() | nil
+    @callback trigger_build(Project.t(), %{type: String.t(), version: String.t()}) :: :ok
   end
 end

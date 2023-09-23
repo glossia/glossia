@@ -36,15 +36,15 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Credentials do
           Ecto.Changeset.t()
   def changeset(credentials, attrs \\ %{}) do
     credentials
-    |> cast(attrs, [:provider, :provider_id, :token, :refresh_token, :expires_at, :user_id])
+    |> cast(attrs, [
+      :provider,
+      :provider_id,
+      :token,
+      :refresh_token,
+      :refresh_token_expires_at,
+      :expires_at,
+      :user_id
+    ])
     |> validate_required([:provider, :provider_id, :token, :refresh_token, :expires_at, :user_id])
-  end
-
-  @spec update_user_changeset(credential :: any(), attrs :: map()) ::
-          Ecto.Changeset.t()
-  def update_user_changeset(credential, attrs) do
-    credential
-    |> cast(attrs, [:user_id])
-    |> validate_required([:user_id])
   end
 end

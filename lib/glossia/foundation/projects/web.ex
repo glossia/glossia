@@ -12,6 +12,7 @@ defmodule Glossia.Foundation.Projects.Web do
       Glossia.Foundation.Application.Core,
       Glossia.Foundation.ContentSources.Core,
       Glossia.Foundation.Projects.Core,
-      Glossia.Foundation.ContentSources.Core
+      Glossia.Foundation.ContentSources.Core,
+      Glossia.Foundation.GitHub.Core
     ]
 end

@@ -75,18 +75,24 @@ defmodule Glossia.Foundation.Accounts.Core.Repository do
       Repo.one(query) |> Repo.preload(:account)
     end
 
-    def get_github_id(user) do
+    def get_github_credentials(user) do
       query =
         from(c in Credentials,
           where: c.user_id == ^user.id,
           where: c.provider == ^:github
         )
 
-      Repo.one(query) |> Map.get(:provider_id)
+      Repo.one(query)
     end
   end
 
   defbehaviour do
+    alias Glossia.Foundation.Accounts.Core.Models.Credentials
+    alias Glossia.Foundation.Accounts.Core.Models.User
+    alias Glossia.Foundation.Accounts.Core.Models.Organization
+    alias Glossia.Foundation.Accounts.Core.Models.OrganizationUser
+    alias Glossia.Foundation.Accounts.Core.Models.Account
+
     @callback get_user_account(User.t()) :: Account.t() | nil
     @callback get_user_and_organization_accounts(User.t()) :: [Account.t()]
     @callback get_user_organizations(User.t()) :: [Organization.t()]
@@ -95,6 +101,6 @@ defmodule Glossia.Foundation.Accounts.Core.Repository do
     @callback add_user_to_organization(User.t(), Organization.t(), OrganizationUser.role()) ::
                 OrganizationUser.t()
     @callback get_user_by_session_token(String.t()) :: User.t() | nil
-    @callback get_github_id(User.t()) :: String.t() | nil
+    @callback get_github_credentials(User.t()) :: Credentials.t() | nil
   end
 end

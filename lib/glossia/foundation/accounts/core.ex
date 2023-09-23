@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Accounts.Core do
       Glossia.Foundation.Database.Core,
       Glossia.Foundation.Analytics.Core
     ],
-    exports: [Models.User, Repository, Policies]
+    exports: [Models.User, Models.Credentials, Repository, Policies]
 
   import Ecto.Query, warn: false
   alias Glossia.Foundation.Database.Core.Repo
@@ -84,7 +84,7 @@ defmodule Glossia.Foundation.Accounts.Core do
       # We update the credentials to point to the user
       %Credentials{} = credential ->
         credential
-        |> Credentials.update_user_changeset(%{
+        |> Credentials.changeset(%{
           user_id: attrs.user_id,
           token: attrs.token,
           refresh_token: attrs.refresh_token,
