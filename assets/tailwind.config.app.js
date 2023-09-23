@@ -7,6 +7,7 @@ module.exports = {
   content: [
     "../js/**/*.js",
     "../lib/glossia/foundation/**",
+    "../lib/glossia/features/**",
     "!../lib/glossia/features/cloud/marketing/web/**",
   ],
   plugins: [
