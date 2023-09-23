@@ -113,7 +113,7 @@ end
 config :tesla, :adapter, {Tesla.Adapter.Finch, name: Glossia.Finch}
 config :oauth2, adapter: {Tesla.Adapter.Finch, name: Glossia.Finch}
 
-config :glossia, :seo_metadata, %{
+config :glossia, :open_graph_metadata, %{
   title: "Glossia",
   description: "AI Localization on Autopilot. Experience localization like never before.",
   keywords: [

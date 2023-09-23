@@ -2,8 +2,10 @@
 <html lang="en" class="[scrollbar-gutter:stable] h-full">
   <head>
     <.head_base />
-    <.live_title suffix=" · Glossia">
-      <%= assigns[:page_title] || "Glossia" %>
+    <.live_title>
+      <%= Glossia.Foundation.Application.Web.Helpers.OpenGraph.get_open_graph_metadata(assigns)[
+        :title
+      ] %>
     </.live_title>
     <style>
       [x-cloak]{display:none}
@@ -11,6 +13,7 @@
     <.head_alpine />
     <.head_assets surface="app" />
     <.head_posthog />
+    <.head_og conn={@conn} />
     <.primer />
   </head>
   <body class="bg-white antialiased h-full">

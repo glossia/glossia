@@ -1,3 +1,3 @@
 defmodule Glossia.Foundation.Application.Core do
-  use Boundary, exports: [Gettext, SEO, Telemetry]
+  use Boundary, exports: [Gettext, Telemetry]
 end

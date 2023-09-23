@@ -9,6 +9,7 @@ defmodule Glossia.Foundation.Projects.Web do
     deps: [
       Glossia.Foundation.Projects.Core,
       Glossia.Foundation.Accounts.Web,
-      Glossia.Foundation.Accounts.Core
+      Glossia.Foundation.Accounts.Core,
+      Glossia.Foundation.Application.Core
     ]
 end

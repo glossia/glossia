@@ -7,6 +7,7 @@ defmodule Glossia.Foundation.Application.Web.Helpers.Shared do
     quote do
       import Plug.Conn
       import Glossia.Foundation.Application.Core.Gettext
+      import Glossia.Foundation.Application.Web.Helpers.OpenGraph
 
       unquote(Glossia.Foundation.Application.Web.Helpers.Shared.verified_routes())
     end

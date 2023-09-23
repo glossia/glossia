@@ -80,7 +80,7 @@ defmodule Glossia.Foundation.Accounts.Core.Repository do
     @callback get_user_and_organization_accounts(User.t()) :: [Account.t()]
     @callback get_user_organizations(User.t()) :: [Organization.t()]
     @callback add_user_to_organization(User.t(), Organization.t()) ::
-    OrganizationUser.t()
+                OrganizationUser.t()
     @callback add_user_to_organization(User.t(), Organization.t(), OrganizationUser.role()) ::
                 OrganizationUser.t()
     @callback get_user_by_session_token(String.t()) :: User.t() | nil
