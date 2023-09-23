@@ -5,8 +5,8 @@ defmodule Glossia.Foundation.Application.Web.Router do
   use Phoenix.Router, helpers: false
   import Plug.Conn
   import Phoenix.Controller
-  import Phoenix.LiveView.Router
   import Glossia.Foundation.Utilities.Core.Plan
+  import Phoenix.LiveView.Router
 
   ##### Base pipelines #####
 
@@ -176,7 +176,8 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
   scope "/" do
     pipe_through [:browser, :app, :load_authenticated_user, :authenticated_user_present]
-    get "/new", Glossia.Foundation.Projects.Web.Controllers.ProjectController, :new
+    live "/new", Glossia.Foundation.Projects.Web.LiveViews.New
+    # get "/new", Glossia.Foundation.Projects.Web.Controllers.ProjectController, :new
   end
 
   scope "/admin" do

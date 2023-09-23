@@ -10,6 +10,7 @@ defmodule Glossia.Foundation.Accounts.Web.Controllers.AuthController do
 
   def login(conn, _params) do
     conn
+    |> put_layout(html: {Glossia.Foundation.Accounts.Web.Layouts, :auth})
     |> put_open_graph_metadata(%{
       title: "Login",
       description: "Login to Glossia"

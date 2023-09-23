@@ -6,6 +6,9 @@ defmodule Glossia.Foundation.Projects.Web.Controllers.ProjectController do
   end
 
   def new(conn, _params) do
-    render(conn, :new)
+    conn |> put_open_graph_metadata(%{
+      title: "New project",
+      description: "Create a new project"
+    }) |> render(:new)
   end
 end

@@ -47,7 +47,7 @@ defmodule Glossia.Foundation.Application.Web.Components.Shared do
 
   def head_og(assigns) do
     ~H"""
-    <% open_graph_metadata = get_open_graph_metadata(@conn.assigns) %>
+    <% open_graph_metadata = get_open_graph_metadata(assigns) %>
     <title><%= open_graph_metadata[:title] %></title>
     <meta property="article:published_time" content="2022-09-07T00:00:00+00:00" />
     <meta name="description" content={open_graph_metadata[:description]} />
@@ -58,7 +58,7 @@ defmodule Glossia.Foundation.Application.Web.Components.Shared do
     <meta property="og:description" content={open_graph_metadata[:description]} />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Pedro Piñera" />
-    <meta property="og:url" content={Phoenix.Controller.current_url(@conn)} />
+    <meta property="og:url" content={Application.get_env(:glossia, :url)} />
     <meta property="og:image" content="/images/logo.jpg" />
     <!-- Twitter -->
     <meta name="twitter:card" content="summary" />
