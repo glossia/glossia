@@ -1,0 +1,51 @@
+<div class="max-w-3xl mx-auto py-5 px-4">
+  <.subhead>
+    <span class="text-bold">Create a project</span>
+    <:description>
+      Create a new project in Glossia
+    </:description>
+  </.subhead>
+
+  <.form
+    :let={f}
+    for={@project_changeset}
+    phx-change="validate"
+    phx-submit="save"
+    autocomplete="off"
+    class="flex flex-col space-y-5"
+  >
+    <.text_input
+      form={f}
+      field={:handle}
+      id="handle"
+      is_form_control
+      form_control={
+        %{
+          label: "Project handle"
+        }
+      }
+      caption=" Great project handles are short and memorable."
+    />
+
+    <div class="appearance-none">
+      <.select
+        form={f}
+        name="Repository"
+        options={[Admin: "admin", User: "user"]}
+        is_form_control
+        caption={
+          fn ->
+            ~H'''
+            If you don't see the repository, make sure the GitHub
+            <a href={GitHub.app_installation_url()} target="_blank">app is installed</a> on the organization and repository.
+            '''
+          end
+        }
+      />
+    </div>
+
+    <div class="flex flex-row justify-end">
+      <.button is_primary is_selected>Create project</.button>
+    </div>
+  </.form>
+</div>

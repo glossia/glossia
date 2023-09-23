@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.FormControl-select-wrap .FormControl-select {
+    @apply appearance-none;
+    @apply bg-none;
+    appearance: none !important;
+}

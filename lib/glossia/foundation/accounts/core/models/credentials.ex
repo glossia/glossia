@@ -23,6 +23,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Credentials do
     field :token, :string, redact: true
     field :refresh_token, :string, redact: true
     field :expires_at, :utc_datetime
+    field :refresh_token_expires_at, :utc_datetime
     belongs_to :user, User, on_replace: :raise
 
     timestamps()
@@ -31,7 +32,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Credentials do
   @doc """
   It returns the default changeset for the credentials table.
   """
-  @spec changeset(credentials :: Ecto.Schema.t(), attrs :: map()) ::
+  @spec changeset(credentials :: any(), attrs :: map()) ::
           Ecto.Changeset.t()
   def changeset(credentials, attrs \\ %{}) do
     credentials
@@ -39,10 +40,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Credentials do
     |> validate_required([:provider, :provider_id, :token, :refresh_token, :expires_at, :user_id])
   end
 
-  @type update_user_changeset_attrs :: %{
-          user_id: integer()
-        }
-  @spec update_user_changeset(credential :: t(), attrs :: update_user_changeset_attrs) ::
+  @spec update_user_changeset(credential :: any(), attrs :: map()) ::
           Ecto.Changeset.t()
   def update_user_changeset(credential, attrs) do
     credential

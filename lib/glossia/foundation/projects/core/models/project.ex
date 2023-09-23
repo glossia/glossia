@@ -44,13 +44,7 @@ defmodule Glossia.Foundation.Projects.Core.Models.Project do
   @doc """
   It returns the base `Ecto.Changeset` to create and update projects.
   """
-  @type changeset_attrs :: %{
-          handle: String.t(),
-          content_source_id: String.t(),
-          content_source_platform: module(),
-          account_id: integer()
-        }
-  @spec changeset(project :: any(), attrs :: changeset_attrs()) :: Ecto.Changeset.t()
+  @spec changeset(project :: any(), attrs :: map()) :: Ecto.Changeset.t()
   def changeset(project, attrs) do
     project
     |> cast(attrs, [

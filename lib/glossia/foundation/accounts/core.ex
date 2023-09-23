@@ -76,6 +76,7 @@ defmodule Glossia.Foundation.Accounts.Core do
           token: attrs.token,
           refresh_token: attrs.refresh_token,
           expires_at: attrs.expires_at |> DateTime.from_unix!(:second),
+          refresh_token_expires_at: attrs.refresh_token_expires_at,
           user_id: attrs.user_id
         })
         |> Repo.insert()
@@ -83,7 +84,13 @@ defmodule Glossia.Foundation.Accounts.Core do
       # We update the credentials to point to the user
       %Credentials{} = credential ->
         credential
-        |> Credentials.update_user_changeset(%{user_id: attrs.user_id})
+        |> Credentials.update_user_changeset(%{
+          user_id: attrs.user_id,
+          token: attrs.token,
+          refresh_token: attrs.refresh_token,
+          expires_at: attrs.expires_at |> DateTime.from_unix!(:second),
+          refresh_token_expires_at: attrs.refresh_token_expires_at
+        })
         |> Repo.update()
     end
   end
