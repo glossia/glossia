@@ -7,7 +7,7 @@ defmodule Glossia.Foundation.Analytics.Core.Posthog do
 
   defimplementation do
     def capture(event, metadata) do
-      {:ok, _ } = Posthog.capture(event, metadata)
+      {:ok, _} = Posthog.capture(event, metadata)
     end
   end
 end
