@@ -131,8 +131,11 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug :put_root_layout, html: {Glossia.Foundation.Application.Web.Layouts.App, :root}
   end
 
-  pipeline :authenticated_user_present do
+  pipeline :load_authenticated_user do
     plug Glossia.Foundation.Accounts.Web.Plugs.ResourcesPlug, :authenticated_user
+  end
+
+  pipeline :authenticated_user_present do
     plug Glossia.Foundation.Accounts.Web.Plugs.PoliciesPlug, :authenticated_user_present
   end
 
@@ -160,7 +163,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
     pipe_through [
       :browser,
       :app,
-      :authenticated_user_present,
+      :load_authenticated_user,
       :load_url_project,
       :authorize_project_access,
       :track_project
@@ -172,12 +175,12 @@ defmodule Glossia.Foundation.Application.Web.Router do
   end
 
   scope "/" do
-    pipe_through [:browser, :app, :authenticated_user_present]
+    pipe_through [:browser, :app, :load_authenticated_user, :authenticated_user_present]
     get "/new", Glossia.Foundation.Projects.Web.Controllers.ProjectController, :new
   end
 
   scope "/admin" do
-    pipe_through [:browser, :app, :authenticated_user_present]
+    pipe_through [:browser, :app, :load_authenticated_user, :authenticated_user_present]
 
     only_for_plans([:cloud]) do
       import Oban.Web.Router

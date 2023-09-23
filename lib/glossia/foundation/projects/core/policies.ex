@@ -63,7 +63,7 @@ defmodule Glossia.Foundation.Projects.Core.Policies do
   end
 
   def policy_error(conn, :unauthorized) do
+    # Handled at the plug level
     conn
-    |> Plug.Conn.send_resp(401, "Unauthorized")
   end
 end
