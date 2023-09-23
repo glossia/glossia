@@ -13,6 +13,10 @@
         "labels": ["changelog:fixed"]
       },
       {
+        "title": "### Developers",
+        "labels": ["changelog:developers"]
+      },
+      {
         "title": "### Updated dependencies",
         "labels": ["changelog:updated-dependencies"]
       }
