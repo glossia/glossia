@@ -2,19 +2,18 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController d
   use Glossia.Features.Cloud.Marketing.Web.Helpers, :controller
 
   def index(conn, _params) do
-    if conn.assigns[:authenticated_user] do
-      conn
-      |> put_root_layout(html: {Glossia.Foundation.Application.Web.Layouts.App, :root})
-      |> render(:index_app)
-    else
-      conn
-      |> put_layout(false)
-      |> render(:index)
-    end
+    conn
+    |> put_layout(false)
+    |> render(:index)
   end
 
   def blog(conn, _params) do
     conn
+    |> put_open_graph_metadata(%{
+      title: "Blog",
+      description:
+        "Dive into the Glossia Blog, your go-to resource for insights on AI-powered translation, software localization, and innovative chat-based collaboration. Learn how Glossia revolutionizes language adaptability, fostering a global software community. Stay tuned for thought-provoking articles, tips, and more."
+    })
     |> assign(:posts, Glossia.Features.Cloud.Marketing.Core.Blog.all_posts())
     |> assign(:authors, Glossia.Features.Cloud.Marketing.Core.Blog.all_authors())
     |> render(:blog)
@@ -28,6 +27,11 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController d
       |> Enum.find(&(&1.id == String.to_atom(post.author_id)))
 
     conn
+    |> put_open_graph_metadata(%{
+      title: post.title,
+      description: post.description,
+      keywords: post.tags
+    })
     |> assign(:post, post)
     |> assign(:author, author)
     |> render(:blog_post)
@@ -45,16 +49,31 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController d
 
   def beta(conn, _params) do
     conn
+    |> put_open_graph_metadata(%{
+      title: "Beta Testing",
+      description:
+        "Join the future of automation today! Register on our page to become a beta tester for Glossia, the groundbreaking technology set to revolutionize your workflow. Sign up and be the first to experience Glossia’s innovative capabilities."
+    })
     |> render(:beta)
   end
 
   def beta_added(conn, _params) do
     conn
+    |> put_open_graph_metadata(%{
+      title: "Successful Subscription to Glossia Beta Testing!",
+      description:
+        "Congratulations on your successful subscription to the Glossia Beta Testing! Your voyage into the future of automation begins soon. Stay tuned for launch details."
+    })
     |> render(:beta_added)
   end
 
   def team(conn, _params) do
     conn
+    |> put_open_graph_metadata(%{
+      title: "Our Team",
+      description:
+        "Meet the team of innovative minds behind Glossia, the leading AI-powered localization tool transforming how businesses communicate across borders. Our diverse team of experts, dedicated to improving global communication, is committed to making localization more efficient and accurate than ever."
+    })
     |> render(:team)
   end
 
@@ -65,7 +84,7 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController d
 
   def feed(conn, _params) do
     %{title: title, description: description, language: language, base_url: base_url} =
-      Application.fetch_env!(:glossia, :seo_metadata)
+      Application.fetch_env!(:glossia, :open_graph_metadata)
 
     posts = Glossia.Features.Cloud.Marketing.Core.Blog.all_posts()
     last_build_date = posts |> List.first() |> Map.get(:date)

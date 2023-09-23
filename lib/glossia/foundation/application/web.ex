@@ -5,5 +5,5 @@ defmodule Glossia.Foundation.Application.Web do
     apply(__MODULE__, which, [])
   end
 
-  def static_paths, do: ~w(assets fonts images schemas favicons robots.txt builder)
+  def static_paths, do: ~w(assets fonts images schemas favicons robots.txt favicon.ico builder)
 end

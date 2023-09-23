@@ -1,4 +1,17 @@
 <main class="h-full">
   <.flash_group flash={@flash} />
+  <.header>
+    <:item :let={classes}>
+      <.link navigate="/" class={[classes.link, "f4 d-flex flex-items-center"]}>
+        <.glossia_logo class="w-7 h-7 mr-3" />
+        <span>Glossia</span>
+      </.link>
+    </:item>
+    <:item is_full_width />
+    <:item class="mr-0">
+      <%!-- <img class="avatar" height="20" alt="@octocat" src={~p"/images/octocat.png"} width="20" /> --%>
+    </:item>
+  </.header>
+
   <%= @inner_content %>
 </main>

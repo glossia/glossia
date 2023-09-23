@@ -13,8 +13,6 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Helpers do
     quote do
       use Phoenix.Component
 
-      use Glossia.Foundation.Application.Core.SEO
-
       # Import convenience functions from controllers
       import Phoenix.Controller,
         only: [get_csrf_token: 0, view_module: 1, view_template: 1]

@@ -8,7 +8,7 @@ defmodule Glossia.Foundation.Accounts.Core do
       Glossia.Foundation.Database.Core,
       Glossia.Foundation.Analytics.Core
     ],
-    exports: [Models.User, Repository]
+    exports: [Models.User, Models.Credentials, Repository, Policies]
 
   import Ecto.Query, warn: false
   alias Glossia.Foundation.Database.Core.Repo
@@ -76,6 +76,7 @@ defmodule Glossia.Foundation.Accounts.Core do
           token: attrs.token,
           refresh_token: attrs.refresh_token,
           expires_at: attrs.expires_at |> DateTime.from_unix!(:second),
+          refresh_token_expires_at: attrs.refresh_token_expires_at,
           user_id: attrs.user_id
         })
         |> Repo.insert()
@@ -83,7 +84,13 @@ defmodule Glossia.Foundation.Accounts.Core do
       # We update the credentials to point to the user
       %Credentials{} = credential ->
         credential
-        |> Credentials.update_user_changeset(%{user_id: attrs.user_id})
+        |> Credentials.changeset(%{
+          user_id: attrs.user_id,
+          token: attrs.token,
+          refresh_token: attrs.refresh_token,
+          expires_at: attrs.expires_at |> DateTime.from_unix!(:second),
+          refresh_token_expires_at: attrs.refresh_token_expires_at
+        })
         |> Repo.update()
     end
   end
@@ -143,11 +150,6 @@ defmodule Glossia.Foundation.Accounts.Core do
     {token, user_token} = UserToken.build_session_token(user)
     Repo.insert!(user_token)
     token
-  end
-
-  def get_user_by_session_token(token) do
-    {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query) |> Repo.preload(:account)
   end
 
   def delete_user_session_token(token) do

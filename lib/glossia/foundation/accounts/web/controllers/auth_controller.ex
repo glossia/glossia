@@ -9,7 +9,13 @@ defmodule Glossia.Foundation.Accounts.Web.Controllers.AuthController do
   @remember_me_cookie "_glossia_web_user_remember_me"
 
   def login(conn, _params) do
-    render(conn, :login)
+    conn
+    |> put_layout(html: {Glossia.Foundation.Accounts.Web.Layouts, :auth})
+    |> put_open_graph_metadata(%{
+      title: "Login",
+      description: "Login to Glossia"
+    })
+    |> render(:login)
   end
 
   def request(conn, _params) do

@@ -17,9 +17,7 @@ config :glossia, Glossia.Foundation.Application.Web.Endpoint,
     formats: [
       html: Glossia.Foundation.Application.Web.Controllers.ErrorHTML,
       json: Glossia.Foundation.Application.Web.Controllers.ErrorJSON
-    ],
-    root_layout: [html: {Glossia.Features.Cloud.Marketing.Web.Layouts, :root}],
-    layout: [html: {Glossia.Features.Cloud.Marketing.Web.Layouts, :error}]
+    ]
   ],
   pubsub_server: Glossia.PubSub,
   reloadable_compilers:
@@ -60,6 +58,14 @@ config :tailwind,
       --config=tailwind.config.marketing.js
       --input=css/marketing.css
       --output=../priv/static/assets/marketing.css
+    ),
+    cd: Path.expand("../assets", __DIR__)
+  ],
+  app: [
+    args: ~w(
+      --config=tailwind.config.app.js
+      --input=css/app.css
+      --output=../priv/static/assets/app.css
     ),
     cd: Path.expand("../assets", __DIR__)
   ]
@@ -107,7 +113,7 @@ end
 config :tesla, :adapter, {Tesla.Adapter.Finch, name: Glossia.Finch}
 config :oauth2, adapter: {Tesla.Adapter.Finch, name: Glossia.Finch}
 
-config :glossia, :seo_metadata, %{
+config :glossia, :open_graph_metadata, %{
   title: "Glossia",
   description: "AI Localization on Autopilot. Experience localization like never before.",
   keywords: [

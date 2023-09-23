@@ -27,6 +27,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Account do
   # Changesets
 
   @reserved_handles [
+    "new",
     "docs",
     "about",
     "terms",

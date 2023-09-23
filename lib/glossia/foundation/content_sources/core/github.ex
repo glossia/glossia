@@ -215,7 +215,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
 
   @impl Glossia.Foundation.ContentSources.Core.ContentSource
   def generate_auth_token(github) do
-    app_jwt_token = Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.Foundation.GitHub.Core.AppToken.generate_and_sign!()
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
     with {:installation, {status, %{"id" => installation_id}, _}} when status in 200..299 <-
@@ -250,10 +250,12 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
     end
   end
 
-  # Private
-
   def app_bot_user() do
     Application.get_env(:glossia, :github_app_bot_user)
+  end
+
+  def app_installation_url() do
+    "https://github.com/apps/#{Application.get_env(:glossia, :github_app_name)}/installations/new"
   end
 
   @spec get_client_for_installation(
@@ -266,7 +268,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
       if app_jwk_token != nil do
         app_jwk_token
       else
-        Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
+        Glossia.Foundation.GitHub.Core.AppToken.generate_and_sign!()
       end
 
     client = Tentacat.Client.new(%{jwt: app_jwt_token})
@@ -278,7 +280,7 @@ defmodule Glossia.Foundation.ContentSources.Core.GitHub do
   end
 
   defp get_client_for_repository(content_source_id) do
-    app_jwt_token = Glossia.Foundation.ContentSources.Core.GitHub.AppToken.generate_and_sign!()
+    app_jwt_token = Glossia.Foundation.GitHub.Core.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(

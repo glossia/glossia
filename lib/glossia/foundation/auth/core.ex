@@ -11,6 +11,18 @@ defmodule Glossia.Foundation.Auth.Core do
   alias Glossia.Foundation.Accounts.Core, as: Accounts
 
   defp update_credential(user, auth) do
+    %{
+      extra: %{
+        raw_info: %{
+          token: %{other_params: %{"refresh_token_expires_in" => refresh_token_expires_in}}
+        }
+      }
+    } =
+      auth
+
+    refresh_token_expires_at =
+      DateTime.utc_now() |> DateTime.add(refresh_token_expires_in, :second)
+
     {:ok, _} =
       Accounts.find_and_update_or_create_credential(%{
         provider: auth.provider,
@@ -18,7 +30,8 @@ defmodule Glossia.Foundation.Auth.Core do
         token: auth.credentials.token,
         refresh_token: auth.credentials.refresh_token,
         user_id: user.id,
-        expires_at: auth.credentials.expires_at
+        expires_at: auth.credentials.expires_at,
+        refresh_token_expires_at: refresh_token_expires_at
       })
 
     user

@@ -5,10 +5,10 @@ defmodule Glossia.Foundation.Projects.Core.PoliciesTest do
   alias Glossia.Foundation.AccountsFixtures
   alias Glossia.Foundation.Projects.Core.Policies
 
-  describe "authenticated_project" do
+  describe "authenticated_project_present" do
     test "returns unauthorized if the project is missing" do
       # When/Then
-      assert {:error, :unauthorized} == Policies.policy(%{}, :authenticated_project)
+      assert {:error, :unauthorized} == Policies.policy(%{}, :authenticated_project_present)
     end
   end
 

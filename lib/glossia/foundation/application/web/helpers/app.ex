@@ -16,7 +16,10 @@ defmodule Glossia.Foundation.Application.Web.Helpers.App do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {Glossia.Foundation.Application.Web.Layouts.App, :root}
+        layout: {Glossia.Foundation.Application.Web.Layouts.App, :app}
+
+      use PrimerLive
+      import Glossia.Foundation.Application.Web.Helpers.OpenGraph
 
       unquote(html_helpers())
     end

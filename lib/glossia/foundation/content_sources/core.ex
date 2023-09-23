@@ -1,5 +1,7 @@
 defmodule Glossia.Foundation.ContentSources.Core do
-  use Boundary, deps: [Glossia.Foundation.Utilities.Core], exports: [ContentSource]
+  use Boundary,
+    deps: [Glossia.Foundation.Utilities.Core, Glossia.Foundation.GitHub.Core],
+    exports: [ContentSource, GitHub]
 
   # Modules
   alias Glossia.Foundation.ContentSources.Core.GitHub

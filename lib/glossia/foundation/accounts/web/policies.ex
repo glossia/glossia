@@ -26,13 +26,8 @@ defmodule Glossia.Foundation.Accounts.Web.Policies do
 
   # Errors
 
-  def policy_error(conn, :unauthorized) do
-    body =
-      %{errors: [%{detail: "You need to be authenticated to access this resource"}]}
-      |> Jason.encode!()
-
+  def policy_error(conn, _) do
+    # Handled at the plug level
     conn
-    |> Plug.Conn.put_resp_content_type("application/json")
-    |> Plug.Conn.send_resp(401, body)
   end
 end
