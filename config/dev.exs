@@ -26,6 +26,7 @@ config :glossia, Glossia.Foundation.Application.Web.Endpoint,
   watchers: [
     esbuild_app: {Esbuild, :install_and_run, [:app, ~w(--sourcemap=inline --watch)]},
     esbuild_marketing: {Esbuild, :install_and_run, [:marketing, ~w(--sourcemap=inline --watch)]},
+    tailwind_app: {Tailwind, :install_and_run, [:app, ~w(--watch)]},
     tailwind_marketing: {Tailwind, :install_and_run, [:marketing, ~w(--watch)]}
   ]
 

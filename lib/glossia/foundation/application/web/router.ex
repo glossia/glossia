@@ -142,7 +142,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
   end
 
   pipeline :authorize_project_access do
-    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:show, :project}
+    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:read, :project}
   end
 
   scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
