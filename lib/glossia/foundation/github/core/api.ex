@@ -6,22 +6,21 @@ defmodule Glossia.Foundation.GitHub.Core.API do
     def get_user_repositories(%{token: token}) do
       client = Tentacat.Client.new(%{jwt: token})
 
-      with {:user_installations, {status, %{"installations" => installations}, _}}
-           when status in 200..299 <-
-             {:user_installations, Tentacat.get("user/installations", client)} do
-        repositories =
-          for installation <- installations do
-            {_, %{"repositories" => repositories}, _} =
-              Tentacat.get("user/installations/#{installation["id"]}/repositories", client)
+      case Tentacat.get("user/installations", client) do
+        {status, %{"installations" => installations}, _} when status in 200..299 ->
+          repositories =
+            for installation <- installations do
+              {_, %{"repositories" => repositories}, _} =
+                Tentacat.get("user/installations/#{installation["id"]}/repositories", client)
 
-            repositories
-          end
-          |> List.flatten()
-          |> Enum.map(fn repo -> repo["full_name"] end)
+              repositories
+            end
+            |> List.flatten()
+            |> Enum.map(fn repo -> repo["full_name"] end)
 
-        {:ok, repositories}
-      else
-        {:user_installations, {_, body, _}} ->
+          {:ok, repositories}
+
+        {_, body, _} ->
           {:error, body}
       end
     end
@@ -72,7 +71,7 @@ defmodule Glossia.Foundation.GitHub.Core.API do
     Given a user's credentials, it returns a list of repositories that are accessible to the user access token
     https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-repositories-accessible-to-the-user-access-token
     """
-    @callback get_user_repositories(%{token: String.t()}) ::  {:ok, [String.t()]} | {:error, any()}
+    @callback get_user_repositories(%{token: String.t()}) :: {:ok, [String.t()]} | {:error, any()}
 
     @doc """
     It refreshes a user access token if it's oudated.
