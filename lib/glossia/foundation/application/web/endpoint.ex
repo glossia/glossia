@@ -25,7 +25,7 @@ defmodule Glossia.Foundation.Application.Web.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :glossia,
-    gzip: false,
+    gzip: true,
     only: Glossia.Foundation.Application.Web.static_paths()
 
   # Code reloading can be explicitly enabled under the
