@@ -1,0 +1,29 @@
+<.layout is_divided>
+  <:main>
+    <.styled_html class="px-2 py-4">
+      <h1>What is Glossia?</h1>
+    </.styled_html>
+  </:main>
+  <:divider></:divider>
+  <:sidebar>
+    <div class="px-2 py-4">
+      <.action_list>
+        <.action_list_item is_selected>
+          <:link href="#url">
+            What is Glossia
+          </:link>
+        </.action_list_item>
+        <.action_list_item>
+          <:link navigate="#url">
+            navigate link
+          </:link>
+        </.action_list_item>
+        <.action_list_item>
+          <:link patch="#url">
+            patch link
+          </:link>
+        </.action_list_item>
+      </.action_list>
+    </div>
+  </:sidebar>
+</.layout>

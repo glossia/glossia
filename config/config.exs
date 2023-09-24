@@ -54,7 +54,6 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
-
 config :tailwind,
   version: "3.2.7",
   marketing: [

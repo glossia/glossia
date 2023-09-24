@@ -6,7 +6,7 @@ const plugin = require("tailwindcss/plugin");
 module.exports = {
   content: [
     "../js/**/*.js",
-    "../lib/glossia/cloud/docs/**",
+    "../lib/glossia/features/cloud/docs/**",
     "../lib/glossia/**/shared.ex"
   ],
   plugins: [

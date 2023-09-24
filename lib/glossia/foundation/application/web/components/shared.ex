@@ -153,7 +153,6 @@ defmodule Glossia.Foundation.Application.Web.Components.Shared do
     """
   end
 
-
   def primer(assigns) do
     ~H"""
     <link phx-track-static rel="stylesheet" href="/primer_live/primer-live.min.css" />
