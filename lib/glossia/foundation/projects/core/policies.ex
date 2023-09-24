@@ -52,7 +52,7 @@ defmodule Glossia.Foundation.Projects.Core.Policies do
   end
 
   def policy(
-        %{url_project: url_project, authenticated_user: authenticated_user} = assigns,
+        %{url_project: _, authenticated_user: _} = assigns,
         {:read, :project}
       ) do
     {user, assigns} = assigns |> Map.pop(:authenticated_user)
