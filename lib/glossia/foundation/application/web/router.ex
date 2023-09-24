@@ -198,6 +198,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
     scope "/" do
       pipe_through [:browser, :app]
       live "/new", Glossia.Foundation.Projects.Web.LiveViews.NewLiveView
+      live "/settings", Glossia.Foundation.Accounts.Web.LiveViews.SettingsLiveView
     end
   end
 

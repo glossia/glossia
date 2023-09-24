@@ -4,6 +4,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   """
   use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
 
+  alias Glossia.Support.Utilities.Web.PathRememberer
   import Plug.Conn
   import Phoenix.Controller
 
@@ -34,7 +35,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
   """
   def log_in_user(conn, user, params \\ %{}) do
     token = Accounts.generate_user_session_token(user)
-    user_return_to = get_session(conn, :user_return_to)
+    user_return_to = PathRememberer.remembered_path(conn)
 
     conn
     |> renew_session()
