@@ -35,25 +35,31 @@ defmodule Glossia.Foundation.Projects.Core.Policies do
   end
 
   def policy(
-        %{url_project: url_project} = assigns,
+        %{url_project: _} = assigns,
         {:read, :project}
       ) do
-    policy(Map.merge(%{project: url_project}, assigns), {:read, :project})
+    {project, assigns} = assigns |> Map.pop(:url_project)
+    policy(Map.merge(%{project: project}, assigns), {:read, :project})
   end
 
   def policy(
-        %{authenticated_user: authenticated_user} = assigns,
+        %{authenticated_user: _} = assigns,
         {:read, :project}
       ) do
-    policy(Map.merge(%{user: authenticated_user}, assigns), {:read, :project})
+    {user, assigns} = assigns |> Map.pop(:authenticated_user)
+
+    policy(Map.merge(%{user: user}, assigns), {:read, :project})
   end
 
   def policy(
         %{url_project: url_project, authenticated_user: authenticated_user} = assigns,
         {:read, :project}
       ) do
+    {user, assigns} = assigns |> Map.pop(:authenticated_user)
+    {project, assigns} = assigns |> Map.pop(:url_project)
+
     policy(
-      Map.merge(%{user: authenticated_user, project: url_project}, assigns),
+      Map.merge(%{user: user, project: project}, assigns),
       {:read, :project}
     )
   end
