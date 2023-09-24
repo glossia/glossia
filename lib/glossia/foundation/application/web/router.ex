@@ -193,10 +193,11 @@ defmodule Glossia.Foundation.Application.Web.Router do
         :show
   end
 
-  live_session :authenticated_user,
-    on_mount: {Glossia.Foundation.Accounts.Web.LiveViews.AuthLiveView, :authenticated_user} do
-    scope "/" do
-      pipe_through [:browser, :app]
+  scope "/" do
+    pipe_through [:browser, :app, :load_authenticated_user, :authenticated_user_present]
+
+    live_session :authenticated_user,
+      on_mount: {Glossia.Foundation.Accounts.Web.LiveViews.AuthLiveView, :authenticated_user} do
       live "/new", Glossia.Foundation.Projects.Web.LiveViews.NewLiveView
       live "/settings", Glossia.Foundation.Accounts.Web.LiveViews.SettingsLiveView
     end
