@@ -180,7 +180,7 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Components do
                     <li>
                       <a
                         class="text-lg text-black hover:text-lila-400"
-                        href="https://status.glossia.ai"
+                        href="https://glossia.openstatus.dev/"
                       >
                         Status
                       </a>
