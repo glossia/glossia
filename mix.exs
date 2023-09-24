@@ -72,7 +72,6 @@ defmodule Glossia.MixProject do
       {:google_api_cloud_build, "~> 0.49"},
       {:google_api_storage, "~> 0.34.0"},
       {:rambo, "~> 0.3.4"},
-      {:stripity_stripe, "~> 2.17.3"},
       {:open_api_spex, "~> 3.18.0"},
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
@@ -93,6 +92,7 @@ defmodule Glossia.MixProject do
       :cloud ->
         dependencies ++
           [
+            {:stripity_stripe, "~> 2.17.3"},
             {:posthog, "~> 0.1"},
             {:oban_web, "~> 2.10.0-rc.2", repo: "oban"},
             {:appsignal, "~> 2.0"},
