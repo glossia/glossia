@@ -16,6 +16,13 @@ defmodule Glossia.Foundation.Accounts.Web.Plugs.PoliciesPlug do
     |> halt()
   end
 
+  def policy_error(conn, :authenticated_user_is_not_admin) do
+    conn
+    |> put_flash(:error, "You are not authorized to visit this page")
+    |> redirect(to: ~p"/")
+    |> halt()
+  end
+
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :user_return_to, current_path(conn))
   end

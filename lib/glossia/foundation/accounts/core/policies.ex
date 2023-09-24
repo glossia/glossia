@@ -10,12 +10,20 @@ defmodule Glossia.Foundation.Accounts.Core.Policies do
     :ok
   end
 
-  def policy(%{authenticated_user: nil}, :authenticated_user_present) do
+  def policy(_, :authenticated_user_present) do
     {:error, :authenticated_user_absent}
   end
 
-  def policy(%{}, :authenticated_user_present) do
-    {:error, :authenticated_user_absent}
+  def policy(%{authenticated_user: %User{} = user}, :authenticate_user_is_admin) do
+    if user.role == :admin do
+      :ok
+    else
+      {:error, :authenticated_user_is_not_admin}
+    end
+  end
+
+  def policy(_, :authenticate_user_is_admin) do
+    {:error, :authenticated_user_is_not_admin}
   end
 
   def policy_error(conn, _) do

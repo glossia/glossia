@@ -148,6 +148,25 @@ defmodule Glossia.Foundation.Application.Web.Router do
     plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:read, :project}
   end
 
+  pipeline :ensure_authenticated_user_is_admin do
+    plug Glossia.Foundation.Accounts.Web.Plugs.PoliciesPlug, :authenticate_user_is_admin
+  end
+
+  scope "/admin" do
+    pipe_through [
+      :browser,
+      :app,
+      :load_authenticated_user,
+      :authenticated_user_present,
+      :ensure_authenticated_user_is_admin
+    ]
+
+    only_for_plans([:cloud]) do
+      import Oban.Web.Router
+      oban_dashboard("/oban")
+    end
+  end
+
   scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
     pipe_through [:browser, :app]
 
@@ -179,15 +198,6 @@ defmodule Glossia.Foundation.Application.Web.Router do
     scope "/" do
       pipe_through [:browser, :app]
       live "/new", Glossia.Foundation.Projects.Web.LiveViews.NewLiveView
-    end
-  end
-
-  scope "/admin" do
-    pipe_through [:browser, :app, :load_authenticated_user, :authenticated_user_present]
-
-    only_for_plans([:cloud]) do
-      import Oban.Web.Router
-      oban_dashboard("/oban")
     end
   end
 
