@@ -40,16 +40,20 @@ config :esbuild,
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]
-
-config :esbuild,
-  version: "0.17.11",
+  ],
   marketing: [
     args:
       ~w(js/marketing.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ],
+  docs: [
+    args:
+      ~w(js/docs.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
+
 
 config :tailwind,
   version: "3.2.7",
@@ -66,6 +70,14 @@ config :tailwind,
       --config=tailwind.config.app.js
       --input=css/app.css
       --output=../priv/static/assets/app.css
+    ),
+    cd: Path.expand("../assets", __DIR__)
+  ],
+  docs: [
+    args: ~w(
+      --config=tailwind.config.docs.js
+      --input=css/docs.css
+      --output=../priv/static/assets/docs.css
     ),
     cd: Path.expand("../assets", __DIR__)
   ]

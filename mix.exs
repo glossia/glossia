@@ -117,12 +117,14 @@ defmodule Glossia.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind marketing", "tailwind app", "esbuild app", "esbuild marketing"],
+      "assets.build": ["tailwind marketing", "tailwind app", "tailwind docs", "esbuild marketing", "esbuild app", "esbuild docs"],
       "assets.deploy": [
-        "tailwind marketing --minify",
         "tailwind app --minify",
+        "tailwind marketing --minify",
+        "tailwind docs --minify",
         "esbuild app --minify",
         "esbuild marketing --minify",
+        "esbuild docs --minify",
         "phx.digest"
       ]
     ]

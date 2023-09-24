@@ -44,7 +44,20 @@ defmodule Glossia.Foundation.Application.Web.Router do
       get "/beta-added", MarketingController, :beta_added
       get "/blog", MarketingController, :blog
       get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-      get "/docs/*id", MarketingController, :docs
+      # get "/docs/*id", MarketingController, :docs
+    end
+  end
+
+  only_for_plans([:cloud]) do
+    pipeline :docs do
+      plug :put_root_layout, html: {Glossia.Features.Cloud.Docs.Web.Layouts, :root}
+    end
+
+    scope "/", Glossia.Features.Cloud.Docs.Web.Controllers do
+      pipe_through [:browser, :docs]
+
+      get "/docs", DocsController, :show
+      get "/docs/*id", DocsController, :show
     end
   end
 
