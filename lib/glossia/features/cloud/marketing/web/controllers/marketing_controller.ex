@@ -37,11 +37,6 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController d
     |> render(:blog_post)
   end
 
-  def docs(conn, %{"id" => []}) do
-    conn
-    |> render(:docs)
-  end
-
   def docs(conn, _params) do
     conn
     |> render(:docs)
