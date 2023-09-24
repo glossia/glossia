@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.ContentSources.Core do
   use Boundary,
-    deps: [Glossia.Foundation.Utilities.Core, Glossia.Foundation.GitHub.Core],
+    deps: [Glossia.Foundation.Utilities.Core, Glossia.Support.GitHub.Core],
     exports: [ContentSource, GitHub]
 
   # Modules

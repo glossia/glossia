@@ -1,11 +1,11 @@
 defmodule Glossia.Foundation.Projects.Web.LiveViews.NewLiveView do
-  alias Glossia.Foundation.Accounts.Core.Repository
-  use Glossia.Foundation.Application.Web.Helpers.App, :live_view
-  alias Glossia.Foundation.Projects.Core.Models.Project
-  alias Glossia.Foundation.ContentSources.Core.GitHub
-  alias Glossia.Foundation.GitHub.Core.API, as: GitHubAPI
   alias Glossia.Foundation.Accounts.Core.Models.Credentials
+  alias Glossia.Foundation.Accounts.Core.Repository
   alias Glossia.Foundation.Accounts.Core.Repository, as: AccountsRepository
+  alias Glossia.Foundation.ContentSources.Core.GitHub
+  alias Glossia.Foundation.Projects.Core.Models.Project
+  alias Glossia.Support.GitHub.Core.API, as: GitHubAPI
+  use Glossia.Foundation.Application.Web.Helpers.App, :live_view
 
   def mount(_params, _, socket) do
     repositories =

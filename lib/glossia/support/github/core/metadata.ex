@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.GitHub.Core.Metadata do
+defmodule Glossia.Support.GitHub.Core.Metadata do
   use Modulex
 
   defimplementation do

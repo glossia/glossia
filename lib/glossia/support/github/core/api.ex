@@ -1,6 +1,7 @@
-defmodule Glossia.Foundation.GitHub.Core.API do
+defmodule Glossia.Support.GitHub.Core.API do
   use Modulex
-  alias Glossia.Foundation.GitHub.Core.Metadata
+  alias Glossia.Support.GitHub.Core.Metadata
+  alias Glossia.Support.GitHub.Core.AppToken
 
   defimplementation do
     def get_user_repositories(%{token: token}) do
@@ -36,7 +37,7 @@ defmodule Glossia.Foundation.GitHub.Core.API do
               refresh_token_expires_at == nil || refresh_token_expires_at > DateTime.utc_now()},
            {:access_token_expired, true} <-
              {:access_token_expired, expires_at < DateTime.utc_now()} do
-        app_jwt_token = Glossia.Foundation.GitHub.Core.AppToken.generate_and_sign!()
+        app_jwt_token = AppToken.generate_and_sign!()
         client = Tentacat.Client.new(%{jwt: app_jwt_token})
 
         response =
