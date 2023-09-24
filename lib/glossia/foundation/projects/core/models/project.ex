@@ -63,7 +63,7 @@ defmodule Glossia.Foundation.Projects.Core.Models.Project do
     |> validate_inclusion(:content_source_platform, [:github])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
     |> validate_length(:handle, min: 3, max: 20)
-    |> unique_constraint(:handle)
+    |> unique_constraint([:account_id, :handle])
     |> unique_constraint([:content_source_id, :content_source_platform])
     |> assoc_constraint(:account)
   end

@@ -17,7 +17,6 @@
     <.text_input
       form={f}
       field={:handle}
-      id="handle"
       is_form_control
       form_control={
         %{
@@ -30,9 +29,15 @@
     <div class="appearance-none">
       <.select
         form={f}
-        name="content_source_id"
+        field={:content_source_id}
         options={@repositories}
         is_form_control
+        prompt={[key: "Select the repository", disabled: true, selected: true]}
+        form_control={
+          %{
+            label: "Select the repository"
+          }
+        }
         caption={
           fn ->
             ~H'''
