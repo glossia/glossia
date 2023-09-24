@@ -1,57 +1,59 @@
-<div class="max-w-3xl mx-auto py-5 px-4">
-  <.subhead>
-    <span class="text-bold">Create a project</span>
-    <:description>
-      Create a new project in Glossia
-    </:description>
-  </.subhead>
+<.layout is_centered_md class="my-5">
+  <:main>
+    <.subhead>
+      <span class="text-bold">Create a project</span>
+      <:description>
+        Create a new project in Glossia
+      </:description>
+    </.subhead>
 
-  <.form
-    :let={f}
-    for={@project_changeset}
-    phx-change="validate"
-    phx-submit="save"
-    autocomplete="off"
-    class="flex flex-col space-y-5"
-  >
-    <.text_input
-      form={f}
-      field={:handle}
-      is_form_control
-      form_control={
-        %{
-          label: "Project handle"
-        }
-      }
-      caption=" Great project handles are short and memorable."
-    />
-
-    <div class="appearance-none">
-      <.select
+    <.form
+      :let={f}
+      for={@project_changeset}
+      phx-change="validate"
+      phx-submit="save"
+      autocomplete="off"
+      class="flex flex-col space-y-5"
+    >
+      <.text_input
         form={f}
-        field={:content_source_id}
-        options={@repositories}
+        field={:handle}
         is_form_control
-        prompt={[key: "Select the repository", disabled: true, selected: true]}
         form_control={
           %{
-            label: "Select the repository"
+            label: "Project handle"
           }
         }
-        caption={
-          fn ->
-            ~H'''
-            If you don't see the repository, make sure the GitHub
-            <a href={GitHub.app_installation_url()} target="_blank">app is installed</a> on the organization and repository.
-            '''
-          end
-        }
+        caption=" Great project handles are short and memorable."
       />
-    </div>
 
-    <div class="mt-3" style="display: flex; gap: 8px;">
-      <.button is_submit is_primary is_selected>Save</.button>
-      <.button phx-click="reset">Reset</.button>
-    </div>
-  </.form>
-</div>
+      <div class="appearance-none">
+        <.select
+          form={f}
+          field={:content_source_id}
+          options={@repositories}
+          is_form_control
+          prompt={[key: "Select the repository", disabled: true, selected: true]}
+          form_control={
+            %{
+              label: "Select the repository"
+            }
+          }
+          caption={
+            fn ->
+              ~H'''
+              If you don't see the repository, make sure the GitHub
+              <a href={GitHub.app_installation_url()} target="_blank">app is installed</a> on the organization and repository.
+              '''
+            end
+          }
+        />
+      </div>
+
+      <div class="mt-3" style="display: flex; gap: 8px;">
+        <.button is_submit is_primary is_selected>Save</.button>
+        <.button phx-click="reset">Reset</.button>
+      </div>
+    </.form>
+  </:main>
+</.layout>
