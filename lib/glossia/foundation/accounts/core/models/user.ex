@@ -9,13 +9,15 @@ defmodule Glossia.Foundation.Accounts.Core.Models.User do
   alias Glossia.Foundation.Accounts.Core.Models.{Account, Credentials, Organization}
 
   # Types
+  @type role :: :user | :admin
   @type t :: %__MODULE__{
           email: String.t(),
           password: String.t(),
           hashed_password: String.t(),
           confirmed_at: DateTime.t(),
           credentials: [Credentials.t()],
-          account: [Account.t()]
+          account: Account.t() | nil,
+          role: role
         }
 
   schema "users" do
@@ -23,6 +25,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    field :role, Ecto.Enum, values: [user: 1, admin: 2], default: :user
 
     has_many :credentials, Credentials, on_delete: :delete_all
     belongs_to :account, Account, on_replace: :raise
