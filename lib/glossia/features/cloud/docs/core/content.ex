@@ -8,14 +8,16 @@ defmodule Glossia.Features.Cloud.Docs.Core.Content do
     @external_resource "priv/docs/navigation.json"
     @navigation File.read!("priv/docs/navigation.json")
                 |> Jason.decode!(keys: :atoms)
-                |> Enum.map(&Item.new!/1)
+                |> Enum.map(fn item ->
+                  Nestru.decode_from_map!(item, Item)
+                end)
 
     def all_pages() do
       []
     end
 
     def navigation() do
-      %{}
+      @navigation
     end
   end
 

@@ -13,7 +13,7 @@ defmodule Glossia.MixProject do
       aliases: aliases(),
       deps: deps(),
       test_coverage: [ignore_modules: [~r/\.TypeEnsurer$/]],
-      compilers: [:domo_compiler, :boundary] ++ Mix.compilers() ++ [:domo_phoenix_hot_reload]
+      compilers: [:boundary] ++ Mix.compilers()
     ]
   end
 
@@ -78,14 +78,14 @@ defmodule Glossia.MixProject do
       {:req, "~> 0.4.0"},
       {:useful, "~> 1.12.1"},
       {:typed_struct, "~> 0.3.0"},
-      {:domo, "~> 1.5"},
       {:modulex, "~> 0.7.0"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.0", only: :test},
       {:primer_live, "~> 0.5"},
       {:ecto_erd, "~> 0.5", only: :dev},
-      {:hammox, "~> 0.7", only: :test}
+      {:hammox, "~> 0.7", only: :test},
+      {:nestru, "~> 0.3.3"}
     ]
 
     case plan() do

@@ -2,9 +2,8 @@ defmodule Glossia.Features.Cloud.Marketing.Core.Blog.Author do
   @moduledoc """
   A struct that represents a blog author.
   """
-
   use TypedStruct
-  use Domo
+  @derive [Nestru.Decoder]
 
   typedstruct(enforce: true) do
     field :id, atom()
