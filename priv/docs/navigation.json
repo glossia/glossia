@@ -1,6 +1,11 @@
 [
   {
-    "name": "Developers",
-    "children": []
+    "name": "Contributors",
+    "children": [
+      {
+        "name": "Get started",
+        "children": []
+      }
+    ]
   }
 ]
