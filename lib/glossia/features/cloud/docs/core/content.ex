@@ -11,9 +11,14 @@ defmodule Glossia.Features.Cloud.Docs.Core.Content do
                 |> Enum.map(fn item ->
                   Nestru.decode_from_map!(item, Item)
                 end)
+    use NimblePublisher,
+      build: Page,
+      from: Application.app_dir(:glossia, "priv/docs/pages/**/*.md"),
+      as: :pages,
+      highlighters: [:makeup_elixir, :makeup_erlang]
 
-    def all_pages() do
-      []
+    def pages() do
+      @pages
     end
 
     def navigation() do
@@ -24,7 +29,7 @@ defmodule Glossia.Features.Cloud.Docs.Core.Content do
   defbehaviour do
     alias Glossia.Features.Cloud.Docs.Core.Models.Page
 
-    @callback all_pages() :: [Page.t()]
+    @callback pages() :: [Page.t()]
     @callback navigation() :: Navigation.t()
   end
 end

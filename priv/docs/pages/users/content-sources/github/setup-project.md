@@ -1,4 +1,11 @@
-# Configure the project
+%{
+    title: "Configure a project repository",
+    description: "",
+    tags: ~w(hello),
+}
+---
+
+# Configure a project repository
 
 When you set up a project on Glossia and link it to a GitHub repository, you grant Glossia the authority to detect content alterations and save the localizations. Yet, this alone isn't enough. Certain modifications and files in the repository are essential for this integration to function seamlessly.
 

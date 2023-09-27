@@ -1,3 +1,9 @@
+%{
+    title: "What is Glossia?",
+    description: "",
+    tags: ~w(hello),
+}
+---
 # Glossia
 
 ## What
