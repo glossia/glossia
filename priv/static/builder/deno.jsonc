@@ -1,3 +1,4 @@
 {
-  "imports": {}
+  "imports": {},
+  "lock": "./deno.lock"
 }
