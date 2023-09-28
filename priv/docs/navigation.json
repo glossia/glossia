@@ -1,6 +1,7 @@
 [
   {
     "name": "Users",
+    "path": "users",
     "children": [
       {
         "name": "What is Glossia",
@@ -8,9 +9,11 @@
       },
       {
         "name": "Content Sources",
+        "path": "users/content-sources",
         "children": [
           {
             "name": "GitHub",
+            "path": "users/content-sources/github",
             "children": [
               {
                 "name": "Configure a project repository",
@@ -22,6 +25,7 @@
       },
       {
         "name": "Enterprise",
+        "path": "users/enterprise",
         "children": [
           {
             "name": "How to self-host Glossia",
@@ -33,6 +37,7 @@
   },
   {
     "name": "Contributors",
+    "path": "contributors",
     "children": [
       {
         "name": "Get started",

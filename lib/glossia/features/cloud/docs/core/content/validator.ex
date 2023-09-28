@@ -42,13 +42,13 @@ defmodule Glossia.Features.Cloud.Docs.Core.Content.Validator do
 
     defp navigation_paths(navigation) when is_list(navigation) do
       navigation
-      |> Enum.flat_map(fn item ->
-        case item do
-          %{path: path} when not is_nil(path) ->
-            [path]
+      |> Enum.flat_map(fn %{path: path} = item ->
+        paths = [path]
 
-          %{children: children} ->
-            navigation_paths(children)
+        if Map.has_key?(item, :children) do
+          paths ++ navigation_paths(item.children)
+        else
+          paths
         end
       end)
     end
