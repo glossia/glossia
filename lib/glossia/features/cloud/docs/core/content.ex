@@ -31,8 +31,9 @@ defmodule Glossia.Features.Cloud.Docs.Core.Content do
 
   defbehaviour do
     alias Glossia.Features.Cloud.Docs.Core.Models.Page
+    alias Glossia.Features.Cloud.Docs.Core.Models.Navigation.Item
 
     @callback pages() :: [Page.t()]
-    @callback navigation() :: Navigation.t()
+    @callback navigation() ::[Item.t()]
   end
 end

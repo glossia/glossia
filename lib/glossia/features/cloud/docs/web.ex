@@ -1,5 +1,5 @@
 defmodule Glossia.Features.Cloud.Docs.Web do
   use Boundary,
-    deps: [],
+    deps: [Glossia.Features.Cloud.Docs.Core],
     exports: [Controllers.DocsController]
 end

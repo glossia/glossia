@@ -5,7 +5,7 @@ defmodule Glossia.Features.Cloud.Marketing.Core.Blog do
 
   # Modules
   alias Glossia.Features.Cloud.Marketing.Core.Blog.Authors
-  alias Glossia.Features.Cloud.Marketing.Core.Blog.{Post, Author}
+  alias Glossia.Features.Cloud.Marketing.Core.Blog.{Post}
 
   use NimblePublisher,
     build: Post,
@@ -16,7 +16,6 @@ defmodule Glossia.Features.Cloud.Marketing.Core.Blog do
   @posts Enum.sort_by(@posts, & &1.date, {:desc, Date})
   @tags @posts |> Enum.flat_map(& &1.tags) |> Enum.uniq() |> Enum.sort()
 
-  @spec all_authors() :: [Author.t()]
   def all_authors, do: Authors.all()
 
   @spec all_posts() :: [Post.t()]

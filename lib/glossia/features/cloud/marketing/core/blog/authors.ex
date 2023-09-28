@@ -12,5 +12,6 @@ defmodule Glossia.Features.Cloud.Marketing.Core.Blog.Authors do
                end)
   @external_resource "priv/blog/authors.json"
 
+  @spec all :: any()
   def all, do: @all_authors
 end

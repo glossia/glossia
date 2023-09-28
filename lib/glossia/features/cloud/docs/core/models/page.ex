@@ -8,7 +8,7 @@ defmodule Glossia.Features.Cloud.Docs.Core.Models.Page do
     field :title, String.t(), enforce: true
     field :description, String.t(), enforce: true
     field :tags, [String.t()], enforce: true
-    field :body, Sring.t(), enforce: true
+    field :body, String.t(), enforce: true
   end
 
   def build(filename, attrs, body) do
