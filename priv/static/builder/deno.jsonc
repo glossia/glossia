@@ -1,4 +1,4 @@
 {
   "imports": {},
-  "lock": "./deno.lock"
+  "lock": "false"
 }
