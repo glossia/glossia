@@ -12,7 +12,7 @@ concurrency:
 
 env:
   DEBUG: 1
-  OTP_VERSION: 25.0.4
+  OTP_VERSION: 26.1.1
   ELIXIR_VERSION: 1.14.1
   MIX_ENV: test
   GLOSSIA_PLAN: cloud
