@@ -76,7 +76,7 @@ defmodule Glossia.MixProject do
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
       {:req, "~> 0.4.0"},
-      {:useful, "~> 1.12.1"},
+      {:useful, "~> 1.13.0"},
       {:typed_struct, "~> 0.3.0"},
       {:modulex, "~> 0.7.0"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
