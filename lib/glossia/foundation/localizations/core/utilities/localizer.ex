@@ -27,11 +27,12 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
 
     {title, description} = title_and_description_from_summaries(summaries)
 
-    %{
-      title: title,
-      description: description,
-      content: Enum.map(updates, fn {id, content, _} -> [id: id, content: content] end)
-    }
+    # Disabled
+    # %{
+    #   title: title,
+    #   description: description,
+    #   content: Enum.map(updates, fn {id, content, _} -> [id: id, content: content] end)
+    # }
   end
 
   def title_and_description_from_summaries(summaries) do
