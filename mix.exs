@@ -55,7 +55,7 @@ defmodule Glossia.MixProject do
       {:gettext, "~> 0.23"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:oban, "2.15.4"},
+      {:oban, "== 2.16.1"},
       {:dotenvy, "~> 0.8.0"},
       {:ueberauth, "~> 0.10.5"},
       {:ueberauth_github, "~> 0.8"},
