@@ -1,3 +1,10 @@
+%{
+    title: "How to self-host Glossia",
+    description: "",
+    tags: ~w(hello),
+}
+---
+
 # How to self-host Glossia
 
 The Glossia Community and Enterprise plans permit self-hosting of the project. However, please be aware that **the Enterprise plan necessitates a distinct [licensing agreement](/lib/glossia/features/enterprise/LICENSE.md)**. Without this agreement, self-hosting under the Enterprise plan is prohibited. This guide provides comprehensive instructions for deploying and updating the project.

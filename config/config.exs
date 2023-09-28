@@ -20,8 +20,7 @@ config :glossia, Glossia.Foundation.Application.Web.Endpoint,
     ]
   ],
   pubsub_server: Glossia.PubSub,
-  reloadable_compilers:
-    [:phoenix, :domo_compiler] ++ Mix.compilers() ++ [:domo_phoenix_hot_reload]
+  reloadable_compilers: [:phoenix] ++ Mix.compilers()
 
 # Configures the mailer
 #

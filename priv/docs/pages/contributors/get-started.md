@@ -1,4 +1,11 @@
-# Contributor resources
+%{
+    title: "Get started",
+    description: "",
+    tags: ~w(hello),
+}
+---
+
+# Get started
 
 Glossia's website and app run on [Elixir](https://elixir-lang.org/) and [Phoenix](https://www.phoenixframework.org/), with [Deno](https://deno.land/) handling one-off tasks in transient Linux environments.
 
