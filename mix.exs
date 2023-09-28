@@ -85,7 +85,8 @@ defmodule Glossia.MixProject do
       {:primer_live, "~> 0.5"},
       {:ecto_erd, "~> 0.5", only: :dev},
       {:hammox, "~> 0.7", only: :test},
-      {:nestru, "~> 0.3.3"}
+      {:nestru, "~> 0.3.3"},
+      {:uniq, "~> 0.6.1"}
     ]
 
     case plan() do
