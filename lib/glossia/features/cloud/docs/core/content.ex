@@ -4,6 +4,7 @@ defmodule Glossia.Features.Cloud.Docs.Core.Content do
   defimplementation do
     alias Glossia.Features.Cloud.Docs.Core.Models.Page
     alias Glossia.Features.Cloud.Docs.Core.Models.Navigation.Item
+    alias Glossia.Features.Cloud.Docs.Core.Content.Validator
 
     @external_resource "priv/docs/navigation.json"
     @navigation File.read!("priv/docs/navigation.json")
@@ -16,6 +17,8 @@ defmodule Glossia.Features.Cloud.Docs.Core.Content do
       from: Application.app_dir(:glossia, "priv/docs/pages/**/*.md"),
       as: :pages,
       highlighters: [:makeup_elixir, :makeup_erlang]
+
+    Validator.validate(@pages, @navigation)
 
     def pages() do
       @pages
