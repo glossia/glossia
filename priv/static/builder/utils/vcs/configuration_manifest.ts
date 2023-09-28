@@ -1,4 +1,4 @@
-import Ajv from "https://esm.sh/ajv@~8.12.0";
+import Ajv from "https://esm.sh/ajv@8.12.0";
 import { parse } from "https://deno.land/std@0.195.0/jsonc/mod.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import { Result } from "../result.ts";

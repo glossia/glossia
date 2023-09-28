@@ -5,7 +5,6 @@ import {
 } from "https://deno.land/std@0.196.0/path/posix.ts";
 import {
   getContextFromFilePath,
-  getContextSHA256,
   getFileFormat,
   getFileSHA256,
 } from "./utilities.ts";
@@ -16,7 +15,6 @@ import { ConfigurationManifest } from "./configuration_manifest.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import {
   FileFormat,
-  LocalizationRequestPayloadLocalizableChecksum,
   LocalizationRequestPayloadModule,
   LocalizationRequestPayloadSourceLocalizable,
   LocalizationRequestPayloadTargetLocalizable,

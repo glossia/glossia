@@ -1,54 +1,54 @@
-# name: Builder
+name: Builder
 
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
-# concurrency:
-#   group: builder-${{ github.head_ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: builder-${{ github.head_ref }}
+  cancel-in-progress: true
 
-# env:
-#   DENO_VERSION: "1.36.1"
+env:
+  DENO_VERSION: "1.37.1"
 
-# jobs:
-#   test:
-#     name: Test
-#     runs-on: 'ubuntu-latest'
-#     timeout-minutes: 15
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: denoland/setup-deno@v1
-#         with:
-#             deno-version: ${{ env.DENO_VERSION }}
-#       - name: Test
-#         working-directory: priv/static/builder
-#         run: deno test -A
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#   lint:
-#     name: Lint
-#     runs-on: 'ubuntu-latest'
-#     timeout-minutes: 15
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: denoland/setup-deno@v1
-#         with:
-#             deno-version: ${{ env.DENO_VERSION }}
-#       - name: Lint
-#         working-directory: priv/static/builder
-#         run: deno lint
-#   format:
-#     name: Format
-#     runs-on: 'ubuntu-latest'
-#     timeout-minutes: 15
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: denoland/setup-deno@v1
-#         with:
-#             deno-version: ${{ env.DENO_VERSION }}
-#       - name: Format
-#         working-directory: priv/static/builder
-#         run: deno fmt --check
+jobs:
+  test:
+    name: Test
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Test
+        working-directory: priv/static/builder
+        run: deno test -A
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  lint:
+    name: Lint
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Lint
+        working-directory: priv/static/builder
+        run: deno lint
+  format:
+    name: Format
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Format
+        working-directory: priv/static/builder
+        run: deno fmt --check
