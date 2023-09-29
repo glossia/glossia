@@ -15,6 +15,8 @@ organization =
       organization
   end
 
+organization = organization |> Repo.preload(:account)
+
 project =
   Repo.get_by(Project, content_source_id: "glossia/glossia", content_source_platform: :github)
   |> case do
@@ -24,7 +26,7 @@ project =
           handle: "glossia",
           content_source_id: "glossia/glossia",
           content_source_platform: :github,
-          account_id: organization.id
+          account_id: organization.account.id
         })
 
       project

@@ -1,3 +1,3 @@
 defmodule Glossia.Foundation.Database.Core do
-  use Boundary, exports: [Repo]
+  use Boundary, exports: [Repo, Schema]
 end

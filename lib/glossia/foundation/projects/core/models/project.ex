@@ -22,7 +22,7 @@ defmodule Glossia.Foundation.Projects.Core.Models.Project do
 
   alias Glossia.Foundation.Accounts.Core.Models.Account
   alias Glossia.Foundation.Builds.Core.Build
-  use Ecto.Schema
+  use Glossia.Foundation.Database.Core.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
 
