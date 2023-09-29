@@ -25,6 +25,7 @@ end
 
 if config_env() == :prod do
   # https://community.neon.tech/t/guide-on-connecting-via-ecto/75
+  # https://neon.tech/docs/guides/elixir-ecto
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
