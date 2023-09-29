@@ -86,7 +86,8 @@ defmodule Glossia.MixProject do
       {:ecto_erd, "~> 0.5", only: :dev},
       {:hammox, "~> 0.7", only: :test},
       {:nestru, "~> 0.3.3"},
-      {:uniq, "~> 0.6.1"}
+      {:uniq, "~> 0.6.1"},
+      {:castore, "~> 1.0"}
     ]
 
     case plan() do
