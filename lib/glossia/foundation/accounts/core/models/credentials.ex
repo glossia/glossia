@@ -15,7 +15,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Credentials do
   @moduledoc """
   A struct that represents the credentials table.
   """
-  use Ecto.Schema
+  use Glossia.Foundation.Database.Core.Schema
 
   schema "credentials" do
     field :provider, Ecto.Enum, values: [github: 1]

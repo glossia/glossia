@@ -3,7 +3,7 @@ defmodule Glossia.Foundation.Accounts.Core.Models.UserToken do
   A model that represents the user_tokens table, which contains tokens
   associated to a given user.
   """
-  use Ecto.Schema
+  use Glossia.Foundation.Database.Core.Schema
   import Ecto.Query
   alias Glossia.Foundation.Accounts.Core.Models.UserToken
 

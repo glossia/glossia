@@ -25,7 +25,7 @@ defmodule Glossia.Foundation.Builds.Core.Build do
           | :expired
 
   # Modules
-  use Ecto.Schema
+  use Glossia.Foundation.Database.Core.Schema
   import Ecto.Changeset
 
   # Schema
