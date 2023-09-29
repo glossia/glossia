@@ -101,5 +101,6 @@ USER nobody
 CMD ["/app/bin/server"]
 
 # Appended by flyctl
+ENV DATABASE_CA_CERT_FILEPATH "/app/deps/castore/priv/cacerts.pem"
 ENV ECTO_IPV6 false
 ENV ERL_AFLAGS "-proto_dist inet6_tcp"
