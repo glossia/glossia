@@ -1,5 +1,8 @@
 {
   "version": "3",
+  "redirects": {
+    "https://deno.land/x/ascii_table/mod.ts": "https://deno.land/x/ascii_table@v0.1.0/mod.ts"
+  },
   "remote": {
     "https://cdn.skypack.dev/-/markdown-to-txt@v2.0.1-19ZJoncXHDFpn5lTs7Vh/dist=es2019,mode=imports/optimized/markdown-to-txt.js": "f9fd792bb170343fef40500a06d98eeb1ec1ce3100e861b2f744360bdbf9ae3a",
     "https://cdn.skypack.dev/-/marked@v4.0.17-ZxvYABZPFB67jGeTKwwX/dist=es2019,mode=imports/optimized/marked.js": "0107276746114e937b99779bfa473abdd9df828fc53be6bb7dc7752801578765",
@@ -79,11 +82,12 @@
     "https://deno.land/std@0.196.0/testing/asserts.ts": "b4e4b1359393aeff09e853e27901a982c685cb630df30426ed75496961931946",
     "https://deno.land/std@0.196.0/testing/snapshot.ts": "a45165a6a2495f1ec59bf02fda4819de189b000f0009c121ea8ac9c51bae63c6",
     "https://deno.land/x/appsignal@v1.0.1/mod.ts": "361e66bffc6df8622c151040edbf2d24a8c60ef7a538c5118c132addcad898d2",
+    "https://deno.land/x/ascii_table@v0.1.0/mod.ts": "bd99729ffefd9e0792787b7aafd06c5257039b31ffe3b987fe5257d3fa0c39b5",
     "https://deno.land/x/file_extension@v2.1.0/mod.ts": "a674ce4457177809fec87b64ef7109aa0fc7cd4161fb00b30e7efc3004ae48ca",
-    "https://esm.sh/ajv@8.12.0": "237d3bb09979697c06d37cfb810c31ec22cfb72cba5512d8baa0adc10fd6f6eb",
-    "https://esm.sh/v130/ajv@8.12.0/denonext/ajv.mjs": "49054a2dc7705975ebd63fceb598442555f3c928889467e37bc6d921632fbcbb",
-    "https://esm.sh/v130/fast-deep-equal@3.1.3/denonext/fast-deep-equal.mjs": "6313b3e05436550e1c0aeb2a282206b9b8d9213b4c6f247964dd7bb4835fb9e5",
-    "https://esm.sh/v130/json-schema-traverse@1.0.0/denonext/json-schema-traverse.mjs": "c5da8353bc014e49ebbb1a2c0162d29969a14c325da19644e511f96ba670cc45",
-    "https://esm.sh/v130/uri-js@4.4.1/denonext/uri-js.mjs": "901d462f9db207376b39ec603d841d87e6b9e9568ce97dfaab12aa77d0f99f74"
+    "https://esm.sh/ajv@8.12.0": "b4b1a7a0a8cb88dbec230e37812ed20bd8fab4c919339153e504cadc17496ef3",
+    "https://esm.sh/v132/ajv@8.12.0/denonext/ajv.mjs": "77e7c1d3b23c6b131a0586e9fb87660aa513869e334596c39c66331cc3921f62",
+    "https://esm.sh/v132/fast-deep-equal@3.1.3/denonext/fast-deep-equal.mjs": "6313b3e05436550e1c0aeb2a282206b9b8d9213b4c6f247964dd7bb4835fb9e5",
+    "https://esm.sh/v132/json-schema-traverse@1.0.0/denonext/json-schema-traverse.mjs": "c5da8353bc014e49ebbb1a2c0162d29969a14c325da19644e511f96ba670cc45",
+    "https://esm.sh/v132/uri-js@4.4.1/denonext/uri-js.mjs": "901d462f9db207376b39ec603d841d87e6b9e9568ce97dfaab12aa77d0f99f74"
   }
 }
