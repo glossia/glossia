@@ -25,7 +25,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.Localizer do
     summaries =
       Enum.map(updates, fn {_, _, summary} -> summary end) |> Enum.filter(fn x -> x != nil end)
 
-    {title, description} = title_and_description_from_summaries(summaries)
+    {_title, _description} = title_and_description_from_summaries(summaries)
 
     # Disabled
     # %{

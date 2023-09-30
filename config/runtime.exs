@@ -32,11 +32,14 @@ if config_env() == :prod do
       environment variable DATABASE_URL is missing.
       For example: ecto://USER:PASS@HOST/DATABASE
       """
+
   %URI{host: database_host, userinfo: userinfo, path: path} = URI.parse(database_url)
   [database_username, database_password] = String.split(userinfo, ":")
   database = String.trim_leading(path, "/")
 
-  database_ca_cert_filepath = System.get_env("DATABASE_CA_CERT_FILEPATH") ||  "deps/castore/priv/cacerts.pem"
+  database_ca_cert_filepath =
+    System.get_env("DATABASE_CA_CERT_FILEPATH") || "deps/castore/priv/cacerts.pem"
+
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :glossia, Glossia.Foundation.Database.Core.Repo,

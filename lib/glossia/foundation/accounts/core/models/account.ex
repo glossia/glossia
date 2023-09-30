@@ -52,8 +52,9 @@ defmodule Glossia.Foundation.Accounts.Core.Models.Account do
     "privacy",
     "webhooks",
     "webhook",
-    "builder",
-    "builder-api"
+    "builds",
+    "build",
+    "builder"
   ]
 
   @type create_account_changeset_attrs :: %{

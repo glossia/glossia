@@ -7,7 +7,7 @@ defmodule Glossia.Foundation.Localizations.Core do
       Glossia.Foundation.LLMs.Core,
       Glossia.Foundation.Database.Core
     ],
-    exports: [API.Schemas.LocalizationRequest]
+    exports: []
 
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker

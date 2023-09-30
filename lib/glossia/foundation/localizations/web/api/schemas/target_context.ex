@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Localizations.Core.API.Schemas.TargetContext do
+defmodule Glossia.Foundation.Localizations.Web.API.Schemas.TargetContext do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
