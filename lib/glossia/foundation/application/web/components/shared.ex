@@ -173,6 +173,7 @@ defmodule Glossia.Foundation.Application.Web.Components.Shared do
   def head_assets(assigns) do
     ~H"""
     <link phx-track-static rel="stylesheet" href={"/assets/#{@surface}.css"} />
+    <link phx-track-static rel="stylesheet" href={"/assets/#{@surface}-tailwind.css"} />
     <script defer phx-track-static type="text/javascript" src={"/assets/#{@surface}.js"}>
     </script>
     """
