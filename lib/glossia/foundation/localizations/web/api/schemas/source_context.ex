@@ -9,8 +9,7 @@ defmodule Glossia.Foundation.Localizations.Web.API.Schemas.SourceContext do
     type: :object,
     properties: %{
       language: %Schema{type: :string, description: "The language of the content"},
-      country: %Schema{type: :string, description: "The country of the content"},
-      description: %Schema{type: :string, description: "The description of the content"}
+      country: %Schema{type: :string, description: "The country of the content"}
     },
     required: [:language]
   })
