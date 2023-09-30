@@ -4,28 +4,21 @@
   "type": "object",
   "description": "The configuration for a for a group of content",
   "properties": {
-    "context": {
-      "description": "Source and target contexts for a the components in this configuration.",
-      "type": "object",
-      "properties": {
-        "source": {
-          "$ref": "https://glossia.ai/schemas/source_context.json"
-        },
-        "target": {
-          "type": "array",
-          "items": [
-            {
-              "$ref": "https://glossia.ai/schemas/target_context.json"
-            }
-          ]
+    "source": {
+      "$ref": "https://glossia.ai/schemas/source_context.json"
+    },
+    "target": {
+      "type": "array",
+      "items": [
+        {
+          "$ref": "https://glossia.ai/schemas/target_context.json"
         }
-      },
-      "required": ["source", "target"]
+      ]
     },
     "files": {
       "description": "A wildcard pattern to obtain the files to be localized.",
       "type": "string"
     }
   },
-  "required": ["context", "files"]
+  "required": ["files", "source", "target"]
 }

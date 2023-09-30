@@ -10,10 +10,8 @@ Deno.test("loadAndValidateConfigurationManifest loads the file successfully when
     // Given
     const configurationManifestPath = join(tmpDir, "glossia.jsonc");
     const configurationManifest = {
-      context: {
-        source: { language: "es" },
-        target: [{ language: "en" }, { language: "es" }],
-      },
+      source: { language: "es" },
+      target: [{ language: "en" }, { language: "es" }],
       files: "posts/*/{language}.md",
     };
     await Deno.writeTextFile(
@@ -29,12 +27,12 @@ Deno.test("loadAndValidateConfigurationManifest loads the file successfully when
     // Then
     if (isSuccess(got)) {
       assertEquals(
-        got.success.context.source,
-        configurationManifest.context.source,
+        got.success.source,
+        configurationManifest.source,
       );
       assertEquals(
-        got.success.context.target,
-        configurationManifest.context.target,
+        got.success.target,
+        configurationManifest.target,
       );
       assertEquals(got.success.files, configurationManifest.files);
     } else {
@@ -112,7 +110,7 @@ Deno.test("loadAndValidateConfigurationManifest returns a failure when the confi
     if (isFailure(result)) {
       assertEquals(result.failure.type, "invalid_schema");
       const errors = (result.failure as { errors: string[] }).errors;
-      assertEquals(errors.length, 2);
+      assertEquals(errors.length, 3);
     } else {
       fail(
         "Expected loadAndValidateConfigurationManifest to fail",

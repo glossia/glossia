@@ -3,10 +3,7 @@ export type Context = {
   country?: string;
 };
 
-export type SourceContext = Context & {
-  description: string;
-};
-
+export type SourceContext = Context;
 export type TargetContext = Context;
 
 /**

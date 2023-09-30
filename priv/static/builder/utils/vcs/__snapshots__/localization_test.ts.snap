@@ -17,7 +17,6 @@ snapshot[`generateLocalizationPayload with Glossia's configuration 1`] = `
             },
           },
           context: {
-            description: "This is a test content",
             language: "en",
           },
           id: "priv/gettext/en/LC_MESSAGES/default.po",

@@ -42,7 +42,7 @@ export async function generateModulesPayload(
   });
   let modules = await getPayloadFromTree(tree, {
     rootDirectory: options.rootDirectory,
-    sourceContext: configurationManifest.context.source,
+    sourceContext: configurationManifest.source,
     manifestDirectory: dirname(configurationManifest.path),
   });
   modules = await payloadAddingAbsentLocalizableTargets(modules, {
@@ -72,7 +72,7 @@ function payloadAddingAbsentLocalizableTargets(
   return modules.map((module) => {
     const id = module.id;
 
-    for (const context of options.configurationManifest.context.target) {
+    for (const context of options.configurationManifest.target) {
       let path = id;
       for (const contextAttribute of Object.entries(context)) {
         path = path.replace(
