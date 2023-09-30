@@ -95,7 +95,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
     scope "/projects/:owner_handle/:project_handle",
           Glossia.Foundation.Localizations.Web.API.Controllers do
-      resources "/localization-requests", LocalizationRequestController, only: [:create]
+      resources "/localizations", LocalizationController, only: [:create]
     end
   end
 

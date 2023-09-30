@@ -3,11 +3,11 @@ defmodule Glossia.Foundation.Localizations.Web do
   use Boundary,
     deps: [],
     exports: [
-      API.Controllers.LocalizationRequestController,
+      API.Controllers.LocalizationController,
       API.Schemas.Checksum.Value,
       API.Schemas.Checksum,
       API.Schemas.CreateResponse,
-      API.Schemas.LocalizationRequest,
+      API.Schemas.Localization,
       API.Schemas.SourceContext,
       API.Schemas.SourceLocalizableContent,
       API.Schemas.TargetContext,
