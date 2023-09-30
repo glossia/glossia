@@ -35,24 +35,19 @@ Deno.test("loadConfigurationManifests loads all the manifests when they are vali
     const nestedConfigFilePath = join(tmpDir, "subdir/glossia.jsonc");
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path"> = {
-      context: {
-        source: { language: "es", description: "This is a test content" },
-        target: [{
-          language: "de",
-        }],
-      },
+      source: { language: "es" },
+      target: [{
+        language: "de",
+      }],
       files: "*/{language}.md",
     };
     const nestedConfigurationFile: Omit<ConfigurationManifest, "path"> = {
-      context: {
-        source: {
-          language: "es",
-          description: "This is a test content",
-        },
-        target: [{
-          language: "de",
-        }],
+      source: {
+        language: "es",
       },
+      target: [{
+        language: "de",
+      }],
       files: "*/{language}.md",
     };
     await Deno.mkdir(dirname(rootConfigFilePath), { recursive: true });
@@ -77,10 +72,12 @@ Deno.test("loadConfigurationManifests loads all the manifests when they are vali
 
     assertEquals(first.path, rootConfigFilePath);
     assertEquals(first.files, rootConfigurationFile.files);
-    assertEquals(first.context, rootConfigurationFile.context);
+    assertEquals(first.source, rootConfigurationFile.source);
+    assertEquals(first.target, rootConfigurationFile.target);
     assertEquals(second.path, nestedConfigFilePath);
     assertEquals(second.files, nestedConfigurationFile.files);
-    assertEquals(second.context, nestedConfigurationFile.context);
+    assertEquals(second.source, nestedConfigurationFile.source);
+    assertEquals(second.target, nestedConfigurationFile.target);
   });
 });
 
@@ -91,10 +88,8 @@ Deno.test("loadConfigurationManifests throws if a configuration file is an inval
     const nestedConfigFilePath = join(tmpDir, "subdir/glossia.jsonc");
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path"> = {
-      context: {
-        source: { language: "es", description: "This is a test content" },
-        target: [{ language: "de" }],
-      },
+      source: { language: "es" },
+      target: [{ language: "de" }],
       files: "*/{language}.md",
     };
     await Deno.mkdir(dirname(rootConfigFilePath), { recursive: true });
@@ -126,10 +121,8 @@ Deno.test("loadConfigurationManifests throws if a configuration file doesn't fol
 
     const rootConfigurationFile: Omit<ConfigurationManifest, "path" | "files"> =
       {
-        context: {
-          source: { language: "es", description: "This is a test content" },
-          target: [{ language: "de" }],
-        },
+        source: { language: "es" },
+        target: [{ language: "de" }],
         // Missing
         // files: "*/{language}.md",
       };
