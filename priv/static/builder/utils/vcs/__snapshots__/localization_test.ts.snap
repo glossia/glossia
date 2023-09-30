@@ -1,0 +1,55 @@
+export const snapshot = {};
+
+snapshot[`generateLocalizationPayload with Glossia's configuration 1`] = `
+{
+  modules: [
+    {
+      format: "portable-object",
+      id: "priv/gettext/{language}/LC_MESSAGES/default.po",
+      localizables: {
+        source: {
+          checksum: {
+            cache: undefined,
+            cache_id: "priv/gettext/en/LC_MESSAGES/.glossia.default.po.json",
+            content: {
+              algorithm: "sha256",
+              value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            },
+          },
+          context: {
+            description: "This is a test content",
+            language: "en",
+          },
+          id: "priv/gettext/en/LC_MESSAGES/default.po",
+        },
+        target: [
+          {
+            checksum: {
+              cache: undefined,
+              cache_id: "priv/gettext/es/LC_MESSAGES/.glossia.default.po.json",
+              content: {
+                algorithm: "sha256",
+                value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              },
+            },
+            context: {
+              language: "es",
+            },
+            id: "priv/gettext/es/LC_MESSAGES/default.po",
+          },
+          {
+            checksum: {
+              cache_id: "priv/gettext/fr/LC_MESSAGES/.glossia.default.po.json",
+            },
+            context: {
+              language: "fr",
+            },
+            id: "priv/gettext/fr/LC_MESSAGES/default.po",
+          },
+        ],
+      },
+    },
+  ],
+  version: "test-sha",
+}
+`;

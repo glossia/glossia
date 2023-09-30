@@ -2,10 +2,10 @@ import { join } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { runInTemporaryDirectory } from "../../tests/test-helpers.ts";
 import { dirname } from "https://deno.land/std@0.196.0/path/posix.ts";
 import { assertSnapshot } from "https://deno.land/std@0.196.0/testing/snapshot.ts";
-import { generateLocalizationRequestPayload } from "./localization_request.ts";
+import { generateLocalizationPayload } from "./localization.ts";
 import { getMockedEnv } from "../environment_test_helpers.ts";
 
-Deno.test("generateLocalizationRequestPayload with Glossia's configuration", async (t) => {
+Deno.test("generateLocalizationPayload with Glossia's configuration", async (t) => {
   await runInTemporaryDirectory(async (temporaryDirectory) => {
     /**
      * priv/
@@ -33,7 +33,7 @@ Deno.test("generateLocalizationRequestPayload with Glossia's configuration", asy
     await Deno.writeTextFile(esPOPath, "");
 
     // When
-    const payload = await generateLocalizationRequestPayload([{
+    const payload = await generateLocalizationPayload([{
       path: join(temporaryDirectory, "priv/glossia.jsonc"),
       context: {
         source: { language: "en", description: "This is a test content" },

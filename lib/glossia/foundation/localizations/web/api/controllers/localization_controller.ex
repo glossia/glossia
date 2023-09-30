@@ -13,21 +13,21 @@ defmodule Glossia.Foundation.Localizations.Web.API.Controllers.LocalizationContr
   alias Glossia.Foundation.Localizations.Web.API.Schemas.Localization
 
   operation :create,
-    summary: "Creates a new localization request",
+    summary: "Creates a new localization",
     parameters: [],
-    request_body: {"Localization request params", "application/json", Localization},
+    request_body: {"Localization params", "application/json", Localization},
     responses: [
-      ok: {"Localization request response", "application/json", CreateResponse}
+      ok: {"Localization response", "application/json", CreateResponse}
     ]
 
   @spec create(conn :: Plug.Conn.t(), any) :: Plug.Conn.t()
   @dialyzer {:nowarn_function, create: 2}
   def create(conn, _params) do
-    %{body_params: %Localization{} = request} = conn
+    %{body_params: %Localization{} = localization} = conn
     Glossia.Foundation.Accounts.Web.Policies.enforce!(conn, {:create, :localization_request})
 
     result =
-      Localizations.process_localization_request(request, %{
+      Localizations.process_localization(localization, %{
         project_id: conn.assigns[:authenticated_project].id
       })
 

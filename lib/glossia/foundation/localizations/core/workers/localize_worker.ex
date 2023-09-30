@@ -15,15 +15,15 @@ defmodule Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker do
 
   @impl Oban.Worker
   def perform(job) do
-    request = job.args["request"] |> Useful.atomize_map_keys()
-    Logger.info("Processing localization request", request)
-    version = request[:version]
+    localization = job.args["localization"] |> Useful.atomize_map_keys()
+    Logger.info("Processing localization", localization)
+    version = localization[:version]
     project = Projects.find_project_by_id(job.args["project_id"])
 
     content_source =
       ContentSources.new(project.content_source_platform, project.content_source_id)
 
-    content_changes = Parser.parse_localization_request(request)
+    content_changes = Parser.parse_localization(localization)
     _content_updates = Localizer.localize(content_source, version, content_changes)
 
     :ok
