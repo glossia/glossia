@@ -15,9 +15,9 @@ import { ConfigurationManifest } from "./configuration_manifest.ts";
 import { exists } from "https://deno.land/std@0.196.0/fs/exists.ts";
 import {
   FileFormat,
-  LocalizationRequestPayloadModule,
-  LocalizationRequestPayloadSourceLocalizable,
-  LocalizationRequestPayloadTargetLocalizable,
+  LocalizationPayloadModule,
+  LocalizationPayloadSourceLocalizable,
+  LocalizationPayloadTargetLocalizable,
   SourceContext,
 } from "./types.ts";
 
@@ -32,7 +32,7 @@ type GenerateModulesPayloadOptions = { rootDirectory: string };
 export async function generateModulesPayload(
   configurationManifest: ConfigurationManifest,
   options: GenerateModulesPayloadOptions,
-): Promise<LocalizationRequestPayloadModule[]> {
+): Promise<LocalizationPayloadModule[]> {
   const tree = await resolveFileTree({
     relativePath: configurationManifest.files,
     basePath: dirname(configurationManifest.path),
@@ -61,14 +61,14 @@ type PayloadAddingAbsentLocalizableTargetsOptions = {
  * target languages that haven't been added to the file system yet won't be present in the payload.
  * This function ensures those files are present and includes them in the payload. That way, the server will see
  * that they need to be translated
- * @param modules {LocalizationRequestPayloadModule[]} The modules to add the absent localizable targets to.
+ * @param modules {LocalizationPayloadModule[]} The modules to add the absent localizable targets to.
  * @param options {PayloadAddingAbsentLocalizableTargetsOptions} The options necessary to add the absent localizable targets.
- * @returns {LocalizationRequestPayloadModule[]} The modules with the absent localizable targets added.
+ * @returns {LocalizationPayloadModule[]} The modules with the absent localizable targets added.
  */
 function payloadAddingAbsentLocalizableTargets(
-  modules: LocalizationRequestPayloadModule[],
+  modules: LocalizationPayloadModule[],
   options: PayloadAddingAbsentLocalizableTargetsOptions,
-): LocalizationRequestPayloadModule[] {
+): LocalizationPayloadModule[] {
   return modules.map((module) => {
     const id = module.id;
 
@@ -122,8 +122,8 @@ async function getPayloadFromTree(
     manifestDirectory: string;
     sourceContext: Record<string, string>;
   },
-): Promise<LocalizationRequestPayloadModule[]> {
-  const result: LocalizationRequestPayloadModule[] = [];
+): Promise<LocalizationPayloadModule[]> {
+  const result: LocalizationPayloadModule[] = [];
 
   async function recurse({
     node,
@@ -147,10 +147,9 @@ async function getPayloadFromTree(
         // Unsupported format so we skip the files
       }
       let sourceLocalizable:
-        | LocalizationRequestPayloadSourceLocalizable
+        | LocalizationPayloadSourceLocalizable
         | undefined;
-      const targetLocalizablees: LocalizationRequestPayloadTargetLocalizable[] =
-        [];
+      const targetLocalizablees: LocalizationPayloadTargetLocalizable[] = [];
 
       for (const path of node.children) {
         const context = getContextFromFilePath(path, pathWithPlaceholders);
@@ -198,8 +197,7 @@ async function getPayloadFromTree(
         id: pathWithPlaceholders,
         format: format,
         localizables: {
-          source:
-            sourceLocalizable as LocalizationRequestPayloadSourceLocalizable,
+          source: sourceLocalizable as LocalizationPayloadSourceLocalizable,
           target: targetLocalizablees,
         },
       });

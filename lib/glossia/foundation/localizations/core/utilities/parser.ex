@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Localizations.Core.Utilities.Parser do
-  def parse_localization_request(request) do
-    Enum.map(request[:modules], fn module ->
+  def parse_localization(localization) do
+    Enum.map(localization[:modules], fn module ->
       format = module[:format]
       id = module[:id]
 

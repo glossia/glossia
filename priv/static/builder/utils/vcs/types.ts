@@ -20,36 +20,36 @@ export type FileFormat =
   | "portable-object"
   | "portable-object-template";
 
-export type LocalizationRequestPayload = {
+export type LocalizationPayload = {
   version: string;
-  modules: LocalizationRequestPayloadModule[];
+  modules: LocalizationPayloadModule[];
 };
 
-export type LocalizationRequestPayloadModule = {
+export type LocalizationPayloadModule = {
   id: string;
   format: FileFormat;
   localizables: {
-    source: LocalizationRequestPayloadSourceLocalizable;
-    target: LocalizationRequestPayloadTargetLocalizable[];
+    source: LocalizationPayloadSourceLocalizable;
+    target: LocalizationPayloadTargetLocalizable[];
   };
 };
 
-export type LocalizationRequestPayloadSourceLocalizable =
-  LocalizationRequestPayloadLocalizable<SourceContext>;
-export type LocalizationRequestPayloadTargetLocalizable =
-  LocalizationRequestPayloadLocalizable<TargetContext>;
+export type LocalizationPayloadSourceLocalizable =
+  LocalizationPayloadLocalizable<SourceContext>;
+export type LocalizationPayloadTargetLocalizable =
+  LocalizationPayloadLocalizable<TargetContext>;
 
-export type LocalizationRequestPayloadLocalizableChecksum = {
+export type LocalizationPayloadLocalizableChecksum = {
   algorithm: string;
   value: string;
 };
 
-export type LocalizationRequestPayloadLocalizable<C extends Context> = {
+export type LocalizationPayloadLocalizable<C extends Context> = {
   id: string;
   context: C;
   checksum: {
     cache_id: string;
-    cache?: LocalizationRequestPayloadLocalizableChecksum;
-    content?: LocalizationRequestPayloadLocalizableChecksum;
+    cache?: LocalizationPayloadLocalizableChecksum;
+    content?: LocalizationPayloadLocalizableChecksum;
   };
 };

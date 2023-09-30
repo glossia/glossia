@@ -3,10 +3,10 @@ defmodule Glossia.Foundation.Builds.Web.Controllers.APIControllerTest do
 
   test "not_found", %{conn: conn} do
     # Given/When
-    conn = get(conn, ~p"/builder-api/invalid")
+    conn = get(conn, ~p"/api/v1/invalid")
 
     # Then
-    assert %{"errors" => [%{"detail" => "GET /builder-api/invalid is an invalid resource"}]} =
+    assert %{"errors" => [%{"detail" => "GET /api/v1/invalid is an invalid resource"}]} =
              json_response(conn, 404)
   end
 end

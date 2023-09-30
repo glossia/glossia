@@ -71,7 +71,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
       pass: ["*/*"],
       json_decoder: Phoenix.json_library()
 
-    plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.Foundation.API.Core.Spec
+    plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.Application.APISpec
   end
 
   pipeline :load_authenticated_project do
@@ -85,7 +85,7 @@ defmodule Glossia.Foundation.Application.Web.Router do
 
   # Authenticated builder API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
-  scope "/builder-api" do
+  scope "/api/v1" do
     pipe_through [
       :api,
       :load_authenticated_project,
@@ -94,15 +94,15 @@ defmodule Glossia.Foundation.Application.Web.Router do
     ]
 
     scope "/projects/:owner_handle/:project_handle",
-          Glossia.Foundation.API.Web.Controllers.Project do
-      resources "/localization-requests", LocalizationRequestController, only: [:create]
+          Glossia.Foundation.Localizations.Web.API.Controllers do
+      resources "/localizations", LocalizationController, only: [:create]
     end
   end
 
   # Unauthenticated builder API endpoints:
   # There are some endpoints, like the one that returns the OpenAPI spec, that don't
   # require being authenticated because they don't return resource-tied data.
-  scope "/builder-api" do
+  scope "/api/v1" do
     pipe_through [:api]
 
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []

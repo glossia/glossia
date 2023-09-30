@@ -2,10 +2,10 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.ParserTest do
   use Glossia.DataCase
   import Glossia.Foundation.Localizations.Core.Utilities.Parser
 
-  describe "parse_localization_request" do
+  describe "parse_localization" do
     test "it detects and returns new languages" do
       # Given
-      request = %{
+      localization = %{
         id: "#{Glossia.TestHelpers.unique_integer()}",
         modules: [
           %{
@@ -48,7 +48,7 @@ defmodule Glossia.Foundation.Localizations.Core.Utilities.ParserTest do
       }
 
       # When
-      [got] = parse_localization_request(request)
+      [got] = parse_localization(localization)
 
       # Then
       assert got[:id] == "priv/gettext/{language}/LC_MESSAGES/default.po"

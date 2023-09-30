@@ -6,7 +6,7 @@ import {
 import { cloneGitRepository } from "../utils/git.ts";
 import { glossiaFetch } from "../utils/http.ts";
 import { loadConfigurationManifests } from "../utils/vcs/configuration_loader.ts";
-import { generateLocalizationRequestPayload } from "../utils/vcs/localization_request.ts";
+import { generateLocalizationPayload } from "../utils/vcs/localization.ts";
 
 export default async function newVersion() {
   if (getContentSourcePlatform() === "github") {
@@ -23,7 +23,7 @@ async function newGitHubContentVersion() {
   });
   console.info("Configuration manifests loaded", configurationManifests);
   console.info("Generating localization request payload");
-  const payload = await generateLocalizationRequestPayload(
+  const payload = await generateLocalizationPayload(
     configurationManifests,
     {
       rootDirectory: tempDirPath,
@@ -36,7 +36,7 @@ async function newGitHubContentVersion() {
   );
   console.info("Creating localization request");
   await glossiaFetch(
-    `/builder-api/projects/${getOwnerHandle()}/${getProjectHandle()}/localization-requests`,
+    `/api/v1/projects/${getOwnerHandle()}/${getProjectHandle()}/localizations`,
     {
       method: "POST",
       body: JSON.stringify(payload),

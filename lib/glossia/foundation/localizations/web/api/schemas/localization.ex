@@ -1,9 +1,9 @@
-defmodule Glossia.Foundation.Localizations.Core.API.Schemas.LocalizationRequest do
+defmodule Glossia.Foundation.Localizations.Web.API.Schemas.Localization do
   # Modules
   require OpenApiSpex
   alias OpenApiSpex.Schema
-  alias Glossia.Foundation.Localizations.Core.API.Schemas.SourceLocalizableContent
-  alias Glossia.Foundation.Localizations.Core.API.Schemas.TargetLocalizableContent
+  alias Glossia.Foundation.Localizations.Web.API.Schemas.SourceLocalizableContent
+  alias Glossia.Foundation.Localizations.Web.API.Schemas.TargetLocalizableContent
 
   OpenApiSpex.schema(%{
     title: "A localization request",
