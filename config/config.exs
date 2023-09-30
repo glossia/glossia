@@ -33,7 +33,7 @@ config :glossia, Glossia.Foundation.Utilities.Core.Mailer, adapter: Swoosh.Adapt
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.17.11",
+  version: "0.19.4",
   app: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
@@ -59,7 +59,7 @@ config :tailwind,
     args: ~w(
       --config=tailwind.config.marketing.js
       --input=css/marketing.css
-      --output=../priv/static/assets/marketing.css
+      --output=../priv/static/assets/marketing-tailwind.css
     ),
     cd: Path.expand("../assets", __DIR__)
   ],
@@ -67,7 +67,7 @@ config :tailwind,
     args: ~w(
       --config=tailwind.config.app.js
       --input=css/app.css
-      --output=../priv/static/assets/app.css
+      --output=../priv/static/assets/app-tailwind.css
     ),
     cd: Path.expand("../assets", __DIR__)
   ],
@@ -75,7 +75,7 @@ config :tailwind,
     args: ~w(
       --config=tailwind.config.docs.js
       --input=css/docs.css
-      --output=../priv/static/assets/docs.css
+      --output=../priv/static/assets/docs-tailwind.css
     ),
     cd: Path.expand("../assets", __DIR__)
   ]
