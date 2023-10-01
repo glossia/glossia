@@ -21,7 +21,7 @@
                   <span aria-hidden="true">&middot;</span>
                   <span>
                     By <%= @authors
-                    |> Enum.find(&(&1.id == String.to_atom(post.author_id)))
+                    |> Enum.find(&(&1.id == post.author_id))
                     |> Map.get(:name) %>
                   </span>
                 </div>

@@ -24,7 +24,7 @@ defmodule Glossia.Features.Cloud.Marketing.Web.Controllers.MarketingController d
 
     author =
       Glossia.Features.Cloud.Marketing.Core.Blog.all_authors()
-      |> Enum.find(&(&1.id == String.to_atom(post.author_id)))
+      |> Enum.find(&(&1.id == post.author_id))
 
     conn
     |> put_open_graph_metadata(%{
