@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0 - 2023-10-02
+
+### Added
+
+- Rename `builder-api` to `api` [#104](https://github.com/tuist/tuist/pull/104) by [@pepicrft](https://github.com/pepicrft)
+
+### Developers
+
+- Use UUIDv7 as primary keys [#103](https://github.com/tuist/tuist/pull/103) by [@pepicrft](https://github.com/pepicrft)
+
+### Updated dependencies
+
+- Update dependency erlang to v26.1.1 [#97](https://github.com/tuist/tuist/pull/97) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+- Update dependency deno to v1.37.1 [#96](https://github.com/tuist/tuist/pull/96) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+- Update dependency useful to ~> 1.13.0 [#101](https://github.com/tuist/tuist/pull/101) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+- Update dependency oban to == 2.16.1 [#99](https://github.com/tuist/tuist/pull/99) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+
 ## 0.3.0 - 2023-09-25
 
 ### Added
