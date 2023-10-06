@@ -25,7 +25,7 @@ defmodule Glossia.Foundation.Localizations.Core do
   - `opts` - The options to process the localization request.
   """
   @spec process_localization(
-        localization :: any(),
+          localization :: any(),
           opts :: process_localization_opts()
         ) :: :ok | {:error, term()}
   def process_localization(localization, %{project_id: project_id} = _opts) do
