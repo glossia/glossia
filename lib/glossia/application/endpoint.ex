@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Application.Web.Endpoint do
+defmodule Glossia.Application.Endpoint do
   use Boundary, top_level?: true, check: [out: false, in: false]
 
   use Phoenix.Endpoint, otp_app: :glossia
@@ -50,5 +50,5 @@ defmodule Glossia.Foundation.Application.Web.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug Glossia.Foundation.Application.Web.Router
+  plug Glossia.Application.Router
 end

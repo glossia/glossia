@@ -31,8 +31,8 @@ defmodule Glossia.Foundation.Application.Web.Helpers.Shared do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Glossia.Foundation.Application.Web.Endpoint,
-        router: Glossia.Foundation.Application.Web.Router,
+        endpoint: Glossia.Application.Endpoint,
+        router: Glossia.Application.Router,
         statics: Glossia.Foundation.Application.Web.static_paths()
     end
   end
