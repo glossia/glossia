@@ -94,7 +94,7 @@ defmodule Glossia.MixProject do
       :cloud ->
         dependencies ++
           [
-            {:stripity_stripe, "~> 2.17.3"},
+            {:stripity_stripe, "~> 3.0.0"},
             {:posthog, "~> 0.1"},
             {:oban_web, "~> 2.10.0-rc.2", repo: "oban"},
             {:appsignal, "~> 2.0"},
