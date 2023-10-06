@@ -22,7 +22,7 @@ defmodule Glossia.Web.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint Glossia.Foundation.Application.Web.Endpoint
+      @endpoint Glossia.Application.Endpoint
 
       use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
 

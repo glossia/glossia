@@ -83,7 +83,7 @@ defmodule Glossia.Foundation.Accounts.Web.Auth do
     user_token && Accounts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
-      Glossia.Foundation.Application.Web.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+      Glossia.Application.Endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
     conn

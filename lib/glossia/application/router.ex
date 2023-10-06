@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Application.Web.Router do
+defmodule Glossia.Application.Router do
   use Boundary, top_level?: true, check: [out: false]
 
   # Modules
