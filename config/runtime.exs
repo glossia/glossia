@@ -222,3 +222,11 @@ config :glossia, Glossia.Application.Endpoint,
 # Tentact
 config :tentacat, :pagination, :auto
 config :tentacat, :extra_headers, [{"X-GitHub-Api-Version", "2022-11-28"}]
+
+# Stripe
+
+plan = Application.get_env(:glossia, :plan)
+
+if (plan == :cloud && config_env() == :prod) || config_env() == :dev do
+  config :stripity_stripe, api_key: env!("STRIPE_API_KEY", :string?)
+end
