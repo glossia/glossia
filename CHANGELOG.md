@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0 - 2023-10-09
+
+### Developers
+
+- Move `Router` and `Endpoint` to the `application` layer [#111](https://github.com/tuist/tuist/pull/111) by [@pepicrft](https://github.com/pepicrft)
+
+### Updated dependencies
+
+- Update elixir Docker tag to v1.15.6 [#110](https://github.com/tuist/tuist/pull/110) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+- Update dependency oban to == 2.16.2 [#107](https://github.com/tuist/tuist/pull/107) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+- Update dependency useful to ~> 1.14.0 [#108](https://github.com/tuist/tuist/pull/108) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+
 ## 0.4.0 - 2023-10-02
 
 ### Added
