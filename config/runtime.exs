@@ -229,4 +229,5 @@ plan = Application.get_env(:glossia, :plan)
 
 if (plan == :cloud && config_env() == :prod) || config_env() == :dev do
   config :stripity_stripe, api_key: env!("STRIPE_API_KEY", :string?)
+  config :glossia, :payments, premium_product_id: env!("STRIPE_PREMIUM_PRODUCT_ID", :string!)
 end
