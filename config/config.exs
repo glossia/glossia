@@ -88,10 +88,6 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
-import_config "#{config_env()}.exs"
-
 # Oban
 config :glossia, Oban,
   repo: Glossia.Foundation.Database.Core.Repo,
@@ -153,3 +149,7 @@ config :glossia, Glossia.Foundation.Database.Core.Repo,
 config :mime, :types, %{
   "application/typescript" => ["ts"]
 }
+
+# Import environment specific config. This must remain at the bottom
+# of this file so it overrides the configuration defined above.
+import_config "#{config_env()}.exs"

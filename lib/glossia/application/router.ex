@@ -136,6 +136,12 @@ defmodule Glossia.Application.Router do
     post "/github",
          Glossia.Foundation.ContentSources.Web.Controllers.GitHub.WebhookController,
          :github
+
+    only_for_plans([:cloud]) do
+      post "/stripe",
+           Glossia.Foundation.Payments.Web.Controllers.StripeWebhooksController,
+           :create
+    end
   end
 
   ##### App Routes #####
