@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Payments.Core.Customer do
+defmodule Glossia.Foundation.Payments.Core.Customers do
   import Glossia.Foundation.Utilities.Core.Plan
 
   only_for_plans([:cloud]) do
