@@ -1,3 +1,3 @@
 defmodule Glossia.Foundation.Payments.Web do
-  use Boundary
+  use Boundary, exports: [Controllers.StripeWebhooksController]
 end
