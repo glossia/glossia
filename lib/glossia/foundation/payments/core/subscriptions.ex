@@ -21,6 +21,15 @@ defmodule Glossia.Foundation.Payments.Core.Subscriptions do
         {:ok, %{url: url}} = Stripe.Checkout.Session.create(create_params)
         url
       end
+
+      def increase_usage_record_by_one(subscription_id) do
+        {:ok, _} =
+          Stripe.UsageRecord.create(subscription_id, %{
+            action: :increment,
+            quantity: 1,
+            timestamp: :now
+          })
+      end
     end
 
     defbehaviour do
@@ -31,6 +40,8 @@ defmodule Glossia.Foundation.Payments.Core.Subscriptions do
             }
 
       @callback subscribe(params :: subscribe_params) :: nil
+
+      @callback increase_usage_record_by_one(subscription_id :: String.t()) :: any()
     end
   end
 end
