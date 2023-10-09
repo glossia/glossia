@@ -1,8 +1,5 @@
 {
   "version": "3",
-  "redirects": {
-    "https://deno.land/x/ascii_table/mod.ts": "https://deno.land/x/ascii_table@v0.1.0/mod.ts"
-  },
   "remote": {
     "https://cdn.skypack.dev/-/markdown-to-txt@v2.0.1-19ZJoncXHDFpn5lTs7Vh/dist=es2019,mode=imports/optimized/markdown-to-txt.js": "f9fd792bb170343fef40500a06d98eeb1ec1ce3100e861b2f744360bdbf9ae3a",
     "https://cdn.skypack.dev/-/marked@v4.0.17-ZxvYABZPFB67jGeTKwwX/dist=es2019,mode=imports/optimized/marked.js": "0107276746114e937b99779bfa473abdd9df828fc53be6bb7dc7752801578765",
