@@ -1,4 +1,4 @@
-import AsciiTable from "https://deno.land/x/ascii_table/mod.ts";
+import AsciiTable from "https://deno.land/x/ascii_table@v0.1.0/mod.ts";
 import {
   getAccessToken,
   getAppSignalAPIKey,
