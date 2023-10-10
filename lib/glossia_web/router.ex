@@ -1,4 +1,4 @@
-defmodule Glossia.Application.Router do
+defmodule GlossiaWeb.Router do
   # Modules
   use Phoenix.Router, helpers: false
   import Plug.Conn
