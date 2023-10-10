@@ -5,15 +5,12 @@ defmodule Glossia.Application do
   use Boundary, check: [in: false, out: false]
 
   use Application
-  import Glossia.Foundation.Utilities.Core.Plan
 
   @impl true
   def start(_type, _args) do
     Oban.Telemetry.attach_default_logger()
 
-    only_for_plans([:cloud]) do
-      Oban.Web.Telemetry.attach_default_logger()
-    end
+    Oban.Web.Telemetry.attach_default_logger()
 
     :telemetry.attach(
       "oban-errors",

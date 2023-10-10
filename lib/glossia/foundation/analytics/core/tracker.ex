@@ -2,15 +2,12 @@ defmodule Glossia.Foundation.Analytics.Core.Tracker do
   use Modulex
 
   defimplementation do
-    import Glossia.Foundation.Utilities.Core.Plan
     alias Glossia.Foundation.Analytics.Core.Posthog
 
     @impl true
     def track_visit(user, env \\ Application.get_env(:glossia, :env)) do
-      only_for_plans([:cloud]) do
-        if env == :prod do
-          Posthog.capture("visit", %{distinct_id: user.email, email: user.email})
-        end
+      if env == :prod do
+        Posthog.capture("visit", %{distinct_id: user.email, email: user.email})
       end
     end
   end

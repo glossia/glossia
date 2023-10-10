@@ -5,8 +5,8 @@ defmodule Glossia.Application.Router do
   use Phoenix.Router, helpers: false
   import Plug.Conn
   import Phoenix.Controller
-  import Glossia.Foundation.Utilities.Core.Plan
   import Phoenix.LiveView.Router
+  import Oban.Web.Router
 
   ##### Base pipelines #####
 
@@ -29,36 +29,32 @@ defmodule Glossia.Application.Router do
     plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
   end
 
-  only_for_plans([:cloud]) do
-    pipeline :marketing do
-      plug :put_root_layout, html: {Glossia.Features.Cloud.Marketing.Web.Layouts, :root}
-    end
-
-    scope "/", Glossia.Features.Cloud.Marketing.Web.Controllers do
-      pipe_through [:browser, :marketing]
-
-      get "/", MarketingController, :index
-      get "/beta", MarketingController, :beta
-      get "/about", MarketingController, :about
-      get "/team", MarketingController, :team
-      get "/beta-added", MarketingController, :beta_added
-      get "/blog", MarketingController, :blog
-      get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-      # get "/docs/*id", MarketingController, :docs
-    end
+  pipeline :marketing do
+    plug :put_root_layout, html: {Glossia.Features.Cloud.Marketing.Web.Layouts, :root}
   end
 
-  only_for_plans([:cloud]) do
-    pipeline :docs do
-      plug :put_root_layout, html: {Glossia.Features.Cloud.Docs.Web.Layouts, :root}
-    end
+  scope "/", Glossia.Features.Cloud.Marketing.Web.Controllers do
+    pipe_through [:browser, :marketing]
 
-    scope "/", Glossia.Features.Cloud.Docs.Web.Controllers do
-      pipe_through [:browser, :docs]
+    get "/", MarketingController, :index
+    get "/beta", MarketingController, :beta
+    get "/about", MarketingController, :about
+    get "/team", MarketingController, :team
+    get "/beta-added", MarketingController, :beta_added
+    get "/blog", MarketingController, :blog
+    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+    # get "/docs/*id", MarketingController, :docs
+  end
 
-      get "/docs", DocsController, :show
-      get "/docs/*id", DocsController, :show
-    end
+  pipeline :docs do
+    plug :put_root_layout, html: {Glossia.Features.Cloud.Docs.Web.Layouts, :root}
+  end
+
+  scope "/", Glossia.Features.Cloud.Docs.Web.Controllers do
+    pipe_through [:browser, :docs]
+
+    get "/docs", DocsController, :show
+    get "/docs/*id", DocsController, :show
   end
 
   ##### API Routes #####
@@ -110,15 +106,13 @@ defmodule Glossia.Application.Router do
   end
 
   ##### RSS Routes #####
-  only_for_plans([:cloud]) do
-    pipeline :rss do
-      plug :accepts, ["xml"]
-    end
+  pipeline :rss do
+    plug :accepts, ["xml"]
+  end
 
-    scope "/", Glossia.Features.Cloud.Marketing.Web.Controllers do
-      pipe_through [:rss]
-      get "/blog/feed.xml", MarketingController, :feed
-    end
+  scope "/", Glossia.Features.Cloud.Marketing.Web.Controllers do
+    pipe_through [:rss]
+    get "/blog/feed.xml", MarketingController, :feed
   end
 
   ##### Webhook Routes #####
@@ -137,11 +131,9 @@ defmodule Glossia.Application.Router do
          Glossia.Foundation.ContentSources.Web.Controllers.GitHub.WebhookController,
          :github
 
-    only_for_plans([:cloud]) do
-      post "/stripe",
-           Glossia.Foundation.Payments.Web.Controllers.StripeWebhooksController,
-           :create
-    end
+    post "/stripe",
+         Glossia.Foundation.Payments.Web.Controllers.StripeWebhooksController,
+         :create
   end
 
   ##### App Routes #####
@@ -180,10 +172,7 @@ defmodule Glossia.Application.Router do
       :ensure_authenticated_user_is_admin
     ]
 
-    only_for_plans([:cloud]) do
-      import Oban.Web.Router
-      oban_dashboard("/oban")
-    end
+    oban_dashboard("/oban")
   end
 
   scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
