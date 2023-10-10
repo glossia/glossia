@@ -6,8 +6,8 @@ const plugin = require("tailwindcss/plugin");
 module.exports = {
   content: [
     "../js/**/*.js",
-    "../lib/glossia/features/cloud/docs/**",
-    "../lib/glossia/**/shared.ex"
+    "../lib/glossia/features/docs/**",
+    "../lib/glossia/**/shared.ex",
   ],
   plugins: [
     require("@tailwindcss/typography"),

@@ -6,7 +6,7 @@ defmodule Glossia.Features.Marketing.Web.Components do
   """
 
   use Phoenix.Component
-  import Glossia.Foundation.Application.Core.Gettext
+  import GlossiaWeb.Gettext
 
   attr :class, :string, default: "", required: false
 

@@ -20,7 +20,7 @@ defmodule Glossia.Application do
     children =
       [
         # Start the Telemetry supervisor
-        Glossia.Foundation.Application.Core.Telemetry,
+        GlossiaWeb.Telemetry,
         # Start the Ecto repository
         Glossia.Repo,
         # Start the PubSub system
@@ -35,7 +35,7 @@ defmodule Glossia.Application do
            ]
          }},
         # Start the Endpoint (http/https)
-        Glossia.Application.Endpoint,
+        GlossiaWeb.Endpoint,
         # Start a worker by calling: Glossia.Worker.start_link(arg)
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
@@ -52,7 +52,7 @@ defmodule Glossia.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    Glossia.Application.Endpoint.config_change(changed, removed)
+    GlossiaWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 

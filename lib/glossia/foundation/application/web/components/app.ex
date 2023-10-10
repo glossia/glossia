@@ -18,7 +18,7 @@ defmodule Glossia.Foundation.Application.Web.Components.App do
   use PrimerLive
 
   alias Phoenix.LiveView.JS
-  import Glossia.Foundation.Application.Core.Gettext
+  import GlossiaWeb.Gettext
 
   @doc """
   Renders a modal.
@@ -582,7 +582,7 @@ defmodule Glossia.Foundation.Application.Web.Components.App do
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
       Gettext.dngettext(
-        Glossia.Foundation.Application.Core.Gettext,
+        GlossiaWeb.Gettext,
         "errors",
         msg,
         msg,
@@ -590,7 +590,7 @@ defmodule Glossia.Foundation.Application.Web.Components.App do
         opts
       )
     else
-      Gettext.dgettext(Glossia.Foundation.Application.Core.Gettext, "errors", msg, opts)
+      Gettext.dgettext(GlossiaWeb.Gettext, "errors", msg, opts)
     end
   end
 

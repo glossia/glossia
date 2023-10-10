@@ -221,7 +221,7 @@ defmodule Glossia.Application.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: Glossia.Foundation.Application.Core.Telemetry
+      live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end

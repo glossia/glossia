@@ -8,7 +8,7 @@ module.exports = {
     "../js/**/*.js",
     "../lib/glossia/foundation/**",
     "../lib/glossia/features/**",
-    "!../lib/glossia/features/cloud/marketing/web/**",
+    "!../lib/glossia/features/marketing/web/**",
   ],
   plugins: [
     require("@tailwindcss/typography"),
