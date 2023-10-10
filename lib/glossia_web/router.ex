@@ -20,6 +20,7 @@ defmodule GlossiaWeb.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug InertiaPhoenix.Plug
   end
 
   # Loads the project from the slug in the URL

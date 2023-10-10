@@ -115,30 +115,8 @@ jobs:
       - env:
           MIX_ENV: dev
         run: mix dialyzer
-  community_dry_run:
-    name: Community Image Dry Run
-    runs-on: 'ubuntu-latest'
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.3.6
-        with:
-          key: docker-community-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
-      - run: docker build . -t glossia
-  enterprise_dry_run:
-    name: Enterprise Image Dry Run
-    runs-on: 'ubuntu-latest'
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.3.6
-        with:
-          key: docker-enterprise-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
-      - run: docker build . -t glossia
-  cloud_dry_run:
-    name: Cloud Image Dry Run
+  dry_run:
+    name: Image Dry Run
     runs-on: 'ubuntu-latest'
     timeout-minutes: 15
     steps:

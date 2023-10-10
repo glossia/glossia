@@ -39,6 +39,8 @@ defmodule Glossia.Foundation.Application.Web.Helpers.App do
         formats: [:html, :json, :xml],
         layouts: [html: Glossia.Foundation.Application.Web.Layouts.App]
 
+      import InertiaPhoenix.Controller
+
       unquote(Glossia.Foundation.Application.Web.Helpers.Shared.controller())
     end
   end

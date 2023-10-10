@@ -224,6 +224,5 @@ config :tentacat, :pagination, :auto
 config :tentacat, :extra_headers, [{"X-GitHub-Api-Version", "2022-11-28"}]
 
 # Stripe
-
-config :stripity_stripe, api_key: env!("STRIPE_API_KEY", :string?)
-config :glossia, :payments, premium_product_id: env!("STRIPE_PREMIUM_PRODUCT_ID", :string!)
+config :stripity_stripe, api_key: env!("STRIPE_API_KEY", :string!, "")
+config :glossia, :payments, premium_product_id: env!("STRIPE_PREMIUM_PRODUCT_ID", :string!, "")

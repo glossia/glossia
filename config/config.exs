@@ -141,3 +141,6 @@ config :mime, :types, %{
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
+
+# Inertia
+config :inertia_phoenix, assets_version: 1, inertia_layout: "app.html"
