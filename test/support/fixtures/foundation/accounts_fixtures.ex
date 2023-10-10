@@ -1,6 +1,4 @@
 defmodule Glossia.Foundation.AccountsFixtures do
-  use Boundary, top_level?: true, check: [in: false, out: false]
-
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Foundation.Accounts.Core` context.

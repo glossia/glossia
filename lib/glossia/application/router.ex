@@ -1,6 +1,4 @@
 defmodule Glossia.Application.Router do
-  use Boundary, top_level?: true, check: [out: false]
-
   # Modules
   use Phoenix.Router, helpers: false
   import Plug.Conn

@@ -4,7 +4,6 @@ defmodule Glossia.Foundation.Auth.Core do
   """
 
   # Modules
-  use Boundary, deps: [Glossia.Foundation.Accounts.Core]
   require Logger
   require Jason
   alias Ueberauth.Auth

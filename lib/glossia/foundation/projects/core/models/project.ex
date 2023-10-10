@@ -1,5 +1,4 @@
 defmodule Glossia.Foundation.Projects.Core.Models.Project do
-  use Boundary
   alias Glossia.Foundation.Accounts.Core.Models.Account
 
   @moduledoc """

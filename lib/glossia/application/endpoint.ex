@@ -1,6 +1,4 @@
 defmodule Glossia.Application.Endpoint do
-  use Boundary, top_level?: true, check: [out: false, in: false]
-
   use Phoenix.Endpoint, otp_app: :glossia
 
   plug RemoteIp

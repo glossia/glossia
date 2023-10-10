@@ -1,14 +1,4 @@
 defmodule Glossia.Foundation.Localizations.Core do
-  # Modules
-  use Boundary,
-    deps: [
-      Glossia.Foundation.ContentSources.Core,
-      Glossia.Foundation.Projects.Core,
-      Glossia.Foundation.LLMs.Core,
-      Glossia.Foundation.Database.Core
-    ],
-    exports: []
-
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.Localizations.Core.Workers.LocalizeWorker
   alias Glossia.Foundation.Projects.Core, as: Projects

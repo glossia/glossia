@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Utilities.Core.Mailer do
+defmodule Glossia.Mailer do
   @moduledoc """
   A module to deliver emails.
   """
