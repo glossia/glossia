@@ -35,7 +35,7 @@ defmodule Glossia.MixProject do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    dependencies = [
+    [
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.7.6"},
       {:phoenix_ecto, "~> 4.4"},
@@ -87,23 +87,13 @@ defmodule Glossia.MixProject do
       {:hammox, "~> 0.7", only: :test},
       {:nestru, "~> 0.3.3"},
       {:uniq, "~> 0.6.1"},
-      {:castore, "~> 1.0"}
+      {:castore, "~> 1.0"},
+      {:stripity_stripe, "~> 3.0.0"},
+      {:posthog, "~> 0.1"},
+      {:oban_web, "~> 2.10.0-rc.2", repo: "oban"},
+      {:appsignal, "~> 2.0"},
+      {:appsignal_phoenix, "~> 2.0"}
     ]
-
-    case plan() do
-      :cloud ->
-        dependencies ++
-          [
-            {:stripity_stripe, "~> 3.0.0"},
-            {:posthog, "~> 0.1"},
-            {:oban_web, "~> 2.10.0-rc.2", repo: "oban"},
-            {:appsignal, "~> 2.0"},
-            {:appsignal_phoenix, "~> 2.0"}
-          ]
-
-      _ ->
-        dependencies
-    end
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
@@ -137,9 +127,5 @@ defmodule Glossia.MixProject do
         "phx.digest"
       ]
     ]
-  end
-
-  def plan do
-    System.get_env("GLOSSIA_PLAN", "cloud") |> String.to_atom()
   end
 end

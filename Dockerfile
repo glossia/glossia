@@ -21,8 +21,6 @@ FROM ${BUILDER_IMAGE} as builder
 
 ARG OBAN_WEB_FETCH_PUBLIC_KEY=""
 ARG OBAN_WEB_AUTH_KEY=""
-ARG GLOSSIA_PLAN="community"
-ENV GLOSSIA_PLAN=$GLOSSIA_PLAN
 
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
@@ -49,7 +47,7 @@ COPY scripts/docker-setup.sh ./scripts/docker-setup.sh
 RUN ./scripts/docker-setup.sh
 
 # We need to remove the Oban repo from the lockfile, otherwise it causes mix deps.get to fail
-RUN GLOSSIA_PLAN=$GLOSSIA_PLAN mix deps.get --only $MIX_ENV
+RUN deps.get --only $MIX_ENV
 RUN mkdir config
 
 # copy compile-time config files before we compile dependencies
