@@ -1,7 +1,7 @@
 defmodule Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlugTest do
   # Modules
   use Glossia.Web.ConnCase
-  alias Glossia.Foundation.Database.Core.Repo
+  alias Glossia.Repo
   alias Glossia.Foundation.AccountsFixtures
   alias Glossia.Foundation.ProjectsFixtures
   alias Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug

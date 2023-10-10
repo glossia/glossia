@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameErrorMessageToMarkdownErrorMessage do
+defmodule Glossia.Repo.Migrations.RenameErrorMessageToMarkdownErrorMessage do
   use Ecto.Migration
 
   def change do

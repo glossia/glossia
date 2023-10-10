@@ -5,7 +5,7 @@ defmodule Glossia.Foundation.BuildsFixtures do
   """
 
   alias Glossia.Foundation.Builds.Core.Build
-  alias Glossia.Foundation.Database.Core.Repo
+  alias Glossia.Repo
 
   def build_fixture(attr \\ %{}) do
     attrs =

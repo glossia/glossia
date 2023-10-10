@@ -1,4 +1,4 @@
-defmodule :"Elixir.Glossia.Foundation.Database.Core.Repo.Migrations.Rename-events-to-builds" do
+defmodule :"Elixir.Glossia.Repo.Migrations.Rename-events-to-builds" do
   use Ecto.Migration
 
   def change do

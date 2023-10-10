@@ -1,6 +1,6 @@
 defmodule Glossia.Foundation.Projects.Core.PoliciesTest do
   use Glossia.Web.ConnCase
-  alias Glossia.Foundation.Database.Core.Repo
+  alias Glossia.Repo
   alias Glossia.Foundation.ProjectsFixtures
   alias Glossia.Foundation.AccountsFixtures
   alias Glossia.Foundation.Projects.Core.Policies

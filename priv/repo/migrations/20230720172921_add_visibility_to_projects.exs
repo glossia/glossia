@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddVisibilityToProjects do
+defmodule Glossia.Repo.Migrations.AddVisibilityToProjects do
   use Ecto.Migration
 
   def change do

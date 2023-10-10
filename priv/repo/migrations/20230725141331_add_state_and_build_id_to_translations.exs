@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddStateAndBuildIdToTranslations do
+defmodule Glossia.Repo.Migrations.AddStateAndBuildIdToTranslations do
   use Ecto.Migration
 
   def change do

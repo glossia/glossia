@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RemoveProjectsRepositoryIdVcsIndex do
+defmodule Glossia.Repo.Migrations.RemoveProjectsRepositoryIdVcsIndex do
   use Ecto.Migration
 
   def change do

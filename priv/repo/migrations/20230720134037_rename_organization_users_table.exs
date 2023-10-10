@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameOrganizationUsersTable do
+defmodule Glossia.Repo.Migrations.RenameOrganizationUsersTable do
   use Ecto.Migration
 
   def change do

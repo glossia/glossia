@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameTranslationsToBuild do
+defmodule Glossia.Repo.Migrations.RenameTranslationsToBuild do
   use Ecto.Migration
 
   def change do

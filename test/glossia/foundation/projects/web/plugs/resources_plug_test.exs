@@ -1,7 +1,7 @@
 defmodule Glossia.Foundation.Projects.Web.Plugs.ResourcesPlugTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
   use Glossia.Web.ConnCase
-  alias Glossia.Foundation.Database.Core.Repo
+  alias Glossia.Repo
   alias Glossia.Foundation.ProjectsFixtures
   alias Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug
 

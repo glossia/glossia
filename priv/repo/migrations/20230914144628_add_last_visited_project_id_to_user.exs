@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddLastVisitedProjectIdToUser do
+defmodule Glossia.Repo.Migrations.AddLastVisitedProjectIdToUser do
   use Ecto.Migration
 
   def change do

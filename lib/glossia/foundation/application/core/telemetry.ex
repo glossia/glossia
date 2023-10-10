@@ -55,23 +55,23 @@ defmodule Glossia.Foundation.Application.Core.Telemetry do
       ),
 
       # Database Metrics
-      summary("glossia.foundation.database.core.repo.query.total_time",
+      summary("Glossia.Repo.query.total_time",
         unit: {:native, :millisecond},
         description: "The sum of the other measurements"
       ),
-      summary("glossia.foundation.database.core.repo.query.decode_time",
+      summary("Glossia.Repo.query.decode_time",
         unit: {:native, :millisecond},
         description: "The time spent decoding the data received from the database"
       ),
-      summary("glossia.foundation.database.core.repo.query.query_time",
+      summary("Glossia.Repo.query.query_time",
         unit: {:native, :millisecond},
         description: "The time spent executing the query"
       ),
-      summary("glossia.foundation.database.core.repo.query.queue_time",
+      summary("Glossia.Repo.query.queue_time",
         unit: {:native, :millisecond},
         description: "The time spent waiting for a database connection"
       ),
-      summary("glossia.foundation.database.core.repo.query.idle_time",
+      summary("Glossia.Repo.query.idle_time",
         unit: {:native, :millisecond},
         description:
           "The time the connection spent waiting before being checked out for the query"

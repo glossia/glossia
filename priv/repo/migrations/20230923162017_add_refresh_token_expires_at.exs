@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddRefreshTokenExpiresAt do
+defmodule Glossia.Repo.Migrations.AddRefreshTokenExpiresAt do
   use Ecto.Migration
 
   def change do

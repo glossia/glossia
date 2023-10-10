@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddObanJobsTable do
+defmodule Glossia.Repo.Migrations.AddObanJobsTable do
   use Ecto.Migration
 
   def up do

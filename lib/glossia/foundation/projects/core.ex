@@ -5,7 +5,7 @@ defmodule Glossia.Foundation.Projects.Core do
     # Modules
     require Logger
     alias Glossia.Foundation.Projects.Core.Repository
-    alias Glossia.Foundation.Database.Core.Repo
+    alias Glossia.Repo
     alias Glossia.Foundation.Accounts.Core.Models.User
     alias Glossia.Foundation.Projects.Core.Models.{Project, ProjectToken}
     alias Glossia.Foundation.ContentSources.Core, as: ContentSources

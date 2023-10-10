@@ -8,7 +8,7 @@
 import Config
 
 config :glossia,
-  ecto_repos: [Glossia.Foundation.Database.Core.Repo]
+  ecto_repos: [Glossia.Repo]
 
 # Configures the endpoint
 config :glossia, Glossia.Application.Endpoint,
@@ -90,7 +90,7 @@ config :phoenix, :json_library, Jason
 
 # Oban
 config :glossia, Oban,
-  repo: Glossia.Foundation.Database.Core.Repo,
+  repo: Glossia.Repo,
   notifier: Oban.Notifiers.PG,
   plugins: [Oban.Plugins.Pruner],
   queues: [default: 10, builds: 50],
@@ -131,7 +131,7 @@ config :glossia, :open_graph_metadata, %{
   author: "Glossia"
 }
 
-config :glossia, Glossia.Foundation.Database.Core.Repo,
+config :glossia, Glossia.Repo,
   migration_primary_key: [name: :id, type: :binary_id]
 
 config :mime, :types, %{

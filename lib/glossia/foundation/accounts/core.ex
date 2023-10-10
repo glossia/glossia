@@ -3,7 +3,7 @@ defmodule Glossia.Foundation.Accounts.Core do
   The Accounts context.
   """
   import Ecto.Query, warn: false
-  alias Glossia.Foundation.Database.Core.Repo
+  alias Glossia.Repo
 
   alias Glossia.Foundation.Accounts.Core.Models.{
     User,

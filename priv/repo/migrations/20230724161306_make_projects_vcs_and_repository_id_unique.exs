@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.MakeProjectsVcsAndRepositoryIdUnique do
+defmodule Glossia.Repo.Migrations.MakeProjectsVcsAndRepositoryIdUnique do
   use Ecto.Migration
 
   def change do

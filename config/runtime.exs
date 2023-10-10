@@ -42,7 +42,7 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :glossia, Glossia.Foundation.Database.Core.Repo,
+  config :glossia, Glossia.Repo,
     database: database,
     hostname: database_host,
     username: database_username,

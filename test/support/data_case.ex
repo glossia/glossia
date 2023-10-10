@@ -18,7 +18,7 @@ defmodule Glossia.DataCase do
 
   using do
     quote do
-      alias Glossia.Foundation.Database.Core.Repo
+      alias Glossia.Repo
 
       import Ecto
       import Ecto.Changeset
@@ -37,7 +37,7 @@ defmodule Glossia.DataCase do
   """
   def setup_sandbox(tags) do
     pid =
-      Ecto.Adapters.SQL.Sandbox.start_owner!(Glossia.Foundation.Database.Core.Repo,
+      Ecto.Adapters.SQL.Sandbox.start_owner!(Glossia.Repo,
         shared: not tags[:async]
       )
 

@@ -3,7 +3,7 @@ defmodule Glossia.Foundation.Projects.Core.Repository do
 
   defimplementation do
     # Modules
-    alias Glossia.Foundation.Database.Core.Repo
+    alias Glossia.Repo
     alias Glossia.Foundation.Projects.Core.Models.Project
     alias Glossia.Foundation.Accounts.Core.Models.User
     import Ecto.Query, only: [from: 2]

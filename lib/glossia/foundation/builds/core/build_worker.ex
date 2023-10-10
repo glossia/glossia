@@ -2,7 +2,7 @@ defmodule Glossia.Foundation.Builds.Core.BuildWorker do
   # Modules
   require Logger
   alias Glossia.Foundation.Builds.Core.Build
-  alias Glossia.Foundation.Database.Core.Repo
+  alias Glossia.Repo
   use Oban.Worker
   alias Glossia.Foundation.ContentSources.Core, as: ContentSources
   alias Glossia.Foundation.VirtualMachine.Core, as: VirtualMachine

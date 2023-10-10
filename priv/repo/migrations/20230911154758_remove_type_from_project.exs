@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RemoveTypeFromProject do
+defmodule Glossia.Repo.Migrations.RemoveTypeFromProject do
   use Ecto.Migration
 
   def change do

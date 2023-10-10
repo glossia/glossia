@@ -9,7 +9,7 @@ defmodule Glossia.Foundation.Accounts.Core.Repository do
     alias Glossia.Foundation.Accounts.Core.Models.OrganizationUser
     alias Glossia.Foundation.Accounts.Core.Models.User
     alias Glossia.Foundation.Accounts.Core.Models.UserToken
-    alias Glossia.Foundation.Database.Core.Repo
+    alias Glossia.Repo
     import Ecto.Query, only: [from: 2]
 
     @doc """

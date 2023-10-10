@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddStripeCustomerIdToAccounts do
+defmodule Glossia.Repo.Migrations.AddStripeCustomerIdToAccounts do
   use Ecto.Migration
 
   def change do

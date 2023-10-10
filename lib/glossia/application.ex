@@ -22,7 +22,7 @@ defmodule Glossia.Application do
         # Start the Telemetry supervisor
         Glossia.Foundation.Application.Core.Telemetry,
         # Start the Ecto repository
-        Glossia.Foundation.Database.Core.Repo,
+        Glossia.Repo,
         # Start the PubSub system
         {Phoenix.PubSub, name: Glossia.PubSub},
         # Start Finch

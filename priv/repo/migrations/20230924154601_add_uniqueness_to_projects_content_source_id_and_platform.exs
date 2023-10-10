@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddUniquenessToProjectsContentSourceIdAndPlatform do
+defmodule Glossia.Repo.Migrations.AddUniquenessToProjectsContentSourceIdAndPlatform do
   use Ecto.Migration
 
   def change do

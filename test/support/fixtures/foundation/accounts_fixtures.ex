@@ -5,7 +5,7 @@ defmodule Glossia.Foundation.AccountsFixtures do
   """
 
   alias Glossia.Foundation.Accounts.Core.Models.Organization
-  alias Glossia.Foundation.Database.Core.Repo
+  alias Glossia.Repo
 
   def unique_user_email, do: "user#{Glossia.TestHelpers.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"

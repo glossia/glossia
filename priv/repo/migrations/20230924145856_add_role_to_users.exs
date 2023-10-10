@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.AddRoleToUsers do
+defmodule Glossia.Repo.Migrations.AddRoleToUsers do
   use Ecto.Migration
 
   def change do

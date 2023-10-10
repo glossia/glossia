@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Database.Core.Repo.Migrations.RenameVcsToContentSource do
+defmodule Glossia.Repo.Migrations.RenameVcsToContentSource do
   use Ecto.Migration
 
   def change do
