@@ -47,7 +47,7 @@ COPY scripts/docker-setup.sh ./scripts/docker-setup.sh
 RUN ./scripts/docker-setup.sh
 
 # We need to remove the Oban repo from the lockfile, otherwise it causes mix deps.get to fail
-RUN deps.get --only $MIX_ENV
+RUN mix deps.get --only $MIX_ENV
 RUN mkdir config
 
 # copy compile-time config files before we compile dependencies
