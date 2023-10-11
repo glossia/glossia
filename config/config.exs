@@ -55,27 +55,11 @@ config :esbuild,
 
 config :tailwind,
   version: "3.2.7",
-  marketing: [
+  default: [
     args: ~w(
-      --config=tailwind.config.marketing.js
-      --input=css/marketing.css
-      --output=../priv/static/assets/marketing-tailwind.css
-    ),
-    cd: Path.expand("../assets", __DIR__)
-  ],
-  app: [
-    args: ~w(
-      --config=tailwind.config.app.js
+      --config=tailwind.config.js
       --input=css/app.css
-      --output=../priv/static/assets/app-tailwind.css
-    ),
-    cd: Path.expand("../assets", __DIR__)
-  ],
-  docs: [
-    args: ~w(
-      --config=tailwind.config.docs.js
-      --input=css/docs.css
-      --output=../priv/static/assets/docs-tailwind.css
+      --output=../priv/static/assets/app.css
     ),
     cd: Path.expand("../assets", __DIR__)
   ]

@@ -6,8 +6,7 @@ const plugin = require("tailwindcss/plugin");
 module.exports = {
   content: [
     "../js/**/*.js",
-    "../lib/glossia/features/marketing/web/**",
-    "../lib/glossia/foundation/application/web/controllers/error_html/*",
+    "../lib/glossia_web/**",
   ],
   theme: {
     fontSize: {
