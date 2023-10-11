@@ -1,7 +1,7 @@
-defmodule Glossia.Support.GitHub.Core.API do
+defmodule Glossia.GitHub.API do
   use Modulex
-  alias Glossia.Support.GitHub.Core.Metadata
-  alias Glossia.Support.GitHub.Core.AppToken
+  alias Glossia.GitHub.Metadata
+  alias Glossia.GitHub.AppToken
 
   defimplementation do
     def get_user_repositories(%{token: token}) do
