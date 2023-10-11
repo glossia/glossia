@@ -4,7 +4,7 @@ defmodule Glossia.Foundation.BuildsFixtures do
   entities via the `Glossia.Localizations` context.
   """
 
-  alias Glossia.Foundation.Builds.Core.Build
+  alias Glossia.Builds.Build
   alias Glossia.Repo
 
   def build_fixture(attr \\ %{}) do

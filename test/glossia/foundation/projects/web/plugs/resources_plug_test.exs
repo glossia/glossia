@@ -1,9 +1,9 @@
-defmodule Glossia.Foundation.Projects.Web.Plugs.ResourcesPlugTest do
+defmodule GlossiaWeb.Plugs.ResourcesPlugTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
   use Glossia.Web.ConnCase
   alias Glossia.Repo
   alias Glossia.Foundation.ProjectsFixtures
-  alias Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug
+  alias GlossiaWeb.Plugs.ResourcesPlug
 
   describe ":url_project" do
     test "assigns the project when the project exists", %{conn: conn} do
@@ -69,7 +69,7 @@ defmodule Glossia.Foundation.Projects.Web.Plugs.ResourcesPlugTest do
     test "it assigns the project if it exists", %{conn: conn} do
       # Given
       project = Glossia.Foundation.ProjectsFixtures.project_fixture()
-      token = Glossia.Foundation.Projects.Core.generate_token_for_project(project)
+      token = Glossia.Projects.generate_token_for_project(project)
       opts = ResourcesPlug.init(:authenticated_project)
 
       # When

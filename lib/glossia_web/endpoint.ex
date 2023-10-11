@@ -23,7 +23,7 @@ defmodule GlossiaWeb.Endpoint do
     at: "/",
     from: :glossia,
     gzip: true,
-    only: Glossia.Foundation.Application.Web.static_paths()
+    only: GlossiaWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

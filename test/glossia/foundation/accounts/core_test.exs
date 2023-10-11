@@ -1,8 +1,8 @@
-defmodule Glossia.Foundation.Accounts.CoreTest do
+defmodule Glossia.AccountsTest do
   use Glossia.DataCase
 
-  alias Glossia.Foundation.Accounts.Core, as: Accounts
-  alias Glossia.Foundation.Accounts.Core.Models.Account
+  alias Glossia.Accounts, as: Accounts
+  alias Glossia.Accounts.Models.Account
 
   describe "register_organization" do
     test "it registers the organization successfully" do
@@ -35,7 +35,7 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
 
       # When
       assert {:ok, _} =
-               Glossia.Foundation.Accounts.Core.add_user_to_organization(
+               Glossia.Accounts.add_user_to_organization(
                  user.id,
                  organization.id,
                  :admin
@@ -49,7 +49,7 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
 
       # When
       assert {:ok, _} =
-               Glossia.Foundation.Accounts.Core.add_user_to_organization(
+               Glossia.Accounts.add_user_to_organization(
                  user.id,
                  organization.id,
                  :user
@@ -65,12 +65,12 @@ defmodule Glossia.Foundation.Accounts.CoreTest do
 
       # When
       assert %Account{handle: ^handle} =
-               Glossia.Foundation.Accounts.Core.find_account_by_handle(handle)
+               Glossia.Accounts.find_account_by_handle(handle)
     end
 
     test "it returns nil when the account doesn't exist" do
       # When/Then
-      assert Glossia.Foundation.Accounts.Core.find_account_by_handle("unknown") == nil
+      assert Glossia.Accounts.find_account_by_handle("unknown") == nil
     end
   end
 end

@@ -7,7 +7,7 @@ Ecto.Adapters.SQL.Sandbox.mode(Glossia.Repo, :manual)
 import Hammox
 
 for module <- [
-      Glossia.Foundation.Analytics.Core.Posthog
+      Glossia.Analytics.Posthog
     ] do
   defmock(module.mock_module(), for: module.behaviour_module())
   module.put_application_env_module(module.mock_module())

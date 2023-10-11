@@ -22,7 +22,7 @@ defmodule Glossia.Web.ConnCase do
       # The default endpoint for testing
       @endpoint GlossiaWeb.Endpoint
 
-      use Glossia.Foundation.Application.Web.Helpers.Shared, :verified_routes
+      use GlossiaWeb.Helpers.Shared, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn
@@ -55,7 +55,7 @@ defmodule Glossia.Web.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user) do
-    token = Glossia.Foundation.Accounts.Core.generate_user_session_token(user)
+    token = Glossia.Accounts.generate_user_session_token(user)
 
     conn
     |> Phoenix.ConnTest.init_test_session(%{})

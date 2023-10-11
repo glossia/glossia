@@ -25,14 +25,14 @@ defmodule GlossiaWeb.Router do
 
   # Loads the project from the slug in the URL
   pipeline :load_url_project do
-    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :url_project
+    plug GlossiaWeb.Plugs.ResourcesPlug, :url_project
   end
 
   pipeline :marketing do
-    plug :put_root_layout, html: {Glossia.Features.Marketing.Web.Layouts, :root}
+    plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
   end
 
-  scope "/", Glossia.Features.Marketing.Web.Controllers do
+  scope "/", GlossiaWeb.Controllers do
     pipe_through [:browser, :marketing]
 
     get "/", MarketingController, :index
@@ -46,10 +46,10 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :docs do
-    plug :put_root_layout, html: {Glossia.Features.Docs.Web.Layouts, :root}
+    plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
   end
 
-  scope "/", Glossia.Features.Docs.Web.Controllers do
+  scope "/", GlossiaWeb.Controllers do
     pipe_through [:browser, :docs]
 
     get "/docs", DocsController, :show
@@ -66,16 +66,16 @@ defmodule GlossiaWeb.Router do
       pass: ["*/*"],
       json_decoder: Phoenix.json_library()
 
-    plug OpenApiSpex.Plug.PutApiSpec, module: Glossia.Application.APISpec
+    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.APISpec
   end
 
   pipeline :load_authenticated_project do
     # The build environments authenticate projects using a token generated for them.
-    plug Glossia.Foundation.Projects.Web.Plugs.ResourcesPlug, :authenticated_project
+    plug GlossiaWeb.Plugs.ResourcesPlug, :authenticated_project
   end
 
   pipeline :ensure_authenticated_project_present do
-    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, :authenticated_project_present
+    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticated_project_present
   end
 
   # Authenticated builder API endpoints:
@@ -89,7 +89,7 @@ defmodule GlossiaWeb.Router do
     ]
 
     scope "/projects/:owner_handle/:project_handle",
-          Glossia.Foundation.Localizations.Web.API.Controllers do
+          GlossiaWeb.Controllers.API do
       resources "/localizations", LocalizationController, only: [:create]
     end
   end
@@ -101,7 +101,7 @@ defmodule GlossiaWeb.Router do
     pipe_through [:api]
 
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []
-    match(:*, "/*path", Glossia.Foundation.Builds.Web.Controllers.APIController, :not_found)
+    match(:*, "/*path", GlossiaWeb.Controllers.API.APIController, :not_found)
   end
 
   ##### RSS Routes #####
@@ -109,7 +109,7 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["xml"]
   end
 
-  scope "/", Glossia.Features.Marketing.Web.Controllers do
+  scope "/", GlossiaWeb.Controllers do
     pipe_through [:rss]
     get "/blog/feed.xml", MarketingController, :feed
   end
@@ -117,49 +117,47 @@ defmodule GlossiaWeb.Router do
   ##### Webhook Routes #####
   pipeline :webhooks do
     plug :accepts, ["json"]
-    plug Glossia.Foundation.Application.Web.Plugs.RawBodyPassthroughPlug, length: 4_000_000
+    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
     # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
     # as it relies on the `:raw_body` being inside the `conn.assigns`.
-    plug Glossia.Foundation.ContentSources.Web.Plug
+    plug GlossiaWeb.Plugs.ValidateGitHubWebhookPlug
   end
 
   scope "/webhooks" do
     pipe_through [:webhooks]
 
     post "/github",
-         Glossia.Foundation.ContentSources.Web.Controllers.GitHub.WebhookController,
+         GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController,
          :github
 
-    post "/stripe",
-         Glossia.Foundation.Payments.Web.Controllers.StripeWebhooksController,
-         :create
+    post "/stripe", GlossiaWeb.Controllers.Webhooks.StripeWebhooksController, :create
   end
 
   ##### App Routes #####
 
   pipeline :app do
-    plug :put_root_layout, html: {Glossia.Foundation.Application.Web.Layouts.App, :root}
+    plug :put_root_layout, html: {GlossiaWeb.Layouts.App, :root}
   end
 
   pipeline :load_authenticated_user do
-    plug Glossia.Foundation.Accounts.Web.Plugs.ResourcesPlug, :authenticated_user
+    plug GlossiaWeb.Plugs.ResourcesPlug, :authenticated_user
   end
 
   pipeline :authenticated_user_present do
-    plug Glossia.Foundation.Accounts.Web.Plugs.PoliciesPlug, :authenticated_user_present
+    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticated_user_present
   end
 
   pipeline :track_project do
-    plug Glossia.Foundation.Projects.Web.Plugs.RedirectToProjectIfNeededPlug
-    plug Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug
+    plug GlossiaWeb.Plugs.RedirectToProjectIfNeededPlug
+    plug GlossiaWeb.Plugs.SaveLastVisitedProjectPlug
   end
 
   pipeline :authorize_project_access do
-    plug Glossia.Foundation.Projects.Web.Plugs.PoliciesPlug, {:read, :project}
+    plug GlossiaWeb.Plugs.PoliciesPlug, {:read, :project}
   end
 
   pipeline :ensure_authenticated_user_is_admin do
-    plug Glossia.Foundation.Accounts.Web.Plugs.PoliciesPlug, :authenticate_user_is_admin
+    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticate_user_is_admin
   end
 
   scope "/admin" do
@@ -174,7 +172,7 @@ defmodule GlossiaWeb.Router do
     oban_dashboard("/oban")
   end
 
-  scope "/auth", Glossia.Foundation.Accounts.Web.Controllers do
+  scope "/auth", GlossiaWeb.Controllers do
     pipe_through [:browser, :app]
 
     get "/login", AuthController, :login
@@ -196,7 +194,7 @@ defmodule GlossiaWeb.Router do
     ]
 
     get "/:owner_handle/:project_handle",
-        Glossia.Foundation.Projects.Web.Controllers.ProjectController,
+        GlossiaWeb.Controllers.ProjectController,
         :show
   end
 
@@ -204,9 +202,9 @@ defmodule GlossiaWeb.Router do
     pipe_through [:browser, :app, :load_authenticated_user, :authenticated_user_present]
 
     live_session :authenticated_user,
-      on_mount: {Glossia.Foundation.Accounts.Web.LiveViews.AuthLiveView, :authenticated_user} do
-      live "/new", Glossia.Foundation.Projects.Web.LiveViews.NewLiveView
-      live "/settings", Glossia.Foundation.Accounts.Web.LiveViews.SettingsLiveView
+      on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do
+      live "/new", GlossiaWeb.LiveViews.Projects.NewLiveView
+      live "/settings", GlossiaWeb.LiveViews.SettingsLiveView
     end
   end
 

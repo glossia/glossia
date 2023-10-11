@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.Builds.Web.Controllers.APIControllerTest do
+defmodule GlossiaWeb.Controllers.API.APIControllerTest do
   use Glossia.Web.ConnCase
 
   test "not_found", %{conn: conn} do

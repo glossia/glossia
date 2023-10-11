@@ -1,7 +1,0 @@
-defmodule Glossia.Foundation.Application.Web do
-  defmacro __using__(which) when is_atom(which) do
-    apply(__MODULE__, which, [])
-  end
-
-  def static_paths, do: ~w(assets fonts images schemas favicons robots.txt favicon.ico builder)
-end

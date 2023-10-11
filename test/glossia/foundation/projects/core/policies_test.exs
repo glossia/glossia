@@ -1,9 +1,9 @@
-defmodule Glossia.Foundation.Projects.Core.PoliciesTest do
+defmodule Glossia.Projects.PoliciesTest do
   use Glossia.Web.ConnCase
   alias Glossia.Repo
   alias Glossia.Foundation.ProjectsFixtures
   alias Glossia.Foundation.AccountsFixtures
-  alias Glossia.Foundation.Projects.Core.Policies
+  alias Glossia.Projects.Policies
 
   describe "authenticated_project_present" do
     test "returns unauthorized if the project is missing" do

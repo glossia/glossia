@@ -1,7 +1,7 @@
-defmodule Glossia.Foundation.Accounts.Core.RepositoryTest do
+defmodule Glossia.Accounts.RepositoryTest do
   # Modules
   alias Glossia.Foundation.AccountsFixtures
-  alias Glossia.Foundation.Accounts.Core.Repository
+  alias Glossia.Accounts.Repository
   use Glossia.DataCase
 
   describe "get_user_account" do

@@ -1,8 +1,8 @@
 alias Glossia.Repo
-alias Glossia.Foundation.Accounts.Core, as: Accounts
-alias Glossia.Foundation.Accounts.Core.Models.Account
-alias Glossia.Foundation.Projects.Core, as: Projects
-alias Glossia.Foundation.Projects.Core.Models.Project
+alias Glossia.Accounts, as: Accounts
+alias Glossia.Accounts.Models.Account
+alias Glossia.Projects, as: Projects
+alias Glossia.Projects.Models.Project
 
 organization =
   Repo.get_by(Account, handle: "glossia")

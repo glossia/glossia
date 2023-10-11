@@ -1,6 +1,6 @@
-defmodule Glossia.Foundation.Localizations.Core.Utilities.ParserTest do
+defmodule Glossia.Localizations.Utilities.ParserTest do
   use Glossia.DataCase
-  import Glossia.Foundation.Localizations.Core.Utilities.Parser
+  import Glossia.Localizations.Utilities.Parser
 
   describe "parse_localization" do
     test "it detects and returns new languages" do

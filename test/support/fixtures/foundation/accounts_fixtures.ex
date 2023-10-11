@@ -1,10 +1,10 @@
 defmodule Glossia.Foundation.AccountsFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Glossia.Foundation.Accounts.Core` context.
+  entities via the `Glossia.Accounts` context.
   """
 
-  alias Glossia.Foundation.Accounts.Core.Models.Organization
+  alias Glossia.Accounts.Models.Organization
   alias Glossia.Repo
 
   def unique_user_email, do: "user#{Glossia.TestHelpers.unique_integer()}@example.com"
@@ -32,7 +32,7 @@ defmodule Glossia.Foundation.AccountsFixtures do
   def organization_fixture(attrs \\ %{handle: unique_handle()}) do
     {:ok, organization} =
       Enum.into(attrs, %{handle: unique_handle()})
-      |> Glossia.Foundation.Accounts.Core.register_organization()
+      |> Glossia.Accounts.register_organization()
 
     organization |> Repo.preload(:account)
   end
@@ -41,7 +41,7 @@ defmodule Glossia.Foundation.AccountsFixtures do
     {:ok, user} =
       attrs
       |> valid_user_attributes()
-      |> Glossia.Foundation.Accounts.Core.register_user()
+      |> Glossia.Accounts.register_user()
 
     user
   end

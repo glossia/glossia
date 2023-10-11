@@ -15,8 +15,8 @@ config :glossia, GlossiaWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [
     formats: [
-      html: Glossia.Foundation.Application.Web.Controllers.ErrorHTML,
-      json: Glossia.Foundation.Application.Web.Controllers.ErrorJSON
+      html: GlossiaWeb.Controllers.ErrorHTML,
+      json: GlossiaWeb.Controllers.ErrorJSON
     ]
   ],
   pubsub_server: Glossia.PubSub,

@@ -1,11 +1,11 @@
-defmodule Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlugTest do
+defmodule GlossiaWeb.Plugs.SaveLastVisitedProjectPlugTest do
   # Modules
   use Glossia.Web.ConnCase
   alias Glossia.Repo
   alias Glossia.Foundation.AccountsFixtures
   alias Glossia.Foundation.ProjectsFixtures
-  alias Glossia.Foundation.Projects.Web.Plugs.SaveLastVisitedProjectPlug
-  alias Glossia.Foundation.Accounts.Web.Helpers.Auth
+  alias GlossiaWeb.Plugs.SaveLastVisitedProjectPlug
+  alias GlossiaWeb.Helpers.Auth
 
   test "call when the user can read the project", %{conn: conn} do
     # Given

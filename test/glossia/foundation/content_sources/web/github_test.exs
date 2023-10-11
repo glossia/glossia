@@ -1,7 +1,7 @@
-defmodule Glossia.Foundation.ContentSources.Web.Plug.GitHubTest do
+defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlugTest do
   # Modules
   use Glossia.Web.ConnCase
-  alias Glossia.Foundation.ContentSources.Web.Plug.GitHub
+  alias GlossiaWeb.Plugs.ValidateGitHubWebhookPlug
   import Plug.Conn
 
   # Cases
@@ -28,7 +28,7 @@ defmodule Glossia.Foundation.ContentSources.Web.Plug.GitHubTest do
     # Given
     opts = GitHub.init([])
     payload = "payload"
-    secret = Glossia.Foundation.ContentSources.Core.GitHub.webhook_secret()
+    secret = Glossia.ContentSources.GitHub.webhook_secret()
     signature = :crypto.mac(:hmac, :sha, secret, payload) |> Base.encode16(case: :lower)
 
     conn =

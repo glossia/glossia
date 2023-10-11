@@ -1,7 +1,7 @@
-defmodule Glossia.Foundation.Builds.Core.BuildTest do
+defmodule Glossia.Builds.BuildTest do
   use Glossia.DataCase
 
-  alias Glossia.Foundation.Builds.Core.Build
+  alias Glossia.Builds.Build
 
   describe "changeset" do
     test "validates the presence of version" do

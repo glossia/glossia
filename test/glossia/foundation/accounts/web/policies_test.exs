@@ -1,7 +1,7 @@
-defmodule Glossia.Foundation.Accounts.Web.PoliciesTest do
+defmodule Glossia.Localizations.PoliciesTest do
   # https://thoughtbot.com/blog/testing-elixir-plugs
   use Glossia.Web.ConnCase
-  alias Glossia.Foundation.Accounts.Web.Policies
+  alias Glossia.Localizations.Policies
 
   describe "localization request" do
     test "authorized? returns true when the current and url projects are the same", %{conn: conn} do

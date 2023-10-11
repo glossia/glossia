@@ -1,6 +1,6 @@
-defmodule Glossia.Foundation.Localizations.Core.Utilities.HasherTest do
+defmodule Glossia.Localizations.Utilities.HasherTest do
   use Glossia.DataCase
-  alias Glossia.Foundation.Localizations.Core.Utilities.Hasher
+  alias Glossia.Localizations.Utilities.Hasher
 
   test "hashes strings deterministically" do
     # Given

@@ -1,10 +1,10 @@
 # Accounts
-alias Glossia.Foundation.Accounts.Core.Models.{Account, Organization, User}
-alias Glossia.Foundation.Accounts.Core, as: Accounts
+alias Glossia.Accounts.Models.{Account, Organization, User}
+alias Glossia.Accounts, as: Accounts
 
 # Projects
-alias Glossia.Foundation.Projects.Core.Models.Project
-alias Glossia.Foundation.Projects.Core, as: Projects
+alias Glossia.Projects.Models.Project
+alias Glossia.Projects, as: Projects
 
 # Repo
 alias Glossia.Repo

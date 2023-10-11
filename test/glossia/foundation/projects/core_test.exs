@@ -1,8 +1,8 @@
-defmodule Glossia.Foundation.Projects.CoreTest do
+defmodule Glossia.ProjectsTest do
   use Glossia.DataCase
 
   alias Glossia.Repo
-  alias Glossia.Foundation.Projects.Core, as: Projects
+  alias Glossia.Projects, as: Projects
 
   describe "find_project_by_repository" do
     test "returns the project if it exists" do
