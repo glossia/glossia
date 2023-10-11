@@ -8,12 +8,12 @@ defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlugTest do
 
   test "halts the connection if the payload is invalid", %{conn: conn} do
     # Given
-    opts = GitHub.init([])
+    opts = ValidateGitHubWebhookPlug.init([])
 
     conn = %{conn | method: "POST", request_path: "/webhooks/github"} |> assign(:raw_body, "")
 
     # When
-    conn = conn |> GitHub.call(opts)
+    conn = conn |> ValidateGitHubWebhookPlug.call(opts)
 
     # Then
     assert conn.halted == true
@@ -26,7 +26,7 @@ defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlugTest do
 
   test "doesn't halt the connection if the payload is valid", %{conn: conn} do
     # Given
-    opts = GitHub.init([])
+    opts = ValidateGitHubWebhookPlug.init([])
     payload = "payload"
     secret = Glossia.ContentSources.GitHub.webhook_secret()
     signature = :crypto.mac(:hmac, :sha, secret, payload) |> Base.encode16(case: :lower)
@@ -37,7 +37,7 @@ defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlugTest do
     conn = conn |> put_req_header("x-hub-signature", "sha1=#{signature}")
 
     # When
-    conn = conn |> GitHub.call(opts)
+    conn = conn |> ValidateGitHubWebhookPlug.call(opts)
 
     # Then
     assert conn.halted == false

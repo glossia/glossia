@@ -115,8 +115,7 @@ config :glossia, :open_graph_metadata, %{
   author: "Glossia"
 }
 
-config :glossia, Glossia.Repo,
-  migration_primary_key: [name: :id, type: :binary_id]
+config :glossia, Glossia.Repo, migration_primary_key: [name: :id, type: :binary_id]
 
 config :mime, :types, %{
   "application/typescript" => ["ts"]
