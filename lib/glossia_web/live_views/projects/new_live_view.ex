@@ -53,6 +53,7 @@ defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
         {:noreply, redirect(socket, to: ~p"/#{account.handle}/#{project.handle}")}
 
       {:error, changeset} ->
+        dbg(changeset)
         {:noreply, assign(socket, project_changeset: changeset |> map_error_changeset)}
     end
   end

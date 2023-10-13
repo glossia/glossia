@@ -18,7 +18,7 @@ organization =
 organization = organization |> Repo.preload(:account)
 
 project =
-  Repo.get_by(Project, content_source_id: "glossia/glossia", content_source_platform: :github)
+  Repo.get_by(Project, content_source_id: "glossia/modulex", content_source_platform: :github)
   |> case do
     nil ->
       {:ok, project} =

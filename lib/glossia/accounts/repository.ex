@@ -70,11 +70,6 @@ defmodule Glossia.Accounts.Repository do
       end
     end
 
-    def get_user_by_session_token(token) do
-      {:ok, query} = UserToken.verify_session_token_query(token)
-      Repo.one(query) |> Repo.preload(:account)
-    end
-
     def get_github_credentials(user) do
       query =
         from(c in Credentials,
@@ -100,7 +95,6 @@ defmodule Glossia.Accounts.Repository do
                 OrganizationUser.t()
     @callback add_user_to_organization(User.t(), Organization.t(), OrganizationUser.role()) ::
                 OrganizationUser.t()
-    @callback get_user_by_session_token(String.t()) :: User.t() | nil
     @callback get_github_credentials(User.t()) :: Credentials.t() | nil
   end
 end

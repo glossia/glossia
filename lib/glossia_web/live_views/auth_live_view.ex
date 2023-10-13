@@ -5,7 +5,7 @@ defmodule GlossiaWeb.LiveViews.AuthLiveView do
   use GlossiaWeb.Helpers.Shared, :verified_routes
 
   def on_mount(:authenticated_user, _params, %{"user_token" => user_token}, socket) do
-    case Repository.get_user_by_session_token(user_token) do
+    case Glossia.Accounts.get_user_by_session_token(user_token) do
       nil ->
         {:halt, redirect(socket, to: ~p"/auth/login")}
 

@@ -140,7 +140,7 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :load_authenticated_user do
-    plug GlossiaWeb.Plugs.ResourcesPlug, :authenticated_user
+    plug GlossiaWeb.Plugs.LoadAuthenticatedUserPlug
   end
 
   pipeline :authenticated_user_present do
