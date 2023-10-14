@@ -1,12 +1,12 @@
-defmodule Glossia.Accounts.Models.User do
+defmodule Glossia.Accounts.User do
   @moduledoc """
   A struct that represents the users table.
   """
   use Glossia.DatabaseSchema
   import Ecto.Changeset
 
-  alias Glossia.Projects.Models.Project
-  alias Glossia.Accounts.Models.{Account, Credentials, Organization}
+  alias Glossia.Projects.Project
+  alias Glossia.Accounts.{Account, Credentials, Organization}
 
   # Types
   @type role :: :user | :admin
@@ -166,7 +166,7 @@ defmodule Glossia.Accounts.Models.User do
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(
-        %Glossia.Accounts.Models.User{hashed_password: hashed_password},
+        %Glossia.Accounts.User{hashed_password: hashed_password},
         password
       )
       when is_binary(hashed_password) and byte_size(password) > 0 do

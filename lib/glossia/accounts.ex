@@ -4,7 +4,7 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
-  alias Glossia.Accounts.Models.{
+  alias Glossia.Accounts.{
     Account,
     Credentials,
     Organization,

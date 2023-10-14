@@ -13,7 +13,7 @@ defmodule Glossia.Analytics.Tracker do
   end
 
   defbehaviour do
-    alias Glossia.Accounts.Models.User
+    alias Glossia.Accounts.User
 
     @doc """
     When Glossia is compiled for the Cloud plan, it

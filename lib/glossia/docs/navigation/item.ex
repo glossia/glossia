@@ -1,4 +1,4 @@
-defmodule Glossia.Docs.Models.Navigation.Item do
+defmodule Glossia.Docs.Navigation.Item do
   @derive [Nestru.Decoder]
   use TypedStruct
 

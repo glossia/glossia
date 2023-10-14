@@ -1,8 +1,7 @@
 defmodule Glossia.Projects.Repository do
   @moduledoc false
 
-  alias Glossia.Accounts.Models.User
-  alias Glossia.Projects.Models.Project
+  alias Glossia.Projects.Project
   alias Glossia.Repo
   import Ecto.Query, only: [from: 2]
 

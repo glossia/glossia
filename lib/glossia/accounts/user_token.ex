@@ -1,11 +1,11 @@
-defmodule Glossia.Accounts.Models.UserToken do
+defmodule Glossia.Accounts.UserToken do
   @moduledoc """
   A model that represents the user_tokens table, which contains tokens
   associated to a given user.
   """
   use Glossia.DatabaseSchema
   import Ecto.Query
-  alias Glossia.Accounts.Models.UserToken
+  alias Glossia.Accounts.UserToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -21,7 +21,7 @@ defmodule Glossia.Accounts.Models.UserToken do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :user, Glossia.Accounts.Models.User
+    belongs_to :user, Glossia.Accounts.User
 
     timestamps(updated_at: false)
   end

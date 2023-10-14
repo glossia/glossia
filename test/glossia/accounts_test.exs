@@ -2,7 +2,7 @@ defmodule Glossia.AccountsTest do
   use Glossia.DataCase
 
   alias Glossia.Accounts, as: Accounts
-  alias Glossia.Accounts.Models.Account
+  alias Glossia.Accounts.Account
 
   describe "register_organization" do
     test "it registers the organization successfully" do

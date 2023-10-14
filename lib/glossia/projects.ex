@@ -2,9 +2,9 @@ defmodule Glossia.Projects do
   require Logger
   alias Glossia.Projects.Repository
   alias Glossia.Repo
-  alias Glossia.Projects.Models.{Project, ProjectToken}
+  alias Glossia.Projects.{Project, ProjectToken}
   alias Glossia.ContentSources, as: ContentSources
-  alias Glossia.Accounts.Models.User
+  alias Glossia.Accounts.User
 
   @doc """
   Given a user, it returns the project it should be redirected to when the user

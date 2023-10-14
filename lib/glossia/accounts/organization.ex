@@ -1,11 +1,11 @@
-defmodule Glossia.Accounts.Models.Organization do
+defmodule Glossia.Accounts.Organization do
   @moduledoc """
   A struct that represents the organizations table.
   """
   use Glossia.DatabaseSchema
   import Ecto.Changeset
 
-  alias Glossia.Accounts.Models.{Account, User}
+  alias Glossia.Accounts.{Account, User}
 
   # Type
   @type t :: %__MODULE__{

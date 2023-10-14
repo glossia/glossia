@@ -3,7 +3,7 @@ defmodule Glossia.Docs.Content do
 
   defimplementation do
     alias Glossia.Docs.Models.Page
-    alias Glossia.Docs.Models.Navigation.Item
+    alias Glossia.Docs.Navigation.Item
     alias Glossia.Docs.Content.Validator
 
     @external_resource "priv/docs/navigation.json"
@@ -31,7 +31,7 @@ defmodule Glossia.Docs.Content do
 
   defbehaviour do
     alias Glossia.Docs.Models.Page
-    alias Glossia.Docs.Models.Navigation.Item
+    alias Glossia.Docs.Navigation.Item
 
     @callback pages() :: [Page.t()]
     @callback navigation() :: [Item.t()]

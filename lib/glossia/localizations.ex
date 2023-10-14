@@ -4,7 +4,7 @@ defmodule Glossia.Localizations do
   alias Glossia.ContentSources, as: ContentSources
   alias Glossia.Localizations.Workers.LocalizeWorker
   alias Glossia.Projects
-  alias Glossia.Projects.Models.Project
+  alias Glossia.Projects.Project
   @behaviour Glossia.Authorization.Policy
 
   # Types

@@ -7,7 +7,7 @@ defmodule Glossia.Docs.Content.Validator do
   use Modulex
 
   defimplementation do
-    alias Glossia.Docs.Models.Navigation.Item
+    alias Glossia.Docs.Navigation.Item
     alias Glossia.Docs.Models.Page
 
     @spec validate(pages :: [Page.t()], navigation :: [Item.t()]) :: any
@@ -55,7 +55,7 @@ defmodule Glossia.Docs.Content.Validator do
   end
 
   defbehaviour do
-    alias Glossia.Docs.Models.Navigation.Item
+    alias Glossia.Docs.Navigation.Item
     alias Glossia.Docs.Models.Page
 
     @callback validate(pages :: [Page.t()], navigation :: [Item.t()]) :: any

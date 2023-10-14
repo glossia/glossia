@@ -1,4 +1,4 @@
-defmodule Glossia.Projects.Models.ProjectToken do
+defmodule Glossia.Projects.ProjectToken do
   use Joken.Config, default_signer: :project
 
   def token_config do

@@ -4,7 +4,7 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
   require Logger
 
   alias Glossia.Projects, as: Projects
-  alias Glossia.Projects.Models.Project
+  alias Glossia.Projects.Project
   alias Glossia.ContentSources, as: ContentSources
 
   # Public

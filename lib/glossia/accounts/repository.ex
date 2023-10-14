@@ -1,11 +1,11 @@
 defmodule Glossia.Accounts.Repository do
   @moduledoc false
 
-  alias Glossia.Accounts.Models.Account
-  alias Glossia.Accounts.Models.Credentials
-  alias Glossia.Accounts.Models.Organization
-  alias Glossia.Accounts.Models.OrganizationUser
-  alias Glossia.Accounts.Models.User
+  alias Glossia.Accounts.Account
+  alias Glossia.Accounts.Credentials
+  alias Glossia.Accounts.Organization
+  alias Glossia.Accounts.OrganizationUser
+  alias Glossia.Accounts.User
   alias Glossia.Repo
   import Ecto.Query, only: [from: 2]
 

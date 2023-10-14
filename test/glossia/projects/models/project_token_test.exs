@@ -1,8 +1,8 @@
-defmodule Glossia.Projects.Models.ProjectTokenTest do
+defmodule Glossia.Projects.ProjectTokenTest do
   use Glossia.DataCase
 
   import Glossia.ProjectsFixtures
-  import Glossia.Projects.Models.ProjectToken
+  import Glossia.Projects.ProjectToken
 
   describe "generate_token" do
     test "generates the token successfully" do

@@ -1,7 +1,7 @@
-defmodule Glossia.Accounts.Models.OrganizationTest do
+defmodule Glossia.Accounts.OrganizationTest do
   use Glossia.DataCase
 
-  alias Glossia.Accounts.Models.Organization
+  alias Glossia.Accounts.Organization
 
   describe "create_organization_changeset" do
     test "validates the presence of account_id" do

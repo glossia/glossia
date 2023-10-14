@@ -10,7 +10,7 @@ defmodule GlossiaWeb.URL do
         :load_project
       ) do
     case Glossia.Projects.find_project_by_owner_and_project_handle(owner, project) do
-      %Glossia.Projects.Models.Project{} = project ->
+      %Glossia.Projects.Project{} = project ->
         assign(conn, @loaded_project_key, project)
 
       _ ->

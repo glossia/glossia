@@ -1,10 +1,10 @@
-defmodule Glossia.Accounts.Models.Account do
+defmodule Glossia.Accounts.Account do
   @moduledoc false
 
   import Ecto.Query, only: [from: 2]
   use Glossia.DatabaseSchema
   import Ecto.Changeset
-  alias Glossia.Projects.Models.Project
+  alias Glossia.Projects.Project
 
   @type t :: %__MODULE__{
           handle: String.t(),

@@ -1,7 +1,7 @@
-defmodule Glossia.Accounts.Models.Credentials do
+defmodule Glossia.Accounts.Credentials do
   @moduledoc false
 
-  alias Glossia.Accounts.Models.{User}
+  alias Glossia.Accounts.{User}
   import Ecto.Changeset
 
   @type provider :: :github
@@ -12,10 +12,6 @@ defmodule Glossia.Accounts.Models.Credentials do
           refresh_token: String.t(),
           expires_at: DateTime.t()
         }
-
-  @moduledoc """
-  A struct that represents the credentials table.
-  """
   use Glossia.DatabaseSchema
 
   schema "credentials" do

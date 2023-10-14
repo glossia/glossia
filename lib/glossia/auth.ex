@@ -42,7 +42,7 @@ defmodule Glossia.Auth do
 
     {:ok, user} =
       case Accounts.get_user_by_email(email) do
-        %Accounts.Models.User{} = user ->
+        %Accounts.User{} = user ->
           {:ok, user}
 
         _ ->

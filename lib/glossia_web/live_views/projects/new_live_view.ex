@@ -1,9 +1,9 @@
 defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
-  alias Glossia.Accounts.Models.Credentials
+  alias Glossia.Accounts.Credentials
   alias Glossia.Accounts.Repository
   alias Glossia.Accounts.Repository, as: AccountsRepository
   alias Glossia.ContentSources.GitHub
-  alias Glossia.Projects.Models.Project
+  alias Glossia.Projects.Project
   alias Glossia.GitHub.API, as: GitHubAPI
   use GlossiaWeb.Helpers.App, :live_view
 

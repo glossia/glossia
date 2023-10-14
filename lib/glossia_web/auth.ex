@@ -106,19 +106,19 @@ defmodule GlossiaWeb.Auth do
   end
 
   @spec authenticated_subject(Plug.Conn.t()) ::
-          Glossia.Accounts.Models.User.t() | Glossia.Projects.Models.Project.t() | nil
+          Glossia.Accounts.User.t() | Glossia.Projects.Project.t() | nil
   def authenticated_subject(conn) do
     authenticated_user(conn) || authenticated_project(conn)
   end
 
   @spec authenticated_user(Plug.Conn.t()) ::
-          Glossia.Accounts.Models.User.t() | nil
+          Glossia.Accounts.User.t() | nil
   def authenticated_user(conn) do
     conn.assigns[@authenticated_user_key]
   end
 
   @spec authenticated_project(Plug.Conn.t()) ::
-          Glossia.Projects.Models.Project.t() | nil
+          Glossia.Projects.Project.t() | nil
   def authenticated_project(conn) do
     conn.assigns[@authenticated_project_key]
   end
@@ -128,13 +128,13 @@ defmodule GlossiaWeb.Auth do
     conn.assigns[@authenticated_project_key] != nil
   end
 
-  @spec assign_authenticated_user(Plug.Conn.t(), Glossia.Accounts.Models.User.t()) ::
+  @spec assign_authenticated_user(Plug.Conn.t(), Glossia.Accounts.User.t()) ::
           Plug.Conn.t()
   def assign_authenticated_user(%Plug.Conn{} = conn, user) do
     Plug.Conn.assign(conn, @authenticated_user_key, user)
   end
 
-  @spec assign_authenticated_user(Phoenix.LiveView.Socket.t(), Glossia.Accounts.Models.User.t()) ::
+  @spec assign_authenticated_user(Phoenix.LiveView.Socket.t(), Glossia.Accounts.User.t()) ::
           Plug.Conn.t()
   def assign_authenticated_user(%Phoenix.LiveView.Socket{} = socket, user) do
     Phoenix.Component.assign(socket, @authenticated_user_key, user)
@@ -166,7 +166,7 @@ defmodule GlossiaWeb.Auth do
   def call(%Plug.Conn{} = conn, :load_authenticated_project) do
     with {:auth_header, "Bearer" <> " " <> token} <-
            {:auth_header, Plug.Conn.get_req_header(conn, "authorization") |> List.first()},
-         {:authenticated_project, %Glossia.Projects.Models.Project{} = project} <-
+         {:authenticated_project, %Glossia.Projects.Project{} = project} <-
            {:authenticated_project, Glossia.Projects.get_project_from_token(String.trim(token))} do
       assign(conn, @authenticated_project_key, project)
     else

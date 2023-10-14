@@ -1,5 +1,5 @@
-defmodule Glossia.Projects.Models.Project do
-  alias Glossia.Accounts.Models.Account
+defmodule Glossia.Projects.Project do
+  alias Glossia.Accounts.Account
 
   @moduledoc """
   A module that represents the projects table
@@ -19,7 +19,7 @@ defmodule Glossia.Projects.Models.Project do
 
   # Module dependencies
 
-  alias Glossia.Accounts.Models.Account
+  alias Glossia.Accounts.Account
   alias Glossia.Builds.Build
   use Glossia.DatabaseSchema
   import Ecto.Changeset
