@@ -23,7 +23,7 @@ defmodule GlossiaWeb.Plugs.RawBodyPassthroughPlug do
 
       {:more, _partial_body, _conn_details} ->
         conn
-        |> send_resp(413, "PAYLOAD TOO LARGE")
+        |> send_resp(413, "The payload is too large")
         |> halt
     end
   end

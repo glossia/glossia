@@ -6,7 +6,7 @@ defmodule Glossia.Localizations.PoliciesTest do
   describe "localization request" do
     test "authorized? returns true when the current and url projects are the same", %{conn: conn} do
       # Given
-      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
       conn = conn |> assign(:authenticated_project, project) |> assign(:url_project, project)
 
       # When
@@ -20,8 +20,8 @@ defmodule Glossia.Localizations.PoliciesTest do
       conn: conn
     } do
       # Given
-      url_project = Glossia.Foundation.ProjectsFixtures.project_fixture()
-      authenticated_project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      url_project = Glossia.ProjectsFixtures.project_fixture()
+      authenticated_project = Glossia.ProjectsFixtures.project_fixture()
 
       conn =
         conn

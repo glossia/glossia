@@ -8,7 +8,6 @@ defmodule Glossia.Accounts.Repository do
     alias Glossia.Accounts.Models.Organization
     alias Glossia.Accounts.Models.OrganizationUser
     alias Glossia.Accounts.Models.User
-    alias Glossia.Accounts.Models.UserToken
     alias Glossia.Repo
     import Ecto.Query, only: [from: 2]
 

@@ -25,7 +25,7 @@ defmodule GlossiaWeb.Router do
 
   # Loads the project from the slug in the URL
   pipeline :load_url_project do
-    plug GlossiaWeb.Plugs.ResourcesPlug, :url_project
+    plug GlossiaWeb.URL, :load_project
   end
 
   pipeline :marketing do
@@ -70,8 +70,7 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :load_authenticated_project do
-    # The build environments authenticate projects using a token generated for them.
-    plug GlossiaWeb.Plugs.ResourcesPlug, :authenticated_project
+    plug GlossiaWeb.Auth, :load_authenticated_project
   end
 
   pipeline :ensure_authenticated_project_present do
@@ -140,7 +139,7 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :load_authenticated_user do
-    plug GlossiaWeb.Plugs.LoadAuthenticatedUserPlug
+    plug GlossiaWeb.Auth, :load_authenticated_user
   end
 
   pipeline :authenticated_user_present do
@@ -148,7 +147,6 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :track_project do
-    plug GlossiaWeb.Plugs.RedirectToProjectIfNeededPlug
     plug GlossiaWeb.Plugs.SaveLastVisitedProjectPlug
   end
 

@@ -1,7 +1,7 @@
 defmodule Glossia.Projects.RepositoryTest do
   use Glossia.DataCase
-  alias Glossia.Foundation.ProjectsFixtures
-  alias Glossia.Foundation.AccountsFixtures
+  alias Glossia.ProjectsFixtures
+  alias Glossia.AccountsFixtures
   alias Glossia.Projects.Repository
 
   describe "update_last_visited_project_for_user" do

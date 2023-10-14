@@ -7,7 +7,7 @@ defmodule Glossia.ProjectsTest do
   describe "find_project_by_repository" do
     test "returns the project if it exists" do
       # Given
-      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
 
       # When
       got =
@@ -26,7 +26,7 @@ defmodule Glossia.ProjectsTest do
   describe "generate_token_for_project" do
     test "returns a token for the project" do
       # Given
-      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
 
       # When
       got = Projects.generate_token_for_project(project)
@@ -39,7 +39,7 @@ defmodule Glossia.ProjectsTest do
   describe "get_project_from_token" do
     test "it returns nil if the project doesn't exist" do
       # Given
-      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
 
       # When
       token = Projects.generate_token_for_project(project)
@@ -52,7 +52,7 @@ defmodule Glossia.ProjectsTest do
 
     test "it returns the project if the project exists" do
       # Given
-      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
 
       # When
       token = Projects.generate_token_for_project(project)
@@ -66,7 +66,7 @@ defmodule Glossia.ProjectsTest do
   describe "find_project_by_owner_and_project_handle" do
     test "it returns the project if it exists" do
       # Given
-      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
       project = project |> Repo.preload(:account)
 
       # When

@@ -76,7 +76,7 @@ defmodule Glossia.Builds.BuildTest do
 
     test "validate the uniqueness of version, repository_id and vcs" do
       # Given
-      project = Glossia.Foundation.ProjectsFixtures.project_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
 
       attrs = %{
         type: :new_version,

@@ -1,8 +1,8 @@
 defmodule Glossia.Projects.PoliciesTest do
   use Glossia.Web.ConnCase
   alias Glossia.Repo
-  alias Glossia.Foundation.ProjectsFixtures
-  alias Glossia.Foundation.AccountsFixtures
+  alias Glossia.ProjectsFixtures
+  alias Glossia.AccountsFixtures
   alias Glossia.Projects.Policies
 
   describe "authenticated_project_present" do

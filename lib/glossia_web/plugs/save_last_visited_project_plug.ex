@@ -11,7 +11,7 @@ defmodule GlossiaWeb.Plugs.SaveLastVisitedProjectPlug do
 
   @spec call(Plug.Conn.t(), term()) :: Plug.Conn.t()
   def call(%{assigns: %{url_project: project}} = conn, _opts) do
-    authenticated_user = GlossiaWeb.Helpers.Auth.authenticated_user(conn)
+    authenticated_user = GlossiaWeb.Auth.authenticated_user(conn)
 
     case Policies.policy(%{user: authenticated_user, project: project}, {:read, :project}) do
       :ok ->

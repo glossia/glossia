@@ -1,14 +1,11 @@
-defmodule GlossiaWeb.Helpers.Auth do
-  @moduledoc """
-  This module provides utilities for authenticating users.
-  """
-  use GlossiaWeb.Helpers.Shared, :verified_routes
-
-  alias GlossiaWeb.Support.PathRememberer
-  import Plug.Conn
-  import Phoenix.Controller
+defmodule GlossiaWeb.Auth do
+  @moduledoc false
 
   alias Glossia.Accounts, as: Accounts
+  alias GlossiaWeb.Support.PathRememberer
+  import Phoenix.Controller
+  import Plug.Conn
+  use GlossiaWeb.Helpers.Shared, :verified_routes
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -16,6 +13,8 @@ defmodule GlossiaWeb.Helpers.Auth do
   @max_age 60 * 60 * 24 * 60
   @remember_me_cookie "_glossia_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
+  @authenticated_user_key :authenticated_user
+  @authenticated_project_key :authenticated_project
 
   def remember_me_cookie do
     @remember_me_cookie
@@ -100,35 +99,80 @@ defmodule GlossiaWeb.Helpers.Auth do
 
   defp signed_in_path(_conn), do: ~p"/"
 
-  @authenticated_user_key :authenticated_user
-
-  @doc """
-  It returns true if there's a user authenticated in the given connection.
-  """
   @spec user_authenticated?(Plug.Conn.t()) :: boolean()
   def user_authenticated?(conn) do
     conn.assigns[@authenticated_user_key] != nil
   end
 
-  @doc """
-  If there's a user authenticated in the given connection it returns the user, otherwise it returns nil.
-  """
   @spec authenticated_user(Plug.Conn.t()) ::
           Glossia.Accounts.Models.User.t() | nil
   def authenticated_user(conn) do
     conn.assigns[@authenticated_user_key]
   end
 
-  @doc """
-  It assigns the given user to the given connection.
-  """
+  @spec authenticated_project(Plug.Conn.t()) ::
+          Glossia.Projects.Models.Project.t() | nil
+  def authenticated_project(conn) do
+    conn.assigns[@authenticated_project_key]
+  end
+
+  @spec project_authenticated?(Plug.Conn.t()) :: boolean()
+  def project_authenticated?(conn) do
+    conn.assigns[@authenticated_project_key] != nil
+  end
+
   @spec assign_authenticated_user(Plug.Conn.t(), Glossia.Accounts.Models.User.t()) ::
           Plug.Conn.t()
   def assign_authenticated_user(%Plug.Conn{} = conn, user) do
     Plug.Conn.assign(conn, @authenticated_user_key, user)
   end
 
+  @spec assign_authenticated_user(Phoenix.LiveView.Socket.t(), Glossia.Accounts.Models.User.t()) ::
+          Plug.Conn.t()
   def assign_authenticated_user(%Phoenix.LiveView.Socket{} = socket, user) do
     Phoenix.Component.assign(socket, @authenticated_user_key, user)
+  end
+
+  def init(:load_authenticated_user = opts), do: opts
+  def init(:load_authenticated_project = opts), do: opts
+
+  @spec call(Conn.t(), term()) :: Conn.t()
+  def call(%Plug.Conn{} = conn, :load_authenticated_project) do
+    with {:auth_header, "Bearer" <> " " <> token} <-
+      {:auth_header, Plug.Conn.get_req_header(conn, "authorization") |> List.first()},
+    {:authenticated_project, %Glossia.Projects.Models.Project{} = project} <-
+      {:authenticated_project, Glossia.Projects.get_project_from_token(String.trim(token))} do
+        assign(conn, @authenticated_project_key, project)
+    else
+    {:auth_header, nil} -> conn
+    {:authenticated_project, nil} -> conn
+    end
+  end
+
+  @spec call(Conn.t(), term()) :: Conn.t()
+  def call(%Plug.Conn{} = conn, :load_authenticated_user) do
+    with {user_token, _} when user_token != nil <- get_conn_token(conn),
+         {:user, user} when user != nil <-
+           {:user, Glossia.Accounts.get_user_by_session_token(user_token)} do
+      conn |> assign(@authenticated_user_key, user)
+    else
+      _ ->
+        conn
+    end
+  end
+
+  @spec get_conn_token(conn :: Plug.Conn.t()) :: {String.t() | nil, Plug.Conn.t()}
+  defp get_conn_token(conn) do
+    if token = get_session(conn, :user_token) do
+      {token, conn}
+    else
+      conn = fetch_cookies(conn, signed: [GlossiaWeb.Auth.remember_me_cookie()])
+
+      if token = conn.cookies[GlossiaWeb.Auth.remember_me_cookie()] do
+        {token, GlossiaWeb.Auth.put_token_in_session(conn, token)}
+      else
+        {nil, conn}
+      end
+    end
   end
 end

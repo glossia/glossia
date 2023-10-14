@@ -53,7 +53,7 @@ defmodule GlossiaWeb.Controllers.AuthController do
     case Auth.find_or_create(auth) do
       {:ok, user} ->
         conn
-        |> GlossiaWeb.Helpers.Auth.log_in_user(user)
+        |> GlossiaWeb.Auth.log_in_user(user)
         |> put_flash(:info, "Successfully authenticated.")
 
         # _ ->

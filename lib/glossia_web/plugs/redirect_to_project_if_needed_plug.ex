@@ -1,9 +1,8 @@
 defmodule GlossiaWeb.Plugs.RedirectToProjectIfNeededPlug do
-  alias GlossiaWeb.Helpers.Auth
+  @moduledoc false
 
-  @moduledoc """
-  If there is an authenticated user
-  """
+  alias GlossiaWeb.Auth
+
   @spec init(Keyword.t()) :: Keyword.t()
   def init(options), do: options
 

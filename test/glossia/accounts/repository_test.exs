@@ -1,6 +1,6 @@
 defmodule Glossia.Accounts.RepositoryTest do
   # Modules
-  alias Glossia.Foundation.AccountsFixtures
+  alias Glossia.AccountsFixtures
   alias Glossia.Accounts.Repository
   use Glossia.DataCase
 

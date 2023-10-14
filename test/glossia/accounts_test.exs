@@ -7,7 +7,7 @@ defmodule Glossia.AccountsTest do
   describe "register_organization" do
     test "it registers the organization successfully" do
       # Given
-      attrs = %{handle: Glossia.Foundation.AccountsFixtures.unique_handle()}
+      attrs = %{handle: Glossia.AccountsFixtures.unique_handle()}
 
       # When
       assert {:ok, _} = Accounts.register_organization(attrs)
@@ -15,7 +15,7 @@ defmodule Glossia.AccountsTest do
 
     test "errors when an organization with the same handle already exists" do
       # Given
-      attrs = %{handle: Glossia.Foundation.AccountsFixtures.unique_handle()}
+      attrs = %{handle: Glossia.AccountsFixtures.unique_handle()}
 
       # When
       assert {:ok, _} = Accounts.register_organization(attrs)
@@ -30,8 +30,8 @@ defmodule Glossia.AccountsTest do
   describe "add_user_to_organization" do
     test "makes a user admin of the organization" do
       # Given
-      organization = Glossia.Foundation.AccountsFixtures.organization_fixture()
-      user = Glossia.Foundation.AccountsFixtures.user_fixture()
+      organization = Glossia.AccountsFixtures.organization_fixture()
+      user = Glossia.AccountsFixtures.user_fixture()
 
       # When
       assert {:ok, _} =
@@ -44,8 +44,8 @@ defmodule Glossia.AccountsTest do
 
     test "makes a user member of the organization" do
       # Given
-      organization = Glossia.Foundation.AccountsFixtures.organization_fixture()
-      user = Glossia.Foundation.AccountsFixtures.user_fixture()
+      organization = Glossia.AccountsFixtures.organization_fixture()
+      user = Glossia.AccountsFixtures.user_fixture()
 
       # When
       assert {:ok, _} =
@@ -60,7 +60,7 @@ defmodule Glossia.AccountsTest do
   describe "find_account_by_handle" do
     test "it finds the account by handle" do
       # Given
-      user = Glossia.Foundation.AccountsFixtures.user_fixture()
+      user = Glossia.AccountsFixtures.user_fixture()
       handle = user.account.handle
 
       # When

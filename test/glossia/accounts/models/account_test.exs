@@ -18,7 +18,7 @@ defmodule Glossia.Accounts.Models.AccountTest do
 
     test "validates the uniqueness of handle" do
       # Given
-      attrs = %{handle: Glossia.Foundation.AccountsFixtures.unique_handle()}
+      attrs = %{handle: Glossia.AccountsFixtures.unique_handle()}
       %Account{} |> Account.changeset(attrs) |> Repo.insert!()
 
       # When

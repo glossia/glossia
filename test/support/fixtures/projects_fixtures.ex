@@ -1,4 +1,4 @@
-defmodule Glossia.Foundation.ProjectsFixtures do
+defmodule Glossia.ProjectsFixtures do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Glossia.Projects` context.
@@ -9,7 +9,7 @@ defmodule Glossia.Foundation.ProjectsFixtures do
       case attrs[:account_id] do
         nil ->
           organization =
-            Glossia.Foundation.AccountsFixtures.organization_fixture(%{
+            Glossia.AccountsFixtures.organization_fixture(%{
               handle: "#{Glossia.TestHelpers.unique_integer()}"
             })
 

@@ -1,7 +1,7 @@
-defmodule GlossiaWeb.Helpers.AuthTest do
-  alias Glossia.Foundation.AccountsFixtures
+defmodule GlossiaWeb.AuthTest do
+  alias Glossia.AccountsFixtures
   use Glossia.Web.ConnCase
-  import GlossiaWeb.Helpers.Auth
+  import GlossiaWeb.Auth
 
   describe "user_authenticated?" do
     test "returns true when there's a user in the connection", %{conn: conn} do
