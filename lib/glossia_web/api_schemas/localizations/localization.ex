@@ -1,9 +1,9 @@
 defmodule GlossiaWeb.APISchemas.Localizations.Localization do
-  # Modules
-  require OpenApiSpex
-  alias OpenApiSpex.Schema
+  @moduledoc false
   alias GlossiaWeb.APISchemas.Localizations.SourceLocalizableContent
   alias GlossiaWeb.APISchemas.Localizations.TargetLocalizableContent
+  alias OpenApiSpex.Schema
+  require OpenApiSpex
 
   OpenApiSpex.schema(%{
     title: "A localization request",

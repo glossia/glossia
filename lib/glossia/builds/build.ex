@@ -1,4 +1,6 @@
 defmodule Glossia.Builds.Build do
+  @moduledoc false
+
   # Types
   @type t :: %__MODULE__{
           version: String.t(),
@@ -22,8 +24,6 @@ defmodule Glossia.Builds.Build do
           | :timeout
           | :cancelled
           | :expired
-
-  # Modules
   use Glossia.DatabaseSchema
   import Ecto.Changeset
 

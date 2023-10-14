@@ -1,8 +1,9 @@
 defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlugTest do
-  # Modules
-  use Glossia.Web.ConnCase
+  @moduledoc false
+
   alias GlossiaWeb.Plugs.ValidateGitHubWebhookPlug
   import Plug.Conn
+  use Glossia.Web.ConnCase
 
   # Cases
 

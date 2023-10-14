@@ -1,5 +1,6 @@
 defmodule Glossia.Accounts.Models.Credentials do
-  # Modules
+  @moduledoc false
+
   alias Glossia.Accounts.Models.{User}
   import Ecto.Changeset
 

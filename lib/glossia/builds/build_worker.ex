@@ -1,11 +1,11 @@
 defmodule Glossia.Builds.BuildWorker do
-  # Modules
-  require Logger
+  @moduledoc false
   alias Glossia.Builds.Build
-  alias Glossia.Repo
-  use Oban.Worker
   alias Glossia.ContentSources, as: ContentSources
+  alias Glossia.Repo
   alias Glossia.VirtualMachine, as: VirtualMachine
+  require Logger
+  use Oban.Worker
 
   # Impl: Oban.Worker
 

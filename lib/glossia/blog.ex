@@ -1,9 +1,6 @@
 defmodule Glossia.Marketing.Blog do
-  @moduledoc """
-  A module that loads Markdown-writen blog posts at compile-time.
-  """
+  @moduledoc false
 
-  # Modules
   alias Glossia.Marketing.Blog.Authors
   alias Glossia.Marketing.Blog.{Post}
 

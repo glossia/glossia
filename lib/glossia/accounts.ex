@@ -3,6 +3,7 @@ defmodule Glossia.Accounts do
 
   import Ecto.Query, warn: false
   alias Glossia.Repo
+
   alias Glossia.Accounts.Models.{
     Account,
     Credentials,
@@ -11,7 +12,6 @@ defmodule Glossia.Accounts do
     User,
     UserToken
   }
-  @behaviour Glossia.Authorization.Policy
 
   @spec add_user_to_organization(
           user_id :: integer(),

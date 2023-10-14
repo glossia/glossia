@@ -1,8 +1,7 @@
 defmodule Glossia.ContentSources do
-  # Modules
-  alias Glossia.ContentSources.GitHub
+  @moduledoc false
 
-  # Behaviors
+  alias Glossia.ContentSources.GitHub
   @behaviour Glossia.ContentSources.ContentSource
 
   @doc """

@@ -1,10 +1,10 @@
 defmodule GlossiaWeb.Router do
-  # Modules
-  use Phoenix.Router, helpers: false
-  import Plug.Conn
+  @moduledoc false
+  import Oban.Web.Router
   import Phoenix.Controller
   import Phoenix.LiveView.Router
-  import Oban.Web.Router
+  import Plug.Conn
+  use Phoenix.Router, helpers: false
 
   ##### Base pipelines #####
 
@@ -69,21 +69,13 @@ defmodule GlossiaWeb.Router do
     plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.APISpec
   end
 
-  pipeline :load_authenticated_project do
-    plug GlossiaWeb.Auth, :load_authenticated_project
-  end
-
-  pipeline :ensure_authenticated_project_present do
-    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticated_project_present
-  end
-
   # Authenticated builder API endpoints:
   # These endpoints authenticate and authorize the authenticated entities
   scope "/api/v1" do
     pipe_through [
       :api,
-      :load_authenticated_project,
-      :ensure_authenticated_project_present,
+      :load_authenticated_subject,
+      :ensure_authenticated_subject_present,
       :load_url_project
     ]
 
@@ -138,33 +130,39 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.Layouts.App, :root}
   end
 
-  pipeline :load_authenticated_user do
-    plug GlossiaWeb.Auth, :load_authenticated_user
+  pipeline :load_authenticated_subject do
+    plug GlossiaWeb.Auth, :load_authenticated_subject
   end
 
-  pipeline :ensure_authenticated_user_present do
-    plug GlossiaWeb.Auth, :ensure_authenticated_user_present
+  pipeline :ensure_authenticated_subject_present do
+    plug GlossiaWeb.Auth, :ensure_authenticated_subject_present
   end
 
-  pipeline :ensure_authenticated_user_is_admin do
-    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticate_user_is_admin
+  pipeline :ensure_authenticated_subject_can_read_admin do
+    plug Glossia.Authorization.Plug,
+      policy: Glossia.Admin,
+      action: :read,
+      subject: {GlossiaWeb.Auth, :authenticated_subject}
   end
 
   pipeline :track_project do
     plug GlossiaWeb.Plugs.SaveLastVisitedProjectPlug
   end
 
-  pipeline :authorize_project_access do
-    plug GlossiaWeb.Plugs.PoliciesPlug, {:read, :project}
+  pipeline :ensure_authenticated_subject_can_read_project do
+    plug Glossia.Authorization.Plug,
+      policy: Glossia.Projects,
+      action: :read,
+      subject: {GlossiaWeb.Auth, :authenticated_subject}
   end
 
   scope "/admin" do
     pipe_through [
       :browser,
       :app,
-      :load_authenticated_user,
-      :ensure_authenticated_user_present,
-      :ensure_authenticated_user_is_admin
+      :load_authenticated_subject,
+      :ensure_authenticated_subject_present,
+      :ensure_authenticated_subject_can_read_admin
     ]
 
     oban_dashboard("/oban")
@@ -185,9 +183,9 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :browser,
       :app,
-      :load_authenticated_user,
+      :load_authenticated_subject,
       :load_url_project,
-      :authorize_project_access,
+      :ensure_authenticated_subject_can_read_project,
       :track_project
     ]
 
@@ -197,7 +195,12 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/" do
-    pipe_through [:browser, :app, :load_authenticated_user, :ensure_authenticated_user_present]
+    pipe_through [
+      :browser,
+      :app,
+      :load_authenticated_subject,
+      :ensure_authenticated_subject_present
+    ]
 
     live_session :authenticated_user,
       on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do

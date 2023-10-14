@@ -1,7 +1,8 @@
 defmodule Glossia.Accounts.RepositoryTest do
-  # Modules
-  alias Glossia.AccountsFixtures
+  @moduledoc false
+
   alias Glossia.Accounts.Repository
+  alias Glossia.AccountsFixtures
   use Glossia.DataCase
 
   describe "get_user_account" do

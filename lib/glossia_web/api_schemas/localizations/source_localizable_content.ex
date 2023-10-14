@@ -1,9 +1,9 @@
 defmodule GlossiaWeb.APISchemas.Localizations.SourceLocalizableContent do
-  # Modules
-  require OpenApiSpex
-  alias OpenApiSpex.Schema
-  alias GlossiaWeb.APISchemas.Localizations.SourceContext
+  @moduledoc false
   alias GlossiaWeb.APISchemas.Localizations.Checksum
+  alias GlossiaWeb.APISchemas.Localizations.SourceContext
+  alias OpenApiSpex.Schema
+  require OpenApiSpex
 
   OpenApiSpex.schema(%{
     title: "Source localizable content",

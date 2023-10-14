@@ -1,7 +1,11 @@
 defmodule Glossia.Localizations do
+  @moduledoc false
+
   alias Glossia.ContentSources, as: ContentSources
   alias Glossia.Localizations.Workers.LocalizeWorker
-  alias Glossia.Projects, as: Projects
+  alias Glossia.Projects
+  alias Glossia.Projects.Models.Project
+  @behaviour Glossia.Authorization.Policy
 
   # Types
   @type process_localization_opts :: %{project_id: number()}
@@ -39,5 +43,9 @@ defmodule Glossia.Localizations do
       {:ok, _} -> :ok
       {:error, error} -> {:error, error}
     end
+  end
+
+  def authorize(:create, %Project{} = authenticated_project, %Project{} = project) do
+    if authenticated_project.id == project.id, do: :ok, else: :error
   end
 end

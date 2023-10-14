@@ -1,5 +1,6 @@
 defmodule GlossiaWeb.Controllers.API.APIController do
-  # Modules
+  @moduledoc false
+
   use GlossiaWeb.Helpers.App, :controller
 
   def not_found(%{request_path: request_path, method: method} = conn, _params) do

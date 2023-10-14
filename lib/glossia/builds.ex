@@ -1,5 +1,6 @@
 defmodule Glossia.Builds do
-  # Modules
+  @moduledoc false
+
   alias Glossia.Builds.BuildWorker
   require Logger
 

@@ -1,15 +1,12 @@
 defmodule Glossia.Localizations.Workers.LocalizeWorker do
-  @moduledoc """
-  It processes the events that are triggered by the version control system.
-  """
+  @moduledoc false
 
-  # Modules
-  use Oban.Worker, unique: [keys: [:unique_id], states: [:available, :scheduled, :executing]]
-  require Logger
-  alias Glossia.Projects, as: Projects
   alias Glossia.ContentSources, as: ContentSources
-  alias Glossia.Localizations.Utilities.Parser
   alias Glossia.Localizations.Utilities.Localizer
+  alias Glossia.Localizations.Utilities.Parser
+  alias Glossia.Projects, as: Projects
+  require Logger
+  use Oban.Worker, unique: [keys: [:unique_id], states: [:available, :scheduled, :executing]]
 
   # Impl: Oban.Worker
 

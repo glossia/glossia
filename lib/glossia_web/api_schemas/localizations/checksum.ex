@@ -1,8 +1,9 @@
 defmodule GlossiaWeb.APISchemas.Localizations.Checksum do
-  # Modules
-  require OpenApiSpex
-  alias OpenApiSpex.Schema
+  @moduledoc false
+
   alias GlossiaWeb.APISchemas.Localizations.Checksum.Value, as: ChecksumValue
+  alias OpenApiSpex.Schema
+  require OpenApiSpex
 
   OpenApiSpex.schema(%{
     title: "Localization content checksum",

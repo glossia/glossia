@@ -1,6 +1,6 @@
 defmodule Glossia.Authorization.Plug do
   @behaviour Plug
-  alias  Glossia.Authorization.Utilities
+  alias Glossia.Authorization.Utilities
 
   def init(opts \\ []) do
     policy = Keyword.get(opts, :policy)
@@ -20,7 +20,7 @@ defmodule Glossia.Authorization.Plug do
           "#{inspect(__MODULE__)} :action option is required"
         )
 
-    # User can be nil or a getter function
+    # Subject can be nil or a getter function
     unless is_nil(subject) || Utilities.valid_getter?(subject),
       do:
         raise(
@@ -43,7 +43,7 @@ defmodule Glossia.Authorization.Plug do
   end
 
   def call(conn, {nil, opts}) do
-    Bodyguard.permit!(
+    Glossia.Authorization.permit!(
       opts[:policy],
       Utilities.resolve_param_or_callback(conn, opts[:action]),
       Utilities.resolve_param_or_callback(conn, opts[:subject]),
@@ -54,7 +54,7 @@ defmodule Glossia.Authorization.Plug do
   end
 
   def call(conn, {fallback, opts}) do
-    case Bodyguard.permit(
+    case Glossia.Authorization.permit(
            opts[:policy],
            Utilities.resolve_param_or_callback(conn, opts[:action]),
            Utilities.resolve_param_or_callback(conn, opts[:subject]),
@@ -69,5 +69,4 @@ defmodule Glossia.Authorization.Plug do
         |> Plug.Conn.halt()
     end
   end
-
 end

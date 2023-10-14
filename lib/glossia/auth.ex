@@ -1,13 +1,10 @@
 defmodule Glossia.Auth do
-  @moduledoc """
-  Retrieve the user information from an auth request
-  """
+  @moduledoc false
 
-  # Modules
-  require Logger
-  require Jason
-  alias Ueberauth.Auth
   alias Glossia.Accounts, as: Accounts
+  alias Ueberauth.Auth
+  require Jason
+  require Logger
 
   defp update_credential(user, auth) do
     %{

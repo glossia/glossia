@@ -23,7 +23,8 @@ defmodule Glossia.Authorization do
     {error_message, params} =
       get_option("Glossia.Authorization!/5", params, opts, :error_message, "not authorized")
 
-    {error_status, params} = get_option("Glossia.Authorization!/5", params, opts, :error_status, 403)
+    {error_status, params} =
+      get_option("Glossia.Authorization!/5", params, opts, :error_status, 403)
 
     case permit(policy, action, subject, params) do
       :ok ->
@@ -51,7 +52,9 @@ defmodule Glossia.Authorization do
     opts = Enum.into(opts, %{})
 
     {schema, params} =
-      get_option_lazy("Glossia.Authorization.scope/4", params, opts, :schema, fn -> resolve_schema(query) end)
+      get_option_lazy("Glossia.Authorization.scope/4", params, opts, :schema, fn ->
+        resolve_schema(query)
+      end)
 
     apply(schema, :scope, [query, subject, params])
   end
@@ -78,7 +81,6 @@ defmodule Glossia.Authorization do
       #{inspect(unknown)} - specify the :schema option"
   end
 
-
   # Pulls an option from the `params` argument if possible, falling back on
   # the new `opts` argument. Returns {option_value, params}
   defp get_option_lazy(name, params, opts, key, default_fn) do
@@ -101,10 +103,7 @@ defmodule Glossia.Authorization do
 
   # Attempts to convert a keyword list to a map
   defp try_to_mapify(params) do
-    cond do
-      Keyword.keyword?(params) -> Enum.into(params, %{})
-      true -> params
-    end
+    if Keyword.keyword?(params), do: Enum.into(params, %{}), else: params
   end
 
   # Coerce auth results

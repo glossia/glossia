@@ -1,12 +1,8 @@
 defmodule Glossia.ContentSources.GitHub do
-  @moduledoc """
-  An interface to interact with GitHub's API.
-  """
+  @moduledoc false
 
-  # Modules
   require Logger
 
-  # Behaviors
   @behaviour Glossia.ContentSources.ContentSource
 
   # Struct

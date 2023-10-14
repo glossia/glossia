@@ -3,7 +3,7 @@ defmodule Glossia.Admin do
 
   alias Glossia.Accounts.Models.User
 
-  def authorize(:read, %User{ email: email}, _) do
+  def authorize(:read, %User{email: email}, _) do
     case Application.get_env(:glossia, :admin_emails) |> Enum.member?(email) do
       true -> :ok
       false -> :error

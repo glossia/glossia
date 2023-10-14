@@ -1,5 +1,6 @@
 defmodule Glossia.Localizations.Utilities.Localizer do
-  # Modules
+  @moduledoc false
+
   alias Glossia.ContentSources, as: ContentSources
   alias Glossia.LLMs, as: LLMs
   alias Glossia.Localizations.Utilities.Prompts

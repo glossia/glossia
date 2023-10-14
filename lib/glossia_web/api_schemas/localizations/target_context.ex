@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.APISchemas.Localizations.TargetContext do
-  # Modules
-  require OpenApiSpex
+  @moduledoc false
   alias OpenApiSpex.Schema
+  require OpenApiSpex
 
   OpenApiSpex.schema(%{
     title: "Localization request target context",

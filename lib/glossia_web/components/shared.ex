@@ -1,14 +1,8 @@
 defmodule GlossiaWeb.Components.Shared do
+  @moduledoc false
+
   import GlossiaWeb.Helpers.OpenGraph
-
-  @moduledoc """
-  A set of components that are shared across all the layouts
-  """
-
-  # Modules
-  import Phoenix.Controller,
-    only: [get_csrf_token: 0]
-
+  import Phoenix.Controller, only: [get_csrf_token: 0]
   use Phoenix.Component
 
   attr :class, :string, default: nil
