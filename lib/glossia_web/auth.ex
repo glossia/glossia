@@ -6,6 +6,7 @@ defmodule GlossiaWeb.Auth do
   import Phoenix.Controller
   import Plug.Conn
   use GlossiaWeb.Helpers.Shared, :verified_routes
+  use GlossiaWeb.Helpers.Shared, :controller
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -135,6 +136,18 @@ defmodule GlossiaWeb.Auth do
 
   def init(:load_authenticated_user = opts), do: opts
   def init(:load_authenticated_project = opts), do: opts
+  def init(:ensure_authenticated_user_present = opts), do: opts
+
+  def call(conn, :ensure_authenticated_user_present) do
+    if user_authenticated?(conn) do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must be logged in to access this page.")
+      |> redirect(to: ~p"/auth/login")
+      |> halt()
+    end
+  end
 
   @spec call(Conn.t(), term()) :: Conn.t()
   def call(%Plug.Conn{} = conn, :load_authenticated_project) do

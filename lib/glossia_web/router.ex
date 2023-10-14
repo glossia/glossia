@@ -142,8 +142,12 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Auth, :load_authenticated_user
   end
 
-  pipeline :authenticated_user_present do
-    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticated_user_present
+  pipeline :ensure_authenticated_user_present do
+    plug GlossiaWeb.Auth, :ensure_authenticated_user_present
+  end
+
+  pipeline :ensure_authenticated_user_is_admin do
+    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticate_user_is_admin
   end
 
   pipeline :track_project do
@@ -154,16 +158,12 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.PoliciesPlug, {:read, :project}
   end
 
-  pipeline :ensure_authenticated_user_is_admin do
-    plug GlossiaWeb.Plugs.PoliciesPlug, :authenticate_user_is_admin
-  end
-
   scope "/admin" do
     pipe_through [
       :browser,
       :app,
       :load_authenticated_user,
-      :authenticated_user_present,
+      :ensure_authenticated_user_present,
       :ensure_authenticated_user_is_admin
     ]
 
@@ -197,7 +197,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/" do
-    pipe_through [:browser, :app, :load_authenticated_user, :authenticated_user_present]
+    pipe_through [:browser, :app, :load_authenticated_user, :ensure_authenticated_user_present]
 
     live_session :authenticated_user,
       on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do

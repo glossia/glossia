@@ -9,6 +9,12 @@ defmodule GlossiaWeb.Helpers.Marketing do
     end
   end
 
+  def verified_routes do
+    quote do
+      unquote(GlossiaWeb.Helpers.Shared.verified_routes())
+    end
+  end
+
   def html do
     quote do
       use Phoenix.Component
@@ -22,7 +28,7 @@ defmodule GlossiaWeb.Helpers.Marketing do
       import GlossiaWeb.Components.Shared
       import GlossiaWeb.Components.Marketing
 
-      unquote(GlossiaWeb.Helpers.Shared.verified_routes())
+      unquote(verified_routes())
     end
   end
 

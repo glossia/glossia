@@ -45,6 +45,12 @@ defmodule GlossiaWeb.Helpers.App do
     end
   end
 
+  def verified_routes do
+    quote do
+      unquote(GlossiaWeb.Helpers.Shared.verified_routes())
+    end
+  end
+
   defp html_helpers() do
     quote do
       import(GlossiaWeb.Components.Shared)
@@ -53,7 +59,7 @@ defmodule GlossiaWeb.Helpers.App do
       unquote(GlossiaWeb.Helpers.Shared.html())
 
       # Routes generation with the ~p sigil
-      unquote(GlossiaWeb.Helpers.Shared.verified_routes())
+      unquote(verified_routes())
     end
   end
 

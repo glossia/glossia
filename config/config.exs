@@ -127,3 +127,8 @@ import_config "#{config_env()}.exs"
 
 # Inertia
 config :inertia_phoenix, assets_version: 1, inertia_layout: "app.html"
+
+config :glossia, :admin_emails, [
+  "pedro@pepicrft.me",
+  "mjsesalm@gmail.com"
+]

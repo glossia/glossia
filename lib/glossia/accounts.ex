@@ -1,22 +1,18 @@
 defmodule Glossia.Accounts do
-  @moduledoc """
-  The Accounts context.
-  """
+  @moduledoc false
+
   import Ecto.Query, warn: false
   alias Glossia.Repo
-
   alias Glossia.Accounts.Models.{
-    User,
     Account,
+    Credentials,
     Organization,
     OrganizationUser,
-    Credentials,
+    User,
     UserToken
   }
+  @behaviour Glossia.Authorization.Policy
 
-  @doc """
-  It makes the given user an admin of the given organization.
-  """
   @spec add_user_to_organization(
           user_id :: integer(),
           organization_id :: integer(),
@@ -31,10 +27,6 @@ defmodule Glossia.Accounts do
     })
     |> Repo.insert()
   end
-
-  @doc """
-  It registers a new organization with the given handle.
-  """
 
   @type register_organization_attrs :: %{
           handle: String.t()
