@@ -15,8 +15,7 @@ defmodule GlossiaWeb.Helpers.App do
 
   def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {GlossiaWeb.Layouts.App, :app}
+      use Phoenix.LiveView, layout: {GlossiaWeb.Layouts.App, :app}
 
       use PrimerLive
       import GlossiaWeb.Helpers.OpenGraph

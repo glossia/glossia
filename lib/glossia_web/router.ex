@@ -153,7 +153,8 @@ defmodule GlossiaWeb.Router do
     plug Glossia.Authorization.Plug,
       policy: Glossia.Projects,
       action: :read,
-      subject: {GlossiaWeb.Auth, :authenticated_subject}
+      subject: {GlossiaWeb.Auth, :authenticated_subject},
+      params: {GlossiaWeb.URL, :url_project}
   end
 
   scope "/admin" do
