@@ -42,8 +42,7 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     conn
     |> put_open_graph_metadata(%{
       title: "Work in progress",
-      description:
-        "We are finishing up the first version of our website. Please come back later."
+      description: "We are finishing up the first version of our website. Please come back later."
     })
     |> render(:wip)
   end
