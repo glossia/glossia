@@ -37,6 +37,8 @@ defmodule GlossiaWeb.Auth do
     token = Accounts.generate_user_session_token(user)
     user_return_to = PathRememberer.remembered_path(conn)
 
+    :ok = Glossia.Analytics.track("log_in", user, %{})
+
     conn
     |> renew_session()
     |> put_token_in_session(token)

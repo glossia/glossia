@@ -20,7 +20,12 @@ defmodule GlossiaWeb.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug GlossiaWeb.Auth, :load_authenticated_subject
     plug InertiaPhoenix.Plug
+  end
+
+  pipeline :tracking do
+    plug TrackPageVisitPlug
   end
 
   # Loads the project from the slug in the URL
@@ -33,7 +38,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :marketing]
+    pipe_through [:browser, :marketing, :tracking]
 
     get "/", MarketingController, :index
     get "/beta", MarketingController, :beta
@@ -52,7 +57,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :docs]
+    pipe_through [:browser, :docs, :tracking]
 
     get "/docs", DocsController, :show
     get "/docs/*id", DocsController, :show
@@ -69,6 +74,7 @@ defmodule GlossiaWeb.Router do
       json_decoder: Phoenix.json_library()
 
     plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.APISpec
+    plug GlossiaWeb.Auth, :load_authenticated_subject
   end
 
   # Authenticated builder API endpoints:
@@ -76,9 +82,9 @@ defmodule GlossiaWeb.Router do
   scope "/api/v1" do
     pipe_through [
       :api,
-      :load_authenticated_subject,
       :ensure_authenticated_subject_present,
-      :load_url_project
+      :load_url_project,
+      :tracking
     ]
 
     scope "/projects/:owner_handle/:project_handle",
@@ -91,7 +97,7 @@ defmodule GlossiaWeb.Router do
   # There are some endpoints, like the one that returns the OpenAPI spec, that don't
   # require being authenticated because they don't return resource-tied data.
   scope "/api/v1" do
-    pipe_through [:api]
+    pipe_through [:api, :tracking]
 
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []
     match(:*, "/*path", GlossiaWeb.Controllers.API.APIController, :not_found)
@@ -103,7 +109,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/", GlossiaWeb.Controllers do
-    pipe_through [:rss]
+    pipe_through [:rss, :tracking]
     get "/blog/feed.xml", MarketingController, :feed
   end
 
@@ -130,10 +136,6 @@ defmodule GlossiaWeb.Router do
 
   pipeline :app do
     plug :put_root_layout, html: {GlossiaWeb.Layouts.App, :root}
-  end
-
-  pipeline :load_authenticated_subject do
-    plug GlossiaWeb.Auth, :load_authenticated_subject
   end
 
   pipeline :ensure_authenticated_subject_present do
@@ -163,16 +165,16 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :browser,
       :app,
-      :load_authenticated_subject,
       :ensure_authenticated_subject_present,
-      :ensure_authenticated_subject_can_read_admin
+      :ensure_authenticated_subject_can_read_admin,
+      :tracking
     ]
 
     oban_dashboard("/oban")
   end
 
   scope "/auth", GlossiaWeb.Controllers do
-    pipe_through [:browser, :app]
+    pipe_through [:browser, :app, :tracking]
 
     get "/login", AuthController, :login
     post "/logout", AuthController, :logout
@@ -186,10 +188,10 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :browser,
       :app,
-      :load_authenticated_subject,
       :load_url_project,
       :ensure_authenticated_subject_can_read_project,
-      :track_project
+      :track_project,
+      :tracking
     ]
 
     get "/:owner_handle/:project_handle",
@@ -201,8 +203,8 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :browser,
       :app,
-      :load_authenticated_subject,
-      :ensure_authenticated_subject_present
+      :ensure_authenticated_subject_present,
+      :tracking
     ]
 
     live_session :authenticated_user,

@@ -37,6 +37,7 @@ defmodule Glossia.Auth do
     :crypto.strong_rand_bytes(16) |> Base.encode64() |> binary_part(0, 16)
   end
 
+  @spec find_or_create(auth :: Auth.t()) :: {:ok, %{id: any(), handle: binary(), email: binary()}}
   def find_or_create(%Auth{} = auth) do
     email = email_from_auth(auth)
 
@@ -54,6 +55,7 @@ defmodule Glossia.Auth do
     {:ok, basic_info(user)}
   end
 
+  @spec basic_info(Accounts.User.t()) :: %{id: any(), handle: binary(), email: binary()}
   defp basic_info(user) do
     %{
       id: user.id,
