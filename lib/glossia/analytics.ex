@@ -14,4 +14,21 @@ defmodule Glossia.Analytics do
       :ok
     end
   end
+
+  def track_page_view(title, user, props \\ %{}) do
+    if Application.get_env(:glossia, :env) == :prod do
+      {:ok, _} =
+        %{
+          event_id: "$pageview",
+          user: %{email: user.email},
+          props: Map.merge(%{title: title}, props)
+        }
+        |> Glossia.Analytics.Worker.Tracker.new()
+        |> Oban.insert()
+
+      :ok
+    else
+      :ok
+    end
+  end
 end

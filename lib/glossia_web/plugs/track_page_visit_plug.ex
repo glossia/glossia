@@ -11,7 +11,7 @@ defmodule TrackPageVisitPlug do
         conn
 
       %Glossia.Accounts.User{} = user ->
-        Glossia.Analytics.track("page_visit", user, %{request_path: request_path})
+        Glossia.Analytics.track_page_view(request_path, user)
         conn
     end
   end
