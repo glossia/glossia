@@ -115,8 +115,13 @@ defmodule GlossiaWeb.Auth do
 
   @spec authenticated_user(Plug.Conn.t()) ::
           Glossia.Accounts.User.t() | nil
-  def authenticated_user(conn) do
+  def authenticated_user(%Plug.Conn{} = conn) do
     conn.assigns[@authenticated_user_key]
+  end
+
+  @spec authenticated_user(assigns :: map()) :: Glossia.Accounts.User.t() | nil
+  def authenticated_user(assigns) when is_map(assigns) do
+    assigns[@authenticated_user_key]
   end
 
   @spec authenticated_project(Plug.Conn.t()) ::
