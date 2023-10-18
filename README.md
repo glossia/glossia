@@ -4,7 +4,7 @@
     </a>
     <h2 align="center">Glossia</h2>
     <p align="center">
-    The open-source AI-powered localization platform.
+    The AI-powered localization copilot.
     <br />
     <a href="https://glossia.ai"><strong>Learn more »</strong></a>
     <br />
@@ -22,8 +22,6 @@
 <p align="center">
   <a href="https://github.com/glossia/glossia/actions/workflows/glossia.yml"><img src="https://github.com/glossia/glossia/actions/workflows/glossia.yml/badge.svg"/></a>
    <a href="https://discord.gg/zqZxSBXKf8"><img src="https://img.shields.io/badge/Discord-go.cal.com%2Fdiscord-%234A154B" alt="Join Cal.com Discord"></a>
-   <a href="https://github.com/glossia/glossia/pulse"><img src="https://img.shields.io/github/commit-activity/m/glossia/glossia" alt="Commits-per-month"></a>
-   <a href="https://contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
 </p>
 
 ## Why Glossia?
@@ -35,17 +33,3 @@ We believe **AI holds the transformative power to revolutionize the world of con
 ## Usage
 
 You can check [out our documentation](./priv/docs/README.md) if you would like to use Glossia in your projects. Note that the project is a work in progress and changing rapidly so we recommend joining our [Discord server](https://discord.gg/zqZxSBXKf8) to let us know about your project and give you a hand on getting onboarded.
-
-## Supporters
-
-<a href="https://appsignal.com/">
-  <img src="resources/logos/appsignal.svg" width="150" alt="AppSignal's logo"/>
-</a>
-
-AppSignal supports Glossia by giving us access to its [open source plan](https://www.appsignal.com/open-source) for application performance monitoring.
-
-<a href="https://gitbook.com/">
-  <img src="resources/logos/gitbook.svg" width="150" alt="GitBook's logo"/>
-</a>
-
-GitBook supports Glossia by giving us access to its [open source plan](https://docs.gitbook.com/account-management/plans/apply-for-the-non-profit-open-source-plan). GitBook is our platform of choice for knowledge management.
