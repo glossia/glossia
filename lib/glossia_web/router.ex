@@ -4,6 +4,7 @@ defmodule GlossiaWeb.Router do
   import Phoenix.Controller
   import Phoenix.LiveView.Router
   import Plug.Conn
+  import Redirect
   use Phoenix.Router, helpers: false
 
   ##### Base pipelines #####
@@ -56,11 +57,20 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
   end
 
+  # We read the value from the compiled docs to ensure if the slug changes the compilation of the router fails.
+  whats_glossia_docs_slug =
+    Glossia.Docs.Content.pages()
+    |> Enum.find(&(&1.slug == "users/what-is-glossia"))
+    |> Map.get(:slug)
+
+  redirect("/docs", "/docs/#{whats_glossia_docs_slug}", :permanent)
+
   scope "/", GlossiaWeb.Controllers do
     pipe_through [:browser, :docs, :tracking]
 
-    get "/docs", DocsController, :show
-    get "/docs/*id", DocsController, :show
+    for page <- Glossia.Docs.Content.pages() do
+      get "/docs/#{page.slug}", DocsController, :show
+    end
   end
 
   ##### API Routes #####

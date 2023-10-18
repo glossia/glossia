@@ -6,6 +6,86 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     |> render(:index)
   end
 
+  @spec blog(
+          %{
+            :__struct__ => Phoenix.LiveView.Socket | Plug.Conn,
+            :assigns => Phoenix.LiveView.Socket.assigns_not_in_socket() | map(),
+            :private => map(),
+            optional(:adapter) => {atom(), any()},
+            optional(:body_params) => %{
+              optional(:__struct__) => Plug.Conn.Unfetched,
+              optional(:aspect) => atom(),
+              optional(binary()) => any()
+            },
+            optional(:cookies) => %{
+              optional(:__struct__) => Plug.Conn.Unfetched,
+              optional(:aspect) => atom(),
+              optional(binary()) => any()
+            },
+            optional(:endpoint) => atom(),
+            optional(:fingerprints) => {nil | binary(), map()},
+            optional(:halted) => boolean(),
+            optional(:host) => binary(),
+            optional(:host_uri) => :not_mounted_at_router | URI.t(),
+            optional(:id) => binary(),
+            optional(:method) => binary(),
+            optional(:owner) => pid(),
+            optional(:params) => %{
+              optional(:__struct__) => Plug.Conn.Unfetched,
+              optional(:aspect) => atom(),
+              optional(binary()) => any()
+            },
+            optional(:parent_pid) => nil | pid(),
+            optional(:path_info) => [binary()],
+            optional(:path_params) => %{
+              optional(binary()) =>
+                binary()
+                | [binary() | list() | map()]
+                | %{optional(binary()) => binary() | list() | map()}
+            },
+            optional(:port) => char(),
+            optional(:query_params) => %{
+              optional(:__struct__) => Plug.Conn.Unfetched,
+              optional(:aspect) => atom(),
+              optional(binary()) =>
+                binary()
+                | [binary() | list() | map()]
+                | %{optional(binary()) => binary() | list() | map()}
+            },
+            optional(:query_string) => binary(),
+            optional(:redirected) => nil | tuple(),
+            optional(:remote_ip) =>
+              {byte(), byte(), byte(), byte()}
+              | {char(), char(), char(), char(), char(), char(), char(), char()},
+            optional(:req_cookies) => %{
+              optional(:__struct__) => Plug.Conn.Unfetched,
+              optional(:aspect) => atom(),
+              optional(binary()) => binary()
+            },
+            optional(:req_headers) => [{binary(), binary()}],
+            optional(:request_path) => binary(),
+            optional(:resp_body) =>
+              nil
+              | binary()
+              | maybe_improper_list(
+                  binary() | maybe_improper_list(any(), binary() | []) | byte(),
+                  binary() | []
+                ),
+            optional(:resp_cookies) => %{optional(binary()) => map()},
+            optional(:resp_headers) => [{binary(), binary()}],
+            optional(:root_pid) => pid(),
+            optional(:router) => atom(),
+            optional(:scheme) => :http | :https,
+            optional(:script_name) => [binary()],
+            optional(:secret_key_base) => nil | binary(),
+            optional(:state) =>
+              :chunked | :file | :sent | :set | :set_chunked | :set_file | :unset | :upgraded,
+            optional(:status) => nil | non_neg_integer(),
+            optional(:transport_pid) => nil | pid(),
+            optional(:view) => atom()
+          },
+          any()
+        ) :: Plug.Conn.t()
   def blog(conn, _params) do
     conn
     |> put_open_graph_metadata(%{
@@ -63,46 +143,6 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     |> assign(:post, post)
     |> assign(:author, author)
     |> render(:blog_post)
-  end
-
-  def docs(conn, _params) do
-    conn
-    |> render(:docs)
-  end
-
-  def beta(conn, _params) do
-    conn
-    |> put_open_graph_metadata(%{
-      title: "Beta Testing",
-      description:
-        "Join the future of automation today! Register on our page to become a beta tester for Glossia, the groundbreaking technology set to revolutionize your workflow. Sign up and be the first to experience Glossia’s innovative capabilities."
-    })
-    |> render(:beta)
-  end
-
-  def beta_added(conn, _params) do
-    conn
-    |> put_open_graph_metadata(%{
-      title: "Successful Subscription to Glossia Beta Testing!",
-      description:
-        "Congratulations on your successful subscription to the Glossia Beta Testing! Your voyage into the future of automation begins soon. Stay tuned for launch details."
-    })
-    |> render(:beta_added)
-  end
-
-  def team(conn, _params) do
-    conn
-    |> put_open_graph_metadata(%{
-      title: "Our Team",
-      description:
-        "Meet the team of innovative minds behind Glossia, the leading AI-powered localization tool transforming how businesses communicate across borders. Our diverse team of experts, dedicated to improving global communication, is committed to making localization more efficient and accurate than ever."
-    })
-    |> render(:team)
-  end
-
-  def about(conn, _params) do
-    conn
-    |> render(:about)
   end
 
   def feed(conn, _params) do

@@ -3,7 +3,7 @@ defmodule GlossiaWeb.Helpers.Docs do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json, :xml],
-        layouts: [html: {GlossiaWeb.Layouts.Docs, :base}]
+        layouts: [html: {GlossiaWeb.Layouts.Docs, :app}]
 
       unquote(GlossiaWeb.Helpers.Shared.controller())
     end

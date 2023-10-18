@@ -1,20 +1,3 @@
-<.layout is_divided>
-  <:main>
-    <.styled_html class="px-2 py-4">
-      <h1>What is Glossia?</h1>
-    </.styled_html>
-  </:main>
-  <:divider></:divider>
-  <:sidebar>
-    <div class="px-2 py-4">
-      <.action_list>
-        <.navigation_item
-          :for={{item, index} <- Enum.with_index(@navigation)}
-          item={item}
-          index={index}
-          level={0}
-        />
-      </.action_list>
-    </div>
-  </:sidebar>
-</.layout>
+<div class="prose">
+  <%= raw(@page.body) %>
+</div>

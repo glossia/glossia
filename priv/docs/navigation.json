@@ -22,26 +22,6 @@
             ]
           }
         ]
-      },
-      {
-        "name": "Enterprise",
-        "path": "users/enterprise",
-        "children": [
-          {
-            "name": "How to self-host Glossia",
-            "path": "users/enterprise/self-host-glossia"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Contributors",
-    "path": "contributors",
-    "children": [
-      {
-        "name": "Get started",
-        "path": "contributors/get-started"
       }
     ]
   }

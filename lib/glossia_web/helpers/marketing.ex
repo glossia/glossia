@@ -3,7 +3,7 @@ defmodule GlossiaWeb.Helpers.Marketing do
     quote do
       use Phoenix.Controller,
         formats: [:html, :json, :xml],
-        layouts: [html: {GlossiaWeb.Layouts.Marketing, :base}]
+        layouts: [html: {GlossiaWeb.Layouts.Marketing, :app}]
 
       unquote(GlossiaWeb.Helpers.Shared.controller())
     end

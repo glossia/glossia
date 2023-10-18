@@ -91,7 +91,8 @@ defmodule Glossia.MixProject do
       {:oban_web, "~> 2.10.0-rc.2", repo: "oban"},
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
-      {:inertia_phoenix, "~> 0.4.0"}
+      {:inertia_phoenix, "~> 0.4.0"},
+      {:redirect, "~> 0.4.0"}
     ]
   end
 
