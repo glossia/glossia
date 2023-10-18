@@ -92,12 +92,5 @@
   submitButton?.addEventListener("click", () => {
     const emailValue = document.getElementById("email");
     const nameValue = document.getElementById("name");
-
-    if (emailValue && nameValue) {
-      window.posthog.identify(
-        emailValue,
-        { email: emailValue, name: nameValue },
-      );
-    }
   });
 </script>

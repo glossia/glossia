@@ -1,178 +1,29 @@
-<div class="overflow-x-hidden bg-gray-50">
-  <header class="py-4 md:py-6" x-data="{expanded: false}">
-    <div class="container px-4 mx-auto sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between">
-        <div class="flex-shrink-0">
-          <a
-            href="#"
-            title=""
-            class="flex rounded outline-none focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-          >
-            <.glossia_logo class="w-10 h-10" />
-          </a>
-        </div>
-
-        <div class="flex lg:hidden">
-          <button type="button" class="text-gray-900" @click="expanded = !expanded">
-            <span x-show="!expanded" aria-hidden="true">
-              <svg
-                class="w-7 h-7"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </span>
-
-            <span x-show="expanded" aria-hidden="true">
-              <svg
-                class="w-7 h-7"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </span>
-          </button>
-        </div>
-
-        <div class="hidden lg:flex lg:ml-16 lg:items-center lg:justify-center lg:space-x-10 xl:space-x-16">
-          <a
-            href={~p"/blog"}
-            title="Glossia's blog"
-            class="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-          >
-            Blog
-          </a>
-
-          <a
-            href={~p"/docs"}
-            title="Glossia's documentation"
-            class="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-          >
-            Docs
-          </a>
-
-          <a
-            href="https://community.glossia.ai/"
-            target="_blank"
-            title="Link to the community forum"
-            class="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-          >
-            Community
-          </a>
-
-          <a
-            href="https://discord.gg/zqZxSBXKf8"
-            target="_blank"
-            title="Link to the Discord server"
-            class="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-          >
-            Discord
-          </a>
-        </div>
-
-        <div class="hidden lg:ml-auto lg:flex lg:items-center lg:space-x-10">
-          <a
-            href={~p"/auth/login"}
-            title="Log into Glossia"
-            class="inline-flex items-center justify-center px-6 py-3 text-base font-bold leading-7 text-white transition-all duration-200 bg-gray-900 border border-transparent rounded-xl hover:bg-gray-600 font-pj focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
-            role="button"
-          >
-            Log in
-          </a>
-        </div>
-      </div>
-
-      <nav x-show="expanded" x-collapse>
-        <div class="px-1 py-8">
-          <div class="grid gap-y-7">
-            <a
-              href="#"
-              title=""
-              class="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-            >
-              Features
-            </a>
-
-            <a
-              href="#"
-              title=""
-              class="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-            >
-              Pricing
-            </a>
-
-            <a
-              href="#"
-              title=""
-              class="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-            >
-              Automation
-            </a>
-
-            <a
-              href="#"
-              title=""
-              class="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
-            >
-              Customer Login
-            </a>
-
-            <a
-              href="#"
-              title=""
-              class="inline-flex items-center justify-center px-6 py-3 text-base font-bold leading-7 text-white transition-all duration-200 bg-gray-900 border border-transparent rounded-xl hover:bg-gray-600 font-pj focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
-              role="button"
-            >
-              Sign up
-            </a>
-          </div>
-        </div>
-      </nav>
-    </div>
-  </header>
-
-  <section class="py-12 bg-gray-50 sm:py-16">
-    <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-      <div class="max-w-2xl mx-auto text-center">
-        <h1 class="px-6 text-lg text-gray-600 font-inter">
-          Your Localization Copilot
-        </h1>
-        <p class="mt-5 text-4xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-6xl lg:leading-tight font-pj">
-          Swift, Budget-Friendly, Premium
-          <span class="relative inline-flex sm:inline">
-            <span class="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0">
-            </span>
-            <span class="relative"> Localization </span>
+<section class="py-12 bg-gray-50 sm:py-16">
+  <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto text-center">
+      <h1 class="px-6 text-lg text-gray-600 font-inter">
+        Your Localization Copilot
+      </h1>
+      <p class="mt-5 text-4xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-6xl lg:leading-tight font-pj">
+        Swift, Budget-Friendly, Premium
+        <span class="relative inline-flex sm:inline">
+          <span class="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0">
           </span>
-        </p>
+          <span class="relative"> Localization </span>
+        </span>
+      </p>
 
-        <div class="px-8 sm:items-center sm:justify-center sm:px-0 sm:space-x-5 sm:flex mt-9">
-          <a
-            href={~p"/auth/login"}
-            title="Start localizing your content"
-            class="inline-flex items-center justify-center w-full px-8 py-3 text-lg font-bold text-white transition-all duration-200 bg-gray-900 border-2 border-transparent sm:w-auto rounded-xl font-pj hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
-            role="button"
-          >
-            Localize your content
-          </a>
+      <div class="px-8 sm:items-center sm:justify-center sm:px-0 sm:space-x-5 sm:flex mt-9">
+        <a
+          href={~p"/auth/login"}
+          title="Start localizing your content"
+          class="inline-flex items-center justify-center w-full px-8 py-3 text-lg font-bold text-white transition-all duration-200 bg-gray-900 border-2 border-transparent sm:w-auto rounded-xl font-pj hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+          role="button"
+        >
+          Localize your content
+        </a>
 
-          <%!-- <a
+        <%!-- <a
             href="#"
             title=""
             class="inline-flex items-center justify-center w-full px-6 py-3 mt-4 text-lg font-bold text-gray-900 transition-all duration-200 border-2 border-gray-400 sm:w-auto sm:mt-0 rounded-xl font-pj focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 hover:bg-gray-900 focus:bg-gray-900 hover:text-white focus:text-white hover:border-gray-900 focus:border-gray-900"
@@ -195,128 +46,123 @@
             </svg>
             Watch free demo
           </a> --%>
-        </div>
+      </div>
 
-        <p class="mt-8 text-base text-gray-500 font-inter">
-          Forged from experience with Industry Leaders
-        </p>
+      <p class="mt-8 text-base text-gray-500 font-inter">
+        Forged from experience with Industry Leaders
+      </p>
 
-        <div class="grid items-center grid-cols-2 gap-10 mt-12 md:grid-cols-4 sm:gap-y-16">
-          <div>
-            <svg
-              fill="currentColor"
-              class="h-14 object-contain fill-gray-500"
-              viewBox="0 0 300 300"
-            >
-              <g id="XMLID_526_">
-                <path
-                  id="XMLID_527_"
-                  d="M14.492,208.896c0.619,0,1.143-0.509,1.232-1.226l3.365-26.671l-3.355-27.278
+      <div class="grid items-center grid-cols-2 gap-10 mt-12 md:grid-cols-4 sm:gap-y-16">
+        <div>
+          <svg fill="currentColor" class="h-14 object-contain fill-gray-500" viewBox="0 0 300 300">
+            <g id="XMLID_526_">
+              <path
+                id="XMLID_527_"
+                d="M14.492,208.896c0.619,0,1.143-0.509,1.232-1.226l3.365-26.671l-3.355-27.278
 		c-0.1-0.717-0.623-1.23-1.242-1.23c-0.635,0-1.176,0.524-1.26,1.23l-2.941,27.278l2.941,26.662
 		C13.316,208.377,13.857,208.896,14.492,208.896z"
-                />
-                <path
-                  id="XMLID_530_"
-                  d="M3.397,198.752c0.608,0,1.101-0.473,1.19-1.18l2.608-16.574l-2.608-16.884
+              />
+              <path
+                id="XMLID_530_"
+                d="M3.397,198.752c0.608,0,1.101-0.473,1.19-1.18l2.608-16.574l-2.608-16.884
 		c-0.09-0.685-0.582-1.18-1.19-1.18c-0.635,0-1.127,0.495-1.217,1.19L0,180.999l2.18,16.569
 		C2.27,198.269,2.762,198.752,3.397,198.752z"
-                />
-                <path
-                  id="XMLID_531_"
-                  d="M27.762,148.644c-0.08-0.867-0.715-1.5-1.503-1.5c-0.782,0-1.418,0.633-1.491,1.5l-2.811,32.355
+              />
+              <path
+                id="XMLID_531_"
+                d="M27.762,148.644c-0.08-0.867-0.715-1.5-1.503-1.5c-0.782,0-1.418,0.633-1.491,1.5l-2.811,32.355
 		l2.811,31.174c0.073,0.862,0.709,1.487,1.491,1.487c0.788,0,1.423-0.625,1.503-1.487l3.18-31.174L27.762,148.644z"
-                />
-                <path
-                  id="XMLID_532_"
-                  d="M38.152,214.916c0.922,0,1.668-0.759,1.758-1.751l3.005-32.156l-3.005-33.258
+              />
+              <path
+                id="XMLID_532_"
+                d="M38.152,214.916c0.922,0,1.668-0.759,1.758-1.751l3.005-32.156l-3.005-33.258
 		c-0.09-0.999-0.836-1.749-1.758-1.749c-0.935,0-1.692,0.751-1.756,1.754l-2.656,33.253l2.656,32.156
 		C36.46,214.158,37.217,214.916,38.152,214.916z"
-                />
-                <path
-                  id="XMLID_533_"
-                  d="M50.127,215.438c1.074,0,1.936-0.86,2.025-2.011l-0.01,0.008l2.83-32.426l-2.83-30.857
+              />
+              <path
+                id="XMLID_533_"
+                d="M50.127,215.438c1.074,0,1.936-0.86,2.025-2.011l-0.01,0.008l2.83-32.426l-2.83-30.857
 		c-0.08-1.132-0.941-2.005-2.016-2.005c-1.09,0-1.947,0.873-2.012,2.014l-2.502,30.849l2.502,32.418
 		C48.18,214.578,49.037,215.438,50.127,215.438z"
-                />
-                <path
-                  id="XMLID_534_"
-                  d="M67.132,181.017l-2.655-50.172c-0.074-1.272-1.065-2.286-2.281-2.286c-1.207,0-2.195,1.013-2.269,2.286
+              />
+              <path
+                id="XMLID_534_"
+                d="M67.132,181.017l-2.655-50.172c-0.074-1.272-1.065-2.286-2.281-2.286c-1.207,0-2.195,1.013-2.269,2.286
 		l-2.35,50.172l2.35,32.418c0.074,1.278,1.063,2.278,2.269,2.278c1.217,0,2.207-1,2.281-2.278v0.009L67.132,181.017z"
-                />
-                <path
-                  id="XMLID_535_"
-                  d="M74.386,215.766c1.339,0,2.45-1.111,2.513-2.529v0.021l2.482-32.233l-2.482-61.656
+              />
+              <path
+                id="XMLID_535_"
+                d="M74.386,215.766c1.339,0,2.45-1.111,2.513-2.529v0.021l2.482-32.233l-2.482-61.656
 		c-0.063-1.418-1.174-2.529-2.513-2.529c-1.37,0-2.471,1.111-2.545,2.529l-2.185,61.656l2.195,32.222
 		C71.915,214.655,73.016,215.766,74.386,215.766z"
-                />
-                <path
-                  id="XMLID_536_"
-                  d="M86.645,111.435c-1.508,0-2.725,1.238-2.787,2.799l-2.033,66.801l2.033,31.884
+              />
+              <path
+                id="XMLID_536_"
+                d="M86.645,111.435c-1.508,0-2.725,1.238-2.787,2.799l-2.033,66.801l2.033,31.884
 		c0.063,1.553,1.279,2.783,2.787,2.783c1.504,0,2.73-1.22,2.783-2.788v0.016l2.307-31.895l-2.307-66.801
 		C89.375,112.663,88.148,111.435,86.645,111.435z"
-                />
-                <path
-                  id="XMLID_782_"
-                  d="M99.01,215.766c1.656,0,2.975-1.336,3.037-3.056v0.019l2.133-31.693l-2.133-69.045
+              />
+              <path
+                id="XMLID_782_"
+                d="M99.01,215.766c1.656,0,2.975-1.336,3.037-3.056v0.019l2.133-31.693l-2.133-69.045
 		c-0.063-1.714-1.381-3.056-3.037-3.056c-1.666,0-3.005,1.342-3.031,3.056l-1.916,69.045l1.916,31.693
 		C96.005,214.43,97.344,215.766,99.01,215.766z"
-                />
-                <path
-                  id="XMLID_783_"
-                  d="M111.477,215.734c1.787,0,3.237-1.463,3.291-3.318v0.029l1.963-31.404l-1.963-67.289
+              />
+              <path
+                id="XMLID_783_"
+                d="M111.477,215.734c1.787,0,3.237-1.463,3.291-3.318v0.029l1.963-31.404l-1.963-67.289
 		c-0.054-1.854-1.504-3.311-3.291-3.311c-1.8,0-3.25,1.456-3.303,3.311l-1.725,67.289l1.736,31.389
 		C108.227,214.271,109.677,215.734,111.477,215.734z"
-                />
-                <path
-                  id="XMLID_784_"
-                  d="M129.359,181.041l-1.777-64.836c-0.043-2-1.609-3.571-3.551-3.571c-1.947,0-3.514,1.571-3.555,3.584
+              />
+              <path
+                id="XMLID_784_"
+                d="M129.359,181.041l-1.777-64.836c-0.043-2-1.609-3.571-3.551-3.571c-1.947,0-3.514,1.571-3.555,3.584
 		l-1.594,64.823l1.594,31.198c0.041,1.984,1.607,3.556,3.555,3.556c1.941,0,3.508-1.572,3.551-3.585v0.029L129.359,181.041z"
-                />
-                <path
-                  id="XMLID_785_"
-                  d="M136.682,215.853c2.064,0,3.773-1.717,3.805-3.828v0.017l1.613-30.984l-1.613-77.153
+              />
+              <path
+                id="XMLID_785_"
+                d="M136.682,215.853c2.064,0,3.773-1.717,3.805-3.828v0.017l1.613-30.984l-1.613-77.153
 		c-0.031-2.119-1.74-3.833-3.805-3.833c-2.063,0-3.767,1.722-3.809,3.844l-1.434,77.111l1.434,31.016
 		C132.915,214.136,134.619,215.853,136.682,215.853z"
-                />
-                <path
-                  id="XMLID_786_"
-                  d="M149.291,92.814c-2.229,0-4.037,1.849-4.074,4.103l-1.667,84.151l1.677,30.526
+              />
+              <path
+                id="XMLID_786_"
+                d="M149.291,92.814c-2.229,0-4.037,1.849-4.074,4.103l-1.667,84.151l1.677,30.526
 		c0.027,2.225,1.836,4.068,4.064,4.068c2.195,0,4.037-1.844,4.047-4.105v0.037l1.82-30.526l-1.82-84.151
 		C153.328,94.655,151.486,92.814,149.291,92.814z"
-                />
-                <path
-                  id="XMLID_787_"
-                  d="M160.82,215.882c0.09,0.008,101.623,0.056,102.275,0.056c20.385,0,36.904-16.722,36.904-37.357
+              />
+              <path
+                id="XMLID_787_"
+                d="M160.82,215.882c0.09,0.008,101.623,0.056,102.275,0.056c20.385,0,36.904-16.722,36.904-37.357
 		c0-20.624-16.52-37.349-36.904-37.349c-5.059,0-9.879,1.034-14.275,2.907c-2.922-33.671-30.815-60.077-64.842-60.077
 		c-8.318,0-16.429,1.662-23.593,4.469c-2.788,1.09-3.534,2.214-3.556,4.392v118.539C156.861,213.752,158.607,215.655,160.82,215.882
 		z"
-                />
-              </g>
-            </svg>
-          </div>
-          <div>
-            <svg viewBox="0 0 32 32" class="h-14 object-contain fill-gray-500">
-              <path d="M20.919 4.546c-0.025 0-0.075 0.026-0.097 0.026s-0.361 0.094-0.892 0.262c-0.529-1.541-1.47-2.962-3.134-2.962h-0.144c-0.356-0.5-0.921-0.832-1.564-0.868l-0.005-0c-3.881 0-5.736 4.845-6.317 7.305-1.492 0.456-2.578 0.795-2.699 0.842-0.844 0.266-0.867 0.29-0.965 1.087-0.094 0.577-2.287 17.574-2.287 17.574l16.946 3.183zM17.18 2.935c0.867 0.092 1.426 1.083 1.786 2.193-0.436 0.142-0.919 0.289-1.447 0.457v-0.315c0.001-0.049 0.002-0.107 0.002-0.165 0-0.777-0.125-1.524-0.355-2.224l0.014 0.050zM16.506 5.727v0.169c-0.942 0.29-1.978 0.605-2.992 0.92 0.264-1.607 1.237-2.944 2.58-3.699l0.026-0.013c0.248 0.705 0.391 1.518 0.391 2.365 0 0.091-0.002 0.182-0.005 0.273l0-0.013zM14.963 2.042c0 0 0.001 0 0.001 0 0.19 0 0.366 0.063 0.507 0.17l-0.002-0.002c-1.749 1.048-2.947 2.861-3.132 4.964l-0.002 0.024c-0.82 0.266-1.616 0.506-2.361 0.722 0.648-2.231 2.216-5.867 4.988-5.867zM15.638 15.132c-0.648-0.32-1.408-0.514-2.211-0.53l-0.005-0c-1.808 0-1.879 1.132-1.879 1.426 0 1.54 4.049 2.143 4.049 5.785 0.014 0.128 0.021 0.277 0.021 0.427 0 2.359-1.912 4.271-4.271 4.271-0.002 0-0.005 0-0.007 0h0c-0.050 0.002-0.108 0.002-0.166 0.002-1.676 0-3.187-0.703-4.255-1.83l-0.003-0.003 0.807-2.607c0.774 0.68 1.745 1.154 2.817 1.328l0.033 0.004c0.012 0 0.025 0.001 0.039 0.001 0.646 0 1.171-0.52 1.18-1.165v-0.001c0-2.023-3.317-2.117-3.317-5.447-0-0.020-0-0.044-0-0.068 0-3.026 2.453-5.478 5.478-5.478 0.195 0 0.388 0.010 0.578 0.030l-0.024-0.002c0.077-0.004 0.167-0.007 0.258-0.007 0.756 0 1.474 0.169 2.116 0.471l-0.030-0.013-1.181 3.393zM20.17 30.97l9.017-1.951s-3.254-22.010-3.28-22.156c-0.018-0.133-0.128-0.235-0.263-0.24h-0c-0.121 0-2.411-0.17-2.411-0.17s-1.593-1.592-1.798-1.763c-0.043-0.039-0.093-0.070-0.148-0.091l-0.003-0.001-1.142 26.372z">
-              </path>
-            </svg>
-          </div>
+              />
+            </g>
+          </svg>
+        </div>
+        <div>
+          <svg viewBox="0 0 32 32" class="h-14 object-contain fill-gray-500">
+            <path d="M20.919 4.546c-0.025 0-0.075 0.026-0.097 0.026s-0.361 0.094-0.892 0.262c-0.529-1.541-1.47-2.962-3.134-2.962h-0.144c-0.356-0.5-0.921-0.832-1.564-0.868l-0.005-0c-3.881 0-5.736 4.845-6.317 7.305-1.492 0.456-2.578 0.795-2.699 0.842-0.844 0.266-0.867 0.29-0.965 1.087-0.094 0.577-2.287 17.574-2.287 17.574l16.946 3.183zM17.18 2.935c0.867 0.092 1.426 1.083 1.786 2.193-0.436 0.142-0.919 0.289-1.447 0.457v-0.315c0.001-0.049 0.002-0.107 0.002-0.165 0-0.777-0.125-1.524-0.355-2.224l0.014 0.050zM16.506 5.727v0.169c-0.942 0.29-1.978 0.605-2.992 0.92 0.264-1.607 1.237-2.944 2.58-3.699l0.026-0.013c0.248 0.705 0.391 1.518 0.391 2.365 0 0.091-0.002 0.182-0.005 0.273l0-0.013zM14.963 2.042c0 0 0.001 0 0.001 0 0.19 0 0.366 0.063 0.507 0.17l-0.002-0.002c-1.749 1.048-2.947 2.861-3.132 4.964l-0.002 0.024c-0.82 0.266-1.616 0.506-2.361 0.722 0.648-2.231 2.216-5.867 4.988-5.867zM15.638 15.132c-0.648-0.32-1.408-0.514-2.211-0.53l-0.005-0c-1.808 0-1.879 1.132-1.879 1.426 0 1.54 4.049 2.143 4.049 5.785 0.014 0.128 0.021 0.277 0.021 0.427 0 2.359-1.912 4.271-4.271 4.271-0.002 0-0.005 0-0.007 0h0c-0.050 0.002-0.108 0.002-0.166 0.002-1.676 0-3.187-0.703-4.255-1.83l-0.003-0.003 0.807-2.607c0.774 0.68 1.745 1.154 2.817 1.328l0.033 0.004c0.012 0 0.025 0.001 0.039 0.001 0.646 0 1.171-0.52 1.18-1.165v-0.001c0-2.023-3.317-2.117-3.317-5.447-0-0.020-0-0.044-0-0.068 0-3.026 2.453-5.478 5.478-5.478 0.195 0 0.388 0.010 0.578 0.030l-0.024-0.002c0.077-0.004 0.167-0.007 0.258-0.007 0.756 0 1.474 0.169 2.116 0.471l-0.030-0.013-1.181 3.393zM20.17 30.97l9.017-1.951s-3.254-22.010-3.28-22.156c-0.018-0.133-0.128-0.235-0.263-0.24h-0c-0.121 0-2.411-0.17-2.411-0.17s-1.593-1.592-1.798-1.763c-0.043-0.039-0.093-0.070-0.148-0.091l-0.003-0.001-1.142 26.372z">
+            </path>
+          </svg>
+        </div>
 
-          <div>
-            <svg viewBox="0 0 32 32" fill="currentColor" class="h-16 object-contain fill-gray-500">
-              <path d="M8.25 10.435l-2.165 0.46-0.010 7.12c0 1.315 0.99 2.165 2.305 2.165 0.73 0 1.265-0.135 1.56-0.295v-1.69c-0.285 0.115-1.685 0.525-1.685-0.785v-3.16h1.685v-1.89h-1.685zM12.705 13.015l-0.135-0.655h-1.92v7.66h2.215v-5.155c0.525-0.69 1.41-0.555 1.695-0.465v-2.040c-0.3-0.105-1.335-0.3-1.855 0.655zM17.32 9.4l-2.23 0.475v1.81l2.23-0.475zM2.245 14.615c0-0.345 0.29-0.48 0.755-0.485 0.675 0 1.535 0.205 2.21 0.57v-2.090c-0.735-0.29-1.47-0.405-2.205-0.405-1.8 0-3 0.94-3 2.51 0 2.46 3.375 2.060 3.375 3.12 0 0.41-0.355 0.545-0.85 0.545-0.735 0-1.685-0.305-2.43-0.71v2c0.825 0.355 1.66 0.505 2.425 0.505 1.845 0 3.115-0.79 3.115-2.39 0-2.645-3.395-2.17-3.395-3.17zM32 16.28c0-2.275-1.1-4.070-3.21-4.070s-3.395 1.795-3.395 4.055c0 2.675 1.515 3.91 3.675 3.91 1.060 0 1.855-0.24 2.46-0.575v-1.67c-0.605 0.305-1.3 0.49-2.18 0.49-0.865 0-1.625-0.305-1.725-1.345h4.345c0.010-0.115 0.030-0.58 0.030-0.795zM27.605 15.44c0-1 0.615-1.42 1.17-1.42 0.545 0 1.125 0.42 1.125 1.42zM21.96 12.21c-0.87 0-1.43 0.41-1.74 0.695l-0.115-0.55h-1.955v10.24l2.22-0.47 0.005-2.51c0.32 0.235 0.795 0.56 1.57 0.56 1.59 0 3.040-1.16 3.040-3.98 0.005-2.58-1.465-3.985-3.025-3.985zM21.43 18.335c-0.52 0-0.83-0.19-1.045-0.42l-0.015-3.3c0.23-0.255 0.55-0.44 1.060-0.44 0.81 0 1.37 0.91 1.37 2.070 0.005 1.195-0.545 2.090-1.37 2.090zM15.095 20.020h2.23v-7.66h-2.23z" />
-            </svg>
-          </div>
+        <div>
+          <svg viewBox="0 0 32 32" fill="currentColor" class="h-16 object-contain fill-gray-500">
+            <path d="M8.25 10.435l-2.165 0.46-0.010 7.12c0 1.315 0.99 2.165 2.305 2.165 0.73 0 1.265-0.135 1.56-0.295v-1.69c-0.285 0.115-1.685 0.525-1.685-0.785v-3.16h1.685v-1.89h-1.685zM12.705 13.015l-0.135-0.655h-1.92v7.66h2.215v-5.155c0.525-0.69 1.41-0.555 1.695-0.465v-2.040c-0.3-0.105-1.335-0.3-1.855 0.655zM17.32 9.4l-2.23 0.475v1.81l2.23-0.475zM2.245 14.615c0-0.345 0.29-0.48 0.755-0.485 0.675 0 1.535 0.205 2.21 0.57v-2.090c-0.735-0.29-1.47-0.405-2.205-0.405-1.8 0-3 0.94-3 2.51 0 2.46 3.375 2.060 3.375 3.12 0 0.41-0.355 0.545-0.85 0.545-0.735 0-1.685-0.305-2.43-0.71v2c0.825 0.355 1.66 0.505 2.425 0.505 1.845 0 3.115-0.79 3.115-2.39 0-2.645-3.395-2.17-3.395-3.17zM32 16.28c0-2.275-1.1-4.070-3.21-4.070s-3.395 1.795-3.395 4.055c0 2.675 1.515 3.91 3.675 3.91 1.060 0 1.855-0.24 2.46-0.575v-1.67c-0.605 0.305-1.3 0.49-2.18 0.49-0.865 0-1.625-0.305-1.725-1.345h4.345c0.010-0.115 0.030-0.58 0.030-0.795zM27.605 15.44c0-1 0.615-1.42 1.17-1.42 0.545 0 1.125 0.42 1.125 1.42zM21.96 12.21c-0.87 0-1.43 0.41-1.74 0.695l-0.115-0.55h-1.955v10.24l2.22-0.47 0.005-2.51c0.32 0.235 0.795 0.56 1.57 0.56 1.59 0 3.040-1.16 3.040-3.98 0.005-2.58-1.465-3.985-3.025-3.985zM21.43 18.335c-0.52 0-0.83-0.19-1.045-0.42l-0.015-3.3c0.23-0.255 0.55-0.44 1.060-0.44 0.81 0 1.37 0.91 1.37 2.070 0.005 1.195-0.545 2.090-1.37 2.090zM15.095 20.020h2.23v-7.66h-2.23z" />
+          </svg>
+        </div>
 
-          <div>
-            <svg fill="currentColor" class="h-16 object-contain fill-gray-500" viewBox="0 0 24 24">
-              <path d="M11.139 14.058c-.438 0-.693-.294-.693-1.058v-2.696l1.456.112.074-.694-1.496.074v-1.53h-.438c-.216 1.201-.759 1.638-1.488 1.712v.364h.869v3.062c0 .836.588 1.271 1.313 1.271.585 0 1.202-.255 1.418-.763l-.217-.255c-.108.18-.402.401-.798.401zm-3.494-.803c-.294.69-.767.729-1.24.729h-1.53c-.508 0-.729-.186-.729-.62v-2.258s1.092 0 1.457.039c.291.035.438.109.546.473l.108.511h.438l-.039-1.309.074-1.278h-.434l-.147.585c-.073.399-.147.438-.546.508-.508.038-1.457.038-1.457.038V7.979c0-.112 0-.147.185-.147h2.291c.402 0 .62.326.763.98l.147.512h.399c.039-1.457.074-2.074.074-2.074s-.981.105-1.562.105H3.53L2 7.324v.399l.508.107c.367.074.475.147.475.473 0 0 .039.984.039 2.619 0 1.639-.039 2.623-.039 2.623 0 .291-.108.399-.475.473L2 14.131v.396l1.565-.035h2.623c.581 0 1.965.035 1.965.035.034-.361.216-1.964.255-2.146H8.04l-.395.874zm6.04-2.622c0-.474.437-.655.875-.655.36 0 .653.147.729.325l.255.729.361-.035c0-.364.038-.838.111-1.201-.328-.147-.983-.221-1.421-.221-.984 0-1.747.441-1.747 1.387 0 1.674 2.44 1.31 2.44 2.549 0 .399-.256.729-.876.729-.581 0-.837-.294-.945-.585l-.29-.693h-.369c.04.476.074.948 0 1.382 0 0 .767.294 1.531.294 1.022 0 1.858-.507 1.858-1.457 0-1.674-2.512-1.421-2.512-2.548zm6.369-.945v.364l.259.074c.252.07.36.178.36.363 0 .108-.034.144-.073.291-.108.291-.802 2.003-1.162 2.767a75.566 75.566 0 0 1-1.093-2.949c-.035-.073-.035-.108-.035-.146 0-.148.105-.292.361-.326l.329-.074v-.364l-1.346.073-1.096-.039v.368l.187.069c.251.074.287.11.469.512.693 1.53 1.457 3.529 1.716 4.15-.584 1.019-1.204 1.309-1.677 1.309-.291 0-.399-.147-.435-.329l-.146-.763-.4.035c-.073.477-.147.984-.255 1.383.287.182.616.294 1.053.293.691 0 1.675-.182 2.623-2.332l1.601-3.747c.145-.293.182-.329.546-.476l.183-.144v-.362l-.945.034-1.024-.034z" />
-            </svg>
-          </div>
+        <div>
+          <svg fill="currentColor" class="h-16 object-contain fill-gray-500" viewBox="0 0 24 24">
+            <path d="M11.139 14.058c-.438 0-.693-.294-.693-1.058v-2.696l1.456.112.074-.694-1.496.074v-1.53h-.438c-.216 1.201-.759 1.638-1.488 1.712v.364h.869v3.062c0 .836.588 1.271 1.313 1.271.585 0 1.202-.255 1.418-.763l-.217-.255c-.108.18-.402.401-.798.401zm-3.494-.803c-.294.69-.767.729-1.24.729h-1.53c-.508 0-.729-.186-.729-.62v-2.258s1.092 0 1.457.039c.291.035.438.109.546.473l.108.511h.438l-.039-1.309.074-1.278h-.434l-.147.585c-.073.399-.147.438-.546.508-.508.038-1.457.038-1.457.038V7.979c0-.112 0-.147.185-.147h2.291c.402 0 .62.326.763.98l.147.512h.399c.039-1.457.074-2.074.074-2.074s-.981.105-1.562.105H3.53L2 7.324v.399l.508.107c.367.074.475.147.475.473 0 0 .039.984.039 2.619 0 1.639-.039 2.623-.039 2.623 0 .291-.108.399-.475.473L2 14.131v.396l1.565-.035h2.623c.581 0 1.965.035 1.965.035.034-.361.216-1.964.255-2.146H8.04l-.395.874zm6.04-2.622c0-.474.437-.655.875-.655.36 0 .653.147.729.325l.255.729.361-.035c0-.364.038-.838.111-1.201-.328-.147-.983-.221-1.421-.221-.984 0-1.747.441-1.747 1.387 0 1.674 2.44 1.31 2.44 2.549 0 .399-.256.729-.876.729-.581 0-.837-.294-.945-.585l-.29-.693h-.369c.04.476.074.948 0 1.382 0 0 .767.294 1.531.294 1.022 0 1.858-.507 1.858-1.457 0-1.674-2.512-1.421-2.512-2.548zm6.369-.945v.364l.259.074c.252.07.36.178.36.363 0 .108-.034.144-.073.291-.108.291-.802 2.003-1.162 2.767a75.566 75.566 0 0 1-1.093-2.949c-.035-.073-.035-.108-.035-.146 0-.148.105-.292.361-.326l.329-.074v-.364l-1.346.073-1.096-.039v.368l.187.069c.251.074.287.11.469.512.693 1.53 1.457 3.529 1.716 4.15-.584 1.019-1.204 1.309-1.677 1.309-.291 0-.399-.147-.435-.329l-.146-.763-.4.035c-.073.477-.147.984-.255 1.383.287.182.616.294 1.053.293.691 0 1.675-.182 2.623-2.332l1.601-3.747c.145-.293.182-.329.546-.476l.183-.144v-.362l-.945.034-1.024-.034z" />
+          </svg>
         </div>
       </div>
     </div>
-  </section>
-</div>
+  </div>
+</section>
 
 <section class="py-10 bg-white sm:py-16 lg:py-24">
   <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -1813,258 +1659,3 @@
     </div>
   </div>
 </div>
-<!-- Footer -->
-<footer class="py-12 bg-white sm:pt-16 lg:pt-20">
-  <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-    <.glossia_logo class="h-10 w-10" />
-
-    <div class="grid grid-cols-2 mt-16 sm:grid-cols-3 gap-y-16 lg:grid-cols-6 gap-x-16">
-      <div>
-        <h6 class="text-sm font-bold tracking-widest text-gray-900 uppercase font-pj">Company</h6>
-
-        <ul class="mt-8 space-y-5">
-          <li>
-            <a
-              href={~p"/blog"}
-              title="Glossia's blog"
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Blog
-            </a>
-          </li>
-
-          <li>
-            <a
-              href={~p"/docs"}
-              title="Glossia's documentation"
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Docs
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="#"
-              title=""
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Terms & Conditions
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="#"
-              title=""
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Privacy Policy
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      <div>
-        <h6 class="text-sm font-bold tracking-widest text-gray-900 uppercase font-pj">Social</h6>
-
-        <ul class="mt-8 space-y-5">
-          <li>
-            <a
-              href="https://twitter.com/glossiaai"
-              title="Glossia's Twitter account"
-              target="_blank"
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Twitter
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="https://discord.gg/zqZxSBXKf8"
-              title="Glossia's Discord server"
-              target="_blank"
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Discord
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="https://community.glossia.ai/"
-              title="Glossia's community forum"
-              target="_blank"
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Community
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="col-span-2 sm:col-span-1">
-        <h6 class="text-sm font-bold tracking-widest text-gray-900 uppercase font-pj">
-          Product
-        </h6>
-
-        <ul class="mt-8 space-y-5">
-          <li>
-            <a
-              href="https://glossia.openstatus.dev/"
-              title="Glossia's status page"
-              target="_blank"
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Status
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="https://glossia.ai/blog/feed.xml"
-              target="_blank"
-              title="Glossia's RSS feed"
-              class="inline-flex text-sm font-normal text-gray-900 transition-all duration-300 transform font-pj hover:text-gray-600 hover:translate-x-1"
-            >
-              Feed
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="col-span-2 sm:col-span-3 xl:pl-20">
-        <%!-- <h6 class="text-sm font-bold tracking-widest text-gray-900 uppercase font-pj">
-          Subscribe to newsletter
-        </h6>
-
-        <div class="relative mt-8">
-          <div class="absolute -inset-2">
-            <div
-              class="w-full h-full mx-auto opacity-30 blur-lg filter"
-              style="background: linear-gradient(90deg, #44ff9a -0.55%, #44b0ff 22.86%, #8b44ff 48.36%, #ff6644 73.33%, #ebff70 99.34%)"
-            >
-            </div>
-          </div>
-
-          <form action="#" method="POST" class="relative">
-            <div class="flex">
-              <div class="flex-1">
-                <input
-                  type="email"
-                  name=""
-                  id=""
-                  placeholder="Enter email address"
-                  class="block w-full px-4 py-4 text-base text-gray-900 placeholder-gray-600 bg-white border-gray-300 focus:ring-gray-900 focus:border-gray-900 rounded-l-xl font-pj caret-gray-900"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                class="px-10 py-4 text-base font-bold text-white transition-all duration-200 bg-gray-900 border border-transparent sm:px-16 focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 rounded-r-xl font-pj focus:outline-none"
-              >
-                Join
-              </button>
-            </div>
-          </form>
-        </div> --%>
-
-        <div class="grid grid-cols-1 mt-8 gap-y-8 sm:grid-cols-2 sm:gap-x-16">
-          <%!-- <div>
-            <h6 class="text-sm font-bold tracking-widest text-gray-900 uppercase font-pj">
-              Call us
-            </h6>
-            <p class="mt-2.5 text-xl font-pj text-gray-900 font-bold">
-              <a href="#" title=""> (239) 555-0108 </a>
-            </p>
-          </div> --%>
-
-          <div>
-            <h6 class="text-sm font-bold tracking-widest text-gray-900 uppercase font-pj">
-              Email us
-            </h6>
-            <p class="mt-2.5 text-xl font-pj text-gray-900 font-bold">
-              <a href="mailto:hello@glossia.ai" title=""> hello@glossia.ai </a>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <hr class="mt-16 border-gray-200" />
-
-    <div class="mt-8 sm:flex sm:items-center sm:justify-between">
-      <ul class="flex items-center justify-start space-x-3 sm:order-2 sm:justify-end">
-        <li>
-          <a
-            href="https://x.com/glossiaai"
-            target="_blank"
-            title="Glossia's X profile"
-            class="inline-flex items-center justify-center w-10 h-10 text-gray-900 transition-all duration-200 rounded-full hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-offset-2 focus:ring-gray-200"
-            rel="noopener"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
-              fill="currentColor"
-              viewBox="0 0 512 512"
-            >
-              <!--! Font Awesome Pro 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-              <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
-            </svg>
-          </a>
-        </li>
-
-        <li>
-          <a
-            href="#"
-            target="_blank"
-            title=""
-            class="inline-flex items-center justify-center w-10 h-10 text-gray-900 transition-all duration-200 rounded-full hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-offset-2 focus:ring-gray-200"
-            rel="noopener"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
-              fill="currentColor"
-              viewBox="0 0 448 512"
-            >
-              <!--! Font Awesome Pro 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-              <path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z" />
-            </svg>
-          </a>
-        </li>
-
-        <li>
-          <a
-            href="https://github.com/glossia"
-            target="_blank"
-            title="Glossia's GitHub profile"
-            class="inline-flex items-center justify-center w-10 h-10 text-gray-900 transition-all duration-200 rounded-full hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-offset-2 focus:ring-gray-200"
-            rel="noopener"
-          >
-            <svg
-              class="w-6 h-6"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M12.026 2c-5.509 0-9.974 4.465-9.974 9.974 0 4.406 2.857 8.145 6.821 9.465.499.09.679-.217.679-.481 0-.237-.008-.865-.011-1.696-2.775.602-3.361-1.338-3.361-1.338-.452-1.152-1.107-1.459-1.107-1.459-.905-.619.069-.605.069-.605 1.002.07 1.527 1.028 1.527 1.028.89 1.524 2.336 1.084 2.902.829.091-.645.351-1.085.635-1.334-2.214-.251-4.542-1.107-4.542-4.93 0-1.087.389-1.979 1.024-2.675-.101-.253-.446-1.268.099-2.64 0 0 .837-.269 2.742 1.021a9.582 9.582 0 0 1 2.496-.336 9.554 9.554 0 0 1 2.496.336c1.906-1.291 2.742-1.021 2.742-1.021.545 1.372.203 2.387.099 2.64.64.696 1.024 1.587 1.024 2.675 0 3.833-2.33 4.675-4.552 4.922.355.308.675.916.675 1.846 0 1.334-.012 2.41-.012 2.737 0 .267.178.577.687.479C19.146 20.115 22 16.379 22 11.974 22 6.465 17.535 2 12.026 2z"
-              >
-              </path>
-            </svg>
-          </a>
-        </li>
-      </ul>
-
-      <p class="mt-8 text-sm font-normal text-gray-600 font-pj sm:order-1 sm:mt-0">
-        © Copyright 2023 Glossia UG, All Rights Reserved
-      </p>
-    </div>
-  </div>
-</footer>

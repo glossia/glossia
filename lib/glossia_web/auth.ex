@@ -98,7 +98,7 @@ defmodule GlossiaWeb.Auth do
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
   end
 
-  defp signed_in_path(_conn), do: ~p"/"
+  defp signed_in_path(_conn), do: ~p"/wip"
 
   @spec user_authenticated?(Plug.Conn.t()) :: boolean()
   def user_authenticated?(conn) do

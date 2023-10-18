@@ -3,7 +3,6 @@ defmodule GlossiaWeb.Controllers.MarketingController do
 
   def index(conn, _params) do
     conn
-    |> put_layout(false)
     |> render(:index)
   end
 
@@ -17,6 +16,36 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     |> assign(:posts, Glossia.Marketing.Blog.all_posts())
     |> assign(:authors, Glossia.Marketing.Blog.all_authors())
     |> render(:blog)
+  end
+
+  def terms(conn, _params) do
+    conn
+    |> put_open_graph_metadata(%{
+      title: "Terms of Service",
+      description:
+        "Glossia’s Terms of Service outline the terms and conditions of using Glossia’s services. By using Glossia’s services, you agree to the Terms of Service. Please read the Terms of Service carefully before using Glossia’s services."
+    })
+    |> render(:terms)
+  end
+
+  def privacy(conn, _params) do
+    conn
+    |> put_open_graph_metadata(%{
+      title: "Privacy Policy",
+      description:
+        "Glossia’s Privacy Policy outlines how Glossia collects, uses, and shares your personal information. By using Glossia’s services, you agree to the Privacy Policy. Please read the Privacy Policy carefully before using Glossia’s services."
+    })
+    |> render(:privacy)
+  end
+
+  def wip(conn, _params) do
+    conn
+    |> put_open_graph_metadata(%{
+      title: "Work in progress",
+      description:
+        "We are finishing up the first version of our website. Please come back later."
+    })
+    |> render(:wip)
   end
 
   def blog_post(%{request_path: slug} = conn, _params) do
