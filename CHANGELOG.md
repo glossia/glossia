@@ -8,7 +8,7 @@
 
 ### Updated dependencies
 
-- Update elixir Docker tag to v1.15.6 [#110](https://github.com/tuist/tuist/pull/110) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+- Update elixir Docker tag to v1.15.7 [#110](https://github.com/tuist/tuist/pull/110) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
 - Update dependency oban to == 2.16.2 [#107](https://github.com/tuist/tuist/pull/107) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
 - Update dependency useful to ~> 1.14.0 [#108](https://github.com/tuist/tuist/pull/108) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
 
@@ -44,7 +44,7 @@
 
 - Update postgres Docker tag to v16 [#80](https://github.com/tuist/tuist/pull/80) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
 - Update dependency deno to v1.37.0 [#84](https://github.com/tuist/tuist/pull/84) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
-- Update dependency elixir to v1.15.6 [#85](https://github.com/tuist/tuist/pull/85) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
+- Update dependency elixir to v1.15.7 [#85](https://github.com/tuist/tuist/pull/85) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
 - Update dependency erlang to v26.1 [#86](https://github.com/tuist/tuist/pull/86) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
 - Update actions/checkout digest to 8ade135 [#87](https://github.com/tuist/tuist/pull/87) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
 - Update contributor-assistant/github-action action to v2.3.1 [#92](https://github.com/tuist/tuist/pull/92) by [@renovate[bot]](https://github.com/renovate%5Bbot%5D)
