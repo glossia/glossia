@@ -1,4 +1,4 @@
-defmodule Glossia.Analytics.Worker.Tracker do
+defmodule Glossia.Analytics.Workers.Tracker do
   use Oban.Worker
 
   @impl Oban.Worker

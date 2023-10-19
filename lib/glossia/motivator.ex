@@ -3,7 +3,7 @@ defmodule Glossia.Motivator do
   def motivate(message) do
     {:ok, _} =
       %{message: message}
-      |> Glossia.Analytics.Worker.Tracker.new()
+      |> Glossia.Motivator.Workers.DiscordMessageSender.new()
       |> Oban.insert()
 
     :ok

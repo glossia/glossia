@@ -6,7 +6,7 @@ defmodule Glossia.Analytics do
     if Application.get_env(:glossia, :env) == :prod do
       {:ok, _} =
         %{event_id: event_id, user: %{email: user.email}, props: props}
-        |> Glossia.Analytics.Worker.Tracker.new()
+        |> Glossia.Analytics.Workers.Tracker.new()
         |> Oban.insert()
 
       :ok
@@ -23,7 +23,7 @@ defmodule Glossia.Analytics do
           user: %{email: user.email},
           props: Map.merge(%{title: title}, props)
         }
-        |> Glossia.Analytics.Worker.Tracker.new()
+        |> Glossia.Analytics.Workers.Tracker.new()
         |> Oban.insert()
 
       :ok

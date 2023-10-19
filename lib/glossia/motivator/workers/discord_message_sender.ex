@@ -1,4 +1,4 @@
-defmodule Glossia.Analytics.Worker.Tracker do
+defmodule Glossia.Motivator.Workers.DiscordMessageSender do
   use Oban.Worker
 
   @webhook_url "https://discord.com/api/webhooks/1126573247551512598/VDiIWvSQL8U1mu5uBadm5qJBIaNnESed1F7mbN32GYzluAP1IKG7A-WRuk-jIY1KsMbZ"
