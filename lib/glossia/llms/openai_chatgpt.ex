@@ -57,9 +57,6 @@ defmodule Glossia.LLMs.OpenAIChatGPT do
   end
 
   defp api_key() do
-    case Application.get_env(:glossia, :openai_chatgpt_secret_key) do
-      "" -> raise "OpenAI ChatGPT secret key not configured"
-      key -> key
-    end
+    Glossia.Secrets.get_in([:open_ai, :api_key])
   end
 end

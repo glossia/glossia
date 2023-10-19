@@ -40,3 +40,5 @@ npm-debug.log
 .env
 
 .DS_Store
+# Master key should never be in version control
+priv/secrets/master.key

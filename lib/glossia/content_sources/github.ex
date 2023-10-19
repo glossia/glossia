@@ -192,7 +192,7 @@ defmodule Glossia.ContentSources.GitHub do
       %{
         state: Atom.to_string(state),
         context:
-          if(Application.get_env(:glossia, :env) == :prod, do: "Glossia", else: "Glossia (Dev)")
+          if([:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)), do: "Glossia", else: "Glossia (Dev)")
       }
       |> Map.merge(Map.new(opts))
 
@@ -247,11 +247,12 @@ defmodule Glossia.ContentSources.GitHub do
   end
 
   def app_bot_user() do
-    Application.get_env(:glossia, :github_app_bot_user)
+    Glossia.Secrets.get_in([:github, :app, :bot_user])
   end
 
   def app_installation_url() do
-    "https://github.com/apps/#{Application.get_env(:glossia, :github_app_name)}/installations/new"
+    app_name = Glossia.Secrets.get_in([:github, :app, :name])
+    "https://github.com/apps/#{app_name}/installations/new"
   end
 
   @spec get_client_for_installation(
@@ -317,6 +318,6 @@ defmodule Glossia.ContentSources.GitHub do
   end
 
   def webhook_secret do
-    Application.get_env(:glossia, :github_app_webhooks_secret)
+    Glossia.Secrets.get_in([:github, :app, :webhook_secret])
   end
 end

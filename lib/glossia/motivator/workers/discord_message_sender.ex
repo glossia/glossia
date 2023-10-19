@@ -7,7 +7,7 @@ defmodule Glossia.Motivator.Workers.DiscordMessageSender do
   def perform(%Oban.Job{
         args: %{"message" => message}
       }) do
-    if Application.get_env(:glossia, :env) == :prod do
+    if [:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)) do
       payload = %{"content" => message}
       body = Jason.encode!(payload)
 

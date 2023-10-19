@@ -9,7 +9,7 @@ defmodule Glossia.MixProject do
       version: @version,
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
-      start_permanent: Mix.env() == :prod,
+      start_permanent: [:prod, :can] |> Enum.member?(Mix.env()),
       aliases: aliases(),
       deps: deps(),
       test_coverage: [ignore_modules: [~r/\.TypeEnsurer$/]]
@@ -92,7 +92,8 @@ defmodule Glossia.MixProject do
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
       {:inertia_phoenix, "~> 0.4.0"},
-      {:redirect, "~> 0.4.0"}
+      {:redirect, "~> 0.4.0"},
+      {:encrypted_secrets, "~> 0.3.0"}
     ]
   end
 

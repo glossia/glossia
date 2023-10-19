@@ -31,7 +31,7 @@ defmodule Glossia.VirtualMachine do
         ) ::
           :ok
   def run(%{env: env, update_status_cb: update_status_cb}) do
-    if Application.get_env(:glossia, :env) == :prod do
+    if [:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)) do
       run_using_google_cloud_build(env: env, update_status_cb: update_status_cb)
     else
       run_using_docker(env: env, update_status_cb: update_status_cb)
@@ -44,7 +44,7 @@ defmodule Glossia.VirtualMachine do
        ) do
     # https://cloud.google.com/build/docs/api/reference/rest/v1/projects.builds/create
     # https://github.com/googleapis/elixir-google-api/blob/main/clients/cloud_build/lib/google_api/cloud_build/v1/api/projects.ex#L213
-    project_id = Application.get_env(:glossia, :google_cloud_project_id)
+    project_id = Glossia.Secrets.get_in([:google_cloud, :project_id])
 
     {:ok, token} = Goth.fetch(Glossia.Goth)
 
@@ -224,15 +224,15 @@ defmodule Glossia.VirtualMachine do
   defp get_docker_env_variables() do
     variables = %{
       GLOSSIA_ENV: "production",
-      GLOSSIA_URL: Application.get_env(:glossia, :url)
+      GLOSSIA_URL: Glossia.Secrets.get_in([:url])
     }
 
-    app_signal_builder_api_key = Application.get_env(:glossia, :app_signal_builder_api_key)
+    app_signal_builder_api_key = Glossia.Secrets.get_in([:app_signal, :builder_api_key])
 
     if app_signal_builder_api_key do
       variables
       |> Map.merge(%{
-        GLOSSIA_APP_SIGNAL_API_KEY: Application.get_env(:glossia, :app_signal_builder_api_key)
+        GLOSSIA_APP_SIGNAL_API_KEY: app_signal_builder_api_key
       })
     else
       variables
@@ -242,8 +242,8 @@ defmodule Glossia.VirtualMachine do
   @spec get_deno_args(attrs :: [env: map()]) :: [String.t()]
   defp get_deno_args(env: env) do
     path =
-      if Application.get_env(:glossia, :env) == :prod do
-        Application.get_env(:glossia, :url) <> "/builder/index.ts"
+      if [:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)) do
+        Glossia.Secrets.get_in([:url]) <> "/builder/index.ts"
       else
         "./index.ts"
       end

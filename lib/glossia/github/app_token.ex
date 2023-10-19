@@ -2,7 +2,7 @@ defmodule Glossia.GitHub.AppToken do
   use Joken.Config, default_signer: :github
 
   def token_config do
-    app_id = Application.get_env(:glossia, :github_app_id)
+    app_id = Glossia.Secrets.get_in([:github, :app, :id])
 
     %{}
 

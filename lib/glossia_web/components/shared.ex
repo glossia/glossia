@@ -211,7 +211,7 @@ defmodule GlossiaWeb.Components.Shared do
     <meta property="og:description" content={open_graph_metadata[:description]} />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Pedro Piñera" />
-    <meta property="og:url" content={Application.get_env(:glossia, :url)} />
+    <meta property="og:url" content={Glossia.Secrets.get_in([:url])} />
     <meta property="og:image" content="/images/logo.jpg" />
     <!-- Twitter -->
     <meta name="twitter:card" content="summary" />

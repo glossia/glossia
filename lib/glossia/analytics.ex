@@ -3,7 +3,7 @@ defmodule Glossia.Analytics do
 
   @spec track(event_id :: String.t(), user :: %{id: any(), email: binary()}) :: :ok
   def track(event_id, user, props \\ %{}) do
-    if Application.get_env(:glossia, :env) == :prod do
+    if [:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)) do
       {:ok, _} =
         %{event_id: event_id, user: %{email: user.email}, props: props}
         |> Glossia.Analytics.Workers.Tracker.new()
@@ -16,7 +16,7 @@ defmodule Glossia.Analytics do
   end
 
   def track_page_view(title, user, props \\ %{}) do
-    if Application.get_env(:glossia, :env) == :prod do
+    if [:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)) do
       {:ok, _} =
         %{
           event_id: "$pageview",
