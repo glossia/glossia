@@ -3,7 +3,7 @@ import Dotenvy
 
 source([".env.#{config_env()}", "#{config_env()}.override.env", ".env", System.get_env()])
 
-Glossia.Secrets.load()
+Glossia.Secrets.load(config_env())
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -44,24 +44,34 @@ if [:prod, :can] |> Enum.member?(config_env()) do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :glossia, Glossia.Repo,
-    database: database,
-    hostname: database_host,
-    username: database_username,
-    password: database_password,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6,
-    ssl: true,
-    ssl_opts: [
-      verify: :verify_peer,
-      cacertfile: database_ca_cert_filepath,
-      # see https://pspdfkit.com/blog/2022/using-ssl-postgresql-connections-elixir/
-      server_name_indication: to_charlist(database_host),
-      customize_hostname_check: [
-        # Our hosting provider uses a wildcard certificate. By default, Erlang does not support wildcard certificates. This function supports validating wildcard hosts
-        match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+  if config_env() == :can do
+    # Fly-managed database
+    config :glossia, Glossia.Repo,
+      # ssl: true,
+      url: database_url,
+      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+      socket_options: maybe_ipv6
+  else
+    # Neon Database configuration
+    config :glossia, Glossia.Repo,
+      database: database,
+      hostname: database_host,
+      username: database_username,
+      password: database_password,
+      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+      socket_options: maybe_ipv6,
+      ssl: true,
+      ssl_opts: [
+        verify: :verify_peer,
+        cacertfile: database_ca_cert_filepath,
+        # see https://pspdfkit.com/blog/2022/using-ssl-postgresql-connections-elixir/
+        server_name_indication: to_charlist(database_host),
+        customize_hostname_check: [
+          # Our hosting provider uses a wildcard certificate. By default, Erlang does not support wildcard certificates. This function supports validating wildcard hosts
+          match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+        ]
       ]
-    ]
+  end
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -187,4 +197,6 @@ config :tentacat, :extra_headers, [{"X-GitHub-Api-Version", "2022-11-28"}]
 
 # Stripe
 config :stripity_stripe, api_key: Glossia.Secrets.get_in([:stripe, :api_key])
-config :glossia, :payments, premium_product_id: Glossia.Secrets.get_in([:stripe, :premium_product_id])
+
+config :glossia, :payments,
+  premium_product_id: Glossia.Secrets.get_in([:stripe, :premium_product_id])

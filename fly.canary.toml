@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "glossia"
+app = "glossia-canary"
 primary_region = "ams"
 kill_signal = "SIGTERM"
 swap_size_mb = 512
@@ -14,8 +14,8 @@ swap_size_mb = 512
   release_command = "/app/bin/migrate"
 
 [env]
-  MIX_ENV="prod"
-  PHX_HOST = "glossia.ai"
+  MIX_ENV="can"
+  PHX_HOST = "canary.glossia.ai"
   PORT = "8080"
 
 [http_service]

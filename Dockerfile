@@ -16,9 +16,11 @@ ARG OTP_VERSION=26.1.1
 ARG DEBIAN_VERSION=buster-20230612-slim
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG MIX_ENV="prod"
 
 FROM ${BUILDER_IMAGE} as builder
 
+ARG MIX_ENV="prod"
 ARG OBAN_WEB_FETCH_PUBLIC_KEY=""
 ARG OBAN_WEB_AUTH_KEY=""
 
@@ -34,7 +36,7 @@ RUN mix local.hex --force && \
     mix local.rebar --force
 
 # set build ENV
-ENV MIX_ENV="prod"
+ENV MIX_ENV=$MIX_ENV
 
 #fetch-public-key
 #auth-key
@@ -58,6 +60,7 @@ RUN mix deps.compile
 COPY priv priv
 COPY lib lib
 COPY assets assets
+COPY priv/secrets/secrets.yml.enc priv/secrets/secrets.yml.enc
 
 # compile assets
 RUN mix assets.deploy
@@ -75,6 +78,8 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE}
 
+ARG MIX_ENV="prod"
+
 RUN apt-get update -y && apt-get install -y libstdc++6 libubsan1 openssl libncurses5 locales \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
@@ -89,11 +94,12 @@ WORKDIR "/app"
 RUN chown nobody /app
 
 # set runner ENV
-ENV MIX_ENV="prod"
+ENV MIX_ENV=$MIX_ENV
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/glossia ./
 COPY --from=builder --chown=nobody:root /app/deps/castore/priv/cacerts.pem ./deps/castore/priv/cacerts.pem
+COPY --from=builder --chown=nobody:root /app/priv/secrets/secrets.yml.enc ./priv/secrets/secrets.yml.enc
 USER nobody
 
 CMD ["/app/bin/server"]

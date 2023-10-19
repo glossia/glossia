@@ -192,7 +192,10 @@ defmodule Glossia.ContentSources.GitHub do
       %{
         state: Atom.to_string(state),
         context:
-          if([:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)), do: "Glossia", else: "Glossia (Dev)")
+          if([:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)),
+            do: "Glossia",
+            else: "Glossia (Dev)"
+          )
       }
       |> Map.merge(Map.new(opts))
 
