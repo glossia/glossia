@@ -1,9 +1,4 @@
-%{
-    title: "Configure a project repository",
-    description: "",
-    tags: ~w(hello),
-}
----
+# GitHub
 
 # Configure a project repository
 

@@ -53,26 +53,6 @@ defmodule GlossiaWeb.Router do
     get "/wip", MarketingController, :wip
   end
 
-  pipeline :docs do
-    plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
-  end
-
-  # We read the value from the compiled docs to ensure if the slug changes the compilation of the router fails.
-  whats_glossia_docs_slug =
-    Glossia.Docs.Content.pages()
-    |> Enum.find(&(&1.slug == "users/what-is-glossia"))
-    |> Map.get(:slug)
-
-  redirect("/docs", "/docs/#{whats_glossia_docs_slug}", :permanent)
-
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :docs, :tracking]
-
-    for page <- Glossia.Docs.Content.pages() do
-      get "/docs/#{page.slug}", DocsController, :show
-    end
-  end
-
   ##### API Routes #####
 
   pipeline :api do
