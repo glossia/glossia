@@ -45,5 +45,5 @@ priv/secrets/master.key
 
 # Docs
 node_modules/
-docs/.vitepress/dist
-docs/.vitepress/cache
+docs/content/.vitepress/dist
+docs/content/.vitepress/cache
