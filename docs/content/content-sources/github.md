@@ -4,9 +4,9 @@
 
 When you set up a project on Glossia and link it to a GitHub repository, you grant Glossia the authority to detect content alterations and save the localizations. Yet, this alone isn't enough. Certain modifications and files in the repository are essential for this integration to function seamlessly.
 
-> #### Automatic configuration
-> In the future, we aim to fully automate the project onboarding process.
-
+::: tip Automatic configuration
+In the future, we aim to fully automate the project onboarding process.
+:::
 
 ## Extract the content
 
@@ -44,12 +44,14 @@ Glossia utilizes the `glossia.jsonc` configuration files, which can be placed ei
 
 Adjust `context.source.description` to reflect the content's purpose. The `context.source.language` field specifies the language of the source content. The `context.target` array enumerates the target languages. The `files` field specifies the location of the content files. The `{language}` placeholder is replaced with the target language code.
 
-> #### Schema
-> While we work on providing comprehensive formatted documentation, you can consult the [configuration schema](https://glossia.ai/schemas/configuration.json) for a detailed understanding of all the configuration possibilities.
+::: tip Schema
+While we work on providing comprehensive formatted documentation, you can consult the [configuration schema](https://glossia.ai/schemas/configuration.json) for a detailed understanding of all the configuration possibilities.
+:::
 
 ## Push the configuration upstream
 
 After finalizing the configuration, push it upstream. Upon detecting the configuration file, Glossia activates continuous localization. To support incremental localizations, Glossia generates **lockfiles** in the repository, saving both time and money. Given that incremental detection occurs at the file level, we advise against using a monolithic content file. Instead, it's beneficial to modularize content in a manner similar to componentizing UI elements, positioning it as close to the UI as feasible. Dive deeper into [this approach](https://community.glossia.ai/t/configuration-of-software-projects/14) to grasp the rationale behind our recommendation.
 
-> #### Modularization and coherence
-> One challenge when modularizing content alongside LLMs is maintaining consistent localizations across various content pieces and sources. We're actively addressing this by developing tools designed to capture and utilize context, whether implicit or explicit.
+::: tip Modularization and coherence
+One challenge when modularizing content alongside LLMs is maintaining consistent localizations across various content pieces and sources. We're actively addressing this by developing tools designed to capture and utilize context, whether implicit or explicit.
+:::

@@ -10,9 +10,9 @@ hero:
     - theme: brand
       text: Get Started
       link: /glossia/get-started
-    - theme: alt
-      text: API Examples
-      link: /api-examples
+    # - theme: alt
+    #   text: API Examples
+    #   link: /api-examples
 
 features:
   - title: Truly continuous
