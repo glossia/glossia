@@ -42,3 +42,8 @@ npm-debug.log
 .DS_Store
 # Master key should never be in version control
 priv/secrets/master.key
+
+# Docs
+node_modules/
+docs/.vitepress/dist
+docs/.vitepress/cache
