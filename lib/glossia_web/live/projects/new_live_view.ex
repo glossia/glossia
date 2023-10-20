@@ -28,7 +28,9 @@ defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
       |> put_open_graph_metadata(%{
         title: "New project"
       })
-      |> assign(project_changeset: Project.changeset(%Project{}, %{}))
+      |> assign(form: to_form(Project.changeset(%Project{}, %{
+        content_source_platform: :github
+      })))
       |> assign(repositories: repositories)
 
     {:ok, socket}
@@ -36,7 +38,7 @@ defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
 
   def handle_event("validate", %{"project" => attrs}, socket) do
     changeset = %Project{} |> Project.changeset(attrs) |> Map.put(:action, :insert)
-    {:noreply, assign(socket, project_changeset: changeset)}
+    {:noreply, assign(socket, form: changeset |> to_form())}
   end
 
   def handle_event("save", %{"project" => attrs}, socket) do
@@ -45,7 +47,7 @@ defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
 
     attrs =
       attrs
-      |> Map.merge(%{account_id: account.id, content_source_platform: :github})
+      |> Map.merge(%{account_id: account.id})
       |> Useful.atomize_map_keys()
 
     case Glossia.Projects.create_project(attrs) do
@@ -53,7 +55,7 @@ defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
         {:noreply, redirect(socket, to: ~p"/#{account.handle}/#{project.handle}")}
 
       {:error, changeset} ->
-        {:noreply, assign(socket, project_changeset: changeset |> map_error_changeset)}
+        {:noreply, assign(socket, form: changeset |> map_error_changeset |> to_form())}
     end
   end
 

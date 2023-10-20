@@ -2,7 +2,6 @@ defmodule GlossiaWeb.Helpers.App do
   def html do
     quote do
       use Phoenix.Component
-      use PrimerLive
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
@@ -15,9 +14,10 @@ defmodule GlossiaWeb.Helpers.App do
 
   def live_view do
     quote do
-      use Phoenix.LiveView, layout: {GlossiaWeb.Layouts.App, :app}
+      use Phoenix.LiveView,
+        layout: {GlossiaWeb.Layouts.App, :app},
+        container: {:div, class: "h-full"}
 
-      use PrimerLive
       import GlossiaWeb.Helpers.OpenGraph
 
       unquote(html_helpers())

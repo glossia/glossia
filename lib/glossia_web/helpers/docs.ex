@@ -18,7 +18,6 @@ defmodule GlossiaWeb.Helpers.Docs do
   def html do
     quote do
       use Phoenix.Component
-      use PrimerLive
 
       import(GlossiaWeb.Components.Shared)
 

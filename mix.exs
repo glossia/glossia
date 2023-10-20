@@ -80,7 +80,6 @@ defmodule Glossia.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.0", only: :test},
-      {:primer_live, "~> 0.5"},
       {:ecto_erd, "~> 0.5", only: :dev},
       {:hammox, "~> 0.7", only: :test},
       {:nestru, "~> 0.3.3"},
