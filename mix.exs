@@ -92,7 +92,8 @@ defmodule Glossia.MixProject do
       {:appsignal_phoenix, "~> 2.0"},
       {:inertia_phoenix, "~> 0.4.0"},
       {:redirect, "~> 0.4.0"},
-      {:encrypted_secrets, "~> 0.3.0"}
+      {:encrypted_secrets, "~> 0.3.0"},
+      {:bandit, "~> 1.0"}
     ]
   end
 

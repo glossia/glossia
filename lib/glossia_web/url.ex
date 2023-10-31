@@ -6,16 +6,14 @@ defmodule GlossiaWeb.URL do
   def init(:load_project = opts), do: opts
 
   def call(
-        %Plug.Conn{params: %{"owner_handle" => owner, "project_handle" => project}} = conn,
+        %Plug.Conn{params: %{"owner_handle" => owner_handle, "project_handle" => project_handle}} =
+          conn,
         :load_project
       ) do
-    case Glossia.Projects.find_project_by_owner_and_project_handle(owner, project) do
-      %Glossia.Projects.Project{} = project ->
-        assign(conn, @loaded_project_key, project)
+    project =
+      Glossia.Projects.find_project_by_owner_and_project_handle(owner_handle, project_handle)
 
-      _ ->
-        conn
-    end
+    assign(conn, @loaded_project_key, project)
   end
 
   def call(conn, :load_project), do: conn

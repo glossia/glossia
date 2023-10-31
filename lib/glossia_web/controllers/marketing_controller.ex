@@ -118,15 +118,6 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     |> render(:privacy)
   end
 
-  def wip(conn, _params) do
-    conn
-    |> put_open_graph_metadata(%{
-      title: "Work in progress",
-      description: "We are finishing up the first version of our website. Please come back later."
-    })
-    |> render(:wip)
-  end
-
   def blog_post(%{request_path: slug} = conn, _params) do
     post = Glossia.Marketing.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
 

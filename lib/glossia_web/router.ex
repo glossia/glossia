@@ -50,7 +50,6 @@ defmodule GlossiaWeb.Router do
     get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
     get "/terms", MarketingController, :terms
     get "/privacy", MarketingController, :privacy
-    get "/wip", MarketingController, :wip
   end
 
   pipeline :docs do

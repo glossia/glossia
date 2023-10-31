@@ -321,6 +321,6 @@ defmodule Glossia.ContentSources.GitHub do
   end
 
   def webhook_secret do
-    Glossia.Secrets.get_in([:github, :app, :webhook_secret])
+    Glossia.Secrets.get_in([:github, :app, :webhooks_secret])
   end
 end

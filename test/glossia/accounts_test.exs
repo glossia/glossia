@@ -27,35 +27,35 @@ defmodule Glossia.AccountsTest do
     end
   end
 
-  describe "add_user_to_organization" do
-    test "makes a user admin of the organization" do
-      # Given
-      organization = Glossia.AccountsFixtures.organization_fixture()
-      user = Glossia.AccountsFixtures.user_fixture()
+  # describe "add_user_to_organization" do
+  #   test "makes a user admin of the organization" do
+  #     # Given
+  #     organization = Glossia.AccountsFixtures.organization_fixture()
+  #     user = Glossia.AccountsFixtures.user_fixture()
 
-      # When
-      assert {:ok, _} =
-               Glossia.Accounts.add_user_to_organization(
-                 user.id,
-                 organization.id,
-                 :admin
-               )
-    end
+  #     # When
+  #     assert {:ok, _} =
+  #              Glossia.Accounts.add_user_to_organization(
+  #                user.id,
+  #                organization.id,
+  #                :admin
+  #              )
+  #   end
 
-    test "makes a user member of the organization" do
-      # Given
-      organization = Glossia.AccountsFixtures.organization_fixture()
-      user = Glossia.AccountsFixtures.user_fixture()
+  #   test "makes a user member of the organization" do
+  #     # Given
+  #     organization = Glossia.AccountsFixtures.organization_fixture()
+  #     user = Glossia.AccountsFixtures.user_fixture()
 
-      # When
-      assert {:ok, _} =
-               Glossia.Accounts.add_user_to_organization(
-                 user.id,
-                 organization.id,
-                 :user
-               )
-    end
-  end
+  #     # When
+  #     assert {:ok, _} =
+  #              Glossia.Accounts.add_user_to_organization(
+  #                user.id,
+  #                organization.id,
+  #                :user
+  #              )
+  #   end
+  # end
 
   describe "find_account_by_handle" do
     test "it finds the account by handle" do

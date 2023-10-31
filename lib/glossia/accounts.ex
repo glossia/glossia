@@ -13,21 +13,6 @@ defmodule Glossia.Accounts do
     UserToken
   }
 
-  @spec add_user_to_organization(
-          user_id :: integer(),
-          organization_id :: integer(),
-          role :: OrganizationUser.role()
-        ) ::
-          {:ok, OrganizationUser.t()} | {:error, Ecto.Changeset.t()}
-  def add_user_to_organization(user_id, organization_id, role) do
-    OrganizationUser.changeset(%OrganizationUser{}, %{
-      user_id: user_id,
-      organization_id: organization_id,
-      role: role
-    })
-    |> Repo.insert()
-  end
-
   @type register_organization_attrs :: %{
           handle: String.t()
         }
@@ -49,6 +34,7 @@ defmodule Glossia.Accounts do
     end
   end
 
+  @spec find_and_update_or_create_credential(attrs :: any()) :: {:ok, any()} | {:error, any()}
   def find_and_update_or_create_credential(attrs) do
     case Repo.get_by(Credentials, provider: attrs.provider, provider_id: attrs.provider_id) do
       # We create the credentials
@@ -153,5 +139,71 @@ defmodule Glossia.Accounts do
   @spec find_account_by_handle(any) :: Account.t() | nil
   def find_account_by_handle(handle) do
     Account.account_by_handle_query(handle) |> Repo.one()
+  end
+
+  @spec get_github_credentials(User.t()) :: Credentials.t() | nil
+  def get_github_credentials(user) do
+    query =
+      from(c in Credentials,
+        where: c.user_id == ^user.id,
+        where: c.provider == ^:github
+      )
+
+    Repo.one(query)
+  end
+
+  @spec get_user_account(User.t()) :: Account.t()
+  def get_user_account(user) do
+    query =
+      from(a in Account, join: u in User, on: a.id == u.account_id, where: u.id == ^user.id)
+
+    # All users should have an account
+    Repo.one!(query)
+  end
+
+  @spec get_user_and_organization_accounts(User.t()) :: [Account.t()]
+  def get_user_and_organization_accounts(user) do
+    user_account = get_user_account(user)
+
+    user_organization_accounts =
+      get_user_organizations(user) |> Repo.preload(:account) |> Enum.map(& &1.account)
+
+    [user_account | user_organization_accounts]
+  end
+
+  @spec get_user_organizations(User.t()) :: [Organization.t()]
+  def get_user_organizations(user) do
+    query =
+      from(o in Organization,
+        join: ou in OrganizationUser,
+        on: ou.organization_id == o.id,
+        where: ou.user_id == ^user.id
+      )
+
+    Repo.all(query)
+  end
+
+  @spec add_user_to_organization(User.t(), Organization.t()) :: OrganizationUser.t()
+  def add_user_to_organization(user, organization, role \\ :user) do
+    query =
+      from(ou in OrganizationUser,
+        where: ou.user_id == ^user.id,
+        where: ou.organization_id == ^organization.id
+      )
+
+    case Repo.one(query) do
+      %OrganizationUser{} = organization_user ->
+        organization_user
+
+      nil ->
+        changeset =
+          OrganizationUser.changeset(%OrganizationUser{}, %{
+            user_id: user.id,
+            organization_id: organization.id,
+            role: role
+          })
+
+        Repo.insert!(changeset)
+    end
   end
 end

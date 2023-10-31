@@ -17,7 +17,7 @@ defmodule Glossia.Projects do
   def get_project_user_should_be_redirected_to(user) do
     case user.last_visited_project_id do
       nil ->
-        Glossia.Accounts.Repository.get_user_and_organization_accounts(user)
+        Glossia.Accounts.get_user_and_organization_accounts(user)
         |> Repository.get_account_projects()
         |> List.first()
 
@@ -125,8 +125,12 @@ defmodule Glossia.Projects do
     end
   end
 
+  def authorize(_, _, nil) do
+    :ok
+  end
+
   def authorize(:read, %User{} = user, %Project{} = project) do
-    if Glossia.Accounts.Repository.get_user_and_organization_accounts(user)
+    if Glossia.Accounts.get_user_and_organization_accounts(user)
        |> Enum.map(& &1.id)
        |> Enum.member?(project.account_id) do
       :ok

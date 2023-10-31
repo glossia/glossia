@@ -38,11 +38,6 @@ defmodule GlossiaWeb.Endpoint do
     param_key: "request_logger",
     cookie_key: "request_logger"
 
-  plug(Plug.Static,
-    at: "/primer_live",
-    from: {:primer_live, "priv/static"}
-  )
-
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
   plug Plug.MethodOverride

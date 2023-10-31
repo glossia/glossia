@@ -85,7 +85,7 @@
       <li>
         <a class="font-medium" href="/"><%= Map.get(item, :name) %></a>
         <ul role="region" aria-abel={Map.get(item, :name)}>
-          <li :for={{sub_item, sub_index} <- Enum.with_index(Map.get(item, :children, []))}>
+          <li :for={{sub_item, _sub_index} <- Enum.with_index(Map.get(item, :children, []))}>
             <a href={"/docs/#{Map.get(sub_item, :path)}"}><%= Map.get(sub_item, :name) %></a>
           </li>
         </ul>
