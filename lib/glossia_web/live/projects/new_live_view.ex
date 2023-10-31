@@ -61,45 +61,35 @@ defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
   end
 
   def handle_event("validate", %{"project" => attrs}, socket) do
+    attrs = attrs |> put_account_id_and_content_source_platform_attrs(socket)
     changeset = %Project{} |> Project.changeset(attrs) |> Map.put(:action, :insert)
+    dbg(changeset)
     {:noreply, assign(socket, form: changeset |> to_form())}
   end
 
   def handle_event("save", %{"project" => attrs}, socket) do
-    user = socket.assigns.authenticated_user
-    account = Accounts.get_user_account(user)
-
-    attrs =
-      attrs
-      |> Map.merge(%{account_id: account.id, content_source_platform: :github})
-      |> Useful.atomize_map_keys()
+    account = socket |> authenticated_user_account
+    attrs = attrs |> put_account_id_and_content_source_platform_attrs(socket)
 
     case Glossia.Projects.create_project(attrs) do
       {:ok, project} ->
         {:noreply, redirect(socket, to: ~p"/#{account.handle}/#{project.handle}")}
 
       {:error, changeset} ->
-        {:noreply, assign(socket, form: changeset |> map_error_changeset |> to_form())}
+        {:noreply, assign(socket, form: changeset |> to_form())}
     end
   end
 
-  @spec map_error_changeset(Ecto.Changeset.t()) :: Ecto.Changeset.t()
-  defp map_error_changeset(changeset) do
-    errors = changeset.errors || []
+  defp put_account_id_and_content_source_platform_attrs(attrs, socket) do
+    account = socket |> authenticated_user_account
 
-    changeset =
-      with {:content_source_id_errors, {_, attrs}} when errors != nil <-
-             {:content_source_id_errors, Keyword.get(errors, :content_source_id)},
-           {:error_constraint, :unique} <- {:error_constraint, Keyword.get(attrs, :constraint)} do
-        changeset
-        |> Ecto.Changeset.add_error(
-          :content_source_id,
-          "Another project is already linked to this repository."
-        )
-      else
-        _ -> changeset
-      end
+    attrs
+    |> Map.merge(%{account_id: account.id, content_source_platform: :github})
+    |> Useful.atomize_map_keys()
+  end
 
-    changeset
+  defp authenticated_user_account(socket) do
+    user = socket.assigns.authenticated_user
+    Accounts.get_user_account(user)
   end
 end

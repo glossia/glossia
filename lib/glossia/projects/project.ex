@@ -53,17 +53,28 @@ defmodule Glossia.Projects.Project do
       :account_id,
       :visibility
     ])
-    |> validate_required([
-      :handle,
-      :content_source_id,
-      :content_source_platform,
-      :account_id
-    ])
+    |> validate_required(
+      [
+        :handle,
+        :content_source_id,
+        :content_source_platform,
+        :account_id
+      ],
+      message: "This attribute is required"
+    )
     |> validate_inclusion(:content_source_platform, [:github])
-    |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "must be alphanumeric")
-    |> validate_length(:handle, min: 3, max: 20)
-    |> unique_constraint([:account_id, :handle])
-    |> unique_constraint([:content_source_id, :content_source_platform])
+    |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "Handle must be alphanumeric")
+    |> validate_length(:handle,
+      min: 3,
+      max: 20,
+      message: "The length should be between 3 and 20 characters"
+    )
+    |> unique_constraint([:handle, :account_id],
+      message: "There's already a project with the same handle"
+    )
+    |> unique_constraint([:content_source_id, :content_source_platform],
+      message: "There's already a project with the same repository"
+    )
     |> assoc_constraint(:account)
   end
 
