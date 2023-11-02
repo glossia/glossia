@@ -205,13 +205,10 @@ defmodule GlossiaWeb.Router do
 
     live_session :authenticated_project_user,
       on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do
+      live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
       # live "/new", GlossiaWeb.LiveViews.Projects.NewLiveView
       # live "/settings", GlossiaWeb.LiveViews.SettingsLiveView
     end
-
-    get "/:owner_handle/:project_handle",
-        GlossiaWeb.Controllers.ProjectController,
-        :show
   end
 
   scope "/" do
@@ -225,7 +222,7 @@ defmodule GlossiaWeb.Router do
     live_session :authenticated_user,
       layout: {GlossiaWeb.Layouts.App, :empty},
       on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do
-      live "/new", GlossiaWeb.LiveViews.Projects.NewLiveView
+      live "/new", GlossiaWeb.LiveViews.Projects.New
     end
   end
 

@@ -3,7 +3,4 @@
 
 Ecto.Adapters.SQL.Sandbox.mode(Glossia.Repo, :manual)
 
-# Mocks
-import Hammox
-
 ExUnit.start()

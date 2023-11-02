@@ -63,7 +63,7 @@ defmodule Glossia.Projects.Project do
       message: "This attribute is required"
     )
     |> validate_inclusion(:content_source_platform, [:github])
-    |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "Handle must be alphanumeric")
+    |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "The handle must be alphanumeric")
     |> validate_length(:handle,
       min: 3,
       max: 20,

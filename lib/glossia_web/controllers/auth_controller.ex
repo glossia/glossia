@@ -25,6 +25,7 @@ defmodule GlossiaWeb.Controllers.AuthController do
 
   defp redirect_from_marketing_or_after_login(conn) do
     user_return_to = PathRememberer.remembered_path(conn)
+
     if user_return_to do
       conn |> redirect(to: user_return_to)
     else

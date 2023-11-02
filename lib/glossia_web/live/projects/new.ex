@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.LiveViews.Projects.NewLiveView do
+defmodule GlossiaWeb.LiveViews.Projects.New do
   alias Glossia.Accounts
   alias Glossia.Accounts.Credentials
   alias Glossia.ContentSources.GitHub

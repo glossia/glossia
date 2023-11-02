@@ -85,7 +85,9 @@ defmodule Glossia.Projects do
   It finds a project given the owner and the project handle.
   """
   def find_project_by_owner_and_project_handle(owner, project) do
-    Project.find_project_by_owner_and_project_handle_query(owner, project) |> Repo.one() |> Repo.preload(:account)
+    Project.find_project_by_owner_and_project_handle_query(owner, project)
+    |> Repo.one()
+    |> Repo.preload(:account)
   end
 
   @doc """

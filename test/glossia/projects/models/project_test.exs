@@ -19,7 +19,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{handle: ["can't be blank"]} = errors
+      assert %{handle: ["This attribute is required"]} = errors
     end
 
     test "validates that repository_id is required" do
@@ -32,7 +32,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{content_source_id: ["can't be blank"]} = errors
+      assert %{content_source_id: ["This attribute is required"]} = errors
     end
 
     test "validates that vcs is required" do
@@ -45,7 +45,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{content_source_platform: ["can't be blank"]} = errors
+      assert %{content_source_platform: ["This attribute is required"]} = errors
     end
 
     test "validates that account_id is required" do
@@ -63,7 +63,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{account_id: ["can't be blank"]} = errors
+      assert %{account_id: ["This attribute is required"]} = errors
     end
 
     test "validates that vcs is valid" do
@@ -101,7 +101,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{handle: ["must be alphanumeric"]} = errors
+      assert %{handle: ["The handle must be alphanumeric"]} = errors
     end
 
     test "validates that the handle is more than 3 characters" do
@@ -120,7 +120,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{handle: ["should be at least 3 character(s)"]} = errors
+      assert %{handle: ["The length should be between 3 and 20 characters"]} = errors
     end
 
     test "validates that the handle is less than 20 characters" do
@@ -139,7 +139,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{handle: ["should be at most 20 character(s)"]} = errors
+      assert %{handle: ["The length should be between 3 and 20 characters"]} = errors
     end
 
     test "validates the inclusion of content_source_platform in the supported types" do

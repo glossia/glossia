@@ -2,7 +2,6 @@ defmodule GlossiaWeb.Auth do
   @moduledoc false
 
   alias Glossia.Accounts, as: Accounts
-  alias GlossiaWeb.Support.PathRememberer
   import Phoenix.Controller
   import Plug.Conn
   use GlossiaWeb.Helpers.Shared, :verified_routes
@@ -98,8 +97,6 @@ defmodule GlossiaWeb.Auth do
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
   end
-
-  defp signed_in_path(_conn), do: ~p"/"
 
   @spec user_authenticated?(Plug.Conn.t()) :: boolean()
   def user_authenticated?(conn) do
