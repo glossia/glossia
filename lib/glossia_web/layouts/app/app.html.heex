@@ -1,1096 +1,379 @@
-<nord-layout padding="m" nav-open="">
-  <nord-navigation slot="nav">
-    <nord-dropdown slot="header" expand="" align="start" position="block-end" size="m">
-      <nord-button
-        slot="toggle"
-        expand=""
-        aria-haspopup="true"
-        variant="default"
-        type="submit"
-        size="m"
-        aria-expanded="false"
-      >
-        <nord-avatar slot="start" variant="square" size="m">B</nord-avatar>
-        Bath Clinic<!---->
-      </nord-button>
-      <nord-dropdown-group heading="laura.williams@nordhealth.com">
-        <nord-dropdown-item>
-          <nord-avatar slot="start" name="Bath Clinic" size="s" variant="square">B</nord-avatar>
-          Bath Clinic
-          <nord-icon slot="end" name="interface-checked"></nord-icon>
-        </nord-dropdown-item>
-        <nord-dropdown-item>
-          <nord-avatar
-            slot="start"
-            name="Ocean Beach Clinic"
-            size="s"
-            variant="square"
-            style="--n-avatar-color: var(--n-color-status-success)"
+<script src="https://cdn.jsdelivr.net/npm/apexcharts">
+</script>
+<div class="flex flex-col">
+  <header class="bg-white border-b border-gray-200">
+    <div class="px-4 mx-auto">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center -m-2 xl:hidden">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center p-2 text-gray-400 bg-white rounded-lg hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
           >
-            O
-          </nord-avatar>
-          Ocean Beach Clinic
-        </nord-dropdown-item>
-        <nord-dropdown-item>
-          <nord-avatar
-            slot="start"
-            name="Park Animal Hospital"
-            size="s"
-            variant="square"
-            style="--n-avatar-color: var(--n-color-status-highlight)"
+            <svg
+              class="w-6 h-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16">
+              </path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex ml-6 xl:ml-0">
+          <.link href={~p"/"} class="flex items-center flex-shrink-0 gap-x-3">
+            <.glossia_logo class="w-10 h-10" />
+            <h1 class="text-xl font-bold">Glossia</h1>
+          </.link>
+        </div>
+
+        <div class="flex-1 hidden max-w-xs ml-40 mr-auto lg:block">
+          <label for="" class="sr-only"> Search </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg
+                class="w-5 h-5 text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                >
+                </path>
+              </svg>
+            </div>
+
+            <input
+              type="search"
+              name=""
+              id=""
+              class="block w-full py-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm"
+              placeholder="Type to search"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end ml-auto space-x-6">
+          <div class="relative">
+            <button
+              type="button"
+              class="p-1 text-gray-700 transition-all duration-200 bg-white rounded-full hover:text-gray-900 focus:outline-none hover:bg-gray-100"
+            >
+              <svg
+                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                >
+                </path>
+              </svg>
+            </button>
+            <span class="inline-flex items-center px-1.5 absolute -top-px -right-1 py-0.5 rounded-full text-xs font-semibold bg-indigo-600 text-white">
+              2
+            </span>
+          </div>
+
+          <div class="relative">
+            <button
+              type="button"
+              class="p-1 text-gray-700 transition-all duration-200 bg-white rounded-full hover:text-gray-900 focus:outline-none hover:bg-gray-100"
+            >
+              <svg
+                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                >
+                </path>
+              </svg>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="flex items-center max-w-xs rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
           >
-            P
-          </nord-avatar>
-          Park Animal Hospital
-        </nord-dropdown-item>
-        <nord-dropdown-item>
-          <nord-avatar
-            slot="start"
-            name="Balboa Pet Hospital"
-            size="s"
-            variant="square"
-            style="--n-avatar-color: var(--n-color-status-danger)"
-          >
-            B
-          </nord-avatar>
-          Balboa Pet Hospital
-        </nord-dropdown-item>
-      </nord-dropdown-group>
-      <nord-dropdown-group>
-        <nord-dropdown-item>Add another clinic</nord-dropdown-item>
-        <nord-dropdown-item>Customize style</nord-dropdown-item>
-      </nord-dropdown-group>
-      <nord-dropdown-item>Sign out from all clinics</nord-dropdown-item>
-    </nord-dropdown>
-    <nord-nav-group>
-      <nord-nav-item aria-describedby="search" icon="navigation-search">Search</nord-nav-item>
-      <nord-tooltip
-        id="search"
-        position="inline-end"
-        role="tooltip"
-        delay="500"
-        style="visibility: hidden; opacity: 0;"
-      >
-        Search
-        <nord-icon slot="shortcut" name="keyboard-option" label="Option key"></nord-icon>
-        <span slot="shortcut">S</span>
-      </nord-tooltip>
-      <nord-nav-item icon="navigation-notifications" aria-describedby="notifications" badge="12">
-        Notifications
-      </nord-nav-item>
-      <nord-tooltip
-        id="notifications"
-        position="inline-end"
-        role="tooltip"
-        delay="500"
-        style="visibility: hidden; opacity: 0;"
-      >
-        Events
-        <nord-icon slot="shortcut" name="keyboard-option" label="Option key"></nord-icon>
-        <span slot="shortcut">N</span>
-      </nord-tooltip>
-      <nord-nav-item icon="navigation-tasks" aria-describedby="tasks">My tasks</nord-nav-item>
-      <nord-tooltip
-        id="tasks"
-        position="inline-end"
-        role="tooltip"
-        delay="500"
-        style="visibility: hidden; opacity: 0;"
-      >
-        My tasks
-        <nord-icon slot="shortcut" name="keyboard-option" label="Option key"></nord-icon>
-        <span slot="shortcut">M</span>
-      </nord-tooltip>
-    </nord-nav-group>
-    <nord-nav-group heading="Workspace">
-      <nord-nav-item href="#" icon="navigation-dashboard">Dashboard</nord-nav-item>
-      <nord-nav-item icon="navigation-payments" active="">
-        Payments
-        <nord-nav-group slot="subnav">
-          <nord-nav-item href="#" active="">All transactions</nord-nav-item>
-          <nord-nav-item href="#">Payments</nord-nav-item>
-          <nord-nav-item href="#">Disputes</nord-nav-item>
-        </nord-nav-group>
-      </nord-nav-item>
-      <nord-nav-item icon="navigation-reports">
-        Reports
-        <nord-nav-group slot="subnav">
-          <nord-nav-item href="#">Payments</nord-nav-item>
-          <nord-nav-item href="#">Disputes</nord-nav-item>
-          <nord-nav-item href="#">Payouts</nord-nav-item>
-        </nord-nav-group>
-      </nord-nav-item>
-      <nord-nav-item href="#" icon="navigation-settings">Settings</nord-nav-item>
-    </nord-nav-group>
-    <nord-dropdown expand="" slot="footer" align="start" position="block-end" size="m">
-      <nord-button
-        slot="toggle"
-        expand=""
-        aria-haspopup="true"
-        variant="default"
-        type="submit"
-        size="m"
-        aria-expanded="false"
-      >
-        <nord-avatar
-          aria-hidden="true"
-          name="Laura Williams"
-          slot="start"
-          size="m"
-          variant="default"
-        >
-        </nord-avatar>
-        Laura Williams<!---->
-      </nord-button>
-      <nord-dropdown-group>
-        <nord-dropdown-item href="#">View profile</nord-dropdown-item>
-        <nord-dropdown-item>Settings</nord-dropdown-item>
-      </nord-dropdown-group>
-      <nord-dropdown-group>
-        <nord-dropdown-item>
-          Show keyboard shortcuts
-          <div slot="end" class="n-color-text-weaker n-font-size-xs">Cmd+K</div>
-        </nord-dropdown-item>
-        <nord-dropdown-item>Help &amp; Support</nord-dropdown-item>
-        <nord-dropdown-item>API</nord-dropdown-item>
-      </nord-dropdown-group>
-      <nord-dropdown-item>
-        <.link href={~p"/auth/logout"} method="post">Sign out</.link>
-        <nord-icon slot="end" name="interface-logout"></nord-icon>
-      </nord-dropdown-item>
-    </nord-dropdown>
-  </nord-navigation>
-  <nord-header slot="header" size="m">
-    <h1 class="n-typescale-l">All transactions</h1>
-    <nord-button class="filter" aria-describedby="filter" variant="dashed" size="s" type="submit">
-      <nord-icon slot="start" name="interface-filter"></nord-icon>
-      Filter<!---->
-    </nord-button>
-    <nord-tooltip
-      id="filter"
-      position="block-end"
-      role="tooltip"
-      delay="500"
-      style="visibility: hidden; opacity: 0;"
-    >
-      Filter
-      <nord-icon slot="shortcut" name="keyboard-option" label="Option key"></nord-icon>
-      <span slot="shortcut">F</span>
-    </nord-tooltip>
-    <nord-button
-      class="export"
-      slot="end"
-      aria-describedby="export"
-      size="s"
-      variant="default"
-      type="submit"
-    >
-      Export<!---->
-    </nord-button>
-    <nord-button class="create" variant="primary" slot="end" size="s" type="submit">
-      <nord-icon slot="start" name="interface-add-small"></nord-icon>
-      Create<span class="new"> new</span>
-      <!---->
-    </nord-button>
-    <nord-tooltip
-      id="export"
-      position="block-end"
-      role="tooltip"
-      delay="500"
-      style="visibility: hidden; opacity: 0;"
-    >
-      Export data as Spreadsheet
-    </nord-tooltip>
-  </nord-header>
-  <%= @inner_content %>
-  <%!-- <nord-card padding="none">
-    <h2 slot="header">Payouts</h2>
-    <nord-table density="default">
-      <table>
-        <thead>
-          <tr>
-            <th class="n-table-align-right">Amount</th>
-            <th>Status</th>
-            <th>Description</th>
-            <th>Method</th>
-            <th class="n-table-align-right">Date</th>
-            <th class="n-table-align-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="n-table-align-right">350,00 €</td>
-            <td class="current-status">
-              <nord-badge>Neutral</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">20.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
+            <img
+              class="object-cover bg-gray-300 rounded-full w-9 h-9"
+              src="https://landingfoliocom.imgix.net/store/collection/clarity-dashboard/images/previews/dashboards/1/avatar-male.png"
+              alt=""
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex flex-1">
+    <div class="hidden xl:flex xl:w-64 xl:flex-col">
+      <div class="flex flex-col pt-5 overflow-y-auto">
+        <div class="flex flex-col justify-between flex-1 h-full px-4">
+          <div class="space-y-4">
+            <nav class="flex-1 space-y-1">
+              <.link
+                href={~p"/"}
+                title=""
+                class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
+              >
+                <svg
+                  class="flex-shrink-0 w-5 h-5 mr-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
+                Dashboard
+              </.link>
+            </nav>
+
+            <div>
+              <p class="px-4 text-xs font-semibold tracking-widest text-gray-400 uppercase">
+                Insights
+              </p>
+              <nav class="flex-1 mt-4 space-y-1">
+                <a
+                  href="#"
+                  title=""
+                  class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
+                >
+                  <svg
+                    class="flex-shrink-0 w-5 h-5 mr-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
                   >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">29,90 €</td>
-            <td class="current-status">
-              <nord-badge>Neutral</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">20.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+                    />
+                  </svg>
+                  Events
+                  <span class="text-xs uppercase ml-auto font-semibold text-white bg-gray-500 border border-transparent rounded-full inline-flex items-center px-2 py-0.5">
+                    15
+                  </span>
+                </a>
+
+                <a
+                  href="#"
+                  title=""
+                  class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
+                >
+                  <svg
+                    class="flex-shrink-0 w-5 h-5 mr-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
                   >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">50,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="info">Info</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">19.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M20.893 13.393l-1.135-1.135a2.252 2.252 0 01-.421-.585l-1.08-2.16a.414.414 0 00-.663-.107.827.827 0 01-.812.21l-1.273-.363a.89.89 0 00-.738 1.595l.587.39c.59.395.674 1.23.172 1.732l-.2.2c-.212.212-.33.498-.33.796v.41c0 .409-.11.809-.32 1.158l-1.315 2.191a2.11 2.11 0 01-1.81 1.025 1.055 1.055 0 01-1.055-1.055v-1.172c0-.92-.56-1.747-1.414-2.089l-.655-.261a2.25 2.25 0 01-1.383-2.46l.007-.042a2.25 2.25 0 01.29-.787l.09-.15a2.25 2.25 0 012.37-1.048l1.178.236a1.125 1.125 0 001.302-.795l.208-.73a1.125 1.125 0 00-.578-1.315l-.665-.332-.091.091a2.25 2.25 0 01-1.591.659h-.18c-.249 0-.487.1-.662.274a.931.931 0 01-1.458-1.137l1.411-2.353a2.25 2.25 0 00.286-.76m11.928 9.869A9 9 0 008.965 3.525m11.928 9.868A9 9 0 118.965 3.525"
+                    />
+                  </svg>
+                  Localizations
+                </a>
+              </nav>
+            </div>
+
+            <div>
+              <p class="px-4 text-xs font-semibold tracking-widest text-gray-400 uppercase">
+                Linguistics
+              </p>
+              <nav class="flex-1 mt-4 space-y-1">
+                <a
+                  href="#"
+                  title=""
+                  class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-400 rounded-lg cursor-not-allowed group"
+                >
+                  <svg
+                    class="flex-shrink-0 w-5 h-5 mr-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
                   >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">49,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="info">Info</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">17.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">1023,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="info">Info</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">12.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">32,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="highlight">Highlight</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">10.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">40,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="highlight">Highlight</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">9.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">28,52 €</td>
-            <td class="current-status">
-              <nord-badge variant="highlight">Highlight</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">4.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">350,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="success">Success</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">4.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">220,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="success">Success</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">3.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">50,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="success">Success</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">1.3.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">350,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="warning">Warning</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">30.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">29,90 €</td>
-            <td class="current-status">
-              <nord-badge variant="warning">Warning</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">28.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">50,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="danger">Danger</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">28.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">49,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="danger">Danger</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">26.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">1023,00 €</td>
-            <td class="current-status">
-              <nord-badge variant="danger">Danger</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">24.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">32,00 €</td>
-            <td class="current-status">
-              <nord-badge>Neutral</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">23.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">40,00 €</td>
-            <td class="current-status">
-              <nord-badge>Neutral</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">22.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">28,52 €</td>
-            <td class="current-status">
-              <nord-badge>Neutral</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">21.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">350,00 €</td>
-            <td class="current-status">
-              <nord-badge>Neutral</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">20.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="n-table-align-right">220,00 €</td>
-            <td class="current-status">
-              <nord-badge>Neutral</nord-badge>
-            </td>
-            <td class="n-table-ellipsis">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor massa sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.
-            </td>
-            <td class="n-caption">Card</td>
-            <td class="n-caption n-table-align-right">18.2.2021</td>
-            <td>
-              <div class="n-table-actions">
-                <nord-dropdown position="block-end" align="end" size="s">
-                  <nord-button
-                    slot="toggle"
-                    aria-describedby="edit"
-                    size="s"
-                    aria-haspopup="true"
-                    variant="default"
-                    type="submit"
-                    aria-expanded="false"
-                  >
-                    <nord-icon name="interface-menu-small" label="Open menu" size="s"></nord-icon>
-                    <!---->
-                  </nord-button>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item href="#">View payment details</nord-dropdown-item>
-                    <nord-dropdown-item>Open in new tab</nord-dropdown-item>
-                    <nord-dropdown-item>Copy link</nord-dropdown-item>
-                  </nord-dropdown-group>
-                  <nord-dropdown-group>
-                    <nord-dropdown-item data-action="refund">Refund payment</nord-dropdown-item>
-                    <nord-dropdown-item data-action="delete">
-                      <span>Delete</span>
-                      <nord-icon slot="end" name="interface-delete"></nord-icon>
-                    </nord-dropdown-item>
-                  </nord-dropdown-group>
-                </nord-dropdown>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <!---->
-    </nord-table>
-    <nord-tooltip
-      id="edit"
-      position="block-end"
-      role="tooltip"
-      delay="500"
-      style="visibility: hidden; opacity: 0;"
-    >
-      Edit this row
-    </nord-tooltip>
-  </nord-card> --%>
-</nord-layout>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+                    />
+                  </svg>
+                  Context
+                  <span class="text-xs uppercase ml-auto font-semibold text-indigo-600 bg-indigo-50 border border-indigo-300 rounded-full inline-flex items-center px-2 py-0.5">
+                    Soon
+                  </span>
+                </a>
+              </nav>
+            </div>
+          </div>
+
+          <div class="pb-4 mt-12">
+            <nav class="flex-1 space-y-1">
+              <a
+                href="#"
+                title=""
+                class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
+              >
+                <svg
+                  class="flex-shrink-0 w-5 h-5 mr-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                Settings
+              </a>
+
+              <a
+                href="#"
+                title=""
+                class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
+              >
+                <svg
+                  class="flex-shrink-0 w-5 h-5 mr-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Logout
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col flex-1 overflow-x-hidden">
+      <main>
+        <%= @inner_content %>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+  var chart4Options = {
+      chart: {
+          type: 'area',
+          height: 260,
+          toolbar: {
+              show: false,
+          },
+          zoom: {
+              enabled: false,
+          },
+      },
+      series: [
+          {
+              name: 'New user',
+              data: [76, 85, 101, 98, 87, 105, 91, 114, 94, 76, 85, 101],
+          },
+          {
+              name: 'Returning user',
+              data: [44, 55, 57, 56, 61, 58, 63, 60, 66, 44, 55, 57],
+          },
+      ],
+      dataLabels: {
+          enabled: false,
+      },
+      stroke: {
+          show: true,
+          curve: 'smooth',
+          lineCap: 'butt',
+          colors: undefined,
+          width: 2,
+      },
+      grid: {
+          row: {
+              opacity: 0,
+          },
+      },
+      xaxis: {
+          categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      },
+      yaxis: {
+          show: false,
+      },
+      fill: {
+          type: 'solid',
+          opacity: [0.05, 0],
+      },
+      colors: ['#4F46E5', '#818CF8'],
+      legend: {
+          position: 'bottom',
+          markers: {
+              radius: 12,
+              offsetX: -4,
+          },
+          itemMargin: {
+              horizontal: 12,
+              vertical: 20,
+          },
+      },
+  }
+
+  var chart4 = new ApexCharts(document.querySelector('#chart4'), chart4Options)
+
+  chart4.render()
+</script>
