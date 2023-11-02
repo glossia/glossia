@@ -73,24 +73,6 @@ defmodule GlossiaWeb.Auth do
     |> clear_session()
   end
 
-  @doc """
-  Logs the user out.
-
-  It clears all session data for safety. See renew_session.
-  """
-  def log_out_user(conn) do
-    user_token = get_session(conn, :user_token)
-    user_token && Accounts.delete_user_session_token(user_token)
-
-    if live_socket_id = get_session(conn, :live_socket_id) do
-      GlossiaWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
-    end
-
-    conn
-    |> renew_session()
-    |> delete_resp_cookie(@remember_me_cookie)
-    |> redirect(to: ~p"/")
-  end
 
   def put_token_in_session(conn, token) do
     conn
@@ -113,6 +95,10 @@ defmodule GlossiaWeb.Auth do
           Glossia.Accounts.User.t() | nil
   def authenticated_user(%Plug.Conn{} = conn) do
     conn.assigns[@authenticated_user_key]
+  end
+
+  def authenticated_user(%Phoenix.LiveView.Socket{} = socket) do
+    socket.assigns[@authenticated_user_key]
   end
 
   @spec authenticated_user(assigns :: map()) :: Glossia.Accounts.User.t() | nil
@@ -180,14 +166,22 @@ defmodule GlossiaWeb.Auth do
 
   @spec call(Plug.Conn.t(), term()) :: Plug.Conn.t()
   def call(%Plug.Conn{} = conn, :load_authenticated_user) do
+    conn |> assign(@authenticated_user_key, get_conn_user(conn))
+  end
+
+  def get_conn_user(conn) do
     with {user_token, _} when user_token != nil <- get_conn_token(conn),
          {:user, user} when user != nil <-
-           {:user, Glossia.Accounts.get_user_by_session_token(user_token)} do
-      conn |> assign(@authenticated_user_key, user)
+           {:user, get_user_from_token(user_token)} do
+      user
     else
       _ ->
-        conn |> assign(@authenticated_user_key, nil)
+        nil
     end
+  end
+
+  def get_user_from_token(token) do
+    Glossia.Accounts.get_user_by_session_token(token)
   end
 
   @spec get_conn_token(conn :: Plug.Conn.t()) :: {String.t() | nil, Plug.Conn.t()}

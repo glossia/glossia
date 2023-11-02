@@ -26,12 +26,11 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :tracking do
-    plug TrackPageVisitPlug
+    plug GlossiaWeb.LiveViewMountablePlug, :track_page
   end
 
-  # Loads the project from the slug in the URL
   pipeline :load_url_project do
-    plug GlossiaWeb.URL, :load_project
+    plug GlossiaWeb.LiveViewMountablePlug, :load_url_project
   end
 
   pipeline :marketing do
@@ -158,16 +157,8 @@ defmodule GlossiaWeb.Router do
       subject: {GlossiaWeb.Auth, :authenticated_subject}
   end
 
-  pipeline :track_project do
-    plug GlossiaWeb.Plugs.SaveLastVisitedProjectPlug
-  end
-
-  pipeline :ensure_authenticated_subject_can_read_project do
-    plug Glossia.Authorization.Plug,
-      policy: Glossia.Projects,
-      action: :read,
-      subject: {GlossiaWeb.Auth, :authenticated_subject},
-      params: {GlossiaWeb.URL, :url_project}
+  pipeline :project do
+    plug GlossiaWeb.LiveViewMountablePlug, :project
   end
 
   scope "/admin" do
@@ -197,14 +188,11 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :browser,
       :app,
-      :load_url_project,
-      :ensure_authenticated_subject_can_read_project,
-      :track_project,
-      :tracking
+      :project
     ]
 
-    live_session :authenticated_project_user,
-      on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do
+    live_session :project_live_session,
+      on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session} do
       live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
       # live "/new", GlossiaWeb.LiveViews.Projects.NewLiveView
       # live "/settings", GlossiaWeb.LiveViews.SettingsLiveView

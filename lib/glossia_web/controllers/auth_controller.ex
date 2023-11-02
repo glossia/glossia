@@ -56,19 +56,12 @@ defmodule GlossiaWeb.Controllers.AuthController do
   end
 
   def logout(conn, _params) do
-    conn
-    |> put_flash(:info, "You have been logged out!")
-    |> clear_session()
-    |> redirect(to: "/")
-    |> halt()
-
     user_token = get_session(conn, :user_token)
     user_token && Glossia.Accounts.delete_user_session_token(user_token)
 
-    # TODO
-    # if live_socket_id = get_session(conn, :live_socket_id) do
-    #   TestWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
-    # end
+    if live_socket_id = get_session(conn, :live_socket_id) do
+      GlossiaWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+    end
 
     conn
     |> renew_session()

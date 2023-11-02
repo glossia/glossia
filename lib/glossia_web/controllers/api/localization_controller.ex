@@ -28,7 +28,7 @@ defmodule GlossiaWeb.Controllers.API.LocalizationController do
       Glossia.Localizations,
       :create,
       GlossiaWeb.Auth.authenticated_subject(conn),
-      GlossiaWeb.URL.url_project(conn)
+      GlossiaWeb.LiveViewMountablePlug.url_project(conn)
     )
 
     %{body_params: %Localization{} = localization} = conn

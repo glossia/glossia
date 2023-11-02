@@ -63,7 +63,6 @@ defmodule GlossiaWeb.LiveViews.Projects.New do
   def handle_event("validate", %{"project" => attrs}, socket) do
     attrs = attrs |> put_account_id_and_content_source_platform_attrs(socket)
     changeset = %Project{} |> Project.changeset(attrs) |> Map.put(:action, :insert)
-    dbg(changeset)
     {:noreply, assign(socket, form: changeset |> to_form())}
   end
 
