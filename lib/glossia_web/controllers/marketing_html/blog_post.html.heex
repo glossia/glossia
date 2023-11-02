@@ -1,69 +1,98 @@
-<section>
-  <div class="py-[5.75rem] 2xl:max-w-7xl mx-auto 2xl:border-x-2 border-b-2 border-black">
-    <div class="relative px-8 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-[48rem] prose-lg prose prose-h3:lg:text-6xl text-black prose-h3:text-black prose-a:font-semibold prose-a:text-violet-600 hover:prose-a:text-black prose-img:border-2 prose-img:border-black prose-img:shadow">
-        <div class="my-10 flex-col-reverse items-start inline-flex lg:items-center justify-between w-full lg:flex-row">
-          <div><%= @post.date |> Timex.from_now() |> String.capitalize() %></div>
-          <div>
-            Written by: <a href={@author.linkedin_url}><%= @author.name %></a>
-          </div>
-        </div>
-        <h1 class="font-display break-words"><em><%= @post.title %></em></h1>
-        <p><em><%= @post.description %></em></p>
-        <div class="not-prose flex flex-wrap space-x-3">
-          <%= for tag <- @post.tags do %>
-            <span class="inline-flex items-center  ">
-              <div class="text-lila-900 duration-200">
-                <%= tag %>
-              </div>
-            </span>
-          <% end %>
-        </div>
-        <%= raw(@post.body) %>
-      </div>
-      <div class="border-black mx-auto border-t-2 max-w-[48rem] mt-12 pt-3">
-        <div class="items-center inline-flex gap-3">
-          <p>Share:</p>
-          <a href="#">
-            <span>
-              <svg
-                class="text-black w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.5"
-                xmlns="http://www.w3.org/2000/svg"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
-                <circle cx="6" cy="12" r="3"></circle>
-                <circle cx="18" cy="6" r="3"></circle>
-                <circle cx="18" cy="18" r="3"></circle>
-                <line x1="8.7" x2="15.3" y1="10.7" y2="7.3"></line>
-                <line x1="8.7" x2="15.3" y1="13.3" y2="16.7"></line>
-              </svg>
-            </span>
-          </a>
-          <a href="">
-            <span>
-              <svg
-                class="text-black w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.5"
-                xmlns="http://www.w3.org/2000/svg"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
-                <path d="M9 4h6a2 2 0 0 1 2 2v14l-5 -3l-5 3v-14a2 2 0 0 1 2 -2"></path>
-              </svg>
-            </span>
-          </a>
+<% glossia_uri = URI.parse(Glossia.Secrets.get_in([:url])) %>
+<% blog_post_uri = %URI{glossia_uri | path: @slug} %>
+<% twitter_share_url =
+  %URI{
+    URI.parse("http://twitter.com/share")
+    | query:
+        URI.encode_query(%{
+          text: "#{@post.title} through @glossiaai",
+          url: blog_post_uri |> URI.to_string(),
+          hashtags: "l10n,glossia"
+        })
+  } %>
+<% y_combinator_share_url =
+  %URI{
+    URI.parse("http://news.ycombinator.com/submitlink")
+    | query:
+        URI.encode_query(
+          %{
+            t: @post.title,
+            u: blog_post_uri |> URI.to_string()
+          },
+          :rfc3986
+        )
+  } %>
+<% reddit_share_url =
+  %URI{
+    URI.parse("http://www.reddit.com/submit")
+    | query:
+        URI.encode_query(
+          %{
+            title: @post.title,
+            url: blog_post_uri |> URI.to_string()
+          },
+          :rfc3986
+        )
+  } %>
+
+<section
+  aria-labelledby="blog post"
+  id="blog-post"
+  class="relative items-center w-full mx-auto 2xl:max-w-screen-2xl p-8 lg:p-20 2xl:px-0"
+>
+  <div class="max-w-5xl mx-auto prose-lg prose prose-h3:lg:text-6xl text-black prose-h3:text-black prose-a:font-semibold prose-a:text-violet-600 hover:prose-a:text-black prose-img:border-2 prose-img:border-black prose-img:shadow">
+    <header>
+      <div class="my-10 flex-col-reverse items-start text-sm text-gray-500 inline-flex lg:items-center justify-between w-full lg:flex-row">
+        <div><%= @post.date |> Timex.from_now() |> String.capitalize() %></div>
+        <div>
+          Written by <a href={@author.linkedin_url}><%= @author.name %></a>
         </div>
       </div>
-    </div>
+      <h1 class="text-3xl font-bold text-gray-900 sm:text-4xl xl:text-5xl font-pj">
+        <%= @post.title %>
+      </h1>
+      <div class="not-prose flex flex-wrap space-x-3">
+        <span
+          :for={tag <- @post.tags}
+          class="text-xs font-semibold text-gray-900 bg-gray-50 border border-gray-300 rounded-full inline-flex items-center px-2.5 py-1"
+        >
+          <%= tag %>
+        </span>
+      </div>
+      <p class="bg-violet-100 p-5 rounded-lg text-base text-violet-800 border border-violet-300">
+        <%= @post.description %>
+      </p>
+    </header>
+
+    <%= raw(@post.body) %>
   </div>
+  <footer class="max-w-5xl mx-auto mt-12 pt-3">
+    <div class="items-center inline-flex gap-3">
+      <p>Share:</p>
+      <.link href={twitter_share_url} target="_blank">
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
+            <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+          </svg>
+        </span>
+      </.link>
+      <.link target="_blank" href={y_combinator_share_url}>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
+            <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path d="M448 32v448H0V32h448zM236 287.5L313.5 142h-32.7L235 233c-4.7 9.3-9 18.3-12.8 26.8L210 233l-45.2-91h-35l76.7 143.8v94.5H236v-92.8z" />
+          </svg>
+        </span>
+      </.link>
+      <.link href={reddit_share_url} target="_blank">
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
+            <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path d="M201.5 305.5c-13.8 0-24.9-11.1-24.9-24.6 0-13.8 11.1-24.9 24.9-24.9 13.6 0 24.6 11.1 24.6 24.9 0 13.6-11.1 24.6-24.6 24.6zM504 256c0 137-111 248-248 248S8 393 8 256 119 8 256 8s248 111 248 248zm-132.3-41.2c-9.4 0-17.7 3.9-23.8 10-22.4-15.5-52.6-25.5-86.1-26.6l17.4-78.3 55.4 12.5c0 13.6 11.1 24.6 24.6 24.6 13.8 0 24.9-11.3 24.9-24.9s-11.1-24.9-24.9-24.9c-9.7 0-18 5.8-22.1 13.8l-61.2-13.6c-3-.8-6.1 1.4-6.9 4.4l-19.1 86.4c-33.2 1.4-63.1 11.3-85.5 26.8-6.1-6.4-14.7-10.2-24.1-10.2-34.9 0-46.3 46.9-14.4 62.8-1.1 5-1.7 10.2-1.7 15.5 0 52.6 59.2 95.2 132 95.2 73.1 0 132.3-42.6 132.3-95.2 0-5.3-.6-10.8-1.9-15.8 31.3-16 19.8-62.5-14.9-62.5zM302.8 331c-18.2 18.2-76.1 17.9-93.6 0-2.2-2.2-6.1-2.2-8.3 0-2.5 2.5-2.5 6.4 0 8.6 22.8 22.8 87.3 22.8 110.2 0 2.5-2.2 2.5-6.1 0-8.6-2.2-2.2-6.1-2.2-8.3 0zm7.7-75c-13.6 0-24.6 11.1-24.6 24.9 0 13.6 11.1 24.6 24.6 24.6 13.8 0 24.9-11.1 24.9-24.6 0-13.8-11-24.9-24.9-24.9z" />
+          </svg>
+        </span>
+      </.link>
+    </div>
+  </footer>
 </section>

@@ -6,86 +6,6 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     |> render(:index)
   end
 
-  @spec blog(
-          %{
-            :__struct__ => Phoenix.LiveView.Socket | Plug.Conn,
-            :assigns => Phoenix.LiveView.Socket.assigns_not_in_socket() | map(),
-            :private => map(),
-            optional(:adapter) => {atom(), any()},
-            optional(:body_params) => %{
-              optional(:__struct__) => Plug.Conn.Unfetched,
-              optional(:aspect) => atom(),
-              optional(binary()) => any()
-            },
-            optional(:cookies) => %{
-              optional(:__struct__) => Plug.Conn.Unfetched,
-              optional(:aspect) => atom(),
-              optional(binary()) => any()
-            },
-            optional(:endpoint) => atom(),
-            optional(:fingerprints) => {nil | binary(), map()},
-            optional(:halted) => boolean(),
-            optional(:host) => binary(),
-            optional(:host_uri) => :not_mounted_at_router | URI.t(),
-            optional(:id) => binary(),
-            optional(:method) => binary(),
-            optional(:owner) => pid(),
-            optional(:params) => %{
-              optional(:__struct__) => Plug.Conn.Unfetched,
-              optional(:aspect) => atom(),
-              optional(binary()) => any()
-            },
-            optional(:parent_pid) => nil | pid(),
-            optional(:path_info) => [binary()],
-            optional(:path_params) => %{
-              optional(binary()) =>
-                binary()
-                | [binary() | list() | map()]
-                | %{optional(binary()) => binary() | list() | map()}
-            },
-            optional(:port) => char(),
-            optional(:query_params) => %{
-              optional(:__struct__) => Plug.Conn.Unfetched,
-              optional(:aspect) => atom(),
-              optional(binary()) =>
-                binary()
-                | [binary() | list() | map()]
-                | %{optional(binary()) => binary() | list() | map()}
-            },
-            optional(:query_string) => binary(),
-            optional(:redirected) => nil | tuple(),
-            optional(:remote_ip) =>
-              {byte(), byte(), byte(), byte()}
-              | {char(), char(), char(), char(), char(), char(), char(), char()},
-            optional(:req_cookies) => %{
-              optional(:__struct__) => Plug.Conn.Unfetched,
-              optional(:aspect) => atom(),
-              optional(binary()) => binary()
-            },
-            optional(:req_headers) => [{binary(), binary()}],
-            optional(:request_path) => binary(),
-            optional(:resp_body) =>
-              nil
-              | binary()
-              | maybe_improper_list(
-                  binary() | maybe_improper_list(any(), binary() | []) | byte(),
-                  binary() | []
-                ),
-            optional(:resp_cookies) => %{optional(binary()) => map()},
-            optional(:resp_headers) => [{binary(), binary()}],
-            optional(:root_pid) => pid(),
-            optional(:router) => atom(),
-            optional(:scheme) => :http | :https,
-            optional(:script_name) => [binary()],
-            optional(:secret_key_base) => nil | binary(),
-            optional(:state) =>
-              :chunked | :file | :sent | :set | :set_chunked | :set_file | :unset | :upgraded,
-            optional(:status) => nil | non_neg_integer(),
-            optional(:transport_pid) => nil | pid(),
-            optional(:view) => atom()
-          },
-          any()
-        ) :: Plug.Conn.t()
   def blog(conn, _params) do
     conn
     |> put_open_graph_metadata(%{
@@ -118,7 +38,7 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     |> render(:privacy)
   end
 
-  def blog_post(%{request_path: slug} = conn, _params) do
+  def blog_post(%{request_path: slug} = conn, params) do
     post = Glossia.Marketing.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
 
     author =
@@ -131,6 +51,7 @@ defmodule GlossiaWeb.Controllers.MarketingController do
       description: post.description,
       keywords: post.tags
     })
+    |> assign(:slug, slug)
     |> assign(:post, post)
     |> assign(:author, author)
     |> render(:blog_post)

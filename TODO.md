@@ -1,1 +1,4 @@
+- Fix metadata not being right
+- Add SEO card generation
+- Add documentation
 - Ensure new can only be accessed if the user is authenticated

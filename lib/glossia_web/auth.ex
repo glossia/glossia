@@ -73,7 +73,6 @@ defmodule GlossiaWeb.Auth do
     |> clear_session()
   end
 
-
   def put_token_in_session(conn, token) do
     conn
     |> put_session(:user_token, token)

@@ -284,46 +284,4 @@ defmodule GlossiaWeb.Components.Marketing do
     </footer>
     """
   end
-
-  def cta(assigns) do
-    ~H"""
-    <section class="relative flex items-center w-full border-y-2 border-black bg-green-400 2xl:max-w-screen-2xl mx-auto mb-20">
-      <div class="items-center w-full mx-auto 2xl:max-w-screen-2xl p-8 lg:p-20 2xl:px-0 2xl:border-x-2 border-black">
-        <div class="items-center gap-12 h-full">
-          <div class="text-center max-w-3xl mx-auto">
-            <p class="text-3xl font-display lg:text-5xl text-black">
-              Hop into Localization
-            </p>
-            <p class="max-w-2xl mx-auto mt-4 xl:text-2xl tracking-tight text-black">
-              Eager for Glossia's big debut, the new kid on the web frameworks block? Leave your email, and we'll ping you when it's ready to take your projects global!
-            </p>
-            <div class="justify-center mt-12 w-full mx-auto">
-              <a
-                class="mx-auto items-center focus:outline-none focus:ring-2 focus:ring-offset-2 justify-center font-medium bg-black border border-transparent flex focus:ring-black hover:bg-lila-500 hover:text-black px-5 py-3 rounded-xl text-base text-white"
-                href="/beta"
-              >
-                <svg
-                  class="h-6 mr-3 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                  </path>
-                </svg>
-                Join the list for beta testers
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    """
-  end
 end
