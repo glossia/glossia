@@ -67,7 +67,6 @@ defmodule GlossiaWeb.LiveViewMountablePlug do
         |> assign(@url_project_key, project)
         |> save_last_visited_project()
 
-      # TODO: Track page
       {:cont, socket}
     else
       socket = socket |> put_flash(:error, "You are not authorized to view this project")

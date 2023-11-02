@@ -34,6 +34,7 @@ defmodule GlossiaWeb.LiveViews.Projects.New do
                fn credentials ->
                  GitHubAPI.get_user_repositories(credentials)
                end,
+                # credo:disable-for-lines:10
                fn github_credentials ->
                  {:ok, _} =
                    Accounts.find_and_update_or_create_credential(
