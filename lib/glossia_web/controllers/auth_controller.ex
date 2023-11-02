@@ -5,17 +5,49 @@ defmodule GlossiaWeb.Controllers.AuthController do
 
   alias Ueberauth.Strategy.Helpers
   alias Glossia.Auth, as: Auth
+  alias GlossiaWeb.Support.PathRememberer
 
   @remember_me_cookie "_glossia_web_user_remember_me"
 
   def login(conn, _params) do
-    conn
-    |> put_layout(html: {GlossiaWeb.Layouts.Auth, :auth})
-    |> put_open_graph_metadata(%{
-      title: "Login",
-      description: "Login to Glossia"
-    })
-    |> render(:login)
+    if GlossiaWeb.Auth.user_authenticated?(conn) do
+      conn |> redirect_from_marketing_or_after_login
+    else
+      conn
+      |> put_layout(html: {GlossiaWeb.Layouts.Auth, :empty})
+      |> put_open_graph_metadata(%{
+        title: "Login",
+        description: "Login to Glossia"
+      })
+      |> render(:login)
+    end
+  end
+
+  defp redirect_from_marketing_or_after_login(conn) do
+    user_return_to = PathRememberer.remembered_path(conn)
+    if user_return_to do
+      conn |> redirect(to: user_return_to)
+    else
+      user = GlossiaWeb.Auth.authenticated_user(conn)
+
+      project =
+        case user.last_visited_project_id do
+          nil ->
+            Glossia.Accounts.get_user_and_organization_accounts(user)
+            |> Glossia.Projects.get_account_projects()
+            |> List.first()
+
+          last_visited_project_id ->
+            Glossia.Projects.get_project_by_id(last_visited_project_id)
+        end
+
+      if project do
+        account = Glossia.Accounts.get_user_account(user)
+        conn |> redirect(to: ~p"/#{account.handle}/#{project.handle}")
+      else
+        conn |> redirect(to: ~p"/new")
+      end
+    end
   end
 
   def request(conn, _params) do
@@ -60,6 +92,7 @@ defmodule GlossiaWeb.Controllers.AuthController do
         conn
         |> GlossiaWeb.Auth.log_in_user(user)
         |> put_flash(:info, "Successfully authenticated.")
+        |> redirect_from_marketing_or_after_login()
 
         # _ ->
         #   conn

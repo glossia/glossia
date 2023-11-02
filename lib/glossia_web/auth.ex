@@ -35,7 +35,6 @@ defmodule GlossiaWeb.Auth do
   """
   def log_in_user(conn, user, params \\ %{}) do
     token = Accounts.generate_user_session_token(user)
-    user_return_to = PathRememberer.remembered_path(conn)
 
     :ok = Glossia.Analytics.track("log_in", user, %{})
 
@@ -43,7 +42,7 @@ defmodule GlossiaWeb.Auth do
     |> renew_session()
     |> put_token_in_session(token)
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> assign_authenticated_user(Glossia.Accounts.get_user_by_id(user.id))
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -177,8 +176,8 @@ defmodule GlossiaWeb.Auth do
            {:authenticated_project, Glossia.Projects.get_project_from_token(String.trim(token))} do
       assign(conn, @authenticated_project_key, project)
     else
-      {:auth_header, nil} -> conn
-      {:authenticated_project, nil} -> conn
+      {:auth_header, nil} -> assign(conn, @authenticated_project_key, nil)
+      {:authenticated_project, nil} -> assign(conn, @authenticated_project_key, nil)
     end
   end
 
@@ -190,7 +189,7 @@ defmodule GlossiaWeb.Auth do
       conn |> assign(@authenticated_user_key, user)
     else
       _ ->
-        conn
+        conn |> assign(@authenticated_user_key, nil)
     end
   end
 

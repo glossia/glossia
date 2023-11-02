@@ -69,6 +69,10 @@ defmodule Glossia.Accounts do
     Repo.get_by(User, email: email) |> Repo.preload(:account)
   end
 
+  def get_user_by_id(id) when is_binary(id) do
+    Repo.get_by(User, id: id) |> Repo.preload(:account)
+  end
+
   def register_user(attrs) do
     registration_changeset = %User{} |> User.registration_changeset(attrs)
 

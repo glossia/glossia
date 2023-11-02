@@ -1,29 +1,21 @@
 defmodule Glossia.Projects do
   require Logger
-  alias Glossia.Projects.Repository
   alias Glossia.Repo
   alias Glossia.Projects.{Project, ProjectToken}
   alias Glossia.ContentSources, as: ContentSources
   alias Glossia.Accounts.User
+  import Ecto.Query, only: [from: 2]
 
-  @doc """
-  Given a user, it returns the project it should be redirected to when the user
-  navigates to "/" being authenticated.
+  def get_project_by_id(id) do
+    Repo.get(Project, id)
+  end
 
-  ## Parameters
-
-        * `user` - The user.
-  """
-  def get_project_user_should_be_redirected_to(user) do
-    case user.last_visited_project_id do
-      nil ->
-        Glossia.Accounts.get_user_and_organization_accounts(user)
-        |> Repository.get_account_projects()
-        |> List.first()
-
-      last_visited_project_id ->
-        Repository.get_project_by_id(last_visited_project_id)
-    end
+  def get_account_projects(accounts) do
+    Repo.all(
+      from p in Project,
+        where: p.account_id in ^Enum.map(accounts, & &1.id),
+        order_by: [desc: p.inserted_at]
+    )
   end
 
   @doc """

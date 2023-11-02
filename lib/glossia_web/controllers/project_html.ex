@@ -3,7 +3,9 @@ defmodule GlossiaWeb.Controllers.ProjectHTML do
 
   def show(assigns) do
     ~H"""
-    <div><%= @url_project.handle %></div>
+    <div>
+      <.link href={~p"/auth/logout"} method="delete">Sign out</.link>
+    </div>
     """
   end
 end
