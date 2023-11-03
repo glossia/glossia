@@ -266,7 +266,24 @@ defmodule Glossia.ContentSources.GitHub do
   end
 
   @impl Glossia.ContentSources.ContentSource
-  def get_versions(_) do
+  def get_versions(content_source_id, opts \\ []) do
+    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+
+    Logger.debug(
+      "Getting versions",
+      %{owner: owner, repo: repo}
+    )
+
+    {_status, _body, _response} =
+      Tentacat.get(
+        "repos/#{owner}/#{repo}/commits",
+        client,
+        %{
+          per_page: Keyword.get(opts, :per_page, 2),
+          page: Keyword.get(opts, :page, 1)
+        }
+      )
+
     {:ok, []}
   end
 
