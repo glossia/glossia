@@ -5,7 +5,7 @@ defmodule Glossia.Builds.Build do
   @type t :: %__MODULE__{
           version: String.t(),
           content_source_id: String.t() | nil,
-          content_source_platform: Glossia.ContentSources.ContentSource.content_source_t(),
+          content_source_platform: atom(),
           vm_id: String.t() | nil,
           status: status(),
           project: Glossia.Projects.Project.t() | nil,

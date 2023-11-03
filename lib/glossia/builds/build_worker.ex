@@ -59,10 +59,10 @@ defmodule Glossia.Builds.BuildWorker do
       Repo.insert!(Build.changeset(%Build{}, attrs))
 
     content_source =
-      Glossia.ContentSources.new(String.to_atom(content_source_platform), content_source_id)
+      Glossia.ContentSources.content_source(String.to_atom(content_source_platform))
 
-    Glossia.ContentSources.update_state(
-      content_source,
+    content_source.update_state(
+      content_source_id,
       :pending,
       version,
       target_url: "",
@@ -102,8 +102,8 @@ defmodule Glossia.Builds.BuildWorker do
       end
     })
 
-    Glossia.ContentSources.update_state(
-      content_source,
+    content_source.update_state(
+      content_source_id,
       :success,
       version,
       target_url: "",

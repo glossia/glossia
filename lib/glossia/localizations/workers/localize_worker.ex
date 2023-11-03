@@ -17,10 +17,13 @@ defmodule Glossia.Localizations.Workers.LocalizeWorker do
     project = Projects.find_project_by_id(job.args["project_id"])
 
     content_source =
-      Glossia.ContentSources.new(project.content_source_platform, project.content_source_id)
+      Glossia.ContentSources.content_source(project.content_source_platform)
 
+    # project.content_source_id
     content_changes = Parser.parse_localization(localization)
-    _content_updates = Localizer.localize(content_source, version, content_changes)
+
+    _content_updates =
+      Localizer.localize(content_source, project.content_source_id, version, content_changes)
 
     :ok
     # content_source

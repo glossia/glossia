@@ -7,7 +7,7 @@ defmodule GlossiaWeb.LiveViews.Projects.Versions do
   end
 
   def get_versions(socket) do
-    project = GlossiaWeb.LiveViewMountablePlug.url_project(socket)
+    _project = GlossiaWeb.LiveViewMountablePlug.url_project(socket)
 
     # content_source =
     #   ContentSources.new(project.content_source_platform, project.content_source_id)

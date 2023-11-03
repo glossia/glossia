@@ -24,13 +24,12 @@ defmodule Glossia.Localizations do
   def process_localization(localization, %{project_id: project_id} = _opts) do
     project = Projects.find_project_by_id(project_id)
 
-    content_source =
-      Glossia.ContentSources.new(project.content_source_platform, project.content_source_id)
+    content_source = Glossia.ContentSources.content_source(project.content_source_platform)
 
     version = localization.version
 
     unique_id =
-      case Glossia.ContentSources.get_content_branch_id(content_source, %{version: version}) do
+      case content_source.get_content_branch_id(project.content_source_id, %{version: version}) do
         nil -> version
         id -> id
       end

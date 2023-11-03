@@ -1,18 +1,16 @@
 defmodule Glossia.ContentSources.ContentSource do
   @type version_t :: :latest | {:version, String.t()}
 
-  @type content_source_t :: :github
-
   @doc """
   It returns the content from a content source.
 
   ## Parameters
-  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source_id` - The id that represents the project in the content source platform.
   - `content_id` - The content id. What it refers to depends on the content source. For example, in the case of a Git repository is the path to the file.
   - `version` - The version of the content. It can be `:latest` or a specific version. In the case of content sources like GitHub, it represents the commit SHA when pulling a specific version.
   """
   @callback get_content(
-              content_source :: content_source_t(),
+              content_source_id :: String.t(),
               content_id :: String.t(),
               version :: version_t
             ) ::
@@ -23,14 +21,14 @@ defmodule Glossia.ContentSources.ContentSource do
   the most recent commit sha in the default branch.
 
   ## Parameters
-  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source_id` - The id that represents the project in the content source platform.
 
   ## Examples
 
       iex> Glossia.ContentSources.GitHub.get_most_recent_version(github_content_source)
       {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback get_most_recent_version(content_source :: any()) ::
+  @callback get_most_recent_version(content_source_id :: String.t()) ::
               {:ok, String.t()} | {:error, any()}
 
   @type update_content_opts_t :: %{
@@ -45,7 +43,7 @@ defmodule Glossia.ContentSources.ContentSource do
   and including the changes in it.
 
   # Parameters
-  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source_id` - The id that represents the project in the content source platform.
   - `opts` - The options to configure the updating of the content.
 
   ## Examples
@@ -60,7 +58,7 @@ defmodule Glossia.ContentSources.ContentSource do
     })
     {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback update_content(content_source :: any(), opts :: update_content_opts_t()) ::
+  @callback update_content(content_source_id :: String.t(), opts :: update_content_opts_t()) ::
               {:ok, %{id: String.t(), url: String.t() | nil}}
               | {:error, any()}
               | {:error, :newer_version_exists}
@@ -72,13 +70,13 @@ defmodule Glossia.ContentSources.ContentSource do
   it returns the name of the branch. This is useful to be able to run updates concurrently and
   cancel running updates when new versions are available.
   """
-  @callback get_content_branch_id(content_source :: any(), opts :: get_content_branch_id_opts_t) ::
+  @callback get_content_branch_id(
+              content_source_id :: String.t(),
+              opts :: get_content_branch_id_opts_t
+            ) ::
               String.t()
 
-  @doc """
-
-  """
-  @callback get_versions(content_source :: any()) :: {:ok, [any()]} | {:error, any()}
+  @callback get_versions(content_source_id :: String.t()) :: {:ok, [any()]} | {:error, any()}
 
   @doc """
   It returns true if a version of the content should be localized. For example,
@@ -86,7 +84,7 @@ defmodule Glossia.ContentSources.ContentSource do
   not trigger a localization.
 
   # Parameters
-  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source_id` - The id that represents the project in the content source platform.
   - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
 
   # Example
@@ -94,7 +92,7 @@ defmodule Glossia.ContentSources.ContentSource do
       iex> Glossia.ContentSources.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
       false
   """
-  @callback should_localize?(content_source :: module(), version :: String.t()) :: boolean()
+  @callback should_localize?(content_source_id :: String.t(), version :: String.t()) :: boolean()
 
   @type update_status_t :: :error | :failure | :pending | :success
 
@@ -103,22 +101,21 @@ defmodule Glossia.ContentSources.ContentSource do
   it updates the status of a commit.
 
   # Parameters
-  - `content_source` - An instance of the content source module, which might contain state, for example the session information.
+  - `content_source_id` - The id that represents the project in the content source platform.
   - `state` - The state of the localization.
   - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
   - `opts` - The options to configure the updating of the state.
   """
   @callback update_state(
-              content_source :: any(),
+              content_source_id :: String.t(),
               state :: update_status_t(),
               version :: String.t(),
               opts :: [{:target_url, String.t() | nil}, {:description, String.t() | nil}]
             ) :: :ok | {:error, any()}
 
-  @callback generate_auth_token(content_source :: any()) :: {:ok, String.t()} | {:error, any()}
+  @callback generate_auth_token(content_source_id :: any()) :: {:ok, String.t()} | {:error, any()}
 
   @callback is_webhook_payload_valid?(
-              content_source :: any(),
               req_headers :: Keyword.t(),
               payload :: map()
             ) :: boolean()

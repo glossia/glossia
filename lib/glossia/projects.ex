@@ -27,9 +27,9 @@ defmodule Glossia.Projects do
     project = project |> Repo.preload(:account)
 
     content_source =
-      Glossia.ContentSources.new(project.content_source_platform, project.content_source_id)
+      Glossia.ContentSources.content_source(project.content_source_platform)
 
-    {:ok, access_token} = Glossia.ContentSources.generate_auth_token(content_source)
+    {:ok, access_token} = content_source.generate_auth_token(project.content_source_id)
 
     :ok =
       %{
