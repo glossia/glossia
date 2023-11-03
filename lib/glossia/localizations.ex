@@ -1,7 +1,6 @@
 defmodule Glossia.Localizations do
   @moduledoc false
 
-  alias Glossia.ContentSources, as: ContentSources
   alias Glossia.Localizations.Workers.LocalizeWorker
   alias Glossia.Projects
   alias Glossia.Projects.Project
@@ -26,12 +25,12 @@ defmodule Glossia.Localizations do
     project = Projects.find_project_by_id(project_id)
 
     content_source =
-      ContentSources.new(project.content_source_platform, project.content_source_id)
+      Glossia.ContentSources.new(project.content_source_platform, project.content_source_id)
 
     version = localization.version
 
     unique_id =
-      case ContentSources.get_content_branch_id(content_source, %{version: version}) do
+      case Glossia.ContentSources.get_content_branch_id(content_source, %{version: version}) do
         nil -> version
         id -> id
       end

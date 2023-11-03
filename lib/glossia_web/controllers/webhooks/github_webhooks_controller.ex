@@ -5,7 +5,6 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
 
   alias Glossia.Projects, as: Projects
   alias Glossia.Projects.Project
-  alias Glossia.ContentSources, as: ContentSources
 
   # Public
 
@@ -18,10 +17,10 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
     payload = conn.assigns.raw_body |> Jason.decode!()
     commit_sha = payload |> get_in(["after"])
     content_source_id = payload |> get_in(["repository", "full_name"])
-    content_source = ContentSources.new(:github, content_source_id)
+    content_source = Glossia.ContentSources.new(:github, content_source_id)
 
     with {:should_localize, true} <-
-           {:should_localize, ContentSources.should_localize?(content_source, commit_sha)},
+           {:should_localize, Glossia.ContentSources.should_localize?(content_source, commit_sha)},
          {:project, %Project{} = project} <-
            {:project,
             Projects.find_project_by_repository(%{

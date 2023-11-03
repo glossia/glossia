@@ -38,7 +38,7 @@ defmodule GlossiaWeb.Controllers.MarketingController do
     |> render(:privacy)
   end
 
-  def blog_post(%{request_path: slug} = conn, params) do
+  def blog_post(%{request_path: slug} = conn, _params) do
     post = Glossia.Marketing.Blog.all_posts() |> Enum.find(&(&1.slug == slug))
 
     author =

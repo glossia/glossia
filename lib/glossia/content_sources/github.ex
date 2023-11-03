@@ -179,7 +179,7 @@ defmodule Glossia.ContentSources.GitHub do
     case Tentacat.Commits.find(github.client, commit_sha, github.owner, github.repo) do
       {status, payload, _} when status in 200..299 ->
         %{"author" => %{"login" => login}} = payload
-        login != app_bot_user()
+        login != Glossia.GitHub.App.bot_handle()
 
       {_, body, _} ->
         {:error, body}
@@ -249,13 +249,9 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  def app_bot_user() do
-    Glossia.Secrets.get_in([:github, :app, :bot_user])
-  end
-
-  def app_installation_url() do
-    app_name = Glossia.Secrets.get_in([:github, :app, :name])
-    "https://github.com/apps/#{app_name}/installations/new"
+  @impl Glossia.ContentSources.ContentSource
+  def get_versions(_) do
+    {:ok, []}
   end
 
   @spec get_client_for_installation(

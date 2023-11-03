@@ -1,7 +1,6 @@
 defmodule Glossia.Builds.BuildWorker do
   @moduledoc false
   alias Glossia.Builds.Build
-  alias Glossia.ContentSources, as: ContentSources
   alias Glossia.Repo
   alias Glossia.VirtualMachine, as: VirtualMachine
   require Logger
@@ -60,9 +59,9 @@ defmodule Glossia.Builds.BuildWorker do
       Repo.insert!(Build.changeset(%Build{}, attrs))
 
     content_source =
-      ContentSources.new(String.to_atom(content_source_platform), content_source_id)
+      Glossia.ContentSources.new(String.to_atom(content_source_platform), content_source_id)
 
-    ContentSources.update_state(
+    Glossia.ContentSources.update_state(
       content_source,
       :pending,
       version,
@@ -103,7 +102,7 @@ defmodule Glossia.Builds.BuildWorker do
       end
     })
 
-    ContentSources.update_state(
+    Glossia.ContentSources.update_state(
       content_source,
       :success,
       version,

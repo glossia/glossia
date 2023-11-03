@@ -65,6 +65,11 @@ defmodule Glossia.ContentSources do
     )
   end
 
+  @impl Glossia.ContentSources.ContentSource
+  def get_versions(content_source) do
+    content_source(content_source.id).get_versions(content_source)
+  end
+
   # Private
 
   @spec content_source(id :: atom()) :: module() | nil

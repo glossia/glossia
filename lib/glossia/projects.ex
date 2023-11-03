@@ -2,7 +2,6 @@ defmodule Glossia.Projects do
   require Logger
   alias Glossia.Repo
   alias Glossia.Projects.{Project, ProjectToken}
-  alias Glossia.ContentSources, as: ContentSources
   alias Glossia.Accounts.User
   import Ecto.Query, only: [from: 2]
 
@@ -28,9 +27,9 @@ defmodule Glossia.Projects do
     project = project |> Repo.preload(:account)
 
     content_source =
-      ContentSources.new(project.content_source_platform, project.content_source_id)
+      Glossia.ContentSources.new(project.content_source_platform, project.content_source_id)
 
-    {:ok, access_token} = ContentSources.generate_auth_token(content_source)
+    {:ok, access_token} = Glossia.ContentSources.generate_auth_token(content_source)
 
     :ok =
       %{

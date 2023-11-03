@@ -9,7 +9,6 @@ defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlug do
 
   import Plug.Conn
   alias Plug.Conn
-  alias Glossia.ContentSources, as: ContentSources
 
   @spec init(Keyword.t()) :: Keyword.t()
   def init(options), do: options
@@ -17,9 +16,9 @@ defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlug do
   @spec call(Conn.t(), term()) :: Conn.t()
   def call(%Conn{method: method, request_path: "/webhooks/github"} = conn, _opts)
       when method == "POST" or method == "PUT" do
-    content_source = ContentSources.new(:github)
+    content_source = Glossia.ContentSources.new(:github)
 
-    case ContentSources.is_webhook_payload_valid?(
+    case Glossia.ContentSources.is_webhook_payload_valid?(
            content_source,
            conn.req_headers,
            conn.assigns.raw_body

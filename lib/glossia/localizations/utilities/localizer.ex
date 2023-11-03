@@ -1,7 +1,6 @@
 defmodule Glossia.Localizations.Utilities.Localizer do
   @moduledoc false
 
-  alias Glossia.ContentSources, as: ContentSources
   alias Glossia.LLMs, as: LLMs
   alias Glossia.Localizations.Utilities.Prompts
   alias Glossia.Localizations.Utilities.Parser
@@ -58,7 +57,11 @@ defmodule Glossia.Localizations.Utilities.Localizer do
 
   def localize_module(content_source, module, version) do
     {:ok, source_content} =
-      ContentSources.get_content(content_source, module[:source][:id], {:version, version})
+      Glossia.ContentSources.get_content(
+        content_source,
+        module[:source][:id],
+        {:version, version}
+      )
 
     target_updates =
       Enum.map(module[:target], fn {type, target} ->

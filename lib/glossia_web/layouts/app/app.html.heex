@@ -228,7 +228,7 @@
           <div class="space-y-4">
             <nav class="flex-1 space-y-1">
               <.link
-                href={~p"/"}
+                navigate={~p"/#{@url_project.account.handle}/#{@url_project.handle}"}
                 title=""
                 class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
               >
@@ -256,8 +256,8 @@
                 Insights
               </p>
               <nav class="flex-1 mt-4 space-y-1">
-                <a
-                  href="#"
+                <.link
+                  navigate={~p"/#{@url_project.account.handle}/#{@url_project.handle}/versions"}
                   title=""
                   class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
                 >
@@ -277,10 +277,10 @@
                     />
                   </svg>
                   Versions
-                </a>
-                <a
-                  href="#"
-                  title=""
+                </.link>
+                <.link
+                  navigate={~p"/#{@url_project.account.handle}/#{@url_project.handle}/events"}
+                  title="The project events"
                   class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
                 >
                   <svg
@@ -302,11 +302,13 @@
                   <span class="text-xs uppercase ml-auto font-semibold text-white bg-gray-500 border border-transparent rounded-full inline-flex items-center px-2 py-0.5">
                     15
                   </span>
-                </a>
+                </.link>
 
-                <a
-                  href="#"
-                  title=""
+                <.link
+                  navigate={
+                    ~p"/#{@url_project.account.handle}/#{@url_project.handle}/localizations"
+                  }
+                  title="Localizations triggered for this project"
                   class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
                 >
                   <svg
@@ -325,7 +327,7 @@
                     />
                   </svg>
                   Localizations
-                </a>
+                </.link>
               </nav>
             </div>
 
@@ -365,9 +367,9 @@
 
           <div class="pb-4 mt-12">
             <nav class="flex-1 space-y-1">
-              <a
-                href="#"
-                title=""
+              <.link
+                navigate={~p"/#{@url_project.account.handle}/#{@url_project.handle}/settings"}
+                title="The project settings"
                 class="flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-200 text-gray-900 rounded-lg hover:bg-gray-200 group"
               >
                 <svg
@@ -391,7 +393,7 @@
                   />
                 </svg>
                 Settings
-              </a>
+              </.link>
 
               <.link
                 href={~p"/auth/logout"}

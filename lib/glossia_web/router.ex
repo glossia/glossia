@@ -194,8 +194,13 @@ defmodule GlossiaWeb.Router do
     live_session :project_live_session,
       on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session} do
       live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
-      # live "/new", GlossiaWeb.LiveViews.Projects.NewLiveView
-      # live "/settings", GlossiaWeb.LiveViews.SettingsLiveView
+      live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
+      live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
+
+      live "/:owner_handle/:project_handle/localizations",
+           GlossiaWeb.LiveViews.Projects.Localizations
+
+      live "/:owner_handle/:project_handle/settings", GlossiaWeb.LiveViews.Projects.Settings
     end
   end
 
