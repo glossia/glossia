@@ -190,7 +190,8 @@ defmodule Glossia.VirtualMachine do
 
     task =
       Task.async(fn ->
-        Rambo.run("/usr/bin/env", arguments, log: &log_docker_output/1)
+        Logger.debug("Running Docker build", arguments)
+        {_stream, 0} = System.cmd("/usr/bin/env", arguments, into: IO.stream())
       end)
 
     update_status_cb.(%{
@@ -210,14 +211,6 @@ defmodule Glossia.VirtualMachine do
     })
 
     :ok
-  end
-
-  defp log_docker_output(output) do
-    output
-    |> String.split("\n")
-    |> Enum.each(fn line ->
-      Logger.info(line)
-    end)
   end
 
   @spec get_docker_env_variables() :: map()

@@ -93,7 +93,8 @@ defmodule Glossia.MixProject do
       {:inertia_phoenix, "~> 0.4.0"},
       {:redirect, "~> 0.4.0"},
       {:encrypted_secrets, "~> 0.3.0"},
-      {:bandit, "~> 1.0"}
+      {:bandit, "~> 1.0"},
+      {:neuron, "~> 5.1.0"}
     ]
   end
 

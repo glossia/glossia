@@ -49,25 +49,72 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
+  defp send_graphql_query(content_source_id, query, variables \\ %{}) do
+    {access_token, owner, repo} = get_access_token_owner_and_repo(content_source_id)
+
+    Neuron.query(
+      query,
+      Map.merge(variables, %{"owner" => owner, "repo" => repo}),
+      url: "https://api.github.com/graphql",
+      headers: [
+        authorization: "Bearer #{access_token}"
+      ]
+    )
+  end
+
   @impl Glossia.ContentSources.ContentSource
   def get_most_recent_version(content_source_id) do
-    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
-
+    {owner, repo} = get_owner_and_repo(content_source_id)
     Logger.debug("Fetching the most recent version", %{owner: owner, repo: repo})
 
-    with {:repository, {status, %{"default_branch" => default_branch}, _}} when status in 200..299 <-
-           {:repository, Tentacat.Repositories.repo_get(client, owner, repo)},
-         {:commits, {status, [most_recent_commit | _], _}} when status in 200..299 <-
-           {:commits,
-            Tentacat.get(
-              "repos/#{owner}/#{repo}/commits?#{default_branch}",
-              client
-            )} do
-      %{"sha" => commit_sha} = most_recent_commit
-      {:ok, commit_sha}
-    else
-      {:repository, {_, body, _}} -> {:error, body}
-      {:commits, {_, body, _}} -> {:error, body}
+    response =
+      send_graphql_query(
+        content_source_id,
+        """
+        query getMostRecentCommit($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
+            ref(qualifiedName: "refs/heads/main") {
+              target {
+                ... on Commit {
+                  history(first: 1) {
+                    edges {
+                      node {
+                        messageHeadline
+                        oid
+                        committedDate
+                        author {
+                          name
+                          email
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+      )
+
+    case response do
+      {:ok, %{body: body}} ->
+        %{
+          "data" => %{
+            "repository" => %{
+              "ref" => %{
+                "target" => %{
+                  "history" => %{"edges" => [%{"node" => %{"oid" => commit_sha}} | _]}
+                }
+              }
+            }
+          }
+        } = body
+
+        commit_sha
+
+      {:error, error} ->
+        error
     end
   end
 
@@ -267,32 +314,32 @@ defmodule Glossia.ContentSources.GitHub do
 
   @impl Glossia.ContentSources.ContentSource
   def get_versions(content_source_id, opts \\ []) do
-    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+    # {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
-    Logger.debug(
-      "Getting versions",
-      %{owner: owner, repo: repo}
-    )
+    # Logger.debug(
+    #   "Getting versions",
+    #   %{owner: owner, repo: repo}
+    # )
 
-    {_status, _body, _response} =
-      Tentacat.get(
-        "repos/#{owner}/#{repo}/commits",
-        client,
-        %{
-          per_page: Keyword.get(opts, :per_page, 2),
-          page: Keyword.get(opts, :page, 1)
-        }
-      )
+    # {_status, _body, _response} =
+    #   Tentacat.get(
+    #     "repos/#{owner}/#{repo}/commits",
+    #     client,
+    #     %{
+    #       per_page: Keyword.get(opts, :per_page, 2),
+    #       page: Keyword.get(opts, :page, 1)
+    #     }
+    #   )
 
     {:ok, []}
   end
 
-  @spec get_client_for_installation(
+  @spec get_access_token_for_installation(
           installation_id :: integer(),
           app_jwk_token :: String.t() | nil
         ) ::
           Tentacat.Client.t()
-  defp get_client_for_installation(installation_id, app_jwk_token) do
+  defp get_access_token_for_installation(installation_id, app_jwk_token) do
     app_jwt_token =
       if app_jwk_token != nil do
         app_jwk_token
@@ -305,7 +352,7 @@ defmodule Glossia.ContentSources.GitHub do
     {201, %{"token" => access_token}, _} =
       Tentacat.post("app/installations/#{installation_id}/access_tokens", client, %{})
 
-    %{access_token: access_token} |> Tentacat.Client.new()
+    access_token
   end
 
   defp get_owner_and_repo(content_source_id) do
@@ -313,7 +360,7 @@ defmodule Glossia.ContentSources.GitHub do
     {owner, repo}
   end
 
-  defp get_client_owner_and_repo(content_source_id) do
+  defp get_access_token_owner_and_repo(content_source_id) do
     app_jwt_token = Glossia.GitHub.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
@@ -323,7 +370,13 @@ defmodule Glossia.ContentSources.GitHub do
       )
 
     {owner, repo} = get_owner_and_repo(content_source_id)
-    client = get_client_for_installation(installation_id, app_jwt_token)
+    access_token = get_access_token_for_installation(installation_id, app_jwt_token)
+    {access_token, owner, repo}
+  end
+
+  defp get_client_owner_and_repo(content_source_id) do
+    {access_token, owner, repo} = get_access_token_owner_and_repo(content_source_id)
+    client = %{access_token: access_token} |> Tentacat.Client.new()
     {client, owner, repo}
   end
 
