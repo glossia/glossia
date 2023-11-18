@@ -1,6 +1,5 @@
 defmodule GlossiaWeb.Router do
   @moduledoc false
-  import Oban.Web.Router
   import Phoenix.Controller
   import Phoenix.LiveView.Router
   import Plug.Conn
@@ -170,7 +169,6 @@ defmodule GlossiaWeb.Router do
       :tracking
     ]
 
-    oban_dashboard("/oban")
   end
 
   scope "/auth", GlossiaWeb.Controllers do

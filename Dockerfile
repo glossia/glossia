@@ -21,8 +21,6 @@ ARG MIX_ENV="prod"
 FROM ${BUILDER_IMAGE} as builder
 
 ARG MIX_ENV="prod"
-ARG OBAN_WEB_FETCH_PUBLIC_KEY=""
-ARG OBAN_WEB_AUTH_KEY=""
 
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
@@ -43,10 +41,6 @@ ENV MIX_ENV=$MIX_ENV
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
-
-# Docker setup
-COPY scripts/docker-setup.sh ./scripts/docker-setup.sh
-RUN ./scripts/docker-setup.sh
 
 # We need to remove the Oban repo from the lockfile, otherwise it causes mix deps.get to fail
 RUN mix deps.get --only $MIX_ENV

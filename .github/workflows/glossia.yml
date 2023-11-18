@@ -15,8 +15,6 @@ env:
   OTP_VERSION: 26.1.1
   ELIXIR_VERSION: 1.15.7
   MIX_ENV: test
-  OBAN_WEB_FETCH_PUBLIC_KEY: ${{ secrets.OBAN_WEB_FETCH_PUBLIC_KEY }}
-  OBAN_WEB_AUTH_KEY: ${{ secrets.OBAN_WEB_AUTH_KEY}}
 
 jobs:
   test:
@@ -48,9 +46,6 @@ jobs:
             _site
           key: mix-${{ hashFiles('mix.lock') }}
 
-      - name: Add Oban Web repository
-        run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
-
       - run: mix deps.get
 
       - run: mix test
@@ -75,9 +70,6 @@ jobs:
             _build
             _site
           key: mix-${{ hashFiles('mix.lock') }}
-
-      - name: Add Oban Web repository
-        run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
 
       - run: mix deps.get
 
@@ -105,9 +97,6 @@ jobs:
             _site
           key: mix-${{ hashFiles('mix.lock') }}
 
-      - name: Add Oban Web repository
-        run: mix hex.repo add oban https://getoban.pro/repo --fetch-public-key $OBAN_WEB_FETCH_PUBLIC_KEY --auth-key $OBAN_WEB_AUTH_KEY;
-
       - env:
           MIX_ENV: dev
         run: mix deps.get
@@ -125,4 +114,4 @@ jobs:
         uses: ScribeMD/docker-cache@0.3.6
         with:
           key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
-      - run: docker build . -t glossia --build-arg OBAN_WEB_FETCH_PUBLIC_KEY=${{env.OBAN_WEB_FETCH_PUBLIC_KEY}} --build-arg OBAN_WEB_AUTH_KEY=${{env.OBAN_WEB_AUTH_KEY}}
+      - run: docker build . -t glossia

@@ -313,7 +313,7 @@ defmodule Glossia.ContentSources.GitHub do
   end
 
   @impl Glossia.ContentSources.ContentSource
-  def get_versions(content_source_id, opts \\ []) do
+  def get_versions(_content_source_id, _opts \\ []) do
     # {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
     # Logger.debug(

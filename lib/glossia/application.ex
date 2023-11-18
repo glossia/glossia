@@ -10,8 +10,6 @@ defmodule Glossia.Application do
 
     Oban.Telemetry.attach_default_logger()
 
-    Oban.Web.Telemetry.attach_default_logger()
-
     :telemetry.attach(
       "oban-errors",
       [:oban, :job, :exception],
