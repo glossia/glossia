@@ -62,13 +62,13 @@
             Blog
           </a>
 
-          <a
+          <%!-- <a
             href={~p"/docs"}
             title="Glossia's documentation"
             class="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
           >
             Docs
-          </a>
+          </a> --%>
 
           <a
             href="https://community.glossia.ai/"
@@ -89,7 +89,7 @@
           </a>
         </div>
 
-        <div class="hidden lg:ml-auto lg:flex lg:items-center lg:space-x-10">
+        <%!-- <div class="hidden lg:ml-auto lg:flex lg:items-center lg:space-x-10">
           <a
             href={~p"/auth/login"}
             title={if @authenticated_user, do: "Access Glossia's admin panel", else: "Log in"}
@@ -98,19 +98,19 @@
           >
             <%= if @authenticated_user, do: "Admin", else: "Log in" %>
           </a>
-        </div>
+        </div> --%>
       </div>
 
       <nav x-show="expanded" x-collapse>
         <div class="px-1 py-8">
           <div class="grid gap-y-7">
-            <a
+            <%!-- <a
               href={~p"/docs"}
               title="Glossia's documentation"
               class="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
             >
               Docs
-            </a>
+            </a> --%>
 
             <a
               href="https://community.glossia.ai/"
@@ -166,7 +166,7 @@
             </a>
           </li>
 
-          <li>
+          <%!-- <li>
             <a
               href={~p"/docs"}
               title="Glossia's documentation"
@@ -174,7 +174,7 @@
             >
               Docs
             </a>
-          </li>
+          </li> --%>
 
           <li>
             <a
