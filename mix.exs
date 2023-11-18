@@ -59,7 +59,7 @@ defmodule Glossia.MixProject do
       {:ueberauth, "~> 0.10.5"},
       {:ueberauth_github, "~> 0.8"},
       {:tentacat, "~> 2.2"},
-      {:nimble_publisher, "~> 1.0.0"},
+      {:nimble_publisher, "~> 1.1.0"},
       {:makeup_elixir, "~> 0.16.0"},
       {:makeup_erlang, "~> 0.1.0"},
       {:timex, "~> 3.0"},
