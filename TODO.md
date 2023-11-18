@@ -1,3 +1,4 @@
+- Fetch the versions using the GraphQL API
 - Fix metadata not being right
 - Add SEO card generation
 - Add documentation
