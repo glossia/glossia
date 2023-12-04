@@ -168,7 +168,6 @@ defmodule GlossiaWeb.Router do
       :ensure_authenticated_subject_can_read_admin,
       :tracking
     ]
-
   end
 
   scope "/auth", GlossiaWeb.Controllers do

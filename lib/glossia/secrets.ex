@@ -15,7 +15,6 @@ defmodule Glossia.Secrets do
   def load(env \\ Application.get_env(:glossia, :env)) do
     secrets =
       if System.get_env("MASTER_KEY") do
-        {:ok, cwd} = File.cwd()
         EncryptedSecrets.read!(System.fetch_env!("MASTER_KEY"), @key_file_location)
       else
         EncryptedSecrets.read!()
