@@ -89,6 +89,7 @@ RUN chown nobody /app
 
 # set runner ENV
 ENV MIX_ENV=$MIX_ENV
+ENV SECRETS_PATH="/app/priv/secrets/secrets.yml.enc"
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/glossia ./
