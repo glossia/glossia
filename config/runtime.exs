@@ -28,49 +28,20 @@ end
 if [:prod, :can] |> Enum.member?(config_env()) do
   # https://community.neon.tech/t/guide-on-connecting-via-ecto/75
   # https://neon.tech/docs/guides/elixir-ecto
-  database_url = System.get_env("DATABASE_URL") ||
+  database_url =
+    System.get_env("DATABASE_URL") ||
       raise """
       environment variable DATABASE_URL is missing.
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  %URI{host: database_host, userinfo: userinfo, path: path} = URI.parse(database_url)
-  [database_username, database_password] = String.split(userinfo, ":")
-  database = String.trim_leading(path, "/")
-
-  database_ca_cert_filepath =
-    System.get_env("DATABASE_CA_CERT_FILEPATH") || "deps/castore/priv/cacerts.pem"
-
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  if config_env() == :can do
-    # Fly-managed database
-    config :glossia, Glossia.Repo,
-      # ssl: true,
-      url: database_url,
-      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-      socket_options: maybe_ipv6
-  else
-    # Neon Database configuration
-    config :glossia, Glossia.Repo,
-      database: database,
-      hostname: database_host,
-      username: database_username,
-      password: database_password,
-      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-      socket_options: maybe_ipv6,
-      ssl: true,
-      ssl_opts: [
-        verify: :verify_peer,
-        cacertfile: database_ca_cert_filepath,
-        # see https://pspdfkit.com/blog/2022/using-ssl-postgresql-connections-elixir/
-        server_name_indication: to_charlist(database_host),
-        customize_hostname_check: [
-          # Our hosting provider uses a wildcard certificate. By default, Erlang does not support wildcard certificates. This function supports validating wildcard hosts
-          match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
-        ]
-      ]
-  end
+  config :glossia, Glossia.Repo,
+    # ssl: true,
+    url: database_url,
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    socket_options: maybe_ipv6
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

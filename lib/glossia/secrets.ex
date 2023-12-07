@@ -15,9 +15,13 @@ defmodule Glossia.Secrets do
 
   def load(env \\ Application.get_env(:glossia, :env)) do
     Logger.info("Loading secrets for #{env} environment")
+
     secrets =
       if System.get_env("MASTER_KEY") do
-        EncryptedSecrets.read!(System.fetch_env!("MASTER_KEY"), System.get_env("SECRETS_PATH", @secrets_file_location))
+        EncryptedSecrets.read!(
+          System.fetch_env!("MASTER_KEY"),
+          System.get_env("SECRETS_PATH", @secrets_file_location)
+        )
       else
         EncryptedSecrets.read!()
       end
