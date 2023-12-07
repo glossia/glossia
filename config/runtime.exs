@@ -28,8 +28,7 @@ end
 if [:prod, :can] |> Enum.member?(config_env()) do
   # https://community.neon.tech/t/guide-on-connecting-via-ecto/75
   # https://neon.tech/docs/guides/elixir-ecto
-  database_url =
-    Glossia.Secrets.get_in([:database_url]) || System.get_env("DATABASE_URL") ||
+  database_url = System.get_env("DATABASE_URL") ||
       raise """
       environment variable DATABASE_URL is missing.
       For example: ecto://USER:PASS@HOST/DATABASE
