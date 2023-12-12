@@ -113,7 +113,7 @@ defmodule GlossiaWeb.Components.Marketing do
           </a>
           <a
             class="text-black duration-1000 text-lg ease-in-out focus:outline-none focus:shadow-none focus:text-orange/90 hover:text-lila-900 md:my-0 px-4 py-2 transform transition"
-            href="https://community.glossia.ai/"
+            href="https://github.com/orgs/glossia/discussions"
           >
             <%= gettext("Community") %>
           </a>
@@ -209,7 +209,7 @@ defmodule GlossiaWeb.Components.Marketing do
                     <li>
                       <a
                         class="text-lg text-black hover:text-lila-400"
-                        href="https://community.glossia.ai"
+                        href="https://github.com/orgs/glossia/discussions"
                       >
                         Community
                       </a>
