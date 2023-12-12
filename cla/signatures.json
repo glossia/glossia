@@ -1,4 +1,12 @@
 {
-    "signedContributors": [
-    ]
-  }
+  "signedContributors": [
+    {
+      "name": "pepicrft",
+      "id": 663605,
+      "comment_id": 1852325014,
+      "created_at": "2023-12-12T15:58:25Z",
+      "repoId": 664201520,
+      "pullRequestNo": 140
+    }
+  ]
+}
