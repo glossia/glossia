@@ -1,0 +1,33 @@
+{
+  "emmet.includeLanguages": {
+    "phoenix-heex": "html"
+  },
+  "tailwindCSS.includeLanguages": {
+    "elixir": "html",
+    "phoenix-heex": "html"
+  },
+  "deno.enablePaths": ["priv/static/builder"],
+  "deno.config": "priv/static/builder/deno.jsonc",
+  "deno.enable": true,
+  "deno.lint": true,
+  "[typescript]": { 
+    "editor.defaultFormatter": "denoland.vscode-deno", 
+    "editor.formatOnSave": true 
+  },
+  "[javascript]": { 
+    "editor.defaultFormatter": "denoland.vscode-deno", 
+    "editor.formatOnSave": true 
+  },
+  "[elixir]": {
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "saratravi.elixir-formatter"
+  },
+  "files.associations": {
+    "*.heex": "phoenix-heex",
+  },
+  "[phoenix-heex]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "JakeBecker.elixir-ls"
+  },
+  "elixirLS.dialyzerEnabled": true
+}

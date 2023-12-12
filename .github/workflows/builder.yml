@@ -1,0 +1,55 @@
+name: Builder
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: builder-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  DENO_VERSION: "1.37.2"
+
+jobs:
+  test:
+    name: Test
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Test
+        working-directory: priv/static/builder
+        # Locking was causing issues with the Ajv so I'm disabling it temporarily
+        run: deno test -A --no-lock
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  lint:
+    name: Lint
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Lint
+        working-directory: priv/static/builder
+        run: deno lint
+  format:
+    name: Format
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+            deno-version: ${{ env.DENO_VERSION }}
+      - name: Format
+        working-directory: priv/static/builder
+        run: deno fmt --check
