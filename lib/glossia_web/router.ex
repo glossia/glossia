@@ -21,7 +21,6 @@ defmodule GlossiaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug GlossiaWeb.Auth, :load_authenticated_subject
-    plug InertiaPhoenix.Plug
   end
 
   pipeline :tracking do

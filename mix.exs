@@ -89,11 +89,11 @@ defmodule Glossia.MixProject do
       {:posthog, "~> 0.1"},
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
-      {:inertia_phoenix, "~> 0.4.0"},
       {:redirect, "~> 0.4.0"},
       {:encrypted_secrets, "~> 0.3.0"},
       {:bandit, "~> 1.0"},
-      {:neuron, "~> 5.1.0"}
+      {:neuron, "~> 5.1.0"},
+      {:lightning_css, "~> 0.4.0"}
     ]
   end
 
@@ -106,7 +106,12 @@ defmodule Glossia.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.setup": [
+        "ecto.create",
+        "ecto.migrate",
+        "run priv/repo/seeds.exs",
+        "lightning_css.install --if-missing"
+      ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
@@ -114,13 +119,15 @@ defmodule Glossia.MixProject do
         "tailwind default",
         "esbuild marketing",
         "esbuild app",
-        "esbuild docs"
+        "esbuild docs",
+        "lightning_css default"
       ],
       "assets.deploy": [
         "tailwind default --minify",
         "esbuild app --minify",
         "esbuild marketing --minify",
         "esbuild docs --minify",
+        "lightning_css default",
         "phx.digest"
       ]
     ]
