@@ -59,8 +59,8 @@ config :tailwind,
   default: [
     args: ~w(
       --config=tailwind.config.js
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
+      --input=css/tailwind.css
+      --output=../priv/static/assets/tailwind.css
     ),
     cd: Path.expand("../assets", __DIR__)
   ]
@@ -126,10 +126,12 @@ config :mime, :types, %{
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
 
-# Inertia
-config :inertia_phoenix, assets_version: 1, inertia_layout: "app.html"
-
-config :glossia, :admin_emails, [
-  "pedro@pepicrft.me",
-  "mjsesalm@gmail.com"
-]
+# Lightning CSS
+config :lightning_css,
+  version: "1.22.1",
+  default: [
+    args: ~w(assets/css/app.css --bundle --output-file=priv/static/assets/app.css),
+    watch_files: "assets/css/**/*.css",
+    cd: Path.expand("..", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
