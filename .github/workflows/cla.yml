@@ -25,3 +25,4 @@ jobs:
           path-to-signatures: 'cla/signatures.json'
           path-to-document: 'https://github.com/tuist/tuist-cloud/blob/main/cla/agreement.md'
           branch: 'main'
+          allowlist: renovate[bot],renovate*,*bot*
