@@ -8,5 +8,9 @@
       "automergeType": "pr",
       "labels": ["changelog:updated-dependencies"]
     }
-  ]
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  }
 }
