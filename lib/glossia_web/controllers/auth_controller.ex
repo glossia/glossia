@@ -78,11 +78,6 @@ defmodule GlossiaWeb.Controllers.AuthController do
   def callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
     case Auth.find_or_create(auth) do
       {:ok, user} ->
-        :ok =
-          Glossia.Motivator.motivate(
-            "The user with email #{user.email} and handle #{user.handle} has logged in."
-          )
-
         conn
         |> GlossiaWeb.Auth.log_in_user(user)
         |> put_flash(:info, "Successfully authenticated.")
