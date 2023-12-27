@@ -27,10 +27,15 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
               content_source_id: content_source_id,
               content_source_platform: :github
             })} do
-      Projects.trigger_build(project, %{
-        type: "new_content",
-        version: commit_sha
-      })
+
+              FLAME.call(Glossia.EventProcessor, fn ->
+                IO.puts "Hello world"
+              end)
+
+      # Projects.trigger_build(project, %{
+      #   type: "new_content",
+      #   version: commit_sha
+      # })
 
       json(conn, nil)
     else

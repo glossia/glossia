@@ -40,7 +40,7 @@ defmodule Glossia.Application do
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
         {Task.Supervisor, name: Glossia.TaskSupervisor},
-        {FLAME.Pool, name: GlossiaRunner, min: 1, max: 10, max_concurrency: 100}
+        {FLAME.Pool, name: Glossia.EventProcessor, min: 1, max: 10, max_concurrency: 100}
       ] ++ google_cloud_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
