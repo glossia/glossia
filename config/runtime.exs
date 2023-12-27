@@ -138,6 +138,10 @@ if [:prod, :can] |> Enum.member?(config_env()) do
       env: :prod,
       active: true
   end
+
+  # FLAME
+  config :flame, :backend, FLAME.FlyBackend
+  config :flame, FLAME.FlyBackend, token: Glossia.Secrets.get_in([:fly_token])
 end
 
 # Glossia
