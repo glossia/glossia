@@ -39,7 +39,8 @@ defmodule Glossia.Application do
         # Start a worker by calling: Glossia.Worker.start_link(arg)
         # {Glossia.Worker, arg}
         {Oban, Application.fetch_env!(:glossia, Oban)},
-        {Task.Supervisor, name: Glossia.TaskSupervisor}
+        {Task.Supervisor, name: Glossia.TaskSupervisor},
+        {FLAME.Pool, name: Glossia.EventProcessor, min: 1, max: 10, max_concurrency: 100}
       ] ++ google_cloud_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
