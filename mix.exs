@@ -93,7 +93,8 @@ defmodule Glossia.MixProject do
       {:encrypted_secrets, "~> 0.3.0"},
       {:bandit, "~> 1.0"},
       {:neuron, "~> 5.1.0"},
-      {:lightning_css, "~> 0.4.0"}
+      {:lightning_css, "~> 0.4.0"},
+      {:flame, "~> 0.1.7"}
     ]
   end
 
