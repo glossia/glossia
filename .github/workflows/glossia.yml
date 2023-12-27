@@ -14,7 +14,7 @@ concurrency:
 env:
   DEBUG: 1
   OTP_VERSION: 26.1.1
-  ELIXIR_VERSION: 1.15.7
+  ELIXIR_VERSION: 1.16.0
   MIX_ENV: test
   MASTER_KEY: ${{ secrets.MASTER_KEY }}
 
