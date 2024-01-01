@@ -4,6 +4,7 @@ defmodule GlossiaWeb.Router do
   import Phoenix.LiveView.Router
   import Plug.Conn
   import Redirect
+  import Glossia.Flavor
   use Phoenix.Router, helpers: false
 
   ##### Base pipelines #####
@@ -35,18 +36,20 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
   end
 
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :marketing, :tracking]
+  only_for_flavors [:cloud] do
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:browser, :marketing, :tracking]
 
-    get "/", MarketingController, :index
-    get "/beta", MarketingController, :beta
-    get "/about", MarketingController, :about
-    get "/team", MarketingController, :team
-    get "/beta-added", MarketingController, :beta_added
-    get "/blog", MarketingController, :blog
-    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-    get "/terms", MarketingController, :terms
-    get "/privacy", MarketingController, :privacy
+      get "/", MarketingController, :index
+      get "/beta", MarketingController, :beta
+      get "/about", MarketingController, :about
+      get "/team", MarketingController, :team
+      get "/beta-added", MarketingController, :beta_added
+      get "/blog", MarketingController, :blog
+      get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+      get "/terms", MarketingController, :terms
+      get "/privacy", MarketingController, :privacy
+    end
   end
 
   pipeline :docs do

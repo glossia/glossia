@@ -3,7 +3,7 @@ Copyright (c) 2020-present María José Salmerón Ibáñez & Pedro Piñera Buend
 Portions of this software are licensed as follows:
 
 * All content that resides under https://github.com/glossia/glossia/tree/main/lib/ee directory of this repository (Commercial License) is licensed under the license defined in "lib/ee/LICENSE".
-* All content within that resides under https://github.com/glossia/glossia/tree/main/lib/prop, unless explicitly stated otherwise, is not available for use, copying, modification, or distribution without a specific agreement with María José Salmerón Ibáñez & Pedro Piñera Buendía. Unauthorized use is strictly prohibited.
+* All content within that resides under https://github.com/glossia/glossia/tree/main/lib/cloud, unless explicitly stated otherwise, is not available for use, copying, modification, or distribution without a specific agreement with María José Salmerón Ibáñez & Pedro Piñera Buendía. Unauthorized use is strictly prohibited.
 * All third party components incorporated into the Glossia Software are licensed under the original license provided by the owner of the applicable component.
 * Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined below.
 
