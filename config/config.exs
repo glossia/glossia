@@ -131,7 +131,7 @@ config :lightning_css,
   version: "1.22.1",
   default: [
     args: ~w(assets/css/app.css --bundle --output-file=priv/static/assets/app.css),
-    watch_files: "assets/css/**/*.css",
+    watch_files: "lib/glossia_web/**/*.css",
     cd: Path.expand("..", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
