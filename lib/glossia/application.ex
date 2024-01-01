@@ -6,6 +6,8 @@ defmodule Glossia.Application do
 
   @impl true
   def start(_type, _args) do
+    flame_parent = FLAME.Parent.get()
+
     Glossia.Secrets.load()
 
     Oban.Telemetry.attach_default_logger()
@@ -19,13 +21,9 @@ defmodule Glossia.Application do
 
     children =
       [
-        # Start the Telemetry supervisor
         GlossiaWeb.Telemetry,
-        # Start the Ecto repository
         Glossia.Repo,
-        # Start the PubSub system
         {Phoenix.PubSub, name: Glossia.PubSub},
-        # Start Finch
         {Finch,
          name: Glossia.Finch,
          pools: %{
@@ -34,13 +32,16 @@ defmodule Glossia.Application do
              conn_opts: [recv_timeout: :timer.minutes(5), send_timeout: :timer.minutes(5)]
            ]
          }},
-        # Start the Endpoint (http/https)
-        GlossiaWeb.Endpoint,
-        # Start a worker by calling: Glossia.Worker.start_link(arg)
-        # {Glossia.Worker, arg}
-        {Oban, Application.fetch_env!(:glossia, Oban)},
-        {Task.Supervisor, name: Glossia.TaskSupervisor},
-        {FLAME.Pool, name: Glossia.EventProcessor, min: 1, max: 10, max_concurrency: 100}
+        {FLAME.Pool,
+         name: Glossia.EventProcessor,
+         min: 0,
+         max: 10,
+         max_concurrency: 1,
+         idle_shutdown_after: 10_000,
+         log: :debug},
+        !flame_parent && GlossiaWeb.Endpoint,
+        !flame_parent && {Oban, Application.fetch_env!(:glossia, Oban)},
+        {Task.Supervisor, name: Glossia.TaskSupervisor}
       ] ++ google_cloud_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
