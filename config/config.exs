@@ -135,3 +135,6 @@ config :lightning_css,
     cd: Path.expand("..", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
+
+# Flavor
+config :glossia, :flavor, System.get_env("GLOSSIA_FLAVOR", "cloud")

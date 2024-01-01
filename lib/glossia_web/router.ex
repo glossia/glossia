@@ -4,6 +4,7 @@ defmodule GlossiaWeb.Router do
   import Phoenix.LiveView.Router
   import Plug.Conn
   import Redirect
+  import Glossia.Flavor
   use Phoenix.Router, helpers: false
 
   ##### Base pipelines #####
@@ -35,37 +36,41 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
   end
 
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :marketing, :tracking]
+  only_for_flavors [:cloud] do
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:browser, :marketing, :tracking]
 
-    get "/", MarketingController, :index
-    get "/beta", MarketingController, :beta
-    get "/about", MarketingController, :about
-    get "/team", MarketingController, :team
-    get "/beta-added", MarketingController, :beta_added
-    get "/blog", MarketingController, :blog
-    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-    get "/terms", MarketingController, :terms
-    get "/privacy", MarketingController, :privacy
+      get "/", MarketingController, :index
+      get "/beta", MarketingController, :beta
+      get "/about", MarketingController, :about
+      get "/team", MarketingController, :team
+      get "/beta-added", MarketingController, :beta_added
+      get "/blog", MarketingController, :blog
+      get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+      get "/terms", MarketingController, :terms
+      get "/privacy", MarketingController, :privacy
+    end
   end
 
   pipeline :docs do
     plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
   end
 
-  # We read the value from the compiled docs to ensure if the slug changes the compilation of the router fails.
-  whats_glossia_docs_slug =
-    Glossia.Docs.Content.pages()
-    |> Enum.find(&(&1.slug == "users/what-is-glossia"))
-    |> Map.get(:slug)
+  only_for_flavors [:cloud] do
+    # We read the value from the compiled docs to ensure if the slug changes the compilation of the router fails.
+    whats_glossia_docs_slug =
+      Glossia.Docs.Content.pages()
+      |> Enum.find(&(&1.slug == "users/what-is-glossia"))
+      |> Map.get(:slug)
 
-  redirect("/docs", "/docs/#{whats_glossia_docs_slug}", :permanent)
+    redirect("/docs", "/docs/#{whats_glossia_docs_slug}", :permanent)
 
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :docs, :tracking]
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:browser, :docs, :tracking]
 
-    for page <- Glossia.Docs.Content.pages() do
-      get "/docs/#{page.slug}", DocsController, :show
+      for page <- Glossia.Docs.Content.pages() do
+        get "/docs/#{page.slug}", DocsController, :show
+      end
     end
   end
 
@@ -114,9 +119,11 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["xml"]
   end
 
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:rss, :tracking]
-    get "/blog/feed.xml", MarketingController, :feed
+  only_for_flavors [:cloud] do
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:rss, :tracking]
+      get "/blog/feed.xml", MarketingController, :feed
+    end
   end
 
   ##### Webhook Routes #####
