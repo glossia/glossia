@@ -4,6 +4,7 @@ on:
   schedule:
     # At 10:00 on Monday (Berlin time is UTC+1 or UTC+2 depending on daylight saving time)
     - cron: '00 08 * * 1'
+  workflow_dispatch:
 
 concurrency:
   group: release-${{ github.head_ref }}
