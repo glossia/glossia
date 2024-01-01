@@ -56,19 +56,21 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
   end
 
-  # We read the value from the compiled docs to ensure if the slug changes the compilation of the router fails.
-  whats_glossia_docs_slug =
-    Glossia.Docs.Content.pages()
-    |> Enum.find(&(&1.slug == "users/what-is-glossia"))
-    |> Map.get(:slug)
+  only_for_flavors [:cloud] do
+    # We read the value from the compiled docs to ensure if the slug changes the compilation of the router fails.
+    whats_glossia_docs_slug =
+      Glossia.Docs.Content.pages()
+      |> Enum.find(&(&1.slug == "users/what-is-glossia"))
+      |> Map.get(:slug)
 
-  redirect("/docs", "/docs/#{whats_glossia_docs_slug}", :permanent)
+    redirect("/docs", "/docs/#{whats_glossia_docs_slug}", :permanent)
 
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :docs, :tracking]
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:browser, :docs, :tracking]
 
-    for page <- Glossia.Docs.Content.pages() do
-      get "/docs/#{page.slug}", DocsController, :show
+      for page <- Glossia.Docs.Content.pages() do
+        get "/docs/#{page.slug}", DocsController, :show
+      end
     end
   end
 
@@ -117,9 +119,11 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["xml"]
   end
 
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:rss, :tracking]
-    get "/blog/feed.xml", MarketingController, :feed
+  only_for_flavors [:cloud] do
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:rss, :tracking]
+      get "/blog/feed.xml", MarketingController, :feed
+    end
   end
 
   ##### Webhook Routes #####
