@@ -2,6 +2,9 @@
 MIX_ENV = 'dev'
 GLOSSIA_FLAVOR = 'cloud'
 
+[plugins]
+elixir = "https://github.com/mise-plugins/mise-elixir"
+
 [tools]
 "elixir" = "1.16.0"
 "flyctl" = "0.1.104"

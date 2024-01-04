@@ -30,7 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
-      - run: chmod +x /home/runner/.local/share/mise/plugins/elixir/shims/mix
       - name: Restore Cache
         uses: actions/cache@v3
         id: mix-cache
@@ -49,7 +48,6 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
-      - run: chmod +x /home/runner/.local/share/mise/plugins/elixir/shims/mix
       - name: Restore Cache
         uses: actions/cache@v3
         id: mix-cache
@@ -69,7 +67,6 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
-      - run: chmod +x /home/runner/.local/share/mise/plugins/elixir/shims/mix
       - name: Restore Cache
         uses: actions/cache@v3
         id: mix-cache
