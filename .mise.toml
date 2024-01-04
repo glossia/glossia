@@ -1,5 +1,4 @@
 [env]
-MIX_ENV = 'dev'
 GLOSSIA_FLAVOR = 'cloud'
 
 [plugins]
