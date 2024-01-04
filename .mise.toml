@@ -1,0 +1,9 @@
+[env]
+MIX_ENV = 'dev'
+GLOSSIA_FLAVOR = 'cloud'
+
+[tools]
+"elixir" = "1.16.0"
+"flyctl" = "0.1.104"
+"deno" = "1.39.1"
+"erlang" = "26.2.1"
