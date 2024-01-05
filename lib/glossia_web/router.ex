@@ -7,8 +7,6 @@ defmodule GlossiaWeb.Router do
   import Glossia.Flavor
   use Phoenix.Router, helpers: false
 
-  ##### Base pipelines #####
-
   pipeline :browser do
     plug :accepts, ["html"]
 
@@ -24,6 +22,12 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Auth, :load_authenticated_subject
   end
 
+  only_for_flavors [:cloud] do
+    pipeline :docs do
+      plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
+    end
+  end
+
   pipeline :tracking do
     plug GlossiaWeb.LiveViewMountablePlug, :track_page
   end
@@ -32,8 +36,55 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.LiveViewMountablePlug, :load_url_project
   end
 
-  pipeline :marketing do
-    plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
+  only_for_flavors [:cloud] do
+    pipeline :marketing do
+      plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
+    end
+  end
+
+  pipeline :api do
+    plug :accepts, ["json"]
+
+    plug Plug.Parsers,
+      parsers: [:urlencoded, :multipart, :json],
+      pass: ["*/*"],
+      json_decoder: Phoenix.json_library()
+
+    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.APISpec
+    plug GlossiaWeb.Auth, :load_authenticated_subject
+  end
+
+  only_for_flavors [:cloud] do
+    pipeline :rss do
+      plug :accepts, ["xml"]
+    end
+  end
+
+  pipeline :webhooks do
+    plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
+    # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
+    # as it relies on the `:raw_body` being inside the `conn.assigns`.
+    plug GlossiaWeb.Plugs.ValidateGitHubWebhookPlug
+  end
+
+  pipeline :app do
+    plug :put_root_layout, html: {GlossiaWeb.Layouts.App, :root}
+  end
+
+  pipeline :ensure_authenticated_subject_present do
+    plug GlossiaWeb.Auth, :ensure_authenticated_subject_present
+  end
+
+  pipeline :ensure_authenticated_subject_can_read_admin do
+    plug Glossia.Authorization.Plug,
+      policy: Glossia.Admin,
+      action: :read,
+      subject: {GlossiaWeb.Auth, :authenticated_subject}
+  end
+
+  pipeline :project do
+    plug GlossiaWeb.LiveViewMountablePlug, :project
   end
 
   only_for_flavors [:cloud] do
@@ -50,10 +101,6 @@ defmodule GlossiaWeb.Router do
       get "/terms", MarketingController, :terms
       get "/privacy", MarketingController, :privacy
     end
-  end
-
-  pipeline :docs do
-    plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
   end
 
   only_for_flavors [:cloud] do
@@ -74,22 +121,6 @@ defmodule GlossiaWeb.Router do
     end
   end
 
-  ##### API Routes #####
-
-  pipeline :api do
-    plug :accepts, ["json"]
-
-    plug Plug.Parsers,
-      parsers: [:urlencoded, :multipart, :json],
-      pass: ["*/*"],
-      json_decoder: Phoenix.json_library()
-
-    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.APISpec
-    plug GlossiaWeb.Auth, :load_authenticated_subject
-  end
-
-  # Authenticated builder API endpoints:
-  # These endpoints authenticate and authorize the authenticated entities
   scope "/api/v1" do
     pipe_through [
       :api,
@@ -104,9 +135,7 @@ defmodule GlossiaWeb.Router do
     end
   end
 
-  # Unauthenticated builder API endpoints:
-  # There are some endpoints, like the one that returns the OpenAPI spec, that don't
-  # require being authenticated because they don't return resource-tied data.
+  # Unauthenticated endpoints
   scope "/api/v1" do
     pipe_through [:api, :tracking]
 
@@ -114,25 +143,11 @@ defmodule GlossiaWeb.Router do
     match(:*, "/*path", GlossiaWeb.Controllers.API.APIController, :not_found)
   end
 
-  ##### RSS Routes #####
-  pipeline :rss do
-    plug :accepts, ["xml"]
-  end
-
   only_for_flavors [:cloud] do
     scope "/", GlossiaWeb.Controllers do
       pipe_through [:rss, :tracking]
       get "/blog/feed.xml", MarketingController, :feed
     end
-  end
-
-  ##### Webhook Routes #####
-  pipeline :webhooks do
-    plug :accepts, ["json"]
-    plug GlossiaWeb.Plugs.RawBodyPassthroughPlug, length: 4_000_000
-    # It is important that this comes after `WebhookSignatureWeb.Plugs.RawBodyPassthrough`
-    # as it relies on the `:raw_body` being inside the `conn.assigns`.
-    plug GlossiaWeb.Plugs.ValidateGitHubWebhookPlug
   end
 
   scope "/webhooks" do
@@ -143,27 +158,6 @@ defmodule GlossiaWeb.Router do
          :github
 
     post "/stripe", GlossiaWeb.Controllers.Webhooks.StripeWebhooksController, :create
-  end
-
-  ##### App Routes #####
-
-  pipeline :app do
-    plug :put_root_layout, html: {GlossiaWeb.Layouts.App, :root}
-  end
-
-  pipeline :ensure_authenticated_subject_present do
-    plug GlossiaWeb.Auth, :ensure_authenticated_subject_present
-  end
-
-  pipeline :ensure_authenticated_subject_can_read_admin do
-    plug Glossia.Authorization.Plug,
-      policy: Glossia.Admin,
-      action: :read,
-      subject: {GlossiaWeb.Auth, :authenticated_subject}
-  end
-
-  pipeline :project do
-    plug GlossiaWeb.LiveViewMountablePlug, :project
   end
 
   scope "/admin" do
@@ -195,7 +189,8 @@ defmodule GlossiaWeb.Router do
     ]
 
     live_session :project_live_session,
-      on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session} do
+      on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session},
+      layout: {GlossiaWeb.Layouts.App, :project} do
       live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
       live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
       live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
