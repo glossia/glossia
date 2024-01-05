@@ -93,7 +93,6 @@ defmodule Glossia.MixProject do
       {:encrypted_secrets, "~> 0.3.0"},
       {:bandit, "~> 1.0"},
       {:neuron, "~> 5.1.0"},
-      {:lightning_css, "~> 0.4.0"},
       {:flame, "~> 0.1.7"}
     ]
   end
@@ -110,8 +109,7 @@ defmodule Glossia.MixProject do
       "ecto.setup": [
         "ecto.create",
         "ecto.migrate",
-        "run priv/repo/seeds.exs",
-        "lightning_css.install --if-missing"
+        "run priv/repo/seeds.exs"
       ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
@@ -120,8 +118,7 @@ defmodule Glossia.MixProject do
         "tailwind default",
         "esbuild marketing",
         "esbuild app",
-        "esbuild docs",
-        "lightning_css default"
+        "esbuild docs"
       ],
       "assets.deploy": [
         "tailwind default --minify",
