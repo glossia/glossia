@@ -125,7 +125,6 @@ defmodule Glossia.MixProject do
         "esbuild app --minify",
         "esbuild marketing --minify",
         "esbuild docs --minify",
-        "lightning_css default",
         "phx.digest"
       ]
     ]
