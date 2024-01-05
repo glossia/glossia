@@ -82,8 +82,8 @@ jobs:
       - env:
           MIX_ENV: dev
         run: mix dialyzer
-  dry_run:
-    name: Image Dry Run
+  cloud_dry_run:
+    name: Dry Run (Cloud)
     runs-on: 'ubuntu-latest'
     timeout-minutes: 15
     steps:
@@ -92,4 +92,26 @@ jobs:
         uses: ScribeMD/docker-cache@0.3.7
         with:
           key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
-      - run: docker build . -t glossia
+      - run: docker build . -t glossia_cloud --build-arg MIX_ENV=prod --build-arg GLOSSIA_FLAVOR=cloud
+  community_dry_run:
+    name: Dry Run (Community)
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.7
+        with:
+          key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia_community --build-arg MIX_ENV=prod --build-arg GLOSSIA_FLAVOR=community
+  enterprise_dry_run:
+    name: Dry Run (Enterprise)
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.7
+        with:
+          key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia_enterprise --build-arg MIX_ENV=prod --build-arg GLOSSIA_FLAVOR=enterprise
