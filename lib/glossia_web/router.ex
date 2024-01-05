@@ -135,7 +135,8 @@ defmodule GlossiaWeb.Router do
     end
   end
 
-  scope "/api/v1" do # Unauthenticated endpoints
+  # Unauthenticated endpoints
+  scope "/api/v1" do
     pipe_through [:api, :tracking]
 
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []
@@ -188,7 +189,8 @@ defmodule GlossiaWeb.Router do
     ]
 
     live_session :project_live_session,
-      on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session} do
+      on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session},
+      layout: {GlossiaWeb.Layouts.App, :project} do
       live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
       live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
       live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
