@@ -21,7 +21,7 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
 
     with {:should_localize, true} <-
            {:should_localize, content_source.should_localize?(content_source_id, commit_sha)},
-         {:project, %Project{} = project} <-
+         {:project, %Project{}} <-
            {:project,
             Projects.find_project_by_repository(%{
               content_source_id: content_source_id,
