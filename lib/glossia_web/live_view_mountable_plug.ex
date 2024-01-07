@@ -107,9 +107,13 @@ defmodule GlossiaWeb.LiveViewMountablePlug do
 
   def url_project(%Conn{} = conn), do: conn.assigns[@url_project_key]
   def url_project(%Phoenix.LiveView.Socket{} = socket), do: socket.assigns[@url_project_key]
+  def url_project(%{} = assigns), do: assigns[@url_project_key]
 
   def url_project?(%Conn{} = conn), do: conn.assigns[@url_project_key] != nil
 
   def url_project?(%Phoenix.LiveView.Socket{} = socket),
     do: socket.assigns[@url_project_key] != nil
+
+  def url_project?(%{} = assigns),
+    do: assigns[@url_project_key] != nil
 end
