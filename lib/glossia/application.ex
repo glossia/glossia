@@ -28,7 +28,11 @@ defmodule Glossia.Application do
          name: Glossia.Finch,
          pools: %{
            "https://api.openai.com" => [
-             size: 10,
+             size: 30,
+             conn_opts: [recv_timeout: :timer.minutes(5), send_timeout: :timer.minutes(5)]
+           ],
+           "https://api.github.com" => [
+             size: 30,
              conn_opts: [recv_timeout: :timer.minutes(5), send_timeout: :timer.minutes(5)]
            ]
          }},

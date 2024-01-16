@@ -46,15 +46,23 @@ defmodule Glossia.ContentSources.GitHub do
 
   defp send_graphql_query(content_source_id, query, variables \\ %{}) do
     {access_token, owner, repo} = get_access_token_owner_and_repo(content_source_id)
+    variables = variables |> Map.merge(%{"owner" => owner, "repo" => repo})
 
-    Neuron.query(
-      query,
-      Map.merge(variables, %{"owner" => owner, "repo" => repo}),
-      url: "https://api.github.com/graphql",
-      headers: [
-        authorization: "Bearer #{access_token}"
-      ]
-    )
+    body = %{
+      query: query,
+      variables: variables
+    }
+
+    headers = [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{access_token}"}]
+    request = Finch.build(:post, "https://api.github.com/graphql", headers, Jason.encode!(body))
+
+    case Finch.request(request, Glossia.Finch) do
+      {:ok, %{body: body} = response} ->
+        {:ok, response |> Map.merge(%{body: Jason.decode!(body)})}
+
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   @impl Glossia.ContentSources.ContentSource

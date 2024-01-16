@@ -128,3 +128,12 @@ import_config "#{config_env()}.exs"
 
 # Flavor
 config :glossia, :flavor, System.get_env("GLOSSIA_FLAVOR", "cloud")
+
+config :exvcr,
+  vcr_cassette_library_dir: "fixture/vcr_cassettes",
+  filter_sensitive_data: [
+    [pattern: "<PASSWORD>.+</PASSWORD>", placeholder: "PASSWORD_PLACEHOLDER"]
+  ],
+  filter_url_params: false,
+  filter_request_headers: ["Authorization"],
+  response_headers_blacklist: []

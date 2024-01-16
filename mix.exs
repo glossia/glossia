@@ -92,8 +92,8 @@ defmodule Glossia.MixProject do
       {:redirect, "~> 0.4.0"},
       {:encrypted_secrets, "~> 0.3.0"},
       {:bandit, "~> 1.0"},
-      {:neuron, "~> 5.1.0"},
-      {:flame, "~> 0.1.7"}
+      {:flame, "~> 0.1.7"},
+      {:exvcr, "~> 0.11", only: :test}
     ]
   end
 
