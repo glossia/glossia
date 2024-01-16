@@ -68,6 +68,8 @@ defmodule Glossia.ContentSources.GitHub do
   @impl Glossia.ContentSources.ContentSource
   def get_most_recent_version(content_source_id) do
     {owner, repo} = get_owner_and_repo(content_source_id)
+    {:ok, branch} = get_default_branch(content_source_id)
+
     Logger.debug("Fetching the most recent version", %{owner: owner, repo: repo})
 
     response =
@@ -76,7 +78,7 @@ defmodule Glossia.ContentSources.GitHub do
         """
         query getMostRecentCommit($owner: String!, $repo: String!) {
           repository(owner: $owner, name: $repo) {
-            ref(qualifiedName: "refs/heads/main") {
+            ref(qualifiedName: "refs/heads/#{branch}") {
               target {
                 ... on Commit {
                   history(first: 1) {
@@ -114,7 +116,7 @@ defmodule Glossia.ContentSources.GitHub do
           }
         } = body
 
-        commit_sha
+        {:ok, commit_sha}
 
       {:error, error} ->
         error
@@ -316,25 +318,60 @@ defmodule Glossia.ContentSources.GitHub do
   end
 
   @impl Glossia.ContentSources.ContentSource
-  def get_versions(_content_source_id, _opts \\ []) do
-    # {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+  def get_versions(content_source_id) do
+    {owner, repo} = get_owner_and_repo(content_source_id)
+    {:ok, branch} = get_default_branch(content_source_id)
+    Logger.debug("Fetching the most recent version", %{owner: owner, repo: repo})
 
-    # Logger.debug(
-    #   "Getting versions",
-    #   %{owner: owner, repo: repo}
-    # )
+    response =
+      send_graphql_query(
+        content_source_id,
+        """
+        query getMostRecentCommit($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
+            ref(qualifiedName: "refs/heads/#{branch}") {
+              target {
+                ... on Commit {
+                  history(first: 100) {
+                    edges {
+                      node {
+                        messageHeadline
+                        oid
+                        committedDate
+                        author {
+                          name
+                          email
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+      )
 
-    # {_status, _body, _response} =
-    #   Tentacat.get(
-    #     "repos/#{owner}/#{repo}/commits",
-    #     client,
-    #     %{
-    #       per_page: Keyword.get(opts, :per_page, 2),
-    #       page: Keyword.get(opts, :page, 1)
-    #     }
-    #   )
+    case response do
+      {:ok, %{body: body}} ->
+        %{
+          "data" => %{
+            "repository" => %{
+              "ref" => %{
+                "target" => %{
+                  "history" => %{"edges" => edges}
+                }
+              }
+            }
+          }
+        } = body
 
-    {:ok, []}
+        {:ok, edges |> Enum.map(fn %{"node" => %{"oid" => commit_sha}} -> commit_sha end)}
+
+      {:error, error} ->
+        error
+    end
   end
 
   @spec get_access_token_for_installation(
@@ -410,6 +447,41 @@ defmodule Glossia.ContentSources.GitHub do
 
   defp generate_payload_signature(payload, app_secret) do
     {:ok, :crypto.mac(:hmac, :sha, app_secret, payload) |> Base.encode16(case: :lower)}
+  end
+
+  def get_default_branch(content_source_id) do
+    {owner, repo} = get_owner_and_repo(content_source_id)
+
+    response =
+      send_graphql_query(
+        content_source_id,
+        """
+        query GetRepositoryDefaultBranch($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
+            defaultBranchRef {
+              name
+            }
+          }
+        }
+        """,
+        %{owner: owner, repo: repo}
+      )
+
+    case response do
+      {:ok, %{body: body}} ->
+        %{
+          "data" => %{
+            "repository" => %{
+              "defaultBranchRef" => %{"name" => branch}
+            }
+          }
+        } = body
+
+        {:ok, branch}
+
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   def webhook_secret do

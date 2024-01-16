@@ -2,7 +2,7 @@
   {
     "request": {
       "options": [],
-      "body": "{\"variables\":{\"owner\":\"glossia\",\"repo\":\"glossia\"},\"query\":\"query getMostRecentCommit($owner: String!, $repo: String!) {\\n  repository(owner: $owner, name: $repo) {\\n    ref(qualifiedName: \\\"refs/heads/main\\\") {\\n      target {\\n        ... on Commit {\\n          history(first: 1) {\\n            edges {\\n              node {\\n                messageHeadline\\n                oid\\n                committedDate\\n                author {\\n                  name\\n                  email\\n                }\\n              }\\n            }\\n          }\\n        }\\n      }\\n    }\\n  }\\n}\\n\"}",
+      "body": "{\"variables\":{\"owner\":\"glossia\",\"repo\":\"glossia\",\"owner\":\"glossia\",\"repo\":\"glossia\"},\"query\":\"query GetRepositoryDefaultBranch($owner: String!, $repo: String!) {\\n  repository(owner: $owner, name: $repo) {\\n    defaultBranchRef {\\n      name\\n    }\\n  }\\n}\\n\"}",
       "url": "https://api.github.com/graphql",
       "headers": {
         "Content-Type": "application/json",
@@ -14,17 +14,17 @@
     "response": {
       "binary": false,
       "type": "ok",
-      "body": "{\"data\":{\"repository\":{\"ref\":{\"target\":{\"history\":{\"edges\":[{\"node\":{\"messageHeadline\":\"[Release] Glossia 0.7.0\",\"oid\":\"bc8cd1fa2e6bf523fdafc47559315056b8fbb209\",\"committedDate\":\"2024-01-15T08:12:43Z\",\"author\":{\"name\":\"pepicrft\",\"email\":\"pepicrft@users.noreply.github.com\"}}}]}}}}}}",
+      "body": "{\"data\":{\"repository\":{\"defaultBranchRef\":{\"name\":\"main\"}}}}",
       "headers": {
         "server": "GitHub.com",
-        "date": "Tue, 16 Jan 2024 19:10:08 GMT",
+        "date": "Tue, 16 Jan 2024 19:36:10 GMT",
         "content-type": "application/json; charset=utf-8",
-        "content-length": "282",
+        "content-length": "60",
         "x-github-media-type": "github.v4; format=json",
         "x-ratelimit-limit": "5000",
-        "x-ratelimit-remaining": "4990",
+        "x-ratelimit-remaining": "4965",
         "x-ratelimit-reset": "1705434346",
-        "x-ratelimit-used": "10",
+        "x-ratelimit-used": "35",
         "x-ratelimit-resource": "graphql",
         "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
         "access-control-allow-origin": "*",
@@ -35,7 +35,7 @@
         "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
         "content-security-policy": "default-src 'none'",
         "vary": "Accept-Encoding, Accept, X-Requested-With",
-        "x-github-request-id": "ED6E:23F49E:2442493:2495D5B:65A6D490"
+        "x-github-request-id": "F028:1AC273:254255C:2599F59:65A6DAAA"
       },
       "status_code": 200
     }
