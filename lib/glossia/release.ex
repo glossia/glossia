@@ -1,5 +1,5 @@
 defmodule Glossia.Release do
-  @moduledoc """
+  @moduledoc ~S"""
   Used for executing DB release tasks when run in production without Mix
   installed.
   """

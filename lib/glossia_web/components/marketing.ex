@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.Components.Marketing do
   use GlossiaWeb.Helpers.Shared, :verified_routes
 
-  @moduledoc """
+  @moduledoc ~S"""
   It provides marketing components
   """
 
@@ -10,7 +10,7 @@ defmodule GlossiaWeb.Components.Marketing do
 
   attr :class, :string, default: "", required: false
 
-  @doc """
+  @doc ~S"""
   It returns the <head> child elements to load the fonts necessary for the marketing pages.
   """
   def head_fonts(assigns) do
@@ -25,7 +25,7 @@ defmodule GlossiaWeb.Components.Marketing do
     """
   end
 
-  @doc """
+  @doc ~S"""
   It returns <head> elements for the Atom and RSS feeds.
   """
   def head_feeds(assigns) do

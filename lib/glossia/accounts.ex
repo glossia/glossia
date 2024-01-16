@@ -136,7 +136,7 @@ defmodule Glossia.Accounts do
     :ok
   end
 
-  @doc """
+  @doc ~S"""
   It finds the account with the given handle.
   When not found, it returns nil.
   """

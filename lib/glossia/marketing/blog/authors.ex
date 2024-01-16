@@ -1,7 +1,7 @@
 defmodule Glossia.Marketing.Blog.Authors do
   alias Glossia.Marketing.Blog.Author
 
-  @moduledoc """
+  @moduledoc ~S"""
   An interface that provides all the authors
   """
   @all_authors "priv/blog/authors.json"

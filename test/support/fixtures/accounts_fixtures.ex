@@ -1,5 +1,5 @@
 defmodule Glossia.AccountsFixtures do
-  @moduledoc """
+  @moduledoc ~S"""
   This module defines test helpers for creating
   entities via the `Glossia.Accounts` context.
   """
@@ -17,7 +17,7 @@ defmodule Glossia.AccountsFixtures do
     })
   end
 
-  @doc """
+  @doc ~S"""
   It returns a unique identifier that can be used as a handle when
   creating user or organization accounts.
   """

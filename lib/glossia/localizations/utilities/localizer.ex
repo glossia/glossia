@@ -60,7 +60,7 @@ defmodule Glossia.Localizations.Utilities.Localizer do
       content_source.get_content(
         content_source_id,
         module[:source][:id],
-        {:version, version}
+        version
       )
 
     target_updates =

@@ -1,5 +1,5 @@
 defmodule Glossia.Accounts.User do
-  @moduledoc """
+  @moduledoc ~S"""
   A struct that represents the users table.
   """
   use Glossia.DatabaseSchema
@@ -41,7 +41,7 @@ defmodule Glossia.Accounts.User do
     timestamps()
   end
 
-  @doc """
+  @doc ~S"""
   A user changeset for registration.
 
   It is important to validate the length of both email and password.
@@ -117,7 +117,7 @@ defmodule Glossia.Accounts.User do
     end
   end
 
-  @doc """
+  @doc ~S"""
   A user changeset for changing the email.
 
   It requires the email to change otherwise an error is added.
@@ -132,7 +132,7 @@ defmodule Glossia.Accounts.User do
     end
   end
 
-  @doc """
+  @doc ~S"""
   A user changeset for changing the password.
 
   ## Options
@@ -151,7 +151,7 @@ defmodule Glossia.Accounts.User do
     |> validate_password(opts)
   end
 
-  @doc """
+  @doc ~S"""
   Confirms the account by setting `confirmed_at`.
   """
   def confirm_changeset(user) do
@@ -159,7 +159,7 @@ defmodule Glossia.Accounts.User do
     change(user, confirmed_at: now)
   end
 
-  @doc """
+  @doc ~S"""
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call
@@ -178,7 +178,7 @@ defmodule Glossia.Accounts.User do
     false
   end
 
-  @doc """
+  @doc ~S"""
   Validates the current password otherwise adds an error to the changeset.
   """
   def validate_current_password(changeset, password) do

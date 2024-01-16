@@ -26,7 +26,7 @@ defmodule Glossia.Accounts.Credentials do
     timestamps()
   end
 
-  @doc """
+  @doc ~S"""
   It returns the default changeset for the credentials table.
   """
   @spec changeset(credentials :: any(), attrs :: map()) ::

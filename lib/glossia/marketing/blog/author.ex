@@ -1,5 +1,5 @@
 defmodule Glossia.Marketing.Blog.Author do
-  @moduledoc """
+  @moduledoc ~S"""
   A struct that represents a blog author.
   """
   use TypedStruct

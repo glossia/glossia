@@ -16,7 +16,7 @@ defmodule Glossia.Payments.Billing do
   end
 
   defbehaviour do
-    @doc """
+    @doc ~S"""
     Creates a new payment session and returns the URL to redirect the user to.
     """
     @callback manage_url(customer_id :: String.t(), opts :: Keyword.t()) :: String.t()

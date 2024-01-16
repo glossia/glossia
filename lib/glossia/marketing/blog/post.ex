@@ -1,5 +1,5 @@
 defmodule Glossia.Marketing.Blog.Post do
-  @moduledoc """
+  @moduledoc ~S"""
   A struct that represents a blog post.
   """
 

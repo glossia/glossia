@@ -1,5 +1,5 @@
 defmodule Glossia.Accounts.UserNotifier do
-  @moduledoc """
+  @moduledoc ~S"""
   A module with utilities to send notifications to the user.
   """
   import Swoosh.Email
@@ -20,7 +20,7 @@ defmodule Glossia.Accounts.UserNotifier do
     end
   end
 
-  @doc """
+  @doc ~S"""
   Deliver instructions to confirm account.
   """
   def deliver_confirmation_instructions(user, url) do
@@ -40,7 +40,7 @@ defmodule Glossia.Accounts.UserNotifier do
     """)
   end
 
-  @doc """
+  @doc ~S"""
   Deliver instructions to reset a user password.
   """
   def deliver_reset_password_instructions(user, url) do
@@ -60,7 +60,7 @@ defmodule Glossia.Accounts.UserNotifier do
     """)
   end
 
-  @doc """
+  @doc ~S"""
   Deliver instructions to update a user email.
   """
   def deliver_update_email_instructions(user, url) do

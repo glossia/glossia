@@ -236,7 +236,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a modal.
 
   ## Examples
@@ -306,7 +306,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders flash notices.
 
   ## Examples
@@ -351,7 +351,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Shows the flash group with standard titles and content.
 
   ## Examples
@@ -392,7 +392,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a simple form.
 
   ## Examples
@@ -428,7 +428,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a button.
 
   ## Examples
@@ -458,7 +458,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,
@@ -605,7 +605,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a label.
   """
   attr :for, :string, default: nil
@@ -619,7 +619,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Generates a generic error message.
   """
   slot :inner_block, required: true
@@ -633,7 +633,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a header with title.
   """
   attr :class, :string, default: nil
@@ -736,7 +736,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a data list.
 
   ## Examples
@@ -763,7 +763,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a back navigation link.
 
   ## Examples
@@ -787,7 +787,7 @@ defmodule GlossiaWeb.Components.Shared do
     """
   end
 
-  @doc """
+  @doc ~S"""
   Renders a [Heroicon](https://heroicons.com).
 
   Heroicons come in three styles – outline, solid, and mini.
@@ -861,7 +861,7 @@ defmodule GlossiaWeb.Components.Shared do
     |> JS.pop_focus()
   end
 
-  @doc """
+  @doc ~S"""
   Translates an error message using gettext.
   """
   def translate_error({msg, opts}) do
@@ -882,7 +882,7 @@ defmodule GlossiaWeb.Components.Shared do
     end
   end
 
-  @doc """
+  @doc ~S"""
   Translates the errors for a field from a keyword list of errors.
   """
   def translate_errors(errors, field) when is_list(errors) do

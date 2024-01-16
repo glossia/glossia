@@ -97,7 +97,7 @@ defmodule Glossia.Localizations.Utilities.Parser do
     |> String.downcase()
   end
 
-  @doc """
+  @doc ~S"""
   This function parses the ouptut of the LLMs API to extract a piecen of content that's
   included between two delimiters.
   """

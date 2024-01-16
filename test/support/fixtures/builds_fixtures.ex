@@ -1,5 +1,5 @@
 defmodule Glossia.BuildsFixtures do
-  @moduledoc """
+  @moduledoc ~S"""
   This module defines test helpers for creating
   entities via the `Glossia.Localizations` context.
   """

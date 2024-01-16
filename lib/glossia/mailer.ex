@@ -1,5 +1,5 @@
 defmodule Glossia.Mailer do
-  @moduledoc """
+  @moduledoc ~S"""
   A module to deliver emails.
   """
   use Swoosh.Mailer, otp_app: :glossia

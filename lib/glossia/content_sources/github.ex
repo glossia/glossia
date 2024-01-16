@@ -18,7 +18,7 @@ defmodule Glossia.ContentSources.GitHub do
   end
 
   @impl Glossia.ContentSources.ContentSource
-  def get_content(content_source_id, file_path, {:version, commit_sha}) do
+  def get_content(content_source_id, file_path, commit_sha) do
     {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
     Logger.debug("Fetching the content of a file", %{
@@ -41,21 +41,6 @@ defmodule Glossia.ContentSources.GitHub do
 
       {_, body, _response} ->
         {:error, body}
-    end
-  end
-
-  def get_content(content_source_id, file_path, :latest) do
-    {owner, repo} = get_owner_and_repo(content_source_id)
-
-    Logger.debug("Fetching the latest content of a file", %{
-      owner: owner,
-      repo: repo,
-      file_path: file_path
-    })
-
-    case get_most_recent_version(content_source_id) do
-      {:ok, commit_sha} -> content_source_id |> get_content(file_path, {:version, commit_sha})
-      {:error, body} -> {:error, body}
     end
   end
 
@@ -308,7 +293,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @doc """
+  @doc ~S"""
   Given the request headers and the payload it validates the payload signature.
   """
   @impl Glossia.ContentSources.ContentSource

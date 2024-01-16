@@ -1,5 +1,5 @@
 defmodule Glossia.Localizations.Utilities.Hasher do
-  @moduledoc """
+  @moduledoc ~S"""
   This module represents a utility to calculate a hash deterministically from a set of values.
   If the order of the elements or their values change, the hash will change.
 

@@ -17,7 +17,7 @@ defmodule Glossia.Projects do
     )
   end
 
-  @doc """
+  @doc ~S"""
   Given a git event, it processes it.
   """
   def trigger_build(
@@ -58,7 +58,7 @@ defmodule Glossia.Projects do
     Logger.info("Ignoring event for project with id #{project.id}", opts)
   end
 
-  @doc """
+  @doc ~S"""
   Creates a new project with the given attributes.
   """
   def create_project(attrs) do
@@ -66,21 +66,21 @@ defmodule Glossia.Projects do
     changeset |> Repo.insert()
   end
 
-  @doc """
+  @doc ~S"""
   It finds a repository given the id and the vcs.
   """
   def find_project_by_repository(attrs) do
     Project.find_project_by_repository_query(attrs) |> Repo.one()
   end
 
-  @doc """
+  @doc ~S"""
   It finds a project given the id.
   """
   def find_project_by_id(id) do
     Repo.get_by(Project, id: id)
   end
 
-  @doc """
+  @doc ~S"""
   It finds a project given the owner and the project handle.
   """
   def find_project_by_owner_and_project_handle(owner, project) do
@@ -89,7 +89,7 @@ defmodule Glossia.Projects do
     |> Repo.preload(:account)
   end
 
-  @doc """
+  @doc ~S"""
   It generates a token for the given project to authenticate requests coming from builds.
   """
   def generate_token_for_project(project) do
@@ -97,7 +97,7 @@ defmodule Glossia.Projects do
     token
   end
 
-  @doc """
+  @doc ~S"""
   It generates a token for the given project id to authenticate requests coming from builds.
   """
   def generate_token_for_project_with_id(project_id) do
@@ -105,7 +105,7 @@ defmodule Glossia.Projects do
     token
   end
 
-  @doc """
+  @doc ~S"""
   It gets the project from the given token. If the project does not exist, it returns nil.
   """
   def get_project_from_token(token) do

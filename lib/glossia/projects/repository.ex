@@ -5,7 +5,7 @@ defmodule Glossia.Projects.Repository do
   alias Glossia.Projects.Project
   alias Glossia.Repo
 
-  @doc """
+  @doc ~S"""
   Given a user and a project it has last visited, it updates the user's
   last visited project.
 

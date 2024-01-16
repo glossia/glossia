@@ -9,7 +9,7 @@ defmodule Glossia.Localizations do
   # Types
   @type process_localization_opts :: %{project_id: number()}
 
-  @doc """
+  @doc ~S"""
   It processes a localization
 
   ## Parameteres
