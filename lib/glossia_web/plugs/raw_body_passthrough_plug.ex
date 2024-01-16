@@ -1,5 +1,5 @@
 defmodule GlossiaWeb.Plugs.RawBodyPassthroughPlug do
-  @moduledoc """
+  @moduledoc ~S"""
   This plug will read the body for `POST` and PUT` request and store it into a
   new assigns key `:raw_body`.
 

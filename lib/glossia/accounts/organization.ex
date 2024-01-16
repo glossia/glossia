@@ -1,5 +1,5 @@
 defmodule Glossia.Accounts.Organization do
-  @moduledoc """
+  @moduledoc ~S"""
   A struct that represents the organizations table.
   """
   use Glossia.DatabaseSchema

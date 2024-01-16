@@ -1,5 +1,5 @@
 defmodule GlossiaWeb.Layouts.Auth do
-  @moduledoc """
+  @moduledoc ~S"""
   A module that embeds all the available layouts at compile time.
   """
   use GlossiaWeb.Helpers.App, :html

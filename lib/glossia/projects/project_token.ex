@@ -14,7 +14,7 @@ defmodule Glossia.Projects.ProjectToken do
     |> add_claim("iss", fn -> "glossia" end)
   end
 
-  @doc """
+  @doc ~S"""
   Given a project it generates a token to authenticate requests to the API.
   """
   @spec generate_token_for_project_with_id(String.t()) ::

@@ -1,5 +1,5 @@
 defmodule Glossia.Accounts.UserToken do
-  @moduledoc """
+  @moduledoc ~S"""
   A model that represents the user_tokens table, which contains tokens
   associated to a given user.
   """
@@ -26,7 +26,7 @@ defmodule Glossia.Accounts.UserToken do
     timestamps(updated_at: false)
   end
 
-  @doc """
+  @doc ~S"""
   Generates a token that will be stored in a signed place,
   such as session or cookie. As they are signed, those
   tokens do not need to be hashed.
@@ -50,7 +50,7 @@ defmodule Glossia.Accounts.UserToken do
     {token, %UserToken{token: token, context: "session", user_id: user.id}}
   end
 
-  @doc """
+  @doc ~S"""
   Checks if the token is valid and returns its underlying lookup query.
 
   The query returns the user found by the token, if any.
@@ -68,7 +68,7 @@ defmodule Glossia.Accounts.UserToken do
     {:ok, query}
   end
 
-  @doc """
+  @doc ~S"""
   Builds a token and its hash to be delivered to the user's email.
 
   The non-hashed token is sent to the user email while the
@@ -98,7 +98,7 @@ defmodule Glossia.Accounts.UserToken do
      }}
   end
 
-  @doc """
+  @doc ~S"""
   Checks if the token is valid and returns its underlying lookup query.
 
   The query returns the user found by the token, if any.
@@ -133,7 +133,7 @@ defmodule Glossia.Accounts.UserToken do
   defp days_for_context("confirm"), do: @confirm_validity_in_days
   defp days_for_context("reset_password"), do: @reset_password_validity_in_days
 
-  @doc """
+  @doc ~S"""
   Checks if the token is valid and returns its underlying lookup query.
 
   The query returns the user found by the token, if any.
@@ -163,14 +163,14 @@ defmodule Glossia.Accounts.UserToken do
     end
   end
 
-  @doc """
+  @doc ~S"""
   Returns the token struct for the given token value and context.
   """
   def token_and_context_query(token, context) do
     from UserToken, where: [token: ^token, context: ^context]
   end
 
-  @doc """
+  @doc ~S"""
   Gets all tokens for the given user for the given contexts.
   """
   def user_and_contexts_query(user, :all) do

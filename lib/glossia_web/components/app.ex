@@ -1,5 +1,5 @@
 defmodule GlossiaWeb.Components.App do
-  @moduledoc """
+  @moduledoc ~S"""
   Provides core UI components.
 
   At the first glance, this module may seem daunting, but its goal is

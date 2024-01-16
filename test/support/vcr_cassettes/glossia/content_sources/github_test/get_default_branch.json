@@ -1,0 +1,43 @@
+[
+  {
+    "request": {
+      "options": [],
+      "body": "{\"variables\":{\"owner\":\"glossia\",\"repo\":\"glossia\",\"owner\":\"glossia\",\"repo\":\"glossia\"},\"query\":\"query GetRepositoryDefaultBranch($owner: String!, $repo: String!) {\\n  repository(owner: $owner, name: $repo) {\\n    defaultBranchRef {\\n      name\\n    }\\n  }\\n}\\n\"}",
+      "url": "https://api.github.com/graphql",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "***"
+      },
+      "method": "post",
+      "request_body": ""
+    },
+    "response": {
+      "binary": false,
+      "type": "ok",
+      "body": "{\"data\":{\"repository\":{\"defaultBranchRef\":{\"name\":\"main\"}}}}",
+      "headers": {
+        "server": "GitHub.com",
+        "date": "Tue, 16 Jan 2024 19:36:10 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "content-length": "60",
+        "x-github-media-type": "github.v4; format=json",
+        "x-ratelimit-limit": "5000",
+        "x-ratelimit-remaining": "4965",
+        "x-ratelimit-reset": "1705434346",
+        "x-ratelimit-used": "35",
+        "x-ratelimit-resource": "graphql",
+        "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+        "access-control-allow-origin": "*",
+        "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+        "x-frame-options": "deny",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "0",
+        "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+        "content-security-policy": "default-src 'none'",
+        "vary": "Accept-Encoding, Accept, X-Requested-With",
+        "x-github-request-id": "F028:1AC273:254255C:2599F59:65A6DAAA"
+      },
+      "status_code": 200
+    }
+  }
+]

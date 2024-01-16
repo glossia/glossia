@@ -9,7 +9,7 @@ defmodule Glossia.Payments.Customers do
   end
 
   defbehaviour do
-    @doc """
+    @doc ~S"""
     Creates a new customer.
     """
     @callback create(name :: String.t()) :: String.t()

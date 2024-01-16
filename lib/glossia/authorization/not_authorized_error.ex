@@ -1,5 +1,5 @@
 defmodule Glossia.Authorization.NotAuthorizedError do
-  @moduledoc """
+  @moduledoc ~S"""
   Raised when authorization fails.
   """
   defexception [:message, :status, :reason]

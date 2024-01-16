@@ -1,5 +1,5 @@
 defmodule GlossiaWeb.Telemetry do
-  @moduledoc """
+  @moduledoc ~S"""
   A supervisor that runs all the telemetry utilities
   """
   use Supervisor

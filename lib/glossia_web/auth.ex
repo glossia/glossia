@@ -20,7 +20,7 @@ defmodule GlossiaWeb.Auth do
     @remember_me_cookie
   end
 
-  @doc """
+  @doc ~S"""
   Logs the user in.
 
   It renews the session ID and clears the whole session

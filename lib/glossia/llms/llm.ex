@@ -24,7 +24,7 @@ defmodule Glossia.LLMs.LLM do
           }
         }
 
-  @doc """
+  @doc ~S"""
   It completes a chat conversation using the given model and messages.
 
   ## Parameters
@@ -35,7 +35,7 @@ defmodule Glossia.LLMs.LLM do
   @callback complete_chat(model :: String.t(), messages :: [chat_message()], opts :: keyword()) ::
               {:ok, chat_completion()} | {:error, any()}
 
-  @doc """
+  @doc ~S"""
   It returns true if the given model is configured, false otherwise.
   """
   @callback configured?() :: boolean()

@@ -3,7 +3,7 @@ defmodule Glossia.ContentSources do
 
   alias Glossia.ContentSources.GitHub
 
-  @doc """
+  @doc ~S"""
   Given a content source platform, it returns the module that represents it.
   """
   @spec content_source(platform :: atom()) :: module() | nil

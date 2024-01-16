@@ -55,7 +55,7 @@ defmodule Glossia.Accounts.Account do
           handle: String.t()
         }
 
-  @doc """
+  @doc ~S"""
 
   """
   @spec changeset(account :: Ecto.Schema.t(), attrs :: create_account_changeset_attrs()) ::
@@ -70,7 +70,7 @@ defmodule Glossia.Accounts.Account do
     |> unique_constraint(:handle)
   end
 
-  @doc """
+  @doc ~S"""
   Returns a list of handles that are reserved for Glossia.
   """
   @spec reserved_handles() :: [String.t()]
@@ -80,7 +80,7 @@ defmodule Glossia.Accounts.Account do
 
   # Queries
 
-  @doc """
+  @doc ~S"""
   It returns the query to find an account by its handle.
   """
   @spec account_by_handle_query(any) :: Ecto.Query.t()

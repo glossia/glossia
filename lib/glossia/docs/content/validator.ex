@@ -1,5 +1,5 @@
 defmodule Glossia.Docs.Content.Validator do
-  @moduledoc """
+  @moduledoc ~S"""
   A module that provides utilities to validate the navigation and pages at compile time.
   The validations ensure the integrity of the content and the navigation.
   """

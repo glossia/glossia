@@ -81,7 +81,7 @@
 
 <div class="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-36 md:flex relative">
   <nav class="w-60 z-40 fixed top-0 hidden md:block pt-36 pb-16 content-start overflow-y-auto leading-5">
-    <ul :for={{item, index} <- Enum.with_index(@navigation)}>
+    <ul :for={{item, _} <- Enum.with_index(@navigation)}>
       <li>
         <a class="font-medium" href="/"><%= Map.get(item, :name) %></a>
         <ul role="region" aria-abel={Map.get(item, :name)}>

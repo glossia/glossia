@@ -1,5 +1,5 @@
 defmodule Glossia.VirtualMachine do
-  @moduledoc """
+  @moduledoc ~S"""
   This module provides utilities for running the builder executable using Docker in development
   and a virtualization solution by cloud providers in the case of production.
   """
@@ -258,7 +258,7 @@ defmodule Glossia.VirtualMachine do
     ]
   end
 
-  @doc """
+  @doc ~S"""
   It returns the Docker image to use for the builder.
   """
   @spec get_docker_image() :: String.t()
@@ -266,7 +266,7 @@ defmodule Glossia.VirtualMachine do
     @docker_image_tag
   end
 
-  @doc """
+  @doc ~S"""
   It returns the directory where the builder executable is located.
   This is necessary when running local builds using Docker to mount the
   builder directory and run the executable.
@@ -277,7 +277,7 @@ defmodule Glossia.VirtualMachine do
     Path.join([app_dir, "priv", "static", "builder"])
   end
 
-  @doc """
+  @doc ~S"""
   It returns true if Docker is available in the system.
   """
   @spec docker_available?() :: boolean()

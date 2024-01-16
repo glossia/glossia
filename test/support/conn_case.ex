@@ -1,5 +1,5 @@
 defmodule Glossia.Web.ConnCase do
-  @moduledoc """
+  @moduledoc ~S"""
   This module defines the test case to be used by
   tests that require setting up a connection.
 
@@ -36,7 +36,7 @@ defmodule Glossia.Web.ConnCase do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
-  @doc """
+  @doc ~S"""
   Setup helper that registers and logs in users.
 
       setup :register_and_log_in_user
@@ -49,7 +49,7 @@ defmodule Glossia.Web.ConnCase do
     %{conn: log_in_user(conn, user), user: user}
   end
 
-  @doc """
+  @doc ~S"""
   Logs the given `user` into the `conn`.
 
   It returns an updated `conn`.

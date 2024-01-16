@@ -1,7 +1,7 @@
 defmodule Glossia.Projects.Project do
   alias Glossia.Accounts.Account
 
-  @moduledoc """
+  @moduledoc ~S"""
   A module that represents the projects table
   """
 
@@ -40,7 +40,7 @@ defmodule Glossia.Projects.Project do
 
   # Changesets
 
-  @doc """
+  @doc ~S"""
   It returns the base `Ecto.Changeset` to create and update projects.
   """
   @spec changeset(project :: any(), attrs :: map()) :: Ecto.Changeset.t()
@@ -91,7 +91,7 @@ defmodule Glossia.Projects.Project do
     )
   end
 
-  @doc """
+  @doc ~S"""
   It returns the query to find a project by its owner and project handle.
   """
   @spec find_project_by_owner_and_project_handle_query(owner :: String.t(), project :: String.t()) ::

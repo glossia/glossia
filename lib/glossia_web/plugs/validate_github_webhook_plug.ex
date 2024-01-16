@@ -1,5 +1,5 @@
 defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlug do
-  @moduledoc """
+  @moduledoc ~S"""
   This plug will verify that the payload from a webhook request matches the accompanying header signature, based on a previously shared `webhook_secret`.
 
   When the payload is verified the connection continues as normal.

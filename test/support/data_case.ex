@@ -1,5 +1,5 @@
 defmodule Glossia.DataCase do
-  @moduledoc """
+  @moduledoc ~S"""
   This module defines the setup for tests requiring
   access to the application's data layer.
 
@@ -32,7 +32,7 @@ defmodule Glossia.DataCase do
     :ok
   end
 
-  @doc """
+  @doc ~S"""
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do
@@ -44,7 +44,7 @@ defmodule Glossia.DataCase do
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
   end
 
-  @doc """
+  @doc ~S"""
   A helper that transforms changeset errors into a map of messages.
 
       assert {:error, changeset} = Accounts.create_user(%{password: "short"})
