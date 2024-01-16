@@ -93,7 +93,7 @@ defmodule Glossia.MixProject do
       {:encrypted_secrets, "~> 0.3.0"},
       {:bandit, "~> 1.0"},
       {:flame, "~> 0.1.7"},
-      {:exvcr, "~> 0.11", only: :test}
+      {:exvcr, "~> 0.15", only: :test}
     ]
   end
 
