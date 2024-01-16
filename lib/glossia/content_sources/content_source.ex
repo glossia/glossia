@@ -2,6 +2,18 @@ defmodule Glossia.ContentSources.ContentSource do
   @type version_t :: :latest | {:version, String.t()}
 
   @doc """
+  If the content source supports versioning, like GitHub through commits,
+  it returns true. Otherwise, it returns false.
+  """
+  @callback supports_versioning?() :: boolean()
+
+  @doc """
+  Different content sources name versions differently. For example, in the case of GitHub,
+  it is "commit"
+  """
+  @callback version_term() :: String.t()
+
+  @doc """
   It returns the content from a content source.
 
   ## Parameters

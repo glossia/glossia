@@ -8,6 +8,16 @@ defmodule Glossia.ContentSources.GitHub do
   # Glossia.ContentSources.ContentSource behavior
 
   @impl Glossia.ContentSources.ContentSource
+  def supports_versioning?() do
+    true
+  end
+
+  @impl Glossia.ContentSources.ContentSource
+  def version_term() do
+    "commit"
+  end
+
+  @impl Glossia.ContentSources.ContentSource
   def get_content(content_source_id, file_path, {:version, commit_sha}) do
     {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
