@@ -13,6 +13,7 @@
 #
 ARG ELIXIR_VERSION=1.16.0
 ARG OTP_VERSION=26.2.1
+ARG NODE_VERSION=20.11.0
 ARG DEBIAN_VERSION=buster-20231009-slim
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -25,8 +26,16 @@ ARG MIX_ENV="prod"
 ARG GLOSSIA_FLAVOR="community"
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
+RUN apt-get update -y && apt-get install -y build-essential curl git \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
+
+# Install Node.js and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm
+
+# Install pnpm using npm
+RUN npm install -g pnpm
 
 # prepare build dir
 WORKDIR /app
@@ -48,6 +57,10 @@ COPY mix.exs mix.lock ./
 # We need to remove the Oban repo from the lockfile, otherwise it causes mix deps.get to fail
 RUN mix deps.get --only $MIX_ENV
 RUN mkdir config
+
+# install pnpm dependencies
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
 
 # copy compile-time config files before we compile dependencies
 # to ensure any relevant config change will trigger the dependencies
