@@ -105,7 +105,7 @@ defmodule Glossia.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: ["deps.get", "cmd pnpm install", "ecto.setup", "assets.setup", "assets.build"],
       "ecto.setup": [
         "ecto.create",
         "ecto.migrate",

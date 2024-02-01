@@ -15,22 +15,22 @@ organization =
       organization
   end
 
-organization = organization |> Repo.preload(:account)
+# organization = organization |> Repo.preload(:account)
 
-project =
-  Repo.get_by(Project, content_source_id: "glossia/modulex", content_source_platform: :github)
-  |> case do
-    nil ->
-      {:ok, project} =
-        Projects.create_project(%{
-          handle: "glossia",
-          content_source_id: "glossia/glossia",
-          content_source_platform: :github,
-          account_id: organization.account.id
-        })
+# project =
+#   Repo.get_by(Project, content_source_id: "glossia/modulex", content_source_platform: :github)
+#   |> case do
+#     nil ->
+#       {:ok, project} =
+#         Projects.create_project(%{
+#           handle: "glossia",
+#           content_source_id: "glossia/glossia",
+#           content_source_platform: :github,
+#           account_id: organization.account.id
+#         })
 
-      project
+#       project
 
-    project ->
-      project
-  end
+#     project ->
+#       project
+#   end
