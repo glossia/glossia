@@ -118,7 +118,8 @@ defmodule Glossia.MixProject do
         "tailwind default",
         "esbuild marketing",
         "esbuild app",
-        "esbuild docs"
+        "esbuild docs",
+        "cmd node ./node_modules/vite/bin/vite.js build assets/ --mode production"
       ],
       "assets.deploy": [
         "tailwind default --minify",

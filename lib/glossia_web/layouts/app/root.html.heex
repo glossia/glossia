@@ -15,6 +15,32 @@
     <.head_og assigns={assigns} />
     <.head_posthog />
     <meta name="robots" content="noindex" />
+    <%= if Glossia.dev_env?() do %>
+      <script type="module">
+        import RefreshRuntime from "http://localhost:3000/@react-refresh";
+        RefreshRuntime.injectIntoGlobalHook(window);
+        window.$RefreshReg$ = () => {};
+        window.$RefreshSig$ = () => (type) => type;
+        window.__vite_plugin_react_preamble_installed__ = true;
+      </script>
+      <script type="module" src="http://localhost:3000/@vite/client">
+      </script>
+      <script type="module" src="http://localhost:3000/frontend/main.tsx">
+      </script>
+    <% else %>
+      <link
+        phx-track-static
+        rel="stylesheet"
+        href={Routes.static_path(@conn, "/assets/main.css")}
+      />
+      <script
+        defer
+        phx-track-static
+        type="text/javascript"
+        src={Routes.static_path(@conn, "/assets/main.js")}
+      >
+      </script>
+    <% end %>
   </head>
   <body class="bg-white antialiased h-full">
     <%= @inner_content %>
