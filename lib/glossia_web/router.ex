@@ -185,27 +185,6 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :browser,
       :app,
-      :project
-    ]
-
-    live_session :project_live_session,
-      on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session},
-      layout: {GlossiaWeb.Layouts.App, :project} do
-      live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
-      live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
-      live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
-
-      live "/:owner_handle/:project_handle/localizations",
-           GlossiaWeb.LiveViews.Projects.Localizations
-
-      live "/:owner_handle/:project_handle/settings", GlossiaWeb.LiveViews.Projects.Settings
-    end
-  end
-
-  scope "/" do
-    pipe_through [
-      :browser,
-      :app,
       :ensure_authenticated_subject_present,
       :tracking
     ]
@@ -232,5 +211,28 @@ defmodule GlossiaWeb.Router do
       live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  scope "/", GlossiaWeb.Controllers do
+    pipe_through [
+      :browser,
+      :app,
+      :project
+    ]
+    get "/*slug", FrontendController, :show
+
+
+    # live_session :project_live_session,
+    #   on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session},
+    #   layout: {GlossiaWeb.Layouts.App, :project} do
+    #   live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
+    #   live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
+    #   live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
+
+    #   live "/:owner_handle/:project_handle/localizations",
+    #        GlossiaWeb.LiveViews.Projects.Localizations
+
+    #   live "/:owner_handle/:project_handle/settings", GlossiaWeb.LiveViews.Projects.Settings
+    # end
   end
 end

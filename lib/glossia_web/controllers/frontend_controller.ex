@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.Controllers.ProjectController do
+defmodule GlossiaWeb.Controllers.FrontendController do
   use GlossiaWeb.Helpers.App, :controller
 
   def show(conn, _params) do

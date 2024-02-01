@@ -15,6 +15,9 @@
     <.head_og assigns={assigns} />
     <.head_posthog />
     <meta name="robots" content="noindex" />
+    <!-- Required for Polaris -->
+    <link rel="preconnect" href="https://cdn.shopify.com/" />
+    <link rel="stylesheet" href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css" />
     <%= if Glossia.dev_env?() do %>
       <script type="module">
         import RefreshRuntime from "http://localhost:3000/@react-refresh";
