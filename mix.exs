@@ -119,14 +119,15 @@ defmodule Glossia.MixProject do
         "esbuild marketing",
         "esbuild app",
         "esbuild docs",
-        "cmd node ./node_modules/vite/bin/vite.js build assets/ --mode production"
+        "cmd node ./node_modules/vite/bin/vite.js build assets/ --emptyOutDir false --mode production"
       ],
       "assets.deploy": [
         "tailwind default --minify",
         "esbuild app --minify",
         "esbuild marketing --minify",
         "esbuild docs --minify",
-        "phx.digest"
+        "cmd node ./node_modules/vite/bin/vite.js build assets/ --emptyOutDir false --minify --mode production",
+        "phx.digest",
       ]
     ]
   end
