@@ -31,7 +31,7 @@ defmodule Glossia.VirtualMachine do
         ) ::
           :ok
   def run(%{env: env, update_status_cb: update_status_cb}) do
-    if [:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)) do
+    if [:prod] |> Enum.member?(Application.get_env(:glossia, :env)) do
       run_using_google_cloud_build(env: env, update_status_cb: update_status_cb)
     else
       run_using_docker(env: env, update_status_cb: update_status_cb)
@@ -235,7 +235,7 @@ defmodule Glossia.VirtualMachine do
   @spec get_deno_args(attrs :: [env: map()]) :: [String.t()]
   defp get_deno_args(env: env) do
     path =
-      if [:prod, :can] |> Enum.member?(Application.get_env(:glossia, :env)) do
+      if [:prod] |> Enum.member?(Application.get_env(:glossia, :env)) do
         Glossia.Secrets.get_in([:url]) <> "/builder/index.ts"
       else
         "./index.ts"

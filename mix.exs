@@ -9,7 +9,7 @@ defmodule Glossia.MixProject do
       version: @version,
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
-      start_permanent: [:prod, :can] |> Enum.member?(Mix.env()),
+      start_permanent: [:prod] |> Enum.member?(Mix.env()),
       aliases: aliases(),
       deps: deps(),
       test_coverage: [ignore_modules: [~r/\.TypeEnsurer$/]]

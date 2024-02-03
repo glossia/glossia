@@ -25,7 +25,7 @@ if System.get_env("PHX_SERVER") do
   config :glossia, GlossiaWeb.Endpoint, server: true
 end
 
-if [:prod, :can] |> Enum.member?(config_env()) do
+if [:prod] |> Enum.member?(config_env()) do
   # https://community.neon.tech/t/guide-on-connecting-via-ecto/75
   # https://neon.tech/docs/guides/elixir-ecto
   database_url =
@@ -35,13 +35,28 @@ if [:prod, :can] |> Enum.member?(config_env()) do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  parsed_url = URI.parse(database_url)
+  [username, password] = parsed_url.userinfo |> String.split(":")
+
+  # Default when you create a Phoenix project
+  # maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  # config :glossia, Glossia.Repo,
+  #   # ssl: true,
+  #   url: database_url,
+  #   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+  #   socket_options: maybe_ipv6
 
   config :glossia, Glossia.Repo,
-    # ssl: true,
-    url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6
+    database: parsed_url.path |> String.replace_prefix("/", ""),
+    username: username,
+    password: password,
+    hostname: parsed_url.host,
+    ssl: true,
+    # TODO: Add proper certificate verification
+    ssl_opts: [
+      server_name_indication: to_char_list(parsed_url.host),
+      verify: :verify_none
+    ]
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
