@@ -117,14 +117,12 @@ defmodule Glossia.MixProject do
       "assets.build": [
         "tailwind default",
         "esbuild marketing",
-        "esbuild app",
-        "esbuild docs"
+        "esbuild app"
       ],
       "assets.deploy": [
         "tailwind default --minify",
         "esbuild app --minify",
         "esbuild marketing --minify",
-        "esbuild docs --minify",
         "phx.digest"
       ]
     ]
