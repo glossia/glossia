@@ -34,9 +34,9 @@ We believe **AI holds the transformative power to revolutionize the world of con
 
 This repository contains **multiple flavors of Glossia licensed under different licenses.** The following table shows the different flavors and their licenses:
 
-- **Cloud:** This is the version of Glossia hosted at [glossia.ai](https://glossia.ai). This version includes the proprietary code under `lib/cloud` and can't be self-hosted. Doing so implies a violation of the license and will be prosecuted.
-- **Community:** This is a minimal version of Glossia that can be self-hosted to continuously localize content from GitHub and GitLab repositories. This version is licensed under AGPLv3 and distributed through the [GitHub Packages Registry](https://github.com/glossia/glossia/pkgs/container/community) as a Docker image.
-- **Enterprise:** This is a more advanced version of Glossia that can be self-hosted to continuously localize content from multiple sources and using adaptative context. It's also distributed through the [GitHub Packages Registry](https://github.com/glossia/glossia/pkgs/container/community), and hosting it requires having an enterprise license.
+- **Cloud:** This is the version of Glossia hosted at [glossia.ai](https://glossia.ai). This version includes the proprietary code under `lib/cloud` and can't be self-hosted. Doing so implies a violation of the license.
+- **Community:** This is a community version of Glossia that can be self-hosted to continuously localize content from GitHub and GitLab repositories. This version is licensed under AGPLv3 and distributed through the [GitHub Packages Registry](https://github.com/glossia/glossia/pkgs/container/community) as a Docker image.
+- **Enterprise:** This is a version of Glossia with enterprise features that can be self-hosted to continuously localize content from multiple sources and using adaptative context. It's also distributed through the [GitHub Packages Registry](https://github.com/glossia/glossia/pkgs/container/community), and hosting it requires having an enterprise license.
 
 ## Development
 
