@@ -16,7 +16,7 @@ Traditionally, teams faced a tough choice: pay a premium for human translation o
 
 ## Why now
 
-At Glossia, we envision our role analogous to what [compilers](https://community.glossia.ai/t/building-a-languages-compiler/22) do for computers. Compilers translate code into binaries, transforming intricate webs of dependencies and relationships into optimized versions for specific platforms. Similarly, Glossia deciphers language, but with a unique twist.
+At Glossia, we envision our role analogous to what [compilers](https://github.com/orgs/glossia/discussions/134) do for computers. Compilers translate code into binaries, transforming intricate webs of dependencies and relationships into optimized versions for specific platforms. Similarly, Glossia deciphers language, but with a unique twist.
 
 While compilers approach code with strict logic, translating human languages isn't as straightforward. Unlike the precise rules in coding, spoken and written languages brim with cultural nuances and linguistic subtleties that often defy conventional logic. However, the advent of AI has been revolutionary. For the first time, we possess technology that can grasp these linguistic intricacies, thanks to advanced models that are continually enriched by the feedback from linguistic experts. **With AI, a 'compiler' for human languages isn't just a dream—it's our reality.**
 

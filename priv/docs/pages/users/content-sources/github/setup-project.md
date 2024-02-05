@@ -54,7 +54,7 @@ Adjust `context.source.description` to reflect the content's purpose. The `conte
 
 ## Push the configuration upstream
 
-After finalizing the configuration, push it upstream. Upon detecting the configuration file, Glossia activates continuous localization. To support incremental localizations, Glossia generates **lockfiles** in the repository, saving both time and money. Given that incremental detection occurs at the file level, we advise against using a monolithic content file. Instead, it's beneficial to modularize content in a manner similar to componentizing UI elements, positioning it as close to the UI as feasible. Dive deeper into [this approach](https://community.glossia.ai/t/configuration-of-software-projects/14) to grasp the rationale behind our recommendation.
+After finalizing the configuration, push it upstream. Upon detecting the configuration file, Glossia activates continuous localization. To support incremental localizations, Glossia generates **lockfiles** in the repository, saving both time and money. Given that incremental detection occurs at the file level, we advise against using a monolithic content file. Instead, it's beneficial to modularize content in a manner similar to componentizing UI elements, positioning it as close to the UI as feasible. Dive deeper into [this approach](https://github.com/orgs/glossia/discussions/136) to grasp the rationale behind our recommendation.
 
 > #### Modularization and coherence
 > One challenge when modularizing content alongside LLMs is maintaining consistent localizations across various content pieces and sources. We're actively addressing this by developing tools designed to capture and utilize context, whether implicit or explicit.
