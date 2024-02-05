@@ -60,5 +60,6 @@ defmodule Glossia.Web.ConnCase do
     conn
     |> Phoenix.ConnTest.init_test_session(%{})
     |> Plug.Conn.put_session(:user_token, token)
+    |> GlossiaWeb.Auth.assign_authenticated_user(user)
   end
 end

@@ -22,24 +22,12 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Auth, :load_authenticated_subject
   end
 
-  only_for_flavors [:cloud] do
-    pipeline :docs do
-      plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
-    end
-  end
-
   pipeline :tracking do
     plug GlossiaWeb.LiveViewMountablePlug, :track_page
   end
 
   pipeline :load_url_project do
     plug GlossiaWeb.LiveViewMountablePlug, :load_url_project
-  end
-
-  only_for_flavors [:cloud] do
-    pipeline :marketing do
-      plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
-    end
   end
 
   pipeline :api do
@@ -52,12 +40,6 @@ defmodule GlossiaWeb.Router do
 
     plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.APISpec
     plug GlossiaWeb.Auth, :load_authenticated_subject
-  end
-
-  only_for_flavors [:cloud] do
-    pipeline :rss do
-      plug :accepts, ["xml"]
-    end
   end
 
   pipeline :webhooks do
@@ -87,9 +69,25 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.LiveViewMountablePlug, :project
   end
 
+  pipeline :redirect_to_home_if_logged_in do
+    plug GlossiaWeb.LiveViewMountablePlug, :redirect_to_home_if_logged_in
+  end
+
   only_for_flavors [:cloud] do
+    pipeline :marketing do
+      plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
+    end
+
+    pipeline :rss do
+      plug :accepts, ["xml"]
+    end
+
+    pipeline :docs do
+      plug :put_root_layout, html: {GlossiaWeb.Layouts.Docs, :root}
+    end
+
     scope "/", GlossiaWeb.Controllers do
-      pipe_through [:browser, :marketing, :tracking]
+      pipe_through [:browser, :marketing, :tracking, :redirect_to_home_if_logged_in]
 
       get "/", MarketingController, :index
       get "/beta", MarketingController, :beta
@@ -101,9 +99,7 @@ defmodule GlossiaWeb.Router do
       get "/terms", MarketingController, :terms
       get "/privacy", MarketingController, :privacy
     end
-  end
 
-  only_for_flavors [:cloud] do
     # We read the value from the compiled docs to ensure if the slug changes the compilation of the router fails.
     whats_glossia_docs_slug =
       Glossia.Docs.Content.pages()
@@ -118,6 +114,11 @@ defmodule GlossiaWeb.Router do
       for page <- Glossia.Docs.Content.pages() do
         get "/docs/#{page.slug}", DocsController, :show
       end
+    end
+
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:rss, :tracking]
+      get "/blog/feed.xml", MarketingController, :feed
     end
   end
 
@@ -141,13 +142,6 @@ defmodule GlossiaWeb.Router do
 
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []
     match(:*, "/*path", GlossiaWeb.Controllers.API.APIController, :not_found)
-  end
-
-  only_for_flavors [:cloud] do
-    scope "/", GlossiaWeb.Controllers do
-      pipe_through [:rss, :tracking]
-      get "/blog/feed.xml", MarketingController, :feed
-    end
   end
 
   scope "/webhooks" do

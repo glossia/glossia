@@ -73,4 +73,30 @@ defmodule Glossia.AccountsTest do
       assert Glossia.Accounts.find_account_by_handle("unknown") == nil
     end
   end
+
+  describe "get_last_visited_project_for_user" do
+    test "it returns the last visited project for the user" do
+      # Given
+      user = Glossia.AccountsFixtures.user_fixture()
+      project = Glossia.ProjectsFixtures.project_fixture()
+      :ok = Accounts.update_last_visited_project_for_user(user, project)
+
+      # When
+      got_project = Accounts.get_last_visited_project_or_first_for_user(user)
+
+      # Then
+      assert got_project.id == project.id
+    end
+
+    test "it returns nil if there are no projects" do
+      # Given
+      user = Glossia.AccountsFixtures.user_fixture()
+
+      # When
+      got_project = Accounts.get_last_visited_project_or_first_for_user(user)
+
+      # Then
+      assert got_project == nil
+    end
+  end
 end
