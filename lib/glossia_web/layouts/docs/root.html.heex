@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth no-touchevents hydrated">
+  <head>
+    <.head_base />
+    <.head_og assigns={assigns} />
+    <.head_assets surface="docs" />
+    <.head_alpine />
+    <.head_posthog />
+  </head>
+  <body class="border-x-2 border-black bg-purple-200">
+    <main class="h-full bg-white">
+      <%= @inner_content %>
+    </main>
+  </body>
+</html>

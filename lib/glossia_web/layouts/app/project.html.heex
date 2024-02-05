@@ -1,0 +1,14 @@
+<% project = GlossiaWeb.LiveViewMountablePlug.url_project(assigns) %>
+<main class="flex flex-col h-full">
+  <div class="bg-red-200 py-4">Glossia</div>
+  <div class="flex flex-row flex-1 justify-stretch">
+    <div class="flex flex-col bg-green-50 py-10 px-5">
+      <a>Localize last version</a>
+      <a href={~p"/#{project.account.handle}/#{project.handle}/versions"}>Versions</a>
+      <a href={~p"/#{project.account.handle}/#{project.handle}/events"}>Events</a>
+    </div>
+    <div>
+      <%= @inner_content %>
+    </div>
+  </div>
+</main>

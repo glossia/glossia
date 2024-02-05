@@ -1,0 +1,17 @@
+{
+  "$schema": "https://glossia.ai/schemas/configuration.json",
+  "source": {
+    "language": "en"
+  },
+  "target": [
+    {
+      "language": "de"
+    },
+    {
+      "language": "es"
+    }
+  ],
+  
+  // A glob pattern to match the localizable files.
+  "files": "priv/gettext/{language}/LC_MESSAGES/*.po"
+}

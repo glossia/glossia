@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  schedule:
+    # At 10:00 on Monday (Berlin time is UTC+1 or UTC+2 depending on daylight saving time)
+    - cron: '00 08 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.head_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: read
+  statuses: write
+  packages: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+          fetch-depth: 0
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      - name: 'Get next minor version'
+        id: calculated_semvers
+        uses: "WyriHaximus/github-action-next-semvers@v1"
+        with:
+          version: ${{ steps.previoustag.outputs.tag }}
+      - name: 'Set version'
+        run: echo '::set-output name=version::${{ steps.calculated_semvers.outputs.minor }}${{ github.event.inputs.version }}'
+        id: semvers
+      - name: "Generate Changelog"
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          owner: "glossia"
+          repo: "glossia"
+          configuration: ".github/changelog-configuration.json"
+          toTag: "main"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push community image
+        uses: docker/build-push-action@94d76d3bc1409736cb5dc1ada9502bec3a72973c
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: GLOSSIA_FLAVOR=community
+          tags: ghcr.io/glossia/community:latest,ghcr.io/glossia/community:${{ steps.semvers.outputs.version }}
+          labels: localization,i18n,localization
+      - name: Build and push enterprise image
+        uses: docker/build-push-action@94d76d3bc1409736cb5dc1ada9502bec3a72973c
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: GLOSSIA_FLAVOR=enterprise
+          tags: ghcr.io/glossia/enterprise:latest,ghcr.io/glossia/enterprise:${{ steps.semvers.outputs.version }}
+          labels: localization,i18n,localization
+      - name: Commit
+        id: auto-commit-action
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_options: '--allow-empty'
+          skip_dirty_check: true
+          commit_message: "[Release] Glossia ${{ steps.semvers.outputs.version }}"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          repository: glossia/glossia
+          name: ${{ steps.semvers.outputs.version }}
+          tag_name: ${{ steps.semvers.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          target_commitish: ${{ steps.auto-commit-action.outputs.commit_hash }}

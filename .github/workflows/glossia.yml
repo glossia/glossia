@@ -1,0 +1,117 @@
+name: Glossia
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: glossia-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  MIX_ENV: test
+  MASTER_KEY: ${{ secrets.MASTER_KEY }}
+
+jobs:
+  test:
+    name: Test
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    services:
+      db:
+        image: postgres:16
+        ports: ['5432:5432']
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: jdx/mise-action@v2
+      - name: Restore Cache
+        uses: actions/cache@v3
+        id: mix-cache
+        with:
+          path: |
+            deps
+            _build
+            _site
+          key: mix-${{ hashFiles('mix.lock') }}
+      - run: mix deps.get
+      - run: mix test
+  credo:
+    name: Credo
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: jdx/mise-action@v2
+      - name: Restore Cache
+        uses: actions/cache@v3
+        id: mix-cache
+        with:
+          path: |
+            deps
+            _build
+            _site
+          key: mix-${{ hashFiles('mix.lock') }}
+      - run: mix deps.get
+      - run: mix credo
+
+  dialyzer:
+    name: Dialyzer
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: jdx/mise-action@v2
+      - name: Restore Cache
+        uses: actions/cache@v3
+        id: mix-cache
+        with:
+          path: |
+            deps
+            _build
+            _site
+          key: mix-${{ hashFiles('mix.lock') }}
+      - env:
+          MIX_ENV: dev
+        run: mix deps.get
+      - env:
+          MIX_ENV: dev
+        run: mix dialyzer
+  cloud_dry_run:
+    name: Dry Run (Cloud)
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.7
+        with:
+          key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia_cloud --build-arg MIX_ENV=prod --build-arg GLOSSIA_FLAVOR=cloud
+  community_dry_run:
+    name: Dry Run (Community)
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.7
+        with:
+          key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia_community --build-arg MIX_ENV=prod --build-arg GLOSSIA_FLAVOR=community
+  enterprise_dry_run:
+    name: Dry Run (Enterprise)
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - name: Cache Docker images.
+        uses: ScribeMD/docker-cache@0.3.7
+        with:
+          key: docker-cloud-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+      - run: docker build . -t glossia_enterprise --build-arg MIX_ENV=prod --build-arg GLOSSIA_FLAVOR=enterprise
