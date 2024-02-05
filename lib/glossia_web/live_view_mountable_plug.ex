@@ -11,13 +11,13 @@ defmodule GlossiaWeb.LiveViewMountablePlug do
   def init(:load_url_project = opts), do: opts
   def init(:track_page = opts), do: opts
   def init(:save_last_visited_project = opts), do: opts
-  def init(:redirect_to_home_if_logged_in = opts), do: opts
+  def init(:auto_redirect_from_marketing_if_logged_in = opts), do: opts
 
   def call(conn, :save_last_visited_project) do
     save_last_visited_project(conn)
   end
 
-  def call(conn, :redirect_to_home_if_logged_in) do
+  def call(conn, :auto_redirect_from_marketing_if_logged_in) do
     case GlossiaWeb.Auth.authenticated_user(conn) do
       nil ->
         conn

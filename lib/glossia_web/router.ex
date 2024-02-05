@@ -69,8 +69,8 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.LiveViewMountablePlug, :project
   end
 
-  pipeline :redirect_to_home_if_logged_in do
-    plug GlossiaWeb.LiveViewMountablePlug, :redirect_to_home_if_logged_in
+  pipeline :auto_redirect_from_marketing_if_logged_in do
+    plug GlossiaWeb.LiveViewMountablePlug, :auto_redirect_from_marketing_if_logged_in
   end
 
   only_for_flavors [:cloud] do
@@ -87,7 +87,7 @@ defmodule GlossiaWeb.Router do
     end
 
     scope "/", GlossiaWeb.Controllers do
-      pipe_through [:browser, :marketing, :tracking, :redirect_to_home_if_logged_in]
+      pipe_through [:browser, :marketing, :tracking, :auto_redirect_from_marketing_if_logged_in]
 
       get "/", MarketingController, :index
       get "/beta", MarketingController, :beta

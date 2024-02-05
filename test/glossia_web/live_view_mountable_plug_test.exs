@@ -1,10 +1,10 @@
 defmodule GlossiaWeb.LiveViewMountablePlugTest do
   use Glossia.Web.ConnCase
 
-  describe "redirect_to_home_if_logged_in plug" do
+  describe "auto_redirect_from_marketing_if_logged_in plug" do
     test "doesn't redirect if there's no authenticated user", %{conn: conn} do
       # Given
-      opts = GlossiaWeb.LiveViewMountablePlug.init(:redirect_to_home_if_logged_in)
+      opts = GlossiaWeb.LiveViewMountablePlug.init(:auto_redirect_from_marketing_if_logged_in)
 
       # When
       got = conn |> GlossiaWeb.LiveViewMountablePlug.call(opts)
@@ -17,7 +17,7 @@ defmodule GlossiaWeb.LiveViewMountablePlugTest do
       conn: conn
     } do
       # Given
-      opts = GlossiaWeb.LiveViewMountablePlug.init(:redirect_to_home_if_logged_in)
+      opts = GlossiaWeb.LiveViewMountablePlug.init(:auto_redirect_from_marketing_if_logged_in)
       %{conn: conn} = register_and_log_in_user(%{conn: conn})
 
       # When
@@ -29,7 +29,7 @@ defmodule GlossiaWeb.LiveViewMountablePlugTest do
 
     test "redirects to the most recently visited project if it exists", %{conn: conn} do
       # Given
-      opts = GlossiaWeb.LiveViewMountablePlug.init(:redirect_to_home_if_logged_in)
+      opts = GlossiaWeb.LiveViewMountablePlug.init(:auto_redirect_from_marketing_if_logged_in)
       %{conn: conn, user: user} = register_and_log_in_user(%{conn: conn})
       project = Glossia.ProjectsFixtures.project_fixture(account_id: user.account.id)
       Glossia.Accounts.update_last_visited_project_for_user(user, project)
