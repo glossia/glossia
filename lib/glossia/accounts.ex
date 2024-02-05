@@ -4,6 +4,8 @@ defmodule Glossia.Accounts do
   import Ecto.Query, warn: false
   alias Glossia.Repo
 
+  alias Glossia.Projects.Project
+
   alias Glossia.Accounts.{
     Account,
     Credentials,
@@ -209,5 +211,44 @@ defmodule Glossia.Accounts do
 
         Repo.insert!(changeset)
     end
+  end
+
+  @doc """
+  It gets the last visited project for the given user.
+
+  # Params
+  - `user` - The user for which we want to get the last visited project.
+
+  # Returns
+  - `Project.t()` - The last visited project for the user if exists.
+  """
+  @spec get_last_visited_project_or_first_for_user(User.t()) :: Project.t() | nil
+  def get_last_visited_project_or_first_for_user(user) do
+    case user.last_visited_project_id do
+      nil ->
+        Repo.one(from(p in Project, order_by: [desc: p.inserted_at])) |> Repo.preload(:account)
+
+      last_visited_project_id ->
+        Repo.get(Project, last_visited_project_id) |> Repo.preload(:account)
+    end
+  end
+
+  @doc ~S"""
+  Given a user and a project it has last visited, it updates the user's
+  last visited project.
+
+  ## Parameters
+        * `user` - The user.
+        * `project` - The project.
+  """
+  @spec update_last_visited_project_for_user(User.t(), Project.t()) :: :ok
+  def update_last_visited_project_for_user(user, project) do
+    {:ok, _} =
+      Repo.update(
+        user
+        |> Ecto.Changeset.cast(%{last_visited_project_id: project.id}, [:last_visited_project_id])
+      )
+
+    :ok
   end
 end
