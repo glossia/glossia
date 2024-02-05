@@ -87,9 +87,20 @@ defmodule GlossiaWeb.Router do
     end
 
     scope "/", GlossiaWeb.Controllers do
-      pipe_through [:browser, :marketing, :tracking, :auto_redirect_from_marketing_if_logged_in]
+      pipe_through [
+        :browser,
+        :marketing,
+        :tracking,
+        # We automatically redirect when visiting "/" and being logged in.
+        :auto_redirect_from_marketing_if_logged_in
+      ]
 
       get "/", MarketingController, :index
+    end
+
+    scope "/", GlossiaWeb.Controllers do
+      pipe_through [:browser, :marketing, :tracking]
+
       get "/beta", MarketingController, :beta
       get "/about", MarketingController, :about
       get "/team", MarketingController, :team
