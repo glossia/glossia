@@ -1,23 +1,23 @@
-defmodule Glossia.ContentSources.GitHub do
+defmodule Glossia.ContentSources.Platforms.GitHub do
   @moduledoc false
 
   require Logger
 
-  @behaviour Glossia.ContentSources.ContentSource
+  @behaviour Glossia.ContentSources.Platform
 
-  # Glossia.ContentSources.ContentSource behavior
+  # Glossia.ContentSources.Platform behavior
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def supports_versioning?() do
     true
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def version_term() do
     "commit"
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def get_content(content_source_id, file_path, commit_sha) do
     {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
@@ -65,7 +65,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def get_most_recent_version(content_source_id) do
     {owner, repo} = get_owner_and_repo(content_source_id)
     {:ok, branch} = get_default_branch(content_source_id)
@@ -123,7 +123,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def update_content(
         _content_source_id,
         %{
@@ -133,7 +133,7 @@ defmodule Glossia.ContentSources.GitHub do
     # Noop
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def update_content(
         content_source_id,
         %{
@@ -197,7 +197,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def get_content_branch_id(content_source_id, %{version: commit_sha} = opts) do
     {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
@@ -221,7 +221,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def should_localize?(content_source_id, commit_sha) do
     {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
@@ -240,7 +240,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def update_state(content_source_id, state, commit_sha, opts \\ []) do
     {client, owner, repo} = get_client_owner_and_repo(content_source_id)
 
@@ -273,7 +273,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def generate_auth_token(content_source_id) do
     {owner, repo} = get_owner_and_repo(content_source_id)
 
@@ -303,10 +303,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @doc ~S"""
-  Given the request headers and the payload it validates the payload signature.
-  """
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -317,7 +314,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def get_versions(content_source_id) do
     {owner, repo} = get_owner_and_repo(content_source_id)
     {:ok, branch} = get_default_branch(content_source_id)

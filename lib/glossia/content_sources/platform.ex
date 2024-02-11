@@ -1,4 +1,4 @@
-defmodule Glossia.ContentSources.ContentSource do
+defmodule Glossia.ContentSources.Platform do
   @moduledoc ~S"""
   This module defines the behaviour of a content source. A content source is a platform
   that Glossia can establish a CRUD interface with to localize content. To understand this
@@ -42,7 +42,7 @@ defmodule Glossia.ContentSources.ContentSource do
 
   ## Examples
 
-      iex> Glossia.ContentSources.GitHub.get_most_recent_version(github_content_source)
+      iex> Glossia.ContentSources.Platforms.GitHub.get_most_recent_version(github_content_source)
       {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
   @callback get_most_recent_version(content_source_id :: String.t()) ::
@@ -80,7 +80,7 @@ defmodule Glossia.ContentSources.ContentSource do
 
   ## Examples
 
-    iex> Glossia.ContentSources.GitHub.update_content(github_content_source, %{
+    iex> Glossia.ContentSources.Platforms.GitHub.update_content(github_content_source, %{
       title: "My new title",
       description: "My new description",
       version: "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67",
@@ -119,7 +119,7 @@ defmodule Glossia.ContentSources.ContentSource do
 
   # Example
 
-      iex> Glossia.ContentSources.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
+      iex> Glossia.ContentSources.Platforms.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
       false
   """
   @callback should_localize?(content_source_id :: String.t(), version :: String.t()) :: boolean()

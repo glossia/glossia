@@ -1,6 +1,6 @@
-defmodule Glossia.ContentSources.GitHubTest do
+defmodule Glossia.ContentSources.Platforms.GitHubTest do
   use ExUnit.Case, async: true
-  import Glossia.ContentSources.GitHub
+  import Glossia.ContentSources.Platforms.GitHub
   use ExVCR.Mock, adapter: ExVCR.Adapter.Finch
 
   test "supports_versioning? returns true" do
@@ -16,7 +16,7 @@ defmodule Glossia.ContentSources.GitHubTest do
     response =
       use_cassette "glossia/content_sources/github_test/get_most_recent_version",
         match_requests_on: [:request_body] do
-        Glossia.ContentSources.GitHub.get_most_recent_version("glossia/glossia")
+        Glossia.ContentSources.Platforms.GitHub.get_most_recent_version("glossia/glossia")
       end
 
     # Then
@@ -28,7 +28,7 @@ defmodule Glossia.ContentSources.GitHubTest do
     response =
       use_cassette "glossia/content_sources/github_test/get_versions",
         match_requests_on: [:request_body] do
-        Glossia.ContentSources.GitHub.get_versions("glossia/glossia")
+        Glossia.ContentSources.Platforms.GitHub.get_versions("glossia/glossia")
       end
 
     # Then
@@ -40,7 +40,7 @@ defmodule Glossia.ContentSources.GitHubTest do
     response =
       use_cassette "glossia/content_sources/github_test/get_default_branch",
         match_requests_on: [:request_body] do
-        Glossia.ContentSources.GitHub.get_default_branch("glossia/glossia")
+        Glossia.ContentSources.Platforms.GitHub.get_default_branch("glossia/glossia")
       end
 
     # Then

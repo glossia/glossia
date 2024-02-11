@@ -29,7 +29,7 @@ defmodule GlossiaWeb.Plugs.ValidateGitHubWebhookPlugTest do
     # Given
     opts = ValidateGitHubWebhookPlug.init([])
     payload = "payload"
-    secret = Glossia.ContentSources.GitHub.webhook_secret()
+    secret = Glossia.ContentSources.Platforms.GitHub.webhook_secret()
     signature = :crypto.mac(:hmac, :sha, secret, payload) |> Base.encode16(case: :lower)
 
     conn =
