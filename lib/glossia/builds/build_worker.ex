@@ -16,8 +16,8 @@ defmodule Glossia.Builds.BuildWorker do
           "project_id" => project_id,
           "type" => type,
           "version" => version,
-          "id_in_content_source_platform" => id_in_content_source_platform,
-          "content_source_platform" => content_source_platform,
+          "id_in_content_platform" => id_in_content_platform,
+          "content_platform" => content_platform,
           "project_handle" => project_handle,
           "account_handle" => account_handle
         }
@@ -33,8 +33,8 @@ defmodule Glossia.Builds.BuildWorker do
           project_id: project_id,
           project_handle: project_handle,
           account_handle: account_handle,
-          id_in_content_source_platform: id_in_content_source_platform,
-          content_source_platform: content_source_platform,
+          id_in_content_platform: id_in_content_platform,
+          content_platform: content_platform,
           content_source_access_token: content_source_access_token
         })
 
@@ -45,8 +45,8 @@ defmodule Glossia.Builds.BuildWorker do
 
   def trigger_build(
         %{
-          id_in_content_source_platform: id_in_content_source_platform,
-          content_source_platform: content_source_platform,
+          id_in_content_platform: id_in_content_platform,
+          content_platform: content_platform,
           version: version,
           access_token: access_token,
           content_source_access_token: content_source_access_token,
@@ -58,11 +58,11 @@ defmodule Glossia.Builds.BuildWorker do
     build =
       Repo.insert!(Build.changeset(%Build{}, attrs))
 
-    content_source_platform_module =
-      Glossia.ContentSources.get_platform_module(String.to_atom(content_source_platform))
+    content_platform_module =
+      Glossia.ContentSources.get_platform_module(String.to_atom(content_platform))
 
-    content_source_platform_module.update_state(
-      id_in_content_source_platform,
+    content_platform_module.update_state(
+      id_in_content_platform,
       :pending,
       version,
       target_url: "",
@@ -82,8 +82,8 @@ defmodule Glossia.Builds.BuildWorker do
         GLOSSIA_BUILD_VERSION: build.version,
 
         # Content Source
-        GLOSSIA_ID_IN_CONTENT_SOURCE_PLATFORM: id_in_content_source_platform,
-        GLOSSIA_CONTENT_SOURCE_PLATFORM: content_source_platform,
+        GLOSSIA_id_in_content_platform: id_in_content_platform,
+        GLOSSIA_content_platform: content_platform,
         GLOSSIA_CONTENT_SOURCE_ACCESS_TOKEN: content_source_access_token
       },
       update_status_cb: fn %{
@@ -102,8 +102,8 @@ defmodule Glossia.Builds.BuildWorker do
       end
     })
 
-    content_source_platform_module.update_state(
-      id_in_content_source_platform,
+    content_platform_module.update_state(
+      id_in_content_platform,
       :success,
       version,
       target_url: "",

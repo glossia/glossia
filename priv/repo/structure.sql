@@ -225,8 +225,8 @@ CREATE TABLE public.projects (
     id uuid NOT NULL,
     handle public.citext NOT NULL,
     account_id uuid NOT NULL,
-    id_in_content_source_platform public.citext NOT NULL,
-    content_source_platform integer NOT NULL,
+    id_in_content_platform public.citext NOT NULL,
+    content_platform integer NOT NULL,
     inserted_at timestamp(0) without time zone NOT NULL,
     updated_at timestamp(0) without time zone NOT NULL,
     visibility integer DEFAULT 1 NOT NULL
@@ -440,10 +440,10 @@ CREATE UNIQUE INDEX projects_handle_account_id_index ON public.projects USING bt
 
 
 --
--- Name: projects_id_in_content_source_platform_content_source_platform_; Type: INDEX; Schema: public; Owner: -
+-- Name: projects_id_in_content_platform_content_platform_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX projects_id_in_content_source_platform_content_source_platform_ ON public.projects USING btree (id_in_content_source_platform, content_source_platform);
+CREATE UNIQUE INDEX projects_id_in_content_platform_content_platform_index ON public.projects USING btree (id_in_content_platform, content_platform);
 
 
 --

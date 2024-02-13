@@ -16,15 +16,15 @@ defmodule Glossia.Localizations.Workers.LocalizeWorker do
     version = localization[:version]
     project = Projects.find_project_by_id(job.args["project_id"])
 
-    content_source_platform_module =
-      Glossia.ContentSources.get_platform_module(project.content_source_platform)
+    content_platform_module =
+      Glossia.ContentSources.get_platform_module(project.content_platform)
 
     content_changes = Parser.parse_localization(localization)
 
     _content_updates =
       Localizer.localize(
-        content_source_platform_module,
-        project.id_in_content_source_platform,
+        content_platform_module,
+        project.id_in_content_platform,
         version,
         content_changes
       )

@@ -19,16 +19,16 @@ organization = organization |> Repo.preload(:account)
 
 project =
   Repo.get_by(Project,
-    id_in_content_source_platform: "glossia/modulex",
-    content_source_platform: :github
+    id_in_content_platform: "glossia/modulex",
+    content_platform: :github
   )
   |> case do
     nil ->
       {:ok, project} =
         Projects.create_project(%{
           handle: "glossia",
-          id_in_content_source_platform: "glossia/glossia",
-          content_source_platform: :github,
+          id_in_content_platform: "glossia/glossia",
+          content_platform: :github,
           account_id: organization.account.id
         })
 

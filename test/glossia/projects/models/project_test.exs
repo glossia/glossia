@@ -9,8 +9,8 @@ defmodule Glossia.Projects.ProjectTest do
       project = %Project{}
 
       attrs = %{
-        id_in_content_source_platform: "glossia/glossia",
-        content_source_platform: :github,
+        id_in_content_platform: "glossia/glossia",
+        content_platform: :github,
         account_id: 1
       }
 
@@ -25,14 +25,14 @@ defmodule Glossia.Projects.ProjectTest do
     test "validates that repository_id is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", content_source_platform: :github, account_id: 1}
+      attrs = %{handle: "glossia", content_platform: :github, account_id: 1}
 
       # When
       changeset = Project.changeset(project, attrs)
 
       # Then
       errors = errors_on(changeset)
-      assert %{id_in_content_source_platform: ["This attribute is required"]} = errors
+      assert %{id_in_content_platform: ["This attribute is required"]} = errors
     end
 
     test "validates that vcs is required" do
@@ -41,7 +41,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        id_in_content_source_platform: "glossia/glossia",
+        id_in_content_platform: "glossia/glossia",
         account_id: 1
       }
 
@@ -50,7 +50,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{content_source_platform: ["This attribute is required"]} = errors
+      assert %{content_platform: ["This attribute is required"]} = errors
     end
 
     test "validates that account_id is required" do
@@ -59,8 +59,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        id_in_content_source_platform: "glossia/glossia",
-        content_source_platform: :github
+        id_in_content_platform: "glossia/glossia",
+        content_platform: :github
       }
 
       # When
@@ -77,8 +77,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        id_in_content_source_platform: "glossia/glossia",
-        content_source_platform: :invalid_vcs,
+        id_in_content_platform: "glossia/glossia",
+        content_platform: :invalid_vcs,
         account_id: 1
       }
 
@@ -87,7 +87,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{content_source_platform: ["is invalid"]} = errors
+      assert %{content_platform: ["is invalid"]} = errors
     end
 
     test "validates that handle is alphanumeric" do
@@ -96,8 +96,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "invalid handle",
-        id_in_content_source_platform: "glossia/glossia",
-        content_source_platform: :github,
+        id_in_content_platform: "glossia/glossia",
+        content_platform: :github,
         account_id: 1
       }
 
@@ -115,8 +115,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "a",
-        id_in_content_source_platform: "glossia/glossia",
-        content_source_platform: :github,
+        id_in_content_platform: "glossia/glossia",
+        content_platform: :github,
         account_id: 1
       }
 
@@ -134,8 +134,8 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "aasdgasgasgdasdgasdgasgasdgasgsags",
-        id_in_content_source_platform: "glossia/glossia",
-        content_source_platform: :github,
+        id_in_content_platform: "glossia/glossia",
+        content_platform: :github,
         account_id: 1
       }
 
@@ -147,12 +147,12 @@ defmodule Glossia.Projects.ProjectTest do
       assert %{handle: ["The length should be between 3 and 20 characters"]} = errors
     end
 
-    test "validates the inclusion of content_source_platform in the supported types" do
+    test "validates the inclusion of content_platform in the supported types" do
       # Given
       project = %Project{}
 
       attrs = %{
-        content_source_platform: :invalid
+        content_platform: :invalid
       }
 
       # When
@@ -160,7 +160,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{content_source_platform: ["is invalid"]} = errors
+      assert %{content_platform: ["is invalid"]} = errors
     end
   end
 end

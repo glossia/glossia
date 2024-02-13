@@ -29,7 +29,7 @@ defmodule Glossia.Builds.Build do
 
   schema "builds" do
     field :version, :string
-    field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
+    field :content_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
     field :vm_logs_url, :string
     field :markdown_error_message, :string
@@ -62,7 +62,7 @@ defmodule Glossia.Builds.Build do
     event
     |> cast(attrs, [
       :version,
-      :content_source_platform,
+      :content_platform,
       :project_id,
       :status,
       :vm_id,
@@ -72,12 +72,12 @@ defmodule Glossia.Builds.Build do
     ])
     |> validate_required([
       :version,
-      :content_source_platform,
+      :content_platform,
       :project_id,
       :status,
       :type
     ])
-    |> validate_inclusion(:content_source_platform, [:github])
+    |> validate_inclusion(:content_platform, [:github])
     |> validate_inclusion(:type, [:new_version])
     |> validate_inclusion(:status, [
       :status_unknown,
