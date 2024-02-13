@@ -58,10 +58,10 @@ defmodule Glossia.Builds.BuildWorker do
     build =
       Repo.insert!(Build.changeset(%Build{}, attrs))
 
-    content_source =
-      Glossia.ContentSources.content_source(String.to_atom(content_source_platform))
+    content_source_platform_module =
+      Glossia.ContentSources.get_platform_module(String.to_atom(content_source_platform))
 
-    content_source.update_state(
+    content_source_platform_module.update_state(
       id_in_content_source_platform,
       :pending,
       version,
@@ -102,7 +102,7 @@ defmodule Glossia.Builds.BuildWorker do
       end
     })
 
-    content_source.update_state(
+    content_source_platform_module.update_state(
       id_in_content_source_platform,
       :success,
       version,

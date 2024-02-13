@@ -17,11 +17,11 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
     payload = conn.assigns.raw_body |> Jason.decode!()
     commit_sha = payload |> get_in(["after"])
     id_in_content_source_platform = payload |> get_in(["repository", "full_name"])
-    content_source = Glossia.ContentSources.content_source(:github)
+    content_source_platform_module = Glossia.ContentSources.get_platform_module(:github)
 
     with {:should_localize, true} <-
            {:should_localize,
-            content_source.should_localize?(id_in_content_source_platform, commit_sha)},
+           content_source_platform_module.should_localize?(id_in_content_source_platform, commit_sha)},
          {:project, %Project{}} <-
            {:project,
             Projects.find_project_by_repository(%{
