@@ -12,6 +12,12 @@ importers:
         specifier: 1.0.0-rc.42
         version: 1.0.0-rc.42(@algolia/client-search@4.22.1)(search-insights@2.13.0)
 
+  handbook:
+    devDependencies:
+      vitepress:
+        specifier: 1.0.0-rc.42
+        version: 1.0.0-rc.42(@algolia/client-search@4.22.1)(search-insights@2.13.0)
+
 packages:
 
   /@algolia/autocomplete-core@1.9.3(@algolia/client-search@4.22.1)(algoliasearch@4.22.1)(search-insights@2.13.0):
