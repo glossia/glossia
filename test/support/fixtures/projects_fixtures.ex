@@ -30,7 +30,7 @@ defmodule Glossia.ProjectsFixtures do
   defp project_fixture_default_attrs() do
     %{
       handle: "handle#{Glossia.TestHelpers.unique_integer()}",
-      content_source_id:
+      id_in_content_source_platform:
         "#{Glossia.TestHelpers.unique_integer()}/#{Glossia.TestHelpers.unique_integer()}",
       content_source_platform: :github,
       account_id: 1

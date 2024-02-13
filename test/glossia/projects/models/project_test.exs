@@ -9,7 +9,7 @@ defmodule Glossia.Projects.ProjectTest do
       project = %Project{}
 
       attrs = %{
-        content_source_id: "glossia/glossia",
+        id_in_content_source_platform: "glossia/glossia",
         content_source_platform: :github,
         account_id: 1
       }
@@ -32,13 +32,18 @@ defmodule Glossia.Projects.ProjectTest do
 
       # Then
       errors = errors_on(changeset)
-      assert %{content_source_id: ["This attribute is required"]} = errors
+      assert %{id_in_content_source_platform: ["This attribute is required"]} = errors
     end
 
     test "validates that vcs is required" do
       # Given
       project = %Project{}
-      attrs = %{handle: "glossia", content_source_id: "glossia/glossia", account_id: 1}
+
+      attrs = %{
+        handle: "glossia",
+        id_in_content_source_platform: "glossia/glossia",
+        account_id: 1
+      }
 
       # When
       changeset = Project.changeset(project, attrs)
@@ -54,7 +59,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        content_source_id: "glossia/glossia",
+        id_in_content_source_platform: "glossia/glossia",
         content_source_platform: :github
       }
 
@@ -72,7 +77,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "glossia",
-        content_source_id: "glossia/glossia",
+        id_in_content_source_platform: "glossia/glossia",
         content_source_platform: :invalid_vcs,
         account_id: 1
       }
@@ -91,7 +96,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "invalid handle",
-        content_source_id: "glossia/glossia",
+        id_in_content_source_platform: "glossia/glossia",
         content_source_platform: :github,
         account_id: 1
       }
@@ -110,7 +115,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "a",
-        content_source_id: "glossia/glossia",
+        id_in_content_source_platform: "glossia/glossia",
         content_source_platform: :github,
         account_id: 1
       }
@@ -129,7 +134,7 @@ defmodule Glossia.Projects.ProjectTest do
 
       attrs = %{
         handle: "aasdgasgasgdasdgasdgasgasdgasgsags",
-        content_source_id: "glossia/glossia",
+        id_in_content_source_platform: "glossia/glossia",
         content_source_platform: :github,
         account_id: 1
       }

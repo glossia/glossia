@@ -16,7 +16,7 @@ defmodule Glossia.Builds.BuildWorker do
           "project_id" => project_id,
           "type" => type,
           "version" => version,
-          "content_source_id" => content_source_id,
+          "id_in_content_source_platform" => id_in_content_source_platform,
           "content_source_platform" => content_source_platform,
           "project_handle" => project_handle,
           "account_handle" => account_handle
@@ -33,7 +33,7 @@ defmodule Glossia.Builds.BuildWorker do
           project_id: project_id,
           project_handle: project_handle,
           account_handle: account_handle,
-          content_source_id: content_source_id,
+          id_in_content_source_platform: id_in_content_source_platform,
           content_source_platform: content_source_platform,
           content_source_access_token: content_source_access_token
         })
@@ -45,7 +45,7 @@ defmodule Glossia.Builds.BuildWorker do
 
   def trigger_build(
         %{
-          content_source_id: content_source_id,
+          id_in_content_source_platform: id_in_content_source_platform,
           content_source_platform: content_source_platform,
           version: version,
           access_token: access_token,
@@ -62,7 +62,7 @@ defmodule Glossia.Builds.BuildWorker do
       Glossia.ContentSources.content_source(String.to_atom(content_source_platform))
 
     content_source.update_state(
-      content_source_id,
+      id_in_content_source_platform,
       :pending,
       version,
       target_url: "",
@@ -82,7 +82,7 @@ defmodule Glossia.Builds.BuildWorker do
         GLOSSIA_BUILD_VERSION: build.version,
 
         # Content Source
-        GLOSSIA_CONTENT_SOURCE_ID: content_source_id,
+        GLOSSIA_ID_IN_CONTENT_SOURCE_PLATFORM: id_in_content_source_platform,
         GLOSSIA_CONTENT_SOURCE_PLATFORM: content_source_platform,
         GLOSSIA_CONTENT_SOURCE_ACCESS_TOKEN: content_source_access_token
       },
@@ -103,7 +103,7 @@ defmodule Glossia.Builds.BuildWorker do
     })
 
     content_source.update_state(
-      content_source_id,
+      id_in_content_source_platform,
       :success,
       version,
       target_url: "",

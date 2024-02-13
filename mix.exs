@@ -111,6 +111,7 @@ defmodule Glossia.MixProject do
         "ecto.migrate",
         "run priv/repo/seeds.exs"
       ],
+      "ecto.migrate": ["ecto.migrate", "ecto.dump"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],

@@ -1,8 +1,8 @@
 import {
   getBuildVersion,
   getContentSourceAccessToken,
-  getContentSourceId,
   getContentSourcePlatform,
+  getIDInContentSourcePlatform,
 } from "./environment.ts";
 
 // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
@@ -13,23 +13,29 @@ export async function cloneGitRepository(
     root: root,
     gitCommitSHA: getBuildVersion()!,
     gitAccessToken: getContentSourceAccessToken()!,
-    vcsPlatform: getContentSourcePlatform()!,
-    vcsId: getContentSourceId()!,
+    contentSourcePlatform: getContentSourcePlatform()!,
+    idInContentSourcePlatform: getIDInContentSourcePlatform()!,
   });
 }
 
 export async function clone(
-  { root, gitAccessToken, vcsPlatform, vcsId, gitCommitSHA }: {
+  {
+    root,
+    gitAccessToken,
+    contentSourcePlatform,
+    idInContentSourcePlatform,
+    gitCommitSHA,
+  }: {
     root: string;
     gitCommitSHA: string | undefined;
     gitAccessToken: string | undefined;
-    vcsPlatform: string;
-    vcsId: string;
+    contentSourcePlatform: string;
+    idInContentSourcePlatform: string;
   },
 ) {
   const remoteURL = gitAccessToken
-    ? `https://x-access-token:${gitAccessToken}@${vcsPlatform}.com/${vcsId}.git`
-    : `https://${vcsPlatform}.com/${vcsId}.git`;
+    ? `https://x-access-token:${gitAccessToken}@${contentSourcePlatform}.com/${idInContentSourcePlatform}.git`
+    : `https://${contentSourcePlatform}.com/${idInContentSourcePlatform}.git`;
   console.log(`Cloning ${remoteURL}`);
   const cloneArgs = ["git", "clone", remoteURL, root, "--filter=tree:0"];
   console.log("Running:", cloneArgs.join(" "));

@@ -11,7 +11,7 @@ defmodule Glossia.Projects.Project do
           handle: String.t(),
           account: Account.t() | nil,
           visibility: visibility(),
-          content_source_id: String.t(),
+          id_in_content_source_platform: String.t(),
           content_source_platform: content_source_platform()
         }
   @type visibility :: :public | :private
@@ -29,7 +29,7 @@ defmodule Glossia.Projects.Project do
 
   schema "projects" do
     field :handle, :string
-    field :content_source_id, :string
+    field :id_in_content_source_platform, :string
     field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
@@ -48,7 +48,7 @@ defmodule Glossia.Projects.Project do
     project
     |> cast(attrs, [
       :handle,
-      :content_source_id,
+      :id_in_content_source_platform,
       :content_source_platform,
       :account_id,
       :visibility
@@ -56,7 +56,7 @@ defmodule Glossia.Projects.Project do
     |> validate_required(
       [
         :handle,
-        :content_source_id,
+        :id_in_content_source_platform,
         :content_source_platform,
         :account_id
       ],
@@ -72,7 +72,7 @@ defmodule Glossia.Projects.Project do
     |> unique_constraint([:handle, :account_id],
       message: "There's already a project with the same handle"
     )
-    |> unique_constraint([:content_source_id, :content_source_platform],
+    |> unique_constraint([:id_in_content_source_platform, :content_source_platform],
       message: "There's already a project with the same repository"
     )
     |> assoc_constraint(:account)
@@ -82,11 +82,11 @@ defmodule Glossia.Projects.Project do
 
   def find_project_by_repository_query(%{
         content_source_platform: content_source_platform,
-        content_source_id: content_source_id
+        id_in_content_source_platform: id_in_content_source_platform
       }) do
     from(p in __MODULE__,
       where:
-        p.content_source_id == ^content_source_id and
+        p.id_in_content_source_platform == ^id_in_content_source_platform and
           p.content_source_platform == ^content_source_platform
     )
   end

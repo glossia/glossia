@@ -19,11 +19,15 @@ defmodule Glossia.Localizations.Workers.LocalizeWorker do
     content_source =
       Glossia.ContentSources.content_source(project.content_source_platform)
 
-    # project.content_source_id
     content_changes = Parser.parse_localization(localization)
 
     _content_updates =
-      Localizer.localize(content_source, project.content_source_id, version, content_changes)
+      Localizer.localize(
+        content_source,
+        project.id_in_content_source_platform,
+        version,
+        content_changes
+      )
 
     :ok
     # content_source

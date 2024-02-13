@@ -16,15 +16,16 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
   defp github_event(conn, "push") do
     payload = conn.assigns.raw_body |> Jason.decode!()
     commit_sha = payload |> get_in(["after"])
-    content_source_id = payload |> get_in(["repository", "full_name"])
+    id_in_content_source_platform = payload |> get_in(["repository", "full_name"])
     content_source = Glossia.ContentSources.content_source(:github)
 
     with {:should_localize, true} <-
-           {:should_localize, content_source.should_localize?(content_source_id, commit_sha)},
+           {:should_localize,
+            content_source.should_localize?(id_in_content_source_platform, commit_sha)},
          {:project, %Project{}} <-
            {:project,
             Projects.find_project_by_repository(%{
-              content_source_id: content_source_id,
+              id_in_content_source_platform: id_in_content_source_platform,
               content_source_platform: :github
             })} do
       FLAME.call(Glossia.EventProcessor, fn ->
