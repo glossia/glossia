@@ -1,11 +1,11 @@
 defmodule GlossiaWeb.Controllers.DocsController do
-  use GlossiaWeb.Helpers.Docs, :controller
-  alias Glossia.Docs.Content
+  use GlossiaWeb.Helpers.Marketing, :controller
 
-  @spec show(Plug.Conn.t(), any()) :: Plug.Conn.t()
-  def show(%{request_path: request_path} = conn, _params) do
-    slug = request_path |> String.replace("/docs/", "")
-    page = Content.pages() |> Enum.find(fn page -> page.slug == slug end)
-    conn |> assign(:navigation, Content.navigation()) |> assign(:page, page) |> render(:show)
+  @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
+  def index(%{request_path: _} = conn, _params) do
+    priv_dir = :code.priv_dir(:glossia)
+    index_path = Path.join([priv_dir, "static", "docs/index.html"])
+
+    conn |> put_resp_content_type("text/html") |> send_file(200, index_path)
   end
 end
