@@ -2,6 +2,7 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: "/docs",
   title: "Glossia Documentation",
   description:
     "In these pages you'll find documentation for users and contributors.",
@@ -9,21 +10,21 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: "Home", link: "/" },
-      { text: "Examples", link: "/markdown-examples" },
+      { text: "GitHub", link: "https://github.com/glossia" },
     ],
 
     sidebar: [
       {
-        text: "Examples",
+        text: "Glossia",
         items: [
-          { text: "Markdown Examples", link: "/markdown-examples" },
-          { text: "Runtime API Examples", link: "/api-examples" },
+          { text: "What is Glossia", link: "/index" },
         ],
       },
     ],
 
     socialLinks: [
-      { icon: "github", link: "https://github.com/vuejs/vitepress" },
+      { icon: "github", link: "https://github.com/glossia/glossia" },
+      { icon: "x", link: "https://x.com/glossiaai" },
     ],
   },
 });
