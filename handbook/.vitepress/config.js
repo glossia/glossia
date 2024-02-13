@@ -2,9 +2,9 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Glossia Documentation",
+  title: "Glossia Handbook",
   description:
-    "In these pages you'll find documentation for users and contributors.",
+    "In these pages you'll find the blueprint for the Glossia project.",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
