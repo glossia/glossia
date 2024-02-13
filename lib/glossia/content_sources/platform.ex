@@ -1,4 +1,4 @@
-defmodule Glossia.ContentSources.ContentSource do
+defmodule Glossia.ContentSources.Platform do
   @moduledoc ~S"""
   This module defines the behaviour of a content source. A content source is a platform
   that Glossia can establish a CRUD interface with to localize content. To understand this
@@ -23,9 +23,10 @@ defmodule Glossia.ContentSources.ContentSource do
   It returns the versions of the project in the content source.
 
   ## Parameters
-  - `content_source_id` - The ID that represents the project in the content source platform.
+  - `id_in_content_platform` - The ID that represents the project in the content source platform.
   """
-  @callback get_versions(content_source_id :: String.t()) :: {:ok, [any()]} | {:error, any()}
+  @callback get_versions(id_in_content_platform :: String.t()) ::
+              {:ok, [any()]} | {:error, any()}
 
   @doc ~S"""
   Different content sources name versions differently. For example, in the case of GitHub,
@@ -38,26 +39,26 @@ defmodule Glossia.ContentSources.ContentSource do
   the most recent commit sha in the default branch.
 
   ## Parameters
-  - `content_source_id` - The id that represents the project in the content source platform.
+  - `id_in_content_platform` - The id that represents the project in the content source platform.
 
   ## Examples
 
-      iex> Glossia.ContentSources.GitHub.get_most_recent_version(github_content_source)
+      iex> Glossia.ContentSources.Platforms.GitHub.get_most_recent_version(github_content_source)
       {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback get_most_recent_version(content_source_id :: String.t()) ::
+  @callback get_most_recent_version(id_in_content_platform :: String.t()) ::
               {:ok, String.t()} | {:error, any()}
 
   @doc ~S"""
   It returns the content from a content source.
 
   ## Parameters
-  - `content_source_id` - The id that represents the project in the content source platform.
+  - `id_in_content_platform` - The id that represents the project in the content source platform.
   - `content_id` - The content id. What it refers to depends on the content source. For example, in the case of a Git repository is the path to the file.
   - `version` - The version of the content.
   """
   @callback get_content(
-              content_source_id :: String.t(),
+              id_in_content_platform :: String.t(),
               content_id :: String.t(),
               version :: String.t()
             ) ::
@@ -75,12 +76,12 @@ defmodule Glossia.ContentSources.ContentSource do
   and including the changes in it.
 
   # Parameters
-  - `content_source_id` - The id that represents the project in the content source platform.
+  - `id_in_content_platform` - The id that represents the project in the content source platform.
   - `opts` - The options to configure the updating of the content.
 
   ## Examples
 
-    iex> Glossia.ContentSources.GitHub.update_content(github_content_source, %{
+    iex> Glossia.ContentSources.Platforms.GitHub.update_content(github_content_source, %{
       title: "My new title",
       description: "My new description",
       version: "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67",
@@ -90,7 +91,10 @@ defmodule Glossia.ContentSources.ContentSource do
     })
     {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback update_content(content_source_id :: String.t(), opts :: update_content_opts_t()) ::
+  @callback update_content(
+              id_in_content_platform :: String.t(),
+              opts :: update_content_opts_t()
+            ) ::
               {:ok, %{id: String.t(), url: String.t() | nil}}
               | {:error, any()}
               | {:error, :newer_version_exists}
@@ -103,7 +107,7 @@ defmodule Glossia.ContentSources.ContentSource do
   cancel running updates when new versions are available.
   """
   @callback get_content_branch_id(
-              content_source_id :: String.t(),
+              id_in_content_platform :: String.t(),
               opts :: get_content_branch_id_opts_t
             ) ::
               String.t()
@@ -114,15 +118,16 @@ defmodule Glossia.ContentSources.ContentSource do
   not trigger a localization.
 
   # Parameters
-  - `content_source_id` - The id that represents the project in the content source platform.
+  - `id_in_content_platform` - The id that represents the project in the content source platform.
   - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
 
   # Example
 
-      iex> Glossia.ContentSources.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
+      iex> Glossia.ContentSources.Platforms.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
       false
   """
-  @callback should_localize?(content_source_id :: String.t(), version :: String.t()) :: boolean()
+  @callback should_localize?(id_in_content_platform :: String.t(), version :: String.t()) ::
+              boolean()
 
   @type update_status_t :: :error | :failure | :pending | :success
 
@@ -131,19 +136,20 @@ defmodule Glossia.ContentSources.ContentSource do
   it updates the status of a commit.
 
   # Parameters
-  - `content_source_id` - The id that represents the project in the content source platform.
+  - `id_in_content_platform` - The id that represents the project in the content source platform.
   - `state` - The state of the localization.
   - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
   - `opts` - The options to configure the updating of the state.
   """
   @callback update_state(
-              content_source_id :: String.t(),
+              id_in_content_platform :: String.t(),
               state :: update_status_t(),
               version :: String.t(),
               opts :: [{:target_url, String.t() | nil}, {:description, String.t() | nil}]
             ) :: :ok | {:error, any()}
 
-  @callback generate_auth_token(content_source_id :: any()) :: {:ok, String.t()} | {:error, any()}
+  @callback generate_auth_token(id_in_content_platform :: any()) ::
+              {:ok, String.t()} | {:error, any()}
 
   @callback is_webhook_payload_valid?(
               req_headers :: Keyword.t(),

@@ -9,12 +9,17 @@ defmodule Glossia.Localizations.Utilities.Localizer do
 
   @task_timeout 120_000
 
-  def localize(content_source, content_source_id, version, content_changes) do
+  def localize(content_platform_module, id_in_content_platform, version, content_changes) do
     updates =
       content_changes
       |> Enum.map(fn module ->
         Task.Supervisor.async(Glossia.TaskSupervisor, fn ->
-          __MODULE__.localize_module(content_source, content_source_id, module, version)
+          __MODULE__.localize_module(
+            content_platform_module,
+            id_in_content_platform,
+            module,
+            version
+          )
         end)
       end)
       |> Enum.map(fn task ->
@@ -55,10 +60,10 @@ defmodule Glossia.Localizations.Utilities.Localizer do
     {extracted_title, extracted_description}
   end
 
-  def localize_module(content_source, content_source_id, module, version) do
+  def localize_module(content_platform_module, id_in_content_platform, module, version) do
     {:ok, source_content} =
-      content_source.get_content(
-        content_source_id,
+      content_platform_module.get_content(
+        id_in_content_platform,
         module[:source][:id],
         version
       )

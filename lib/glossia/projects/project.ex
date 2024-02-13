@@ -11,11 +11,11 @@ defmodule Glossia.Projects.Project do
           handle: String.t(),
           account: Account.t() | nil,
           visibility: visibility(),
-          content_source_id: String.t(),
-          content_source_platform: content_source_platform()
+          id_in_content_platform: String.t(),
+          content_platform: content_platform()
         }
   @type visibility :: :public | :private
-  @type content_source_platform :: :github
+  @type content_platform :: :github
 
   # Module dependencies
 
@@ -29,8 +29,8 @@ defmodule Glossia.Projects.Project do
 
   schema "projects" do
     field :handle, :string
-    field :content_source_id, :string
-    field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
+    field :id_in_content_platform, :string
+    field :content_platform, Ecto.Enum, values: [{:github, 1}]
     field :visibility, Ecto.Enum, values: [{:private, 1}, {:public, 2}]
     belongs_to :account, Account, on_replace: :raise
     has_many(:builds, Build)
@@ -48,21 +48,21 @@ defmodule Glossia.Projects.Project do
     project
     |> cast(attrs, [
       :handle,
-      :content_source_id,
-      :content_source_platform,
+      :id_in_content_platform,
+      :content_platform,
       :account_id,
       :visibility
     ])
     |> validate_required(
       [
         :handle,
-        :content_source_id,
-        :content_source_platform,
+        :id_in_content_platform,
+        :content_platform,
         :account_id
       ],
       message: "This attribute is required"
     )
-    |> validate_inclusion(:content_source_platform, [:github])
+    |> validate_inclusion(:content_platform, [:github])
     |> validate_format(:handle, ~r/^[a-z0-9_]+$/i, message: "The handle must be alphanumeric")
     |> validate_length(:handle,
       min: 3,
@@ -72,7 +72,7 @@ defmodule Glossia.Projects.Project do
     |> unique_constraint([:handle, :account_id],
       message: "There's already a project with the same handle"
     )
-    |> unique_constraint([:content_source_id, :content_source_platform],
+    |> unique_constraint([:id_in_content_platform, :content_platform],
       message: "There's already a project with the same repository"
     )
     |> assoc_constraint(:account)
@@ -81,13 +81,13 @@ defmodule Glossia.Projects.Project do
   # Queries
 
   def find_project_by_repository_query(%{
-        content_source_platform: content_source_platform,
-        content_source_id: content_source_id
+        content_platform: content_platform,
+        id_in_content_platform: id_in_content_platform
       }) do
     from(p in __MODULE__,
       where:
-        p.content_source_id == ^content_source_id and
-          p.content_source_platform == ^content_source_platform
+        p.id_in_content_platform == ^id_in_content_platform and
+          p.content_platform == ^content_platform
     )
   end
 

@@ -1,25 +1,25 @@
-defmodule Glossia.ContentSources.GitHub do
+defmodule Glossia.ContentSources.Platforms.GitHub do
   @moduledoc false
 
   require Logger
 
-  @behaviour Glossia.ContentSources.ContentSource
+  @behaviour Glossia.ContentSources.Platform
 
-  # Glossia.ContentSources.ContentSource behavior
+  # Glossia.ContentSources.Platform behavior
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def supports_versioning?() do
     true
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def version_term() do
     "commit"
   end
 
-  @impl Glossia.ContentSources.ContentSource
-  def get_content(content_source_id, file_path, commit_sha) do
-    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+  @impl Glossia.ContentSources.Platform
+  def get_content(id_in_content_platform, file_path, commit_sha) do
+    {client, owner, repo} = get_client_owner_and_repo(id_in_content_platform)
 
     Logger.debug("Fetching the content of a file", %{
       owner: owner,
@@ -44,8 +44,8 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  defp send_graphql_query(content_source_id, query, variables \\ %{}) do
-    {access_token, owner, repo} = get_access_token_owner_and_repo(content_source_id)
+  defp send_graphql_query(id_in_content_platform, query, variables \\ %{}) do
+    {access_token, owner, repo} = get_access_token_owner_and_repo(id_in_content_platform)
     variables = variables |> Map.merge(%{"owner" => owner, "repo" => repo})
 
     body = %{
@@ -65,16 +65,16 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
-  def get_most_recent_version(content_source_id) do
-    {owner, repo} = get_owner_and_repo(content_source_id)
-    {:ok, branch} = get_default_branch(content_source_id)
+  @impl Glossia.ContentSources.Platform
+  def get_most_recent_version(id_in_content_platform) do
+    {owner, repo} = get_owner_and_repo(id_in_content_platform)
+    {:ok, branch} = get_default_branch(id_in_content_platform)
 
     Logger.debug("Fetching the most recent version", %{owner: owner, repo: repo})
 
     response =
       send_graphql_query(
-        content_source_id,
+        id_in_content_platform,
         """
         query getMostRecentCommit($owner: String!, $repo: String!) {
           repository(owner: $owner, name: $repo) {
@@ -123,9 +123,9 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def update_content(
-        _content_source_id,
+        _id_in_content_platform,
         %{
           content: []
         }
@@ -133,9 +133,9 @@ defmodule Glossia.ContentSources.GitHub do
     # Noop
   end
 
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def update_content(
-        content_source_id,
+        id_in_content_platform,
         %{
           title: commit_title,
           description: commit_description,
@@ -143,7 +143,7 @@ defmodule Glossia.ContentSources.GitHub do
           content: content
         } = opts
       ) do
-    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+    {client, owner, repo} = get_client_owner_and_repo(id_in_content_platform)
 
     Logger.debug(
       "Updating the content",
@@ -197,9 +197,9 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
-  def get_content_branch_id(content_source_id, %{version: commit_sha} = opts) do
-    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+  @impl Glossia.ContentSources.Platform
+  def get_content_branch_id(id_in_content_platform, %{version: commit_sha} = opts) do
+    {client, owner, repo} = get_client_owner_and_repo(id_in_content_platform)
 
     Logger.debug(
       "Getting the branch id",
@@ -221,9 +221,9 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
-  def should_localize?(content_source_id, commit_sha) do
-    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+  @impl Glossia.ContentSources.Platform
+  def should_localize?(id_in_content_platform, commit_sha) do
+    {client, owner, repo} = get_client_owner_and_repo(id_in_content_platform)
 
     Logger.debug(
       "Checking if the commit with the sha #{commit_sha} should be localized",
@@ -240,9 +240,9 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
-  def update_state(content_source_id, state, commit_sha, opts \\ []) do
-    {client, owner, repo} = get_client_owner_and_repo(content_source_id)
+  @impl Glossia.ContentSources.Platform
+  def update_state(id_in_content_platform, state, commit_sha, opts \\ []) do
+    {client, owner, repo} = get_client_owner_and_repo(id_in_content_platform)
 
     Logger.debug(
       "Updating the state for commit #{commit_sha} to #{state}",
@@ -273,9 +273,9 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
-  def generate_auth_token(content_source_id) do
-    {owner, repo} = get_owner_and_repo(content_source_id)
+  @impl Glossia.ContentSources.Platform
+  def generate_auth_token(id_in_content_platform) do
+    {owner, repo} = get_owner_and_repo(id_in_content_platform)
 
     Logger.debug(
       "Generating an auth token for the repo",
@@ -303,10 +303,7 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @doc ~S"""
-  Given the request headers and the payload it validates the payload signature.
-  """
-  @impl Glossia.ContentSources.ContentSource
+  @impl Glossia.ContentSources.Platform
   def is_webhook_payload_valid?(req_headers, payload) do
     case signature_from_req_headers(req_headers) do
       nil ->
@@ -317,15 +314,15 @@ defmodule Glossia.ContentSources.GitHub do
     end
   end
 
-  @impl Glossia.ContentSources.ContentSource
-  def get_versions(content_source_id) do
-    {owner, repo} = get_owner_and_repo(content_source_id)
-    {:ok, branch} = get_default_branch(content_source_id)
+  @impl Glossia.ContentSources.Platform
+  def get_versions(id_in_content_platform) do
+    {owner, repo} = get_owner_and_repo(id_in_content_platform)
+    {:ok, branch} = get_default_branch(id_in_content_platform)
     Logger.debug("Fetching the most recent version", %{owner: owner, repo: repo})
 
     response =
       send_graphql_query(
-        content_source_id,
+        id_in_content_platform,
         """
         query getMostRecentCommit($owner: String!, $repo: String!) {
           repository(owner: $owner, name: $repo) {
@@ -395,27 +392,27 @@ defmodule Glossia.ContentSources.GitHub do
     access_token
   end
 
-  defp get_owner_and_repo(content_source_id) do
-    [owner, repo] = content_source_id |> String.split("/")
+  defp get_owner_and_repo(id_in_content_platform) do
+    [owner, repo] = id_in_content_platform |> String.split("/")
     {owner, repo}
   end
 
-  defp get_access_token_owner_and_repo(content_source_id) do
+  defp get_access_token_owner_and_repo(id_in_content_platform) do
     app_jwt_token = Glossia.GitHub.AppToken.generate_and_sign!()
 
     {200, %{"id" => installation_id}, _} =
       Tentacat.get(
-        "repos/#{content_source_id}/installation",
+        "repos/#{id_in_content_platform}/installation",
         Tentacat.Client.new(%{jwt: app_jwt_token})
       )
 
-    {owner, repo} = get_owner_and_repo(content_source_id)
+    {owner, repo} = get_owner_and_repo(id_in_content_platform)
     access_token = get_access_token_for_installation(installation_id, app_jwt_token)
     {access_token, owner, repo}
   end
 
-  defp get_client_owner_and_repo(content_source_id) do
-    {access_token, owner, repo} = get_access_token_owner_and_repo(content_source_id)
+  defp get_client_owner_and_repo(id_in_content_platform) do
+    {access_token, owner, repo} = get_access_token_owner_and_repo(id_in_content_platform)
     client = %{access_token: access_token} |> Tentacat.Client.new()
     {client, owner, repo}
   end
@@ -449,12 +446,12 @@ defmodule Glossia.ContentSources.GitHub do
     {:ok, :crypto.mac(:hmac, :sha, app_secret, payload) |> Base.encode16(case: :lower)}
   end
 
-  def get_default_branch(content_source_id) do
-    {owner, repo} = get_owner_and_repo(content_source_id)
+  def get_default_branch(id_in_content_platform) do
+    {owner, repo} = get_owner_and_repo(id_in_content_platform)
 
     response =
       send_graphql_query(
-        content_source_id,
+        id_in_content_platform,
         """
         query GetRepositoryDefaultBranch($owner: String!, $repo: String!) {
           repository(owner: $owner, name: $repo) {

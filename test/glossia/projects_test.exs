@@ -12,14 +12,14 @@ defmodule Glossia.ProjectsTest do
       # When
       got =
         Projects.find_project_by_repository(%{
-          content_source_id: project.content_source_id,
-          content_source_platform: project.content_source_platform
+          id_in_content_platform: project.id_in_content_platform,
+          content_platform: project.content_platform
         })
 
       # Then
       assert got.id == project.id
       assert got.handle == project.handle
-      assert got.content_source_id == project.content_source_id
+      assert got.id_in_content_platform == project.id_in_content_platform
     end
   end
 

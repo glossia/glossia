@@ -23,8 +23,6 @@ defmodule Glossia.BuildsFixtures do
   defp default_build_args() do
     %{
       version: "123",
-      content_source_id: "glossia/glossia",
-      content_source_platform: :github,
       type: :push
     }
   end

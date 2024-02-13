@@ -26,17 +26,18 @@ defmodule Glossia.Projects do
       ) do
     project = project |> Repo.preload(:account)
 
-    content_source =
-      Glossia.ContentSources.content_source(project.content_source_platform)
+    content_platform_module =
+      Glossia.ContentSources.get_platform_module(project.content_platform)
 
-    {:ok, access_token} = content_source.generate_auth_token(project.content_source_id)
+    {:ok, access_token} =
+      content_platform_module.generate_auth_token(project.id_in_content_platform)
 
     :ok =
       %{
         type: "new_version",
         version: version,
-        content_source_id: project.content_source_id,
-        content_source_platform: project.content_source_platform,
+        id_in_content_platform: project.id_in_content_platform,
+        content_platform: project.content_platform,
         project_id: project.id,
         project_handle: project.handle,
         account_handle: project.account.handle

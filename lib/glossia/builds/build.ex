@@ -4,8 +4,6 @@ defmodule Glossia.Builds.Build do
   # Types
   @type t :: %__MODULE__{
           version: String.t(),
-          content_source_id: String.t() | nil,
-          content_source_platform: atom(),
           vm_id: String.t() | nil,
           status: status(),
           project: Glossia.Projects.Project.t() | nil,
@@ -31,8 +29,7 @@ defmodule Glossia.Builds.Build do
 
   schema "builds" do
     field :version, :string
-    field :content_source_id, :string
-    field :content_source_platform, Ecto.Enum, values: [{:github, 1}]
+    field :content_platform, Ecto.Enum, values: [{:github, 1}]
     field :vm_id, :string
     field :vm_logs_url, :string
     field :markdown_error_message, :string
@@ -65,8 +62,7 @@ defmodule Glossia.Builds.Build do
     event
     |> cast(attrs, [
       :version,
-      :content_source_id,
-      :content_source_platform,
+      :content_platform,
       :project_id,
       :status,
       :vm_id,
@@ -76,13 +72,12 @@ defmodule Glossia.Builds.Build do
     ])
     |> validate_required([
       :version,
-      :content_source_id,
-      :content_source_platform,
+      :content_platform,
       :project_id,
       :status,
       :type
     ])
-    |> validate_inclusion(:content_source_platform, [:github])
+    |> validate_inclusion(:content_platform, [:github])
     |> validate_inclusion(:type, [:new_version])
     |> validate_inclusion(:status, [
       :status_unknown,
@@ -96,8 +91,8 @@ defmodule Glossia.Builds.Build do
       :cancelled,
       :expired
     ])
-    |> unique_constraint([:version, :type, :content_source_id, :content_source_platform],
-      name: "builds_version_type_content_source_id_content_source_platform_i"
+    |> unique_constraint([:version, :type],
+      name: "builds_version_type_index"
     )
     |> assoc_constraint(:project)
   end
