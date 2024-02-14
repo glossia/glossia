@@ -20,6 +20,9 @@ importers:
       vitepress:
         specifier: 1.0.0-rc.42
         version: 1.0.0-rc.42(@algolia/client-search@4.22.1)(search-insights@2.13.0)
+      wrangler:
+        specifier: ^3.28.2
+        version: 3.28.2
 
   proxy:
     devDependencies:

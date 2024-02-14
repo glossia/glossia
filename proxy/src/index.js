@@ -4,6 +4,9 @@ export default {
     if (path.startsWith("/docs")) {
       const baseURL = `https://glossia-documentation.pages.dev`;
       return fetch(baseURL + path, request);
+    } else if (path.startsWith("/handbook")) {
+      const baseURL = `https://glossia-handbook.pages.dev`;
+      return fetch(baseURL + path, request);
     } else {
       const baseURL = `https://glossia.fly.dev`;
       return fetch(baseURL + path, request);
