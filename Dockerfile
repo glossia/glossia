@@ -17,12 +17,10 @@ ARG DEBIAN_VERSION=buster-20231009-slim
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 ARG MIX_ENV="prod"
-ARG GLOSSIA_FLAVOR="community"
 
 FROM ${BUILDER_IMAGE} as builder
 
 ARG MIX_ENV="prod"
-ARG GLOSSIA_FLAVOR="community"
 
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
@@ -37,7 +35,6 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV=$MIX_ENV
-ENV GLOSSIA_FLAVOR=$GLOSSIA_FLAVOR
 
 #fetch-public-key
 #auth-key
@@ -76,7 +73,6 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 ARG MIX_ENV="prod"
-ARG GLOSSIA_FLAVOR="community"
 
 RUN apt-get update -y && apt-get install -y libstdc++6 libubsan1 openssl libncurses5 locales \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
@@ -93,7 +89,6 @@ RUN chown nobody /app
 
 # set runner ENV
 ENV MIX_ENV=$MIX_ENV
-ENV GLOSSIA_FLAVOR=$GLOSSIA_FLAVOR
 ENV SECRETS_PATH="/app/priv/secrets/secrets.yml.enc"
 
 # Only copy the final release from the build stage

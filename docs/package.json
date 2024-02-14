@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "vitepress": "1.0.0-rc.42"
+    "vitepress": "1.0.0-rc.42",
+    "wrangler": "^3.28.2"
   },
   "scripts": {
     "dev": "vitepress dev",
     "build": "vitepress build",
-    "preview": "vitepress preview"
+    "preview": "vitepress preview",
+    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name glossia-documentation --branch main"
   }
 }

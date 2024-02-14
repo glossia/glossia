@@ -4,9 +4,10 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "labels": ["changelog:updated-dependencies"],
       "automerge": true,
       "automergeType": "pr",
-      "labels": ["changelog:updated-dependencies"]
+      "automergeStrategy": "auto"
     }
   ],
   "lockFileMaintenance": {

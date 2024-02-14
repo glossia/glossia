@@ -30,14 +30,6 @@ We believe **AI holds the transformative power to revolutionize the world of con
 
 **Glossia is spearheading change.** We champion **openness**, crafting our innovations with the world watching and inviting all to contribute. This inclusive approach harnesses a tapestry of diverse thoughts and the electric energy of a passionate community eager to redefine the industry. We're delving deep, **reimagining the foundational translation memory, exploring its AI-driven evolution for more intuitive designs.** *Our goal?* A system that's both simplified and potent, seamlessly integrating with content-rich platforms across the web, from [Shopify](https://shopify.com) to [Canva](https://canva.com). At Glossia, we're all in on AI, championing a universally accessible future of localization. Join us on this journey.
 
-## Flavors
-
-This repository contains **multiple flavors of Glossia licensed under different licenses.** The following table shows the different flavors and their licenses:
-
-- **Cloud:** This is the version of Glossia hosted at [glossia.ai](https://glossia.ai). This version includes the proprietary code under `lib/cloud` and can't be self-hosted. Doing so implies a violation of the license.
-- **Community:** This is a community version of Glossia that can be self-hosted to continuously localize content from GitHub and GitLab repositories. This version is licensed under AGPLv3 and distributed through the [GitHub Packages Registry](https://github.com/glossia/glossia/pkgs/container/community) as a Docker image.
-- **Enterprise:** This is a version of Glossia with enterprise features that can be self-hosted to continuously localize content from multiple sources and using adaptative context. It's also distributed through the [GitHub Packages Registry](https://github.com/glossia/glossia/pkgs/container/community), and hosting it requires having an enterprise license.
-
 ## Development
 
 Glossia's tech stack is based on [Elixir](https://elixir-lang.org) and [Phoenix](https://phoenixframework.org) to ease scalability and eliminate layers of complexity that are common in other languages. All the components of Glossia are contained in this repository and are part of the Phoenix project (e.g., documentation, website, web app, API).
