@@ -92,4 +92,4 @@ jobs:
         uses: ScribeMD/docker-cache@0.3.7
         with:
           key: docker-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
-      - run: docker build . -t glossia --build-arg MIX_ENV=prod --build-arg
+      - run: docker build . -t glossia --build-arg MIX_ENV=prod
