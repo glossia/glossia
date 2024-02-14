@@ -12,10 +12,46 @@ env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
 jobs:
-  deploy:
-    name: Deploy app
+  app-deploy:
+    name: App
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --local-only --build-arg MIX_ENV=prod --build-arg GLOSSIA_FLAVOR=cloud
+  proxy-deploy:
+    name: Proxy
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: jdx/mise-action@v2
+      - run: pnpm install
+      - working-directory: proxy
+        run: pnpm run deploy
+  handbook-deploy:
+    name: Handbook
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: jdx/mise-action@v2
+      - run: pnpm install
+      - working-directory: handbook
+        run: pnpm run deploy
+  docs-deploy:
+    name: Docs
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: jdx/mise-action@v2
+      - run: pnpm install
+      - working-directory: docs
+        run: pnpm run deploy
