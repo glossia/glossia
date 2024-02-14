@@ -3,8 +3,6 @@ defmodule GlossiaWeb.Router do
   import Phoenix.Controller
   import Phoenix.LiveView.Router
   import Plug.Conn
-  import Redirect
-  import Glossia.Flavor
   use Phoenix.Router, helpers: false
 
   pipeline :browser do
@@ -73,46 +71,44 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.LiveViewMountablePlug, :auto_redirect_from_marketing_if_logged_in
   end
 
-  only_for_flavors [:cloud] do
-    pipeline :marketing do
-      plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
-    end
+  pipeline :marketing do
+    plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
+  end
 
-    pipeline :rss do
-      plug :accepts, ["xml"]
-    end
+  pipeline :rss do
+    plug :accepts, ["xml"]
+  end
 
-    scope "/", GlossiaWeb.Controllers do
-      pipe_through [
-        :browser,
-        :marketing,
-        :tracking,
-        # We automatically redirect when visiting "/" and being logged in.
-        :auto_redirect_from_marketing_if_logged_in
-      ]
+  scope "/", GlossiaWeb.Controllers do
+    pipe_through [
+      :browser,
+      :marketing,
+      :tracking,
+      # We automatically redirect when visiting "/" and being logged in.
+      :auto_redirect_from_marketing_if_logged_in
+    ]
 
-      get "/", MarketingController, :index
-    end
+    get "/", MarketingController, :index
+  end
 
-    scope "/", GlossiaWeb.Controllers do
-      pipe_through [:browser, :marketing, :tracking]
+  scope "/", GlossiaWeb.Controllers do
+    pipe_through [:browser, :marketing, :tracking]
 
-      get "/beta", MarketingController, :beta
-      get "/about", MarketingController, :about
-      get "/team", MarketingController, :team
-      get "/beta-added", MarketingController, :beta_added
-      get "/blog", MarketingController, :blog
-      get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-      get "/terms", MarketingController, :terms
-      get "/privacy", MarketingController, :privacy
+    get "/beta", MarketingController, :beta
+    get "/about", MarketingController, :about
+    get "/team", MarketingController, :team
+    get "/beta-added", MarketingController, :beta_added
+    get "/blog", MarketingController, :blog
+    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
+    get "/terms", MarketingController, :terms
+    get "/privacy", MarketingController, :privacy
 
-      get "/docs", DocsController, :index
-    end
+    get "/docs", DocsController, :index
+  end
 
-    scope "/", GlossiaWeb.Controllers do
-      pipe_through [:rss, :tracking]
-      get "/blog/feed.xml", MarketingController, :feed
-    end
+  scope "/", GlossiaWeb.Controllers do
+    pipe_through [:rss, :tracking]
+    get "/blog/feed.xml", MarketingController, :feed
   end
 
   scope "/api/v1" do
