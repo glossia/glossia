@@ -82,8 +82,8 @@ jobs:
       - env:
           MIX_ENV: dev
         run: mix dialyzer
-  dry-run:
-    name: Dry Run
+  containerize:
+    name: Containerize
     runs-on: 'ubuntu-latest'
     timeout-minutes: 15
     steps:
