@@ -4,9 +4,37 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "proxy",
+      "matchPaths": ["proxy/"],
+      "enabledManagers": "pnpm",
       "automerge": true,
       "automergeType": "pr",
-      "labels": ["changelog:updated-dependencies"]
+      "automergeStrategy": "auto"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "docs",
+      "matchPaths": ["docs/"],
+      "enabledManagers": "pnpm",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "auto"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "handbook",
+      "matchPaths": ["handbook/"],
+      "enabledManagers": "pnpm",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "auto"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "labels": ["changelog:updated-dependencies"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "auto"
     }
   ],
   "lockFileMaintenance": {
