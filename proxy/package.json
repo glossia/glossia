@@ -1,0 +1,11 @@
+{
+    "name": "@glossia/proxy",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "deploy": "wrangler deploy"
+    },
+    "devDependencies": {
+        "wrangler": "^3.28.2"
+    }
+}
