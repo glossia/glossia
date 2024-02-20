@@ -38,6 +38,10 @@ importers:
       astro:
         specifier: ^4.4.1
         version: 4.4.1
+    devDependencies:
+      wrangler:
+        specifier: ^3.28.2
+        version: 3.28.3
 
   proxy:
     devDependencies:

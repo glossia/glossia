@@ -41,10 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
-      - run: pnpm install
-      - uses: jdx/mise-action@v2
         with:
-            experimental: true
+          experimental: true
       - run: pnpm install
       - run: mise run handbook:deploy
   docs-deploy:
@@ -56,9 +54,8 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
-      - uses: jdx/mise-action@v2
         with:
-            experimental: true
+          experimental: true
       - run: pnpm install
       - run: mise run docs:deploy
   marketing-deploy:
@@ -71,6 +68,6 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
         with:
-            experimental: true
+          experimental: true
       - run: pnpm install
       - run: mise run marketing:deploy
