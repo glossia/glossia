@@ -19,6 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
+        with:
+            experimental: true
       - run: pnpm install
-      - working-directory: marketing
-        run: pnpm run build
+      - run: mise run marketing:build
