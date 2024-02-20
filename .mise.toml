@@ -7,6 +7,10 @@ elixir = "https://github.com/mise-plugins/mise-elixir"
 "deno" = "1.39.1"
 "erlang" = "26.2.1"
 
+[tasks."proxy:deploy"]
+description = 'Deploy the proxy worker'
+run = "pnpm run -C proxy deploy"
+
 [tasks."marketing:dev"]
 description = 'Dev the marketing website'
 run = "pnpm run -C marketing dev"
@@ -14,6 +18,10 @@ run = "pnpm run -C marketing dev"
 [tasks."marketing:build"]
 description = 'Build the marketing website'
 run = "pnpm run -C marketing build"
+
+[tasks."marketing:deploy"]
+description = 'Deploy the marketing website'
+run = "pnpm run -C marketing deploy"
 
 [tasks."docs:dev"]
 description = 'Dev the docs website'
@@ -23,6 +31,10 @@ run = "pnpm run -C docs dev"
 description = 'Build the docs website'
 run = "pnpm run -C docs build"
 
+[tasks."docs:deploy"]
+description = 'Deploy the docs website'
+run = "pnpm run -C docs deploy"
+
 [tasks."handbook:dev"]
 description = 'Dev the handbook website'
 run = "pnpm run -C handbook dev"
@@ -30,3 +42,7 @@ run = "pnpm run -C handbook dev"
 [tasks."handbook:build"]
 description = 'Build the handbook website'
 run = "pnpm run -C handbook build"
+
+[tasks."handbook:deploy"]
+description = 'Build the handbook website'
+run = "pnpm run -C handbook deploy"
