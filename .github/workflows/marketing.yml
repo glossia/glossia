@@ -1,4 +1,4 @@
-name: Handbook
+name: Marketing
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   merge_group:
 
 concurrency:
-  group: handbook-${{ github.head_ref }}
+  group: marketing-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
@@ -22,4 +22,4 @@ jobs:
         with:
             experimental: true
       - run: pnpm install
-      - run: mise run handbook:build
+      - run: mise run marketing:build

@@ -5,6 +5,8 @@
     "samuel-pordeus.elixir-test",
     "denoland.vscode-deno",
     "mrorz.language-gettext",
-    "pantajoe.vscode-elixir-credo"
+    "pantajoe.vscode-elixir-credo",
+    "astro-build.astro-vscode", 
+    "unifiedjs.vscode-mdx"
   ]
 }

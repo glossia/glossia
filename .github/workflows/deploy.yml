@@ -28,9 +28,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
+        with:
+            experimental: true
       - run: pnpm install
-      - working-directory: proxy
-        run: pnpm run deploy
+      - run: mise run proxy:deploy
   handbook-deploy:
     name: Handbook
     runs-on: ubuntu-latest
@@ -41,8 +42,11 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
       - run: pnpm install
-      - working-directory: handbook
-        run: pnpm run deploy
+      - uses: jdx/mise-action@v2
+        with:
+            experimental: true
+      - run: pnpm install
+      - run: mise run handbook:deploy
   docs-deploy:
     name: Docs
     runs-on: ubuntu-latest
@@ -52,6 +56,21 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v2
+        with:
+            experimental: true
       - run: pnpm install
-      - working-directory: docs
-        run: pnpm run deploy
+      - run: mise run docs:deploy
+  marketing-deploy:
+    name: Marketing
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: jdx/mise-action@v2
+        with:
+            experimental: true
+      - run: pnpm install
+      - run: mise run marketing:deploy
