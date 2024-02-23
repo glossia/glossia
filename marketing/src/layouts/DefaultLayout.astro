@@ -12,16 +12,20 @@ import { siteTitle, siteDescription } from "../constants";
   </head>
   <body class="body">
     <Header />
-    <slot/>
+    <slot />
     <Footer />
-  </body>
-</html>
-
-<style>
+  </body><style>
     .body {
-        margin-left: var(--size-8);
-        margin-right: var(--size-8);
-        margin-top: var(--size-2);
-        margin-bottom: var(--size-2);
+      margin-left: var(--size-2);
+      margin-right: var(--size-2);
+      margin-top: var(--size-2);
+      margin-bottom: var(--size-2);
     }
-</style>
+    @media (min-width: 768px) {
+      .body {
+        margin-left: var(--size-4);
+        margin-right: var(--size-4);
+      }
+    }
+  </style>
+</html>
