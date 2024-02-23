@@ -1,20 +1,116 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { siteTitle, siteDescription } from '../constants';
+import DefaultLayout from "../layouts/DefaultLayout.astro";
+import Divider from "../components/Divider.astro";
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={siteTitle} description={siteDescription} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			
-		</main>
-		<Footer />
-	</body>
-</html>
+<DefaultLayout>
+  <div class="body">
+    <p class="title">Localization is broken</p>
+    <p>
+      The internet revolutionized countless industries, yet localization remains
+      stuck in outdated paradigms. For over two decades, it's been the same old
+      story: proprietary tech, closed platforms, and endless indirection. It's
+      time for a change.
+    </p>
+    <p>
+      For the first time in history, LLMs, which understand languages and
+      context, can become a foundational piece in enabling a new way of
+      localizing content. This new approach will be open, transparent, and
+      interoperable, and will enable a new wave of innovation in the
+      localization industry.
+    </p>
+    <p></p>
+    <Divider />
+    <p class="title">Glossia is an open source localization operative system</p>
+    <p>
+      It leverages the power of LLMs to incrementally localize content from content sources like GitHub <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="github"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3 .7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3 .3 2.9 2.3 3.9 1.6 1 3.6 .7 4.3-.7 .7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3 .7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3 .7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg> and GitLab <svg class="gitlab" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M503.5 204.6L502.8 202.8L433.1 21C431.7 17.5 429.2 14.4 425.9 12.4C423.5 10.8 420.8 9.9 417.9 9.6C415 9.3 412.2 9.7 409.5 10.7C406.8 11.7 404.4 13.3 402.4 15.5C400.5 17.6 399.1 20.1 398.3 22.9L351.3 166.9H160.8L113.7 22.9C112.9 20.1 111.5 17.6 109.6 15.5C107.6 13.4 105.2 11.7 102.5 10.7C99.9 9.7 97 9.3 94.1 9.6C91.3 9.9 88.5 10.8 86.1 12.4C82.8 14.4 80.3 17.5 78.9 21L9.3 202.8L8.5 204.6C-1.5 230.8-2.7 259.6 5 286.6C12.8 313.5 29.1 337.3 51.5 354.2L51.7 354.4L52.3 354.8L158.3 434.3L210.9 474L242.9 498.2C246.6 500.1 251.2 502.5 255.9 502.5C260.6 502.5 265.2 500.1 268.9 498.2L300.9 474L353.5 434.3L460.2 354.4L460.5 354.1C482.9 337.2 499.2 313.5 506.1 286.6C514.7 259.6 513.5 230.8 503.5 204.6z"/></svg> repositories, Shopify Stores, Apps, and Themes <svg class="shopify"  viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M388.3 104.1a4.7 4.7 0 0 0 -4.4-4c-2 0-37.2-.8-37.2-.8s-21.6-20.8-29.6-28.8V503.2L442.8 472S388.7 106.5 388.3 104.1zM288.7 70.5a116.7 116.7 0 0 0 -7.2-17.6C271 32.9 255.4 22 237 22a15 15 0 0 0 -4 .4c-.4-.8-1.2-1.2-1.6-2C223.4 11.6 213 7.6 200.6 8c-24 .8-48 18-67.3 48.8-13.6 21.6-24 48.8-26.8 70.1-27.6 8.4-46.8 14.4-47.2 14.8-14 4.4-14.4 4.8-16 18-1.2 10-38 291.8-38 291.8L307.9 504V65.7a41.7 41.7 0 0 0 -4.4 .4S297.9 67.7 288.7 70.5zM233.4 87.7c-16 4.8-33.6 10.4-50.8 15.6 4.8-18.8 14.4-37.6 25.6-50 4.4-4.4 10.4-9.6 17.2-12.8C232.2 54.9 233.8 74.5 233.4 87.7zM200.6 24.4A27.5 27.5 0 0 1 215 28c-6.4 3.2-12.8 8.4-18.8 14.4-15.2 16.4-26.8 42-31.6 66.5-14.4 4.4-28.8 8.8-42 12.8C131.3 83.3 163.8 25.2 200.6 24.4zM154.2 244.6c1.6 25.6 69.3 31.2 73.3 91.7 2.8 47.6-25.2 80.1-65.7 82.5-48.8 3.2-75.7-25.6-75.7-25.6l10.4-44s26.8 20.4 48.4 18.8c14-.8 19.2-12.4 18.8-20.4-2-33.6-57.2-31.6-60.8-86.9-3.2-46.4 27.2-93.3 94.5-97.7 26-1.6 39.2 4.8 39.2 4.8L221.4 225.4s-17.2-8-37.6-6.4C154.2 221 153.8 239.8 154.2 244.6zM249.4 82.9c0-12-1.6-29.2-7.2-43.6 18.4 3.6 27.2 24 31.2 36.4Q262.6 78.7 249.4 82.9z"/></svg>, Figma designs <svg class="figma" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M14 95.8C14 42.9 56.9 0 109.8 0H274.2C327.1 0 370 42.9 370 95.8C370 129.3 352.8 158.8 326.7 175.9C352.8 193 370 222.5 370 256C370 308.9 327.1 351.8 274.2 351.8H272.1C247.3 351.8 224.7 342.4 207.7 326.9V415.2C207.7 468.8 163.7 512 110.3 512C57.5 512 14 469.2 14 416.2C14 382.7 31.2 353.2 57.2 336.1C31.2 319 14 289.5 14 256C14 222.5 31.2 193 57.2 175.9C31.2 158.8 14 129.3 14 95.8zM176.3 191.6H109.8C74.2 191.6 45.4 220.4 45.4 256C45.4 291.4 74 320.2 109.4 320.4C109.5 320.4 109.7 320.4 109.8 320.4H176.3V191.6zM207.7 256C207.7 291.6 236.5 320.4 272.1 320.4H274.2C309.7 320.4 338.6 291.6 338.6 256C338.6 220.4 309.7 191.6 274.2 191.6H272.1C236.5 191.6 207.7 220.4 207.7 256zM109.8 351.8C109.7 351.8 109.5 351.8 109.4 351.8C74 352 45.4 380.8 45.4 416.2C45.4 451.7 74.6 480.6 110.3 480.6C146.6 480.6 176.3 451.2 176.3 415.2V351.8H109.8zM109.8 31.4C74.2 31.4 45.4 60.2 45.4 95.8C45.4 131.4 74.2 160.2 109.8 160.2H176.3V31.4H109.8zM207.7 160.2H274.2C309.7 160.2 338.6 131.4 338.6 95.8C338.6 60.2 309.7 31.4 274.2 31.4H207.7V160.2z"/></svg>, and more. Localization can and must be fun.
+    </p>
+
+	<p>
+		We are actively working on it and you can follow our progress on <a href="https://github.com/glossia/glossia">GitHub</a>.
+	</p>
+	<a class="button" href="https://github.com/orgs/glossia/discussions">
+		Join our Discord Server
+	</a>
+	<Divider />
+	<div>
+		<a href="https://www.linkedin.com/in/mariajosesalmeron/">
+			<img class="avatar" src="https://0.gravatar.com/avatar/239feda1194093d64fff8b918f0a6fbc0e9cc1526c3ecce4ad36d0b9c84030b9?size=512">
+		</a>
+		<a href="https://www.linkedin.com/in/pedro-pi%C3%B1era-buendia-9765a9125/">
+			<img class="avatar" src="https://2.gravatar.com/avatar/7a08cc9a74120401f8b8eafd68a9afe64300878c76736f545cd978cf5c21bb22?size=512">
+		</a>
+	</div>
+
+	<p>
+		We are a product-driven team of linguists and developers who have built software you love at companies like Shopify, SoundCloud, and Chatterbug.
+	</p>
+	<p>
+		We are bootstrapping the business from Berlin.
+	</p>
+  </div>
+</DefaultLayout>
+
+<style>
+  .body {
+	margin-top: var(--size-10);
+    font-size: var(--font-size-4);
+    font-weight: var(--font-weight-5);
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+
+	& > * + * {
+		margin-bottom: var(--size-7);
+	}
+  }
+  @media (--xl-n-above) {
+	.body {
+    	margin-left: var(--size-12);
+		margin-right: var(--size-12);
+	}
+  }
+  .title {
+    font-size: var(--size-6);
+    font-weight: bold;
+  }
+  .button {
+	background: var(--gray-9);
+	color: var(--gray-0);
+	font-size: var(--font-size-3);
+	padding: var(--size-3) var(--size-5);
+	border-radius: var(--radius-3);
+	text-decoration: none;
+	display: block;
+	&:hover {
+		background: var(--gray-8);
+	}
+  }
+  .avatar {
+	width: var(--size-10);
+	height: var(--size-10);
+	border-radius: 50%;
+	margin-right: calc(var(--size-5) * -1);
+	border-width: var(--size-1);
+	border-color: white;
+	border-style: solid;
+  }
+  .shopify {
+	height: var(--size-5);
+	width: var(--size-5);
+	fill: #5E8E3E;
+  }
+  .github {
+	height: var(--size-5);
+	width: var(--size-5);
+  }
+  .gitlab {
+	height: var(--size-5);
+	width: var(--size-5);
+	fill: #e24329;
+  }
+  .figma {
+	height: var(--size-5);
+	width: var(--size-5);
+  }
+</style>

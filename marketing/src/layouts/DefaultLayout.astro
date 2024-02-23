@@ -1,0 +1,27 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { siteTitle, siteDescription } from "../constants";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={siteTitle} description={siteDescription} />
+  </head>
+  <body class="body">
+    <Header />
+    <slot/>
+    <Footer />
+  </body>
+</html>
+
+<style>
+    .body {
+        margin-left: var(--size-8);
+        margin-right: var(--size-8);
+        margin-top: var(--size-2);
+        margin-bottom: var(--size-2);
+    }
+</style>
