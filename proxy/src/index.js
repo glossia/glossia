@@ -9,7 +9,9 @@ export default {
     } else if (path.startsWith("/handbook")) {
       const baseURL = `https://glossia-handbook.pages.dev`;
       return fetch(baseURL + path, request);
-    } else if (!isAuthorized || path == "" || path == "/") {
+    } else if (
+      !isAuthorized || path == "" || path == "/" || path.startsWith("/blog")
+    ) {
       const baseURL = `https://glossia-marketing.pages.dev`;
       return fetch(baseURL + path, request);
     } else {

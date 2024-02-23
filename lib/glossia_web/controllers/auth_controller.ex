@@ -11,7 +11,7 @@ defmodule GlossiaWeb.Controllers.AuthController do
 
   def login(conn, _params) do
     if GlossiaWeb.Auth.user_authenticated?(conn) do
-      conn |> redirect_from_marketing_or_after_login
+      conn |> redirect_after_login()
     else
       conn
       |> put_layout(html: {GlossiaWeb.Layouts.Auth, :empty})
@@ -23,7 +23,7 @@ defmodule GlossiaWeb.Controllers.AuthController do
     end
   end
 
-  defp redirect_from_marketing_or_after_login(conn) do
+  defp redirect_after_login(conn) do
     user_return_to = PathRememberer.remembered_path(conn)
 
     if user_return_to do
@@ -81,7 +81,7 @@ defmodule GlossiaWeb.Controllers.AuthController do
         conn
         |> GlossiaWeb.Auth.log_in_user(user)
         |> put_flash(:info, "Successfully authenticated.")
-        |> redirect_from_marketing_or_after_login()
+        |> redirect_after_login()
 
         # _ ->
         #   conn

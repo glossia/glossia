@@ -11,30 +11,9 @@ defmodule GlossiaWeb.LiveViewMountablePlug do
   def init(:load_url_project = opts), do: opts
   def init(:track_page = opts), do: opts
   def init(:save_last_visited_project = opts), do: opts
-  def init(:auto_redirect_from_marketing_if_logged_in = opts), do: opts
 
   def call(conn, :save_last_visited_project) do
     save_last_visited_project(conn)
-  end
-
-  def call(conn, :auto_redirect_from_marketing_if_logged_in) do
-    case GlossiaWeb.Auth.authenticated_user(conn) do
-      nil ->
-        conn
-
-      %Glossia.Accounts.User{} = user ->
-        project = Accounts.get_last_visited_project_or_first_for_user(user)
-
-        case project do
-          nil ->
-            conn |> Phoenix.Controller.redirect(to: ~p"/new") |> Conn.halt()
-
-          project ->
-            conn
-            |> Phoenix.Controller.redirect(to: ~p"/#{project.account.handle}/#{project.handle}")
-            |> Conn.halt()
-        end
-    end
   end
 
   def call(%{request_path: request_path} = conn, :track_page) do

@@ -67,48 +67,8 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.LiveViewMountablePlug, :project
   end
 
-  pipeline :auto_redirect_from_marketing_if_logged_in do
-    plug GlossiaWeb.LiveViewMountablePlug, :auto_redirect_from_marketing_if_logged_in
-  end
-
-  pipeline :marketing do
-    plug :put_root_layout, html: {GlossiaWeb.Layouts.Marketing, :root}
-  end
-
   pipeline :rss do
     plug :accepts, ["xml"]
-  end
-
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [
-      :browser,
-      :marketing,
-      :tracking,
-      # We automatically redirect when visiting "/" and being logged in.
-      :auto_redirect_from_marketing_if_logged_in
-    ]
-
-    get "/", MarketingController, :index
-  end
-
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:browser, :marketing, :tracking]
-
-    get "/beta", MarketingController, :beta
-    get "/about", MarketingController, :about
-    get "/team", MarketingController, :team
-    get "/beta-added", MarketingController, :beta_added
-    get "/blog", MarketingController, :blog
-    get "/blog/posts/:year/:month/:day/:id", MarketingController, :blog_post
-    get "/terms", MarketingController, :terms
-    get "/privacy", MarketingController, :privacy
-
-    get "/docs", DocsController, :index
-  end
-
-  scope "/", GlossiaWeb.Controllers do
-    pipe_through [:rss, :tracking]
-    get "/blog/feed.xml", MarketingController, :feed
   end
 
   scope "/api/v1" do
