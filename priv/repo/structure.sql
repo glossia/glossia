@@ -387,13 +387,6 @@ CREATE UNIQUE INDEX builds_version_type_index ON public.builds USING btree (vers
 
 
 --
--- Name: content_sources_account_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX content_sources_account_id_index ON public.content_sources USING btree (account_id);
-
-
---
 -- Name: content_sources_id_in_content_platform_content_platform_index; Type: INDEX; Schema: public; Owner: -
 --
 
