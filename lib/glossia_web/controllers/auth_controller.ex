@@ -29,25 +29,9 @@ defmodule GlossiaWeb.Controllers.AuthController do
     if user_return_to do
       conn |> redirect(to: user_return_to)
     else
-      user = GlossiaWeb.Auth.authenticated_user(conn)
+      _user = GlossiaWeb.Auth.authenticated_user(conn)
 
-      project =
-        case user.last_visited_project_id do
-          nil ->
-            Glossia.Accounts.get_user_and_organization_accounts(user)
-            |> Glossia.Projects.get_account_projects()
-            |> List.first()
-
-          last_visited_project_id ->
-            Glossia.Projects.get_project_by_id(last_visited_project_id)
-        end
-
-      if project do
-        account = Glossia.Accounts.get_user_account(user)
-        conn |> redirect(to: ~p"/#{account.handle}/#{project.handle}")
-      else
-        conn |> redirect(to: ~p"/new")
-      end
+      conn |> redirect(to: ~p"/new")
     end
   end
 

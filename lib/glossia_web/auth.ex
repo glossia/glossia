@@ -129,7 +129,6 @@ defmodule GlossiaWeb.Auth do
   end
 
   def init(:load_authenticated_user = opts), do: opts
-  def init(:load_authenticated_project = opts), do: opts
   def init(:load_authenticated_subject = opts), do: opts
   def init(:ensure_authenticated_subject_present = opts), do: opts
 
@@ -143,23 +142,6 @@ defmodule GlossiaWeb.Auth do
     else
       _ ->
         conn
-    end
-  end
-
-  def call(%Plug.Conn{} = conn, :load_authenticated_subject) do
-    conn |> call(:load_authenticated_user) |> call(:load_authenticated_project)
-  end
-
-  @spec call(Plug.Conn.t(), term()) :: Plug.Conn.t()
-  def call(%Plug.Conn{} = conn, :load_authenticated_project) do
-    with {:auth_header, "Bearer" <> " " <> token} <-
-           {:auth_header, Plug.Conn.get_req_header(conn, "authorization") |> List.first()},
-         {:authenticated_project, %Glossia.Projects.Project{} = project} <-
-           {:authenticated_project, Glossia.Projects.get_project_from_token(String.trim(token))} do
-      assign(conn, @authenticated_project_key, project)
-    else
-      {:auth_header, nil} -> assign(conn, @authenticated_project_key, nil)
-      {:authenticated_project, nil} -> assign(conn, @authenticated_project_key, nil)
     end
   end
 

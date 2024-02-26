@@ -20,7 +20,6 @@ defmodule Glossia.Repo.Migrations.RenameProjectsToContentSources do
 
     rename table(:projects), to: table(:content_sources)
 
-    create unique_index(:content_sources, [:account_id])
     create unique_index(:content_sources, [:id_in_content_platform, :content_platform])
   end
 end

@@ -36,33 +36,6 @@ defmodule Glossia.ProjectsTest do
     end
   end
 
-  describe "get_project_from_token" do
-    test "it returns nil if the project doesn't exist" do
-      # Given
-      project = Glossia.ProjectsFixtures.project_fixture()
-
-      # When
-      token = Projects.generate_token_for_project(project)
-      {:ok, _} = Repo.delete(project)
-      got_project = Projects.get_project_from_token(token)
-
-      # Then
-      assert got_project == nil
-    end
-
-    test "it returns the project if the project exists" do
-      # Given
-      project = Glossia.ProjectsFixtures.project_fixture()
-
-      # When
-      token = Projects.generate_token_for_project(project)
-      got_project = Projects.get_project_from_token(token)
-
-      # Then
-      assert got_project.id == project.id
-    end
-  end
-
   describe "find_project_by_owner_and_project_handle" do
     test "it returns the project if it exists" do
       # Given
