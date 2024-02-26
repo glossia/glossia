@@ -93,7 +93,6 @@ CREATE TABLE public.builds (
     id uuid NOT NULL,
     version character varying(255) NOT NULL,
     type integer NOT NULL,
-    project_id uuid NOT NULL,
     status integer DEFAULT 1 NOT NULL,
     vm_id character varying(255),
     inserted_at timestamp(0) without time zone NOT NULL,
@@ -101,6 +100,20 @@ CREATE TABLE public.builds (
     vm_logs_url character varying(255),
     markdown_error_message character varying(255),
     metadata jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
+-- Name: content_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.content_sources (
+    id uuid NOT NULL,
+    account_id uuid NOT NULL,
+    id_in_content_platform public.citext NOT NULL,
+    content_platform integer NOT NULL,
+    inserted_at timestamp(0) without time zone NOT NULL,
+    updated_at timestamp(0) without time zone NOT NULL
 );
 
 
@@ -218,22 +231,6 @@ CREATE TABLE public.organizations (
 
 
 --
--- Name: projects; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.projects (
-    id uuid NOT NULL,
-    handle public.citext NOT NULL,
-    account_id uuid NOT NULL,
-    id_in_content_platform public.citext NOT NULL,
-    content_platform integer NOT NULL,
-    inserted_at timestamp(0) without time zone NOT NULL,
-    updated_at timestamp(0) without time zone NOT NULL,
-    visibility integer DEFAULT 1 NOT NULL
-);
-
-
---
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -255,7 +252,6 @@ CREATE TABLE public.users (
     inserted_at timestamp(0) without time zone NOT NULL,
     updated_at timestamp(0) without time zone NOT NULL,
     account_id uuid NOT NULL,
-    last_visited_project_id uuid,
     role integer DEFAULT 0 NOT NULL
 );
 
@@ -338,10 +334,10 @@ ALTER TABLE ONLY public.organizations
 
 
 --
--- Name: projects projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: content_sources projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.projects
+ALTER TABLE ONLY public.content_sources
     ADD CONSTRAINT projects_pkey PRIMARY KEY (id);
 
 
@@ -391,6 +387,20 @@ CREATE UNIQUE INDEX builds_version_type_index ON public.builds USING btree (vers
 
 
 --
+-- Name: content_sources_account_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX content_sources_account_id_index ON public.content_sources USING btree (account_id);
+
+
+--
+-- Name: content_sources_id_in_content_platform_content_platform_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX content_sources_id_in_content_platform_content_platform_index ON public.content_sources USING btree (id_in_content_platform, content_platform);
+
+
+--
 -- Name: credentials_user_id_provider_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -430,20 +440,6 @@ CREATE UNIQUE INDEX organization_users_organization_id_user_id_index ON public.o
 --
 
 CREATE UNIQUE INDEX organizations_account_id_index ON public.organizations USING btree (account_id);
-
-
---
--- Name: projects_handle_account_id_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX projects_handle_account_id_index ON public.projects USING btree (account_id, handle);
-
-
---
--- Name: projects_id_in_content_platform_content_platform_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX projects_id_in_content_platform_content_platform_index ON public.projects USING btree (id_in_content_platform, content_platform);
 
 
 --
@@ -490,14 +486,6 @@ ALTER TABLE ONLY public.credentials
 
 
 --
--- Name: builds git_events_project_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.builds
-    ADD CONSTRAINT git_events_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE;
-
-
---
 -- Name: organization_users organization_users_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -522,10 +510,10 @@ ALTER TABLE ONLY public.organizations
 
 
 --
--- Name: projects projects_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: content_sources projects_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.projects
+ALTER TABLE ONLY public.content_sources
     ADD CONSTRAINT projects_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(id);
 
 
@@ -535,14 +523,6 @@ ALTER TABLE ONLY public.projects
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(id);
-
-
---
--- Name: users users_last_visited_project_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_last_visited_project_id_fkey FOREIGN KEY (last_visited_project_id) REFERENCES public.projects(id) ON DELETE SET NULL;
 
 
 --
@@ -596,3 +576,4 @@ INSERT INTO public."schema_migrations" (version) VALUES (20230924154601);
 INSERT INTO public."schema_migrations" (version) VALUES (20231006134415);
 INSERT INTO public."schema_migrations" (version) VALUES (20231031133721);
 INSERT INTO public."schema_migrations" (version) VALUES (20240213055018);
+INSERT INTO public."schema_migrations" (version) VALUES (20240226175502);
