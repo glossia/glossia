@@ -5,7 +5,6 @@ defmodule Glossia.Accounts.User do
   use Glossia.DatabaseSchema
   import Ecto.Changeset
 
-  alias Glossia.Projects.Project
   alias Glossia.Accounts.{Account, Credentials, Organization}
 
   # Types
@@ -29,7 +28,6 @@ defmodule Glossia.Accounts.User do
 
     has_many :credentials, Credentials, on_delete: :delete_all
     belongs_to :account, Account, on_replace: :raise
-    belongs_to :last_visited_project, Project
 
     many_to_many(
       :organizations,

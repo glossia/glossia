@@ -14,7 +14,6 @@ defmodule GlossiaWeb.Auth do
   @remember_me_cookie "_glossia_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
   @authenticated_user_key :authenticated_user
-  @authenticated_project_key :authenticated_project
 
   def remember_me_cookie do
     @remember_me_cookie
@@ -85,9 +84,9 @@ defmodule GlossiaWeb.Auth do
   end
 
   @spec authenticated_subject(Plug.Conn.t()) ::
-          Glossia.Accounts.User.t() | Glossia.Projects.Project.t() | nil
+          Glossia.Accounts.User.t()
   def authenticated_subject(conn) do
-    authenticated_user(conn) || authenticated_project(conn)
+    authenticated_user(conn)
   end
 
   @spec authenticated_user(Plug.Conn.t()) ::
@@ -103,17 +102,6 @@ defmodule GlossiaWeb.Auth do
   @spec authenticated_user(assigns :: map()) :: Glossia.Accounts.User.t() | nil
   def authenticated_user(assigns) when is_map(assigns) do
     assigns[@authenticated_user_key]
-  end
-
-  @spec authenticated_project(Plug.Conn.t()) ::
-          Glossia.Projects.Project.t() | nil
-  def authenticated_project(conn) do
-    conn.assigns[@authenticated_project_key]
-  end
-
-  @spec project_authenticated?(Plug.Conn.t()) :: boolean()
-  def project_authenticated?(conn) do
-    conn.assigns[@authenticated_project_key] != nil
   end
 
   @spec assign_authenticated_user(Plug.Conn.t(), Glossia.Accounts.User.t()) ::
@@ -133,8 +121,7 @@ defmodule GlossiaWeb.Auth do
   def init(:ensure_authenticated_subject_present = opts), do: opts
 
   def call(conn, :ensure_authenticated_subject_present) do
-    with false <- user_authenticated?(conn),
-         false <- project_authenticated?(conn) do
+    with false <- user_authenticated?(conn) do
       conn
       |> put_flash(:error, "You must be logged in to access this page.")
       |> redirect(to: ~p"/auth/login")
