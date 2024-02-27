@@ -120,6 +120,10 @@ defmodule GlossiaWeb.Auth do
   def init(:load_authenticated_subject = opts), do: opts
   def init(:ensure_authenticated_subject_present = opts), do: opts
 
+  def call(conn, :load_authenticated_subject) do
+    conn |> call(:load_authenticated_user)
+  end
+
   def call(conn, :ensure_authenticated_subject_present) do
     if user_authenticated?(conn) do
       conn

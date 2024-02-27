@@ -52,13 +52,6 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Auth, :ensure_authenticated_subject_present
   end
 
-  pipeline :ensure_authenticated_subject_can_read_admin do
-    plug Glossia.Authorization.Plug,
-      policy: Glossia.Admin,
-      action: :read,
-      subject: {GlossiaWeb.Auth, :authenticated_subject}
-  end
-
   pipeline :project do
     plug GlossiaWeb.LiveViewMountablePlug, :project
   end
@@ -98,46 +91,14 @@ defmodule GlossiaWeb.Router do
     post "/stripe", GlossiaWeb.Controllers.Webhooks.StripeWebhooksController, :create
   end
 
-  scope "/admin" do
-    pipe_through [
-      :browser,
-      :app,
-      :ensure_authenticated_subject_present,
-      :ensure_authenticated_subject_can_read_admin,
-      :tracking
-    ]
-  end
-
   scope "/auth", GlossiaWeb.Controllers do
     pipe_through [:browser, :app, :tracking]
 
-    get "/login", AuthController, :login
     post "/logout", AuthController, :logout
 
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
-  end
-
-  scope "/" do
-    pipe_through [
-      :browser,
-      :app,
-      :project
-    ]
-
-    # live_session :project_live_session,
-    #   on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session},
-    #   layout: {GlossiaWeb.Layouts.App, :project} do
-    #   live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
-    #   live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
-    #   live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
-
-    #   live "/:owner_handle/:project_handle/localizations",
-    #        GlossiaWeb.LiveViews.Projects.Localizations
-
-    #   live "/:owner_handle/:project_handle/settings", GlossiaWeb.LiveViews.Projects.Settings
-    # end
   end
 
   scope "/" do
@@ -151,6 +112,7 @@ defmodule GlossiaWeb.Router do
     live_session :authenticated_user,
       layout: {GlossiaWeb.Layouts.App, :empty},
       on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do
+      live "/", GlossiaWeb.LiveViews.HomeLiveView
     end
   end
 
