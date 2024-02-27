@@ -130,7 +130,7 @@ defmodule GlossiaWeb.Auth do
     else
       conn
       |> put_flash(:error, "You must be logged in to access this page.")
-      |> redirect(to: ~p"/auth/login")
+      |> redirect(to: ~p"/auth/github")
       |> halt()
     end
   end
