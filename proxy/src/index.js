@@ -12,9 +12,9 @@ export default {
     } else if (path.startsWith("/handbook")) {
       const baseURL = `https://glossia-handbook.pages.dev`;
       return fetch(baseURL + path, request);
-    } else if (isAuthenticationPath || hasSession) {
-      const baseURL = `https://glossia.fly.dev`;
-      return fetch(baseURL + path, request);
+      // } else if (isAuthenticationPath || hasSession) {
+      //   const baseURL = `https://glossia.fly.dev`;
+      //   return fetch(baseURL + path, request);
     } else {
       const baseURL = `https://glossia-marketing.pages.dev`;
       return fetch(baseURL + path, request);
