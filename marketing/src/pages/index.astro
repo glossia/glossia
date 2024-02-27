@@ -1,7 +1,38 @@
 ---
 import DefaultLayout from "../layouts/DefaultLayout.astro";
 import Divider from "../components/Divider.astro";
+import { AstroSeo } from '@astrolib/seo';
+
+const title = "Glossia - Open Source Localization Operative System"
+const description = "Glossia is an open source localization operative system that leverages the power of LLMs to incrementally localize content from content sources like GitHub, GitLab, Shopify Stores, Apps, and Themes, Figma designs, and more."
+const url = "https://glossia.ai"
 ---
+
+<AstroSeo
+  title={title}
+  description={description}
+  canonical={url}
+  openGraph={{
+    url: url,
+    title: title,
+    description: description,
+    images: [
+      {
+        url: 'https://www.example.ie/og-image-02.jpg',
+        width: 900,
+        height: 800,
+        alt: 'Og Image Alt Second',
+        type: 'image/jpeg',
+      }
+    ],
+    site_name: 'Glossia',
+  }}
+  twitter={{
+    handle: '@glossiaai',
+    site: '@glossiaai',
+    cardType: 'summary',
+  }}
+/>
 
 <DefaultLayout>
   <div class="body">

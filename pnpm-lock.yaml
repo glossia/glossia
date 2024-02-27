@@ -35,6 +35,9 @@ importers:
       '@astrojs/sitemap':
         specifier: ^3.1.0
         version: 3.1.1
+      '@astrolib/seo':
+        specifier: 1.0.0-beta.5
+        version: 1.0.0-beta.5(astro@4.4.5)
       astro:
         specifier: ^4.4.1
         version: 4.4.5
@@ -288,6 +291,14 @@ packages:
       which-pm-runs: 1.1.0
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /@astrolib/seo@1.0.0-beta.5(astro@4.4.5):
+    resolution: {integrity: sha512-poBnSB9TzkmOyf+PoMR642zVLSoVVZbUIKnYDHXHrKi/upkaegNiaBdVRsyqaQC93SIxxyagQrIbLRtnSJT4Xg==}
+    peerDependencies:
+      astro: ^1.2.1 || ^2.0.0 || ^3.0.0-beta.0 || ^3.0.0 || ^4.0.0
+    dependencies:
+      astro: 4.4.5
     dev: false
 
   /@babel/code-frame@7.23.5:
