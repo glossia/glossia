@@ -1,7 +1,8 @@
 export default {
   async fetch(request) {
     const path = new URL(request.url).pathname;
-    const isAuthorized = request.headers.has("Authorization");
+    const isAuthorized = request.headers.has("authorization") ||
+      request.headers.has("Authorization");
 
     if (path.startsWith("/docs")) {
       const baseURL = `https://glossia-documentation.pages.dev`;

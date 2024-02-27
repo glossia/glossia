@@ -1,8 +1,10 @@
 ---
 import DefaultLayout from "../layouts/DefaultLayout.astro";
 import Divider from "../components/Divider.astro";
+import SEO from "../components/SEO.astro";
 ---
 
+<SEO/>
 <DefaultLayout>
   <div class="body">
     <p class="title">Localization is broken</p>
@@ -19,7 +21,53 @@ import Divider from "../components/Divider.astro";
       interoperable, and will enable a new wave of innovation in the
       localization industry.
     </p>
-    <p></p>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M13 4c-1.91 0-3.457 1.387-3.844 3.188C6.824 7.604 5 9.55 5 12c0 .246.027.465.063.688C4.418 13.636 4 14.753 4 16c0 1.797.895 3.309 2.156 4.406c-.09.356-.156.711-.156 1.094c0 2.473 2.027 4.5 4.5 4.5h.063c.582 1.129 1.59 2 2.937 2a3.49 3.49 0 0 0 2.5-1.063A3.49 3.49 0 0 0 18.5 28c1.348 0 2.355-.871 2.938-2h.062c2.348 0 4.273-1.828 4.469-4.125H26c0-.063-.027-.125-.031-.188c.004-.062.031-.125.031-.187c0-.371-.133-.688-.219-1.031C27.078 19.367 28 17.829 28 16c0-1.246-.418-2.363-1.063-3.313c.036-.222.063-.44.063-.687c0-2.45-1.824-4.395-4.156-4.813C22.457 5.388 20.91 4 19 4c-1.2 0-2.266.559-3 1.406C15.266 4.56 14.2 4 13 4m0 2c1.117 0 2 .883 2 2v2c0 1.668-1.332 3-3 3v2c1.133 0 2.16-.39 3-1.031V24.5c0 .84-.66 1.5-1.5 1.5a1.47 1.47 0 0 1-1.469-1.219l-.187-.968l-.969.156A2.487 2.487 0 0 1 8 21.5c0-.309.05-.598.156-.875c.008-.023.024-.04.031-.063a2.468 2.468 0 0 1 1.813-1.5l-.406-1.968A4.452 4.452 0 0 0 7 18.656A3.958 3.958 0 0 1 6 16a3.9 3.9 0 0 1 .875-2.469l.313-.375l-.094-.5A2.858 2.858 0 0 1 7 12c0-1.668 1.332-3 3-3h1V8c0-1.117.883-2 2-2m6 0c1.117 0 2 .883 2 2v1h1c1.668 0 3 1.332 3 3c0 .215-.04.422-.094.656l-.093.5l.312.375A3.9 3.9 0 0 1 26 16c0 1.2-.512 2.27-1.344 3c-.683-.605-1.554-1-2.531-1c-.945 0-1.797.336-2.469.906l1.282 1.532A1.806 1.806 0 0 1 22.125 20c.965 0 1.734.723 1.844 1.656C23.887 22.973 22.836 24 21.5 24c-.09 0-.2-.004-.375-.031l-.969-.157l-.187.97A1.47 1.47 0 0 1 18.5 26c-.84 0-1.5-.66-1.5-1.5V13.969A4.915 4.915 0 0 0 20 15v-2c-1.668 0-3-1.332-3-3V8c0-1.117.883-2 2-2"/></svg>
+      <div class="title">LLM-powered</div>
+      <div class="description">
+        LLMs allow context-aware localization, enabling a new wave of innovation in the localization industry.
+      </div>
+    </div>
+
+    <div class="feature">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M3 6v20h26V6zm2 2h22v4H5zm2 1v2h8V9zm17 0c-.55 0-1 .45-1 1s.45 1 1 1s1-.45 1-1s-.45-1-1-1M5 14h22v4H5zm2 1v2h8v-2zm17 0c-.55 0-1 .45-1 1s.45 1 1 1s1-.45 1-1s-.45-1-1-1M5 20h22v4H5zm2 1v2h8v-2zm17 0c-.55 0-1 .45-1 1s.45 1 1 1s1-.45 1-1s-.45-1-1-1"/></svg>
+      <div class="title">Multi-platform</div>
+      <div class="description">
+        Organizations can localize content from many content source platforms, and implement new integrations.
+      </div>
+    </div>
+    <div class="feature">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 4C9.371 4 4 9.371 4 16c0 5.3 3.438 9.8 8.207 11.387c.602.11.82-.258.82-.578c0-.286-.011-1.04-.015-2.04c-3.34.723-4.043-1.609-4.043-1.609c-.547-1.387-1.332-1.758-1.332-1.758c-1.09-.742.082-.726.082-.726c1.203.086 1.836 1.234 1.836 1.234c1.07 1.836 2.808 1.305 3.492 1c.11-.777.422-1.305.762-1.605c-2.664-.301-5.465-1.332-5.465-5.93c0-1.313.469-2.383 1.234-3.223c-.121-.3-.535-1.523.117-3.175c0 0 1.008-.32 3.301 1.23A11.487 11.487 0 0 1 16 9.805c1.02.004 2.047.136 3.004.402c2.293-1.55 3.297-1.23 3.297-1.23c.656 1.652.246 2.875.12 3.175c.77.84 1.231 1.91 1.231 3.223c0 4.61-2.804 5.621-5.476 5.922c.43.367.812 1.101.812 2.219c0 1.605-.011 2.898-.011 3.293c0 .32.214.695.824.578C24.566 25.797 28 21.3 28 16c0-6.629-5.371-12-12-12"/></svg>
+      <div class="title">Open Source</div>
+      <div class="description">
+        The change the localization industry requires needs more open innovation and fewer walled gardens.
+      </div>
+    </div>
+    <div class="feature">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M0 6v2h19v15h-6.156c-.446-1.719-1.992-3-3.844-3c-1.852 0-3.398 1.281-3.844 3H4v-5H2v7h3.156c.446 1.719 1.992 3 3.844 3c1.852 0 3.398-1.281 3.844-3h8.312c.446 1.719 1.992 3 3.844 3c1.852 0 3.398-1.281 3.844-3H32v-8.156l-.063-.157l-2-6L29.72 10H21V6zm1 4v2h9v-2zm20 2h7.281L30 17.125V23h-1.156c-.446-1.719-1.992-3-3.844-3c-1.852 0-3.398 1.281-3.844 3H21zM2 14v2h6v-2zm7 8c1.117 0 2 .883 2 2s-.883 2-2 2s-2-.883-2-2s.883-2 2-2m16 0c1.117 0 2 .883 2 2s-.883 2-2 2s-2-.883-2-2s.883-2 2-2"/></svg>
+      <div class="title">Continuous</div>
+      <div class="description">
+        Content changes are detected, and new content is localized incrementally to save costs and time.
+      </div>
+    </div>
+    <div class="feature">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M6 3v26h20V9.594l-.281-.313l-6-6L19.406 3zm2 2h10v6h6v16H8zm12 1.438L22.563 9H20zM11 13v2h10v-2zm0 4v2h10v-2zm0 4v2h10v-2z"/></svg>
+      <div class="title">Easy setup</div>
+      <div class="description">
+        Spend time crafting your content, not setting up localization infrastructure.
+      </div>
+    </div>
+    <div class="feature">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="m17.012 3.021l-.912 1.66l-6.522 11.856l-1.916-1.916l-.66 1.098l-5.86 9.767L.235 27h31.284l-.598-1.395l-3-7l-.582-1.357l-2.068 2.068l-7.403-14.605zm-.073 4.282l3.04 5.996l-.774.664l-2.28-1.953l-2.279 1.953l-.93-.799zm-.013 7.34l2.28 1.953l1.702-1.46l3.2 6.315l.622 1.233l1.932-1.932L28.482 25H3.766c1.43-2.385 2.862-4.77 4.293-7.154l1.988 1.988l.642-1.166c.681-1.238 1.363-2.475 2.043-3.713l1.914 1.64z"/></svg>
+      <div class="title">Designed to scale</div>
+      <div class="description">
+        Built on technologies designed to scale and accommodate the new world of LLMs.
+      </div>
+    </div>
+  </div>
+  <div class="body">
     <Divider />
     <p class="title">Glossia is an open source localization operative system</p>
     <p>
@@ -89,16 +137,57 @@ import Divider from "../components/Divider.astro";
 
     <p>
       We are a product-driven team of linguists and developers who have built
-      software you love at companies like Shopify, SoundCloud, and Chatterbug.
+      software you love at companies like <a href="https://shopify.com">Shopify</a>, <a href="https://chatterbug.com">Chatterbug</a>, <a href="https://soundcloud.com">SoundCloud</a>.
     </p>
     <p>We are bootstrapping the business from Berlin.</p>
   </div>
 </DefaultLayout>
 
 <style>
+  .features {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: var(--size-5);
+    padding: var(--size-10) var(--size-3);
+  }
+
+  @media screen and (min-width: 768px) {
+    .features {
+      gap: var(--size-7);
+      padding: var(--size-10) var(--size-10);
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+    }
+  }
+  .feature {
+    background-color: #f0f0f0;
+    padding: var(--size-5);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-2);
+    
+    & > * + * {
+      margin-top: var(--size-3);
+    }
+
+    & .title {
+      font-size: var(--font-size-4);
+      font-weight: var(--font-weight-7);
+    }
+
+    & .description {
+      font-size: var(--font-size-3);
+      font-weight: var(--font-weight-5);
+      color: var(--gray-7);
+    }
+  }
+
   .body {
     line-height: var(--font-lineheight-3);
     margin-top: var(--size-10);
+    margin-left: var(--size-3);
+    margin-right: var(--size-3);
     font-size: var(--font-size-4);
     font-weight: var(--font-weight-5);
     display: flex;
@@ -174,5 +263,4 @@ import Divider from "../components/Divider.astro";
   .figma {
     color: #a259ff;
   }
-
 </style>

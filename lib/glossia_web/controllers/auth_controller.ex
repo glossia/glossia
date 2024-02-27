@@ -8,21 +8,6 @@ defmodule GlossiaWeb.Controllers.AuthController do
   alias GlossiaWeb.Support.PathRememberer
 
   @remember_me_cookie "_glossia_web_user_remember_me"
-
-  def login(conn, _params) do
-    if GlossiaWeb.Auth.user_authenticated?(conn) do
-      conn |> redirect_after_login()
-    else
-      conn
-      |> put_layout(html: {GlossiaWeb.Layouts.Auth, :empty})
-      |> put_open_graph_metadata(%{
-        title: "Login",
-        description: "Login to Glossia"
-      })
-      |> render(:login)
-    end
-  end
-
   defp redirect_after_login(conn) do
     user_return_to = PathRememberer.remembered_path(conn)
 
@@ -31,7 +16,7 @@ defmodule GlossiaWeb.Controllers.AuthController do
     else
       _user = GlossiaWeb.Auth.authenticated_user(conn)
 
-      conn |> redirect(to: ~p"/new")
+      conn |> redirect(to: ~p"/")
     end
   end
 
