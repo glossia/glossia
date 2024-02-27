@@ -14,7 +14,6 @@ defmodule GlossiaWeb.Auth do
   @remember_me_cookie "_glossia_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
   @authenticated_user_key :authenticated_user
-  @authenticated_project_key :authenticated_project
 
   def remember_me_cookie do
     @remember_me_cookie
@@ -85,9 +84,9 @@ defmodule GlossiaWeb.Auth do
   end
 
   @spec authenticated_subject(Plug.Conn.t()) ::
-          Glossia.Accounts.User.t() | Glossia.Projects.Project.t() | nil
+          Glossia.Accounts.User.t()
   def authenticated_subject(conn) do
-    authenticated_user(conn) || authenticated_project(conn)
+    authenticated_user(conn)
   end
 
   @spec authenticated_user(Plug.Conn.t()) ::
@@ -105,17 +104,6 @@ defmodule GlossiaWeb.Auth do
     assigns[@authenticated_user_key]
   end
 
-  @spec authenticated_project(Plug.Conn.t()) ::
-          Glossia.Projects.Project.t() | nil
-  def authenticated_project(conn) do
-    conn.assigns[@authenticated_project_key]
-  end
-
-  @spec project_authenticated?(Plug.Conn.t()) :: boolean()
-  def project_authenticated?(conn) do
-    conn.assigns[@authenticated_project_key] != nil
-  end
-
   @spec assign_authenticated_user(Plug.Conn.t(), Glossia.Accounts.User.t()) ::
           Plug.Conn.t()
   def assign_authenticated_user(%Plug.Conn{} = conn, user) do
@@ -129,37 +117,17 @@ defmodule GlossiaWeb.Auth do
   end
 
   def init(:load_authenticated_user = opts), do: opts
-  def init(:load_authenticated_project = opts), do: opts
   def init(:load_authenticated_subject = opts), do: opts
   def init(:ensure_authenticated_subject_present = opts), do: opts
 
   def call(conn, :ensure_authenticated_subject_present) do
-    with false <- user_authenticated?(conn),
-         false <- project_authenticated?(conn) do
+    if user_authenticated?(conn) do
+      conn
+    else
       conn
       |> put_flash(:error, "You must be logged in to access this page.")
       |> redirect(to: ~p"/auth/login")
       |> halt()
-    else
-      _ ->
-        conn
-    end
-  end
-
-  def call(%Plug.Conn{} = conn, :load_authenticated_subject) do
-    conn |> call(:load_authenticated_user) |> call(:load_authenticated_project)
-  end
-
-  @spec call(Plug.Conn.t(), term()) :: Plug.Conn.t()
-  def call(%Plug.Conn{} = conn, :load_authenticated_project) do
-    with {:auth_header, "Bearer" <> " " <> token} <-
-           {:auth_header, Plug.Conn.get_req_header(conn, "authorization") |> List.first()},
-         {:authenticated_project, %Glossia.Projects.Project{} = project} <-
-           {:authenticated_project, Glossia.Projects.get_project_from_token(String.trim(token))} do
-      assign(conn, @authenticated_project_key, project)
-    else
-      {:auth_header, nil} -> assign(conn, @authenticated_project_key, nil)
-      {:authenticated_project, nil} -> assign(conn, @authenticated_project_key, nil)
     end
   end
 

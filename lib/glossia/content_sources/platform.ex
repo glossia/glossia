@@ -23,9 +23,9 @@ defmodule Glossia.ContentSources.Platform do
   It returns the versions of the project in the content source.
 
   ## Parameters
-  - `id_in_content_platform` - The ID that represents the project in the content source platform.
+  - `id_in_platform` - The ID that represents the project in the content source platform.
   """
-  @callback get_versions(id_in_content_platform :: String.t()) ::
+  @callback get_versions(id_in_platform :: String.t()) ::
               {:ok, [any()]} | {:error, any()}
 
   @doc ~S"""
@@ -39,26 +39,26 @@ defmodule Glossia.ContentSources.Platform do
   the most recent commit sha in the default branch.
 
   ## Parameters
-  - `id_in_content_platform` - The id that represents the project in the content source platform.
+  - `id_in_platform` - The id that represents the project in the content source platform.
 
   ## Examples
 
       iex> Glossia.ContentSources.Platforms.GitHub.get_most_recent_version(github_content_source)
       {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
-  @callback get_most_recent_version(id_in_content_platform :: String.t()) ::
+  @callback get_most_recent_version(id_in_platform :: String.t()) ::
               {:ok, String.t()} | {:error, any()}
 
   @doc ~S"""
   It returns the content from a content source.
 
   ## Parameters
-  - `id_in_content_platform` - The id that represents the project in the content source platform.
+  - `id_in_platform` - The id that represents the project in the content source platform.
   - `content_id` - The content id. What it refers to depends on the content source. For example, in the case of a Git repository is the path to the file.
   - `version` - The version of the content.
   """
   @callback get_content(
-              id_in_content_platform :: String.t(),
+              id_in_platform :: String.t(),
               content_id :: String.t(),
               version :: String.t()
             ) ::
@@ -76,7 +76,7 @@ defmodule Glossia.ContentSources.Platform do
   and including the changes in it.
 
   # Parameters
-  - `id_in_content_platform` - The id that represents the project in the content source platform.
+  - `id_in_platform` - The id that represents the project in the content source platform.
   - `opts` - The options to configure the updating of the content.
 
   ## Examples
@@ -92,7 +92,7 @@ defmodule Glossia.ContentSources.Platform do
     {:ok, "6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67"}
   """
   @callback update_content(
-              id_in_content_platform :: String.t(),
+              id_in_platform :: String.t(),
               opts :: update_content_opts_t()
             ) ::
               {:ok, %{id: String.t(), url: String.t() | nil}}
@@ -107,7 +107,7 @@ defmodule Glossia.ContentSources.Platform do
   cancel running updates when new versions are available.
   """
   @callback get_content_branch_id(
-              id_in_content_platform :: String.t(),
+              id_in_platform :: String.t(),
               opts :: get_content_branch_id_opts_t
             ) ::
               String.t()
@@ -118,7 +118,7 @@ defmodule Glossia.ContentSources.Platform do
   not trigger a localization.
 
   # Parameters
-  - `id_in_content_platform` - The id that represents the project in the content source platform.
+  - `id_in_platform` - The id that represents the project in the content source platform.
   - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
 
   # Example
@@ -126,7 +126,7 @@ defmodule Glossia.ContentSources.Platform do
       iex> Glossia.ContentSources.Platforms.GitHub.should_localize?("6c325ef99cb6afa8d0cb87a565dc1f59ab46fb67")
       false
   """
-  @callback should_localize?(id_in_content_platform :: String.t(), version :: String.t()) ::
+  @callback should_localize?(id_in_platform :: String.t(), version :: String.t()) ::
               boolean()
 
   @type update_status_t :: :error | :failure | :pending | :success
@@ -136,19 +136,19 @@ defmodule Glossia.ContentSources.Platform do
   it updates the status of a commit.
 
   # Parameters
-  - `id_in_content_platform` - The id that represents the project in the content source platform.
+  - `id_in_platform` - The id that represents the project in the content source platform.
   - `state` - The state of the localization.
   - `version` - The version of the content. For example, in the case of GitHub it represents the commit sha.
   - `opts` - The options to configure the updating of the state.
   """
   @callback update_state(
-              id_in_content_platform :: String.t(),
+              id_in_platform :: String.t(),
               state :: update_status_t(),
               version :: String.t(),
               opts :: [{:target_url, String.t() | nil}, {:description, String.t() | nil}]
             ) :: :ok | {:error, any()}
 
-  @callback generate_auth_token(id_in_content_platform :: any()) ::
+  @callback generate_auth_token(id_in_platform :: any()) ::
               {:ok, String.t()} | {:error, any()}
 
   @callback is_webhook_payload_valid?(

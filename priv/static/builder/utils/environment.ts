@@ -73,7 +73,7 @@ export function getAccessToken(env: Deno.Env = Deno.env) {
  * @returns
  */
 export function getIDInContentSourcePlatform(env: Deno.Env = Deno.env) {
-  return env.get("GLOSSIA_id_in_content_platform");
+  return env.get("GLOSSIA_id_in_platform");
 }
 
 type ContentSourcePlatform = "github";
@@ -86,7 +86,7 @@ type ContentSourcePlatform = "github";
 export function getContentSourcePlatform(
   env: Deno.Env = Deno.env,
 ): ContentSourcePlatform | undefined {
-  const platform = env.get("GLOSSIA_content_platform");
+  const platform = env.get("GLOSSIA_platform");
   if (!platform) return undefined;
   switch (platform) {
     case "github":

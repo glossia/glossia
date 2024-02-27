@@ -24,10 +24,6 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.LiveViewMountablePlug, :track_page
   end
 
-  pipeline :load_url_project do
-    plug GlossiaWeb.LiveViewMountablePlug, :load_url_project
-  end
-
   pipeline :api do
     plug :accepts, ["json"]
 
@@ -75,7 +71,6 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :api,
       :ensure_authenticated_subject_present,
-      :load_url_project,
       :tracking
     ]
 
@@ -131,18 +126,18 @@ defmodule GlossiaWeb.Router do
       :project
     ]
 
-    live_session :project_live_session,
-      on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session},
-      layout: {GlossiaWeb.Layouts.App, :project} do
-      live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
-      live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
-      live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
+    # live_session :project_live_session,
+    #   on_mount: {GlossiaWeb.LiveViewMountablePlug, :project_live_session},
+    #   layout: {GlossiaWeb.Layouts.App, :project} do
+    #   live "/:owner_handle/:project_handle", GlossiaWeb.LiveViews.Projects.Dashboard
+    #   live "/:owner_handle/:project_handle/versions", GlossiaWeb.LiveViews.Projects.Versions
+    #   live "/:owner_handle/:project_handle/events", GlossiaWeb.LiveViews.Projects.Events
 
-      live "/:owner_handle/:project_handle/localizations",
-           GlossiaWeb.LiveViews.Projects.Localizations
+    #   live "/:owner_handle/:project_handle/localizations",
+    #        GlossiaWeb.LiveViews.Projects.Localizations
 
-      live "/:owner_handle/:project_handle/settings", GlossiaWeb.LiveViews.Projects.Settings
-    end
+    #   live "/:owner_handle/:project_handle/settings", GlossiaWeb.LiveViews.Projects.Settings
+    # end
   end
 
   scope "/" do
@@ -156,7 +151,6 @@ defmodule GlossiaWeb.Router do
     live_session :authenticated_user,
       layout: {GlossiaWeb.Layouts.App, :empty},
       on_mount: {GlossiaWeb.LiveViews.AuthLiveView, :authenticated_user} do
-      live "/new", GlossiaWeb.LiveViews.Projects.New
     end
   end
 

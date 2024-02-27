@@ -1,8 +1,8 @@
 alias Glossia.Repo
 alias Glossia.Accounts, as: Accounts
 alias Glossia.Accounts.Account
-alias Glossia.Projects, as: Projects
-alias Glossia.Projects.Project
+alias Glossia.ContentSources, as: ContentSources
+alias Glossia.ContentSources.ContentSource
 
 organization =
   Repo.get_by(Account, handle: "glossia")
@@ -17,23 +17,22 @@ organization =
 
 organization = organization |> Repo.preload(:account)
 
-project =
-  Repo.get_by(Project,
-    id_in_content_platform: "glossia/modulex",
-    content_platform: :github
+content_source =
+  Repo.get_by(ContentSource,
+    id_in_platform: "glossia/modulex",
+    platform: :github
   )
   |> case do
     nil ->
-      {:ok, project} =
-        Projects.create_project(%{
-          handle: "glossia",
-          id_in_content_platform: "glossia/glossia",
-          content_platform: :github,
+      {:ok, content_source} =
+        ContentSources.create_content_source(%{
+          id_in_platform: "glossia/glossia",
+          platform: :github,
           account_id: organization.account.id
         })
 
-      project
+      content_source
 
-    project ->
-      project
+    content_source ->
+      content_source
   end

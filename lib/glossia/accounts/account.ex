@@ -4,17 +4,17 @@ defmodule Glossia.Accounts.Account do
   import Ecto.Query, only: [from: 2]
   use Glossia.DatabaseSchema
   import Ecto.Changeset
-  alias Glossia.Projects.Project
+  alias Glossia.ContentSources.ContentSource
 
   @type t :: %__MODULE__{
           handle: String.t(),
-          projects: [Project.t()] | nil
+          content_sources: [ContentSource.t()] | nil
         }
 
   schema "accounts" do
     field :handle, :string
 
-    has_many(:projects, Project)
+    has_many(:content_sources, ContentSource)
     timestamps()
   end
 

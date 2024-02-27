@@ -1,10 +1,10 @@
-defmodule Glossia.ProjectsFixtures do
+defmodule Glossia.ContentSourcesFixtures do
   @moduledoc ~S"""
   This module defines test helpers for creating
   entities via the `Glossia.Projects` context.
   """
 
-  def project_fixture(attrs \\ %{}) do
+  def content_source_fixture(attrs \\ %{}) do
     attrs =
       case attrs[:account_id] do
         nil ->
@@ -21,18 +21,17 @@ defmodule Glossia.ProjectsFixtures do
 
     {:ok, project} =
       attrs
-      |> Enum.into(project_fixture_default_attrs())
-      |> Glossia.Projects.create_project()
+      |> Enum.into(content_source_fixture_default_attrs())
+      |> Glossia.ContentSources.create_content_source()
 
     project
   end
 
-  defp project_fixture_default_attrs() do
+  defp content_source_fixture_default_attrs() do
     %{
-      handle: "handle#{Glossia.TestHelpers.unique_integer()}",
-      id_in_content_platform:
+      id_in_platform:
         "#{Glossia.TestHelpers.unique_integer()}/#{Glossia.TestHelpers.unique_integer()}",
-      content_platform: :github,
+      platform: :github,
       account_id: 1
     }
   end
