@@ -121,14 +121,13 @@ defmodule GlossiaWeb.Auth do
   def init(:ensure_authenticated_subject_present = opts), do: opts
 
   def call(conn, :ensure_authenticated_subject_present) do
-    with false <- user_authenticated?(conn) do
+    if user_authenticated?(conn) do
+      conn
+    else
       conn
       |> put_flash(:error, "You must be logged in to access this page.")
       |> redirect(to: ~p"/auth/login")
       |> halt()
-    else
-      _ ->
-        conn
     end
   end
 
