@@ -1,63 +1,85 @@
 ---
-import HeaderLink from './HeaderLink.astro';
-import Logo from "./Logo.astro"
-import { siteTitle } from '../constants';
+import HeaderLink from "./HeaderLink.astro";
+import Logo from "./Logo.astro";
+import { siteTitle } from "../constants";
 ---
 
 <header>
-	<nav class="navigation">
-		<Logo size="30"/>
-		<span class="title">Glossia</span>
+  <nav class="navigation">
+    <Logo size="30" />
+    <span class="title">Glossia</span>
 
-		<ul class="links">
-			<a class="link" href="https://glossia.ai/docs">Docs</a>
-			<a class="link" href="https://glossia.ai/handbook">Handbook</a>
-			<a class="link" href="https://github.com/glossia/glossia">GitHub</a>
-			<a class="login" href="https://glossia.ai/auth/github">Login with GitHub</a>
-		</ul>
-	</nav>
+    <ul class="links">
+      <a class="link" href="https://glossia.ai/docs">Docs</a>
+      <a class="link" href="https://glossia.ai/handbook">Handbook</a>
+      <a class="link" href="https://github.com/glossia/glossia">GitHub</a>
+    </ul>
+    <a class="login" href="https://glossia.ai/auth/github">Login with GitHub</a>
+  </nav>
 </header>
 
 <style>
+  .links {
+	padding-inline-start: 0px;
+
+	& > * + * {
+      margin-left: var(--size-2);
+    }
+
+    & .link {
+      color: var(--gray-6);
+      text-decoration: none;
+      font-size: var(--font-size-2);
+
+      &:hover {
+        color: var(--violet-5);
+      }
+    }
+  }
+
+  @media screen and (min-width: 768px) {
 	.links {
 		margin-left: auto;
-		& > * + * {
-			margin-left: var(--size-2);
-		}
-
-		& .login {
-			text-decoration: none;
-			color: var(--gray-7);
-			padding: var(--size-2) var(--size-3);
-			background-color: var(--gray-3);
-			font-size: var(--font-size-2);
-			border-radius: var(--border-size-3);
-
-			&:hover {
-				background-color: var(--gray-4);
-			}
-		}
-
-		& .link {
-			color: var(--gray-7);
-			text-decoration: none;
-			font-size: var(--font-size-2);
-
-			&:hover {
-				color: var(--violet-5);
-			}
-		}
 	}
+  }
 
-	.navigation {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
+  .login {
+    text-decoration: none;
+    color: var(--gray-7);
+    padding: var(--size-2) var(--size-3);
+    background-color: var(--gray-3);
+    font-size: var(--font-size-1);
+    border-radius: var(--border-size-3);
 
+    &:hover {
+      background-color: var(--gray-4);
+    }
+  }
+
+  @media screen and (min-width: 768px) {
+	.login {
+		margin-left: var(--size-7);
 	}
+  }
 
-	.title {
-		font-weight: var(--font-weight-6);
-		margin-left: var(--size-2);
-	}
+  .navigation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+	justify-items: center;
+  }
+
+  @media screen and (min-width: 768px) {
+    .navigation {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+	  justify-items: center;
+    }
+  }
+
+  .title {
+    font-weight: var(--font-weight-6);
+    margin-left: var(--size-2);
+  }
 </style>
