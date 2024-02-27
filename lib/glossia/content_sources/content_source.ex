@@ -1,5 +1,6 @@
 defmodule Glossia.ContentSources.ContentSource do
   alias Glossia.Accounts.Account
+  alias Glossia.ContentSources.ContentSource
 
   @moduledoc ~S"""
   A module that represents a source whose content changes over time.
@@ -9,10 +10,10 @@ defmodule Glossia.ContentSources.ContentSource do
 
   @type t :: %__MODULE__{
           account: Account.t() | nil,
-          id_in_content_platform: String.t(),
-          content_platform: content_platform()
+          id_in_platform: String.t(),
+          platform: platform()
         }
-  @type content_platform :: :github
+  @type platform :: :github
 
   # Module dependencies
 
@@ -24,9 +25,8 @@ defmodule Glossia.ContentSources.ContentSource do
   # Schema
 
   schema "content_sources" do
-    field :handle, :string
-    field :id_in_content_platform, :string
-    field :content_platform, Ecto.Enum, values: [{:github, 1}]
+    field :id_in_platform, :string
+    field :platform, Ecto.Enum, values: [{:github, 1}]
     belongs_to :account, Account, on_replace: :raise
 
     timestamps()
@@ -41,20 +41,20 @@ defmodule Glossia.ContentSources.ContentSource do
   def changeset(content_source, attrs) do
     content_source
     |> cast(attrs, [
-      :id_in_content_platform,
-      :content_platform,
+      :id_in_platform,
+      :platform,
       :account_id
     ])
     |> validate_required(
       [
-        :id_in_content_platform,
-        :content_platform,
+        :id_in_platform,
+        :platform,
         :account_id
       ],
       message: "This attribute is required"
     )
-    |> validate_inclusion(:content_platform, [:github])
-    |> unique_constraint([:id_in_content_platform, :content_platform],
+    |> validate_inclusion(:platform, [:github])
+    |> unique_constraint([:id_in_platform, :platform],
       message: "There's already a content source with the same platform and id."
     )
     |> assoc_constraint(:account)
@@ -62,14 +62,25 @@ defmodule Glossia.ContentSources.ContentSource do
 
   # Queries
 
-  def find_content_source(%{
-        content_platform: content_platform,
-        id_in_content_platform: id_in_content_platform
+  @doc """
+  Given a platform and an id inside the platform, it returns a content source.
+
+  ## Examples
+
+      iex> Glossia.ContentSources.ContentSource.find_content_source(%{platform: :github, id_in_platform: "org/repo"}) |> Repo.one()
+  """
+  @spec find_content_source_query(%{
+          id_in_platform: any(),
+          platform: ContentSource.platform()
+        }) :: Ecto.Query.t()
+  def find_content_source_query(%{
+        platform: platform,
+        id_in_platform: id_in_platform
       }) do
     from(p in __MODULE__,
       where:
-        p.id_in_content_platform == ^id_in_content_platform and
-          p.content_platform == ^content_platform
+        p.id_in_platform == ^id_in_platform and
+          p.platform == ^platform
     )
   end
 end

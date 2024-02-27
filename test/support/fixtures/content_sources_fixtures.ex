@@ -29,9 +29,9 @@ defmodule Glossia.ContentSourcesFixtures do
 
   defp content_source_fixture_default_attrs() do
     %{
-      id_in_content_platform:
+      id_in_platform:
         "#{Glossia.TestHelpers.unique_integer()}/#{Glossia.TestHelpers.unique_integer()}",
-      content_platform: :github,
+      platform: :github,
       account_id: 1
     }
   end

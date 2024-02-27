@@ -12,10 +12,10 @@ defmodule GlossiaWeb.LiveViews.Projects.Dashboard do
 
   def handle_event("localize_most_recent_version", _value, socket) do
     # project = GlossiaWeb.LiveViewMountablePlug.url_project(socket)
-    # content_platform_module = Glossia.ContentSources.get_platform_module(project.content_platform)
+    # platform_module = Glossia.ContentSources.get_platform_module(project.platform)
 
     # {:ok, _version} =
-    #   content_platform_module.get_most_recent_version(project.id_in_content_platform)
+    #   platform_module.get_most_recent_version(project.id_in_platform)
 
     # :ok =
     #   Glossia.Projects.trigger_build(project, %{

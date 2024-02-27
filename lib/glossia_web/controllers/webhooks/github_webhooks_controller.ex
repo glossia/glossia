@@ -14,17 +14,17 @@ defmodule GlossiaWeb.Controllers.Webhooks.GitHubWebhooksController do
     json(conn, nil)
     # payload = conn.assigns.raw_body |> Jason.decode!()
     # commit_sha = payload |> get_in(["after"])
-    # id_in_content_platform = payload |> get_in(["repository", "full_name"])
-    # content_platform_module = Glossia.ContentSources.get_platform_module(:github)
+    # id_in_platform = payload |> get_in(["repository", "full_name"])
+    # platform_module = Glossia.ContentSources.get_platform_module(:github)
 
     # with {:should_localize, true} <-
     #        {:should_localize,
-    #         content_platform_module.should_localize?(id_in_content_platform, commit_sha)},
+    #         platform_module.should_localize?(id_in_platform, commit_sha)},
     #      {:content_source, %ContentSource{}} <-
     #        {:content_source,
     #        ContentSources.find_project_by_repository(%{
-    #           id_in_content_platform: id_in_content_platform,
-    #           content_platform: :github
+    #           id_in_platform: id_in_platform,
+    #           platform: :github
     #         })} do
     #   FLAME.call(Glossia.EventProcessor, fn ->
     #     IO.puts("Hello world")

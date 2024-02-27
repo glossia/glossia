@@ -23,14 +23,14 @@ defmodule Glossia.Localizations do
     :ok
     # project = Projects.find_project_by_id(project_id)
 
-    # content_platform_module =
-    #   Glossia.ContentSources.get_platform_module(project.content_platform)
+    # platform_module =
+    #   Glossia.ContentSources.get_platform_module(project.platform)
 
     # version = localization.version
 
     # unique_id =
-    #   case content_platform_module.get_content_branch_id(
-    #          project.id_in_content_platform,
+    #   case platform_module.get_content_branch_id(
+    #          project.id_in_platform,
     #          %{version: version}
     #        ) do
     #     nil -> version

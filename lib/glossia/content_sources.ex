@@ -4,7 +4,6 @@ defmodule Glossia.ContentSources do
   require Logger
   alias Glossia.Repo
   alias Glossia.ContentSources.{ContentSource}
-  import Ecto.Query, only: [from: 2]
   alias Glossia.ContentSources.Platforms.GitHub
 
   @doc ~S"""
@@ -25,16 +24,22 @@ defmodule Glossia.ContentSources do
     [{:github, GitHub}]
   end
 
+  @doc ~S"""
+  Given a content source ID, it returns the content source if it exists.
+
+  ## Examples
+
+      iex> Glossia.ContentSources.get_content_source_by_id("a1b2c3")
+      %ContentSource{
+        id: "a1b2c3",
+        account_id: "d4e5f6",
+        platform: :github,
+        id_in_platform: "123456"
+      }
+  """
+  @spec get_content_source_by_id(Ecto.UUID.t()) :: ContentSource.t() | nil
   def get_content_source_by_id(id) do
     Repo.get(ContentSource, id)
-  end
-
-  def get_accounts_content_sources(accounts) do
-    Repo.all(
-      from p in ContentSource,
-        where: p.account_id in ^Enum.map(accounts, & &1.id),
-        order_by: [desc: p.inserted_at]
-    )
   end
 
   @doc ~S"""
@@ -55,18 +60,18 @@ defmodule Glossia.ContentSources do
     # TODO
     # project = project |> Repo.preload(:account)
 
-    # content_platform_module =
-    #   Glossia.ContentSources.get_platform_module(project.content_platform)
+    # platform_module =
+    #   Glossia.ContentSources.get_platform_module(project.platform)
 
     # {:ok, access_token} =
-    #   content_platform_module.generate_auth_token(project.id_in_content_platform)
+    #   platform_module.generate_auth_token(project.id_in_platform)
 
     # :ok =
     #   %{
     #     type: "new_version",
     #     version: version,
-    #     id_in_content_platform: project.id_in_content_platform,
-    #     content_platform: project.content_platform,
+    #     id_in_platform: project.id_in_platform,
+    #     platform: project.platform,
     #     project_id: project.id,
     #     project_handle: project.handle,
     #     account_handle: project.account.handle

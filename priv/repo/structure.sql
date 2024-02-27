@@ -110,8 +110,8 @@ CREATE TABLE public.builds (
 CREATE TABLE public.content_sources (
     id uuid NOT NULL,
     account_id uuid NOT NULL,
-    id_in_content_platform public.citext NOT NULL,
-    content_platform integer NOT NULL,
+    id_in_platform public.citext NOT NULL,
+    platform integer NOT NULL,
     inserted_at timestamp(0) without time zone NOT NULL,
     updated_at timestamp(0) without time zone NOT NULL
 );
@@ -390,7 +390,7 @@ CREATE UNIQUE INDEX builds_version_type_index ON public.builds USING btree (vers
 -- Name: content_sources_id_in_content_platform_content_platform_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX content_sources_id_in_content_platform_content_platform_index ON public.content_sources USING btree (id_in_content_platform, content_platform);
+CREATE UNIQUE INDEX content_sources_id_in_content_platform_content_platform_index ON public.content_sources USING btree (id_in_platform, platform);
 
 
 --
@@ -570,3 +570,4 @@ INSERT INTO public."schema_migrations" (version) VALUES (20231006134415);
 INSERT INTO public."schema_migrations" (version) VALUES (20231031133721);
 INSERT INTO public."schema_migrations" (version) VALUES (20240213055018);
 INSERT INTO public."schema_migrations" (version) VALUES (20240226175502);
+INSERT INTO public."schema_migrations" (version) VALUES (20240227064545);

@@ -57,14 +57,14 @@ defmodule GlossiaWeb.LiveViews.Projects.New do
   # end
 
   # def handle_event("validate", %{"project" => attrs}, socket) do
-  #   attrs = attrs |> put_account_id_and_content_platform_attrs(socket)
+  #   attrs = attrs |> put_account_id_and_platform_attrs(socket)
   #   changeset = %Project{} |> Project.changeset(attrs) |> Map.put(:action, :insert)
   #   {:noreply, assign(socket, form: changeset |> to_form())}
   # end
 
   # def handle_event("save", %{"project" => attrs}, socket) do
   #   account = socket |> authenticated_user_account
-  #   attrs = attrs |> put_account_id_and_content_platform_attrs(socket)
+  #   attrs = attrs |> put_account_id_and_platform_attrs(socket)
 
   #   case Glossia.Projects.create_project(attrs) do
   #     {:ok, project} ->
@@ -75,11 +75,11 @@ defmodule GlossiaWeb.LiveViews.Projects.New do
   #   end
   # end
 
-  # defp put_account_id_and_content_platform_attrs(attrs, socket) do
+  # defp put_account_id_and_platform_attrs(attrs, socket) do
   #   account = socket |> authenticated_user_account
 
   #   attrs
-  #   |> Map.merge(%{account_id: account.id, content_platform: :github})
+  #   |> Map.merge(%{account_id: account.id, platform: :github})
   #   |> Useful.atomize_map_keys()
   # end
 
