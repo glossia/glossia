@@ -89,7 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.3.7
+        uses: ScribeMD/docker-cache@0.4.0
         with:
           key: docker-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
       - run: docker build . -t glossia --build-arg MIX_ENV=prod
