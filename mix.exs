@@ -66,7 +66,7 @@ defmodule Glossia.MixProject do
       {:remote_ip, "1.1.0"},
       {:ex_json_schema, "~> 0.10.0"},
       {:goth, "~> 1.4.1"},
-      {:google_api_cloud_build, "~> 0.49"},
+      {:google_api_cloud_build, "~> 0.50"},
       {:google_api_storage, "~> 0.34.0"},
       {:rambo, "~> 0.3.4"},
       {:open_api_spex, "~> 3.18.0"},
