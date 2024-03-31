@@ -81,7 +81,7 @@ defmodule Glossia.MixProject do
       {:mox, "~> 1.0", only: :test},
       {:ecto_erd, "~> 0.5", only: :dev},
       {:hammox, "~> 0.7", only: :test},
-      {:nestru, "~> 0.3.3"},
+      {:nestru, "~> 1.0.0"},
       {:uniq, "~> 0.6.1"},
       {:castore, "~> 1.0"},
       {:stripity_stripe, "~> 3.1.0"},
