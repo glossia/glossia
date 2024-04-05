@@ -13,7 +13,7 @@ importers:
         version: 1.0.2(@algolia/client-search@4.23.2)(search-insights@2.13.0)
       wrangler:
         specifier: ^3.28.2
-        version: 3.47.1
+        version: 3.48.0
 
   handbook:
     devDependencies:
@@ -22,7 +22,7 @@ importers:
         version: 1.0.2(@algolia/client-search@4.23.2)(search-insights@2.13.0)
       wrangler:
         specifier: ^3.28.2
-        version: 3.47.1
+        version: 3.48.0
 
   marketing:
     dependencies:
@@ -50,13 +50,13 @@ importers:
         version: 10.0.4(postcss@8.4.38)
       wrangler:
         specifier: ^3.28.2
-        version: 3.47.1
+        version: 3.48.0
 
   proxy:
     devDependencies:
       wrangler:
         specifier: ^3.28.2
-        version: 3.47.1
+        version: 3.48.0
 
 packages:
 
@@ -1728,15 +1728,15 @@ packages:
   /@types/node-forge@1.3.11:
     resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
     dependencies:
-      '@types/node': 20.12.4
+      '@types/node': 20.12.5
     dev: true
 
   /@types/node@17.0.45:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
     dev: false
 
-  /@types/node@20.12.4:
-    resolution: {integrity: sha512-E+Fa9z3wSQpzgYQdYmme5X3OTuejnnTx88A6p6vkkJosR3KBz+HpE3kqNm98VE6cfLFcISx7zW7MsJkH6KwbTw==}
+  /@types/node@20.12.5:
+    resolution: {integrity: sha512-BD+BjQ9LS/D8ST9p5uqBxghlN+S42iuNxjsUGjeZobe/ciXzk2qb1B6IXc6AnRLS+yFJRpN2IPEHMzwspfDJNw==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -5391,8 +5391,8 @@ packages:
       '@cloudflare/workerd-windows-64': 1.20240404.0
     dev: true
 
-  /wrangler@3.47.1:
-    resolution: {integrity: sha512-KEnYxAnhpn8vkAV3thrdCB79CK43Wr+L5xvUmfUSZu9j9HFm0I2z9HHPKzzIwdhpcvdC3WtZZz+n5NS2NQ1yzA==}
+  /wrangler@3.48.0:
+    resolution: {integrity: sha512-Wv7JS6FyX1j9HkaM6WL3fmTzBMAYc4hPSyZCuxuH55hkJDX/7ts+YAgsaN1U8rKoDrV3FVSgBfI9TyqP9iuM8Q==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
