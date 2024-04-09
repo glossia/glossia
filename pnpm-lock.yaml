@@ -28,7 +28,7 @@ importers:
     dependencies:
       '@astrojs/mdx':
         specifier: ^2.1.1
-        version: 2.2.4(astro@4.5.16)
+        version: 2.2.4(astro@4.5.17)
       '@astrojs/rss':
         specifier: ^4.0.5
         version: 4.0.5
@@ -37,10 +37,10 @@ importers:
         version: 3.1.2
       '@astrolib/seo':
         specifier: 1.0.0-beta.5
-        version: 1.0.0-beta.5(astro@4.5.16)
+        version: 1.0.0-beta.5(astro@4.5.17)
       astro:
         specifier: ^4.4.1
-        version: 4.5.16
+        version: 4.5.17
       open-props:
         specifier: ^1.6.19
         version: 1.7.2
@@ -251,7 +251,7 @@ packages:
       - supports-color
     dev: false
 
-  /@astrojs/mdx@2.2.4(astro@4.5.16):
+  /@astrojs/mdx@2.2.4(astro@4.5.17):
     resolution: {integrity: sha512-eXCmftMsWj4vTECrc4vgdaXrA8xIvrmJ9rM37BZNK5anQ2PunUm9N8wbnK2VVTE0CAmW5U8v9y3IGps2RYGUvQ==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
@@ -260,7 +260,7 @@ packages:
       '@astrojs/markdown-remark': 5.0.0
       '@mdx-js/mdx': 3.0.1
       acorn: 8.11.3
-      astro: 4.5.16
+      astro: 4.5.17
       es-module-lexer: 1.5.0
       estree-util-visit: 2.0.0
       github-slugger: 2.0.0
@@ -313,12 +313,12 @@ packages:
       - supports-color
     dev: false
 
-  /@astrolib/seo@1.0.0-beta.5(astro@4.5.16):
+  /@astrolib/seo@1.0.0-beta.5(astro@4.5.17):
     resolution: {integrity: sha512-poBnSB9TzkmOyf+PoMR642zVLSoVVZbUIKnYDHXHrKi/upkaegNiaBdVRsyqaQC93SIxxyagQrIbLRtnSJT4Xg==}
     peerDependencies:
       astro: ^1.2.1 || ^2.0.0 || ^3.0.0-beta.0 || ^3.0.0 || ^4.0.0
     dependencies:
-      astro: 4.5.16
+      astro: 4.5.17
     dev: false
 
   /@babel/code-frame@7.24.2:
@@ -1917,8 +1917,8 @@ packages:
     hasBin: true
     dev: false
 
-  /astro@4.5.16:
-    resolution: {integrity: sha512-1nOVsMq2OJiXnG6gO0Y77vTAboGN9nLQSy/8SGazq4h6x+alzbsMbQbArBgvaLzOSUXD0m91XLs3D8bOSuavrQ==}
+  /astro@4.5.17:
+    resolution: {integrity: sha512-fr5onZt7MOe+6v08Ub1AZL9eUVo4f0y0nvL55AFMpVG2bMM1/omcwAH1uU2mkvwMLLtcd4RDtYz4mtJzd54Nfw==}
     engines: {node: '>=18.14.1', npm: '>=6.14.0'}
     hasBin: true
     dependencies:
@@ -2103,8 +2103,8 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001606
-      electron-to-chromium: 1.4.729
+      caniuse-lite: 1.0.30001607
+      electron-to-chromium: 1.4.730
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.23.0)
     dev: false
@@ -2130,8 +2130,8 @@ packages:
     engines: {node: '>=14.16'}
     dev: false
 
-  /caniuse-lite@1.0.30001606:
-    resolution: {integrity: sha512-LPbwnW4vfpJId225pwjZJOgX1m9sGfbw/RKJvw/t0QhYOOaTXHvkjVGFGPpvwEzufrjvTlsULnVTxdy4/6cqkg==}
+  /caniuse-lite@1.0.30001607:
+    resolution: {integrity: sha512-WcvhVRjXLKFB/kmOFVwELtMxyhq3iM/MvmXcyCe2PNf166c39mptscOc/45TTS96n2gpNV2z7+NakArTWZCQ3w==}
     dev: false
 
   /capnp-ts@0.7.0:
@@ -2402,8 +2402,8 @@ packages:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
     dev: false
 
-  /electron-to-chromium@1.4.729:
-    resolution: {integrity: sha512-bx7+5Saea/qu14kmPTDHQxkp2UnziG3iajUQu3BxFvCOnpAJdDbMV4rSl+EqFDkkpNNVUFlR1kDfpL59xfy1HA==}
+  /electron-to-chromium@1.4.730:
+    resolution: {integrity: sha512-oJRPo82XEqtQAobHpJIR3zW5YO3sSRRkPz2an4yxi1UvqhsGm54vR/wzTFV74a3soDOJ8CKW7ajOOX5ESzddwg==}
     dev: false
 
   /emoji-regex@10.3.0:
