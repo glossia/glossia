@@ -79,7 +79,7 @@ defmodule Glossia.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.0", only: :test},
-      {:ecto_erd, "~> 0.5", only: :dev},
+      {:ecto_erd, "~> 0.6", only: :dev},
       {:hammox, "~> 0.7", only: :test},
       {:nestru, "~> 0.3.3"},
       {:uniq, "~> 0.6.1"},
