@@ -69,7 +69,7 @@ defmodule Glossia.MixProject do
       {:google_api_cloud_build, "~> 0.50"},
       {:google_api_storage, "~> 0.37.0"},
       {:rambo, "~> 0.3.4"},
-      {:open_api_spex, "~> 3.18.0"},
+      {:open_api_spex, "~> 3.19.0"},
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
       {:req, "~> 0.4.0"},
