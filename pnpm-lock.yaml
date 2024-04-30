@@ -13,7 +13,7 @@ importers:
         version: 1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.7)(postcss@8.4.38)(search-insights@2.13.0)
       wrangler:
         specifier: ^3.28.2
-        version: 3.52.0
+        version: 3.53.0
 
   handbook:
     devDependencies:
@@ -22,7 +22,7 @@ importers:
         version: 1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.7)(postcss@8.4.38)(search-insights@2.13.0)
       wrangler:
         specifier: ^3.28.2
-        version: 3.52.0
+        version: 3.53.0
 
   marketing:
     dependencies:
@@ -50,13 +50,13 @@ importers:
         version: 10.0.4(postcss@8.4.38)
       wrangler:
         specifier: ^3.28.2
-        version: 3.52.0
+        version: 3.53.0
 
   proxy:
     devDependencies:
       wrangler:
         specifier: ^3.28.2
-        version: 3.52.0
+        version: 3.53.0
 
 packages:
 
@@ -2495,8 +2495,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@3.52.0:
-    resolution: {integrity: sha512-HR06jTym+yr7+CI3Ggld3nfp1OM9vSC7h4B8vwWHwhi5K0sYg8p44rxV514Gmsv9dkFHegkRP70SM3sjuuxxpQ==}
+  wrangler@3.53.0:
+    resolution: {integrity: sha512-JxkvCQekL9j8Mu4CEKM/HEVyDnymWzKQuMUuJH0yum1AilutD5HAP9kVVYmvu7BvwlRyRUAj8TI5OUxXnLCEpQ==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -2552,6 +2552,9 @@ packages:
 
   zod@3.23.4:
     resolution: {integrity: sha512-/AtWOKbBgjzEYYQRNfoGKHObgfAZag6qUJX1VbHo2PRBgS+wfWagEY2mizjfyAPcGesrJOcx/wcl0L9WnVrHFw==}
+
+  zod@3.23.5:
+    resolution: {integrity: sha512-fkwiq0VIQTksNNA131rDOsVJcns0pfVUjHzLrNBiF/O/Xxb5lQyEXkhZWcJ7npWsYlvs+h0jFWXXy4X46Em1JA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -4742,7 +4745,7 @@ snapshots:
       workerd: 1.20240419.0
       ws: 8.17.0
       youch: 3.3.3
-      zod: 3.23.4
+      zod: 3.23.5
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -5469,7 +5472,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20240419.0
       '@cloudflare/workerd-windows-64': 1.20240419.0
 
-  wrangler@3.52.0:
+  wrangler@3.53.0:
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.2
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
@@ -5523,5 +5526,7 @@ snapshots:
       zod: 3.23.4
 
   zod@3.23.4: {}
+
+  zod@3.23.5: {}
 
   zwitch@2.0.4: {}
