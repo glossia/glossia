@@ -85,7 +85,7 @@ defmodule Glossia.MixProject do
       {:uniq, "~> 0.6.1"},
       {:castore, "~> 1.0"},
       {:stripity_stripe, "~> 3.1.0"},
-      {:posthog, "~> 0.1"},
+      {:posthog, "~> 0.2"},
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
       {:redirect, "~> 0.4.0"},
