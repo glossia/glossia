@@ -84,7 +84,7 @@ defmodule Glossia.MixProject do
       {:nestru, "~> 0.3.3"},
       {:uniq, "~> 0.6.1"},
       {:castore, "~> 1.0"},
-      {:stripity_stripe, "~> 3.1.0"},
+      {:stripity_stripe, "~> 3.2.0"},
       {:posthog, "~> 0.2"},
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
