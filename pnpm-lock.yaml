@@ -10,25 +10,25 @@ importers:
     devDependencies:
       vitepress:
         specifier: 1.1.4
-        version: 1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.8)(postcss@8.4.38)(search-insights@2.13.0)
+        version: 1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.11)(postcss@8.4.38)(search-insights@2.13.0)
       wrangler:
         specifier: ^3.28.2
-        version: 3.53.1
+        version: 3.55.0
 
   handbook:
     devDependencies:
       vitepress:
         specifier: 1.1.4
-        version: 1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.8)(postcss@8.4.38)(search-insights@2.13.0)
+        version: 1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.11)(postcss@8.4.38)(search-insights@2.13.0)
       wrangler:
         specifier: ^3.28.2
-        version: 3.53.1
+        version: 3.55.0
 
   marketing:
     dependencies:
       '@astrojs/mdx':
         specifier: ^2.1.1
-        version: 2.3.1(astro@4.8.1(@types/node@20.12.8))
+        version: 2.3.1(astro@4.8.1(@types/node@20.12.11))
       '@astrojs/rss':
         specifier: ^4.0.5
         version: 4.0.5
@@ -37,10 +37,10 @@ importers:
         version: 3.1.4
       '@astrolib/seo':
         specifier: 1.0.0-beta.5
-        version: 1.0.0-beta.5(astro@4.8.1(@types/node@20.12.8))
+        version: 1.0.0-beta.5(astro@4.8.1(@types/node@20.12.11))
       astro:
         specifier: ^4.4.1
-        version: 4.8.1(@types/node@20.12.8)
+        version: 4.8.1(@types/node@20.12.11)
       open-props:
         specifier: ^1.6.19
         version: 1.7.4
@@ -50,13 +50,13 @@ importers:
         version: 10.0.6(postcss@8.4.38)
       wrangler:
         specifier: ^3.28.2
-        version: 3.53.1
+        version: 3.55.0
 
   proxy:
     devDependencies:
       wrangler:
         specifier: ^3.28.2
-        version: 3.53.1
+        version: 3.55.0
 
 packages:
 
@@ -1075,8 +1075,8 @@ packages:
   '@types/node@17.0.45':
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
 
-  '@types/node@20.12.8':
-    resolution: {integrity: sha512-NU0rJLJnshZWdE/097cdCBbyW1h4hEg0xpovcoAQYHl8dnEyp/NAOiE45pvc+Bd1Dt+2r94v2eGFpQJ4R7g+2w==}
+  '@types/node@20.12.11':
+    resolution: {integrity: sha512-vDg9PZ/zi+Nqp6boSOT7plNuthRugEKixDv5sFTIpkE89MmNtEArAShI4mxuX2+UrLEe9pxC1vm2cjm9YlWbJw==}
 
   '@types/sax@1.2.7':
     resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
@@ -2022,8 +2022,8 @@ packages:
     resolution: {integrity: sha512-vqiC06CuhBTUdZH+RYl8sFrL096vA45Ok5ISO6sE/Mr1jRbGH4Csnhi8f3wKVl7x8mO4Au7Ir9D3Oyv1VYMFJw==}
     engines: {node: '>=12'}
 
-  miniflare@3.20240419.0:
-    resolution: {integrity: sha512-fIev1PP4H+fQp5FtvzHqRY2v5s+jxh/a0xAhvM5fBNXvxWX7Zod1OatXfXwYbse3hqO3KeVMhb0osVtrW0NwJg==}
+  miniflare@3.20240419.1:
+    resolution: {integrity: sha512-Q9n0W07uUD/u0c/b03E4iogeXOAMjZnE3P7B5Yi8sPaZAx6TYWwjurGBja+Pg2yILN2iMaliEobfVyAKss33cA==}
     engines: {node: '>=16.13'}
     hasBin: true
 
@@ -2640,8 +2640,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@3.53.1:
-    resolution: {integrity: sha512-bdMRQdHYdvowIwOhEMFkARIZUh56aDw7HLUZ/2JreBjj760osXE4Fc4L1TCkfRRBWgB6/LKF5LA4OcvORMYmHg==}
+  wrangler@3.55.0:
+    resolution: {integrity: sha512-VhtCioKxOdVqkHa8jQ6C6bX3by2Ko0uM0DKzrA+6lBZvfDUlGDWSOPiG+1fOHBHj2JTVBntxWCztXP6L+Udr8w==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -2839,12 +2839,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@2.3.1(astro@4.8.1(@types/node@20.12.8))':
+  '@astrojs/mdx@2.3.1(astro@4.8.1(@types/node@20.12.11))':
     dependencies:
       '@astrojs/markdown-remark': 5.1.0
       '@mdx-js/mdx': 3.0.1
       acorn: 8.11.3
-      astro: 4.8.1(@types/node@20.12.8)
+      astro: 4.8.1(@types/node@20.12.11)
       es-module-lexer: 1.5.2
       estree-util-visit: 2.0.0
       github-slugger: 2.0.0
@@ -2887,9 +2887,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrolib/seo@1.0.0-beta.5(astro@4.8.1(@types/node@20.12.8))':
+  '@astrolib/seo@1.0.0-beta.5(astro@4.8.1(@types/node@20.12.11))':
     dependencies:
-      astro: 4.8.1(@types/node@20.12.8)
+      astro: 4.8.1(@types/node@20.12.11)
 
   '@babel/code-frame@7.24.2':
     dependencies:
@@ -3578,11 +3578,11 @@ snapshots:
 
   '@types/node-forge@1.3.11':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 20.12.11
 
   '@types/node@17.0.45': {}
 
-  '@types/node@20.12.8':
+  '@types/node@20.12.11':
     dependencies:
       undici-types: 5.26.5
 
@@ -3598,9 +3598,9 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-vue@5.0.4(vite@5.2.11(@types/node@20.12.8))(vue@3.4.26)':
+  '@vitejs/plugin-vue@5.0.4(vite@5.2.11(@types/node@20.12.11))(vue@3.4.26)':
     dependencies:
-      vite: 5.2.11(@types/node@20.12.8)
+      vite: 5.2.11(@types/node@20.12.11)
       vue: 3.4.26
 
   '@vue/compiler-core@3.4.26':
@@ -3770,7 +3770,7 @@ snapshots:
 
   astring@1.8.6: {}
 
-  astro@4.8.1(@types/node@20.12.8):
+  astro@4.8.1(@types/node@20.12.11):
     dependencies:
       '@astrojs/compiler': 2.8.0
       '@astrojs/internal-helpers': 0.4.0
@@ -3829,8 +3829,8 @@ snapshots:
       tsconfck: 3.0.3
       unist-util-visit: 5.0.0
       vfile: 6.0.1
-      vite: 5.2.11(@types/node@20.12.8)
-      vitefu: 0.2.5(vite@5.2.11(@types/node@20.12.8))
+      vite: 5.2.11(@types/node@20.12.11)
+      vitefu: 0.2.5(vite@5.2.11(@types/node@20.12.11))
       which-pm: 2.1.1
       yargs-parser: 21.1.1
       zod: 3.23.8
@@ -4967,7 +4967,7 @@ snapshots:
 
   mimic-fn@4.0.0: {}
 
-  miniflare@3.20240419.0:
+  miniflare@3.20240419.1:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       acorn: 8.11.3
@@ -4980,7 +4980,7 @@ snapshots:
       workerd: 1.20240419.0
       ws: 8.17.0
       youch: 3.3.3
-      zod: 3.23.6
+      zod: 3.23.8
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -5608,27 +5608,27 @@ snapshots:
       unist-util-stringify-position: 4.0.0
       vfile-message: 4.0.2
 
-  vite@5.2.11(@types/node@20.12.8):
+  vite@5.2.11(@types/node@20.12.11):
     dependencies:
       esbuild: 0.20.2
       postcss: 8.4.38
       rollup: 4.17.2
     optionalDependencies:
-      '@types/node': 20.12.8
+      '@types/node': 20.12.11
       fsevents: 2.3.3
 
-  vitefu@0.2.5(vite@5.2.11(@types/node@20.12.8)):
+  vitefu@0.2.5(vite@5.2.11(@types/node@20.12.11)):
     optionalDependencies:
-      vite: 5.2.11(@types/node@20.12.8)
+      vite: 5.2.11(@types/node@20.12.11)
 
-  vitepress@1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.8)(postcss@8.4.38)(search-insights@2.13.0):
+  vitepress@1.1.4(@algolia/client-search@4.23.3)(@types/node@20.12.11)(postcss@8.4.38)(search-insights@2.13.0):
     dependencies:
       '@docsearch/css': 3.6.0
       '@docsearch/js': 3.6.0(@algolia/client-search@4.23.3)(search-insights@2.13.0)
       '@shikijs/core': 1.4.0
       '@shikijs/transformers': 1.4.0
       '@types/markdown-it': 14.1.1
-      '@vitejs/plugin-vue': 5.0.4(vite@5.2.11(@types/node@20.12.8))(vue@3.4.26)
+      '@vitejs/plugin-vue': 5.0.4(vite@5.2.11(@types/node@20.12.11))(vue@3.4.26)
       '@vue/devtools-api': 7.1.3(vue@3.4.26)
       '@vueuse/core': 10.9.0(vue@3.4.26)
       '@vueuse/integrations': 10.9.0(focus-trap@7.5.4)(vue@3.4.26)
@@ -5636,7 +5636,7 @@ snapshots:
       mark.js: 8.11.1
       minisearch: 6.3.0
       shiki: 1.4.0
-      vite: 5.2.11(@types/node@20.12.8)
+      vite: 5.2.11(@types/node@20.12.11)
       vue: 3.4.26
     optionalDependencies:
       postcss: 8.4.38
@@ -5709,7 +5709,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20240419.0
       '@cloudflare/workerd-windows-64': 1.20240419.0
 
-  wrangler@3.53.1:
+  wrangler@3.55.0:
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.2
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
@@ -5717,7 +5717,7 @@ snapshots:
       blake3-wasm: 2.1.5
       chokidar: 3.6.0
       esbuild: 0.17.19
-      miniflare: 3.20240419.0
+      miniflare: 3.20240419.1
       nanoid: 3.3.7
       path-to-regexp: 6.2.2
       resolve: 1.22.8
