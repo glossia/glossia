@@ -28,7 +28,7 @@ importers:
     dependencies:
       '@astrojs/mdx':
         specifier: ^2.1.1
-        version: 2.3.1(astro@4.9.1(@types/node@20.12.12))
+        version: 2.3.1(astro@4.9.2(@types/node@20.12.12))
       '@astrojs/rss':
         specifier: ^4.0.5
         version: 4.0.6
@@ -37,10 +37,10 @@ importers:
         version: 3.1.5
       '@astrolib/seo':
         specifier: 1.0.0-beta.5
-        version: 1.0.0-beta.5(astro@4.9.1(@types/node@20.12.12))
+        version: 1.0.0-beta.5(astro@4.9.2(@types/node@20.12.12))
       astro:
         specifier: ^4.4.1
-        version: 4.9.1(@types/node@20.12.12)
+        version: 4.9.2(@types/node@20.12.12)
       open-props:
         specifier: ^1.6.19
         version: 1.7.4
@@ -1249,8 +1249,8 @@ packages:
     resolution: {integrity: sha512-ISvCdHdlTDlH5IpxQJIex7BWBywFWgjJSVdwst+/iQCoEYnyOaQ95+X1JGshuBjGp6nxKUy1jMgE3zPqN7fQdg==}
     hasBin: true
 
-  astro@4.9.1:
-    resolution: {integrity: sha512-9TsoAu0WBPiqyAIj9H0JW7R+tIjPjFsPKo70Nja6WL3imTTuUJQmnCre4ZVmoNV3oicTTlb+N4zjRYANW0Ty9A==}
+  astro@4.9.2:
+    resolution: {integrity: sha512-apzpRoISk6L8g99m3zKIW5SYxw2GhOju/1Gq0Ccf3SH+X2UcFXF+MTdxPOFl5yJUQg7X0qsVQDOIVf8zHRRKFg==}
     engines: {node: ^18.17.1 || ^20.3.0 || >=21.0.0, npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
 
@@ -1287,8 +1287,8 @@ packages:
     resolution: {integrity: sha512-xlx1yCK2Oc1APsPXDL2LdlNP6+uu8OCDdhOBSVT279M/S+y75O30C2VuD8T2ogdePBBl7PfPF4504tnLgX3zfw==}
     engines: {node: '>=14.16'}
 
-  caniuse-lite@1.0.30001621:
-    resolution: {integrity: sha512-+NLXZiviFFKX0fk8Piwv3PfLPGtRqJeq2TiNoUff/qB5KJgwecJTvCXDpmlyP/eCI/GUEmp/h/y5j0yckiiZrA==}
+  caniuse-lite@1.0.30001623:
+    resolution: {integrity: sha512-X/XhAVKlpIxWPpgRTnlgZssJrF0m6YtRA0QDWgsBNT12uZM6LPRydR7ip405Y3t1LamD8cP2TZFEDZFBf5ApcA==}
 
   capnp-ts@0.7.0:
     resolution: {integrity: sha512-XKxXAC3HVPv7r674zP0VC3RTXz+/JKhfyw94ljvF80yynK6VkTnqE3jMuN8b3dUVmmc43TjyxjW4KTsmB3c86g==}
@@ -2830,12 +2830,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@2.3.1(astro@4.9.1(@types/node@20.12.12))':
+  '@astrojs/mdx@2.3.1(astro@4.9.2(@types/node@20.12.12))':
     dependencies:
       '@astrojs/markdown-remark': 5.1.0
       '@mdx-js/mdx': 3.0.1
       acorn: 8.11.3
-      astro: 4.9.1(@types/node@20.12.12)
+      astro: 4.9.2(@types/node@20.12.12)
       es-module-lexer: 1.5.3
       estree-util-visit: 2.0.0
       github-slugger: 2.0.0
@@ -2878,9 +2878,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrolib/seo@1.0.0-beta.5(astro@4.9.1(@types/node@20.12.12))':
+  '@astrolib/seo@1.0.0-beta.5(astro@4.9.2(@types/node@20.12.12))':
     dependencies:
-      astro: 4.9.1(@types/node@20.12.12)
+      astro: 4.9.2(@types/node@20.12.12)
 
   '@babel/code-frame@7.24.6':
     dependencies:
@@ -3756,7 +3756,7 @@ snapshots:
 
   astring@1.8.6: {}
 
-  astro@4.9.1(@types/node@20.12.12):
+  astro@4.9.2(@types/node@20.12.12):
     dependencies:
       '@astrojs/compiler': 2.8.0
       '@astrojs/internal-helpers': 0.4.0
@@ -3863,14 +3863,14 @@ snapshots:
 
   browserslist@4.23.0:
     dependencies:
-      caniuse-lite: 1.0.30001621
+      caniuse-lite: 1.0.30001623
       electron-to-chromium: 1.4.783
       node-releases: 2.0.14
       update-browserslist-db: 1.0.16(browserslist@4.23.0)
 
   camelcase@7.0.1: {}
 
-  caniuse-lite@1.0.30001621: {}
+  caniuse-lite@1.0.30001623: {}
 
   capnp-ts@0.7.0:
     dependencies:
