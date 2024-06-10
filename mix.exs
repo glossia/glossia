@@ -63,7 +63,7 @@ defmodule Glossia.MixProject do
       {:makeup_erlang, "~> 0.1.0"},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.6.0"},
-      {:remote_ip, "1.1.0"},
+      {:remote_ip, "== 1.2.0"},
       {:ex_json_schema, "~> 0.10.0"},
       {:goth, "~> 1.4.1"},
       {:google_api_cloud_build, "~> 0.50"},
