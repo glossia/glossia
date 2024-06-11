@@ -11,7 +11,7 @@
     "deploy": "astro build && wrangler pages deploy dist --project-name glossia-marketing --branch main"
   },
   "dependencies": {
-    "@astrojs/mdx": "^2.1.1",
+    "@astrojs/mdx": "^3.0.0",
     "@astrojs/rss": "^4.0.5",
     "@astrojs/sitemap": "^3.1.0",
     "@astrolib/seo": "1.0.0-beta.5",
