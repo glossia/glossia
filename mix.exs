@@ -72,7 +72,7 @@ defmodule Glossia.MixProject do
       {:open_api_spex, "~> 3.19.0"},
       {:plug, "~> 1.14"},
       {:policy_wonk, "~> 1.0.0"},
-      {:req, "~> 0.4.0"},
+      {:req, "~> 0.5.0"},
       {:useful, "~> 1.14.0"},
       {:typed_struct, "~> 0.3.0"},
       {:modulex, "~> 0.7.0"},
