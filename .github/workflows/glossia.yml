@@ -75,3 +75,5 @@ jobs:
             ${{ runner.os }}-mix-test
       - uses: https://github.com/jdx/mise-action@v2
         with:
+          cache: true
+      - run: mise run test
