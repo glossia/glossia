@@ -1,0 +1,22 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main
+
+env:
+  MISE_EXPERIMENTAL: "1"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    name: Fly
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v3
+      - uses: https://github.com/jdx/mise-action@v2
+        with:
+          cache: true
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

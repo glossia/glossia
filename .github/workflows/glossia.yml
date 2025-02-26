@@ -1,0 +1,77 @@
+name: Glossia
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
+env:
+  MISE_EXPERIMENTAL: "1"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  MISE_SOPS_AGE_KEY: ${{ MISE_SOPS_AGE_KEY }}
+
+jobs:
+  check:
+    name: Static checks
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - uses: https://github.com/jdx/mise-action@v2
+        with:
+          cache: true
+      - run: mise run check
+  build:
+    name: Build
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - uses: https://github.com/jdx/mise-action@v2
+        with:
+          cache: true
+      - run: mise run build
+  test:
+    name: Test
+    runs-on: docker
+    env:
+      MIX_ENV: test
+      DATABASE_HOSTNAME: psql
+    services:
+      psql:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-test-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-test
+      - uses: https://github.com/jdx/mise-action@v2
+        with:
