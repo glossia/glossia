@@ -8,10 +8,14 @@ env:
   MISE_EXPERIMENTAL: "1"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+concurrency:
+  group: glossia-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Fly
-    runs-on: docker
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: https://github.com/jdx/mise-action@v2
