@@ -8,10 +8,6 @@ env:
   MISE_EXPERIMENTAL: "1"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-concurrency:
-  group: glossia-${{ github.head_ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     name: Fly

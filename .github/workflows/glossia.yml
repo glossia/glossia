@@ -10,6 +10,10 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   MISE_SOPS_AGE_KEY: ${{ secrets.MISE_SOPS_AGE_KEY }}
 
+concurrency:
+  group: glossia-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Static checks
