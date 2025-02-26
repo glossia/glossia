@@ -1,5 +1,5 @@
 <div style="text-align: center;">
-    <ig src="./logo.svg"/>
+    <img src="./logo.svg"/>
 </div>
 
 A modern open-source localization toolchain.
