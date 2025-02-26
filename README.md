@@ -2,8 +2,10 @@
     <img  width="150" src="./logo.svg"/>
 </p>
 <h1 align="center">Glossia</h1>
-<p align="center">
+<div align="center">
     <a href="https://github.com/glossia/glossia/actions/workflows/glossia.yml"><img src="https://github.com/glossia/glossia/actions/workflows/glossia.yml/badge.svg"/></a>
+</div>
+<p align="center">
     A modern community-driven open-source localization toolchain.
     It's MPL-2.0 licensed.
 </p>
