@@ -1,4 +1,6 @@
-# Glossia
+<div style="text-align: center;">
+    <ig src="./logo.svg"/>
+</div>
 
 A modern open-source localization toolchain.
 It's MPL-2.0 licensed.
