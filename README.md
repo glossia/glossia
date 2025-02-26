@@ -1,6 +1,7 @@
-<div style="text-align: center;">
-    <img src="./logo.svg"/>
-</div>
+<p align="center">
+    <img  width="150" src="./logo.svg"/>
+</p>
+<h1 align="center">Glossia</h1>
 
 A modern open-source localization toolchain.
 It's MPL-2.0 licensed.
