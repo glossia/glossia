@@ -1,6 +1,6 @@
 # Glossia
 
-Glossia is a modern open-source localization platform.
+A modern open-source localization toolchain.
 It's MPL-2.0 licensed.
 
 ## Development
