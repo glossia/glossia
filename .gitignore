@@ -1,0 +1,16 @@
+# Tauri
+/src-tauri/target
+/dist
+
+# Node
+/node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

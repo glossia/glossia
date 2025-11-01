@@ -1,0 +1,10 @@
+[package]
+name = "glossia-core"
+version = "0.1.0"
+edition = "2021"
+description = "Shared core functionality for Glossia applications"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }

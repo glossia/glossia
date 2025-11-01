@@ -1,0 +1,17 @@
+[package]
+name = "glossia-cli"
+version = "0.1.0"
+edition = "2021"
+description = "Command-line interface for Glossia"
+
+[[bin]]
+name = "glossia"
+path = "src/main.rs"
+
+[dependencies]
+glossia-core = { path = "../crates/glossia-core" }
+clap = { version = "4", features = ["derive"] }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }

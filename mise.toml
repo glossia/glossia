@@ -1,0 +1,23 @@
+# Mise configuration for Glossia monorepo
+
+[tools]
+# Node.js for frontend development
+node = "22"
+
+# Rust for Tauri backend
+rust = "latest"
+
+# Elixir and Erlang for Phoenix backend
+erlang = "27"
+elixir = "1.17"
+
+# Additional tools that may be needed
+"npm:@tauri-apps/cli" = "latest"
+
+[env]
+# Tauri environment variables
+TAURI_PRIVATE_KEY = ""
+TAURI_KEY_PASSWORD = ""
+
+# Monorepo paths
+_.file = [".mise.local.toml"]

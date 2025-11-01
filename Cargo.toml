@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "apps/desktop/src-tauri",
+    "cli",
+    "crates/glossia-core",
+]
+resolver = "2"
+
+[workspace.dependencies]
+# Shared dependencies across all Rust projects
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
