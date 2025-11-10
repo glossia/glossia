@@ -21,12 +21,13 @@ Traditional translation workflows block developers and frustrate linguists:
 - Accepts "good enough" quality to unblock development
 - Linguists review and refine later
 
-**For Linguists: Git-Powered Review Editor**
-- Desktop app that's a "review editor" not a "translation tool"
+**For Linguists: Web-Based Review Editor**
+- Web app that's a "review editor" not a "translation tool"
+- Click badge → instant ephemeral environment (no installation)
 - Git branching/PRs abstracted away - just "start review" → "save review"
 - AI copilot assists with questions and suggestions
-- Local validation with instant feedback (no CI wait)
-- Deep links from repo badges for seamless onboarding
+- Validation runs in environment with instant feedback (no CI wait)
+- Works on any device with a browser
 
 **Decision Capture Over Translation Memory**
 Translation memory (source → target mappings) doesn't fit AI workflows. Instead:
@@ -60,17 +61,26 @@ Translation memory (source → target mappings) doesn't fit AI workflows. Instea
 - AI provider proxy (OpenAI, Anthropic, etc.)
 - Billing & usage tracking
 - Organization/team management
-- API for CLI and desktop app
+- API for CLI and web editor
+- Ephemeral environment orchestration
 
-**Desktop App (Tauri)**
-- Review-oriented translation editor
-- Reads `glossia.toml` from repository
+**Web Editor (Phoenix LiveView)**
+- Review-oriented translation editor in browser
+- Click badge → spin up ephemeral environment
+- Repository cloned in isolated container using user's OAuth token
 - Git integration (branches/PRs abstracted)
 - "Start Review" → creates branch
 - "Save Review" → creates PR/MR with link
 - AI copilot panel for assistance
-- Local check execution (instant feedback)
-- Deep link support for repo badges
+- Server-side check execution (instant feedback)
+- Local text buffer for instant typing (debounced sync)
+
+**Ephemeral Environments (Firecracker microVMs)**
+- Short-lived containers per review session
+- Repository cloned with user's GitHub/GitLab credentials
+- Git operations run as authenticated user
+- Check execution in sandboxed environment
+- Auto-shutdown on idle, spin up on demand
 
 **Shared Core (`glossia-core`)**
 - Config parsing (`glossia.toml`)
@@ -143,14 +153,17 @@ git push
 ### Linguist Workflow
 
 1. Click "Translate" badge on GitHub repo
-2. Deep link opens Glossia app (or prompts install)
-3. Authenticate with GitHub
-4. App shows untranslated/flagged strings
-5. Start Review → branch created automatically
-6. Review translations with AI copilot assistance
-7. Run checks locally (instant feedback)
-8. Save Review → PR created with link
-9. Team reviews in GitHub, merges
+2. Opens Glossia web editor (no installation)
+3. Authenticate with GitHub (if not logged in)
+4. Ephemeral environment spins up (~125ms cold start)
+5. Repository cloned using user's credentials
+6. Editor shows untranslated/flagged strings
+7. Start Review → branch created automatically
+8. Review translations with AI copilot assistance
+9. Run checks in environment (instant feedback)
+10. Save Review → PR created with link
+11. Environment shuts down after idle timeout
+12. Team reviews in GitHub, merges
 
 ### Configuration (`glossia.toml`)
 
@@ -182,22 +195,33 @@ organization = "acme-corp/.l10n"  # Org-wide decisions
 ## Technical Decisions
 
 ### Why Phoenix?
-- Excellent for real-time features (future: collaborative editing)
+- Excellent for real-time features (LiveView for web editor)
 - Strong AI/ML integration patterns
 - Robust background job processing (translation queues)
-- LiveView for server-rendered UI (future web app)
+- Can orchestrate ephemeral environments
+- WebSocket support for instant editor updates
 
-### Why Tauri?
-- Native performance for large translation files
-- Shared Rust code with CLI
-- Cross-platform (Mac, Windows, Linux)
-- Smaller bundle size than Electron
+### Why Web Over Desktop?
+- Zero installation - click badge and start
+- Works on any device (tablets, Chromebooks)
+- No cross-platform builds or distribution
+- Instant updates
+- Easier collaborative editing (future)
+- Cost: we pay for compute (part of subscription)
 
-### Why Node for Checks?
-- Ubiquitous runtime developers understand
-- Rich ecosystem for text processing
-- Sandboxable (Deno provides secure runtime)
-- Same runtime works in app and CI
+### Why Firecracker?
+- Ultra-fast cold starts (~125ms vs. Docker's 1-3s)
+- Minimal overhead for ephemeral workloads
+- Perfect for short-lived review sessions
+- Cost-effective: only pay for active time
+- Available via Fly.io Machines or AWS
+
+### Why Phoenix LiveView for Editor?
+- Real-time updates without JavaScript frameworks
+- Server-rendered, SEO-friendly
+- Local text buffer for instant typing
+- Debounced sync (300ms) for changes
+- Built-in Presence for collaborative features
 
 ### Why Git for Everything?
 - Developers already use it
@@ -205,6 +229,7 @@ organization = "acme-corp/.l10n"  # Org-wide decisions
 - Audit trail and rollback
 - Collaborative review via PRs
 - No syncing infrastructure needed
+- User OAuth tokens for seamless git operations
 
 ## Success Metrics
 
@@ -217,7 +242,8 @@ organization = "acme-corp/.l10n"  # Org-wide decisions
 - Translation review time reduced by 60%
 - Translation quality score (human evaluation)
 - PR cycle time for translations
-- Desktop app daily active users
+- Web editor daily active users
+- Time from badge click to first edit < 5 seconds
 
 **For Organizations:**
 - Cost per translated word (vs. traditional agencies)
@@ -227,22 +253,25 @@ organization = "acme-corp/.l10n"  # Org-wide decisions
 
 ## Future Possibilities
 
-- **Collaborative Editing**: Multiple linguists in real-time (Phoenix LiveView)
+- **Collaborative Editing**: Multiple linguists in real-time (Phoenix Presence)
 - **Translation Analytics**: Quality trends, AI vs. human corrections
-- **Context Screenshots**: Auto-capture UI where strings appear
+- **Context Screenshots**: Auto-capture UI where strings appear in microVM
 - **Version Control for Decisions**: "Revert to terminology from Q2 2024"
 - **Federated Learning**: AI learns from corrections across customers (privacy-preserving)
 - **Integration Marketplace**: Plugins for Figma, Xcode, VS Code
-- **Automated Testing**: Generate i18n tests from translations
+- **Automated Testing**: Generate i18n tests in ephemeral environment
+- **Mobile Editor**: Responsive web editor for on-the-go reviews
 
 ## Open Questions
 
 1. **Decision data structure**: Event sourcing? CRDT? Append-only log?
-2. **Check sandboxing**: Deno? Isolated VM? WebAssembly?
+2. **Environment lifecycle**: Timeout after how long? Pre-warm pool?
 3. **Conflict resolution**: How do we help linguists resolve translation conflicts?
 4. **AI provider abstraction**: Support multiple providers with fallback?
 5. **Offline mode**: Cache decisions locally? Limit CLI functionality?
 6. **Badge implementation**: GitHub Action? Static badge service? Browser extension?
+7. **Environment security**: Network isolation? Resource limits? Secrets handling?
+8. **Cost optimization**: Spot instances? Container pooling? Aggressive timeouts?
 
 ---
 

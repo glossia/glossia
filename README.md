@@ -6,12 +6,10 @@ A monorepo containing Glossia applications and packages.
 
 ```
 glossia/
-├── apps/
-│   └── desktop/       # Tauri desktop application
 ├── cli/               # Rust CLI tool
 ├── crates/
 │   └── glossia-core/  # Shared Rust library
-├── server/            # Phoenix backend server
+├── server/            # Phoenix backend server (includes web editor)
 ├── Cargo.toml         # Rust workspace configuration
 ├── mise.toml          # Dependency management
 └── .gitignore
@@ -28,47 +26,27 @@ This project uses `mise` to manage dependencies. Install mise from https://mise.
 mise install
 ```
 
-2. Navigate to the app you want to work on and install its dependencies:
-
-**For Desktop App:**
-```bash
-cd apps/desktop
-npm install
-```
-
-**For Phoenix Server:**
+2. Set up the Phoenix server:
 ```bash
 cd server
 mix deps.get
 mix ecto.create
 ```
 
-**For CLI (optional, built via Cargo workspace):**
+3. (Optional) Build the CLI:
 ```bash
 cargo build --release -p glossia-cli
 ```
 
 ## Applications
 
-### Desktop App (`apps/desktop`)
-
-A Tauri-powered desktop application.
-
-**Development:**
-```bash
-cd apps/desktop
-npm run dev
-```
-
-**Build:**
-```bash
-cd apps/desktop
-npm run build
-```
-
 ### Phoenix Server (`server`)
 
-A Phoenix backend server for the Glossia platform.
+The Phoenix backend server hosts the Glossia platform, including:
+- **Web Editor**: Phoenix LiveView-based translation review interface
+- **API**: REST API for CLI authentication and translation
+- **Ephemeral Environments**: Orchestrates Firecracker microVMs for review sessions
+- **Authentication**: GitHub/GitLab OAuth integration
 
 **Development:**
 ```bash
@@ -86,7 +64,7 @@ iex -S mix phx.server
 
 ### CLI (`cli`)
 
-A command-line tool for Glossia built with Rust and Clap. Shares code with the desktop app via the `glossia-core` library.
+A command-line tool for Glossia built with Rust and Clap. Shares code with server integrations via the `glossia-core` library.
 
 **Build:**
 ```bash
@@ -109,12 +87,28 @@ glossia greet --name "World"
 
 ### `glossia-core` (`crates/glossia-core`)
 
-Core Rust library shared between the desktop app and CLI. Contains common functionality like configuration, utilities, and business logic.
+Core Rust library shared between the CLI and server integrations. Contains common functionality like:
+- Configuration parsing (`glossia.toml`)
+- Translation file format handlers
+- Decision data structures
+- Validation check runtime
 
 ## Tech Stack
 
 - **Dependency Manager**: mise
-- **Desktop App**: Tauri 2.0 (Rust + HTML/CSS/JS)
 - **CLI**: Rust + Clap
 - **Shared Library**: Rust
 - **Backend Server**: Phoenix (Elixir + PostgreSQL)
+- **Web Editor**: Phoenix LiveView
+- **Ephemeral Environments**: Firecracker microVMs (via Fly.io or AWS)
+
+## Architecture Overview
+
+Glossia is an AI-native translation platform with a unique architecture:
+
+1. **CLI**: Developers run `glossia translate` locally to AI-translate changes
+2. **Web Editor**: Linguists click a repo badge → ephemeral environment spins up → review translations in browser
+3. **Ephemeral Environments**: Each review session gets an isolated Firecracker microVM with the repo cloned using the user's OAuth credentials
+4. **Git as Source of Truth**: No syncing - translations live in the repo, decisions stored in `.glossia/` directory
+
+See [CLAUDE.md](./CLAUDE.md) for the full vision and architecture details.

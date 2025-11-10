@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "apps/desktop/src-tauri",
     "cli",
     "crates/glossia-core",
 ]
