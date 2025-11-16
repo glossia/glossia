@@ -30,6 +30,15 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 ## API Endpoints
 
+### Interactive API Documentation
+
+Visit the Swagger UI at: **http://localhost:4000/api/swagger**
+
+The interactive documentation allows you to:
+- Browse all API endpoints
+- See request/response schemas
+- Try out API calls directly from your browser
+
 ### POST /api/translate
 
 Translates text using AI.
@@ -44,6 +53,8 @@ curl -X POST http://localhost:4000/api/translate \
     "target_locale": "es"
   }'
 ```
+
+**OpenAPI Spec:** http://localhost:4000/api/openapi
 
 ## Development
 

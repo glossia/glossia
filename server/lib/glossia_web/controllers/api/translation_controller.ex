@@ -1,24 +1,25 @@
 defmodule GlossiaWeb.API.TranslationController do
   use GlossiaWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
-  @doc """
-  POST /api/translate
-  Translates text from source language to target language using AI.
+  alias GlossiaWeb.Schemas.{TranslationRequest, TranslationResponse, ErrorResponse}
 
-  Request body:
-  {
-    "text": "Hello, world!",
-    "source_locale": "en",
-    "target_locale": "es"
-  }
+  tags ["Translation"]
 
-  Response:
-  {
-    "translated_text": "¡Hola, mundo!",
-    "source_locale": "en",
-    "target_locale": "es"
-  }
-  """
+  operation :translate,
+    summary: "Translate text",
+    description: """
+    Translates text from a source locale to a target locale using AI.
+
+    The translation preserves formatting, variables, and placeholders.
+    """,
+    request_body: {"Translation request", "application/json", TranslationRequest},
+    responses: [
+      ok: {"Translation successful", "application/json", TranslationResponse},
+      bad_request: {"Invalid request", "application/json", ErrorResponse},
+      internal_server_error: {"Translation failed", "application/json", ErrorResponse}
+    ]
+
   def translate(conn, %{
         "text" => text,
         "source_locale" => source_locale,

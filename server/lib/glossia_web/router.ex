@@ -12,6 +12,7 @@ defmodule GlossiaWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.ApiSpec
   end
 
   scope "/", GlossiaWeb do
@@ -21,14 +22,27 @@ defmodule GlossiaWeb.Router do
   end
 
   # API routes
-  scope "/api", GlossiaWeb.API do
+  scope "/api" do
     pipe_through :api
 
-    post "/translate", TranslationController, :translate
+    # OpenAPI spec
+    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+
+    # API endpoints
+    scope "/", GlossiaWeb.API do
+      post "/translate", TranslationController, :translate
+    end
+  end
+
+  # Swagger UI (development only)
+  scope "/api" do
+    pipe_through :browser
+
+    get "/swagger", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
-  if Application.compile_env(:glossia_server, :dev_routes) do
+  if Application.compile_env(:glossia, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
     # If your application does not have an admins-only section yet,
