@@ -22,7 +22,9 @@ end
 
 # AI Configuration
 # Set ANTHROPIC_API_KEY environment variable for translation service
-config :glossia, :anthropic_api_key, System.get_env("ANTHROPIC_API_KEY")
+if api_key = System.get_env("ANTHROPIC_API_KEY") do
+  ReqLLM.put_key(:anthropic_api_key, api_key)
+end
 
 if config_env() == :prod do
   database_url =
