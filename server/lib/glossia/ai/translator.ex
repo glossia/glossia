@@ -1,6 +1,6 @@
 defmodule Glossia.AI.Translator do
   @moduledoc """
-  Handles AI-powered translation using Anthropic's Claude API.
+  Handles AI-powered translation using ReqLLM with Anthropic's Claude API.
   """
 
   require Logger
@@ -25,22 +25,27 @@ defmodule Glossia.AI.Translator do
         {:ok, text}
 
       true ->
-        call_anthropic_api(text, source_locale, target_locale)
+        call_llm(text, source_locale, target_locale)
     end
   end
 
-  defp call_anthropic_api(text, source_locale, target_locale) do
+  defp call_llm(text, source_locale, target_locale) do
     api_key = get_api_key()
 
     if is_nil(api_key) do
       Logger.error("ANTHROPIC_API_KEY not configured")
       {:error, :api_key_not_configured}
     else
-      prompt = build_translation_prompt(text, source_locale, target_locale)
+      # Set the API key for ReqLLM
+      ReqLLM.put_key(:anthropic_api_key, api_key)
 
-      case make_api_request(api_key, prompt) do
-        {:ok, translated_text} ->
-          {:ok, translated_text}
+      prompt = build_translation_prompt(text, source_locale, target_locale)
+      model = "anthropic:claude-sonnet-4-20250514"
+
+      case ReqLLM.generate_text(model, prompt, temperature: 0.3) do
+        {:ok, response} ->
+          Logger.debug("Translation successful. Tokens: #{response.usage.total_tokens}, Cost: $#{response.usage.total_cost}")
+          {:ok, String.trim(response.text)}
 
         {:error, reason} ->
           Logger.error("Translation API error: #{inspect(reason)}")
@@ -60,50 +65,8 @@ defmodule Glossia.AI.Translator do
     """
   end
 
-  defp make_api_request(api_key, prompt) do
-    url = "https://api.anthropic.com/v1/messages"
-
-    headers = [
-      {"x-api-key", api_key},
-      {"anthropic-version", "2023-06-01"},
-      {"content-type", "application/json"}
-    ]
-
-    body = %{
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      messages: [
-        %{
-          role: "user",
-          content: prompt
-        }
-      ]
-    }
-
-    case Req.post(url, headers: headers, json: body) do
-      {:ok, %{status: 200, body: response_body}} ->
-        extract_translation(response_body)
-
-      {:ok, %{status: status, body: body}} ->
-        Logger.error("Anthropic API returned status #{status}: #{inspect(body)}")
-        {:error, {:api_error, status, body}}
-
-      {:error, reason} ->
-        {:error, {:request_failed, reason}}
-    end
-  end
-
-  defp extract_translation(%{"content" => [%{"text" => text} | _]}) do
-    {:ok, String.trim(text)}
-  end
-
-  defp extract_translation(response) do
-    Logger.error("Unexpected API response format: #{inspect(response)}")
-    {:error, :unexpected_response_format}
-  end
-
   defp get_api_key do
-    Application.get_env(:glossia_server, :anthropic_api_key) ||
+    Application.get_env(:glossia, :anthropic_api_key) ||
       System.get_env("ANTHROPIC_API_KEY")
   end
 end
