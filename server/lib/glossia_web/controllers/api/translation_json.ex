@@ -1,4 +1,4 @@
-defmodule GlossiaServerWeb.API.TranslationJSON do
+defmodule GlossiaWeb.API.TranslationJSON do
   @doc """
   Renders translation result.
   """

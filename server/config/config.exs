@@ -7,19 +7,19 @@
 # General application configuration
 import Config
 
-config :glossia_server,
-  ecto_repos: [GlossiaServer.Repo],
+config :glossia,
+  ecto_repos: [Glossia.Repo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
-config :glossia_server, GlossiaServerWeb.Endpoint,
+config :glossia, GlossiaWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: GlossiaServerWeb.ErrorHTML, json: GlossiaServerWeb.ErrorJSON],
+    formats: [html: GlossiaWeb.ErrorHTML, json: GlossiaWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: GlossiaServer.PubSub,
+  pubsub_server: Glossia.PubSub,
   live_view: [signing_salt: "WE7zNu5x"]
 
 # Configures the mailer
@@ -29,12 +29,12 @@ config :glossia_server, GlossiaServerWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :glossia_server, GlossiaServer.Mailer, adapter: Swoosh.Adapters.Local
+config :glossia, Glossia.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
-  glossia_server: [
+  glossia: [
     args:
       ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
@@ -44,7 +44,7 @@ config :esbuild,
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "4.1.7",
-  glossia_server: [
+  glossia: [
     args: ~w(
       --input=assets/css/app.css
       --output=priv/static/assets/css/app.css

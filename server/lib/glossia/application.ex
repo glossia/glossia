@@ -1,4 +1,4 @@
-defmodule GlossiaServer.Application do
+defmodule Glossia.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -8,19 +8,19 @@ defmodule GlossiaServer.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      GlossiaServerWeb.Telemetry,
-      GlossiaServer.Repo,
+      GlossiaWeb.Telemetry,
+      Glossia.Repo,
       {DNSCluster, query: Application.get_env(:glossia_server, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: GlossiaServer.PubSub},
-      # Start a worker by calling: GlossiaServer.Worker.start_link(arg)
-      # {GlossiaServer.Worker, arg},
+      {Phoenix.PubSub, name: Glossia.PubSub},
+      # Start a worker by calling: Glossia.Worker.start_link(arg)
+      # {Glossia.Worker, arg},
       # Start to serve requests, typically the last entry
-      GlossiaServerWeb.Endpoint
+      GlossiaWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: GlossiaServer.Supervisor]
+    opts = [strategy: :one_for_one, name: Glossia.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
@@ -28,7 +28,7 @@ defmodule GlossiaServer.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    GlossiaServerWeb.Endpoint.config_change(changed, removed)
+    GlossiaWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end

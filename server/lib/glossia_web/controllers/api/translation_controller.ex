@@ -1,5 +1,5 @@
-defmodule GlossiaServerWeb.API.TranslationController do
-  use GlossiaServerWeb, :controller
+defmodule GlossiaWeb.API.TranslationController do
+  use GlossiaWeb, :controller
 
   @doc """
   POST /api/translate
@@ -24,7 +24,7 @@ defmodule GlossiaServerWeb.API.TranslationController do
         "source_locale" => source_locale,
         "target_locale" => target_locale
       }) do
-    case GlossiaServer.AI.Translator.translate(text, source_locale, target_locale) do
+    case Glossia.AI.Translator.translate(text, source_locale, target_locale) do
       {:ok, translated_text} ->
         json(conn, %{
           translated_text: translated_text,

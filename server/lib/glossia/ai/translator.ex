@@ -1,4 +1,4 @@
-defmodule GlossiaServer.AI.Translator do
+defmodule Glossia.AI.Translator do
   @moduledoc """
   Handles AI-powered translation using Anthropic's Claude API.
   """

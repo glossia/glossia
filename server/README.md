@@ -1,4 +1,4 @@
-# GlossiaServer
+# Glossia Server
 
 The Phoenix backend server for Glossia, providing AI-powered translation API and web editor.
 

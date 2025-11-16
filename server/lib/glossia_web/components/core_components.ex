@@ -1,4 +1,4 @@
-defmodule GlossiaServerWeb.CoreComponents do
+defmodule GlossiaWeb.CoreComponents do
   @moduledoc """
   Provides core UI components.
 
@@ -27,7 +27,7 @@ defmodule GlossiaServerWeb.CoreComponents do
 
   """
   use Phoenix.Component
-  use Gettext, backend: GlossiaServerWeb.Gettext
+  use Gettext, backend: GlossiaWeb.Gettext
 
   alias Phoenix.LiveView.JS
 
@@ -457,9 +457,9 @@ defmodule GlossiaServerWeb.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(GlossiaServerWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(GlossiaWeb.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(GlossiaServerWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(GlossiaWeb.Gettext, "errors", msg, opts)
     end
   end
 

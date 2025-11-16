@@ -1,12 +1,12 @@
-defmodule GlossiaServerWeb do
+defmodule GlossiaWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, components, channels, and so on.
 
   This can be used in your application as:
 
-      use GlossiaServerWeb, :controller
-      use GlossiaServerWeb, :html
+      use GlossiaWeb, :controller
+      use GlossiaWeb, :html
 
   The definitions below will be executed for every controller,
   component, etc, so keep them short and clean, focused
@@ -40,7 +40,7 @@ defmodule GlossiaServerWeb do
     quote do
       use Phoenix.Controller, formats: [:html, :json]
 
-      use Gettext, backend: GlossiaServerWeb.Gettext
+      use Gettext, backend: GlossiaWeb.Gettext
 
       import Plug.Conn
 
@@ -80,16 +80,16 @@ defmodule GlossiaServerWeb do
   defp html_helpers do
     quote do
       # Translation
-      use Gettext, backend: GlossiaServerWeb.Gettext
+      use Gettext, backend: GlossiaWeb.Gettext
 
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
-      import GlossiaServerWeb.CoreComponents
+      import GlossiaWeb.CoreComponents
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS
-      alias GlossiaServerWeb.Layouts
+      alias GlossiaWeb.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
@@ -99,9 +99,9 @@ defmodule GlossiaServerWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: GlossiaServerWeb.Endpoint,
-        router: GlossiaServerWeb.Router,
-        statics: GlossiaServerWeb.static_paths()
+        endpoint: GlossiaWeb.Endpoint,
+        router: GlossiaWeb.Router,
+        statics: GlossiaWeb.static_paths()
     end
   end
 

@@ -1,9 +1,9 @@
-defmodule GlossiaServer.MixProject do
+defmodule Glossia.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :glossia_server,
+      app: :glossia,
       version: "0.1.0",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -20,7 +20,7 @@ defmodule GlossiaServer.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {GlossiaServer.Application, []},
+      mod: {Glossia.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -82,10 +82,10 @@ defmodule GlossiaServer.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind glossia_server", "esbuild glossia_server"],
+      "assets.build": ["compile", "tailwind glossia", "esbuild glossia"],
       "assets.deploy": [
-        "tailwind glossia_server --minify",
-        "esbuild glossia_server --minify",
+        "tailwind glossia --minify",
+        "esbuild glossia --minify",
         "phx.digest"
       ],
       precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]

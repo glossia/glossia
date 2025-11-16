@@ -1,5 +1,5 @@
-defmodule GlossiaServerWeb.PageControllerTest do
-  use GlossiaServerWeb.ConnCase
+defmodule GlossiaWeb.PageControllerTest do
+  use GlossiaWeb.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")

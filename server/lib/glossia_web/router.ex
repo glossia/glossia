@@ -1,11 +1,11 @@
-defmodule GlossiaServerWeb.Router do
-  use GlossiaServerWeb, :router
+defmodule GlossiaWeb.Router do
+  use GlossiaWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, html: {GlossiaServerWeb.Layouts, :root}
+    plug :put_root_layout, html: {GlossiaWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -14,14 +14,14 @@ defmodule GlossiaServerWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", GlossiaServerWeb do
+  scope "/", GlossiaWeb do
     pipe_through :browser
 
     get "/", PageController, :home
   end
 
   # API routes
-  scope "/api", GlossiaServerWeb.API do
+  scope "/api", GlossiaWeb.API do
     pipe_through :api
 
     post "/translate", TranslationController, :translate
@@ -39,7 +39,7 @@ defmodule GlossiaServerWeb.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: GlossiaServerWeb.Telemetry
+      live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end

@@ -1,6 +1,6 @@
-defmodule GlossiaServer do
+defmodule Glossia do
   @moduledoc """
-  GlossiaServer keeps the contexts that define your domain
+  Glossia keeps the contexts that define your domain
   and business logic.
 
   Contexts are also responsible for managing your data, regardless
