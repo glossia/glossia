@@ -7,7 +7,7 @@ defmodule GlossiaWeb.Schemas.TranslationResponse do
   alias OpenApiSpex.Schema
 
   OpenApiSpex.schema(%{
-    title: "TranslationResponse",
+    title: "Translation Response",
     description: "Successful translation response",
     type: :object,
     properties: %{

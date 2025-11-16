@@ -7,7 +7,7 @@ defmodule GlossiaWeb.Schemas.ErrorResponse do
   alias OpenApiSpex.Schema
 
   OpenApiSpex.schema(%{
-    title: "ErrorResponse",
+    title: "Error Response",
     description: "Error response",
     type: :object,
     properties: %{
