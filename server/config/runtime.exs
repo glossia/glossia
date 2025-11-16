@@ -20,6 +20,10 @@ if System.get_env("PHX_SERVER") do
   config :glossia, GlossiaWeb.Endpoint, server: true
 end
 
+# AI Configuration
+# Set ANTHROPIC_API_KEY environment variable for translation service
+config :glossia, :anthropic_api_key, System.get_env("ANTHROPIC_API_KEY")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
