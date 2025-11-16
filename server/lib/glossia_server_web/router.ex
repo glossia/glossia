@@ -20,10 +20,12 @@ defmodule GlossiaServerWeb.Router do
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", GlossiaServerWeb do
-  #   pipe_through :api
-  # end
+  # API routes
+  scope "/api", GlossiaServerWeb.API do
+    pipe_through :api
+
+    post "/translate", TranslationController, :translate
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:glossia_server, :dev_routes) do
