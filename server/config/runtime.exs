@@ -22,9 +22,7 @@ end
 
 # AI Configuration
 # Set ANTHROPIC_API_KEY environment variable for translation service
-if api_key = System.get_env("ANTHROPIC_API_KEY") do
-  ReqLLM.put_key(:anthropic_api_key, api_key)
-end
+config :req_llm, :anthropic_api_key, System.get_env("ANTHROPIC_API_KEY")
 
 if config_env() == :prod do
   database_url =
