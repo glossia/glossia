@@ -8,13 +8,26 @@ defmodule GlossiaWeb.Schemas.TranslationRequest do
 
   OpenApiSpex.schema(%{
     title: "Translation Request",
-    description: "Request body for translating text",
+    description: "Request body for translating content in any supported format",
     type: :object,
     properties: %{
-      text: %Schema{
+      content: %Schema{
         type: :string,
-        description: "The text to translate",
+        description: """
+        The content to translate. Can be plain text or structured file content.
+        For structured formats (JSON, YAML, etc.), send the raw file content as a string.
+        """,
         example: "Hello, world!"
+      },
+      format: %Schema{
+        type: :string,
+        description: """
+        Format of the content. Determines how the content is parsed and translated.
+        Defaults to 'text' if not specified.
+        """,
+        enum: ["text", "json", "yaml", "xliff", "po", "properties", "arb", "strings"],
+        default: "text",
+        example: "text"
       },
       source_locale: %Schema{
         type: :string,
@@ -27,9 +40,10 @@ defmodule GlossiaWeb.Schemas.TranslationRequest do
         example: "es"
       }
     },
-    required: [:text, :source_locale, :target_locale],
+    required: [:content, :source_locale, :target_locale],
     example: %{
-      "text" => "Hello, world!",
+      "content" => "Hello, world!",
+      "format" => "text",
       "source_locale" => "en",
       "target_locale" => "es"
     }

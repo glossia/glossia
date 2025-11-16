@@ -41,17 +41,46 @@ The interactive documentation allows you to:
 
 ### POST /api/translate
 
-Translates text using AI.
+Translates content in any supported format using AI.
 
-**Example:**
+**Supported Formats:**
+- `text` (default) - Plain text
+- `json` - JSON translation files
+- `yaml` - YAML translation files
+- `xliff`, `po`, `properties`, `arb`, `strings` - Coming soon
+
+**Simple Text Example:**
 ```bash
 curl -X POST http://localhost:4000/api/translate \
   -H "Content-Type: application/json" \
   -d '{
-    "text": "Hello, world!",
+    "content": "Hello, world!",
+    "format": "text",
     "source_locale": "en",
     "target_locale": "es"
   }'
+```
+
+**JSON File Example:**
+```bash
+curl -X POST http://localhost:4000/api/translate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "{\"greeting\": \"Hello\", \"farewell\": \"Goodbye\"}",
+    "format": "json",
+    "source_locale": "en",
+    "target_locale": "es"
+  }'
+```
+
+**Response:**
+```json
+{
+  "content": "¡Hola, mundo!",
+  "format": "text",
+  "source_locale": "en",
+  "target_locale": "es"
+}
 ```
 
 **OpenAPI Spec:** http://localhost:4000/api/openapi

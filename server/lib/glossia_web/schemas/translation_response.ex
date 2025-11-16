@@ -11,10 +11,15 @@ defmodule GlossiaWeb.Schemas.TranslationResponse do
     description: "Successful translation response",
     type: :object,
     properties: %{
-      translated_text: %Schema{
+      content: %Schema{
         type: :string,
-        description: "The translated text",
+        description: "The translated content in the same format as the input",
         example: "¡Hola, mundo!"
+      },
+      format: %Schema{
+        type: :string,
+        description: "Format of the content (same as request)",
+        example: "text"
       },
       source_locale: %Schema{
         type: :string,
@@ -27,9 +32,10 @@ defmodule GlossiaWeb.Schemas.TranslationResponse do
         example: "es"
       }
     },
-    required: [:translated_text, :source_locale, :target_locale],
+    required: [:content, :format, :source_locale, :target_locale],
     example: %{
-      "translated_text" => "¡Hola, mundo!",
+      "content" => "¡Hola, mundo!",
+      "format" => "text",
       "source_locale" => "en",
       "target_locale" => "es"
     }

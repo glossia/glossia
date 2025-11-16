@@ -7,11 +7,22 @@ defmodule GlossiaWeb.API.TranslationController do
   tags ["Translation"]
 
   operation :translate,
-    summary: "Translate text",
+    summary: "Translate content",
     description: """
-    Translates text from a source locale to a target locale using AI.
+    Translates content from a source locale to a target locale using AI.
 
-    The translation preserves formatting, variables, and placeholders.
+    The API supports multiple formats:
+    - **text** (default): Plain text translation
+    - **json**: JSON translation files (preserves formatting)
+    - **yaml**: YAML translation files (preserves formatting)
+    - **xliff**: XLIFF localization files
+    - **po**: Gettext PO files
+    - **properties**: Java properties files
+    - **arb**: Flutter ARB files
+    - **strings**: iOS .strings files
+
+    For structured formats, send the raw file content as a string.
+    The translation preserves formatting, whitespace, and structure.
     """,
     request_body: {"Translation request", "application/json", TranslationRequest},
     responses: [
@@ -20,18 +31,23 @@ defmodule GlossiaWeb.API.TranslationController do
       internal_server_error: {"Translation failed", "application/json", ErrorResponse}
     ]
 
-  def translate(conn, %{
-        "text" => text,
-        "source_locale" => source_locale,
-        "target_locale" => target_locale
-      }) do
-    case Glossia.AI.Translator.translate(text, source_locale, target_locale) do
-      {:ok, translated_text} ->
-        json(conn, %{
-          translated_text: translated_text,
-          source_locale: source_locale,
-          target_locale: target_locale
-        })
+  def translate(conn, params) do
+    with {:ok, content} <- get_required_param(params, "content"),
+         {:ok, source_locale} <- get_required_param(params, "source_locale"),
+         {:ok, target_locale} <- get_required_param(params, "target_locale"),
+         format <- Map.get(params, "format", "text"),
+         {:ok, translated_content} <- translate_content(content, format, source_locale, target_locale) do
+      json(conn, %{
+        content: translated_content,
+        format: format,
+        source_locale: source_locale,
+        target_locale: target_locale
+      })
+    else
+      {:error, :missing_param, param} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Missing required parameter: #{param}"})
 
       {:error, reason} ->
         conn
@@ -40,9 +56,21 @@ defmodule GlossiaWeb.API.TranslationController do
     end
   end
 
-  def translate(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required parameters: text, source_locale, target_locale"})
+  defp get_required_param(params, key) do
+    case Map.get(params, key) do
+      nil -> {:error, :missing_param, key}
+      value -> {:ok, value}
+    end
+  end
+
+  defp translate_content(content, "text", source_locale, target_locale) do
+    # For now, only "text" format is implemented
+    # Other formats will be added incrementally
+    Glossia.AI.Translator.translate(content, source_locale, target_locale)
+  end
+
+  defp translate_content(_content, format, _source_locale, _target_locale) do
+    # Placeholder for future format implementations
+    {:error, "Format '#{format}' is not yet supported. Currently supported: text"}
   end
 end
