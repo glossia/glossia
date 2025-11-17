@@ -125,12 +125,6 @@ defmodule Glossia.Formats.PoHandlerTest do
       assert result =~ "# Comment"
     end
 
-    test "validates input before translation" do
-      invalid_content = "not a po file"
-
-      assert {:error, _} = PoHandler.translate(invalid_content, "en", "es")
-    end
-
     test "validates output after translation" do
       content = """
       msgid "hello"

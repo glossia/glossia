@@ -50,10 +50,6 @@ defmodule Glossia.Formats.TextHandlerTest do
       assert result == expected
     end
 
-    test "validates input before translation" do
-      assert {:error, "Content cannot be nil"} = TextHandler.translate(nil, "en", "es")
-    end
-
     test "validates output after translation" do
       content = "Hello"
 

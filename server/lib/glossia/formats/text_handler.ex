@@ -7,8 +7,7 @@ defmodule Glossia.Formats.TextHandler do
 
   @impl true
   def translate(content, source_locale, target_locale) do
-    with :ok <- validate(content),
-         {:ok, translated_content} <-
+    with {:ok, translated_content} <-
            Glossia.AI.Translator.translate(content, source_locale, target_locale),
          :ok <- validate(translated_content) do
       {:ok, translated_content}

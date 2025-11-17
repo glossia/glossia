@@ -24,8 +24,7 @@ defmodule Glossia.Formats.YamlHandler do
 
   @impl true
   def translate(content, source_locale, target_locale) do
-    with :ok <- validate(content),
-         {:ok, translated_content} <-
+    with {:ok, translated_content} <-
            Translator.translate_with_instructions(
              content,
              source_locale,

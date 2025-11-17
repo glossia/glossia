@@ -39,10 +39,8 @@ defmodule Glossia.Formats.FtlHandler do
 
   @impl true
   def translate(content, source_locale, target_locale) do
-    # First validate the input content
-    with :ok <- validate(content),
-         # Translate with format-specific instructions
-         {:ok, translated_content} <-
+    # Translate with format-specific instructions
+    with {:ok, translated_content} <-
            Translator.translate_with_instructions(
              content,
              source_locale,

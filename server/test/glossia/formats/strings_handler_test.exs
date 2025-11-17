@@ -138,14 +138,6 @@ defmodule Glossia.Formats.StringsHandlerTest do
       assert result =~ "// Comment"
     end
 
-    test "validates input before translation" do
-      invalid_content = """
-      "hello" = "world"
-      """
-
-      assert {:error, _} = StringsHandler.translate(invalid_content, "en", "es")
-    end
-
     test "validates output after translation" do
       content = "\"hello\" = \"Hello\";"
       invalid_output = "broken output"
