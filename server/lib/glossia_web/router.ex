@@ -13,6 +13,7 @@ defmodule GlossiaWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
     plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.ApiSpec
+    plug OpenApiSpex.Plug.CastAndValidate
   end
 
   scope "/", GlossiaWeb do

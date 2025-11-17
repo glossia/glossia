@@ -28,38 +28,30 @@ defmodule GlossiaWeb.API.TranslationController do
     responses: [
       ok: {"Translation successful", "application/json", TranslationResponse},
       bad_request: {"Invalid request", "application/json", ErrorResponse},
+      unprocessable_entity: {"Validation error", "application/json", ErrorResponse},
       internal_server_error: {"Translation failed", "application/json", ErrorResponse}
     ]
 
-  def translate(conn, params) do
-    with {:ok, content} <- get_required_param(params, "content"),
-         {:ok, source_locale} <- get_required_param(params, "source_locale"),
-         {:ok, target_locale} <- get_required_param(params, "target_locale"),
-         format <- Map.get(params, "format", "text"),
-         {:ok, translated_content} <- translate_content(content, format, source_locale, target_locale) do
-      json(conn, %{
-        content: translated_content,
-        format: format,
-        source_locale: source_locale,
-        target_locale: target_locale
-      })
-    else
-      {:error, :missing_param, param} ->
-        conn
-        |> put_status(:bad_request)
-        |> json(%{error: "Missing required parameter: #{param}"})
+  def translate(conn, %{
+        "content" => content,
+        "source_locale" => source_locale,
+        "target_locale" => target_locale
+      } = params) do
+    format = Map.get(params, "format", "text")
+
+    case translate_content(content, format, source_locale, target_locale) do
+      {:ok, translated_content} ->
+        json(conn, %{
+          content: translated_content,
+          format: format,
+          source_locale: source_locale,
+          target_locale: target_locale
+        })
 
       {:error, reason} ->
         conn
         |> put_status(:internal_server_error)
         |> json(%{error: "Translation failed: #{inspect(reason)}"})
-    end
-  end
-
-  defp get_required_param(params, key) do
-    case Map.get(params, key) do
-      nil -> {:error, :missing_param, key}
-      value -> {:ok, value}
     end
   end
 
