@@ -16,6 +16,7 @@ pub fn build(b: *std.Build) void {
     const handlers = [_][]const u8{
         "ftl",
         "po",
+        "properties",
     };
 
     // Compile each handler

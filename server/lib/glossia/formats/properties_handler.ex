@@ -11,6 +11,9 @@ defmodule Glossia.Formats.PropertiesHandler do
   @behaviour Glossia.Formats.Handler
 
   alias Glossia.AI.Translator
+  alias Glossia.Formats.WasmHandler
+
+  @handler_name "properties"
 
   @format_instructions """
   This is a Java .properties localization file. You MUST:
@@ -40,26 +43,6 @@ defmodule Glossia.Formats.PropertiesHandler do
 
   @impl true
   def validate(content) do
-    # Validate .properties file structure
-    lines = String.split(content, "\n")
-    validate_properties_lines(lines, 1)
-  end
-
-  defp validate_properties_lines([], _line_num), do: :ok
-
-  defp validate_properties_lines([line | rest], line_num) do
-    trimmed = String.trim(line)
-
-    # Skip empty lines and comments
-    if trimmed == "" or String.starts_with?(trimmed, "#") or String.starts_with?(trimmed, "!") do
-      validate_properties_lines(rest, line_num + 1)
-    else
-      # Check for valid key=value or key:value format
-      if String.contains?(trimmed, "=") or String.contains?(trimmed, ":") do
-        validate_properties_lines(rest, line_num + 1)
-      else
-        {:error, "Invalid .properties file: line #{line_num} is not a valid key=value entry, comment, or empty line"}
-      end
-    end
+    WasmHandler.validate(@handler_name, content)
   end
 end

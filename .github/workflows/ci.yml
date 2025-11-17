@@ -98,9 +98,10 @@ jobs:
       - name: Verify Wasm outputs
         working-directory: ./server/priv/wasm
         run: |
-          ls -la build/
-          test -f build/ftl || (echo "FTL handler not built" && exit 1)
-          test -f build/po || (echo "PO handler not built" && exit 1)
+          ls -la zig-out/build/
+          test -f zig-out/build/ftl.wasm || (echo "FTL handler not built" && exit 1)
+          test -f zig-out/build/po.wasm || (echo "PO handler not built" && exit 1)
+          test -f zig-out/build/properties.wasm || (echo "Properties handler not built" && exit 1)
           echo "✓ All Wasm handlers built successfully"
 
   lint:

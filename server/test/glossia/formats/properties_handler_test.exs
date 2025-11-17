@@ -66,8 +66,7 @@ defmodule Glossia.Formats.PropertiesHandlerTest do
       foo=bar
       """
 
-      assert {:error, message} = PropertiesHandler.validate(content)
-      assert message =~ "line 2"
+      assert {:error, :invalid_content} = PropertiesHandler.validate(content)
     end
 
     test "rejects completely invalid content" do
