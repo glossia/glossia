@@ -38,10 +38,10 @@ defmodule Glossia.Formats.JsonHandler do
 
   @impl true
   def validate(content) do
-    case Jason.decode(content) do
+    case JSON.decode(content) do
       {:ok, _} -> :ok
-      {:error, %Jason.DecodeError{} = error} ->
-        {:error, "Invalid JSON: #{Exception.message(error)}"}
+      {:error, error} ->
+        {:error, "Invalid JSON: #{inspect(error)}"}
     end
   end
 end
