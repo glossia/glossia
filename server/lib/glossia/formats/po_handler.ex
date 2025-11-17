@@ -1,18 +1,40 @@
 defmodule Glossia.Formats.PoHandler do
   @moduledoc """
   Handles Gettext PO (Portable Object) files while preserving formatting.
+
+  This handler validates PO syntax and translates content using AI
+  with format-aware instructions.
   """
 
   @behaviour Glossia.Formats.Handler
 
+  alias Glossia.AI.Translator
+
+  @format_instructions """
+  This is a Gettext PO (Portable Object) localization file. You MUST:
+  - Preserve ALL msgid entries exactly as they are
+  - Preserve ALL comments (lines starting with #)
+  - Preserve ALL metadata and headers
+  - Preserve ALL formatting, spacing, and line structure
+  - Translate ONLY the msgstr values (text after msgstr)
+  - Keep all empty msgstr "" entries empty
+  - Maintain the exact same PO file structure
+
+  The output MUST be valid PO syntax with the exact same structure as the input.
+  """
+
   @impl true
   def translate(content, source_locale, target_locale) do
-    content
-    |> String.split("\n")
-    |> translate_lines(source_locale, target_locale, [])
-    |> case do
-      {:ok, lines} -> {:ok, Enum.join(Enum.reverse(lines), "\n")}
-      error -> error
+    with :ok <- validate(content),
+         {:ok, translated_content} <-
+           Translator.translate_with_instructions(
+             content,
+             source_locale,
+             target_locale,
+             @format_instructions
+           ),
+         :ok <- validate(translated_content) do
+      {:ok, translated_content}
     end
   end
 
@@ -23,43 +45,6 @@ defmodule Glossia.Formats.PoHandler do
       :ok
     else
       {:error, "Invalid PO file: missing msgid or msgstr"}
-    end
-  end
-
-  defp translate_lines([], _source, _target, acc), do: {:ok, acc}
-
-  defp translate_lines([line | rest], source, target, acc) do
-    cond do
-      # msgstr line - translate the value
-      String.starts_with?(String.trim(line), "msgstr") ->
-        case extract_and_translate_msgstr(line, source, target) do
-          {:ok, translated_line} ->
-            translate_lines(rest, source, target, [translated_line | acc])
-
-          {:error, _} = error ->
-            error
-        end
-
-      # Other lines - keep as-is
-      true ->
-        translate_lines(rest, source, target, [line | acc])
-    end
-  end
-
-  defp extract_and_translate_msgstr(line, source, target) do
-    case Regex.run(~r/msgstr\s+"(.*?)"/, line) do
-      [full_match, value] when value != "" ->
-        case Glossia.AI.Translator.translate(value, source, target) do
-          {:ok, translated} ->
-            {:ok, String.replace(line, full_match, "msgstr \"#{translated}\"")}
-
-          error ->
-            error
-        end
-
-      _ ->
-        # Empty msgstr or no match, keep as-is
-        {:ok, line}
     end
   end
 end
