@@ -24,8 +24,12 @@ defmodule GlossiaWeb.Schemas.TranslationRequest do
         description: """
         Format of the content. Determines how the content is parsed and translated.
         Defaults to 'text' if not specified.
+
+        Currently supported formats:
+        - text: Plain text translation
+        - json: JSON files (preserves formatting and structure)
         """,
-        enum: ["text", "json", "yaml", "xliff", "po", "properties", "arb", "strings"],
+        enum: ["text", "json"],
         default: "text",
         example: "text"
       },
