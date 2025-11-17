@@ -3,6 +3,7 @@ defmodule GlossiaWeb.API.TranslationController do
   use OpenApiSpex.ControllerSpecs
 
   alias GlossiaWeb.Schemas.{TranslationRequest, TranslationResponse, ErrorResponse}
+  alias Glossia.Formats.{TextHandler, JsonHandler}
 
   tags ["Translation"]
 
@@ -13,16 +14,16 @@ defmodule GlossiaWeb.API.TranslationController do
 
     The API supports multiple formats:
     - **text** (default): Plain text translation
-    - **json**: JSON translation files (preserves formatting)
-    - **yaml**: YAML translation files (preserves formatting)
-    - **xliff**: XLIFF localization files
-    - **po**: Gettext PO files
-    - **properties**: Java properties files
-    - **arb**: Flutter ARB files
-    - **strings**: iOS .strings files
+    - **json**: JSON translation files (preserves formatting and structure)
+    - **yaml**: YAML translation files (coming soon)
+    - **xliff**: XLIFF localization files (coming soon)
+    - **po**: Gettext PO files (coming soon)
+    - **properties**: Java properties files (coming soon)
+    - **arb**: Flutter ARB files (coming soon)
+    - **strings**: iOS .strings files (coming soon)
 
     For structured formats, send the raw file content as a string.
-    The translation preserves formatting, whitespace, and structure.
+    The translation preserves formatting, whitespace, and structure to minimize diffs.
     """,
     request_body: {"Translation request", "application/json", TranslationRequest},
     responses: [
@@ -39,14 +40,21 @@ defmodule GlossiaWeb.API.TranslationController do
       } = params) do
     format = Map.get(params, "format", "text")
 
-    case translate_content(content, format, source_locale, target_locale) do
-      {:ok, translated_content} ->
-        json(conn, %{
-          content: translated_content,
-          format: format,
-          source_locale: source_locale,
-          target_locale: target_locale
-        })
+    with {:ok, handler} <- get_format_handler(format),
+         :ok <- handler.validate(content),
+         {:ok, translated_content} <- handler.translate(content, source_locale, target_locale),
+         :ok <- handler.validate(translated_content) do
+      json(conn, %{
+        content: translated_content,
+        format: format,
+        source_locale: source_locale,
+        target_locale: target_locale
+      })
+    else
+      {:error, :unsupported_format} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Format '#{format}' is not yet supported. Currently supported: text, json"})
 
       {:error, reason} ->
         conn
@@ -55,14 +63,7 @@ defmodule GlossiaWeb.API.TranslationController do
     end
   end
 
-  defp translate_content(content, "text", source_locale, target_locale) do
-    # For now, only "text" format is implemented
-    # Other formats will be added incrementally
-    Glossia.AI.Translator.translate(content, source_locale, target_locale)
-  end
-
-  defp translate_content(_content, format, _source_locale, _target_locale) do
-    # Placeholder for future format implementations
-    {:error, "Format '#{format}' is not yet supported. Currently supported: text"}
-  end
+  defp get_format_handler("text"), do: {:ok, TextHandler}
+  defp get_format_handler("json"), do: {:ok, JsonHandler}
+  defp get_format_handler(_), do: {:error, :unsupported_format}
 end
