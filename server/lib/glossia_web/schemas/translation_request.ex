@@ -25,11 +25,17 @@ defmodule GlossiaWeb.Schemas.TranslationRequest do
         Format of the content. Determines how the content is parsed and translated.
         Defaults to 'text' if not specified.
 
-        Currently supported formats:
+        Supported formats:
         - text: Plain text translation
         - json: JSON files (preserves formatting and structure)
+        - yaml: YAML files (preserves structure)
+        - xliff: XLIFF localization files
+        - po: Gettext PO files
+        - properties: Java properties files
+        - arb: Flutter ARB files (JSON-based)
+        - strings: iOS .strings files
         """,
-        enum: ["text", "json"],
+        enum: ["text", "json", "yaml", "xliff", "po", "properties", "arb", "strings"],
         default: "text",
         example: "text"
       },

@@ -62,6 +62,8 @@ defmodule Glossia.MixProject do
       {:req, "~> 0.5"},
       {:req_llm, "~> 1.0-rc"},
       {:open_api_spex, "~> 3.20"},
+      {:yaml_elixir, "~> 2.11"},
+      {:sweet_xml, "~> 0.7"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
