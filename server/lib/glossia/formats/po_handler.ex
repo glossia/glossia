@@ -40,11 +40,47 @@ defmodule Glossia.Formats.PoHandler do
 
   @impl true
   def validate(content) do
-    # Basic PO file validation
-    if String.contains?(content, "msgid") and String.contains?(content, "msgstr") do
+    # Validate PO file structure and syntax
+    with :ok <- validate_required_keywords(content),
+         :ok <- validate_structure(content) do
       :ok
-    else
-      {:error, "Invalid PO file: missing msgid or msgstr"}
+    end
+  end
+
+  defp validate_required_keywords(content) do
+    cond do
+      not String.contains?(content, "msgid") ->
+        {:error, "Invalid PO file: missing msgid keyword"}
+
+      not String.contains?(content, "msgstr") ->
+        {:error, "Invalid PO file: missing msgstr keyword"}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_structure(content) do
+    # Check for basic PO structure: msgid followed by msgstr patterns
+    # Split into lines and validate pairing
+    lines = String.split(content, "\n")
+    validate_msgid_msgstr_pairs(lines)
+  end
+
+  defp validate_msgid_msgstr_pairs(lines) do
+    # Find all msgid and msgstr entries
+    msgid_count = Enum.count(lines, &String.starts_with?(String.trim(&1), "msgid"))
+    msgstr_count = Enum.count(lines, &String.starts_with?(String.trim(&1), "msgstr"))
+
+    cond do
+      msgid_count == 0 or msgstr_count == 0 ->
+        {:error, "Invalid PO file: no valid msgid/msgstr entries found"}
+
+      msgid_count != msgstr_count ->
+        {:error, "Invalid PO file: mismatched msgid and msgstr entries"}
+
+      true ->
+        :ok
     end
   end
 end

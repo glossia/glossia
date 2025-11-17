@@ -40,9 +40,27 @@ defmodule Glossia.Formats.PropertiesHandler do
   end
 
   @impl true
-  def validate(_content) do
-    # Properties files are line-based key=value, always valid as text
-    # Could add more strict validation if needed
-    :ok
+  def validate(content) do
+    # Validate .properties file structure
+    lines = String.split(content, "\n")
+    validate_properties_lines(lines, 1)
+  end
+
+  defp validate_properties_lines([], _line_num), do: :ok
+
+  defp validate_properties_lines([line | rest], line_num) do
+    trimmed = String.trim(line)
+
+    # Skip empty lines and comments
+    if trimmed == "" or String.starts_with?(trimmed, "#") or String.starts_with?(trimmed, "!") do
+      validate_properties_lines(rest, line_num + 1)
+    else
+      # Check for valid key=value or key:value format
+      if String.contains?(trimmed, "=") or String.contains?(trimmed, ":") do
+        validate_properties_lines(rest, line_num + 1)
+      else
+        {:error, "Invalid .properties file: line #{line_num} is not a valid key=value entry, comment, or empty line"}
+      end
+    end
   end
 end
