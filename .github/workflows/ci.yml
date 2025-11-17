@@ -7,9 +7,113 @@ on:
     branches: [main]
 
 jobs:
-  test-elixir:
+  # Zig: Compile
+  zig-compile:
+    name: Compile Zig Wasm Handlers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Build Wasm handlers
+        working-directory: ./server/priv/wasm
+        run: zig build
+
+      - name: Verify Wasm outputs
+        working-directory: ./server/priv/wasm
+        run: |
+          ls -la zig-out/build/
+          test -f zig-out/build/ftl.wasm || (echo "FTL handler not built" && exit 1)
+          test -f zig-out/build/po.wasm || (echo "PO handler not built" && exit 1)
+          test -f zig-out/build/properties.wasm || (echo "Properties handler not built" && exit 1)
+          test -f zig-out/build/strings.wasm || (echo "Strings handler not built" && exit 1)
+          echo "✓ All Wasm handlers built successfully"
+
+      - name: Upload Wasm artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-handlers
+          path: server/priv/wasm/zig-out/build/*.wasm
+          retention-days: 1
+
+  # Zig: Test
+  zig-test:
+    name: Test Zig Wasm Handlers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Run Zig tests
+        working-directory: ./server/priv/wasm
+        run: zig build test
+
+  # Elixir: Compile
+  elixir-compile:
+    name: Compile Elixir (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
+    runs-on: ubuntu-latest
+    needs: zig-compile
+    strategy:
+      matrix:
+        otp: ['27']
+        elixir: ['1.19']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+
+      - name: Download Wasm artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-handlers
+          path: server/priv/wasm/zig-out/build/
+
+      - name: Restore Elixir dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: server/deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Restore Elixir build cache
+        uses: actions/cache@v4
+        with:
+          path: server/_build
+          key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-
+
+      - name: Install Elixir dependencies
+        working-directory: ./server
+        run: mix deps.get
+
+      - name: Compile Elixir code
+        working-directory: ./server
+        run: mix compile --warnings-as-errors
+
+  # Elixir: Test
+  elixir-test:
     name: Test Elixir (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
     runs-on: ubuntu-latest
+    needs: zig-compile
     strategy:
       matrix:
         otp: ['27']
@@ -40,10 +144,11 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
 
-      - name: Set up Zig
-        uses: goto-bus-stop/setup-zig@v2
+      - name: Download Wasm artifacts
+        uses: actions/download-artifact@v4
         with:
-          version: 0.13.0
+          name: wasm-handlers
+          path: server/priv/wasm/zig-out/build/
 
       - name: Restore Elixir dependencies cache
         uses: actions/cache@v4
@@ -64,48 +169,15 @@ jobs:
         working-directory: ./server
         run: mix deps.get
 
-      - name: Compile Elixir code
-        working-directory: ./server
-        run: mix compile --warnings-as-errors
-
-      - name: Build Wasm handlers
-        working-directory: ./server/priv/wasm
-        run: zig build
-
       - name: Run Elixir tests
         working-directory: ./server
         run: mix test
         env:
           MIX_ENV: test
 
-  test-zig-wasm:
-    name: Test Zig Wasm Handlers
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Zig
-        uses: goto-bus-stop/setup-zig@v2
-        with:
-          version: 0.13.0
-
-      - name: Build Wasm handlers
-        working-directory: ./server/priv/wasm
-        run: zig build
-
-      - name: Verify Wasm outputs
-        working-directory: ./server/priv/wasm
-        run: |
-          ls -la zig-out/build/
-          test -f zig-out/build/ftl.wasm || (echo "FTL handler not built" && exit 1)
-          test -f zig-out/build/po.wasm || (echo "PO handler not built" && exit 1)
-          test -f zig-out/build/properties.wasm || (echo "Properties handler not built" && exit 1)
-          echo "✓ All Wasm handlers built successfully"
-
-  lint:
-    name: Lint and Format Check
+  # Elixir: Lint
+  elixir-lint:
+    name: Lint Elixir
     runs-on: ubuntu-latest
 
     steps:

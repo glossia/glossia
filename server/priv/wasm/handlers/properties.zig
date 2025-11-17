@@ -52,3 +52,58 @@ export fn validate(content_ptr: [*]const u8, content_len: usize) i32 {
 
     return 0;
 }
+
+test "validate accepts valid properties with =" {
+    const valid_props = "hello=world\nfoo=bar\n";
+    const result = validate(valid_props.ptr, valid_props.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate accepts valid properties with :" {
+    const valid_props = "hello:world\nfoo:bar\n";
+    const result = validate(valid_props.ptr, valid_props.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate accepts properties with # comments" {
+    const props_with_comments =
+        \\# Comment
+        \\hello=world
+        \\
+    ;
+    const result = validate(props_with_comments.ptr, props_with_comments.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate accepts properties with ! comments" {
+    const props_with_comments =
+        \\! Comment
+        \\hello=world
+        \\
+    ;
+    const result = validate(props_with_comments.ptr, props_with_comments.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate accepts properties with empty lines" {
+    const props_with_empty =
+        \\hello=world
+        \\
+        \\foo=bar
+        \\
+    ;
+    const result = validate(props_with_empty.ptr, props_with_empty.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate rejects properties without separator" {
+    const invalid_props = "this is not valid\n";
+    const result = validate(invalid_props.ptr, invalid_props.len);
+    try std.testing.expectEqual(@as(i32, -1), result);
+}
+
+test "validate rejects empty content" {
+    const empty = "";
+    const result = validate(empty.ptr, empty.len);
+    try std.testing.expectEqual(@as(i32, -1), result);
+}

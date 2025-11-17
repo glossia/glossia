@@ -64,8 +64,7 @@ defmodule Glossia.Formats.StringsHandlerTest do
       "hello" = "world"
       """
 
-      assert {:error, message} = StringsHandler.validate(content)
-      assert message =~ "line 1"
+      assert {:error, :invalid_content} = StringsHandler.validate(content)
     end
 
     test "rejects content without equals sign" do
@@ -73,8 +72,7 @@ defmodule Glossia.Formats.StringsHandlerTest do
       "hello" "world";
       """
 
-      assert {:error, message} = StringsHandler.validate(content)
-      assert message =~ "line 1"
+      assert {:error, :invalid_content} = StringsHandler.validate(content)
     end
 
     test "rejects completely invalid content" do

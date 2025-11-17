@@ -17,6 +17,7 @@ pub fn build(b: *std.Build) void {
         "ftl",
         "po",
         "properties",
+        "strings",
     };
 
     // Compile each handler
@@ -39,5 +40,26 @@ pub fn build(b: *std.Build) void {
         });
 
         b.getInstallStep().dependOn(&install.step);
+
+        // Add test step for this handler
+        const test_step = b.addTest(.{
+            .root_source_file = b.path(source_path),
+            .target = b.host,
+        });
+
+        const run_test = b.addRunArtifact(test_step);
+        b.step(b.fmt("test-{s}", .{handler_name}), b.fmt("Run {s} tests", .{handler_name})).dependOn(&run_test.step);
+    }
+
+    // Add a "test" step that runs all handler tests
+    const test_step = b.step("test", "Run all handler tests");
+    inline for (handlers) |handler_name| {
+        const source_path = b.fmt("{s}/{s}.zig", .{ handlers_dir, handler_name });
+        const handler_test = b.addTest(.{
+            .root_source_file = b.path(source_path),
+            .target = b.host,
+        });
+        const run_test = b.addRunArtifact(handler_test);
+        test_step.dependOn(&run_test.step);
     }
 }

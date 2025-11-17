@@ -11,6 +11,9 @@ defmodule Glossia.Formats.StringsHandler do
   @behaviour Glossia.Formats.Handler
 
   alias Glossia.AI.Translator
+  alias Glossia.Formats.WasmHandler
+
+  @handler_name "strings"
 
   @format_instructions """
   This is an iOS .strings localization file. You MUST:
@@ -41,45 +44,6 @@ defmodule Glossia.Formats.StringsHandler do
 
   @impl true
   def validate(content) do
-    # Validate .strings file structure
-    lines = String.split(content, "\n")
-    validate_strings_lines(lines, 1, :normal)
-  end
-
-  # State machine: :normal (outside comment), :block_comment (inside /* */ comment)
-  defp validate_strings_lines([], _line_num, _state), do: :ok
-
-  defp validate_strings_lines([line | rest], line_num, state) do
-    trimmed = String.trim(line)
-
-    # Handle block comment state transitions
-    {new_state, is_block_comment_line} =
-      cond do
-        # Currently in block comment and line ends it
-        state == :block_comment and String.contains?(line, "*/") -> {:normal, true}
-        # Currently in block comment
-        state == :block_comment -> {:block_comment, true}
-        # Start a block comment
-        String.contains?(line, "/*") -> {:block_comment, true}
-        # Normal state
-        true -> {state, false}
-      end
-
-    # Skip empty lines, line comments, and block comment lines
-    if trimmed == "" or String.starts_with?(trimmed, "//") or String.starts_with?(trimmed, "#") or
-         is_block_comment_line do
-      validate_strings_lines(rest, line_num + 1, new_state)
-    else
-      # Check for valid "key" = "value"; format
-      # Must have at least one = and end with semicolon (allowing whitespace)
-      trimmed_for_semicolon = String.trim_trailing(trimmed)
-
-      if String.contains?(trimmed, "=") and String.ends_with?(trimmed_for_semicolon, ";") do
-        validate_strings_lines(rest, line_num + 1, new_state)
-      else
-        {:error,
-         "Invalid .strings file: line #{line_num} is not a valid \"key\" = \"value\"; entry, comment, or empty line"}
-      end
-    end
+    WasmHandler.validate(@handler_name, content)
   end
 end

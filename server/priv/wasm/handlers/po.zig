@@ -110,3 +110,65 @@ export fn validate(content_ptr: [*]const u8, content_len: usize) i32 {
 
     return 0;
 }
+
+test "validate accepts valid PO content" {
+    const valid_po =
+        \\msgid "hello"
+        \\msgstr "world"
+        \\
+    ;
+    const result = validate(valid_po.ptr, valid_po.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate accepts PO with comments" {
+    const po_with_comments =
+        \\# Comment
+        \\msgid "hello"
+        \\msgstr "world"
+        \\
+    ;
+    const result = validate(po_with_comments.ptr, po_with_comments.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate accepts PO with empty msgstr" {
+    const po_with_empty =
+        \\msgid "hello"
+        \\msgstr ""
+        \\
+    ;
+    const result = validate(po_with_empty.ptr, po_with_empty.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate accepts simple PO with multiple entries" {
+    const po_with_multiple =
+        \\msgid "hello"
+        \\msgstr "bonjour"
+        \\
+        \\msgid "world"
+        \\msgstr "monde"
+        \\
+    ;
+    const result = validate(po_with_multiple.ptr, po_with_multiple.len);
+    try std.testing.expectEqual(@as(i32, 0), result);
+}
+
+test "validate rejects PO missing msgid" {
+    const invalid_po = "msgstr \"world\"\n";
+    const result = validate(invalid_po.ptr, invalid_po.len);
+    try std.testing.expectEqual(@as(i32, -1), result);
+}
+
+test "validate rejects PO missing msgstr" {
+    const invalid_po = "msgid \"hello\"\n";
+    const result = validate(invalid_po.ptr, invalid_po.len);
+    try std.testing.expectEqual(@as(i32, -1), result);
+}
+
+test "validate rejects PO with invalid syntax" {
+    const invalid_po = "this is not valid\n";
+    const result = validate(invalid_po.ptr, invalid_po.len);
+    try std.testing.expectEqual(@as(i32, -1), result);
+}
