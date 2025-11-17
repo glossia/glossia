@@ -7,7 +7,7 @@ defmodule Glossia.Formats.TextHandler do
 
   @impl true
   def translate(content, source_locale, target_locale) do
-    Glossia.AI.Translator.translate(content, source_locale, target_locale)
+    Glossia.AI.TranslatorClient.translate(content, source_locale, target_locale)
   end
 
   @impl true

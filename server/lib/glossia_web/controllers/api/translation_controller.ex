@@ -2,6 +2,8 @@ defmodule GlossiaWeb.API.TranslationController do
   use GlossiaWeb, :controller
   use OpenApiSpex.ControllerSpecs
 
+  plug OpenApiSpex.Plug.CastAndValidate
+
   alias GlossiaWeb.Schemas.{TranslationRequest, TranslationResponse, ErrorResponse}
 
   alias Glossia.Formats.{
@@ -46,12 +48,16 @@ defmodule GlossiaWeb.API.TranslationController do
       internal_server_error: {"Translation failed", "application/json", ErrorResponse}
     ]
 
-  def translate(conn, %{
-        "content" => content,
-        "source_locale" => source_locale,
-        "target_locale" => target_locale
-      } = params) do
-    format = Map.get(params, "format", "text")
+  def translate(conn, _params) do
+    # OpenApiSpex.Plug.CastAndValidate puts the validated params in conn.body_params as a struct
+    %{
+      content: content,
+      source_locale: source_locale,
+      target_locale: target_locale,
+      format: format
+    } = conn.body_params
+
+    format = format || "text"
 
     with {:ok, handler} <- get_format_handler(format),
          :ok <- handler.validate(content),

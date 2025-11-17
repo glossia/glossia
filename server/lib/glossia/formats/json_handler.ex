@@ -84,7 +84,7 @@ defmodule Glossia.Formats.JsonHandler do
     if String.trim(value) == "" do
       {:ok, value}
     else
-      Glossia.AI.Translator.translate(value, source_locale, target_locale)
+      Glossia.AI.TranslatorClient.translate(value, source_locale, target_locale)
     end
   end
 

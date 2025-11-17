@@ -34,7 +34,7 @@ defmodule Glossia.Formats.StringsHandler do
       String.contains?(line, "=") and String.contains?(line, "\"") ->
         case Regex.run(~r/"([^"]*?)"\s*=\s*"([^"]*?)";/, line) do
           [_, key, value] ->
-            case Glossia.AI.Translator.translate(value, source_locale, target_locale) do
+            case Glossia.AI.TranslatorClient.translate(value, source_locale, target_locale) do
               {:ok, translated} -> {:ok, "\"#{key}\" = \"#{translated}\";"}
               error -> error
             end

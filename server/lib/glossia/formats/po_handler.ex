@@ -49,7 +49,7 @@ defmodule Glossia.Formats.PoHandler do
   defp extract_and_translate_msgstr(line, source, target) do
     case Regex.run(~r/msgstr\s+"(.*?)"/, line) do
       [full_match, value] when value != "" ->
-        case Glossia.AI.Translator.translate(value, source, target) do
+        case Glossia.AI.TranslatorClient.translate(value, source, target) do
           {:ok, translated} ->
             {:ok, String.replace(line, full_match, "msgstr \"#{translated}\"")}
 

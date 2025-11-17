@@ -91,7 +91,7 @@ defmodule Glossia.Formats.FtlHandler do
     # For now, translate the whole value including variables
     # The AI should preserve {$variable} syntax
     # More sophisticated parsing could separate text from variables
-    Glossia.AI.Translator.translate(value, source, target)
+    Glossia.AI.TranslatorClient.translate(value, source, target)
   end
 
   defp only_variables?(text) do
