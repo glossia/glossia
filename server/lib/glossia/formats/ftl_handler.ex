@@ -5,8 +5,8 @@ defmodule Glossia.Formats.FtlHandler do
   Fluent is Mozilla's modern localization format used in Pontoon.
   Format: key = value (with support for attributes, variants, etc.)
 
-  This handler uses a Wasm module (written in Zig) for parsing and formatting,
-  while translation happens in Elixir via AI.Translator.
+  This handler validates FTL syntax using a Wasm module (written in Zig)
+  and translates content using AI with format-aware instructions.
 
   Example:
     hello = Hello, World!
@@ -18,39 +18,40 @@ defmodule Glossia.Formats.FtlHandler do
   @behaviour Glossia.Formats.Handler
 
   alias Glossia.Formats.WasmHandler
+  alias Glossia.AI.Translator
 
   @handler_name "ftl"
 
+  # FTL-specific instructions for the LLM
+  @format_instructions """
+  This is a Mozilla Fluent (FTL) localization file. You MUST:
+  - Preserve ALL keys exactly as they are (keys before the = sign)
+  - Preserve ALL comments (lines starting with #)
+  - Preserve ALL formatting, spacing, and line structure
+  - Preserve ALL variables and placeholders like {$name}, {$count}, etc.
+  - Translate ONLY the text values after the = sign
+  - Do NOT translate indented lines starting with a dot (attributes like .aria-label)
+  - Do NOT translate values that contain only variables like "{$value}"
+  - Preserve empty lines exactly as they appear
+
+  The output MUST be valid FTL syntax with the exact same structure as the input.
+  """
+
   @impl true
   def translate(content, source_locale, target_locale) do
-    with {:ok, strings} <- WasmHandler.extract_strings(@handler_name, content) do
-      # Translate each string
-      translations =
-        Enum.reduce_while(strings, {:ok, []}, fn string, {:ok, acc} ->
-          value = string["value"]
-
-          case Glossia.AI.Translator.translate(value, source_locale, target_locale) do
-            {:ok, translated} ->
-              translation = %{
-                "index" => string["index"],
-                "translation" => translated
-              }
-              {:cont, {:ok, [translation | acc]}}
-
-            {:error, _} = error ->
-              {:halt, error}
-          end
-        end)
-
-      case translations do
-        {:ok, trans_list} ->
-          # Reverse to maintain order
-          trans_list_ordered = Enum.reverse(trans_list)
-          WasmHandler.apply_translations(@handler_name, content, trans_list_ordered)
-
-        error ->
-          error
-      end
+    # First validate the input content
+    with :ok <- validate(content),
+         # Translate with format-specific instructions
+         {:ok, translated_content} <-
+           Translator.translate_with_instructions(
+             content,
+             source_locale,
+             target_locale,
+             @format_instructions
+           ),
+         # Validate the output to ensure it's still valid FTL
+         :ok <- validate(translated_content) do
+      {:ok, translated_content}
     end
   end
 

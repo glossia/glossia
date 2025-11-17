@@ -31,11 +31,12 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "translates FTL format successfully", %{conn: conn} do
-      Mimic.expect(Glossia.AI.Translator, :translate, fn "Hello, World!", "en", "es" ->
-        {:ok, "¡Hola, Mundo!"}
-      end)
-
       ftl_content = "hello = Hello, World!"
+      expected = "hello = ¡Hola, Mundo!"
+
+      Mimic.expect(Glossia.AI.Translator, :translate_with_instructions, fn ^ftl_content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       params = %{
         "content" => ftl_content,
@@ -47,21 +48,26 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
       conn = post(conn, ~p"/api/translate", params)
 
       assert json = json_response(conn, 200)
-      assert json["content"] == "hello = ¡Hola, Mundo!"
+      assert json["content"] == expected
       assert json["format"] == "ftl"
       assert json["source_locale"] == "en"
       assert json["target_locale"] == "es"
     end
 
     test "translates complex FTL with variables", %{conn: conn} do
-      Mimic.expect(Glossia.AI.Translator, :translate, fn "Welcome, {$name}!", "en", "fr" ->
-        {:ok, "Bienvenue, {$name}!"}
-      end)
-
       ftl_content = """
       # Greeting
       welcome = Welcome, {$name}!
       """
+
+      expected = """
+      # Greeting
+      welcome = Bienvenue, {$name}!
+      """
+
+      Mimic.expect(Glossia.AI.Translator, :translate_with_instructions, fn ^ftl_content, "en", "fr", _instructions ->
+        {:ok, expected}
+      end)
 
       params = %{
         "content" => ftl_content,
@@ -79,19 +85,21 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "translates FTL with multiple messages", %{conn: conn} do
-      Mimic.expect(Glossia.AI.Translator, :translate, 3, fn text, "en", "es" ->
-        case text do
-          "Hello" -> {:ok, "Hola"}
-          "Goodbye" -> {:ok, "Adiós"}
-          "Welcome" -> {:ok, "Bienvenido"}
-        end
-      end)
-
       ftl_content = """
       hello = Hello
       goodbye = Goodbye
       welcome = Welcome
       """
+
+      expected = """
+      hello = Hola
+      goodbye = Adiós
+      welcome = Bienvenido
+      """
+
+      Mimic.expect(Glossia.AI.Translator, :translate_with_instructions, fn ^ftl_content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       params = %{
         "content" => ftl_content,
@@ -171,16 +179,23 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "FTL format preserves comments and structure", %{conn: conn} do
-      Mimic.expect(Glossia.AI.Translator, :translate, fn "Hello", "en", "de" ->
-        {:ok, "Hallo"}
-      end)
-
       ftl_content = """
       ## Header
 
       # Comment
       greeting = Hello
       """
+
+      expected = """
+      ## Header
+
+      # Comment
+      greeting = Hallo
+      """
+
+      Mimic.expect(Glossia.AI.Translator, :translate_with_instructions, fn ^ftl_content, "en", "de", _instructions ->
+        {:ok, expected}
+      end)
 
       params = %{
         "content" => ftl_content,
@@ -200,6 +215,11 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     test "FTL format skips variable-only values", %{conn: conn} do
       # Should not call translate for variable-only value
       ftl_content = "placeholder = {$value}"
+      expected = "placeholder = {$value}"
+
+      Mimic.expect(Glossia.AI.Translator, :translate_with_instructions, fn ^ftl_content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       params = %{
         "content" => ftl_content,
@@ -211,18 +231,10 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
       conn = post(conn, ~p"/api/translate", params)
 
       assert json = json_response(conn, 200)
-      assert json["content"] == "placeholder = {$value}"
+      assert json["content"] == expected
     end
 
     test "supports all documented FTL format features", %{conn: conn} do
-      # Only main messages are translated, not attributes
-      Mimic.stub(Glossia.AI.Translator, :translate, fn text, "en", "ja" ->
-        case text do
-          "Home" -> {:ok, "ホーム"}
-          "Welcome to {$app}!" -> {:ok, "{$app}へようこそ！"}
-        end
-      end)
-
       ftl_content = """
       ## Navigation
       nav-home = Home
@@ -234,6 +246,22 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
       # Variable only - should not translate
       brand = {$brandName}
       """
+
+      expected = """
+      ## Navigation
+      nav-home = ホーム
+
+      # Welcome message
+      welcome-msg = {$app}へようこそ！
+          .aria-label = Welcome to {$app}!
+
+      # Variable only - should not translate
+      brand = {$brandName}
+      """
+
+      Mimic.expect(Glossia.AI.Translator, :translate_with_instructions, fn ^ftl_content, "en", "ja", _instructions ->
+        {:ok, expected}
+      end)
 
       params = %{
         "content" => ftl_content,

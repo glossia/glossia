@@ -22,11 +22,14 @@ defmodule Glossia.Formats.FtlHandlerTest do
   describe "translate/3" do
     test "translates simple key-value pairs" do
       content = "hello = Hello, World!"
+      expected = "hello = ¡Hola, Mundo!"
 
-      expect_translate("Hello, World!", "en", "es", "¡Hola, Mundo!")
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
-      assert result == "hello = ¡Hola, Mundo!"
+      assert result == expected
     end
 
     test "preserves comments" do
@@ -35,7 +38,14 @@ defmodule Glossia.Formats.FtlHandlerTest do
       hello = Hello
       """
 
-      expect_translate("Hello", "en", "es", "Hola")
+      expected = """
+      # This is a comment
+      hello = Hola
+      """
+
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
       assert result =~ "# This is a comment"
@@ -49,8 +59,15 @@ defmodule Glossia.Formats.FtlHandlerTest do
       goodbye = Goodbye
       """
 
-      expect_translate("Hello", "en", "es", "Hola")
-      expect_translate("Goodbye", "en", "es", "Adiós")
+      expected = """
+      hello = Hola
+
+      goodbye = Adiós
+      """
+
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
 
@@ -61,36 +78,50 @@ defmodule Glossia.Formats.FtlHandlerTest do
 
     test "translates values with variables" do
       content = "welcome = Welcome, {$name}!"
+      expected = "welcome = ¡Bienvenido, {$name}!"
 
-      expect_translate("Welcome, {$name}!", "en", "es", "¡Bienvenido, {$name}!")
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
-      assert result == "welcome = ¡Bienvenido, {$name}!"
+      assert result == expected
     end
 
     test "skips lines with only variables" do
       content = "placeholder = {$value}"
+      expected = "placeholder = {$value}"
 
-      # Should not call translate since it's only variables
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
+
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
-      assert result == "placeholder = {$value}"
+      assert result == expected
     end
 
     test "skips empty values" do
       content = "empty ="
+      expected = "empty ="
 
-      # Should not call translate since value is empty
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
+
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
-      assert result == "empty ="
+      assert result == expected
     end
 
     test "preserves spacing around equals sign" do
       content = "hello   =   Hello"
+      expected = "hello   =   Hola"
 
-      expect_translate("Hello", "en", "es", "Hola")
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
-      assert result == "hello   = Hola"
+      assert result == expected
     end
 
     test "handles multiple messages" do
@@ -100,9 +131,15 @@ defmodule Glossia.Formats.FtlHandlerTest do
       goodbye = Goodbye
       """
 
-      expect_translate("Hello", "en", "es", "Hola")
-      expect_translate("World", "en", "es", "Mundo")
-      expect_translate("Goodbye", "en", "es", "Adiós")
+      expected = """
+      hello = Hola
+      world = Mundo
+      goodbye = Adiós
+      """
+
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
       assert result =~ "hello = Hola"
@@ -116,8 +153,14 @@ defmodule Glossia.Formats.FtlHandlerTest do
           .aria-label = Welcome message
       """
 
-      # Only the main message is translated, attributes are skipped
-      expect_translate("Welcome", "en", "es", "Bienvenido")
+      expected = """
+      welcome = Bienvenido
+          .aria-label = Welcome message
+      """
+
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
       assert result =~ "welcome = Bienvenido"
@@ -128,7 +171,9 @@ defmodule Glossia.Formats.FtlHandlerTest do
     test "handles translation errors" do
       content = "hello = Hello"
 
-      expect_translate_error("Hello", "en", "es", :api_error)
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:error, :api_error}
+      end)
 
       assert {:error, :api_error} = FtlHandler.translate(content, "en", "es")
     end
@@ -146,8 +191,21 @@ defmodule Glossia.Formats.FtlHandlerTest do
       only-var = {$placeholder}
       """
 
-      expect_translate("Hello, {$name}!", "en", "fr", "Bonjour, {$name}!")
-      expect_translate("Goodbye", "en", "fr", "Au revoir")
+      expected = """
+      # Header comment
+
+      ## Section
+      greeting = Bonjour, {$name}!
+
+      # Another comment
+      farewell = Au revoir
+      empty-value =
+      only-var = {$placeholder}
+      """
+
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "fr", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "fr")
 
@@ -168,9 +226,15 @@ defmodule Glossia.Formats.FtlHandlerTest do
       second = Second
       """
 
-      expect_translate("Third", "en", "es", "Tercero")
-      expect_translate("First", "en", "es", "Primero")
-      expect_translate("Second", "en", "es", "Segundo")
+      expected = """
+      third = Tercero
+      first = Primero
+      second = Segundo
+      """
+
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
 
@@ -197,12 +261,25 @@ defmodule Glossia.Formats.FtlHandlerTest do
       user-greeting = Hello, { $userName }!
       """
 
-      expect_translate("Home", "en", "es", "Inicio")
-      expect_translate("About Us", "en", "es", "Acerca de")
-      expect_translate("Contact", "en", "es", "Contacto")
-      expect_translate("Welcome to { $appName }!", "en", "es", "¡Bienvenido a { $appName }!")
-      # Attributes are not translated, so no mock needed for "Welcome message"
-      expect_translate("Hello, { $userName }!", "en", "es", "¡Hola, { $userName }!")
+      expected = """
+      ## Main Navigation
+
+      nav-home = Inicio
+      nav-about = Acerca de
+      nav-contact = Contacto
+
+      ## Messages
+
+      # Welcome message shown on homepage
+      welcome-message = ¡Bienvenido a { $appName }!
+          .aria-label = Welcome message
+
+      user-greeting = ¡Hola, { $userName }!
+      """
+
+      expect(Glossia.AI.Translator, :translate_with_instructions, fn ^content, "en", "es", _instructions ->
+        {:ok, expected}
+      end)
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
 

@@ -82,14 +82,14 @@ defmodule Glossia.Formats.WasmHandler do
         content_len = byte_size(content)
         {:ok, [content_ptr]} = Wasmex.call_function(instance, "alloc", [content_len])
 
-      # Write content to Wasm memory
-      :ok = Wasmex.Memory.write_binary(store, memory, content_ptr, content)
+        # Write content to Wasm memory
+        :ok = Wasmex.Memory.write_binary(store, memory, content_ptr, content)
 
-      # Call validate
-      {:ok, [result]} = Wasmex.call_function(instance, "validate", [content_ptr, content_len])
+        # Call validate
+        {:ok, [result]} = Wasmex.call_function(instance, "validate", [content_ptr, content_len])
 
-      # Free memory
-      Wasmex.call_function(instance, "dealloc", [content_ptr, content_len])
+        # Free memory
+        Wasmex.call_function(instance, "dealloc", [content_ptr, content_len])
 
         if result == 0 do
           :ok
@@ -99,95 +99,6 @@ defmodule Glossia.Formats.WasmHandler do
       else
         error -> error
       end
-    end
-  end
-
-  @doc """
-  Extracts translatable strings from content.
-  Returns {:ok, strings} where strings is a list of maps with :index, :key, :value
-  """
-  def extract_strings(handler_name, content) when is_binary(content) do
-    with {:ok, instance} <- load_handler(handler_name),
-         {:ok, store} <- Wasmex.store(instance),
-         {:ok, memory} <- Wasmex.memory(instance) do
-      # Allocate memory for input
-      content_len = byte_size(content)
-      {:ok, [content_ptr]} = Wasmex.call_function(instance, "alloc", [content_len])
-
-      # Write content to Wasm memory
-      :ok = Wasmex.Memory.write_binary(store, memory, content_ptr, content)
-
-      # Call extract_strings
-      {:ok, [result]} = Wasmex.call_function(instance, "extract_strings", [content_ptr, content_len])
-
-      # Free input memory
-      Wasmex.call_function(instance, "dealloc", [content_ptr, content_len])
-
-      if result == 0 do
-        # Read output from buffer
-        {:ok, [output_ptr]} = Wasmex.call_function(instance, "get_output_ptr", [])
-        {:ok, [output_len]} = Wasmex.call_function(instance, "get_output_len", [])
-
-        output_json = Wasmex.Memory.read_binary(store, memory, output_ptr, output_len)
-
-        case Jason.decode(output_json) do
-          {:ok, strings} -> {:ok, strings}
-          {:error, _} -> {:error, :invalid_json}
-        end
-      else
-        {:error, :extraction_failed}
-      end
-    else
-      error -> error
-    end
-  end
-
-  @doc """
-  Applies translations to content.
-  translations is a list of maps with :index and :translation keys.
-  """
-  def apply_translations(handler_name, content, translations) when is_binary(content) and is_list(translations) do
-    with {:ok, instance} <- load_handler(handler_name),
-         {:ok, store} <- Wasmex.store(instance),
-         {:ok, memory} <- Wasmex.memory(instance) do
-      # Prepare translation JSON
-      translations_json = Jason.encode!(translations)
-
-      # Allocate memory for inputs
-      content_len = byte_size(content)
-      translations_len = byte_size(translations_json)
-
-      {:ok, [content_ptr]} = Wasmex.call_function(instance, "alloc", [content_len])
-      {:ok, [translations_ptr]} = Wasmex.call_function(instance, "alloc", [translations_len])
-
-      # Write to Wasm memory
-      :ok = Wasmex.Memory.write_binary(store, memory, content_ptr, content)
-      :ok = Wasmex.Memory.write_binary(store, memory, translations_ptr, translations_json)
-
-      # Call apply_translations
-      {:ok, [result]} = Wasmex.call_function(instance, "apply_translations", [
-        content_ptr,
-        content_len,
-        translations_ptr,
-        translations_len
-      ])
-
-      # Free input memory
-      Wasmex.call_function(instance, "dealloc", [content_ptr, content_len])
-      Wasmex.call_function(instance, "dealloc", [translations_ptr, translations_len])
-
-      if result == 0 do
-        # Read output
-        {:ok, [output_ptr]} = Wasmex.call_function(instance, "get_output_ptr", [])
-        {:ok, [output_len]} = Wasmex.call_function(instance, "get_output_len", [])
-
-        translated_content = Wasmex.Memory.read_binary(store, memory, output_ptr, output_len)
-        {:ok, translated_content}
-      else
-        {:error, :translation_application_failed}
-      end
-    else
-      error -> error
     end
   end
 end
