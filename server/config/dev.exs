@@ -86,3 +86,6 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Enable hot-reload for Wasm handlers in development
+config :glossia, environment: :dev
