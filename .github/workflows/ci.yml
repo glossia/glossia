@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feature/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-elixir:
+    name: Test Elixir (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otp: ['27']
+        elixir: ['1.19']
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: glossia_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Restore Elixir dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: server/deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Restore Elixir build cache
+        uses: actions/cache@v4
+        with:
+          path: server/_build
+          key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-
+
+      - name: Install Elixir dependencies
+        working-directory: ./server
+        run: mix deps.get
+
+      - name: Compile Elixir code
+        working-directory: ./server
+        run: mix compile --warnings-as-errors
+
+      - name: Build Wasm handlers
+        working-directory: ./server/priv/wasm
+        run: zig build
+
+      - name: Run Elixir tests
+        working-directory: ./server
+        run: mix test
+        env:
+          MIX_ENV: test
+
+  test-zig-wasm:
+    name: Test Zig Wasm Handlers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Build Wasm handlers
+        working-directory: ./server/priv/wasm
+        run: zig build
+
+      - name: Verify Wasm outputs
+        working-directory: ./server/priv/wasm
+        run: |
+          ls -la build/
+          test -f build/ftl || (echo "FTL handler not built" && exit 1)
+          test -f build/po || (echo "PO handler not built" && exit 1)
+          echo "✓ All Wasm handlers built successfully"
+
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '27'
+          elixir-version: '1.19'
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: server/deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        working-directory: ./server
+        run: mix deps.get
+
+      - name: Check formatting
+        working-directory: ./server
+        run: mix format --check-formatted
+
+      - name: Run Credo
+        working-directory: ./server
+        run: mix credo --strict
+        continue-on-error: true
