@@ -70,7 +70,7 @@ defmodule Glossia.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:mox, "~> 1.1", only: :test}
+      {:mimic, "~> 1.7", only: :test}
     ]
   end
 

@@ -45,7 +45,7 @@ defmodule Glossia.Formats.XliffHandler do
       if String.trim(text) == "" do
         {:cont, {:ok, content_acc}}
       else
-        case Glossia.AI.TranslatorClient.translate(text, source, target) do
+        case Glossia.AI.Translator.translate(text, source, target) do
           {:ok, translated} ->
             # Replace in the original XML string to preserve formatting
             new_content = String.replace(content_acc, ">#{text}</target>", ">#{translated}</target>", global: false)

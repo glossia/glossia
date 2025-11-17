@@ -1,15 +1,8 @@
 defmodule GlossiaWeb.API.TranslationControllerTest do
   use GlossiaWeb.ConnCase, async: true
-
-  import Mox
-
-  setup :verify_on_exit!
+  use Mimic
 
   setup %{conn: conn} do
-    # Set the translator implementation to the mock for all tests
-    Application.put_env(:glossia, :translator_impl, Glossia.AI.TranslatorMock)
-    on_exit(fn -> Application.delete_env(:glossia, :translator_impl) end)
-
     # Set content-type header for all API requests
     conn = put_req_header(conn, "content-type", "application/json")
     {:ok, conn: conn}
@@ -17,7 +10,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
 
   describe "POST /api/translate" do
     test "translates text format successfully", %{conn: conn} do
-      Mox.expect(Glossia.AI.TranslatorMock, :translate, fn "Hello", "en", "es" ->
+      Mimic.expect(Glossia.AI.Translator, :translate, fn "Hello", "en", "es" ->
         {:ok, "Hola"}
       end)
 
@@ -38,7 +31,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "translates FTL format successfully", %{conn: conn} do
-      Mox.expect(Glossia.AI.TranslatorMock, :translate, fn "Hello, World!", "en", "es" ->
+      Mimic.expect(Glossia.AI.Translator, :translate, fn "Hello, World!", "en", "es" ->
         {:ok, "¡Hola, Mundo!"}
       end)
 
@@ -61,7 +54,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "translates complex FTL with variables", %{conn: conn} do
-      Mox.expect(Glossia.AI.TranslatorMock, :translate, fn "Welcome, {$name}!", "en", "fr" ->
+      Mimic.expect(Glossia.AI.Translator, :translate, fn "Welcome, {$name}!", "en", "fr" ->
         {:ok, "Bienvenue, {$name}!"}
       end)
 
@@ -86,7 +79,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "translates FTL with multiple messages", %{conn: conn} do
-      Mox.expect(Glossia.AI.TranslatorMock, :translate, 3, fn text, "en", "es" ->
+      Mimic.expect(Glossia.AI.Translator, :translate, 3, fn text, "en", "es" ->
         case text do
           "Hello" -> {:ok, "Hola"}
           "Goodbye" -> {:ok, "Adiós"}
@@ -116,7 +109,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "defaults to text format when format is not specified", %{conn: conn} do
-      Mox.expect(Glossia.AI.TranslatorMock, :translate, fn "Hello", "en", "es" ->
+      Mimic.expect(Glossia.AI.Translator, :translate, fn "Hello", "en", "es" ->
         {:ok, "Hola"}
       end)
 
@@ -148,7 +141,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "returns error when translation fails", %{conn: conn} do
-      Mox.expect(Glossia.AI.TranslatorMock, :translate, fn "Hello", "en", "es" ->
+      Mimic.expect(Glossia.AI.Translator, :translate, fn "Hello", "en", "es" ->
         {:error, :api_timeout}
       end)
 
@@ -178,7 +171,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "FTL format preserves comments and structure", %{conn: conn} do
-      Mox.expect(Glossia.AI.TranslatorMock, :translate, fn "Hello", "en", "de" ->
+      Mimic.expect(Glossia.AI.Translator, :translate, fn "Hello", "en", "de" ->
         {:ok, "Hallo"}
       end)
 
@@ -223,7 +216,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
 
     test "supports all documented FTL format features", %{conn: conn} do
       # "Welcome to {$app}!" appears twice (main message and aria-label)
-      Mox.stub(Glossia.AI.TranslatorMock, :translate, fn text, "en", "ja" ->
+      Mimic.stub(Glossia.AI.Translator, :translate, fn text, "en", "ja" ->
         case text do
           "Home" -> {:ok, "ホーム"}
           "Welcome to {$app}!" -> {:ok, "{$app}へようこそ！"}

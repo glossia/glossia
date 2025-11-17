@@ -3,8 +3,6 @@ defmodule Glossia.AI.Translator do
   Handles AI-powered translation using ReqLLM with Anthropic's Claude API.
   """
 
-  @behaviour Glossia.AI.TranslatorBehaviour
-
   require Logger
 
   @doc """

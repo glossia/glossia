@@ -36,7 +36,7 @@ defmodule Glossia.Formats.PropertiesHandler do
         [key | value_parts] = String.split(line, "=", parts: 2)
         value = Enum.join(value_parts, "=")
 
-        case Glossia.AI.TranslatorClient.translate(value, source_locale, target_locale) do
+        case Glossia.AI.Translator.translate(value, source_locale, target_locale) do
           {:ok, translated} -> {:ok, "#{key}=#{translated}"}
           error -> error
         end
