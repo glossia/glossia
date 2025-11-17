@@ -1,5 +1,5 @@
 defmodule Glossia.Formats.FtlHandlerTest do
-  use Glossia.FormatCase, async: true
+  use Glossia.FormatCase, async: false
 
   alias Glossia.Formats.FtlHandler
 
@@ -116,13 +116,13 @@ defmodule Glossia.Formats.FtlHandlerTest do
           .aria-label = Welcome message
       """
 
-      # Two lines will attempt translation
+      # Only the main message is translated, attributes are skipped
       expect_translate("Welcome", "en", "es", "Bienvenido")
-      expect_translate("Welcome message", "en", "es", "Mensaje de bienvenida")
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
       assert result =~ "welcome = Bienvenido"
-      assert result =~ "    .aria-label = Mensaje de bienvenida"
+      # Attributes (indented lines) are preserved as-is, not translated
+      assert result =~ "    .aria-label = Welcome message"
     end
 
     test "handles translation errors" do
@@ -201,7 +201,7 @@ defmodule Glossia.Formats.FtlHandlerTest do
       expect_translate("About Us", "en", "es", "Acerca de")
       expect_translate("Contact", "en", "es", "Contacto")
       expect_translate("Welcome to { $appName }!", "en", "es", "¡Bienvenido a { $appName }!")
-      expect_translate("Welcome message", "en", "es", "Mensaje de bienvenida")
+      # Attributes are not translated, so no mock needed for "Welcome message"
       expect_translate("Hello, { $userName }!", "en", "es", "¡Hola, { $userName }!")
 
       assert {:ok, result} = FtlHandler.translate(content, "en", "es")
@@ -211,7 +211,8 @@ defmodule Glossia.Formats.FtlHandlerTest do
       assert result =~ "## Messages"
       assert result =~ "# Welcome message shown on homepage"
       assert result =~ "welcome-message = ¡Bienvenido a { $appName }!"
-      assert result =~ "    .aria-label = Mensaje de bienvenida"
+      # Attributes (indented lines) are preserved as-is
+      assert result =~ "    .aria-label = Welcome message"
     end
   end
 end

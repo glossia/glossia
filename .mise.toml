@@ -1,0 +1,3 @@
+# Glossia development tools
+[tools]
+zig = "0.13.0"

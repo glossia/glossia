@@ -1,0 +1,6 @@
+# Ignore Zig build output
+zig-out/
+.zig-cache/
+
+# Keep the build directory for Mix compiler task
+!build/.gitkeep

@@ -7,6 +7,9 @@ defmodule Glossia.Application do
 
   @impl true
   def start(_type, _args) do
+    # Initialize Wasm handler system
+    Glossia.Formats.WasmHandler.init()
+
     children = [
       GlossiaWeb.Telemetry,
       Glossia.Repo,

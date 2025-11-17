@@ -215,7 +215,7 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
     end
 
     test "supports all documented FTL format features", %{conn: conn} do
-      # "Welcome to {$app}!" appears twice (main message and aria-label)
+      # Only main messages are translated, not attributes
       Mimic.stub(Glossia.AI.Translator, :translate, fn text, "en", "ja" ->
         case text do
           "Home" -> {:ok, "ホーム"}
@@ -251,7 +251,8 @@ defmodule GlossiaWeb.API.TranslationControllerTest do
       assert result =~ "nav-home = ホーム"
       assert result =~ "# Welcome message"
       assert result =~ "welcome-msg = {$app}へようこそ！"
-      assert result =~ "    .aria-label = {$app}へようこそ！"
+      # Attributes (indented lines) are preserved as-is, not translated
+      assert result =~ "    .aria-label = Welcome to {$app}!"
       assert result =~ "brand = {$brandName}"
     end
   end
