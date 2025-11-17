@@ -34,8 +34,9 @@ defmodule GlossiaWeb.Schemas.TranslationRequest do
         - properties: Java properties files
         - arb: Flutter ARB files (JSON-based)
         - strings: iOS .strings files
+        - ftl: Mozilla Fluent files (Pontoon)
         """,
-        enum: ["text", "json", "yaml", "xliff", "po", "properties", "arb", "strings"],
+        enum: ["text", "json", "yaml", "xliff", "po", "properties", "arb", "strings", "ftl"],
         default: "text",
         example: "text"
       },

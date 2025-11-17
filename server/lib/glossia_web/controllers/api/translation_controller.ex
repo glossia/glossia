@@ -12,7 +12,8 @@ defmodule GlossiaWeb.API.TranslationController do
     PoHandler,
     PropertiesHandler,
     ArbHandler,
-    StringsHandler
+    StringsHandler,
+    FtlHandler
   }
 
   tags ["Translation"]
@@ -31,6 +32,7 @@ defmodule GlossiaWeb.API.TranslationController do
     - **properties**: Java properties files
     - **arb**: Flutter ARB files (JSON-based)
     - **strings**: iOS .strings files
+    - **ftl**: Mozilla Fluent files (Pontoon)
 
     For structured formats, send the raw file content as a string.
     The translation preserves formatting, whitespace, and structure to minimize diffs.
@@ -82,5 +84,6 @@ defmodule GlossiaWeb.API.TranslationController do
   defp get_format_handler("properties"), do: {:ok, PropertiesHandler}
   defp get_format_handler("arb"), do: {:ok, ArbHandler}
   defp get_format_handler("strings"), do: {:ok, StringsHandler}
+  defp get_format_handler("ftl"), do: {:ok, FtlHandler}
   defp get_format_handler(_), do: {:error, :unsupported_format}
 end
