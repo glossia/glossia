@@ -15,6 +15,7 @@ pub fn build(b: *std.Build) void {
     // List of handler files to compile
     const handlers = [_][]const u8{
         "ftl",
+        "po",
     };
 
     // Compile each handler

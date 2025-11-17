@@ -50,7 +50,7 @@ defmodule Glossia.Formats.PoHandlerTest do
       msgstr "world"
       """
 
-      assert {:error, "Invalid PO file: missing msgid keyword"} = PoHandler.validate(content)
+      assert {:error, :invalid_content} = PoHandler.validate(content)
     end
 
     test "rejects content missing msgstr" do
@@ -58,7 +58,7 @@ defmodule Glossia.Formats.PoHandlerTest do
       msgid "hello"
       """
 
-      assert {:error, "Invalid PO file: missing msgstr keyword"} = PoHandler.validate(content)
+      assert {:error, :invalid_content} = PoHandler.validate(content)
     end
 
     test "rejects content with mismatched msgid and msgstr" do
@@ -68,8 +68,7 @@ defmodule Glossia.Formats.PoHandlerTest do
       msgstr "hola"
       """
 
-      assert {:error, "Invalid PO file: mismatched msgid and msgstr entries"} =
-               PoHandler.validate(content)
+      assert {:error, :invalid_content} = PoHandler.validate(content)
     end
 
     test "rejects completely invalid content" do
