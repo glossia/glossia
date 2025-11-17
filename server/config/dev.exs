@@ -1,11 +1,11 @@
 import Config
 
 # Configure your database
-config :glossia_server, GlossiaServer.Repo,
+config :glossia, Glossia.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "glossia_server_dev",
+  database: "glossia_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -16,7 +16,7 @@ config :glossia_server, GlossiaServer.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :glossia_server, GlossiaServerWeb.Endpoint,
+config :glossia, GlossiaWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4000")],
@@ -53,18 +53,18 @@ config :glossia_server, GlossiaServerWeb.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :glossia_server, GlossiaServerWeb.Endpoint,
+config :glossia, GlossiaWeb.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/glossia_server_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
+      ~r"lib/glossia_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :glossia_server, dev_routes: true
+config :glossia, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
@@ -86,3 +86,6 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Enable hot-reload for Wasm handlers in development
+config :glossia, environment: :dev

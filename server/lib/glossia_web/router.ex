@@ -1,0 +1,60 @@
+defmodule GlossiaWeb.Router do
+  use GlossiaWeb, :router
+
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {GlossiaWeb.Layouts, :root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
+  pipeline :api do
+    plug :accepts, ["json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: GlossiaWeb.ApiSpec
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through :browser
+
+    get "/", PageController, :home
+  end
+
+  # API routes
+  scope "/api" do
+    pipe_through :api
+
+    # OpenAPI spec
+    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+
+    # API endpoints
+    scope "/", GlossiaWeb.API do
+      post "/translate", TranslationController, :translate
+    end
+  end
+
+  # Swagger UI (development only)
+  scope "/api" do
+    pipe_through :browser
+
+    get "/swagger", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
+  end
+
+  # Enable LiveDashboard and Swoosh mailbox preview in development
+  if Application.compile_env(:glossia, :dev_routes) do
+    # If you want to use the LiveDashboard in production, you should put
+    # it behind authentication and allow only admins to access it.
+    # If your application does not have an admins-only section yet,
+    # you can use Plug.BasicAuth to set up some basic authentication
+    # as long as you are also using SSL (which you should anyway).
+    import Phoenix.LiveDashboard.Router
+
+    scope "/dev" do
+      pipe_through :browser
+
+      live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
+      forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+end
