@@ -268,6 +268,19 @@ async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
 
                     let tool_result = tools::execute_tool(&tc.name, &tc.input, &tool_ctx).await?;
 
+                    if let Some(reporter) = req.tool_reporter {
+                        let flat = tool_result.replace('\n', " ");
+                        let display = if flat.len() > 120 {
+                            format!("{}... ({} chars)", &flat[..120], flat.len())
+                        } else {
+                            flat
+                        };
+                        reporter.log(
+                            crate::reporter::Verb::Info,
+                            &format!("  {} -> {}", tc.name, display),
+                        );
+                    }
+
                     // Track last successful translation
                     if tc.name == "translate" && !tool_result.starts_with("translation error:") {
                         last_translation = Some(tool_result.clone());
