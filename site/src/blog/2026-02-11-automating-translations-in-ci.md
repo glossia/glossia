@@ -89,11 +89,13 @@ You'll need to add your LLM API key as a secret in your CI environment. We use A
 
 ## Why this matters
 
-Translations should follow the same path as every other automated check in your project. When you push code, your CI runs tests, lints your files, and builds your project. Translations should be part of that same loop.
+The important thing is that developers are never interrupted. They write content in the source language, open their PR, get it reviewed, and merge it. No extra steps, no translation gates blocking their work.
 
-With this setup, a developer writes content in the source language, pushes to `main`, and within a minute there's a pull request with translations ready for review. No context switching. No remembering to "run the translation step." No external platform to check.
+Yes, there's a brief window of linguistic inconsistency after a merge, where the source content has changed but translations haven't caught up yet. For most projects, that's completely fine. And it's short-lived: within a minute of the merge, CI picks up the change and opens a translation PR with fresh output.
 
-And because l10n validates its own output, running syntax checks, preserve-token verification, and any custom commands you've configured, the translations in that PR have already passed the same quality gates your CI would enforce.
+At first, someone on the team reviews and merges that translation PR. This is the phase where you build confidence in the results and iterate on your `L10N.md` context files to get the tone and terminology right. Over time, as you trust the output, you can skip the PR step entirely and have translations pushed straight to `main`, making the whole process invisible.
+
+Because l10n validates its own output (syntax checks, preserve-token verification, and any custom commands you've configured), the translations have already passed quality gates before they reach you.
 
 ## What's next: turning human reviews into linguistic memory
 
