@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.13.6] - 2026-02-11
+
+### Bug Fixes
+- fix: add group headings to release notes template
+
 ## [v0.13.5] - 2026-02-11
 
 ### Documentation
