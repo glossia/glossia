@@ -355,7 +355,9 @@ pub fn validate_po_thorough(content: &str, source: Option<&str>) -> Option<Strin
     let entries = parse_po_entries(content);
 
     // Check for PO header entry (msgid "" with Content-Type)
-    let has_header = entries.iter().any(|e| e.msgid.is_empty() && !e.msgstr.is_empty());
+    let has_header = entries
+        .iter()
+        .any(|e| e.msgid.is_empty() && !e.msgstr.is_empty());
     if !has_header && !entries.is_empty() {
         return Some("po file missing header entry (msgid \"\" with Content-Type)".to_string());
     }
@@ -384,7 +386,9 @@ pub fn validate_po_thorough(content: &str, source: Option<&str>) -> Option<Strin
     // Format string preservation check (if source provided)
     if let Some(src) = source {
         let src_entries = parse_po_entries(src);
-        let format_re = Regex::new(r"%[sdfiu%]|%\([^)]+\)[sdfiu]|\{[0-9]+\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}").unwrap();
+        let format_re =
+            Regex::new(r"%[sdfiu%]|%\([^)]+\)[sdfiu]|\{[0-9]+\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}")
+                .unwrap();
 
         for src_entry in &src_entries {
             if src_entry.msgid.is_empty() {

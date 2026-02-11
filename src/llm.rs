@@ -658,10 +658,7 @@ async fn chat_with_tools_anthropic(
                     .and_then(|v| v.as_str())
                     .unwrap_or("")
                     .to_string();
-                let input = block
-                    .get("input")
-                    .cloned()
-                    .unwrap_or(serde_json::json!({}));
+                let input = block.get("input").cloned().unwrap_or(serde_json::json!({}));
                 tool_calls.push(ToolCall { id, name, input });
             }
             "text" => {

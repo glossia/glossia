@@ -354,7 +354,10 @@ pub async fn call_translator(
     let system = if brief.is_empty() {
         "You are a translation engine. Translate faithfully and naturally. Return only the translated content.".to_string()
     } else {
-        format!("You are a translation engine. Follow this brief:\n{}", brief)
+        format!(
+            "You are a translation engine. Follow this brief:\n{}",
+            brief
+        )
     };
 
     let user = format!(
