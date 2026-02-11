@@ -13,25 +13,19 @@ jobs:
     name: Translate
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: "!startsWith(github.event.head_commit.message, '[l10n]')"
+    if: "!startsWith(github.event.head_commit.message, '[l10n]') && !startsWith(github.event.head_commit.message, '[Release]')"
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - name: Set up mise
-        uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
-        with:
-          cache: true
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Install tools
-        run: mise install
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Build
+        run: cargo build --release
 
       - name: Check translation status
         id: status
         run: |
-          if bun run src/cli.ts status; then
+          if ./target/release/l10n status; then
             echo "stale=false" >> "$GITHUB_OUTPUT"
           else
             echo "stale=true" >> "$GITHUB_OUTPUT"
@@ -41,7 +35,7 @@ jobs:
         if: steps.status.outputs.stale == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: bun run src/cli.ts translate
+        run: ./target/release/l10n translate
 
       - name: Create PR with translations
         if: steps.status.outputs.stale == 'true'
