@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.13.5] - 2026-02-11
+
+### Documentation
+- docs: update README for Rust rewrite
+
 ## [v0.13.4] - 2026-02-11
 
 ### Refactors
