@@ -1,6 +1,22 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.14.0] - 2026-02-11
+
+### Features
+- feat: colorize CLI output with richer message formatting
+
+Add color to the message portion of CLI output, not just the verb:
+- Dim file paths for reduced visual noise
+- Cyan arrows between source and output paths
+- Magenta language codes in parentheses
+- Color-coded summary numbers (green ok, yellow stale, red missing)
+- Dimmed step counters [N/N]
+- Zero-count summary values dimmed for quick scanning
+
+All color respects --no-color flag and NO_COLOR env, and only
+activates on TTY terminals.
+
 ## [v0.13.6] - 2026-02-11
 
 ### Bug Fixes
