@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.15.1] - 2026-02-11
+
+### Chores
+- chore: add site/_site build output to gitignore
+
 ## [v0.15.0] - 2026-02-11
 
 ### Features
