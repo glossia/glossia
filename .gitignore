@@ -1,5 +1,6 @@
 /site/node_modules
 /site/dist
+/site/_site
 /.l10n/tmp
 .env
 .DS_Store
