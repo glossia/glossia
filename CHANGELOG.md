@@ -1,6 +1,30 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.17.0] - 2026-02-11
+
+### Chores
+- chore: add Rust dependency caching to CI and release workflows
+
+
+### Features
+- feat: rewrite `l10n init` with Agent Client Protocol (ACP)
+
+Replace the dialoguer-based language picker with ACP integration
+that delegates initialization to an external AI coding agent
+(Claude Code, Gemini CLI, Goose, etc.). The agent scans the
+project, converses with the user, and generates a fully working
+L10N.md configuration.
+
+
+### Other
+- Make release commit and tag atomic with the GitHub release
+
+Move the changelog commit, tag, and push to the release job so they
+only happen after all build artifacts have been compiled successfully.
+The changelog is passed between jobs as an artifact.
+- Fix cargo fmt formatting
+
 ## [v0.16.2] - 2026-02-11
 
 ### Other
