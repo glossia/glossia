@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.14.2] - 2026-02-11
+
+### Documentation
+- docs: add blog post on automating translations with GitHub Actions
+
 ## [v0.14.1] - 2026-02-11
 
 ### Bug Fixes
