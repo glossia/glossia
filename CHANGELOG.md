@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.16.2] - 2026-02-11
+
+### Other
+- Fix panic when truncating multi-byte UTF-8 tool results
+
+The log display was slicing at a byte index, which can land in the
+middle of a multi-byte character (e.g. Japanese) and panic.
+
 ## [v0.16.1] - 2026-02-11
 
 ### Other
