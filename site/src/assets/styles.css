@@ -727,6 +727,7 @@ code[class*="language-"] {
 .post-hero {
   padding-top: 4rem;
   padding-bottom: 2rem;
+  text-align: center;
 }
 
 .post-hero .badge {
@@ -735,11 +736,15 @@ code[class*="language-"] {
 
 .post-hero h1 {
   max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 0.5rem;
 }
 
 .post-hero .lead {
   max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .post-hero .meta {
@@ -751,6 +756,8 @@ code[class*="language-"] {
 
 .post-body {
   max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
   font-size: 1.05rem;
   color: var(--ink-2);
   padding-bottom: 4rem;
