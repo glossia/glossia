@@ -168,10 +168,7 @@ async fn execute_translate(input: &serde_json::Value, ctx: &ToolContext<'_>) -> 
         .get("target_lang")
         .and_then(|v| v.as_str())
         .unwrap_or("");
-    let context = input
-        .get("context")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let context = input.get("context").and_then(|v| v.as_str()).unwrap_or("");
     let brief = input.get("brief").and_then(|v| v.as_str()).unwrap_or("");
 
     if source_content.is_empty() || target_lang.is_empty() {
@@ -199,10 +196,7 @@ async fn execute_translate(input: &serde_json::Value, ctx: &ToolContext<'_>) -> 
 }
 
 fn execute_validate_syntax(input: &serde_json::Value) -> Result<String> {
-    let content = input
-        .get("content")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let content = input.get("content").and_then(|v| v.as_str()).unwrap_or("");
     let format_str = input
         .get("format")
         .and_then(|v| v.as_str())
@@ -227,10 +221,7 @@ fn execute_validate_preserve(input: &serde_json::Value) -> Result<String> {
         .get("translated")
         .and_then(|v| v.as_str())
         .unwrap_or("");
-    let source = input
-        .get("source")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let source = input.get("source").and_then(|v| v.as_str()).unwrap_or("");
 
     let kinds_input: Vec<String> = input
         .get("preserve_kinds")
@@ -251,10 +242,7 @@ fn execute_validate_preserve(input: &serde_json::Value) -> Result<String> {
 }
 
 fn execute_validate_po(input: &serde_json::Value) -> Result<String> {
-    let content = input
-        .get("content")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let content = input.get("content").and_then(|v| v.as_str()).unwrap_or("");
     let source = input.get("source").and_then(|v| v.as_str());
 
     match checks::validate_po_thorough(content, source) {
@@ -267,14 +255,8 @@ async fn execute_run_check_command(
     input: &serde_json::Value,
     ctx: &ToolContext<'_>,
 ) -> Result<String> {
-    let content = input
-        .get("content")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
-    let command = input
-        .get("command")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let content = input.get("content").and_then(|v| v.as_str()).unwrap_or("");
+    let command = input.get("command").and_then(|v| v.as_str()).unwrap_or("");
 
     if command.is_empty() {
         return Ok("error: command is required".to_string());
