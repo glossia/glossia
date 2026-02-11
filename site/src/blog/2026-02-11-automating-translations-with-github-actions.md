@@ -13,11 +13,13 @@ We use GitHub Actions to make that happen. Every push to `main` triggers a workf
 
 The workflow is straightforward. It runs on every push to `main`, skipping commits that come from the translation workflow itself (to avoid infinite loops) and release commits.
 
-The first thing it does is build the l10n CLI from source and run `l10n status`. This command compares the current state of your source files and their translations against the lock files that l10n maintains. If everything is up to date, the workflow exits early. No wasted compute, no noise.
+The first thing it does is run `l10n status`. This command compares the current state of your source files and their translations against the lock files that l10n maintains. If everything is up to date, the workflow exits early. No wasted compute, no noise.
 
 If `l10n status` detects that something is stale, either because a source file changed, context was updated, or a translation is missing entirely, it moves on to `l10n translate`. This is where the LLM does its work: reading your source content, applying the context you've written in your `L10N.md` files, and producing translations that respect your project's tone and terminology.
 
 After translation, the workflow checks whether any files actually changed. If they did, it creates a branch, commits the updated translations, and opens a pull request. If a translation PR already exists, it force-pushes to update it instead of creating duplicates.
+
+We deliberately open a pull request rather than pushing translations directly to `main`. This gives us a chance to review the output, iterate on the translation context in our `L10N.md` files, and build confidence in the agentic workflow. Once we trust the results enough, the goal is to skip the PR step entirely and commit translations straight to `main`, making the process fully invisible.
 
 ## The workflow
 
@@ -42,15 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Build
-        run: cargo build --release
+      - uses: jdx/mise-action@v2
 
       - name: Check translation status
         id: status
         run: |
-          if ./target/release/l10n status; then
+          if l10n status; then
             echo "stale=false" >> "$GITHUB_OUTPUT"
           else
             echo "stale=true" >> "$GITHUB_OUTPUT"
@@ -60,7 +59,7 @@ jobs:
         if: steps.status.outputs.stale == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: ./target/release/l10n translate
+        run: l10n translate
 
       - name: Create PR with translations
         if: steps.status.outputs.stale == 'true'
