@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.15.0] - 2026-02-11
+
+### Features
+- feat: add square OG image and twitter card meta tags
+
 ## [v0.14.3] - 2026-02-11
 
 ### Bug Fixes
