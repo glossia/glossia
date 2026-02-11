@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod acp;
 mod agent;
 mod checks;
 mod cli;

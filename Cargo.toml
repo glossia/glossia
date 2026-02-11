@@ -21,6 +21,10 @@ pathdiff = "0.2"
 anyhow = "1"
 thiserror = "2"
 atty = "0.2"
+agent-client-protocol = "0.9"
+tokio-util = { version = "0.7", features = ["compat"] }
+async-trait = "0.1"
+which = "7"
 
 [profile.release]
 opt-level = "z"

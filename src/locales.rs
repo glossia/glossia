@@ -191,3 +191,11 @@ pub fn locale_name_by_code(locales: &[Locale]) -> HashMap<String, String> {
         .map(|l| (l.code.to_string(), l.name.to_string()))
         .collect()
 }
+
+pub fn locales_list_string() -> String {
+    default_locales()
+        .iter()
+        .map(|l| format!("{} ({})", l.code, l.name))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
