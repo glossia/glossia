@@ -1,6 +1,22 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.14.3] - 2026-02-11
+
+### Bug Fixes
+- fix: align post body with hero layout and improve blog post content
+
+Separate .post-body from .container in the post template so the body
+content left-aligns within the 1080px container, matching the hero.
+Simplify the workflow example to use l10n directly via mise, and explain
+why we open PRs instead of pushing to main.
+- fix: center blog post content horizontally
+
+
+### Documentation
+- docs: generalize blog post to cover CI automation broadly
+- docs: rewrite "why this matters" to reflect non-blocking workflow
+
 ## [v0.14.2] - 2026-02-11
 
 ### Documentation
