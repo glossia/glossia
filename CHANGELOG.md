@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.16.1] - 2026-02-11
+
+### Other
+- Fix the model used
+
 ## [v0.16.0] - 2026-02-11
 
 ### Features
