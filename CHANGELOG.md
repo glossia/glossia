@@ -1,6 +1,23 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.13.4] - 2026-02-11
+
+### Refactors
+- refactor: rewrite CLI from TypeScript/Bun to Rust
+
+Rewrites the entire l10n CLI in Rust for better performance, smaller
+binaries (~3.4MB), and native cross-compilation support. All 5 commands
+(init, translate, check, status, clean) maintain feature parity with the
+TypeScript implementation. Lock file format is fully compatible.
+
+Key changes:
+- Replace TypeScript source with Rust (clap, tokio, reqwest, serde)
+- Update CI workflow for Rust (fmt, clippy, test, build)
+- Update release workflow to use cross for Linux, native cargo for macOS/Windows
+- Remove TS tooling (package.json, tsconfig, biome, bun.lock)
+- Add Rust as mise dependency
+
 ## [v0.13.3] - 2026-02-06
 
 ### Documentation
