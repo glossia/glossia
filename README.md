@@ -3,7 +3,7 @@
 > [!WARNING]
 > This project is in an **experimental phase**. APIs and behavior may change without notice. Please don't expect high responsiveness to issues or pull requests.
 
-Localize like you ship software. `l10n` is a Go CLI that translates files locally using LLMs, keeps content in‑repo, and validates output with your own tooling.
+Localize like you ship software. `l10n` is a Rust CLI that translates files locally using LLMs, keeps content in-repo, and validates output with your own tooling.
 
 ## Install 📦
 
@@ -14,8 +14,7 @@ mise use github:tuist/l10n
 Or build from source:
 
 ```bash
-bun install
-bun run build
+cargo build --release
 ```
 
 ## Quick start 🚀
@@ -161,15 +160,15 @@ Use `--path <dir>` to run commands as if you were in a different directory.
 ## Development 🧪
 
 ```bash
-bun test
+cargo test
 ```
 
 For the website:
 
 ```bash
 cd site
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 ## License 📄
