@@ -1,2 +1,5 @@
-{% for group, commits in commits | group_by(attribute="group") %}{% for commit in commits %}- {{ commit.message }}
-{% endfor %}{% endfor %}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group }}
+{% for commit in commits %}- {{ commit.message | split(pat="\n") | first }}
+{% endfor %}
+{% endfor %}
