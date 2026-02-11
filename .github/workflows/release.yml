@@ -23,7 +23,6 @@ jobs:
       should_release: ${{ steps.releasable.outputs.should_release }}
       version: ${{ steps.next-version.outputs.version }}
       release_notes: ${{ steps.release-notes.outputs.release_notes }}
-      commit_sha: ${{ steps.auto-commit.outputs.commit_hash }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -55,18 +54,15 @@ jobs:
           else
             echo "version=$(git cliff --config cliff.toml --bumped-version)" >> "$GITHUB_OUTPUT"
           fi
-      - name: Update CHANGELOG.md
+      - name: Generate changelog
         if: steps.releasable.outputs.should_release == 'true'
         run: git cliff --config cliff.toml --bump -o CHANGELOG.md
-      - name: Commit changes
-        id: auto-commit
+      - name: Upload changelog
         if: steps.releasable.outputs.should_release == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: actions/upload-artifact@v4
         with:
-          commit_options: "--allow-empty"
-          tagging_message: ${{ steps.next-version.outputs.version }}
-          skip_dirty_check: true
-          commit_message: "[Release] l10n ${{ steps.next-version.outputs.version }}"
+          name: changelog
+          path: CHANGELOG.md
       - name: Get release notes
         id: release-notes
         if: steps.releasable.outputs.should_release == 'true'
@@ -109,7 +105,6 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-          ref: ${{ needs.prepare.outputs.version }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -142,9 +137,27 @@ jobs:
     needs: [prepare, build]
     if: needs.prepare.outputs.should_release == 'true'
     steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+      - name: Commit and tag release
+        id: release-commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "[Release] l10n ${{ needs.prepare.outputs.version }}"
+          git tag "${{ needs.prepare.outputs.version }}"
+          git push origin main --tags
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          pattern: l10n-*
       - name: Gather artifacts
         run: |
           mkdir -p release
@@ -159,7 +172,7 @@ jobs:
           name: ${{ needs.prepare.outputs.version }}
           tag_name: ${{ needs.prepare.outputs.version }}
           body: ${{ needs.prepare.outputs.release_notes }}
-          target_commitish: ${{ needs.prepare.outputs.commit_sha }}
+          target_commitish: ${{ steps.release-commit.outputs.commit_sha }}
           files: |
             release/*.tar.gz
             release/SHA256.txt
