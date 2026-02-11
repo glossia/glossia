@@ -1,29 +1,31 @@
 ---
-title: "Automating translations with GitHub Actions and l10n"
-summary: "Every push to main triggers a workflow that detects stale translations and opens a pull request with fresh ones. Here's how we set it up and what we're planning next."
+title: "Automating translations in CI"
+summary: "Every push to main triggers a CI job that detects stale translations and opens a pull request with fresh ones. Here's how to set it up and what we're planning next."
 date: 2026-02-11
 layout: layouts/post.njk
 ---
 
 One of the things we cared about from the start with l10n was making translations feel like a natural part of the development workflow. Not something you remember to do before a release. Not a step someone has to trigger manually. Just something that happens, automatically, every time content changes.
 
-We use GitHub Actions to make that happen. Every push to `main` triggers a workflow that checks whether any translations are out of date and, if so, generates fresh ones and opens a pull request. The whole thing runs in about a minute.
+The idea is simple: every push to `main` triggers a CI job that checks whether any translations are out of date and, if so, generates fresh ones and opens a pull request. The whole thing runs in about a minute, and it works with any CI system.
 
 ## How it works
 
-The workflow is straightforward. It runs on every push to `main`, skipping commits that come from the translation workflow itself (to avoid infinite loops) and release commits.
+The flow has three steps, and they map directly to l10n commands.
 
-The first thing it does is run `l10n status`. This command compares the current state of your source files and their translations against the lock files that l10n maintains. If everything is up to date, the workflow exits early. No wasted compute, no noise.
+**1. Check if anything is stale.** Run `l10n status`. This compares the current state of your source files and their translations against the lock files that l10n maintains. If everything is up to date, the job exits early. No wasted compute, no noise.
 
-If `l10n status` detects that something is stale, either because a source file changed, context was updated, or a translation is missing entirely, it moves on to `l10n translate`. This is where the LLM does its work: reading your source content, applying the context you've written in your `L10N.md` files, and producing translations that respect your project's tone and terminology.
+**2. Translate what changed.** If `l10n status` detects that something is stale, either because a source file changed, context was updated, or a translation is missing entirely, run `l10n translate`. This is where the LLM does its work: reading your source content, applying the context you've written in your `L10N.md` files, and producing translations that respect your project's tone and terminology.
 
-After translation, the workflow checks whether any files actually changed. If they did, it creates a branch, commits the updated translations, and opens a pull request. If a translation PR already exists, it force-pushes to update it instead of creating duplicates.
+**3. Open a pull request.** If any files changed, create a branch, commit the updated translations, and open a pull request. If a translation PR already exists, update it instead of creating duplicates.
 
-We deliberately open a pull request rather than pushing translations directly to `main`. This gives us a chance to review the output, iterate on the translation context in our `L10N.md` files, and build confidence in the agentic workflow. Once we trust the results enough, the goal is to skip the PR step entirely and commit translations straight to `main`, making the process fully invisible.
+We deliberately open a pull request rather than pushing translations directly to `main`. This gives you a chance to review the output, iterate on the translation context in your `L10N.md` files, and build confidence in the agentic workflow. Once you trust the results enough, the goal is to skip the PR step entirely and commit translations straight to `main`, making the process fully invisible.
 
-## The workflow
+You'll also want to skip commits that come from the translation job itself (to avoid infinite loops) and release commits.
 
-Here's what the GitHub Actions workflow looks like:
+## Example: GitHub Actions
+
+Here's a concrete example using GitHub Actions, but the same logic applies to GitLab CI, CircleCI, Buildkite, or any other CI system:
 
 ```yaml
 name: Translate
@@ -83,11 +85,11 @@ jobs:
             --base main
 ```
 
-You'll need to add your LLM API key as a repository secret. We use Anthropic's Claude, so ours is `ANTHROPIC_API_KEY`. If you're using OpenAI, swap it for `OPENAI_API_KEY` and update your `L10N.md` configuration accordingly.
+You'll need to add your LLM API key as a secret in your CI environment. We use Anthropic's Claude, so ours is `ANTHROPIC_API_KEY`. If you're using OpenAI, swap it for `OPENAI_API_KEY` and update your `L10N.md` configuration accordingly.
 
 ## Why this matters
 
-The key insight is that translations should follow the same path as every other automated check in your project. When you push code, your CI runs tests, lints your files, and builds your project. Translations should be part of that same loop.
+Translations should follow the same path as every other automated check in your project. When you push code, your CI runs tests, lints your files, and builds your project. Translations should be part of that same loop.
 
 With this setup, a developer writes content in the source language, pushes to `main`, and within a minute there's a pull request with translations ready for review. No context switching. No remembering to "run the translation step." No external platform to check.
 
@@ -112,4 +114,4 @@ mise use github:tuist/l10n
 l10n init
 ```
 
-Configure your source files and target languages in `L10N.md`, add the workflow file to `.github/workflows/translate.yml`, and set your API key as a repository secret. From that point on, every push to `main` will keep your translations in sync.
+Configure your source files and target languages in `L10N.md`, add a translation job to your CI pipeline, and set your API key as a secret. From that point on, every push to `main` will keep your translations in sync.
