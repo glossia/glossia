@@ -1,6 +1,24 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.16.0] - 2026-02-11
+
+### Features
+- feat: make coordinator agent agentic with tool use
+
+When a coordinator model is configured, the coordinator now runs as
+a proper agentic loop that calls tools to translate, validate syntax,
+check preserved tokens, and retry on failures. This replaces the
+single-shot brief generation with an iterative process where the
+coordinator decides how to fix validation errors.
+
+Adds chat_with_tools() for both Anthropic and OpenAI providers,
+a full tool registry (translate, validate_syntax, validate_preserve,
+validate_po, run_check_command), thorough PO/POT validation with
+header/plural-forms/format-string checks, and .pot file support.
+
+The non-agentic path (no coordinator model) is preserved exactly.
+
 ## [v0.15.1] - 2026-02-11
 
 ### Chores
