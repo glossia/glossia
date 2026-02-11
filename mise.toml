@@ -1,6 +1,5 @@
 [tools]
-bun = "1"
-node = "20"
+rust = "stable"
 git-cliff = "2.10.0"
 "github:tuist/l10n" = "latest"
 "npm:wrangler" = "latest"

@@ -78,7 +78,7 @@ jobs:
   build:
     name: Build artifacts
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 30
     needs: prepare
     if: needs.prepare.outputs.should_release == 'true'
     strategy:
@@ -86,45 +86,54 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            target: bun-linux-x64
-            triple: x86_64-unknown-linux-gnu
+            target: x86_64-unknown-linux-gnu
+            use_cross: true
             ext: ""
           - os: ubuntu-latest
-            target: bun-linux-arm64
-            triple: aarch64-unknown-linux-gnu
+            target: aarch64-unknown-linux-gnu
+            use_cross: true
             ext: ""
           - os: macos-latest
-            target: bun-darwin-x64
-            triple: x86_64-apple-darwin
+            target: x86_64-apple-darwin
+            use_cross: false
             ext: ""
           - os: macos-latest
-            target: bun-darwin-arm64
-            triple: aarch64-apple-darwin
+            target: aarch64-apple-darwin
+            use_cross: false
             ext: ""
           - os: windows-latest
-            target: bun-windows-x64
-            triple: x86_64-pc-windows-msvc
+            target: x86_64-pc-windows-msvc
+            use_cross: false
             ext: ".exe"
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
           ref: ${{ needs.prepare.outputs.version }}
-      - uses: oven-sh/setup-bun@v2
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          bun-version: latest
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Build
+          targets: ${{ matrix.target }}
+      - name: Install cross
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+      - name: Build (cross)
+        if: matrix.use_cross
+        run: cross build --release --target ${{ matrix.target }}
+      - name: Build (cargo)
+        if: "!matrix.use_cross"
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Package artifact
+        shell: bash
         run: |
           mkdir -p dist
-          bun build src/cli.ts --compile --target=${{ matrix.target }} --outfile "dist/l10n${{ matrix.ext }}"
-          tar -czf "dist/l10n-${{ matrix.triple }}.tar.gz" -C dist "l10n${{ matrix.ext }}"
+          cp "target/${{ matrix.target }}/release/l10n${{ matrix.ext }}" "dist/l10n${{ matrix.ext }}"
+          cd dist
+          tar -czf "l10n-${{ matrix.target }}.tar.gz" "l10n${{ matrix.ext }}"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: l10n-${{ matrix.triple }}
-          path: dist/l10n-${{ matrix.triple }}.tar.gz
+          name: l10n-${{ matrix.target }}
+          path: dist/l10n-${{ matrix.target }}.tar.gz
 
   release:
     name: Publish release
