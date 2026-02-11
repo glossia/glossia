@@ -83,7 +83,7 @@ pub async fn validate(
     Ok(())
 }
 
-fn validate_syntax(format: Format, output: &str) -> Option<String> {
+pub fn validate_syntax(format: Format, output: &str) -> Option<String> {
     match format {
         Format::Json => {
             if let Err(e) = serde_json::from_str::<serde_json::Value>(output) {
@@ -206,7 +206,7 @@ fn has_quoted_string(line: &str) -> bool {
     count >= 2
 }
 
-fn resolve_preserve(preserve: &[String]) -> HashSet<String> {
+pub fn resolve_preserve(preserve: &[String]) -> HashSet<String> {
     if preserve.is_empty() {
         return DEFAULT_PRESERVE.iter().map(|s| s.to_string()).collect();
     }
@@ -218,7 +218,7 @@ fn resolve_preserve(preserve: &[String]) -> HashSet<String> {
     preserve.iter().map(|k| k.trim().to_lowercase()).collect()
 }
 
-fn extract_preservables(source: &str, kinds: &HashSet<String>) -> Vec<String> {
+pub fn extract_preservables(source: &str, kinds: &HashSet<String>) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut seen = HashSet::new();
     let mut text = source.to_string();
@@ -264,7 +264,7 @@ fn extract_preservables(source: &str, kinds: &HashSet<String>) -> Vec<String> {
     tokens
 }
 
-fn validate_preserve(output: &str, source: &str, kinds: &HashSet<String>) -> Option<String> {
+pub fn validate_preserve(output: &str, source: &str, kinds: &HashSet<String>) -> Option<String> {
     let preservables = extract_preservables(source, kinds);
     let mut missing = Vec::new();
     for token in &preservables {
@@ -298,7 +298,7 @@ fn select_check_cmd(
     fallback.unwrap_or("").trim().to_string()
 }
 
-async fn run_external(root: &str, cmd_template: &str, content: &str) -> Result<()> {
+pub async fn run_external(root: &str, cmd_template: &str, content: &str) -> Result<()> {
     if root.is_empty() {
         anyhow::bail!("external check requires root path");
     }
@@ -343,6 +343,235 @@ async fn run_external(root: &str, cmd_template: &str, content: &str) -> Result<(
             Ok(())
         }
         Err(e) => anyhow::bail!("external check failed: {}", e),
+    }
+}
+
+pub fn validate_po_thorough(content: &str, source: Option<&str>) -> Option<String> {
+    // Run basic structural checks first
+    if let Some(err) = validate_po(content) {
+        return Some(err);
+    }
+
+    let entries = parse_po_entries(content);
+
+    // Check for PO header entry (msgid "" with Content-Type)
+    let has_header = entries.iter().any(|e| e.msgid.is_empty() && !e.msgstr.is_empty());
+    if !has_header && !entries.is_empty() {
+        return Some("po file missing header entry (msgid \"\" with Content-Type)".to_string());
+    }
+
+    // Validate plural forms consistency
+    if let Some(header_entry) = entries.iter().find(|e| e.msgid.is_empty()) {
+        let header_text = &header_entry.msgstr;
+        let plural_forms_n = extract_plural_forms_count(header_text);
+        if let Some(n) = plural_forms_n {
+            for entry in &entries {
+                if entry.has_plural && !entry.msgid.is_empty() {
+                    let max_idx = entry.plural_msgstrs.keys().max().copied().unwrap_or(0);
+                    if max_idx + 1 != n {
+                        return Some(format!(
+                            "po plural forms mismatch: header declares nplurals={} but entry for \"{}\" has {} forms",
+                            n,
+                            truncate_str(&entry.msgid, 40),
+                            max_idx + 1
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    // Format string preservation check (if source provided)
+    if let Some(src) = source {
+        let src_entries = parse_po_entries(src);
+        let format_re = Regex::new(r"%[sdfiu%]|%\([^)]+\)[sdfiu]|\{[0-9]+\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}").unwrap();
+
+        for src_entry in &src_entries {
+            if src_entry.msgid.is_empty() {
+                continue;
+            }
+            // Find matching entry in translated content
+            if let Some(translated) = entries.iter().find(|e| e.msgid == src_entry.msgid) {
+                let src_formats: Vec<&str> = format_re
+                    .find_iter(&src_entry.msgstr)
+                    .map(|m| m.as_str())
+                    .collect();
+
+                if !src_formats.is_empty() && !translated.msgstr.is_empty() {
+                    for fmt in &src_formats {
+                        if !translated.msgstr.contains(fmt) {
+                            return Some(format!(
+                                "po format string \"{}\" in source msgstr for \"{}\" missing from translation",
+                                fmt,
+                                truncate_str(&src_entry.msgid, 40)
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Count untranslated entries
+    let untranslated: Vec<&PoEntry> = entries
+        .iter()
+        .filter(|e| !e.msgid.is_empty() && e.msgstr.is_empty() && e.plural_msgstrs.is_empty())
+        .collect();
+    if !untranslated.is_empty() {
+        return Some(format!(
+            "po has {} untranslated entries (first: \"{}\")",
+            untranslated.len(),
+            truncate_str(&untranslated[0].msgid, 40)
+        ));
+    }
+
+    None
+}
+
+struct PoEntry {
+    msgid: String,
+    msgstr: String,
+    has_plural: bool,
+    plural_msgstrs: HashMap<usize, String>,
+}
+
+fn parse_po_entries(content: &str) -> Vec<PoEntry> {
+    let mut entries = Vec::new();
+    let mut current_msgid = String::new();
+    let mut current_msgstr = String::new();
+    let mut current_plural_msgstrs: HashMap<usize, String> = HashMap::new();
+    let mut has_plural = false;
+    let mut state = "";
+    let mut current_plural_idx: Option<usize> = None;
+    let mut in_entry = false;
+
+    for raw_line in content.split('\n') {
+        let line = raw_line.trim();
+
+        if line.is_empty() || line.starts_with('#') {
+            if in_entry {
+                entries.push(PoEntry {
+                    msgid: current_msgid.clone(),
+                    msgstr: current_msgstr.clone(),
+                    has_plural,
+                    plural_msgstrs: current_plural_msgstrs.clone(),
+                });
+                current_msgid.clear();
+                current_msgstr.clear();
+                current_plural_msgstrs.clear();
+                has_plural = false;
+                state = "";
+                current_plural_idx = None;
+                in_entry = false;
+            }
+            continue;
+        }
+
+        if line.starts_with("msgid ") {
+            if in_entry {
+                entries.push(PoEntry {
+                    msgid: current_msgid.clone(),
+                    msgstr: current_msgstr.clone(),
+                    has_plural,
+                    plural_msgstrs: current_plural_msgstrs.clone(),
+                });
+                current_msgid.clear();
+                current_msgstr.clear();
+                current_plural_msgstrs.clear();
+                has_plural = false;
+                current_plural_idx = None;
+            }
+            in_entry = true;
+            state = "msgid";
+            current_msgid = extract_quoted(line);
+        } else if line.starts_with("msgid_plural ") {
+            has_plural = true;
+            state = "msgid_plural";
+        } else if line.starts_with("msgstr[") {
+            let idx = line
+                .chars()
+                .skip(7)
+                .take_while(|c| c.is_ascii_digit())
+                .collect::<String>()
+                .parse::<usize>()
+                .unwrap_or(0);
+            current_plural_idx = Some(idx);
+            state = "msgstr_plural";
+            let val = extract_quoted(line);
+            current_plural_msgstrs.insert(idx, val);
+        } else if line.starts_with("msgstr ") {
+            state = "msgstr";
+            current_msgstr = extract_quoted(line);
+        } else if line.starts_with('"') {
+            let continuation = extract_quoted_raw(line);
+            match state {
+                "msgid" => current_msgid.push_str(&continuation),
+                "msgstr" => current_msgstr.push_str(&continuation),
+                "msgstr_plural" => {
+                    if let Some(idx) = current_plural_idx {
+                        current_plural_msgstrs
+                            .entry(idx)
+                            .or_default()
+                            .push_str(&continuation);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    if in_entry {
+        entries.push(PoEntry {
+            msgid: current_msgid,
+            msgstr: current_msgstr,
+            has_plural,
+            plural_msgstrs: current_plural_msgstrs,
+        });
+    }
+
+    entries
+}
+
+fn extract_quoted(line: &str) -> String {
+    if let Some(start) = line.find('"') {
+        extract_quoted_raw(&line[start..])
+    } else {
+        String::new()
+    }
+}
+
+fn extract_quoted_raw(line: &str) -> String {
+    let trimmed = line.trim();
+    if trimmed.len() < 2 || !trimmed.starts_with('"') || !trimmed.ends_with('"') {
+        return String::new();
+    }
+    let inner = &trimmed[1..trimmed.len() - 1];
+    inner
+        .replace("\\n", "\n")
+        .replace("\\t", "\t")
+        .replace("\\\"", "\"")
+        .replace("\\\\", "\\")
+}
+
+fn extract_plural_forms_count(header: &str) -> Option<usize> {
+    for line in header.split("\\n").chain(header.split('\n')) {
+        let trimmed = line.trim().to_lowercase();
+        if trimmed.starts_with("plural-forms:")
+            && let Some(nplurals_pos) = trimmed.find("nplurals=")
+        {
+            let after = &trimmed[nplurals_pos + 9..];
+            let num_str: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
+            return num_str.parse().ok();
+        }
+    }
+    None
+}
+
+fn truncate_str(s: &str, max: usize) -> String {
+    if s.len() <= max {
+        s.to_string()
+    } else {
+        format!("{}...", &s[..max])
     }
 }
 

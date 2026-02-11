@@ -48,7 +48,7 @@ pub fn detect_format(path: &str) -> Format {
         "md" | "markdown" => Format::Markdown,
         "json" => Format::Json,
         "yaml" | "yml" => Format::Yaml,
-        "po" => Format::Po,
+        "po" | "pot" => Format::Po,
         _ => Format::Text,
     }
 }
@@ -77,6 +77,7 @@ mod tests {
     #[test]
     fn detects_po() {
         assert_eq!(detect_format("messages.po"), Format::Po);
+        assert_eq!(detect_format("messages.pot"), Format::Po);
     }
 
     #[test]

@@ -4,9 +4,12 @@ use std::collections::HashMap;
 use crate::checks::{CheckOptions, validate};
 use crate::config::{AgentConfig, FRONTMATTER_PRESERVE};
 use crate::format::Format;
-use crate::llm::{ChatMessage, chat};
+use crate::llm::{
+    ChatMessage, ChatResponse, ChatResult, ContentBlock, ToolMessage, ToolMessageContent, chat,
+    chat_with_tools,
+};
 use crate::reporter::Reporter;
-use crate::tools::tools_summary;
+use crate::tools::{self, ToolContext, tools_summary};
 
 pub struct TranslationRequest<'a> {
     pub source: String,
@@ -28,6 +31,15 @@ pub struct TranslationRequest<'a> {
 }
 
 pub async fn translate(req: &TranslationRequest<'_>) -> Result<String> {
+    let coordinator_model = req.coordinator.model.trim();
+    if coordinator_model.is_empty() {
+        return translate_non_agentic(req).await;
+    }
+    translate_agentic(req).await
+}
+
+/// The original non-agentic path: single-shot brief, translate, validate, retry loop.
+async fn translate_non_agentic(req: &TranslationRequest<'_>) -> Result<String> {
     let mut content = req.source.clone();
     let mut frontmatter = String::new();
 
@@ -99,6 +111,251 @@ pub async fn translate(req: &TranslationRequest<'_>) -> Result<String> {
         Some(e) => Err(e),
         None => bail!("translation failed"),
     }
+}
+
+/// Agentic path: the coordinator uses tools to translate, validate, and retry.
+async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
+    let mut content = req.source.clone();
+    let mut frontmatter = String::new();
+
+    if req.format == Format::Markdown && req.frontmatter == FRONTMATTER_PRESERVE {
+        let split = split_markdown_frontmatter(&req.source);
+        if split.ok {
+            frontmatter = split.frontmatter;
+            content = split.body;
+        }
+    }
+
+    let has_check_cmd = !req.check_cmd.is_empty() || !req.check_cmds.is_empty();
+    let tool_defs = tools::coordinator_tools(req.format, has_check_cmd);
+
+    let tool_ctx = ToolContext {
+        translator: req.translator.clone(),
+        format: req.format,
+        root: req.root.clone(),
+        preserve: req.preserve.clone(),
+        frontmatter: req.frontmatter.clone(),
+        context: req.context.clone(),
+        reporter: req.tool_reporter,
+        check_cmd: req.check_cmd.clone(),
+        check_cmds: req.check_cmds.clone(),
+    };
+
+    let available_tools: Vec<String> = tool_defs.iter().map(|t| t.name.clone()).collect();
+
+    let mut validation_steps = vec![
+        format!("2. Call `validate_syntax` with format=\"{}\"", req.format),
+        "3. Call `validate_preserve` with the source and translated content".to_string(),
+    ];
+    let mut step_num = 4;
+    if req.format == Format::Po {
+        validation_steps.push(format!(
+            "{}. Call `validate_po` to check PO structure, headers, plural forms, and format strings",
+            step_num
+        ));
+        step_num += 1;
+    }
+    if has_check_cmd {
+        validation_steps.push(format!(
+            "{}. Call `run_check_command` with the configured command",
+            step_num
+        ));
+        step_num += 1;
+    }
+    validation_steps.push(format!(
+        "{}. If any validation fails, analyze the error, call `translate` again with a corrective brief, and re-validate",
+        step_num
+    ));
+    let _ = step_num;
+
+    let system_prompt = format!(
+        "You are a localization coordinator agent. Your job is to produce a high-quality translation.\n\n\
+         You have these tools: {}\n\n\
+         Follow this process:\n\
+         1. Call `translate` with the source content and target language\n\
+         {}\n\n\
+         When all validations pass, respond with ONLY the final translated text and nothing else.\n\
+         Do not wrap the output in markdown fences or add any commentary.\n\
+         Do not include any explanation, just the raw translated content.",
+        available_tools.join(", "),
+        validation_steps.join("\n"),
+    );
+
+    let mut user_prompt = format!(
+        "Translate the following content to {}.\n\nFormat: {}\nPreserve: {}\nFrontmatter: {}\n",
+        req.target_lang,
+        req.format,
+        if req.preserve.is_empty() {
+            "code_blocks, inline_code, urls, placeholders".to_string()
+        } else {
+            req.preserve.join(", ")
+        },
+        req.frontmatter,
+    );
+    if !req.context.is_empty() {
+        user_prompt.push_str(&format!("\nContext from L10N.md:\n{}\n", req.context));
+    }
+    user_prompt.push_str(&format!("\nSource content:\n{}", content));
+
+    let mut messages: Vec<ToolMessage> = vec![
+        ToolMessage {
+            role: "system".to_string(),
+            content: ToolMessageContent::Text(system_prompt),
+        },
+        ToolMessage {
+            role: "user".to_string(),
+            content: ToolMessageContent::Text(user_prompt),
+        },
+    ];
+
+    let coordinator_model = req.coordinator.model.trim().to_string();
+    let mut last_translation: Option<String> = None;
+
+    const MAX_ITERATIONS: usize = 20;
+
+    for _iteration in 0..MAX_ITERATIONS {
+        let result: ChatResult =
+            chat_with_tools(&req.coordinator, &coordinator_model, &messages, &tool_defs).await?;
+
+        match result.response {
+            ChatResponse::Text(text) => {
+                let final_text = if text.trim().is_empty() {
+                    last_translation.unwrap_or(text)
+                } else {
+                    text
+                };
+
+                let mut output = final_text;
+                if is_structured_format(req.format) {
+                    output = strip_code_fence(&output);
+                }
+                if !frontmatter.is_empty() {
+                    if output.trim().is_empty() {
+                        output = format!("{}\n", frontmatter);
+                    } else {
+                        output = format!("{}\n{}", frontmatter, output);
+                    }
+                }
+                return Ok(output);
+            }
+            ChatResponse::ToolCalls(tool_calls) => {
+                // Build assistant message with the tool calls
+                let assistant_blocks: Vec<ContentBlock> = tool_calls
+                    .iter()
+                    .map(|tc| ContentBlock::ToolUse {
+                        id: tc.id.clone(),
+                        name: tc.name.clone(),
+                        input: tc.input.clone(),
+                    })
+                    .collect();
+
+                messages.push(ToolMessage {
+                    role: "assistant".to_string(),
+                    content: ToolMessageContent::Blocks(assistant_blocks),
+                });
+
+                // Execute each tool and collect results
+                let mut result_blocks = Vec::new();
+                let is_anthropic = req.coordinator.provider.to_lowercase().trim() == "anthropic";
+
+                for tc in &tool_calls {
+                    if let Some(reporter) = req.tool_reporter {
+                        reporter.log(
+                            crate::reporter::Verb::Checking,
+                            &format!("coordinator: calling tool {}", tc.name),
+                        );
+                    }
+
+                    let tool_result = tools::execute_tool(&tc.name, &tc.input, &tool_ctx).await?;
+
+                    // Track last successful translation
+                    if tc.name == "translate" && !tool_result.starts_with("translation error:") {
+                        last_translation = Some(tool_result.clone());
+                    }
+
+                    result_blocks.push(ContentBlock::ToolResult {
+                        tool_use_id: tc.id.clone(),
+                        content: tool_result,
+                        is_error: None,
+                    });
+                }
+
+                // For Anthropic: all tool results in one user message
+                // For OpenAI: tool results as separate tool messages
+                if is_anthropic {
+                    messages.push(ToolMessage {
+                        role: "user".to_string(),
+                        content: ToolMessageContent::Blocks(result_blocks),
+                    });
+                } else {
+                    for block in result_blocks {
+                        messages.push(ToolMessage {
+                            role: "tool".to_string(),
+                            content: ToolMessageContent::Blocks(vec![block]),
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    // Exhausted iterations, return last translation if we have one
+    match last_translation {
+        Some(t) => {
+            let mut output = t;
+            if is_structured_format(req.format) {
+                output = strip_code_fence(&output);
+            }
+            if !frontmatter.is_empty() {
+                if output.trim().is_empty() {
+                    output = format!("{}\n", frontmatter);
+                } else {
+                    output = format!("{}\n{}", frontmatter, output);
+                }
+            }
+            Ok(output)
+        }
+        None => bail!("coordinator exhausted iterations without producing a translation"),
+    }
+}
+
+/// Called by the translate tool executor and also usable directly.
+pub async fn call_translator(
+    cfg: &AgentConfig,
+    target_lang: &str,
+    brief: &str,
+    context: &str,
+    content: &str,
+) -> Result<String> {
+    let model = cfg.model.trim();
+    if model.is_empty() {
+        bail!("translator model is required");
+    }
+
+    let system = if brief.is_empty() {
+        "You are a translation engine. Translate faithfully and naturally. Return only the translated content.".to_string()
+    } else {
+        format!("You are a translation engine. Follow this brief:\n{}", brief)
+    };
+
+    let user = format!(
+        "Translate to {}.\n\nContext:\n{}\n\nSource:\n{}",
+        target_lang, context, content
+    );
+
+    let messages = vec![
+        ChatMessage {
+            role: "system".to_string(),
+            content: system,
+        },
+        ChatMessage {
+            role: "user".to_string(),
+            content: user,
+        },
+    ];
+
+    let resp = chat(cfg, model, &messages).await?;
+    Ok(resp.trim_end_matches('\n').to_string())
 }
 
 async fn build_brief(req: &TranslationRequest<'_>) -> Result<String> {
