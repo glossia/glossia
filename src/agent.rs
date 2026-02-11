@@ -271,7 +271,13 @@ async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
                     if let Some(reporter) = req.tool_reporter {
                         let flat = tool_result.replace('\n', " ");
                         let display = if flat.len() > 120 {
-                            format!("{}... ({} chars)", &flat[..120], flat.len())
+                            let truncate_at = flat
+                                .char_indices()
+                                .map(|(i, _)| i)
+                                .take_while(|&i| i <= 120)
+                                .last()
+                                .unwrap_or(0);
+                            format!("{}... ({} chars)", &flat[..truncate_at], flat.len())
                         } else {
                             flat
                         };
