@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [v0.14.1] - 2026-02-11
+
+### Bug Fixes
+- fix: update translate workflow from Bun to Rust
+
 ## [v0.14.0] - 2026-02-11
 
 ### Features
