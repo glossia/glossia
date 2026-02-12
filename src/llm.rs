@@ -73,10 +73,18 @@ pub enum ChatResponse {
     ToolCalls(Vec<ToolCall>),
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct TokenUsage {
+    pub prompt_tokens: u64,
+    pub completion_tokens: u64,
+    pub total_tokens: u64,
+}
+
 #[derive(Debug, Clone)]
 pub struct ChatResult {
     pub response: ChatResponse,
     pub stop_reason: StopReason,
+    pub usage: TokenUsage,
 }
 
 #[derive(Debug, Serialize)]
@@ -93,6 +101,27 @@ struct OpenAIChatRequest {
 struct OpenAIChatResponse {
     choices: Option<Vec<OpenAIChoice>>,
     error: Option<APIError>,
+    usage: Option<UsageWire>,
+}
+
+#[derive(Debug, Deserialize)]
+struct UsageWire {
+    #[serde(default)]
+    prompt_tokens: u64,
+    #[serde(default)]
+    completion_tokens: u64,
+    #[serde(default)]
+    total_tokens: u64,
+}
+
+impl UsageWire {
+    fn into_usage(self) -> TokenUsage {
+        TokenUsage {
+            prompt_tokens: self.prompt_tokens,
+            completion_tokens: self.completion_tokens,
+            total_tokens: self.total_tokens,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -126,6 +155,15 @@ struct AnthropicRequest {
 struct AnthropicResponse {
     content: Option<Vec<AnthropicContent>>,
     error: Option<APIError>,
+    usage: Option<AnthropicUsageWire>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AnthropicUsageWire {
+    #[serde(default)]
+    input_tokens: u64,
+    #[serde(default)]
+    output_tokens: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -135,9 +173,55 @@ struct AnthropicContent {
     text: Option<String>,
 }
 
+/// Find the largest byte index <= `i` that is a valid char boundary.
+fn char_boundary(s: &str, i: usize) -> usize {
+    if i >= s.len() {
+        return s.len();
+    }
+    let mut b = i;
+    while b > 0 && !s.is_char_boundary(b) {
+        b -= 1;
+    }
+    b
+}
+
+/// Normalize response body: some providers (e.g. Gemini) wrap error responses
+/// in a JSON array like `[{"error": {...}}]`. Unwrap the first element if so.
+fn normalize_response_body(body: &str) -> Result<String> {
+    let trimmed = body.trim();
+    if trimmed.starts_with('[') {
+        let arr: Vec<serde_json::Value> = serde_json::from_str(trimmed).map_err(|e| {
+            let preview = if trimmed.len() > 500 {
+                format!("{}...", &trimmed[..char_boundary(trimmed, 500)])
+            } else {
+                trimmed.to_string()
+            };
+            anyhow::anyhow!("llm response parse error: {e}\nBody: {preview}")
+        })?;
+        if arr.len() == 1 {
+            // Check for error in the unwrapped object
+            if let Some(err) = arr[0].get("error") {
+                let msg = err
+                    .get("message")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown error");
+                bail!("llm error: {}", msg);
+            }
+            return Ok(serde_json::to_string(&arr[0]).unwrap());
+        }
+        let preview = if trimmed.len() > 500 {
+            format!("{}...", &trimmed[..char_boundary(trimmed, 500)])
+        } else {
+            trimmed.to_string()
+        };
+        bail!("llm response: unexpected array with {} elements\nBody: {preview}", arr.len());
+    }
+    Ok(trimmed.to_string())
+}
+
 const DEFAULT_ANTHROPIC_VERSION: &str = "2023-06-01";
 const DEFAULT_ANTHROPIC_MAX_TOKENS: u32 = 1024;
-const DEFAULT_TIMEOUT_SECS: u64 = 60;
+const DEFAULT_TIMEOUT_SECS: u64 = 300;
 
 fn expand_env_templates(value: &str) -> String {
     let re = Regex::new(r"\{\{\s*env\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}").unwrap();
@@ -226,7 +310,7 @@ fn resolve_headers(cfg: &AgentConfig) -> HashMap<String, String> {
     headers
 }
 
-pub async fn chat(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -> Result<String> {
+pub async fn chat(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -> Result<(String, TokenUsage)> {
     let provider = cfg.provider.to_lowercase();
     let provider = provider.trim();
     if provider == "anthropic" {
@@ -235,7 +319,7 @@ pub async fn chat(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -> R
     chat_openai(cfg, model, messages).await
 }
 
-async fn chat_openai(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -> Result<String> {
+async fn chat_openai(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -> Result<(String, TokenUsage)> {
     if cfg.base_url.trim().is_empty() {
         bail!("llm base_url is required");
     }
@@ -279,7 +363,16 @@ async fn chat_openai(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -
 
     let resp = req.json(&body).send().await?;
     let status = resp.status();
-    let parsed: OpenAIChatResponse = resp.json().await?;
+    let raw_body = resp.text().await?;
+    let body_text = normalize_response_body(&raw_body)?;
+    let parsed: OpenAIChatResponse = serde_json::from_str(&body_text).map_err(|e| {
+        let preview = if body_text.len() > 500 {
+            format!("{}...", &body_text[..char_boundary(&body_text, 500)])
+        } else {
+            body_text.clone()
+        };
+        anyhow::anyhow!("llm response parse error: {e}\nBody: {preview}")
+    })?;
 
     if status.as_u16() >= 400 {
         if let Some(err) = parsed.error {
@@ -292,14 +385,15 @@ async fn chat_openai(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -
     if choices.is_empty() {
         bail!("llm response missing choices");
     }
-    Ok(choices[0].message.content.clone())
+    let usage = parsed.usage.map(|u| u.into_usage()).unwrap_or_default();
+    Ok((choices[0].message.content.clone(), usage))
 }
 
 async fn chat_anthropic(
     cfg: &AgentConfig,
     model: &str,
     messages: &[ChatMessage],
-) -> Result<String> {
+) -> Result<(String, TokenUsage)> {
     if cfg.base_url.trim().is_empty() {
         bail!("llm base_url is required");
     }
@@ -406,12 +500,20 @@ async fn chat_anthropic(
     if text.is_empty() {
         bail!("llm response missing text");
     }
-    Ok(text)
+    let usage = parsed
+        .usage
+        .map(|u| TokenUsage {
+            prompt_tokens: u.input_tokens,
+            completion_tokens: u.output_tokens,
+            total_tokens: u.input_tokens + u.output_tokens,
+        })
+        .unwrap_or_default();
+    Ok((text, usage))
 }
 
 // --- Tool-use API ---
 
-const DEFAULT_TOOL_TIMEOUT_SECS: u64 = 120;
+const DEFAULT_TOOL_TIMEOUT_SECS: u64 = 300;
 
 pub async fn chat_with_tools(
     cfg: &AgentConfig,
@@ -454,6 +556,7 @@ struct AnthropicToolResponse {
     content: Option<Vec<serde_json::Value>>,
     stop_reason: Option<String>,
     error: Option<APIError>,
+    usage: Option<AnthropicUsageWire>,
 }
 
 async fn chat_with_tools_anthropic(
@@ -634,6 +737,14 @@ async fn chat_with_tools_anthropic(
 
     let content = parsed.content.unwrap_or_default();
     let stop = parsed.stop_reason.as_deref().unwrap_or("end_turn");
+    let usage = parsed
+        .usage
+        .map(|u| TokenUsage {
+            prompt_tokens: u.input_tokens,
+            completion_tokens: u.output_tokens,
+            total_tokens: u.input_tokens + u.output_tokens,
+        })
+        .unwrap_or_default();
 
     let stop_reason = match stop {
         "tool_use" => StopReason::ToolUse,
@@ -674,6 +785,7 @@ async fn chat_with_tools_anthropic(
         return Ok(ChatResult {
             response: ChatResponse::ToolCalls(tool_calls),
             stop_reason,
+            usage,
         });
     }
 
@@ -685,6 +797,7 @@ async fn chat_with_tools_anthropic(
     Ok(ChatResult {
         response: ChatResponse::Text(text),
         stop_reason,
+        usage,
     })
 }
 
@@ -720,6 +833,7 @@ struct OpenAIToolRequest {
 struct OpenAIToolResponse {
     choices: Option<Vec<OpenAIToolChoice>>,
     error: Option<APIError>,
+    usage: Option<UsageWire>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -879,7 +993,16 @@ async fn chat_with_tools_openai(
 
     let resp = req.json(&req_body).send().await?;
     let status = resp.status();
-    let parsed: OpenAIToolResponse = resp.json().await?;
+    let raw_body = resp.text().await?;
+    let body = normalize_response_body(&raw_body)?;
+    let parsed: OpenAIToolResponse = serde_json::from_str(&body).map_err(|e| {
+        let preview = if body.len() > 500 {
+            format!("{}...", &body[..char_boundary(&body, 500)])
+        } else {
+            body.clone()
+        };
+        anyhow::anyhow!("llm response parse error: {e}\nBody: {preview}")
+    })?;
 
     if status.as_u16() >= 400 {
         if let Some(err) = parsed.error {
@@ -889,6 +1012,7 @@ async fn chat_with_tools_openai(
     }
 
     let choices = parsed.choices.unwrap_or_default();
+    let usage = parsed.usage.map(|u| u.into_usage()).unwrap_or_default();
     if choices.is_empty() {
         bail!("llm response missing choices");
     }
@@ -920,6 +1044,7 @@ async fn chat_with_tools_openai(
         return Ok(ChatResult {
             response: ChatResponse::ToolCalls(tool_calls),
             stop_reason,
+            usage,
         });
     }
 
@@ -927,5 +1052,6 @@ async fn chat_with_tools_openai(
     Ok(ChatResult {
         response: ChatResponse::Text(text),
         stop_reason,
+        usage,
     })
 }

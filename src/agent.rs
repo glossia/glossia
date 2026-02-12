@@ -5,8 +5,8 @@ use crate::checks::{CheckOptions, validate};
 use crate::config::{AgentConfig, FRONTMATTER_PRESERVE};
 use crate::format::Format;
 use crate::llm::{
-    ChatMessage, ChatResponse, ChatResult, ContentBlock, ToolMessage, ToolMessageContent, chat,
-    chat_with_tools,
+    ChatMessage, ChatResponse, ChatResult, ContentBlock, TokenUsage, ToolMessage,
+    ToolMessageContent, chat, chat_with_tools,
 };
 use crate::reporter::Reporter;
 use crate::tools::{self, ToolContext, tools_summary};
@@ -30,7 +30,12 @@ pub struct TranslationRequest<'a> {
     pub root: String,
 }
 
-pub async fn translate(req: &TranslationRequest<'_>) -> Result<String> {
+pub struct TranslationResult {
+    pub text: String,
+    pub usage: TokenUsage,
+}
+
+pub async fn translate(req: &TranslationRequest<'_>) -> Result<TranslationResult> {
     let coordinator_model = req.coordinator.model.trim();
     if coordinator_model.is_empty() {
         return translate_non_agentic(req).await;
@@ -39,7 +44,7 @@ pub async fn translate(req: &TranslationRequest<'_>) -> Result<String> {
 }
 
 /// The original non-agentic path: single-shot brief, translate, validate, retry loop.
-async fn translate_non_agentic(req: &TranslationRequest<'_>) -> Result<String> {
+async fn translate_non_agentic(req: &TranslationRequest<'_>) -> Result<TranslationResult> {
     let mut content = req.source.clone();
     let mut frontmatter = String::new();
 
@@ -100,7 +105,12 @@ async fn translate_non_agentic(req: &TranslationRequest<'_>) -> Result<String> {
         };
 
         match validate(&req.root, req.format, &final_text, &req.source, &check_opts).await {
-            Ok(()) => return Ok(final_text),
+            Ok(()) => {
+                return Ok(TranslationResult {
+                    text: final_text,
+                    usage: TokenUsage::default(),
+                })
+            }
             Err(e) => {
                 last_err = Some(e);
             }
@@ -114,7 +124,7 @@ async fn translate_non_agentic(req: &TranslationRequest<'_>) -> Result<String> {
 }
 
 /// Agentic path: the coordinator uses tools to translate, validate, and retry.
-async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
+async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<TranslationResult> {
     let mut content = req.source.clone();
     let mut frontmatter = String::new();
 
@@ -143,42 +153,44 @@ async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
 
     let available_tools: Vec<String> = tool_defs.iter().map(|t| t.name.clone()).collect();
 
-    let mut validation_steps = vec![
-        format!("2. Call `validate_syntax` with format=\"{}\"", req.format),
-        "3. Call `validate_preserve` with the source and translated content".to_string(),
-    ];
-    let mut step_num = 4;
+    let mut extra_steps = Vec::new();
+    let mut step_num = 2;
     if req.format == Format::Po {
-        validation_steps.push(format!(
+        extra_steps.push(format!(
             "{}. Call `validate_po` to check PO structure, headers, plural forms, and format strings",
             step_num
         ));
         step_num += 1;
     }
     if has_check_cmd {
-        validation_steps.push(format!(
+        extra_steps.push(format!(
             "{}. Call `run_check_command` with the configured command",
             step_num
         ));
         step_num += 1;
     }
-    validation_steps.push(format!(
-        "{}. If any validation fails, analyze the error, call `translate` again with a corrective brief, and re-validate",
-        step_num
-    ));
     let _ = step_num;
+
+    let extra_instructions = if extra_steps.is_empty() {
+        String::new()
+    } else {
+        format!("\n{}", extra_steps.join("\n"))
+    };
 
     let system_prompt = format!(
         "You are a localization coordinator agent. Your job is to produce a high-quality translation.\n\n\
          You have these tools: {}\n\n\
          Follow this process:\n\
-         1. Call `translate` with the source content and target language\n\
-         {}\n\n\
-         When all validations pass, respond with ONLY the final translated text and nothing else.\n\
+         1. Call `translate` with the source content and target language. \
+         The translate tool automatically validates syntax and preserved tokens. \
+         If validation fails, it returns VALIDATION FAILED with details. \
+         In that case, call `translate` again with a corrective brief.{}\n\n\
+         When the translate tool returns clean content (no VALIDATION FAILED), \
+         respond with ONLY the final translated text and nothing else.\n\
          Do not wrap the output in markdown fences or add any commentary.\n\
          Do not include any explanation, just the raw translated content.",
         available_tools.join(", "),
-        validation_steps.join("\n"),
+        extra_instructions,
     );
 
     let mut user_prompt = format!(
@@ -210,17 +222,51 @@ async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
 
     let coordinator_model = req.coordinator.model.trim().to_string();
     let mut last_translation: Option<String> = None;
+    let mut total_usage = TokenUsage::default();
 
     const MAX_ITERATIONS: usize = 20;
 
-    for _iteration in 0..MAX_ITERATIONS {
+    for iteration in 0..MAX_ITERATIONS {
+        if let Some(reporter) = req.tool_reporter
+            && iteration > 0
+        {
+            reporter.log(
+                crate::reporter::Verb::Checking,
+                &format!("coordinator: thinking (round {})", iteration + 1),
+            );
+        }
         let result: ChatResult =
             chat_with_tools(&req.coordinator, &coordinator_model, &messages, &tool_defs).await?;
+        total_usage.prompt_tokens += result.usage.prompt_tokens;
+        total_usage.completion_tokens += result.usage.completion_tokens;
+        total_usage.total_tokens += result.usage.total_tokens;
 
         match result.response {
             ChatResponse::Text(text) => {
                 let final_text = if text.trim().is_empty() {
-                    last_translation.unwrap_or(text)
+                    match last_translation {
+                        Some(ref t) => t.clone(),
+                        None => {
+                            // Gemini sometimes returns empty text instead of calling tools.
+                            // Retry by continuing the loop.
+                            if let Some(reporter) = req.tool_reporter {
+                                reporter.log(
+                                    crate::reporter::Verb::Info,
+                                    "  coordinator returned empty response, retrying",
+                                );
+                            }
+                            continue;
+                        }
+                    }
+                } else if text.starts_with("VALIDATION FAILED") {
+                    // Coordinator echoed back a validation failure instead of retrying
+                    if let Some(reporter) = req.tool_reporter {
+                        reporter.log(
+                            crate::reporter::Verb::Info,
+                            "  coordinator echoed validation failure, retrying",
+                        );
+                    }
+                    continue;
                 } else {
                     text
                 };
@@ -229,14 +275,16 @@ async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
                 if is_structured_format(req.format) {
                     output = strip_code_fence(&output);
                 }
-                if !frontmatter.is_empty() {
-                    if output.trim().is_empty() {
-                        output = format!("{}\n", frontmatter);
-                    } else {
-                        output = format!("{}\n{}", frontmatter, output);
-                    }
+                if output.trim().is_empty() {
+                    bail!("translation produced empty output");
                 }
-                return Ok(output);
+                if !frontmatter.is_empty() {
+                    output = format!("{}\n{}", frontmatter, output);
+                }
+                return Ok(TranslationResult {
+                    text: output,
+                    usage: total_usage,
+                });
             }
             ChatResponse::ToolCalls(tool_calls) => {
                 // Build assistant message with the tool calls
@@ -332,7 +380,10 @@ async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<String> {
                     output = format!("{}\n{}", frontmatter, output);
                 }
             }
-            Ok(output)
+            Ok(TranslationResult {
+                text: output,
+                usage: total_usage,
+            })
         }
         None => bail!("coordinator exhausted iterations without producing a translation"),
     }
@@ -376,7 +427,7 @@ pub async fn call_translator(
         },
     ];
 
-    let resp = chat(cfg, model, &messages).await?;
+    let (resp, _usage) = chat(cfg, model, &messages).await?;
     Ok(resp.trim_end_matches('\n').to_string())
 }
 
@@ -415,7 +466,7 @@ async fn build_brief(req: &TranslationRequest<'_>) -> Result<String> {
         },
     ];
 
-    let resp = chat(&req.coordinator, model, &messages).await?;
+    let (resp, _usage) = chat(&req.coordinator, model, &messages).await?;
     Ok(resp.trim().to_string())
 }
 
@@ -475,7 +526,7 @@ async fn translate_once(
         },
     ];
 
-    let resp = chat(&req.translator, model, &messages).await?;
+    let (resp, _usage) = chat(&req.translator, model, &messages).await?;
     Ok(resp.trim_end_matches('\n').to_string())
 }
 

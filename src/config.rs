@@ -419,9 +419,24 @@ fn merge_agent_config(base: &AgentConfig, over: &PartialAgentConfig) -> AgentCon
     out
 }
 
+fn infer_provider_from_model(model: &str) -> Option<&'static str> {
+    let m = model.trim().to_lowercase();
+    if m.starts_with("gemini") {
+        Some("gemini")
+    } else if m.starts_with("claude") {
+        Some("anthropic")
+    } else if m.starts_with("gpt") || m.starts_with("o1") || m.starts_with("o3") || m.starts_with("o4") {
+        Some("openai")
+    } else {
+        None
+    }
+}
+
 pub fn apply_agent_defaults(cfg: &mut AgentConfig) {
     let provider = if cfg.provider.trim().is_empty() {
-        "openai".to_string()
+        infer_provider_from_model(&cfg.model)
+            .unwrap_or("openai")
+            .to_string()
     } else {
         cfg.provider.trim().to_string()
     };
@@ -438,6 +453,19 @@ pub fn apply_agent_defaults(cfg: &mut AgentConfig) {
             if cfg.api_key_env.trim().is_empty() {
                 cfg.api_key_env = "OPENAI_API_KEY".to_string();
             }
+        }
+        "gemini" => {
+            if cfg.chat_completions_path.trim().is_empty() {
+                cfg.chat_completions_path = "/chat/completions".to_string();
+            }
+            if cfg.base_url.trim().is_empty() {
+                cfg.base_url = "https://generativelanguage.googleapis.com/v1beta/openai".to_string();
+            }
+            if cfg.api_key_env.trim().is_empty() {
+                cfg.api_key_env = "GEMINI_API_KEY".to_string();
+            }
+            // Gemini uses the OpenAI-compatible protocol
+            cfg.provider = "openai".to_string();
         }
         "vertex" => {
             if cfg.chat_completions_path.trim().is_empty() {
