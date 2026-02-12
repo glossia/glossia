@@ -8,7 +8,7 @@
     "blog": "博客"
   },
   "footer": {
-    "blurb_prefix": "MIT 协议。由 ",
+    "blurb_prefix": "MIT 许可。由 ",
     "blurb_link_label": "Tuist",
     "blurb_suffix": " 为快速交付的团队打造。",
     "cta_title": "开始使用"
