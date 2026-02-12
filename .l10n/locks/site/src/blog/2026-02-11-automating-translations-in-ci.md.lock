@@ -1,0 +1,43 @@
+{
+  "source_path": "site/src/blog/2026-02-11-automating-translations-in-ci.md",
+  "source_hash": "c430d8405f56afa887f7e8cb9b658f113f3d1b62921815e6c238289302e15ccd",
+  "outputs": {
+    "es": {
+      "path": "site/src/i18n/es/blog/2026-02-11-automating-translations-in-ci.md",
+      "hash": "72adfaaea53723b1d9614cf4cad9cb96b47df10ffe5db1950d6f24391bc02f9f",
+      "context_hash": "b415e6b1ae10c7baeaa156b2ac1e921ff2c8d3ea05d0b69828bf4d8df4925577",
+      "checked_at": "2026-02-11T19:49:41.764Z"
+    },
+    "ja": {
+      "path": "site/src/i18n/ja/blog/2026-02-11-automating-translations-in-ci.md",
+      "hash": "ac2028b53839d63e7b4dfb7efa23898cd3f5abcf615fcdcc1206ebcc43b09f5f",
+      "context_hash": "b415e6b1ae10c7baeaa156b2ac1e921ff2c8d3ea05d0b69828bf4d8df4925577",
+      "checked_at": "2026-02-11T19:52:13.662Z"
+    },
+    "zh-Hans": {
+      "path": "site/src/i18n/zh-Hans/blog/2026-02-11-automating-translations-in-ci.md",
+      "hash": "0400a6fb7f1651c47929eaf3ee173e808f282cb527c2baca86196bda10ece218",
+      "context_hash": "b415e6b1ae10c7baeaa156b2ac1e921ff2c8d3ea05d0b69828bf4d8df4925577",
+      "checked_at": "2026-02-11T19:52:59.656Z"
+    },
+    "ko": {
+      "path": "site/src/i18n/ko/blog/2026-02-11-automating-translations-in-ci.md",
+      "hash": "dca5c737ce1da3f4eb3805bc5e4c8f7b189100d9f4c1c5840fec8e43ddf8cae1",
+      "context_hash": "b415e6b1ae10c7baeaa156b2ac1e921ff2c8d3ea05d0b69828bf4d8df4925577",
+      "checked_at": "2026-02-11T19:51:34.712Z"
+    },
+    "zh-Hant": {
+      "path": "site/src/i18n/zh-Hant/blog/2026-02-11-automating-translations-in-ci.md",
+      "hash": "6755277a66e3d37900f7fa56f135be0e3e57a120500e6b0cf5cb026ab58ab763",
+      "context_hash": "b415e6b1ae10c7baeaa156b2ac1e921ff2c8d3ea05d0b69828bf4d8df4925577",
+      "checked_at": "2026-02-11T19:53:37.055Z"
+    },
+    "de": {
+      "path": "site/src/i18n/de/blog/2026-02-11-automating-translations-in-ci.md",
+      "hash": "fb224bb9178d1ec6c3ea377b38dc826f85101b143dd11f0ee8885078049ecb88",
+      "context_hash": "b415e6b1ae10c7baeaa156b2ac1e921ff2c8d3ea05d0b69828bf4d8df4925577",
+      "checked_at": "2026-02-11T19:50:23.785Z"
+    }
+  },
+  "updated_at": "2026-02-11T19:53:37.055Z"
+}

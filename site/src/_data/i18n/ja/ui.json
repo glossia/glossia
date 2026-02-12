@@ -8,9 +8,9 @@
     "blog": "ブログ"
   },
   "footer": {
-    "blurb_prefix": "MITライセンス。",
+    "blurb_prefix": "MITライセンス. 提供: ",
     "blurb_link_label": "Tuist",
-    "blurb_suffix": "が開発し、素早くリリースするチームのために提供しています。",
+    "blurb_suffix": " 迅速なリリースを行うチーム向け.",
     "cta_title": "始める"
   }
 }
