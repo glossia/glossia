@@ -181,7 +181,7 @@ async fn execute_translate(input: &serde_json::Value, ctx: &ToolContext<'_>) -> 
         context
     };
 
-    match crate::agent::call_translator(
+    let translated = match crate::agent::call_translator(
         &ctx.translator,
         target_lang,
         brief,
@@ -190,13 +190,50 @@ async fn execute_translate(input: &serde_json::Value, ctx: &ToolContext<'_>) -> 
     )
     .await
     {
-        Ok(translated) => Ok(translated),
-        Err(e) => Ok(format!("translation error: {}", e)),
+        Ok(t) => strip_code_fence(&t),
+        Err(e) => return Ok(format!("translation error: {}", e)),
+    };
+
+    // Auto-validate to reduce coordinator round-trips
+    let mut issues = Vec::new();
+
+    if let Some(err) = crate::checks::validate_syntax(ctx.format, &translated) {
+        issues.push(format!("syntax: {}", err));
+    }
+
+    let kinds = crate::checks::resolve_preserve(&ctx.preserve);
+    if let Some(err) = crate::checks::validate_preserve(&translated, source_content, &kinds) {
+        issues.push(err);
+    }
+
+    if issues.is_empty() {
+        Ok(translated)
+    } else {
+        Ok(format!(
+            "VALIDATION FAILED:\n{}\n\nTranslated content:\n{}",
+            issues.join("\n"),
+            translated
+        ))
     }
 }
 
+/// Strip markdown code fences that LLMs often wrap around structured output.
+fn strip_code_fence(content: &str) -> String {
+    let trimmed = content.trim();
+    if !trimmed.starts_with("```") {
+        return content.to_string();
+    }
+    let lines: Vec<&str> = trimmed.split('\n').collect();
+    if lines.len() < 2 || lines[lines.len() - 1].trim() != "```" {
+        return content.to_string();
+    }
+    lines[1..lines.len() - 1].join("\n")
+}
+
 fn execute_validate_syntax(input: &serde_json::Value) -> Result<String> {
-    let content = input.get("content").and_then(|v| v.as_str()).unwrap_or("");
+    let raw_content = input.get("content").and_then(|v| v.as_str()).unwrap_or("");
+    let content = strip_code_fence(raw_content);
+    let content = content.as_str();
     let format_str = input
         .get("format")
         .and_then(|v| v.as_str())

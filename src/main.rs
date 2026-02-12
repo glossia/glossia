@@ -24,6 +24,7 @@ use std::process;
 
 use cli::{Cli, Commands};
 use renderer::Renderer;
+use reporter::Reporter;
 use root::find_root;
 
 fn resolve_base_dir(cwd: &str, override_path: Option<&str>) -> String {
@@ -126,6 +127,7 @@ async fn main() {
     };
 
     if let Err(e) = result {
+        reporter.blank();
         eprintln!("{}", e);
         process::exit(1);
     }

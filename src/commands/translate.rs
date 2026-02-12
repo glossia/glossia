@@ -5,6 +5,7 @@ use tokio::fs;
 
 use crate::agent::{TranslationRequest, translate};
 use crate::hash::{hash_bytes, hash_string, hash_strings};
+use crate::llm::TokenUsage;
 use crate::locks::{LockFile, read_lock, write_lock};
 use crate::plan::{SourcePlan, build_plan, context_parts_for};
 use crate::reporter::{Reporter, Verb};
@@ -84,9 +85,26 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
         return Ok(());
     }
 
+    // Log model info from the first source
+    if let Some(first) = plans.first() {
+        let coordinator_model = first.source.llm.coordinator.model.trim();
+        let translator_model = first.source.llm.translator.model.trim();
+        if !coordinator_model.is_empty() {
+            opts.reporter.log(
+                Verb::Info,
+                &format!("coordinator: {}, translator: {}", coordinator_model, translator_model),
+            );
+        } else {
+            opts.reporter.log(
+                Verb::Info,
+                &format!("model: {}", translator_model),
+            );
+        }
+    }
+
+    let mut total_usage = TokenUsage::default();
     let mut current = 0usize;
     for plan_item in &mut plans {
-        let mut updated = false;
         for output in &plan_item.source.outputs {
             if !plan_item.translate_map.contains_key(&output.lang) {
                 continue;
@@ -144,20 +162,23 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
                 root: root.to_string(),
             };
 
-            let translation = translate(&req).await?;
+            let result = translate(&req).await?;
+            total_usage.prompt_tokens += result.usage.prompt_tokens;
+            total_usage.completion_tokens += result.usage.completion_tokens;
+            total_usage.total_tokens += result.usage.total_tokens;
 
             let output_abs = Path::new(root).join(&output.output_path);
             if let Some(parent) = output_abs.parent() {
                 fs::create_dir_all(parent).await?;
             }
-            fs::write(&output_abs, &translation).await?;
+            fs::write(&output_abs, &result.text).await?;
 
             plan_item.lock.source_hash = plan_item.source_hash.clone();
             plan_item.lock.outputs.insert(
                 output.lang.clone(),
                 crate::locks::OutputLock {
                     path: output.output_path.clone(),
-                    hash: hash_string(&translation),
+                    hash: hash_string(&result.text),
                     context_hash: Some(
                         plan_item
                             .context_hashes
@@ -168,14 +189,22 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
                     checked_at: chrono_now(),
                 },
             );
-            updated = true;
+            // Write lock after each successful translation so progress is saved
+            write_lock(root, &plan_item.source.source_path, &mut plan_item.lock).await?;
             current = step;
         }
+    }
 
-        if opts.dry_run || !updated {
-            continue;
-        }
-        write_lock(root, &plan_item.source.source_path, &mut plan_item.lock).await?;
+    if total_usage.total_tokens > 0 {
+        opts.reporter.log(
+            Verb::Summary,
+            &format!(
+                "{} prompt + {} completion = {} total tokens",
+                total_usage.prompt_tokens,
+                total_usage.completion_tokens,
+                total_usage.total_tokens
+            ),
+        );
     }
 
     Ok(())
