@@ -28,10 +28,8 @@ pub async fn status_cmd(root: &str, opts: &StatusOptions<'_>) -> Result<()> {
 
         for output in &source.outputs {
             let output_abs = Path::new(root).join(&output.output_path);
-            let label = format!(
-                "{} -> {} ({})",
-                source.source_path, output.output_path, output.lang
-            );
+            let lang_key = output.lang_key().to_string();
+            let label = output.format_label(&source.source_path);
 
             if !output_abs.exists() {
                 missing += 1;
@@ -39,7 +37,7 @@ pub async fn status_cmd(root: &str, opts: &StatusOptions<'_>) -> Result<()> {
                 continue;
             }
 
-            let context_hash = hash_strings(&context_parts_for(source, &output.lang));
+            let context_hash = hash_strings(&context_parts_for(source, &lang_key));
 
             let lock = match &lock {
                 Some(l) => l,
@@ -56,7 +54,7 @@ pub async fn status_cmd(root: &str, opts: &StatusOptions<'_>) -> Result<()> {
                 continue;
             }
 
-            let output_lock = match lock.outputs.get(&output.lang) {
+            let output_lock = match lock.outputs.get(&lang_key) {
                 Some(ol) => ol,
                 None => {
                     stale += 1;
@@ -65,7 +63,7 @@ pub async fn status_cmd(root: &str, opts: &StatusOptions<'_>) -> Result<()> {
                 }
             };
 
-            let locked_ctx_hash = lock_context_hash(lock, &output.lang);
+            let locked_ctx_hash = lock_context_hash(lock, &lang_key);
             if locked_ctx_hash != context_hash {
                 stale += 1;
                 opts.reporter.log(Verb::Stale, &label);
@@ -89,7 +87,7 @@ pub async fn status_cmd(root: &str, opts: &StatusOptions<'_>) -> Result<()> {
     );
 
     if stale > 0 || missing > 0 {
-        bail!("translations out of date");
+        bail!("outputs out of date");
     }
 
     Ok(())

@@ -15,10 +15,10 @@ pub async fn init_cmd(root: &str, opts: &InitOptions<'_>) -> Result<()> {
     }
 
     let root_abs = std::fs::canonicalize(root).unwrap_or_else(|_| Path::new(root).to_path_buf());
-    let l10n_path = root_abs.join("L10N.md");
+    let content_path = root_abs.join("CONTENT.md");
 
-    if l10n_path.exists() {
-        bail!("L10N.md already exists at {}", l10n_path.display());
+    if content_path.exists() {
+        bail!("CONTENT.md already exists at {}", content_path.display());
     }
 
     let agents = detect_agents();
@@ -43,9 +43,9 @@ pub async fn init_cmd(root: &str, opts: &InitOptions<'_>) -> Result<()> {
 
     run_acp_init(root, agent, opts.reporter).await?;
 
-    // Verify L10N.md was created
-    if l10n_path.exists() {
-        opts.reporter.log(Verb::Created, "L10N.md");
+    // Verify CONTENT.md was created
+    if content_path.exists() {
+        opts.reporter.log(Verb::Created, "CONTENT.md");
     }
 
     Ok(())

@@ -67,7 +67,7 @@ pub async fn clean_cmd(root: &str, opts: &CleanOptions<'_>) -> Result<()> {
     }
 
     if opts.orphans {
-        let lock_dir = Path::new(root).join(".l10n").join("locks");
+        let lock_dir = Path::new(root).join(".glossia").join("locks");
         if lock_dir.exists() {
             for entry in WalkDir::new(&lock_dir).into_iter().filter_map(|e| e.ok()) {
                 if !entry.file_type().is_file() {
@@ -185,7 +185,7 @@ async fn remove_path(path: &str, dry_run: bool) -> RemoveResult {
 }
 
 fn source_path_from_lock(root_abs: &str, lock_file_path: &str) -> String {
-    let base = format!("{}/.l10n/locks/", root_abs.trim_end_matches('/'));
+    let base = format!("{}/.glossia/locks/", root_abs.trim_end_matches('/'));
     let base_backslash = base.replace('/', "\\");
 
     let rel = if lock_file_path.starts_with(&base) {

@@ -82,11 +82,11 @@ pub fn install_recommendations() -> String {
 // ACP Client
 // ---------------------------------------------------------------------------
 
-struct L10nInitClient {
+struct GlossiaInitClient {
     root: PathBuf,
 }
 
-impl L10nInitClient {
+impl GlossiaInitClient {
     fn validate_path(&self, raw: &Path) -> Result<PathBuf, acp::Error> {
         let requested = if raw.is_absolute() {
             raw.to_path_buf()
@@ -127,7 +127,7 @@ impl L10nInitClient {
 }
 
 #[async_trait::async_trait(?Send)]
-impl acp::Client for L10nInitClient {
+impl acp::Client for GlossiaInitClient {
     async fn request_permission(
         &self,
         args: acp::RequestPermissionRequest,
@@ -185,21 +185,26 @@ fn build_init_prompt(root: &Path) -> String {
     let root_display = root.display();
 
     format!(
-        r#"You are helping set up l10n, a CLI tool for LLM-powered localization.
+        r#"You are helping set up Glossia, a CLI tool for LLM-powered content processing.
 
 The project root is: {root_display}
 
 Your task:
-1. Scan the project directory to understand its structure and find localizable files (markdown docs, JSON, YAML, PO, text files, etc.)
-2. Ask the user which source language they use and which target languages they want
-3. Ask the user which files/directories they want to localize
-4. Generate a complete, working L10N.md configuration file at the project root
+1. Scan the project directory to understand its structure and find content files (markdown docs, JSON, YAML, PO, text files, etc.)
+2. Ask the user what they want to do: translate content to other languages, revisit/improve existing content, or both
+3. If translating: ask which source language they use and which target languages they want
+4. Ask the user which files/directories they want to process
+5. Generate a complete, working CONTENT.md configuration file at the project root
 
-## L10N.md Format
+## CONTENT.md Format
 
-L10N.md uses TOML frontmatter between +++ markers, followed by free-text context (product description, tone guidelines, etc.).
+CONTENT.md uses TOML frontmatter between +++ markers, followed by free-text context (product description, tone guidelines, etc.).
 
 ### TOML Frontmatter Fields
+
+The `[[content]]` entry type supports two workflows:
+- **Translate**: when `targets` is set, source content is translated to the specified languages
+- **Revisit**: when `targets` is absent, source content is reviewed and improved in place
 
 ```toml
 +++
@@ -209,22 +214,28 @@ api_key = "{{{{env.OPENAI_API_KEY}}}}"  # Use env var template
 # coordinator_model = "gpt-4o-mini"  # Optional: model for coordination
 # translator_model = "gpt-4o"        # Optional: model for translation
 
-[[translate]]
+# Translation: source content to other languages
+[[content]]
 source = "docs/**/*.md"       # Glob pattern for source files
 targets = ["es", "fr", "de"]  # Target language codes
-output = "docs/i18n/{{{{lang}}}}/{{{{relpath}}}}"  # Output path template
+output = "docs/i18n/{{{{lang}}}}/{{{{relpath}}}}"  # Output path template (required when targets is set)
 # exclude = ["docs/internal/**"]     # Optional: exclude patterns
 # preserve = ["code_blocks"]         # Optional: elements to preserve
 # frontmatter = "preserve"           # "preserve" (default) or "translate"
 # check_cmd = "markdownlint {{{{file}}}}"  # Optional: validation command
+
+# Revisit: review and improve content in place
+[[content]]
+source = "blog/posts/*.md"    # Glob pattern for source files
+prompt = "Review for clarity and technical accuracy"  # Instructions for the agent
+# output = "blog/reviewed/{{{{relpath}}}}"  # Optional: defaults to overwriting source
 +++
 
-Describe your product and translation tone here.
+Describe your product and content guidelines here.
 Source language: English.
-Target languages: Spanish, French, German.
 ```
 
-### Output path variables
+### Output path variables (for translation)
 - `{{{{lang}}}}` - target language code
 - `{{{{relpath}}}}` - relative path of the source file
 - `{{{{basename}}}}` - filename without extension
@@ -243,12 +254,12 @@ Target languages: Spanish, French, German.
 ## Instructions
 
 1. Use the file system tools to explore the project structure
-2. Look for existing localizable content (docs, strings files, etc.)
-3. Ask the user about their preferences (source language, targets, which files)
-4. Write the L10N.md file to: {root_display}/L10N.md
-5. Also ensure .gitignore contains /.l10n/tmp and .gitattributes contains ".l10n/locks/** linguist-generated=true"
+2. Look for existing content (docs, strings files, blog posts, etc.)
+3. Ask the user about their preferences (workflow type, languages, which files)
+4. Write the CONTENT.md file to: {root_display}/CONTENT.md
+5. Also ensure .gitignore contains /.glossia/tmp and .gitattributes contains ".glossia/locks/** linguist-generated=true"
 
-Generate a practical, ready-to-use configuration. Do not use commented-out examples. The file should work immediately with `l10n translate`."#
+Generate a practical, ready-to-use configuration. Do not use commented-out examples. Translation entries work with `glossia translate`, revisit entries work with `glossia revisit`."#
     )
 }
 
@@ -265,7 +276,7 @@ pub async fn run_acp_init(
 
     reporter.log(
         crate::reporter::Verb::Info,
-        &format!("Starting {} to configure l10n...", agent.name),
+        &format!("Starting {} to configure Glossia...", agent.name),
     );
 
     let mut cmd = tokio::process::Command::new(&agent.path);
@@ -290,7 +301,7 @@ pub async fn run_acp_init(
     let outgoing = stdin.compat_write();
     let incoming = stdout.compat();
 
-    let client = L10nInitClient {
+    let client = GlossiaInitClient {
         root: root_path.clone(),
     };
 
@@ -318,7 +329,8 @@ pub async fn run_acp_init(
                             .write_text_file(true)),
                     )
                     .client_info(
-                        acp::Implementation::new("l10n", env!("CARGO_PKG_VERSION")).title("l10n"),
+                        acp::Implementation::new("glossia", env!("CARGO_PKG_VERSION"))
+                            .title("Glossia"),
                     ),
             )
             .await

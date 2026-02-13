@@ -613,6 +613,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "glossia"
+version = "0.13.3"
+dependencies = [
+ "agent-client-protocol",
+ "anyhow",
+ "async-trait",
+ "atty",
+ "clap",
+ "dialoguer",
+ "globset",
+ "hex",
+ "pathdiff",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "toml",
+ "walkdir",
+ "which",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -904,33 +931,6 @@ checksum = "8c942ebf8e95485ca0d52d97da7c5a2c387d0e7f0ba4c35e93bfcaee045955b3"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "l10n"
-version = "0.13.3"
-dependencies = [
- "agent-client-protocol",
- "anyhow",
- "async-trait",
- "atty",
- "clap",
- "dialoguer",
- "globset",
- "hex",
- "pathdiff",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "toml",
- "walkdir",
- "which",
 ]
 
 [[package]]

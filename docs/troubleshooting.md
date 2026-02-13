@@ -2,10 +2,10 @@
 
 ## Missing outputs
 
-`l10n check` fails if any expected output file is missing. Run:
+`glossia check` fails if any expected output file is missing. Run:
 
 ```bash
-l10n translate
+glossia translate
 ```
 
 ## Invalid JSON/YAML/PO
@@ -18,8 +18,8 @@ If `check_cmd` or `check_cmds` is configured, the command must exit successfully
 
 ## No sources found
 
-Ensure your root `L10N.md` includes at least one `[[translate]]` entry and that the glob matches existing files.
+Ensure your root `CONTENT.md` includes at least one `[[translate]]` entry and that the glob matches existing files.
 
 ## Missing model configuration
 
-If you see `translator model is required`, add a translator model in `L10N.md` (via `[[llm.agent]]` or `translator_model`).
+If you see `translator model is required`, add a translator model in `CONTENT.md` (via `[[llm.agent]]` or `translator_model`).

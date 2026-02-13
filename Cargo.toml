@@ -1,5 +1,5 @@
 [package]
-name = "l10n"
+name = "glossia"
 version = "0.13.3"
 edition = "2024"
 

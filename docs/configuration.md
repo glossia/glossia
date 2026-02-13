@@ -1,6 +1,6 @@
 # Configuration
 
-`l10n` reads configuration from `L10N.md` files. The root `L10N.md` defines translation entries, and deeper `L10N.md` files add more specific context. Deeper files take precedence when their globs overlap.
+`glossia` reads configuration from `CONTENT.md` files. The root `CONTENT.md` defines translation entries, and deeper `CONTENT.md` files add more specific context. Deeper files take precedence when their globs overlap.
 
 ## Frontmatter
 
@@ -28,7 +28,7 @@ output = "docs/i18n/{lang}/{relpath}"
 
 ## `[[translate]]` fields
 
-- `source` / `path` (required): glob, relative to the `L10N.md` directory
+- `source` / `path` (required): glob, relative to the `CONTENT.md` directory
 - `targets` (required): list of target languages
 - `output` (required): template for output paths
 - `exclude` (optional): globs to skip
@@ -38,7 +38,7 @@ output = "docs/i18n/{lang}/{relpath}"
 - `check_cmds` (optional): map of format → command
 - `retries` (optional): retry count when validation fails
 
-`L10N.md` files are always excluded from translation, even if matched by a glob.
+`CONTENT.md` files are always excluded from translation, even if matched by a glob.
 
 ### Output placeholders
 
@@ -58,18 +58,18 @@ output = "docs/i18n/{lang}/{relpath}"
 
 ## Context inheritance
 
-The translation context is built from the body of all ancestor `L10N.md` files (frontmatter excluded), from root to the nearest file.
+The translation context is built from the body of all ancestor `CONTENT.md` files (frontmatter excluded), from root to the nearest file.
 
-You can add language‑specific context by placing files next to each `L10N.md`:
+You can add language‑specific context by placing files next to each `CONTENT.md`:
 
 ```
-L10N.md
-L10N/
+CONTENT.md
+CONTENT/
   es.md
   ja.md
 ```
 
-Language context is additive: general context + `L10N/<lang>.md` bodies (root → nearest). Context hashes are computed per language, so only affected languages are re‑translated.
+Language context is additive: general context + `CONTENT/<lang>.md` bodies (root → nearest). Context hashes are computed per language, so only affected languages are re‑translated.
 
 ## LLM configuration
 
@@ -112,5 +112,5 @@ Any LLM fields can be overridden per agent (`provider`, `base_url`, `chat_comple
 
 When multiple `[[translate]]` entries match the same source file:
 
-- The deepest `L10N.md` wins.
+- The deepest `CONTENT.md` wins.
 - If two entries at the same depth overlap, the last entry wins.

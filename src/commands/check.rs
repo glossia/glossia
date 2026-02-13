@@ -44,10 +44,7 @@ pub async fn check_cmd(root: &str, opts: &CheckCmdOptions<'_>) -> Result<()> {
                         Some(&source.entry.check_cmds)
                     };
 
-                let label = format!(
-                    "{} -> {} ({})",
-                    source.source_path, output.output_path, output.lang
-                );
+                let label = output.format_label(&source.source_path);
                 progress.increment(&label);
 
                 let check_opts = CheckOptions {

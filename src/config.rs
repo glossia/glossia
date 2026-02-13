@@ -22,7 +22,7 @@ pub struct AgentConfig {
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
-pub struct TranslateEntry {
+pub struct ContentEntry {
     #[serde(default)]
     pub source: String,
     #[serde(default)]
@@ -38,12 +38,16 @@ pub struct TranslateEntry {
     #[serde(default)]
     pub frontmatter: String,
     #[serde(default)]
+    pub prompt: String,
+    #[serde(default)]
     pub check_cmd: String,
     #[serde(default)]
     pub check_cmds: HashMap<String, String>,
     #[serde(default)]
     pub retries: Option<i32>,
 }
+
+pub type TranslateEntry = ContentEntry;
 
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct PartialAgentConfig {
@@ -104,22 +108,24 @@ pub struct RawConfig {
     #[serde(default)]
     pub llm: Option<LLMConfig>,
     #[serde(default)]
-    pub translate: Vec<TranslateEntry>,
+    pub content: Vec<ContentEntry>,
+    #[serde(default)]
+    pub translate: Vec<ContentEntry>,
 }
 
 #[derive(Debug, Clone)]
-pub struct L10NConfig {
+pub struct ContentConfig {
     pub llm: LLMConfig,
-    pub translate: Vec<TranslateEntry>,
+    pub content: Vec<ContentEntry>,
 }
 
 #[derive(Debug, Clone)]
-pub struct L10NFile {
+pub struct ContentFile {
     pub path: String,
     pub dir: String,
     pub depth: usize,
     pub body: String,
-    pub config: L10NConfig,
+    pub config: ContentConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -131,6 +137,7 @@ pub struct Entry {
     pub exclude: Vec<String>,
     pub preserve: Vec<String>,
     pub frontmatter: String,
+    pub prompt: String,
     pub check_cmd: String,
     pub check_cmds: HashMap<String, String>,
     pub retries: Option<i32>,
@@ -182,27 +189,32 @@ pub fn split_toml_frontmatter(contents: &str) -> Result<SplitResult> {
     })
 }
 
-pub async fn parse_file(path: &str) -> Result<L10NFile> {
+pub async fn parse_file(path: &str) -> Result<ContentFile> {
     let contents = fs::read_to_string(path).await?;
     let split = split_toml_frontmatter(&contents)?;
 
-    let mut config = L10NConfig {
+    let mut config = ContentConfig {
         llm: LLMConfig::default(),
-        translate: Vec::new(),
+        content: Vec::new(),
     };
 
     if split.has_frontmatter {
         let raw: RawConfig = toml::from_str(&split.frontmatter)?;
         config.llm = raw.llm.unwrap_or_default();
-        config.translate = raw.translate;
+        // Merge [[content]] and [[translate]] (backwards compat) into one list
+        let mut entries = raw.content;
+        if !raw.translate.is_empty() {
+            entries.extend(raw.translate);
+        }
+        config.content = entries;
     }
 
-    // Normalize translate entries
-    for entry in &mut config.translate {
+    // Normalize content entries
+    for entry in &mut config.content {
         if entry.source.is_empty() {
             entry.source = entry.path.clone();
         }
-        if entry.frontmatter.is_empty() {
+        if !entry.targets.is_empty() && entry.frontmatter.is_empty() {
             entry.frontmatter = "preserve".to_string();
         }
     }
@@ -214,7 +226,7 @@ pub async fn parse_file(path: &str) -> Result<L10NFile> {
         .to_string_lossy()
         .to_string();
 
-    Ok(L10NFile {
+    Ok(ContentFile {
         path: abs_path.to_string_lossy().to_string(),
         dir,
         depth: 0,
@@ -223,7 +235,7 @@ pub async fn parse_file(path: &str) -> Result<L10NFile> {
     })
 }
 
-pub fn source_path(entry: &TranslateEntry) -> String {
+pub fn source_path(entry: &ContentEntry) -> String {
     let s = entry.source.trim();
     if !s.is_empty() {
         return s.to_string();
@@ -233,28 +245,32 @@ pub fn source_path(entry: &TranslateEntry) -> String {
 
 // Validation
 
-pub fn validate_translate_entry(entry: &TranslateEntry) -> Result<()> {
+pub fn validate_content_entry(entry: &ContentEntry) -> Result<()> {
     let sp = source_path(entry);
     if sp.is_empty() {
-        bail!("translate entry requires source/path");
+        bail!("content entry requires source/path");
     }
-    if entry.targets.is_empty() {
-        bail!("translate entry \"{}\" has no targets", sp);
-    }
-    if entry.output.trim().is_empty() {
-        bail!("translate entry \"{}\" has no output", sp);
+    if !entry.targets.is_empty() {
+        // Translate mode: output is required
+        if entry.output.trim().is_empty() {
+            bail!("content entry \"{}\" has targets but no output", sp);
+        }
     }
     if !entry.frontmatter.is_empty()
         && entry.frontmatter != FRONTMATTER_PRESERVE
         && entry.frontmatter != FRONTMATTER_TRANSLATE
     {
         bail!(
-            "translate entry \"{}\" has invalid frontmatter mode \"{}\"",
+            "content entry \"{}\" has invalid frontmatter mode \"{}\"",
             sp,
             entry.frontmatter
         );
     }
     Ok(())
+}
+
+pub fn validate_translate_entry(entry: &ContentEntry) -> Result<()> {
+    validate_content_entry(entry)
 }
 
 // Merge
@@ -598,7 +614,7 @@ mod tests {
 
     #[test]
     fn source_path_returns_source_when_set() {
-        let entry = TranslateEntry {
+        let entry = ContentEntry {
             source: "docs/*.md".to_string(),
             path: String::new(),
             ..Default::default()
@@ -608,7 +624,7 @@ mod tests {
 
     #[test]
     fn source_path_falls_back_to_path() {
-        let entry = TranslateEntry {
+        let entry = ContentEntry {
             source: String::new(),
             path: "files/*.json".to_string(),
             ..Default::default()
@@ -618,52 +634,63 @@ mod tests {
 
     #[test]
     fn validate_throws_when_source_missing() {
-        let entry = TranslateEntry::default();
-        assert!(validate_translate_entry(&entry).is_err());
+        let entry = ContentEntry::default();
+        assert!(validate_content_entry(&entry).is_err());
     }
 
     #[test]
-    fn validate_throws_when_targets_empty() {
-        let entry = TranslateEntry {
-            source: "docs/*.md".to_string(),
-            output: "out/{lang}/{relpath}".to_string(),
-            ..Default::default()
-        };
-        assert!(validate_translate_entry(&entry).is_err());
-    }
-
-    #[test]
-    fn validate_throws_when_output_missing() {
-        let entry = TranslateEntry {
+    fn validate_throws_when_targets_set_but_output_missing() {
+        let entry = ContentEntry {
             source: "docs/*.md".to_string(),
             targets: vec!["es".to_string()],
             ..Default::default()
         };
-        assert!(validate_translate_entry(&entry).is_err());
+        assert!(validate_content_entry(&entry).is_err());
     }
 
     #[test]
-    fn validate_accepts_valid_entry() {
-        let entry = TranslateEntry {
+    fn validate_accepts_translate_entry() {
+        let entry = ContentEntry {
             source: "docs/*.md".to_string(),
             targets: vec!["es".to_string(), "de".to_string()],
             output: "i18n/{lang}/{relpath}".to_string(),
             frontmatter: "preserve".to_string(),
             ..Default::default()
         };
-        assert!(validate_translate_entry(&entry).is_ok());
+        assert!(validate_content_entry(&entry).is_ok());
+    }
+
+    #[test]
+    fn validate_accepts_revisit_entry_without_targets() {
+        let entry = ContentEntry {
+            source: "docs/*.md".to_string(),
+            prompt: "Review for clarity".to_string(),
+            ..Default::default()
+        };
+        assert!(validate_content_entry(&entry).is_ok());
+    }
+
+    #[test]
+    fn validate_accepts_revisit_entry_with_output() {
+        let entry = ContentEntry {
+            source: "docs/*.md".to_string(),
+            output: "reviewed/{relpath}".to_string(),
+            prompt: "Improve readability".to_string(),
+            ..Default::default()
+        };
+        assert!(validate_content_entry(&entry).is_ok());
     }
 
     #[test]
     fn validate_throws_on_invalid_frontmatter_mode() {
-        let entry = TranslateEntry {
+        let entry = ContentEntry {
             source: "docs/*.md".to_string(),
             targets: vec!["es".to_string()],
             output: "out/{lang}/{relpath}".to_string(),
             frontmatter: "invalid".to_string(),
             ..Default::default()
         };
-        assert!(validate_translate_entry(&entry).is_err());
+        assert!(validate_content_entry(&entry).is_err());
     }
 
     #[test]

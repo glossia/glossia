@@ -7,7 +7,7 @@ use crate::agent::{TranslationRequest, translate};
 use crate::hash::{hash_bytes, hash_string, hash_strings};
 use crate::llm::TokenUsage;
 use crate::locks::{LockFile, read_lock, write_lock};
-use crate::plan::{SourcePlan, build_plan, context_parts_for};
+use crate::plan::{EntryKind, SourcePlan, build_plan, context_parts_for};
 use crate::reporter::{Reporter, Verb};
 
 pub struct TranslateOptions<'a> {
@@ -21,8 +21,13 @@ pub struct TranslateOptions<'a> {
 
 pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()> {
     let pl = build_plan(root).await?;
-    if pl.sources.is_empty() {
-        bail!("no sources found");
+    let translate_sources: Vec<SourcePlan> = pl
+        .sources
+        .into_iter()
+        .filter(|s| matches!(s.kind, EntryKind::Translate))
+        .collect();
+    if translate_sources.is_empty() {
+        bail!("no translate sources found");
     }
 
     struct TranslatePlan {
@@ -37,7 +42,7 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
     let mut plans = Vec::new();
     let mut total = 0usize;
 
-    for source in &pl.sources {
+    for source in &translate_sources {
         let source_bytes = fs::read(&source.abs_path).await?;
         let source_hash = hash_bytes(&source_bytes);
         let lock = read_lock(root, &source.source_path)
@@ -48,15 +53,16 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
         let mut translate_map = HashMap::new();
 
         for output in &source.outputs {
-            let parts = context_parts_for(source, &output.lang);
+            let lang_key = output.lang_key().to_string();
+            let parts = context_parts_for(source, &lang_key);
             let context_hash = hash_strings(&parts);
-            context_hashes.insert(output.lang.clone(), context_hash.clone());
+            context_hashes.insert(lang_key.clone(), context_hash.clone());
 
             let output_abs = Path::new(root).join(&output.output_path);
             let missing = !output_abs.exists();
 
-            let output_lock = lock.outputs.get(&output.lang);
-            let locked_context_hash = lock_context_hash(&lock, &output.lang);
+            let output_lock = lock.outputs.get(&lang_key);
+            let locked_context_hash = lock_context_hash(&lock, &lang_key);
             let up_to_date = !missing
                 && output_lock.is_some()
                 && lock.source_hash == source_hash
@@ -66,7 +72,7 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
             if !opts.force && up_to_date {
                 continue;
             }
-            translate_map.insert(output.lang.clone(), true);
+            translate_map.insert(lang_key, true);
             total += 1;
         }
 
@@ -106,14 +112,12 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
     let mut current = 0usize;
     for plan_item in &mut plans {
         for output in &plan_item.source.outputs {
-            if !plan_item.translate_map.contains_key(&output.lang) {
+            let lang_key = output.lang_key().to_string();
+            if !plan_item.translate_map.contains_key(&lang_key) {
                 continue;
             }
 
-            let label = format!(
-                "{} -> {} ({})",
-                plan_item.source.source_path, output.output_path, output.lang
-            );
+            let label = output.format_label(&plan_item.source.source_path);
             let step = current + 1;
             opts.reporter.step(Verb::Translating, step, total, &label);
 
@@ -138,14 +142,14 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
                 check_cmds = HashMap::new();
             }
 
-            let parts = context_parts_for(&plan_item.source, &output.lang);
+            let parts = context_parts_for(&plan_item.source, &lang_key);
             let context = parts.join("\n\n");
 
             let source_text = String::from_utf8(plan_item.source_bytes.clone()).unwrap_or_default();
 
             let req = TranslationRequest {
                 source: source_text.clone(),
-                target_lang: output.lang.clone(),
+                target_lang: lang_key.clone(),
                 format: plan_item.source.format,
                 context,
                 preserve: plan_item.source.entry.preserve.clone(),
@@ -175,14 +179,14 @@ pub async fn translate_cmd(root: &str, opts: &TranslateOptions<'_>) -> Result<()
 
             plan_item.lock.source_hash = plan_item.source_hash.clone();
             plan_item.lock.outputs.insert(
-                output.lang.clone(),
+                lang_key.clone(),
                 crate::locks::OutputLock {
                     path: output.output_path.clone(),
                     hash: hash_string(&result.text),
                     context_hash: Some(
                         plan_item
                             .context_hashes
-                            .get(&output.lang)
+                            .get(&lang_key)
                             .cloned()
                             .unwrap_or_default(),
                     ),

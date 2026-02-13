@@ -1,9 +1,9 @@
-/site/node_modules
-/site/dist
-/site/_site
 /.l10n/tmp
 .env
 .DS_Store
 
 # Added by cargo
 /target
+
+# Kamal
+/.kamal/secrets
