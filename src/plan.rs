@@ -5,8 +5,8 @@ use std::path::Path;
 use walkdir::WalkDir;
 
 use crate::config::{
-    AgentConfig, Entry, L10NFile, LLMConfig, merge_llm, parse_file, resolve_agents,
-    split_toml_frontmatter, validate_translate_entry,
+    AgentConfig, Entry, ContentFile, LLMConfig, merge_llm, parse_file, resolve_agents,
+    split_toml_frontmatter, validate_content_entry,
 };
 use crate::format::{Format, detect_format};
 use crate::output::{OutputValues, expand_output};
@@ -14,7 +14,7 @@ use crate::output::{OutputValues, expand_output};
 #[derive(Debug, Clone)]
 pub struct Plan {
     pub root: String,
-    pub l10n_files: Vec<L10NFile>,
+    pub content_files: Vec<ContentFile>,
     pub sources: Vec<SourcePlan>,
 }
 
@@ -25,6 +25,7 @@ pub struct SourcePlan {
     pub base_path: String,
     pub rel_path: String,
     pub format: Format,
+    pub kind: EntryKind,
     pub entry: Entry,
     pub context_bodies: Vec<String>,
     pub lang_context_bodies: HashMap<String, Vec<String>>,
@@ -40,9 +41,28 @@ pub struct LLMPlan {
 }
 
 #[derive(Debug, Clone)]
+pub enum EntryKind {
+    Translate,
+    Revisit,
+}
+
+#[derive(Debug, Clone)]
 pub struct OutputPlan {
-    pub lang: String,
+    pub lang: Option<String>,
     pub output_path: String,
+}
+
+impl OutputPlan {
+    pub fn lang_key(&self) -> &str {
+        self.lang.as_deref().unwrap_or("_")
+    }
+
+    pub fn format_label(&self, source_path: &str) -> String {
+        match &self.lang {
+            Some(lang) => format!("{} -> {} ({})", source_path, self.output_path, lang),
+            None => format!("{} -> {}", source_path, self.output_path),
+        }
+    }
 }
 
 pub fn context_parts_for(source: &SourcePlan, lang: &str) -> Vec<String> {
@@ -54,35 +74,45 @@ pub fn context_parts_for(source: &SourcePlan, lang: &str) -> Vec<String> {
 }
 
 pub async fn build_plan(root: &str) -> Result<Plan> {
-    let l10n_files = discover_l10n(root).await?;
-    let entries = collect_entries(root, &l10n_files);
+    let content_files = discover_content(root).await?;
+    let entries = collect_entries(root, &content_files);
     let candidates = resolve_entries(root, &entries)?;
 
     let mut sources = Vec::new();
 
     for (src_path, cand) in &candidates {
         let abs_path = Path::new(root).join(src_path);
-        let context_files = ancestors_for(&abs_path.to_string_lossy(), &l10n_files);
+        let context_files = ancestors_for(&abs_path.to_string_lossy(), &content_files);
         let mut context_bodies = Vec::new();
         let mut context_paths = Vec::new();
         let mut lang_context_bodies: HashMap<String, Vec<String>> = HashMap::new();
         let mut llm_config = LLMConfig::default();
 
-        for l10n in &context_files {
-            if !l10n.body.trim().is_empty() {
-                context_bodies.push(l10n.body.clone());
-                context_paths.push(l10n.path.clone());
+        let is_translate = !cand.entry.targets.is_empty();
+        let kind = if is_translate {
+            EntryKind::Translate
+        } else {
+            EntryKind::Revisit
+        };
+
+        for cf in &context_files {
+            if !cf.body.trim().is_empty() {
+                context_bodies.push(cf.body.clone());
+                context_paths.push(cf.path.clone());
             }
-            for lang in &cand.entry.targets {
-                let (body, ok) = read_lang_context(&l10n.dir, lang).await?;
-                if ok && !body.trim().is_empty() {
-                    lang_context_bodies
-                        .entry(lang.clone())
-                        .or_default()
-                        .push(body);
+            // Only look up per-language context for translate entries
+            if is_translate {
+                for lang in &cand.entry.targets {
+                    let (body, ok) = read_lang_context(&cf.dir, lang).await?;
+                    if ok && !body.trim().is_empty() {
+                        lang_context_bodies
+                            .entry(lang.clone())
+                            .or_default()
+                            .push(body);
+                    }
                 }
             }
-            llm_config = merge_llm(&llm_config, &l10n.config.llm);
+            llm_config = merge_llm(&llm_config, &cf.config.llm);
         }
 
         let (coordinator, translator) = resolve_agents(&llm_config)?;
@@ -93,28 +123,51 @@ pub async fn build_plan(root: &str) -> Result<Plan> {
 
         let rel_path = relative_path(&cand.base_path, src_path);
 
+        let ext = Path::new(src_path)
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("");
+        let stem = Path::new(src_path)
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("");
+
         let mut outputs = Vec::new();
-        for lang in &cand.entry.targets {
-            let ext = Path::new(src_path)
-                .extension()
-                .and_then(|e| e.to_str())
-                .unwrap_or("");
-            let stem = Path::new(src_path)
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("");
-            let out = expand_output(
-                &cand.entry.output,
-                &OutputValues {
-                    lang: lang.clone(),
-                    relpath: rel_path.clone(),
-                    basename: stem.to_string(),
-                    ext: ext.to_string(),
-                },
-            );
+        if is_translate {
+            for lang in &cand.entry.targets {
+                let out = expand_output(
+                    &cand.entry.output,
+                    &OutputValues {
+                        lang: lang.clone(),
+                        relpath: rel_path.clone(),
+                        basename: stem.to_string(),
+                        ext: ext.to_string(),
+                    },
+                );
+                outputs.push(OutputPlan {
+                    lang: Some(lang.clone()),
+                    output_path: out,
+                });
+            }
+        } else {
+            // Revisit: single output, no lang
+            let output_path = if cand.entry.output.trim().is_empty() {
+                // No output specified: overwrite source in place
+                src_path.clone()
+            } else {
+                expand_output(
+                    &cand.entry.output,
+                    &OutputValues {
+                        lang: String::new(),
+                        relpath: rel_path.clone(),
+                        basename: stem.to_string(),
+                        ext: ext.to_string(),
+                    },
+                )
+            };
             outputs.push(OutputPlan {
-                lang: lang.clone(),
-                output_path: out,
+                lang: None,
+                output_path,
             });
         }
 
@@ -124,6 +177,7 @@ pub async fn build_plan(root: &str) -> Result<Plan> {
             base_path: cand.base_path.clone(),
             rel_path,
             format: detect_format(src_path),
+            kind,
             entry: cand.entry.clone(),
             context_bodies,
             lang_context_bodies,
@@ -137,7 +191,7 @@ pub async fn build_plan(root: &str) -> Result<Plan> {
 
     Ok(Plan {
         root: root.to_string(),
-        l10n_files,
+        content_files,
         sources,
     })
 }
@@ -161,7 +215,7 @@ fn resolve_entries(root: &str, entries: &[Entry]) -> Result<Vec<(String, Candida
             if excludes.contains(&mat) {
                 continue;
             }
-            if Path::new(&mat).file_name().and_then(|n| n.to_str()) == Some("L10N.md") {
+            if Path::new(&mat).file_name().and_then(|n| n.to_str()) == Some("CONTENT.md") {
                 continue;
             }
 
@@ -270,12 +324,12 @@ fn should_override(existing: &Entry, candidate: &Entry) -> bool {
     false
 }
 
-fn collect_entries(_root: &str, l10n_files: &[L10NFile]) -> Vec<Entry> {
+fn collect_entries(_root: &str, content_files: &[ContentFile]) -> Vec<Entry> {
     let mut entries = Vec::new();
-    for file in l10n_files {
-        for (idx, raw) in file.config.translate.iter().enumerate() {
-            if let Err(e) = validate_translate_entry(raw) {
-                eprintln!("warning: skipping invalid translate entry: {}", e);
+    for file in content_files {
+        for (idx, raw) in file.config.content.iter().enumerate() {
+            if let Err(e) = validate_content_entry(raw) {
+                eprintln!("warning: skipping invalid content entry: {}", e);
                 continue;
             }
             entries.push(Entry {
@@ -293,11 +347,12 @@ fn collect_entries(_root: &str, l10n_files: &[L10NFile]) -> Vec<Entry> {
                 output: raw.output.clone(),
                 exclude: raw.exclude.clone(),
                 preserve: raw.preserve.clone(),
-                frontmatter: if raw.frontmatter.is_empty() {
+                frontmatter: if raw.frontmatter.is_empty() && !raw.targets.is_empty() {
                     "preserve".to_string()
                 } else {
                     raw.frontmatter.clone()
                 },
+                prompt: raw.prompt.clone(),
                 check_cmd: raw.check_cmd.clone(),
                 check_cmds: raw.check_cmds.clone(),
                 retries: raw.retries,
@@ -311,11 +366,11 @@ fn collect_entries(_root: &str, l10n_files: &[L10NFile]) -> Vec<Entry> {
     entries
 }
 
-async fn discover_l10n(root: &str) -> Result<Vec<L10NFile>> {
+async fn discover_content(root: &str) -> Result<Vec<ContentFile>> {
     let mut files = Vec::new();
 
     for entry in WalkDir::new(root).into_iter().filter_map(|e| e.ok()) {
-        if entry.file_name() == "L10N.md" && entry.file_type().is_file() {
+        if entry.file_name() == "CONTENT.md" && entry.file_type().is_file() {
             let path = entry.path().to_string_lossy().to_string();
             let mut parsed = parse_file(&path).await?;
 
@@ -334,8 +389,8 @@ async fn discover_l10n(root: &str) -> Result<Vec<L10NFile>> {
     Ok(files)
 }
 
-fn ancestors_for(source_abs: &str, l10n_files: &[L10NFile]) -> Vec<L10NFile> {
-    let mut ancestors: Vec<L10NFile> = l10n_files
+fn ancestors_for(source_abs: &str, content_files: &[ContentFile]) -> Vec<ContentFile> {
+    let mut ancestors: Vec<ContentFile> = content_files
         .iter()
         .filter(|f| is_ancestor(&f.dir, source_abs))
         .cloned()
@@ -381,7 +436,7 @@ async fn read_lang_context(dir: &str, lang: &str) -> Result<(String, bool)> {
     if trimmed.contains('/') || trimmed.contains('\\') {
         bail!("invalid language code \"{}\"", lang);
     }
-    let path = Path::new(dir).join("L10N").join(format!("{}.md", trimmed));
+    let path = Path::new(dir).join("CONTENT").join(format!("{}.md", trimmed));
     match tokio::fs::read_to_string(&path).await {
         Ok(data) => {
             let split = split_toml_frontmatter(&data)?;

@@ -1,32 +1,32 @@
 ---
-title: "feat: Build l10n CLI and localized Eleventy site"
+title: "feat: Build Glossia CLI and localized Eleventy site"
 type: feat
 date: 2026-02-03
 ---
 
-# feat: Build l10n CLI and localized Eleventy site
+# feat: Build Glossia CLI and localized Eleventy site
 
 ## Overview
-Build a Go CLI named `l10n` that translates local files using LLMs with configuration defined in `L10N.md` TOML frontmatter, plus a single‑page Eleventy marketing site localized using the same convention. The CLI uses an agent‑first pipeline (coordinator + translator models), validates outputs with built‑in parsers and optional external checks, and persists translation state per file under `.l10n/locks/`.
+Build a Go CLI named `glossia` that translates local files using LLMs with configuration defined in `CONTENT.md` TOML frontmatter, plus a single‑page Eleventy marketing site localized using the same convention. The CLI uses an agent‑first pipeline (coordinator + translator models), validates outputs with built‑in parsers and optional external checks, and persists translation state per file under `.glossia/locks/`.
 
 ## Problem Statement / Motivation
-Tuist’s experience with Crowdin/Weblate created indirection and slowed iteration. We want a workflow that keeps content in‑repo, lets teams leverage their automation (validation/linting), and produces LLM‑translated drafts that are ready for human review when needed, with a YOLO default for fast iteration.
+Our experience with Crowdin/Weblate created indirection and slowed iteration. We want a workflow that keeps content in‑repo, lets teams leverage their automation (validation/linting), and produces LLM‑translated drafts that are ready for human review when needed, with a YOLO default for fast iteration.
 
 ## Proposed Solution
-- **Config:** `L10N.md` with Hugo‑style TOML frontmatter (`+++`) and `[[translate]]` entries. No global defaults. Nested `L10N.md` extends context and can override translation entries when their globs overlap.
-- **Translation detection:** Hash = source file contents + body of all ancestor `L10N.md` (frontmatter excluded). Store per‑file lock in `.l10n/locks/<source path>.lock`.
+- **Config:** `CONTENT.md` with Hugo‑style TOML frontmatter (`+++`) and `[[translate]]` entries. No global defaults. Nested `CONTENT.md` extends context and can override translation entries when their globs overlap.
+- **Translation detection:** Hash = source file contents + body of all ancestor `CONTENT.md` (frontmatter excluded). Store per‑file lock in `.glossia/locks/<source path>.lock`.
 - **Agent pipeline:** Coordinator model orchestrates translation, calls translator model, then invokes a `check` tool for syntax/lint validation. Retries are configurable; default is retry with error feedback.
 - **Formats:** Markdown/JSON/YAML/PO are treated as raw text, then validated. Whole‑file translation only; fail if content exceeds model context.
-- **Website:** Eleventy single‑page site with sections (problem, how it works, config example, features, FAQ/roadmap/license, blog updates). Localized into `en`, `es`, `de`, `ko`, `ja`, `zh-Hans`, `zh-Hant` using the same `L10N.md` convention and Eleventy i18n helpers.
+- **Website:** Eleventy single‑page site with sections (problem, how it works, config example, features, FAQ/roadmap/license, blog updates). Localized into `en`, `es`, `de`, `ko`, `ja`, `zh-Hans`, `zh-Hant` using the same `CONTENT.md` convention and Eleventy i18n helpers.
 
 ## Technical Approach
 
 ### Architecture
 
 **CLI components**
-- `cmd/l10n` (Cobra or stdlib flag) with subcommands: `translate`, `check`, `status`.
-- `config/` to parse `L10N.md` frontmatter, glob expansion, and override merging.
-- `context/` to resolve ancestor `L10N.md` bodies and compute hashes.
+- `cmd/glossia` (Cobra or stdlib flag) with subcommands: `translate`, `check`, `status`.
+- `config/` to parse `CONTENT.md` frontmatter, glob expansion, and override merging.
+- `context/` to resolve ancestor `CONTENT.md` bodies and compute hashes.
 - `llm/` OpenAI‑compatible chat completions client with provider presets (Vertex AI via `chat.completions`).
 - `agent/` coordinator that composes prompts, calls translator, and invokes checks.
 - `checks/` built‑in validators (JSON/YAML/PO/Markdown) plus optional external check commands.
@@ -39,14 +39,14 @@ Tuist’s experience with Crowdin/Weblate created indirection and slowed iterati
 ### Implementation Phases
 
 #### Phase 1: CLI foundation
-- `cmd/l10n/main.go`: CLI entrypoint + `translate`, `check`, `status` commands.
-- `config/l10n_frontmatter.go`: Parse `L10N.md` TOML frontmatter (`+++`) and extract `[[translate]]` entries.
-- `config/merge.go`: Merge `[[translate]]` entries across ancestor `L10N.md` with deeper precedence on overlapping globs.
+- `cmd/glossia/main.go`: CLI entrypoint + `translate`, `check`, `status` commands.
+- `config/glossia_frontmatter.go`: Parse `CONTENT.md` TOML frontmatter (`+++`) and extract `[[translate]]` entries.
+- `config/merge.go`: Merge `[[translate]]` entries across ancestor `CONTENT.md` with deeper precedence on overlapping globs.
 - `config/schema.go`: Define required fields (`source`, `targets`, `output`) and optional fields (`exclude`, `preserve`, `frontmatter`, `checks`). Document placeholder set (`{lang}`, `{relpath}`, `{basename}`, `{ext}`) and output path expansion.
-- `context/resolve.go`: Discover `L10N.md` (root + nested), read body text, compute hash inputs.
-- `locks/locks.go`: Write/read `.l10n/locks/<path>.lock` with source hash, output map, and timestamps.
-- `mise.toml`: Add tool definition so `mise use github:tuist/l10n` installs CLI.
-- `LICENSE`: MIT license.
+- `context/resolve.go`: Discover `CONTENT.md` (root + nested), read body text, compute hash inputs.
+- `locks/locks.go`: Write/read `.glossia/locks/<path>.lock` with source hash, output map, and timestamps.
+- `mise.toml`: Add tool definition so `mise use github:glossia/glossia` installs CLI.
+- `LICENSE`: Proprietary license.
 
 #### Phase 2: LLM integration + checks
 - `llm/client.go`: OpenAI‑compatible Chat Completions client (configurable base URL, headers, model).
@@ -57,17 +57,17 @@ Tuist’s experience with Crowdin/Weblate created indirection and slowed iterati
 #### Phase 3: Website
 - `site/.eleventy.js`: Eleventy config, i18n plugin, collections.
 - `site/src/index.njk` + `site/src/_data/home.json`: Markup-only homepage with localized content data.
-- `site/src/blog/2026-02-03-why-l10n.md`: Initial English post (Tuist story).
-- `site/L10N.md`: Root config with `[[translate]]` entries for site content.
-- `site/src/i18n/` outputs generated by `l10n translate` using the `output` template.
+- `site/src/blog/2026-02-03-why-glossia.md`: Initial English post (origin story).
+- `site/CONTENT.md`: Root config with `[[translate]]` entries for site content.
+- `site/src/i18n/` outputs generated by `glossia translate` using the `output` template.
 
 #### Phase 4: Hardening + docs
-- `README.md`: install, configure, and usage examples with `L10N.md` frontmatter.
-- `.gitattributes`: Mark `.l10n/locks/**` as generated so GitHub collapses diffs.
+- `README.md`: install, configure, and usage examples with `CONTENT.md` frontmatter.
+- `.gitattributes`: Mark `.glossia/locks/**` as generated so GitHub collapses diffs.
 - `docs/`: configuration reference and troubleshooting.
 
 ## SpecFlow Gaps & Decisions (Resolve in Phase 1)
-- Define how to resolve overlapping globs at the same directory depth (proposed: last entry wins within a single `L10N.md`).
+- Define how to resolve overlapping globs at the same directory depth (proposed: last entry wins within a single `CONTENT.md`).
 - Decide on external check command template (e.g., `check_cmd = "eslint --fix {path}"`) and how stderr/stdout are surfaced.
 - Decide whether to auto‑create missing output directories or require them to exist (proposed: auto‑create).
 - Decide whether `status` distinguishes “missing” vs “stale” outputs and how it reports partial translations.
@@ -81,14 +81,14 @@ Tuist’s experience with Crowdin/Weblate created indirection and slowed iterati
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [x] `l10n translate` discovers config from root + nested `L10N.md` and produces outputs for each target language (e.g., `cmd/l10n/main.go`).
-- [x] `l10n status` reports which outputs are up‑to‑date vs require translation (e.g., `cmd/l10n/main.go`).
-- [x] `l10n check` validates outputs and fails if files are missing or invalid (e.g., `cmd/l10n/main.go`).
-- [x] Translation hash includes source content + ancestor `L10N.md` bodies (frontmatter excluded) (e.g., `context/resolve.go`).
-- [x] Per‑file lockfiles are written under `.l10n/locks/` with mirrored paths (e.g., `locks/locks.go`).
+- [x] `glossia translate` discovers config from root + nested `CONTENT.md` and produces outputs for each target language (e.g., `cmd/glossia/main.go`).
+- [x] `glossia status` reports which outputs are up‑to‑date vs require translation (e.g., `cmd/glossia/main.go`).
+- [x] `glossia check` validates outputs and fails if files are missing or invalid (e.g., `cmd/glossia/main.go`).
+- [x] Translation hash includes source content + ancestor `CONTENT.md` bodies (frontmatter excluded) (e.g., `context/resolve.go`).
+- [x] Per‑file lockfiles are written under `.glossia/locks/` with mirrored paths (e.g., `locks/locks.go`).
 - [x] Built‑in validators for JSON/YAML/PO/Markdown run before marking translation complete; external check commands are supported (e.g., `checks/builtin.go`).
-- [x] `mise.toml` enables `mise use github:tuist/l10n` to install the CLI (e.g., `mise.toml`).
-- [x] Eleventy site builds in `site/`, localized with the same `L10N.md` convention, and includes required sections and a blog post (homepage markup + localized data).
+- [x] `mise.toml` enables `mise use github:glossia/glossia` to install the CLI (e.g., `mise.toml`).
+- [x] Eleventy site builds in `site/`, localized with the same `CONTENT.md` convention, and includes required sections and a blog post (homepage markup + localized data).
 
 ### Non‑Functional Requirements
 - [ ] Clear errors for oversized files, invalid config, missing outputs, and failed checks.
@@ -97,12 +97,12 @@ Tuist’s experience with Crowdin/Weblate created indirection and slowed iterati
 
 ### Quality Gates
 - [x] Unit tests for config parsing, merge precedence, glob resolution, and hash computation (e.g., `config/*_test.go`).
-- [x] Golden tests for `L10N.md` parsing + lockfile output (e.g., `locks/locks_test.go`).
-- [x] `l10n check` integrates with CI and fails on invalid outputs.
+- [x] Golden tests for `CONTENT.md` parsing + lockfile output (e.g., `locks/locks_test.go`).
+- [x] `glossia check` integrates with CI and fails on invalid outputs.
 
 ## Success Metrics
 - CLI can translate and validate the marketing site end‑to‑end with no manual steps.
-- Adding a new locale is a one‑line change in `L10N.md`.
+- Adding a new locale is a one‑line change in `CONTENT.md`.
 - Lockfile diffs are localized and low‑conflict.
 
 ## Dependencies & Risks

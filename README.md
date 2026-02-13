@@ -1,14 +1,14 @@
-# l10n 🌍
+# Glossia 🌍
 
 > [!WARNING]
 > This project is in an **experimental phase**. APIs and behavior may change without notice. Please don't expect high responsiveness to issues or pull requests.
 
-Localize like you ship software. `l10n` is a Rust CLI that translates files locally using LLMs, keeps content in-repo, and validates output with your own tooling.
+Localize like you ship software. `glossia` is a Rust CLI that translates files locally using LLMs, keeps content in-repo, and validates output with your own tooling.
 
 ## Install 📦
 
 ```bash
-mise use github:tuist/l10n
+mise use github:glossia/glossia
 ```
 
 Or build from source:
@@ -19,7 +19,7 @@ cargo build --release
 
 ## Quick start 🚀
 
-Run `l10n init` for a guided setup, or create a `L10N.md` at the repo root with TOML frontmatter:
+Run `glossia init` for a guided setup, or create a `CONTENT.md` at the repo root with TOML frontmatter:
 
 ```markdown
 +++
@@ -46,27 +46,27 @@ Project context for translators goes here.
 Translate:
 
 ```bash
-l10n translate
+glossia translate
 ```
 
 Check what’s stale:
 
 ```bash
-l10n status
+glossia status
 ```
 
 Validate outputs:
 
 ```bash
-l10n check
+glossia check
 ```
 
 ## Configuration ⚙️
 
-### `L10N.md` frontmatter
+### `CONTENT.md` frontmatter
 
 - `[[translate]]` entries (required)
-  - `source` or `path` (required): glob, relative to the `L10N.md` directory
+  - `source` or `path` (required): glob, relative to the `CONTENT.md` directory
   - `targets` (required): list of locales
   - `output` (required): template using `{lang}`, `{relpath}`, `{basename}`, `{ext}`
   - `exclude` (optional): list of globs to skip
@@ -131,28 +131,28 @@ output = "docs/i18n/{lang}/{relpath}"
 
 ### Language‑specific context
 
-Add optional language context next to any `L10N.md`:
+Add optional language context next to any `CONTENT.md`:
 
 ```
-L10N.md
-L10N/
+CONTENT.md
+CONTENT/
   es.md
   ja.md
 ```
 
-Context is additive per language: general `L10N.md` bodies plus matching `L10N/<lang>.md` bodies from root to nearest.
+Context is additive per language: general `CONTENT.md` bodies plus matching `CONTENT/<lang>.md` bodies from root to nearest.
 
 ### Translation state
 
-Per‑file lockfiles are written to `.l10n/locks/` and include source hash plus per‑language context hashes and output metadata.
+Per‑file lockfiles are written to `.glossia/locks/` and include source hash plus per‑language context hashes and output metadata.
 
 ## Commands ⌨️
 
-- `l10n init` — initialize a repo with a starter `L10N.md`
-- `l10n translate` — generate translations (YOLO by default)
-- `l10n check` — validate outputs (fails if missing)
-- `l10n status` — report missing/stale outputs
-- `l10n clean` — remove generated outputs and lockfiles (`--orphans` removes outputs from stale lockfiles)
+- `glossia init` — initialize a repo with a starter `CONTENT.md`
+- `glossia translate` — generate translations (YOLO by default)
+- `glossia check` — validate outputs (fails if missing)
+- `glossia status` — report missing/stale outputs
+- `glossia clean` — remove generated outputs and lockfiles (`--orphans` removes outputs from stale lockfiles)
 
 Use `--no-color` or set `NO_COLOR=1` to disable styled output.
 Use `--path <dir>` to run commands as if you were in a different directory.
@@ -173,4 +173,4 @@ npm run dev
 
 ## License 📄
 
-MIT
+Proprietary

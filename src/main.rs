@@ -113,6 +113,24 @@ async fn main() {
             )
             .await
         }
+        Commands::Revisit {
+            force,
+            retries,
+            dry_run,
+            check_cmd,
+        } => {
+            commands::revisit::revisit_cmd(
+                &root,
+                &commands::revisit::RevisitOptions {
+                    force,
+                    retries,
+                    dry_run,
+                    check_cmd: check_cmd.unwrap_or_default(),
+                    reporter: &reporter,
+                },
+            )
+            .await
+        }
         Commands::Clean { dry_run, orphans } => {
             commands::clean::clean_cmd(
                 &root,

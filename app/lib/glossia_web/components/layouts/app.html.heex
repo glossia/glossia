@@ -1,0 +1,155 @@
+<header class="site-header">
+  <div class="container nav">
+    <a class="logo" href="/">
+      <img src={~p"/images/logo-squared.png"} alt="" class="logo-icon" />
+      Glossia
+    </a>
+    <nav class="nav-links">
+      <a href="/docs">Docs</a>
+      <a href="/blog">Blog</a>
+      <%= if assigns[:current_user] && @current_user do %>
+        <a href="/dashboard">Dashboard</a>
+      <% else %>
+        <a href="/auth/login" class="nav-cta">Sign in</a>
+      <% end %>
+    </nav>
+    <div class="locale-dropdown">
+      <button class="locale-toggle" aria-expanded="false" aria-haspopup="true">
+        English
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+          <path
+            d="M1 1l4 4 4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+      <ul class="locale-menu" role="menu">
+        <li role="none">
+          <a role="menuitem" class="locale-option active" href="/">English</a>
+        </li>
+        <li role="none">
+          <a role="menuitem" class="locale-option" href="/es/">Espa&ntilde;ol</a>
+        </li>
+        <li role="none"><a role="menuitem" class="locale-option" href="/de/">Deutsch</a></li>
+        <li role="none">
+          <a role="menuitem" class="locale-option" href="/ko/">&#54620;&#44397;&#50612;</a>
+        </li>
+        <li role="none">
+          <a role="menuitem" class="locale-option" href="/ja/">&#26085;&#26412;&#35486;</a>
+        </li>
+        <li role="none">
+          <a role="menuitem" class="locale-option" href="/zh-Hans/">
+            &#31616;&#20307;&#20013;&#25991;
+          </a>
+        </li>
+        <li role="none">
+          <a role="menuitem" class="locale-option" href="/zh-Hant/">
+            &#32321;&#39636;&#20013;&#25991;
+          </a>
+        </li>
+      </ul>
+    </div>
+    <button class="mobile-menu-toggle" aria-expanded="false" aria-label="Menu">
+      <svg
+        class="menu-icon"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M3 5h14M3 10h14M3 15h14"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
+      <svg
+        class="close-icon"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 5l10 10M15 5L5 15"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  </div>
+</header>
+
+<.flash_group :if={assigns[:flash]} flash={@flash} />
+
+<nav class="mobile-menu" aria-label="Mobile navigation">
+  <a href="/docs">Docs</a>
+  <a href="/blog">Blog</a>
+  <%= if assigns[:current_user] && @current_user do %>
+    <a href="/dashboard">Dashboard</a>
+  <% else %>
+    <a href="/auth/login">Sign in</a>
+  <% end %>
+</nav>
+
+<main>
+  {@inner_content}
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="logo">Glossia</div>
+      <p>Built for teams that ship fast.</p>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <ul class="legal-links">
+        <li><a href="/terms">Terms of Service</a></li>
+        <li><a href="/privacy">Privacy Policy</a></li>
+        <li><a href="/cookies">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function() {
+    var dd = document.querySelector('.locale-dropdown');
+    var btn = dd.querySelector('.locale-toggle');
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dd.classList.toggle('open');
+      btn.setAttribute('aria-expanded', dd.classList.contains('open'));
+    });
+    document.addEventListener('click', function() {
+      dd.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+
+    var menuBtn = document.querySelector('.mobile-menu-toggle');
+    var mobileMenu = document.querySelector('.mobile-menu');
+    if (menuBtn && mobileMenu) {
+      menuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = mobileMenu.classList.toggle('open');
+        menuBtn.classList.toggle('open', isOpen);
+        menuBtn.setAttribute('aria-expanded', isOpen);
+      });
+      mobileMenu.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
+          mobileMenu.classList.remove('open');
+          menuBtn.classList.remove('open');
+          menuBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+  })();
+</script>

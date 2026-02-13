@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title default="Glossia" suffix=" · Glossia">
+      {assigns[:page_title]}
+    </.live_title>
+    <meta property="og:image" content={~p"/images/logo-squared.png"} />
+    <link rel="alternate" type="application/rss+xml" title="Glossia Blog" href={~p"/blog/feed.xml"} />
+    <%= if assigns[:author] do %>
+      <link rel="me" href={@author.mastodon} />
+      <meta name="twitter:creator" content={"@" <> String.trim_leading(URI.parse(@author.x).path, "/")} />
+      <meta name="twitter:card" content="summary" />
+    <% end %>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/styles.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    </script>
+    <script>window.Prism = window.Prism || {}; Prism.manual = true;</script>
+    <script defer src={~p"/assets/js/prism.min.js"}></script>
+    <script defer src={~p"/assets/js/prism-bash.min.js"}></script>
+    <script defer src={~p"/assets/js/prism-toml.min.js"}></script>
+    <script defer src={~p"/assets/js/code-blocks.js"}></script>
+  </head>
+  <body>
+    {@inner_content}
+  </body>
+</html>

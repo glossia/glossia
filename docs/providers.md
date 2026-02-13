@@ -1,6 +1,6 @@
 # LLM Providers
 
-`l10n` uses OpenAI‑compatible Chat Completions APIs. Configure providers in `L10N.md` under `[llm]`.
+`glossia` uses OpenAI‑compatible Chat Completions APIs. Configure providers in `CONTENT.md` under `[llm]`.
 
 ## OpenAI‑compatible
 

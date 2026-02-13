@@ -35,6 +35,204 @@ pub struct TranslationResult {
     pub usage: TokenUsage,
 }
 
+pub struct RevisitRequest<'a> {
+    pub source: String,
+    pub format: Format,
+    pub context: String,
+    pub prompt: String,
+    pub check_cmd: String,
+    pub check_cmds: HashMap<String, String>,
+    pub tool_reporter: Option<&'a dyn Reporter>,
+    pub progress_label: String,
+    pub progress_current: usize,
+    pub progress_total: usize,
+    pub retries: i32,
+    pub coordinator: AgentConfig,
+    pub translator: AgentConfig,
+    pub root: String,
+}
+
+pub async fn revisit(req: &RevisitRequest<'_>) -> Result<TranslationResult> {
+    let coordinator_model = req.coordinator.model.trim();
+    if coordinator_model.is_empty() {
+        return revisit_non_agentic(req).await;
+    }
+    revisit_agentic(req).await
+}
+
+async fn revisit_non_agentic(req: &RevisitRequest<'_>) -> Result<TranslationResult> {
+    let mut attempts = req.retries;
+    if attempts < 0 {
+        attempts = 0;
+    }
+
+    let model = req.translator.model.trim();
+    if model.is_empty() {
+        bail!("translator model is required");
+    }
+
+    let prompt_instruction = if req.prompt.is_empty() {
+        "Review and improve this content for clarity and quality.".to_string()
+    } else {
+        req.prompt.clone()
+    };
+
+    let system = format!(
+        "You are a content revision engine. {}\nReturn only the revised content. Do not add commentary or explanations.",
+        prompt_instruction
+    );
+
+    let mut user = format!("Source:\n{}", req.source);
+    if !req.context.is_empty() {
+        user = format!("Context:\n{}\n\n{}", req.context, user);
+    }
+
+    let mut last_err: Option<anyhow::Error> = None;
+
+    for _attempt in 0..=attempts {
+        let mut attempt_user = user.clone();
+        if let Some(ref err) = last_err {
+            attempt_user.push_str(&format!(
+                "\n\nPrevious output failed validation: {}\nReturn a corrected version.",
+                err
+            ));
+        }
+
+        let messages = vec![
+            ChatMessage {
+                role: "system".to_string(),
+                content: system.clone(),
+            },
+            ChatMessage {
+                role: "user".to_string(),
+                content: attempt_user,
+            },
+        ];
+
+        let (resp, _usage) = match chat(&req.translator, model, &messages).await {
+            Ok(r) => r,
+            Err(e) => {
+                last_err = Some(e);
+                continue;
+            }
+        };
+
+        let mut final_text = resp.trim_end_matches('\n').to_string();
+        if is_structured_format(req.format) {
+            final_text = strip_code_fence(&final_text);
+        }
+
+        let check_opts = CheckOptions {
+            preserve: &[],
+            check_cmd: if req.check_cmd.is_empty() {
+                None
+            } else {
+                Some(&req.check_cmd)
+            },
+            check_cmds: if req.check_cmds.is_empty() {
+                None
+            } else {
+                Some(&req.check_cmds)
+            },
+            reporter: req.tool_reporter,
+            label: Some(&req.progress_label),
+            current: req.progress_current,
+            total: req.progress_total,
+        };
+
+        match validate(&req.root, req.format, &final_text, &req.source, &check_opts).await {
+            Ok(()) => {
+                return Ok(TranslationResult {
+                    text: final_text,
+                    usage: TokenUsage::default(),
+                })
+            }
+            Err(e) => {
+                last_err = Some(e);
+            }
+        }
+    }
+
+    match last_err {
+        Some(e) => Err(e),
+        None => bail!("revision failed"),
+    }
+}
+
+async fn revisit_agentic(req: &RevisitRequest<'_>) -> Result<TranslationResult> {
+    let has_check_cmd = !req.check_cmd.is_empty() || !req.check_cmds.is_empty();
+
+    let prompt_instruction = if req.prompt.is_empty() {
+        "Review and improve this content for clarity and quality.".to_string()
+    } else {
+        req.prompt.clone()
+    };
+
+    let system_prompt = format!(
+        "You are a content revision agent. Your job is to review and improve content.\n\n\
+         Instructions: {}\n\n\
+         Review the source content and return ONLY the revised content.\n\
+         Do not wrap the output in markdown fences or add any commentary.\n\
+         Do not include any explanation, just the raw revised content.",
+        prompt_instruction,
+    );
+
+    let mut user_prompt = format!("Format: {}\n", req.format);
+    if !req.context.is_empty() {
+        user_prompt.push_str(&format!("\nContext from CONTENT.md:\n{}\n", req.context));
+    }
+    user_prompt.push_str(&format!("\nSource content:\n{}", req.source));
+
+    let messages = vec![
+        ChatMessage {
+            role: "system".to_string(),
+            content: system_prompt,
+        },
+        ChatMessage {
+            role: "user".to_string(),
+            content: user_prompt,
+        },
+    ];
+
+    let coordinator_model = req.coordinator.model.trim().to_string();
+    let (resp, usage) = chat(&req.coordinator, &coordinator_model, &messages).await?;
+
+    let mut output = resp;
+    if is_structured_format(req.format) {
+        output = strip_code_fence(&output);
+    }
+    if output.trim().is_empty() {
+        bail!("revision produced empty output");
+    }
+
+    // Validate if check commands are configured
+    if has_check_cmd {
+        let check_opts = CheckOptions {
+            preserve: &[],
+            check_cmd: if req.check_cmd.is_empty() {
+                None
+            } else {
+                Some(&req.check_cmd)
+            },
+            check_cmds: if req.check_cmds.is_empty() {
+                None
+            } else {
+                Some(&req.check_cmds)
+            },
+            reporter: req.tool_reporter,
+            label: Some(&req.progress_label),
+            current: req.progress_current,
+            total: req.progress_total,
+        };
+        validate(&req.root, req.format, &output, &req.source, &check_opts).await?;
+    }
+
+    Ok(TranslationResult {
+        text: output,
+        usage,
+    })
+}
+
 pub async fn translate(req: &TranslationRequest<'_>) -> Result<TranslationResult> {
     let coordinator_model = req.coordinator.model.trim();
     if coordinator_model.is_empty() {
@@ -205,7 +403,7 @@ async fn translate_agentic(req: &TranslationRequest<'_>) -> Result<TranslationRe
         req.frontmatter,
     );
     if !req.context.is_empty() {
-        user_prompt.push_str(&format!("\nContext from L10N.md:\n{}\n", req.context));
+        user_prompt.push_str(&format!("\nContext from CONTENT.md:\n{}\n", req.context));
     }
     user_prompt.push_str(&format!("\nSource content:\n{}", content));
 

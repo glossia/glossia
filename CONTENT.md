@@ -1,0 +1,31 @@
++++
+[llm]
+api_key = "{{env.GEMINI_API_KEY}}"
+
+[[llm.agent]]
+role = "coordinator"
+model = "gemini-2.5-flash"
+
+[[llm.agent]]
+role = "translator"
+model = "gemini-2.5-flash"
+
+[[translate]]
+source = "site/src/_data/home.json"
+targets = ["es", "de", "ko", "ja", "zh-Hans", "zh-Hant"]
+output = "site/src/_data/i18n/{lang}/{basename}.{ext}"
+
+[[translate]]
+source = "site/src/_data/ui.json"
+targets = ["es", "de", "ko", "ja", "zh-Hans", "zh-Hant"]
+output = "site/src/_data/i18n/{lang}/{basename}.{ext}"
+
+[[translate]]
+source = "site/src/blog/*.md"
+targets = ["es", "de", "ko", "ja", "zh-Hans", "zh-Hant"]
+output = "site/src/i18n/{lang}/{relpath}"
++++
+You are translating the Glossia project website and blog.
+Keep the voice crisp, pragmatic, and developer-first.
+Preserve product names, CLI commands, file paths, and code snippets.
+Avoid marketing fluff; be specific and direct.

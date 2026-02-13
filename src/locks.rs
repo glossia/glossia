@@ -37,7 +37,7 @@ impl LockFile {
 
 pub fn lock_path(root: &str, source_path: &str) -> PathBuf {
     Path::new(root)
-        .join(".l10n")
+        .join(".glossia")
         .join("locks")
         .join(format!("{}.lock", source_path))
 }

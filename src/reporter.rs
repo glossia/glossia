@@ -1,6 +1,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verb {
     Translating,
+    Revisiting,
     Validating,
     Checking,
     Ok,
@@ -9,6 +10,7 @@ pub enum Verb {
     Removed,
     Skipped,
     Translated,
+    Revisited,
     Cleaned,
     Created,
     Updated,
@@ -21,6 +23,7 @@ impl Verb {
     pub fn as_str(&self) -> &'static str {
         match self {
             Verb::Translating => "Translating",
+            Verb::Revisiting => "Revisiting",
             Verb::Validating => "Validating",
             Verb::Checking => "Checking",
             Verb::Ok => "Ok",
@@ -29,6 +32,7 @@ impl Verb {
             Verb::Removed => "Removed",
             Verb::Skipped => "Skipped",
             Verb::Translated => "Translated",
+            Verb::Revisited => "Revisited",
             Verb::Cleaned => "Cleaned",
             Verb::Created => "Created",
             Verb::Updated => "Updated",

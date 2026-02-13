@@ -1,0 +1,24 @@
+<section class="section post-hero">
+  <div class="container">
+    <p class="meta">{GlossiaWeb.BlogHTML.format_date(@post.date)}</p>
+    <h1>{@post.title}</h1>
+    <p class="lead">{@post.summary}</p>
+    <div class="post-author">
+      <span class="post-author-name">{@post.author.name}</span>
+      <span class="post-author-links">
+        <a href={@post.author.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn">LinkedIn</a>
+        <a href={@post.author.mastodon} target="_blank" rel="me noopener noreferrer" title="Mastodon">Mastodon</a>
+        <a href={@post.author.x} target="_blank" rel="noopener noreferrer" title="X">X</a>
+        <a href={@post.author.github} target="_blank" rel="noopener noreferrer" title="GitHub">GitHub</a>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="prose">
+      {raw(@post.body)}
+    </div>
+  </div>
+</section>

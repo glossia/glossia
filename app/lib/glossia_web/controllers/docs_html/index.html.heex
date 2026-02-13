@@ -1,0 +1,24 @@
+<section class="section docs-hero">
+  <div class="container">
+    <h1>Documentation</h1>
+    <p class="lead">Learn how to use Glossia to translate and improve your content.</p>
+  </div>
+</section>
+
+<section class="section docs-index">
+  <div class="container">
+    <div class="docs-category-grid">
+      <a
+        :for={{key, meta} <- GlossiaWeb.DocsHTML.sorted_categories(@categories)}
+        href={~p"/docs/#{key}"}
+        class="docs-category-card"
+      >
+        <div class="docs-category-icon">
+          {GlossiaWeb.DocsHTML.category_icon(meta.icon)}
+        </div>
+        <h3>{meta.title}</h3>
+        <p>{meta.summary}</p>
+      </a>
+    </div>
+  </div>
+</section>

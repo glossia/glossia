@@ -303,7 +303,7 @@ pub async fn run_external(root: &str, cmd_template: &str, content: &str) -> Resu
         anyhow::bail!("external check requires root path");
     }
 
-    let tmp_dir = Path::new(root).join(".l10n").join("tmp");
+    let tmp_dir = Path::new(root).join(".glossia").join("tmp");
     fs::create_dir_all(&tmp_dir).await?;
 
     let tmp_file = tmp_dir.join(format!(

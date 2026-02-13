@@ -18,11 +18,12 @@ fn verb_color(verb: Verb) -> &'static str {
     match verb {
         Verb::Ok
         | Verb::Translated
+        | Verb::Revisited
         | Verb::Removed
         | Verb::Cleaned
         | Verb::Created
         | Verb::Updated => GREEN,
-        Verb::Translating | Verb::Validating | Verb::Checking => CYAN,
+        Verb::Translating | Verb::Revisiting | Verb::Validating | Verb::Checking => CYAN,
         Verb::Stale | Verb::Skipped | Verb::DryRun => YELLOW,
         Verb::Missing => RED,
         Verb::Summary | Verb::Info => WHITE,
@@ -38,6 +39,7 @@ fn format_verb(verb: &str, color: bool) -> String {
     }
     let col = verb_color(match verb {
         "Translating" => Verb::Translating,
+        "Revisiting" => Verb::Revisiting,
         "Validating" => Verb::Validating,
         "Checking" => Verb::Checking,
         "Ok" => Verb::Ok,
@@ -46,6 +48,7 @@ fn format_verb(verb: &str, color: bool) -> String {
         "Removed" => Verb::Removed,
         "Skipped" => Verb::Skipped,
         "Translated" => Verb::Translated,
+        "Revisited" => Verb::Revisited,
         "Cleaned" => Verb::Cleaned,
         "Created" => Verb::Created,
         "Updated" => Verb::Updated,

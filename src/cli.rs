@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "l10n", about = "Localize like you ship software.")]
+#[command(name = "glossia", about = "Localize like you ship software.")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -17,10 +17,10 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Initialize l10n in this repo
+    /// Initialize Glossia in this repo
     Init,
 
-    /// Generate translations
+    /// Translate content to other languages
     Translate {
         /// Retranslate even if up to date
         #[arg(long)]
@@ -33,6 +33,25 @@ pub enum Commands {
         /// Disable yolo mode, enable human review
         #[arg(long = "no-yolo")]
         no_yolo: bool,
+
+        /// Override retry count (-1 uses config or default)
+        #[arg(long, default_value_t = -1)]
+        retries: i32,
+
+        /// Print actions without writing files
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Override external check command
+        #[arg(long)]
+        check_cmd: Option<String>,
+    },
+
+    /// Revisit content in the source language
+    Revisit {
+        /// Reprocess even if up to date
+        #[arg(long)]
+        force: bool,
 
         /// Override retry count (-1 uses config or default)
         #[arg(long, default_value_t = -1)]

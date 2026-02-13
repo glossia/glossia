@@ -1,0 +1,52 @@
+service: glossia
+image: glossia/glossia
+
+servers:
+  web:
+    hosts:
+      - 188.245.70.227
+
+proxy:
+  ssl: true
+  host: glossia.ai
+  app_port: 4000
+  forward_headers: true
+
+registry:
+  server: 188.245.70.227:5000
+  username: glossia
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: arm64
+  remote: ssh://root@188.245.70.227
+  context: app
+  dockerfile: app/Dockerfile
+
+env:
+  clear:
+    PHX_HOST: glossia.ai
+  secret:
+    - DATABASE_URL
+    - SECRET_KEY_BASE
+
+accessories:
+  postgres:
+    image: postgres:17
+    host: 188.245.70.227
+    port: 5432
+    env:
+      clear:
+        POSTGRES_USER: glossia
+        POSTGRES_DB: glossia_prod
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+  registry:
+    image: registry:2
+    host: 188.245.70.227
+    port: 5000
+    directories:
+      - data:/var/lib/registry

@@ -1,0 +1,45 @@
+<section class="section">
+  <div class="container">
+    <div class="prose">
+      <h1>{@version.title}</h1>
+      <p class="meta">
+        Effective: {format_date(@version.date)}
+        <%= if @viewing_historical do %>
+          <br />
+          <strong>You are viewing a previous version.</strong>
+          <a href={document_path(@version.document)}>View current version</a>
+        <% end %>
+      </p>
+
+      {raw(@version.body)}
+
+      <%= if length(@all_versions) > 1 do %>
+        <h2>Version History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Changes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= for v <- @all_versions do %>
+              <tr>
+                <td>{format_date(v.date)}</td>
+                <td>{v.changes}</td>
+                <td>
+                  <%= if v.date == @version.date do %>
+                    <strong>Current</strong>
+                  <% else %>
+                    <a href={"#{document_path(v.document)}/#{v.date}"}>View</a>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    </div>
+  </div>
+</section>

@@ -346,7 +346,7 @@ async fn chat_openai(cfg: &AgentConfig, model: &str, messages: &[ChatMessage]) -
         .or_insert_with(|| "application/json".to_string());
     headers_map
         .entry("User-Agent".to_string())
-        .or_insert_with(|| "l10n".to_string());
+        .or_insert_with(|| "glossia".to_string());
 
     let timeout = if cfg.timeout_seconds > 0 {
         cfg.timeout_seconds
@@ -459,7 +459,7 @@ async fn chat_anthropic(
         .or_insert_with(|| "application/json".to_string());
     headers_map
         .entry("User-Agent".to_string())
-        .or_insert_with(|| "l10n".to_string());
+        .or_insert_with(|| "glossia".to_string());
 
     let timeout = if cfg.timeout_seconds > 0 {
         cfg.timeout_seconds
@@ -710,7 +710,7 @@ async fn chat_with_tools_anthropic(
         .or_insert_with(|| "application/json".to_string());
     headers_map
         .entry("User-Agent".to_string())
-        .or_insert_with(|| "l10n".to_string());
+        .or_insert_with(|| "glossia".to_string());
 
     let timeout = if cfg.timeout_seconds > 0 {
         cfg.timeout_seconds
@@ -977,7 +977,7 @@ async fn chat_with_tools_openai(
         .or_insert_with(|| "application/json".to_string());
     headers_map
         .entry("User-Agent".to_string())
-        .or_insert_with(|| "l10n".to_string());
+        .or_insert_with(|| "glossia".to_string());
 
     let timeout = if cfg.timeout_seconds > 0 {
         cfg.timeout_seconds
