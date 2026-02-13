@@ -57,17 +57,38 @@ if config_env() == :prod do
 
   config :glossia, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-  config :glossia, :oauth_providers,
-    github: [
-      client_id: System.fetch_env!("GITHUB_CLIENT_ID"),
-      client_secret: System.fetch_env!("GITHUB_CLIENT_SECRET"),
-      strategy: Assent.Strategy.Github
-    ],
-    gitlab: [
-      client_id: System.fetch_env!("GITLAB_CLIENT_ID"),
-      client_secret: System.fetch_env!("GITLAB_CLIENT_SECRET"),
-      strategy: Assent.Strategy.Gitlab
-    ]
+  oauth_providers =
+    []
+    |> then(fn providers ->
+      case {System.get_env("GITHUB_CLIENT_ID"), System.get_env("GITHUB_CLIENT_SECRET")} do
+        {id, secret} when is_binary(id) and is_binary(secret) ->
+          Keyword.put(providers, :github,
+            client_id: id,
+            client_secret: secret,
+            strategy: Assent.Strategy.Github
+          )
+
+        _ ->
+          providers
+      end
+    end)
+    |> then(fn providers ->
+      case {System.get_env("GITLAB_CLIENT_ID"), System.get_env("GITLAB_CLIENT_SECRET")} do
+        {id, secret} when is_binary(id) and is_binary(secret) ->
+          Keyword.put(providers, :gitlab,
+            client_id: id,
+            client_secret: secret,
+            strategy: Assent.Strategy.Gitlab
+          )
+
+        _ ->
+          providers
+      end
+    end)
+
+  if oauth_providers != [] do
+    config :glossia, :oauth_providers, oauth_providers
+  end
 
   config :glossia, GlossiaWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
