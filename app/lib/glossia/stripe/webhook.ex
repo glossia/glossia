@@ -8,8 +8,9 @@ defmodule Glossia.Stripe.Webhook do
   def verify(headers, payload, secret, opts \\ [])
       when (is_list(headers) or is_map(headers)) and is_binary(payload) do
     with secret when is_binary(secret) and secret != "" <- secret || {:error, :missing_secret},
-         signature_header when is_binary(signature_header) <- header(headers, "stripe-signature") ||
-                                                            {:error, :missing_stripe_signature},
+         signature_header when is_binary(signature_header) <-
+           header(headers, "stripe-signature") ||
+             {:error, :missing_stripe_signature},
          {:ok, timestamp} <- extract_timestamp(signature_header),
          :ok <- validate_timestamp(timestamp, opts) do
       expected = expected_signature(secret, timestamp, payload)
@@ -83,7 +84,8 @@ defmodule Glossia.Stripe.Webhook do
   end
 
   defp header(headers, name) when is_map(headers) do
-    Map.get(headers, name) || Map.get(headers, String.downcase(name)) || Map.get(headers, String.upcase(name))
+    Map.get(headers, name) || Map.get(headers, String.downcase(name)) ||
+      Map.get(headers, String.upcase(name))
   end
 
   defp parse_int(value) when is_binary(value) do
@@ -93,4 +95,3 @@ defmodule Glossia.Stripe.Webhook do
     end
   end
 end
-

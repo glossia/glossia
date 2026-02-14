@@ -2,6 +2,13 @@ defmodule Glossia.Accounts.Account do
   use Glossia.Schema
   import Ecto.Changeset
 
+  @derive {
+    Flop.Schema,
+    filterable: [:handle, :type, :visibility],
+    sortable: [:handle, :type, :visibility, :inserted_at],
+    default_order: %{order_by: [:handle], order_directions: [:asc]}
+  }
+
   schema "accounts" do
     field :handle, :string
     field :type, :string, default: "user"
@@ -10,6 +17,7 @@ defmodule Glossia.Accounts.Account do
     field :stripe_subscription_id, :string
     field :stripe_subscription_status, :string
     field :stripe_current_period_end, :utc_datetime_usec
+    field :visibility, :string, default: "private"
 
     has_one :user, Glossia.Accounts.User
     has_one :organization, Glossia.Accounts.Organization
@@ -27,10 +35,12 @@ defmodule Glossia.Accounts.Account do
       :stripe_customer_id,
       :stripe_subscription_id,
       :stripe_subscription_status,
-      :stripe_current_period_end
+      :stripe_current_period_end,
+      :visibility
     ])
     |> validate_required([:handle])
     |> validate_inclusion(:type, ["user", "organization"])
+    |> validate_inclusion(:visibility, ["private", "public"])
     |> validate_format(:handle, ~r/^[a-z]([a-z0-9-]*[a-z0-9])?$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
     )

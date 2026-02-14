@@ -1,0 +1,36 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src={~p"/images/logo-squared.png"} alt="" class="auth-logo" />
+      <h1>{gettext("You have been invited")}</h1>
+      <p class="auth-subtitle">
+        {gettext("You have been invited to join %{org} as a %{role}.",
+          org: @org_name,
+          role: @invitation.role
+        )}
+      </p>
+    </div>
+
+    <div class="invitation-actions">
+      <form action={~p"/invitations/#{@token}/accept"} method="post">
+        <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+        <button type="submit" class="button primary invitation-accept-btn">
+          {gettext("Accept invitation")}
+        </button>
+      </form>
+
+      <form action={~p"/invitations/#{@token}/decline"} method="post">
+        <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+        <button type="submit" class="button secondary invitation-decline-btn">
+          {gettext("Decline")}
+        </button>
+      </form>
+    </div>
+
+    <p class="auth-terms">
+      {gettext("This invitation expires on %{date}.",
+        date: Calendar.strftime(@invitation.expires_at, "%B %d, %Y")
+      )}
+    </p>
+  </div>
+</section>

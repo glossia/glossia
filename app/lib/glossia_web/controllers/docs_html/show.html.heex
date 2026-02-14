@@ -4,6 +4,12 @@
       <a href={~p"/docs"}>{gettext("Documentation")}</a>
       <span class="docs-breadcrumb-sep">/</span>
       <a href={~p"/docs/#{@current_category}"}>{@categories[@current_category].title}</a>
+      <%= if assigns[:current_subcategory] do %>
+        <span class="docs-breadcrumb-sep">/</span>
+        <a href={~p"/docs/#{@current_category}/#{@current_subcategory}"}>
+          {@current_subcategory_meta.title}
+        </a>
+      <% end %>
       <span class="docs-breadcrumb-sep">/</span>
       <span>{@page.title}</span>
     </nav>
@@ -41,7 +47,15 @@
 
         <div class="docs-title-row">
           <h1>{@page.title}</h1>
-          <a :if={@page.markdown} href={"/docs/#{@current_category}/#{@current_slug}.md"} class="docs-markdown-btn">
+          <a
+            :if={@page.markdown}
+            href={
+              if assigns[:current_subcategory],
+                do: "/docs/#{@current_category}/#{@current_subcategory}/#{@current_slug}.md",
+                else: "/docs/#{@current_category}/#{@current_slug}.md"
+            }
+            class="docs-markdown-btn"
+          >
             {gettext("Markdown")}
           </a>
         </div>
@@ -54,4 +68,3 @@
     </div>
   </div>
 </section>
-

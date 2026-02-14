@@ -29,18 +29,26 @@ stripe_price_id =
   System.get_env("STRIPE_PRICE_ID") || System.get_env("STRIPE_CHECKOUT_PRICE_ID")
 
 stripe_webhook_secret = System.get_env("STRIPE_WEBHOOK_SECRET")
+# Default for a single "usage credits" meter. Create the Stripe meter with
+# this same event name (in both test + live modes).
 stripe_meter_event_name =
   System.get_env("STRIPE_METER_EVENT_NAME") ||
-    # Default for a single "usage credits" meter. Create the Stripe meter with
-    # this same event name (in both test + live modes).
     "glossia_usage_credits"
 
 stripe_enabled =
   case System.get_env("STRIPE_ENABLED") do
-    "true" -> true
-    "1" -> true
-    "false" -> false
-    "0" -> false
+    "true" ->
+      true
+
+    "1" ->
+      true
+
+    "false" ->
+      false
+
+    "0" ->
+      false
+
     _ ->
       is_binary(stripe_secret_key) and stripe_secret_key != "" and
         is_binary(stripe_price_id) and stripe_price_id != ""
@@ -53,6 +61,67 @@ config :glossia, Glossia.Stripe,
   price_id: stripe_price_id,
   webhook_secret: stripe_webhook_secret,
   meter_event_name: stripe_meter_event_name
+
+github_webhook_secret = System.get_env("GITHUB_WEBHOOK_SECRET")
+gitlab_webhook_secret = System.get_env("GITLAB_WEBHOOK_SECRET")
+
+if is_binary(github_webhook_secret) and github_webhook_secret != "" do
+  config :glossia, Glossia.Github, webhook_secret: github_webhook_secret
+end
+
+if is_binary(gitlab_webhook_secret) and gitlab_webhook_secret != "" do
+  config :glossia, Glossia.Gitlab, webhook_secret: gitlab_webhook_secret
+end
+
+s3_access_key = System.get_env("S3_ACCESS_KEY_ID")
+s3_secret_key = System.get_env("S3_SECRET_ACCESS_KEY")
+s3_endpoint = System.get_env("S3_ENDPOINT")
+s3_region = System.get_env("S3_REGION", "auto")
+s3_bucket = System.get_env("S3_BUCKET", "glossia")
+
+if is_binary(s3_access_key) and s3_access_key != "" do
+  config :ex_aws,
+    access_key_id: s3_access_key,
+    secret_access_key: s3_secret_key,
+    region: s3_region
+
+  s3_host = URI.parse(s3_endpoint).host
+  config :ex_aws, :s3, scheme: "https://", host: s3_host, port: 443
+
+  config :glossia, Glossia.Storage, bucket: s3_bucket
+end
+
+oauth_providers =
+  []
+  |> then(fn providers ->
+    case {System.get_env("GITHUB_CLIENT_ID"), System.get_env("GITHUB_CLIENT_SECRET")} do
+      {id, secret} when is_binary(id) and is_binary(secret) ->
+        Keyword.put(providers, :github,
+          client_id: id,
+          client_secret: secret,
+          strategy: Assent.Strategy.Github
+        )
+
+      _ ->
+        providers
+    end
+  end)
+  |> then(fn providers ->
+    case {System.get_env("GITLAB_CLIENT_ID"), System.get_env("GITLAB_CLIENT_SECRET")} do
+      {id, secret} when is_binary(id) and is_binary(secret) ->
+        Keyword.put(providers, :gitlab,
+          client_id: id,
+          client_secret: secret,
+          strategy: Assent.Strategy.Gitlab,
+          authorization_params: [scope: "openid email profile"]
+        )
+
+      _ ->
+        providers
+    end
+  end)
+
+config :glossia, :oauth_providers, oauth_providers
 
 if config_env() == :prod do
   database_url =
@@ -79,6 +148,16 @@ if config_env() == :prod do
       """
 
   config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: metrics_bearer_token
+
+  ops_auth_password = System.get_env("OPS_AUTH_PASSWORD")
+
+  if is_nil(ops_auth_password) or ops_auth_password == "" do
+    raise "environment variable OPS_AUTH_PASSWORD is missing or empty."
+  end
+
+  config :glossia, GlossiaWeb.Plugs.OpsAuth,
+    username: "ops",
+    password: ops_auth_password
 
   otel_service_name = System.get_env("OTEL_SERVICE_NAME", "glossia-web")
   otel_deployment_environment = System.get_env("OTEL_DEPLOYMENT_ENVIRONMENT", "production")
@@ -117,6 +196,44 @@ if config_env() == :prod do
     # For machines with several cores, consider starting multiple pools of `pool_size`
     # pool_count: 4,
     socket_options: maybe_ipv6
+
+  clickhouse_url =
+    System.get_env("CLICKHOUSE_URL") ||
+      raise """
+      environment variable CLICKHOUSE_URL is missing.
+      For example: http://localhost:8123/glossia
+      """
+
+  clickhouse_pool_size = String.to_integer(System.get_env("CLICKHOUSE_POOL_SIZE") || "5")
+
+  config :glossia, Glossia.ClickHouseRepo,
+    url: clickhouse_url,
+    pool_size: clickhouse_pool_size,
+    queue_target: 5000,
+    queue_interval: 1000,
+    settings: [
+      readonly: 1,
+      join_algorithm: "direct,parallel_hash,hash"
+    ],
+    transport_opts: [
+      keepalive: true,
+      show_econnreset: true,
+      inet6: System.get_env("ECTO_IPV6") in ~w(true 1)
+    ]
+
+  config :glossia, Glossia.IngestRepo,
+    url: clickhouse_url,
+    pool_size: clickhouse_pool_size,
+    queue_target: 5000,
+    queue_interval: 1000,
+    flush_interval_ms:
+      String.to_integer(System.get_env("CLICKHOUSE_FLUSH_INTERVAL_MS") || "5000"),
+    max_buffer_size: String.to_integer(System.get_env("CLICKHOUSE_MAX_BUFFER_SIZE") || "100000"),
+    transport_opts: [
+      keepalive: true,
+      show_econnreset: true,
+      inet6: System.get_env("ECTO_IPV6") in ~w(true 1)
+    ]
 
   config :opentelemetry,
     span_processor: :batch,
@@ -166,39 +283,6 @@ if config_env() == :prod do
 
   config :glossia, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-  oauth_providers =
-    []
-    |> then(fn providers ->
-      case {System.get_env("GITHUB_CLIENT_ID"), System.get_env("GITHUB_CLIENT_SECRET")} do
-        {id, secret} when is_binary(id) and is_binary(secret) ->
-          Keyword.put(providers, :github,
-            client_id: id,
-            client_secret: secret,
-            strategy: Assent.Strategy.Github
-          )
-
-        _ ->
-          providers
-      end
-    end)
-    |> then(fn providers ->
-      case {System.get_env("GITLAB_CLIENT_ID"), System.get_env("GITLAB_CLIENT_SECRET")} do
-        {id, secret} when is_binary(id) and is_binary(secret) ->
-          Keyword.put(providers, :gitlab,
-            client_id: id,
-            client_secret: secret,
-            strategy: Assent.Strategy.Gitlab
-          )
-
-        _ ->
-          providers
-      end
-    end)
-
-  if oauth_providers != [] do
-    config :glossia, :oauth_providers, oauth_providers
-  end
-
   config :boruta, Boruta.Oauth, issuer: "https://#{host}"
 
   config :glossia, GlossiaWeb.Endpoint,
@@ -244,21 +328,30 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  # ## Configuring the mailer
-  #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :glossia, Glossia.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+  smtp_host = System.get_env("SMTP_HOST") || "smtp.useplunk.com"
+  smtp_port = String.to_integer(System.get_env("SMTP_PORT") || "587")
+  smtp_username = System.get_env("SMTP_USERNAME") || "plunk"
+
+  smtp_password =
+    System.get_env("SMTP_PASSWORD") ||
+      raise """
+      environment variable SMTP_PASSWORD is missing.
+      """
+
+  config :glossia, Glossia.Mailer,
+    adapter: Swoosh.Adapters.SMTP,
+    relay: smtp_host,
+    port: smtp_port,
+    username: smtp_username,
+    password: smtp_password,
+    tls: :always,
+    ssl: false,
+    auth: :always,
+    no_mx_lookups: true,
+    tls_options: [
+      verify: :verify_peer,
+      cacerts: :public_key.cacerts_get(),
+      depth: 3,
+      server_name_indication: String.to_charlist(smtp_host)
+    ]
 end

@@ -15,7 +15,7 @@ defmodule Glossia.Accounts.OrganizationMembership do
     membership
     |> cast(attrs, [:role])
     |> validate_required([:role])
-    |> validate_inclusion(:role, ["admin", "member"])
+    |> validate_inclusion(:role, ["admin", "member", "linguist"])
     |> unique_constraint([:user_id, :organization_id])
   end
 end

@@ -22,4 +22,3 @@ defmodule GlossiaWeb.BodyReader do
     end
   end
 end
-

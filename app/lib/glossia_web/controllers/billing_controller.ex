@@ -10,7 +10,8 @@ defmodule GlossiaWeb.BillingController do
     render(conn, :show,
       current_user: user,
       account: account,
-      stripe_enabled: Stripe.enabled?()
+      stripe_enabled: Stripe.enabled?(),
+      page_title: gettext("Billing")
     )
   end
 

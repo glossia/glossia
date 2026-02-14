@@ -44,4 +44,3 @@ defmodule Glossia.Stripe.WebhookTest do
     |> Base.encode16(case: :lower)
   end
 end
-

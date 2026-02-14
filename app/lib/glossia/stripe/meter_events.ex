@@ -6,7 +6,8 @@ defmodule Glossia.Stripe.MeterEvents do
   @endpoint "/v1/billing/meter_events"
 
   def create(event_name, customer_id, value, opts \\ [])
-      when is_binary(event_name) and event_name != "" and is_binary(customer_id) and customer_id != "" and
+      when is_binary(event_name) and event_name != "" and is_binary(customer_id) and
+             customer_id != "" and
              is_integer(value) and value > 0 do
     params = build_params(event_name, customer_id, value, opts)
 
@@ -40,4 +41,3 @@ defmodule Glossia.Stripe.MeterEvents do
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end
-

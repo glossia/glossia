@@ -10,6 +10,20 @@ config :glossia, Glossia.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+config :glossia, Glossia.ClickHouseRepo,
+  hostname: "localhost",
+  port: 8123,
+  database: "glossia_dev",
+  settings: [readonly: 1]
+
+config :glossia, Glossia.IngestRepo,
+  hostname: "localhost",
+  port: 8123,
+  database: "glossia_dev",
+  flush_interval_ms: 5000,
+  max_buffer_size: 100_000,
+  pool_size: 5
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -87,18 +101,9 @@ config :phoenix_live_view,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
 
-# OAuth providers for development
-config :glossia, :oauth_providers,
-  github: [
-    client_id: System.get_env("GITHUB_CLIENT_ID", "dev_github_client_id"),
-    client_secret: System.get_env("GITHUB_CLIENT_SECRET", "dev_github_client_secret"),
-    strategy: Assent.Strategy.Github
-  ],
-  gitlab: [
-    client_id: System.get_env("GITLAB_CLIENT_ID", "dev_gitlab_client_id"),
-    client_secret: System.get_env("GITLAB_CLIENT_SECRET", "dev_gitlab_client_secret"),
-    strategy: Assent.Strategy.Gitlab
-  ]
+# OAuth providers are configured at runtime via config/runtime.exs
+# which reads GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITLAB_CLIENT_ID,
+# and GITLAB_CLIENT_SECRET from environment variables (e.g. via fnox).
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

@@ -22,6 +22,10 @@ defmodule Glossia.Policy do
       allow(:org_admin)
     end
 
+    action :delete do
+      allow(:org_admin)
+    end
+
     action :admin do
       allow(:org_admin)
     end
@@ -32,6 +36,7 @@ defmodule Glossia.Policy do
       allow(:account_owner)
       allow(:org_admin)
       allow(:org_member)
+      allow(:public_account)
     end
 
     action :write do
@@ -66,6 +71,17 @@ defmodule Glossia.Policy do
 
     action :admin do
       allow(:account_owner)
+      allow(:org_admin)
+    end
+  end
+
+  object :members do
+    action :read do
+      allow(:org_admin)
+      allow(:org_member)
+    end
+
+    action :write do
       allow(:org_admin)
     end
   end

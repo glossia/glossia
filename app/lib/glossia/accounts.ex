@@ -1,7 +1,25 @@
 defmodule Glossia.Accounts do
   alias Glossia.Repo
-  alias Glossia.Accounts.{Account, Organization, OrganizationMembership, Project, User, Identity}
+
+  alias Glossia.Accounts.{
+    Account,
+    Organization,
+    OrganizationInvitation,
+    OrganizationMembership,
+    Project,
+    User,
+    Identity,
+    Voice,
+    VoiceOverride
+  }
+
   import Ecto.Query
+
+  def get_account_by_handle(handle) when is_binary(handle) do
+    Account
+    |> where(handle: ^handle)
+    |> Repo.one()
+  end
 
   def find_or_create_user_from_oauth(provider, %{user: user_info, token: token_info}) do
     provider_uid = to_string(user_info["sub"])
@@ -113,7 +131,8 @@ defmodule Glossia.Accounts do
 
   def grant_access(email) when is_binary(email) do
     case User |> where(email: ^email) |> preload(:account) |> Repo.one() do
-      nil -> {:error, :not_found}
+      nil ->
+        {:error, :not_found}
 
       user ->
         Ecto.Multi.new()
@@ -129,7 +148,8 @@ defmodule Glossia.Accounts do
 
   def revoke_access(email) when is_binary(email) do
     case User |> where(email: ^email) |> preload(:account) |> Repo.one() do
-      nil -> {:error, :not_found}
+      nil ->
+        {:error, :not_found}
 
       user ->
         Ecto.Multi.new()
@@ -173,12 +193,20 @@ defmodule Glossia.Accounts do
     |> Enum.map(& &1.organization)
   end
 
-  def list_user_accounts(%User{} = user) do
-    org_accounts =
-      list_user_organizations(user)
-      |> Enum.map(& &1.account)
+  def list_user_accounts(%User{} = user, params \\ %{}) do
+    user_account_id = user.account_id
 
-    [user.account | org_accounts]
+    org_account_ids =
+      OrganizationMembership
+      |> where(user_id: ^user.id)
+      |> join(:inner, [m], o in Organization, on: o.id == m.organization_id)
+      |> select([_m, o], o.account_id)
+
+    query =
+      Account
+      |> where([a], a.id == ^user_account_id or a.id in subquery(org_account_ids))
+
+    Flop.validate_and_run(query, params, for: Account)
   end
 
   # Organization membership management
@@ -201,6 +229,227 @@ defmodule Glossia.Accounts do
     |> Repo.one()
   end
 
+  def update_member_role(%Organization{} = org, %User{} = target_user, new_role) do
+    case get_membership(org, target_user) do
+      nil ->
+        {:error, :not_a_member}
+
+      membership ->
+        membership
+        |> OrganizationMembership.changeset(%{role: new_role})
+        |> Repo.update()
+    end
+  end
+
+  # Invitation management
+
+  def list_members(%Organization{id: org_id}) do
+    OrganizationMembership
+    |> where(organization_id: ^org_id)
+    |> preload(user: :account)
+    |> order_by(:inserted_at)
+    |> Repo.all()
+  end
+
+  def list_pending_invitations(%Organization{id: org_id}) do
+    now = DateTime.utc_now()
+
+    OrganizationInvitation
+    |> where(organization_id: ^org_id, status: "pending")
+    |> where([i], i.expires_at > ^now)
+    |> preload(:invited_by)
+    |> order_by(desc: :inserted_at)
+    |> Repo.all()
+  end
+
+  def create_invitation(%Organization{} = org, %User{} = invited_by, attrs) do
+    email = attrs["email"] || attrs[:email]
+    role = attrs["role"] || attrs[:role] || "member"
+
+    existing_user = User |> where(email: ^email) |> Repo.one()
+
+    if existing_user && get_membership(org, existing_user) do
+      {:error, :already_member}
+    else
+      now = DateTime.utc_now()
+
+      pending =
+        OrganizationInvitation
+        |> where(organization_id: ^org.id, email: ^email, status: "pending")
+        |> where([i], i.expires_at > ^now)
+        |> Repo.exists?()
+
+      if pending do
+        {:error, :already_invited}
+      else
+        token = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+        expires_at = DateTime.add(now, 7, :day)
+
+        result =
+          %OrganizationInvitation{
+            organization_id: org.id,
+            invited_by_id: invited_by.id,
+            token: token
+          }
+          |> OrganizationInvitation.changeset(%{email: email, role: role, expires_at: expires_at})
+          |> Repo.insert()
+
+        case result do
+          {:ok, invitation} ->
+            org = Repo.preload(org, :account)
+            org_name = org.account.handle
+
+            Glossia.Emails.invitation_email(invitation, org_name)
+            |> Glossia.Mailer.deliver()
+
+            {:ok, invitation}
+
+          error ->
+            error
+        end
+      end
+    end
+  end
+
+  def get_invitation_by_token(token) when is_binary(token) do
+    OrganizationInvitation
+    |> where(token: ^token)
+    |> preload(organization: :account)
+    |> Repo.one()
+  end
+
+  def accept_invitation(%OrganizationInvitation{} = invitation, %User{} = user) do
+    cond do
+      invitation.status != "pending" ->
+        {:error, :already_accepted}
+
+      DateTime.compare(DateTime.utc_now(), invitation.expires_at) == :gt ->
+        {:error, :expired}
+
+      true ->
+        existing = get_membership_by_org_id(invitation.organization_id, user.id)
+
+        if existing do
+          {:error, :already_member}
+        else
+          Ecto.Multi.new()
+          |> Ecto.Multi.update(
+            :invitation,
+            OrganizationInvitation.changeset(invitation, %{status: "accepted"})
+          )
+          |> Ecto.Multi.insert(:membership, %OrganizationMembership{
+            user_id: user.id,
+            organization_id: invitation.organization_id,
+            role: invitation.role
+          })
+          |> Repo.transaction()
+        end
+    end
+  end
+
+  def decline_invitation(%OrganizationInvitation{} = invitation) do
+    invitation
+    |> OrganizationInvitation.changeset(%{status: "declined"})
+    |> Repo.update()
+  end
+
+  def revoke_invitation(%OrganizationInvitation{} = invitation) do
+    invitation
+    |> OrganizationInvitation.changeset(%{status: "revoked"})
+    |> Repo.update()
+  end
+
+  def get_organization_for_account(%Account{id: account_id, type: "organization"}) do
+    Organization
+    |> where(account_id: ^account_id)
+    |> preload(:account)
+    |> Repo.one()
+  end
+
+  def get_organization_for_account(_), do: nil
+
+  def get_organization(id) do
+    Organization
+    |> preload(:account)
+    |> Repo.get(id)
+  end
+
+  def update_organization(%Organization{} = org, attrs) do
+    name = attrs["name"] || attrs[:name]
+    visibility = attrs["visibility"] || attrs[:visibility]
+
+    org = Repo.preload(org, :account)
+
+    Ecto.Multi.new()
+    |> then(fn multi ->
+      if name do
+        Ecto.Multi.update(multi, :organization, Organization.changeset(org, %{name: name}))
+      else
+        Ecto.Multi.put(multi, :organization, org)
+      end
+    end)
+    |> then(fn multi ->
+      if visibility do
+        Ecto.Multi.update(
+          multi,
+          :account,
+          Account.changeset(org.account, %{visibility: visibility})
+        )
+      else
+        Ecto.Multi.put(multi, :account, org.account)
+      end
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{organization: organization, account: account}} ->
+        {:ok, %{organization | account: account}}
+
+      {:error, _step, changeset, _changes} ->
+        {:error, changeset}
+    end
+  end
+
+  def delete_organization(%Organization{} = org) do
+    org = Repo.preload(org, :account)
+    Repo.delete(org.account)
+  end
+
+  def get_user_by_handle(handle) when is_binary(handle) do
+    Account
+    |> where(handle: ^handle, type: "user")
+    |> Repo.one()
+    |> case do
+      nil -> nil
+      account -> User |> where(account_id: ^account.id) |> Repo.one()
+    end
+  end
+
+  def get_invitation(%Organization{id: org_id}, invitation_id) do
+    OrganizationInvitation
+    |> where(id: ^invitation_id, organization_id: ^org_id)
+    |> Repo.one()
+  end
+
+  def sole_admin?(%Organization{id: org_id}, %User{id: user_id}) do
+    admin_count =
+      OrganizationMembership
+      |> where(organization_id: ^org_id, role: "admin")
+      |> Repo.aggregate(:count)
+
+    is_admin =
+      OrganizationMembership
+      |> where(organization_id: ^org_id, user_id: ^user_id, role: "admin")
+      |> Repo.exists?()
+
+    is_admin and admin_count == 1
+  end
+
+  defp get_membership_by_org_id(organization_id, user_id) do
+    OrganizationMembership
+    |> where(organization_id: ^organization_id, user_id: ^user_id)
+    |> Repo.one()
+  end
+
   # Project CRUD
 
   def create_project(%Account{id: account_id}, attrs) do
@@ -215,4 +464,115 @@ defmodule Glossia.Accounts do
     |> preload(:account)
     |> Repo.one()
   end
+
+  def list_projects(%Account{id: account_id}, params \\ %{}) do
+    query =
+      Project
+      |> where(account_id: ^account_id)
+      |> preload(:account)
+
+    Flop.validate_and_run(query, params, for: Project)
+  end
+
+  # Voice CRUD
+
+  def get_latest_voice(%Account{id: account_id}) do
+    Voice
+    |> where(account_id: ^account_id)
+    |> order_by(desc: :version)
+    |> limit(1)
+    |> preload([:overrides, created_by: :account])
+    |> Repo.one()
+  end
+
+  def get_voice_version(%Account{id: account_id}, version) do
+    Voice
+    |> where(account_id: ^account_id, version: ^version)
+    |> preload([:overrides, created_by: :account])
+    |> Repo.one()
+  end
+
+  def get_previous_voice_version(%Account{id: account_id}, version) do
+    Voice
+    |> where([v], v.account_id == ^account_id and v.version < ^version)
+    |> order_by(desc: :version)
+    |> limit(1)
+    |> preload([:overrides, created_by: :account])
+    |> Repo.one()
+  end
+
+  def list_voice_versions(%Account{id: account_id}, params \\ %{}) do
+    query =
+      Voice
+      |> where(account_id: ^account_id)
+      |> preload(created_by: :account)
+
+    Flop.validate_and_run(query, params, for: Voice)
+  end
+
+  def create_voice(%Account{id: account_id}, attrs, user \\ nil) do
+    overrides_attrs = attrs["overrides"] || attrs[:overrides] || []
+    created_by_id = if user, do: user.id, else: nil
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:next_version, fn repo, _changes ->
+      max =
+        Voice
+        |> where(account_id: ^account_id)
+        |> select([v], max(v.version))
+        |> repo.one()
+
+      {:ok, (max || 0) + 1}
+    end)
+    |> Ecto.Multi.insert(:voice, fn %{next_version: version} ->
+      %Voice{account_id: account_id, created_by_id: created_by_id}
+      |> Voice.changeset(Map.put(attrs, :version, version))
+    end)
+    |> Ecto.Multi.run(:overrides, fn repo, %{voice: voice} ->
+      results =
+        Enum.map(overrides_attrs, fn override_attrs ->
+          %VoiceOverride{voice_id: voice.id}
+          |> VoiceOverride.changeset(override_attrs)
+          |> repo.insert()
+        end)
+
+      case Enum.find(results, &match?({:error, _}, &1)) do
+        nil -> {:ok, Enum.map(results, fn {:ok, o} -> o end)}
+        {:error, changeset} -> {:error, changeset}
+      end
+    end)
+    |> Repo.transaction()
+  end
+
+  def get_resolved_voice(%Account{} = account, locale) do
+    case get_latest_voice(account) do
+      nil ->
+        nil
+
+      voice ->
+        base = %{
+          version: voice.version,
+          tone: voice.tone,
+          formality: voice.formality,
+          target_audience: voice.target_audience,
+          guidelines: voice.guidelines
+        }
+
+        override = Enum.find(voice.overrides, &(&1.locale == locale))
+
+        if override do
+          base
+          |> maybe_override(:tone, override.tone)
+          |> maybe_override(:formality, override.formality)
+          |> maybe_override(:target_audience, override.target_audience)
+          |> maybe_override(:guidelines, override.guidelines)
+          |> Map.put(:locale, locale)
+        else
+          base
+        end
+    end
+  end
+
+  defp maybe_override(map, _key, nil), do: map
+  defp maybe_override(map, key, value), do: Map.put(map, key, value)
 end

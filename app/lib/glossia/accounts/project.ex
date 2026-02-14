@@ -2,6 +2,13 @@ defmodule Glossia.Accounts.Project do
   use Glossia.Schema
   import Ecto.Changeset
 
+  @derive {
+    Flop.Schema,
+    filterable: [:handle, :name],
+    sortable: [:handle, :name, :inserted_at],
+    default_order: %{order_by: [:handle], order_directions: [:asc]}
+  }
+
   schema "projects" do
     field :handle, :string
     field :name, :string

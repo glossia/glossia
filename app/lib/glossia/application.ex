@@ -14,6 +14,9 @@ defmodule Glossia.Application do
       Glossia.PromEx,
       GlossiaWeb.Telemetry,
       Glossia.Repo,
+      Glossia.ClickHouseRepo,
+      Glossia.IngestRepo,
+      {Oban, Application.fetch_env!(:glossia, Oban)},
       {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Glossia.PubSub},
       # Start a worker by calling: Glossia.Worker.start_link(arg)
@@ -22,8 +25,15 @@ defmodule Glossia.Application do
       Hermes.Server.Registry,
       %{
         id: Glossia.MCP.Server,
-        start: {Hermes.Server.Supervisor, :start_link, [Glossia.MCP.Server, [transport: :streamable_http]]}
+        start:
+          {Hermes.Server.Supervisor, :start_link,
+           [Glossia.MCP.Server, [transport: :streamable_http]]}
       },
+      {Glossia.Ingestion.Buffer,
+       [name: Glossia.Ingestion.EventBuffer] ++
+         (Glossia.Ingestion.Event.buffer_opts()
+          |> Map.take([:insert_sql, :insert_opts, :header])
+          |> Map.to_list())},
       # Start to serve requests, typically the last entry
       GlossiaWeb.Endpoint
     ]

@@ -11,14 +11,13 @@
 
     <div class="docs-page-list">
       <a
-        :for={page <- @pages}
-        href={~p"/docs/#{page.category}/#{page.slug}"}
+        :for={item <- @items}
+        href={item.href}
         class="docs-page-card"
       >
-        <h3>{page.title}</h3>
-        <p>{page.summary}</p>
+        <h3>{item.title}</h3>
+        <p>{item.summary}</p>
       </a>
     </div>
   </div>
 </section>
-

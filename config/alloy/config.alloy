@@ -93,8 +93,38 @@ prometheus.scrape "host_metrics" {
 // App metrics (Phoenix, Ecto, BEAM via prom_ex)
 // ============================================
 
+discovery.docker "app" {
+  host = "unix:///var/run/docker.sock"
+
+  filter {
+    name   = "label"
+    values = ["service=glossia"]
+  }
+
+  filter {
+    name   = "label"
+    values = ["role=web"]
+  }
+}
+
+discovery.relabel "app" {
+  targets = discovery.docker.app.targets
+
+  rule {
+    source_labels = ["__meta_docker_network_ip"]
+    regex         = "(.+)"
+    replacement   = "$1:4050"
+    target_label  = "__address__"
+  }
+
+  rule {
+    replacement  = "glossia-web"
+    target_label = "job"
+  }
+}
+
 prometheus.scrape "app_metrics" {
-  targets         = [{ __address__ = "glossia-web:4050", job = "glossia-web" }]
+  targets         = discovery.relabel.app.output
   forward_to      = [prometheus.remote_write.local.receiver]
   scrape_interval = "30s"
   metrics_path    = "/metrics"

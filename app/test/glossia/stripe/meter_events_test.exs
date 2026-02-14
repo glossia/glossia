@@ -21,4 +21,3 @@ defmodule Glossia.Stripe.MeterEventsTest do
            }
   end
 end
-

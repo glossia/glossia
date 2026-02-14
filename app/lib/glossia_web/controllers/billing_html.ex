@@ -3,4 +3,3 @@ defmodule GlossiaWeb.BillingHTML do
 
   embed_templates "billing_html/*"
 end
-

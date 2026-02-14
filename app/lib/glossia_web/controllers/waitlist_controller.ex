@@ -9,11 +9,16 @@ defmodule GlossiaWeb.WaitlistController do
 
     case Waitlist.get_submission_by_user(user.id) do
       %Submission{} = submission ->
-        render(conn, :submitted, submission: submission)
+        render(conn, :submitted, submission: submission, page_title: gettext("Waitlist"))
 
       nil ->
         changeset = Submission.changeset(%Submission{}, %{})
-        render(conn, :form, changeset: changeset, current_user: user)
+
+        render(conn, :form,
+          changeset: changeset,
+          current_user: user,
+          page_title: gettext("Waitlist")
+        )
     end
   end
 
@@ -27,10 +32,14 @@ defmodule GlossiaWeb.WaitlistController do
 
     case Waitlist.create_submission(attrs) do
       {:ok, submission} ->
-        render(conn, :submitted, submission: submission)
+        render(conn, :submitted, submission: submission, page_title: gettext("Waitlist"))
 
       {:error, changeset} ->
-        render(conn, :form, changeset: changeset, current_user: user)
+        render(conn, :form,
+          changeset: changeset,
+          current_user: user,
+          page_title: gettext("Waitlist")
+        )
     end
   end
 end
