@@ -3,7 +3,7 @@
 > [!WARNING]
 > This project is in an **experimental phase**. APIs and behavior may change without notice. Please don't expect high responsiveness to issues or pull requests.
 
-Localize like you ship software. `glossia` is a Rust CLI that translates files locally using LLMs, keeps content in-repo, and validates output with your own tooling.
+Localize like you ship software. `glossia` is a Bun CLI (implemented with Node-compatible APIs) that translates files locally using LLMs, keeps content in-repo, and validates output with your own tooling.
 
 ## Install 📦
 
@@ -14,7 +14,11 @@ mise use github:glossia/glossia
 Or build from source:
 
 ```bash
-cd cli && cargo build --release
+cd cli
+bun install
+bun run build
+# optional: compiled executable targets
+bun run build:exe --targets bun-linux-x64
 ```
 
 ## Quick start 🚀
@@ -160,7 +164,10 @@ Use `--path <dir>` to run commands as if you were in a different directory.
 ## Development 🧪
 
 ```bash
-cd cli && cargo test
+cd cli
+bun run typecheck
+bun run test
+bun run build
 ```
 
 For the website:

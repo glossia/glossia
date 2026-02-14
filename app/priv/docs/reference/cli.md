@@ -8,13 +8,13 @@
 
 ## `glossia init`
 
-Launch an interactive agent to create a `CONTENT.md` configuration file.
+Create a starter `CONTENT.md` configuration file in the current repository.
 
 ```bash
 glossia init
 ```
 
-Requires an ACP-compatible agent (Claude Code, Codex CLI, Gemini CLI, Goose, or OpenCode) installed on your system.
+Fails if `CONTENT.md` already exists.
 
 ## `glossia translate`
 

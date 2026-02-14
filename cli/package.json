@@ -1,0 +1,26 @@
+{
+  "name": "glossia-cli",
+  "version": "0.13.3",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "glossia": "dist/glossia"
+  },
+  "scripts": {
+    "format": "prettier --check \"src/**/*.ts\" \"scripts/**/*.ts\"",
+    "format:fix": "prettier --write \"src/**/*.ts\" \"scripts/**/*.ts\"",
+    "build": "bun build ./src/main.ts --target bun --outfile ./dist/glossia",
+    "build:exe": "bun run ./scripts/build-executables.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.31",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "yaml": "^2.8.1"
+  }
+}
