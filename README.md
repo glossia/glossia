@@ -170,6 +170,12 @@ bun run test
 bun run build
 ```
 
+## Release 📦
+
+- The CLI changelog lives at `cli/CHANGELOG.md`.
+- Release automation uploads versioned archives to S3 (no GitHub Release artifacts).
+- See `cli/RELEASE.md` for required secrets/variables.
+
 For the website:
 
 ```bash
