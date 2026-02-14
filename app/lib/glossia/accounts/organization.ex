@@ -1,16 +1,14 @@
 defmodule Glossia.Accounts.Organization do
-  use Ecto.Schema
+  use Glossia.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   schema "organizations" do
     field :name, :string
 
     belongs_to :account, Glossia.Accounts.Account
+    has_many :organization_memberships, Glossia.Accounts.OrganizationMembership
 
-    timestamps(type: :utc_datetime)
+    timestamps()
   end
 
   def changeset(organization, attrs) do

@@ -11,6 +11,8 @@ config :glossia,
   ecto_repos: [Glossia.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :glossia, Glossia.Repo, migration_primary_key: [name: :id, type: :binary_id]
+
 # Configure the endpoint
 config :glossia, GlossiaWeb.Endpoint,
   url: [host: "localhost"],
@@ -44,7 +46,16 @@ config :esbuild,
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  metadata: [:request_id, :trace_id, :span_id]
+
+config :sentry,
+  dsn: nil,
+  included_environments: [:prod],
+  environment_name: config_env(),
+  enable_source_code_context: true,
+  root_source_code_paths: [File.cwd!()]
+
+config :glossia, :sentry_dsn_js, nil
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
@@ -61,6 +72,25 @@ config :glossia, :oauth_providers,
     client_secret: "REPLACE_IN_RUNTIME",
     strategy: Assent.Strategy.Gitlab
   ]
+
+# Boruta OAuth2 provider
+config :boruta, Boruta.Oauth,
+  repo: Glossia.Repo,
+  issuer: "http://localhost:4050",
+  contexts: [
+    resource_owners: Glossia.OAuth.ResourceOwners
+  ]
+
+config :glossia, Glossia.Stripe,
+  enabled: false,
+  price_id: nil,
+  webhook_secret: nil
+
+config :glossia, Glossia.PromEx,
+  manual_metrics_start_delay: :no_delay,
+  grafana: :disabled
+
+config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: nil
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

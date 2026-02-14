@@ -14,13 +14,19 @@ defmodule GlossiaWeb.Router do
 
   pipeline :public do
     plug :accepts, ["html"]
+    plug :fetch_session
     plug :put_root_layout, html: {GlossiaWeb.Layouts, :root}
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
     plug :put_secure_browser_headers
+    plug GlossiaWeb.Plugs.Auth
   end
 
   pipeline :require_auth do
     plug GlossiaWeb.Plugs.RequireAuth
+  end
+
+  pipeline :require_access do
+    plug GlossiaWeb.Plugs.RequireAccess
   end
 
   pipeline :dashboard do
@@ -32,6 +38,13 @@ defmodule GlossiaWeb.Router do
   end
 
   get "/up", GlossiaWeb.HealthController, :index
+
+  # Stripe webhooks (no session, no CSRF)
+  scope "/webhooks", GlossiaWeb do
+    pipe_through :api
+
+    post "/stripe", StripeWebhookController, :create
+  end
 
   scope "/auth", GlossiaWeb do
     pipe_through :browser
@@ -50,14 +63,6 @@ defmodule GlossiaWeb.Router do
     end
   end
 
-  scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_auth, :dashboard]
-
-    get "/dashboard", DashboardController, :index
-    get "/:handle", DashboardController, :account
-    get "/:handle/:project", DashboardController, :project
-  end
-
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:glossia, :dev_routes) do
     import Phoenix.LiveDashboard.Router
@@ -68,6 +73,45 @@ defmodule GlossiaWeb.Router do
       live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  # OAuth2 provider API endpoints (MCP clients authenticate here)
+  scope "/oauth", GlossiaWeb.OAuth do
+    pipe_through :api
+
+    post "/register", RegisterController, :register
+    post "/token", TokenController, :token
+    post "/revoke", RevokeController, :revoke
+    post "/introspect", IntrospectController, :introspect
+  end
+
+  # OAuth2 authorization (requires browser session)
+  scope "/oauth", GlossiaWeb.OAuth do
+    pipe_through [:browser, :require_auth]
+
+    get "/authorize", AuthorizeController, :authorize
+    post "/authorize", AuthorizeController, :authorize
+  end
+
+  # OpenAPI spec
+  scope "/api", GlossiaWeb do
+    pipe_through :api
+
+    get "/openapi.json", OpenApiController, :show
+  end
+
+  # MCP auth discovery (RFC 8414, RFC 9728)
+  scope "/.well-known", GlossiaWeb do
+    pipe_through :api
+
+    get "/oauth-authorization-server", WellKnownController, :oauth_authorization_server
+    get "/oauth-protected-resource", WellKnownController, :oauth_protected_resource
+  end
+
+  scope "/docs", GlossiaWeb do
+    pipe_through :api
+
+    get "/search.json", DocsController, :search_index
   end
 
   scope "/", GlossiaWeb do
@@ -86,5 +130,46 @@ defmodule GlossiaWeb.Router do
     get "/privacy/:date", LegalController, :privacy
     get "/cookies", LegalController, :cookies
     get "/cookies/:date", LegalController, :cookies
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth]
+
+    get "/interest", WaitlistController, :new
+    post "/interest", WaitlistController, :create
+
+    get "/billing", BillingController, :show
+    post "/billing/checkout", BillingController, :checkout
+    get "/billing/return", BillingController, :return
+    post "/billing/portal", BillingController, :portal
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth, :require_access]
+
+    get "/organizations/new", OrganizationController, :new
+    post "/organizations", OrganizationController, :create
+  end
+
+  # Authenticated API
+  scope "/api", GlossiaWeb.Api do
+    pipe_through [:api, GlossiaWeb.Plugs.BearerAuth, GlossiaWeb.Plugs.RequireApiAuth]
+
+    post "/organizations", OrganizationApiController, :create
+  end
+
+  # MCP server (StreamableHTTP transport)
+  scope "/mcp" do
+    pipe_through [:api, GlossiaWeb.Plugs.BearerAuth, GlossiaWeb.Plugs.RequireApiAuth]
+
+    forward "/", Hermes.Server.Transport.StreamableHTTP.Plug, server: Glossia.MCP.Server
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth, :require_access, :dashboard]
+
+    get "/dashboard", DashboardController, :index
+    get "/:handle", DashboardController, :account
+    get "/:handle/:project", DashboardController, :project
   end
 end

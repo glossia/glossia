@@ -1,16 +1,16 @@
 %{
-  title: "CONTENT.md",
-  summary: "Complete reference for the CONTENT.md configuration file.",
+  title: "GLOSSIA.md",
+  summary: "Complete reference for the GLOSSIA.md configuration file.",
   category: "reference",
   order: 1
 }
 ---
 
-`CONTENT.md` is the configuration file that tells Glossia what to process, how to process it, and where to write the output. It lives at the root of your project or in any subdirectory to scope configuration to a subtree.
+`GLOSSIA.md` is the configuration file that tells Glossia what to process, how to process it, and where to write the output. It lives at the root of your project or in any subdirectory to scope configuration to a subtree.
 
 ## Structure
 
-A `CONTENT.md` file has two parts:
+A `GLOSSIA.md` file has two parts:
 
 1. **TOML frontmatter** between `+++` markers that defines content entries and LLM settings.
 2. **Free-text context** below the frontmatter that agents use to understand your product, tone, and conventions.

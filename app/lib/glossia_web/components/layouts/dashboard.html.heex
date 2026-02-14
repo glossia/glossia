@@ -8,34 +8,75 @@
     </div>
     <nav class="dash-nav">
       <a href={"/" <> @current_user.account.handle} class="dash-nav-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
         </svg>
-        <span class="dash-nav-label">Projects</span>
+        <span class="dash-nav-label">{gettext("Projects")}</span>
       </a>
-      <a href="#" class="dash-nav-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <a href={~p"/billing"} class="dash-nav-item">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
         </svg>
-        <span class="dash-nav-label">Activity</span>
+        <span class="dash-nav-label">{gettext("Activity")}</span>
       </a>
       <a href="#" class="dash-nav-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
         </svg>
-        <span class="dash-nav-label">Settings</span>
+        <span class="dash-nav-label">{gettext("Billing")}</span>
       </a>
     </nav>
     <div class="dash-sidebar-bottom">
       <button
         class="dash-nav-item dash-sidebar-collapse"
         id="dash-collapse-btn"
-        aria-label="Collapse sidebar"
+        aria-label={gettext("Collapse sidebar")}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="collapse-icon">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          class="collapse-icon"
+        >
           <polyline points="11 17 6 12 11 7" /><polyline points="18 17 13 12 18 7" />
         </svg>
-        <span class="dash-nav-label">Collapse</span>
+        <span class="dash-nav-label">{gettext("Collapse")}</span>
       </button>
     </div>
   </aside>
@@ -43,6 +84,45 @@
   <div class="dash-content-area">
     <header class="dash-topbar">
       <div class="dash-topbar-left">
+        <div class="account-switcher" :if={assigns[:accounts]}>
+          <button class="account-switcher-toggle" aria-expanded="false" aria-haspopup="true">
+            <span class="account-switcher-name">{@handle}</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <ul class="account-switcher-menu" role="menu">
+            <li :for={account <- @accounts} role="none">
+              <a
+                role="menuitem"
+                href={"/" <> account.handle}
+                class={if account.handle == @handle, do: "active"}
+              >
+                <span class="account-switcher-handle">{account.handle}</span>
+                <span :if={account.type == "user"} class="account-badge">{gettext("Personal")}</span>
+                <span :if={account.type == "organization"} class="account-badge account-badge-org">
+                  {gettext("Org")}
+                </span>
+              </a>
+            </li>
+            <li role="none" class="account-switcher-divider"></li>
+            <li role="none">
+              <a role="menuitem" href="/organizations/new" class="account-switcher-create">
+                {gettext("Create organization")}
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
       <div class="dash-topbar-right">
         <div class="avatar-dropdown">
@@ -50,13 +130,13 @@
             <img
               src={"https://www.gravatar.com/avatar/#{Base.encode16(:crypto.hash(:md5, String.downcase(String.trim(@current_user.email))), case: :lower)}?s=64&d=identicon"}
               alt={@current_user.name || @current_user.email}
-              width="32"
-              height="32"
+              width="24"
+              height="24"
             />
           </button>
           <ul class="avatar-menu" role="menu">
             <li role="none">
-              <a role="menuitem" href="/auth/logout" data-method="delete">Log out</a>
+              <a role="menuitem" href="/auth/logout" data-method="delete">{gettext("Log out")}</a>
             </li>
           </ul>
         </div>
@@ -82,6 +162,20 @@
       collapseBtn.addEventListener('click', function() {
         shell.classList.toggle('sidebar-collapsed');
         localStorage.setItem('sidebar-collapsed', shell.classList.contains('sidebar-collapsed'));
+      });
+    }
+
+    var acctSwitcher = document.querySelector('.account-switcher');
+    if (acctSwitcher) {
+      var acctBtn = acctSwitcher.querySelector('.account-switcher-toggle');
+      acctBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        acctSwitcher.classList.toggle('open');
+        acctBtn.setAttribute('aria-expanded', acctSwitcher.classList.contains('open'));
+      });
+      document.addEventListener('click', function() {
+        acctSwitcher.classList.remove('open');
+        acctBtn.setAttribute('aria-expanded', 'false');
       });
     }
 

@@ -21,7 +21,7 @@ defmodule GlossiaWeb.AuthController do
 
       {:error, _error} ->
         conn
-        |> put_flash(:error, "Failed to start authentication. Please try again.")
+        |> put_flash(:error, gettext("Failed to start authentication. Please try again."))
         |> redirect(to: ~p"/auth/login")
     end
   end
@@ -35,20 +35,25 @@ defmodule GlossiaWeb.AuthController do
       {:ok, oauth_response} ->
         case Accounts.find_or_create_user_from_oauth(provider, oauth_response) do
           {:ok, user} ->
+            return_to = get_session(conn, :return_to)
+
             conn
+            |> delete_session(:return_to)
             |> put_session(:user_id, user.id)
             |> configure_session(renew: true)
-            |> redirect(to: ~p"/dashboard")
+            |> redirect(
+              to: return_to || if(user.account.has_access, do: ~p"/dashboard", else: ~p"/billing")
+            )
 
           {:error, _changeset} ->
             conn
-            |> put_flash(:error, "There was a problem creating your account. Please try again.")
+            |> put_flash(:error, gettext("There was a problem creating your account. Please try again."))
             |> redirect(to: ~p"/auth/login")
         end
 
       {:error, _error} ->
         conn
-        |> put_flash(:error, "Authentication failed. Please try again.")
+        |> put_flash(:error, gettext("Authentication failed. Please try again."))
         |> redirect(to: ~p"/auth/login")
     end
   end
@@ -57,14 +62,17 @@ defmodule GlossiaWeb.AuthController do
     case Glossia.Repo.get_by(Glossia.Accounts.User, email: "dev@glossia.ai") do
       nil ->
         conn
-        |> put_flash(:error, "Dev user not found. Run: mix run priv/repo/seeds.exs")
+        |> put_flash(:error, gettext("Dev user not found. Run: mix run priv/repo/seeds.exs"))
         |> redirect(to: ~p"/auth/login")
 
       user ->
+        return_to = get_session(conn, :return_to)
+
         conn
+        |> delete_session(:return_to)
         |> put_session(:user_id, user.id)
         |> configure_session(renew: true)
-        |> redirect(to: ~p"/dashboard")
+        |> redirect(to: return_to || if(user.account.has_access, do: ~p"/dashboard", else: ~p"/billing"))
     end
   end
 
@@ -76,5 +84,7 @@ defmodule GlossiaWeb.AuthController do
 
   defp parse_provider!("github"), do: :github
   defp parse_provider!("gitlab"), do: :gitlab
-  defp parse_provider!(_), do: raise(Glossia.Auth.InvalidProviderError, message: "invalid provider")
+
+  defp parse_provider!(_),
+    do: raise(Glossia.Auth.InvalidProviderError, message: "invalid provider")
 end

@@ -1,0 +1,821 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "%{client_name} wants to access your Glossia account."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:4
+#, elixir-autogen, elixir-format
+msgid "A content agent for your codebase"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "About your product"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:34
+#, elixir-autogen, elixir-format
+msgid "Acme Inc."
+msgstr ""
+
+#: lib/glossia_web/components/core_components.ex:372
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/dashboard.html.heex:40
+#, elixir-autogen, elixir-format
+msgid "Activity"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:155
+#, elixir-autogen, elixir-format
+msgid "Agents don't just generate content. They verify it, catch errors, and retry until the output meets your standards."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:72
+#, elixir-autogen, elixir-format
+msgid "Assign different models to different roles and mix providers freely. Glossia acts as a broker between your code and the models, so you don't need to register with each provider separately."
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:38
+#: lib/glossia_web/components/layouts.ex:50
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:56
+#, elixir-autogen, elixir-format
+msgid "Authentication failed. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:5
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "Authorize %{client_name}"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:8
+#: lib/glossia_web/components/layouts/app.html.heex:67
+#: lib/glossia_web/controllers/blog_html/index.html.heex:3
+#, elixir-autogen, elixir-format
+msgid "Blog"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:83
+#, elixir-autogen, elixir-format
+msgid "Built with love from Berlin."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:171
+#, elixir-autogen, elixir-format
+msgid "Built-in tools check syntax, structure, and preserved tokens. You can also plug in your own linters, compilers, or validators."
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:49
+#, elixir-autogen, elixir-format
+msgid "By authorizing, you allow this application to access your account."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:51
+#, elixir-autogen, elixir-format
+msgid "By signing in, you agree to our"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Changes"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:12
+#, elixir-autogen, elixir-format
+msgid "Check out the docs"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:70
+#, elixir-autogen, elixir-format
+msgid "Choose the best model for the job"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Choose your preferred sign-in method"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:79
+#, elixir-autogen, elixir-format
+msgid "Close the feedback loop"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:153
+#, elixir-autogen, elixir-format
+msgid "Closing the loop"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/dashboard.html.heex:79
+#, elixir-autogen, elixir-format
+msgid "Collapse"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/dashboard.html.heex:63
+#, elixir-autogen, elixir-format
+msgid "Collapse sidebar"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "Company"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:28
+#, elixir-autogen, elixir-format
+msgid "Company or product"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:207
+#, elixir-autogen, elixir-format
+msgid "Context files nest alongside your content. Language overrides sit next door."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:190
+#, elixir-autogen, elixir-format
+msgid "Context flows down, config stays close"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:336
+#, elixir-autogen, elixir-format
+msgid "Converge"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:90
+#, elixir-autogen, elixir-format
+msgid "Cookie Policy"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "Current"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:10
+#: lib/glossia_web/components/layouts/app.html.heex:69
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "Date"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:200
+#, elixir-autogen, elixir-format
+msgid "Define content sources, targets, and output patterns in TOML frontmatter."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:65
+#, elixir-autogen, elixir-format
+msgid "Dev user not found. Run: mix run priv/repo/seeds.exs"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:358
+#, elixir-autogen, elixir-format
+msgid "Do I need to bring my own models?"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:7
+#: lib/glossia_web/components/layouts/app.html.heex:66
+#, elixir-autogen, elixir-format
+msgid "Docs"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/api_reference.html.heex:9
+#: lib/glossia_web/controllers/docs_html/category.html.heex:9
+#: lib/glossia_web/controllers/docs_html/index.html.heex:3
+#: lib/glossia_web/controllers/docs_html/markdown.html.heex:4
+#: lib/glossia_web/controllers/docs_html/show.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "Documentation"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:315
+#, elixir-autogen, elixir-format
+msgid "Draft"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Effective:"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:17
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:347
+#, elixir-autogen, elixir-format
+msgid "FAQ"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:24
+#, elixir-autogen, elixir-format
+msgid "Failed to start authentication. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:352
+#, elixir-autogen, elixir-format
+msgid "For the first time in history, we have tools that can capture context and interact with the outside world to produce and transform content across languages. LLMs changed what is possible, but possibility alone is not enough. You need a system that orchestrates those capabilities reliably: hashing to avoid redundant work, validation to catch errors, retries to close the loop, and Git to keep humans in control. That system is what we are building from first principles and from years of experience building developer tools."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:161
+#, elixir-autogen, elixir-format
+msgid "Generate"
+msgstr ""
+
+#: lib/glossia_web/controllers/blog_html/show.html.heex:75
+#, elixir-autogen, elixir-format
+msgid "Get in touch"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:60
+#, elixir-autogen, elixir-format
+msgid "Give agents context"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:259
+#, elixir-autogen, elixir-format
+msgid "Glossia borrows proven patterns from software engineering and applies them to content workflows, so you can ship content with the same confidence you ship code."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:81
+#, elixir-autogen, elixir-format
+msgid "Glossia ships first-party tools for syntax validation and content checks, and you can bring your own. Agents run these tools after each generation and retry on errors, so the loop closes before you even review."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Glossia uses LLMs to transform, translate, and generate content directly in your repo. It validates output locally and produces drafts your team can review."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:366
+#, elixir-autogen, elixir-format
+msgid "How do humans review outputs?"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:56
+#, elixir-autogen, elixir-format
+msgid "How it works"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:293
+#, elixir-autogen, elixir-format
+msgid "Human feedback loop"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "I'm interested"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:140
+#, elixir-autogen, elixir-format
+msgid "Improve your content in place. Glossia reviews source files for clarity, accuracy, and tone using the context you provide. The revised output overwrites the original or writes to a separate path. Run"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:266
+#, elixir-autogen, elixir-format
+msgid "Incremental updates"
+msgstr ""
+
+#: lib/glossia_web/controllers/blog_html/show.html.heex:71
+#, elixir-autogen, elixir-format
+msgid "Interested in Glossia?"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:94
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/index.html.heex:4
+#, elixir-autogen, elixir-format
+msgid "Learn how to use Glossia to translate and improve your content."
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:86
+#, elixir-autogen, elixir-format
+msgid "Legal"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:275
+#, elixir-autogen, elixir-format
+msgid "Linting and validation"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:22
+#: lib/glossia_web/components/layouts/dashboard.html.heex:99
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:116
+#, elixir-autogen, elixir-format
+msgid "Make your content speak new languages. Point Glossia at your source files, list target languages, and it produces localized versions that preserve structure, code blocks, and formatting. Run"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:28
+#, elixir-autogen, elixir-format
+msgid "Menu"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:32
+#, elixir-autogen, elixir-format
+msgid "Motivation"
+msgstr ""
+
+#: lib/glossia_web/controllers/dashboard_html/account.html.heex:4
+#, elixir-autogen, elixir-format
+msgid "New project"
+msgstr ""
+
+#: lib/glossia_web/controllers/dashboard_html/account.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "No projects yet"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:360
+#, elixir-autogen, elixir-format
+msgid "No. Glossia acts as a broker between your content and the models. The landscape is moving fast, and you want the flexibility to switch models quickly without rewiring your pipeline. We continuously monitor and test which models perform best for different tasks, so you get strong defaults out of the box while keeping the freedom to override with any provider you prefer."
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/show.html.heex:19
+#: lib/glossia_web/controllers/docs_html/show.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "On this page"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:308
+#, elixir-autogen, elixir-format
+msgid "Outputs don't have to be perfect on day one. Like code, they improve through iteration."
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:84
+#, elixir-autogen, elixir-format
+msgid "Please fix the errors below."
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:89
+#: lib/glossia_web/controllers/auth_html/login.html.heex:53
+#, elixir-autogen, elixir-format
+msgid "Privacy Policy"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:306
+#, elixir-autogen, elixir-format
+msgid "Progressive Refinement"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:205
+#, elixir-autogen, elixir-format
+msgid "Project layout"
+msgstr ""
+
+#: lib/glossia_web/controllers/dashboard_html/project.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "Project overview"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/dashboard.html.heex:24
+#: lib/glossia_web/controllers/dashboard_html/account.html.heex:3
+#, elixir-autogen, elixir-format
+msgid "Projects"
+msgstr ""
+
+#: lib/glossia_web/controllers/dashboard_html/account.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "Projects will show up here once you create one."
+msgstr ""
+
+#: lib/glossia_web/controllers/blog_html/index.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "RSS Feed"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:329
+#, elixir-autogen, elixir-format
+msgid "Refine"
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "Requested permissions:"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:177
+#, elixir-autogen, elixir-format
+msgid "Retry"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:284
+#, elixir-autogen, elixir-format
+msgid "Retry on failure"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:322
+#, elixir-autogen, elixir-format
+msgid "Review"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:295
+#, elixir-autogen, elixir-format
+msgid "Reviewers flag issues through pull requests and update context files. Each correction feeds back into the next run, so the output gets closer to your voice with every cycle."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:138
+#, elixir-autogen, elixir-format
+msgid "Revisit"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:257
+#, elixir-autogen, elixir-format
+msgid "Ship content like you ship code"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:45
+#, elixir-autogen, elixir-format
+msgid "Sign in as Dev User"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Sign in to Glossia"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Sign in with GitHub"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "Sign in with GitLab"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:45
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:78
+#, elixir-autogen, elixir-format
+msgid "Spanish, German, Japanese..."
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:88
+#, elixir-autogen, elixir-format
+msgid "Submit"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:72
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:37
+#, elixir-autogen, elixir-format
+msgid "Target languages"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Tell us about your product"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Tell us about your project"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:88
+#: lib/glossia_web/controllers/auth_html/login.html.heex:52
+#, elixir-autogen, elixir-format
+msgid "Terms of Service"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Thanks for your interest!"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:192
+#, elixir-autogen, elixir-format
+msgid "The narrower the scope, the closer to the code. Global defaults live at the root, project-specific rules nest deeper, and shared resources like glossaries live in Glossia so they can be reused across repositories."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:277
+#, elixir-autogen, elixir-format
+msgid "The same idea behind CI checks: run syntax validators, linters, and custom commands against every output before it lands."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:50
+#, elixir-autogen, elixir-format
+msgid "There was a problem creating your account. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/dashboard_html/project.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "This is a placeholder for the project detail page."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:368
+#, elixir-autogen, elixir-format
+msgid "Today, reviewers check generated content through pull requests and diffs, and can update context files to force regeneration when needed. In the future, we expect them to become part of the loop by running Glossia locally, the same way developers already work with coding agents like Codex."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:114
+#, elixir-autogen, elixir-format
+msgid "Translate"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:92
+#, elixir-autogen, elixir-format
+msgid "Two workflows, one tool"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:39
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "URL"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:379
+#, elixir-autogen, elixir-format
+msgid "Updates"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:169
+#, elixir-autogen, elixir-format
+msgid "Verify"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "Version History"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "View"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "View current version"
+msgstr ""
+
+#: lib/glossia_web/controllers/blog_html/show.html.heex:73
+#, elixir-autogen, elixir-format
+msgid "We are building localization tooling designed for the age of AI agents. If you want to give it a try or just want to chat about how localization should work, reach out."
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:33
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/submitted.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "We received your details. We'll reach out when we're ready for you."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:268
+#, elixir-autogen, elixir-format
+msgid "We use lockfiles and DAG graphs to update only what changed, so you skip redundant work and save both time and money on every run."
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "We're onboarding teams one by one. Fill this out and we'll reach out when it's your turn."
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:55
+#, elixir-autogen, elixir-format
+msgid "What does your product do?"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:61
+#, elixir-autogen, elixir-format
+msgid "What motivated you to consider Glossia?"
+msgstr ""
+
+#: lib/glossia_web/controllers/waitlist_html/form.html.heex:67
+#, elixir-autogen, elixir-format
+msgid "What problem are you trying to solve?"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:286
+#, elixir-autogen, elixir-format
+msgid "When a check fails, agents see the error and try again. Automatic retries with feedback, the same pattern behind resilient distributed systems."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:179
+#, elixir-autogen, elixir-format
+msgid "When a check fails, agents see the error and try again. The loop repeats until the output is valid or the retry limit is reached."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:94
+#, elixir-autogen, elixir-format
+msgid "Whether you need to reach new audiences or sharpen what you already have, the same config file and CLI drives both."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:350
+#, elixir-autogen, elixir-format
+msgid "Why build this now?"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "You are viewing a previous version."
+msgstr ""
+
+#: lib/glossia_web/plugs/require_auth.ex:16
+#, elixir-autogen, elixir-format
+msgid "You must sign in to access this page."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:53
+#, elixir-autogen, elixir-format
+msgid "and"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:120
+#, elixir-autogen, elixir-format
+msgid "and ship to every market."
+msgstr ""
+
+#: lib/glossia_web/components/core_components.ex:71
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:144
+#, elixir-autogen, elixir-format
+msgid "to sharpen your docs, guides, or blog posts."
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_controller.ex:37
+#, elixir-autogen, elixir-format
+msgid "API Reference"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:62
+#, elixir-autogen, elixir-format
+msgid "Add"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:163
+#, elixir-autogen, elixir-format
+msgid "Agents produce content based on your source files and the context you provide in"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/show.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "All documentation"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/dashboard.html.heex:56
+#: lib/glossia_web/controllers/billing_html/show.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Billing"
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_controller.ex:37
+#: lib/glossia_web/controllers/billing_html/show.html.heex:19
+#, elixir-autogen, elixir-format
+msgid "Billing isn't configured yet."
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_html/show.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "Continue to checkout"
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_controller.ex:76
+#, elixir-autogen, elixir-format
+msgid "Couldn't open the customer portal. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_controller.ex:32
+#, elixir-autogen, elixir-format
+msgid "Couldn't start checkout. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_controller.ex:56
+#, elixir-autogen, elixir-format
+msgid "Couldn't verify checkout. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:338
+#, elixir-autogen, elixir-format
+msgid "Each cycle narrows the gap. The system learns your product's voice. Over time, outputs need fewer corrections and start matching the quality your team would produce by hand."
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_html/show.html.heex:53
+#, elixir-autogen, elixir-format
+msgid "Join the waitlist"
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_html/show.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "Manage billing"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/markdown.html.heex:10
+#: lib/glossia_web/controllers/docs_html/show.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Markdown"
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_controller.ex:61
+#, elixir-autogen, elixir-format
+msgid "Missing checkout information. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/markdown.html.heex:30
+#, elixir-autogen, elixir-format
+msgid "Raw Markdown source for this page."
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/markdown.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "Rendered"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/api_reference.html.heex:4
+#: lib/glossia_web/controllers/docs_html/category.html.heex:4
+#: lib/glossia_web/controllers/docs_html/index.html.heex:6
+#: lib/glossia_web/controllers/docs_html/show.html.heex:4
+#, elixir-autogen, elixir-format
+msgid "Search docs..."
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_html/show.html.heex:43
+#, elixir-autogen, elixir-format
+msgid "Set the following env vars to enable Stripe:"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/markdown.html.heex:16
+#, elixir-autogen, elixir-format
+msgid "Source"
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_html/show.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Subscribe to unlock the dashboard."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:317
+#, elixir-autogen, elixir-format
+msgid "The LLM generates a structurally valid first pass from your context files. Formatting, code blocks, and frontmatter come through intact so the output is ready to review, not rebuild."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:331
+#, elixir-autogen, elixir-format
+msgid "Updated context and glossary corrections feed into the next run. Every edit to a context file or glossary entry tightens the instructions the agent follows, so repeated mistakes disappear."
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/markdown.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "View rendered"
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_controller.ex:51
+#, elixir-autogen, elixir-format
+msgid "You're subscribed. Welcome aboard."
+msgstr ""
+
+#: lib/glossia_web/controllers/billing_html/show.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Your subscription is active."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:324
+#, elixir-autogen, elixir-format
+msgid "Your team flags issues through pull requests, just like code review. Reviewers comment on tone, accuracy, or missing nuance, and those notes become input for the next cycle."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:63
+#, elixir-autogen, elixir-format
+msgid "context files alongside your content. Glossia tracks their dependency so when context or content changes, only the affected outputs get regenerated."
+msgstr ""

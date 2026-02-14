@@ -10,7 +10,7 @@ defmodule Glossia.Repo.Migrations.CreateIdentities do
       add :provider_token, :text
       add :provider_refresh_token, :text
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     create unique_index(:identities, [:provider, :provider_uid])

@@ -1,0 +1,43 @@
+<section class="auth-page">
+  <div class="waitlist-card">
+    <div class="auth-header">
+      <img src={~p"/images/logo-squared.png"} alt="" class="auth-logo" />
+      <h1>{gettext("Thanks for your interest!")}</h1>
+      <p class="auth-subtitle">
+        {gettext("We received your details. We'll reach out when we're ready for you.")}
+      </p>
+    </div>
+
+    <div class="waitlist-summary">
+      <dl>
+        <dt>{gettext("Email")}</dt>
+        <dd>{@submission.email}</dd>
+
+        <%= if @submission.company && @submission.company != "" do %>
+          <dt>{gettext("Company")}</dt>
+          <dd>{@submission.company}</dd>
+        <% end %>
+
+        <%= if @submission.url && @submission.url != "" do %>
+          <dt>{gettext("URL")}</dt>
+          <dd>{@submission.url}</dd>
+        <% end %>
+
+        <%= if @submission.description && @submission.description != "" do %>
+          <dt>{gettext("About your product")}</dt>
+          <dd>{@submission.description}</dd>
+        <% end %>
+
+        <%= if @submission.motivation && @submission.motivation != "" do %>
+          <dt>{gettext("Motivation")}</dt>
+          <dd>{@submission.motivation}</dd>
+        <% end %>
+
+        <%= if @submission.target_languages && @submission.target_languages != "" do %>
+          <dt>{gettext("Target languages")}</dt>
+          <dd>{@submission.target_languages}</dd>
+        <% end %>
+      </dl>
+    </div>
+  </div>
+</section>

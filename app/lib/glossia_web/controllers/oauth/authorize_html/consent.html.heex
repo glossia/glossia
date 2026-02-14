@@ -1,0 +1,52 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src={~p"/images/logo-squared.png"} alt="" class="auth-logo" />
+      <h1>{gettext("Authorize %{client_name}", client_name: @client_name)}</h1>
+      <p class="auth-subtitle">
+        {gettext("%{client_name} wants to access your Glossia account.",
+          client_name: @client_name
+        )}
+      </p>
+    </div>
+
+    <%= if @scopes != [] do %>
+      <div class="consent-scopes">
+        <p class="consent-scopes-label">{gettext("Requested permissions:")}</p>
+        <ul class="consent-scopes-list">
+          <%= for scope <- @scopes do %>
+            <li>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {scope}
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <.form for={%{}} action={~p"/oauth/authorize"} method="post" id="oauth-consent-form">
+      <%= for {key, value} <- @params do %>
+        <input type="hidden" name={key} value={value} />
+      <% end %>
+      <button type="submit" class="button primary consent-authorize-btn">
+        {gettext("Authorize %{client_name}", client_name: @client_name)}
+      </button>
+    </.form>
+
+    <p class="auth-terms">
+      {gettext("By authorizing, you allow this application to access your account.")}
+    </p>
+  </div>
+</section>

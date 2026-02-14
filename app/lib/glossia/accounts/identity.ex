@@ -1,9 +1,6 @@
 defmodule Glossia.Accounts.Identity do
-  use Ecto.Schema
+  use Glossia.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   schema "identities" do
     field :provider, :string
@@ -13,7 +10,7 @@ defmodule Glossia.Accounts.Identity do
 
     belongs_to :user, Glossia.Accounts.User
 
-    timestamps(type: :utc_datetime)
+    timestamps()
   end
 
   def changeset(identity, attrs) do

@@ -1,0 +1,60 @@
+<section class="auth-page">
+  <div class="waitlist-card">
+    <div class="auth-header">
+      <img src={~p"/images/logo-squared.png"} alt="" class="auth-logo" />
+      <h1>{gettext("Create an organization")}</h1>
+      <p class="auth-subtitle">
+        {gettext("Organizations let you collaborate with your team on content projects.")}
+      </p>
+    </div>
+
+    <form action={~p"/organizations"} method="post" class="waitlist-form">
+      <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+
+      <div class="form-field">
+        <label for="account_handle">{gettext("Handle")}</label>
+        <input
+          type="text"
+          id="account_handle"
+          name="account[handle]"
+          value={Phoenix.HTML.Form.normalize_value("text", @changeset.changes[:handle])}
+          placeholder={gettext("my-org")}
+          required
+          pattern="[a-z][a-z0-9-]*"
+          autocomplete="off"
+        />
+        <span class="form-hint">
+          {gettext("Lowercase letters, numbers, and hyphens. Must start with a letter.")}
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label for="account_name">{gettext("Name (optional)")}</label>
+        <input
+          type="text"
+          id="account_name"
+          name="account[name]"
+          value={Phoenix.HTML.Form.normalize_value("text", @changeset.changes[:name])}
+          placeholder={gettext("My Organization")}
+        />
+      </div>
+
+      <%= if @changeset.action do %>
+        <div class="form-errors" role="alert">
+          <%= for {field, {msg, _opts}} <- @changeset.errors do %>
+            <p>{field |> to_string() |> String.capitalize()} {msg}</p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <p class="form-tos-notice">
+        {gettext("By creating an organization, you agree to our")}
+        <a href={~p"/terms"}>{gettext("Terms of Service")}</a>.
+      </p>
+
+      <button type="submit" class="button primary waitlist-submit">
+        {gettext("Create organization")}
+      </button>
+    </form>
+  </div>
+</section>

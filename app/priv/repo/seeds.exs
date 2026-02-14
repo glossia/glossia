@@ -17,13 +17,15 @@ alias Glossia.Accounts.{Account, User, Identity}
 unless Repo.get_by(User, email: "dev@glossia.ai") do
   account =
     Repo.insert!(%Account{
-      handle: "dev"
+      handle: "dev",
+      has_access: true
     })
 
   user =
     Repo.insert!(%User{
       email: "dev@glossia.ai",
       name: "Dev User",
+      has_access: true,
       account_id: account.id
     })
 
