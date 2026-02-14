@@ -4,23 +4,23 @@ image: glossia/glossia
 servers:
   web:
     hosts:
-      - 188.245.70.227
+      - 89.167.60.202
 
 proxy:
   ssl: true
   host: glossia.ai
-  app_port: 4000
+  app_port: 4050
   forward_headers: true
 
 registry:
-  server: 188.245.70.227:5000
+  server: 89.167.60.202:5000
   username: glossia
   password:
     - KAMAL_REGISTRY_PASSWORD
 
 builder:
   arch: arm64
-  remote: ssh://root@188.245.70.227
+  remote: ssh://root@89.167.60.202
   context: app
   dockerfile: app/Dockerfile
 
@@ -34,8 +34,8 @@ env:
 accessories:
   postgres:
     image: postgres:17
-    host: 188.245.70.227
-    port: 5432
+    host: 89.167.60.202
+    port: "5432"
     env:
       clear:
         POSTGRES_USER: glossia
@@ -46,7 +46,63 @@ accessories:
       - data:/var/lib/postgresql/data
   registry:
     image: registry:2
-    host: 188.245.70.227
-    port: 5000
+    host: 89.167.60.202
+    port: "5000"
     directories:
       - data:/var/lib/registry
+  loki:
+    image: grafana/loki:3.4
+    host: 89.167.60.202
+    port: "3100"
+    cmd: -config.file=/etc/loki/local-config.yaml
+    directories:
+      - data:/loki
+  tempo:
+    image: grafana/tempo:2.7
+    host: 89.167.60.202
+    port: "3200:3200"
+    options:
+      publish:
+        - "4417:4317"
+        - "4418:4318"
+    files:
+      - config/tempo/config.yaml:/etc/tempo/config.yaml
+    cmd: -config.file=/etc/tempo/config.yaml
+    directories:
+      - data:/var/tempo
+  prometheus:
+    image: prom/prometheus:v3.2
+    host: 89.167.60.202
+    port: "9090"
+    files:
+      - config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    cmd: --config.file=/etc/prometheus/prometheus.yml --web.enable-remote-write-receiver
+    directories:
+      - data:/prometheus
+  alloy:
+    image: grafana/alloy:latest
+    host: 89.167.60.202
+    port: "12345:12345"
+    options:
+      publish:
+        - "4317:4317"
+        - "4318:4318"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    files:
+      - config/alloy/config.alloy:/etc/alloy/config.alloy
+    cmd: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+  grafana:
+    image: grafana/grafana:11.5
+    host: 89.167.60.202
+    port: 3050:3000
+    env:
+      clear:
+        GF_SERVER_ROOT_URL: https://data.glossia.ai
+        GF_SERVER_DOMAIN: data.glossia.ai
+      secret:
+        - GF_SECURITY_ADMIN_PASSWORD
+    directories:
+      - data:/var/lib/grafana

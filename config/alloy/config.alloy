@@ -1,0 +1,99 @@
+// ============================================
+// OTLP receiver (traces and logs from the app)
+// ============================================
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    traces = [otelcol.exporter.otlp.tempo.input]
+    logs   = [otelcol.exporter.loki.default.input]
+  }
+}
+
+// ============================================
+// Export traces to Tempo
+// ============================================
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "glossia-tempo:4317"
+
+    tls {
+      insecure = true
+    }
+  }
+}
+
+// ============================================
+// Export logs to Loki (via OTLP)
+// ============================================
+
+otelcol.exporter.loki "default" {
+  forward_to = [loki.write.local.receiver]
+}
+
+// ============================================
+// Docker container logs
+// ============================================
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.containers.targets
+  forward_to = [loki.relabel.docker_logs.receiver]
+}
+
+loki.relabel "docker_logs" {
+  forward_to = [loki.write.local.receiver]
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    target_label  = "container"
+  }
+}
+
+// ============================================
+// Host metrics (CPU, memory, disk, network)
+// ============================================
+
+prometheus.exporter.unix "host" {
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  rootfs_path = "/"
+}
+
+prometheus.scrape "host_metrics" {
+  targets         = prometheus.exporter.unix.host.targets
+  forward_to      = [prometheus.remote_write.local.receiver]
+  scrape_interval = "60s"
+}
+
+// ============================================
+// Write: Loki (local)
+// ============================================
+
+loki.write "local" {
+  endpoint {
+    url = "http://glossia-loki:3100/loki/api/v1/push"
+  }
+}
+
+// ============================================
+// Write: Prometheus (local)
+// ============================================
+
+prometheus.remote_write "local" {
+  endpoint {
+    url = "http://glossia-prometheus:9090/api/v1/write"
+  }
+}

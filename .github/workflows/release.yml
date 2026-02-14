@@ -7,11 +7,12 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "The version to release (e.g. v0.2.0)."
+        description: "The version to release (e.g. 0.14.0 or v0.14.0)."
         type: string
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   prepare:
@@ -22,54 +23,57 @@ jobs:
     outputs:
       should_release: ${{ steps.releasable.outputs.should_release }}
       version: ${{ steps.next-version.outputs.version }}
-      release_notes: ${{ steps.release-notes.outputs.release_notes }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
+
       - name: Install git-cliff
         uses: taiki-e/install-action@v2
         with:
           tool: git-cliff@2.10.0
+
       - name: Check if there are releasable changes
         id: releasable
         run: |
           bumped_output=$(git cliff --config cliff.toml --bump --unreleased)
-          changelog_content=$(cat CHANGELOG.md)
+          current_changelog=$(cat cli/CHANGELOG.md 2>/dev/null || true)
 
           bumped_hash=$(echo -n "$bumped_output" | shasum -a 256 | awk '{print $1}')
-          changelog_hash=$(echo -n "$changelog_content" | shasum -a 256 | awk '{print $1}')
+          changelog_hash=$(echo -n "$current_changelog" | shasum -a 256 | awk '{print $1}')
 
           if [ "$bumped_hash" != "$changelog_hash" ]; then
             echo "should_release=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_release=false" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Get next version
         id: next-version
         if: steps.releasable.outputs.should_release == 'true'
         run: |
           if [ -n "${{ github.event.inputs.version }}" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+            version_input="${{ github.event.inputs.version }}"
+            version_input="${version_input#v}"
+            echo "version=$version_input" >> "$GITHUB_OUTPUT"
           else
-            echo "version=$(git cliff --config cliff.toml --bumped-version)" >> "$GITHUB_OUTPUT"
+            bumped=$(git cliff --config cliff.toml --bumped-version)
+            bumped="${bumped#v}"
+            echo "version=$bumped" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Generate changelog
         if: steps.releasable.outputs.should_release == 'true'
-        run: git cliff --config cliff.toml --bump -o CHANGELOG.md
+        run: |
+          mkdir -p cli
+          git cliff --config cliff.toml --bump -o cli/CHANGELOG.md
+
       - name: Upload changelog
         if: steps.releasable.outputs.should_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: changelog
-          path: CHANGELOG.md
-      - name: Get release notes
-        id: release-notes
-        if: steps.releasable.outputs.should_release == 'true'
-        run: |
-          echo "release_notes<<EOF" >> "$GITHUB_OUTPUT"
-          git cliff --config cliff.toml --latest --strip all --body "$(cat .github/release-notes.tmpl)" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          path: cli/CHANGELOG.md
 
   build:
     name: Build artifacts
@@ -84,88 +88,237 @@ jobs:
           - os: ubuntu-latest
             target: bun-linux-x64
             ext: ""
+            archive: tar.gz
+            artifact: glossia-linux-x64.tar.gz
           - os: ubuntu-latest
             target: bun-linux-arm64
             ext: ""
+            archive: tar.gz
+            artifact: glossia-linux-arm64.tar.gz
           - os: macos-latest
             target: bun-darwin-x64
             ext: ""
+            archive: tar.gz
+            artifact: glossia-darwin-x64.tar.gz
           - os: macos-latest
             target: bun-darwin-arm64
             ext: ""
+            archive: tar.gz
+            artifact: glossia-darwin-arm64.tar.gz
           - os: windows-latest
             target: bun-windows-x64
             ext: ".exe"
+            archive: zip
+            artifact: glossia-windows-x64.zip
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
+
       - uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
         working-directory: cli
+
       - name: Build executable
         run: |
           mkdir -p ./dist/bin
           bun build ./src/main.ts --compile --target ${{ matrix.target }} --outfile ./dist/bin/glossia${{ matrix.ext }}
         working-directory: cli
+
       - name: Package artifact
         shell: bash
         run: |
           mkdir -p dist
           cp "cli/dist/bin/glossia${{ matrix.ext }}" "dist/glossia${{ matrix.ext }}"
           cd dist
-          tar -czf "glossia-${{ matrix.target }}.tar.gz" "glossia${{ matrix.ext }}"
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            zip -q "${{ matrix.artifact }}" "glossia${{ matrix.ext }}"
+          else
+            tar -czf "${{ matrix.artifact }}" "glossia${{ matrix.ext }}"
+          fi
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: glossia-${{ matrix.target }}
-          path: dist/glossia-${{ matrix.target }}.tar.gz
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
 
-  release:
-    name: Publish release
+  publish:
+    name: Publish to S3
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [prepare, build]
     if: needs.prepare.outputs.should_release == 'true'
+    outputs:
+      version: ${{ needs.prepare.outputs.version }}
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      RELEASE_AWS_REGION: ${{ vars.RELEASE_AWS_REGION }}
+      RELEASE_S3_BUCKET: ${{ vars.RELEASE_S3_BUCKET }}
+      RELEASE_S3_PREFIX: ${{ vars.RELEASE_S3_PREFIX }}
+      RELEASE_S3_ENDPOINT: ${{ vars.RELEASE_S3_ENDPOINT }}
+      RELEASE_BASE_URL: ${{ vars.RELEASE_BASE_URL }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
+
       - name: Download changelog
         uses: actions/download-artifact@v4
         with:
           name: changelog
-      - name: Commit and tag release
-        id: release-commit
+
+      - name: Commit changelog and tag release
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "[Release] glossia ${{ needs.prepare.outputs.version }}"
-          git tag "${{ needs.prepare.outputs.version }}"
+
+          git add cli/CHANGELOG.md
+          if ! git diff --cached --quiet; then
+            git commit -m "[Release] glossia ${RELEASE_VERSION}"
+          fi
+
+          if ! git rev-parse "${RELEASE_VERSION}" >/dev/null 2>&1; then
+            git tag "${RELEASE_VERSION}"
+          fi
+
           git push origin main --tags
-          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/download-artifact@v4
         with:
           path: dist
           pattern: glossia-*
-      - name: Gather artifacts
+
+      - name: Gather release artifacts and checksums
+        shell: bash
         run: |
           mkdir -p release
-          find dist -name "*.tar.gz" -exec mv {} release/ \;
+          find dist -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release/ \;
           cd release
-          sha256sum *.tar.gz > SHA256.txt
-          sha512sum *.tar.gz > SHA512.txt
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: false
-          name: ${{ needs.prepare.outputs.version }}
-          tag_name: ${{ needs.prepare.outputs.version }}
-          body: ${{ needs.prepare.outputs.release_notes }}
-          target_commitish: ${{ steps.release-commit.outputs.commit_sha }}
-          files: |
-            release/*.tar.gz
-            release/SHA256.txt
-            release/SHA512.txt
+          sha256sum *.tar.gz *.zip > SHA256SUMS
+          sha512sum *.tar.gz *.zip > SHA512SUMS
+
+      - name: Validate release environment
+        shell: bash
+        run: |
+          required=(AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY RELEASE_AWS_REGION RELEASE_S3_BUCKET RELEASE_BASE_URL)
+          for key in "${required[@]}"; do
+            value="${!key:-}"
+            if [ -z "$value" ]; then
+              echo "::error::Missing required secret/variable: $key"
+              exit 1
+            fi
+          done
+
+      - name: Install rclone
+        run: |
+          command -v rclone >/dev/null 2>&1 || curl https://rclone.org/install.sh | sudo bash
+          rclone version | head -1
+
+      - name: Configure rclone remote
+        shell: bash
+        run: |
+          {
+            echo "[release]"
+            echo "type = s3"
+            echo "provider = AWS"
+            echo "access_key_id = ${AWS_ACCESS_KEY_ID}"
+            echo "secret_access_key = ${AWS_SECRET_ACCESS_KEY}"
+            echo "region = ${RELEASE_AWS_REGION}"
+            if [ -n "${RELEASE_S3_ENDPOINT:-}" ]; then
+              echo "endpoint = ${RELEASE_S3_ENDPOINT}"
+            fi
+          } > rclone.conf
+
+      - name: Upload release artifacts to S3
+        shell: bash
+        env:
+          RCLONE_CONFIG: ${{ github.workspace }}/rclone.conf
+        run: |
+          prefix="${RELEASE_S3_PREFIX:-}"
+          prefix="${prefix#/}"
+          if [ -n "$prefix" ] && [ "${prefix: -1}" != "/" ]; then
+            prefix="$prefix/"
+          fi
+
+          version_path="release:${RELEASE_S3_BUCKET}/${prefix}${RELEASE_VERSION}/"
+          latest_path="release:${RELEASE_S3_BUCKET}/${prefix}latest/"
+
+          rclone copy release "$version_path" --progress --checksum
+          rclone copy release "$latest_path" --progress --checksum
+
+  aqua-registry:
+    name: Contribute Aqua Registry entry
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [prepare, publish]
+    if: needs.prepare.outputs.should_release == 'true'
+    env:
+      RELEASE_VERSION: ${{ needs.publish.outputs.version }}
+      RELEASE_BASE_URL: ${{ vars.RELEASE_BASE_URL }}
+      AQUA_REGISTRY_FORK: ${{ vars.AQUA_REGISTRY_FORK }}
+      GH_TOKEN: ${{ secrets.AQUA_REGISTRY_GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Check aqua registry configuration
+        id: precheck
+        shell: bash
+        run: |
+          if [ -z "${GH_TOKEN:-}" ] || [ -z "${AQUA_REGISTRY_FORK:-}" ] || [ -z "${RELEASE_BASE_URL:-}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping aqua-registry contribution (missing GH token, fork, or base URL)"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Render Aqua registry package
+        if: steps.precheck.outputs.skip != 'true'
+        run: |
+          mkdir -p /tmp/glossia-aqua
+          bun run ./cli/scripts/render-aqua-registry.ts --base-url "$RELEASE_BASE_URL" --output /tmp/glossia-aqua/registry.yaml
+
+      - name: Create PR against aqua-registry
+        if: steps.precheck.outputs.skip != 'true'
+        shell: bash
+        run: |
+          fork_owner="${AQUA_REGISTRY_FORK%%/*}"
+          branch="feat/glossia-${RELEASE_VERSION//[^a-zA-Z0-9._-]/-}"
+
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${AQUA_REGISTRY_FORK}.git" aqua-registry
+          cd aqua-registry
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$branch"
+          mkdir -p pkgs/glossia/glossia
+          cp /tmp/glossia-aqua/registry.yaml pkgs/glossia/glossia/registry.yaml
+
+          if git diff --quiet -- pkgs/glossia/glossia/registry.yaml; then
+            echo "No aqua-registry changes to contribute"
+            exit 0
+          fi
+
+          git add pkgs/glossia/glossia/registry.yaml
+          git commit -m "feat: add glossia package"
+          git push -u origin "$branch"
+
+          existing_pr=$(gh pr list --repo aquaproj/aqua-registry --head "${fork_owner}:${branch}" --json number --jq '.[0].number // empty')
+          if [ -n "$existing_pr" ]; then
+            echo "Aqua registry PR #$existing_pr already exists"
+            exit 0
+          fi
+
+          gh pr create \
+            --repo aquaproj/aqua-registry \
+            --base main \
+            --head "${fork_owner}:${branch}" \
+            --title "feat: add glossia package" \
+            --body "Add \`glossia/glossia\` package backed by versioned S3 release artifacts.\n\nRelease: ${RELEASE_VERSION}\nBase URL: ${RELEASE_BASE_URL}"
