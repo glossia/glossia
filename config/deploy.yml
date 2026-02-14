@@ -97,7 +97,11 @@ accessories:
   grafana:
     image: grafana/grafana:11.5
     host: 89.167.60.202
-    port: 3050:3000
+    proxy:
+      ssl: true
+      host: data.glossia.ai
+      app_port: 3000
+      forward_headers: true
     env:
       clear:
         GF_SERVER_ROOT_URL: https://data.glossia.ai
