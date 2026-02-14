@@ -1,6 +1,6 @@
 defmodule Glossia.Accounts do
   alias Glossia.Repo
-  alias Glossia.Accounts.{Account, User, Identity}
+  alias Glossia.Accounts.{Account, Organization, OrganizationMembership, Project, User, Identity}
   import Ecto.Query
 
   def find_or_create_user_from_oauth(provider, %{user: user_info, token: token_info}) do
@@ -26,7 +26,7 @@ defmodule Glossia.Accounts do
       )
 
     Ecto.Multi.new()
-    |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, %{handle: handle}))
+    |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, %{handle: handle, type: "user"}))
     |> Ecto.Multi.insert(:user, fn %{account: account} ->
       %User{account_id: account.id}
       |> User.changeset(%{
@@ -107,5 +107,112 @@ defmodule Glossia.Accounts do
     User
     |> preload(:account)
     |> Repo.get(id)
+  end
+
+  # Access management
+
+  def grant_access(email) when is_binary(email) do
+    case User |> where(email: ^email) |> preload(:account) |> Repo.one() do
+      nil -> {:error, :not_found}
+
+      user ->
+        Ecto.Multi.new()
+        |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: true}))
+        |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: true}))
+        |> Repo.transaction()
+        |> case do
+          {:ok, %{user: user}} -> {:ok, user}
+          {:error, _step, changeset, _changes} -> {:error, changeset}
+        end
+    end
+  end
+
+  def revoke_access(email) when is_binary(email) do
+    case User |> where(email: ^email) |> preload(:account) |> Repo.one() do
+      nil -> {:error, :not_found}
+
+      user ->
+        Ecto.Multi.new()
+        |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: false}))
+        |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: false}))
+        |> Repo.transaction()
+        |> case do
+          {:ok, %{user: user}} -> {:ok, user}
+          {:error, _step, changeset, _changes} -> {:error, changeset}
+        end
+    end
+  end
+
+  # Organization CRUD
+
+  def create_organization(%User{} = user, attrs) do
+    handle = attrs["handle"] || attrs[:handle]
+    name = attrs["name"] || attrs[:name] || handle
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(
+      :account,
+      Account.changeset(%Account{}, %{handle: handle, type: "organization", has_access: true})
+    )
+    |> Ecto.Multi.insert(:organization, fn %{account: account} ->
+      %Organization{account_id: account.id}
+      |> Organization.changeset(%{name: name})
+    end)
+    |> Ecto.Multi.insert(:membership, fn %{organization: org} ->
+      %OrganizationMembership{user_id: user.id, organization_id: org.id}
+      |> OrganizationMembership.changeset(%{role: "admin"})
+    end)
+    |> Repo.transaction()
+  end
+
+  def list_user_organizations(%User{id: user_id}) do
+    OrganizationMembership
+    |> where(user_id: ^user_id)
+    |> preload(organization: :account)
+    |> Repo.all()
+    |> Enum.map(& &1.organization)
+  end
+
+  def list_user_accounts(%User{} = user) do
+    org_accounts =
+      list_user_organizations(user)
+      |> Enum.map(& &1.account)
+
+    [user.account | org_accounts]
+  end
+
+  # Organization membership management
+
+  def add_member(%Organization{id: org_id}, %User{id: user_id}, role \\ "member") do
+    %OrganizationMembership{user_id: user_id, organization_id: org_id}
+    |> OrganizationMembership.changeset(%{role: role})
+    |> Repo.insert()
+  end
+
+  def remove_member(%Organization{id: org_id}, %User{id: user_id}) do
+    OrganizationMembership
+    |> where(organization_id: ^org_id, user_id: ^user_id)
+    |> Repo.delete_all()
+  end
+
+  def get_membership(%Organization{id: org_id}, %User{id: user_id}) do
+    OrganizationMembership
+    |> where(organization_id: ^org_id, user_id: ^user_id)
+    |> Repo.one()
+  end
+
+  # Project CRUD
+
+  def create_project(%Account{id: account_id}, attrs) do
+    %Project{account_id: account_id}
+    |> Project.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def get_project(%Account{id: account_id}, handle) do
+    Project
+    |> where(account_id: ^account_id, handle: ^handle)
+    |> preload(:account)
+    |> Repo.one()
   end
 end

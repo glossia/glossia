@@ -36,6 +36,20 @@ defmodule Glossia.Docs do
 
   def categories, do: @categories
 
+  def pages_by_category("reference") do
+    api_page = %Page{
+      id: "reference/api",
+      title: "API Reference",
+      summary: "Interactive reference for OAuth and discovery endpoints.",
+      category: "reference",
+      order: 10,
+      slug: "api",
+      body: ""
+    }
+
+    Enum.filter(@pages, &(&1.category == "reference")) ++ [api_page]
+  end
+
   def pages_by_category(category) do
     Enum.filter(@pages, &(&1.category == category))
   end
@@ -44,6 +58,40 @@ defmodule Glossia.Docs do
     Enum.find(@pages, &(&1.category == category && &1.slug == slug)) ||
       raise Glossia.Docs.NotFoundError,
             "doc page with category=#{category} slug=#{slug} not found"
+  end
+
+  def search_index do
+    compiled =
+      Enum.map(@pages, fn page ->
+        %{
+          title: page.title,
+          summary: page.summary,
+          category: page.category,
+          slug: page.slug,
+          url: "/docs/#{page.category}/#{page.slug}",
+          headings: Enum.map(page.toc, fn h -> %{text: h.text, id: h.id} end),
+          body_text: strip_html(page.body)
+        }
+      end)
+
+    api_entry = %{
+      title: "API Reference",
+      summary: "Interactive reference for OAuth and discovery endpoints.",
+      category: "reference",
+      slug: "api",
+      url: "/docs/reference/api",
+      headings: [],
+      body_text: "OAuth token register revoke introspect well-known openapi endpoints API"
+    }
+
+    compiled ++ [api_entry]
+  end
+
+  defp strip_html(html) do
+    html
+    |> String.replace(~r/<[^>]+>/, " ")
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
   end
 end
 

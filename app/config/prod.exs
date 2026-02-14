@@ -13,7 +13,7 @@ config :glossia, GlossiaWeb.Endpoint, cache_static_manifest: "priv/static/cache_
 config :glossia, GlossiaWeb.Endpoint,
   force_ssl: [
     rewrite_on: [:x_forwarded_proto],
-    exclude: [hosts: ["localhost", "127.0.0.1"], paths: ["/up"]]
+    exclude: [hosts: ["localhost", "127.0.0.1"], paths: ["/up", "/metrics"]]
   ]
 
 # Configure Swoosh API Client

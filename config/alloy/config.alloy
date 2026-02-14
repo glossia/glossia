@@ -54,12 +54,23 @@ loki.source.docker "containers" {
 }
 
 loki.relabel "docker_logs" {
-  forward_to = [loki.write.local.receiver]
+  forward_to = [loki.process.docker_logs.receiver]
 
   rule {
     source_labels = ["__meta_docker_container_name"]
     target_label  = "container"
   }
+}
+
+loki.process "docker_logs" {
+  stage.static_labels {
+    values = {
+      service_name = "glossia-docker",
+      source       = "docker",
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
 }
 
 // ============================================
@@ -76,6 +87,19 @@ prometheus.scrape "host_metrics" {
   targets         = prometheus.exporter.unix.host.targets
   forward_to      = [prometheus.remote_write.local.receiver]
   scrape_interval = "60s"
+}
+
+// ============================================
+// App metrics (Phoenix, Ecto, BEAM via prom_ex)
+// ============================================
+
+prometheus.scrape "app_metrics" {
+  targets         = [{ __address__ = "glossia-web:4050", job = "glossia-web" }]
+  forward_to      = [prometheus.remote_write.local.receiver]
+  scrape_interval = "30s"
+  metrics_path    = "/metrics"
+
+  bearer_token = sys.env("METRICS_BEARER_TOKEN")
 }
 
 // ============================================

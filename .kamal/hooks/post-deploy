@@ -1,0 +1,3 @@
+#!/bin/sh
+# Run database migrations after deploying the new version
+kamal app exec --reuse -q /app/bin/migrate

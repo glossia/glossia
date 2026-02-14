@@ -1,34 +1,34 @@
 <header class="site-header">
   <div class="container nav">
     <a class="logo" href="/">
-      <img src={~p"/images/logo-squared.png"} alt="" class="logo-icon" />
-      Glossia
+      <img src={~p"/images/logo-squared.png"} alt="" class="logo-icon" /> Glossia
     </a>
     <nav class="nav-links">
-      <a href="/docs">Docs</a>
-      <a href="/blog">Blog</a>
-      <%= if assigns[:current_user] && @current_user do %>
-        <a href="/dashboard">Dashboard</a>
+      <a href="/docs">{gettext("Docs")}</a>
+      <a href="/blog">{gettext("Blog")}</a>
+      <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
         <div class="avatar-dropdown">
           <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
             <img
               src={"https://www.gravatar.com/avatar/#{Base.encode16(:crypto.hash(:md5, String.downcase(String.trim(@current_user.email))), case: :lower)}?s=64&d=identicon"}
               alt={@current_user.name || @current_user.email}
-              width="32"
-              height="32"
+              width="24"
+              height="24"
             />
           </button>
           <ul class="avatar-menu" role="menu">
             <li role="none">
-              <a role="menuitem" href="/auth/logout" data-method="delete">Log out</a>
+              <a role="menuitem" href="/dashboard">{gettext("Dashboard")}</a>
+            </li>
+            <li role="none" class="avatar-menu-divider"></li>
+            <li role="none">
+              <a role="menuitem" href="/auth/logout" data-method="delete">{gettext("Log out")}</a>
             </li>
           </ul>
         </div>
-      <% else %>
-        <a href="/auth/login" class="nav-cta">Sign in</a>
       <% end %>
     </nav>
-    <button class="mobile-menu-toggle" aria-expanded="false" aria-label="Menu">
+    <button class="mobile-menu-toggle" aria-expanded="false" aria-label={gettext("Menu")}>
       <svg
         class="menu-icon"
         width="20"
@@ -66,12 +66,11 @@
 <.flash_group :if={assigns[:flash]} flash={@flash} />
 
 <nav class="mobile-menu" aria-label="Mobile navigation">
-  <a href="/docs">Docs</a>
-  <a href="/blog">Blog</a>
-  <%= if assigns[:current_user] && @current_user do %>
-    <a href="/dashboard">Dashboard</a>
-  <% else %>
-    <a href="/auth/login">Sign in</a>
+  <a href="/docs">{gettext("Docs")}</a>
+  <a href="/blog">{gettext("Blog")}</a>
+  <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
+    <a href="/dashboard">{gettext("Dashboard")}</a>
+    <a href="/auth/logout" data-method="delete">{gettext("Log out")}</a>
   <% end %>
 </nav>
 
@@ -79,22 +78,47 @@
   {@inner_content}
 </main>
 
+<dialog id="docs-search-dialog" class="docs-search-dialog" aria-label="Search documentation">
+  <div class="docs-search-dialog-inner">
+    <div class="docs-search-input-row">
+      <svg class="docs-search-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.5" />
+        <path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+      </svg>
+      <input
+        type="text"
+        id="docs-search-input"
+        placeholder="Search docs..."
+        autocomplete="off"
+        aria-autocomplete="list"
+        aria-controls="docs-search-results"
+        aria-expanded="false"
+        role="combobox"
+      />
+      <kbd class="docs-search-kbd">Esc</kbd>
+    </div>
+    <div id="docs-search-results" class="docs-search-results" role="listbox" aria-label="Search results"></div>
+  </div>
+</dialog>
+
 <footer class="site-footer">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <div class="logo">Glossia</div>
-      <p>Built with love from Berlin.</p>
+      <a class="logo" href="/">
+        <img src={~p"/images/logo-squared.png"} alt="" class="logo-icon" /> Glossia
+      </a>
+      <p>{gettext("Built with love from Berlin.")}</p>
     </div>
     <div>
-      <h4>Legal</h4>
+      <h4>{gettext("Legal")}</h4>
       <ul class="legal-links">
-        <li><a href="/terms">Terms of Service</a></li>
-        <li><a href="/privacy">Privacy Policy</a></li>
-        <li><a href="/cookies">Cookie Policy</a></li>
+        <li><a href="/terms">{gettext("Terms of Service")}</a></li>
+        <li><a href="/privacy">{gettext("Privacy Policy")}</a></li>
+        <li><a href="/cookies">{gettext("Cookie Policy")}</a></li>
       </ul>
     </div>
     <div>
-      <h4>Language</h4>
+      <h4>{gettext("Language")}</h4>
       <div class="locale-dropdown">
         <button class="locale-toggle" aria-expanded="false" aria-haspopup="true">
           English
@@ -207,3 +231,5 @@
     });
   })();
 </script>
+<script defer src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+<script defer src={~p"/assets/docs-search.js"}></script>

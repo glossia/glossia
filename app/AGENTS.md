@@ -1,11 +1,102 @@
 This is a web application written using the Phoenix web framework.
 
+## Deployment
+
+Deploy with `fnox exec kamal deploy`. The `fnox exec` wrapper injects secrets (like `KAMAL_REGISTRY_PASSWORD`) that Kamal needs at deploy time.
+
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - **CSS**: Always use CSS custom properties (variables) defined in `:root` instead of hardcoded color values, border-radius, or shadow values. If a new token is needed, add it to the `:root` block in `priv/static/assets/styles.css` first, then reference it with `var(--token-name)`. Never use hardcoded hex colors, rgba values, or pixel values for design tokens directly in selectors
 - **Prose content**: Use the `.prose` CSS class for any content-heavy pages (blog posts, legal pages, documentation). This class provides consistent typography, spacing, and code block styling
+- **SEO-ready content**: All public-facing content (blog posts, docs, landing pages) must be optimized for search engine indexing. Use descriptive headings (h1, h2, h3), include relevant keywords naturally, add meaningful link text (never "click here"), and ensure all images have alt attributes. Blog post titles and summaries should be clear and keyword-rich. External links to authoritative sources improve SEO ranking
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
+- **Internationalization**: All user-facing text in templates must be wrapped with `gettext/1` or `gettext/2`. Never use bare string literals for UI text. Use `gettext("text")` for simple strings and `gettext("text with %{var}", var: value)` for interpolation. After adding new strings, run `mix gettext.extract` to update the POT files
+- **Authorization**: Every controller action that accesses or mutates resources must be authorized. Use `Glossia.Policy.authorize/3` (from LetMe) to check that the current user has the required scope and relationship to the resource. Never rely solely on token scope presence as proof of authorization; always verify at the resource level. Review new controllers for missing authorization checks before merging.
+- **OAuth/API security**: Bearer token validation (`GlossiaWeb.Plugs.BearerAuth`) rejects invalid, expired, or revoked tokens with 401. The OAuth consent screen must always be shown before granting tokens to clients. Do not bypass or auto-approve authorization requests.
+- **API and MCP parity**: When adding new data structures that represent features, ensure they are exposed through both the REST API and the MCP server. Every resource available via the API should have a corresponding MCP tool, and vice versa, so that users get a consistent experience regardless of the interface they use
+
+## Design system
+
+The design system uses a three-tier token architecture inspired by the [theme-ui theme specification](https://theme-ui.com/theme-spec), implemented entirely with CSS custom properties in `priv/static/assets/styles.css`. No build tools or utility frameworks are needed.
+
+### Three-tier token architecture
+
+1. **Primitive tokens** - Raw palette values named by what they *are*. Defined once, never used directly in component styles.
+   - Colors: `--color-stone-50` through `--color-stone-900`, `--color-violet-*`, `--color-amber-*`, `--color-green-*`, `--color-code-*`
+   - Typography: `--font-family-sans`, `--font-family-mono`, `--font-size-2xs` through `--font-size-7xl`
+   - Spacing: `--space-0` through `--space-20` (base-4 scale)
+   - Others: radii, shadows, z-indices, durations
+
+2. **Semantic tokens** - Purpose-based references named by what they *do*. These are what component styles consume.
+   - Colors: `--color-text`, `--color-bg`, `--color-primary`, `--color-border`, etc.
+   - Typography: `--font-body`, `--font-heading`, `--font-code`, `--text-xs` through `--text-display`
+   - Layout: `--transition`, `--radius-default`, `--radius-large`, `--shadow-card`, `--shadow-default`, `--max-width`
+
+3. **Component tokens** - Scoped overrides for specific surfaces or components. Defined via CSS selector scope (e.g., `.dash-shell`).
+
+### Token categories (theme-ui mapping)
+
+| Category | CSS prefix | Example |
+|---|---|---|
+| colors | `--color-` | `--color-primary`, `--color-text-muted` |
+| fonts | `--font-` | `--font-body`, `--font-code` |
+| fontSizes | `--text-` | `--text-sm`, `--text-display` |
+| fontWeights | `--weight-` | `--weight-bold` |
+| lineHeights | `--leading-` | `--leading-normal` |
+| space | `--space-` | `--space-4` (16px) |
+| radii | `--radius-` | `--radius-md` |
+| shadows | `--shadow-` | `--shadow-card` |
+| zIndices | `--z-` | `--z-sticky`, `--z-dropdown` |
+| transitions | `--duration-` | `--duration-normal` |
+
+### Surface theming
+
+The app has two visual surfaces sharing one CSS file:
+
+- **Marketing site** (public pages): Uses the `app.html.heex` layout. Inherits `:root` token defaults directly.
+- **Dashboard** (authenticated pages): Uses the `dashboard.html.heex` layout. Overrides tokens via the `.dash-shell` CSS scope.
+
+To override a token for the dashboard, define it inside `.dash-shell { }`. Marketing pages never see dashboard overrides since they lack that wrapper element.
+
+### Atomic design
+
+**Atoms** - Smallest reusable visual units:
+- `.button` (primary, secondary variants)
+- `.badge`, `.mono`, `.lead`, `.muted`
+- Heading styles (h1-h4 with responsive clamp)
+
+**Molecules** - Composed from atoms:
+- `.card` base pattern (blog-card, tool-card, feature, docs-category-card, dash-project-card all extend this)
+- `.avatar-dropdown` (shared between marketing header and dashboard topbar)
+- `.flash-bar` (info/error notification variants)
+- `.breadcrumbs` (docs navigation)
+
+**Components** - Page-level compositions:
+- `.site-header` / `.site-footer` (marketing layout)
+- `.hero` (page hero sections)
+- `.prose` (long-form rendered content)
+- `.dash-shell` (dashboard: sidebar + topbar + main area)
+
+### Rules
+
+1. **Never use raw values** in component styles. Always reference a semantic or primitive token via `var()`.
+2. **Spacing uses the base-4 scale** (`--space-*`). Allowed values: 0, 1px, 2px, 4px, 6px, 8px, 10px, 12px, 16px, 20px, 24px, 32px, 40px, 48px, 64px, 80px.
+3. **Typography must use the scale** (`--text-*` for sizes, `--weight-*` for weights, `--leading-*` for line-heights).
+4. **Standard breakpoints only**: 400px (small phones), 768px (mobile), 960px (tablet). No other breakpoints.
+5. **Dashboard overrides scope to `.dash-shell`**. Never add dashboard-specific tokens to `:root`.
+6. **Prism/code colors use `--color-code-*` tokens**. The Catppuccin Mocha palette is defined once in primitives.
+7. **SVG decorative elements** (like the geometric accent on the home page) are an exception to the no-hardcoded-values rule since SVG attributes cannot reference CSS custom properties without JavaScript.
+8. **Add new tokens to the correct tier**: if it is a new raw color or size, add a primitive. If it maps to a purpose, add a semantic. If it is surface-specific, scope it as a component token.
+
+### LiveView component mapping
+
+When migrating templates to LiveView function components:
+
+- Each **atom** maps to a function component with a `variant` attribute: `<.button variant="primary">`
+- Each **molecule** maps to a function component with slots: `<.card><:title>...</:title><:body>...</:body></.card>`
+- CSS classes map directly to component `attr` declarations. Use `data-*` attributes for state variants (e.g., `data-variant="primary"`)
+- Dashboard-specific components should live in a dedicated `dashboard_components.ex` module, not in `core_components.ex`
 
 ### Phoenix v1.8 guidelines
 
@@ -20,6 +111,23 @@ This is a web application written using the Phoenix web framework.
 - If you override the default input classes (`<.input class="myclass px-2 py-1 rounded-lg">)`) class with your own values, no default classes are inherited, so your
 custom classes must fully style the input
 
+
+## Documentation source files
+
+Each doc page at `/docs/:category/:slug` has a corresponding Markdown source file at `priv/docs/:category/:slug.md`. The raw Markdown is also available at `/docs/:category/:slug.md`. The synthetic API Reference page (`/docs/reference/api`) has no Markdown source since it is generated from Scalar and the OpenAPI spec.
+
+## CLI changelog
+
+When making user-facing changes to the CLI (in `cli/`), add an entry to `cli/CHANGELOG.md` under the `## NEXT` section. Place the entry under the appropriate sub-heading:
+
+- **Features** - New functionality or capabilities
+- **Bug Fixes** - Corrections to existing behavior
+- **Performance** - Speed or resource improvements
+- **Refactors** - Code restructuring without behavior changes
+- **Documentation** - Docs-only changes
+- **Chores** - Tooling, CI, dependency updates
+
+Each entry is a single `- ` prefixed line with a concise description. Empty sub-headings are fine and will be cleaned up at release time. The release script (`mise run cli/release`) converts `## NEXT` into a versioned heading automatically.
 
 <!-- usage-rules-start -->
 
@@ -70,6 +178,17 @@ custom classes must fully style the input
 
 ## Test guidelines
 
+- **Always run tests with `async: true`**: Every test module must use `async: true` (e.g., `use GlossiaWeb.ConnCase, async: true` or `use Glossia.DataCase, async: true`). This ensures the test suite scales and catches shared-state bugs early
+- **Never mutate global state in tests**: Do not use `Application.put_env/3`, `System.put_env/2`, or any other mechanism that writes to global (process-independent) state inside tests. Global state mutations break parallel execution because one test's changes leak into another. If a function reads from `Application.get_env`, design it to accept an overridable option via a keyword argument instead
+- **Use Mimic for mocking, never Mox**: The project uses [Mimic](https://hex.pm/packages/mimic) (`{:mimic, "~> 1.10", only: :test}`). Mimic works by copying modules and does not require explicit behaviour definitions, making it simpler. Call `Mimic.copy(ModuleName)` in `test_helper.exs` for each module you need to mock, then use `stub/3` or `expect/3` in individual tests. Mimic stubs are process-scoped so they work with `async: true`
+- **Dependency-inject rather than hard-wire**: When a function calls an external service or module that you want to mock in tests, accept it as an option in the last keyword-list argument with a default. For example:
+
+      def translate(text, opts \\ []) do
+        client = Keyword.get(opts, :client, Glossia.LLM.Client)
+        client.complete(text)
+      end
+
+  This lets tests pass `client: mock_module` without touching global config
 - **Always use `start_supervised!/1`** to start processes in tests as it guarantees cleanup between tests
 - **Avoid** `Process.sleep/1` and `Process.alive?/1` in tests
   - Instead of sleeping to wait for a process to finish, **always** use `Process.monitor/1` and assert on the DOWN message:

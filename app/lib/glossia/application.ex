@@ -7,13 +7,23 @@ defmodule Glossia.Application do
 
   @impl true
   def start(_type, _args) do
+    Glossia.OTel.setup()
+    Logger.add_handlers(:glossia)
+
     children = [
+      Glossia.PromEx,
       GlossiaWeb.Telemetry,
       Glossia.Repo,
       {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Glossia.PubSub},
       # Start a worker by calling: Glossia.Worker.start_link(arg)
       # {Glossia.Worker, arg},
+      Glossia.RateLimiter,
+      Hermes.Server.Registry,
+      %{
+        id: Glossia.MCP.Server,
+        start: {Hermes.Server.Supervisor, :start_link, [Glossia.MCP.Server, [transport: :streamable_http]]}
+      },
       # Start to serve requests, typically the last entry
       GlossiaWeb.Endpoint
     ]

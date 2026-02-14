@@ -1,0 +1,23 @@
+<section class="section docs-page">
+  <div class="container">
+    <nav class="docs-breadcrumbs">
+      <a href={~p"/docs"}>{gettext("Documentation")}</a>
+      <span class="docs-breadcrumb-sep">/</span>
+      <a href={~p"/docs/reference"}>{@categories["reference"].title}</a>
+      <span class="docs-breadcrumb-sep">/</span>
+      <span>{@page_title}</span>
+    </nav>
+
+    <div class="docs-content docs-content--full">
+      <div id="api-reference-container"></div>
+      <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+      <script>
+        Scalar.createApiReference('#api-reference-container', {
+          url: '/api/openapi.json',
+          hideDownloadButton: false
+        })
+      </script>
+    </div>
+  </div>
+</section>
+

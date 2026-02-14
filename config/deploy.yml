@@ -27,9 +27,21 @@ builder:
 env:
   clear:
     PHX_HOST: glossia.ai
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://glossia-alloy:4317
+    OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    OTEL_SERVICE_NAME: glossia-web
+    OTEL_DEPLOYMENT_ENVIRONMENT: production
+    LOKI_URL: http://glossia-loki:3100
+    LOKI_ORG_ID: fake
   secret:
     - DATABASE_URL
     - SECRET_KEY_BASE
+    - STRIPE_SECRET_KEY
+    - STRIPE_PRICE_ID
+    - STRIPE_WEBHOOK_SECRET
+    - SENTRY_DSN
+    - SENTRY_DSN_JS
+    - METRICS_BEARER_TOKEN
 
 accessories:
   postgres:
@@ -54,11 +66,13 @@ accessories:
     image: grafana/loki:3.4
     host: 89.167.60.202
     port: "3100"
-    cmd: -config.file=/etc/loki/local-config.yaml
+    files:
+      - config/loki/config.yaml:/etc/loki/config.yaml
+    cmd: -config.file=/etc/loki/config.yaml
     directories:
       - data:/loki
   tempo:
-    image: grafana/tempo:2.7
+    image: grafana/tempo:2.8.3
     host: 89.167.60.202
     port: "3200:3200"
     options:
@@ -71,12 +85,12 @@ accessories:
     directories:
       - data:/var/tempo
   prometheus:
-    image: prom/prometheus:v3.2
+    image: prom/prometheus:v3.2.1
     host: 89.167.60.202
     port: "9090"
     files:
       - config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    cmd: --config.file=/etc/prometheus/prometheus.yml --web.enable-remote-write-receiver
+    cmd: --config.file=/etc/prometheus/prometheus.yml --web.enable-remote-write-receiver --storage.tsdb.retention.time=15d --storage.tsdb.retention.size=10GB
     directories:
       - data:/prometheus
   alloy:
@@ -93,6 +107,9 @@ accessories:
       - /sys:/host/sys:ro
     files:
       - config/alloy/config.alloy:/etc/alloy/config.alloy
+    env:
+      secret:
+        - METRICS_BEARER_TOKEN
     cmd: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
   grafana:
     image: grafana/grafana:11.5
@@ -108,5 +125,92 @@ accessories:
         GF_SERVER_DOMAIN: data.glossia.ai
       secret:
         - GF_SECURITY_ADMIN_PASSWORD
+        - POSTGRES_PASSWORD
+    files:
+      - config/grafana/provisioning/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
     directories:
       - data:/var/lib/grafana
+  plausible-db:
+    image: postgres:16-alpine
+    host: 89.167.60.202
+    env:
+      secret:
+        - POSTGRES_PASSWORD:PLAUSIBLE_POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+  plausible-events-db:
+    image: clickhouse/clickhouse-server:24.12-alpine
+    host: 89.167.60.202
+    env:
+      clear:
+        CLICKHOUSE_SKIP_USER_SETUP: "1"
+    options:
+      ulimit: "nofile=262144:262144"
+    directories:
+      - data:/var/lib/clickhouse
+      - logs:/var/log/clickhouse-server
+    files:
+      - config/plausible/clickhouse/logs.xml:/etc/clickhouse-server/config.d/logs.xml
+      - config/plausible/clickhouse/ipv4-only.xml:/etc/clickhouse-server/config.d/ipv4-only.xml
+      - config/plausible/clickhouse/low-resources.xml:/etc/clickhouse-server/config.d/low-resources.xml
+      - config/plausible/clickhouse/default-profile-low-resources-overrides.xml:/etc/clickhouse-server/users.d/default-profile-low-resources-overrides.xml
+  plausible:
+    image: ghcr.io/plausible/community-edition:v3.2.0
+    host: 89.167.60.202
+    proxy:
+      ssl: true
+      host: analytics.glossia.ai
+      app_port: 8000
+      forward_headers: true
+      healthcheck:
+        path: /login
+    cmd: sh -c "/entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    options:
+      ulimit: "nofile=65535:65535"
+    env:
+      clear:
+        BASE_URL: https://analytics.glossia.ai
+        TMPDIR: /var/lib/plausible/tmp
+        DISABLE_REGISTRATION: invite_only
+        CLICKHOUSE_DATABASE_URL: http://glossia-plausible-events-db:8123/plausible_events_db
+      secret:
+        - SECRET_KEY_BASE:PLAUSIBLE_SECRET_KEY_BASE
+        - DATABASE_URL:PLAUSIBLE_DATABASE_URL
+    directories:
+      - data:/var/lib/plausible
+  chat2db:
+    image: chat2db/chat2db:latest
+    host: 89.167.60.202
+    proxy:
+      ssl: true
+      host: db.glossia.ai
+      app_port: 10824
+      forward_headers: true
+      healthcheck:
+        path: /login
+    directories:
+      - data:/root/.chat2db
+  bugsink:
+    image: bugsink/bugsink:latest
+    host: 89.167.60.202
+    proxy:
+      ssl: true
+      host: errors.glossia.ai
+      app_port: 8000
+      forward_headers: true
+      healthcheck:
+        path: /health/ready
+    env:
+      clear:
+        PORT: "8000"
+        BEHIND_HTTPS_PROXY: "True"
+        BASE_URL: https://errors.glossia.ai
+        ALLOWED_HOSTS: "*"
+        SITE_TITLE: "Glossia Bugsink"
+        SINGLE_USER: "True"
+        USER_REGISTRATION: CB_NOBODY
+      secret:
+        - SECRET_KEY:BUGSINK_SECRET_KEY
+        - CREATE_SUPERUSER:BUGSINK_CREATE_SUPERUSER
+    directories:
+      - data:/data

@@ -27,6 +27,17 @@ defmodule GlossiaWeb.DocsController do
     )
   end
 
+  def show(conn, %{"category" => "reference", "slug" => "api"}) do
+    sidebar = build_sidebar("reference")
+
+    render(conn, :api_reference,
+      categories: Docs.categories(),
+      sidebar: sidebar,
+      current_category: "reference",
+      page_title: gettext("API Reference")
+    )
+  end
+
   def show(conn, %{"category" => category, "slug" => slug}) do
     page = Docs.get_page!(category, slug)
     categories = Docs.categories()
@@ -39,6 +50,10 @@ defmodule GlossiaWeb.DocsController do
       current_category: category,
       current_slug: slug
     )
+  end
+
+  def search_index(conn, _params) do
+    json(conn, Docs.search_index())
   end
 
   defp build_sidebar(current_category) do

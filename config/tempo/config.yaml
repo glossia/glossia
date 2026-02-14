@@ -19,3 +19,7 @@ storage:
       path: /var/tempo/blocks
     wal:
       path: /var/tempo/wal
+
+compactor:
+  compaction:
+    block_retention: 72h

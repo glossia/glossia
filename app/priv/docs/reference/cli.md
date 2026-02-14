@@ -8,13 +8,13 @@
 
 ## `glossia init`
 
-Create a starter `CONTENT.md` configuration file in the current repository.
+Create a starter `GLOSSIA.md` configuration file in the current repository.
 
 ```bash
 glossia init
 ```
 
-Fails if `CONTENT.md` already exists.
+Fails if `GLOSSIA.md` already exists.
 
 ## `glossia translate`
 

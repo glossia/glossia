@@ -9,20 +9,66 @@
     </.live_title>
     <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
     <meta property="og:image" content={~p"/images/logo-squared.png"} />
-    <link rel="alternate" type="application/rss+xml" title="Glossia Blog" href={~p"/blog/feed.xml"} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Glossia Blog"
+      href={~p"/blog/feed.xml"}
+    />
     <%= if assigns[:author] do %>
       <link rel="me" href={@author.mastodon} />
-      <meta name="twitter:creator" content={"@" <> String.trim_leading(URI.parse(@author.x).path, "/")} />
+      <meta
+        name="twitter:creator"
+        content={"@" <> String.trim_leading(URI.parse(@author.x).path, "/")}
+      />
       <meta name="twitter:card" content="summary" />
     <% end %>
     <link phx-track-static rel="stylesheet" href={~p"/assets/styles.css"} />
+    <%= if sentry_dsn = Application.get_env(:glossia, :sentry_dsn_js) do %>
+      <meta name="sentry-dsn" content={sentry_dsn} />
+      <meta
+        name="sentry-environment"
+        content={to_string(Application.get_env(:sentry, :environment_name, "production"))}
+      />
+      <meta name="sentry-release" content={to_string(Application.spec(:glossia, :vsn))} />
+      <script
+        defer
+        src="https://browser.sentry-cdn.com/7.120.1/bundle.min.js"
+        crossorigin="anonymous"
+      >
+      </script>
+    <% end %>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
-    <script>window.Prism = window.Prism || {}; Prism.manual = true;</script>
-    <script defer src={~p"/assets/js/prism.min.js"}></script>
-    <script defer src={~p"/assets/js/prism-bash.min.js"}></script>
-    <script defer src={~p"/assets/js/prism-toml.min.js"}></script>
-    <script defer src={~p"/assets/js/code-blocks.js"}></script>
+    <script>
+      window.Prism = window.Prism || {}; Prism.manual = true;
+    </script>
+    <script defer src={~p"/assets/js/prism.min.js"}>
+    </script>
+    <script defer src={~p"/assets/js/prism-bash.min.js"}>
+    </script>
+    <script defer src={~p"/assets/js/prism-toml.min.js"}>
+    </script>
+    <script defer src={~p"/assets/js/prism-json.min.js"}>
+    </script>
+    <script defer src={~p"/assets/js/code-blocks.js"}>
+    </script>
+
+    <!-- Privacy-friendly analytics by Plausible -->
+    <script async src="https://analytics.glossia.ai/js/pa-84qsYWfrw3GEhImM-L9G4.js"></script>
+    <script>
+      window.plausible =
+        window.plausible ||
+          function () {
+            (plausible.q = plausible.q || []).push(arguments);
+          };
+      plausible.init =
+        plausible.init ||
+          function (i) {
+            plausible.o = i || {};
+          };
+      plausible.init();
+    </script>
   </head>
   <body>
     {@inner_content}

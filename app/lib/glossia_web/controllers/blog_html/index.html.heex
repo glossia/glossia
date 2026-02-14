@@ -1,12 +1,12 @@
 <section class="section blog-hero">
   <div class="container">
-    <h1>Blog</h1>
+    <h1>{gettext("Blog")}</h1>
     <a href={~p"/blog/feed.xml"} class="rss-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <circle cx="6.18" cy="17.82" r="2.18" />
         <path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" />
       </svg>
-      RSS Feed
+      {gettext("RSS Feed")}
     </a>
   </div>
 </section>
@@ -16,7 +16,11 @@
     <div class="blog-list">
       <article :for={post <- @posts} class="blog-card">
         <a href={~p"/blog/#{post.slug}"}>
-          <p class="meta">{GlossiaWeb.BlogHTML.format_date(post.date)}</p>
+          <div class="blog-card-author">
+            <img src={post.author.avatar} alt={post.author.name} class="blog-card-avatar" />
+            <span class="blog-card-name">{post.author.name}</span>
+            <span class="meta">{GlossiaWeb.BlogHTML.format_date(post.date)}</span>
+          </div>
           <h3>{post.title}</h3>
           <p class="summary">{post.summary}</p>
         </a>

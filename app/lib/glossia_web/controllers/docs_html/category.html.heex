@@ -1,7 +1,7 @@
 <section class="section docs-page">
   <div class="container">
     <nav class="docs-breadcrumbs">
-      <a href={~p"/docs"}>Documentation</a>
+      <a href={~p"/docs"}>{gettext("Documentation")}</a>
       <span class="docs-breadcrumb-sep">/</span>
       <span>{@category_meta.title}</span>
     </nav>
@@ -10,10 +10,15 @@
     <p class="lead muted">{@category_meta.summary}</p>
 
     <div class="docs-page-list">
-      <a :for={page <- @pages} href={~p"/docs/#{page.category}/#{page.slug}"} class="docs-page-card">
+      <a
+        :for={page <- @pages}
+        href={~p"/docs/#{page.category}/#{page.slug}"}
+        class="docs-page-card"
+      >
         <h3>{page.title}</h3>
         <p>{page.summary}</p>
       </a>
     </div>
   </div>
 </section>
+

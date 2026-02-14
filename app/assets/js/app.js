@@ -25,6 +25,20 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/glossia"
 import topbar from "../vendor/topbar"
 
+function initSentry() {
+  const dsn = document.querySelector("meta[name='sentry-dsn']")?.getAttribute("content")
+  if (!dsn || !window.Sentry) return
+
+  window.Sentry.init({
+    dsn,
+    environment:
+      document.querySelector("meta[name='sentry-environment']")?.getAttribute("content") || undefined,
+    release: document.querySelector("meta[name='sentry-release']")?.getAttribute("content") || undefined,
+  })
+}
+
+initSentry()
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -80,4 +94,3 @@ if (process.env.NODE_ENV === "development") {
     window.liveReloader = reloader
   })
 }
-

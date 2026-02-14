@@ -6,7 +6,7 @@ defmodule Glossia.Repo.Migrations.CreateAccounts do
       add :id, :binary_id, primary_key: true
       add :handle, :string, null: false
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     create unique_index(:accounts, [:handle])

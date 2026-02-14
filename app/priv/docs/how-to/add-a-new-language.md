@@ -8,9 +8,9 @@
 
 If you already have Glossia configured and want to add another target language, follow these steps.
 
-## 1. Update CONTENT.md
+## 1. Update GLOSSIA.md
 
-Open your `CONTENT.md` and add the new language code to the `targets` array:
+Open your `GLOSSIA.md` and add the new language code to the `targets` array:
 
 ```toml
 [[content]]
@@ -24,7 +24,7 @@ output = "docs/i18n/{lang}/{relpath}"
 If the new language needs special instructions (e.g., formality level, character set considerations), create a context override file:
 
 ```
-CONTENT/
+GLOSSIA/
   ja.md
 ```
 

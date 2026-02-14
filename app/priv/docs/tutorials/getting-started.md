@@ -23,17 +23,17 @@ cargo install glossia
 
 ## Initialize your project
 
-Run the init command to set up a `CONTENT.md` configuration file:
+Run the init command to set up a `GLOSSIA.md` configuration file:
 
 ```bash
 glossia init
 ```
 
-This launches an interactive agent that scans your project, asks about your goals, and writes a working `CONTENT.md` at the project root.
+This launches an interactive agent that scans your project, asks about your goals, and writes a working `GLOSSIA.md` at the project root.
 
 ## Run your first translation
 
-Once `CONTENT.md` is in place, translate your content:
+Once `GLOSSIA.md` is in place, translate your content:
 
 ```bash
 glossia translate
