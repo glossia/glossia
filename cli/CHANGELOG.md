@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+## 0.14.1 - 2026-02-14
+
+### Bug Fixes
+- Rename binary inside release archives from platform-specific name to just `glossia`.
+- Strip macOS quarantine xattr from binaries before packaging.
+
 ## 0.14.0 - 2026-02-14
 
 ### Features
