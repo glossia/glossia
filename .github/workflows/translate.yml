@@ -21,11 +21,12 @@ jobs:
 
       - name: Build
         run: cargo build --release
+        working-directory: cli
 
       - name: Check translation status
         id: status
         run: |
-          if ./target/release/l10n status; then
+          if ./cli/target/release/l10n status; then
             echo "stale=false" >> "$GITHUB_OUTPUT"
           else
             echo "stale=true" >> "$GITHUB_OUTPUT"
@@ -35,7 +36,7 @@ jobs:
         if: steps.status.outputs.stale == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: ./target/release/l10n translate
+        run: ./cli/target/release/l10n translate
 
       - name: Create PR with translations
         if: steps.status.outputs.stale == 'true'

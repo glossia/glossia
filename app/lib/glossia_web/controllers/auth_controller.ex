@@ -4,8 +4,10 @@ defmodule GlossiaWeb.AuthController do
   alias Glossia.Auth
   alias Glossia.Accounts
 
+  @dev_routes Application.compile_env(:glossia, :dev_routes, false)
+
   def login(conn, _params) do
-    render(conn, :login)
+    render(conn, :login, dev_routes: @dev_routes)
   end
 
   def request(conn, %{"provider" => provider}) do
@@ -48,6 +50,21 @@ defmodule GlossiaWeb.AuthController do
         conn
         |> put_flash(:error, "Authentication failed. Please try again.")
         |> redirect(to: ~p"/auth/login")
+    end
+  end
+
+  def dev_login(conn, _params) do
+    case Glossia.Repo.get_by(Glossia.Accounts.User, email: "dev@glossia.ai") do
+      nil ->
+        conn
+        |> put_flash(:error, "Dev user not found. Run: mix run priv/repo/seeds.exs")
+        |> redirect(to: ~p"/auth/login")
+
+      user ->
+        conn
+        |> put_session(:user_id, user.id)
+        |> configure_session(renew: true)
+        |> redirect(to: ~p"/dashboard")
     end
   end
 

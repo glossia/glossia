@@ -3,7 +3,7 @@
 .DS_Store
 
 # Added by cargo
-/target
+/cli/target
 
 # Kamal
 /.kamal/secrets

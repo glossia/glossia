@@ -14,7 +14,7 @@ mise use github:glossia/glossia
 Or build from source:
 
 ```bash
-cargo build --release
+cd cli && cargo build --release
 ```
 
 ## Quick start 🚀
@@ -160,7 +160,7 @@ Use `--path <dir>` to run commands as if you were in a different directory.
 ## Development 🧪
 
 ```bash
-cargo test
+cd cli && cargo test
 ```
 
 For the website:

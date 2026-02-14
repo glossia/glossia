@@ -111,20 +111,23 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
+          workspaces: cli
       - name: Install cross
         if: matrix.use_cross
         run: cargo install cross --git https://github.com/cross-rs/cross
       - name: Build (cross)
         if: matrix.use_cross
         run: cross build --release --target ${{ matrix.target }}
+        working-directory: cli
       - name: Build (cargo)
         if: "!matrix.use_cross"
         run: cargo build --release --target ${{ matrix.target }}
+        working-directory: cli
       - name: Package artifact
         shell: bash
         run: |
           mkdir -p dist
-          cp "target/${{ matrix.target }}/release/l10n${{ matrix.ext }}" "dist/l10n${{ matrix.ext }}"
+          cp "cli/target/${{ matrix.target }}/release/l10n${{ matrix.ext }}" "dist/l10n${{ matrix.ext }}"
           cd dist
           tar -czf "l10n-${{ matrix.target }}.tar.gz" "l10n${{ matrix.ext }}"
       - name: Upload artifact
