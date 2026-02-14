@@ -1,6 +1,9 @@
 defmodule GlossiaWeb.Router do
   use GlossiaWeb, :router
 
+  import Phoenix.LiveDashboard.Router
+  import Oban.Web.Router
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -37,13 +40,19 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :ops do
+    plug GlossiaWeb.Plugs.OpsAuth
+  end
+
   get "/up", GlossiaWeb.HealthController, :index
 
-  # Stripe webhooks (no session, no CSRF)
+  # Webhooks (no session, no CSRF)
   scope "/webhooks", GlossiaWeb do
     pipe_through :api
 
     post "/stripe", StripeWebhookController, :create
+    post "/github", GithubWebhookController, :create
+    post "/gitlab", GitlabWebhookController, :create
   end
 
   scope "/auth", GlossiaWeb do
@@ -63,16 +72,21 @@ defmodule GlossiaWeb.Router do
     end
   end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  # Swoosh mailbox preview in development
   if Application.compile_env(:glossia, :dev_routes) do
-    import Phoenix.LiveDashboard.Router
-
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  scope "/ops" do
+    pipe_through [:browser, :ops]
+
+    get "/", GlossiaWeb.OpsRedirectController, :index
+    live_dashboard "/dashboard", metrics: GlossiaWeb.Telemetry
+    oban_dashboard("/oban")
   end
 
   # OAuth2 provider API endpoints (MCP clients authenticate here)
@@ -123,6 +137,7 @@ defmodule GlossiaWeb.Router do
     get "/blog/:slug", BlogController, :show
     get "/docs", DocsController, :index
     get "/docs/:category", DocsController, :category
+    get "/docs/:category/:subcategory/:slug", DocsController, :subcategory_page
     get "/docs/:category/:slug", DocsController, :show
     get "/terms", LegalController, :terms
     get "/terms/:date", LegalController, :terms
@@ -155,7 +170,30 @@ defmodule GlossiaWeb.Router do
   scope "/api", GlossiaWeb.Api do
     pipe_through [:api, GlossiaWeb.Plugs.BearerAuth, GlossiaWeb.Plugs.RequireApiAuth]
 
+    get "/accounts", AccountApiController, :index
+
+    get "/organizations", OrganizationApiController, :index
     post "/organizations", OrganizationApiController, :create
+    get "/organizations/:handle", OrganizationApiController, :show
+    patch "/organizations/:handle", OrganizationApiController, :update
+    delete "/organizations/:handle", OrganizationApiController, :delete
+    get "/organizations/:handle/members", OrganizationApiController, :list_members
+
+    delete "/organizations/:handle/members/:user_handle",
+           OrganizationApiController,
+           :remove_member
+
+    get "/organizations/:handle/invitations", OrganizationApiController, :list_invitations
+    post "/organizations/:handle/invitations", OrganizationApiController, :create_invitation
+
+    delete "/organizations/:handle/invitations/:invitation_id",
+           OrganizationApiController,
+           :revoke_invitation
+
+    get "/:handle/projects", ProjectApiController, :index
+    get "/:handle/voice", VoiceApiController, :show
+    post "/:handle/voice", VoiceApiController, :create
+    get "/:handle/voice/history", VoiceApiController, :history
   end
 
   # MCP server (StreamableHTTP transport)
@@ -165,11 +203,39 @@ defmodule GlossiaWeb.Router do
     forward "/", Hermes.Server.Transport.StreamableHTTP.Plug, server: Glossia.MCP.Server
   end
 
+  # Authenticated dashboard redirect
   scope "/", GlossiaWeb do
     pipe_through [:browser, :require_auth, :require_access, :dashboard]
 
     get "/dashboard", DashboardController, :index
-    get "/:handle", DashboardController, :account
-    get "/:handle/:project", DashboardController, :project
+  end
+
+  # Invitation acceptance (browser pipeline, handles auth internally)
+  scope "/invitations", GlossiaWeb do
+    pipe_through :browser
+
+    get "/:token", InvitationController, :show
+    post "/:token/accept", InvitationController, :accept
+    post "/:token/decline", InvitationController, :decline
+  end
+
+  # Dashboard LiveView (access controlled by on_mount hooks)
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :dashboard]
+
+    live_session :dashboard,
+      layout: {GlossiaWeb.Layouts, :dashboard},
+      on_mount: [
+        {GlossiaWeb.DashboardHooks, :load_user},
+        {GlossiaWeb.DashboardHooks, :load_account},
+        {GlossiaWeb.DashboardHooks, :check_write}
+      ] do
+      live "/:handle/logs", DashboardLive, :logs
+      live "/:handle/voice", DashboardLive, :voice
+      live "/:handle/voice/:version", DashboardLive, :voice_version
+      live "/:handle/members", DashboardLive, :members
+      live "/:handle", DashboardLive, :account
+      live "/:handle/:project", DashboardLive, :project
+    end
   end
 end

@@ -27,17 +27,17 @@ export type InitOptions = {
 };
 
 export async function initCommand(root: string, options: InitOptions): Promise<void> {
-  const contentPath = path.join(root, 'CONTENT.md');
+  const contentPath = path.join(root, 'GLOSSIA.md');
 
   try {
     await access(contentPath);
-    throw new Error(`CONTENT.md already exists at ${contentPath}`);
+    throw new Error(`GLOSSIA.md already exists at ${contentPath}`);
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('CONTENT.md already exists')) {
+    if (error instanceof Error && error.message.startsWith('GLOSSIA.md already exists')) {
       throw error;
     }
   }
 
   await writeFile(contentPath, STARTER_CONTENT, 'utf8');
-  options.reporter.log('Created', 'CONTENT.md');
+  options.reporter.log('Created', 'GLOSSIA.md');
 }

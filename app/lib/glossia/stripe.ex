@@ -46,11 +46,14 @@ defmodule Glossia.Stripe do
   # Value is a positive integer quantity (e.g. cents as "credits").
   def report_usage_credits(%Account{} = account, credits, opts \\ [])
       when is_integer(credits) and credits > 0 do
-    with true <- present?(Application.get_env(:stripity_stripe, :api_key)) or {:error, :missing_api_key},
-         event_name when is_binary(event_name) and event_name != "" <- meter_event_name() ||
-                                                                         {:error, :missing_meter_event_name},
-         customer_id when is_binary(customer_id) and customer_id != "" <- account.stripe_customer_id ||
-                                                                            {:error, :missing_customer},
+    with true <-
+           present?(Application.get_env(:stripity_stripe, :api_key)) or {:error, :missing_api_key},
+         event_name when is_binary(event_name) and event_name != "" <-
+           meter_event_name() ||
+             {:error, :missing_meter_event_name},
+         customer_id when is_binary(customer_id) and customer_id != "" <-
+           account.stripe_customer_id ||
+             {:error, :missing_customer},
          {:ok, _result} <- MeterEvents.create(event_name, customer_id, credits, opts) do
       :ok
     else
@@ -71,7 +74,8 @@ defmodule Glossia.Stripe do
     end
   end
 
-  def sync_checkout_session_to_account(%Account{} = account, session_id) when is_binary(session_id) do
+  def sync_checkout_session_to_account(%Account{} = account, session_id)
+      when is_binary(session_id) do
     with true <- enabled?() or {:error, :not_enabled},
          {:ok, session} <- Stripe.Checkout.Session.retrieve(session_id),
          customer_id when is_binary(customer_id) and customer_id != "" <-
@@ -99,12 +103,14 @@ defmodule Glossia.Stripe do
 
   def customer_portal_url(%Account{} = account, return_url) when is_binary(return_url) do
     with true <- enabled?() or {:error, :not_enabled},
-         customer_id when is_binary(customer_id) and customer_id != "" <- account.stripe_customer_id ||
-                                                                        {:error, :missing_customer},
-         {:ok, session} <- Stripe.BillingPortal.Session.create(%{
-           customer: customer_id,
-           return_url: return_url
-         }),
+         customer_id when is_binary(customer_id) and customer_id != "" <-
+           account.stripe_customer_id ||
+             {:error, :missing_customer},
+         {:ok, session} <-
+           Stripe.BillingPortal.Session.create(%{
+             customer: customer_id,
+             return_url: return_url
+           }),
          url when is_binary(url) and url != "" <- session.url do
       {:ok, url}
     else
@@ -136,7 +142,8 @@ defmodule Glossia.Stripe do
   def handle_webhook_event(_), do: :ok
 
   defp handle_checkout_completed(session) do
-    account_id = session["client_reference_id"] || get_in(session, ["metadata", "glossia_account_id"])
+    account_id =
+      session["client_reference_id"] || get_in(session, ["metadata", "glossia_account_id"])
 
     customer_id = session["customer"]
     subscription_id = session["subscription"]
@@ -144,7 +151,10 @@ defmodule Glossia.Stripe do
     if session["mode"] == "subscription" and is_binary(account_id) and account_id != "" do
       case Repo.get(Account, account_id) do
         nil ->
-          Logger.warning("Stripe webhook: checkout completed for unknown account_id=#{inspect(account_id)}")
+          Logger.warning(
+            "Stripe webhook: checkout completed for unknown account_id=#{inspect(account_id)}"
+          )
+
           :ok
 
         %Account{} = account ->
@@ -156,8 +166,11 @@ defmodule Glossia.Stripe do
           }
 
           case account |> Account.changeset(attrs) |> Repo.update() do
-            {:ok, _account} -> :ok
-            {:error, changeset} -> log_changeset_error(changeset, type: "checkout.session.completed")
+            {:ok, _account} ->
+              :ok
+
+            {:error, changeset} ->
+              log_changeset_error(changeset, type: "checkout.session.completed")
           end
       end
     else
@@ -185,7 +198,10 @@ defmodule Glossia.Stripe do
 
       case account do
         nil ->
-          Logger.warning("Stripe webhook: subscription event for unknown subscription_id=#{inspect(subscription_id)}")
+          Logger.warning(
+            "Stripe webhook: subscription event for unknown subscription_id=#{inspect(subscription_id)}"
+          )
+
           :ok
 
         %Account{} = account ->

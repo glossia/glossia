@@ -35,6 +35,8 @@ defmodule Glossia.Policy.Checks do
   @doc """
   User has "admin" role in the org that owns the resource.
   """
+  def org_admin(nil, _object), do: false
+
   def org_admin(%User{id: user_id}, object) do
     case resolve_organization_id(object) do
       nil -> false
@@ -45,6 +47,8 @@ defmodule Glossia.Policy.Checks do
   @doc """
   User has any role (admin or member) in the org that owns the resource.
   """
+  def org_member(nil, _object), do: false
+
   def org_member(%User{id: user_id}, object) do
     case resolve_organization_id(object) do
       nil -> false
@@ -88,4 +92,10 @@ defmodule Glossia.Policy.Checks do
     |> where(user_id: ^user_id, organization_id: ^organization_id)
     |> Repo.exists?()
   end
+
+  @doc """
+  The account has public visibility. Any subject (including nil/anonymous) can read.
+  """
+  def public_account(_subject, %Account{visibility: "public"}), do: true
+  def public_account(_, _), do: false
 end

@@ -23,7 +23,7 @@ bun run build:exe --targets bun-linux-x64
 
 ## Quick start 🚀
 
-Run `glossia init` for a guided setup, or create a `CONTENT.md` at the repo root with TOML frontmatter:
+Run `glossia init` for a guided setup, or create a `GLOSSIA.md` at the repo root with TOML frontmatter:
 
 ```markdown
 +++
@@ -67,10 +67,10 @@ glossia check
 
 ## Configuration ⚙️
 
-### `CONTENT.md` frontmatter
+### `GLOSSIA.md` frontmatter
 
 - `[[translate]]` entries (required)
-  - `source` or `path` (required): glob, relative to the `CONTENT.md` directory
+  - `source` or `path` (required): glob, relative to the `GLOSSIA.md` directory
   - `targets` (required): list of locales
   - `output` (required): template using `{lang}`, `{relpath}`, `{basename}`, `{ext}`
   - `exclude` (optional): list of globs to skip
@@ -135,16 +135,16 @@ output = "docs/i18n/{lang}/{relpath}"
 
 ### Language‑specific context
 
-Add optional language context next to any `CONTENT.md`:
+Add optional language context next to any `GLOSSIA.md`:
 
 ```
-CONTENT.md
-CONTENT/
+GLOSSIA.md
+GLOSSIA/
   es.md
   ja.md
 ```
 
-Context is additive per language: general `CONTENT.md` bodies plus matching `CONTENT/<lang>.md` bodies from root to nearest.
+Context is additive per language: general `GLOSSIA.md` bodies plus matching `GLOSSIA/<lang>.md` bodies from root to nearest.
 
 ### Translation state
 
@@ -152,7 +152,7 @@ Per‑file lockfiles are written to `.glossia/locks/` and include source hash pl
 
 ## Commands ⌨️
 
-- `glossia init` — initialize a repo with a starter `CONTENT.md`
+- `glossia init` — initialize a repo with a starter `GLOSSIA.md`
 - `glossia translate` — generate translations (YOLO by default)
 - `glossia check` — validate outputs (fails if missing)
 - `glossia status` — report missing/stale outputs

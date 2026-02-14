@@ -7,7 +7,7 @@ defmodule GlossiaWeb.AuthController do
   @dev_routes Application.compile_env(:glossia, :dev_routes, false)
 
   def login(conn, _params) do
-    render(conn, :login, dev_routes: @dev_routes)
+    render(conn, :login, dev_routes: @dev_routes, page_title: gettext("Log in"))
   end
 
   def request(conn, %{"provider" => provider}) do
@@ -47,7 +47,10 @@ defmodule GlossiaWeb.AuthController do
 
           {:error, _changeset} ->
             conn
-            |> put_flash(:error, gettext("There was a problem creating your account. Please try again."))
+            |> put_flash(
+              :error,
+              gettext("There was a problem creating your account. Please try again.")
+            )
             |> redirect(to: ~p"/auth/login")
         end
 
@@ -59,7 +62,12 @@ defmodule GlossiaWeb.AuthController do
   end
 
   def dev_login(conn, _params) do
-    case Glossia.Repo.get_by(Glossia.Accounts.User, email: "dev@glossia.ai") do
+    case Glossia.Accounts.User
+         |> Glossia.Repo.get_by(email: "dev@glossia.ai")
+         |> then(fn
+           nil -> nil
+           user -> Glossia.Repo.preload(user, :account)
+         end) do
       nil ->
         conn
         |> put_flash(:error, gettext("Dev user not found. Run: mix run priv/repo/seeds.exs"))
@@ -72,7 +80,9 @@ defmodule GlossiaWeb.AuthController do
         |> delete_session(:return_to)
         |> put_session(:user_id, user.id)
         |> configure_session(renew: true)
-        |> redirect(to: return_to || if(user.account.has_access, do: ~p"/dashboard", else: ~p"/billing"))
+        |> redirect(
+          to: return_to || if(user.account.has_access, do: ~p"/dashboard", else: ~p"/billing")
+        )
     end
   end
 

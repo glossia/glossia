@@ -14,7 +14,8 @@ defmodule GlossiaWeb.LegalController do
     render(conn, :show,
       version: version,
       all_versions: all_versions,
-      viewing_historical: true
+      viewing_historical: true,
+      page_title: version.title
     )
   end
 
@@ -25,7 +26,8 @@ defmodule GlossiaWeb.LegalController do
     render(conn, :show,
       version: version,
       all_versions: all_versions,
-      viewing_historical: false
+      viewing_historical: false,
+      page_title: version.title
     )
   end
 end

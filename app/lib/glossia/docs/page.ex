@@ -1,6 +1,17 @@
 defmodule Glossia.Docs.Page do
   @enforce_keys [:id, :title, :summary, :category, :order, :slug, :body]
-  defstruct [:id, :title, :summary, :category, :order, :slug, :body, :markdown, toc: []]
+  defstruct [
+    :id,
+    :title,
+    :summary,
+    :category,
+    :order,
+    :slug,
+    :body,
+    :markdown,
+    :subcategory,
+    toc: []
+  ]
 
   def build(filename, attrs, body) do
     parts = filename |> Path.rootname() |> Path.split()

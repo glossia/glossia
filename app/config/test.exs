@@ -13,6 +13,20 @@ config :glossia, Glossia.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
+config :glossia, Glossia.ClickHouseRepo,
+  hostname: "localhost",
+  port: 8123,
+  database: "glossia_test#{System.get_env("MIX_TEST_PARTITION")}",
+  settings: [readonly: 1]
+
+config :glossia, Glossia.IngestRepo,
+  hostname: "localhost",
+  port: 8123,
+  database: "glossia_test#{System.get_env("MIX_TEST_PARTITION")}",
+  flush_interval_ms: 5000,
+  max_buffer_size: 100_000,
+  pool_size: 5
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :glossia, GlossiaWeb.Endpoint,
@@ -39,3 +53,5 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+config :glossia, Oban, testing: :inline

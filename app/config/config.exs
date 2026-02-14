@@ -8,8 +8,11 @@
 import Config
 
 config :glossia,
-  ecto_repos: [Glossia.Repo],
+  ecto_repos: [Glossia.Repo, Glossia.IngestRepo],
   generators: [timestamp_type: :utc_datetime]
+
+config :ecto_ch,
+  default_table_engine: "MergeTree"
 
 config :glossia, Glossia.Repo, migration_primary_key: [name: :id, type: :binary_id]
 
@@ -60,18 +63,8 @@ config :glossia, :sentry_dsn_js, nil
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# OAuth providers (overridden per environment)
-config :glossia, :oauth_providers,
-  github: [
-    client_id: "REPLACE_IN_RUNTIME",
-    client_secret: "REPLACE_IN_RUNTIME",
-    strategy: Assent.Strategy.Github
-  ],
-  gitlab: [
-    client_id: "REPLACE_IN_RUNTIME",
-    client_secret: "REPLACE_IN_RUNTIME",
-    strategy: Assent.Strategy.Gitlab
-  ]
+# OAuth providers (configured at runtime via runtime.exs from env vars)
+config :glossia, :oauth_providers, []
 
 # Boruta OAuth2 provider
 config :boruta, Boruta.Oauth,
@@ -86,11 +79,29 @@ config :glossia, Glossia.Stripe,
   price_id: nil,
   webhook_secret: nil
 
+config :glossia, Glossia.Github, webhook_secret: nil
+config :glossia, Glossia.Gitlab, webhook_secret: nil
+
 config :glossia, Glossia.PromEx,
   manual_metrics_start_delay: :no_delay,
   grafana: :disabled
 
 config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: nil
+
+config :glossia, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.PG,
+  repo: Glossia.Repo,
+  queues: [default: 10]
+
+config :glossia, GlossiaWeb.Plugs.OpsAuth, username: "ops", password: nil
+
+config :ex_aws,
+  json_codec: JSON
+
+config :glossia, Glossia.Storage, bucket: "glossia"
+
+config :flop, repo: Glossia.Repo
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

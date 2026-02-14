@@ -51,7 +51,11 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   defp revoked?(%{revoked_at: _}), do: true
   defp revoked?(_), do: true
 
-  defp expired?(%{expires_at: expires_at}) do
+  defp expired?(%{expires_at: expires_at}) when is_integer(expires_at) do
+    DateTime.utc_now() |> DateTime.to_unix() >= expires_at
+  end
+
+  defp expired?(%{expires_at: %DateTime{} = expires_at}) do
     DateTime.compare(expires_at, DateTime.utc_now()) == :lt
   end
 

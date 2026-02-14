@@ -27,7 +27,8 @@ defmodule Glossia.MixProject do
         :inets,
         :ssl,
         :logger,
-        :runtime_tools
+        :runtime_tools,
+        :os_mon
       ]
     ]
   end
@@ -58,6 +59,7 @@ defmodule Glossia.MixProject do
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.16"},
+      {:gen_smtp, "~> 1.0"},
       {:req, "~> 0.5"},
       {:stripity_stripe, "~> 3.2"},
       {:sentry, "~> 11.0"},
@@ -82,8 +84,15 @@ defmodule Glossia.MixProject do
       {:uniq, "~> 0.6"},
       {:hammer, "~> 7.0"},
       {:hermes_mcp, "~> 0.9"},
+      {:oban, "~> 2.19"},
+      {:oban_web, "~> 2.11"},
+      {:opentelemetry_req, "~> 1.0"},
       {:prom_ex, "~> 1.11"},
       {:tidewave, "~> 0.5", only: :dev},
+      {:ecto_ch, "~> 0.8"},
+      {:ex_aws, "~> 2.5"},
+      {:ex_aws_s3, "~> 2.5"},
+      {:flop, "~> 0.26"},
       {:mimic, "~> 1.10", only: :test}
     ]
   end

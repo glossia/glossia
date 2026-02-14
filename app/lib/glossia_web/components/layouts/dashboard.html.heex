@@ -1,13 +1,16 @@
 <div class="dash-shell" id="dash-shell">
   <aside class="dash-sidebar">
     <div class="dash-sidebar-top">
-      <a class="logo" href="/dashboard">
+      <a class="logo" href={if @current_user, do: "/dashboard", else: "/" <> @handle}>
         <img src={~p"/images/logo-squared.png"} alt="" class="logo-icon" />
         <span class="dash-logo-text">Glossia</span>
       </a>
     </div>
     <nav class="dash-nav">
-      <a href={"/" <> @current_user.account.handle} class="dash-nav-item">
+      <.link
+        patch={"/" <> @handle}
+        class={["dash-nav-item", @live_action in [:account, :project] && "active"]}
+      >
         <svg
           width="18"
           height="18"
@@ -22,8 +25,11 @@
           <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
         </svg>
         <span class="dash-nav-label">{gettext("Projects")}</span>
-      </a>
-      <a href={~p"/billing"} class="dash-nav-item">
+      </.link>
+      <.link
+        patch={"/" <> @handle <> "/voice"}
+        class={["dash-nav-item", @live_action in [:voice, :voice_version] && "active"]}
+      >
         <svg
           width="18"
           height="18"
@@ -35,27 +41,76 @@
           stroke-linejoin="round"
           aria-hidden="true"
         >
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line
+            x1="12"
+            y1="19"
+            x2="12"
+            y2="23"
+          /><line x1="8" y1="23" x2="16" y2="23" />
         </svg>
-        <span class="dash-nav-label">{gettext("Activity")}</span>
-      </a>
-      <a href="#" class="dash-nav-item">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+        <span class="dash-nav-label">{gettext("Voice")}</span>
+      </.link>
+      <%= if assigns[:is_admin] and @account.type == "organization" do %>
+        <.link
+          patch={"/" <> @handle <> "/members"}
+          class={["dash-nav-item", @live_action == :members && "active"]}
         >
-          <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-        </svg>
-        <span class="dash-nav-label">{gettext("Billing")}</span>
-      </a>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+          <span class="dash-nav-label">{gettext("Members")}</span>
+        </.link>
+      <% end %>
+      <%= if @can_write do %>
+        <.link
+          patch={"/" <> @handle <> "/logs"}
+          class={["dash-nav-item", @live_action == :logs && "active"]}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          <span class="dash-nav-label">{gettext("Logs")}</span>
+        </.link>
+      <% end %>
     </nav>
+    <div class="dash-sidebar-feedback">
+      <a href={"/" <> @handle <> "/feedback"} class="dash-nav-item dash-feedback-link">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+        <span class="dash-nav-label">{gettext("Feedback")}</span>
+      </a>
+    </div>
     <div class="dash-sidebar-bottom">
       <button
         class="dash-nav-item dash-sidebar-collapse"
@@ -84,62 +139,77 @@
   <div class="dash-content-area">
     <header class="dash-topbar">
       <div class="dash-topbar-left">
-        <div class="account-switcher" :if={assigns[:accounts]}>
-          <button class="account-switcher-toggle" aria-expanded="false" aria-haspopup="true">
-            <span class="account-switcher-name">{@handle}</span>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          <ul class="account-switcher-menu" role="menu">
-            <li :for={account <- @accounts} role="none">
-              <a
-                role="menuitem"
-                href={"/" <> account.handle}
-                class={if account.handle == @handle, do: "active"}
+        <%= if @current_user do %>
+          <div :if={assigns[:accounts]} class="account-switcher">
+            <button class="account-switcher-toggle" aria-expanded="false" aria-haspopup="true">
+              <span class="account-switcher-name">{@handle}</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
               >
-                <span class="account-switcher-handle">{account.handle}</span>
-                <span :if={account.type == "user"} class="account-badge">{gettext("Personal")}</span>
-                <span :if={account.type == "organization"} class="account-badge account-badge-org">
-                  {gettext("Org")}
-                </span>
-              </a>
-            </li>
-            <li role="none" class="account-switcher-divider"></li>
-            <li role="none">
-              <a role="menuitem" href="/organizations/new" class="account-switcher-create">
-                {gettext("Create organization")}
-              </a>
-            </li>
-          </ul>
-        </div>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <ul class="account-switcher-menu" role="menu">
+              <li :for={account <- @accounts} role="none">
+                <a
+                  role="menuitem"
+                  href={"/" <> account.handle}
+                  class={if account.handle == @handle, do: "active"}
+                >
+                  <span class="account-switcher-handle">{account.handle}</span>
+                  <span :if={account.type == "user"} class="account-badge">
+                    {gettext("Personal")}
+                  </span>
+                  <span
+                    :if={account.type == "organization"}
+                    class="account-badge account-badge-org"
+                  >
+                    {gettext("Org")}
+                  </span>
+                </a>
+              </li>
+              <li role="none" class="account-switcher-divider"></li>
+              <li role="none">
+                <a role="menuitem" href="/organizations/new" class="account-switcher-create">
+                  {gettext("Create organization")}
+                </a>
+              </li>
+            </ul>
+          </div>
+        <% else %>
+          <span class="account-switcher-name">{@handle}</span>
+        <% end %>
       </div>
       <div class="dash-topbar-right">
-        <div class="avatar-dropdown">
-          <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
-            <img
-              src={"https://www.gravatar.com/avatar/#{Base.encode16(:crypto.hash(:md5, String.downcase(String.trim(@current_user.email))), case: :lower)}?s=64&d=identicon"}
-              alt={@current_user.name || @current_user.email}
-              width="24"
-              height="24"
-            />
-          </button>
-          <ul class="avatar-menu" role="menu">
-            <li role="none">
-              <a role="menuitem" href="/auth/logout" data-method="delete">{gettext("Log out")}</a>
-            </li>
-          </ul>
-        </div>
+        <%= if @current_user do %>
+          <div class="avatar-dropdown">
+            <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
+              <img
+                src={"https://www.gravatar.com/avatar/#{Base.encode16(:crypto.hash(:md5, String.downcase(String.trim(@current_user.email))), case: :lower)}?s=64&d=identicon"}
+                alt={@current_user.name || @current_user.email}
+                width="24"
+                height="24"
+              />
+            </button>
+            <ul class="avatar-menu" role="menu">
+              <li role="none">
+                <a role="menuitem" href="/auth/logout" data-method="delete">
+                  {gettext("Log out")}
+                </a>
+              </li>
+            </ul>
+          </div>
+        <% else %>
+          <a href={~p"/auth/login"} class="dash-btn dash-btn-primary">{gettext("Sign in")}</a>
+        <% end %>
       </div>
     </header>
     <main class="dash-main">
@@ -199,12 +269,14 @@
         var form = document.createElement('form');
         form.method = 'POST';
         form.action = link.getAttribute('href');
-        var csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        var csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_csrf_token';
-        csrfInput.value = csrf;
-        form.appendChild(csrfInput);
+        var csrf = document.querySelector('meta[name="csrf-token"]');
+        if (csrf) {
+          var csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = '_csrf_token';
+          csrfInput.value = csrf.getAttribute('content');
+          form.appendChild(csrfInput);
+        }
         var methodInput = document.createElement('input');
         methodInput.type = 'hidden';
         methodInput.name = '_method';

@@ -5,7 +5,7 @@ defmodule GlossiaWeb.BlogController do
 
   def index(conn, _params) do
     posts = Blog.all_posts()
-    render(conn, :index, posts: posts)
+    render(conn, :index, posts: posts, page_title: gettext("Blog"))
   end
 
   def show(conn, %{"slug" => slug}) do
@@ -13,7 +13,7 @@ defmodule GlossiaWeb.BlogController do
 
     conn
     |> assign(:author, post.author)
-    |> render(:show, post: post)
+    |> render(:show, post: post, page_title: post.title)
   end
 
   def feed(conn, _params) do

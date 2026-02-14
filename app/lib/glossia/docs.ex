@@ -22,7 +22,7 @@ defmodule Glossia.Docs do
     },
     "reference" => %{
       title: "Reference",
-      summary: "Technical descriptions of configuration, CLI, and file formats.",
+      summary: "Technical descriptions of configuration, CLI, and APIs.",
       icon: "file-text"
     },
     "explanation" => %{
@@ -32,59 +32,137 @@ defmodule Glossia.Docs do
     }
   }
 
+  @subcategories %{
+    {"reference", "cli"} => %{
+      title: "CLI",
+      summary: "Command-line tool documentation and release history.",
+      order: 2
+    },
+    {"reference", "apis"} => %{
+      title: "APIs",
+      summary: "Authentication and REST interfaces.",
+      order: 3
+    },
+    {"reference", "mcp"} => %{
+      title: "MCP",
+      summary: "Model Context Protocol server, tools, and prompts.",
+      order: 4
+    }
+  }
+
+  @api_page %Page{
+    id: "reference/apis/rest",
+    title: "REST",
+    summary: "Interactive reference for OAuth and discovery endpoints.",
+    category: "reference",
+    subcategory: "apis",
+    order: 2,
+    slug: "rest",
+    body: ""
+  }
+
+  @mcp_tools_page Glossia.Docs.MCP.tools_page()
+  @mcp_prompts_page Glossia.Docs.MCP.prompts_page()
+
   def all_pages, do: @pages
 
   def categories, do: @categories
 
-  def pages_by_category("reference") do
-    api_page = %Page{
-      id: "reference/api",
-      title: "API Reference",
-      summary: "Interactive reference for OAuth and discovery endpoints.",
-      category: "reference",
-      order: 10,
-      slug: "api",
-      body: ""
-    }
-
-    Enum.filter(@pages, &(&1.category == "reference")) ++ [api_page]
+  @doc """
+  Returns top-level pages for a category (excludes pages that belong to a subcategory).
+  """
+  def pages_by_category(category) do
+    Enum.filter(@pages, &(&1.category == category && is_nil(&1.subcategory)))
   end
 
-  def pages_by_category(category) do
-    Enum.filter(@pages, &(&1.category == category))
+  @doc """
+  Returns subcategories for a given category, sorted by order.
+  """
+  def subcategories_for(category) do
+    @subcategories
+    |> Enum.filter(fn {{cat, _key}, _meta} -> cat == category end)
+    |> Enum.map(fn {{_cat, key}, meta} -> Map.put(meta, :key, key) end)
+    |> Enum.sort_by(& &1.order)
+  end
+
+  @doc """
+  Returns subcategory metadata or raises NotFoundError.
+  """
+  def subcategory!(category, key) do
+    Map.get(@subcategories, {category, key}) ||
+      raise Glossia.Docs.NotFoundError,
+            "subcategory #{category}/#{key} not found"
+  end
+
+  @doc """
+  Returns pages within a specific subcategory.
+  """
+  def pages_by_subcategory("reference", "apis") do
+    pages = Enum.filter(@pages, &(&1.category == "reference" && &1.subcategory == "apis"))
+    pages ++ [@api_page]
+  end
+
+  def pages_by_subcategory("reference", "mcp") do
+    pages = Enum.filter(@pages, &(&1.category == "reference" && &1.subcategory == "mcp"))
+    pages ++ [@mcp_tools_page, @mcp_prompts_page]
+  end
+
+  def pages_by_subcategory(category, subcategory) do
+    Enum.filter(@pages, &(&1.category == category && &1.subcategory == subcategory))
   end
 
   def get_page!(category, slug) do
-    Enum.find(@pages, &(&1.category == category && &1.slug == slug)) ||
+    Enum.find(@pages, &(&1.category == category && is_nil(&1.subcategory) && &1.slug == slug)) ||
       raise Glossia.Docs.NotFoundError,
             "doc page with category=#{category} slug=#{slug} not found"
+  end
+
+  @synthetic_pages [@api_page, @mcp_tools_page, @mcp_prompts_page]
+
+  def get_subcategory_page!(category, subcategory, slug) do
+    Enum.find(
+      @pages ++ @synthetic_pages,
+      &(&1.category == category && &1.subcategory == subcategory && &1.slug == slug)
+    ) ||
+      raise Glossia.Docs.NotFoundError,
+            "doc page with category=#{category} subcategory=#{subcategory} slug=#{slug} not found"
   end
 
   def search_index do
     compiled =
       Enum.map(@pages, fn page ->
+        url =
+          if page.subcategory do
+            "/docs/#{page.category}/#{page.subcategory}/#{page.slug}"
+          else
+            "/docs/#{page.category}/#{page.slug}"
+          end
+
         %{
           title: page.title,
           summary: page.summary,
           category: page.category,
           slug: page.slug,
-          url: "/docs/#{page.category}/#{page.slug}",
+          url: url,
           headings: Enum.map(page.toc, fn h -> %{text: h.text, id: h.id} end),
           body_text: strip_html(page.body)
         }
       end)
 
-    api_entry = %{
-      title: "API Reference",
-      summary: "Interactive reference for OAuth and discovery endpoints.",
-      category: "reference",
-      slug: "api",
-      url: "/docs/reference/api",
-      headings: [],
-      body_text: "OAuth token register revoke introspect well-known openapi endpoints API"
-    }
+    synthetic_entries =
+      Enum.map(@synthetic_pages, fn page ->
+        %{
+          title: page.title,
+          summary: page.summary,
+          category: page.category,
+          slug: page.slug,
+          url: "/docs/#{page.category}/#{page.subcategory}/#{page.slug}",
+          headings: Enum.map(page.toc, fn h -> %{text: h.text, id: h.id} end),
+          body_text: strip_html(page.body)
+        }
+      end)
 
-    compiled ++ [api_entry]
+    compiled ++ synthetic_entries
   end
 
   defp strip_html(html) do

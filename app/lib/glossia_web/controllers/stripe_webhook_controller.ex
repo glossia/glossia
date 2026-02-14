@@ -26,4 +26,3 @@ defmodule GlossiaWeb.StripeWebhookController do
     end
   end
 end
-

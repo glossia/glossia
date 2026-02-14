@@ -5,7 +5,7 @@ defmodule GlossiaWeb.OrganizationController do
 
   def new(conn, _params) do
     changeset = Accounts.Account.changeset(%Accounts.Account{}, %{})
-    render(conn, :new, changeset: changeset)
+    render(conn, :new, changeset: changeset, page_title: gettext("New organization"))
   end
 
   def create(conn, %{"account" => account_params}) do
@@ -16,14 +16,14 @@ defmodule GlossiaWeb.OrganizationController do
         redirect(conn, to: "/#{account.handle}")
 
       {:error, :account, changeset, _} ->
-        render(conn, :new, changeset: changeset)
+        render(conn, :new, changeset: changeset, page_title: gettext("New organization"))
 
       {:error, _step, _changeset, _} ->
         changeset =
           Accounts.Account.changeset(%Accounts.Account{}, account_params)
           |> Ecto.Changeset.add_error(:handle, "could not create organization")
 
-        render(conn, :new, changeset: changeset)
+        render(conn, :new, changeset: changeset, page_title: gettext("New organization"))
     end
   end
 end

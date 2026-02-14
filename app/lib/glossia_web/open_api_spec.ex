@@ -369,11 +369,143 @@ defmodule GlossiaWeb.OpenApiSpec do
           }
         }
       },
+      "/api/accounts" => %{
+        "get" => %{
+          "summary" => "List accounts",
+          "description" =>
+            "Returns all accounts accessible by the current user (personal and organization accounts). " <>
+              "Supports pagination, filtering, and sorting via query parameters.",
+          "operationId" => "listAccounts",
+          "tags" => ["Accounts"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" =>
+            pagination_parameters() ++
+              [
+                filter_parameter("handle", "string", "Filter by handle"),
+                filter_parameter("type", "string", "Filter by type (user or organization)"),
+                filter_parameter(
+                  "visibility",
+                  "string",
+                  "Filter by visibility (private or public)"
+                ),
+                sort_parameter("handle, type, visibility, inserted_at")
+              ],
+          "responses" => %{
+            "200" => %{
+              "description" => "Paginated list of accounts",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "accounts" => %{
+                        "type" => "array",
+                        "items" => %{
+                          "type" => "object",
+                          "properties" => %{
+                            "handle" => %{"type" => "string"},
+                            "type" => %{"type" => "string"},
+                            "visibility" => %{"type" => "string"}
+                          }
+                        }
+                      },
+                      "meta" => %{"$ref" => "#/components/schemas/PaginationMeta"}
+                    }
+                  }
+                }
+              }
+            },
+            "400" => %{"description" => "Invalid pagination or filter parameters"},
+            "401" => %{"description" => "Unauthorized"}
+          }
+        }
+      },
+      "/api/{handle}/projects" => %{
+        "get" => %{
+          "summary" => "List projects",
+          "description" =>
+            "Returns all projects for a given account. " <>
+              "Supports pagination, filtering, and sorting via query parameters.",
+          "operationId" => "listProjects",
+          "tags" => ["Projects"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" =>
+            [
+              %{
+                "name" => "handle",
+                "in" => "path",
+                "required" => true,
+                "schema" => %{"type" => "string"},
+                "description" => "Account handle"
+              }
+            ] ++
+              pagination_parameters() ++
+              [
+                filter_parameter("handle", "string", "Filter by project handle"),
+                filter_parameter("name", "string", "Filter by project name"),
+                sort_parameter("handle, name, inserted_at")
+              ],
+          "responses" => %{
+            "200" => %{
+              "description" => "Paginated list of projects",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "projects" => %{
+                        "type" => "array",
+                        "items" => %{
+                          "type" => "object",
+                          "properties" => %{
+                            "handle" => %{"type" => "string"},
+                            "name" => %{"type" => "string"}
+                          }
+                        }
+                      },
+                      "meta" => %{"$ref" => "#/components/schemas/PaginationMeta"}
+                    }
+                  }
+                }
+              }
+            },
+            "400" => %{"description" => "Invalid pagination or filter parameters"},
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Account not found"}
+          }
+        }
+      },
       "/api/organizations" => %{
+        "get" => %{
+          "summary" => "List organizations",
+          "description" => "Returns all organizations the authenticated user belongs to.",
+          "operationId" => "listOrganizations",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "responses" => %{
+            "200" => %{
+              "description" => "List of organizations",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "organizations" => %{
+                        "type" => "array",
+                        "items" => %{"$ref" => "#/components/schemas/OrganizationResponse"}
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401" => %{"description" => "Unauthorized"}
+          }
+        },
         "post" => %{
           "summary" => "Create organization",
-          "description" =>
-            "Create a new organization. The authenticated user becomes the admin.",
+          "description" => "Create a new organization. The authenticated user becomes the admin.",
           "operationId" => "createOrganization",
           "tags" => ["Organizations"],
           "security" => [%{"bearerAuth" => []}],
@@ -408,6 +540,379 @@ defmodule GlossiaWeb.OpenApiSpec do
                 }
               }
             }
+          }
+        }
+      },
+      "/api/organizations/{handle}" => %{
+        "get" => %{
+          "summary" => "Get organization",
+          "description" => "Get details of an organization by handle.",
+          "operationId" => "getOrganization",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [handle_parameter()],
+          "responses" => %{
+            "200" => %{
+              "description" => "Organization details",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/OrganizationResponse"}
+                }
+              }
+            },
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization not found"}
+          }
+        },
+        "patch" => %{
+          "summary" => "Update organization",
+          "description" => "Update an organization's name or visibility.",
+          "operationId" => "updateOrganization",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [handle_parameter()],
+          "requestBody" => %{
+            "required" => true,
+            "content" => %{
+              "application/json" => %{
+                "schema" => %{"$ref" => "#/components/schemas/UpdateOrganizationRequest"}
+              }
+            }
+          },
+          "responses" => %{
+            "200" => %{
+              "description" => "Organization updated",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/OrganizationResponse"}
+                }
+              }
+            },
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization not found"},
+            "422" => %{
+              "description" => "Validation errors",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{"errors" => %{"type" => "object"}}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "delete" => %{
+          "summary" => "Delete organization",
+          "description" => "Delete an organization and all associated data.",
+          "operationId" => "deleteOrganization",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [handle_parameter()],
+          "responses" => %{
+            "204" => %{"description" => "Organization deleted"},
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization not found"}
+          }
+        }
+      },
+      "/api/organizations/{handle}/members" => %{
+        "get" => %{
+          "summary" => "List organization members",
+          "description" => "Returns all members of an organization.",
+          "operationId" => "listOrganizationMembers",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [handle_parameter()],
+          "responses" => %{
+            "200" => %{
+              "description" => "List of members",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "members" => %{
+                        "type" => "array",
+                        "items" => %{"$ref" => "#/components/schemas/MemberResponse"}
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization not found"}
+          }
+        }
+      },
+      "/api/organizations/{handle}/members/{user_handle}" => %{
+        "delete" => %{
+          "summary" => "Remove organization member",
+          "description" => "Remove a member from an organization. Cannot remove the last admin.",
+          "operationId" => "removeOrganizationMember",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [
+            handle_parameter(),
+            %{
+              "name" => "user_handle",
+              "in" => "path",
+              "required" => true,
+              "schema" => %{"type" => "string"},
+              "description" => "Handle of the user to remove"
+            }
+          ],
+          "responses" => %{
+            "204" => %{"description" => "Member removed"},
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization or user not found"},
+            "409" => %{"description" => "Cannot remove the only admin"}
+          }
+        }
+      },
+      "/api/organizations/{handle}/invitations" => %{
+        "get" => %{
+          "summary" => "List organization invitations",
+          "description" => "Returns all pending invitations for an organization.",
+          "operationId" => "listOrganizationInvitations",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [handle_parameter()],
+          "responses" => %{
+            "200" => %{
+              "description" => "List of pending invitations",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "invitations" => %{
+                        "type" => "array",
+                        "items" => %{"$ref" => "#/components/schemas/InvitationResponse"}
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization not found"}
+          }
+        },
+        "post" => %{
+          "summary" => "Create organization invitation",
+          "description" => "Invite a user to an organization by email.",
+          "operationId" => "createOrganizationInvitation",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [handle_parameter()],
+          "requestBody" => %{
+            "required" => true,
+            "content" => %{
+              "application/json" => %{
+                "schema" => %{"$ref" => "#/components/schemas/CreateInvitationRequest"}
+              }
+            }
+          },
+          "responses" => %{
+            "201" => %{
+              "description" => "Invitation created",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/InvitationResponse"}
+                }
+              }
+            },
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization not found"},
+            "409" => %{"description" => "User already a member or already invited"},
+            "422" => %{
+              "description" => "Validation errors",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{"errors" => %{"type" => "object"}}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/organizations/{handle}/invitations/{invitation_id}" => %{
+        "delete" => %{
+          "summary" => "Revoke organization invitation",
+          "description" => "Revoke a pending invitation.",
+          "operationId" => "revokeOrganizationInvitation",
+          "tags" => ["Organizations"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [
+            handle_parameter(),
+            %{
+              "name" => "invitation_id",
+              "in" => "path",
+              "required" => true,
+              "schema" => %{"type" => "string"},
+              "description" => "Invitation ID"
+            }
+          ],
+          "responses" => %{
+            "204" => %{"description" => "Invitation revoked"},
+            "401" => %{"description" => "Unauthorized"},
+            "403" => %{"description" => "Not authorized"},
+            "404" => %{"description" => "Organization or invitation not found"}
+          }
+        }
+      },
+      "/api/{handle}/voice" => %{
+        "get" => %{
+          "summary" => "Get voice configuration",
+          "description" =>
+            "Get the latest voice configuration for an account. " <>
+              "Optionally specify a locale to get a merged/resolved voice, or a version number.",
+          "operationId" => "getVoice",
+          "tags" => ["Voice"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [
+            %{
+              "name" => "handle",
+              "in" => "path",
+              "required" => true,
+              "schema" => %{"type" => "string"}
+            },
+            %{
+              "name" => "locale",
+              "in" => "query",
+              "schema" => %{"type" => "string"},
+              "description" => "Locale to resolve overrides for (e.g. 'ja', 'de')"
+            },
+            %{
+              "name" => "version",
+              "in" => "query",
+              "schema" => %{"type" => "integer"},
+              "description" => "Specific version number to retrieve"
+            }
+          ],
+          "responses" => %{
+            "200" => %{
+              "description" => "Voice configuration",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/VoiceResponse"}
+                }
+              }
+            },
+            "404" => %{"description" => "Account or voice not found"}
+          }
+        },
+        "post" => %{
+          "summary" => "Create new voice version",
+          "description" => "Create a new voice configuration version for an account.",
+          "operationId" => "createVoice",
+          "tags" => ["Voice"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" => [
+            %{
+              "name" => "handle",
+              "in" => "path",
+              "required" => true,
+              "schema" => %{"type" => "string"}
+            }
+          ],
+          "requestBody" => %{
+            "required" => true,
+            "content" => %{
+              "application/json" => %{
+                "schema" => %{"$ref" => "#/components/schemas/CreateVoiceRequest"}
+              }
+            }
+          },
+          "responses" => %{
+            "201" => %{
+              "description" => "Voice version created",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/VoiceResponse"}
+                }
+              }
+            },
+            "422" => %{
+              "description" => "Validation errors",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{"errors" => %{"type" => "object"}}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/{handle}/voice/history" => %{
+        "get" => %{
+          "summary" => "List voice version history",
+          "description" =>
+            "Returns a paginated list of all voice versions for an account. " <>
+              "Supports pagination, filtering, and sorting via query parameters.",
+          "operationId" => "getVoiceHistory",
+          "tags" => ["Voice"],
+          "security" => [%{"bearerAuth" => []}],
+          "parameters" =>
+            [
+              %{
+                "name" => "handle",
+                "in" => "path",
+                "required" => true,
+                "schema" => %{"type" => "string"}
+              }
+            ] ++
+              pagination_parameters() ++
+              [
+                filter_parameter("version", "integer", "Filter by version number"),
+                filter_parameter("tone", "string", "Filter by tone"),
+                filter_parameter("formality", "string", "Filter by formality"),
+                filter_parameter("change_note", "string", "Filter by change note"),
+                sort_parameter("version, inserted_at")
+              ],
+          "responses" => %{
+            "200" => %{
+              "description" => "Paginated voice version history",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "versions" => %{
+                        "type" => "array",
+                        "items" => %{
+                          "type" => "object",
+                          "properties" => %{
+                            "version" => %{"type" => "integer"},
+                            "change_note" => %{"type" => "string"},
+                            "inserted_at" => %{"type" => "string", "format" => "date-time"}
+                          }
+                        }
+                      },
+                      "meta" => %{"$ref" => "#/components/schemas/PaginationMeta"}
+                    }
+                  }
+                }
+              }
+            },
+            "400" => %{"description" => "Invalid pagination or filter parameters"},
+            "404" => %{"description" => "Account not found"}
           }
         }
       },
@@ -573,7 +1078,8 @@ defmodule GlossiaWeb.OpenApiSpec do
           },
           "name" => %{
             "type" => "string",
-            "description" => "Display name for the organization. Defaults to the handle if omitted."
+            "description" =>
+              "Display name for the organization. Defaults to the handle if omitted."
           }
         }
       },
@@ -582,9 +1088,181 @@ defmodule GlossiaWeb.OpenApiSpec do
         "properties" => %{
           "handle" => %{"type" => "string"},
           "name" => %{"type" => "string"},
-          "type" => %{"type" => "string", "example" => "organization"}
+          "type" => %{"type" => "string", "example" => "organization"},
+          "visibility" => %{"type" => "string", "enum" => ["private", "public"]}
+        }
+      },
+      "UpdateOrganizationRequest" => %{
+        "type" => "object",
+        "properties" => %{
+          "name" => %{
+            "type" => "string",
+            "description" => "New display name for the organization."
+          },
+          "visibility" => %{
+            "type" => "string",
+            "enum" => ["private", "public"],
+            "description" => "New visibility setting."
+          }
+        }
+      },
+      "MemberResponse" => %{
+        "type" => "object",
+        "properties" => %{
+          "handle" => %{"type" => "string"},
+          "email" => %{"type" => "string"},
+          "role" => %{"type" => "string", "enum" => ["admin", "member", "linguist"]},
+          "joined_at" => %{"type" => "string", "format" => "date-time"}
+        }
+      },
+      "InvitationResponse" => %{
+        "type" => "object",
+        "properties" => %{
+          "id" => %{"type" => "string"},
+          "email" => %{"type" => "string"},
+          "role" => %{"type" => "string", "enum" => ["admin", "member", "linguist"]},
+          "status" => %{"type" => "string"},
+          "expires_at" => %{"type" => "string", "format" => "date-time"}
+        }
+      },
+      "CreateInvitationRequest" => %{
+        "type" => "object",
+        "required" => ["email"],
+        "properties" => %{
+          "email" => %{
+            "type" => "string",
+            "description" => "Email address to invite."
+          },
+          "role" => %{
+            "type" => "string",
+            "enum" => ["admin", "member", "linguist"],
+            "description" => "Role for the invitee. Defaults to member.",
+            "default" => "member"
+          }
+        }
+      },
+      "CreateVoiceRequest" => %{
+        "type" => "object",
+        "properties" => %{
+          "tone" => %{
+            "type" => "string",
+            "enum" => ["casual", "formal", "playful", "authoritative", "neutral"]
+          },
+          "formality" => %{
+            "type" => "string",
+            "enum" => ["informal", "neutral", "formal", "very_formal"]
+          },
+          "target_audience" => %{"type" => "string"},
+          "guidelines" => %{"type" => "string", "description" => "Markdown content"},
+          "change_note" => %{"type" => "string"},
+          "overrides" => %{
+            "type" => "array",
+            "items" => %{"$ref" => "#/components/schemas/VoiceOverride"}
+          }
+        }
+      },
+      "VoiceResponse" => %{
+        "type" => "object",
+        "properties" => %{
+          "version" => %{"type" => "integer"},
+          "tone" => %{"type" => "string"},
+          "formality" => %{"type" => "string"},
+          "target_audience" => %{"type" => "string"},
+          "guidelines" => %{"type" => "string"},
+          "change_note" => %{"type" => "string"},
+          "inserted_at" => %{"type" => "string", "format" => "date-time"},
+          "overrides" => %{
+            "type" => "array",
+            "items" => %{"$ref" => "#/components/schemas/VoiceOverride"}
+          }
+        }
+      },
+      "VoiceOverride" => %{
+        "type" => "object",
+        "required" => ["locale"],
+        "properties" => %{
+          "locale" => %{"type" => "string", "description" => "e.g. 'ja', 'de', 'es-MX'"},
+          "tone" => %{"type" => "string"},
+          "formality" => %{"type" => "string"},
+          "target_audience" => %{"type" => "string"},
+          "guidelines" => %{"type" => "string"}
+        }
+      },
+      "PaginationMeta" => %{
+        "type" => "object",
+        "description" => "Pagination metadata included in all list responses.",
+        "properties" => %{
+          "total_count" => %{
+            "type" => "integer",
+            "description" => "Total number of records matching the query"
+          },
+          "total_pages" => %{
+            "type" => "integer",
+            "description" => "Total number of pages"
+          },
+          "current_page" => %{
+            "type" => "integer",
+            "description" => "Current page number (1-based)"
+          },
+          "page_size" => %{
+            "type" => "integer",
+            "description" => "Number of records per page"
+          },
+          "has_next_page?" => %{
+            "type" => "boolean",
+            "description" => "Whether a next page exists"
+          },
+          "has_previous_page?" => %{
+            "type" => "boolean",
+            "description" => "Whether a previous page exists"
+          }
         }
       }
+    }
+  end
+
+  defp pagination_parameters do
+    [
+      %{
+        "name" => "page",
+        "in" => "query",
+        "schema" => %{"type" => "integer", "minimum" => 1, "default" => 1},
+        "description" => "Page number (1-based)"
+      },
+      %{
+        "name" => "page_size",
+        "in" => "query",
+        "schema" => %{"type" => "integer", "minimum" => 1, "maximum" => 100, "default" => 20},
+        "description" => "Number of records per page (max 100)"
+      }
+    ]
+  end
+
+  defp filter_parameter(field, type, description) do
+    %{
+      "name" => "filters[#{field}]",
+      "in" => "query",
+      "schema" => %{"type" => type},
+      "description" => description
+    }
+  end
+
+  defp sort_parameter(fields) do
+    %{
+      "name" => "order_by[]",
+      "in" => "query",
+      "schema" => %{"type" => "string"},
+      "description" => "Sort field. Allowed values: #{fields}. Prefix with - for descending."
+    }
+  end
+
+  defp handle_parameter do
+    %{
+      "name" => "handle",
+      "in" => "path",
+      "required" => true,
+      "schema" => %{"type" => "string"},
+      "description" => "Organization handle"
     }
   end
 end

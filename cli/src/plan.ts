@@ -185,7 +185,7 @@ function resolveEntries(
       if (excludes.has(match)) {
         continue;
       }
-      if (path.basename(match) === 'CONTENT.md') {
+      if (path.basename(match) === 'GLOSSIA.md') {
         continue;
       }
 
@@ -246,7 +246,7 @@ function resolveExcludes(root: string, entry: Entry, fileList: string[]): Set<st
 
 async function discoverContent(root: string): Promise<ContentFile[]> {
   const fileList = await walkFiles(root);
-  const contentPaths = fileList.filter((file) => path.basename(file) === 'CONTENT.md');
+  const contentPaths = fileList.filter((file) => path.basename(file) === 'GLOSSIA.md');
 
   const files: ContentFile[] = [];
 
@@ -279,7 +279,7 @@ async function readLangContext(dir: string, lang: string): Promise<string> {
     throw new Error(`invalid language code "${lang}"`);
   }
 
-  const filePath = path.join(dir, 'CONTENT', `${trimmed}.md`);
+  const filePath = path.join(dir, 'GLOSSIA', `${trimmed}.md`);
 
   try {
     await access(filePath);
