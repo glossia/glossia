@@ -23,6 +23,10 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.RequireAuth
   end
 
+  pipeline :dashboard do
+    plug :put_layout, html: {GlossiaWeb.Layouts, :dashboard}
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -38,10 +42,20 @@ defmodule GlossiaWeb.Router do
     delete "/logout", AuthController, :logout
   end
 
+  if Application.compile_env(:glossia, :dev_routes) do
+    scope "/auth", GlossiaWeb do
+      pipe_through :browser
+
+      post "/dev-login", AuthController, :dev_login
+    end
+  end
+
   scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_auth]
+    pipe_through [:browser, :require_auth, :dashboard]
 
     get "/dashboard", DashboardController, :index
+    get "/:handle", DashboardController, :account
+    get "/:handle/:project", DashboardController, :project
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

@@ -9,49 +9,25 @@
       <a href="/blog">Blog</a>
       <%= if assigns[:current_user] && @current_user do %>
         <a href="/dashboard">Dashboard</a>
+        <div class="avatar-dropdown">
+          <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
+            <img
+              src={"https://www.gravatar.com/avatar/#{Base.encode16(:crypto.hash(:md5, String.downcase(String.trim(@current_user.email))), case: :lower)}?s=64&d=identicon"}
+              alt={@current_user.name || @current_user.email}
+              width="32"
+              height="32"
+            />
+          </button>
+          <ul class="avatar-menu" role="menu">
+            <li role="none">
+              <a role="menuitem" href="/auth/logout" data-method="delete">Log out</a>
+            </li>
+          </ul>
+        </div>
       <% else %>
         <a href="/auth/login" class="nav-cta">Sign in</a>
       <% end %>
     </nav>
-    <div class="locale-dropdown">
-      <button class="locale-toggle" aria-expanded="false" aria-haspopup="true">
-        English
-        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-          <path
-            d="M1 1l4 4 4-4"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <ul class="locale-menu" role="menu">
-        <li role="none">
-          <a role="menuitem" class="locale-option active" href="/">English</a>
-        </li>
-        <li role="none">
-          <a role="menuitem" class="locale-option" href="/es/">Espa&ntilde;ol</a>
-        </li>
-        <li role="none"><a role="menuitem" class="locale-option" href="/de/">Deutsch</a></li>
-        <li role="none">
-          <a role="menuitem" class="locale-option" href="/ko/">&#54620;&#44397;&#50612;</a>
-        </li>
-        <li role="none">
-          <a role="menuitem" class="locale-option" href="/ja/">&#26085;&#26412;&#35486;</a>
-        </li>
-        <li role="none">
-          <a role="menuitem" class="locale-option" href="/zh-Hans/">
-            &#31616;&#20307;&#20013;&#25991;
-          </a>
-        </li>
-        <li role="none">
-          <a role="menuitem" class="locale-option" href="/zh-Hant/">
-            &#32321;&#39636;&#20013;&#25991;
-          </a>
-        </li>
-      </ul>
-    </div>
     <button class="mobile-menu-toggle" aria-expanded="false" aria-label="Menu">
       <svg
         class="menu-icon"
@@ -107,7 +83,7 @@
   <div class="container footer-inner">
     <div class="footer-brand">
       <div class="logo">Glossia</div>
-      <p>Built for teams that ship fast.</p>
+      <p>Built with love from Berlin.</p>
     </div>
     <div>
       <h4>Legal</h4>
@@ -116,6 +92,48 @@
         <li><a href="/privacy">Privacy Policy</a></li>
         <li><a href="/cookies">Cookie Policy</a></li>
       </ul>
+    </div>
+    <div>
+      <h4>Language</h4>
+      <div class="locale-dropdown">
+        <button class="locale-toggle" aria-expanded="false" aria-haspopup="true">
+          English
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+            <path
+              d="M1 1l4 4 4-4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <ul class="locale-menu" role="menu">
+          <li role="none">
+            <a role="menuitem" class="locale-option active" href="/">English</a>
+          </li>
+          <li role="none">
+            <a role="menuitem" class="locale-option" href="/es/">Espa&ntilde;ol</a>
+          </li>
+          <li role="none"><a role="menuitem" class="locale-option" href="/de/">Deutsch</a></li>
+          <li role="none">
+            <a role="menuitem" class="locale-option" href="/ko/">&#54620;&#44397;&#50612;</a>
+          </li>
+          <li role="none">
+            <a role="menuitem" class="locale-option" href="/ja/">&#26085;&#26412;&#35486;</a>
+          </li>
+          <li role="none">
+            <a role="menuitem" class="locale-option" href="/zh-Hans/">
+              &#31616;&#20307;&#20013;&#25991;
+            </a>
+          </li>
+          <li role="none">
+            <a role="menuitem" class="locale-option" href="/zh-Hant/">
+              &#32321;&#39636;&#20013;&#25991;
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </footer>
@@ -151,5 +169,41 @@
         });
       });
     }
+
+    var avatarDd = document.querySelector('.avatar-dropdown');
+    if (avatarDd) {
+      var avatarBtn = avatarDd.querySelector('.avatar-toggle');
+      avatarBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        avatarDd.classList.toggle('open');
+        avatarBtn.setAttribute('aria-expanded', avatarDd.classList.contains('open'));
+      });
+      document.addEventListener('click', function() {
+        avatarDd.classList.remove('open');
+        avatarBtn.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    document.querySelectorAll('a[data-method="delete"]').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = link.getAttribute('href');
+        var csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        var csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_csrf_token';
+        csrfInput.value = csrf;
+        form.appendChild(csrfInput);
+        var methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        methodInput.value = 'delete';
+        form.appendChild(methodInput);
+        document.body.appendChild(form);
+        form.submit();
+      });
+    });
   })();
 </script>
