@@ -29,6 +29,7 @@ defmodule GlossiaWeb.Endpoint do
     from: :glossia,
     gzip: not code_reloading?,
     only: GlossiaWeb.static_paths(),
+    only_matching: ~w(favicon),
     raise_on_missing_only: code_reloading?
 
   # Code reloading can be explicitly enabled under the
@@ -50,10 +51,12 @@ defmodule GlossiaWeb.Endpoint do
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
-    json_decoder: Phoenix.json_library()
+    json_decoder: Phoenix.json_library(),
+    body_reader: {GlossiaWeb.BodyReader, :read_body, []}
 
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug GlossiaWeb.Plugs.DocsMarkdown
   plug GlossiaWeb.Router
 end
