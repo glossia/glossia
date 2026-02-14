@@ -2,8 +2,10 @@
 .env
 .DS_Store
 
-# Added by cargo
+# CLI build outputs
 /cli/target
+/cli/dist
+/cli/node_modules
 
 # Kamal
 /.kamal/secrets

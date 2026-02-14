@@ -1,5 +1,5 @@
 [tools]
-rust = "stable"
+bun = "1.3.4"
 git-cliff = "2.10.0"
 fnox = "1.7.0"
 "gem:kamal" = "2.9.0"
