@@ -3,12 +3,9 @@ defmodule Glossia.MCP.GetOrganizationTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
+  alias Glossia.Organizations
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
-  import Ecto.Query
 
   schema do
     field :handle, {:required, :string}, description: "Organization handle."
@@ -16,39 +13,27 @@ defmodule Glossia.MCP.GetOrganizationTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
+    handle = params["handle"]
 
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
+    with {:ok, user} <- Auth.current_user(frame),
+         {:ok, account} <- Auth.fetch_organization_account(handle),
+         :ok <- Auth.authorize(frame, :organization_read, user, account) do
+      org = Organizations.get_organization_for_account(account)
+
+      response =
+        Response.tool()
+        |> Response.text(
+          JSON.encode!(%{
+            handle: org.account.handle,
+            name: org.name,
+            type: "organization",
+            visibility: org.account.visibility
+          })
+        )
+
+      {:reply, response, frame}
     else
-      handle = params["handle"]
-
-      case Account |> where(handle: ^handle, type: "organization") |> Repo.one() do
-        nil ->
-          {:error, Error.execution("Organization '#{handle}' not found"), frame}
-
-        account ->
-          case Glossia.Policy.authorize(:org_read, user, account) do
-            :ok ->
-              org = Accounts.get_organization_for_account(account)
-
-              response =
-                Response.tool()
-                |> Response.text(
-                  Jason.encode!(%{
-                    handle: org.account.handle,
-                    name: org.name,
-                    type: "organization",
-                    visibility: org.account.visibility
-                  })
-                )
-
-              {:reply, response, frame}
-
-            {:error, :unauthorized} ->
-              {:error, Error.execution("Not authorized to view '#{handle}'"), frame}
-          end
-      end
+      {:error, error} -> {:error, error, frame}
     end
   end
 end

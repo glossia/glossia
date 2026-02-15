@@ -1,24 +1,25 @@
 defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
-  alias Glossia.Accounts
-  alias Glossia.Accounts.{Account, User}
-  alias Glossia.Repo
+  alias Glossia.Organizations
+  alias GlossiaWeb.ApiTestHelpers
+
+  @scopes ~w(account:read organization:read organization:write organization:delete members:read members:write)
 
   setup do
     Mimic.stub(Glossia.Mailer, :deliver, fn _email -> {:ok, %{}} end)
 
-    admin = create_user("orgapi-admin@test.com", "orgapi-admin")
-    member = create_user("orgapi-member@test.com", "orgapi-member")
-    outsider = create_user("orgapi-outsider@test.com", "orgapi-outsider")
+    admin = ApiTestHelpers.create_user("orgapi-admin@test.com", "orgapi-admin")
+    member = ApiTestHelpers.create_user("orgapi-member@test.com", "orgapi-member")
+    outsider = ApiTestHelpers.create_user("orgapi-outsider@test.com", "orgapi-outsider")
 
     {:ok, %{account: org_account, organization: org}} =
-      Accounts.create_organization(admin, %{
+      Organizations.create_organization(admin, %{
         handle: "orgapi-#{System.unique_integer([:positive])}",
         name: "Test Org"
       })
 
-    Accounts.add_member(org, member, "member")
+    Organizations.add_member(org, member, "member")
 
     %{
       admin: admin,
@@ -39,7 +40,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     } do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> get("/api/organizations")
 
       assert %{"organizations" => orgs} = json_response(conn, 200)
@@ -58,7 +59,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     } do
       conn =
         conn
-        |> authenticate(member)
+        |> ApiTestHelpers.authenticate(member, @scopes)
         |> get("/api/organizations/#{org_account.handle}")
 
       assert %{"handle" => handle, "name" => "Test Org", "type" => "organization"} =
@@ -70,7 +71,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "returns 403 for non-member", %{conn: conn, outsider: outsider, org_account: org_account} do
       conn =
         conn
-        |> authenticate(outsider)
+        |> ApiTestHelpers.authenticate(outsider, @scopes)
         |> get("/api/organizations/#{org_account.handle}")
 
       assert json_response(conn, 403)
@@ -79,7 +80,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "returns 404 for unknown handle", %{conn: conn, admin: admin} do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> get("/api/organizations/nonexistent-org")
 
       assert json_response(conn, 404)
@@ -92,7 +93,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "admin can update name", %{conn: conn, admin: admin, org_account: org_account} do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> patch("/api/organizations/#{org_account.handle}", %{name: "Updated Name"})
 
       assert %{"name" => "Updated Name"} = json_response(conn, 200)
@@ -101,7 +102,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "admin can update visibility", %{conn: conn, admin: admin, org_account: org_account} do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> patch("/api/organizations/#{org_account.handle}", %{visibility: "public"})
 
       assert %{"visibility" => "public"} = json_response(conn, 200)
@@ -110,7 +111,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "non-admin member cannot update", %{conn: conn, member: member, org_account: org_account} do
       conn =
         conn
-        |> authenticate(member)
+        |> ApiTestHelpers.authenticate(member, @scopes)
         |> patch("/api/organizations/#{org_account.handle}", %{name: "Nope"})
 
       assert json_response(conn, 403)
@@ -122,14 +123,14 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
   describe "DELETE /api/organizations/:handle" do
     test "admin can delete organization", %{conn: conn, admin: admin} do
       {:ok, %{account: acct}} =
-        Accounts.create_organization(admin, %{
+        Organizations.create_organization(admin, %{
           handle: "deleteme-#{System.unique_integer([:positive])}",
           name: "Delete Me"
         })
 
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> delete("/api/organizations/#{acct.handle}")
 
       assert response(conn, 204)
@@ -138,7 +139,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "non-admin cannot delete", %{conn: conn, member: member, org_account: org_account} do
       conn =
         conn
-        |> authenticate(member)
+        |> ApiTestHelpers.authenticate(member, @scopes)
         |> delete("/api/organizations/#{org_account.handle}")
 
       assert json_response(conn, 403)
@@ -151,7 +152,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "returns members for admin", %{conn: conn, admin: admin, org_account: org_account} do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> get("/api/organizations/#{org_account.handle}/members")
 
       assert %{"members" => members} = json_response(conn, 200)
@@ -161,7 +162,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "returns members for member", %{conn: conn, member: member, org_account: org_account} do
       conn =
         conn
-        |> authenticate(member)
+        |> ApiTestHelpers.authenticate(member, @scopes)
         |> get("/api/organizations/#{org_account.handle}/members")
 
       assert %{"members" => _} = json_response(conn, 200)
@@ -170,7 +171,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "returns 403 for outsider", %{conn: conn, outsider: outsider, org_account: org_account} do
       conn =
         conn
-        |> authenticate(outsider)
+        |> ApiTestHelpers.authenticate(outsider, @scopes)
         |> get("/api/organizations/#{org_account.handle}/members")
 
       assert json_response(conn, 403)
@@ -179,13 +180,13 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
 
   describe "DELETE /api/organizations/:handle/members/:user_handle" do
     test "admin can remove a member", %{conn: conn, admin: admin, org_account: org_account} do
-      removable = create_user("removable@test.com", "removable")
-      org = Accounts.get_organization_for_account(org_account)
-      Accounts.add_member(org, removable, "member")
+      removable = ApiTestHelpers.create_user("removable@test.com", "removable")
+      org = Organizations.get_organization_for_account(org_account)
+      Organizations.add_member(org, removable, "member")
 
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> delete("/api/organizations/#{org_account.handle}/members/#{removable.account.handle}")
 
       assert response(conn, 204)
@@ -194,7 +195,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "cannot remove the sole admin", %{conn: conn, admin: admin, org_account: org_account} do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> delete("/api/organizations/#{org_account.handle}/members/#{admin.account.handle}")
 
       assert %{"error" => error} = json_response(conn, 409)
@@ -209,7 +210,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     } do
       conn =
         conn
-        |> authenticate(member)
+        |> ApiTestHelpers.authenticate(member, @scopes)
         |> delete("/api/organizations/#{org_account.handle}/members/#{admin.account.handle}")
 
       assert json_response(conn, 403)
@@ -225,11 +226,11 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
       org: org,
       org_account: org_account
     } do
-      {:ok, _} = Accounts.create_invitation(org, admin, %{"email" => "pending@test.com"})
+      {:ok, _} = Organizations.create_invitation(org, admin, %{"email" => "pending@test.com"})
 
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> get("/api/organizations/#{org_account.handle}/invitations")
 
       assert %{"invitations" => invitations} = json_response(conn, 200)
@@ -241,7 +242,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "admin can invite by email", %{conn: conn, admin: admin, org_account: org_account} do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> post("/api/organizations/#{org_account.handle}/invitations", %{
           email: "newinvite@test.com"
         })
@@ -258,7 +259,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     } do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> post("/api/organizations/#{org_account.handle}/invitations", %{email: member.email})
 
       assert %{"error" => error} = json_response(conn, 409)
@@ -268,7 +269,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     test "non-admin cannot invite", %{conn: conn, member: member, org_account: org_account} do
       conn =
         conn
-        |> authenticate(member)
+        |> ApiTestHelpers.authenticate(member, @scopes)
         |> post("/api/organizations/#{org_account.handle}/invitations", %{email: "nope@test.com"})
 
       assert json_response(conn, 403)
@@ -283,11 +284,11 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
       org_account: org_account
     } do
       {:ok, invitation} =
-        Accounts.create_invitation(org, admin, %{"email" => "revokeme@test.com"})
+        Organizations.create_invitation(org, admin, %{"email" => "revokeme@test.com"})
 
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> delete("/api/organizations/#{org_account.handle}/invitations/#{invitation.id}")
 
       assert response(conn, 204)
@@ -300,7 +301,7 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
     } do
       conn =
         conn
-        |> authenticate(admin)
+        |> ApiTestHelpers.authenticate(admin, @scopes)
         |> delete("/api/organizations/#{org_account.handle}/invitations/#{Ecto.UUID.generate()}")
 
       assert json_response(conn, 404)
@@ -313,59 +314,15 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
       admin: admin,
       org_account: org_account
     } do
-      {:ok, invitation} = Accounts.create_invitation(org, admin, %{"email" => "revoke2@test.com"})
+      {:ok, invitation} =
+        Organizations.create_invitation(org, admin, %{"email" => "revoke2@test.com"})
 
       conn =
         conn
-        |> authenticate(member)
+        |> ApiTestHelpers.authenticate(member, @scopes)
         |> delete("/api/organizations/#{org_account.handle}/invitations/#{invitation.id}")
 
       assert json_response(conn, 403)
     end
-  end
-
-  # -- Helpers --
-
-  defp create_user(email, handle) do
-    {:ok, account} =
-      %Account{}
-      |> Account.changeset(%{
-        handle: "#{handle}-#{System.unique_integer([:positive])}",
-        type: "user"
-      })
-      |> Repo.insert()
-
-    {:ok, user} =
-      %User{account_id: account.id}
-      |> User.changeset(%{email: email})
-      |> Repo.insert()
-
-    %{user | account: account}
-  end
-
-  defp authenticate(conn, user) do
-    # Use Boruta's client changeset to properly create a client with required keys
-    {:ok, client} =
-      Boruta.Ecto.Client.create_changeset(%Boruta.Ecto.Client{}, %{
-        name: "test-client-#{System.unique_integer([:positive])}",
-        redirect_uris: ["http://localhost"],
-        access_token_ttl: 3600,
-        authorization_code_ttl: 60
-      })
-      |> Repo.insert()
-
-    # Use Boruta's token changeset to create a valid access token
-    {:ok, token} =
-      Boruta.Ecto.Token.changeset(%Boruta.Ecto.Token{}, %{
-        client_id: client.id,
-        sub: to_string(user.id),
-        scope: "",
-        access_token_ttl: 3600
-      })
-      |> Repo.insert()
-
-    conn
-    |> put_req_header("authorization", "Bearer #{token.value}")
-    |> put_req_header("content-type", "application/json")
   end
 end

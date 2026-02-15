@@ -3,12 +3,10 @@ defmodule Glossia.MCP.SaveVoiceTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
+  alias Glossia.ChangesetErrors
+  alias Glossia.Voices
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
-  import Ecto.Query
 
   schema do
     field :handle, {:required, :string}, description: "Account handle to save voice for."
@@ -33,64 +31,49 @@ defmodule Glossia.MCP.SaveVoiceTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
+    handle = params["handle"]
 
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
-    else
-      handle = params["handle"]
+    with {:ok, user} <- Auth.current_user(frame),
+         {:ok, account} <- Auth.fetch_account(handle),
+         :ok <- Auth.authorize(frame, :voice_write, user, account) do
+      attrs = %{
+        tone: params["tone"],
+        formality: params["formality"],
+        target_audience: params["target_audience"],
+        guidelines: params["guidelines"],
+        change_note: params["change_note"],
+        overrides: params["overrides"] || []
+      }
 
-      case Account |> where(handle: ^handle) |> Repo.one() do
-        nil ->
-          {:error, Error.execution("Account '#{handle}' not found"), frame}
+      case Voices.create_voice(account, attrs, user) do
+        {:ok, %{voice: voice, overrides: overrides}} ->
+          voice = %{voice | overrides: overrides}
 
-        account ->
-          attrs = %{
-            tone: params["tone"],
-            formality: params["formality"],
-            target_audience: params["target_audience"],
-            guidelines: params["guidelines"],
-            change_note: params["change_note"],
-            overrides: params["overrides"] || []
-          }
+          response =
+            Response.tool()
+            |> Response.text(
+              JSON.encode!(%{
+                version: voice.version,
+                tone: voice.tone,
+                formality: voice.formality,
+                target_audience: voice.target_audience,
+                guidelines: voice.guidelines,
+                change_note: voice.change_note,
+                overrides:
+                  Enum.map(overrides, fn o ->
+                    %{locale: o.locale, tone: o.tone, formality: o.formality}
+                  end)
+              })
+            )
 
-          case Accounts.create_voice(account, attrs, user) do
-            {:ok, %{voice: voice, overrides: overrides}} ->
-              voice = %{voice | overrides: overrides}
+          {:reply, response, frame}
 
-              response =
-                Response.tool()
-                |> Response.text(
-                  Jason.encode!(%{
-                    version: voice.version,
-                    tone: voice.tone,
-                    formality: voice.formality,
-                    target_audience: voice.target_audience,
-                    guidelines: voice.guidelines,
-                    change_note: voice.change_note,
-                    overrides:
-                      Enum.map(overrides, fn o ->
-                        %{locale: o.locale, tone: o.tone, formality: o.formality}
-                      end)
-                  })
-                )
-
-              {:reply, response, frame}
-
-            {:error, _step, changeset, _changes} ->
-              errors = format_errors(changeset)
-              {:error, Error.execution("Validation failed: #{errors}"), frame}
-          end
+        {:error, _step, changeset, _changes} ->
+          errors = ChangesetErrors.to_inline_string(changeset)
+          {:error, Hermes.MCP.Error.execution("Validation failed: #{errors}"), frame}
       end
+    else
+      {:error, error} -> {:error, error, frame}
     end
-  end
-
-  defp format_errors(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
-    |> Enum.map_join(", ", fn {field, msgs} -> "#{field}: #{Enum.join(msgs, ", ")}" end)
   end
 end

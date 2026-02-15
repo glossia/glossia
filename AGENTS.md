@@ -126,12 +126,14 @@ We borrow from Atomic Design to keep the stylesheet composable:
 
 ### Current state and migration
 
-The current CSS already defines many tokens in `:root` (colors, radii, shadows, fonts, transitions). Some gaps remain:
+The current CSS defines a token system in `:root` and shared UI molecules (like `.card`). Some gaps remain:
 
-- Missing tokens: `--violet`, `--amber` (referenced but not defined in `:root`)
-- No spacing scale (raw `rem` values used throughout)
-- No typography scale (raw `font-size` values)
-- Card pattern repeated across `.tool-card`, `.feature`, `.config-card`, `.blog-card`, `.docs-category-card`, `.docs-page-card`, `.faq-item` without a shared base class
-- Some hardcoded pixel values for icons and decorative elements
+- Some dashboard/utility "card" surfaces still use bespoke classes instead of `.card` + variants. Migrate incrementally.
+- Some hardcoded pixel values remain for icons and decorative elements. Prefer tokens when possible.
 
 When touching styles, incrementally fix these gaps. Do not attempt a full rewrite in one pass.
+
+## Seeds
+
+- `app/priv/repo/seeds.exs` must stay **realistic and up to date**. When adding a new domain feature (schema/context/API surface), extend seeds with representative data so developers and agents can exercise it end-to-end.
+- Keep seeds idempotent (safe to run multiple times) and include data that covers: public accounts, access-gated accounts (`has_access: false`), organization memberships, invitations, projects, and voice/version history.

@@ -64,7 +64,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   defp reject_unauthorized(conn) do
     conn
     |> put_resp_header("www-authenticate", "Bearer")
-    |> send_resp(401, Jason.encode!(%{error: "invalid_token"}))
+    |> send_resp(401, JSON.encode!(%{error: "invalid_token"}))
     |> halt()
   end
 

@@ -13,6 +13,7 @@ defmodule GlossiaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug GlossiaWeb.Plugs.Auth
+    plug GlossiaWeb.Plugs.OtelAttributes
   end
 
   pipeline :public do
@@ -22,6 +23,7 @@ defmodule GlossiaWeb.Router do
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
     plug :put_secure_browser_headers
     plug GlossiaWeb.Plugs.Auth
+    plug GlossiaWeb.Plugs.OtelAttributes
   end
 
   pipeline :require_auth do
@@ -168,7 +170,12 @@ defmodule GlossiaWeb.Router do
 
   # Authenticated API
   scope "/api", GlossiaWeb.Api do
-    pipe_through [:api, GlossiaWeb.Plugs.BearerAuth, GlossiaWeb.Plugs.RequireApiAuth]
+    pipe_through [
+      :api,
+      GlossiaWeb.Plugs.BearerAuth,
+      GlossiaWeb.Plugs.RequireApiAuth,
+      GlossiaWeb.Plugs.OtelAttributes
+    ]
 
     get "/accounts", AccountApiController, :index
 
@@ -194,11 +201,19 @@ defmodule GlossiaWeb.Router do
     get "/:handle/voice", VoiceApiController, :show
     post "/:handle/voice", VoiceApiController, :create
     get "/:handle/voice/history", VoiceApiController, :history
+    get "/:handle/glossary", GlossaryApiController, :show
+    post "/:handle/glossary", GlossaryApiController, :create
+    get "/:handle/glossary/history", GlossaryApiController, :history
   end
 
   # MCP server (StreamableHTTP transport)
   scope "/mcp" do
-    pipe_through [:api, GlossiaWeb.Plugs.BearerAuth, GlossiaWeb.Plugs.RequireApiAuth]
+    pipe_through [
+      :api,
+      GlossiaWeb.Plugs.BearerAuth,
+      GlossiaWeb.Plugs.RequireApiAuth,
+      GlossiaWeb.Plugs.OtelAttributes
+    ]
 
     forward "/", Hermes.Server.Transport.StreamableHTTP.Plug, server: Glossia.MCP.Server
   end
@@ -233,6 +248,8 @@ defmodule GlossiaWeb.Router do
       live "/:handle/logs", DashboardLive, :logs
       live "/:handle/voice", DashboardLive, :voice
       live "/:handle/voice/:version", DashboardLive, :voice_version
+      live "/:handle/glossary", DashboardLive, :glossary
+      live "/:handle/glossary/:version", DashboardLive, :glossary_version
       live "/:handle/members", DashboardLive, :members
       live "/:handle", DashboardLive, :account
       live "/:handle/:project", DashboardLive, :project

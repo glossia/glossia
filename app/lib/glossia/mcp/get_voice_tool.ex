@@ -4,11 +4,9 @@ defmodule Glossia.MCP.GetVoiceTool do
   use Hermes.Server.Component, type: :tool
 
   alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
+  alias Glossia.Voices
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
-  import Ecto.Query
 
   schema do
     field :handle, {:required, :string}, description: "Account handle to get voice for."
@@ -24,52 +22,46 @@ defmodule Glossia.MCP.GetVoiceTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
+    handle = params["handle"]
 
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
-    else
-      handle = params["handle"]
+    with {:ok, user} <- Auth.current_user(frame),
+         {:ok, account} <- Auth.fetch_account(handle),
+         :ok <- Auth.authorize(frame, :voice_read, user, account) do
+      locale = params["locale"]
+      version = params["version"]
 
-      case Account |> where(handle: ^handle) |> Repo.one() do
+      voice =
+        cond do
+          locale ->
+            Voices.get_resolved_voice(account, locale)
+
+          version ->
+            Voices.get_voice_version(account, version)
+
+          true ->
+            Voices.get_latest_voice(account)
+        end
+
+      case voice do
         nil ->
-          {:error, Error.execution("Account '#{handle}' not found"), frame}
+          {:error, Hermes.MCP.Error.execution("No voice configured for '#{handle}'"), frame}
 
-        account ->
-          locale = params["locale"]
-          version = params["version"]
+        %Accounts.Voice{} = v ->
+          response =
+            Response.tool()
+            |> Response.text(JSON.encode!(serialize_voice(v)))
 
-          voice =
-            cond do
-              locale ->
-                Accounts.get_resolved_voice(account, locale)
+          {:reply, response, frame}
 
-              version ->
-                Accounts.get_voice_version(account, version)
+        %{} = resolved ->
+          response =
+            Response.tool()
+            |> Response.text(JSON.encode!(resolved))
 
-              true ->
-                Accounts.get_latest_voice(account)
-            end
-
-          case voice do
-            nil ->
-              {:error, Error.execution("No voice configured for '#{handle}'"), frame}
-
-            %Accounts.Voice{} = v ->
-              response =
-                Response.tool()
-                |> Response.text(Jason.encode!(serialize_voice(v)))
-
-              {:reply, response, frame}
-
-            %{} = resolved ->
-              response =
-                Response.tool()
-                |> Response.text(Jason.encode!(resolved))
-
-              {:reply, response, frame}
-          end
+          {:reply, response, frame}
       end
+    else
+      {:error, error} -> {:error, error, frame}
     end
   end
 

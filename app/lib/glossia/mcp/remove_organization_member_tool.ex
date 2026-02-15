@@ -4,11 +4,9 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
   use Hermes.Server.Component, type: :tool
 
   alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
+  alias Glossia.Organizations
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
-  import Ecto.Query
 
   schema do
     field :handle, {:required, :string}, description: "Organization handle."
@@ -17,46 +15,35 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
+    handle = params["handle"]
+    user_handle = params["user_handle"]
 
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
-    else
-      handle = params["handle"]
-      user_handle = params["user_handle"]
+    with {:ok, user} <- Auth.current_user(frame),
+         {:ok, account} <- Auth.fetch_organization_account(handle),
+         :ok <- Auth.authorize(frame, :members_write, user, account) do
+      org = Organizations.get_organization_for_account(account)
 
-      case Account |> where(handle: ^handle, type: "organization") |> Repo.one() do
+      case Accounts.get_user_by_handle(user_handle) do
         nil ->
-          {:error, Error.execution("Organization '#{handle}' not found"), frame}
+          {:error, Hermes.MCP.Error.execution("User '#{user_handle}' not found"), frame}
 
-        account ->
-          case Glossia.Policy.authorize(:members_write, user, account) do
-            :ok ->
-              org = Accounts.get_organization_for_account(account)
+        target_user ->
+          if Organizations.sole_admin?(org, target_user) do
+            {:error,
+             Hermes.MCP.Error.execution("Cannot remove the only admin of the organization"),
+             frame}
+          else
+            Organizations.remove_member(org, target_user)
 
-              case Accounts.get_user_by_handle(user_handle) do
-                nil ->
-                  {:error, Error.execution("User '#{user_handle}' not found"), frame}
+            response =
+              Response.tool()
+              |> Response.text(JSON.encode!(%{removed: true, user_handle: user_handle}))
 
-                target_user ->
-                  if Accounts.sole_admin?(org, target_user) do
-                    {:error, Error.execution("Cannot remove the only admin of the organization"),
-                     frame}
-                  else
-                    Accounts.remove_member(org, target_user)
-
-                    response =
-                      Response.tool()
-                      |> Response.text(Jason.encode!(%{removed: true, user_handle: user_handle}))
-
-                    {:reply, response, frame}
-                  end
-              end
-
-            {:error, :unauthorized} ->
-              {:error, Error.execution("Not authorized to manage members of '#{handle}'"), frame}
+            {:reply, response, frame}
           end
       end
+    else
+      {:error, error} -> {:error, error, frame}
     end
   end
 end

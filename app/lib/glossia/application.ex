@@ -11,6 +11,16 @@ defmodule Glossia.Application do
     Logger.add_handlers(:glossia)
 
     children = [
+      {Finch,
+       name: Glossia.Finch,
+       pools: %{
+         "https://api.minimax.io" => [
+           size: 5,
+           count: 1,
+           conn_opts: [transport_opts: [timeout: 60_000]]
+         ],
+         :default => [size: 10, count: 1]
+       }},
       Glossia.PromEx,
       GlossiaWeb.Telemetry,
       Glossia.Repo,

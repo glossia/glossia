@@ -9,7 +9,7 @@ defmodule GlossiaWeb.Plugs.RequireApiAuth do
     else
       conn
       |> put_resp_content_type("application/json")
-      |> send_resp(401, Jason.encode!(%{error: "unauthorized"}))
+      |> send_resp(401, JSON.encode!(%{error: "unauthorized"}))
       |> halt()
     end
   end

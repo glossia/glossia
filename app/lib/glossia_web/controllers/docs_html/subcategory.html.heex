@@ -15,7 +15,8 @@
       <a
         :for={page <- @pages}
         href={~p"/docs/#{@category_key}/#{@subcategory_key}/#{page.slug}"}
-        class="docs-page-card"
+        class="card docs-page-card"
+        data-interactive
       >
         <h3>{page.title}</h3>
         <p>{page.summary}</p>

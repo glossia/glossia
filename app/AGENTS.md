@@ -4,6 +4,10 @@ This is a web application written using the Phoenix web framework.
 
 Deploy with `fnox exec kamal deploy`. The `fnox exec` wrapper injects secrets (like `KAMAL_REGISTRY_PASSWORD`) that Kamal needs at deploy time.
 
+## Secrets
+
+All secrets (API keys, tokens, credentials) are managed through `fnox`. Never hardcode secrets in source files or commit them to the repository. To add or update a secret, use `fnox set SECRET_NAME "value"`. For environment-specific secrets, use the `-P` flag (e.g., `fnox set -P development SECRET_NAME "value"`). Secrets are automatically available as environment variables when running commands through `fnox exec`.
+
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
@@ -20,6 +24,7 @@ Deploy with `fnox exec kamal deploy`. The `fnox exec` wrapper injects secrets (l
 - **Public accounts**: The app supports public accounts that are read-only, allowing non-authenticated users to experience the product. Always design pages considering what an unauthenticated visitor will see. Be careful with authorization: public account pages must be accessible without login, but write/mutation actions must still require authentication. Every dashboard or content page should gracefully handle the "viewing as guest" case
 - **URL-driven state**: All interactive page state (search queries, sort column/direction, active filters, pagination page) must be reflected in URL search params. Use `push_patch/2` to update the URL when state changes, and read params in `handle_params/3` to restore state. This ensures pages are shareable, bookmarkable, and work correctly with browser back/forward navigation
 - **Auditability**: When implementing features that involve user-visible mutations (creating, updating, deleting resources, membership changes, billing events, etc.), add audit log entries via `Glossia.Auditing.record/4`. If a mutation is useful for auditability or compliance, log it. Event names follow a `resource.action` convention (e.g., `member.invited`, `voice.created`)
+- **Seeds**: Keep `priv/repo/seeds.exs` realistic and up to date. When you add a new domain concept (schema/context/API resource) or a UI workflow that depends on data, extend seeds with representative records so developers and agents can exercise the feature end-to-end.
 - **API pagination and filtering**: All REST API list endpoints must support pagination, filtering, and sorting via [Flop](https://hex.pm/packages/flop). Every Ecto schema exposed through a list endpoint must derive `Flop.Schema` with explicit `filterable` and `sortable` fields. Context list functions accept a `params` map and call `Flop.validate_and_run/3`. Controllers return a `meta` object alongside the resource list containing `total_count`, `total_pages`, `current_page`, `page_size`, `has_next_page?`, and `has_previous_page?`. Clients paginate with `page` and `page_size` query parameters and filter with `filters[field]` parameters
 
 ## Design system

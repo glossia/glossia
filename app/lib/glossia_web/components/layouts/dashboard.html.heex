@@ -2,7 +2,7 @@
   <aside class="dash-sidebar">
     <div class="dash-sidebar-top">
       <a class="logo" href={if @current_user, do: "/dashboard", else: "/" <> @handle}>
-        <img src={~p"/images/logo-squared.png"} alt="" class="logo-icon" />
+        <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" />
         <span class="dash-logo-text">Glossia</span>
       </a>
     </div>
@@ -49,6 +49,25 @@
           /><line x1="8" y1="23" x2="16" y2="23" />
         </svg>
         <span class="dash-nav-label">{gettext("Voice")}</span>
+      </.link>
+      <.link
+        patch={"/" <> @handle <> "/glossary"}
+        class={["dash-nav-item", @live_action in [:glossary, :glossary_version] && "active"]}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+        </svg>
+        <span class="dash-nav-label">{gettext("Glossary")}</span>
       </.link>
       <%= if assigns[:is_admin] and @account.type == "organization" do %>
         <.link

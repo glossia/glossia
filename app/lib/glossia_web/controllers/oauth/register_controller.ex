@@ -2,6 +2,7 @@ defmodule GlossiaWeb.OAuth.RegisterController do
   use GlossiaWeb, :controller
 
   @behaviour Boruta.Openid.DynamicRegistrationApplication
+  alias Glossia.ChangesetErrors
 
   plug GlossiaWeb.Plugs.RateLimit,
     key_prefix: "oauth_register",
@@ -51,12 +52,7 @@ defmodule GlossiaWeb.OAuth.RegisterController do
 
   @impl Boruta.Openid.DynamicRegistrationApplication
   def registration_failure(conn, changeset) do
-    errors =
-      Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-        Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-          opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-        end)
-      end)
+    errors = ChangesetErrors.to_map(changeset)
 
     conn
     |> put_status(:bad_request)

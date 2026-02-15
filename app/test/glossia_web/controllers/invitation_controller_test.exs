@@ -1,25 +1,27 @@
 defmodule GlossiaWeb.InvitationControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
-  alias Glossia.Accounts
-  alias Glossia.Accounts.{Account, User}
-  alias Glossia.Repo
+  alias Glossia.Organizations
+  alias GlossiaWeb.ApiTestHelpers
 
   setup do
     Mimic.stub(Glossia.Mailer, :deliver, fn _email -> {:ok, %{}} end)
 
-    admin = create_user("admin@test.com", "ctrlorgadmin")
+    admin = ApiTestHelpers.create_user("admin@test.com", "ctrlorgadmin")
 
     {:ok, %{account: account}} =
-      Accounts.create_organization(admin, %{
+      Organizations.create_organization(admin, %{
         handle: "ctrlorg-#{System.unique_integer([:positive])}",
         name: "Ctrl Org"
       })
 
-    org = Accounts.get_organization_for_account(account)
+    org = Organizations.get_organization_for_account(account)
 
     {:ok, invitation} =
-      Accounts.create_invitation(org, admin, %{"email" => "invited@test.com", "role" => "member"})
+      Organizations.create_invitation(org, admin, %{
+        "email" => "invited@test.com",
+        "role" => "member"
+      })
 
     %{org: org, account: account, admin: admin, invitation: invitation}
   end
@@ -32,7 +34,7 @@ defmodule GlossiaWeb.InvitationControllerTest do
     end
 
     test "renders invitation page for authenticated user", %{conn: conn, invitation: invitation} do
-      user = create_user("viewer@test.com", "viewer")
+      user = ApiTestHelpers.create_user("viewer@test.com", "viewer")
 
       conn =
         conn
@@ -43,7 +45,7 @@ defmodule GlossiaWeb.InvitationControllerTest do
     end
 
     test "redirects with error for invalid token", %{conn: conn} do
-      user = create_user("viewer2@test.com", "viewer2")
+      user = ApiTestHelpers.create_user("viewer2@test.com", "viewer2")
 
       conn =
         conn
@@ -58,8 +60,8 @@ defmodule GlossiaWeb.InvitationControllerTest do
       conn: conn,
       invitation: invitation
     } do
-      acceptor = create_user("acceptor@test.com", "acceptor")
-      Accounts.accept_invitation(invitation, acceptor)
+      acceptor = ApiTestHelpers.create_user("acceptor@test.com", "acceptor")
+      Organizations.accept_invitation(invitation, acceptor)
 
       conn =
         conn
@@ -76,7 +78,7 @@ defmodule GlossiaWeb.InvitationControllerTest do
       invitation: invitation,
       account: account
     } do
-      acceptor = create_user("accept2@test.com", "accept2")
+      acceptor = ApiTestHelpers.create_user("accept2@test.com", "accept2")
 
       conn =
         conn
@@ -105,22 +107,5 @@ defmodule GlossiaWeb.InvitationControllerTest do
       assert redirected_to(conn) == "/"
       assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "not valid"
     end
-  end
-
-  defp create_user(email, handle) do
-    {:ok, account} =
-      %Account{}
-      |> Account.changeset(%{
-        handle: "#{handle}-#{System.unique_integer([:positive])}",
-        type: "user"
-      })
-      |> Repo.insert()
-
-    {:ok, user} =
-      %User{account_id: account.id}
-      |> User.changeset(%{email: email})
-      |> Repo.insert()
-
-    %{user | account: account}
   end
 end

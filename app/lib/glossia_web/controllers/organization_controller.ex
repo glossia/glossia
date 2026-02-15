@@ -2,6 +2,7 @@ defmodule GlossiaWeb.OrganizationController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
+  alias Glossia.Organizations
 
   def new(conn, _params) do
     changeset = Accounts.Account.changeset(%Accounts.Account{}, %{})
@@ -11,7 +12,7 @@ defmodule GlossiaWeb.OrganizationController do
   def create(conn, %{"account" => account_params}) do
     user = conn.assigns.current_user
 
-    case Accounts.create_organization(user, account_params) do
+    case Organizations.create_organization(user, account_params) do
       {:ok, %{account: account}} ->
         redirect(conn, to: "/#{account.handle}")
 

@@ -3,9 +3,10 @@ defmodule Glossia.MCP.CreateOrganizationTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.Accounts
+  alias Glossia.ChangesetErrors
+  alias Glossia.Organizations
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
 
   schema do
     field :handle, {:required, :string},
@@ -18,41 +19,31 @@ defmodule Glossia.MCP.CreateOrganizationTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
-
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
-    else
+    with {:ok, user} <- Auth.current_user(frame),
+         :ok <- Auth.authorize(frame, :organization_write, user) do
       handle = params["handle"]
       name = params["name"] || handle
 
-      case Accounts.create_organization(user, %{"handle" => handle, "name" => name}) do
+      case Organizations.create_organization(user, %{"handle" => handle, "name" => name}) do
         {:ok, %{account: account, organization: org}} ->
           response =
             Response.tool()
             |> Response.text(
-              Jason.encode!(%{handle: account.handle, name: org.name, type: "organization"})
+              JSON.encode!(%{handle: account.handle, name: org.name, type: "organization"})
             )
 
           {:reply, response, frame}
 
         {:error, :account, changeset, _} ->
-          errors = format_errors(changeset)
-          {:error, Error.execution("Validation failed: #{errors}"), frame}
+          errors = ChangesetErrors.to_inline_string(changeset)
+          {:error, Hermes.MCP.Error.execution("Validation failed: #{errors}"), frame}
 
         {:error, _step, changeset, _} ->
-          errors = format_errors(changeset)
-          {:error, Error.execution("Failed to create organization: #{errors}"), frame}
+          errors = ChangesetErrors.to_inline_string(changeset)
+          {:error, Hermes.MCP.Error.execution("Failed to create organization: #{errors}"), frame}
       end
+    else
+      {:error, error} -> {:error, error, frame}
     end
-  end
-
-  defp format_errors(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
-    |> Enum.map_join(", ", fn {field, msgs} -> "#{field}: #{Enum.join(msgs, ", ")}" end)
   end
 end

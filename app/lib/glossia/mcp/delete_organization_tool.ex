@@ -3,12 +3,9 @@ defmodule Glossia.MCP.DeleteOrganizationTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
+  alias Glossia.Organizations
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
-  import Ecto.Query
 
   schema do
     field :handle, {:required, :string}, description: "Organization handle to delete."
@@ -16,38 +13,26 @@ defmodule Glossia.MCP.DeleteOrganizationTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
+    handle = params["handle"]
 
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
-    else
-      handle = params["handle"]
+    with {:ok, user} <- Auth.current_user(frame),
+         {:ok, account} <- Auth.fetch_organization_account(handle),
+         :ok <- Auth.authorize(frame, :organization_delete, user, account) do
+      org = Organizations.get_organization_for_account(account)
 
-      case Account |> where(handle: ^handle, type: "organization") |> Repo.one() do
-        nil ->
-          {:error, Error.execution("Organization '#{handle}' not found"), frame}
+      case Organizations.delete_organization(org) do
+        {:ok, _} ->
+          response =
+            Response.tool()
+            |> Response.text(JSON.encode!(%{deleted: true, handle: handle}))
 
-        account ->
-          case Glossia.Policy.authorize(:org_delete, user, account) do
-            :ok ->
-              org = Accounts.get_organization_for_account(account)
+          {:reply, response, frame}
 
-              case Accounts.delete_organization(org) do
-                {:ok, _} ->
-                  response =
-                    Response.tool()
-                    |> Response.text(Jason.encode!(%{deleted: true, handle: handle}))
-
-                  {:reply, response, frame}
-
-                {:error, _changeset} ->
-                  {:error, Error.execution("Failed to delete organization '#{handle}'"), frame}
-              end
-
-            {:error, :unauthorized} ->
-              {:error, Error.execution("Not authorized to delete '#{handle}'"), frame}
-          end
+        {:error, _changeset} ->
+          {:error, Hermes.MCP.Error.execution("Failed to delete organization '#{handle}'"), frame}
       end
+    else
+      {:error, error} -> {:error, error, frame}
     end
   end
 end

@@ -1,19 +1,19 @@
-defmodule Glossia.Accounts.InvitationsTest do
+defmodule Glossia.Organizations.InvitationsTest do
   use Glossia.DataCase, async: true
 
-  alias Glossia.Accounts
+  alias Glossia.Organizations
   alias Glossia.Accounts.{Account, OrganizationInvitation, User}
 
   setup do
     Mimic.stub(Glossia.Mailer, :deliver, fn _email -> {:ok, %{}} end)
 
     {:ok, %{account: account}} =
-      Accounts.create_organization(create_user("admin@test.com", "orgadmin"), %{
+      Organizations.create_organization(create_user("admin@test.com", "orgadmin"), %{
         handle: "testorg-#{System.unique_integer([:positive])}",
         name: "Test Org"
       })
 
-    org = Accounts.get_organization_for_account(account)
+    org = Organizations.get_organization_for_account(account)
 
     %{org: org, account: account}
   end
@@ -21,10 +21,10 @@ defmodule Glossia.Accounts.InvitationsTest do
   describe "create_invitation/3" do
     test "creates an invitation and sends email", %{org: org} do
       inviter = create_user("inviter@test.com", "inviter")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       assert {:ok, invitation} =
-               Accounts.create_invitation(org, inviter, %{
+               Organizations.create_invitation(org, inviter, %{
                  "email" => "newuser@test.com",
                  "role" => "member"
                })
@@ -40,13 +40,13 @@ defmodule Glossia.Accounts.InvitationsTest do
 
     test "returns error when user is already a member", %{org: org} do
       member = create_user("member@test.com", "member")
-      Accounts.add_member(org, member, "member")
+      Organizations.add_member(org, member, "member")
 
       inviter = create_user("inviter2@test.com", "inviter2")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       assert {:error, :already_member} =
-               Accounts.create_invitation(org, inviter, %{
+               Organizations.create_invitation(org, inviter, %{
                  "email" => "member@test.com",
                  "role" => "member"
                })
@@ -54,16 +54,16 @@ defmodule Glossia.Accounts.InvitationsTest do
 
     test "returns error when pending invitation already exists", %{org: org} do
       inviter = create_user("inviter3@test.com", "inviter3")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       assert {:ok, _} =
-               Accounts.create_invitation(org, inviter, %{
+               Organizations.create_invitation(org, inviter, %{
                  "email" => "dup@test.com",
                  "role" => "member"
                })
 
       assert {:error, :already_invited} =
-               Accounts.create_invitation(org, inviter, %{
+               Organizations.create_invitation(org, inviter, %{
                  "email" => "dup@test.com",
                  "role" => "member"
                })
@@ -71,10 +71,10 @@ defmodule Glossia.Accounts.InvitationsTest do
 
     test "supports linguist role", %{org: org} do
       inviter = create_user("inviter4@test.com", "inviter4")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       assert {:ok, invitation} =
-               Accounts.create_invitation(org, inviter, %{
+               Organizations.create_invitation(org, inviter, %{
                  "email" => "linguist@test.com",
                  "role" => "linguist"
                })
@@ -86,32 +86,32 @@ defmodule Glossia.Accounts.InvitationsTest do
   describe "get_invitation_by_token/1" do
     test "returns invitation with preloaded org", %{org: org} do
       inviter = create_user("inviter5@test.com", "inviter5")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       {:ok, invitation} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "token@test.com",
           "role" => "member"
         })
 
-      found = Accounts.get_invitation_by_token(invitation.token)
+      found = Organizations.get_invitation_by_token(invitation.token)
       assert found.id == invitation.id
       assert found.organization.id == org.id
       assert found.organization.account != nil
     end
 
     test "returns nil for non-existent token" do
-      assert Accounts.get_invitation_by_token("nonexistent") == nil
+      assert Organizations.get_invitation_by_token("nonexistent") == nil
     end
   end
 
   describe "accept_invitation/2" do
     test "creates membership and marks invitation accepted", %{org: org} do
       inviter = create_user("inviter6@test.com", "inviter6")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       {:ok, invitation} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "accept@test.com",
           "role" => "linguist"
         })
@@ -119,7 +119,7 @@ defmodule Glossia.Accounts.InvitationsTest do
       acceptor = create_user("accept@test.com", "acceptor")
 
       assert {:ok, %{invitation: updated, membership: membership}} =
-               Accounts.accept_invitation(invitation, acceptor)
+               Organizations.accept_invitation(invitation, acceptor)
 
       assert updated.status == "accepted"
       assert membership.user_id == acceptor.id
@@ -129,7 +129,7 @@ defmodule Glossia.Accounts.InvitationsTest do
 
     test "returns error for expired invitation", %{org: org} do
       inviter = create_user("inviter7@test.com", "inviter7")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       token = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
       expired_at = DateTime.add(DateTime.utc_now(), -1, :day)
@@ -144,54 +144,56 @@ defmodule Glossia.Accounts.InvitationsTest do
         |> Repo.insert()
 
       acceptor = create_user("expired@test.com", "expireduser")
-      assert {:error, :expired} = Accounts.accept_invitation(invitation, acceptor)
+      assert {:error, :expired} = Organizations.accept_invitation(invitation, acceptor)
     end
 
     test "returns error when already accepted", %{org: org} do
       inviter = create_user("inviter8@test.com", "inviter8")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       {:ok, invitation} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "double@test.com",
           "role" => "member"
         })
 
       acceptor = create_user("double@test.com", "doubleuser")
-      assert {:ok, %{invitation: accepted}} = Accounts.accept_invitation(invitation, acceptor)
 
-      assert {:error, :already_accepted} = Accounts.accept_invitation(accepted, acceptor)
+      assert {:ok, %{invitation: accepted}} =
+               Organizations.accept_invitation(invitation, acceptor)
+
+      assert {:error, :already_accepted} = Organizations.accept_invitation(accepted, acceptor)
     end
 
     test "returns error when user is already a member", %{org: org} do
       inviter = create_user("inviter9@test.com", "inviter9")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       existing = create_user("existing@test.com", "existing")
-      Accounts.add_member(org, existing, "member")
+      Organizations.add_member(org, existing, "member")
 
       {:ok, invitation} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "other@test.com",
           "role" => "member"
         })
 
-      assert {:error, :already_member} = Accounts.accept_invitation(invitation, existing)
+      assert {:error, :already_member} = Organizations.accept_invitation(invitation, existing)
     end
   end
 
   describe "decline_invitation/1" do
     test "marks invitation as declined", %{org: org} do
       inviter = create_user("inviter10@test.com", "inviter10")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       {:ok, invitation} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "decline@test.com",
           "role" => "member"
         })
 
-      assert {:ok, updated} = Accounts.decline_invitation(invitation)
+      assert {:ok, updated} = Organizations.decline_invitation(invitation)
       assert updated.status == "declined"
     end
   end
@@ -199,15 +201,15 @@ defmodule Glossia.Accounts.InvitationsTest do
   describe "revoke_invitation/1" do
     test "marks invitation as revoked", %{org: org} do
       inviter = create_user("inviter11@test.com", "inviter11")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       {:ok, invitation} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "revoke@test.com",
           "role" => "member"
         })
 
-      assert {:ok, updated} = Accounts.revoke_invitation(invitation)
+      assert {:ok, updated} = Organizations.revoke_invitation(invitation)
       assert updated.status == "revoked"
     end
   end
@@ -215,9 +217,9 @@ defmodule Glossia.Accounts.InvitationsTest do
   describe "list_members/1" do
     test "returns members with preloaded user and account", %{org: org} do
       member = create_user("listmem@test.com", "listmem")
-      Accounts.add_member(org, member, "member")
+      Organizations.add_member(org, member, "member")
 
-      members = Accounts.list_members(org)
+      members = Organizations.list_members(org)
       assert length(members) >= 2
       assert Enum.all?(members, fn m -> m.user != nil && m.user.account != nil end)
     end
@@ -226,23 +228,23 @@ defmodule Glossia.Accounts.InvitationsTest do
   describe "list_pending_invitations/1" do
     test "returns only pending non-expired invitations", %{org: org} do
       inviter = create_user("inviter12@test.com", "inviter12")
-      Accounts.add_member(org, inviter, "admin")
+      Organizations.add_member(org, inviter, "admin")
 
       {:ok, _} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "pending1@test.com",
           "role" => "member"
         })
 
       {:ok, declined} =
-        Accounts.create_invitation(org, inviter, %{
+        Organizations.create_invitation(org, inviter, %{
           "email" => "pending2@test.com",
           "role" => "member"
         })
 
-      Accounts.decline_invitation(declined)
+      Organizations.decline_invitation(declined)
 
-      pending = Accounts.list_pending_invitations(org)
+      pending = Organizations.list_pending_invitations(org)
       assert length(pending) == 1
       assert hd(pending).email == "pending1@test.com"
     end

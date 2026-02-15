@@ -14,7 +14,7 @@
 <section class="section blog-listing">
   <div class="container">
     <div class="blog-list">
-      <article :for={post <- @posts} class="blog-card">
+      <article :for={post <- @posts} class="card blog-card" data-interactive>
         <a href={~p"/blog/#{post.slug}"}>
           <div class="blog-card-author">
             <img src={post.author.avatar} alt={post.author.name} class="blog-card-avatar" />
