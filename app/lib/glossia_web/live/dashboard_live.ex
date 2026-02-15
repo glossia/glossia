@@ -1751,24 +1751,12 @@ defmodule GlossiaWeb.DashboardLive do
   defp voice_version_page(assigns) do
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {gettext("Voice"), "/" <> @handle <> "/voice"},
+        {"##{@voice.version}", "/" <> @handle <> "/voice/versions/" <> @voice.id}
+      ]} />
       <div class="dash-page-header">
         <div class="voice-version-header">
-          <.link patch={"/" <> @handle <> "/voice"} class="voice-back-link">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="12 4 6 10 12 16" />
-            </svg>
-            {gettext("Voice")}
-          </.link>
           <h1>
             <span>{"##{@voice.version}"}</span>
             <%= if @voice.change_note do %>
@@ -2192,24 +2180,12 @@ defmodule GlossiaWeb.DashboardLive do
   defp glossary_version_page(assigns) do
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {gettext("Glossary"), "/" <> @handle <> "/glossary"},
+        {"##{@glossary.version}", "/" <> @handle <> "/glossary/versions/" <> @glossary.id}
+      ]} />
       <div class="dash-page-header">
         <div class="voice-version-header">
-          <.link patch={"/" <> @handle <> "/glossary"} class="voice-back-link">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="12 4 6 10 12 16" />
-            </svg>
-            {gettext("Glossary")}
-          </.link>
           <h1>
             <span>{"##{@glossary.version}"}</span>
             <%= if @glossary.change_note do %>
@@ -4078,6 +4054,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_new_page(assigns) do
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {gettext("Tickets"), "/" <> @handle <> "/tickets"},
+        {gettext("New ticket"), "/" <> @handle <> "/tickets/new"}
+      ]} />
       <.page_header
         title={gettext("New ticket")}
         description={gettext("Describe your issue or feature request.")}
@@ -4151,11 +4131,12 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_show_page(assigns) do
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {gettext("Tickets"), "/" <> @handle <> "/tickets"},
+        {@ticket.title, "/" <> @handle <> "/tickets/" <> @ticket.id}
+      ]} />
       <div class="ticket-detail-header">
         <div>
-          <.link patch={"/" <> @handle <> "/tickets"} class="ticket-back-link">
-            &larr; {gettext("Back to tickets")}
-          </.link>
           <h1 class="ticket-detail-title">{@ticket.title}</h1>
           <div class="ticket-detail-meta">
             <.badge variant={ticket_type_variant(@ticket.type)}>
