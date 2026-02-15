@@ -1,99 +1,130 @@
 defmodule Glossia.DeveloperTokens do
   @moduledoc """
-  Context for managing personal access tokens (PATs) and OAuth applications.
+  Context for managing account tokens and OAuth applications.
   """
+
+  require OpenTelemetry.Tracer, as: Tracer
 
   import Ecto.Query
 
   alias Glossia.Repo
-  alias Glossia.Accounts.{Account, PersonalAccessToken, OAuthApplication, User}
+  alias Glossia.Accounts.{Account, AccountToken, OAuthApplication, User}
 
   @token_prefix "glsa_"
   @token_random_bytes 20
 
-  # --- Personal Access Tokens ---
+  # --- Account Tokens ---
 
-  def list_personal_access_tokens(%Account{} = account, params \\ %{}) do
+  def list_account_tokens(%Account{} = account, params \\ %{}) do
     query =
-      from t in PersonalAccessToken,
+      from t in AccountToken,
         where: t.account_id == ^account.id and is_nil(t.revoked_at),
         preload: [:user]
 
-    Flop.validate_and_run(query, params, for: PersonalAccessToken)
+    Flop.validate_and_run(query, params, for: AccountToken)
   end
 
-  def get_personal_access_token!(id, account_id) do
+  def get_account_token!(id, account_id) do
     Repo.one!(
-      from t in PersonalAccessToken,
+      from t in AccountToken,
         where: t.id == ^id and t.account_id == ^account_id,
         preload: [:user]
     )
   end
 
-  def create_personal_access_token(%Account{} = account, %User{} = user, attrs) do
-    plain_token = generate_token()
-    token_hash = hash_token(plain_token)
-    token_prefix = String.slice(plain_token, 0, 12)
+  def create_account_token(%Account{} = account, %User{} = user, attrs) do
+    Tracer.with_span "glossia.developer_tokens.create_account_token" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account.id)},
+        {"glossia.user.id", to_string(user.id)}
+      ])
 
-    changeset =
-      %PersonalAccessToken{}
-      |> PersonalAccessToken.changeset(attrs)
-      |> Ecto.Changeset.put_change(:token_hash, token_hash)
-      |> Ecto.Changeset.put_change(:token_prefix, token_prefix)
-      |> Ecto.Changeset.put_change(:account_id, account.id)
-      |> Ecto.Changeset.put_change(:user_id, user.id)
+      plain_token = generate_token()
+      token_hash = hash_token(plain_token)
+      token_prefix = String.slice(plain_token, 0, 12)
 
-    case Repo.insert(changeset) do
-      {:ok, token} -> {:ok, %{token: token, plain_token: plain_token}}
-      {:error, changeset} -> {:error, changeset}
+      changeset =
+        %AccountToken{}
+        |> AccountToken.changeset(attrs)
+        |> Ecto.Changeset.put_change(:token_hash, token_hash)
+        |> Ecto.Changeset.put_change(:token_prefix, token_prefix)
+        |> Ecto.Changeset.put_change(:account_id, account.id)
+        |> Ecto.Changeset.put_change(:user_id, user.id)
+
+      case Repo.insert(changeset) do
+        {:ok, token} ->
+          Tracer.set_attributes([{"glossia.account_token.id", to_string(token.id)}])
+          {:ok, %{token: token, plain_token: plain_token}}
+
+        {:error, changeset} ->
+          {:error, changeset}
+      end
     end
   end
 
-  def update_personal_access_token(%PersonalAccessToken{} = token, attrs) do
-    token
-    |> PersonalAccessToken.changeset(attrs)
-    |> Repo.update()
-  end
+  def update_account_token(%AccountToken{} = token, attrs) do
+    Tracer.with_span "glossia.developer_tokens.update_account_token" do
+      Tracer.set_attributes([{"glossia.account_token.id", to_string(token.id)}])
 
-  def revoke_personal_access_token(token_id, account_id) do
-    case Repo.one(
-           from t in PersonalAccessToken,
-             where: t.id == ^token_id and t.account_id == ^account_id and is_nil(t.revoked_at)
-         ) do
-      nil ->
-        {:error, :not_found}
-
-      token ->
-        token
-        |> Ecto.Changeset.change(%{revoked_at: DateTime.utc_now()})
-        |> Repo.update()
+      token
+      |> AccountToken.changeset(attrs)
+      |> Repo.update()
     end
   end
 
-  def get_personal_access_token_by_value(value) do
-    token_hash = hash_token(value)
+  def revoke_account_token(token_id, account_id) do
+    Tracer.with_span "glossia.developer_tokens.revoke_account_token" do
+      Tracer.set_attributes([
+        {"glossia.account_token.id", to_string(token_id)},
+        {"glossia.account.id", to_string(account_id)}
+      ])
 
-    case Repo.one(
-           from t in PersonalAccessToken,
-             where: t.token_hash == ^token_hash and is_nil(t.revoked_at),
-             preload: [:user]
-         ) do
-      nil ->
-        {:error, :invalid}
+      case Repo.one(
+             from t in AccountToken,
+               where: t.id == ^token_id and t.account_id == ^account_id and is_nil(t.revoked_at)
+           ) do
+        nil ->
+          {:error, :not_found}
 
-      token ->
-        if expired_pat?(token) do
-          {:error, :expired}
-        else
-          update_last_used(token)
-          {:ok, token}
-        end
+        token ->
+          token
+          |> Ecto.Changeset.change(%{revoked_at: DateTime.utc_now()})
+          |> Repo.update()
+      end
     end
   end
 
-  defp expired_pat?(%PersonalAccessToken{expires_at: nil}), do: false
+  def get_account_token_by_value(value) do
+    Tracer.with_span "glossia.developer_tokens.get_account_token_by_value" do
+      token_hash = hash_token(value)
 
-  defp expired_pat?(%PersonalAccessToken{expires_at: expires_at}) do
+      case Repo.one(
+             from t in AccountToken,
+               where: t.token_hash == ^token_hash and is_nil(t.revoked_at),
+               preload: [user: :account]
+           ) do
+        nil ->
+          {:error, :invalid}
+
+        token ->
+          Tracer.set_attributes([
+            {"glossia.account_token.id", to_string(token.id)},
+            {"glossia.account.id", to_string(token.account_id)}
+          ])
+
+          if expired_account_token?(token) do
+            {:error, :expired}
+          else
+            update_last_used(token)
+            {:ok, token}
+          end
+      end
+    end
+  end
+
+  defp expired_account_token?(%AccountToken{expires_at: nil}), do: false
+
+  defp expired_account_token?(%AccountToken{expires_at: expires_at}) do
     DateTime.compare(expires_at, DateTime.utc_now()) == :lt
   end
 
@@ -132,83 +163,103 @@ defmodule Glossia.DeveloperTokens do
   end
 
   def create_oauth_application(%Account{} = account, %User{} = user, attrs) do
-    redirect_uris = normalize_redirect_uris(attrs)
+    Tracer.with_span "glossia.developer_tokens.create_oauth_application" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account.id)},
+        {"glossia.user.id", to_string(user.id)}
+      ])
 
-    client_attrs = %{
-      name: attrs["name"] || attrs[:name],
-      redirect_uris: redirect_uris,
-      pkce: true,
-      supported_grant_types: ["authorization_code"],
-      authorize_scope: true
-    }
+      redirect_uris = normalize_redirect_uris(attrs)
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:boruta_client, fn _repo, _changes ->
-      Boruta.Ecto.Admin.create_client(client_attrs)
-    end)
-    |> Ecto.Multi.run(:oauth_application, fn _repo, %{boruta_client: client} ->
-      %OAuthApplication{}
-      |> OAuthApplication.changeset(attrs)
-      |> Ecto.Changeset.put_change(:boruta_client_id, client.id)
-      |> Ecto.Changeset.put_change(:account_id, account.id)
-      |> Ecto.Changeset.put_change(:user_id, user.id)
-      |> Repo.insert()
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{boruta_client: client, oauth_application: app}} ->
-        {:ok, %{app: app, client_id: client.id, client_secret: client.secret}}
+      client_attrs = %{
+        name: attrs["name"] || attrs[:name],
+        redirect_uris: redirect_uris,
+        pkce: true,
+        supported_grant_types: ["authorization_code"],
+        authorize_scope: true
+      }
 
-      {:error, _step, changeset, _changes} ->
-        {:error, changeset}
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:boruta_client, fn _repo, _changes ->
+        Boruta.Ecto.Admin.create_client(client_attrs)
+      end)
+      |> Ecto.Multi.run(:oauth_application, fn _repo, %{boruta_client: client} ->
+        %OAuthApplication{}
+        |> OAuthApplication.changeset(attrs)
+        |> Ecto.Changeset.put_change(:boruta_client_id, client.id)
+        |> Ecto.Changeset.put_change(:account_id, account.id)
+        |> Ecto.Changeset.put_change(:user_id, user.id)
+        |> Repo.insert()
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{boruta_client: client, oauth_application: app}} ->
+          Tracer.set_attributes([{"glossia.oauth_application.id", to_string(app.id)}])
+          {:ok, %{app: app, client_id: client.id, client_secret: client.secret}}
+
+        {:error, _step, changeset, _changes} ->
+          {:error, changeset}
+      end
     end
   end
 
   def update_oauth_application(%OAuthApplication{} = app, attrs) do
-    redirect_uris = normalize_redirect_uris(attrs)
+    Tracer.with_span "glossia.developer_tokens.update_oauth_application" do
+      Tracer.set_attributes([{"glossia.oauth_application.id", to_string(app.id)}])
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:boruta_client, fn _repo, _changes ->
-      client = Boruta.Ecto.Admin.get_client!(app.boruta_client_id)
+      redirect_uris = normalize_redirect_uris(attrs)
 
-      if redirect_uris != [] do
-        Boruta.Ecto.Admin.update_client(client, %{redirect_uris: redirect_uris})
-      else
-        {:ok, client}
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:boruta_client, fn _repo, _changes ->
+        client = Boruta.Ecto.Admin.get_client!(app.boruta_client_id)
+
+        if redirect_uris != [] do
+          Boruta.Ecto.Admin.update_client(client, %{redirect_uris: redirect_uris})
+        else
+          {:ok, client}
+        end
+      end)
+      |> Ecto.Multi.run(:oauth_application, fn _repo, _changes ->
+        app
+        |> OAuthApplication.changeset(attrs)
+        |> Repo.update()
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{oauth_application: app}} -> {:ok, app}
+        {:error, _step, changeset, _changes} -> {:error, changeset}
       end
-    end)
-    |> Ecto.Multi.run(:oauth_application, fn _repo, _changes ->
-      app
-      |> OAuthApplication.changeset(attrs)
-      |> Repo.update()
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{oauth_application: app}} -> {:ok, app}
-      {:error, _step, changeset, _changes} -> {:error, changeset}
     end
   end
 
   def regenerate_oauth_application_secret(%OAuthApplication{} = app) do
-    client = Boruta.Ecto.Admin.get_client!(app.boruta_client_id)
+    Tracer.with_span "glossia.developer_tokens.regenerate_oauth_application_secret" do
+      Tracer.set_attributes([{"glossia.oauth_application.id", to_string(app.id)}])
 
-    case Boruta.Ecto.Admin.regenerate_client_secret(client) do
-      {:ok, client} -> {:ok, %{app: app, client_secret: client.secret}}
-      {:error, _} = error -> error
+      client = Boruta.Ecto.Admin.get_client!(app.boruta_client_id)
+
+      case Boruta.Ecto.Admin.regenerate_client_secret(client) do
+        {:ok, client} -> {:ok, %{app: app, client_secret: client.secret}}
+        {:error, _} = error -> error
+      end
     end
   end
 
   def delete_oauth_application(%OAuthApplication{} = app) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:boruta_client, fn _repo, _changes ->
-      client = Boruta.Ecto.Admin.get_client!(app.boruta_client_id)
-      Boruta.Ecto.Admin.delete_client(client)
-    end)
-    |> Ecto.Multi.delete(:oauth_application, app)
-    |> Repo.transaction()
-    |> case do
-      {:ok, _} -> :ok
-      {:error, _step, changeset, _changes} -> {:error, changeset}
+    Tracer.with_span "glossia.developer_tokens.delete_oauth_application" do
+      Tracer.set_attributes([{"glossia.oauth_application.id", to_string(app.id)}])
+
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:boruta_client, fn _repo, _changes ->
+        client = Boruta.Ecto.Admin.get_client!(app.boruta_client_id)
+        Boruta.Ecto.Admin.delete_client(client)
+      end)
+      |> Ecto.Multi.delete(:oauth_application, app)
+      |> Repo.transaction()
+      |> case do
+        {:ok, _} -> :ok
+        {:error, _step, changeset, _changes} -> {:error, changeset}
+      end
     end
   end
 

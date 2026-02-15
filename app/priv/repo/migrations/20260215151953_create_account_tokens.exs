@@ -1,8 +1,8 @@
-defmodule Glossia.Repo.Migrations.CreatePersonalAccessTokens do
+defmodule Glossia.Repo.Migrations.CreateAccountTokens do
   use Ecto.Migration
 
   def change do
-    create table(:personal_access_tokens, primary_key: false) do
+    create table(:account_tokens, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :description, :string
@@ -21,8 +21,8 @@ defmodule Glossia.Repo.Migrations.CreatePersonalAccessTokens do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create index(:personal_access_tokens, [:account_id])
-    create index(:personal_access_tokens, [:user_id])
-    create unique_index(:personal_access_tokens, [:token_hash])
+    create index(:account_tokens, [:account_id])
+    create index(:account_tokens, [:user_id])
+    create unique_index(:account_tokens, [:token_hash])
   end
 end

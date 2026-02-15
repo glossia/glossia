@@ -8,6 +8,8 @@ defmodule GlossiaWeb.DashboardHooks do
     - `:check_write` - checks write access, assigns can_write
   """
 
+  use GlossiaWeb, :verified_routes
+
   import Phoenix.Component, only: [assign: 3]
 
   alias Glossia.Accounts
@@ -65,7 +67,7 @@ defmodule GlossiaWeb.DashboardHooks do
           if user do
             raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
           else
-            {:halt, Phoenix.LiveView.redirect(socket, to: "/auth/login")}
+            {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/login")}
           end
         end
     end

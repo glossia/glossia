@@ -49,6 +49,13 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
 
         case Organizations.create_organization(user, %{"handle" => handle, "name" => name}) do
           {:ok, %{account: account, organization: org}} ->
+            Auditing.record("organization.created", account, user,
+              resource_type: "organization",
+              resource_id: to_string(org.id),
+              resource_path: ~p"/#{account.handle}",
+              summary: "Created organization \"#{account.handle}\""
+            )
+
             conn
             |> put_status(:created)
             |> json(%{handle: account.handle, name: org.name, type: "organization"})
@@ -77,6 +84,15 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
 
       case Organizations.update_organization(org, update_attrs) do
         {:ok, org} ->
+          user = conn.assigns[:current_user]
+
+          Auditing.record("organization.updated", org.account, user,
+            resource_type: "organization",
+            resource_id: to_string(org.id),
+            resource_path: ~p"/#{org.account.handle}",
+            summary: "Updated organization \"#{org.account.handle}\""
+          )
+
           json(conn, %{
             handle: org.account.handle,
             name: org.name,
@@ -96,6 +112,15 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
     with_authorized_org(conn, handle, :organization_delete, fn conn, org ->
       case Organizations.delete_organization(org) do
         {:ok, _} ->
+          user = conn.assigns[:current_user]
+
+          Auditing.record("organization.deleted", org.account, user,
+            resource_type: "organization",
+            resource_id: to_string(org.id),
+            resource_path: ~p"/#{org.account.handle}",
+            summary: "Deleted organization \"#{org.account.handle}\""
+          )
+
           send_resp(conn, :no_content, "")
 
         {:error, changeset} ->

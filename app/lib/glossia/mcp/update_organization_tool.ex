@@ -2,8 +2,10 @@ defmodule Glossia.MCP.UpdateOrganizationTool do
   @moduledoc "Update an organization's name or visibility."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
+  alias Glossia.Auditing
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -26,6 +28,13 @@ defmodule Glossia.MCP.UpdateOrganizationTool do
 
       case Organizations.update_organization(org, update_attrs) do
         {:ok, org} ->
+          Auditing.record("organization.updated", org.account, user,
+            resource_type: "organization",
+            resource_id: to_string(org.id),
+            resource_path: ~p"/#{org.account.handle}",
+            summary: "Updated organization \"#{org.account.handle}\""
+          )
+
           response =
             Response.tool()
             |> Response.text(

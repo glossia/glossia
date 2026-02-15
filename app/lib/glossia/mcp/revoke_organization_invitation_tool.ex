@@ -2,7 +2,9 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
   @moduledoc "Revoke a pending invitation for an organization."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
+  alias Glossia.Auditing
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -29,6 +31,13 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
         invitation ->
           case Organizations.revoke_invitation(invitation) do
             {:ok, _} ->
+              Auditing.record("member.invitation_revoked", account, user,
+                resource_type: "invitation",
+                resource_id: to_string(invitation.id),
+                resource_path: ~p"/#{account.handle}/members",
+                summary: "Revoked invitation for #{invitation.email}"
+              )
+
               response =
                 Response.tool()
                 |> Response.text(JSON.encode!(%{revoked: true, invitation_id: invitation_id}))

@@ -1,14 +1,14 @@
 <div class="admin-shell" id="admin-shell">
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="admin-sidebar">
     <div class="admin-sidebar-top">
-      <a class="logo" href="/admin">
+      <a class="logo" href={~p"/admin"}>
         <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" />
         <span class="admin-logo-text">{gettext("Admin")}</span>
       </a>
     </div>
     <nav class="admin-nav">
       <.link
-        patch="/admin"
+        patch={~p"/admin"}
         class={["admin-nav-item", @live_action == :home && "active"]}
       >
         <svg
@@ -27,7 +27,7 @@
         <span class="admin-nav-label">{gettext("Overview")}</span>
       </.link>
       <.link
-        patch="/admin/users"
+        patch={~p"/admin/users"}
         class={["admin-nav-item", @live_action == :users && "active"]}
       >
         <svg
@@ -46,7 +46,7 @@
         <span class="admin-nav-label">{gettext("Users")}</span>
       </.link>
       <.link
-        patch="/admin/accounts"
+        patch={~p"/admin/accounts"}
         class={["admin-nav-item", @live_action == :accounts && "active"]}
       >
         <svg
@@ -65,7 +65,7 @@
         <span class="admin-nav-label">{gettext("Accounts")}</span>
       </.link>
       <.link
-        patch="/admin/tickets"
+        patch={~p"/admin/tickets"}
         class={["admin-nav-item", @live_action in [:tickets, :ticket_show] && "active"]}
       >
         <svg
@@ -85,7 +85,7 @@
       </.link>
     </nav>
     <div class="admin-sidebar-bottom">
-      <a href="/dashboard" class="admin-nav-item admin-back-link">
+      <a href={~p"/dashboard"} class="admin-nav-item admin-back-link">
         <svg
           width="18"
           height="18"
@@ -104,11 +104,13 @@
     </div>
   </aside>
 
+  <div class="admin-mobile-backdrop" id="admin-mobile-backdrop"></div>
+
   <div class="admin-content-area">
     <%= if assigns[:impersonating_from] do %>
       <div class="impersonation-banner">
         <span>{gettext("You are impersonating %{email}", email: @current_user.email)}</span>
-        <form method="post" action="/admin/impersonate" style="display:inline">
+        <form method="post" action={~p"/admin/impersonate"} style="display:inline">
           <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
           <input type="hidden" name="_method" value="delete" />
           <button type="submit" class="impersonation-banner-stop">
@@ -118,7 +120,32 @@
       </div>
     <% end %>
     <header class="admin-topbar">
-      <div class="admin-topbar-left"></div>
+      <div class="admin-topbar-left">
+        <button
+          class="admin-mobile-nav-toggle"
+          id="admin-mobile-nav-toggle"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-controls="admin-sidebar"
+          aria-label={gettext("Toggle navigation")}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+      </div>
       <div class="admin-topbar-right">
         <div class="avatar-dropdown">
           <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
@@ -131,7 +158,7 @@
           </button>
           <ul class="avatar-menu" role="menu">
             <li role="none">
-              <a role="menuitem" href="/auth/logout" data-method="delete">
+              <a role="menuitem" href={~p"/auth/logout"} data-method="delete">
                 {gettext("Log out")}
               </a>
             </li>
@@ -148,6 +175,47 @@
 
 <script>
   (function() {
+    var mobileNavBtn = document.getElementById('admin-mobile-nav-toggle');
+    var mobileBackdrop = document.getElementById('admin-mobile-backdrop');
+    var sidebar = document.getElementById('admin-sidebar');
+
+    function setMobileNavOpen(open) {
+      if (!sidebar || !mobileNavBtn || !mobileBackdrop) return;
+
+      if (open) {
+        sidebar.classList.add('open');
+        mobileBackdrop.classList.add('open');
+        mobileNavBtn.setAttribute('aria-expanded', 'true');
+      } else {
+        sidebar.classList.remove('open');
+        mobileBackdrop.classList.remove('open');
+        mobileNavBtn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    if (mobileNavBtn && sidebar && mobileBackdrop) {
+      mobileNavBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        setMobileNavOpen(!sidebar.classList.contains('open'));
+      });
+
+      mobileBackdrop.addEventListener('click', function() {
+        setMobileNavOpen(false);
+      });
+
+      sidebar.addEventListener('click', function(e) {
+        if (e.target.closest('a')) {
+          setMobileNavOpen(false);
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          setMobileNavOpen(false);
+        }
+      });
+    }
+
     var avatarDd = document.querySelector('.avatar-dropdown');
     if (avatarDd) {
       var avatarBtn = avatarDd.querySelector('.avatar-toggle');

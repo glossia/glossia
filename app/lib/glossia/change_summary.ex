@@ -1,7 +1,7 @@
 defmodule Glossia.ChangeSummary do
   @moduledoc false
 
-  @voice_fields [:tone, :formality, :target_audience, :guidelines]
+  @voice_fields [:tone, :formality, :target_audience, :guidelines, :description]
 
   @system_prompt """
   You are a version control assistant. Given a description of changes to a %{context}, \

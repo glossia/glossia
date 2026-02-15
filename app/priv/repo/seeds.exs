@@ -10,7 +10,7 @@
 defmodule Glossia.Seeds do
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{Account, Glossary, Identity, PersonalAccessToken, Project, User, Voice}
+  alias Glossia.Accounts.{Account, Glossary, Identity, AccountToken, Project, User, Voice}
 
   alias Glossia.DeveloperTokens
   alias Glossia.Glossaries
@@ -113,6 +113,19 @@ defmodule Glossia.Seeds do
           tone: "authoritative",
           formality: "formal",
           target_audience: "Engineering leaders and localization managers",
+          description:
+            "Glossia is a platform that helps teams manage multilingual content with AI-powered translation and voice consistency.",
+          target_countries: ["US", "DE", "JP", "ES"],
+          cultural_notes: %{
+            "US" =>
+              "American audiences value directness and clarity. Use active voice, short sentences, and concrete examples.",
+            "DE" =>
+              "German audiences expect precision and thoroughness. Be formal but not stiff, and provide detailed explanations.",
+            "JP" =>
+              "Japanese communication style values politeness and indirectness. Avoid overly casual language and respect hierarchy.",
+            "ES" =>
+              "Spanish-speaking audiences appreciate warmth and personal connection. Use inclusive language and a friendly tone."
+          },
           guidelines: """
           ## Style
 
@@ -125,7 +138,7 @@ defmodule Glossia.Seeds do
           - Use code fences for commands.
           - Use tables for structured reference data.
           """,
-          change_note: "Tighten language for documentation"
+          change_note: "Add product context and target countries"
         }
       ]
     )
@@ -307,7 +320,7 @@ defmodule Glossia.Seeds do
     )
 
     # ── API tokens ──
-    ensure_personal_access_token!(dev.account, dev,
+    ensure_account_token!(dev.account, dev,
       name: "CI Pipeline Token",
       description: "Used by GitHub Actions to push translations",
       scope: "voice:read voice:write glossary:read glossary:write"
@@ -576,12 +589,12 @@ defmodule Glossia.Seeds do
     end
   end
 
-  defp ensure_personal_access_token!(account, user, opts) do
+  defp ensure_account_token!(account, user, opts) do
     name = Keyword.fetch!(opts, :name)
 
     existing =
       Repo.one(
-        from t in PersonalAccessToken,
+        from t in AccountToken,
           where: t.account_id == ^account.id and t.name == ^name and is_nil(t.revoked_at)
       )
 
@@ -589,7 +602,7 @@ defmodule Glossia.Seeds do
       existing
     else
       {:ok, %{token: token}} =
-        DeveloperTokens.create_personal_access_token(account, user, %{
+        DeveloperTokens.create_account_token(account, user, %{
           "name" => name,
           "description" => Keyword.get(opts, :description, ""),
           "scope" => Keyword.get(opts, :scope, ""),

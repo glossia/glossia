@@ -1,13 +1,13 @@
 <header class="site-header">
   <div class="container nav">
-    <a class="logo" href="/">
+    <a class="logo" href={~p"/"}>
       <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" /> Glossia
     </a>
     <nav class="nav-links">
-      <a href="/features">{gettext("Features")}</a>
-      <a href="/docs">{gettext("Docs")}</a>
-      <a href="/blog">{gettext("Blog")}</a>
-      <a href="/changelog">{gettext("Changelog")}</a>
+      <a href={~p"/features"}>{gettext("Features")}</a>
+      <a href={~p"/docs"}>{gettext("Docs")}</a>
+      <a href={~p"/blog"}>{gettext("Blog")}</a>
+      <a href={~p"/changelog"}>{gettext("Changelog")}</a>
       <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
         <div class="avatar-dropdown">
           <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
@@ -20,11 +20,13 @@
           </button>
           <ul class="avatar-menu" role="menu">
             <li role="none">
-              <a role="menuitem" href="/dashboard">{gettext("Dashboard")}</a>
+              <a role="menuitem" href={~p"/dashboard"}>{gettext("Dashboard")}</a>
             </li>
             <li role="none" class="avatar-menu-divider"></li>
             <li role="none">
-              <a role="menuitem" href="/auth/logout" data-method="delete">{gettext("Log out")}</a>
+              <a role="menuitem" href={~p"/auth/logout"} data-method="delete">
+                {gettext("Log out")}
+              </a>
             </li>
           </ul>
         </div>
@@ -68,13 +70,13 @@
 <.flash_group :if={assigns[:flash]} flash={@flash} />
 
 <nav class="mobile-menu" aria-label="Mobile navigation">
-  <a href="/features">{gettext("Features")}</a>
-  <a href="/docs">{gettext("Docs")}</a>
-  <a href="/blog">{gettext("Blog")}</a>
-  <a href="/changelog">{gettext("Changelog")}</a>
+  <a href={~p"/features"}>{gettext("Features")}</a>
+  <a href={~p"/docs"}>{gettext("Docs")}</a>
+  <a href={~p"/blog"}>{gettext("Blog")}</a>
+  <a href={~p"/changelog"}>{gettext("Changelog")}</a>
   <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
-    <a href="/dashboard">{gettext("Dashboard")}</a>
-    <a href="/auth/logout" data-method="delete">{gettext("Log out")}</a>
+    <a href={~p"/dashboard"}>{gettext("Dashboard")}</a>
+    <a href={~p"/auth/logout"} data-method="delete">{gettext("Log out")}</a>
   <% end %>
 </nav>
 
@@ -121,7 +123,7 @@
 <footer class="site-footer">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <a class="logo" href="/">
+      <a class="logo" href={~p"/"}>
         <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" /> Glossia
       </a>
       <p>{gettext("Built with love from Berlin.")}</p>
@@ -129,9 +131,9 @@
     <div>
       <h4>{gettext("Legal")}</h4>
       <ul class="legal-links">
-        <li><a href="/terms">{gettext("Terms of Service")}</a></li>
-        <li><a href="/privacy">{gettext("Privacy Policy")}</a></li>
-        <li><a href="/cookies">{gettext("Cookie Policy")}</a></li>
+        <li><a href={~p"/terms"}>{gettext("Terms of Service")}</a></li>
+        <li><a href={~p"/privacy"}>{gettext("Privacy Policy")}</a></li>
+        <li><a href={~p"/cookies"}>{gettext("Cookie Policy")}</a></li>
       </ul>
     </div>
     <div>
@@ -158,7 +160,7 @@
         </button>
         <ul class="locale-menu" role="menu">
           <li role="none">
-            <a role="menuitem" class="locale-option active" href="/">English</a>
+            <a role="menuitem" class="locale-option active" href={~p"/"}>English</a>
           </li>
           <li role="none">
             <a role="menuitem" class="locale-option" href="/es/">Espa&ntilde;ol</a>

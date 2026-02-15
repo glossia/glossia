@@ -5,11 +5,12 @@ defmodule Glossia.Support.Ticket do
   @derive {
     Flop.Schema,
     filterable: [:title, :type, :status],
-    sortable: [:title, :status, :inserted_at],
+    sortable: [:number, :title, :status, :inserted_at],
     default_order: %{order_by: [:inserted_at], order_directions: [:desc]}
   }
 
   schema "tickets" do
+    field :number, :integer
     field :title, :string
     field :description, :string
     field :type, :string, default: "issue"

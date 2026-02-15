@@ -119,6 +119,7 @@ When migrating templates to LiveView function components:
 
 ### Phoenix v1.8 guidelines
 
+- **Always use `~p` for internal paths** (links, redirects, `patch`/`push_patch`, form `action`s) so routes are verified at compile time. Use string URLs only for external links or for paths that are intentionally not in `GlossiaWeb.Router` (e.g. locale-prefixed marketing URLs).
 - **Always** begin your LiveView templates with `<Layouts.app flash={@flash} ...>` which wraps all inner content
 - The `MyAppWeb.Layouts` module is aliased in the `my_app_web.ex` file, so you can use it without needing to alias it again
 - Anytime you run into errors with no `current_scope` assign:

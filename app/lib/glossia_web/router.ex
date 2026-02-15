@@ -328,7 +328,7 @@ defmodule GlossiaWeb.Router do
       live "/:handle/api/apps/:app_id", DashboardLive, :api_app_edit
       live "/:handle/tickets", DashboardLive, :tickets
       live "/:handle/tickets/new", DashboardLive, :ticket_new
-      live "/:handle/tickets/:ticket_id", DashboardLive, :ticket_show
+      live "/:handle/tickets/:ticket_number", DashboardLive, :ticket_show
       live "/:handle", DashboardLive, :account
       live "/:handle/:project", DashboardLive, :project
     end

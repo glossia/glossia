@@ -3,6 +3,7 @@ defmodule GlossiaWeb.AuthController do
 
   alias Glossia.Auth
   alias Glossia.Accounts
+  alias Glossia.Auditing
 
   @dev_routes Application.compile_env(:glossia, :dev_routes, false)
 
@@ -36,6 +37,12 @@ defmodule GlossiaWeb.AuthController do
         case Accounts.find_or_create_user_from_oauth(provider, oauth_response) do
           {:ok, user} ->
             return_to = get_session(conn, :return_to)
+
+            Auditing.record("user.signed_in", user.account, user,
+              resource_type: "user",
+              resource_id: to_string(user.id),
+              summary: "Signed in"
+            )
 
             conn
             |> delete_session(:return_to)
@@ -76,6 +83,12 @@ defmodule GlossiaWeb.AuthController do
       user ->
         return_to = get_session(conn, :return_to)
 
+        Auditing.record("user.signed_in", user.account, user,
+          resource_type: "user",
+          resource_id: to_string(user.id),
+          summary: "Signed in (dev)"
+        )
+
         conn
         |> delete_session(:return_to)
         |> put_session(:user_id, user.id)
@@ -87,6 +100,14 @@ defmodule GlossiaWeb.AuthController do
   end
 
   def logout(conn, _params) do
+    if user = conn.assigns[:current_user] do
+      Auditing.record("user.signed_out", user.account, user,
+        resource_type: "user",
+        resource_id: to_string(user.id),
+        summary: "Signed out"
+      )
+    end
+
     conn
     |> configure_session(drop: true)
     |> redirect(to: ~p"/")

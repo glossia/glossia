@@ -15,6 +15,9 @@ defmodule Glossia.Accounts.Voice do
     field :formality, :string
     field :target_audience, :string
     field :guidelines, :string
+    field :description, :string
+    field :target_countries, {:array, :string}, default: []
+    field :cultural_notes, :map, default: %{}
     field :change_note, :string
 
     belongs_to :account, Glossia.Accounts.Account
@@ -26,7 +29,17 @@ defmodule Glossia.Accounts.Voice do
 
   def changeset(voice, attrs) do
     voice
-    |> cast(attrs, [:tone, :formality, :target_audience, :guidelines, :change_note, :version])
+    |> cast(attrs, [
+      :tone,
+      :formality,
+      :target_audience,
+      :guidelines,
+      :description,
+      :target_countries,
+      :cultural_notes,
+      :change_note,
+      :version
+    ])
     |> validate_required([:version])
     |> validate_inclusion(:tone, ~w(casual formal playful authoritative neutral))
     |> validate_inclusion(:formality, ~w(informal neutral formal very_formal))

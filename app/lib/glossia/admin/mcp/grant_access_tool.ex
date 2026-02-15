@@ -5,6 +5,7 @@ defmodule Glossia.Admin.MCP.GrantAccessTool do
 
   alias Glossia.Admin.MCP.Authorization, as: Auth
   alias Glossia.Accounts
+  alias Glossia.Auditing
   alias Hermes.Server.Response
 
   schema do
@@ -13,9 +14,15 @@ defmodule Glossia.Admin.MCP.GrantAccessTool do
 
   @impl true
   def execute(params, frame) do
-    with {:ok, _admin} <- Auth.current_user(frame) do
+    with {:ok, admin} <- Auth.current_user(frame) do
       case Accounts.grant_access(params["email"]) do
         {:ok, user} ->
+          Auditing.record("admin.access_granted", admin.account, admin,
+            resource_type: "user",
+            resource_id: to_string(user.id),
+            summary: "Granted access to #{user.email}"
+          )
+
           response =
             Response.tool()
             |> Response.text(JSON.encode!(%{email: user.email, has_access: true}))

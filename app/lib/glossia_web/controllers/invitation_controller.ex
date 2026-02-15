@@ -28,7 +28,7 @@ defmodule GlossiaWeb.InvitationController do
 
           is_nil(conn.assigns[:current_user]) ->
             conn
-            |> put_session(:return_to, "/invitations/#{token}")
+            |> put_session(:return_to, ~p"/invitations/#{token}")
             |> redirect(to: ~p"/auth/login")
 
           true ->
@@ -49,7 +49,7 @@ defmodule GlossiaWeb.InvitationController do
 
     if is_nil(user) do
       conn
-      |> put_session(:return_to, "/invitations/#{token}")
+      |> put_session(:return_to, ~p"/invitations/#{token}")
       |> redirect(to: ~p"/auth/login")
     else
       case Organizations.get_invitation_by_token(token) do
@@ -72,7 +72,7 @@ defmodule GlossiaWeb.InvitationController do
 
               conn
               |> put_flash(:info, gettext("You have joined %{org}.", org: org.name))
-              |> redirect(to: "/#{handle}")
+              |> redirect(to: ~p"/#{handle}")
 
             {:error, :expired} ->
               conn
@@ -99,6 +99,8 @@ defmodule GlossiaWeb.InvitationController do
   end
 
   def decline(conn, %{"token" => token}) do
+    user = conn.assigns[:current_user]
+
     case Organizations.get_invitation_by_token(token) do
       nil ->
         conn
@@ -108,6 +110,14 @@ defmodule GlossiaWeb.InvitationController do
       invitation ->
         case Organizations.decline_invitation(invitation) do
           {:ok, _} ->
+            if org = Organizations.get_organization(invitation.organization_id) do
+              Auditing.record("member.invitation_declined", org.account, user,
+                resource_type: "invitation",
+                resource_id: to_string(invitation.id),
+                summary: "#{invitation.email} declined invitation as #{invitation.role}"
+              )
+            end
+
             conn
             |> put_flash(:info, gettext("Invitation declined."))
             |> redirect(to: ~p"/")
