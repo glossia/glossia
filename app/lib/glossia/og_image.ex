@@ -8,7 +8,7 @@ defmodule Glossia.OgImage do
 
   require Logger
 
-  @template_path Path.join(:code.priv_dir(:glossia), "og_image/template.html.eex")
+  defp template_path, do: Path.join(:code.priv_dir(:glossia), "og_image/template.html.eex")
 
   # Bump this version whenever the template design changes to force
   # re-generation of all cached images in production.
@@ -126,7 +126,7 @@ defmodule Glossia.OgImage do
     author_avatar = attrs[:author_avatar] || attrs["author_avatar"] || ""
 
     html =
-      EEx.eval_file(@template_path,
+      EEx.eval_file(template_path(),
         title: title,
         description: description,
         category: category,
