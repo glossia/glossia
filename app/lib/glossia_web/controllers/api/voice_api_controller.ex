@@ -1,118 +1,137 @@
 defmodule GlossiaWeb.Api.VoiceApiController do
   use GlossiaWeb, :controller
 
+  alias Glossia.ChangesetErrors
   alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
-  import Ecto.Query
+  alias Glossia.Voices
+  alias GlossiaWeb.Api.Serialization
+  alias GlossiaWeb.ApiAuthorization
 
   def show(conn, %{"handle" => handle} = params) do
-    account = get_account_by_handle(handle)
+    case Accounts.get_account_by_handle(handle) do
+      nil ->
+        conn |> put_status(:not_found) |> json(%{error: "account not found"})
 
-    unless account do
-      conn |> put_status(:not_found) |> json(%{error: "account not found"}) |> halt()
-    else
-      locale = params["locale"]
-      version = params["version"]
+      account ->
+        case ApiAuthorization.authorize(conn, :voice_read, account) do
+          {:ok, conn} ->
+            locale = params["locale"]
+            version_str = params["version"]
 
-      voice =
-        cond do
-          locale ->
-            Accounts.get_resolved_voice(account, locale)
+            voice_result =
+              cond do
+                locale ->
+                  {:ok, Voices.get_resolved_voice(account, locale)}
 
-          version ->
-            Accounts.get_voice_version(account, String.to_integer(version))
+                is_binary(version_str) ->
+                  case Integer.parse(version_str) do
+                    {version, ""} -> {:ok, Voices.get_voice_version(account, version)}
+                    _ -> {:error, :invalid_version}
+                  end
 
-          true ->
-            Accounts.get_latest_voice(account)
+                true ->
+                  {:ok, Voices.get_latest_voice(account)}
+              end
+
+            case voice_result do
+              {:error, :invalid_version} ->
+                conn |> put_status(:bad_request) |> json(%{error: "invalid_version"})
+
+              {:ok, nil} ->
+                conn |> put_status(:not_found) |> json(%{error: "no voice configured"})
+
+              {:ok, %Accounts.Voice{} = v} ->
+                conn |> json(serialize_voice(v))
+
+              {:ok, %{} = resolved} ->
+                conn |> json(resolved)
+            end
+
+          {:error, conn} ->
+            conn
         end
-
-      case voice do
-        nil ->
-          conn |> put_status(:not_found) |> json(%{error: "no voice configured"})
-
-        %Accounts.Voice{} = v ->
-          conn |> json(serialize_voice(v))
-
-        %{} = resolved ->
-          conn |> json(resolved)
-      end
     end
   end
 
   def create(conn, %{"handle" => handle} = params) do
-    account = get_account_by_handle(handle)
+    case Accounts.get_account_by_handle(handle) do
+      nil ->
+        conn |> put_status(:not_found) |> json(%{error: "account not found"})
 
-    unless account do
-      conn |> put_status(:not_found) |> json(%{error: "account not found"}) |> halt()
-    else
-      attrs = %{
-        tone: params["tone"],
-        formality: params["formality"],
-        target_audience: params["target_audience"],
-        guidelines: params["guidelines"],
-        change_note: params["change_note"],
-        overrides: params["overrides"] || []
-      }
+      account ->
+        case ApiAuthorization.authorize(conn, :voice_write, account) do
+          {:ok, conn} ->
+            attrs = %{
+              tone: params["tone"],
+              formality: params["formality"],
+              target_audience: params["target_audience"],
+              guidelines: params["guidelines"],
+              change_note: params["change_note"],
+              overrides: params["overrides"] || []
+            }
 
-      user = conn.assigns[:current_user]
+            user = conn.assigns[:current_user]
 
-      case Accounts.create_voice(account, attrs, user) do
-        {:ok, %{voice: voice, overrides: overrides}} ->
-          Glossia.Auditing.record("voice.created", account, user,
-            resource_type: "voice",
-            resource_id: to_string(voice.version),
-            resource_path: "/#{handle}/voice/#{voice.version}",
-            summary: attrs.change_note || "Updated voice configuration"
-          )
+            case Voices.create_voice(account, attrs, user) do
+              {:ok, %{voice: voice, overrides: overrides}} ->
+                Glossia.Auditing.record("voice.created", account, user,
+                  resource_type: "voice",
+                  resource_id: to_string(voice.version),
+                  resource_path: "/#{handle}/voice/#{voice.version}",
+                  summary: attrs.change_note || "Updated voice configuration"
+                )
 
-          voice = %{voice | overrides: overrides}
+                voice = %{voice | overrides: overrides}
 
-          conn
-          |> put_status(:created)
-          |> json(serialize_voice(voice))
+                conn
+                |> put_status(:created)
+                |> json(serialize_voice(voice))
 
-        {:error, _step, changeset, _changes} ->
-          conn
-          |> put_status(:unprocessable_entity)
-          |> json(%{errors: format_changeset_errors(changeset)})
-      end
+              {:error, _step, changeset, _changes} ->
+                conn
+                |> put_status(:unprocessable_entity)
+                |> json(%{errors: ChangesetErrors.to_map(changeset)})
+            end
+
+          {:error, conn} ->
+            conn
+        end
     end
   end
 
   def history(conn, %{"handle" => handle} = params) do
-    account = get_account_by_handle(handle)
+    case Accounts.get_account_by_handle(handle) do
+      nil ->
+        conn |> put_status(:not_found) |> json(%{error: "account not found"})
 
-    unless account do
-      conn |> put_status(:not_found) |> json(%{error: "account not found"}) |> halt()
-    else
-      case Accounts.list_voice_versions(account, params) do
-        {:ok, {versions, meta}} ->
-          conn
-          |> json(%{
-            versions:
-              Enum.map(versions, fn v ->
-                %{
-                  version: v.version,
-                  change_note: v.change_note,
-                  inserted_at: v.inserted_at
-                }
-              end),
-            meta: serialize_meta(meta)
-          })
+      account ->
+        case ApiAuthorization.authorize(conn, :voice_read, account) do
+          {:ok, conn} ->
+            case Voices.list_voice_versions(account, params) do
+              {:ok, {versions, meta}} ->
+                conn
+                |> json(%{
+                  versions:
+                    Enum.map(versions, fn v ->
+                      %{
+                        version: v.version,
+                        change_note: v.change_note,
+                        inserted_at: v.inserted_at
+                      }
+                    end),
+                  meta: Serialization.meta(meta)
+                })
 
-        {:error, meta} ->
-          conn
-          |> put_status(:bad_request)
-          |> json(%{errors: meta.errors})
-      end
+              {:error, meta} ->
+                conn
+                |> put_status(:bad_request)
+                |> json(%{errors: meta.errors})
+            end
+
+          {:error, conn} ->
+            conn
+        end
     end
-  end
-
-  defp get_account_by_handle(handle) do
-    Account
-    |> where(handle: ^handle)
-    |> Repo.one()
   end
 
   defp serialize_voice(voice) do
@@ -135,24 +154,5 @@ defmodule GlossiaWeb.Api.VoiceApiController do
           }
         end)
     }
-  end
-
-  defp serialize_meta(%Flop.Meta{} = meta) do
-    %{
-      total_count: meta.total_count,
-      total_pages: meta.total_pages,
-      current_page: meta.current_page,
-      page_size: meta.page_size,
-      has_next_page?: meta.has_next_page?,
-      has_previous_page?: meta.has_previous_page?
-    }
-  end
-
-  defp format_changeset_errors(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
   end
 end

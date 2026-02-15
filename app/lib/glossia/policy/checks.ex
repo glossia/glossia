@@ -6,6 +6,36 @@ defmodule Glossia.Policy.Checks do
   import Ecto.Query
 
   @doc """
+  Subject is authenticated (non-nil user).
+  """
+  def authenticated(%User{}, _object), do: true
+  def authenticated(_, _object), do: false
+
+  @doc """
+  Authorization for collection endpoints (no object).
+  """
+  def collection(_subject, nil), do: true
+  def collection(_subject, _object), do: false
+
+  @doc """
+  Subject's account does not have access (used as a deny check for write actions).
+  """
+  def no_access(nil, _object), do: false
+
+  def no_access(%User{account: %Account{has_access: has_access}}, _object)
+      when is_boolean(has_access),
+      do: not has_access
+
+  def no_access(%User{account_id: account_id}, _object) do
+    Account
+    |> where(id: ^account_id)
+    |> select([a], a.has_access)
+    |> Repo.one() != true
+  end
+
+  def no_access(_, _object), do: false
+
+  @doc """
   User is accessing their own user-account resources.
   The object must have an `account_id` or be an Account struct
   whose associated user matches the subject.
@@ -35,9 +65,9 @@ defmodule Glossia.Policy.Checks do
   @doc """
   User has "admin" role in the org that owns the resource.
   """
-  def org_admin(nil, _object), do: false
+  def organization_admin(nil, _object), do: false
 
-  def org_admin(%User{id: user_id}, object) do
+  def organization_admin(%User{id: user_id}, object) do
     case resolve_organization_id(object) do
       nil -> false
       org_id -> has_membership?(user_id, org_id, "admin")
@@ -47,9 +77,9 @@ defmodule Glossia.Policy.Checks do
   @doc """
   User has any role (admin or member) in the org that owns the resource.
   """
-  def org_member(nil, _object), do: false
+  def organization_member(nil, _object), do: false
 
-  def org_member(%User{id: user_id}, object) do
+  def organization_member(%User{id: user_id}, object) do
     case resolve_organization_id(object) do
       nil -> false
       org_id -> has_membership?(user_id, org_id)

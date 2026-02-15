@@ -73,6 +73,12 @@ if is_binary(gitlab_webhook_secret) and gitlab_webhook_secret != "" do
   config :glossia, Glossia.Gitlab, webhook_secret: gitlab_webhook_secret
 end
 
+minimax_api_key = System.get_env("MINIMAX_API_KEY")
+
+if is_binary(minimax_api_key) and minimax_api_key != "" do
+  config :glossia, Glossia.Minimax, api_key: minimax_api_key
+end
+
 s3_access_key = System.get_env("S3_ACCESS_KEY_ID")
 s3_secret_key = System.get_env("S3_SECRET_ACCESS_KEY")
 s3_endpoint = System.get_env("S3_ENDPOINT")

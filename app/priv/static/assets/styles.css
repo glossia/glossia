@@ -377,6 +377,23 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 /* ====================================================================
    9. SHARED MOLECULES
    ==================================================================== */
+.card {
+  background: var(--color-surface);
+  border: var(--space-px) solid var(--color-border);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+  min-width: 0;
+}
+
+.card[data-interactive] {
+  transition: box-shadow var(--transition), border-color var(--transition);
+}
+
+.card[data-interactive]:hover {
+  box-shadow: var(--shadow-default);
+  border-color: var(--color-border-strong);
+}
+
 .avatar-dropdown {
   position: relative;
   display: inline-flex;
@@ -752,18 +769,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 }
 
 .tool-card {
-  background: var(--color-surface);
-  border: var(--space-px) solid var(--color-border);
-  border-radius: var(--radius-large);
   padding: var(--space-6);
-  box-shadow: var(--shadow-card);
-  transition: box-shadow var(--transition), border-color var(--transition);
-  min-width: 0;
-}
-
-.tool-card:hover {
-  box-shadow: var(--shadow-default);
-  border-color: var(--color-border-strong);
 }
 
 .tool-card p {
@@ -810,13 +816,8 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 }
 
 .config-card {
-  background: var(--color-surface);
-  border: var(--space-px) solid var(--color-border);
-  border-radius: var(--radius-large);
   padding: var(--space-6);
-  box-shadow: var(--shadow-card);
   overflow: hidden;
-  min-width: 0;
 }
 
 .config-card h3 { margin-bottom: var(--space-2); }
@@ -825,12 +826,8 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 /* --- Origin story card --- */
 .origin-card {
   margin-top: var(--space-12);
-  background: var(--color-surface);
-  border: var(--space-px) solid var(--color-border);
-  border-radius: var(--radius-large);
   padding: var(--space-6);
   max-width: var(--max-width-card);
-  box-shadow: var(--shadow-card);
 }
 
 .origin-card h3 { display: flex; align-items: center; gap: var(--space-2); }
@@ -847,17 +844,6 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 
 .feature {
   padding: var(--space-5);
-  border-radius: var(--radius-large);
-  border: var(--space-px) solid var(--color-border);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
-  transition: box-shadow var(--transition), border-color var(--transition);
-  min-width: 0;
-}
-
-.feature:hover {
-  box-shadow: var(--shadow-default);
-  border-color: var(--color-border-strong);
 }
 
 .feature-icon {
@@ -882,9 +868,6 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 
 .faq-item {
   padding: var(--space-5);
-  border-radius: var(--radius-large);
-  background: var(--color-surface);
-  border: var(--space-px) solid var(--color-border);
 }
 
 .faq-item summary {
@@ -938,14 +921,8 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 .blog-list { display: grid; gap: var(--space-3); margin-top: var(--space-6); }
 
 .blog-card {
-  background: var(--color-surface);
-  border: var(--space-px) solid var(--color-border);
-  border-radius: var(--radius-large);
   padding: var(--space-5);
-  transition: box-shadow var(--transition), border-color var(--transition);
 }
-
-.blog-card:hover { box-shadow: var(--shadow-default); border-color: var(--color-border-strong); }
 .blog-card a { text-decoration: none; color: var(--color-text); }
 .blog-card a:hover { text-decoration: none; }
 .blog-card h3 { margin-bottom: var(--space-1); font-size: var(--text-2xl); }
@@ -1022,15 +999,11 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 
 .docs-category-card {
   display: block;
-  background: var(--color-surface);
-  border: var(--space-px) solid var(--color-border);
-  border-radius: var(--radius-large);
   padding: var(--space-6);
   text-decoration: none;
   color: var(--color-text);
-  transition: box-shadow var(--transition), border-color var(--transition);
 }
-.docs-category-card:hover { box-shadow: var(--shadow-default); border-color: var(--color-border-strong); text-decoration: none; }
+.docs-category-card:hover { text-decoration: none; }
 .docs-category-card h3 { margin-bottom: var(--space-1); }
 .docs-category-card p { color: var(--color-text-muted); font-size: var(--text-md); margin-bottom: 0; }
 
@@ -1069,15 +1042,11 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 
 .docs-page-card {
   display: block;
-  background: var(--color-surface);
-  border: var(--space-px) solid var(--color-border);
-  border-radius: var(--radius-large);
   padding: var(--space-5);
   text-decoration: none;
   color: var(--color-text);
-  transition: box-shadow var(--transition), border-color var(--transition);
 }
-.docs-page-card:hover { box-shadow: var(--shadow-default); border-color: var(--color-border-strong); text-decoration: none; }
+.docs-page-card:hover { text-decoration: none; }
 .docs-page-card h3 { margin-bottom: var(--space-1); }
 .docs-page-card p { color: var(--color-text-muted); font-size: var(--text-md); margin-bottom: 0; }
 
@@ -2307,6 +2276,49 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
 }
 
 /* --- Members page --- */
+/* --- Glossary --- */
+.glossary-entry-block {
+  border: var(--space-px) solid var(--color-border);
+  border-radius: var(--radius-default);
+  overflow: hidden;
+}
+.glossary-translations-section {
+  margin-top: var(--space-3);
+}
+.glossary-translations-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+.glossary-translation-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.glossary-locale-input {
+  width: auto;
+  min-width: 8rem;
+  max-width: 14rem;
+}
+.glossary-translations-diff {
+  margin-top: var(--space-3);
+}
+.glossary-translation-diff-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+.glossary-translation-diff-locale {
+  font-weight: var(--weight-medium);
+  font-family: var(--font-code);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  min-width: 3rem;
+}
+
 .members-invite-section {
   margin-bottom: var(--space-8);
   padding: var(--space-6);

@@ -44,6 +44,10 @@ defmodule GlossiaWeb.OpenApiSpec do
     |> Map.new()
   end
 
+  defp oauth_security(required_scopes) when is_list(required_scopes) do
+    [%{"oauth2" => required_scopes}]
+  end
+
   defp paths(issuer) do
     %{
       "/oauth/register" => %{
@@ -377,7 +381,7 @@ defmodule GlossiaWeb.OpenApiSpec do
               "Supports pagination, filtering, and sorting via query parameters.",
           "operationId" => "listAccounts",
           "tags" => ["Accounts"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["account:read"]),
           "parameters" =>
             pagination_parameters() ++
               [
@@ -428,7 +432,7 @@ defmodule GlossiaWeb.OpenApiSpec do
               "Supports pagination, filtering, and sorting via query parameters.",
           "operationId" => "listProjects",
           "tags" => ["Projects"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["project:read"]),
           "parameters" =>
             [
               %{
@@ -482,7 +486,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Returns all organizations the authenticated user belongs to.",
           "operationId" => "listOrganizations",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["organization:read"]),
           "responses" => %{
             "200" => %{
               "description" => "List of organizations",
@@ -508,7 +512,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Create a new organization. The authenticated user becomes the admin.",
           "operationId" => "createOrganization",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["organization:write"]),
           "requestBody" => %{
             "required" => true,
             "content" => %{
@@ -549,7 +553,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Get details of an organization by handle.",
           "operationId" => "getOrganization",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["organization:read"]),
           "parameters" => [handle_parameter()],
           "responses" => %{
             "200" => %{
@@ -570,7 +574,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Update an organization's name or visibility.",
           "operationId" => "updateOrganization",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["organization:write"]),
           "parameters" => [handle_parameter()],
           "requestBody" => %{
             "required" => true,
@@ -610,7 +614,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Delete an organization and all associated data.",
           "operationId" => "deleteOrganization",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["organization:delete"]),
           "parameters" => [handle_parameter()],
           "responses" => %{
             "204" => %{"description" => "Organization deleted"},
@@ -626,7 +630,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Returns all members of an organization.",
           "operationId" => "listOrganizationMembers",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["members:read"]),
           "parameters" => [handle_parameter()],
           "responses" => %{
             "200" => %{
@@ -657,7 +661,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Remove a member from an organization. Cannot remove the last admin.",
           "operationId" => "removeOrganizationMember",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["members:write"]),
           "parameters" => [
             handle_parameter(),
             %{
@@ -683,7 +687,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Returns all pending invitations for an organization.",
           "operationId" => "listOrganizationInvitations",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["members:read"]),
           "parameters" => [handle_parameter()],
           "responses" => %{
             "200" => %{
@@ -712,7 +716,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Invite a user to an organization by email.",
           "operationId" => "createOrganizationInvitation",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["members:write"]),
           "parameters" => [handle_parameter()],
           "requestBody" => %{
             "required" => true,
@@ -755,7 +759,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Revoke a pending invitation.",
           "operationId" => "revokeOrganizationInvitation",
           "tags" => ["Organizations"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["members:write"]),
           "parameters" => [
             handle_parameter(),
             %{
@@ -782,7 +786,7 @@ defmodule GlossiaWeb.OpenApiSpec do
               "Optionally specify a locale to get a merged/resolved voice, or a version number.",
           "operationId" => "getVoice",
           "tags" => ["Voice"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["voice:read"]),
           "parameters" => [
             %{
               "name" => "handle",
@@ -820,7 +824,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           "description" => "Create a new voice configuration version for an account.",
           "operationId" => "createVoice",
           "tags" => ["Voice"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["voice:write"]),
           "parameters" => [
             %{
               "name" => "handle",
@@ -868,7 +872,7 @@ defmodule GlossiaWeb.OpenApiSpec do
               "Supports pagination, filtering, and sorting via query parameters.",
           "operationId" => "getVoiceHistory",
           "tags" => ["Voice"],
-          "security" => [%{"bearerAuth" => []}],
+          "security" => oauth_security(["voice:read"]),
           "parameters" =>
             [
               %{
@@ -889,6 +893,146 @@ defmodule GlossiaWeb.OpenApiSpec do
           "responses" => %{
             "200" => %{
               "description" => "Paginated voice version history",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "versions" => %{
+                        "type" => "array",
+                        "items" => %{
+                          "type" => "object",
+                          "properties" => %{
+                            "version" => %{"type" => "integer"},
+                            "change_note" => %{"type" => "string"},
+                            "inserted_at" => %{"type" => "string", "format" => "date-time"}
+                          }
+                        }
+                      },
+                      "meta" => %{"$ref" => "#/components/schemas/PaginationMeta"}
+                    }
+                  }
+                }
+              }
+            },
+            "400" => %{"description" => "Invalid pagination or filter parameters"},
+            "404" => %{"description" => "Account not found"}
+          }
+        }
+      },
+      "/api/{handle}/glossary" => %{
+        "get" => %{
+          "summary" => "Get glossary",
+          "description" =>
+            "Get the latest glossary for an account. " <>
+              "Optionally specify a locale to get entries with translations for that locale, or a version number.",
+          "operationId" => "getGlossary",
+          "tags" => ["Glossary"],
+          "security" => oauth_security(["glossary:read"]),
+          "parameters" => [
+            %{
+              "name" => "handle",
+              "in" => "path",
+              "required" => true,
+              "schema" => %{"type" => "string"}
+            },
+            %{
+              "name" => "locale",
+              "in" => "query",
+              "schema" => %{"type" => "string"},
+              "description" => "Locale to filter translations for (e.g. 'ja', 'de')"
+            },
+            %{
+              "name" => "version",
+              "in" => "query",
+              "schema" => %{"type" => "integer"},
+              "description" => "Specific version number to retrieve"
+            }
+          ],
+          "responses" => %{
+            "200" => %{
+              "description" => "Glossary with entries and translations",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/GlossaryResponse"}
+                }
+              }
+            },
+            "404" => %{"description" => "Account or glossary not found"}
+          }
+        },
+        "post" => %{
+          "summary" => "Create new glossary version",
+          "description" => "Create a new glossary version for an account.",
+          "operationId" => "createGlossary",
+          "tags" => ["Glossary"],
+          "security" => oauth_security(["glossary:write"]),
+          "parameters" => [
+            %{
+              "name" => "handle",
+              "in" => "path",
+              "required" => true,
+              "schema" => %{"type" => "string"}
+            }
+          ],
+          "requestBody" => %{
+            "required" => true,
+            "content" => %{
+              "application/json" => %{
+                "schema" => %{"$ref" => "#/components/schemas/CreateGlossaryRequest"}
+              }
+            }
+          },
+          "responses" => %{
+            "201" => %{
+              "description" => "Glossary version created",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/GlossaryResponse"}
+                }
+              }
+            },
+            "422" => %{
+              "description" => "Validation errors",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{
+                    "type" => "object",
+                    "properties" => %{"errors" => %{"type" => "object"}}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/{handle}/glossary/history" => %{
+        "get" => %{
+          "summary" => "List glossary version history",
+          "description" =>
+            "Returns a paginated list of all glossary versions for an account. " <>
+              "Supports pagination, filtering, and sorting via query parameters.",
+          "operationId" => "getGlossaryHistory",
+          "tags" => ["Glossary"],
+          "security" => oauth_security(["glossary:read"]),
+          "parameters" =>
+            [
+              %{
+                "name" => "handle",
+                "in" => "path",
+                "required" => true,
+                "schema" => %{"type" => "string"}
+              }
+            ] ++
+              pagination_parameters() ++
+              [
+                filter_parameter("version", "integer", "Filter by version number"),
+                filter_parameter("change_note", "string", "Filter by change note"),
+                sort_parameter("version, inserted_at")
+              ],
+          "responses" => %{
+            "200" => %{
+              "description" => "Paginated glossary version history",
               "content" => %{
                 "application/json" => %{
                   "schema" => %{
@@ -1186,6 +1330,79 @@ defmodule GlossiaWeb.OpenApiSpec do
           "formality" => %{"type" => "string"},
           "target_audience" => %{"type" => "string"},
           "guidelines" => %{"type" => "string"}
+        }
+      },
+      "CreateGlossaryRequest" => %{
+        "type" => "object",
+        "properties" => %{
+          "change_note" => %{"type" => "string"},
+          "entries" => %{
+            "type" => "array",
+            "items" => %{"$ref" => "#/components/schemas/GlossaryEntryInput"}
+          }
+        }
+      },
+      "GlossaryEntryInput" => %{
+        "type" => "object",
+        "required" => ["term"],
+        "properties" => %{
+          "term" => %{"type" => "string", "description" => "The canonical source term"},
+          "definition" => %{
+            "type" => "string",
+            "description" => "Context or description for the term"
+          },
+          "case_sensitive" => %{
+            "type" => "boolean",
+            "default" => false,
+            "description" => "Whether the term should be matched case-sensitively"
+          },
+          "translations" => %{
+            "type" => "array",
+            "items" => %{"$ref" => "#/components/schemas/GlossaryTranslationInput"}
+          }
+        }
+      },
+      "GlossaryTranslationInput" => %{
+        "type" => "object",
+        "required" => ["locale", "translation"],
+        "properties" => %{
+          "locale" => %{
+            "type" => "string",
+            "description" => "Locale code (e.g. 'ja', 'de', 'es-MX')"
+          },
+          "translation" => %{
+            "type" => "string",
+            "description" => "The approved translation for this locale"
+          }
+        }
+      },
+      "GlossaryResponse" => %{
+        "type" => "object",
+        "properties" => %{
+          "version" => %{"type" => "integer"},
+          "change_note" => %{"type" => "string"},
+          "inserted_at" => %{"type" => "string", "format" => "date-time"},
+          "entries" => %{
+            "type" => "array",
+            "items" => %{
+              "type" => "object",
+              "properties" => %{
+                "term" => %{"type" => "string"},
+                "definition" => %{"type" => "string"},
+                "case_sensitive" => %{"type" => "boolean"},
+                "translations" => %{
+                  "type" => "array",
+                  "items" => %{
+                    "type" => "object",
+                    "properties" => %{
+                      "locale" => %{"type" => "string"},
+                      "translation" => %{"type" => "string"}
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "PaginationMeta" => %{

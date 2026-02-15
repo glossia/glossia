@@ -81,52 +81,71 @@ Scopes control what actions a token can perform. They follow the `object:action`
 |-------|-------------|
 | `user:read` | Read user profile information |
 | `user:write` | Update user profile |
-| `org:read` | Read organization details |
-| `org:write` | Update organization settings |
-| `org:admin` | Manage organization membership and settings |
-| `project:read` | Read project configuration |
-| `project:write` | Update project settings |
-| `project:admin` | Manage project access and settings |
-| `project:delete` | Delete a project |
-| `translations:read` | Read translations |
-| `translations:write` | Create or update translations |
-| `translations:admin` | Manage translation settings |
+| `account:read` | List accounts you can access (personal and organization accounts) |
+| `organization:read` | Read organization details (and list your organizations) |
+| `organization:write` | Create or update organizations |
+| `organization:delete` | Delete organizations |
+| `organization:admin` | Administrative organization actions |
+| `members:read` | Read organization members and invitations |
+| `members:write` | Manage organization members and invitations |
+| `project:read` | Read projects |
+| `project:write` | Create or update projects |
+| `project:admin` | Administrative project actions |
+| `project:delete` | Delete projects |
+| `voice:read` | Read voice configuration |
+| `voice:write` | Create or update voice configuration |
+| `voice:admin` | Administrative voice actions |
 | `glossary:read` | Read glossary entries |
 | `glossary:write` | Create or update glossary entries |
 | `glossary:admin` | Manage glossary settings |
 
 ## Authorization model
 
-Glossia uses a role-based authorization model. Each scope is granted based on the user's relationship to the resource.
+Glossia enforces **two layers** for the REST API and MCP server:
+
+1. **Scope check**: the access token must include the required `object:action` scope.
+2. **Resource-level policy**: the current user must be authorized for the specific resource via `Glossia.Policy`.
+
+Scopes represent the *maximum* capability of a token. The policy system enforces the *actual* permission for a specific resource.
+
+Write actions (like `*:write`, `*:delete`, and `*:admin`) are also denied when the user's account does not have access (`accounts.has_access == false`).
 
 ### Roles
 
 | Role | Description |
 |------|-------------|
 | `self` | The user accessing their own resources |
-| `org_member` | A member of the organization |
-| `org_admin` | An administrator of the organization |
+| `organization_member` | A member of the organization that owns the resource |
+| `organization_admin` | An administrator of the organization that owns the resource |
 | `account_owner` | The owner of the account that owns the resource |
+| `public_account` | The account is public (read-only) |
+| `no_access` | Denies write actions when the user account has no access |
 
 ### Role permissions
 
-| Scope | self | org_member | org_admin | account_owner |
-|-------|------|------------|-----------|---------------|
-| `user:read` | Yes | Yes | | |
-| `user:write` | Yes | | | |
-| `org:read` | | Yes | Yes | |
-| `org:write` | | | Yes | |
-| `org:admin` | | | Yes | |
-| `project:read` | | Yes | Yes | Yes |
-| `project:write` | | Yes | Yes | Yes |
-| `project:admin` | | | Yes | Yes |
-| `project:delete` | | | Yes | Yes |
-| `translations:read` | | Yes | Yes | Yes |
-| `translations:write` | | Yes | Yes | Yes |
-| `translations:admin` | | | Yes | Yes |
-| `glossary:read` | | Yes | Yes | Yes |
-| `glossary:write` | | | Yes | Yes |
-| `glossary:admin` | | | | Yes |
+| Scope | self | organization_member | organization_admin | account_owner | public_account | no_access* |
+|-------|------|----------------------|--------------------|--------------|----------------|------------|
+| `user:read` | Yes | Yes | | | | |
+| `user:write` | Yes | | | | | |
+| `account:read` | | Yes | Yes | Yes | Yes | |
+| `organization:read` | | Yes | Yes | | | |
+| `organization:write` | | | Yes | | | Yes |
+| `organization:delete` | | | Yes | | | Yes |
+| `organization:admin` | | | Yes | | | Yes |
+| `members:read` | | Yes | Yes | | | |
+| `members:write` | | | Yes | | | Yes |
+| `project:read` | | Yes | Yes | Yes | Yes | |
+| `project:write` | | Yes | Yes | Yes | | Yes |
+| `project:admin` | | | Yes | Yes | | Yes |
+| `project:delete` | | | Yes | Yes | | Yes |
+| `voice:read` | | Yes | Yes | Yes | Yes | |
+| `voice:write` | | Yes | Yes | Yes | | Yes |
+| `voice:admin` | | | Yes | Yes | | Yes |
+| `glossary:read` | | Yes | Yes | Yes | | |
+| `glossary:write` | | | Yes | Yes | | Yes |
+| `glossary:admin` | | | | Yes | | Yes |
+
+`no_access*` indicates that the rule is **denied** for write/admin/delete actions when `accounts.has_access == false`, even if the relationship check would otherwise allow it.
 
 ## Discovery endpoints
 

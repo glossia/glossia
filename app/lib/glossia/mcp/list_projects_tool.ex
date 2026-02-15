@@ -3,12 +3,9 @@ defmodule Glossia.MCP.ListProjectsTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
+  alias Glossia.Projects
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
-  import Ecto.Query
 
   schema do
     field :handle, {:required, :string}, description: "Account handle to list projects for."
@@ -16,38 +13,26 @@ defmodule Glossia.MCP.ListProjectsTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
+    handle = params["handle"]
 
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
+    with {:ok, user} <- Auth.current_user(frame),
+         {:ok, account} <- Auth.fetch_account(handle),
+         :ok <- Auth.authorize(frame, :project_read, user, account) do
+      {:ok, {projects, _meta}} = Projects.list_projects(account)
+
+      response =
+        Response.tool()
+        |> Response.text(
+          JSON.encode!(
+            Enum.map(projects, fn project ->
+              %{handle: project.handle, name: project.name}
+            end)
+          )
+        )
+
+      {:reply, response, frame}
     else
-      handle = params["handle"]
-
-      case Account |> where(handle: ^handle) |> Repo.one() do
-        nil ->
-          {:error, Error.execution("Account '#{handle}' not found"), frame}
-
-        account ->
-          case Glossia.Policy.authorize(:project_read, user, account) do
-            :ok ->
-              {:ok, {projects, _meta}} = Accounts.list_projects(account)
-
-              response =
-                Response.tool()
-                |> Response.text(
-                  Jason.encode!(
-                    Enum.map(projects, fn project ->
-                      %{handle: project.handle, name: project.name}
-                    end)
-                  )
-                )
-
-              {:reply, response, frame}
-
-            {:error, :unauthorized} ->
-              {:error, Error.execution("Not authorized to list projects for '#{handle}'"), frame}
-          end
-      end
+      {:error, error} -> {:error, error, frame}
     end
   end
 end

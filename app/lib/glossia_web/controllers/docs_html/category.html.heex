@@ -13,7 +13,8 @@
       <a
         :for={item <- @items}
         href={item.href}
-        class="docs-page-card"
+        class="card docs-page-card"
+        data-interactive
       >
         <h3>{item.title}</h3>
         <p>{item.summary}</p>

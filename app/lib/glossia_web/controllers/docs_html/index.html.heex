@@ -13,7 +13,8 @@
       <a
         :for={{key, meta} <- GlossiaWeb.DocsHTML.sorted_categories(@categories)}
         href={~p"/docs/#{key}"}
-        class="docs-category-card"
+        class="card docs-category-card"
+        data-interactive
       >
         <div class="docs-category-icon">
           {GlossiaWeb.DocsHTML.category_icon(meta.icon)}

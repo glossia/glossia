@@ -5,6 +5,9 @@ defmodule GlossiaWeb.DashboardLive do
 
   alias Glossia.Accounts
   alias Glossia.Auditing
+  alias Glossia.Glossaries
+  alias Glossia.Organizations
+  alias Glossia.Voices
 
   @tone_options ~w(casual formal playful authoritative neutral)
   @formality_options ~w(informal neutral formal very_formal)
@@ -60,8 +63,8 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp apply_action(socket, :voice, _params) do
     account = socket.assigns.account
-    voice = Accounts.get_latest_voice(account)
-    {:ok, {versions, _meta}} = Accounts.list_voice_versions(account)
+    voice = Voices.get_latest_voice(account)
+    {:ok, {versions, _meta}} = Voices.list_voice_versions(account)
     overrides = if voice, do: voice.overrides || [], else: []
 
     socket
@@ -79,18 +82,54 @@ defmodule GlossiaWeb.DashboardLive do
   defp apply_action(socket, :voice_version, %{"version" => version_str}) do
     account = socket.assigns.account
     version = String.to_integer(version_str)
-    voice = Accounts.get_voice_version(account, version)
+    voice = Voices.get_voice_version(account, version)
 
     unless voice do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Voice
     end
 
-    previous = Accounts.get_previous_voice_version(account, version)
+    previous = Voices.get_previous_voice_version(account, version)
 
     assign(socket,
       page_title: gettext("Voice #%{version}", version: version),
       voice: voice,
       previous: previous
+    )
+  end
+
+  defp apply_action(socket, :glossary, _params) do
+    account = socket.assigns.account
+    glossary = Glossaries.get_latest_glossary(account)
+    {:ok, {versions, _meta}} = Glossaries.list_glossary_versions(account)
+    entries = if glossary, do: glossary.entries || [], else: []
+
+    socket
+    |> assign(
+      page_title: gettext("Glossary"),
+      glossary: glossary,
+      glossary_versions: versions,
+      glossary_entries: entries,
+      original_glossary: glossary,
+      original_glossary_entries: entries,
+      glossary_changed?: false
+    )
+  end
+
+  defp apply_action(socket, :glossary_version, %{"version" => version_str}) do
+    account = socket.assigns.account
+    version = String.to_integer(version_str)
+    glossary = Glossaries.get_glossary_version(account, version)
+
+    unless glossary do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Glossary
+    end
+
+    previous = Glossaries.get_previous_glossary_version(account, version)
+
+    assign(socket,
+      page_title: gettext("Glossary #%{version}", version: version),
+      glossary: glossary,
+      previous_glossary: previous
     )
   end
 
@@ -104,9 +143,9 @@ defmodule GlossiaWeb.DashboardLive do
         raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
       end
 
-      org = Accounts.get_organization_for_account(account)
-      all_members = Accounts.list_members(org)
-      all_invitations = Accounts.list_pending_invitations(org)
+      org = Organizations.get_organization_for_account(account)
+      all_members = Organizations.list_members(org)
+      all_invitations = Organizations.list_pending_invitations(org)
       member_roles = all_members |> Enum.map(& &1.role) |> Enum.uniq() |> Enum.sort()
 
       assign(socket,
@@ -174,7 +213,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       attrs = Map.put(voice_attrs, :overrides, overrides)
 
-      case Accounts.create_voice(account, attrs, user) do
+      case Voices.create_voice(account, attrs, user) do
         {:ok, %{voice: voice}} ->
           Auditing.record("voice.created", account, user,
             resource_type: "voice",
@@ -213,6 +252,123 @@ defmodule GlossiaWeb.DashboardLive do
     overrides = List.delete_at(socket.assigns.overrides, idx)
     changed? = form_changed_overrides?(overrides, socket.assigns.original_overrides)
     {:noreply, assign(socket, overrides: overrides, changed?: changed?)}
+  end
+
+  # ---------------------------------------------------------------------------
+  # Glossary events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("save_glossary", params, socket) do
+    unless socket.assigns.can_write do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission to save."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      handle = socket.assigns.handle
+
+      entries =
+        (params["entries"] || %{})
+        |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
+        |> Enum.reject(fn {_idx, e} -> (e["term"] || "") == "" end)
+        |> Enum.map(fn {_idx, e} ->
+          translations =
+            (e["translations"] || %{})
+            |> Enum.sort_by(fn {tidx, _} -> String.to_integer(tidx) end)
+            |> Enum.reject(fn {_tidx, t} ->
+              (t["locale"] || "") == "" or (t["translation"] || "") == ""
+            end)
+            |> Enum.map(fn {_tidx, t} ->
+              %{locale: t["locale"], translation: t["translation"]}
+            end)
+
+          %{
+            term: e["term"],
+            definition: non_empty(e["definition"]),
+            case_sensitive: e["case_sensitive"] == "true",
+            translations: translations
+          }
+        end)
+
+      attrs = %{
+        change_note: params["change_note"],
+        entries: entries
+      }
+
+      case Glossaries.create_glossary(account, attrs, user) do
+        {:ok, %{glossary: glossary}} ->
+          Auditing.record("glossary.created", account, user,
+            resource_type: "glossary",
+            resource_id: to_string(glossary.version),
+            resource_path: "/#{handle}/glossary/#{glossary.version}",
+            summary: attrs.change_note || "Updated glossary"
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Glossary saved."))
+           |> push_patch(to: "/#{handle}/glossary")}
+
+        {:error, _step, _changeset, _changes} ->
+          {:noreply, put_flash(socket, :error, gettext("Failed to save glossary."))}
+      end
+    end
+  end
+
+  def handle_event("glossary_validate", _params, socket) do
+    {:noreply, assign(socket, glossary_changed?: true)}
+  end
+
+  def handle_event("glossary_discard", _params, socket) do
+    {:noreply,
+     assign(socket,
+       glossary_entries: socket.assigns.original_glossary_entries,
+       glossary_changed?: false
+     )}
+  end
+
+  def handle_event("add_glossary_entry", _params, socket) do
+    new_entry = %{term: "", definition: nil, case_sensitive: false, translations: []}
+    entries = socket.assigns.glossary_entries ++ [new_entry]
+    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+  end
+
+  def handle_event("remove_glossary_entry", %{"index" => idx_str}, socket) do
+    idx = String.to_integer(idx_str)
+    entries = List.delete_at(socket.assigns.glossary_entries, idx)
+    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+  end
+
+  def handle_event(
+        "add_glossary_translation",
+        %{"entry-index" => entry_idx_str},
+        socket
+      ) do
+    entry_idx = String.to_integer(entry_idx_str)
+    entries = socket.assigns.glossary_entries
+
+    entry = Enum.at(entries, entry_idx)
+    translations = (entry.translations || []) ++ [%{locale: "", translation: ""}]
+    updated_entry = Map.put(entry, :translations, translations)
+    entries = List.replace_at(entries, entry_idx, updated_entry)
+
+    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+  end
+
+  def handle_event(
+        "remove_glossary_translation",
+        %{"entry-index" => entry_idx_str, "translation-index" => t_idx_str},
+        socket
+      ) do
+    entry_idx = String.to_integer(entry_idx_str)
+    t_idx = String.to_integer(t_idx_str)
+    entries = socket.assigns.glossary_entries
+
+    entry = Enum.at(entries, entry_idx)
+    translations = List.delete_at(entry.translations, t_idx)
+    updated_entry = Map.put(entry, :translations, translations)
+    entries = List.replace_at(entries, entry_idx, updated_entry)
+
+    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
   end
 
   # ---------------------------------------------------------------------------
@@ -262,13 +418,13 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("send_invitation", %{"invite" => params}, socket) do
-    unless socket.assigns.can_write do
+    unless socket.assigns.is_admin do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       org = socket.assigns.organization
       user = socket.assigns.current_user
 
-      case Accounts.create_invitation(org, user, params) do
+      case Organizations.create_invitation(org, user, params) do
         {:ok, invitation} ->
           Auditing.record("member.invited", socket.assigns.account, user,
             resource_type: "invitation",
@@ -280,7 +436,7 @@ defmodule GlossiaWeb.DashboardLive do
            socket
            |> put_flash(:info, gettext("Invitation sent to %{email}.", email: params["email"]))
            |> assign(
-             all_invitations: Accounts.list_pending_invitations(org),
+             all_invitations: Organizations.list_pending_invitations(org),
              invite_form: to_form(%{"email" => "", "role" => "member"}, as: :invite)
            )
            |> apply_invitations_filters()}
@@ -299,43 +455,84 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("revoke_invitation", %{"id" => invitation_id}, socket) do
-    unless socket.assigns.can_write do
+    unless socket.assigns.is_admin do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       org = socket.assigns.organization
-      invitation = Glossia.Repo.get!(Glossia.Accounts.OrganizationInvitation, invitation_id)
-      {:ok, _} = Accounts.revoke_invitation(invitation)
+      user = socket.assigns.current_user
 
-      {:noreply,
-       socket
-       |> assign(all_invitations: Accounts.list_pending_invitations(org))
-       |> apply_invitations_filters()
-       |> put_flash(:info, gettext("Invitation revoked."))}
+      case Organizations.get_invitation(org, invitation_id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Invitation not found."))}
+
+        invitation ->
+          case Organizations.revoke_invitation(invitation) do
+            {:ok, _} ->
+              Auditing.record("member.invitation_revoked", socket.assigns.account, user,
+                resource_type: "invitation",
+                resource_id: to_string(invitation.id),
+                summary: "Revoked invitation for #{invitation.email}"
+              )
+
+              {:noreply,
+               socket
+               |> assign(all_invitations: Organizations.list_pending_invitations(org))
+               |> apply_invitations_filters()
+               |> put_flash(:info, gettext("Invitation revoked."))}
+
+            {:error, _} ->
+              {:noreply, put_flash(socket, :error, gettext("Could not revoke invitation."))}
+          end
+      end
     end
   end
 
   def handle_event("remove_member", %{"user-id" => user_id}, socket) do
-    unless socket.assigns.can_write do
+    unless socket.assigns.is_admin do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       org = socket.assigns.organization
-      target_user = Accounts.get_user(user_id)
-      Accounts.remove_member(org, target_user)
+      current_user = socket.assigns.current_user
 
-      Auditing.record("member.removed", socket.assigns.account, socket.assigns.current_user,
-        resource_type: "member",
-        resource_id: to_string(target_user.id),
-        summary: "Removed #{target_user.email} from the organization"
-      )
+      case Accounts.get_user(user_id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("User not found."))}
 
-      all_members = Accounts.list_members(org)
-      member_roles = all_members |> Enum.map(& &1.role) |> Enum.uniq() |> Enum.sort()
+        target_user ->
+          cond do
+            current_user && target_user.id == current_user.id ->
+              {:noreply, put_flash(socket, :error, gettext("You can't remove yourself."))}
 
-      {:noreply,
-       socket
-       |> assign(all_members: all_members, member_roles: member_roles)
-       |> apply_members_filters()
-       |> put_flash(:info, gettext("Member removed."))}
+            is_nil(Organizations.get_membership(org, target_user)) ->
+              {:noreply, put_flash(socket, :error, gettext("User is not a member."))}
+
+            Organizations.sole_admin?(org, target_user) ->
+              {:noreply,
+               put_flash(
+                 socket,
+                 :error,
+                 gettext("Cannot remove the only admin of the organization.")
+               )}
+
+            true ->
+              Organizations.remove_member(org, target_user)
+
+              Auditing.record("member.removed", socket.assigns.account, current_user,
+                resource_type: "member",
+                resource_id: to_string(target_user.id),
+                summary: "Removed #{target_user.email} from the organization"
+              )
+
+              all_members = Organizations.list_members(org)
+              member_roles = all_members |> Enum.map(& &1.role) |> Enum.uniq() |> Enum.sort()
+
+              {:noreply,
+               socket
+               |> assign(all_members: all_members, member_roles: member_roles)
+               |> apply_members_filters()
+               |> put_flash(:info, gettext("Member removed."))}
+          end
+      end
     end
   end
 
@@ -370,6 +567,21 @@ defmodule GlossiaWeb.DashboardLive do
         />
       <% :voice_version -> %>
         <.voice_version_page voice={@voice} previous={@previous} handle={@handle} />
+      <% :glossary -> %>
+        <.glossary_page
+          glossary={@glossary}
+          glossary_versions={@glossary_versions}
+          glossary_entries={@glossary_entries}
+          handle={@handle}
+          can_write={@can_write}
+          glossary_changed?={@glossary_changed?}
+        />
+      <% :glossary_version -> %>
+        <.glossary_version_page
+          glossary={@glossary}
+          previous_glossary={@previous_glossary}
+          handle={@handle}
+        />
       <% :members -> %>
         <.members_page
           members={@members}
@@ -1079,6 +1291,541 @@ defmodule GlossiaWeb.DashboardLive do
           </div>
         </div>
       <% end %>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Page: Glossary
+  # ---------------------------------------------------------------------------
+
+  defp glossary_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <div class="dash-page-header">
+        <h1>{gettext("Glossary")}</h1>
+      </div>
+
+      <form
+        phx-change="glossary_validate"
+        phx-submit="save_glossary"
+        class="voice-form"
+        id="glossary-form"
+      >
+        <div class="voice-section" id="glossary-entries">
+          <div class="voice-section-info">
+            <h2>{gettext("Terms")}</h2>
+            <p>
+              {gettext(
+                "Define canonical terms and their approved translations per language. Terms are matched during content processing to ensure consistent terminology."
+              )}
+            </p>
+          </div>
+          <div class="voice-card">
+            <div class={[@glossary_entries != [] && "voice-card-fields"]} id="glossary-entry-list">
+              <%= for {entry, idx} <- Enum.with_index(@glossary_entries) do %>
+                <div class="glossary-entry-block" data-entry-index={idx}>
+                  <div class="voice-override-header">
+                    <span class="voice-override-locale">
+                      {if(entry.term != "" && entry.term, do: entry.term, else: gettext("New term"))}
+                    </span>
+                    <%= if @can_write do %>
+                      <button
+                        type="button"
+                        class="voice-link-btn voice-link-btn-danger"
+                        phx-click="remove_glossary_entry"
+                        phx-value-index={idx}
+                      >
+                        {gettext("Remove")}
+                      </button>
+                    <% end %>
+                  </div>
+                  <div class="voice-override-fields">
+                    <div class="voice-field-row">
+                      <div class="voice-field">
+                        <label>{gettext("Term")}</label>
+                        <input
+                          type="text"
+                          name={"entries[#{idx}][term]"}
+                          value={entry.term || ""}
+                          placeholder={gettext("e.g. API, workspace, deploy")}
+                          required
+                          disabled={!@can_write}
+                          phx-debounce="300"
+                        />
+                      </div>
+                      <div class="voice-field">
+                        <label>{gettext("Case sensitive")}</label>
+                        <select
+                          name={"entries[#{idx}][case_sensitive]"}
+                          disabled={!@can_write}
+                          phx-debounce="300"
+                        >
+                          <option value="false" selected={!entry.case_sensitive}>
+                            {gettext("No")}
+                          </option>
+                          <option value="true" selected={entry.case_sensitive}>
+                            {gettext("Yes")}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="voice-field">
+                      <label>{gettext("Definition")}</label>
+                      <input
+                        type="text"
+                        name={"entries[#{idx}][definition]"}
+                        value={entry.definition || ""}
+                        placeholder={gettext("Context or description (optional)")}
+                        disabled={!@can_write}
+                        phx-debounce="300"
+                      />
+                    </div>
+                    <div class="glossary-translations-section">
+                      <div class="glossary-translations-header">
+                        <span class="voice-diff-label">{gettext("Translations")}</span>
+                        <%= if @can_write do %>
+                          <button
+                            type="button"
+                            class="voice-link-btn"
+                            phx-click="add_glossary_translation"
+                            phx-value-entry-index={idx}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 20 20"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              aria-hidden="true"
+                            >
+                              <line x1="10" y1="4" x2="10" y2="16" /><line
+                                x1="4"
+                                y1="10"
+                                x2="16"
+                                y2="10"
+                              />
+                            </svg>
+                            {gettext("Add")}
+                          </button>
+                        <% end %>
+                      </div>
+                      <%= for {translation, tidx} <- Enum.with_index(entry.translations || []) do %>
+                        <div class="glossary-translation-row">
+                          <div class="voice-field">
+                            <div
+                              id={"locale-picker-#{idx}-#{tidx}"}
+                              phx-hook=".LocalePicker"
+                              phx-update="ignore"
+                              class="locale-picker"
+                              data-value={translation.locale || ""}
+                              data-name={"entries[#{idx}][translations][#{tidx}][locale]"}
+                              data-disabled={to_string(!@can_write)}
+                            >
+                            </div>
+                          </div>
+                          <div class="voice-field" style="flex: 1;">
+                            <input
+                              type="text"
+                              name={"entries[#{idx}][translations][#{tidx}][translation]"}
+                              value={translation.translation || ""}
+                              placeholder={gettext("Translation")}
+                              disabled={!@can_write}
+                              phx-debounce="300"
+                            />
+                          </div>
+                          <%= if @can_write do %>
+                            <button
+                              type="button"
+                              class="voice-link-btn voice-link-btn-danger"
+                              phx-click="remove_glossary_translation"
+                              phx-value-entry-index={idx}
+                              phx-value-translation-index={tidx}
+                            >
+                              {gettext("Remove")}
+                            </button>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            <%= if @can_write do %>
+              <div class="voice-card-footer" style="justify-content: flex-start;">
+                <button type="button" class="voice-link-btn" phx-click="add_glossary_entry">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
+                  </svg>
+                  {gettext("Add term")}
+                </button>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%= if @glossary_versions != [] do %>
+          <div class="voice-section-divider"></div>
+
+          <div class="voice-section">
+            <div class="voice-section-info">
+              <h2>{gettext("Version history")}</h2>
+              <p>{gettext("Previous versions of your glossary.")}</p>
+            </div>
+            <div class="voice-card">
+              <table class="voice-history-table">
+                <thead>
+                  <tr>
+                    <th>{gettext("Version")}</th>
+                    <th>{gettext("Note")}</th>
+                    <th>{gettext("Date")}</th>
+                    <th>{gettext("By")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <%= for v <- @glossary_versions do %>
+                    <tr>
+                      <td class="voice-history-version">
+                        <.link
+                          patch={"/" <> @handle <> "/glossary/" <> to_string(v.version)}
+                          class="voice-history-link"
+                        >
+                          {"##{v.version}"}
+                        </.link>
+                      </td>
+                      <td class="voice-history-note">{v.change_note || "-"}</td>
+                      <td class="voice-history-date">
+                        <time datetime={DateTime.to_iso8601(v.inserted_at)}>
+                          {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
+                        </time>
+                      </td>
+                      <td class="voice-history-author">
+                        <%= if v.created_by do %>
+                          <span class="voice-author-chip">
+                            <img
+                              src={gravatar_url(v.created_by.email)}
+                              alt=""
+                              width="20"
+                              height="20"
+                              class="voice-author-avatar"
+                            />
+                            <span>
+                              {(v.created_by.account && v.created_by.account.handle) ||
+                                v.created_by.email}
+                            </span>
+                          </span>
+                        <% else %>
+                          -
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% end %>
+
+        <%= if @can_write do %>
+          <div class={["voice-save-bar", @glossary_changed? && "visible"]} id="glossary-save-bar">
+            <div class="voice-save-bar-inner">
+              <span class="voice-save-bar-label">{gettext("Unsaved changes")}</span>
+              <div class="voice-save-bar-actions">
+                <input
+                  type="text"
+                  id="glossary_change_note"
+                  name="change_note"
+                  class="voice-save-bar-note"
+                  placeholder={gettext("Change note (optional)")}
+                />
+                <button
+                  type="button"
+                  class="dash-btn dash-btn-secondary"
+                  phx-click="glossary_discard"
+                >
+                  {gettext("Discard")}
+                </button>
+                <button type="submit" class="dash-btn dash-btn-primary">
+                  {gettext("Save")}
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </form>
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".LocalePicker">
+        const LOCALES = [
+          ["ar", "Arabic"], ["bn", "Bengali"], ["zh", "Chinese"],
+          ["zh-TW", "Chinese (Traditional)"], ["cs", "Czech"], ["da", "Danish"],
+          ["nl", "Dutch"], ["en", "English"], ["fi", "Finnish"], ["fr", "French"],
+          ["de", "German"], ["el", "Greek"], ["he", "Hebrew"], ["hi", "Hindi"],
+          ["hu", "Hungarian"], ["id", "Indonesian"], ["it", "Italian"],
+          ["ja", "Japanese"], ["ko", "Korean"], ["ms", "Malay"],
+          ["nb", "Norwegian"], ["pl", "Polish"], ["pt", "Portuguese"],
+          ["pt-BR", "Portuguese (Brazil)"], ["ro", "Romanian"], ["ru", "Russian"],
+          ["es", "Spanish"], ["es-MX", "Spanish (Mexico)"], ["sv", "Swedish"],
+          ["th", "Thai"], ["tr", "Turkish"], ["uk", "Ukrainian"], ["vi", "Vietnamese"]
+        ];
+
+        function labelFor(code) {
+          const m = LOCALES.find(l => l[0] === code);
+          return m ? m[0] + " \u2014 " + m[1] : code;
+        }
+
+        export default {
+          mounted() { this.init(); },
+          updated() { this.init(); },
+
+          init() {
+            const el = this.el;
+            const name = el.dataset.name;
+            const disabled = el.dataset.disabled === "true";
+            let value = el.dataset.value || "";
+
+            el.innerHTML = "";
+
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = name;
+            hidden.value = value;
+            el.appendChild(hidden);
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "glossary-locale-input";
+            input.placeholder = "Search language...";
+            input.autocomplete = "off";
+            input.value = value ? labelFor(value) : "";
+            if (disabled) input.disabled = true;
+            el.appendChild(input);
+
+            const list = document.createElement("div");
+            list.className = "locale-picker-dropdown";
+            el.appendChild(list);
+
+            let highlighted = -1;
+
+            const render = (filter) => {
+              const q = (filter || "").toLowerCase();
+              const matches = LOCALES.filter(([code, name]) =>
+                code.toLowerCase().includes(q) || name.toLowerCase().includes(q)
+              );
+              list.innerHTML = "";
+              highlighted = -1;
+              matches.forEach(([code, name], i) => {
+                const opt = document.createElement("div");
+                opt.className = "locale-picker-option" + (code === value ? " selected" : "");
+                opt.dataset.value = code;
+                opt.textContent = code + " \u2014 " + name;
+                opt.addEventListener("mousedown", (e) => {
+                  e.preventDefault();
+                  select(code);
+                });
+                list.appendChild(opt);
+              });
+            };
+
+            const select = (code) => {
+              value = code;
+              hidden.value = code;
+              input.value = labelFor(code);
+              list.classList.remove("open");
+              hidden.dispatchEvent(new Event("input", { bubbles: true }));
+            };
+
+            const highlightAt = (idx) => {
+              const opts = list.querySelectorAll(".locale-picker-option");
+              opts.forEach(o => o.classList.remove("highlighted"));
+              if (idx >= 0 && idx < opts.length) {
+                opts[idx].classList.add("highlighted");
+                opts[idx].scrollIntoView({ block: "nearest" });
+                highlighted = idx;
+              }
+            };
+
+            if (!disabled) {
+              input.addEventListener("focus", () => {
+                input.select();
+                render(input.value === labelFor(value) ? "" : input.value);
+                list.classList.add("open");
+              });
+
+              input.addEventListener("input", () => {
+                render(input.value);
+                list.classList.add("open");
+              });
+
+              input.addEventListener("blur", () => {
+                list.classList.remove("open");
+                input.value = value ? labelFor(value) : "";
+              });
+
+              input.addEventListener("keydown", (e) => {
+                const opts = list.querySelectorAll(".locale-picker-option");
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  highlightAt(Math.min(highlighted + 1, opts.length - 1));
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  highlightAt(Math.max(highlighted - 1, 0));
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (highlighted >= 0 && opts[highlighted]) {
+                    select(opts[highlighted].dataset.value);
+                  }
+                } else if (e.key === "Escape") {
+                  input.blur();
+                }
+              });
+            }
+          }
+        }
+      </script>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Page: Glossary version (diff view)
+  # ---------------------------------------------------------------------------
+
+  defp glossary_version_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <div class="dash-page-header">
+        <div class="voice-version-header">
+          <.link patch={"/" <> @handle <> "/glossary"} class="voice-back-link">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="12 4 6 10 12 16" />
+            </svg>
+            {gettext("Glossary")}
+          </.link>
+          <h1>
+            <span>{"##{@glossary.version}"}</span>
+            <%= if @glossary.change_note do %>
+              <span class="voice-version-title-note">{@glossary.change_note}</span>
+            <% end %>
+          </h1>
+          <p class="voice-version-meta">
+            <time datetime={DateTime.to_iso8601(@glossary.inserted_at)}>
+              {Calendar.strftime(@glossary.inserted_at, "%b %d, %Y at %H:%M")}
+            </time>
+            <%= if @glossary.created_by do %>
+              <span class="voice-version-meta-sep">&middot;</span>
+              <span class="voice-author-chip">
+                <img
+                  src={gravatar_url(@glossary.created_by.email)}
+                  alt=""
+                  width="20"
+                  height="20"
+                  class="voice-author-avatar"
+                />
+                <span>
+                  {(@glossary.created_by.account && @glossary.created_by.account.handle) ||
+                    @glossary.created_by.email}
+                </span>
+              </span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+
+      <div class="voice-section">
+        <div class="voice-section-info">
+          <h2>{gettext("Terms")}</h2>
+          <p>{gettext("Glossary entries in this version.")}</p>
+        </div>
+        <div class="voice-card">
+          <div class="voice-card-fields">
+            <% current_terms = MapSet.new(Enum.map(@glossary.entries, & &1.term))
+
+            prev_terms =
+              if @previous_glossary,
+                do: MapSet.new(Enum.map(@previous_glossary.entries, & &1.term)),
+                else: MapSet.new()
+
+            all_terms =
+              MapSet.union(current_terms, prev_terms)
+              |> Enum.sort() %>
+            <%= for term <- all_terms do %>
+              <% cur = Enum.find(@glossary.entries, &(&1.term == term))
+
+              prev =
+                if @previous_glossary, do: Enum.find(@previous_glossary.entries, &(&1.term == term))
+
+              status =
+                cond do
+                  cur && !prev -> :added
+                  !cur && prev -> :removed
+                  true -> :existing
+                end %>
+              <div class={"voice-override-diff-block voice-override-diff-#{status}"}>
+                <div class="voice-override-diff-header">
+                  <span class="voice-override-locale">{term}</span>
+                  <%= case status do %>
+                    <% :added -> %>
+                      <span class="voice-diff-badge voice-diff-badge-added">{gettext("Added")}</span>
+                    <% :removed -> %>
+                      <span class="voice-diff-badge voice-diff-badge-removed">
+                        {gettext("Removed")}
+                      </span>
+                    <% _ -> %>
+                  <% end %>
+                </div>
+                <div class="voice-override-diff-fields">
+                  <.diff_field
+                    label={gettext("Definition")}
+                    current={cur && cur.definition}
+                    previous={prev && prev.definition}
+                  />
+                  <div class="glossary-translations-diff">
+                    <span class="voice-diff-label">{gettext("Translations")}</span>
+                    <% cur_translations = if(cur, do: cur.translations || [], else: [])
+                    prev_translations = if(prev, do: prev.translations || [], else: [])
+                    cur_locales = MapSet.new(Enum.map(cur_translations, & &1.locale))
+                    prev_locales = MapSet.new(Enum.map(prev_translations, & &1.locale))
+                    all_locales = MapSet.union(cur_locales, prev_locales) |> Enum.sort() %>
+                    <%= for locale <- all_locales do %>
+                      <% cur_t = Enum.find(cur_translations, &(&1.locale == locale))
+                      prev_t = Enum.find(prev_translations, &(&1.locale == locale)) %>
+                      <div class="glossary-translation-diff-row">
+                        <span class="glossary-translation-diff-locale">{locale}</span>
+                        <.diff_field
+                          label=""
+                          current={cur_t && cur_t.translation}
+                          previous={prev_t && prev_t.translation}
+                        />
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end

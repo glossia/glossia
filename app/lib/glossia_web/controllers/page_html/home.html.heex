@@ -96,7 +96,7 @@
       )}
     </p>
     <div class="tools-grid tools-grid-2col">
-      <div class="tool-card reveal">
+      <div class="card tool-card reveal" data-interactive>
         <div class="step-number">
           <svg
             width="16"
@@ -120,7 +120,7 @@
           {gettext("and ship to every market.")}
         </p>
       </div>
-      <div class="tool-card reveal">
+      <div class="card tool-card reveal" data-interactive>
         <div class="step-number">
           <svg
             width="16"
@@ -157,7 +157,7 @@
       )}
     </p>
     <div class="tools-grid">
-      <div class="tool-card reveal">
+      <div class="card tool-card reveal" data-interactive>
         <h3>{gettext("Generate")}</h3>
         <p>
           {gettext(
@@ -165,7 +165,7 @@
           )} <code>GLOSSIA.md</code>.
         </p>
       </div>
-      <div class="tool-card reveal">
+      <div class="card tool-card reveal" data-interactive>
         <h3>{gettext("Verify")}</h3>
         <p>
           {gettext(
@@ -173,7 +173,7 @@
           )}
         </p>
       </div>
-      <div class="tool-card reveal">
+      <div class="card tool-card reveal" data-interactive>
         <h3>{gettext("Retry")}</h3>
         <p>
           {gettext(
@@ -194,14 +194,14 @@
       )}
     </p>
     <div class="config-grid">
-      <div class="config-card reveal">
+      <div class="card config-card reveal">
         <h3>GLOSSIA.md</h3>
         <p>
           {gettext("Define content sources, targets, and output patterns in TOML frontmatter.")}
         </p>
         <pre class="code-block"><code>{raw("+++\n<span class=\"token punctuation\">[</span><span class=\"token punctuation\">[</span><span class=\"token table class-name\">content</span><span class=\"token punctuation\">]</span><span class=\"token punctuation\">]</span>\n<span class=\"token key property\">source</span> <span class=\"token punctuation\">=</span> <span class=\"token string\">&quot;site/src/_data/home.json&quot;</span>\n<span class=\"token key property\">targets</span> <span class=\"token punctuation\">=</span> <span class=\"token punctuation\">[</span><span class=\"token string\">&quot;es&quot;</span><span class=\"token punctuation\">,</span> <span class=\"token string\">&quot;de&quot;</span><span class=\"token punctuation\">,</span> <span class=\"token string\">&quot;ko&quot;</span><span class=\"token punctuation\">,</span> <span class=\"token string\">&quot;ja&quot;</span><span class=\"token punctuation\">]</span>\n<span class=\"token key property\">output</span> <span class=\"token punctuation\">=</span> <span class=\"token string\">&quot;site/src/_data/i18n/{lang}/{basename}.{ext}&quot;</span>\n\n<span class=\"token punctuation\">[</span><span class=\"token punctuation\">[</span><span class=\"token table class-name\">content</span><span class=\"token punctuation\">]</span><span class=\"token punctuation\">]</span>\n<span class=\"token key property\">source</span> <span class=\"token punctuation\">=</span> <span class=\"token string\">&quot;docs/guide/*.md&quot;</span>\n+++\n\n<span class=\"token comment\"># Context for the content agent...</span>")}</code></pre>
       </div>
-      <div class="config-card reveal">
+      <div class="card config-card reveal">
         <h3>{gettext("Project layout")}</h3>
         <p>
           {gettext("Context files nest alongside your content. Language overrides sit next door.")}
@@ -261,7 +261,7 @@
       )}
     </p>
     <div class="feature-grid">
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="feature-icon violet">#</div>
         <h3>{gettext("Incremental updates")}</h3>
         <p>
@@ -270,7 +270,7 @@
           )}
         </p>
       </div>
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="feature-icon amber">&#10003;</div>
         <h3>{gettext("Linting and validation")}</h3>
         <p>
@@ -279,7 +279,7 @@
           )}
         </p>
       </div>
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="feature-icon green">&#187;</div>
         <h3>{gettext("Retry on failure")}</h3>
         <p>
@@ -288,7 +288,7 @@
           )}
         </p>
       </div>
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="feature-icon violet">&#182;</div>
         <h3>{gettext("Human feedback loop")}</h3>
         <p>
@@ -310,7 +310,7 @@
       )}
     </p>
     <div class="feature-grid">
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="step-number">01</div>
         <h3>{gettext("Draft")}</h3>
         <p>
@@ -319,7 +319,7 @@
           )}
         </p>
       </div>
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="step-number">02</div>
         <h3>{gettext("Review")}</h3>
         <p>
@@ -328,7 +328,7 @@
           )}
         </p>
       </div>
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="step-number">03</div>
         <h3>{gettext("Refine")}</h3>
         <p>
@@ -337,7 +337,7 @@
           )}
         </p>
       </div>
-      <div class="feature reveal">
+      <div class="card feature reveal" data-interactive>
         <div class="step-number">04</div>
         <h3>{gettext("Converge")}</h3>
         <p>
@@ -354,7 +354,7 @@
   <div class="container">
     <h2 class="reveal">{gettext("FAQ")}</h2>
     <div class="faq">
-      <details class="faq-item reveal">
+      <details class="card faq-item reveal">
         <summary>{gettext("Why build this now?")}</summary>
         <p>
           {gettext(
@@ -362,7 +362,7 @@
           )}
         </p>
       </details>
-      <details class="faq-item reveal">
+      <details class="card faq-item reveal">
         <summary>{gettext("Do I need to bring my own models?")}</summary>
         <p>
           {gettext(
@@ -370,7 +370,7 @@
           )}
         </p>
       </details>
-      <details class="faq-item reveal">
+      <details class="card faq-item reveal">
         <summary>{gettext("How do humans review outputs?")}</summary>
         <p>
           {gettext(
@@ -386,7 +386,7 @@
   <div class="container">
     <h2 class="reveal">{gettext("Updates")}</h2>
     <div class="blog-list">
-      <article :for={post <- @posts} class="blog-card reveal">
+      <article :for={post <- @posts} class="card blog-card reveal" data-interactive>
         <a href={~p"/blog/#{post.slug}"}>
           <div class="blog-card-author">
             <img src={post.author.avatar} alt={post.author.name} class="blog-card-avatar" />

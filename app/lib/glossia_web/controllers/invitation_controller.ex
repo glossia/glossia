@@ -1,11 +1,11 @@
 defmodule GlossiaWeb.InvitationController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Accounts
   alias Glossia.Auditing
+  alias Glossia.Organizations
 
   def show(conn, %{"token" => token}) do
-    case Accounts.get_invitation_by_token(token) do
+    case Organizations.get_invitation_by_token(token) do
       nil ->
         conn
         |> put_flash(:error, gettext("This invitation is not valid or has already been used."))
@@ -32,7 +32,7 @@ defmodule GlossiaWeb.InvitationController do
             |> redirect(to: ~p"/auth/login")
 
           true ->
-            org = Accounts.get_organization(invitation.organization_id)
+            org = Organizations.get_organization(invitation.organization_id)
 
             render(conn, :show,
               invitation: invitation,
@@ -52,16 +52,16 @@ defmodule GlossiaWeb.InvitationController do
       |> put_session(:return_to, "/invitations/#{token}")
       |> redirect(to: ~p"/auth/login")
     else
-      case Accounts.get_invitation_by_token(token) do
+      case Organizations.get_invitation_by_token(token) do
         nil ->
           conn
           |> put_flash(:error, gettext("This invitation is not valid."))
           |> redirect(to: ~p"/")
 
         invitation ->
-          case Accounts.accept_invitation(invitation, user) do
+          case Organizations.accept_invitation(invitation, user) do
             {:ok, _result} ->
-              org = Accounts.get_organization(invitation.organization_id)
+              org = Organizations.get_organization(invitation.organization_id)
               handle = org.account.handle
 
               Auditing.record("member.invitation_accepted", org.account, user,
@@ -99,14 +99,14 @@ defmodule GlossiaWeb.InvitationController do
   end
 
   def decline(conn, %{"token" => token}) do
-    case Accounts.get_invitation_by_token(token) do
+    case Organizations.get_invitation_by_token(token) do
       nil ->
         conn
         |> put_flash(:error, gettext("This invitation is not valid."))
         |> redirect(to: ~p"/")
 
       invitation ->
-        case Accounts.decline_invitation(invitation) do
+        case Organizations.decline_invitation(invitation) do
           {:ok, _} ->
             conn
             |> put_flash(:info, gettext("Invitation declined."))

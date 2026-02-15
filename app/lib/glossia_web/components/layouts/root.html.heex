@@ -8,7 +8,17 @@
       {assigns[:page_title]}
     </.live_title>
     <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
-    <meta property="og:image" content={~p"/images/logo-squared.png"} />
+    <meta property="og:image" content={~p"/images/logo-squared.jpg"} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@glossiaai" />
+    <meta name="twitter:title" content={assigns[:page_title] || "Glossia"} />
+    <meta
+      name="twitter:description"
+      content={
+        assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
+      }
+    />
+    <meta name="twitter:image" content={~p"/images/logo-squared.jpg"} />
     <link
       rel="alternate"
       type="application/rss+xml"
@@ -21,7 +31,6 @@
         name="twitter:creator"
         content={"@" <> String.trim_leading(URI.parse(@author.x).path, "/")}
       />
-      <meta name="twitter:card" content="summary" />
     <% end %>
     <link phx-track-static rel="stylesheet" href={~p"/assets/styles.css"} />
     <%= if sentry_dsn = Application.get_env(:glossia, :sentry_dsn_js) do %>

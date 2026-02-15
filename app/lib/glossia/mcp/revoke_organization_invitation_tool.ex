@@ -3,12 +3,9 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.Accounts
-  alias Glossia.Accounts.Account
-  alias Glossia.Repo
+  alias Glossia.Organizations
+  alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
-  alias Hermes.MCP.Error
-  import Ecto.Query
 
   schema do
     field :handle, {:required, :string}, description: "Organization handle."
@@ -17,48 +14,33 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
 
   @impl true
   def execute(params, frame) do
-    user = frame.assigns[:current_user]
+    handle = params["handle"]
+    invitation_id = params["invitation_id"]
 
-    unless user do
-      {:error, Error.execution("Authentication required"), frame}
-    else
-      handle = params["handle"]
-      invitation_id = params["invitation_id"]
+    with {:ok, user} <- Auth.current_user(frame),
+         {:ok, account} <- Auth.fetch_organization_account(handle),
+         :ok <- Auth.authorize(frame, :members_write, user, account) do
+      org = Organizations.get_organization_for_account(account)
 
-      case Account |> where(handle: ^handle, type: "organization") |> Repo.one() do
+      case Organizations.get_invitation(org, invitation_id) do
         nil ->
-          {:error, Error.execution("Organization '#{handle}' not found"), frame}
+          {:error, Hermes.MCP.Error.execution("Invitation not found"), frame}
 
-        account ->
-          case Glossia.Policy.authorize(:members_write, user, account) do
-            :ok ->
-              org = Accounts.get_organization_for_account(account)
+        invitation ->
+          case Organizations.revoke_invitation(invitation) do
+            {:ok, _} ->
+              response =
+                Response.tool()
+                |> Response.text(JSON.encode!(%{revoked: true, invitation_id: invitation_id}))
 
-              case Accounts.get_invitation(org, invitation_id) do
-                nil ->
-                  {:error, Error.execution("Invitation not found"), frame}
+              {:reply, response, frame}
 
-                invitation ->
-                  case Accounts.revoke_invitation(invitation) do
-                    {:ok, _} ->
-                      response =
-                        Response.tool()
-                        |> Response.text(
-                          Jason.encode!(%{revoked: true, invitation_id: invitation_id})
-                        )
-
-                      {:reply, response, frame}
-
-                    {:error, _changeset} ->
-                      {:error, Error.execution("Failed to revoke invitation"), frame}
-                  end
-              end
-
-            {:error, :unauthorized} ->
-              {:error, Error.execution("Not authorized to manage invitations for '#{handle}'"),
-               frame}
+            {:error, _changeset} ->
+              {:error, Hermes.MCP.Error.execution("Failed to revoke invitation"), frame}
           end
       end
+    else
+      {:error, error} -> {:error, error, frame}
     end
   end
 end

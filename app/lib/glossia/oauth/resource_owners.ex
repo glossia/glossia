@@ -1,7 +1,7 @@
 defmodule Glossia.OAuth.ResourceOwners do
   @behaviour Boruta.Oauth.ResourceOwners
 
-  alias Glossia.Accounts.{OrganizationMembership, User}
+  alias Glossia.Accounts.User
   alias Glossia.Repo
   import Ecto.Query
 
@@ -26,17 +26,11 @@ defmodule Glossia.OAuth.ResourceOwners do
   end
 
   @impl Boruta.Oauth.ResourceOwners
-  def authorized_scopes(resource_owner) do
-    # Scopes in the token represent the upper bound of what the client can
-    # request on behalf of the user. Actual authorization is enforced at the
-    # resource level via Glossia.Policy. Here we compute which scopes this
-    # specific user could ever exercise, based on their account ownership
-    # and org memberships.
-    user_id = resource_owner.sub
-    base_scopes = user_scopes()
-    org_scopes = org_scopes_for_user(user_id)
-
-    (base_scopes ++ org_scopes)
+  def authorized_scopes(_resource_owner) do
+    # Keep this derived from `Glossia.Policy` so scope discovery (`/.well-known/*`),
+    # OAuth consent, the REST API, and the MCP server cannot drift.
+    Glossia.Policy.list_rules()
+    |> Enum.map(fn rule -> to_scope("#{rule.object}:#{rule.action}") end)
     |> Enum.uniq_by(& &1.name)
   end
 
@@ -48,34 +42,6 @@ defmodule Glossia.OAuth.ResourceOwners do
       "name" => resource_owner.extra_claims["name"],
       "preferred_username" => resource_owner.extra_claims["handle"]
     }
-  end
-
-  # Every user can manage their own account and projects
-  defp user_scopes do
-    ~w(user:read user:write project:read project:write project:admin project:delete translations:read translations:write translations:admin glossary:read glossary:write glossary:admin)
-    |> Enum.map(&to_scope/1)
-  end
-
-  # Org scopes depend on the user's highest role across all their orgs
-  defp org_scopes_for_user(user_id) do
-    roles =
-      OrganizationMembership
-      |> where(user_id: ^user_id)
-      |> select([m], m.role)
-      |> Repo.all()
-
-    cond do
-      "admin" in roles ->
-        ~w(org:read org:write org:admin)
-        |> Enum.map(&to_scope/1)
-
-      "member" in roles ->
-        ~w(org:read)
-        |> Enum.map(&to_scope/1)
-
-      true ->
-        []
-    end
   end
 
   defp to_scope(name), do: %Boruta.Oauth.Scope{name: name, label: name}

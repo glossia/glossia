@@ -2,6 +2,9 @@ defmodule Glossia.HTTP do
   @moduledoc false
 
   def new(opts \\ []) do
-    Req.new(opts) |> OpentelemetryReq.attach(propagate_trace_headers: true)
+    opts
+    |> Keyword.put_new(:finch, Glossia.Finch)
+    |> Req.new()
+    |> OpentelemetryReq.attach(propagate_trace_headers: true)
   end
 end

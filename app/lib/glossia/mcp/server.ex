@@ -18,4 +18,6 @@ defmodule Glossia.MCP.Server do
   component(Glossia.MCP.RevokeOrganizationInvitationTool, name: "revoke_organization_invitation")
   component(Glossia.MCP.GetVoiceTool, name: "get_voice")
   component(Glossia.MCP.SaveVoiceTool, name: "save_voice")
+  component(Glossia.MCP.GetGlossaryTool, name: "get_glossary")
+  component(Glossia.MCP.SaveGlossaryTool, name: "save_glossary")
 end
