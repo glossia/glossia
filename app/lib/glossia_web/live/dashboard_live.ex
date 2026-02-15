@@ -1065,7 +1065,21 @@ defmodule GlossiaWeb.DashboardLive do
           ]
 
           task = Task.async(fn -> Glossia.Minimax.chat(messages, max_tokens: 1024) end)
-          {:noreply, assign(socket, generating_title?: true, ticket_title_task_ref: task.ref)}
+
+          form = socket.assigns.ticket_form
+          description_val = form[:description].value || ""
+          type_val = form[:type].value || "issue"
+
+          {:noreply,
+           assign(socket,
+             generating_title?: true,
+             ticket_title_task_ref: task.ref,
+             ticket_form:
+               to_form(
+                 %{"title" => "", "description" => description_val, "type" => type_val},
+                 as: :ticket
+               )
+           )}
 
         {:deny, _retry_after} ->
           {:noreply, socket}
@@ -1097,8 +1111,12 @@ defmodule GlossiaWeb.DashboardLive do
       context_label = if context == :voice, do: "voice configuration", else: "glossary"
 
       task = Task.async(fn -> ChangeSummary.generate(diff, context_label) end)
+      bar_id = save_bar_id(socket)
 
-      {:noreply, assign(socket, generating_summary?: true, summary_task_ref: task.ref)}
+      {:noreply,
+       socket
+       |> assign(generating_summary?: true, summary_task_ref: task.ref)
+       |> push_event("summary_generating:#{bar_id}", %{})}
     end
   end
 
@@ -1107,10 +1125,10 @@ defmodule GlossiaWeb.DashboardLive do
 
     cond do
       ref == socket.assigns[:summary_task_ref] ->
+        bar_id = save_bar_id(socket)
+
         case result do
           {:ok, summary} ->
-            bar_id = save_bar_id(socket)
-
             {:noreply,
              socket
              |> assign(
@@ -1121,7 +1139,10 @@ defmodule GlossiaWeb.DashboardLive do
              |> push_event("summary_generated:#{bar_id}", %{summary: summary})}
 
           {:error, _reason} ->
-            {:noreply, assign(socket, generating_summary?: false, summary_task_ref: nil)}
+            {:noreply,
+             socket
+             |> assign(generating_summary?: false, summary_task_ref: nil)
+             |> push_event("summary_generated:#{bar_id}", %{summary: nil})}
         end
 
       ref == socket.assigns[:ticket_title_task_ref] ->
@@ -4087,7 +4108,7 @@ defmodule GlossiaWeb.DashboardLive do
               name="ticket[title]"
               id="ticket_title"
               value={@ticket_form[:title].value}
-              placeholder={gettext("Brief summary...")}
+              placeholder={if @generating_title?, do: gettext("Generating..."), else: gettext("Brief summary...")}
               phx-hook=".TicketTitle"
               required
               disabled={@generating_title?}

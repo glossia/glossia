@@ -85,6 +85,13 @@
     border-radius: 14px;
   }
 
+  .avatar-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
   .badge {
     display: inline-flex;
     align-self: flex-start;
@@ -96,8 +103,11 @@
     padding: 6px 18px;
     border-radius: 20px;
     letter-spacing: 0.04em;
-    text-transform: capitalize;
     border: 1px solid rgba(124, 58, 237, 0.15);
+  }
+
+  .badge-category {
+    text-transform: capitalize;
   }
 
   .title {
@@ -177,9 +187,17 @@
   <div class="geo geo-3"></div>
 
   <div class="main">
-    <img class="logo-img" src="data:image/png;base64,<%= Base.encode64(File.read!(Path.join(:code.priv_dir(:glossia), "static/images/logo-rounded.png"))) %>" alt="" />
-    <%= if category != "" and category != "home" do %>
-      <div class="badge"><%= category %></div>
+    <%= if author_avatar != "" do %>
+      <img class="avatar-img" src="<%= author_avatar %>" alt="" />
+    <% else %>
+      <img class="logo-img" src="data:image/png;base64,<%= Base.encode64(File.read!(Path.join(:code.priv_dir(:glossia), "static/images/logo-rounded.png"))) %>" alt="" />
+    <% end %>
+    <%= cond do %>
+      <% author_name != "" -> %>
+        <div class="badge"><%= author_name %></div>
+      <% category != "" and category != "home" -> %>
+        <div class="badge badge-category"><%= category %></div>
+      <% true -> %>
     <% end %>
     <div class="title"><%= title %></div>
     <%= if description != "" do %>

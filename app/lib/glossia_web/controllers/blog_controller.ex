@@ -26,7 +26,9 @@ defmodule GlossiaWeb.BlogController do
     og_attrs = %{
       title: post.title,
       description: post.summary,
-      category: "blog"
+      category: "blog",
+      author_name: post.author.name,
+      author_avatar: post.author.avatar
     }
 
     conn
