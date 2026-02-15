@@ -61,7 +61,7 @@ defmodule Glossia.Application do
 
     children =
       if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
-        List.insert_at(children, -2, ChromicPDF)
+        List.insert_at(children, -2, {ChromicPDF, no_sandbox: true, discard_stderr: false})
       else
         children
       end
