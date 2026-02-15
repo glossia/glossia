@@ -109,6 +109,14 @@ When migrating templates to LiveView function components:
 - CSS classes map directly to component `attr` declarations. Use `data-*` attributes for state variants (e.g., `data-variant="primary"`)
 - Dashboard-specific components should live in a dedicated `dashboard_components.ex` module, not in `core_components.ex`
 
+### Dashboard UI patterns
+
+**Breadcrumbs** -- Every dashboard sub-page (creation forms, edit pages, detail views) must render a `<.breadcrumb items={[...]} />` above the page header. Items is a list of `{label, path}` tuples where the last item is the current page. The component is defined in `dashboard_components.ex`.
+
+**Form save bar** -- Creation and edit forms should use `<.form_save_bar>` (a sticky bottom bar) instead of inline button groups. For creation forms, the bar appears when required fields are filled. For edit forms, it appears when changes are detected compared to original values. Add `phx-change` to the form and track validity/changed state in assigns. The simplified `form_save_bar` does not require a change note or LLM summary (unlike the versioned `save_bar` used on voice/glossary pages).
+
+**Resource tables** -- Use `<.resource_table>` for all list/index pages. Add `sortable` to columns that support sorting. Handle `"resource_sort"` events with URL-driven state via `push_patch`. Always include an `:empty` slot. Use the `:action` slot for row-level buttons. Register new table IDs in `@table_prefixes` and implement the corresponding `current_table_state`, `default_sort_key`, `default_sort_dir`, and `current_sort` functions.
+
 ### Phoenix v1.8 guidelines
 
 - **Always** begin your LiveView templates with `<Layouts.app flash={@flash} ...>` which wraps all inner content

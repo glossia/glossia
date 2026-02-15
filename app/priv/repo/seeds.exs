@@ -10,11 +10,14 @@
 defmodule Glossia.Seeds do
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{Account, Glossary, Identity, Project, User, Voice}
+  alias Glossia.Accounts.{Account, Glossary, Identity, PersonalAccessToken, Project, User, Voice}
 
+  alias Glossia.DeveloperTokens
   alias Glossia.Glossaries
   alias Glossia.Organizations
   alias Glossia.Projects
+  alias Glossia.Support
+  alias Glossia.Support.{Ticket, TicketMessage}
   alias Glossia.Voices
 
   import Ecto.Query
@@ -26,6 +29,7 @@ defmodule Glossia.Seeds do
         email: "dev@glossia.ai",
         name: "Dev User",
         has_access: true,
+        super_admin: true,
         identity: %{provider: "dev", provider_uid: "dev-001"}
       )
 
@@ -302,6 +306,56 @@ defmodule Glossia.Seeds do
       ]
     )
 
+    # ── API tokens ──
+    ensure_personal_access_token!(dev.account, dev,
+      name: "CI Pipeline Token",
+      description: "Used by GitHub Actions to push translations",
+      scope: "voice:read voice:write glossary:read glossary:write"
+    )
+
+    # ── Support tickets ──
+    ticket1 =
+      ensure_ticket!(dev.account, dev,
+        title: "Voice settings not saving",
+        description:
+          "When I change the tone to 'playful' and click save, the page reloads but the tone reverts to 'casual'. Tried in Chrome and Firefox.",
+        type: "issue",
+        status: "in_progress"
+      )
+
+    ensure_ticket_message!(ticket1, dev,
+      body: "I can reproduce this every time. Attaching a screen recording would help.",
+      is_staff: true
+    )
+
+    ensure_ticket_message!(ticket1, dev,
+      body: "Thanks! I recorded it. The save button shows a spinner but the value snaps back."
+    )
+
+    _ticket2 =
+      ensure_ticket!(alex.account, alex,
+        title: "Add support for Portuguese (Brazil) glossary",
+        description:
+          "We need pt-BR as a supported language in the glossary section. Right now only pt-PT is available.",
+        type: "request",
+        status: "open"
+      )
+
+    ticket3 =
+      ensure_ticket!(dev.account, dev,
+        title: "OAuth redirect URI validation too strict",
+        description:
+          "When I enter http://localhost:3000/callback as a redirect URI it gets rejected. Local development URIs should be allowed.",
+        type: "issue",
+        status: "resolved"
+      )
+
+    ensure_ticket_message!(ticket3, dev,
+      body:
+        "We have relaxed the URI validation for localhost addresses. This should work now. Let us know if you still see issues.",
+      is_staff: true
+    )
+
     :ok
   end
 
@@ -314,6 +368,7 @@ defmodule Glossia.Seeds do
     email = Keyword.fetch!(opts, :email)
     name = Keyword.get(opts, :name)
     has_access = Keyword.get(opts, :has_access, false)
+    super_admin = Keyword.get(opts, :super_admin, false)
 
     account =
       case Repo.get_by(Account, handle: handle) do
@@ -338,7 +393,8 @@ defmodule Glossia.Seeds do
             account_id: account.id,
             email: email,
             name: name,
-            has_access: has_access
+            has_access: has_access,
+            super_admin: super_admin
           })
 
         %User{} = user ->
@@ -358,10 +414,12 @@ defmodule Glossia.Seeds do
       end
 
     user =
-      if user.email != email or user.name != name or user.has_access != has_access do
+      if user.email != email or user.name != name or user.has_access != has_access or
+           user.super_admin != super_admin do
         {:ok, user} =
           user
           |> User.changeset(%{email: email, name: name, has_access: has_access})
+          |> Ecto.Changeset.change(super_admin: super_admin)
           |> Repo.update()
 
         user
@@ -515,6 +573,86 @@ defmodule Glossia.Seeds do
         |> Repo.update()
 
       :ok
+    end
+  end
+
+  defp ensure_personal_access_token!(account, user, opts) do
+    name = Keyword.fetch!(opts, :name)
+
+    existing =
+      Repo.one(
+        from t in PersonalAccessToken,
+          where: t.account_id == ^account.id and t.name == ^name and is_nil(t.revoked_at)
+      )
+
+    if existing do
+      existing
+    else
+      {:ok, %{token: token}} =
+        DeveloperTokens.create_personal_access_token(account, user, %{
+          "name" => name,
+          "description" => Keyword.get(opts, :description, ""),
+          "scope" => Keyword.get(opts, :scope, ""),
+          "expires_at" => DateTime.add(DateTime.utc_now(), 90, :day)
+        })
+
+      token
+    end
+  end
+
+  # ----------------------------------------------------------------------------
+  # Support tickets
+  # ----------------------------------------------------------------------------
+
+  defp ensure_ticket!(account, user, opts) do
+    title = Keyword.fetch!(opts, :title)
+
+    import Ecto.Query
+
+    existing =
+      Repo.one(
+        from t in Ticket,
+          where: t.account_id == ^account.id and t.title == ^title
+      )
+
+    if existing do
+      existing
+    else
+      {:ok, ticket} =
+        Support.create_ticket(account, user, %{
+          "title" => title,
+          "description" => Keyword.fetch!(opts, :description),
+          "type" => Keyword.get(opts, :type, "issue")
+        })
+
+      status = Keyword.get(opts, :status, "open")
+
+      if status != "open" do
+        {:ok, ticket} = Support.update_ticket_status(ticket, status)
+        ticket
+      else
+        ticket
+      end
+    end
+  end
+
+  defp ensure_ticket_message!(ticket, user, opts) do
+    body = Keyword.fetch!(opts, :body)
+    is_staff = Keyword.get(opts, :is_staff, false)
+
+    import Ecto.Query
+
+    existing =
+      Repo.one(
+        from m in TicketMessage,
+          where: m.ticket_id == ^ticket.id and m.body == ^body
+      )
+
+    if existing do
+      existing
+    else
+      {:ok, message} = Support.add_message(ticket, user, %{"body" => body}, is_staff: is_staff)
+      message
     end
   end
 end

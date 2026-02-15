@@ -23,11 +23,13 @@
         <div class="feature-index-card-icon">
           {GlossiaWeb.FeatureHTML.feature_icon(page.icon, 24)}
         </div>
-        <h2>{page.title}</h2>
+        <div class="feature-index-card-title">
+          <h2>{page.title}</h2>
+          <span class="feature-index-card-arrow">
+            {GlossiaWeb.FeatureHTML.feature_icon("arrow-right", 16)}
+          </span>
+        </div>
         <p>{page.summary}</p>
-        <span class="feature-index-card-arrow">
-          {GlossiaWeb.FeatureHTML.feature_icon("arrow-right", 16)}
-        </span>
       </a>
     </div>
   </div>

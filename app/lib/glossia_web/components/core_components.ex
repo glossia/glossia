@@ -86,6 +86,7 @@ defmodule GlossiaWeb.CoreComponents do
         destroyed() { clearTimeout(this.timer); },
         scheduleAutoDismiss() {
           clearTimeout(this.timer);
+          if (this.el.id === "client-error" || this.el.id === "server-error") return;
           this.el.style.animationName = "";
           this.el.style.display = "";
           void this.el.offsetWidth;

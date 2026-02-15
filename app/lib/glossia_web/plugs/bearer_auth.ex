@@ -10,6 +10,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   import Plug.Conn
 
   alias Glossia.Accounts
+  alias Glossia.DeveloperTokens
 
   def init(opts), do: opts
 
@@ -24,16 +25,42 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   end
 
   defp validate_token(conn, token_value) do
+    case validate_boruta_token(token_value) do
+      {:ok, user, scopes} ->
+        conn
+        |> assign(:current_user, user)
+        |> assign(:scopes, scopes)
+
+      :error ->
+        validate_pat(conn, token_value)
+    end
+  end
+
+  defp validate_boruta_token(token_value) do
     with token when not is_nil(token) <- get_token(token_value),
          false <- revoked?(token),
          false <- expired?(token),
          user when not is_nil(user) <- Accounts.get_user(token.sub) do
-      conn
-      |> assign(:current_user, user)
-      |> assign(:scopes, parse_scopes(token.scope))
+      {:ok, user, parse_scopes(token.scope)}
     else
-      _ -> reject_unauthorized(conn)
+      _ -> :error
     end
+  end
+
+  defp validate_pat(conn, "glsa_" <> _ = token_value) do
+    case DeveloperTokens.get_personal_access_token_by_value(token_value) do
+      {:ok, pat} ->
+        conn
+        |> assign(:current_user, pat.user)
+        |> assign(:scopes, parse_scopes(pat.scope))
+
+      _ ->
+        reject_unauthorized(conn)
+    end
+  end
+
+  defp validate_pat(conn, _token_value) do
+    reject_unauthorized(conn)
   end
 
   defp extract_bearer_token(conn) do

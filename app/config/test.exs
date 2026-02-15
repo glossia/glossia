@@ -55,3 +55,5 @@ config :phoenix,
   sort_verified_routes_query_params: true
 
 config :glossia, Oban, testing: :inline
+
+config :glossia, Glossia.OgImage, enabled: false

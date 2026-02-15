@@ -198,4 +198,23 @@ defmodule Glossia.Accounts do
         end
     end
   end
+
+  # ----------------------------------------------------------------------------
+  # Super admin
+  # ----------------------------------------------------------------------------
+
+  def set_super_admin(user_id, value \\ true) when is_boolean(value) do
+    case Repo.get(User, user_id) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        user
+        |> Ecto.Changeset.change(super_admin: value)
+        |> Repo.update()
+    end
+  end
+
+  def super_admin?(%User{super_admin: true}), do: true
+  def super_admin?(_), do: false
 end

@@ -49,13 +49,51 @@ const liveSocket = new LiveSocket("/live", Socket, {
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#6d3cc4"}, shadowColor: "rgba(0, 0, 0, .15)"})
 window.addEventListener("phx:page-loading-start", info => {
-  if(info.detail.kind === "initial") return
+  if(info.detail.kind === "initial" || info.detail.kind === "error") return
   topbar.show(500)
 })
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
+// Show a persistent topbar when the LiveView connection is lost
+window.addEventListener("phx:disconnected", () => topbar.show(0))
+window.addEventListener("phx:connected", () => topbar.hide())
+
 // connect if there are any LiveViews on the page
 liveSocket.connect()
+
+// Add copy buttons to all code blocks inside .prose
+function initCodeCopyButtons() {
+  const copyIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'
+  const checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+
+  document.querySelectorAll(".prose pre").forEach(pre => {
+    if (pre.querySelector(".code-copy-btn")) return
+    const btn = document.createElement("button")
+    btn.className = "code-copy-btn"
+    btn.setAttribute("type", "button")
+    btn.setAttribute("aria-label", "Copy code")
+    btn.innerHTML = copyIcon
+    btn.addEventListener("click", () => {
+      const code = pre.querySelector("code")
+      const text = code ? code.textContent : pre.textContent
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerHTML = checkIcon
+        btn.classList.add("copied")
+        setTimeout(() => {
+          btn.innerHTML = copyIcon
+          btn.classList.remove("copied")
+        }, 1500)
+      })
+    })
+    pre.appendChild(btn)
+  })
+}
+
+// Run on initial page load and on LiveView page navigations
+initCodeCopyButtons()
+window.addEventListener("phx:page-loading-stop", () => {
+  setTimeout(initCodeCopyButtons, 100)
+})
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()

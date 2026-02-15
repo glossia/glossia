@@ -107,3 +107,8 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Daytona sandbox API (local Docker Compose stack)
+config :glossia, Glossia.Daytona,
+  api_url: "http://localhost:3000/api",
+  proxy_url: "http://localhost:3000"

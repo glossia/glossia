@@ -2,10 +2,22 @@ defmodule GlossiaWeb.ChangelogController do
   use GlossiaWeb, :controller
 
   alias Glossia.Changelog
+  alias Glossia.OgImage
 
   def index(conn, _params) do
     entries = Changelog.all_entries()
-    render(conn, :index, entries: entries, page_title: gettext("Changelog"))
+
+    og_attrs = %{
+      title: "Changelog",
+      description: "New updates and improvements to Glossia",
+      category: "changelog"
+    }
+
+    render(conn, :index,
+      entries: entries,
+      page_title: gettext("Changelog"),
+      og_image_url: OgImage.marketing_url(og_attrs)
+    )
   end
 
   def feed(conn, _params) do

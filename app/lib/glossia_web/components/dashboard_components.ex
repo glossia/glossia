@@ -255,7 +255,11 @@ defmodule GlossiaWeb.DashboardComponents do
                     <td class={col[:class]}>{render_slot(col, row)}</td>
                   <% end %>
                   <%= if @action != [] do %>
-                    <td class="resource-col-actions">{render_slot(@action, row)}</td>
+                    <td class="resource-col-actions">
+                      <div class="resource-col-actions-inner">
+                        {render_slot(@action, row)}
+                      </div>
+                    </td>
                   <% end %>
                 </tr>
               <% end %>
@@ -380,6 +384,83 @@ defmodule GlossiaWeb.DashboardComponents do
       </div>
       <div :if={@actions != []} class="dash-page-header-actions">
         {render_slot(@actions)}
+      </div>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Breadcrumb navigation
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Renders breadcrumb navigation for dashboard sub-pages.
+
+  ## Examples
+
+      <.breadcrumb items={[
+        {gettext("Account tokens"), "/" <> @handle <> "/api/tokens"},
+        {gettext("New token"), "/" <> @handle <> "/api/tokens/new"}
+      ]} />
+  """
+  attr :items, :list,
+    required: true,
+    doc: "List of {label, path} tuples. Last item is current page."
+
+  def breadcrumb(assigns) do
+    ~H"""
+    <nav class="dash-breadcrumbs" aria-label={gettext("Breadcrumbs")}>
+      <%= for {{label, _path}, idx} <- Enum.with_index(@items) do %>
+        <%= if idx > 0 do %>
+          <span class="dash-breadcrumb-sep" aria-hidden="true">/</span>
+        <% end %>
+        <%= if idx == length(@items) - 1 do %>
+          <span class="dash-breadcrumb-current">{label}</span>
+        <% else %>
+          <.link patch={elem(Enum.at(@items, idx), 1)} class="dash-breadcrumb-link">{label}</.link>
+        <% end %>
+      <% end %>
+    </nav>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Form Save Bar (simplified sticky bar for creation/edit forms)
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Renders a simplified sticky save bar for creation and edit forms.
+
+  Unlike `save_bar/1`, this variant has no change-note input, no LLM summary,
+  and no JS hook. It simply shows Save and Cancel buttons in a sticky bar.
+
+  Must be placed inside a `<form>` element. The form's `phx-submit` handles saving.
+
+  ## Examples
+
+      <.form_save_bar
+        id="token-save-bar"
+        visible={@token_form_valid?}
+        cancel_path={"/" <> @handle <> "/api/tokens"}
+      />
+  """
+  attr :id, :string, required: true
+  attr :visible, :boolean, default: false
+  attr :cancel_path, :string, required: true, doc: "Path to navigate to on cancel"
+
+  def form_save_bar(assigns) do
+    ~H"""
+    <div class={["voice-save-bar", @visible && "visible"]} id={@id}>
+      <div class="voice-save-bar-inner">
+        <span class="voice-save-bar-label">{gettext("Ready to save")}</span>
+        <div class="voice-save-bar-actions">
+          <.link patch={@cancel_path} class="dash-btn dash-btn-secondary">
+            {gettext("Cancel")}
+          </.link>
+          <button type="submit" class="dash-btn dash-btn-primary">
+            {gettext("Save")}
+          </button>
+        </div>
       </div>
     </div>
     """
@@ -637,6 +718,32 @@ defmodule GlossiaWeb.DashboardComponents do
         }
       }
     </script>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Badge
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Renders a status badge with a variant color.
+
+  ## Examples
+
+      <.badge variant="success">Active</.badge>
+      <.badge variant="warning">Issue</.badge>
+      <.badge variant="info">In progress</.badge>
+  """
+  attr :variant, :string, values: ~w(neutral info success warning), default: "neutral"
+  attr :class, :any, default: nil
+
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    ~H"""
+    <span class={["badge", "badge-#{@variant}", @class]}>
+      {render_slot(@inner_block)}
+    </span>
     """
   end
 end

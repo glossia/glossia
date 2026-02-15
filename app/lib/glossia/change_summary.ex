@@ -28,7 +28,7 @@ defmodule Glossia.ChangeSummary do
       %{role: :user, content: diff_description}
     ]
 
-    opts = Keyword.put_new(opts, :max_tokens, 100)
+    opts = Keyword.put_new(opts, :max_tokens, 1024)
 
     case client.chat(messages, opts) do
       {:ok, %{content: content}} -> {:ok, String.trim(content)}

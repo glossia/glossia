@@ -39,6 +39,6 @@ From there, your AI assistant can call any of the 16 tools. Ask it to "create an
 
 ## Built for agentic workflows
 
-MCP is not just a convenience layer. It is the foundation for composing Glossia into larger agentic pipelines. A coding assistant can read your codebase, detect untranslated content, update your glossary with new terms, adjust voice settings for a specific locale, and trigger a translation run, all in a single conversation.
+MCP is not just a convenience layer. It is the foundation for composing Glossia into larger agentic pipelines. A coding assistant can read your codebase, detect unlocalized content, update your glossary with new terms, adjust voice settings for a specific locale, and trigger a localization run, all in a single conversation.
 
 Because the protocol is standardized, you are not locked into any single client. Switch between Claude, Cursor, or your own custom agent without changing a line of configuration.
