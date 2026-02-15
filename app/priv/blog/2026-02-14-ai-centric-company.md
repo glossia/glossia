@@ -38,7 +38,7 @@ The product itself is an agent that lives in your terminal, reads your source fi
 
 ## Two people, zero organizational overhead
 
-We are deliberately keeping the team as small as possible. Right now it is [María José](https://github.com/mjsesalm) and me. Our goal is to stay at two or three people for as long as we can.
+We are deliberately keeping the team as small as possible. Right now it is just two of us. Our goal is to stay at two or three people for as long as we can.
 
 This is not about saving money (though it helps). It is about eliminating an entire category of work that does not produce value for users.
 
