@@ -16,6 +16,7 @@ defmodule GlossiaWeb.PageController do
     render(conn, :home,
       posts: posts,
       page_title: gettext("Home"),
+      page_description: og_attrs.description,
       og_image_url: OgImage.marketing_url(og_attrs)
     )
   end

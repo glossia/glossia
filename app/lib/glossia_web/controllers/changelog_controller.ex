@@ -16,6 +16,7 @@ defmodule GlossiaWeb.ChangelogController do
     render(conn, :index,
       entries: entries,
       page_title: gettext("Changelog"),
+      page_description: og_attrs.description,
       og_image_url: OgImage.marketing_url(og_attrs)
     )
   end

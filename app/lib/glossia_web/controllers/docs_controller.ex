@@ -16,6 +16,7 @@ defmodule GlossiaWeb.DocsController do
     render(conn, :index,
       categories: categories,
       page_title: gettext("Documentation"),
+      page_description: og_attrs.description,
       og_image_url: OgImage.marketing_url(og_attrs)
     )
   end
@@ -57,7 +58,8 @@ defmodule GlossiaWeb.DocsController do
       items: items,
       categories: categories,
       sidebar: sidebar,
-      page_title: category_meta.title
+      page_title: category_meta.title,
+      page_description: Map.get(category_meta, :summary, "")
     )
   end
 
@@ -80,6 +82,7 @@ defmodule GlossiaWeb.DocsController do
         current_category: category,
         current_slug: slug,
         page_title: page.title,
+        page_description: page.summary || "",
         og_image_url: OgImage.marketing_url(og_attrs)
       )
     end

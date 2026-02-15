@@ -8,6 +8,19 @@
       {assigns[:page_title]}
     </.live_title>
     <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
+    <meta
+      name="description"
+      content={
+        assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
+      }
+    />
+    <meta property="og:title" content={assigns[:page_title] || "Glossia"} />
+    <meta
+      property="og:description"
+      content={
+        assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
+      }
+    />
     <meta property="og:image" content={assigns[:og_image_url] || ~p"/images/logo-squared.jpg"} />
     <meta
       name="twitter:card"

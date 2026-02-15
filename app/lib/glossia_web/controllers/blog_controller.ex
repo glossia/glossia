@@ -16,6 +16,7 @@ defmodule GlossiaWeb.BlogController do
     render(conn, :index,
       posts: posts,
       page_title: gettext("Blog"),
+      page_description: og_attrs.description,
       og_image_url: OgImage.marketing_url(og_attrs)
     )
   end
@@ -36,6 +37,7 @@ defmodule GlossiaWeb.BlogController do
     |> render(:show,
       post: post,
       page_title: post.title,
+      page_description: post.summary,
       og_image_url: OgImage.marketing_url(og_attrs)
     )
   end
