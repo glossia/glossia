@@ -111,7 +111,7 @@ When migrating templates to LiveView function components:
 
 ### Dashboard UI patterns
 
-**Breadcrumbs** -- Every dashboard sub-page (creation forms, edit pages, detail views) must render a `<.breadcrumb items={[...]} />` above the page header. Items is a list of `{label, path}` tuples where the last item is the current page. The component is defined in `dashboard_components.ex`.
+**Breadcrumbs** -- Every dashboard sub-page (creation forms, edit pages, detail views, version pages) must render a `<.breadcrumb items={[...]} />` as the first element inside `.dash-page`, above the page header. Items is a list of `{label, path}` tuples where the last item is the current page. The component is defined in `dashboard_components.ex`. Never use manual back links (arrow links, "Back to X" links) for navigation; always use breadcrumbs instead.
 
 **Form save bar** -- Creation and edit forms should use `<.form_save_bar>` (a sticky bottom bar) instead of inline button groups. For creation forms, the bar appears when required fields are filled. For edit forms, it appears when changes are detected compared to original values. Add `phx-change` to the form and track validity/changed state in assigns. The simplified `form_save_bar` does not require a change note or LLM summary (unlike the versioned `save_bar` used on voice/glossary pages).
 

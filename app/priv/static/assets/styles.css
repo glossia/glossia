@@ -1962,6 +1962,7 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
   font-size: var(--text-md);
   font-weight: var(--weight-medium);
   font-family: var(--font-body);
+  line-height: 1;
   cursor: pointer;
   border: none;
   background: var(--color-surface);
@@ -2032,7 +2033,7 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
 
 /* --- Voice page (Polaris-style settings layout) --- */
 .voice-form { display: flex; flex-direction: column; gap: 0; }
-.voice-form:has(.voice-save-bar.visible) { padding-bottom: var(--space-20); }
+.dash-page:has(.voice-save-bar.visible) { padding-bottom: var(--space-20); }
 
 .voice-section {
   display: grid;
@@ -2228,6 +2229,8 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
   background: var(--color-surface);
   border-top: var(--space-px) solid var(--color-border);
   padding: var(--space-3) var(--space-6);
+  min-height: 61px;
+  box-sizing: border-box;
   transform: translateY(100%);
   opacity: 0;
   transition: transform var(--duration-normal) var(--easing-default), opacity var(--duration-normal) var(--easing-default);
@@ -2289,18 +2292,6 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
 
 /* --- Version detail & diff --- */
 .voice-version-header { display: flex; flex-direction: column; gap: var(--space-1); }
-.voice-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  color: var(--color-text-muted);
-  text-decoration: none;
-  margin-bottom: var(--space-2);
-  transition: color var(--transition);
-}
-.voice-back-link:hover { color: var(--color-primary); }
 .voice-version-title-note {
   font-weight: var(--weight-normal);
   color: var(--color-text-muted);
@@ -3348,19 +3339,6 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
   line-height: 1;
 }
 
-.ticket-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  text-decoration: none;
-  margin-bottom: var(--space-4);
-  transition: color var(--transition);
-}
-.ticket-back-link:hover {
-  color: var(--color-primary);
-}
 
 /* --- Ticket conversation (chat bubbles) --- */
 .ticket-conversation {
