@@ -231,8 +231,8 @@
         <% end %>
       </div>
     </header>
+    <.flash_group :if={assigns[:flash]} flash={@flash} />
     <main class="dash-main">
-      <.flash_group :if={assigns[:flash]} flash={@flash} />
       {@inner_content}
     </main>
   </div>

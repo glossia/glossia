@@ -54,6 +54,7 @@ defmodule GlossiaWeb.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
+      phx-hook=".FlashAutoDismiss"
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class={[
@@ -68,18 +69,37 @@ defmodule GlossiaWeb.CoreComponents do
           <p :if={@title} class="flash-bar-title">{@title}</p>
           <p>{msg}</p>
         </div>
-        <button type="button" class="flash-bar-close" aria-label={gettext("close")}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path
-              d="M4 4l8 8M12 4l-8 8"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-          </svg>
+        <button
+          type="button"
+          class="flash-bar-close"
+          aria-label={gettext("close")}
+          phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+        >
+          <.icon name="hero-x-mark" class="flash-bar-close-icon" />
         </button>
       </div>
     </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".FlashAutoDismiss">
+      export default {
+        mounted() { this.scheduleAutoDismiss(); },
+        updated() { this.scheduleAutoDismiss(); },
+        destroyed() { clearTimeout(this.timer); },
+        scheduleAutoDismiss() {
+          clearTimeout(this.timer);
+          this.el.style.animationName = "";
+          this.el.style.display = "";
+          void this.el.offsetWidth;
+          this.el.style.animationName = "flash-fade-in";
+          this.timer = setTimeout(() => {
+            this.el.style.animationName = "flash-slide-out";
+            this.el.addEventListener("animationend", () => {
+              this.el.style.display = "none";
+              this.pushEvent("lv:clear-flash", { key: this.el.id.replace("flash-", "") });
+            }, { once: true });
+          }, 5000);
+        }
+      }
+    </script>
     """
   end
 
@@ -446,6 +466,45 @@ defmodule GlossiaWeb.CoreComponents do
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
+    """
+  end
+
+  @doc """
+  Renders a call-to-action section used at the bottom of content pages (blog posts, feature pages).
+
+  Accepts optional title, description, button text, and button URL. Falls back to sensible defaults.
+
+  ## Examples
+
+      <.content_cta />
+      <.content_cta title="Try it now" description="Get started today." cta_text="Sign up" cta_url="/signup" />
+  """
+  attr :title, :string, default: nil
+  attr :description, :string, default: nil
+  attr :cta_text, :string, default: nil
+  attr :cta_url, :string, default: nil
+
+  def content_cta(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:resolved_title, fn -> assigns[:title] || gettext("Ready to get started?") end)
+      |> assign_new(:resolved_description, fn ->
+        assigns[:description] ||
+          gettext("Join teams that ship content with the same confidence they ship code.")
+      end)
+      |> assign_new(:resolved_cta_text, fn -> assigns[:cta_text] || gettext("Get in touch") end)
+      |> assign_new(:resolved_cta_url, fn -> assigns[:cta_url] || "mailto:contact@glossia.ai" end)
+
+    ~H"""
+    <section class="section content-cta">
+      <div class="container">
+        <div class="content-cta-box">
+          <h2>{@resolved_title}</h2>
+          <p class="lead">{@resolved_description}</p>
+          <a class="button primary" href={@resolved_cta_url}>{@resolved_cta_text}</a>
+        </div>
+      </div>
+    </section>
     """
   end
 

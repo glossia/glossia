@@ -1,35 +1,42 @@
-defmodule Glossia.Blog.Post do
-  @enforce_keys [:id, :title, :summary, :date, :slug, :body, :author]
+defmodule Glossia.Features.Page do
+  @enforce_keys [
+    :id,
+    :title,
+    :summary,
+    :slug,
+    :body,
+    :order,
+    :icon,
+    :hero_cta_text,
+    :hero_cta_url,
+    :highlights
+  ]
   defstruct [
     :id,
     :title,
     :summary,
-    :date,
     :slug,
     :body,
-    :author,
-    :cta_title,
-    :cta_description,
-    :cta_text,
-    :cta_url
+    :order,
+    :icon,
+    :hero_cta_text,
+    :hero_cta_url,
+    :highlights
   ]
 
   def build(filename, attrs, body) do
-    [year, month, day, id] =
+    id =
       filename
       |> Path.rootname()
       |> Path.split()
       |> List.last()
-      |> String.split("-", parts: 4)
 
-    date = Date.from_iso8601!("#{year}-#{month}-#{day}")
     slug = Map.get(attrs, :slug, id)
-    author = Glossia.Blog.Author.get!(attrs.author)
     body = body |> inject_heading_ids() |> transform_admonitions()
 
     struct!(
       __MODULE__,
-      Map.merge(attrs, %{id: id, date: date, body: body, slug: slug, author: author})
+      Map.merge(attrs, %{id: id, slug: slug, body: body})
     )
   end
 

@@ -137,6 +137,10 @@ defmodule GlossiaWeb.Router do
     get "/blog", BlogController, :index
     get "/blog/feed.xml", BlogController, :feed
     get "/blog/:slug", BlogController, :show
+    get "/features", FeatureController, :index
+    get "/features/:slug", FeatureController, :show
+    get "/changelog", ChangelogController, :index
+    get "/changelog/feed.xml", ChangelogController, :feed
     get "/docs", DocsController, :index
     get "/docs/:category", DocsController, :category
     get "/docs/:category/:subcategory/:slug", DocsController, :subcategory_page

@@ -1,0 +1,34 @@
+<section class="section feature-hero">
+  <div class="container">
+    <div class="feature-hero-content reveal">
+      <h1>{gettext("Features")}</h1>
+      <p class="lead">
+        {gettext(
+          "Explore the capabilities that make Glossia the content agent for your codebase. Each feature is designed to fit into your existing workflow."
+        )}
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="feature-index-grid">
+      <a
+        :for={page <- @pages}
+        href={~p"/features/#{page.slug}"}
+        class="card feature-index-card reveal"
+        data-interactive
+      >
+        <div class="feature-index-card-icon">
+          {GlossiaWeb.FeatureHTML.feature_icon(page.icon, 24)}
+        </div>
+        <h2>{page.title}</h2>
+        <p>{page.summary}</p>
+        <span class="feature-index-card-arrow">
+          {GlossiaWeb.FeatureHTML.feature_icon("arrow-right", 16)}
+        </span>
+      </a>
+    </div>
+  </div>
+</section>

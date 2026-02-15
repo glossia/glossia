@@ -1,0 +1,28 @@
+<section class="section changelog-hero">
+  <div class="container">
+    <h1>{gettext("Changelog")}</h1>
+    <p class="lead">{gettext("New updates and improvements to Glossia.")}</p>
+  </div>
+</section>
+
+<section class="section changelog-listing">
+  <div class="container">
+    <div class="changelog-timeline">
+      <article :for={entry <- @entries} id={entry.slug} class="changelog-entry">
+        <div class="changelog-date">
+          <time datetime={Date.to_iso8601(entry.date)}>
+            {GlossiaWeb.ChangelogHTML.format_date(entry.date)}
+          </time>
+        </div>
+        <div class="changelog-content">
+          <h2>
+            <a href={"##{entry.slug}"} class="changelog-anchor">{entry.title}</a>
+          </h2>
+          <div class="prose">
+            {Phoenix.HTML.raw(entry.body)}
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

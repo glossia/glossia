@@ -4,8 +4,10 @@
       <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" /> Glossia
     </a>
     <nav class="nav-links">
+      <a href="/features">{gettext("Features")}</a>
       <a href="/docs">{gettext("Docs")}</a>
       <a href="/blog">{gettext("Blog")}</a>
+      <a href="/changelog">{gettext("Changelog")}</a>
       <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
         <div class="avatar-dropdown">
           <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
@@ -66,8 +68,10 @@
 <.flash_group :if={assigns[:flash]} flash={@flash} />
 
 <nav class="mobile-menu" aria-label="Mobile navigation">
+  <a href="/features">{gettext("Features")}</a>
   <a href="/docs">{gettext("Docs")}</a>
   <a href="/blog">{gettext("Blog")}</a>
+  <a href="/changelog">{gettext("Changelog")}</a>
   <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
     <a href="/dashboard">{gettext("Dashboard")}</a>
     <a href="/auth/logout" data-method="delete">{gettext("Log out")}</a>
@@ -128,6 +132,13 @@
         <li><a href="/terms">{gettext("Terms of Service")}</a></li>
         <li><a href="/privacy">{gettext("Privacy Policy")}</a></li>
         <li><a href="/cookies">{gettext("Cookie Policy")}</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>{gettext("Feeds")}</h4>
+      <ul class="legal-links">
+        <li><a href={~p"/blog/feed.xml"}>{gettext("Blog RSS")}</a></li>
+        <li><a href={~p"/changelog/feed.xml"}>{gettext("Changelog RSS")}</a></li>
       </ul>
     </div>
     <div>
