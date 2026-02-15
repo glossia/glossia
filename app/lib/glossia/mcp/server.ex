@@ -20,4 +20,8 @@ defmodule Glossia.MCP.Server do
   component(Glossia.MCP.SaveVoiceTool, name: "save_voice")
   component(Glossia.MCP.GetGlossaryTool, name: "get_glossary")
   component(Glossia.MCP.SaveGlossaryTool, name: "save_glossary")
+  component(Glossia.MCP.ListTokensTool, name: "list_tokens")
+  component(Glossia.MCP.CreateTokenTool, name: "create_token")
+  component(Glossia.MCP.RevokeTokenTool, name: "revoke_token")
+  component(Glossia.MCP.ListOAuthAppsTool, name: "list_oauth_apps")
 end

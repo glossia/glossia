@@ -7,7 +7,7 @@
   hero_cta_url: "/interest",
   highlights: [
     %{title: "Versioned and auditable", description: "Every change to your voice or glossary creates a new immutable version. You can review the history, compare iterations, and roll back if something drifts.", icon: "git-branch"},
-    %{title: "Beyond localization", description: "Language memory is not just for translation. Use it to generate marketing copy, draft documentation, review pull requests, or craft social posts, all in your organization's voice.", icon: "megaphone"},
+    %{title: "Beyond localization", description: "Language memory is not just for localization. Use it to generate marketing copy, draft documentation, review pull requests, or craft social posts, all in your organization's voice.", icon: "megaphone"},
     %{title: "Open and extensible", description: "Access language memory through the REST API or MCP server. Feed it into your own CI pipelines, content tools, or custom agents to maintain consistency everywhere you write.", icon: "puzzle"}
   ]
 }
@@ -19,7 +19,7 @@ Language memory is the accumulated context that tells Glossia's agents how your 
 
 **Voice** defines how content should sound. Tone, formality, target audience, and freeform guidelines all live here. You can set a base voice for your account and then override specific fields for individual locales, so your Japanese copy can be more formal while your English stays conversational.
 
-**Glossary** defines what terms mean and how they should be translated. Each entry carries a definition and per-locale translations. When an agent encounters "workspace" in your source content, the glossary tells it whether to translate, transliterate, or leave it untouched, and exactly which word to use in each target language.
+**Glossary** defines what terms mean and how they should be localized. Each entry carries a definition and per-locale translations. When an agent encounters "workspace" in your source content, the glossary tells it whether to localize, transliterate, or leave it untouched, and exactly which word to use in each target language.
 
 Together, voice and glossary form a context layer that agents consult on every run. The more you invest in this layer, the less review your output needs.
 
@@ -33,13 +33,13 @@ Versioning also makes collaboration safer. Multiple team members can propose voi
 
 ## Locale-aware resolution
 
-When an agent runs a workflow for a specific locale, Glossia resolves the language memory for that context. It starts with your base voice settings and then applies any locale-specific overrides on top. The same happens with glossaries: only entries that have a translation for the target locale are included.
+When an agent runs a workflow for a specific locale, Glossia resolves the language memory for that context. It starts with your base voice settings and then applies any locale-specific overrides on top. The same happens with glossaries: only entries that have a localized term for the target locale are included.
 
 This resolution step means agents always work with the most relevant context. You do not need to maintain separate configurations per language. Define your defaults once, override where it matters, and let the resolution system handle the rest.
 
 ## Use it everywhere
 
-Language memory was designed for translation, but it is useful anywhere you produce text. Because the context is accessible through the [REST API](/features/rest-api) and the [MCP server](/features/mcp-server), you can integrate it into workflows that have nothing to do with localization:
+Language memory was designed for localization, but it is useful anywhere you produce text. Because the context is accessible through the [REST API](/features/rest-api) and the [MCP server](/features/mcp-server), you can integrate it into workflows beyond localization:
 
 **Marketing and social content** -- Pull your organization's voice into a content agent that drafts social media posts, email campaigns, or landing page copy. The glossary keeps brand terms consistent and the voice settings ensure the tone matches your brand.
 

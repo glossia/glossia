@@ -19,6 +19,11 @@ defmodule Glossia.Application do
            count: 1,
            conn_opts: [transport_opts: [timeout: 60_000]]
          ],
+         "https://app.daytona.io" => [
+           size: 5,
+           count: 1,
+           conn_opts: [transport_opts: [timeout: 30_000]]
+         ],
          :default => [size: 10, count: 1]
        }},
       Glossia.PromEx,
@@ -39,6 +44,12 @@ defmodule Glossia.Application do
           {Hermes.Server.Supervisor, :start_link,
            [Glossia.MCP.Server, [transport: :streamable_http]]}
       },
+      %{
+        id: Glossia.Admin.MCP.Server,
+        start:
+          {Hermes.Server.Supervisor, :start_link,
+           [Glossia.Admin.MCP.Server, [transport: :streamable_http]]}
+      },
       {Glossia.Ingestion.Buffer,
        [name: Glossia.Ingestion.EventBuffer] ++
          (Glossia.Ingestion.Event.buffer_opts()
@@ -47,6 +58,13 @@ defmodule Glossia.Application do
       # Start to serve requests, typically the last entry
       GlossiaWeb.Endpoint
     ]
+
+    children =
+      if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
+        List.insert_at(children, -2, ChromicPDF)
+      else
+        children
+      end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

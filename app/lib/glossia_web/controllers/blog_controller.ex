@@ -2,18 +2,40 @@ defmodule GlossiaWeb.BlogController do
   use GlossiaWeb, :controller
 
   alias Glossia.Blog
+  alias Glossia.OgImage
 
   def index(conn, _params) do
     posts = Blog.all_posts()
-    render(conn, :index, posts: posts, page_title: gettext("Blog"))
+
+    og_attrs = %{
+      title: "Blog",
+      description: "Updates from the Glossia team",
+      category: "blog"
+    }
+
+    render(conn, :index,
+      posts: posts,
+      page_title: gettext("Blog"),
+      og_image_url: OgImage.marketing_url(og_attrs)
+    )
   end
 
   def show(conn, %{"slug" => slug}) do
     post = Blog.get_post_by_slug!(slug)
 
+    og_attrs = %{
+      title: post.title,
+      description: post.summary,
+      category: "blog"
+    }
+
     conn
     |> assign(:author, post.author)
-    |> render(:show, post: post, page_title: post.title)
+    |> render(:show,
+      post: post,
+      page_title: post.title,
+      og_image_url: OgImage.marketing_url(og_attrs)
+    )
   end
 
   def feed(conn, _params) do

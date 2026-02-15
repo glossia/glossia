@@ -11,6 +11,7 @@ defmodule GlossiaWeb.DashboardHooks do
   import Phoenix.Component, only: [assign: 3]
 
   alias Glossia.Accounts
+  alias Glossia.OgImage
 
   def on_mount(:load_user, _params, session, socket) do
     user =
@@ -19,7 +20,10 @@ defmodule GlossiaWeb.DashboardHooks do
         user_id -> Accounts.get_user(user_id)
       end
 
-    {:cont, assign(socket, :current_user, user)}
+    {:cont,
+     socket
+     |> assign(:current_user, user)
+     |> assign(:impersonating_from, session["impersonating_from"])}
   end
 
   def on_mount(:load_account, params, _session, socket) do
@@ -40,11 +44,23 @@ defmodule GlossiaWeb.DashboardHooks do
               []
             end
 
+          og_image_url =
+            if account.visibility == "public" do
+              og_attrs = %{
+                title: account.handle,
+                description: account.handle,
+                category: "account"
+              }
+
+              OgImage.account_url(handle, og_attrs)
+            end
+
           {:cont,
            socket
            |> assign(:account, account)
            |> assign(:handle, handle)
-           |> assign(:accounts, accounts)}
+           |> assign(:accounts, accounts)
+           |> assign(:og_image_url, og_image_url)}
         else
           if user do
             raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account

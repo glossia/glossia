@@ -2,10 +2,22 @@ defmodule GlossiaWeb.DocsController do
   use GlossiaWeb, :controller
 
   alias Glossia.Docs
+  alias Glossia.OgImage
 
   def index(conn, _params) do
     categories = Docs.categories()
-    render(conn, :index, categories: categories, page_title: gettext("Documentation"))
+
+    og_attrs = %{
+      title: "Documentation",
+      description: "Glossia documentation and guides",
+      category: "docs"
+    }
+
+    render(conn, :index,
+      categories: categories,
+      page_title: gettext("Documentation"),
+      og_image_url: OgImage.marketing_url(og_attrs)
+    )
   end
 
   def category(conn, %{"category" => category}) do
@@ -59,13 +71,16 @@ defmodule GlossiaWeb.DocsController do
       categories = Docs.categories()
       sidebar = build_sidebar(category)
 
+      og_attrs = %{title: page.title, description: page.summary || "", category: "docs"}
+
       render(conn, :show,
         page: page,
         categories: categories,
         sidebar: sidebar,
         current_category: category,
         current_slug: slug,
-        page_title: page.title
+        page_title: page.title,
+        og_image_url: OgImage.marketing_url(og_attrs)
       )
     end
   end

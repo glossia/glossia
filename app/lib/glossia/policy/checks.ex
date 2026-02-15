@@ -12,6 +12,12 @@ defmodule Glossia.Policy.Checks do
   def authenticated(_, _object), do: false
 
   @doc """
+  Subject is a super admin.
+  """
+  def super_admin(%User{super_admin: true}, _object), do: true
+  def super_admin(_, _object), do: false
+
+  @doc """
   Authorization for collection endpoints (no object).
   """
   def collection(_subject, nil), do: true

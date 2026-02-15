@@ -7,6 +7,7 @@ defmodule Glossia.Accounts.User do
     field :name, :string
     field :avatar_url, :string
     field :has_access, :boolean, default: false
+    field :super_admin, :boolean, default: false
 
     belongs_to :account, Glossia.Accounts.Account
     has_many :identities, Glossia.Accounts.Identity

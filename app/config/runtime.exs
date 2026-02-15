@@ -79,6 +79,12 @@ if is_binary(minimax_api_key) and minimax_api_key != "" do
   config :glossia, Glossia.Minimax, api_key: minimax_api_key
 end
 
+daytona_api_key = System.get_env("DAYTONA_API_KEY")
+
+if is_binary(daytona_api_key) and daytona_api_key != "" do
+  config :glossia, Glossia.Daytona, api_key: daytona_api_key
+end
+
 s3_access_key = System.get_env("S3_ACCESS_KEY_ID")
 s3_secret_key = System.get_env("S3_SECRET_ACCESS_KEY")
 s3_endpoint = System.get_env("S3_ENDPOINT")

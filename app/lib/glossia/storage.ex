@@ -20,6 +20,17 @@ defmodule Glossia.Storage do
   end
 
   @doc """
+  Checks whether the object at the given path exists in the configured bucket.
+
+  Returns `{:ok, headers}` if the object exists, `{:error, reason}` otherwise.
+  """
+  def head(path) do
+    bucket()
+    |> ExAws.S3.head_object(path)
+    |> ExAws.request()
+  end
+
+  @doc """
   Downloads the object at the given path from the configured bucket.
 
   Returns `{:ok, %{body: binary}}` on success.

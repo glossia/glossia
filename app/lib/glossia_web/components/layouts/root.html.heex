@@ -8,8 +8,11 @@
       {assigns[:page_title]}
     </.live_title>
     <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
-    <meta property="og:image" content={~p"/images/logo-squared.jpg"} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={assigns[:og_image_url] || ~p"/images/logo-squared.jpg"} />
+    <meta
+      name="twitter:card"
+      content={if(assigns[:og_image_url], do: "summary_large_image", else: "summary")}
+    />
     <meta name="twitter:site" content="@glossiaai" />
     <meta name="twitter:title" content={assigns[:page_title] || "Glossia"} />
     <meta
@@ -18,7 +21,7 @@
         assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
       }
     />
-    <meta name="twitter:image" content={~p"/images/logo-squared.jpg"} />
+    <meta name="twitter:image" content={assigns[:og_image_url] || ~p"/images/logo-squared.jpg"} />
     <link
       rel="alternate"
       type="application/rss+xml"

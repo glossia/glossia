@@ -38,6 +38,10 @@ defmodule GlossiaWeb.Router do
     plug :put_layout, html: {GlossiaWeb.Layouts, :dashboard}
   end
 
+  pipeline :admin do
+    plug :put_layout, html: {GlossiaWeb.Layouts, :admin}
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -124,6 +128,14 @@ defmodule GlossiaWeb.Router do
     get "/oauth-protected-resource", WellKnownController, :oauth_protected_resource
   end
 
+  scope "/og", GlossiaWeb do
+    pipe_through :api
+
+    get "/marketing/:category/:hash", OgImageController, :marketing
+    get "/app/:handle/:hash", OgImageController, :account
+    get "/app/:handle/:project/:hash", OgImageController, :project
+  end
+
   scope "/docs", GlossiaWeb do
     pipe_through :api
 
@@ -201,6 +213,17 @@ defmodule GlossiaWeb.Router do
            OrganizationApiController,
            :revoke_invitation
 
+    get "/:handle/tokens", TokenApiController, :index
+    post "/:handle/tokens", TokenApiController, :create
+    delete "/:handle/tokens/:id", TokenApiController, :revoke
+
+    get "/:handle/oauth-apps", OAuthAppApiController, :index
+    post "/:handle/oauth-apps", OAuthAppApiController, :create
+    get "/:handle/oauth-apps/:id", OAuthAppApiController, :show
+    patch "/:handle/oauth-apps/:id", OAuthAppApiController, :update
+    delete "/:handle/oauth-apps/:id", OAuthAppApiController, :delete
+    post "/:handle/oauth-apps/:id/regenerate-secret", OAuthAppApiController, :regenerate_secret
+
     get "/:handle/projects", ProjectApiController, :index
     get "/:handle/voice", VoiceApiController, :show
     post "/:handle/voice", VoiceApiController, :create
@@ -220,6 +243,48 @@ defmodule GlossiaWeb.Router do
     ]
 
     forward "/", Hermes.Server.Transport.StreamableHTTP.Plug, server: Glossia.MCP.Server
+  end
+
+  # Admin MCP server (super admin only)
+  scope "/admin/mcp" do
+    pipe_through [
+      :api,
+      GlossiaWeb.Plugs.BearerAuth,
+      GlossiaWeb.Plugs.RequireApiAuth,
+      GlossiaWeb.Plugs.RequireSuperAdminApi
+    ]
+
+    forward "/", Hermes.Server.Transport.StreamableHTTP.Plug, server: Glossia.Admin.MCP.Server
+  end
+
+  # Super admin impersonation (requires browser auth + super admin)
+  scope "/admin", GlossiaWeb.Admin do
+    pipe_through [:browser, :require_auth, :require_super_admin]
+
+    post "/impersonate", ImpersonationController, :create
+    delete "/impersonate", ImpersonationController, :delete
+  end
+
+  pipeline :require_super_admin do
+    plug GlossiaWeb.Plugs.RequireSuperAdmin
+  end
+
+  # Super admin area (access controlled by on_mount hooks)
+  scope "/admin", GlossiaWeb.Admin do
+    pipe_through [:browser, :admin]
+
+    live_session :admin,
+      layout: {GlossiaWeb.Layouts, :admin},
+      on_mount: [
+        {GlossiaWeb.AdminHooks, :load_user},
+        {GlossiaWeb.AdminHooks, :require_super_admin}
+      ] do
+      live "/", AdminLive, :home
+      live "/users", AdminLive, :users
+      live "/accounts", AdminLive, :accounts
+      live "/tickets", AdminLive, :tickets
+      live "/tickets/:ticket_id", AdminLive, :ticket_show
+    end
   end
 
   # Authenticated dashboard redirect
@@ -255,6 +320,15 @@ defmodule GlossiaWeb.Router do
       live "/:handle/glossary", DashboardLive, :glossary
       live "/:handle/glossary/:version", DashboardLive, :glossary_version
       live "/:handle/members", DashboardLive, :members
+      live "/:handle/api/tokens", DashboardLive, :api_tokens
+      live "/:handle/api/tokens/new", DashboardLive, :api_tokens_new
+      live "/:handle/api/tokens/:token_id", DashboardLive, :api_token_edit
+      live "/:handle/api/apps", DashboardLive, :api_apps
+      live "/:handle/api/apps/new", DashboardLive, :api_apps_new
+      live "/:handle/api/apps/:app_id", DashboardLive, :api_app_edit
+      live "/:handle/tickets", DashboardLive, :tickets
+      live "/:handle/tickets/new", DashboardLive, :ticket_new
+      live "/:handle/tickets/:ticket_id", DashboardLive, :ticket_show
       live "/:handle", DashboardLive, :account
       live "/:handle/:project", DashboardLive, :project
     end

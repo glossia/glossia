@@ -6,8 +6,10 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Accounts
   alias Glossia.Auditing
   alias Glossia.ChangeSummary
+  alias Glossia.DeveloperTokens
   alias Glossia.Glossaries
   alias Glossia.Organizations
+  alias Glossia.Support
   alias Glossia.Voices
 
   @tone_options ~w(casual formal playful authoritative neutral)
@@ -179,8 +181,206 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp apply_action(socket, :api_tokens, params) do
+    require_admin!(socket)
+    account = socket.assigns.account
+
+    sort_key = Map.get(params, "tsort", "name")
+    sort_dir = Map.get(params, "tdir", "asc")
+
+    flop_params = %{
+      "order_by" => [sort_key],
+      "order_directions" => [sort_dir]
+    }
+
+    {:ok, {tokens, _meta}} = DeveloperTokens.list_personal_access_tokens(account, flop_params)
+    available_scopes = available_scopes()
+
+    assign(socket,
+      page_title: gettext("Account tokens"),
+      api_tokens: tokens,
+      available_scopes: available_scopes,
+      newly_created_token: nil,
+      tokens_sort_key: sort_key,
+      tokens_sort_dir: sort_dir
+    )
+  end
+
+  defp apply_action(socket, :api_tokens_new, _params) do
+    require_admin!(socket)
+
+    assign(socket,
+      page_title: gettext("New account token"),
+      available_scopes: available_scopes(),
+      token_form:
+        to_form(%{"name" => "", "description" => "", "scopes" => [], "expiration" => "90"},
+          as: :token
+        ),
+      newly_created_token: nil,
+      token_form_valid?: false
+    )
+  end
+
+  defp apply_action(socket, :api_token_edit, params) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    token = DeveloperTokens.get_personal_access_token!(params["token_id"], account.id)
+
+    assign(socket,
+      page_title: token.name,
+      editing_token: token,
+      token_edit_form:
+        to_form(
+          %{"name" => token.name, "description" => token.description || ""},
+          as: :token
+        ),
+      token_edit_changed?: false
+    )
+  end
+
+  defp apply_action(socket, :api_apps, params) do
+    require_admin!(socket)
+    account = socket.assigns.account
+
+    sort_key = Map.get(params, "asort", "name")
+    sort_dir = Map.get(params, "adir", "asc")
+
+    flop_params = %{
+      "order_by" => [sort_key],
+      "order_directions" => [sort_dir]
+    }
+
+    {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account, flop_params)
+
+    assign(socket,
+      page_title: gettext("OAuth Apps"),
+      oauth_apps: apps,
+      newly_created_secret: nil,
+      apps_sort_key: sort_key,
+      apps_sort_dir: sort_dir
+    )
+  end
+
+  defp apply_action(socket, :api_apps_new, _params) do
+    require_admin!(socket)
+
+    assign(socket,
+      page_title: gettext("New OAuth App"),
+      app_form:
+        to_form(%{"name" => "", "description" => "", "homepage_url" => "", "redirect_uris" => ""},
+          as: :app
+        ),
+      app_form_valid?: false
+    )
+  end
+
+  defp apply_action(socket, :api_app_edit, %{"app_id" => app_id}) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    app = DeveloperTokens.get_oauth_application!(app_id, account.id)
+    client = DeveloperTokens.get_boruta_client_for_app(app)
+
+    redirect_uris = Enum.join(client.redirect_uris || [], "\n")
+
+    assign(socket,
+      page_title: app.name,
+      oauth_app: app,
+      boruta_client: client,
+      app_form:
+        to_form(
+          %{
+            "name" => app.name,
+            "description" => app.description || "",
+            "homepage_url" => app.homepage_url || "",
+            "redirect_uris" => redirect_uris
+          },
+          as: :app
+        ),
+      app_edit_original: %{
+        "name" => app.name,
+        "description" => app.description || "",
+        "homepage_url" => app.homepage_url || "",
+        "redirect_uris" => redirect_uris
+      },
+      app_edit_changed?: false,
+      newly_regenerated_secret: nil
+    )
+  end
+
+  defp apply_action(socket, :tickets, params) do
+    account = socket.assigns.account
+
+    sort_key = Map.get(params, "ksort", "inserted_at")
+    sort_dir = Map.get(params, "kdir", "desc")
+    active_filters = extract_filters(params, "k")
+
+    flop_params =
+      %{
+        "order_by" => [sort_key],
+        "order_directions" => [sort_dir]
+      }
+      |> maybe_add_flop_filters(active_filters)
+
+    {:ok, {tickets, _meta}} = Support.list_tickets(account, flop_params)
+
+    assign(socket,
+      page_title: gettext("Tickets"),
+      tickets: tickets,
+      tickets_sort_key: sort_key,
+      tickets_sort_dir: sort_dir,
+      tickets_active_filters: active_filters
+    )
+  end
+
+  defp apply_action(socket, :ticket_new, _params) do
+    assign(socket,
+      page_title: gettext("New ticket"),
+      ticket_form: to_form(%{"title" => "", "description" => "", "type" => "issue"}, as: :ticket),
+      generating_title?: false,
+      title_manually_edited?: false,
+      ticket_title_generation: 0,
+      ticket_title_timer_ref: nil,
+      ticket_title_task_ref: nil
+    )
+  end
+
+  defp apply_action(socket, :ticket_show, %{"ticket_id" => ticket_id}) do
+    account = socket.assigns.account
+    ticket = Support.get_ticket!(ticket_id, account.id)
+
+    assign(socket,
+      page_title: ticket.title,
+      ticket: ticket,
+      message_form: to_form(%{"body" => ""}, as: :message)
+    )
+  end
+
   defp apply_action(socket, :project, %{"project" => project}) do
-    assign(socket, page_title: project, project_name: project)
+    og_image_url =
+      if socket.assigns.account.visibility == "public" do
+        og_attrs = %{
+          title: project,
+          description: socket.assigns.handle <> "/" <> project,
+          category: "project"
+        }
+
+        Glossia.OgImage.project_url(socket.assigns.handle, project, og_attrs)
+      end
+
+    assign(socket, page_title: project, project_name: project, og_image_url: og_image_url)
+  end
+
+  defp require_admin!(socket) do
+    unless socket.assigns.is_admin do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+    end
+  end
+
+  defp available_scopes do
+    Glossia.Policy.list_rules()
+    |> Enum.map(&"#{&1.object}:#{&1.action}")
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   # ---------------------------------------------------------------------------
@@ -496,8 +696,382 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
+  # API Token events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("validate_token", %{"token" => params}, socket) do
+    valid? = String.trim(params["name"] || "") != ""
+    {:noreply, assign(socket, token_form_valid?: valid?)}
+  end
+
+  def handle_event("validate_token_edit", %{"token" => params}, socket) do
+    token = socket.assigns.editing_token
+    name_changed = String.trim(params["name"] || "") != (token.name || "")
+    desc_changed = String.trim(params["description"] || "") != (token.description || "")
+    changed? = name_changed or desc_changed
+    {:noreply, assign(socket, token_edit_changed?: changed?)}
+  end
+
+  def handle_event("update_token", %{"token" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      token = socket.assigns.editing_token
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      attrs = %{
+        "name" => params["name"],
+        "description" => params["description"]
+      }
+
+      case DeveloperTokens.update_personal_access_token(token, attrs) do
+        {:ok, updated_token} ->
+          Auditing.record("token.updated", account, user,
+            resource_type: "personal_access_token",
+            resource_id: to_string(updated_token.id),
+            summary: "Updated personal access token \"#{updated_token.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Token updated."))
+           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/tokens")}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not update token."))}
+      end
+    end
+  end
+
+  def handle_event("create_token", %{"token" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      scopes = params["scopes"] || []
+      scope_string = Enum.join(scopes, " ")
+
+      expires_at =
+        case params["expiration"] do
+          "30" -> DateTime.add(DateTime.utc_now(), 30, :day)
+          "60" -> DateTime.add(DateTime.utc_now(), 60, :day)
+          "90" -> DateTime.add(DateTime.utc_now(), 90, :day)
+          "never" -> nil
+          _ -> DateTime.add(DateTime.utc_now(), 90, :day)
+        end
+
+      attrs = %{
+        "name" => params["name"],
+        "description" => params["description"],
+        "scope" => scope_string,
+        "expires_at" => expires_at
+      }
+
+      case DeveloperTokens.create_personal_access_token(account, user, attrs) do
+        {:ok, %{token: token, plain_token: plain_token}} ->
+          Auditing.record("token.created", account, user,
+            resource_type: "personal_access_token",
+            resource_id: to_string(token.id),
+            summary: "Created personal access token \"#{token.name}\""
+          )
+
+          {:ok, {tokens, _meta}} = DeveloperTokens.list_personal_access_tokens(account)
+
+          {:noreply,
+           socket
+           |> assign(api_tokens: tokens, newly_created_token: plain_token)
+           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/tokens")}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not create token."))}
+      end
+    end
+  end
+
+  def handle_event("revoke_token", %{"id" => token_id}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case DeveloperTokens.revoke_personal_access_token(token_id, account.id) do
+        {:ok, token} ->
+          Auditing.record("token.revoked", account, user,
+            resource_type: "personal_access_token",
+            resource_id: to_string(token.id),
+            summary: "Revoked personal access token \"#{token.name}\""
+          )
+
+          {:ok, {tokens, _meta}} = DeveloperTokens.list_personal_access_tokens(account)
+
+          {:noreply,
+           socket
+           |> assign(api_tokens: tokens)
+           |> put_flash(:info, gettext("Token revoked."))
+           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/tokens")}
+
+        {:error, :not_found} ->
+          {:noreply, put_flash(socket, :error, gettext("Token not found."))}
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # OAuth App events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("validate_oauth_app", %{"app" => params}, socket) do
+    valid? =
+      String.trim(params["name"] || "") != "" and
+        String.trim(params["redirect_uris"] || "") != ""
+
+    {:noreply, assign(socket, app_form_valid?: valid?)}
+  end
+
+  def handle_event("validate_oauth_app_edit", %{"app" => params}, socket) do
+    original = socket.assigns.app_edit_original
+
+    changed? =
+      String.trim(params["name"] || "") != String.trim(original["name"] || "") or
+        String.trim(params["description"] || "") != String.trim(original["description"] || "") or
+        String.trim(params["homepage_url"] || "") != String.trim(original["homepage_url"] || "") or
+        String.trim(params["redirect_uris"] || "") != String.trim(original["redirect_uris"] || "")
+
+    {:noreply, assign(socket, app_edit_changed?: changed?)}
+  end
+
+  def handle_event("create_oauth_app", %{"app" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case DeveloperTokens.create_oauth_application(account, user, params) do
+        {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
+          Auditing.record("oauth_app.created", account, user,
+            resource_type: "oauth_application",
+            resource_id: to_string(app.id),
+            summary: "Created OAuth application \"#{app.name}\""
+          )
+
+          {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account)
+
+          {:noreply,
+           socket
+           |> assign(
+             oauth_apps: apps,
+             newly_created_secret: %{client_id: client_id, client_secret: client_secret}
+           )
+           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/apps")}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not create application."))}
+      end
+    end
+  end
+
+  def handle_event("update_oauth_app", %{"app" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      app = socket.assigns.oauth_app
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case DeveloperTokens.update_oauth_application(app, params) do
+        {:ok, updated_app} ->
+          Auditing.record("oauth_app.updated", account, user,
+            resource_type: "oauth_application",
+            resource_id: to_string(app.id),
+            summary: "Updated OAuth application \"#{updated_app.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Application updated."))
+           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/apps/" <> app.id)}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not update application."))}
+      end
+    end
+  end
+
+  def handle_event("regenerate_secret", %{"id" => app_id}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      app = DeveloperTokens.get_oauth_application!(app_id, account.id)
+
+      case DeveloperTokens.regenerate_oauth_application_secret(app) do
+        {:ok, %{client_secret: secret}} ->
+          Auditing.record("oauth_app.secret_regenerated", account, user,
+            resource_type: "oauth_application",
+            resource_id: to_string(app.id),
+            summary: "Regenerated client secret for \"#{app.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> assign(newly_regenerated_secret: secret)
+           |> put_flash(:info, gettext("Client secret regenerated."))}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not regenerate secret."))}
+      end
+    end
+  end
+
+  def handle_event("delete_oauth_app", %{"id" => app_id}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      app = DeveloperTokens.get_oauth_application!(app_id, account.id)
+
+      case DeveloperTokens.delete_oauth_application(app) do
+        :ok ->
+          Auditing.record("oauth_app.deleted", account, user,
+            resource_type: "oauth_application",
+            resource_id: to_string(app.id),
+            summary: "Deleted OAuth application \"#{app.name}\""
+          )
+
+          {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account)
+
+          {:noreply,
+           socket
+           |> assign(oauth_apps: apps)
+           |> put_flash(:info, gettext("Application deleted."))
+           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/apps")}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not delete application."))}
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Ticket events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("ticket_validate", %{"_target" => target, "ticket" => params}, socket) do
+    description = params["description"] || ""
+    title = params["title"] || ""
+
+    title_manually_edited? =
+      cond do
+        target == ["ticket", "title"] and title != "" -> true
+        target == ["ticket", "title"] -> false
+        true -> socket.assigns[:title_manually_edited?] || false
+      end
+
+    socket =
+      if String.length(description) >= 20 and not title_manually_edited? do
+        schedule_title_generation(socket, description)
+      else
+        cancel_title_generation(socket)
+      end
+
+    {:noreply,
+     assign(socket,
+       title_manually_edited?: title_manually_edited?,
+       ticket_form:
+         to_form(
+           %{
+             "title" => title,
+             "description" => description,
+             "type" => params["type"] || "issue"
+           },
+           as: :ticket
+         )
+     )}
+  end
+
+  def handle_event("create_ticket", %{"ticket" => params}, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+
+    case Support.create_ticket(account, user, params) do
+      {:ok, ticket} ->
+        Auditing.record("ticket.created", account, user,
+          resource_type: "ticket",
+          resource_id: to_string(ticket.id),
+          summary: "Created ticket \"#{ticket.title}\""
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Ticket created."))
+         |> push_patch(to: "/" <> socket.assigns.handle <> "/tickets/" <> ticket.id)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, ticket_form: to_form(changeset, as: :ticket))}
+    end
+  end
+
+  def handle_event("add_ticket_message", %{"message" => params}, socket) do
+    ticket = socket.assigns.ticket
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    case Support.add_message(ticket, user, params) do
+      {:ok, _message} ->
+        Auditing.record("ticket.replied", account, user,
+          resource_type: "ticket",
+          resource_id: to_string(ticket.id),
+          summary: "Replied to ticket \"#{ticket.title}\""
+        )
+
+        ticket = Support.get_ticket!(ticket.id, account.id)
+
+        {:noreply,
+         socket
+         |> assign(ticket: ticket, message_form: to_form(%{"body" => ""}, as: :message))}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not send message."))}
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # LLM-generated change summary (throttled async)
   # ---------------------------------------------------------------------------
+
+  def handle_info({:generate_ticket_title, generation}, socket) do
+    if generation != socket.assigns[:ticket_title_generation] do
+      {:noreply, socket}
+    else
+      account = socket.assigns.account
+      description = socket.assigns[:ticket_description_for_title] || ""
+
+      case Glossia.RateLimiter.hit("ai:title:#{account.id}", :timer.minutes(1), 10) do
+        {:allow, _count} ->
+          messages = [
+            %{
+              role: :system,
+              content:
+                "You are a support ticket assistant. Given a user's description of an issue or feature request, generate a clear, concise title (under 80 characters). Only output the title, nothing else."
+            },
+            %{role: :user, content: description}
+          ]
+
+          task = Task.async(fn -> Glossia.Minimax.chat(messages, max_tokens: 1024) end)
+          {:noreply, assign(socket, generating_title?: true, ticket_title_task_ref: task.ref)}
+
+        {:deny, _retry_after} ->
+          {:noreply, socket}
+      end
+    end
+  end
 
   def handle_info({:generate_summary, context, generation}, socket) do
     if generation != socket.assigns.summary_generation do
@@ -531,22 +1105,52 @@ defmodule GlossiaWeb.DashboardLive do
   def handle_info({ref, result}, socket) when is_reference(ref) do
     Process.demonitor(ref, [:flush])
 
-    if ref == socket.assigns[:summary_task_ref] do
-      case result do
-        {:ok, summary} ->
-          bar_id = save_bar_id(socket)
+    cond do
+      ref == socket.assigns[:summary_task_ref] ->
+        case result do
+          {:ok, summary} ->
+            bar_id = save_bar_id(socket)
 
-          {:noreply,
-           socket
-           |> assign(change_summary: summary, generating_summary?: false, summary_task_ref: nil)
-           |> push_event("summary_generated:#{bar_id}", %{summary: summary})}
+            {:noreply,
+             socket
+             |> assign(
+               change_summary: summary,
+               generating_summary?: false,
+               summary_task_ref: nil
+             )
+             |> push_event("summary_generated:#{bar_id}", %{summary: summary})}
 
-        {:error, _reason} ->
-          {:noreply, assign(socket, generating_summary?: false, summary_task_ref: nil)}
-      end
-    else
-      # Stale task result -- ignore
-      {:noreply, socket}
+          {:error, _reason} ->
+            {:noreply, assign(socket, generating_summary?: false, summary_task_ref: nil)}
+        end
+
+      ref == socket.assigns[:ticket_title_task_ref] ->
+        case result do
+          {:ok, %{content: title}} when is_binary(title) and title != "" ->
+            title = String.trim(title)
+            form = socket.assigns.ticket_form
+            description = form[:description].value || ""
+            type = form[:type].value || "issue"
+
+            {:noreply,
+             socket
+             |> assign(
+               generating_title?: false,
+               ticket_title_task_ref: nil,
+               ticket_form:
+                 to_form(
+                   %{"title" => title, "description" => description, "type" => type},
+                   as: :ticket
+                 )
+             )
+             |> push_event("title_generated", %{title: title})}
+
+          _other ->
+            {:noreply, assign(socket, generating_title?: false, ticket_title_task_ref: nil)}
+        end
+
+      true ->
+        {:noreply, socket}
     end
   end
 
@@ -582,6 +1186,8 @@ defmodule GlossiaWeb.DashboardLive do
           handle={@handle}
           can_write={@can_write}
           changed?={@changed?}
+          change_summary={@change_summary}
+          generating_summary?={@generating_summary?}
         />
       <% :voice_version -> %>
         <.voice_version_page voice={@voice} previous={@previous} handle={@handle} />
@@ -593,6 +1199,8 @@ defmodule GlossiaWeb.DashboardLive do
           handle={@handle}
           can_write={@can_write}
           glossary_changed?={@glossary_changed?}
+          change_summary={@change_summary}
+          generating_summary?={@generating_summary?}
         />
       <% :glossary_version -> %>
         <.glossary_version_page
@@ -619,6 +1227,50 @@ defmodule GlossiaWeb.DashboardLive do
           handle={@handle}
           can_write={@can_write}
           current_user={@current_user}
+        />
+      <% action when action in [:api_tokens, :api_tokens_new, :api_token_edit] -> %>
+        <.api_tokens_page
+          live_action={@live_action}
+          handle={@handle}
+          api_tokens={assigns[:api_tokens] || []}
+          available_scopes={assigns[:available_scopes] || []}
+          token_form={assigns[:token_form]}
+          newly_created_token={assigns[:newly_created_token]}
+          token_form_valid?={assigns[:token_form_valid?] || false}
+          tokens_sort_key={assigns[:tokens_sort_key] || "inserted_at"}
+          tokens_sort_dir={assigns[:tokens_sort_dir] || "desc"}
+          editing_token={assigns[:editing_token]}
+          token_edit_form={assigns[:token_edit_form]}
+          token_edit_changed?={assigns[:token_edit_changed?] || false}
+        />
+      <% action when action in [:api_apps, :api_apps_new, :api_app_edit] -> %>
+        <.api_apps_page
+          live_action={@live_action}
+          handle={@handle}
+          oauth_apps={assigns[:oauth_apps] || []}
+          oauth_app={assigns[:oauth_app]}
+          boruta_client={assigns[:boruta_client]}
+          app_form={assigns[:app_form]}
+          newly_created_secret={assigns[:newly_created_secret]}
+          newly_regenerated_secret={assigns[:newly_regenerated_secret]}
+          app_form_valid?={assigns[:app_form_valid?] || false}
+          app_edit_changed?={assigns[:app_edit_changed?] || false}
+          apps_sort_key={assigns[:apps_sort_key] || "inserted_at"}
+          apps_sort_dir={assigns[:apps_sort_dir] || "desc"}
+        />
+      <% action when action in [:tickets, :ticket_new, :ticket_show] -> %>
+        <.tickets_page
+          live_action={@live_action}
+          handle={@handle}
+          tickets={assigns[:tickets] || []}
+          ticket={assigns[:ticket]}
+          ticket_form={assigns[:ticket_form]}
+          message_form={assigns[:message_form]}
+          current_user={@current_user}
+          tickets_sort_key={assigns[:tickets_sort_key] || "inserted_at"}
+          tickets_sort_dir={assigns[:tickets_sort_dir] || "desc"}
+          tickets_active_filters={assigns[:tickets_active_filters] || %{}}
+          generating_title?={assigns[:generating_title?] || false}
         />
       <% :project -> %>
         <.project_page project_name={@project_name} />
@@ -1823,6 +2475,733 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
+  # Page: API Tokens
+  # ---------------------------------------------------------------------------
+
+  attr :live_action, :atom, required: true
+  attr :handle, :string, required: true
+  attr :api_tokens, :list, default: []
+  attr :available_scopes, :list, default: []
+  attr :token_form, :any, default: nil
+  attr :newly_created_token, :string, default: nil
+  attr :token_form_valid?, :boolean, default: false
+  attr :tokens_sort_key, :string, default: "inserted_at"
+  attr :tokens_sort_dir, :string, default: "desc"
+  attr :editing_token, :any, default: nil
+  attr :token_edit_form, :any, default: nil
+  attr :token_edit_changed?, :boolean, default: false
+
+  defp api_tokens_page(assigns) do
+    scope_groups =
+      assigns.available_scopes
+      |> Enum.group_by(fn scope -> scope |> String.split(":") |> List.first() end)
+      |> Enum.sort_by(&elem(&1, 0))
+
+    assigns = assign(assigns, :scope_groups, scope_groups)
+
+    ~H"""
+    <div class="dash-page">
+      <%= cond do %>
+        <% @live_action == :api_tokens_new -> %>
+          <.breadcrumb items={[
+            {gettext("Account tokens"), "/" <> @handle <> "/api/tokens"},
+            {gettext("New token"), "/" <> @handle <> "/api/tokens/new"}
+          ]} />
+          <.page_header title={gettext("New account token")} />
+
+          <.form
+            for={@token_form}
+            id="token-form"
+            phx-submit="create_token"
+            phx-change="validate_token"
+          >
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Token details")}</h2>
+                <p>{gettext("Give your token a descriptive name and select the scopes it needs.")}</p>
+              </div>
+              <div class="voice-card">
+                <div class="voice-card-fields">
+                  <div class="voice-field">
+                    <label for="token-name">{gettext("Name")}</label>
+                    <input
+                      type="text"
+                      id="token-name"
+                      name="token[name]"
+                      value={@token_form[:name].value}
+                      required
+                      placeholder={gettext("e.g. CI Pipeline Token")}
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="token-description">{gettext("Description")}</label>
+                    <input
+                      type="text"
+                      id="token-description"
+                      name="token[description]"
+                      value={@token_form[:description].value}
+                      placeholder={gettext("What is this token for?")}
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="token-expiration">{gettext("Expiration")}</label>
+                    <select id="token-expiration" name="token[expiration]">
+                      <option value="30">{gettext("30 days")}</option>
+                      <option value="60">{gettext("60 days")}</option>
+                      <option value="90" selected>{gettext("90 days")}</option>
+                      <option value="never">{gettext("No expiration")}</option>
+                    </select>
+                    <span class="voice-field-help">
+                      {gettext("Tokens with no expiration are a security risk.")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="voice-section-divider"></div>
+
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Scopes")}</h2>
+                <p>
+                  {gettext(
+                    "Select the permissions this token should have. Only grant the minimum scopes needed."
+                  )}
+                </p>
+              </div>
+              <div class="voice-card">
+                <div class="voice-card-fields">
+                  <%= for {group, scopes} <- @scope_groups do %>
+                    <div class="api-scope-group">
+                      <div class="api-scope-group-title">{group}</div>
+                      <div class="api-scope-grid">
+                        <%= for scope <- scopes do %>
+                          <label class="api-scope-item">
+                            <input type="checkbox" name="token[scopes][]" value={scope} />
+                            <span>{scope}</span>
+                          </label>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+            <.form_save_bar
+              id="token-save-bar"
+              visible={@token_form_valid?}
+              cancel_path={"/" <> @handle <> "/api/tokens"}
+            />
+          </.form>
+        <% @live_action == :api_token_edit -> %>
+          <.breadcrumb items={[
+            {gettext("Account tokens"), "/" <> @handle <> "/api/tokens"},
+            {@editing_token.name, "/" <> @handle <> "/api/tokens/" <> @editing_token.id}
+          ]} />
+          <.page_header title={@editing_token.name} />
+
+          <.form
+            for={@token_edit_form}
+            id="token-edit-form"
+            phx-submit="update_token"
+            phx-change="validate_token_edit"
+          >
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Token details")}</h2>
+              </div>
+              <div class="voice-card">
+                <div class="voice-card-fields">
+                  <div class="voice-field">
+                    <label for="edit-token-name">{gettext("Name")}</label>
+                    <input
+                      type="text"
+                      id="edit-token-name"
+                      name="token[name]"
+                      value={@token_edit_form[:name].value}
+                      required
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="edit-token-description">{gettext("Description")}</label>
+                    <input
+                      type="text"
+                      id="edit-token-description"
+                      name="token[description]"
+                      value={@token_edit_form[:description].value}
+                      placeholder={gettext("What is this token for?")}
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label>{gettext("Token prefix")}</label>
+                    <span class="muted">{@editing_token.token_prefix}...</span>
+                  </div>
+                  <div class="voice-field">
+                    <label>{gettext("Scopes")}</label>
+                    <div class="api-token-scopes">
+                      <%= for scope <- String.split(@editing_token.scope || "", " ", trim: true) do %>
+                        <span class="api-scope-badge">{scope}</span>
+                      <% end %>
+                      <%= if (@editing_token.scope || "") == "" do %>
+                        <span class="muted">{gettext("No scopes")}</span>
+                      <% end %>
+                    </div>
+                  </div>
+                  <div class="voice-field">
+                    <label>{gettext("Expires")}</label>
+                    <span>
+                      <%= if @editing_token.expires_at do %>
+                        {Calendar.strftime(@editing_token.expires_at, "%b %d, %Y")}
+                      <% else %>
+                        {gettext("Never")}
+                      <% end %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <.form_save_bar
+              id="token-edit-save-bar"
+              visible={@token_edit_changed?}
+              cancel_path={"/" <> @handle <> "/api/tokens"}
+            />
+          </.form>
+
+          <div class="voice-section-divider"></div>
+
+          <div class="api-action-section api-action-danger">
+            <div class="api-action-info">
+              <h2>{gettext("Revoke token")}</h2>
+              <p>
+                {gettext(
+                  "Revoking this token will immediately prevent any applications using it from accessing the API."
+                )}
+              </p>
+            </div>
+            <button
+              class="dash-btn dash-btn-danger"
+              phx-click="revoke_token"
+              phx-value-id={@editing_token.id}
+              data-confirm={
+                gettext(
+                  "Are you sure you want to revoke this token? Any applications using this token will no longer be able to access the API."
+                )
+              }
+            >
+              {gettext("Revoke token")}
+            </button>
+          </div>
+        <% true -> %>
+          <.page_header
+            title={gettext("Account tokens")}
+            description={
+              gettext("Tokens you have generated that can be used to access the Glossia API.")
+            }
+          >
+            <:actions>
+              <.link patch={"/" <> @handle <> "/api/tokens/new"} class="dash-btn dash-btn-primary">
+                {gettext("Generate new token")}
+              </.link>
+            </:actions>
+          </.page_header>
+
+          <%= if @newly_created_token do %>
+            <div class="api-token-reveal" id="token-reveal">
+              <p>
+                {gettext(
+                  "Make sure to copy your account token now. You will not be able to see it again."
+                )}
+              </p>
+              <div class="api-token-reveal-value">
+                <code id="token-value">{@newly_created_token}</code>
+                <button
+                  type="button"
+                  class="dash-btn dash-btn-secondary"
+                  phx-hook=".CopyToken"
+                  id="copy-token-btn"
+                  data-value={@newly_created_token}
+                >
+                  {gettext("Copy")}
+                </button>
+              </div>
+            </div>
+            <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyToken">
+              export default {
+                mounted() {
+                  this.el.addEventListener("click", () => {
+                    var value = this.el.getAttribute("data-value");
+                    var original = this.el.innerHTML;
+                    navigator.clipboard.writeText(value).then(() => {
+                      var svg = this.el.querySelector("svg");
+                      if (svg) {
+                        svg.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+                      } else {
+                        this.el.textContent = "Copied!";
+                      }
+                      setTimeout(() => { this.el.innerHTML = original; }, 1500);
+                    });
+                  });
+                }
+              }
+            </script>
+          <% end %>
+
+          <.resource_table
+            id="tokens-table"
+            rows={@api_tokens}
+            search=""
+            search_placeholder={gettext("Search tokens...")}
+            sort_key={@tokens_sort_key}
+            sort_dir={@tokens_sort_dir}
+          >
+            <:col :let={token} label={gettext("Name")} key="name" sortable>
+              <strong>{token.name}</strong>
+              <br />
+              <span class="mono" style="font-size: var(--text-xs); color: var(--color-text-muted);">
+                {token.token_prefix}...
+              </span>
+            </:col>
+            <:col :let={token} label={gettext("Scopes")} key="scopes">
+              <div class="api-token-scopes">
+                <%= for scope <- String.split(token.scope || "", " ", trim: true) |> Enum.take(3) do %>
+                  <span class="api-scope-badge">{scope}</span>
+                <% end %>
+                <%= if length(String.split(token.scope || "", " ", trim: true)) > 3 do %>
+                  <span class="api-scope-badge">
+                    +{length(String.split(token.scope || "", " ", trim: true)) - 3}
+                  </span>
+                <% end %>
+              </div>
+            </:col>
+            <:col :let={token} label={gettext("Last used")} key="last_used_at" sortable>
+              <%= if token.last_used_at do %>
+                <time datetime={DateTime.to_iso8601(token.last_used_at)}>
+                  {Calendar.strftime(token.last_used_at, "%b %d, %Y")}
+                </time>
+              <% else %>
+                <span class="muted">{gettext("Never")}</span>
+              <% end %>
+            </:col>
+            <:col :let={token} label={gettext("Expires")} key="expires_at" sortable>
+              <%= if token.expires_at do %>
+                <time datetime={DateTime.to_iso8601(token.expires_at)}>
+                  {Calendar.strftime(token.expires_at, "%b %d, %Y")}
+                </time>
+              <% else %>
+                <span>{gettext("Never")}</span>
+              <% end %>
+            </:col>
+            <:action :let={token}>
+              <.link patch={"/" <> @handle <> "/api/tokens/" <> token.id} class="voice-link-btn">
+                {gettext("Edit")}
+              </.link>
+              <button
+                class="voice-link-btn voice-link-btn-danger"
+                phx-click="revoke_token"
+                phx-value-id={token.id}
+                data-confirm={
+                  gettext(
+                    "Are you sure you want to revoke this token? Any applications using this token will no longer be able to access the API."
+                  )
+                }
+              >
+                {gettext("Revoke")}
+              </button>
+            </:action>
+            <:empty>
+              <div class="dash-empty-state">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" />
+                  <path d="m21 2-9.6 9.6" />
+                  <circle cx="7.5" cy="15.5" r="5.5" />
+                </svg>
+                <h2>{gettext("No tokens yet")}</h2>
+                <p>{gettext("Account tokens allow you to authenticate with the Glossia API.")}</p>
+              </div>
+            </:empty>
+          </.resource_table>
+      <% end %>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Page: OAuth Applications
+  # ---------------------------------------------------------------------------
+
+  attr :live_action, :atom, required: true
+  attr :handle, :string, required: true
+  attr :oauth_apps, :list, default: []
+  attr :oauth_app, :any, default: nil
+  attr :boruta_client, :any, default: nil
+  attr :app_form, :any, default: nil
+  attr :newly_created_secret, :any, default: nil
+  attr :newly_regenerated_secret, :string, default: nil
+  attr :app_form_valid?, :boolean, default: false
+  attr :app_edit_changed?, :boolean, default: false
+  attr :apps_sort_key, :string, default: "inserted_at"
+  attr :apps_sort_dir, :string, default: "desc"
+
+  defp api_apps_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <%= cond do %>
+        <% @live_action == :api_apps_new -> %>
+          <.breadcrumb items={[
+            {gettext("OAuth apps"), "/" <> @handle <> "/api/apps"},
+            {gettext("New application"), "/" <> @handle <> "/api/apps/new"}
+          ]} />
+          <.page_header title={gettext("Register a new OAuth application")} />
+
+          <.form
+            for={@app_form}
+            id="oauth-app-form"
+            phx-submit="create_oauth_app"
+            phx-change="validate_oauth_app"
+          >
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Application details")}</h2>
+                <p>
+                  {gettext(
+                    "Register an OAuth application to allow users to sign in with Glossia or to let external services access your account."
+                  )}
+                </p>
+              </div>
+              <div class="voice-card">
+                <div class="voice-card-fields">
+                  <div class="voice-field">
+                    <label for="app-name">{gettext("Application name")}</label>
+                    <input
+                      type="text"
+                      id="app-name"
+                      name="app[name]"
+                      value={@app_form[:name].value}
+                      required
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="app-description">{gettext("Description")}</label>
+                    <textarea
+                      id="app-description"
+                      name="app[description]"
+                      rows="3"
+                    >{@app_form[:description].value}</textarea>
+                  </div>
+                  <div class="voice-field">
+                    <label for="app-homepage">{gettext("Homepage URL")}</label>
+                    <input
+                      type="url"
+                      id="app-homepage"
+                      name="app[homepage_url]"
+                      value={@app_form[:homepage_url].value}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="app-redirect">{gettext("Authorization callback URL")}</label>
+                    <input
+                      type="url"
+                      id="app-redirect"
+                      name="app[redirect_uris]"
+                      value={@app_form[:redirect_uris].value}
+                      required
+                      placeholder="https://example.com/callback"
+                    />
+                    <span class="voice-field-help">
+                      {gettext("The URL where users will be redirected after authorization.")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <.form_save_bar
+              id="oauth-app-save-bar"
+              visible={@app_form_valid?}
+              cancel_path={"/" <> @handle <> "/api/apps"}
+            />
+          </.form>
+        <% @live_action == :api_app_edit -> %>
+          <.breadcrumb items={[
+            {gettext("OAuth apps"), "/" <> @handle <> "/api/apps"},
+            {@oauth_app.name, "/" <> @handle <> "/api/apps/" <> @oauth_app.id}
+          ]} />
+          <.page_header title={@oauth_app.name} />
+
+          <%= if @newly_regenerated_secret do %>
+            <div class="api-token-reveal" id="secret-reveal">
+              <p>
+                {gettext(
+                  "Make sure to copy your new client secret now. You will not be able to see it again."
+                )}
+              </p>
+              <div class="api-token-reveal-value">
+                <code>{@newly_regenerated_secret}</code>
+                <button
+                  type="button"
+                  class="dash-btn dash-btn-secondary"
+                  phx-hook=".CopyToken"
+                  id="copy-secret-btn"
+                  data-value={@newly_regenerated_secret}
+                >
+                  {gettext("Copy")}
+                </button>
+              </div>
+            </div>
+          <% end %>
+
+          <.form
+            for={@app_form}
+            id="oauth-app-edit-form"
+            phx-submit="update_oauth_app"
+            phx-change="validate_oauth_app_edit"
+          >
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Application details")}</h2>
+              </div>
+              <div class="voice-card">
+                <div class="voice-card-fields">
+                  <div class="voice-field">
+                    <label>{gettext("Client ID")}</label>
+                    <div class="api-credential-field">
+                      <span>{@boruta_client.id}</span>
+                      <button
+                        type="button"
+                        class="api-copy-btn"
+                        phx-hook=".CopyToken"
+                        id="copy-client-id-btn"
+                        data-value={@boruta_client.id}
+                        title={gettext("Copy to clipboard")}
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="voice-field">
+                    <label for="edit-app-name">{gettext("Application name")}</label>
+                    <input
+                      type="text"
+                      id="edit-app-name"
+                      name="app[name]"
+                      value={@app_form[:name].value}
+                      required
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="edit-app-description">{gettext("Description")}</label>
+                    <textarea
+                      id="edit-app-description"
+                      name="app[description]"
+                      rows="3"
+                    >{@app_form[:description].value}</textarea>
+                  </div>
+                  <div class="voice-field">
+                    <label for="edit-app-homepage">{gettext("Homepage URL")}</label>
+                    <input
+                      type="url"
+                      id="edit-app-homepage"
+                      name="app[homepage_url]"
+                      value={@app_form[:homepage_url].value}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="edit-app-redirect">{gettext("Authorization callback URL")}</label>
+                    <input
+                      type="url"
+                      id="edit-app-redirect"
+                      name="app[redirect_uris]"
+                      value={@app_form[:redirect_uris].value}
+                      placeholder="https://example.com/callback"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <.form_save_bar
+              id="oauth-app-edit-save-bar"
+              visible={@app_edit_changed?}
+              cancel_path={"/" <> @handle <> "/api/apps"}
+            />
+          </.form>
+
+          <div class="voice-section-divider"></div>
+
+          <div class="api-action-section">
+            <div class="api-action-info">
+              <h2>{gettext("Client secret")}</h2>
+              <p>{gettext("Regenerate the client secret if you believe it has been compromised.")}</p>
+            </div>
+            <button
+              class="dash-btn dash-btn-secondary"
+              phx-click="regenerate_secret"
+              phx-value-id={@oauth_app.id}
+              data-confirm={
+                gettext(
+                  "Are you sure? Existing integrations using the current secret will stop working."
+                )
+              }
+            >
+              {gettext("Regenerate client secret")}
+            </button>
+          </div>
+
+          <div class="api-action-section api-action-danger">
+            <div class="api-action-info">
+              <h2>{gettext("Danger zone")}</h2>
+              <p>
+                {gettext(
+                  "Deleting this application will revoke all tokens issued through it and break any integrations using it."
+                )}
+              </p>
+            </div>
+            <button
+              class="dash-btn dash-btn-danger"
+              phx-click="delete_oauth_app"
+              phx-value-id={@oauth_app.id}
+              data-confirm={
+                gettext(
+                  "Are you sure you want to delete this application? This action cannot be undone."
+                )
+              }
+            >
+              {gettext("Delete application")}
+            </button>
+          </div>
+        <% true -> %>
+          <.page_header
+            title={gettext("OAuth applications")}
+            description={
+              gettext(
+                "OAuth applications allow external services to access Glossia on behalf of users."
+              )
+            }
+          >
+            <:actions>
+              <.link patch={"/" <> @handle <> "/api/apps/new"} class="dash-btn dash-btn-primary">
+                {gettext("Register new application")}
+              </.link>
+            </:actions>
+          </.page_header>
+
+          <%= if @newly_created_secret do %>
+            <div class="api-token-reveal" id="app-secret-reveal">
+              <p>
+                {gettext(
+                  "Make sure to copy your client secret now. You will not be able to see it again."
+                )}
+              </p>
+              <div class="api-token-reveal-credentials">
+                <div class="api-token-reveal-field">
+                  <strong>{gettext("Client ID")}</strong>
+                  <code>{@newly_created_secret.client_id}</code>
+                </div>
+                <div class="api-token-reveal-field">
+                  <strong>{gettext("Client Secret")}</strong>
+                  <code>{@newly_created_secret.client_secret}</code>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <.resource_table
+            id="oauth-apps-table"
+            rows={@oauth_apps}
+            search=""
+            search_placeholder={gettext("Search applications...")}
+            sort_key={@apps_sort_key}
+            sort_dir={@apps_sort_dir}
+          >
+            <:col :let={app} label={gettext("Name")} key="name" sortable>
+              <strong>{app.name}</strong>
+            </:col>
+            <:col :let={app} label={gettext("Client ID")} key="client_id">
+              <span class="mono" style="font-size: var(--text-xs);">
+                {app.boruta_client_id}
+              </span>
+            </:col>
+            <:col :let={app} label={gettext("Created")} key="inserted_at" sortable>
+              <time datetime={DateTime.to_iso8601(app.inserted_at)}>
+                {Calendar.strftime(app.inserted_at, "%b %d, %Y")}
+              </time>
+            </:col>
+            <:action :let={app}>
+              <.link
+                patch={"/" <> @handle <> "/api/apps/" <> app.id}
+                class="voice-link-btn"
+              >
+                {gettext("Edit")}
+              </.link>
+              <button
+                class="voice-link-btn voice-link-btn-danger"
+                phx-click="delete_oauth_app"
+                phx-value-id={app.id}
+                data-confirm={gettext("Are you sure you want to delete this application?")}
+              >
+                {gettext("Delete")}
+              </button>
+            </:action>
+            <:empty>
+              <div class="dash-empty-state">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+                <h2>{gettext("No OAuth applications yet")}</h2>
+                <p>
+                  {gettext(
+                    "Register an OAuth application to enable 'Sign in with Glossia' or to let external services access your account."
+                  )}
+                </p>
+              </div>
+            </:empty>
+          </.resource_table>
+      <% end %>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
   # Page: Project
   # ---------------------------------------------------------------------------
 
@@ -2112,6 +3491,29 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket, summary_timer_ref: nil)
   end
 
+  defp schedule_title_generation(socket, description) do
+    if timer = socket.assigns[:ticket_title_timer_ref] do
+      Process.cancel_timer(timer)
+    end
+
+    generation = (socket.assigns[:ticket_title_generation] || 0) + 1
+    timer_ref = Process.send_after(self(), {:generate_ticket_title, generation}, 1_500)
+
+    assign(socket,
+      ticket_title_generation: generation,
+      ticket_title_timer_ref: timer_ref,
+      ticket_description_for_title: description
+    )
+  end
+
+  defp cancel_title_generation(socket) do
+    if timer = socket.assigns[:ticket_title_timer_ref] do
+      Process.cancel_timer(timer)
+    end
+
+    assign(socket, ticket_title_timer_ref: nil)
+  end
+
   defp save_bar_id(socket) do
     case socket.assigns.live_action do
       :voice -> "voice-save-bar"
@@ -2128,7 +3530,10 @@ defmodule GlossiaWeb.DashboardLive do
   @table_prefixes %{
     "activity-table" => "",
     "members-table" => "m",
-    "invitations-table" => "i"
+    "invitations-table" => "i",
+    "tokens-table" => "t",
+    "oauth-apps-table" => "a",
+    "tickets-table" => "k"
   }
 
   defp push_table_params(socket, table_id, overrides) do
@@ -2152,6 +3557,9 @@ defmodule GlossiaWeb.DashboardLive do
       case action do
         :logs -> "/#{handle}/logs"
         :members -> "/#{handle}/members"
+        :api_tokens -> "/#{handle}/api/tokens"
+        :api_apps -> "/#{handle}/api/apps"
+        :tickets -> "/#{handle}/tickets"
         _ -> "/#{handle}"
       end
 
@@ -2167,6 +3575,17 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp maybe_add_param(params, _key, value, default) when value == default, do: params
   defp maybe_add_param(params, key, value, _default), do: params ++ [{key, to_string(value)}]
+
+  defp maybe_add_flop_filters(params, filters) when map_size(filters) == 0, do: params
+
+  defp maybe_add_flop_filters(params, filters) do
+    flop_filters =
+      Enum.map(filters, fn {field, value} ->
+        %{"field" => field, "op" => "==", "value" => value}
+      end)
+
+    Map.put(params, "filters", flop_filters)
+  end
 
   defp add_filter_params(params, _prefix, filters) when map_size(filters) == 0, do: params
 
@@ -2232,15 +3651,49 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
+  defp current_table_state(socket, "tokens-table") do
+    %{
+      search: socket.assigns[:tokens_search] || "",
+      sort: socket.assigns[:tokens_sort_key] || "name",
+      dir: socket.assigns[:tokens_sort_dir] || "asc",
+      page: 1,
+      filters: %{}
+    }
+  end
+
+  defp current_table_state(socket, "oauth-apps-table") do
+    %{
+      search: socket.assigns[:apps_search] || "",
+      sort: socket.assigns[:apps_sort_key] || "name",
+      dir: socket.assigns[:apps_sort_dir] || "asc",
+      page: 1,
+      filters: %{}
+    }
+  end
+
+  defp current_table_state(socket, "tickets-table") do
+    %{
+      search: "",
+      sort: socket.assigns[:tickets_sort_key] || "inserted_at",
+      dir: socket.assigns[:tickets_sort_dir] || "desc",
+      page: 1,
+      filters: socket.assigns[:tickets_active_filters] || %{}
+    }
+  end
+
   defp current_table_state(_socket, _id),
     do: %{search: "", sort: "", dir: "asc", page: 1, filters: %{}}
 
   defp default_sort_key("activity-table"), do: "date"
   defp default_sort_key("members-table"), do: "name"
   defp default_sort_key("invitations-table"), do: "email"
+  defp default_sort_key("tokens-table"), do: "name"
+  defp default_sort_key("oauth-apps-table"), do: "name"
+  defp default_sort_key("tickets-table"), do: "inserted_at"
   defp default_sort_key(_), do: ""
 
   defp default_sort_dir("activity-table"), do: "desc"
+  defp default_sort_dir("tickets-table"), do: "desc"
   defp default_sort_dir(_), do: "asc"
 
   defp current_sort(socket, "activity-table"),
@@ -2252,10 +3705,25 @@ defmodule GlossiaWeb.DashboardLive do
   defp current_sort(socket, "invitations-table"),
     do: {socket.assigns.invitations_sort_key, socket.assigns.invitations_sort_dir}
 
+  defp current_sort(socket, "tokens-table"),
+    do: {socket.assigns[:tokens_sort_key] || "name", socket.assigns[:tokens_sort_dir] || "asc"}
+
+  defp current_sort(socket, "oauth-apps-table"),
+    do: {socket.assigns[:apps_sort_key] || "name", socket.assigns[:apps_sort_dir] || "asc"}
+
+  defp current_sort(socket, "tickets-table"),
+    do:
+      {socket.assigns[:tickets_sort_key] || "inserted_at",
+       socket.assigns[:tickets_sort_dir] || "desc"}
+
   defp current_sort(_socket, _), do: {"", "asc"}
 
   defp current_filters(socket, "activity-table"), do: socket.assigns.events_filters
   defp current_filters(socket, "members-table"), do: socket.assigns.members_filters
+
+  defp current_filters(socket, "tickets-table"),
+    do: socket.assigns[:tickets_active_filters] || %{}
+
   defp current_filters(_socket, _), do: %{}
 
   defp apply_url_params_logs(socket, params) do
@@ -2492,4 +3960,283 @@ defmodule GlossiaWeb.DashboardLive do
     sorted = Enum.sort_by(invitations, sorter)
     if dir == "desc", do: Enum.reverse(sorted), else: sorted
   end
+
+  # ---------------------------------------------------------------------------
+  # Page: Tickets
+  # ---------------------------------------------------------------------------
+
+  defp tickets_page(assigns) do
+    case assigns.live_action do
+      :tickets -> tickets_list_page(assigns)
+      :ticket_new -> ticket_new_page(assigns)
+      :ticket_show -> ticket_show_page(assigns)
+    end
+  end
+
+  defp tickets_list_page(assigns) do
+    assigns =
+      assign(assigns,
+        ticket_filters: [
+          %{
+            key: "type",
+            label: gettext("Type"),
+            options: [
+              %{value: "issue", label: gettext("Issue")},
+              %{value: "request", label: gettext("Feature request")}
+            ]
+          },
+          %{
+            key: "status",
+            label: gettext("Status"),
+            options: [
+              %{value: "open", label: gettext("Open")},
+              %{value: "in_progress", label: gettext("In progress")},
+              %{value: "resolved", label: gettext("Resolved")},
+              %{value: "implemented", label: gettext("Implemented")}
+            ]
+          }
+        ]
+      )
+
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Tickets")}
+        description={gettext("Report issues or request features.")}
+      >
+        <:actions>
+          <.link patch={"/" <> @handle <> "/tickets/new"} class="dash-btn dash-btn-primary">
+            {gettext("New ticket")}
+          </.link>
+        </:actions>
+      </.page_header>
+      <.resource_table
+        id="tickets-table"
+        rows={@tickets}
+        sort_key={@tickets_sort_key}
+        sort_dir={@tickets_sort_dir}
+        filters={@ticket_filters}
+        active_filters={@tickets_active_filters}
+      >
+        <:col :let={ticket} label={gettext("Title")} key="title" sortable>
+          <.link patch={"/" <> @handle <> "/tickets/" <> ticket.id} class="resource-link">
+            {ticket.title}
+          </.link>
+        </:col>
+        <:col :let={ticket} label={gettext("Type")} key="type">
+          <.badge variant={ticket_type_variant(ticket.type)}>
+            {ticket_type_label(ticket.type)}
+          </.badge>
+        </:col>
+        <:col :let={ticket} label={gettext("Status")} key="status" sortable>
+          <.badge variant={ticket_status_variant(ticket.status)}>
+            {ticket_status_label(ticket.status)}
+          </.badge>
+        </:col>
+        <:col :let={ticket} label={gettext("Created")} key="inserted_at" sortable>
+          {Calendar.strftime(ticket.inserted_at, "%b %d, %Y")}
+        </:col>
+        <:action :let={ticket}>
+          <.link
+            patch={"/" <> @handle <> "/tickets/" <> ticket.id}
+            class="dash-btn dash-btn-secondary dash-btn-sm"
+          >
+            {gettext("View")}
+          </.link>
+        </:action>
+        <:empty>
+          <div class="dash-empty-state">
+            <p>{gettext("No tickets yet. Create one to get started.")}</p>
+          </div>
+        </:empty>
+      </.resource_table>
+    </div>
+    """
+  end
+
+  defp ticket_new_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("New ticket")}
+        description={gettext("Describe your issue or feature request.")}
+      />
+      <.form
+        for={@ticket_form}
+        id="ticket-form"
+        phx-submit="create_ticket"
+        phx-change="ticket_validate"
+        class="ticket-form"
+      >
+        <div class="ticket-form-field">
+          <label for="ticket_type">{gettext("Type")}</label>
+          <select name="ticket[type]" id="ticket_type">
+            <option value="issue" selected={@ticket_form[:type].value == "issue"}>
+              {gettext("Issue")}
+            </option>
+            <option value="request" selected={@ticket_form[:type].value == "request"}>
+              {gettext("Feature request")}
+            </option>
+          </select>
+        </div>
+        <div class="ticket-form-field">
+          <label for="ticket_title">{gettext("Title")}</label>
+          <div class={["ticket-title-wrapper", @generating_title? && "generating"]}>
+            <input
+              type="text"
+              name="ticket[title]"
+              id="ticket_title"
+              value={@ticket_form[:title].value}
+              placeholder={gettext("Brief summary...")}
+              phx-hook=".TicketTitle"
+              required
+              disabled={@generating_title?}
+            />
+          </div>
+        </div>
+        <div class="ticket-form-field">
+          <label for="ticket_description">{gettext("Description")}</label>
+          <textarea
+            name="ticket[description]"
+            id="ticket_description"
+            rows="6"
+            placeholder={gettext("Provide details...")}
+            phx-debounce="500"
+            required
+          >{@ticket_form[:description].value}</textarea>
+        </div>
+        <div class="ticket-form-actions">
+          <.link patch={"/" <> @handle <> "/tickets"} class="dash-btn dash-btn-secondary">
+            {gettext("Cancel")}
+          </.link>
+          <button type="submit" class="dash-btn dash-btn-primary">
+            {gettext("Create ticket")}
+          </button>
+        </div>
+      </.form>
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".TicketTitle">
+        export default {
+          mounted() {
+            this.handleEvent("title_generated", ({title}) => {
+              this.el.value = title;
+            });
+          }
+        }
+      </script>
+    </div>
+    """
+  end
+
+  defp ticket_show_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <div class="ticket-detail-header">
+        <div>
+          <.link patch={"/" <> @handle <> "/tickets"} class="ticket-back-link">
+            &larr; {gettext("Back to tickets")}
+          </.link>
+          <h1 class="ticket-detail-title">{@ticket.title}</h1>
+          <div class="ticket-detail-meta">
+            <.badge variant={ticket_type_variant(@ticket.type)}>
+              {ticket_type_label(@ticket.type)}
+            </.badge>
+            <.badge variant={ticket_status_variant(@ticket.status)}>
+              {ticket_status_label(@ticket.status)}
+            </.badge>
+            <span class="ticket-detail-date">
+              {gettext("Opened %{date}",
+                date: Calendar.strftime(@ticket.inserted_at, "%b %d, %Y")
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ticket-conversation">
+        <div class="ticket-message ticket-message-user" id="ticket-description">
+          <div class="ticket-message-header">
+            <span class="ticket-message-author">{@ticket.user.name || @ticket.user.email}</span>
+            <span class="ticket-message-time">
+              {Calendar.strftime(@ticket.inserted_at, "%b %d, %Y at %H:%M")}
+            </span>
+          </div>
+          <div class="ticket-message-body">{@ticket.description}</div>
+        </div>
+        <div
+          :for={msg <- @ticket.messages}
+          class={[
+            "ticket-message",
+            if(msg.is_staff, do: "ticket-message-staff", else: "ticket-message-user")
+          ]}
+          id={"msg-" <> msg.id}
+        >
+          <div class="ticket-message-header">
+            <span class="ticket-message-author">
+              {msg.user.name || msg.user.email}
+              <.badge :if={msg.is_staff} variant="info">{gettext("Staff")}</.badge>
+            </span>
+            <span class="ticket-message-time">
+              {Calendar.strftime(msg.inserted_at, "%b %d, %Y at %H:%M")}
+            </span>
+          </div>
+          <div class="ticket-message-body">{msg.body}</div>
+        </div>
+      </div>
+      <%= if @ticket.status in ~w(open in_progress) and @current_user do %>
+        <.form
+          for={@message_form}
+          id="message-form"
+          phx-submit="add_ticket_message"
+          class="ticket-reply-form"
+        >
+          <textarea
+            name="message[body]"
+            id="message_body"
+            rows="3"
+            placeholder={gettext("Write a reply...")}
+            required
+          >{@message_form[:body].value}</textarea>
+          <button type="submit" class="dash-btn dash-btn-primary">
+            {gettext("Send reply")}
+          </button>
+        </.form>
+      <% end %>
+      <%= if @ticket.status in ~w(resolved implemented) do %>
+        <div class="ticket-resolved-banner">
+          <span>
+            {gettext("This ticket has been marked as %{status}.",
+              status: ticket_status_label(@ticket.status)
+            )}
+          </span>
+          <%= if @ticket.resolved_by do %>
+            <span class="ticket-resolved-by">
+              {gettext("Resolved by %{name}",
+                name: @ticket.resolved_by.name || @ticket.resolved_by.email
+              )}
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp ticket_status_variant("open"), do: "neutral"
+  defp ticket_status_variant("in_progress"), do: "info"
+  defp ticket_status_variant("resolved"), do: "success"
+  defp ticket_status_variant("implemented"), do: "success"
+  defp ticket_status_variant(_), do: "neutral"
+
+  defp ticket_status_label("open"), do: gettext("Open")
+  defp ticket_status_label("in_progress"), do: gettext("In progress")
+  defp ticket_status_label("resolved"), do: gettext("Resolved")
+  defp ticket_status_label("implemented"), do: gettext("Implemented")
+  defp ticket_status_label(other), do: other
+
+  defp ticket_type_variant("issue"), do: "warning"
+  defp ticket_type_variant("request"), do: "info"
+  defp ticket_type_variant(_), do: "neutral"
+
+  defp ticket_type_label("issue"), do: gettext("Issue")
+  defp ticket_type_label("request"), do: gettext("Feature request")
+  defp ticket_type_label(other), do: other
 end
