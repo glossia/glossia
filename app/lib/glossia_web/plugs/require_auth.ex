@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.Plugs.RequireAuth do
+  use GlossiaWeb, :verified_routes
+
   import Plug.Conn
   import Phoenix.Controller
   use Gettext, backend: GlossiaWeb.Gettext
@@ -14,7 +16,7 @@ defmodule GlossiaWeb.Plugs.RequireAuth do
       conn
       |> put_session(:return_to, return_to)
       |> put_flash(:error, gettext("You must sign in to access this page."))
-      |> redirect(to: "/auth/login")
+      |> redirect(to: ~p"/auth/login")
       |> halt()
     end
   end

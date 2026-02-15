@@ -69,6 +69,8 @@ defmodule GlossiaWeb.DashboardLive do
     voice = Voices.get_latest_voice(account)
     {:ok, {versions, _meta}} = Voices.list_voice_versions(account)
     overrides = if voice, do: voice.overrides || [], else: []
+    target_countries = if voice, do: voice.target_countries || [], else: []
+    cultural_notes = if voice, do: voice.cultural_notes || %{}, else: %{}
 
     socket
     |> assign(
@@ -78,13 +80,19 @@ defmodule GlossiaWeb.DashboardLive do
       overrides: overrides,
       original_voice: voice,
       original_overrides: overrides,
+      target_countries: target_countries,
+      cultural_notes: cultural_notes,
       changed?: false,
       voice_form_params: %{},
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
       summary_timer_ref: nil,
-      summary_task_ref: nil
+      summary_task_ref: nil,
+      context_generation: 0,
+      context_timer_ref: nil,
+      context_task_ref: nil,
+      generating_contexts?: false
     )
   end
 
@@ -193,7 +201,7 @@ defmodule GlossiaWeb.DashboardLive do
       "order_directions" => [sort_dir]
     }
 
-    {:ok, {tokens, _meta}} = DeveloperTokens.list_personal_access_tokens(account, flop_params)
+    {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account, flop_params)
     available_scopes = available_scopes()
 
     assign(socket,
@@ -224,7 +232,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp apply_action(socket, :api_token_edit, params) do
     require_admin!(socket)
     account = socket.assigns.account
-    token = DeveloperTokens.get_personal_access_token!(params["token_id"], account.id)
+    token = DeveloperTokens.get_account_token!(params["token_id"], account.id)
 
     assign(socket,
       page_title: token.name,
@@ -344,9 +352,9 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp apply_action(socket, :ticket_show, %{"ticket_id" => ticket_id}) do
+  defp apply_action(socket, :ticket_show, %{"ticket_number" => number_str}) do
     account = socket.assigns.account
-    ticket = Support.get_ticket!(ticket_id, account.id)
+    ticket = Support.get_ticket_by_number!(String.to_integer(number_str), account.id)
 
     assign(socket,
       page_title: ticket.title,
@@ -388,10 +396,45 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("validate", params, socket) do
-    changed? =
+    # Merge country context edits from form params into assign
+    cultural_notes =
+      case params["cultural_notes"] do
+        ctx when is_map(ctx) ->
+          Map.merge(socket.assigns.cultural_notes, ctx)
+
+        _ ->
+          socket.assigns.cultural_notes
+      end
+
+    socket = assign(socket, cultural_notes: cultural_notes)
+
+    base_changed? =
       form_changed?(params, socket.assigns.original_voice, socket.assigns.original_overrides)
 
+    countries_changed? =
+      voice_countries_changed?(
+        socket.assigns.target_countries,
+        cultural_notes,
+        socket.assigns.original_voice
+      )
+
+    changed? = base_changed? or countries_changed?
     socket = assign(socket, changed?: changed?, voice_form_params: params)
+
+    old_desc =
+      if socket.assigns.original_voice,
+        do: socket.assigns.original_voice.description || "",
+        else: ""
+
+    new_desc = params["description"] || ""
+
+    socket =
+      if new_desc != old_desc and String.length(new_desc) >= 20 and
+           socket.assigns.target_countries != [] do
+        schedule_context_generation(socket)
+      else
+        socket
+      end
 
     socket =
       if changed? do
@@ -420,13 +463,19 @@ defmodule GlossiaWeb.DashboardLive do
 
   def handle_event("discard_changes", _params, socket) do
     socket = cancel_summary_generation(socket)
+    voice = socket.assigns.original_voice
+    target_countries = if voice, do: voice.target_countries || [], else: []
+    cultural_notes = if voice, do: voice.cultural_notes || %{}, else: %{}
 
     {:noreply,
      assign(socket,
        overrides: socket.assigns.original_overrides,
+       target_countries: target_countries,
+       cultural_notes: cultural_notes,
        changed?: false,
        change_summary: "",
-       generating_summary?: false
+       generating_summary?: false,
+       generating_contexts?: false
      )}
   end
 
@@ -441,6 +490,45 @@ defmodule GlossiaWeb.DashboardLive do
     overrides = List.delete_at(socket.assigns.overrides, idx)
     changed? = form_changed_overrides?(overrides, socket.assigns.original_overrides)
     {:noreply, assign(socket, overrides: overrides, changed?: changed?)}
+  end
+
+  def handle_event("add_country", %{"code" => code}, socket) do
+    countries = socket.assigns.target_countries
+
+    unless code in countries do
+      new_countries = countries ++ [code]
+
+      socket =
+        socket
+        |> assign(target_countries: new_countries, changed?: true)
+        |> push_event("update_country_exclude", %{exclude: new_countries})
+        |> schedule_summary_generation(:voice)
+        |> maybe_schedule_context_generation(code)
+
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("remove_country", %{"code" => code}, socket) do
+    new_countries = List.delete(socket.assigns.target_countries, code)
+    new_contexts = Map.delete(socket.assigns.cultural_notes, code)
+
+    changed? =
+      voice_countries_changed?(
+        new_countries,
+        new_contexts,
+        socket.assigns.original_voice
+      )
+
+    socket =
+      socket
+      |> assign(target_countries: new_countries, cultural_notes: new_contexts, changed?: changed?)
+      |> push_event("update_country_exclude", %{exclude: new_countries})
+      |> schedule_summary_generation(:voice)
+
+    {:noreply, socket}
   end
 
   # ---------------------------------------------------------------------------
@@ -725,18 +813,18 @@ defmodule GlossiaWeb.DashboardLive do
         "description" => params["description"]
       }
 
-      case DeveloperTokens.update_personal_access_token(token, attrs) do
+      case DeveloperTokens.update_account_token(token, attrs) do
         {:ok, updated_token} ->
           Auditing.record("token.updated", account, user,
-            resource_type: "personal_access_token",
+            resource_type: "account_token",
             resource_id: to_string(updated_token.id),
-            summary: "Updated personal access token \"#{updated_token.name}\""
+            summary: "Updated account token \"#{updated_token.name}\""
           )
 
           {:noreply,
            socket
            |> put_flash(:info, gettext("Token updated."))
-           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/tokens")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/tokens")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not update token."))}
@@ -770,20 +858,20 @@ defmodule GlossiaWeb.DashboardLive do
         "expires_at" => expires_at
       }
 
-      case DeveloperTokens.create_personal_access_token(account, user, attrs) do
+      case DeveloperTokens.create_account_token(account, user, attrs) do
         {:ok, %{token: token, plain_token: plain_token}} ->
           Auditing.record("token.created", account, user,
-            resource_type: "personal_access_token",
+            resource_type: "account_token",
             resource_id: to_string(token.id),
-            summary: "Created personal access token \"#{token.name}\""
+            summary: "Created account token \"#{token.name}\""
           )
 
-          {:ok, {tokens, _meta}} = DeveloperTokens.list_personal_access_tokens(account)
+          {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
 
           {:noreply,
            socket
            |> assign(api_tokens: tokens, newly_created_token: plain_token)
-           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/tokens")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/tokens")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not create token."))}
@@ -798,21 +886,21 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case DeveloperTokens.revoke_personal_access_token(token_id, account.id) do
+      case DeveloperTokens.revoke_account_token(token_id, account.id) do
         {:ok, token} ->
           Auditing.record("token.revoked", account, user,
-            resource_type: "personal_access_token",
+            resource_type: "account_token",
             resource_id: to_string(token.id),
-            summary: "Revoked personal access token \"#{token.name}\""
+            summary: "Revoked account token \"#{token.name}\""
           )
 
-          {:ok, {tokens, _meta}} = DeveloperTokens.list_personal_access_tokens(account)
+          {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
 
           {:noreply,
            socket
            |> assign(api_tokens: tokens)
            |> put_flash(:info, gettext("Token revoked."))
-           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/tokens")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/tokens")}
 
         {:error, :not_found} ->
           {:noreply, put_flash(socket, :error, gettext("Token not found."))}
@@ -867,7 +955,7 @@ defmodule GlossiaWeb.DashboardLive do
              oauth_apps: apps,
              newly_created_secret: %{client_id: client_id, client_secret: client_secret}
            )
-           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/apps")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/apps")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not create application."))}
@@ -894,7 +982,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> put_flash(:info, gettext("Application updated."))
-           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/apps/" <> app.id)}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/apps/#{app.id}")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not update application."))}
@@ -951,7 +1039,7 @@ defmodule GlossiaWeb.DashboardLive do
            socket
            |> assign(oauth_apps: apps)
            |> put_flash(:info, gettext("Application deleted."))
-           |> push_patch(to: "/" <> socket.assigns.handle <> "/api/apps")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/apps")}
 
         {:error, _} ->
           {:noreply, put_flash(socket, :error, gettext("Could not delete application."))}
@@ -1011,7 +1099,7 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply,
          socket
          |> put_flash(:info, gettext("Ticket created."))
-         |> push_patch(to: "/" <> socket.assigns.handle <> "/tickets/" <> ticket.id)}
+         |> push_patch(to: ~p"/#{socket.assigns.handle}/tickets/#{ticket.number}")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, ticket_form: to_form(changeset, as: :ticket))}
@@ -1045,6 +1133,75 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
   # LLM-generated change summary (throttled async)
   # ---------------------------------------------------------------------------
+
+  def handle_info({:generate_cultural_notes, generation}, socket) do
+    if generation != socket.assigns[:context_generation] do
+      {:noreply, socket}
+    else
+      account = socket.assigns.account
+      description = socket.assigns.voice_form_params["description"] || ""
+
+      description =
+        if description == "",
+          do: if(socket.assigns.voice, do: socket.assigns.voice.description || "", else: ""),
+          else: description
+
+      countries = socket.assigns.target_countries
+      existing_contexts = socket.assigns.cultural_notes
+
+      # Only generate for countries missing context
+      countries_needing_context =
+        Enum.filter(countries, fn code -> (Map.get(existing_contexts, code) || "") == "" end)
+
+      if countries_needing_context == [] do
+        {:noreply, socket}
+      else
+        case Glossia.RateLimiter.hit("ai:country:#{account.id}", :timer.minutes(1), 20) do
+          {:allow, _count} ->
+            task =
+              Task.async(fn ->
+                results =
+                  Task.async_stream(
+                    countries_needing_context,
+                    fn code ->
+                      country_name = GlossiaWeb.DashboardComponents.country_name(code)
+
+                      messages = [
+                        %{
+                          role: :system,
+                          content:
+                            "You are a cultural advisor. Given a description and a target country, write 2-3 sentences about cultural considerations for communicating in that country. Focus on communication style, values, and preferences. Only output the advice, nothing else."
+                        },
+                        %{
+                          role: :user,
+                          content: "Description: #{description}\nCountry: #{country_name}"
+                        }
+                      ]
+
+                      case Glossia.Minimax.chat(messages, max_tokens: 512) do
+                        {:ok, %{content: text}} -> {code, String.trim(text)}
+                        _ -> {code, ""}
+                      end
+                    end,
+                    timeout: :infinity
+                  )
+                  |> Enum.reduce(%{}, fn {:ok, {code, text}}, acc -> Map.put(acc, code, text) end)
+
+                {:ok, results}
+              end)
+
+            {:noreply,
+             assign(socket,
+               generating_contexts?: true,
+               context_task_ref: task.ref
+             )}
+
+          {:deny, _retry_after} ->
+            {:noreply, socket}
+        end
+      end
+    end
+  end
 
   def handle_info({:generate_ticket_title, generation}, socket) do
     if generation != socket.assigns[:ticket_title_generation] do
@@ -1170,6 +1327,23 @@ defmodule GlossiaWeb.DashboardLive do
             {:noreply, assign(socket, generating_title?: false, ticket_title_task_ref: nil)}
         end
 
+      ref == socket.assigns[:context_task_ref] ->
+        case result do
+          {:ok, contexts} when is_map(contexts) ->
+            merged = Map.merge(socket.assigns.cultural_notes, contexts)
+
+            {:noreply,
+             assign(socket,
+               cultural_notes: merged,
+               generating_contexts?: false,
+               context_task_ref: nil,
+               changed?: true
+             )}
+
+          _ ->
+            {:noreply, assign(socket, generating_contexts?: false, context_task_ref: nil)}
+        end
+
       true ->
         {:noreply, socket}
     end
@@ -1204,11 +1378,15 @@ defmodule GlossiaWeb.DashboardLive do
           voice={@voice}
           versions={@versions}
           overrides={@overrides}
+          target_countries={@target_countries}
+          cultural_notes={@cultural_notes}
+          generating_contexts?={@generating_contexts?}
           handle={@handle}
           can_write={@can_write}
           changed?={@changed?}
           change_summary={@change_summary}
           generating_summary?={@generating_summary?}
+          voice_form_params={@voice_form_params}
         />
       <% :voice_version -> %>
         <.voice_version_page voice={@voice} previous={@previous} handle={@handle} />
@@ -1464,6 +1642,90 @@ defmodule GlossiaWeb.DashboardLive do
       />
 
       <form phx-change="validate" phx-submit="save_voice" class="voice-form" id="voice-form">
+        <div class="voice-section">
+          <div class="voice-section-info">
+            <h2>{gettext("About")}</h2>
+            <p>{gettext("Describe what you do and which countries you target.")}</p>
+          </div>
+          <div class="voice-card">
+            <div class="voice-card-fields">
+              <div class="voice-field">
+                <label for="voice_description">{gettext("Description")}</label>
+                <textarea
+                  id="voice_description"
+                  name="description"
+                  rows="3"
+                  placeholder={gettext("Briefly describe what you do and who you serve...")}
+                  disabled={!@can_write}
+                  phx-debounce="300"
+                >{@voice_form_params["description"] || (@voice && @voice.description) || ""}</textarea>
+                <span class="voice-field-help">
+                  {gettext("Used to generate cultural notes for target countries.")}
+                </span>
+              </div>
+              <div class="voice-field">
+                <label>{gettext("Target countries")}</label>
+                <%= if @target_countries != [] do %>
+                  <div class="voice-country-tags" id="voice-country-tags">
+                    <%= for code <- @target_countries do %>
+                      <span class="voice-country-tag">
+                        {country_flag(code)} {code}
+                        <%= if @can_write do %>
+                          <button
+                            type="button"
+                            class="voice-country-tag-remove"
+                            phx-click="remove_country"
+                            phx-value-code={code}
+                            aria-label={gettext("Remove %{country}", country: country_name(code))}
+                          >
+                            &times;
+                          </button>
+                        <% end %>
+                      </span>
+                    <% end %>
+                  </div>
+                <% end %>
+                <%= if @can_write do %>
+                  <.country_picker
+                    id="voice-country-picker"
+                    exclude={@target_countries}
+                  />
+                <% end %>
+              </div>
+              <%= if @target_countries != [] do %>
+                <div class="voice-field">
+                  <label>{gettext("Cultural notes")}</label>
+                  <span class="voice-field-help">
+                    <%= if @generating_contexts? do %>
+                      {gettext("Generating cultural notes...")}
+                    <% else %>
+                      {gettext("AI-generated cultural notes per country. You can edit them.")}
+                    <% end %>
+                  </span>
+                  <%= for code <- @target_countries do %>
+                    <div class="voice-country-context" id={"country-context-#{code}"}>
+                      <label class="voice-country-context-label">
+                        {country_flag(code)} {country_name(code)}
+                      </label>
+                      <textarea
+                        name={"cultural_notes[#{code}]"}
+                        rows="3"
+                        placeholder={
+                          gettext("Cultural notes for %{country}...", country: country_name(code))
+                        }
+                        disabled={!@can_write}
+                        phx-debounce="300"
+                      >{Map.get(@cultural_notes, code, "")}</textarea>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <div class="voice-section-divider"></div>
+
         <div class="voice-section">
           <div class="voice-section-info">
             <h2>{gettext("Tone and style")}</h2>
@@ -1786,6 +2048,45 @@ defmodule GlossiaWeb.DashboardLive do
           </p>
         </div>
       </div>
+
+      <%= if (@voice.description || "") != "" or (@voice.target_countries || []) != [] do %>
+        <div class="voice-section">
+          <div class="voice-section-info">
+            <h2>{gettext("About")}</h2>
+            <p>{gettext("Description and target countries for this version.")}</p>
+          </div>
+          <div class="voice-card">
+            <div class="voice-card-fields">
+              <.diff_field
+                label={gettext("Description")}
+                current={@voice.description}
+                previous={@previous && @previous.description}
+              />
+              <div class="voice-field">
+                <label>{gettext("Target countries")}</label>
+                <div class="voice-country-tags">
+                  <%= for code <- @voice.target_countries || [] do %>
+                    <span class="voice-country-tag">
+                      {country_flag(code)} {code}
+                    </span>
+                  <% end %>
+                  <%= if (@voice.target_countries || []) == [] do %>
+                    <span class="muted">{gettext("None")}</span>
+                  <% end %>
+                </div>
+              </div>
+              <%= for {code, ctx} <- @voice.cultural_notes || %{} do %>
+                <div class="voice-field">
+                  <label>{country_flag(code)} {country_name(code)}</label>
+                  <p style="font-size: var(--text-sm); color: var(--color-text-muted);">{ctx}</p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <div class="voice-section-divider"></div>
+      <% end %>
 
       <div class="voice-section">
         <div class="voice-section-info">
@@ -3321,7 +3622,8 @@ defmodule GlossiaWeb.DashboardLive do
       params["tone"] != (original_voice.tone || "") or
         params["formality"] != (original_voice.formality || "") or
         params["target_audience"] != (original_voice.target_audience || "") or
-        params["guidelines"] != (original_voice.guidelines || "")
+        params["guidelines"] != (original_voice.guidelines || "") or
+        params["description"] != (original_voice.description || "")
 
     params_overrides =
       (params["overrides"] || %{})
@@ -3361,6 +3663,14 @@ defmodule GlossiaWeb.DashboardLive do
     {o.locale, o.tone || "", o.formality || "", o.target_audience || "", o.guidelines || ""}
   end
 
+  defp voice_countries_changed?(target_countries, cultural_notes, nil),
+    do: target_countries != [] or cultural_notes != %{}
+
+  defp voice_countries_changed?(target_countries, cultural_notes, original_voice) do
+    target_countries != (original_voice.target_countries || []) or
+      cultural_notes != (original_voice.cultural_notes || %{})
+  end
+
   # ---------------------------------------------------------------------------
   # Save form helpers (extracted to avoid splitting handle_event clauses)
 
@@ -3374,6 +3684,9 @@ defmodule GlossiaWeb.DashboardLive do
       formality: params["formality"],
       target_audience: params["target_audience"],
       guidelines: params["guidelines"],
+      description: non_empty(params["description"]),
+      target_countries: socket.assigns.target_countries,
+      cultural_notes: socket.assigns.cultural_notes,
       change_note: change_note
     }
 
@@ -3397,14 +3710,14 @@ defmodule GlossiaWeb.DashboardLive do
         Auditing.record("voice.created", account, user,
           resource_type: "voice",
           resource_id: to_string(voice.version),
-          resource_path: "/#{handle}/voice/#{voice.version}",
+          resource_path: ~p"/#{handle}/voice/#{voice.version}",
           summary: change_note
         )
 
         {:noreply,
          socket
          |> put_flash(:info, gettext("Voice configuration saved."))
-         |> push_patch(to: "/#{handle}/voice")}
+         |> push_patch(to: ~p"/#{handle}/voice")}
 
       {:error, _step, _changeset, _changes} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to save voice configuration."))}
@@ -3449,14 +3762,14 @@ defmodule GlossiaWeb.DashboardLive do
         Auditing.record("glossary.created", account, user,
           resource_type: "glossary",
           resource_id: to_string(glossary.version),
-          resource_path: "/#{handle}/glossary/#{glossary.version}",
+          resource_path: ~p"/#{handle}/glossary/#{glossary.version}",
           summary: change_note
         )
 
         {:noreply,
          socket
          |> put_flash(:info, gettext("Glossary saved."))
-         |> push_patch(to: "/#{handle}/glossary")}
+         |> push_patch(to: ~p"/#{handle}/glossary")}
 
       {:error, _step, _changeset, _changes} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to save glossary."))}
@@ -3509,6 +3822,37 @@ defmodule GlossiaWeb.DashboardLive do
     end
 
     assign(socket, ticket_title_timer_ref: nil)
+  end
+
+  # Country context generation (debounced)
+
+  defp schedule_context_generation(socket) do
+    if timer = socket.assigns[:context_timer_ref] do
+      Process.cancel_timer(timer)
+    end
+
+    generation = (socket.assigns[:context_generation] || 0) + 1
+    timer_ref = Process.send_after(self(), {:generate_cultural_notes, generation}, 2_000)
+
+    assign(socket,
+      context_generation: generation,
+      context_timer_ref: timer_ref
+    )
+  end
+
+  defp maybe_schedule_context_generation(socket, _code) do
+    description = socket.assigns.voice_form_params["description"] || ""
+
+    description =
+      if description == "",
+        do: if(socket.assigns.voice, do: socket.assigns.voice.description || "", else: ""),
+        else: description
+
+    if String.length(description) >= 20 do
+      schedule_context_generation(socket)
+    else
+      socket
+    end
   end
 
   defp save_bar_id(socket) do
@@ -4015,8 +4359,19 @@ defmodule GlossiaWeb.DashboardLive do
         filters={@ticket_filters}
         active_filters={@tickets_active_filters}
       >
+        <:col :let={ticket} label="#" key="number" sortable>
+          <.link
+            patch={"/" <> @handle <> "/tickets/" <> Integer.to_string(ticket.number)}
+            class="resource-link"
+          >
+            {"##{ticket.number}"}
+          </.link>
+        </:col>
         <:col :let={ticket} label={gettext("Title")} key="title" sortable>
-          <.link patch={"/" <> @handle <> "/tickets/" <> ticket.id} class="resource-link">
+          <.link
+            patch={"/" <> @handle <> "/tickets/" <> Integer.to_string(ticket.number)}
+            class="resource-link"
+          >
             {ticket.title}
           </.link>
         </:col>
@@ -4035,7 +4390,7 @@ defmodule GlossiaWeb.DashboardLive do
         </:col>
         <:action :let={ticket}>
           <.link
-            patch={"/" <> @handle <> "/tickets/" <> ticket.id}
+            patch={"/" <> @handle <> "/tickets/" <> Integer.to_string(ticket.number)}
             class="dash-btn dash-btn-secondary dash-btn-sm"
           >
             {gettext("View")}
@@ -4088,7 +4443,9 @@ defmodule GlossiaWeb.DashboardLive do
               name="ticket[title]"
               id="ticket_title"
               value={@ticket_form[:title].value}
-              placeholder={if @generating_title?, do: gettext("Generating..."), else: gettext("Brief summary...")}
+              placeholder={
+                if @generating_title?, do: gettext("Generating..."), else: gettext("Brief summary...")
+              }
               phx-hook=".TicketTitle"
               required
               disabled={@generating_title?}
@@ -4133,7 +4490,7 @@ defmodule GlossiaWeb.DashboardLive do
     <div class="dash-page">
       <.breadcrumb items={[
         {gettext("Tickets"), "/" <> @handle <> "/tickets"},
-        {@ticket.title, "/" <> @handle <> "/tickets/" <> @ticket.id}
+        {"##{@ticket.number}", "/" <> @handle <> "/tickets/" <> Integer.to_string(@ticket.number)}
       ]} />
       <div class="ticket-detail-header">
         <div>
@@ -4190,33 +4547,31 @@ defmodule GlossiaWeb.DashboardLive do
           phx-submit="add_ticket_message"
           class="ticket-reply-form"
         >
-          <textarea
-            name="message[body]"
-            id="message_body"
-            rows="3"
-            placeholder={gettext("Write a reply...")}
-            required
-          >{@message_form[:body].value}</textarea>
-          <button type="submit" class="dash-btn dash-btn-primary">
-            {gettext("Send reply")}
-          </button>
+          <div class="ticket-reply-input-wrap">
+            <textarea
+              name="message[body]"
+              id="message_body"
+              rows="1"
+              placeholder={gettext("Write a reply...")}
+              required
+            >{@message_form[:body].value}</textarea>
+            <button type="submit" class="ticket-reply-send" aria-label={gettext("Send reply")}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
+              </svg>
+            </button>
+          </div>
         </.form>
-      <% end %>
-      <%= if @ticket.status in ~w(resolved implemented) do %>
-        <div class="ticket-resolved-banner">
-          <span>
-            {gettext("This ticket has been marked as %{status}.",
-              status: ticket_status_label(@ticket.status)
-            )}
-          </span>
-          <%= if @ticket.resolved_by do %>
-            <span class="ticket-resolved-by">
-              {gettext("Resolved by %{name}",
-                name: @ticket.resolved_by.name || @ticket.resolved_by.email
-              )}
-            </span>
-          <% end %>
-        </div>
       <% end %>
     </div>
     """

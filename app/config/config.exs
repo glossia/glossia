@@ -53,7 +53,6 @@ config :logger, :default_formatter,
 
 config :sentry,
   dsn: nil,
-  included_environments: [:prod],
   environment_name: config_env(),
   enable_source_code_context: true,
   root_source_code_paths: [File.cwd!()]

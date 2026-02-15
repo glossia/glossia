@@ -1,5 +1,5 @@
 defmodule Glossia.MCP.ListTokensTool do
-  @moduledoc "List personal access tokens for an account."
+  @moduledoc "List account tokens for an account."
 
   use Hermes.Server.Component, type: :tool
 
@@ -16,7 +16,7 @@ defmodule Glossia.MCP.ListTokensTool do
     with {:ok, user} <- Auth.current_user(frame),
          {:ok, account} <- Auth.fetch_account(handle),
          :ok <- Auth.authorize(frame, :api_credentials_read, user, account) do
-      {:ok, {tokens, _meta}} = DeveloperTokens.list_personal_access_tokens(account)
+      {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
 
       response =
         Response.tool()

@@ -2,8 +2,10 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
   @moduledoc "Remove a member from an organization."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
   alias Glossia.Accounts
+  alias Glossia.Auditing
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -34,6 +36,13 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
              frame}
           else
             Organizations.remove_member(org, target_user)
+
+            Auditing.record("member.removed", account, user,
+              resource_type: "member",
+              resource_id: to_string(target_user.id),
+              resource_path: ~p"/#{account.handle}/members",
+              summary: "Removed #{user_handle} from organization"
+            )
 
             response =
               Response.tool()

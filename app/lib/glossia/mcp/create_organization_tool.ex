@@ -2,8 +2,10 @@ defmodule Glossia.MCP.CreateOrganizationTool do
   @moduledoc "Create a new organization. The authenticated user becomes the admin."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
+  alias Glossia.Auditing
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -26,6 +28,13 @@ defmodule Glossia.MCP.CreateOrganizationTool do
 
       case Organizations.create_organization(user, %{"handle" => handle, "name" => name}) do
         {:ok, %{account: account, organization: org}} ->
+          Auditing.record("organization.created", account, user,
+            resource_type: "organization",
+            resource_id: to_string(org.id),
+            resource_path: ~p"/#{account.handle}",
+            summary: "Created organization \"#{account.handle}\""
+          )
+
           response =
             Response.tool()
             |> Response.text(

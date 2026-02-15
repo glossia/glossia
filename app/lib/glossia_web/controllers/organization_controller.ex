@@ -2,6 +2,7 @@ defmodule GlossiaWeb.OrganizationController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
+  alias Glossia.Auditing
   alias Glossia.Organizations
 
   def new(conn, _params) do
@@ -12,19 +13,34 @@ defmodule GlossiaWeb.OrganizationController do
   def create(conn, %{"account" => account_params}) do
     user = conn.assigns.current_user
 
-    case Organizations.create_organization(user, account_params) do
-      {:ok, %{account: account}} ->
-        redirect(conn, to: "/#{account.handle}")
+    with :ok <- Glossia.Policy.authorize(:organization_write, user, nil) do
+      case Organizations.create_organization(user, account_params) do
+        {:ok, %{account: account, organization: org}} ->
+          Auditing.record("organization.created", account, user,
+            resource_type: "organization",
+            resource_id: to_string(org.id),
+            resource_path: ~p"/#{account.handle}",
+            summary: "Created organization \"#{account.handle}\""
+          )
 
-      {:error, :account, changeset, _} ->
-        render(conn, :new, changeset: changeset, page_title: gettext("New organization"))
+          redirect(conn, to: ~p"/#{account.handle}")
 
-      {:error, _step, _changeset, _} ->
-        changeset =
-          Accounts.Account.changeset(%Accounts.Account{}, account_params)
-          |> Ecto.Changeset.add_error(:handle, "could not create organization")
+        {:error, :account, changeset, _} ->
+          render(conn, :new, changeset: changeset, page_title: gettext("New organization"))
 
-        render(conn, :new, changeset: changeset, page_title: gettext("New organization"))
+        {:error, _step, _changeset, _} ->
+          changeset =
+            Accounts.Account.changeset(%Accounts.Account{}, account_params)
+            |> Ecto.Changeset.add_error(:handle, "could not create organization")
+
+          render(conn, :new, changeset: changeset, page_title: gettext("New organization"))
+      end
+    else
+      {:error, :unauthorized} ->
+        conn
+        |> put_flash(:error, gettext("You don't have permission to do that."))
+        |> redirect(to: ~p"/dashboard")
+        |> halt()
     end
   end
 end

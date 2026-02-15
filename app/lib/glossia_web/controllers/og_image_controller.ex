@@ -56,6 +56,6 @@ defmodule GlossiaWeb.OgImageController do
   defp fallback_redirect(conn) do
     conn
     |> put_resp_header("cache-control", "no-cache")
-    |> redirect(to: "/images/logo-squared.jpg")
+    |> redirect(to: ~p"/images/logo-squared.jpg")
   end
 end

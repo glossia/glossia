@@ -7,6 +7,8 @@ defmodule GlossiaWeb.AdminHooks do
     - `:require_super_admin` - halts if user is not a super admin
   """
 
+  use GlossiaWeb, :verified_routes
+
   import Phoenix.Component, only: [assign: 3]
 
   alias Glossia.Accounts
@@ -30,7 +32,7 @@ defmodule GlossiaWeb.AdminHooks do
     if user && user.super_admin do
       {:cont, socket}
     else
-      {:halt, Phoenix.LiveView.redirect(socket, to: "/dashboard")}
+      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/dashboard")}
     end
   end
 end

@@ -1,92 +1,138 @@
 defmodule Glossia.Glossaries do
+  require OpenTelemetry.Tracer, as: Tracer
+
   alias Glossia.Accounts.{Account, User, Glossary, GlossaryEntry, GlossaryTranslation}
   alias Glossia.Repo
 
   import Ecto.Query
 
   def get_latest_glossary(%Account{id: account_id}) do
-    Glossary
-    |> where(account_id: ^account_id)
-    |> order_by(desc: :version)
-    |> limit(1)
-    |> preload(created_by: :account, entries: :translations)
-    |> Repo.one()
+    Tracer.with_span "glossia.glossaries.get_latest_glossary" do
+      Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
+
+      Glossary
+      |> where(account_id: ^account_id)
+      |> order_by(desc: :version)
+      |> limit(1)
+      |> preload(created_by: :account, entries: :translations)
+      |> Repo.one()
+    end
   end
 
   def get_glossary_version(%Account{id: account_id}, version) do
-    Glossary
-    |> where(account_id: ^account_id, version: ^version)
-    |> preload(created_by: :account, entries: :translations)
-    |> Repo.one()
+    Tracer.with_span "glossia.glossaries.get_glossary_version" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account_id)},
+        {"glossia.glossary.version", version}
+      ])
+
+      Glossary
+      |> where(account_id: ^account_id, version: ^version)
+      |> preload(created_by: :account, entries: :translations)
+      |> Repo.one()
+    end
   end
 
   def get_previous_glossary_version(%Account{id: account_id}, version) do
-    Glossary
-    |> where([g], g.account_id == ^account_id and g.version < ^version)
-    |> order_by(desc: :version)
-    |> limit(1)
-    |> preload(created_by: :account, entries: :translations)
-    |> Repo.one()
+    Tracer.with_span "glossia.glossaries.get_previous_glossary_version" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account_id)},
+        {"glossia.glossary.version", version}
+      ])
+
+      Glossary
+      |> where([g], g.account_id == ^account_id and g.version < ^version)
+      |> order_by(desc: :version)
+      |> limit(1)
+      |> preload(created_by: :account, entries: :translations)
+      |> Repo.one()
+    end
   end
 
   def list_glossary_versions(%Account{id: account_id}, params \\ %{}) do
-    query =
-      Glossary
-      |> where(account_id: ^account_id)
-      |> preload(created_by: :account)
+    Tracer.with_span "glossia.glossaries.list_glossary_versions" do
+      Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
 
-    Flop.validate_and_run(query, params, for: Glossary)
+      query =
+        Glossary
+        |> where(account_id: ^account_id)
+        |> preload(created_by: :account)
+
+      Flop.validate_and_run(query, params, for: Glossary)
+    end
   end
 
   def create_glossary(%Account{id: account_id}, attrs, user \\ nil) do
-    entries_attrs = attrs["entries"] || attrs[:entries] || []
-    created_by_id = if match?(%User{}, user), do: user.id, else: nil
+    Tracer.with_span "glossia.glossaries.create_glossary" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account_id)},
+        {"glossia.user.id", if(match?(%User{}, user), do: to_string(user.id), else: "")}
+      ])
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:next_version, fn repo, _changes ->
-      max =
-        Glossary
-        |> where(account_id: ^account_id)
-        |> select([g], max(g.version))
-        |> repo.one()
+      entries_attrs = attrs["entries"] || attrs[:entries] || []
+      created_by_id = if match?(%User{}, user), do: user.id, else: nil
 
-      {:ok, (max || 0) + 1}
-    end)
-    |> Ecto.Multi.insert(:glossary, fn %{next_version: version} ->
-      %Glossary{account_id: account_id, created_by_id: created_by_id}
-      |> Glossary.changeset(Map.put(attrs, :version, version))
-    end)
-    |> Ecto.Multi.run(:entries, fn repo, %{glossary: glossary} ->
-      insert_entries(repo, glossary.id, entries_attrs)
-    end)
-    |> Repo.transaction()
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:next_version, fn repo, _changes ->
+        max =
+          Glossary
+          |> where(account_id: ^account_id)
+          |> select([g], max(g.version))
+          |> repo.one()
+
+        {:ok, (max || 0) + 1}
+      end)
+      |> Ecto.Multi.insert(:glossary, fn %{next_version: version} ->
+        %Glossary{account_id: account_id, created_by_id: created_by_id}
+        |> Glossary.changeset(Map.put(attrs, :version, version))
+      end)
+      |> Ecto.Multi.run(:entries, fn repo, %{glossary: glossary} ->
+        insert_entries(repo, glossary.id, entries_attrs)
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{glossary: glossary}} = ok ->
+          Tracer.set_attributes([{"glossia.glossary.version", glossary.version}])
+          ok
+
+        other ->
+          other
+      end
+    end
   end
 
   def get_resolved_glossary(%Account{} = account, locale) do
-    case get_latest_glossary(account) do
-      nil ->
-        nil
+    Tracer.with_span "glossia.glossaries.get_resolved_glossary" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account.id)},
+        {"glossia.locale", to_string(locale)}
+      ])
 
-      glossary ->
-        entries =
-          glossary.entries
-          |> Enum.map(fn entry ->
-            translation = Enum.find(entry.translations, &(&1.locale == locale))
+      case get_latest_glossary(account) do
+        nil ->
+          nil
 
-            %{
-              term: entry.term,
-              definition: entry.definition,
-              case_sensitive: entry.case_sensitive,
-              translation: if(translation, do: translation.translation)
-            }
-          end)
-          |> Enum.filter(& &1.translation)
+        glossary ->
+          entries =
+            glossary.entries
+            |> Enum.map(fn entry ->
+              translation = Enum.find(entry.translations, &(&1.locale == locale))
 
-        %{
-          version: glossary.version,
-          locale: locale,
-          entries: entries
-        }
+              %{
+                term: entry.term,
+                definition: entry.definition,
+                case_sensitive: entry.case_sensitive,
+                translation: if(translation, do: translation.translation)
+              }
+            end)
+            |> Enum.filter(& &1.translation)
+
+          %{
+            version: glossary.version,
+            locale: locale,
+            entries: entries
+          }
+      end
     end
   end
 

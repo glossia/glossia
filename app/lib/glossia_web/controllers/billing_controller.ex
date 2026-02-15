@@ -1,6 +1,7 @@
 defmodule GlossiaWeb.BillingController do
   use GlossiaWeb, :controller
 
+  alias Glossia.Auditing
   alias Glossia.Stripe
 
   def show(conn, _params) do
@@ -26,6 +27,13 @@ defmodule GlossiaWeb.BillingController do
 
       case Stripe.create_checkout_session(account, user, success_url, cancel_url) do
         {:ok, %{url: url}} ->
+          Auditing.record("billing.checkout_started", account, user,
+            resource_type: "account",
+            resource_id: to_string(account.id),
+            resource_path: ~p"/billing",
+            summary: "Started Stripe checkout."
+          )
+
           redirect(conn, external: url)
 
         {:error, _reason} ->
@@ -76,6 +84,13 @@ defmodule GlossiaWeb.BillingController do
 
     case Stripe.customer_portal_url(account, GlossiaWeb.Endpoint.url() <> "/billing") do
       {:ok, url} ->
+        Auditing.record("billing.portal_opened", account, user,
+          resource_type: "account",
+          resource_id: to_string(account.id),
+          resource_path: ~p"/billing",
+          summary: "Opened Stripe customer portal."
+        )
+
         redirect(conn, external: url)
 
       {:error, _reason} ->

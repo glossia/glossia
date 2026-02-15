@@ -7,6 +7,7 @@ defmodule Glossia.OgImage do
   """
 
   require Logger
+  require OpenTelemetry.Tracer, as: Tracer
 
   defp template_path, do: Path.join(:code.priv_dir(:glossia), "og_image/template.html.eex")
 
@@ -89,19 +90,26 @@ defmodule Glossia.OgImage do
   Returns `{:ok, jpeg_bytes}` or `{:error, reason}`.
   """
   def fetch_or_generate(s3_path, attrs) do
-    with {:ok, _} <- safe_s3_head(s3_path),
-         {:ok, %{body: body}} <- Glossia.Storage.download(s3_path) do
-      {:ok, body}
-    else
-      _ ->
-        with {:ok, bytes} <- generate(attrs) do
-          case Glossia.Storage.upload(s3_path, bytes, content_type: "image/jpeg") do
-            {:ok, _} -> Logger.info("OG image cached to S3: #{s3_path}")
-            {:error, reason} -> Logger.warning("OG image S3 upload failed: #{inspect(reason)}")
-          end
+    Tracer.with_span "glossia.og_image.fetch_or_generate" do
+      Tracer.set_attributes([
+        {"glossia.og_image.s3_path", to_string(s3_path)},
+        {"glossia.og_image.category", to_string(attrs[:category] || attrs["category"] || "")}
+      ])
 
-          {:ok, bytes}
-        end
+      with {:ok, _} <- safe_s3_head(s3_path),
+           {:ok, %{body: body}} <- Glossia.Storage.download(s3_path) do
+        {:ok, body}
+      else
+        _ ->
+          with {:ok, bytes} <- generate(attrs) do
+            case Glossia.Storage.upload(s3_path, bytes, content_type: "image/jpeg") do
+              {:ok, _} -> Logger.info("OG image cached to S3: #{s3_path}")
+              {:error, reason} -> Logger.warning("OG image S3 upload failed: #{inspect(reason)}")
+            end
+
+            {:ok, bytes}
+          end
+      end
     end
   end
 
@@ -119,35 +127,41 @@ defmodule Glossia.OgImage do
   Returns `{:ok, jpeg_bytes}` or `{:error, reason}`.
   """
   def generate(attrs) do
-    title = attrs[:title] || attrs["title"] || "Glossia"
-    description = attrs[:description] || attrs["description"] || ""
-    category = attrs[:category] || attrs["category"] || ""
-    author_name = attrs[:author_name] || attrs["author_name"] || ""
-    author_avatar = attrs[:author_avatar] || attrs["author_avatar"] || ""
+    Tracer.with_span "glossia.og_image.generate" do
+      title = attrs[:title] || attrs["title"] || "Glossia"
+      description = attrs[:description] || attrs["description"] || ""
+      category = attrs[:category] || attrs["category"] || ""
+      author_name = attrs[:author_name] || attrs["author_name"] || ""
+      author_avatar = attrs[:author_avatar] || attrs["author_avatar"] || ""
 
-    html =
-      EEx.eval_file(template_path(),
-        title: title,
-        description: description,
-        category: category,
-        author_name: author_name,
-        author_avatar: author_avatar
-      )
+      Tracer.set_attributes([
+        {"glossia.og_image.category", to_string(category)}
+      ])
 
-    case ChromicPDF.capture_screenshot({:html, html},
-           capture_screenshot: %{
-             format: "jpeg",
-             quality: 90,
-             clip: %{x: 0, y: 0, width: 1200, height: 630, scale: 1}
-           },
-           full_page: true
-         ) do
-      {:ok, base64_data} ->
-        {:ok, Base.decode64!(base64_data)}
+      html =
+        EEx.eval_file(template_path(),
+          title: title,
+          description: description,
+          category: category,
+          author_name: author_name,
+          author_avatar: author_avatar
+        )
 
-      error ->
-        Logger.error("OG image generation failed: #{inspect(error)}")
-        error
+      case ChromicPDF.capture_screenshot({:html, html},
+             capture_screenshot: %{
+               format: "jpeg",
+               quality: 90,
+               clip: %{x: 0, y: 0, width: 1200, height: 630, scale: 1}
+             },
+             full_page: true
+           ) do
+        {:ok, base64_data} ->
+          {:ok, Base.decode64!(base64_data)}
+
+        error ->
+          Logger.error("OG image generation failed: #{inspect(error)}")
+          error
+      end
     end
   end
 

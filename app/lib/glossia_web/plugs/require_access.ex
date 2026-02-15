@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.Plugs.RequireAccess do
+  use GlossiaWeb, :verified_routes
+
   import Plug.Conn
   import Phoenix.Controller
 
@@ -11,7 +13,7 @@ defmodule GlossiaWeb.Plugs.RequireAccess do
       conn
     else
       conn
-      |> redirect(to: "/interest")
+      |> redirect(to: ~p"/interest")
       |> halt()
     end
   end

@@ -2,8 +2,10 @@ defmodule Glossia.MCP.SaveVoiceTool do
   @moduledoc "Create a new voice version for an account."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
+  alias Glossia.Auditing
   alias Glossia.Voices
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -48,6 +50,13 @@ defmodule Glossia.MCP.SaveVoiceTool do
       case Voices.create_voice(account, attrs, user) do
         {:ok, %{voice: voice, overrides: overrides}} ->
           voice = %{voice | overrides: overrides}
+
+          Auditing.record("voice.created", account, user,
+            resource_type: "voice",
+            resource_id: to_string(voice.version),
+            resource_path: ~p"/#{handle}/voice/#{voice.version}",
+            summary: voice.change_note || "Updated voice settings."
+          )
 
           response =
             Response.tool()

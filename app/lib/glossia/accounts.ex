@@ -1,4 +1,6 @@
 defmodule Glossia.Accounts do
+  require OpenTelemetry.Tracer, as: Tracer
+
   alias Glossia.Repo
 
   alias Glossia.Accounts.{
@@ -22,19 +24,23 @@ defmodule Glossia.Accounts do
   end
 
   def list_user_accounts(%User{} = user, params \\ %{}) do
-    user_account_id = user.account_id
+    Tracer.with_span "glossia.accounts.list_user_accounts" do
+      Tracer.set_attributes([{"glossia.user.id", to_string(user.id)}])
 
-    org_account_ids =
-      OrganizationMembership
-      |> where(user_id: ^user.id)
-      |> join(:inner, [m], o in Organization, on: o.id == m.organization_id)
-      |> select([_m, o], o.account_id)
+      user_account_id = user.account_id
 
-    query =
-      Account
-      |> where([a], a.id == ^user_account_id or a.id in subquery(org_account_ids))
+      org_account_ids =
+        OrganizationMembership
+        |> where(user_id: ^user.id)
+        |> join(:inner, [m], o in Organization, on: o.id == m.organization_id)
+        |> select([_m, o], o.account_id)
 
-    Flop.validate_and_run(query, params, for: Account)
+      query =
+        Account
+        |> where([a], a.id == ^user_account_id or a.id in subquery(org_account_ids))
+
+      Flop.validate_and_run(query, params, for: Account)
+    end
   end
 
   # ----------------------------------------------------------------------------
@@ -58,11 +64,15 @@ defmodule Glossia.Accounts do
   end
 
   def find_or_create_user_from_oauth(provider, %{user: user_info, token: token_info}) do
-    provider_uid = to_string(user_info["sub"])
+    Tracer.with_span "glossia.accounts.find_or_create_user_from_oauth" do
+      Tracer.set_attributes([{"glossia.oauth.provider", to_string(provider)}])
 
-    case get_identity(provider, provider_uid) do
-      nil -> create_user_from_oauth(provider, user_info, token_info)
-      identity -> update_identity_tokens(identity, token_info)
+      provider_uid = to_string(user_info["sub"])
+
+      case get_identity(provider, provider_uid) do
+        nil -> create_user_from_oauth(provider, user_info, token_info)
+        identity -> update_identity_tokens(identity, token_info)
+      end
     end
   end
 
@@ -166,36 +176,54 @@ defmodule Glossia.Accounts do
   # ----------------------------------------------------------------------------
 
   def grant_access(email) when is_binary(email) do
-    case User |> where(email: ^email) |> preload(:account) |> Repo.one() do
-      nil ->
-        {:error, :not_found}
+    Tracer.with_span "glossia.accounts.grant_access" do
+      user = User |> where(email: ^email) |> preload(:account) |> Repo.one()
 
-      user ->
-        Ecto.Multi.new()
-        |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: true}))
-        |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: true}))
-        |> Repo.transaction()
-        |> case do
-          {:ok, %{user: user}} -> {:ok, user}
-          {:error, _step, changeset, _changes} -> {:error, changeset}
-        end
+      case user do
+        nil ->
+          {:error, :not_found}
+
+        user ->
+          Tracer.set_attributes([
+            {"glossia.user.id", to_string(user.id)},
+            {"glossia.account.id", to_string(user.account_id)}
+          ])
+
+          Ecto.Multi.new()
+          |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: true}))
+          |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: true}))
+          |> Repo.transaction()
+          |> case do
+            {:ok, %{user: user}} -> {:ok, user}
+            {:error, _step, changeset, _changes} -> {:error, changeset}
+          end
+      end
     end
   end
 
   def revoke_access(email) when is_binary(email) do
-    case User |> where(email: ^email) |> preload(:account) |> Repo.one() do
-      nil ->
-        {:error, :not_found}
+    Tracer.with_span "glossia.accounts.revoke_access" do
+      user = User |> where(email: ^email) |> preload(:account) |> Repo.one()
 
-      user ->
-        Ecto.Multi.new()
-        |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: false}))
-        |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: false}))
-        |> Repo.transaction()
-        |> case do
-          {:ok, %{user: user}} -> {:ok, user}
-          {:error, _step, changeset, _changes} -> {:error, changeset}
-        end
+      case user do
+        nil ->
+          {:error, :not_found}
+
+        user ->
+          Tracer.set_attributes([
+            {"glossia.user.id", to_string(user.id)},
+            {"glossia.account.id", to_string(user.account_id)}
+          ])
+
+          Ecto.Multi.new()
+          |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: false}))
+          |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: false}))
+          |> Repo.transaction()
+          |> case do
+            {:ok, %{user: user}} -> {:ok, user}
+            {:error, _step, changeset, _changes} -> {:error, changeset}
+          end
+      end
     end
   end
 

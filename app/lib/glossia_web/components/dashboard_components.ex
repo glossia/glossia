@@ -738,6 +738,249 @@ defmodule GlossiaWeb.DashboardComponents do
   end
 
   # ---------------------------------------------------------------------------
+  # Country Picker (searchable combobox)
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Renders a searchable country picker combobox with flag emojis.
+
+  Pushes a `"country_selected"` event with `%{code: "XX"}` when a country
+  is picked. This is designed for multi-select workflows where the parent
+  LiveView manages the list of selected countries.
+
+  ## Examples
+
+      <.country_picker
+        id="voice-country-picker"
+        exclude={["US", "JP"]}
+      />
+  """
+  attr :id, :string, required: true
+  attr :exclude, :list, default: []
+  attr :disabled, :boolean, default: false
+
+  def country_picker(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      phx-hook=".CountryPicker"
+      phx-update="ignore"
+      class="locale-picker"
+      data-exclude={JSON.encode!(@exclude)}
+      data-disabled={to_string(@disabled)}
+      data-placeholder={gettext("Search country...")}
+    >
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".CountryPicker">
+      const COUNTRIES = [
+        ["AD", "\u{1F1E6}\u{1F1E9}", "Andorra"], ["AE", "\u{1F1E6}\u{1F1EA}", "United Arab Emirates"],
+        ["AR", "\u{1F1E6}\u{1F1F7}", "Argentina"], ["AT", "\u{1F1E6}\u{1F1F9}", "Austria"],
+        ["AU", "\u{1F1E6}\u{1F1FA}", "Australia"], ["BE", "\u{1F1E7}\u{1F1EA}", "Belgium"],
+        ["BG", "\u{1F1E7}\u{1F1EC}", "Bulgaria"], ["BR", "\u{1F1E7}\u{1F1F7}", "Brazil"],
+        ["CA", "\u{1F1E8}\u{1F1E6}", "Canada"], ["CH", "\u{1F1E8}\u{1F1ED}", "Switzerland"],
+        ["CL", "\u{1F1E8}\u{1F1F1}", "Chile"], ["CN", "\u{1F1E8}\u{1F1F3}", "China"],
+        ["CO", "\u{1F1E8}\u{1F1F4}", "Colombia"], ["CZ", "\u{1F1E8}\u{1F1FF}", "Czech Republic"],
+        ["DE", "\u{1F1E9}\u{1F1EA}", "Germany"], ["DK", "\u{1F1E9}\u{1F1F0}", "Denmark"],
+        ["EG", "\u{1F1EA}\u{1F1EC}", "Egypt"], ["ES", "\u{1F1EA}\u{1F1F8}", "Spain"],
+        ["FI", "\u{1F1EB}\u{1F1EE}", "Finland"], ["FR", "\u{1F1EB}\u{1F1F7}", "France"],
+        ["GB", "\u{1F1EC}\u{1F1E7}", "United Kingdom"], ["GR", "\u{1F1EC}\u{1F1F7}", "Greece"],
+        ["HK", "\u{1F1ED}\u{1F1F0}", "Hong Kong"], ["HR", "\u{1F1ED}\u{1F1F7}", "Croatia"],
+        ["HU", "\u{1F1ED}\u{1F1FA}", "Hungary"], ["ID", "\u{1F1EE}\u{1F1E9}", "Indonesia"],
+        ["IE", "\u{1F1EE}\u{1F1EA}", "Ireland"], ["IL", "\u{1F1EE}\u{1F1F1}", "Israel"],
+        ["IN", "\u{1F1EE}\u{1F1F3}", "India"], ["IT", "\u{1F1EE}\u{1F1F9}", "Italy"],
+        ["JP", "\u{1F1EF}\u{1F1F5}", "Japan"], ["KR", "\u{1F1F0}\u{1F1F7}", "South Korea"],
+        ["MA", "\u{1F1F2}\u{1F1E6}", "Morocco"], ["MX", "\u{1F1F2}\u{1F1FD}", "Mexico"],
+        ["MY", "\u{1F1F2}\u{1F1FE}", "Malaysia"], ["NG", "\u{1F1F3}\u{1F1EC}", "Nigeria"],
+        ["NL", "\u{1F1F3}\u{1F1F1}", "Netherlands"], ["NO", "\u{1F1F3}\u{1F1F4}", "Norway"],
+        ["NZ", "\u{1F1F3}\u{1F1FF}", "New Zealand"], ["PE", "\u{1F1F5}\u{1F1EA}", "Peru"],
+        ["PH", "\u{1F1F5}\u{1F1ED}", "Philippines"], ["PK", "\u{1F1F5}\u{1F1F0}", "Pakistan"],
+        ["PL", "\u{1F1F5}\u{1F1F1}", "Poland"], ["PT", "\u{1F1F5}\u{1F1F9}", "Portugal"],
+        ["RO", "\u{1F1F7}\u{1F1F4}", "Romania"], ["SA", "\u{1F1F8}\u{1F1E6}", "Saudi Arabia"],
+        ["SE", "\u{1F1F8}\u{1F1EA}", "Sweden"], ["SG", "\u{1F1F8}\u{1F1EC}", "Singapore"],
+        ["TH", "\u{1F1F9}\u{1F1ED}", "Thailand"], ["TR", "\u{1F1F9}\u{1F1F7}", "Turkey"],
+        ["TW", "\u{1F1F9}\u{1F1FC}", "Taiwan"], ["UA", "\u{1F1FA}\u{1F1E6}", "Ukraine"],
+        ["US", "\u{1F1FA}\u{1F1F8}", "United States"], ["VN", "\u{1F1FB}\u{1F1F3}", "Vietnam"],
+        ["ZA", "\u{1F1FF}\u{1F1E6}", "South Africa"]
+      ];
+
+      export default {
+        mounted() {
+          this.setup();
+          this.handleEvent("update_country_exclude", ({ exclude: newExclude }) => {
+            this._exclude = newExclude || [];
+          });
+        },
+        updated() { this.setup(); },
+
+        setup() {
+          const el = this.el;
+          const disabled = el.dataset.disabled === "true";
+          const placeholder = el.dataset.placeholder || "Search country...";
+          let exclude = [];
+          try { exclude = JSON.parse(el.dataset.exclude || "[]"); } catch(e) {}
+          this._exclude = exclude;
+
+          el.innerHTML = "";
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "locale-picker-input";
+          input.placeholder = placeholder;
+          input.autocomplete = "off";
+          if (disabled) input.disabled = true;
+          el.appendChild(input);
+
+          const list = document.createElement("div");
+          list.className = "locale-picker-dropdown";
+          el.appendChild(list);
+
+          let highlighted = -1;
+          const hook = this;
+
+          const render = (filter) => {
+            const q = (filter || "").toLowerCase();
+            const currentExclude = hook._exclude || [];
+            const matches = COUNTRIES.filter(([code, flag, name]) =>
+              !currentExclude.includes(code) &&
+              (code.toLowerCase().includes(q) || name.toLowerCase().includes(q))
+            ).sort((a, b) => {
+              const aCode = a[0].toLowerCase().startsWith(q) ? 0 : 1;
+              const bCode = b[0].toLowerCase().startsWith(q) ? 0 : 1;
+              return aCode - bCode;
+            });
+            list.innerHTML = "";
+            highlighted = -1;
+            matches.forEach(([code, flag, name]) => {
+              const opt = document.createElement("div");
+              opt.className = "locale-picker-option";
+              opt.dataset.value = code;
+              opt.textContent = flag + " " + name;
+              opt.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                pick(code);
+              });
+              list.appendChild(opt);
+            });
+          };
+
+          const pick = (code) => {
+            input.value = "";
+            list.classList.remove("open");
+            hook.pushEvent("add_country", { code: code });
+          };
+
+          const highlightAt = (idx) => {
+            const opts = list.querySelectorAll(".locale-picker-option");
+            opts.forEach(o => o.classList.remove("highlighted"));
+            if (idx >= 0 && idx < opts.length) {
+              opts[idx].classList.add("highlighted");
+              opts[idx].scrollIntoView({ block: "nearest" });
+              highlighted = idx;
+            }
+          };
+
+          if (!disabled) {
+            input.addEventListener("focus", () => {
+              render("");
+              list.classList.add("open");
+            });
+
+            input.addEventListener("input", () => {
+              render(input.value);
+              list.classList.add("open");
+            });
+
+            input.addEventListener("blur", () => {
+              list.classList.remove("open");
+              input.value = "";
+            });
+
+            input.addEventListener("keydown", (e) => {
+              const opts = list.querySelectorAll(".locale-picker-option");
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                highlightAt(Math.min(highlighted + 1, opts.length - 1));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                highlightAt(Math.max(highlighted - 1, 0));
+              } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (highlighted >= 0 && opts[highlighted]) {
+                  pick(opts[highlighted].dataset.value);
+                }
+              } else if (e.key === "Escape") {
+                input.blur();
+              }
+            });
+          }
+        }
+      }
+    </script>
+    """
+  end
+
+  @country_map %{
+    "AD" => {"\u{1F1E6}\u{1F1E9}", "Andorra"},
+    "AE" => {"\u{1F1E6}\u{1F1EA}", "United Arab Emirates"},
+    "AR" => {"\u{1F1E6}\u{1F1F7}", "Argentina"},
+    "AT" => {"\u{1F1E6}\u{1F1F9}", "Austria"},
+    "AU" => {"\u{1F1E6}\u{1F1FA}", "Australia"},
+    "BE" => {"\u{1F1E7}\u{1F1EA}", "Belgium"},
+    "BG" => {"\u{1F1E7}\u{1F1EC}", "Bulgaria"},
+    "BR" => {"\u{1F1E7}\u{1F1F7}", "Brazil"},
+    "CA" => {"\u{1F1E8}\u{1F1E6}", "Canada"},
+    "CH" => {"\u{1F1E8}\u{1F1ED}", "Switzerland"},
+    "CL" => {"\u{1F1E8}\u{1F1F1}", "Chile"},
+    "CN" => {"\u{1F1E8}\u{1F1F3}", "China"},
+    "CO" => {"\u{1F1E8}\u{1F1F4}", "Colombia"},
+    "CZ" => {"\u{1F1E8}\u{1F1FF}", "Czech Republic"},
+    "DE" => {"\u{1F1E9}\u{1F1EA}", "Germany"},
+    "DK" => {"\u{1F1E9}\u{1F1F0}", "Denmark"},
+    "EG" => {"\u{1F1EA}\u{1F1EC}", "Egypt"},
+    "ES" => {"\u{1F1EA}\u{1F1F8}", "Spain"},
+    "FI" => {"\u{1F1EB}\u{1F1EE}", "Finland"},
+    "FR" => {"\u{1F1EB}\u{1F1F7}", "France"},
+    "GB" => {"\u{1F1EC}\u{1F1E7}", "United Kingdom"},
+    "GR" => {"\u{1F1EC}\u{1F1F7}", "Greece"},
+    "HK" => {"\u{1F1ED}\u{1F1F0}", "Hong Kong"},
+    "HR" => {"\u{1F1ED}\u{1F1F7}", "Croatia"},
+    "HU" => {"\u{1F1ED}\u{1F1FA}", "Hungary"},
+    "ID" => {"\u{1F1EE}\u{1F1E9}", "Indonesia"},
+    "IE" => {"\u{1F1EE}\u{1F1EA}", "Ireland"},
+    "IL" => {"\u{1F1EE}\u{1F1F1}", "Israel"},
+    "IN" => {"\u{1F1EE}\u{1F1F3}", "India"},
+    "IT" => {"\u{1F1EE}\u{1F1F9}", "Italy"},
+    "JP" => {"\u{1F1EF}\u{1F1F5}", "Japan"},
+    "KR" => {"\u{1F1F0}\u{1F1F7}", "South Korea"},
+    "MA" => {"\u{1F1F2}\u{1F1E6}", "Morocco"},
+    "MX" => {"\u{1F1F2}\u{1F1FD}", "Mexico"},
+    "MY" => {"\u{1F1F2}\u{1F1FE}", "Malaysia"},
+    "NG" => {"\u{1F1F3}\u{1F1EC}", "Nigeria"},
+    "NL" => {"\u{1F1F3}\u{1F1F1}", "Netherlands"},
+    "NO" => {"\u{1F1F3}\u{1F1F4}", "Norway"},
+    "NZ" => {"\u{1F1F3}\u{1F1FF}", "New Zealand"},
+    "PE" => {"\u{1F1F5}\u{1F1EA}", "Peru"},
+    "PH" => {"\u{1F1F5}\u{1F1ED}", "Philippines"},
+    "PK" => {"\u{1F1F5}\u{1F1F0}", "Pakistan"},
+    "PL" => {"\u{1F1F5}\u{1F1F1}", "Poland"},
+    "PT" => {"\u{1F1F5}\u{1F1F9}", "Portugal"},
+    "RO" => {"\u{1F1F7}\u{1F1F4}", "Romania"},
+    "SA" => {"\u{1F1F8}\u{1F1E6}", "Saudi Arabia"},
+    "SE" => {"\u{1F1F8}\u{1F1EA}", "Sweden"},
+    "SG" => {"\u{1F1F8}\u{1F1EC}", "Singapore"},
+    "TH" => {"\u{1F1F9}\u{1F1ED}", "Thailand"},
+    "TR" => {"\u{1F1F9}\u{1F1F7}", "Turkey"},
+    "TW" => {"\u{1F1F9}\u{1F1FC}", "Taiwan"},
+    "UA" => {"\u{1F1FA}\u{1F1E6}", "Ukraine"},
+    "US" => {"\u{1F1FA}\u{1F1F8}", "United States"},
+    "VN" => {"\u{1F1FB}\u{1F1F3}", "Vietnam"},
+    "ZA" => {"\u{1F1FF}\u{1F1E6}", "South Africa"}
+  }
+
+  def country_flag(code), do: elem(Map.get(@country_map, code, {"", code}), 0)
+  def country_name(code), do: elem(Map.get(@country_map, code, {"", code}), 1)
+
+  # ---------------------------------------------------------------------------
   # Badge
   # ---------------------------------------------------------------------------
 

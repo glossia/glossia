@@ -1,4 +1,4 @@
-defmodule Glossia.Accounts.PersonalAccessToken do
+defmodule Glossia.Accounts.AccountToken do
   use Glossia.Schema
   import Ecto.Changeset
 
@@ -9,7 +9,7 @@ defmodule Glossia.Accounts.PersonalAccessToken do
     default_order: %{order_by: [:inserted_at], order_directions: [:desc]}
   }
 
-  schema "personal_access_tokens" do
+  schema "account_tokens" do
     field :name, :string
     field :description, :string
     field :token_hash, :string

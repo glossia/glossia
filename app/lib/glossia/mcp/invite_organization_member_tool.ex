@@ -2,8 +2,10 @@ defmodule Glossia.MCP.InviteOrganizationMemberTool do
   @moduledoc "Invite a user to an organization by email."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
+  alias Glossia.Auditing
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -27,6 +29,13 @@ defmodule Glossia.MCP.InviteOrganizationMemberTool do
 
       case Organizations.create_invitation(org, user, params) do
         {:ok, invitation} ->
+          Auditing.record("member.invited", account, user,
+            resource_type: "invitation",
+            resource_id: to_string(invitation.id),
+            resource_path: ~p"/#{account.handle}/members",
+            summary: "Invited #{invitation.email} as #{invitation.role}"
+          )
+
           response =
             Response.tool()
             |> Response.text(

@@ -32,7 +32,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
         |> assign(:scopes, scopes)
 
       :error ->
-        validate_pat(conn, token_value)
+        validate_account_token(conn, token_value)
     end
   end
 
@@ -47,19 +47,19 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
     end
   end
 
-  defp validate_pat(conn, "glsa_" <> _ = token_value) do
-    case DeveloperTokens.get_personal_access_token_by_value(token_value) do
-      {:ok, pat} ->
+  defp validate_account_token(conn, "glsa_" <> _ = token_value) do
+    case DeveloperTokens.get_account_token_by_value(token_value) do
+      {:ok, token} ->
         conn
-        |> assign(:current_user, pat.user)
-        |> assign(:scopes, parse_scopes(pat.scope))
+        |> assign(:current_user, token.user)
+        |> assign(:scopes, parse_scopes(token.scope))
 
       _ ->
         reject_unauthorized(conn)
     end
   end
 
-  defp validate_pat(conn, _token_value) do
+  defp validate_account_token(conn, _token_value) do
     reject_unauthorized(conn)
   end
 

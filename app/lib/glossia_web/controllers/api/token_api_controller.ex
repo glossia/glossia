@@ -14,7 +14,7 @@ defmodule GlossiaWeb.Api.TokenApiController do
       account ->
         case ApiAuthorization.authorize(conn, :api_credentials_read, account) do
           {:ok, conn} ->
-            case DeveloperTokens.list_personal_access_tokens(account, params) do
+            case DeveloperTokens.list_account_tokens(account, params) do
               {:ok, {tokens, meta}} ->
                 conn
                 |> json(%{
@@ -49,12 +49,12 @@ defmodule GlossiaWeb.Api.TokenApiController do
               "expires_at" => parse_expires_at(params["expires_in_days"])
             }
 
-            case DeveloperTokens.create_personal_access_token(account, user, attrs) do
+            case DeveloperTokens.create_account_token(account, user, attrs) do
               {:ok, %{token: token, plain_token: plain_token}} ->
                 Glossia.Auditing.record("token.created", account, user,
-                  resource_type: "personal_access_token",
+                  resource_type: "account_token",
                   resource_id: to_string(token.id),
-                  summary: "Created personal access token \"#{token.name}\""
+                  summary: "Created account token \"#{token.name}\""
                 )
 
                 conn
@@ -86,12 +86,12 @@ defmodule GlossiaWeb.Api.TokenApiController do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
 
-            case DeveloperTokens.revoke_personal_access_token(id, account.id) do
+            case DeveloperTokens.revoke_account_token(id, account.id) do
               {:ok, token} ->
                 Glossia.Auditing.record("token.revoked", account, user,
-                  resource_type: "personal_access_token",
+                  resource_type: "account_token",
                   resource_id: to_string(token.id),
-                  summary: "Revoked personal access token \"#{token.name}\""
+                  summary: "Revoked account token \"#{token.name}\""
                 )
 
                 conn |> json(%{status: "revoked"})

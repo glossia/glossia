@@ -403,7 +403,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
               "Provide a reason for this impersonation. This will be recorded in the audit log."
             )}
           </p>
-          <form method="post" action="/admin/impersonate" id="impersonate-form">
+          <form method="post" action={~p"/admin/impersonate"} id="impersonate-form">
             <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
             <input type="hidden" name="user_id" value={@impersonate_user_id} />
             <div class="impersonate-modal-field">
@@ -454,7 +454,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
       total={@accounts_total}
     >
       <:col :let={account} label={gettext("Handle")} key="handle" sortable>
-        <a href={"/" <> account.handle} class="admin-link">{account.handle}</a>
+        <a href={~p"/#{account.handle}"} class="admin-link">{account.handle}</a>
       </:col>
       <:col :let={account} label={gettext("Type")} key="type" sortable>
         <.badge variant={if(account.type == "organization", do: "info", else: "neutral")}>
@@ -715,8 +715,11 @@ defmodule GlossiaWeb.Admin.AdminLive do
       per_page={@page_size}
       total={@tickets_total}
     >
+      <:col :let={ticket} label="#" key="number" sortable>
+        <a href={~p"/admin/tickets/#{ticket.id}"} class="admin-link">{"##{ticket.number}"}</a>
+      </:col>
       <:col :let={ticket} label={gettext("Title")} key="title" sortable>
-        <a href={"/admin/tickets/" <> ticket.id} class="admin-link">{ticket.title}</a>
+        <a href={~p"/admin/tickets/#{ticket.id}"} class="admin-link">{ticket.title}</a>
       </:col>
       <:col :let={ticket} label={gettext("Account")}>
         {ticket.account.handle}

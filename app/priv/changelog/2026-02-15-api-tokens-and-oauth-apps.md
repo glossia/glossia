@@ -1,13 +1,13 @@
 %{
-  title: "Personal access tokens and OAuth applications",
+  title: "Account tokens and OAuth applications",
   summary: "Manage API tokens and register OAuth applications from the dashboard."
 }
 ---
 
-You can now create and manage personal access tokens and OAuth applications
+You can now create and manage account tokens and OAuth applications
 directly from the API section in your account dashboard.
 
-**Personal access tokens** let you authenticate with the Glossia API from scripts,
+**Account tokens** let you authenticate with the Glossia API from scripts,
 CI pipelines, or any tool that needs programmatic access. Each token can be scoped
 to specific permissions and set to expire after 30, 60, or 90 days.
 

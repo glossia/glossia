@@ -2,8 +2,10 @@ defmodule Glossia.Admin.MCP.UpdateTicketStatusTool do
   @moduledoc "Update the status of a support ticket (super admin only)."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
   alias Glossia.Admin.MCP.Authorization, as: Auth
+  alias Glossia.Auditing
   alias Glossia.Support
   alias Hermes.Server.Response
 
@@ -26,6 +28,13 @@ defmodule Glossia.Admin.MCP.UpdateTicketStatusTool do
 
       case Support.update_ticket_status(ticket, status, resolved_by) do
         {:ok, updated_ticket} ->
+          Auditing.record("ticket.status_changed", ticket.account, user,
+            resource_type: "ticket",
+            resource_id: to_string(ticket.id),
+            resource_path: ~p"/admin/tickets/#{ticket.id}",
+            summary: "Changed ticket status to #{status}"
+          )
+
           response =
             Response.tool()
             |> Response.text(

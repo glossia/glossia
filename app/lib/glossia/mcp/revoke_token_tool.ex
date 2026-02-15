@@ -1,5 +1,5 @@
 defmodule Glossia.MCP.RevokeTokenTool do
-  @moduledoc "Revoke a personal access token."
+  @moduledoc "Revoke an account token."
 
   use Hermes.Server.Component, type: :tool
 
@@ -17,12 +17,12 @@ defmodule Glossia.MCP.RevokeTokenTool do
     with {:ok, user} <- Auth.current_user(frame),
          {:ok, account} <- Auth.fetch_account(handle),
          :ok <- Auth.authorize(frame, :api_credentials_write, user, account) do
-      case DeveloperTokens.revoke_personal_access_token(token_id, account.id) do
+      case DeveloperTokens.revoke_account_token(token_id, account.id) do
         {:ok, token} ->
           Glossia.Auditing.record("token.revoked", account, user,
-            resource_type: "personal_access_token",
+            resource_type: "account_token",
             resource_id: to_string(token.id),
-            summary: "Revoked personal access token \"#{token.name}\""
+            summary: "Revoked account token \"#{token.name}\""
           )
 
           response =

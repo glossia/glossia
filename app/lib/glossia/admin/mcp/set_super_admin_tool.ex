@@ -6,6 +6,7 @@ defmodule Glossia.Admin.MCP.SetSuperAdminTool do
   alias Glossia.Admin.MCP.Authorization, as: Auth
   alias Glossia.Accounts
   alias Glossia.Accounts.User
+  alias Glossia.Auditing
   alias Glossia.Repo
   alias Hermes.Server.Response
 
@@ -20,7 +21,7 @@ defmodule Glossia.Admin.MCP.SetSuperAdminTool do
 
   @impl true
   def execute(params, frame) do
-    with {:ok, _admin} <- Auth.current_user(frame) do
+    with {:ok, admin} <- Auth.current_user(frame) do
       email = params["email"]
       value = params["super_admin"]
 
@@ -31,6 +32,15 @@ defmodule Glossia.Admin.MCP.SetSuperAdminTool do
         user ->
           case Accounts.set_super_admin(user.id, value) do
             {:ok, updated} ->
+              event =
+                if(value, do: "admin.super_admin_granted", else: "admin.super_admin_revoked")
+
+              Auditing.record(event, admin.account, admin,
+                resource_type: "user",
+                resource_id: to_string(updated.id),
+                summary: "Set super_admin=#{value} for #{updated.email}"
+              )
+
               response =
                 Response.tool()
                 |> Response.text(

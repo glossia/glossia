@@ -3,6 +3,8 @@ defmodule Glossia.Storage do
   Thin wrapper around ExAws.S3 for file storage operations.
   """
 
+  require OpenTelemetry.Tracer, as: Tracer
+
   @doc """
   Uploads content to the given path in the configured bucket.
 
@@ -12,11 +14,18 @@ defmodule Glossia.Storage do
 
   """
   def upload(path, content, opts \\ []) do
-    content_type = Keyword.get(opts, :content_type, "application/octet-stream")
+    Tracer.with_span "glossia.storage.upload" do
+      content_type = Keyword.get(opts, :content_type, "application/octet-stream")
 
-    bucket()
-    |> ExAws.S3.put_object(path, content, content_type: content_type)
-    |> ExAws.request()
+      Tracer.set_attributes([
+        {"glossia.storage.path", to_string(path)},
+        {"glossia.storage.content_type", to_string(content_type)}
+      ])
+
+      bucket()
+      |> ExAws.S3.put_object(path, content, content_type: content_type)
+      |> ExAws.request()
+    end
   end
 
   @doc """
@@ -25,9 +34,13 @@ defmodule Glossia.Storage do
   Returns `{:ok, headers}` if the object exists, `{:error, reason}` otherwise.
   """
   def head(path) do
-    bucket()
-    |> ExAws.S3.head_object(path)
-    |> ExAws.request()
+    Tracer.with_span "glossia.storage.head" do
+      Tracer.set_attributes([{"glossia.storage.path", to_string(path)}])
+
+      bucket()
+      |> ExAws.S3.head_object(path)
+      |> ExAws.request()
+    end
   end
 
   @doc """
@@ -36,18 +49,26 @@ defmodule Glossia.Storage do
   Returns `{:ok, %{body: binary}}` on success.
   """
   def download(path) do
-    bucket()
-    |> ExAws.S3.get_object(path)
-    |> ExAws.request()
+    Tracer.with_span "glossia.storage.download" do
+      Tracer.set_attributes([{"glossia.storage.path", to_string(path)}])
+
+      bucket()
+      |> ExAws.S3.get_object(path)
+      |> ExAws.request()
+    end
   end
 
   @doc """
   Deletes the object at the given path from the configured bucket.
   """
   def delete(path) do
-    bucket()
-    |> ExAws.S3.delete_object(path)
-    |> ExAws.request()
+    Tracer.with_span "glossia.storage.delete" do
+      Tracer.set_attributes([{"glossia.storage.path", to_string(path)}])
+
+      bucket()
+      |> ExAws.S3.delete_object(path)
+      |> ExAws.request()
+    end
   end
 
   @doc """
@@ -60,11 +81,19 @@ defmodule Glossia.Storage do
 
   """
   def presigned_url(path, opts \\ []) do
-    expires_in = Keyword.get(opts, :expires_in, 3600)
-    method = Keyword.get(opts, :method, :get)
+    Tracer.with_span "glossia.storage.presigned_url" do
+      expires_in = Keyword.get(opts, :expires_in, 3600)
+      method = Keyword.get(opts, :method, :get)
 
-    config = ExAws.Config.new(:s3)
-    ExAws.S3.presigned_url(config, method, bucket(), path, expires_in: expires_in)
+      Tracer.set_attributes([
+        {"glossia.storage.path", to_string(path)},
+        {"glossia.storage.method", to_string(method)},
+        {"glossia.storage.expires_in", expires_in}
+      ])
+
+      config = ExAws.Config.new(:s3)
+      ExAws.S3.presigned_url(config, method, bucket(), path, expires_in: expires_in)
+    end
   end
 
   @doc """

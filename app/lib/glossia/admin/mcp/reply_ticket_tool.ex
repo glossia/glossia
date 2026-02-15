@@ -2,8 +2,10 @@ defmodule Glossia.Admin.MCP.ReplyTicketTool do
   @moduledoc "Add a staff reply to a support ticket (super admin only)."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
   alias Glossia.Admin.MCP.Authorization, as: Auth
+  alias Glossia.Auditing
   alias Glossia.Support
   alias Hermes.Server.Response
 
@@ -19,6 +21,13 @@ defmodule Glossia.Admin.MCP.ReplyTicketTool do
 
       case Support.add_message(ticket, user, %{body: params["body"]}, is_staff: true) do
         {:ok, message} ->
+          Auditing.record("ticket.replied", ticket.account, user,
+            resource_type: "ticket",
+            resource_id: to_string(ticket.id),
+            resource_path: ~p"/admin/tickets/#{ticket.id}",
+            summary: "Replied to ticket \"#{ticket.title}\""
+          )
+
           response =
             Response.tool()
             |> Response.text(

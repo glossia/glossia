@@ -61,11 +61,11 @@ defmodule Glossia.Application do
 
     children =
       if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
-        List.insert_at(children, -2,
+        List.insert_at(
+          children,
+          -2,
           {ChromicPDF,
-           no_sandbox: true,
-           discard_stderr: false,
-           chrome_args: "--disable-dev-shm-usage"}
+           no_sandbox: true, discard_stderr: false, chrome_args: "--disable-dev-shm-usage"}
         )
       else
         children

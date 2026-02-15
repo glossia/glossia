@@ -1,4 +1,6 @@
 defmodule GlossiaWeb.Plugs.RequireSuperAdmin do
+  use GlossiaWeb, :verified_routes
+
   import Plug.Conn
   import Phoenix.Controller
   use Gettext, backend: GlossiaWeb.Gettext
@@ -13,7 +15,7 @@ defmodule GlossiaWeb.Plugs.RequireSuperAdmin do
     else
       conn
       |> put_flash(:error, gettext("You do not have permission to access this page."))
-      |> redirect(to: "/dashboard")
+      |> redirect(to: ~p"/dashboard")
       |> halt()
     end
   end

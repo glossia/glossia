@@ -2,7 +2,9 @@ defmodule Glossia.MCP.DeleteOrganizationTool do
   @moduledoc "Delete an organization."
 
   use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
 
+  alias Glossia.Auditing
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -22,6 +24,13 @@ defmodule Glossia.MCP.DeleteOrganizationTool do
 
       case Organizations.delete_organization(org) do
         {:ok, _} ->
+          Auditing.record("organization.deleted", account, user,
+            resource_type: "organization",
+            resource_id: to_string(org.id),
+            resource_path: ~p"/#{account.handle}",
+            summary: "Deleted organization \"#{account.handle}\""
+          )
+
           response =
             Response.tool()
             |> Response.text(JSON.encode!(%{deleted: true, handle: handle}))

@@ -2,8 +2,10 @@ defmodule Glossia.Stripe do
   @moduledoc false
 
   require Logger
+  require OpenTelemetry.Tracer, as: Tracer
 
   alias Glossia.Accounts.Account
+  alias Glossia.Auditing
   alias Glossia.Repo
   import Ecto.Query
 
@@ -46,149 +48,266 @@ defmodule Glossia.Stripe do
   # Value is a positive integer quantity (e.g. cents as "credits").
   def report_usage_credits(%Account{} = account, credits, opts \\ [])
       when is_integer(credits) and credits > 0 do
-    with true <-
-           present?(Application.get_env(:stripity_stripe, :api_key)) or {:error, :missing_api_key},
-         event_name when is_binary(event_name) and event_name != "" <-
-           meter_event_name() ||
-             {:error, :missing_meter_event_name},
-         customer_id when is_binary(customer_id) and customer_id != "" <-
-           account.stripe_customer_id ||
-             {:error, :missing_customer},
-         {:ok, _result} <- MeterEvents.create(event_name, customer_id, credits, opts) do
-      :ok
-    else
-      {:error, _} = error -> error
-      _ -> {:error, :unexpected_response}
+    Tracer.with_span "glossia.stripe.report_usage_credits" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account.id)},
+        {"glossia.credits", credits}
+      ])
+
+      with true <-
+             present?(Application.get_env(:stripity_stripe, :api_key)) or
+               {:error, :missing_api_key},
+           event_name when is_binary(event_name) and event_name != "" <-
+             meter_event_name() ||
+               {:error, :missing_meter_event_name},
+           customer_id when is_binary(customer_id) and customer_id != "" <-
+             account.stripe_customer_id ||
+               {:error, :missing_customer},
+           {:ok, _result} <- MeterEvents.create(event_name, customer_id, credits, opts) do
+        :ok
+      else
+        {:error, _} = error -> error
+        _ -> {:error, :unexpected_response}
+      end
     end
   end
 
   def create_checkout_session(%Account{} = account, user, success_url, cancel_url)
       when is_binary(success_url) and is_binary(cancel_url) do
-    with true <- enabled?() or {:error, :not_enabled},
-         {:ok, session} <- do_create_checkout_session(account, user, success_url, cancel_url),
-         url when is_binary(url) and url != "" <- session.url do
-      {:ok, %{id: session.id, url: url}}
-    else
-      {:error, _} = error -> error
-      _ -> {:error, :unexpected_response}
+    Tracer.with_span "glossia.stripe.create_checkout_session" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account.id)},
+        {"glossia.user.id", if(match?(%{id: _}, user), do: to_string(user.id), else: "")}
+      ])
+
+      with true <- enabled?() or {:error, :not_enabled},
+           {:ok, session} <- do_create_checkout_session(account, user, success_url, cancel_url),
+           url when is_binary(url) and url != "" <- session.url do
+        {:ok, %{id: session.id, url: url}}
+      else
+        {:error, _} = error -> error
+        _ -> {:error, :unexpected_response}
+      end
     end
   end
 
   def sync_checkout_session_to_account(%Account{} = account, session_id)
       when is_binary(session_id) do
-    with true <- enabled?() or {:error, :not_enabled},
-         {:ok, session} <- Stripe.Checkout.Session.retrieve(session_id),
-         customer_id when is_binary(customer_id) and customer_id != "" <-
-           stripe_id(session.customer) || {:error, :missing_customer},
-         subscription_id when is_binary(subscription_id) and subscription_id != "" <-
-           stripe_id(session.subscription) || {:error, :missing_subscription},
-         {:ok, subscription} <- Stripe.Subscription.retrieve(subscription_id) do
-      status = subscription.status
-      has_access = access_from_status(status)
+    Tracer.with_span "glossia.stripe.sync_checkout_session_to_account" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account.id)},
+        {"glossia.stripe.checkout_session.id", to_string(session_id)}
+      ])
 
-      account
-      |> Account.changeset(%{
-        has_access: has_access,
-        stripe_customer_id: customer_id,
-        stripe_subscription_id: subscription_id,
-        stripe_subscription_status: status,
-        stripe_current_period_end: unix_to_datetime(subscription.current_period_end)
-      })
-      |> Repo.update()
-    else
-      {:error, _} = error -> error
-      _ -> {:error, :unexpected_response}
+      with true <- enabled?() or {:error, :not_enabled},
+           {:ok, session} <- Stripe.Checkout.Session.retrieve(session_id),
+           customer_id when is_binary(customer_id) and customer_id != "" <-
+             stripe_id(session.customer) || {:error, :missing_customer},
+           subscription_id when is_binary(subscription_id) and subscription_id != "" <-
+             stripe_id(session.subscription) || {:error, :missing_subscription},
+           {:ok, subscription} <- Stripe.Subscription.retrieve(subscription_id) do
+        status = subscription.status
+        has_access = access_from_status(status)
+
+        Tracer.set_attributes([
+          {"glossia.stripe.subscription.id", to_string(subscription_id)},
+          {"glossia.stripe.subscription.status", to_string(status)},
+          {"glossia.account.has_access", has_access}
+        ])
+
+        account
+        |> Account.changeset(%{
+          has_access: has_access,
+          stripe_customer_id: customer_id,
+          stripe_subscription_id: subscription_id,
+          stripe_subscription_status: status,
+          stripe_current_period_end: unix_to_datetime(subscription.current_period_end)
+        })
+        |> Repo.update()
+      else
+        {:error, _} = error -> error
+        _ -> {:error, :unexpected_response}
+      end
     end
   end
 
   def customer_portal_url(%Account{} = account, return_url) when is_binary(return_url) do
-    with true <- enabled?() or {:error, :not_enabled},
-         customer_id when is_binary(customer_id) and customer_id != "" <-
-           account.stripe_customer_id ||
-             {:error, :missing_customer},
-         {:ok, session} <-
-           Stripe.BillingPortal.Session.create(%{
-             customer: customer_id,
-             return_url: return_url
-           }),
-         url when is_binary(url) and url != "" <- session.url do
-      {:ok, url}
-    else
-      {:error, _} = error -> error
-      _ -> {:error, :unexpected_response}
+    Tracer.with_span "glossia.stripe.customer_portal_url" do
+      Tracer.set_attributes([{"glossia.account.id", to_string(account.id)}])
+
+      with true <- enabled?() or {:error, :not_enabled},
+           customer_id when is_binary(customer_id) and customer_id != "" <-
+             account.stripe_customer_id ||
+               {:error, :missing_customer},
+           {:ok, session} <-
+             Stripe.BillingPortal.Session.create(%{
+               customer: customer_id,
+               return_url: return_url
+             }),
+           url when is_binary(url) and url != "" <- session.url do
+        {:ok, url}
+      else
+        {:error, _} = error -> error
+        _ -> {:error, :unexpected_response}
+      end
     end
   end
 
   def handle_webhook_event(%{"type" => type, "data" => %{"object" => object}})
       when is_binary(type) and is_map(object) do
-    case type do
-      "checkout.session.completed" ->
-        handle_checkout_completed(object)
+    Tracer.with_span "glossia.stripe.handle_webhook_event" do
+      Tracer.set_attributes([{"glossia.stripe.event.type", type}])
 
-      "customer.subscription.created" ->
-        handle_subscription_event(object)
+      case type do
+        "checkout.session.completed" ->
+          handle_checkout_completed(object)
 
-      "customer.subscription.updated" ->
-        handle_subscription_event(object)
+        "customer.subscription.created" ->
+          handle_subscription_event(object)
 
-      "customer.subscription.deleted" ->
-        handle_subscription_deleted(object)
+        "customer.subscription.updated" ->
+          handle_subscription_event(object)
 
-      _ ->
-        :ok
+        "customer.subscription.deleted" ->
+          handle_subscription_deleted(object)
+
+        _ ->
+          :ok
+      end
     end
   end
 
   def handle_webhook_event(_), do: :ok
 
   defp handle_checkout_completed(session) do
-    account_id =
-      session["client_reference_id"] || get_in(session, ["metadata", "glossia_account_id"])
+    Tracer.with_span "glossia.stripe.handle_checkout_completed" do
+      account_id =
+        session["client_reference_id"] || get_in(session, ["metadata", "glossia_account_id"])
 
-    customer_id = session["customer"]
-    subscription_id = session["subscription"]
+      customer_id = session["customer"]
+      subscription_id = session["subscription"]
 
-    if session["mode"] == "subscription" and is_binary(account_id) and account_id != "" do
-      case Repo.get(Account, account_id) do
-        nil ->
-          Logger.warning(
-            "Stripe webhook: checkout completed for unknown account_id=#{inspect(account_id)}"
-          )
+      Tracer.set_attributes([
+        {"glossia.account.id", if(is_binary(account_id), do: account_id, else: "")},
+        {"glossia.stripe.subscription.id",
+         if(is_binary(subscription_id), do: subscription_id, else: "")}
+      ])
 
-          :ok
+      if session["mode"] == "subscription" and is_binary(account_id) and account_id != "" do
+        case Repo.get(Account, account_id) do
+          nil ->
+            Logger.warning(
+              "Stripe webhook: checkout completed for unknown account_id=#{inspect(account_id)}"
+            )
 
-        %Account{} = account ->
-          attrs = %{
-            has_access: true,
-            stripe_customer_id: customer_id,
-            stripe_subscription_id: subscription_id,
-            stripe_subscription_status: "active"
-          }
+            :ok
 
-          case account |> Account.changeset(attrs) |> Repo.update() do
-            {:ok, _account} ->
-              :ok
+          %Account{} = account ->
+            attrs = %{
+              has_access: true,
+              stripe_customer_id: customer_id,
+              stripe_subscription_id: subscription_id,
+              stripe_subscription_status: "active"
+            }
 
-            {:error, changeset} ->
-              log_changeset_error(changeset, type: "checkout.session.completed")
-          end
+            case account |> Account.changeset(attrs) |> Repo.update() do
+              {:ok, account} ->
+                Auditing.record("billing.checkout_completed", account, nil,
+                  resource_type: "account",
+                  resource_id: to_string(account.id),
+                  summary: "Stripe checkout completed (subscription active)."
+                )
+
+                :ok
+
+              {:error, changeset} ->
+                log_changeset_error(changeset, type: "checkout.session.completed")
+            end
+        end
+      else
+        Logger.warning("Stripe webhook: checkout completed without client_reference_id")
+        :ok
       end
-    else
-      Logger.warning("Stripe webhook: checkout completed without client_reference_id")
-      :ok
     end
   end
 
   defp handle_subscription_event(subscription) do
-    subscription_id = subscription["id"]
-    customer_id = subscription["customer"]
-    status = subscription["status"]
+    Tracer.with_span "glossia.stripe.handle_subscription_event" do
+      subscription_id = subscription["id"]
+      customer_id = subscription["customer"]
+      status = subscription["status"]
 
-    if is_binary(subscription_id) and subscription_id != "" do
+      Tracer.set_attributes([
+        {"glossia.stripe.subscription.id",
+         if(is_binary(subscription_id), do: subscription_id, else: "")},
+        {"glossia.stripe.subscription.status", to_string(status || "")}
+      ])
+
+      if is_binary(subscription_id) and subscription_id != "" do
+        account =
+          Account
+          |> where([a], a.stripe_subscription_id == ^subscription_id)
+          |> Repo.one()
+
+        account =
+          account ||
+            if is_binary(customer_id) and customer_id != "" do
+              Account |> where([a], a.stripe_customer_id == ^customer_id) |> Repo.one()
+            end
+
+        case account do
+          nil ->
+            Logger.warning(
+              "Stripe webhook: subscription event for unknown subscription_id=#{inspect(subscription_id)}"
+            )
+
+            :ok
+
+          %Account{} = account ->
+            has_access = access_from_status(status)
+
+            attrs = %{
+              has_access: has_access,
+              stripe_customer_id: customer_id,
+              stripe_subscription_id: subscription_id,
+              stripe_subscription_status: status,
+              stripe_current_period_end: unix_to_datetime(subscription["current_period_end"])
+            }
+
+            case account |> Account.changeset(attrs) |> Repo.update() do
+              {:ok, account} ->
+                Auditing.record("billing.subscription_updated", account, nil,
+                  resource_type: "account",
+                  resource_id: to_string(account.id),
+                  summary: "Stripe subscription updated (status=#{status}, access=#{has_access})."
+                )
+
+                :ok
+
+              {:error, changeset} ->
+                log_changeset_error(changeset, type: "subscription")
+            end
+        end
+      else
+        :ok
+      end
+    end
+  end
+
+  defp handle_subscription_deleted(subscription) do
+    Tracer.with_span "glossia.stripe.handle_subscription_deleted" do
+      subscription_id = subscription["id"]
+      customer_id = subscription["customer"]
+
+      Tracer.set_attributes([
+        {"glossia.stripe.subscription.id",
+         if(is_binary(subscription_id), do: subscription_id, else: "")}
+      ])
+
       account =
-        Account
-        |> where([a], a.stripe_subscription_id == ^subscription_id)
-        |> Repo.one()
+        if is_binary(subscription_id) and subscription_id != "" do
+          Account |> where([a], a.stripe_subscription_id == ^subscription_id) |> Repo.one()
+        end
 
       account =
         account ||
@@ -198,61 +317,31 @@ defmodule Glossia.Stripe do
 
       case account do
         nil ->
-          Logger.warning(
-            "Stripe webhook: subscription event for unknown subscription_id=#{inspect(subscription_id)}"
-          )
-
           :ok
 
         %Account{} = account ->
+          status = subscription["status"] || "canceled"
+
           attrs = %{
-            has_access: access_from_status(status),
-            stripe_customer_id: customer_id,
-            stripe_subscription_id: subscription_id,
+            has_access: false,
             stripe_subscription_status: status,
             stripe_current_period_end: unix_to_datetime(subscription["current_period_end"])
           }
 
           case account |> Account.changeset(attrs) |> Repo.update() do
-            {:ok, _account} -> :ok
-            {:error, changeset} -> log_changeset_error(changeset, type: "subscription")
+            {:ok, account} ->
+              Auditing.record("billing.subscription_deleted", account, nil,
+                resource_type: "account",
+                resource_id: to_string(account.id),
+                summary: "Stripe subscription deleted (status=#{status})."
+              )
+
+              :ok
+
+            {:error, changeset} ->
+              log_changeset_error(changeset, type: "subscription.deleted")
           end
       end
-    else
-      :ok
-    end
-  end
-
-  defp handle_subscription_deleted(subscription) do
-    subscription_id = subscription["id"]
-    customer_id = subscription["customer"]
-
-    account =
-      if is_binary(subscription_id) and subscription_id != "" do
-        Account |> where([a], a.stripe_subscription_id == ^subscription_id) |> Repo.one()
-      end
-
-    account =
-      account ||
-        if is_binary(customer_id) and customer_id != "" do
-          Account |> where([a], a.stripe_customer_id == ^customer_id) |> Repo.one()
-        end
-
-    case account do
-      nil ->
-        :ok
-
-      %Account{} = account ->
-        attrs = %{
-          has_access: false,
-          stripe_subscription_status: subscription["status"] || "canceled",
-          stripe_current_period_end: unix_to_datetime(subscription["current_period_end"])
-        }
-
-        case account |> Account.changeset(attrs) |> Repo.update() do
-          {:ok, _account} -> :ok
-          {:error, changeset} -> log_changeset_error(changeset, type: "subscription.deleted")
-        end
     end
   end
 
