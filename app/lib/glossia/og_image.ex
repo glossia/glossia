@@ -12,7 +12,7 @@ defmodule Glossia.OgImage do
 
   # Bump this version whenever the template design changes to force
   # re-generation of all cached images in production.
-  @design_version 9
+  @design_version 10
 
   @doc """
   Returns a SHA-256 hash (base64url, no padding) of the given attributes map.
@@ -122,12 +122,16 @@ defmodule Glossia.OgImage do
     title = attrs[:title] || attrs["title"] || "Glossia"
     description = attrs[:description] || attrs["description"] || ""
     category = attrs[:category] || attrs["category"] || ""
+    author_name = attrs[:author_name] || attrs["author_name"] || ""
+    author_avatar = attrs[:author_avatar] || attrs["author_avatar"] || ""
 
     html =
       EEx.eval_file(@template_path,
         title: title,
         description: description,
-        category: category
+        category: category,
+        author_name: author_name,
+        author_avatar: author_avatar
       )
 
     case ChromicPDF.capture_screenshot({:html, html},

@@ -515,7 +515,6 @@ defmodule GlossiaWeb.DashboardComponents do
               placeholder={gettext("Describe your changes...")}
               required
             />
-            <span class="save-bar-spinner" aria-hidden="true"></span>
           </div>
           <button
             type="button"
@@ -535,17 +534,30 @@ defmodule GlossiaWeb.DashboardComponents do
         mounted() {
           this.input = this.el.querySelector("input[name='change_note']");
           this.userEdited = false;
+          this.defaultPlaceholder = this.input.placeholder;
+
+          if (this.el.dataset.generating === "true") {
+            this.input.placeholder = "Generating...";
+          }
 
           this.input.addEventListener("input", () => {
             this.userEdited = true;
           });
 
           const barId = this.el.id.replace("-hook", "");
+
+          this.handleEvent("summary_generating:" + barId, () => {
+            this.el.dataset.generating = "true";
+            this.input.placeholder = "Generating...";
+            this.userEdited = false;
+          });
+
           this.handleEvent("summary_generated:" + barId, ({summary}) => {
             if (!this.userEdited && summary) {
               this.input.value = summary;
             }
             this.el.dataset.generating = "false";
+            this.input.placeholder = this.defaultPlaceholder;
           });
         },
 
@@ -646,7 +658,11 @@ defmodule GlossiaWeb.DashboardComponents do
             const q = (filter || "").toLowerCase();
             const matches = LOCALES.filter(([code, name]) =>
               code.toLowerCase().includes(q) || name.toLowerCase().includes(q)
-            );
+            ).sort((a, b) => {
+              const aCode = a[0].toLowerCase().startsWith(q) ? 0 : 1;
+              const bCode = b[0].toLowerCase().startsWith(q) ? 0 : 1;
+              return aCode - bCode;
+            });
             list.innerHTML = "";
             highlighted = -1;
             matches.forEach(([code, name]) => {

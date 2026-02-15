@@ -2270,7 +2270,6 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
   font-size: var(--text-md);
   font-family: var(--font-body);
   padding: var(--space-2) var(--space-3);
-  padding-right: var(--space-8);
   border: var(--space-px) solid var(--color-border);
   border-radius: var(--radius-default);
   background: var(--color-bg);
@@ -2283,21 +2282,10 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
   border-color: var(--color-primary);
   box-shadow: 0 0 0 1px var(--color-primary);
 }
-.save-bar-spinner {
-  display: none;
-  position: absolute;
-  right: var(--space-2-5);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: save-bar-spin 0.6s linear infinite;
+.voice-save-bar-note-wrap[data-generating="true"] .voice-save-bar-note {
+  animation: ai-border-pulse 2s ease-in-out infinite;
+  cursor: not-allowed;
 }
-.voice-save-bar-note-wrap[data-generating="true"] .save-bar-spinner { display: block; }
-@keyframes save-bar-spin { to { transform: translateY(-50%) rotate(360deg); } }
 
 /* --- Version detail & diff --- */
 .voice-version-header { display: flex; flex-direction: column; gap: var(--space-1); }
@@ -3144,13 +3132,6 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
   gap: var(--space-3);
 }
 
-.voice-card-footer {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border-top: var(--space-px) solid var(--color-border);
-}
-
 .api-scope-badge {
   display: inline-block;
   padding: var(--space-0-5) var(--space-2);
@@ -3284,46 +3265,21 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
   font-weight: var(--weight-medium);
   color: var(--color-text);
 }
-/* --- Orbiting star effect for AI title generation --- */
+/* --- AI generating indicator (reusable) --- */
+.ai-generating {
+  animation: ai-border-pulse 2s ease-in-out infinite;
+  cursor: not-allowed;
+}
+@keyframes ai-border-pulse {
+  0%, 100% { border-color: var(--color-border); }
+  50% { border-color: var(--color-primary); }
+}
 .ticket-title-wrapper {
   position: relative;
 }
-.ticket-title-wrapper.generating {
-  border-radius: calc(var(--radius-default) + 2px);
-  padding: 2px;
-  overflow: hidden;
-}
-.ticket-title-wrapper.generating::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200%;
-  height: 200%;
-  margin-top: -100%;
-  margin-left: -100%;
-  background: conic-gradient(
-    transparent 0%,
-    transparent 60%,
-    var(--color-primary-soft) 70%,
-    var(--color-primary) 77%,
-    #fff 80%,
-    var(--color-primary) 83%,
-    var(--color-primary-soft) 90%,
-    transparent 100%
-  );
-  animation: ticket-star-orbit 2s linear infinite;
-}
 .ticket-title-wrapper.generating input {
-  position: relative;
-  z-index: 1;
-  border-color: transparent;
   cursor: not-allowed;
-  opacity: 0.7;
-  border-radius: var(--radius-default);
-}
-@keyframes ticket-star-orbit {
-  to { transform: rotate(360deg); }
+  animation: ai-border-pulse 2s ease-in-out infinite;
 }
 .ticket-form-field input,
 .ticket-form-field select,
@@ -3345,6 +3301,13 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+.ticket-form-field select {
+  padding-right: var(--space-8);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23787878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
 }
 .ticket-form-field textarea {
   resize: vertical;
