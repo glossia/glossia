@@ -1939,55 +1939,57 @@ defmodule GlossiaWeb.DashboardLive do
               <p>{gettext("Previous versions of your voice configuration.")}</p>
             </div>
             <div class="voice-card">
-              <table class="voice-history-table">
-                <thead>
-                  <tr>
-                    <th>{gettext("Version")}</th>
-                    <th>{gettext("Note")}</th>
-                    <th>{gettext("Date")}</th>
-                    <th>{gettext("By")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <%= for v <- @versions do %>
+              <div class="voice-history-table-wrap">
+                <table class="voice-history-table">
+                  <thead>
                     <tr>
-                      <td class="voice-history-version">
-                        <.link
-                          patch={"/" <> @handle <> "/voice/" <> to_string(v.version)}
-                          class="voice-history-link"
-                        >
-                          {"##{v.version}"}
-                        </.link>
-                      </td>
-                      <td class="voice-history-note">{v.change_note || "-"}</td>
-                      <td class="voice-history-date">
-                        <time datetime={DateTime.to_iso8601(v.inserted_at)}>
-                          {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
-                        </time>
-                      </td>
-                      <td class="voice-history-author">
-                        <%= if v.created_by do %>
-                          <span class="voice-author-chip">
-                            <img
-                              src={gravatar_url(v.created_by.email)}
-                              alt=""
-                              width="20"
-                              height="20"
-                              class="voice-author-avatar"
-                            />
-                            <span>
-                              {(v.created_by.account && v.created_by.account.handle) ||
-                                v.created_by.email}
-                            </span>
-                          </span>
-                        <% else %>
-                          -
-                        <% end %>
-                      </td>
+                      <th>{gettext("Version")}</th>
+                      <th>{gettext("Note")}</th>
+                      <th>{gettext("Date")}</th>
+                      <th>{gettext("By")}</th>
                     </tr>
-                  <% end %>
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    <%= for v <- @versions do %>
+                      <tr>
+                        <td class="voice-history-version">
+                          <.link
+                            patch={"/" <> @handle <> "/voice/" <> to_string(v.version)}
+                            class="voice-history-link"
+                          >
+                            {"##{v.version}"}
+                          </.link>
+                        </td>
+                        <td class="voice-history-note">{v.change_note || "-"}</td>
+                        <td class="voice-history-date">
+                          <time datetime={DateTime.to_iso8601(v.inserted_at)}>
+                            {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
+                          </time>
+                        </td>
+                        <td class="voice-history-author">
+                          <%= if v.created_by do %>
+                            <span class="voice-author-chip">
+                              <img
+                                src={gravatar_url(v.created_by.email)}
+                                alt=""
+                                width="20"
+                                height="20"
+                                class="voice-author-avatar"
+                              />
+                              <span>
+                                {(v.created_by.account && v.created_by.account.handle) ||
+                                  v.created_by.email}
+                              </span>
+                            </span>
+                          <% else %>
+                            -
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         <% end %>
@@ -2407,55 +2409,57 @@ defmodule GlossiaWeb.DashboardLive do
               <p>{gettext("Previous versions of your glossary.")}</p>
             </div>
             <div class="voice-card">
-              <table class="voice-history-table">
-                <thead>
-                  <tr>
-                    <th>{gettext("Version")}</th>
-                    <th>{gettext("Note")}</th>
-                    <th>{gettext("Date")}</th>
-                    <th>{gettext("By")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <%= for v <- @glossary_versions do %>
+              <div class="voice-history-table-wrap">
+                <table class="voice-history-table">
+                  <thead>
                     <tr>
-                      <td class="voice-history-version">
-                        <.link
-                          patch={"/" <> @handle <> "/glossary/" <> to_string(v.version)}
-                          class="voice-history-link"
-                        >
-                          {"##{v.version}"}
-                        </.link>
-                      </td>
-                      <td class="voice-history-note">{v.change_note || "-"}</td>
-                      <td class="voice-history-date">
-                        <time datetime={DateTime.to_iso8601(v.inserted_at)}>
-                          {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
-                        </time>
-                      </td>
-                      <td class="voice-history-author">
-                        <%= if v.created_by do %>
-                          <span class="voice-author-chip">
-                            <img
-                              src={gravatar_url(v.created_by.email)}
-                              alt=""
-                              width="20"
-                              height="20"
-                              class="voice-author-avatar"
-                            />
-                            <span>
-                              {(v.created_by.account && v.created_by.account.handle) ||
-                                v.created_by.email}
-                            </span>
-                          </span>
-                        <% else %>
-                          -
-                        <% end %>
-                      </td>
+                      <th>{gettext("Version")}</th>
+                      <th>{gettext("Note")}</th>
+                      <th>{gettext("Date")}</th>
+                      <th>{gettext("By")}</th>
                     </tr>
-                  <% end %>
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    <%= for v <- @glossary_versions do %>
+                      <tr>
+                        <td class="voice-history-version">
+                          <.link
+                            patch={"/" <> @handle <> "/glossary/" <> to_string(v.version)}
+                            class="voice-history-link"
+                          >
+                            {"##{v.version}"}
+                          </.link>
+                        </td>
+                        <td class="voice-history-note">{v.change_note || "-"}</td>
+                        <td class="voice-history-date">
+                          <time datetime={DateTime.to_iso8601(v.inserted_at)}>
+                            {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
+                          </time>
+                        </td>
+                        <td class="voice-history-author">
+                          <%= if v.created_by do %>
+                            <span class="voice-author-chip">
+                              <img
+                                src={gravatar_url(v.created_by.email)}
+                                alt=""
+                                width="20"
+                                height="20"
+                                class="voice-author-avatar"
+                              />
+                              <span>
+                                {(v.created_by.account && v.created_by.account.handle) ||
+                                  v.created_by.email}
+                              </span>
+                            </span>
+                          <% else %>
+                            -
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         <% end %>

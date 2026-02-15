@@ -263,6 +263,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 main { flex: 1; }
@@ -1726,7 +1727,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 .prose .admonition-caution { border-left-color: #ef4444; }
 .prose .admonition-caution .admonition-title { color: #ef4444; }
 .prose hr { border: none; border-top: var(--space-px) solid var(--color-border); margin: var(--space-8) 0; }
-.prose table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: var(--space-5); font-size: var(--text-md); border: var(--space-px) solid var(--color-border); border-radius: var(--radius-large); overflow: hidden; }
+.prose table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: var(--space-5); font-size: var(--text-md); border: var(--space-px) solid var(--color-border); border-radius: var(--radius-large); overflow-x: auto; display: block; }
 .prose th, .prose td { text-align: left; padding: var(--space-3) var(--space-4); border-bottom: var(--space-px) solid var(--color-border); }
 .prose th { font-weight: var(--weight-semibold); color: var(--color-text); background: var(--color-bg-subtle); }
 .prose tr:last-child td { border-bottom: none; }
@@ -1856,7 +1857,7 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
 .sidebar-collapsed .collapse-icon { transform: rotate(180deg); }
 
 /* --- Dashboard content area --- */
-.dash-content-area { display: flex; flex-direction: column; min-height: 100vh; }
+.dash-content-area { display: flex; flex-direction: column; min-height: 100vh; min-width: 0; overflow-x: hidden; }
 
 .dash-topbar {
   display: flex;
@@ -1956,12 +1957,12 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
 .account-badge-org { background: var(--color-primary-soft); color: var(--color-primary); }
 .account-switcher-divider { height: var(--space-px); background: var(--color-border); margin: var(--space-1) 0; }
 .account-switcher-create { color: var(--color-primary) !important; }
-.dash-main { flex: 1; padding: var(--space-8); overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+.dash-main { flex: 1; padding: var(--space-8); overflow-y: auto; display: flex; flex-direction: column; align-items: center; min-width: 0; }
 .dash-content-area > #flash-group .flash-bar { font-size: var(--text-sm); font-weight: var(--weight-semibold); padding: var(--space-2-5) var(--space-8); display: flex; justify-content: center; }
 .dash-content-area > #flash-group .flash-bar-inner { width: 100%; max-width: var(--max-width-dash); }
 
 /* --- Dashboard page content --- */
-.dash-page { width: 100%; max-width: var(--max-width-dash); flex: 1; display: flex; flex-direction: column; }
+.dash-page { width: 100%; max-width: var(--max-width-dash); flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .dash-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-8); }
 .dash-page-header h1 { font-size: var(--text-6xl); }
 .dash-page-header-desc { margin-top: var(--space-1); font-size: var(--text-sm); color: var(--color-text-muted); line-height: var(--leading-normal); }
@@ -2242,6 +2243,7 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
 }
 
 /* --- Version history table --- */
+.voice-history-table-wrap { overflow-x: auto; }
 .voice-history-table {
   width: 100%;
   border-collapse: collapse;
@@ -2650,7 +2652,7 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
 }
 .resource-empty-text { font-style: italic; }
 
-.resource-col-actions { text-align: right; white-space: nowrap; }
+.resource-col-actions { text-align: right; white-space: nowrap; position: relative; }
 .resource-col-actions-inner { display: inline-flex; gap: var(--space-2); align-items: center; }
 
 .resource-pagination {
@@ -2699,6 +2701,7 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
   margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }
@@ -3637,6 +3640,8 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
   }
   .dash-sidebar.open { display: flex; }
   .dash-sidebar-bottom { display: none; }
+  .dash-main { padding: var(--space-4); }
+  .dash-page-header { flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-6); }
 
   .admin-shell { grid-template-columns: 1fr; }
   .admin-mobile-nav-toggle { display: inline-flex; }
