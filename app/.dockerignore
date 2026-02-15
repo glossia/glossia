@@ -8,4 +8,5 @@ priv/static/assets/
 !priv/static/assets/styles.css
 !priv/static/assets/og.png
 !priv/static/assets/js/
+!priv/static/assets/logos/
 priv/static/cache_manifest.json
