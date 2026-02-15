@@ -127,6 +127,10 @@ custom classes must fully style the input
 
 Each doc page at `/docs/:category/:slug` has a corresponding Markdown source file at `priv/docs/:category/:slug.md`. The raw Markdown is also available at `/docs/:category/:slug.md`. The synthetic API Reference page (`/docs/reference/api`) has no Markdown source since it is generated from Scalar and the OpenAPI spec.
 
+## Product changelog
+
+When making user-facing changes to the web application, add a new Markdown file in `priv/changelog/` following the naming convention `YYYY-MM-DD-slug.md`. Each file requires a front-matter map with `title` (string) and `summary` (string) keys. The body is standard Markdown rendered with the `.prose` class. Entries appear on the public `/changelog` page sorted by date descending. Use a slug that is short and descriptive (e.g., `2026-03-01-voice-history.md`).
+
 ## CLI changelog
 
 When making user-facing changes to the CLI (in `cli/`), add an entry to `cli/CHANGELOG.md` under the `## NEXT` section. Place the entry under the appropriate sub-heading:

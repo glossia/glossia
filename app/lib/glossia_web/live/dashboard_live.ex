@@ -5,6 +5,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   alias Glossia.Accounts
   alias Glossia.Auditing
+  alias Glossia.ChangeSummary
   alias Glossia.Glossaries
   alias Glossia.Organizations
   alias Glossia.Voices
@@ -75,7 +76,13 @@ defmodule GlossiaWeb.DashboardLive do
       overrides: overrides,
       original_voice: voice,
       original_overrides: overrides,
-      changed?: false
+      changed?: false,
+      voice_form_params: %{},
+      change_summary: "",
+      generating_summary?: false,
+      summary_generation: 0,
+      summary_timer_ref: nil,
+      summary_task_ref: nil
     )
   end
 
@@ -111,7 +118,12 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_entries: entries,
       original_glossary: glossary,
       original_glossary_entries: entries,
-      glossary_changed?: false
+      glossary_changed?: false,
+      change_summary: "",
+      generating_summary?: false,
+      summary_generation: 0,
+      summary_timer_ref: nil,
+      summary_task_ref: nil
     )
   end
 
@@ -179,65 +191,42 @@ defmodule GlossiaWeb.DashboardLive do
     changed? =
       form_changed?(params, socket.assigns.original_voice, socket.assigns.original_overrides)
 
-    {:noreply, assign(socket, changed?: changed?)}
+    socket = assign(socket, changed?: changed?, voice_form_params: params)
+
+    socket =
+      if changed? do
+        schedule_summary_generation(socket, :voice)
+      else
+        cancel_summary_generation(socket)
+      end
+
+    {:noreply, socket}
   end
 
   def handle_event("save_voice", params, socket) do
-    unless socket.assigns.can_write do
-      {:noreply, put_flash(socket, :error, gettext("You don't have permission to save."))}
-    else
-      account = socket.assigns.account
-      user = socket.assigns.current_user
-      handle = socket.assigns.handle
+    change_note = String.trim(params["change_note"] || "")
 
-      voice_attrs = %{
-        tone: params["tone"],
-        formality: params["formality"],
-        target_audience: params["target_audience"],
-        guidelines: params["guidelines"],
-        change_note: params["change_note"]
-      }
+    cond do
+      !socket.assigns.can_write ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission to save."))}
 
-      overrides =
-        (params["overrides"] || %{})
-        |> Enum.reject(fn {_idx, o} -> o["locale"] == "" or is_nil(o["locale"]) end)
-        |> Enum.map(fn {_idx, o} ->
-          %{
-            locale: o["locale"],
-            tone: non_empty(o["tone"]),
-            formality: non_empty(o["formality"]),
-            target_audience: non_empty(o["target_audience"]),
-            guidelines: non_empty(o["guidelines"])
-          }
-        end)
+      change_note == "" ->
+        {:noreply, put_flash(socket, :error, gettext("A change note is required."))}
 
-      attrs = Map.put(voice_attrs, :overrides, overrides)
-
-      case Voices.create_voice(account, attrs, user) do
-        {:ok, %{voice: voice}} ->
-          Auditing.record("voice.created", account, user,
-            resource_type: "voice",
-            resource_id: to_string(voice.version),
-            resource_path: "/#{handle}/voice/#{voice.version}",
-            summary: voice_attrs.change_note || "Updated voice configuration"
-          )
-
-          {:noreply,
-           socket
-           |> put_flash(:info, gettext("Voice configuration saved."))
-           |> push_patch(to: "/#{handle}/voice")}
-
-        {:error, _step, _changeset, _changes} ->
-          {:noreply, put_flash(socket, :error, gettext("Failed to save voice configuration."))}
-      end
+      true ->
+        save_voice(params, change_note, socket)
     end
   end
 
   def handle_event("discard_changes", _params, socket) do
+    socket = cancel_summary_generation(socket)
+
     {:noreply,
      assign(socket,
        overrides: socket.assigns.original_overrides,
-       changed?: false
+       changed?: false,
+       change_summary: "",
+       generating_summary?: false
      )}
   end
 
@@ -259,70 +248,40 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("save_glossary", params, socket) do
-    unless socket.assigns.can_write do
-      {:noreply, put_flash(socket, :error, gettext("You don't have permission to save."))}
-    else
-      account = socket.assigns.account
-      user = socket.assigns.current_user
-      handle = socket.assigns.handle
+    change_note = String.trim(params["change_note"] || "")
 
-      entries =
-        (params["entries"] || %{})
-        |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
-        |> Enum.reject(fn {_idx, e} -> (e["term"] || "") == "" end)
-        |> Enum.map(fn {_idx, e} ->
-          translations =
-            (e["translations"] || %{})
-            |> Enum.sort_by(fn {tidx, _} -> String.to_integer(tidx) end)
-            |> Enum.reject(fn {_tidx, t} ->
-              (t["locale"] || "") == "" or (t["translation"] || "") == ""
-            end)
-            |> Enum.map(fn {_tidx, t} ->
-              %{locale: t["locale"], translation: t["translation"]}
-            end)
+    cond do
+      !socket.assigns.can_write ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission to save."))}
 
-          %{
-            term: e["term"],
-            definition: non_empty(e["definition"]),
-            case_sensitive: e["case_sensitive"] == "true",
-            translations: translations
-          }
-        end)
+      change_note == "" ->
+        {:noreply, put_flash(socket, :error, gettext("A change note is required."))}
 
-      attrs = %{
-        change_note: params["change_note"],
-        entries: entries
-      }
-
-      case Glossaries.create_glossary(account, attrs, user) do
-        {:ok, %{glossary: glossary}} ->
-          Auditing.record("glossary.created", account, user,
-            resource_type: "glossary",
-            resource_id: to_string(glossary.version),
-            resource_path: "/#{handle}/glossary/#{glossary.version}",
-            summary: attrs.change_note || "Updated glossary"
-          )
-
-          {:noreply,
-           socket
-           |> put_flash(:info, gettext("Glossary saved."))
-           |> push_patch(to: "/#{handle}/glossary")}
-
-        {:error, _step, _changeset, _changes} ->
-          {:noreply, put_flash(socket, :error, gettext("Failed to save glossary."))}
-      end
+      true ->
+        save_glossary(params, change_note, socket)
     end
   end
 
-  def handle_event("glossary_validate", _params, socket) do
-    {:noreply, assign(socket, glossary_changed?: true)}
+  def handle_event("glossary_validate", params, socket) do
+    entries = parse_glossary_entries_from_params(params, socket.assigns.glossary_entries)
+
+    socket =
+      socket
+      |> assign(glossary_entries: entries, glossary_changed?: true)
+      |> schedule_summary_generation(:glossary)
+
+    {:noreply, socket}
   end
 
   def handle_event("glossary_discard", _params, socket) do
+    socket = cancel_summary_generation(socket)
+
     {:noreply,
      assign(socket,
        glossary_entries: socket.assigns.original_glossary_entries,
-       glossary_changed?: false
+       glossary_changed?: false,
+       change_summary: "",
+       generating_summary?: false
      )}
   end
 
@@ -537,6 +496,65 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
+  # LLM-generated change summary (throttled async)
+  # ---------------------------------------------------------------------------
+
+  def handle_info({:generate_summary, context, generation}, socket) do
+    if generation != socket.assigns.summary_generation do
+      {:noreply, socket}
+    else
+      diff =
+        case context do
+          :voice ->
+            ChangeSummary.describe_voice_changes(
+              socket.assigns.original_voice,
+              socket.assigns.voice_form_params,
+              socket.assigns.original_overrides,
+              socket.assigns.overrides
+            )
+
+          :glossary ->
+            ChangeSummary.describe_glossary_changes(
+              socket.assigns.original_glossary_entries,
+              socket.assigns.glossary_entries
+            )
+        end
+
+      context_label = if context == :voice, do: "voice configuration", else: "glossary"
+
+      task = Task.async(fn -> ChangeSummary.generate(diff, context_label) end)
+
+      {:noreply, assign(socket, generating_summary?: true, summary_task_ref: task.ref)}
+    end
+  end
+
+  def handle_info({ref, result}, socket) when is_reference(ref) do
+    Process.demonitor(ref, [:flush])
+
+    if ref == socket.assigns[:summary_task_ref] do
+      case result do
+        {:ok, summary} ->
+          bar_id = save_bar_id(socket)
+
+          {:noreply,
+           socket
+           |> assign(change_summary: summary, generating_summary?: false, summary_task_ref: nil)
+           |> push_event("summary_generated:#{bar_id}", %{summary: summary})}
+
+        {:error, _reason} ->
+          {:noreply, assign(socket, generating_summary?: false, summary_task_ref: nil)}
+      end
+    else
+      # Stale task result -- ignore
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:DOWN, _ref, :process, _pid, _reason}, socket) do
+    {:noreply, socket}
+  end
+
+  # ---------------------------------------------------------------------------
   # Render (dispatches to page components)
   # ---------------------------------------------------------------------------
 
@@ -615,12 +633,16 @@ defmodule GlossiaWeb.DashboardLive do
   defp account_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <div class="dash-page-header">
-        <h1>{gettext("Projects")}</h1>
-        <%= if @can_write do %>
-          <button class="dash-btn dash-btn-primary" disabled>{gettext("New project")}</button>
-        <% end %>
-      </div>
+      <.page_header
+        title={gettext("Projects")}
+        description={gettext("Content sources connected to this account.")}
+      >
+        <:actions>
+          <%= if @can_write do %>
+            <button class="dash-btn dash-btn-primary" disabled>{gettext("New project")}</button>
+          <% end %>
+        </:actions>
+      </.page_header>
 
       <%= if @projects == [] do %>
         <div class="dash-empty-state">
@@ -667,9 +689,10 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
-      <div class="dash-page-header">
-        <h1>{gettext("Logs")}</h1>
-      </div>
+      <.page_header
+        title={gettext("Logs")}
+        description={gettext("Audit trail of actions and events for this account.")}
+      />
 
       <.resource_table
         id="activity-table"
@@ -762,47 +785,12 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
-      <div class="dash-page-header">
-        <h1>{gettext("Voice")}</h1>
-      </div>
+      <.page_header
+        title={gettext("Voice")}
+        description={gettext("Define the tone, formality, and style guidelines for your content.")}
+      />
 
       <form phx-change="validate" phx-submit="save_voice" class="voice-form" id="voice-form">
-        <datalist id="locale-options">
-          <option value="ar">Arabic</option>
-          <option value="bn">Bengali</option>
-          <option value="zh">Chinese</option>
-          <option value="zh-TW">Chinese (Traditional)</option>
-          <option value="cs">Czech</option>
-          <option value="da">Danish</option>
-          <option value="nl">Dutch</option>
-          <option value="en">English</option>
-          <option value="fi">Finnish</option>
-          <option value="fr">French</option>
-          <option value="de">German</option>
-          <option value="el">Greek</option>
-          <option value="he">Hebrew</option>
-          <option value="hi">Hindi</option>
-          <option value="hu">Hungarian</option>
-          <option value="id">Indonesian</option>
-          <option value="it">Italian</option>
-          <option value="ja">Japanese</option>
-          <option value="ko">Korean</option>
-          <option value="ms">Malay</option>
-          <option value="nb">Norwegian</option>
-          <option value="pl">Polish</option>
-          <option value="pt">Portuguese</option>
-          <option value="pt-BR">Portuguese (Brazil)</option>
-          <option value="ro">Romanian</option>
-          <option value="ru">Russian</option>
-          <option value="es">Spanish</option>
-          <option value="es-MX">Spanish (Mexico)</option>
-          <option value="sv">Swedish</option>
-          <option value="th">Thai</option>
-          <option value="tr">Turkish</option>
-          <option value="uk">Ukrainian</option>
-          <option value="vi">Vietnamese</option>
-        </datalist>
-
         <div class="voice-section">
           <div class="voice-section-info">
             <h2>{gettext("Tone and style")}</h2>
@@ -927,14 +915,10 @@ defmodule GlossiaWeb.DashboardLive do
                     <div class="voice-override-fields">
                       <div class="voice-field">
                         <label>{gettext("Language")}</label>
-                        <input
-                          type="text"
+                        <.locale_picker
+                          id={"voice-locale-#{idx}"}
                           name={"overrides[#{idx}][locale]"}
-                          placeholder={gettext("e.g. ja, de, es-MX")}
-                          list="locale-options"
-                          autocomplete="off"
-                          required
-                          phx-debounce="300"
+                          value=""
                         />
                       </div>
                     </div>
@@ -1074,30 +1058,13 @@ defmodule GlossiaWeb.DashboardLive do
         <% end %>
 
         <%= if @can_write do %>
-          <div class={["voice-save-bar", @changed? && "visible"]} id="voice-save-bar">
-            <div class="voice-save-bar-inner">
-              <span class="voice-save-bar-label">{gettext("Unsaved changes")}</span>
-              <div class="voice-save-bar-actions">
-                <input
-                  type="text"
-                  id="voice_change_note"
-                  name="change_note"
-                  class="voice-save-bar-note"
-                  placeholder={gettext("Change note (optional)")}
-                />
-                <button
-                  type="button"
-                  class="dash-btn dash-btn-secondary"
-                  phx-click="discard_changes"
-                >
-                  {gettext("Discard")}
-                </button>
-                <button type="submit" class="dash-btn dash-btn-primary">
-                  {gettext("Save")}
-                </button>
-              </div>
-            </div>
-          </div>
+          <.save_bar
+            id="voice-save-bar"
+            visible={@changed?}
+            discard_event="discard_changes"
+            change_summary={@change_summary}
+            generating_summary?={@generating_summary?}
+          />
         <% end %>
       </form>
     </div>
@@ -1302,9 +1269,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp glossary_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <div class="dash-page-header">
-        <h1>{gettext("Glossary")}</h1>
-      </div>
+      <.page_header
+        title={gettext("Glossary")}
+        description={gettext("Approved terms and translations to keep your content consistent.")}
+      />
 
       <form
         phx-change="glossary_validate"
@@ -1351,7 +1319,6 @@ defmodule GlossiaWeb.DashboardLive do
                           placeholder={gettext("e.g. API, workspace, deploy")}
                           required
                           disabled={!@can_write}
-                          phx-debounce="300"
                         />
                       </div>
                       <div class="voice-field">
@@ -1359,7 +1326,6 @@ defmodule GlossiaWeb.DashboardLive do
                         <select
                           name={"entries[#{idx}][case_sensitive]"}
                           disabled={!@can_write}
-                          phx-debounce="300"
                         >
                           <option value="false" selected={!entry.case_sensitive}>
                             {gettext("No")}
@@ -1378,7 +1344,6 @@ defmodule GlossiaWeb.DashboardLive do
                         value={entry.definition || ""}
                         placeholder={gettext("Context or description (optional)")}
                         disabled={!@can_write}
-                        phx-debounce="300"
                       />
                     </div>
                     <div class="glossary-translations-section">
@@ -1415,16 +1380,12 @@ defmodule GlossiaWeb.DashboardLive do
                       <%= for {translation, tidx} <- Enum.with_index(entry.translations || []) do %>
                         <div class="glossary-translation-row">
                           <div class="voice-field">
-                            <div
+                            <.locale_picker
                               id={"locale-picker-#{idx}-#{tidx}"}
-                              phx-hook=".LocalePicker"
-                              phx-update="ignore"
-                              class="locale-picker"
-                              data-value={translation.locale || ""}
-                              data-name={"entries[#{idx}][translations][#{tidx}][locale]"}
-                              data-disabled={to_string(!@can_write)}
-                            >
-                            </div>
+                              name={"entries[#{idx}][translations][#{tidx}][locale]"}
+                              value={translation.locale || ""}
+                              disabled={!@can_write}
+                            />
                           </div>
                           <div class="voice-field" style="flex: 1;">
                             <input
@@ -1433,7 +1394,6 @@ defmodule GlossiaWeb.DashboardLive do
                               value={translation.translation || ""}
                               placeholder={gettext("Translation")}
                               disabled={!@can_write}
-                              phx-debounce="300"
                             />
                           </div>
                           <%= if @can_write do %>
@@ -1539,160 +1499,15 @@ defmodule GlossiaWeb.DashboardLive do
         <% end %>
 
         <%= if @can_write do %>
-          <div class={["voice-save-bar", @glossary_changed? && "visible"]} id="glossary-save-bar">
-            <div class="voice-save-bar-inner">
-              <span class="voice-save-bar-label">{gettext("Unsaved changes")}</span>
-              <div class="voice-save-bar-actions">
-                <input
-                  type="text"
-                  id="glossary_change_note"
-                  name="change_note"
-                  class="voice-save-bar-note"
-                  placeholder={gettext("Change note (optional)")}
-                />
-                <button
-                  type="button"
-                  class="dash-btn dash-btn-secondary"
-                  phx-click="glossary_discard"
-                >
-                  {gettext("Discard")}
-                </button>
-                <button type="submit" class="dash-btn dash-btn-primary">
-                  {gettext("Save")}
-                </button>
-              </div>
-            </div>
-          </div>
+          <.save_bar
+            id="glossary-save-bar"
+            visible={@glossary_changed?}
+            discard_event="glossary_discard"
+            change_summary={@change_summary}
+            generating_summary?={@generating_summary?}
+          />
         <% end %>
       </form>
-      <script :type={Phoenix.LiveView.ColocatedHook} name=".LocalePicker">
-        const LOCALES = [
-          ["ar", "Arabic"], ["bn", "Bengali"], ["zh", "Chinese"],
-          ["zh-TW", "Chinese (Traditional)"], ["cs", "Czech"], ["da", "Danish"],
-          ["nl", "Dutch"], ["en", "English"], ["fi", "Finnish"], ["fr", "French"],
-          ["de", "German"], ["el", "Greek"], ["he", "Hebrew"], ["hi", "Hindi"],
-          ["hu", "Hungarian"], ["id", "Indonesian"], ["it", "Italian"],
-          ["ja", "Japanese"], ["ko", "Korean"], ["ms", "Malay"],
-          ["nb", "Norwegian"], ["pl", "Polish"], ["pt", "Portuguese"],
-          ["pt-BR", "Portuguese (Brazil)"], ["ro", "Romanian"], ["ru", "Russian"],
-          ["es", "Spanish"], ["es-MX", "Spanish (Mexico)"], ["sv", "Swedish"],
-          ["th", "Thai"], ["tr", "Turkish"], ["uk", "Ukrainian"], ["vi", "Vietnamese"]
-        ];
-
-        function labelFor(code) {
-          const m = LOCALES.find(l => l[0] === code);
-          return m ? m[0] + " \u2014 " + m[1] : code;
-        }
-
-        export default {
-          mounted() { this.init(); },
-          updated() { this.init(); },
-
-          init() {
-            const el = this.el;
-            const name = el.dataset.name;
-            const disabled = el.dataset.disabled === "true";
-            let value = el.dataset.value || "";
-
-            el.innerHTML = "";
-
-            const hidden = document.createElement("input");
-            hidden.type = "hidden";
-            hidden.name = name;
-            hidden.value = value;
-            el.appendChild(hidden);
-
-            const input = document.createElement("input");
-            input.type = "text";
-            input.className = "glossary-locale-input";
-            input.placeholder = "Search language...";
-            input.autocomplete = "off";
-            input.value = value ? labelFor(value) : "";
-            if (disabled) input.disabled = true;
-            el.appendChild(input);
-
-            const list = document.createElement("div");
-            list.className = "locale-picker-dropdown";
-            el.appendChild(list);
-
-            let highlighted = -1;
-
-            const render = (filter) => {
-              const q = (filter || "").toLowerCase();
-              const matches = LOCALES.filter(([code, name]) =>
-                code.toLowerCase().includes(q) || name.toLowerCase().includes(q)
-              );
-              list.innerHTML = "";
-              highlighted = -1;
-              matches.forEach(([code, name], i) => {
-                const opt = document.createElement("div");
-                opt.className = "locale-picker-option" + (code === value ? " selected" : "");
-                opt.dataset.value = code;
-                opt.textContent = code + " \u2014 " + name;
-                opt.addEventListener("mousedown", (e) => {
-                  e.preventDefault();
-                  select(code);
-                });
-                list.appendChild(opt);
-              });
-            };
-
-            const select = (code) => {
-              value = code;
-              hidden.value = code;
-              input.value = labelFor(code);
-              list.classList.remove("open");
-              hidden.dispatchEvent(new Event("input", { bubbles: true }));
-            };
-
-            const highlightAt = (idx) => {
-              const opts = list.querySelectorAll(".locale-picker-option");
-              opts.forEach(o => o.classList.remove("highlighted"));
-              if (idx >= 0 && idx < opts.length) {
-                opts[idx].classList.add("highlighted");
-                opts[idx].scrollIntoView({ block: "nearest" });
-                highlighted = idx;
-              }
-            };
-
-            if (!disabled) {
-              input.addEventListener("focus", () => {
-                input.select();
-                render(input.value === labelFor(value) ? "" : input.value);
-                list.classList.add("open");
-              });
-
-              input.addEventListener("input", () => {
-                render(input.value);
-                list.classList.add("open");
-              });
-
-              input.addEventListener("blur", () => {
-                list.classList.remove("open");
-                input.value = value ? labelFor(value) : "";
-              });
-
-              input.addEventListener("keydown", (e) => {
-                const opts = list.querySelectorAll(".locale-picker-option");
-                if (e.key === "ArrowDown") {
-                  e.preventDefault();
-                  highlightAt(Math.min(highlighted + 1, opts.length - 1));
-                } else if (e.key === "ArrowUp") {
-                  e.preventDefault();
-                  highlightAt(Math.max(highlighted - 1, 0));
-                } else if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (highlighted >= 0 && opts[highlighted]) {
-                    select(opts[highlighted].dataset.value);
-                  }
-                } else if (e.key === "Escape") {
-                  input.blur();
-                }
-              });
-            }
-          }
-        }
-      </script>
     </div>
     """
   end
@@ -1848,9 +1663,10 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
-      <div class="dash-page-header">
-        <h1>{gettext("Members")}</h1>
-      </div>
+      <.page_header
+        title={gettext("Members")}
+        description={gettext("Manage who has access to this account.")}
+      />
 
       <div class="members-invite-section">
         <h2>{gettext("Invite a new member")}</h2>
@@ -2013,9 +1829,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp project_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <div class="dash-page-header">
-        <h1>{@project_name}</h1>
-      </div>
+      <.page_header title={@project_name} />
 
       <div class="dash-empty-state">
         <svg
@@ -2098,6 +1912,32 @@ defmodule GlossiaWeb.DashboardLive do
   defp non_empty(""), do: nil
   defp non_empty(val), do: val
 
+  defp parse_glossary_entries_from_params(params, fallback_entries) do
+    case params["entries"] do
+      nil ->
+        fallback_entries
+
+      entries_map ->
+        entries_map
+        |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
+        |> Enum.map(fn {_idx, e} ->
+          translations =
+            (e["translations"] || %{})
+            |> Enum.sort_by(fn {tidx, _} -> String.to_integer(tidx) end)
+            |> Enum.map(fn {_tidx, t} ->
+              %{locale: t["locale"] || "", translation: t["translation"] || ""}
+            end)
+
+          %{
+            term: e["term"] || "",
+            definition: non_empty(e["definition"]),
+            case_sensitive: e["case_sensitive"] == "true",
+            translations: translations
+          }
+        end)
+    end
+  end
+
   defp form_changed?(_params, nil, _original_overrides), do: true
 
   defp form_changed?(params, original_voice, original_overrides) do
@@ -2143,6 +1983,141 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp normalize_override_struct(o) do
     {o.locale, o.tone || "", o.formality || "", o.target_audience || "", o.guidelines || ""}
+  end
+
+  # ---------------------------------------------------------------------------
+  # Save form helpers (extracted to avoid splitting handle_event clauses)
+
+  defp save_voice(params, change_note, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+    handle = socket.assigns.handle
+
+    voice_attrs = %{
+      tone: params["tone"],
+      formality: params["formality"],
+      target_audience: params["target_audience"],
+      guidelines: params["guidelines"],
+      change_note: change_note
+    }
+
+    overrides =
+      (params["overrides"] || %{})
+      |> Enum.reject(fn {_idx, o} -> o["locale"] == "" or is_nil(o["locale"]) end)
+      |> Enum.map(fn {_idx, o} ->
+        %{
+          locale: o["locale"],
+          tone: non_empty(o["tone"]),
+          formality: non_empty(o["formality"]),
+          target_audience: non_empty(o["target_audience"]),
+          guidelines: non_empty(o["guidelines"])
+        }
+      end)
+
+    attrs = Map.put(voice_attrs, :overrides, overrides)
+
+    case Voices.create_voice(account, attrs, user) do
+      {:ok, %{voice: voice}} ->
+        Auditing.record("voice.created", account, user,
+          resource_type: "voice",
+          resource_id: to_string(voice.version),
+          resource_path: "/#{handle}/voice/#{voice.version}",
+          summary: change_note
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Voice configuration saved."))
+         |> push_patch(to: "/#{handle}/voice")}
+
+      {:error, _step, _changeset, _changes} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to save voice configuration."))}
+    end
+  end
+
+  defp save_glossary(params, change_note, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+    handle = socket.assigns.handle
+
+    entries =
+      (params["entries"] || %{})
+      |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
+      |> Enum.reject(fn {_idx, e} -> (e["term"] || "") == "" end)
+      |> Enum.map(fn {_idx, e} ->
+        translations =
+          (e["translations"] || %{})
+          |> Enum.sort_by(fn {tidx, _} -> String.to_integer(tidx) end)
+          |> Enum.reject(fn {_tidx, t} ->
+            (t["locale"] || "") == "" or (t["translation"] || "") == ""
+          end)
+          |> Enum.map(fn {_tidx, t} ->
+            %{locale: t["locale"], translation: t["translation"]}
+          end)
+
+        %{
+          term: e["term"],
+          definition: non_empty(e["definition"]),
+          case_sensitive: e["case_sensitive"] == "true",
+          translations: translations
+        }
+      end)
+
+    attrs = %{
+      change_note: change_note,
+      entries: entries
+    }
+
+    case Glossaries.create_glossary(account, attrs, user) do
+      {:ok, %{glossary: glossary}} ->
+        Auditing.record("glossary.created", account, user,
+          resource_type: "glossary",
+          resource_id: to_string(glossary.version),
+          resource_path: "/#{handle}/glossary/#{glossary.version}",
+          summary: change_note
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Glossary saved."))
+         |> push_patch(to: "/#{handle}/glossary")}
+
+      {:error, _step, _changeset, _changes} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to save glossary."))}
+    end
+  end
+
+  # LLM summary helpers
+  # ---------------------------------------------------------------------------
+
+  defp schedule_summary_generation(socket, context) do
+    if timer = socket.assigns[:summary_timer_ref] do
+      Process.cancel_timer(timer)
+    end
+
+    generation = (socket.assigns[:summary_generation] || 0) + 1
+    timer_ref = Process.send_after(self(), {:generate_summary, context, generation}, 1_500)
+
+    assign(socket,
+      summary_generation: generation,
+      summary_timer_ref: timer_ref
+    )
+  end
+
+  defp cancel_summary_generation(socket) do
+    if timer = socket.assigns[:summary_timer_ref] do
+      Process.cancel_timer(timer)
+    end
+
+    assign(socket, summary_timer_ref: nil)
+  end
+
+  defp save_bar_id(socket) do
+    case socket.assigns.live_action do
+      :voice -> "voice-save-bar"
+      :glossary -> "glossary-save-bar"
+      _ -> "save-bar"
+    end
   end
 
   # ---------------------------------------------------------------------------

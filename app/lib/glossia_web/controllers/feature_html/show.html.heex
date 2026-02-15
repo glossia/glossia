@@ -1,0 +1,75 @@
+<section class="section feature-hero feature-hero-show">
+  <div class="container">
+    <div class="feature-hero-content reveal">
+      <div class="feature-hero-icon">
+        {GlossiaWeb.FeatureHTML.feature_icon(@page.icon, 32)}
+      </div>
+      <h1>{@page.title}</h1>
+      <p class="lead">{@page.summary}</p>
+      <div class="cta-row">
+        <a class="button primary" href={@page.hero_cta_url}>{@page.hero_cta_text}</a>
+        <a class="button secondary" href="/docs">{gettext("Read the docs")}</a>
+      </div>
+    </div>
+    <div class="feature-geo-accent" aria-hidden="true">
+      <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect
+          x="20"
+          y="60"
+          width="140"
+          height="140"
+          rx="12"
+          stroke="#7c3aed"
+          stroke-width="1.5"
+          opacity="0.15"
+        />
+        <rect
+          x="200"
+          y="20"
+          width="100"
+          height="100"
+          rx="8"
+          stroke="#f59e0b"
+          stroke-width="1.5"
+          opacity="0.12"
+        />
+        <rect
+          x="120"
+          y="200"
+          width="160"
+          height="160"
+          rx="16"
+          stroke="#059669"
+          stroke-width="1"
+          opacity="0.1"
+        />
+        <circle cx="320" cy="300" r="40" stroke="#7c3aed" stroke-width="1" opacity="0.08" />
+        <circle cx="60" cy="320" r="24" stroke="#f59e0b" stroke-width="1" opacity="0.1" />
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="section feature-highlights">
+  <div class="container">
+    <div class="feature-highlights-grid">
+      <div :for={highlight <- @page.highlights} class="card feature-highlight-card reveal">
+        <div class="feature-highlight-icon">
+          {GlossiaWeb.FeatureHTML.feature_icon(highlight.icon, 20)}
+        </div>
+        <h3>{highlight.title}</h3>
+        <p>{highlight.description}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section feature-content">
+  <div class="container">
+    <div class="prose reveal">
+      {raw(@page.body)}
+    </div>
+  </div>
+</section>
+
+<.content_cta cta_text={@page.hero_cta_text} cta_url={@page.hero_cta_url} />

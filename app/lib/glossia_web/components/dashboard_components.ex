@@ -350,4 +350,293 @@ defmodule GlossiaWeb.DashboardComponents do
   end
 
   defp humanize_filter(key) when is_atom(key), do: humanize_filter(Atom.to_string(key))
+
+  # ---------------------------------------------------------------------------
+  # Page Header
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Renders a dashboard page header with title, optional description, and actions.
+
+  ## Examples
+
+      <.page_header title="Glossary" description="Define approved terms and translations.">
+        <:actions>
+          <button class="dash-btn dash-btn-primary">Save</button>
+        </:actions>
+      </.page_header>
+  """
+  attr :title, :string, required: true
+  attr :description, :string, default: nil
+
+  slot :actions
+
+  def page_header(assigns) do
+    ~H"""
+    <div class="dash-page-header">
+      <div class="dash-page-header-text">
+        <h1>{@title}</h1>
+        <p :if={@description} class="dash-page-header-desc">{@description}</p>
+      </div>
+      <div :if={@actions != []} class="dash-page-header-actions">
+        {render_slot(@actions)}
+      </div>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Save Bar (reusable sticky bottom bar for versioned forms)
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Renders a fixed save bar at the bottom of the dashboard for confirming
+  or discarding unsaved changes. Includes a required change-note input
+  that can be auto-populated by an LLM-generated summary.
+
+  Must be placed inside a `<form>` element. The form's `phx-submit`
+  handles saving; the discard button fires a separate LiveView event.
+
+  ## Examples
+
+      <.save_bar
+        id="voice-save-bar"
+        visible={@changed?}
+        discard_event="discard_changes"
+        change_summary={@change_summary}
+        generating_summary?={@generating_summary?}
+      />
+  """
+  attr :id, :string, required: true
+  attr :visible, :boolean, default: false
+  attr :discard_event, :string, required: true
+  attr :change_summary, :string, default: ""
+  attr :generating_summary?, :boolean, default: false
+
+  def save_bar(assigns) do
+    ~H"""
+    <div class={["voice-save-bar", @visible && "visible"]} id={@id}>
+      <div class="voice-save-bar-inner">
+        <span class="voice-save-bar-label">{gettext("Unsaved changes")}</span>
+        <div class="voice-save-bar-actions">
+          <div
+            class="voice-save-bar-note-wrap"
+            id={"#{@id}-hook"}
+            phx-hook=".SaveBarSummary"
+            phx-update="ignore"
+            data-generating={to_string(@generating_summary?)}
+          >
+            <input
+              type="text"
+              id={"#{@id}-note"}
+              name="change_note"
+              class="voice-save-bar-note"
+              placeholder={gettext("Describe your changes...")}
+              required
+            />
+            <span class="save-bar-spinner" aria-hidden="true"></span>
+          </div>
+          <button
+            type="button"
+            class="dash-btn dash-btn-secondary"
+            phx-click={@discard_event}
+          >
+            {gettext("Discard")}
+          </button>
+          <button type="submit" class="dash-btn dash-btn-primary">
+            {gettext("Save")}
+          </button>
+        </div>
+      </div>
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".SaveBarSummary">
+      export default {
+        mounted() {
+          this.input = this.el.querySelector("input[name='change_note']");
+          this.userEdited = false;
+
+          this.input.addEventListener("input", () => {
+            this.userEdited = true;
+          });
+
+          const barId = this.el.id.replace("-hook", "");
+          this.handleEvent("summary_generated:" + barId, ({summary}) => {
+            if (!this.userEdited && summary) {
+              this.input.value = summary;
+            }
+            this.el.dataset.generating = "false";
+          });
+        },
+
+        destroyed() {
+          this.userEdited = false;
+        }
+      }
+    </script>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Locale Picker (searchable combobox)
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Renders a searchable locale picker combobox.
+
+  The input field displays only the locale code (e.g. "es"). The dropdown
+  shows the full label (e.g. "es - Spanish") and filters as the user types.
+
+  ## Examples
+
+      <.locale_picker
+        id="locale-0-1"
+        name="entries[0][translations][1][locale]"
+        value="es"
+      />
+  """
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :value, :string, default: ""
+  attr :disabled, :boolean, default: false
+  attr :placeholder, :string, default: nil
+
+  def locale_picker(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      phx-hook=".LocalePicker"
+      phx-update="ignore"
+      class="locale-picker"
+      data-value={@value || ""}
+      data-name={@name}
+      data-disabled={to_string(@disabled)}
+      data-placeholder={@placeholder || gettext("Search language...")}
+    >
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".LocalePicker">
+      const LOCALES = [
+        ["ar", "Arabic"], ["bn", "Bengali"], ["zh", "Chinese"],
+        ["zh-TW", "Chinese (Traditional)"], ["cs", "Czech"], ["da", "Danish"],
+        ["nl", "Dutch"], ["en", "English"], ["fi", "Finnish"], ["fr", "French"],
+        ["de", "German"], ["el", "Greek"], ["he", "Hebrew"], ["hi", "Hindi"],
+        ["hu", "Hungarian"], ["id", "Indonesian"], ["it", "Italian"],
+        ["ja", "Japanese"], ["ko", "Korean"], ["ms", "Malay"],
+        ["nb", "Norwegian"], ["pl", "Polish"], ["pt", "Portuguese"],
+        ["pt-BR", "Portuguese (Brazil)"], ["ro", "Romanian"], ["ru", "Russian"],
+        ["es", "Spanish"], ["es-MX", "Spanish (Mexico)"], ["sv", "Swedish"],
+        ["th", "Thai"], ["tr", "Turkish"], ["uk", "Ukrainian"], ["vi", "Vietnamese"]
+      ];
+
+      export default {
+        mounted() { this.setup(); },
+        updated() { this.setup(); },
+
+        setup() {
+          const el = this.el;
+          const name = el.dataset.name;
+          const disabled = el.dataset.disabled === "true";
+          const placeholder = el.dataset.placeholder || "Search language...";
+          let value = el.dataset.value || "";
+
+          el.innerHTML = "";
+
+          const hidden = document.createElement("input");
+          hidden.type = "hidden";
+          hidden.name = name;
+          hidden.value = value;
+          el.appendChild(hidden);
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "locale-picker-input";
+          input.placeholder = placeholder;
+          input.autocomplete = "off";
+          input.value = value || "";
+          if (disabled) input.disabled = true;
+          el.appendChild(input);
+
+          const list = document.createElement("div");
+          list.className = "locale-picker-dropdown";
+          el.appendChild(list);
+
+          let highlighted = -1;
+
+          const render = (filter) => {
+            const q = (filter || "").toLowerCase();
+            const matches = LOCALES.filter(([code, name]) =>
+              code.toLowerCase().includes(q) || name.toLowerCase().includes(q)
+            );
+            list.innerHTML = "";
+            highlighted = -1;
+            matches.forEach(([code, name]) => {
+              const opt = document.createElement("div");
+              opt.className = "locale-picker-option" + (code === value ? " selected" : "");
+              opt.dataset.value = code;
+              opt.textContent = code + " - " + name;
+              opt.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                pick(code);
+              });
+              list.appendChild(opt);
+            });
+          };
+
+          const pick = (code) => {
+            value = code;
+            hidden.value = code;
+            input.value = code;
+            list.classList.remove("open");
+            hidden.dispatchEvent(new Event("input", { bubbles: true }));
+          };
+
+          const highlightAt = (idx) => {
+            const opts = list.querySelectorAll(".locale-picker-option");
+            opts.forEach(o => o.classList.remove("highlighted"));
+            if (idx >= 0 && idx < opts.length) {
+              opts[idx].classList.add("highlighted");
+              opts[idx].scrollIntoView({ block: "nearest" });
+              highlighted = idx;
+            }
+          };
+
+          if (!disabled) {
+            input.addEventListener("focus", () => {
+              input.select();
+              render(input.value === value ? "" : input.value);
+              list.classList.add("open");
+            });
+
+            input.addEventListener("input", () => {
+              render(input.value);
+              list.classList.add("open");
+            });
+
+            input.addEventListener("blur", () => {
+              list.classList.remove("open");
+              input.value = value || "";
+            });
+
+            input.addEventListener("keydown", (e) => {
+              const opts = list.querySelectorAll(".locale-picker-option");
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                highlightAt(Math.min(highlighted + 1, opts.length - 1));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                highlightAt(Math.max(highlighted - 1, 0));
+              } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (highlighted >= 0 && opts[highlighted]) {
+                  pick(opts[highlighted].dataset.value);
+                }
+              } else if (e.key === "Escape") {
+                input.blur();
+              }
+            });
+          }
+        }
+      }
+    </script>
+    """
+  end
 end
