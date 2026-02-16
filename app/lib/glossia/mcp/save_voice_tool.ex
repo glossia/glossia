@@ -54,7 +54,7 @@ defmodule Glossia.MCP.SaveVoiceTool do
           Auditing.record("voice.created", account, user,
             resource_type: "voice",
             resource_id: to_string(voice.version),
-            resource_path: ~p"/#{handle}/voice/#{voice.version}",
+            resource_path: "/#{handle}/voice/#{voice.version}",
             summary: voice.change_note || "Updated voice settings."
           )
 

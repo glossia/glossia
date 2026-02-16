@@ -20,7 +20,7 @@
           </button>
           <ul class="avatar-menu" role="menu">
             <li role="none">
-              <a role="menuitem" href={~p"/dashboard"}>{gettext("Dashboard")}</a>
+              <a role="menuitem" href={~p"/dashboard"}>{gettext("Your profile")}</a>
             </li>
             <li role="none" class="avatar-menu-divider"></li>
             <li role="none">
@@ -75,7 +75,7 @@
   <a href={~p"/blog"}>{gettext("Blog")}</a>
   <a href={~p"/changelog"}>{gettext("Changelog")}</a>
   <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
-    <a href={~p"/dashboard"}>{gettext("Dashboard")}</a>
+    <a href={~p"/dashboard"}>{gettext("Your profile")}</a>
     <a href={~p"/auth/logout"} data-method="delete">{gettext("Log out")}</a>
   <% end %>
 </nav>
