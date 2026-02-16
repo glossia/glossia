@@ -349,6 +349,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp apply_action(socket, :ticket_new, _params) do
     require_write!(socket)
+
     assign(socket,
       page_title: gettext("New ticket"),
       ticket_form: to_form(%{"title" => "", "description" => "", "type" => "issue"}, as: :ticket),
@@ -3050,7 +3051,10 @@ defmodule GlossiaWeb.DashboardLive do
             }
           >
             <:actions>
-              <.link patch={"/" <> @handle <> "/-/settings/tokens/new"} class="dash-btn dash-btn-primary">
+              <.link
+                patch={"/" <> @handle <> "/-/settings/tokens/new"}
+                class="dash-btn dash-btn-primary"
+              >
                 {gettext("Generate new token")}
               </.link>
             </:actions>
@@ -3143,7 +3147,10 @@ defmodule GlossiaWeb.DashboardLive do
               <% end %>
             </:col>
             <:action :let={token}>
-              <.link patch={"/" <> @handle <> "/-/settings/tokens/" <> token.id} class="voice-link-btn">
+              <.link
+                patch={"/" <> @handle <> "/-/settings/tokens/" <> token.id}
+                class="voice-link-btn"
+              >
                 {gettext("Edit")}
               </.link>
               <button
@@ -3464,7 +3471,10 @@ defmodule GlossiaWeb.DashboardLive do
             }
           >
             <:actions>
-              <.link patch={"/" <> @handle <> "/-/settings/apps/new"} class="dash-btn dash-btn-primary">
+              <.link
+                patch={"/" <> @handle <> "/-/settings/apps/new"}
+                class="dash-btn dash-btn-primary"
+              >
                 {gettext("Register new application")}
               </.link>
             </:actions>
