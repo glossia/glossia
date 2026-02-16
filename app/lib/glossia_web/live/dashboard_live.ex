@@ -45,6 +45,8 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :logs, _params) do
+    require_write!(socket)
+
     if Map.has_key?(socket.assigns, :all_events) do
       socket
     else
@@ -65,6 +67,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :voice, _params) do
+    require_write!(socket)
     account = socket.assigns.account
     voice = Voices.get_latest_voice(account)
     {:ok, {versions, _meta}} = Voices.list_voice_versions(account)
@@ -97,6 +100,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :voice_version, %{"version" => version_str}) do
+    require_write!(socket)
     account = socket.assigns.account
     version = String.to_integer(version_str)
     voice = Voices.get_voice_version(account, version)
@@ -115,6 +119,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :glossary, _params) do
+    require_write!(socket)
     account = socket.assigns.account
     glossary = Glossaries.get_latest_glossary(account)
     {:ok, {versions, _meta}} = Glossaries.list_glossary_versions(account)
@@ -138,6 +143,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :glossary_version, %{"version" => version_str}) do
+    require_write!(socket)
     account = socket.assigns.account
     version = String.to_integer(version_str)
     glossary = Glossaries.get_glossary_version(account, version)
@@ -316,6 +322,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :tickets, params) do
+    require_write!(socket)
     account = socket.assigns.account
 
     sort_key = Map.get(params, "ksort", "inserted_at")
@@ -341,6 +348,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :ticket_new, _params) do
+    require_write!(socket)
     assign(socket,
       page_title: gettext("New ticket"),
       ticket_form: to_form(%{"title" => "", "description" => "", "type" => "issue"}, as: :ticket),
@@ -353,6 +361,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :ticket_show, %{"ticket_number" => number_str}) do
+    require_write!(socket)
     account = socket.assigns.account
     ticket = Support.get_ticket_by_number!(String.to_integer(number_str), account.id)
 
@@ -380,6 +389,12 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp require_admin!(socket) do
     unless socket.assigns.is_admin do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+    end
+  end
+
+  defp require_write!(socket) do
+    unless socket.assigns.can_write do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
     end
   end
@@ -824,7 +839,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> put_flash(:info, gettext("Token updated."))
-           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/tokens")}
+           |> push_patch(to: "/#{socket.assigns.handle}/api/tokens")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not update token."))}
@@ -871,7 +886,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> assign(api_tokens: tokens, newly_created_token: plain_token)
-           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/tokens")}
+           |> push_patch(to: "/#{socket.assigns.handle}/api/tokens")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not create token."))}
@@ -900,7 +915,7 @@ defmodule GlossiaWeb.DashboardLive do
            socket
            |> assign(api_tokens: tokens)
            |> put_flash(:info, gettext("Token revoked."))
-           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/tokens")}
+           |> push_patch(to: "/#{socket.assigns.handle}/api/tokens")}
 
         {:error, :not_found} ->
           {:noreply, put_flash(socket, :error, gettext("Token not found."))}
@@ -955,7 +970,7 @@ defmodule GlossiaWeb.DashboardLive do
              oauth_apps: apps,
              newly_created_secret: %{client_id: client_id, client_secret: client_secret}
            )
-           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/apps")}
+           |> push_patch(to: "/#{socket.assigns.handle}/api/apps")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not create application."))}
@@ -982,7 +997,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> put_flash(:info, gettext("Application updated."))
-           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/apps/#{app.id}")}
+           |> push_patch(to: "/#{socket.assigns.handle}/api/apps/#{app.id}")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not update application."))}
@@ -1039,7 +1054,7 @@ defmodule GlossiaWeb.DashboardLive do
            socket
            |> assign(oauth_apps: apps)
            |> put_flash(:info, gettext("Application deleted."))
-           |> push_patch(to: ~p"/#{socket.assigns.handle}/api/apps")}
+           |> push_patch(to: "/#{socket.assigns.handle}/api/apps")}
 
         {:error, _} ->
           {:noreply, put_flash(socket, :error, gettext("Could not delete application."))}
@@ -1099,7 +1114,7 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply,
          socket
          |> put_flash(:info, gettext("Ticket created."))
-         |> push_patch(to: ~p"/#{socket.assigns.handle}/tickets/#{ticket.number}")}
+         |> push_patch(to: "/#{socket.assigns.handle}/-/tickets/#{ticket.number}")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, ticket_form: to_form(changeset, as: :ticket))}
@@ -1364,6 +1379,7 @@ defmodule GlossiaWeb.DashboardLive do
         <.account_page projects={@projects} handle={@handle} can_write={@can_write} />
       <% :logs -> %>
         <.logs_page
+          handle={@handle}
           events={@events}
           event_types={@event_types}
           search={@events_search}
@@ -1472,7 +1488,7 @@ defmodule GlossiaWeb.DashboardLive do
           generating_title?={assigns[:generating_title?] || false}
         />
       <% :project -> %>
-        <.project_page project_name={@project_name} />
+        <.project_page handle={@handle} project_name={@project_name} />
     <% end %>
     """
   end
@@ -1484,6 +1500,9 @@ defmodule GlossiaWeb.DashboardLive do
   defp account_page(assigns) do
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {@handle, "/" <> @handle}
+      ]} />
       <.page_header
         title={gettext("Projects")}
         description={gettext("Content sources connected to this account.")}
@@ -1540,6 +1559,10 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {@handle, "/" <> @handle},
+        {gettext("Logs"), "/" <> @handle <> "/-/logs"}
+      ]} />
       <.page_header
         title={gettext("Logs")}
         description={gettext("Audit trail of actions and events for this account.")}
@@ -1636,6 +1659,10 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {@handle, "/" <> @handle},
+        {gettext("Voice"), "/" <> @handle <> "/-/voice"}
+      ]} />
       <.page_header
         title={gettext("Voice")}
         description={gettext("Define the tone, formality, and style guidelines for your content.")}
@@ -1954,7 +1981,7 @@ defmodule GlossiaWeb.DashboardLive do
                       <tr>
                         <td class="voice-history-version">
                           <.link
-                            patch={"/" <> @handle <> "/voice/" <> to_string(v.version)}
+                            patch={"/" <> @handle <> "/-/voice/" <> to_string(v.version)}
                             class="voice-history-link"
                           >
                             {"##{v.version}"}
@@ -2016,8 +2043,9 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <div class="dash-page">
       <.breadcrumb items={[
-        {gettext("Voice"), "/" <> @handle <> "/voice"},
-        {"##{@voice.version}", "/" <> @handle <> "/voice/versions/" <> @voice.id}
+        {@handle, "/" <> @handle},
+        {gettext("Voice"), "/" <> @handle <> "/-/voice"},
+        {"##{@voice.version}", "/" <> @handle <> "/-/voice/versions/" <> @voice.id}
       ]} />
       <div class="dash-page-header">
         <div class="voice-version-header">
@@ -2233,6 +2261,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp glossary_page(assigns) do
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {@handle, "/" <> @handle},
+        {gettext("Glossary"), "/" <> @handle <> "/-/glossary"}
+      ]} />
       <.page_header
         title={gettext("Glossary")}
         description={gettext("Approved terms and translations to keep your content consistent.")}
@@ -2424,7 +2456,7 @@ defmodule GlossiaWeb.DashboardLive do
                       <tr>
                         <td class="voice-history-version">
                           <.link
-                            patch={"/" <> @handle <> "/glossary/" <> to_string(v.version)}
+                            patch={"/" <> @handle <> "/-/glossary/" <> to_string(v.version)}
                             class="voice-history-link"
                           >
                             {"##{v.version}"}
@@ -2486,8 +2518,9 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <div class="dash-page">
       <.breadcrumb items={[
-        {gettext("Glossary"), "/" <> @handle <> "/glossary"},
-        {"##{@glossary.version}", "/" <> @handle <> "/glossary/versions/" <> @glossary.id}
+        {@handle, "/" <> @handle},
+        {gettext("Glossary"), "/" <> @handle <> "/-/glossary"},
+        {"##{@glossary.version}", "/" <> @handle <> "/-/glossary/versions/" <> @glossary.id}
       ]} />
       <div class="dash-page-header">
         <div class="voice-version-header">
@@ -2617,6 +2650,10 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {@handle, "/" <> @handle},
+        {gettext("Members"), "/" <> @handle <> "/-/members"}
+      ]} />
       <.page_header
         title={gettext("Members")}
         description={gettext("Manage who has access to this account.")}
@@ -2806,8 +2843,10 @@ defmodule GlossiaWeb.DashboardLive do
       <%= cond do %>
         <% @live_action == :api_tokens_new -> %>
           <.breadcrumb items={[
-            {gettext("Account tokens"), "/" <> @handle <> "/api/tokens"},
-            {gettext("New token"), "/" <> @handle <> "/api/tokens/new"}
+            {@handle, "/" <> @handle},
+            {gettext("Settings"), nil},
+            {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"},
+            {gettext("New token"), "/" <> @handle <> "/-/settings/tokens/new"}
           ]} />
           <.page_header title={gettext("New account token")} />
 
@@ -2894,13 +2933,15 @@ defmodule GlossiaWeb.DashboardLive do
             <.form_save_bar
               id="token-save-bar"
               visible={@token_form_valid?}
-              cancel_path={"/" <> @handle <> "/api/tokens"}
+              cancel_path={"/" <> @handle <> "/-/settings/tokens"}
             />
           </.form>
         <% @live_action == :api_token_edit -> %>
           <.breadcrumb items={[
-            {gettext("Account tokens"), "/" <> @handle <> "/api/tokens"},
-            {@editing_token.name, "/" <> @handle <> "/api/tokens/" <> @editing_token.id}
+            {@handle, "/" <> @handle},
+            {gettext("Settings"), nil},
+            {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"},
+            {@editing_token.name, "/" <> @handle <> "/-/settings/tokens/" <> @editing_token.id}
           ]} />
           <.page_header title={@editing_token.name} />
 
@@ -2968,7 +3009,7 @@ defmodule GlossiaWeb.DashboardLive do
             <.form_save_bar
               id="token-edit-save-bar"
               visible={@token_edit_changed?}
-              cancel_path={"/" <> @handle <> "/api/tokens"}
+              cancel_path={"/" <> @handle <> "/-/settings/tokens"}
             />
           </.form>
 
@@ -2997,6 +3038,11 @@ defmodule GlossiaWeb.DashboardLive do
             </button>
           </div>
         <% true -> %>
+          <.breadcrumb items={[
+            {@handle, "/" <> @handle},
+            {gettext("Settings"), nil},
+            {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"}
+          ]} />
           <.page_header
             title={gettext("Account tokens")}
             description={
@@ -3004,7 +3050,7 @@ defmodule GlossiaWeb.DashboardLive do
             }
           >
             <:actions>
-              <.link patch={"/" <> @handle <> "/api/tokens/new"} class="dash-btn dash-btn-primary">
+              <.link patch={"/" <> @handle <> "/-/settings/tokens/new"} class="dash-btn dash-btn-primary">
                 {gettext("Generate new token")}
               </.link>
             </:actions>
@@ -3097,7 +3143,7 @@ defmodule GlossiaWeb.DashboardLive do
               <% end %>
             </:col>
             <:action :let={token}>
-              <.link patch={"/" <> @handle <> "/api/tokens/" <> token.id} class="voice-link-btn">
+              <.link patch={"/" <> @handle <> "/-/settings/tokens/" <> token.id} class="voice-link-btn">
                 {gettext("Edit")}
               </.link>
               <button
@@ -3163,8 +3209,10 @@ defmodule GlossiaWeb.DashboardLive do
       <%= cond do %>
         <% @live_action == :api_apps_new -> %>
           <.breadcrumb items={[
-            {gettext("OAuth apps"), "/" <> @handle <> "/api/apps"},
-            {gettext("New application"), "/" <> @handle <> "/api/apps/new"}
+            {@handle, "/" <> @handle},
+            {gettext("Settings"), nil},
+            {gettext("OAuth apps"), "/" <> @handle <> "/-/settings/apps"},
+            {gettext("New application"), "/" <> @handle <> "/-/settings/apps/new"}
           ]} />
           <.page_header title={gettext("Register a new OAuth application")} />
 
@@ -3234,13 +3282,15 @@ defmodule GlossiaWeb.DashboardLive do
             <.form_save_bar
               id="oauth-app-save-bar"
               visible={@app_form_valid?}
-              cancel_path={"/" <> @handle <> "/api/apps"}
+              cancel_path={"/" <> @handle <> "/-/settings/apps"}
             />
           </.form>
         <% @live_action == :api_app_edit -> %>
           <.breadcrumb items={[
-            {gettext("OAuth apps"), "/" <> @handle <> "/api/apps"},
-            {@oauth_app.name, "/" <> @handle <> "/api/apps/" <> @oauth_app.id}
+            {@handle, "/" <> @handle},
+            {gettext("Settings"), nil},
+            {gettext("OAuth apps"), "/" <> @handle <> "/-/settings/apps"},
+            {@oauth_app.name, "/" <> @handle <> "/-/settings/apps/" <> @oauth_app.id}
           ]} />
           <.page_header title={@oauth_app.name} />
 
@@ -3352,7 +3402,7 @@ defmodule GlossiaWeb.DashboardLive do
             <.form_save_bar
               id="oauth-app-edit-save-bar"
               visible={@app_edit_changed?}
-              cancel_path={"/" <> @handle <> "/api/apps"}
+              cancel_path={"/" <> @handle <> "/-/settings/apps"}
             />
           </.form>
 
@@ -3400,6 +3450,11 @@ defmodule GlossiaWeb.DashboardLive do
             </button>
           </div>
         <% true -> %>
+          <.breadcrumb items={[
+            {@handle, "/" <> @handle},
+            {gettext("Settings"), nil},
+            {gettext("OAuth apps"), "/" <> @handle <> "/-/settings/apps"}
+          ]} />
           <.page_header
             title={gettext("OAuth applications")}
             description={
@@ -3409,7 +3464,7 @@ defmodule GlossiaWeb.DashboardLive do
             }
           >
             <:actions>
-              <.link patch={"/" <> @handle <> "/api/apps/new"} class="dash-btn dash-btn-primary">
+              <.link patch={"/" <> @handle <> "/-/settings/apps/new"} class="dash-btn dash-btn-primary">
                 {gettext("Register new application")}
               </.link>
             </:actions>
@@ -3458,7 +3513,7 @@ defmodule GlossiaWeb.DashboardLive do
             </:col>
             <:action :let={app}>
               <.link
-                patch={"/" <> @handle <> "/api/apps/" <> app.id}
+                patch={"/" <> @handle <> "/-/settings/apps/" <> app.id}
                 class="voice-link-btn"
               >
                 {gettext("Edit")}
@@ -3510,6 +3565,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp project_page(assigns) do
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {@handle, "/" <> @handle},
+        {@project_name, "/" <> @handle <> "/" <> @project_name}
+      ]} />
       <.page_header title={@project_name} />
 
       <div class="dash-empty-state">
@@ -3714,14 +3773,14 @@ defmodule GlossiaWeb.DashboardLive do
         Auditing.record("voice.created", account, user,
           resource_type: "voice",
           resource_id: to_string(voice.version),
-          resource_path: ~p"/#{handle}/voice/#{voice.version}",
+          resource_path: "/#{handle}/-/voice/#{voice.version}",
           summary: change_note
         )
 
         {:noreply,
          socket
          |> put_flash(:info, gettext("Voice configuration saved."))
-         |> push_patch(to: ~p"/#{handle}/voice")}
+         |> push_patch(to: "/#{handle}/-/voice")}
 
       {:error, _step, _changeset, _changes} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to save voice configuration."))}
@@ -3766,14 +3825,14 @@ defmodule GlossiaWeb.DashboardLive do
         Auditing.record("glossary.created", account, user,
           resource_type: "glossary",
           resource_id: to_string(glossary.version),
-          resource_path: ~p"/#{handle}/glossary/#{glossary.version}",
+          resource_path: "/#{handle}/-/glossary/#{glossary.version}",
           summary: change_note
         )
 
         {:noreply,
          socket
          |> put_flash(:info, gettext("Glossary saved."))
-         |> push_patch(to: ~p"/#{handle}/glossary")}
+         |> push_patch(to: "/#{handle}/-/glossary")}
 
       {:error, _step, _changeset, _changes} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to save glossary."))}
@@ -3900,11 +3959,11 @@ defmodule GlossiaWeb.DashboardLive do
 
     path =
       case action do
-        :logs -> "/#{handle}/logs"
-        :members -> "/#{handle}/members"
-        :api_tokens -> "/#{handle}/api/tokens"
-        :api_apps -> "/#{handle}/api/apps"
-        :tickets -> "/#{handle}/tickets"
+        :logs -> "/#{handle}/-/logs"
+        :members -> "/#{handle}/-/members"
+        :api_tokens -> "/#{handle}/-/settings/tokens"
+        :api_apps -> "/#{handle}/-/settings/apps"
+        :tickets -> "/#{handle}/-/tickets"
         _ -> "/#{handle}"
       end
 
@@ -4345,12 +4404,16 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
+      <.breadcrumb items={[
+        {@handle, "/" <> @handle},
+        {gettext("Tickets"), "/" <> @handle <> "/-/tickets"}
+      ]} />
       <.page_header
         title={gettext("Tickets")}
         description={gettext("Report issues or request features.")}
       >
         <:actions>
-          <.link patch={"/" <> @handle <> "/tickets/new"} class="dash-btn dash-btn-primary">
+          <.link patch={"/" <> @handle <> "/-/tickets/new"} class="dash-btn dash-btn-primary">
             {gettext("New ticket")}
           </.link>
         </:actions>
@@ -4365,7 +4428,7 @@ defmodule GlossiaWeb.DashboardLive do
       >
         <:col :let={ticket} label="#" key="number" sortable>
           <.link
-            patch={"/" <> @handle <> "/tickets/" <> Integer.to_string(ticket.number)}
+            patch={"/" <> @handle <> "/-/tickets/" <> Integer.to_string(ticket.number)}
             class="resource-link"
           >
             {"##{ticket.number}"}
@@ -4373,7 +4436,7 @@ defmodule GlossiaWeb.DashboardLive do
         </:col>
         <:col :let={ticket} label={gettext("Title")} key="title" sortable>
           <.link
-            patch={"/" <> @handle <> "/tickets/" <> Integer.to_string(ticket.number)}
+            patch={"/" <> @handle <> "/-/tickets/" <> Integer.to_string(ticket.number)}
             class="resource-link"
           >
             {ticket.title}
@@ -4394,7 +4457,7 @@ defmodule GlossiaWeb.DashboardLive do
         </:col>
         <:action :let={ticket}>
           <.link
-            patch={"/" <> @handle <> "/tickets/" <> Integer.to_string(ticket.number)}
+            patch={"/" <> @handle <> "/-/tickets/" <> Integer.to_string(ticket.number)}
             class="dash-btn dash-btn-secondary dash-btn-sm"
           >
             {gettext("View")}
@@ -4414,8 +4477,9 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <div class="dash-page">
       <.breadcrumb items={[
-        {gettext("Tickets"), "/" <> @handle <> "/tickets"},
-        {gettext("New ticket"), "/" <> @handle <> "/tickets/new"}
+        {@handle, "/" <> @handle},
+        {gettext("Tickets"), "/" <> @handle <> "/-/tickets"},
+        {gettext("New ticket"), "/" <> @handle <> "/-/tickets/new"}
       ]} />
       <.page_header
         title={gettext("New ticket")}
@@ -4468,7 +4532,7 @@ defmodule GlossiaWeb.DashboardLive do
           >{@ticket_form[:description].value}</textarea>
         </div>
         <div class="ticket-form-actions">
-          <.link patch={"/" <> @handle <> "/tickets"} class="dash-btn dash-btn-secondary">
+          <.link patch={"/" <> @handle <> "/-/tickets"} class="dash-btn dash-btn-secondary">
             {gettext("Cancel")}
           </.link>
           <button type="submit" class="dash-btn dash-btn-primary">
@@ -4493,8 +4557,9 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <div class="dash-page">
       <.breadcrumb items={[
-        {gettext("Tickets"), "/" <> @handle <> "/tickets"},
-        {"##{@ticket.number}", "/" <> @handle <> "/tickets/" <> Integer.to_string(@ticket.number)}
+        {@handle, "/" <> @handle},
+        {gettext("Tickets"), "/" <> @handle <> "/-/tickets"},
+        {"##{@ticket.number}", "/" <> @handle <> "/-/tickets/" <> Integer.to_string(@ticket.number)}
       ]} />
       <div class="ticket-detail-header">
         <div>

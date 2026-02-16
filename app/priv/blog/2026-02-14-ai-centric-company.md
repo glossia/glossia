@@ -72,7 +72,7 @@ Neither of us depends on the other to do any of this. The agent has access to ou
 
 We are very intentional about our stack because it directly affects how fast we can move and how cheaply we can operate.
 
-**For the agent (CLI):** We chose [Bun](https://bun.sh) and TypeScript. The feedback loop is fast, the type system catches errors early, and Bun lets us distribute the agent as a portable executable across platforms. No runtime dependencies for the user.
+**For the agent (CLI):** We chose Go. It compiles to single, portable binaries across platforms with no runtime dependencies for the user.
 
 **For the server:** We chose [Elixir](https://elixir-lang.org) and the [Erlang](https://www.erlang.org) runtime. Elixir's functional nature makes it a great fit for agentic workloads. The Erlang VM is battle-tested for concurrency and fault tolerance. And here is a bonus: an AI agent can introspect the running Erlang system to understand what is happening, gather insights, and even fix issues in production.
 

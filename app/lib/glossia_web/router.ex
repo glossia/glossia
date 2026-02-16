@@ -34,8 +34,8 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.RequireAccess
   end
 
-  pipeline :dashboard do
-    plug :put_layout, html: {GlossiaWeb.Layouts, :dashboard}
+  pipeline :platform do
+    plug :put_layout, html: {GlossiaWeb.Layouts, :platform}
   end
 
   pipeline :admin do
@@ -289,7 +289,7 @@ defmodule GlossiaWeb.Router do
 
   # Authenticated dashboard redirect
   scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_auth, :require_access, :dashboard]
+    pipe_through [:browser, :require_auth, :require_access]
 
     get "/dashboard", DashboardController, :index
   end
@@ -303,32 +303,35 @@ defmodule GlossiaWeb.Router do
     post "/:token/decline", InvitationController, :decline
   end
 
-  # Dashboard LiveView (access controlled by on_mount hooks)
+  # Platform routes (access controlled by on_mount hooks)
   scope "/", GlossiaWeb do
-    pipe_through [:browser, :dashboard]
+    pipe_through [:browser, :platform]
 
-    live_session :dashboard,
-      layout: {GlossiaWeb.Layouts, :dashboard},
+    live_session :platform,
+      layout: {GlossiaWeb.Layouts, :platform},
       on_mount: [
-        {GlossiaWeb.DashboardHooks, :load_user},
-        {GlossiaWeb.DashboardHooks, :load_account},
-        {GlossiaWeb.DashboardHooks, :check_write}
+        {GlossiaWeb.PlatformHooks, :load_user},
+        {GlossiaWeb.PlatformHooks, :load_account},
+        {GlossiaWeb.PlatformHooks, :check_write}
       ] do
-      live "/:handle/logs", DashboardLive, :logs
-      live "/:handle/voice", DashboardLive, :voice
-      live "/:handle/voice/:version", DashboardLive, :voice_version
-      live "/:handle/glossary", DashboardLive, :glossary
-      live "/:handle/glossary/:version", DashboardLive, :glossary_version
-      live "/:handle/members", DashboardLive, :members
-      live "/:handle/api/tokens", DashboardLive, :api_tokens
-      live "/:handle/api/tokens/new", DashboardLive, :api_tokens_new
-      live "/:handle/api/tokens/:token_id", DashboardLive, :api_token_edit
-      live "/:handle/api/apps", DashboardLive, :api_apps
-      live "/:handle/api/apps/new", DashboardLive, :api_apps_new
-      live "/:handle/api/apps/:app_id", DashboardLive, :api_app_edit
-      live "/:handle/tickets", DashboardLive, :tickets
-      live "/:handle/tickets/new", DashboardLive, :ticket_new
-      live "/:handle/tickets/:ticket_number", DashboardLive, :ticket_show
+      # App routes (/-/ separator disambiguates from project handles)
+      live "/:handle/-/voice", DashboardLive, :voice
+      live "/:handle/-/voice/:version", DashboardLive, :voice_version
+      live "/:handle/-/glossary", DashboardLive, :glossary
+      live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
+      live "/:handle/-/tickets", DashboardLive, :tickets
+      live "/:handle/-/tickets/new", DashboardLive, :ticket_new
+      live "/:handle/-/tickets/:ticket_number", DashboardLive, :ticket_show
+      live "/:handle/-/members", DashboardLive, :members
+      live "/:handle/-/logs", DashboardLive, :logs
+      live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
+      live "/:handle/-/settings/tokens/new", DashboardLive, :api_tokens_new
+      live "/:handle/-/settings/tokens/:token_id", DashboardLive, :api_token_edit
+      live "/:handle/-/settings/apps", DashboardLive, :api_apps
+      live "/:handle/-/settings/apps/new", DashboardLive, :api_apps_new
+      live "/:handle/-/settings/apps/:app_id", DashboardLive, :api_app_edit
+
+      # Content routes (no /-/, MUST come last)
       live "/:handle", DashboardLive, :account
       live "/:handle/:project", DashboardLive, :project
     end

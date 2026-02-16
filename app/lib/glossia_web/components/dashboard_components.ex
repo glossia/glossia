@@ -399,8 +399,8 @@ defmodule GlossiaWeb.DashboardComponents do
   ## Examples
 
       <.breadcrumb items={[
-        {gettext("Account tokens"), "/" <> @handle <> "/api/tokens"},
-        {gettext("New token"), "/" <> @handle <> "/api/tokens/new"}
+        {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"},
+        {gettext("New token"), "/" <> @handle <> "/-/settings/tokens/new"}
       ]} />
   """
   attr :items, :list,
@@ -410,14 +410,17 @@ defmodule GlossiaWeb.DashboardComponents do
   def breadcrumb(assigns) do
     ~H"""
     <nav class="dash-breadcrumbs" aria-label={gettext("Breadcrumbs")}>
-      <%= for {{label, _path}, idx} <- Enum.with_index(@items) do %>
+      <%= for {{label, path}, idx} <- Enum.with_index(@items) do %>
         <%= if idx > 0 do %>
           <span class="dash-breadcrumb-sep" aria-hidden="true">/</span>
         <% end %>
-        <%= if idx == length(@items) - 1 do %>
-          <span class="dash-breadcrumb-current">{label}</span>
-        <% else %>
-          <.link patch={elem(Enum.at(@items, idx), 1)} class="dash-breadcrumb-link">{label}</.link>
+        <%= cond do %>
+          <% idx == length(@items) - 1 -> %>
+            <span class="dash-breadcrumb-current">{label}</span>
+          <% is_nil(path) -> %>
+            <span class="dash-breadcrumb-text">{label}</span>
+          <% true -> %>
+            <.link patch={path} class="dash-breadcrumb-link">{label}</.link>
         <% end %>
       <% end %>
     </nav>
@@ -441,7 +444,7 @@ defmodule GlossiaWeb.DashboardComponents do
       <.form_save_bar
         id="token-save-bar"
         visible={@token_form_valid?}
-        cancel_path={"/" <> @handle <> "/api/tokens"}
+        cancel_path={"/" <> @handle <> "/-/settings/tokens"}
       />
   """
   attr :id, :string, required: true

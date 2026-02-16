@@ -16,14 +16,22 @@ jobs:
         working-directory: cli
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: oven-sh/setup-bun@v2
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
       - name: Format check
-        run: bun run format
+        shell: bash
+        run: |
+          out="$(gofmt -l .)"
+          if [ -n "$out" ]; then
+            echo "::error::gofmt needed for:"
+            echo "$out"
+            exit 1
+          fi
 
   test-build:
-    name: Typecheck, Test, Build
+    name: Test, Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -31,50 +39,54 @@ jobs:
         working-directory: cli
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: oven-sh/setup-bun@v2
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Typecheck
-        run: bun run typecheck
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
       - name: Test
-        run: bun run test
+        run: go test ./...
       - name: Build
-        run: bun run build
+        run: |
+          mkdir -p dist
+          go build -o dist/glossia ./cmd/glossia
 
   executables:
-    name: Executable (${{ matrix.target }})
-    runs-on: ${{ matrix.os }}
+    name: Executable (${{ matrix.goos }}-${{ matrix.goarch }})
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [format, test-build]
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            target: bun-linux-x64
+          - goos: linux
+            goarch: amd64
             artifact: glossia-linux-x64
-          - os: ubuntu-latest
-            target: bun-linux-arm64
+          - goos: linux
+            goarch: arm64
             artifact: glossia-linux-arm64
-          - os: macos-latest
-            target: bun-darwin-x64
+          - goos: darwin
+            goarch: amd64
             artifact: glossia-darwin-x64
-          - os: macos-latest
-            target: bun-darwin-arm64
+          - goos: darwin
+            goarch: arm64
             artifact: glossia-darwin-arm64
-          - os: windows-latest
-            target: bun-windows-x64
+          - goos: windows
+            goarch: amd64
             artifact: glossia-windows-x64.exe
     defaults:
       run:
         working-directory: cli
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: oven-sh/setup-bun@v2
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
       - name: Build executable
-        run: bun run build:exe --targets ${{ matrix.target }}
+        run: |
+          mkdir -p dist/bin
+          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -trimpath -ldflags "-s -w" -o dist/bin/${{ matrix.artifact }} ./cmd/glossia
       - name: Upload executable artifact
         uses: actions/upload-artifact@v4
         with:

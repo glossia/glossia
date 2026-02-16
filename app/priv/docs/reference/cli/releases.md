@@ -65,6 +65,6 @@ Releases are cut locally using `mise run cli/release`, which:
 
 1. Parses the `## NEXT` section of the changelog
 2. Determines the version bump (minor for new features, patch otherwise)
-3. Builds platform executables via Bun
+3. Builds platform executables via Go
 4. Packages and uploads archives to S3
 5. Commits the version bump and tags the release

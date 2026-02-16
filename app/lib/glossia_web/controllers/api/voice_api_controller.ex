@@ -77,7 +77,7 @@ defmodule GlossiaWeb.Api.VoiceApiController do
                 Glossia.Auditing.record("voice.created", account, user,
                   resource_type: "voice",
                   resource_id: to_string(voice.version),
-                  resource_path: "/#{handle}/voice/#{voice.version}",
+                  resource_path: "/#{handle}/-/voice/#{voice.version}",
                   summary: attrs.change_note || "Updated voice configuration"
                 )
 
