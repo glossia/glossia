@@ -69,6 +69,17 @@ if is_binary(github_webhook_secret) and github_webhook_secret != "" do
   config :glossia, Glossia.Github, webhook_secret: github_webhook_secret
 end
 
+github_app_id = System.get_env("GITHUB_APP_ID")
+github_app_private_key = System.get_env("GITHUB_APP_PRIVATE_KEY")
+github_app_slug = System.get_env("GITHUB_APP_SLUG")
+
+if is_binary(github_app_id) and github_app_id != "" do
+  config :glossia, Glossia.Github.App,
+    app_id: github_app_id,
+    private_key: github_app_private_key,
+    app_slug: github_app_slug
+end
+
 if is_binary(gitlab_webhook_secret) and gitlab_webhook_secret != "" do
   config :glossia, Glossia.Gitlab, webhook_secret: gitlab_webhook_secret
 end
@@ -83,6 +94,11 @@ daytona_api_key = System.get_env("DAYTONA_API_KEY")
 
 if is_binary(daytona_api_key) and daytona_api_key != "" do
   config :glossia, Glossia.Daytona, api_key: daytona_api_key
+
+  # Only use Daytona in production; dev uses Docker via config.exs
+  if config_env() == :prod do
+    config :glossia, :sandbox_adapter, Glossia.Sandbox.Daytona
+  end
 end
 
 s3_access_key = System.get_env("S3_ACCESS_KEY_ID")
