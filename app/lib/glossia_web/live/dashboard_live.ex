@@ -1,6 +1,8 @@
 defmodule GlossiaWeb.DashboardLive do
   use GlossiaWeb, :live_view
 
+  require Logger
+
   import GlossiaWeb.DashboardComponents
 
   alias Glossia.Accounts
@@ -9,7 +11,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.DeveloperTokens
   alias Glossia.Glossaries
   alias Glossia.Organizations
-  alias Glossia.Support
+  alias Glossia.Discussions
   alias Glossia.Voices
 
   @tone_options ~w(casual formal playful authoritative neutral)
@@ -32,61 +34,114 @@ defmodule GlossiaWeb.DashboardLive do
 
     socket =
       case socket.assigns.live_action do
+        :account -> apply_url_params_projects(socket, params)
         :logs -> apply_url_params_logs(socket, params)
         :members -> apply_url_params_members(socket, params)
+        :voice -> apply_url_params_voice(socket, params)
+        :glossary -> apply_url_params_glossary(socket, params)
+        :project_activity -> apply_url_params_activity(socket, params)
+        :project_translations -> apply_url_params_translations(socket, params)
+        :project_new -> apply_url_params_project_new(socket, params)
         _ -> socket
       end
+
+    socket = maybe_redirect_to_suggestion_finalize(socket, params)
 
     {:noreply, socket}
   end
 
   defp apply_action(socket, :account, _params) do
-    assign(socket, page_title: socket.assigns.handle, projects: [])
+    account = socket.assigns.account
+
+    {projects, total} =
+      case Glossia.Projects.list_projects(account) do
+        {:ok, {projects, meta}} -> {projects, meta.total_count}
+        _ -> {[], 0}
+      end
+
+    assign(socket,
+      page_title: socket.assigns.handle,
+      projects: projects,
+      projects_total: total,
+      projects_search: "",
+      projects_sort_key: "name",
+      projects_sort_dir: "asc",
+      projects_page: 1,
+      breadcrumb_items: []
+    )
   end
 
   defp apply_action(socket, :logs, _params) do
     require_write!(socket)
+    handle = socket.assigns.handle
 
-    if Map.has_key?(socket.assigns, :all_events) do
-      socket
-    else
-      all_events = Auditing.list_events(socket.assigns.account.id)
-      event_types = all_events |> Enum.map(& &1.name) |> Enum.uniq() |> Enum.sort()
+    socket =
+      if Map.has_key?(socket.assigns, :all_events) do
+        socket
+      else
+        all_events = Auditing.list_events(socket.assigns.account.id)
+        event_types = all_events |> Enum.map(& &1.name) |> Enum.uniq() |> Enum.sort()
 
-      assign(socket,
-        page_title: gettext("Logs"),
-        all_events: all_events,
-        event_types: event_types,
-        events_search: "",
-        events_sort_key: "date",
-        events_sort_dir: "desc",
-        events_filters: %{},
-        events_page: 1
-      )
-    end
+        assign(socket,
+          page_title: gettext("Logs"),
+          all_events: all_events,
+          event_types: event_types,
+          events_search: "",
+          events_sort_key: "date",
+          events_sort_dir: "desc",
+          events_filters: %{},
+          events_page: 1
+        )
+      end
+
+    assign(socket,
+      breadcrumb_items: [{gettext("Logs"), "/" <> handle <> "/-/logs"}]
+    )
   end
 
   defp apply_action(socket, :voice, _params) do
-    require_write!(socket)
+    require_action!(socket, :voice_read)
     account = socket.assigns.account
+    user = socket.assigns.current_user
+    existing_draft = socket.assigns[:voice_suggestion_draft]
+    existing_token = socket.assigns[:voice_draft_token]
+    can_voice_write = socket.assigns[:can_voice_write] || false
+    can_voice_propose = socket.assigns[:can_voice_propose] || false
+
+    can_discussion_write =
+      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+
     voice = Voices.get_latest_voice(account)
     {:ok, {versions, _meta}} = Voices.list_voice_versions(account)
+    voice_suggestions = list_suggestion_discussions(account, "voice_suggestion")
     overrides = if voice, do: voice.overrides || [], else: []
     target_countries = if voice, do: voice.target_countries || [], else: []
     cultural_notes = if voice, do: voice.cultural_notes || %{}, else: %{}
+
+    handle = socket.assigns.handle
 
     socket
     |> assign(
       page_title: gettext("Voice"),
       voice: voice,
       versions: versions,
+      voice_suggestions: voice_suggestions,
       overrides: overrides,
       original_voice: voice,
       original_overrides: overrides,
       target_countries: target_countries,
       cultural_notes: cultural_notes,
+      can_voice_write: can_voice_write,
+      can_voice_propose: can_voice_propose,
+      can_voice_suggest?: can_discussion_write and (can_voice_propose or can_voice_write),
+      can_voice_submit?: can_voice_write or can_voice_propose,
       changed?: false,
       voice_form_params: %{},
+      voice_suggestion_draft: existing_draft,
+      voice_draft_token: existing_token,
+      pending_voice_suggestion_redirect:
+        socket.assigns[:pending_voice_suggestion_redirect] || false,
+      voice_back_path: maybe_with_draft_param("/#{handle}/-/voice", existing_token),
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
@@ -95,13 +150,104 @@ defmodule GlossiaWeb.DashboardLive do
       context_generation: 0,
       context_timer_ref: nil,
       context_task_ref: nil,
-      generating_contexts?: false
+      generating_contexts?: false,
+      breadcrumb_items: [{gettext("Voice"), "/" <> handle <> "/-/voice"}]
+    )
+  end
+
+  defp apply_action(socket, :voice_suggestion_new, params) do
+    require_action!(socket, :voice_read)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    user = socket.assigns.current_user
+    can_voice_write = socket.assigns[:can_voice_write] || false
+    can_voice_propose = socket.assigns[:can_voice_propose] || false
+
+    can_discussion_write =
+      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+
+    unless can_discussion_write and (can_voice_propose or can_voice_write) do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+    end
+
+    baseline_voice = Voices.get_latest_voice(account)
+    baseline_overrides = if baseline_voice, do: baseline_voice.overrides || [], else: []
+    baseline_countries = if baseline_voice, do: baseline_voice.target_countries || [], else: []
+    baseline_notes = if baseline_voice, do: baseline_voice.cultural_notes || %{}, else: %{}
+
+    draft_token = Map.get(params, "draft")
+
+    draft =
+      socket.assigns[:voice_suggestion_draft] ||
+        voice_suggestion_draft_from_token(
+          draft_token,
+          baseline_voice,
+          baseline_overrides,
+          baseline_countries,
+          baseline_notes
+        )
+
+    {voice, original_voice, overrides, original_overrides, target_countries, cultural_notes,
+     voice_form_params, change_summary} =
+      case draft do
+        %{
+          voice: draft_voice,
+          original_voice: draft_original_voice,
+          overrides: draft_overrides,
+          original_overrides: draft_original_overrides,
+          target_countries: draft_countries,
+          cultural_notes: draft_notes,
+          voice_form_params: draft_params,
+          change_summary: draft_summary
+        } ->
+          {draft_voice, draft_original_voice, draft_overrides, draft_original_overrides,
+           draft_countries, draft_notes, draft_params, draft_summary}
+
+        _ ->
+          {baseline_voice, baseline_voice, baseline_overrides, baseline_overrides,
+           baseline_countries, baseline_notes,
+           %{"suggestion_title" => "", "suggestion_body" => "", "change_note" => ""}, ""}
+      end
+
+    assign(socket,
+      page_title: gettext("Suggest voice changes"),
+      voice: voice,
+      versions: [],
+      voice_suggestions: [],
+      overrides: overrides,
+      original_voice: original_voice,
+      original_overrides: original_overrides,
+      target_countries: target_countries,
+      cultural_notes: cultural_notes,
+      can_voice_write: can_voice_write,
+      can_voice_propose: can_voice_propose,
+      can_voice_suggest?: true,
+      can_voice_submit?: false,
+      changed?: false,
+      voice_form_params: voice_form_params,
+      voice_draft_token: draft_token,
+      pending_voice_suggestion_redirect: false,
+      voice_back_path: maybe_with_draft_param("/#{handle}/-/voice", draft_token),
+      change_summary: change_summary,
+      generating_summary?: false,
+      summary_generation: 0,
+      summary_timer_ref: nil,
+      summary_task_ref: nil,
+      context_generation: 0,
+      context_timer_ref: nil,
+      context_task_ref: nil,
+      generating_contexts?: false,
+      breadcrumb_items: [
+        {gettext("Voice"), maybe_with_draft_param("/" <> handle <> "/-/voice", draft_token)},
+        {gettext("Suggest changes"), nil}
+      ]
     )
   end
 
   defp apply_action(socket, :voice_version, %{"version" => version_str}) do
-    require_write!(socket)
+    require_action!(socket, :voice_read)
     account = socket.assigns.account
+    handle = socket.assigns.handle
     version = String.to_integer(version_str)
     voice = Voices.get_voice_version(account, version)
 
@@ -114,37 +260,140 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket,
       page_title: gettext("Voice #%{version}", version: version),
       voice: voice,
-      previous: previous
+      previous: previous,
+      can_voice_write: socket.assigns[:can_voice_write] || false,
+      breadcrumb_items: [
+        {gettext("Voice"), "/" <> handle <> "/-/voice"},
+        {"##{version}", nil}
+      ]
     )
   end
 
   defp apply_action(socket, :glossary, _params) do
-    require_write!(socket)
+    require_action!(socket, :glossary_read)
     account = socket.assigns.account
+    user = socket.assigns.current_user
+    existing_draft = socket.assigns[:glossary_suggestion_draft]
+    existing_token = socket.assigns[:glossary_draft_token]
+    can_glossary_write = socket.assigns[:can_glossary_write] || false
+    can_glossary_propose = socket.assigns[:can_glossary_propose] || false
+
+    can_discussion_write =
+      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+
     glossary = Glossaries.get_latest_glossary(account)
     {:ok, {versions, _meta}} = Glossaries.list_glossary_versions(account)
+    glossary_suggestions = list_suggestion_discussions(account, "glossary_suggestion")
     entries = if glossary, do: glossary.entries || [], else: []
+
+    handle = socket.assigns.handle
 
     socket
     |> assign(
       page_title: gettext("Glossary"),
       glossary: glossary,
       glossary_versions: versions,
+      glossary_suggestions: glossary_suggestions,
       glossary_entries: entries,
       original_glossary: glossary,
       original_glossary_entries: entries,
+      can_glossary_write: can_glossary_write,
+      can_glossary_propose: can_glossary_propose,
+      can_glossary_suggest?:
+        can_discussion_write and (can_glossary_propose or can_glossary_write),
+      can_glossary_submit?: can_glossary_write or can_glossary_propose,
       glossary_changed?: false,
+      glossary_form_params: %{},
+      glossary_suggestion_draft: existing_draft,
+      glossary_draft_token: existing_token,
+      pending_glossary_suggestion_redirect:
+        socket.assigns[:pending_glossary_suggestion_redirect] || false,
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", existing_token),
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
       summary_timer_ref: nil,
-      summary_task_ref: nil
+      summary_task_ref: nil,
+      breadcrumb_items: [{gettext("Glossary"), "/" <> handle <> "/-/glossary"}]
+    )
+  end
+
+  defp apply_action(socket, :glossary_suggestion_new, params) do
+    require_action!(socket, :glossary_read)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    user = socket.assigns.current_user
+    can_glossary_write = socket.assigns[:can_glossary_write] || false
+    can_glossary_propose = socket.assigns[:can_glossary_propose] || false
+
+    can_discussion_write =
+      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+
+    unless can_discussion_write and (can_glossary_propose or can_glossary_write) do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+    end
+
+    baseline_glossary = Glossaries.get_latest_glossary(account)
+    baseline_entries = if baseline_glossary, do: baseline_glossary.entries || [], else: []
+
+    draft_token = Map.get(params, "draft")
+
+    draft =
+      socket.assigns[:glossary_suggestion_draft] ||
+        glossary_suggestion_draft_from_token(draft_token, baseline_glossary, baseline_entries)
+
+    {glossary, original_glossary, entries, original_entries, glossary_form_params, change_summary} =
+      case draft do
+        %{
+          glossary: draft_glossary,
+          original_glossary: draft_original_glossary,
+          glossary_entries: draft_entries,
+          original_glossary_entries: draft_original_entries,
+          glossary_form_params: draft_params,
+          change_summary: draft_summary
+        } ->
+          {draft_glossary, draft_original_glossary, draft_entries, draft_original_entries,
+           draft_params, draft_summary}
+
+        _ ->
+          {baseline_glossary, baseline_glossary, baseline_entries, baseline_entries,
+           %{"suggestion_title" => "", "suggestion_body" => "", "change_note" => ""}, ""}
+      end
+
+    assign(socket,
+      page_title: gettext("Suggest glossary changes"),
+      glossary: glossary,
+      glossary_versions: [],
+      glossary_suggestions: [],
+      glossary_entries: entries,
+      original_glossary: original_glossary,
+      original_glossary_entries: original_entries,
+      can_glossary_write: can_glossary_write,
+      can_glossary_propose: can_glossary_propose,
+      can_glossary_suggest?: true,
+      can_glossary_submit?: false,
+      glossary_changed?: false,
+      glossary_form_params: glossary_form_params,
+      glossary_draft_token: draft_token,
+      pending_glossary_suggestion_redirect: false,
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token),
+      change_summary: change_summary,
+      generating_summary?: false,
+      summary_generation: 0,
+      summary_timer_ref: nil,
+      summary_task_ref: nil,
+      breadcrumb_items: [
+        {gettext("Glossary"),
+         maybe_with_draft_param("/" <> handle <> "/-/glossary", draft_token)},
+        {gettext("Suggest changes"), nil}
+      ]
     )
   end
 
   defp apply_action(socket, :glossary_version, %{"version" => version_str}) do
-    require_write!(socket)
+    require_action!(socket, :glossary_read)
     account = socket.assigns.account
+    handle = socket.assigns.handle
     version = String.to_integer(version_str)
     glossary = Glossaries.get_glossary_version(account, version)
 
@@ -157,47 +406,60 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket,
       page_title: gettext("Glossary #%{version}", version: version),
       glossary: glossary,
-      previous_glossary: previous
+      previous_glossary: previous,
+      can_glossary_write: socket.assigns[:can_glossary_write] || false,
+      breadcrumb_items: [
+        {gettext("Glossary"), "/" <> handle <> "/-/glossary"},
+        {"##{version}", nil}
+      ]
     )
   end
 
   defp apply_action(socket, :members, _params) do
-    if Map.has_key?(socket.assigns, :all_members) do
-      socket
-    else
-      account = socket.assigns.account
+    handle = socket.assigns.handle
 
-      unless account.type == "organization" and socket.assigns.is_admin do
-        raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+    socket =
+      if Map.has_key?(socket.assigns, :all_members) do
+        socket
+      else
+        account = socket.assigns.account
+
+        unless account.type == "organization" and socket.assigns.is_admin do
+          raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+        end
+
+        org = Organizations.get_organization_for_account(account)
+        all_members = Organizations.list_members(org)
+        all_invitations = Organizations.list_pending_invitations(org)
+        member_roles = all_members |> Enum.map(& &1.role) |> Enum.uniq() |> Enum.sort()
+
+        assign(socket,
+          page_title: gettext("Members"),
+          organization: org,
+          all_members: all_members,
+          all_invitations: all_invitations,
+          member_roles: member_roles,
+          members_search: "",
+          members_sort_key: "name",
+          members_sort_dir: "asc",
+          members_filters: %{},
+          members_page: 1,
+          invitations_search: "",
+          invitations_sort_key: "email",
+          invitations_sort_dir: "asc",
+          invite_form: to_form(%{"email" => "", "role" => "member"}, as: :invite)
+        )
       end
 
-      org = Organizations.get_organization_for_account(account)
-      all_members = Organizations.list_members(org)
-      all_invitations = Organizations.list_pending_invitations(org)
-      member_roles = all_members |> Enum.map(& &1.role) |> Enum.uniq() |> Enum.sort()
-
-      assign(socket,
-        page_title: gettext("Members"),
-        organization: org,
-        all_members: all_members,
-        all_invitations: all_invitations,
-        member_roles: member_roles,
-        members_search: "",
-        members_sort_key: "name",
-        members_sort_dir: "asc",
-        members_filters: %{},
-        members_page: 1,
-        invitations_search: "",
-        invitations_sort_key: "email",
-        invitations_sort_dir: "asc",
-        invite_form: to_form(%{"email" => "", "role" => "member"}, as: :invite)
-      )
-    end
+    assign(socket,
+      breadcrumb_items: [{gettext("Members"), "/" <> handle <> "/-/members"}]
+    )
   end
 
   defp apply_action(socket, :api_tokens, params) do
     require_admin!(socket)
     account = socket.assigns.account
+    handle = socket.assigns.handle
 
     sort_key = Map.get(params, "tsort", "name")
     sort_dir = Map.get(params, "tdir", "asc")
@@ -216,12 +478,17 @@ defmodule GlossiaWeb.DashboardLive do
       available_scopes: available_scopes,
       newly_created_token: nil,
       tokens_sort_key: sort_key,
-      tokens_sort_dir: sort_dir
+      tokens_sort_dir: sort_dir,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("Account tokens"), "/" <> handle <> "/-/settings/tokens"}
+      ]
     )
   end
 
   defp apply_action(socket, :api_tokens_new, _params) do
     require_admin!(socket)
+    handle = socket.assigns.handle
 
     assign(socket,
       page_title: gettext("New account token"),
@@ -231,13 +498,19 @@ defmodule GlossiaWeb.DashboardLive do
           as: :token
         ),
       newly_created_token: nil,
-      token_form_valid?: false
+      token_form_valid?: false,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("Account tokens"), "/" <> handle <> "/-/settings/tokens"},
+        {gettext("New token"), nil}
+      ]
     )
   end
 
   defp apply_action(socket, :api_token_edit, params) do
     require_admin!(socket)
     account = socket.assigns.account
+    handle = socket.assigns.handle
     token = DeveloperTokens.get_account_token!(params["token_id"], account.id)
 
     assign(socket,
@@ -248,13 +521,19 @@ defmodule GlossiaWeb.DashboardLive do
           %{"name" => token.name, "description" => token.description || ""},
           as: :token
         ),
-      token_edit_changed?: false
+      token_edit_changed?: false,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("Account tokens"), "/" <> handle <> "/-/settings/tokens"},
+        {token.name, nil}
+      ]
     )
   end
 
   defp apply_action(socket, :api_apps, params) do
     require_admin!(socket)
     account = socket.assigns.account
+    handle = socket.assigns.handle
 
     sort_key = Map.get(params, "asort", "name")
     sort_dir = Map.get(params, "adir", "asc")
@@ -271,12 +550,17 @@ defmodule GlossiaWeb.DashboardLive do
       oauth_apps: apps,
       newly_created_secret: nil,
       apps_sort_key: sort_key,
-      apps_sort_dir: sort_dir
+      apps_sort_dir: sort_dir,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("OAuth apps"), "/" <> handle <> "/-/settings/apps"}
+      ]
     )
   end
 
   defp apply_action(socket, :api_apps_new, _params) do
     require_admin!(socket)
+    handle = socket.assigns.handle
 
     assign(socket,
       page_title: gettext("New OAuth App"),
@@ -284,13 +568,19 @@ defmodule GlossiaWeb.DashboardLive do
         to_form(%{"name" => "", "description" => "", "homepage_url" => "", "redirect_uris" => ""},
           as: :app
         ),
-      app_form_valid?: false
+      app_form_valid?: false,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("OAuth apps"), "/" <> handle <> "/-/settings/apps"},
+        {gettext("New application"), nil}
+      ]
     )
   end
 
   defp apply_action(socket, :api_app_edit, %{"app_id" => app_id}) do
     require_admin!(socket)
     account = socket.assigns.account
+    handle = socket.assigns.handle
     app = DeveloperTokens.get_oauth_application!(app_id, account.id)
     client = DeveloperTokens.get_boruta_client_for_app(app)
 
@@ -317,12 +607,133 @@ defmodule GlossiaWeb.DashboardLive do
         "redirect_uris" => redirect_uris
       },
       app_edit_changed?: false,
-      newly_regenerated_secret: nil
+      newly_regenerated_secret: nil,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("OAuth apps"), "/" <> handle <> "/-/settings/apps"},
+        {app.name, nil}
+      ]
     )
   end
 
-  defp apply_action(socket, :tickets, params) do
-    require_write!(socket)
+  defp apply_action(socket, :account, _params) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    installation = Glossia.Github.Installations.get_installation_for_account(account.id)
+    github_install_url =
+      case Glossia.Github.App.install_url() do
+        {:ok, url} -> url
+        _ -> nil
+      end
+
+    assign(socket,
+      page_title: gettext("Account"),
+      github_installation: installation,
+      github_configured?: Glossia.Github.App.configured?(),
+      github_install_url: github_install_url,
+      breadcrumb_items: [
+        {gettext("Account"), "/" <> handle <> "/-/account"}
+      ]
+    )
+  end
+
+  defp apply_action(socket, :project_new, _params) do
+    if not socket.assigns.can_write do
+      socket
+      |> put_flash(:error, gettext("You don't have permission to create projects here."))
+      |> push_navigate(to: "/#{socket.assigns.handle}")
+    else
+      handle = socket.assigns.handle
+      user = socket.assigns.current_user
+
+      # Vercel-like model: fetch repos from ALL installations the user has access to
+      # across all their accounts (personal + org memberships)
+      installations = Glossia.Github.Installations.list_installations_for_user(user)
+
+      repos =
+        if installations != [] && Glossia.Github.App.configured?() do
+          installations
+          |> Enum.flat_map(fn installation ->
+            case fetch_github_repos_via_installation(installation) do
+              {:ok, repos} -> repos
+              {:error, _} -> []
+            end
+          end)
+          |> Enum.uniq_by(& &1["id"])
+          |> Enum.sort_by(& &1["full_name"])
+        else
+          case fetch_github_repos_via_oauth(user) do
+            {:ok, repos} -> repos
+            {:error, _} -> []
+          end
+        end
+
+      github_connected? =
+        installations != [] || Glossia.Accounts.get_github_token_for_user(user.id) != nil
+
+      assign(socket,
+        page_title: gettext("New project"),
+        github_installations: installations,
+        github_repos: repos,
+        github_repos_search: "",
+        github_configured?: github_connected?,
+        wizard_step: "repo",
+        wizard_selected_repo: socket.assigns[:wizard_selected_repo],
+        wizard_selected_languages: socket.assigns[:wizard_selected_languages] || [],
+        wizard_project: socket.assigns[:wizard_project],
+        setup_events: socket.assigns[:setup_events] || [],
+        breadcrumb_items: [
+          {gettext("New project"), "/" <> handle <> "/-/projects/new"}
+        ]
+      )
+    end
+  end
+
+  @discussions_filter_types %{
+    "status" => "select",
+    "kind" => "select",
+    "title" => "text",
+    "inserted_at" => "date_range"
+  }
+
+  @translations_filter_types %{
+    "status" => "select"
+  }
+
+  @wizard_languages [
+    %{code: "es", name: "Spanish", native: "Espanol"},
+    %{code: "fr", name: "French", native: "Francais"},
+    %{code: "de", name: "German", native: "Deutsch"},
+    %{code: "ja", name: "Japanese", native: "日本語"},
+    %{code: "zh-Hans", name: "Chinese (Simplified)", native: "简体中文"},
+    %{code: "ko", name: "Korean", native: "한국어"},
+    %{code: "pt-BR", name: "Portuguese (Brazil)", native: "Portugues"},
+    %{code: "it", name: "Italian", native: "Italiano"},
+    %{code: "ru", name: "Russian", native: "Русский"},
+    %{code: "ar", name: "Arabic", native: "العربية"},
+    %{code: "nl", name: "Dutch", native: "Nederlands"},
+    %{code: "pl", name: "Polish", native: "Polski"},
+    %{code: "tr", name: "Turkish", native: "Turkce"},
+    %{code: "sv", name: "Swedish", native: "Svenska"},
+    %{code: "da", name: "Danish", native: "Dansk"},
+    %{code: "fi", name: "Finnish", native: "Suomi"},
+    %{code: "nb", name: "Norwegian", native: "Norsk"},
+    %{code: "uk", name: "Ukrainian", native: "Українська"},
+    %{code: "th", name: "Thai", native: "ไทย"},
+    %{code: "vi", name: "Vietnamese", native: "Tieng Viet"},
+    %{code: "id", name: "Indonesian", native: "Bahasa Indonesia"},
+    %{code: "ms", name: "Malay", native: "Bahasa Melayu"},
+    %{code: "hi", name: "Hindi", native: "हिन्दी"},
+    %{code: "he", name: "Hebrew", native: "עברית"},
+    %{code: "el", name: "Greek", native: "Ελληνικά"},
+    %{code: "cs", name: "Czech", native: "Cestina"},
+    %{code: "ro", name: "Romanian", native: "Romana"},
+    %{code: "hu", name: "Hungarian", native: "Magyar"},
+    %{code: "ca", name: "Catalan", native: "Catala"}
+  ]
+
+  defp apply_action(socket, :discussions, params) do
     account = socket.assigns.account
 
     sort_key = Map.get(params, "ksort", "inserted_at")
@@ -334,58 +745,357 @@ defmodule GlossiaWeb.DashboardLive do
         "order_by" => [sort_key],
         "order_directions" => [sort_dir]
       }
-      |> maybe_add_flop_filters(active_filters)
+      |> maybe_add_flop_filters(active_filters, @discussions_filter_types)
 
-    {:ok, {tickets, _meta}} = Support.list_tickets(account, flop_params)
+    {:ok, {tickets, _meta}} = Discussions.list_discussions(account, flop_params)
 
     assign(socket,
-      page_title: gettext("Tickets"),
+      page_title: gettext("Discussions"),
       tickets: tickets,
-      tickets_sort_key: sort_key,
-      tickets_sort_dir: sort_dir,
-      tickets_active_filters: active_filters
+      discussions_sort_key: sort_key,
+      discussions_sort_dir: sort_dir,
+      discussions_active_filters: active_filters,
+      breadcrumb_items: [
+        {gettext("Discussions"), "/" <> socket.assigns.handle <> "/-/discussions"}
+      ]
     )
   end
 
-  defp apply_action(socket, :ticket_new, _params) do
-    require_write!(socket)
+  defp apply_action(socket, :discussion_new, _params) do
+    handle = socket.assigns.handle
 
-    assign(socket,
-      page_title: gettext("New ticket"),
-      ticket_form: to_form(%{"title" => "", "description" => "", "type" => "issue"}, as: :ticket),
+    socket
+    |> maybe_allow_upload(:ticket_images)
+    |> assign(
+      page_title: gettext("New discussion"),
+      ticket_form: to_form(%{"title" => "", "body" => ""}, as: :ticket),
       generating_title?: false,
       title_manually_edited?: false,
       ticket_title_generation: 0,
       ticket_title_timer_ref: nil,
-      ticket_title_task_ref: nil
+      ticket_title_task_ref: nil,
+      upload_context_id: Uniq.UUID.uuid7(),
+      breadcrumb_items: [
+        {gettext("Discussions"), "/" <> handle <> "/-/discussions"},
+        {gettext("New discussion"), nil}
+      ]
     )
   end
 
-  defp apply_action(socket, :ticket_show, %{"ticket_number" => number_str}) do
-    require_write!(socket)
+  defp apply_action(socket, :discussion_show, params) do
     account = socket.assigns.account
-    ticket = Support.get_ticket_by_number!(String.to_integer(number_str), account.id)
+    handle = socket.assigns.handle
+    number_str = Map.get(params, "discussion_number") || Map.get(params, "ticket_number")
+    ticket = Discussions.get_discussion_by_number!(String.to_integer(number_str), account.id)
 
-    assign(socket,
+    socket
+    |> maybe_allow_upload(:comment_images)
+    |> assign(
       page_title: ticket.title,
       ticket: ticket,
-      message_form: to_form(%{"body" => ""}, as: :message)
+      comment_form: to_form(%{"body" => ""}, as: :comment),
+      breadcrumb_items: [
+        {gettext("Discussions"), "/" <> handle <> "/-/discussions"},
+        {"##{ticket.number}", nil}
+      ]
     )
   end
 
-  defp apply_action(socket, :project, %{"project" => project}) do
+  defp apply_action(socket, :project, %{"project" => project_handle}) do
+    account = socket.assigns.account
+    project = Glossia.Projects.get_project(account, project_handle)
+
+    unless project do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
     og_image_url =
-      if socket.assigns.account.visibility == "public" do
+      if account.visibility == "public" do
         og_attrs = %{
-          title: project,
-          description: socket.assigns.handle <> "/" <> project,
+          title: project.name,
+          description: socket.assigns.handle <> "/" <> project.handle,
           category: "project"
         }
 
-        Glossia.OgImage.project_url(socket.assigns.handle, project, og_attrs)
+        Glossia.OgImage.project_url(socket.assigns.handle, project.handle, og_attrs)
       end
 
-    assign(socket, page_title: project, project_name: project, og_image_url: og_image_url)
+    setup_events = Glossia.Ingestion.list_setup_events(project.id)
+
+    socket =
+      if connected?(socket) and project.setup_status in ["pending", "running"] do
+        Glossia.Projects.subscribe_setup_events(project)
+        socket
+      else
+        socket
+      end
+
+    assign(socket,
+      page_title: project.name,
+      project: project,
+      project_name: project.name,
+      og_image_url: og_image_url,
+      breadcrumb_items: [
+        {project.handle, "/" <> socket.assigns.handle <> "/" <> project.handle},
+        {gettext("Overview"), nil}
+      ],
+      setup_events: setup_events,
+      sidebar_context: :project,
+      sidebar_project: project
+    )
+  end
+
+  defp apply_action(socket, :project_settings, %{"project" => project_handle}) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    project = Glossia.Projects.get_project(account, project_handle)
+
+    unless project do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
+    form =
+      to_form(
+        %{
+          "name" => project.name || "",
+          "description" => project.description || "",
+          "url" => project.url || ""
+        },
+        as: :project
+      )
+
+    socket =
+      cond do
+        not connected?(socket) ->
+          socket
+
+        Map.has_key?(socket.assigns, :uploads) and
+            Map.has_key?(socket.assigns.uploads, :project_avatar) ->
+          socket
+
+        true ->
+          allow_upload(socket, :project_avatar,
+            accept: ~w(.jpg .jpeg .png .gif .webp),
+            max_entries: 1,
+            max_file_size: 5_000_000
+          )
+      end
+
+    assign(socket,
+      page_title: gettext("Settings"),
+      project: project,
+      project_settings_form: form,
+      project_settings_changed?: false,
+      project_avatar_url: project_avatar_display_url(project.avatar_url),
+      breadcrumb_items: [
+        {project.handle, "/" <> handle <> "/" <> project.handle},
+        {gettext("Settings"), nil}
+      ],
+      sidebar_context: :project,
+      sidebar_project: project
+    )
+  end
+
+  defp apply_action(socket, :project_activity, %{"project" => project_handle}) do
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    project = Glossia.Projects.get_project(account, project_handle)
+
+    unless project do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
+    # Only fetch commits from GitHub on first load (not on push_patch for search)
+    {all_commits, commits_error} =
+      if Map.has_key?(socket.assigns, :all_commits) do
+        {socket.assigns.all_commits, socket.assigns[:commits_error]}
+      else
+        fetch_project_commits(project)
+      end
+
+    sessions_by_sha = Glossia.TranslationSessions.sessions_by_commit_sha(project)
+
+    assign(socket,
+      page_title: gettext("Activity"),
+      project: project,
+      all_commits: all_commits,
+      commits: all_commits,
+      commits_search: "",
+      commits_sort_key: "date",
+      commits_sort_dir: "desc",
+      commits_error: commits_error,
+      sessions_by_sha: sessions_by_sha,
+      breadcrumb_items: [
+        {project.handle, "/" <> handle <> "/" <> project.handle},
+        {gettext("Activity"), nil}
+      ],
+      sidebar_context: :project,
+      sidebar_project: project
+    )
+  end
+
+  defp apply_action(socket, :project_session, %{
+         "project" => project_handle,
+         "session_id" => session_id
+       }) do
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    project = Glossia.Projects.get_project(account, project_handle)
+
+    unless project do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
+    session = Glossia.TranslationSessions.get_session!(session_id)
+    events = Glossia.Ingestion.list_translation_session_events(session.id)
+
+    socket =
+      if connected?(socket) and session.status in ["pending", "running"] do
+        Glossia.TranslationSessions.subscribe_session_events(session)
+        socket
+      else
+        socket
+      end
+
+    assign(socket,
+      page_title: gettext("Translation session"),
+      project: project,
+      session: session,
+      session_events: events,
+      breadcrumb_items: [
+        {project.handle, "/" <> handle <> "/" <> project.handle},
+        {gettext("Translations"), "/" <> handle <> "/" <> project.handle <> "/-/translations"},
+        {gettext("Session"), nil}
+      ],
+      sidebar_context: :project,
+      sidebar_project: project
+    )
+  end
+
+  defp apply_action(socket, :project_translations, %{"project" => project_handle}) do
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    project = Glossia.Projects.get_project(account, project_handle)
+
+    unless project do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
+    assign(socket,
+      page_title: gettext("Translations"),
+      project: project,
+      breadcrumb_items: [
+        {project.handle, "/" <> handle <> "/" <> project.handle},
+        {gettext("Translations"), nil}
+      ],
+      sidebar_context: :project,
+      sidebar_project: project
+    )
+  end
+
+  defp fetch_project_commits(project) do
+    if project.github_installation_id && project.github_repo_full_name do
+      installation =
+        Glossia.Repo.preload(project, :github_installation).github_installation
+
+      case Glossia.Github.App.installation_token(installation.github_installation_id) do
+        {:ok, token} ->
+          case Glossia.Github.Client.list_commits(project.github_repo_full_name, token,
+                 per_page: 30
+               ) do
+            {:ok, raw_commits} when is_list(raw_commits) ->
+              {Enum.map(raw_commits, &normalize_commit(&1, project.github_repo_full_name)), nil}
+
+            {:error, _reason} ->
+              if Application.get_env(:glossia, :dev_routes) do
+                {sample_commits(project.github_repo_full_name), nil}
+              else
+                {[], gettext("Could not load commits from GitHub.")}
+              end
+          end
+
+        {:error, _reason} ->
+          if Application.get_env(:glossia, :dev_routes) do
+            {sample_commits(project.github_repo_full_name), nil}
+          else
+            {[], gettext("Could not load commits from GitHub.")}
+          end
+      end
+    else
+      {[], nil}
+    end
+  end
+
+  defp normalize_commit(raw, repo_full_name) do
+    commit = raw["commit"] || %{}
+    author = raw["author"] || commit["author"] || %{}
+
+    %{
+      sha: raw["sha"] || "",
+      short_sha: String.slice(raw["sha"] || "", 0, 7),
+      message: commit["message"] || "",
+      author_name: author["login"] || get_in(commit, ["author", "name"]) || "",
+      author_avatar_url: author["avatar_url"],
+      date: parse_commit_date(get_in(commit, ["author", "date"])),
+      url: "https://github.com/#{repo_full_name}/commit/#{raw["sha"]}"
+    }
+  end
+
+  defp parse_commit_date(nil), do: nil
+
+  defp parse_commit_date(date_string) do
+    case DateTime.from_iso8601(date_string) do
+      {:ok, dt, _offset} -> dt
+      _ -> nil
+    end
+  end
+
+  defp sample_commits(repo_full_name) do
+    now = DateTime.utc_now()
+
+    messages = [
+      {"feat: add multilingual content support for blog posts",
+       "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0", -1200},
+      {"fix: resolve encoding issue with Japanese characters",
+       "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1", -3600},
+      {"chore: update translation glossary for Spanish locale",
+       "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2", -7200},
+      {"feat: implement automatic language detection on upload",
+       "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3", -14400},
+      {"fix: correct RTL layout for Arabic content pages",
+       "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4", -28800},
+      {"docs: add contributing guide for translators", "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5",
+       -86400},
+      {"feat: add voice consistency checks to CI pipeline",
+       "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6", -172_800},
+      {"refactor: extract content parser into dedicated module",
+       "b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7", -259_200},
+      {"fix: handle empty frontmatter in markdown files",
+       "c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8", -345_600},
+      {"feat: support .mdx files in content directory",
+       "d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9", -432_000}
+    ]
+
+    authors = [
+      {"pepicrft", "https://avatars.githubusercontent.com/u/663605?v=4"},
+      {"alexchen", nil},
+      {"mariarossi", nil}
+    ]
+
+    Enum.map(messages, fn {message, sha, offset_seconds} ->
+      {author_login, avatar_url} = Enum.random(authors)
+
+      %{
+        sha: sha,
+        short_sha: String.slice(sha, 0, 7),
+        message: message,
+        author_name: author_login,
+        author_avatar_url: avatar_url,
+        date: DateTime.add(now, offset_seconds, :second),
+        url: "https://github.com/#{repo_full_name}/commit/#{sha}"
+      }
+    end)
   end
 
   defp require_admin!(socket) do
@@ -396,6 +1106,15 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp require_write!(socket) do
     unless socket.assigns.can_write do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+    end
+  end
+
+  defp require_action!(socket, action) do
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    unless Glossia.Policy.authorize?(action, user, account) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
     end
   end
@@ -412,61 +1131,70 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("validate", params, socket) do
-    # Merge country context edits from form params into assign
-    cultural_notes =
-      case params["cultural_notes"] do
-        ctx when is_map(ctx) ->
-          Map.merge(socket.assigns.cultural_notes, ctx)
+    if not (socket.assigns[:can_voice_submit?] || false) do
+      {:noreply, socket}
+    else
+      # Merge country context edits from form params into assign
+      cultural_notes =
+        case params["cultural_notes"] do
+          ctx when is_map(ctx) ->
+            Map.merge(socket.assigns.cultural_notes, ctx)
 
-        _ ->
-          socket.assigns.cultural_notes
-      end
+          _ ->
+            socket.assigns.cultural_notes
+        end
 
-    socket = assign(socket, cultural_notes: cultural_notes)
+      socket = assign(socket, cultural_notes: cultural_notes)
 
-    base_changed? =
-      form_changed?(params, socket.assigns.original_voice, socket.assigns.original_overrides)
+      base_changed? =
+        form_changed?(params, socket.assigns.original_voice, socket.assigns.original_overrides)
 
-    countries_changed? =
-      voice_countries_changed?(
-        socket.assigns.target_countries,
-        cultural_notes,
-        socket.assigns.original_voice
-      )
+      countries_changed? =
+        voice_countries_changed?(
+          socket.assigns.target_countries,
+          cultural_notes,
+          socket.assigns.original_voice
+        )
 
-    changed? = base_changed? or countries_changed?
-    socket = assign(socket, changed?: changed?, voice_form_params: params)
+      changed? = base_changed? or countries_changed?
+      socket = assign(socket, changed?: changed?, voice_form_params: params)
 
-    old_desc =
-      if socket.assigns.original_voice,
-        do: socket.assigns.original_voice.description || "",
-        else: ""
+      old_desc =
+        if socket.assigns.original_voice,
+          do: socket.assigns.original_voice.description || "",
+          else: ""
 
-    new_desc = params["description"] || ""
+      new_desc = params["description"] || ""
 
-    socket =
-      if new_desc != old_desc and String.length(new_desc) >= 20 and
-           socket.assigns.target_countries != [] do
-        schedule_context_generation(socket)
-      else
-        socket
-      end
+      socket =
+        if new_desc != old_desc and String.length(new_desc) >= 20 and
+             socket.assigns.target_countries != [] do
+          schedule_context_generation(socket)
+        else
+          socket
+        end
 
-    socket =
-      if changed? do
-        schedule_summary_generation(socket, :voice)
-      else
-        cancel_summary_generation(socket)
-      end
+      socket =
+        if changed? do
+          schedule_summary_generation(socket, :voice)
+        else
+          cancel_summary_generation(socket)
+        end
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 
   def handle_event("save_voice", params, socket) do
+    can_write = socket.assigns[:can_voice_write] || false
+    can_propose = socket.assigns[:can_voice_propose] || false
     change_note = String.trim(params["change_note"] || "")
 
     cond do
-      !socket.assigns.can_write ->
+      can_propose and not can_write ->
+        begin_voice_suggestion(params, socket)
+
+      not can_write ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission to save."))}
 
       change_note == "" ->
@@ -474,6 +1202,35 @@ defmodule GlossiaWeb.DashboardLive do
 
       true ->
         save_voice(params, change_note, socket)
+    end
+  end
+
+  def handle_event("create_voice_suggestion", params, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+    change_note = String.trim(params["change_note"] || "")
+    suggestion_title_text = suggestion_text_param(params, "suggestion_title", "request_title")
+    suggestion_body_text = suggestion_text_param(params, "suggestion_body", "request_body")
+
+    cond do
+      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+
+      not ((socket.assigns[:can_voice_propose] || false) or
+               (socket.assigns[:can_voice_write] || false)) ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+
+      change_note == "" ->
+        {:noreply, put_flash(socket, :error, gettext("A change note is required."))}
+
+      suggestion_title_text == "" ->
+        {:noreply, put_flash(socket, :error, gettext("A suggestion title is required."))}
+
+      suggestion_body_text == "" ->
+        {:noreply, put_flash(socket, :error, gettext("A suggestion description is required."))}
+
+      true ->
+        submit_voice_suggestion(params, change_note, socket)
     end
   end
 
@@ -496,30 +1253,77 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("add_override", _params, socket) do
-    new_override = %{locale: "", tone: nil, formality: nil, target_audience: nil, guidelines: nil}
-    overrides = socket.assigns.overrides ++ [new_override]
-    {:noreply, assign(socket, overrides: overrides, changed?: true)}
+    if socket.assigns[:can_voice_submit?] || false do
+      new_override = %{
+        locale: "",
+        tone: nil,
+        formality: nil,
+        target_audience: nil,
+        guidelines: nil
+      }
+
+      overrides = socket.assigns.overrides ++ [new_override]
+      {:noreply, assign(socket, overrides: overrides, changed?: true)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("remove_override", %{"index" => idx_str}, socket) do
-    idx = String.to_integer(idx_str)
-    overrides = List.delete_at(socket.assigns.overrides, idx)
-    changed? = form_changed_overrides?(overrides, socket.assigns.original_overrides)
-    {:noreply, assign(socket, overrides: overrides, changed?: changed?)}
+    if socket.assigns[:can_voice_submit?] || false do
+      idx = String.to_integer(idx_str)
+      overrides = List.delete_at(socket.assigns.overrides, idx)
+      changed? = form_changed_overrides?(overrides, socket.assigns.original_overrides)
+      {:noreply, assign(socket, overrides: overrides, changed?: changed?)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("add_country", %{"code" => code}, socket) do
-    countries = socket.assigns.target_countries
+    if not (socket.assigns[:can_voice_submit?] || false) do
+      {:noreply, socket}
+    else
+      countries = socket.assigns.target_countries
 
-    unless code in countries do
-      new_countries = countries ++ [code]
+      unless code in countries do
+        new_countries = countries ++ [code]
+
+        socket =
+          socket
+          |> assign(target_countries: new_countries, changed?: true)
+          |> push_event("update_country_exclude", %{exclude: new_countries})
+          |> schedule_summary_generation(:voice)
+          |> maybe_schedule_context_generation(code)
+
+        {:noreply, socket}
+      else
+        {:noreply, socket}
+      end
+    end
+  end
+
+  def handle_event("remove_country", %{"code" => code}, socket) do
+    if socket.assigns[:can_voice_submit?] || false do
+      new_countries = List.delete(socket.assigns.target_countries, code)
+      new_contexts = Map.delete(socket.assigns.cultural_notes, code)
+
+      changed? =
+        voice_countries_changed?(
+          new_countries,
+          new_contexts,
+          socket.assigns.original_voice
+        )
 
       socket =
         socket
-        |> assign(target_countries: new_countries, changed?: true)
+        |> assign(
+          target_countries: new_countries,
+          cultural_notes: new_contexts,
+          changed?: changed?
+        )
         |> push_event("update_country_exclude", %{exclude: new_countries})
         |> schedule_summary_generation(:voice)
-        |> maybe_schedule_context_generation(code)
 
       {:noreply, socket}
     else
@@ -527,35 +1331,20 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  def handle_event("remove_country", %{"code" => code}, socket) do
-    new_countries = List.delete(socket.assigns.target_countries, code)
-    new_contexts = Map.delete(socket.assigns.cultural_notes, code)
-
-    changed? =
-      voice_countries_changed?(
-        new_countries,
-        new_contexts,
-        socket.assigns.original_voice
-      )
-
-    socket =
-      socket
-      |> assign(target_countries: new_countries, cultural_notes: new_contexts, changed?: changed?)
-      |> push_event("update_country_exclude", %{exclude: new_countries})
-      |> schedule_summary_generation(:voice)
-
-    {:noreply, socket}
-  end
-
   # ---------------------------------------------------------------------------
   # Glossary events
   # ---------------------------------------------------------------------------
 
   def handle_event("save_glossary", params, socket) do
+    can_write = socket.assigns[:can_glossary_write] || false
+    can_propose = socket.assigns[:can_glossary_propose] || false
     change_note = String.trim(params["change_note"] || "")
 
     cond do
-      !socket.assigns.can_write ->
+      can_propose and not can_write ->
+        begin_glossary_suggestion(params, socket)
+
+      not can_write ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission to save."))}
 
       change_note == "" ->
@@ -566,15 +1355,49 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  def handle_event("create_glossary_suggestion", params, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+    suggestion_title_text = suggestion_text_param(params, "suggestion_title", "request_title")
+    suggestion_body_text = suggestion_text_param(params, "suggestion_body", "request_body")
+    change_note = glossary_suggestion_change_note(params, socket)
+
+    cond do
+      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+
+      not ((socket.assigns[:can_glossary_propose] || false) or
+               (socket.assigns[:can_glossary_write] || false)) ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+
+      suggestion_title_text == "" ->
+        {:noreply, put_flash(socket, :error, gettext("A suggestion title is required."))}
+
+      suggestion_body_text == "" ->
+        {:noreply, put_flash(socket, :error, gettext("A suggestion description is required."))}
+
+      true ->
+        submit_glossary_suggestion(params, change_note, socket)
+    end
+  end
+
   def handle_event("glossary_validate", params, socket) do
-    entries = parse_glossary_entries_from_params(params, socket.assigns.glossary_entries)
+    if not (socket.assigns[:can_glossary_submit?] || false) do
+      {:noreply, socket}
+    else
+      entries = parse_glossary_entries_from_params(params, socket.assigns.glossary_entries)
 
-    socket =
-      socket
-      |> assign(glossary_entries: entries, glossary_changed?: true)
-      |> schedule_summary_generation(:glossary)
+      socket =
+        socket
+        |> assign(
+          glossary_entries: entries,
+          glossary_changed?: true,
+          glossary_form_params: params
+        )
+        |> schedule_summary_generation(:glossary)
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 
   def handle_event("glossary_discard", _params, socket) do
@@ -584,21 +1407,30 @@ defmodule GlossiaWeb.DashboardLive do
      assign(socket,
        glossary_entries: socket.assigns.original_glossary_entries,
        glossary_changed?: false,
+       glossary_form_params: %{},
        change_summary: "",
        generating_summary?: false
      )}
   end
 
   def handle_event("add_glossary_entry", _params, socket) do
-    new_entry = %{term: "", definition: nil, case_sensitive: false, translations: []}
-    entries = socket.assigns.glossary_entries ++ [new_entry]
-    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+    if socket.assigns[:can_glossary_submit?] || false do
+      new_entry = %{term: "", definition: nil, case_sensitive: false, translations: []}
+      entries = socket.assigns.glossary_entries ++ [new_entry]
+      {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("remove_glossary_entry", %{"index" => idx_str}, socket) do
-    idx = String.to_integer(idx_str)
-    entries = List.delete_at(socket.assigns.glossary_entries, idx)
-    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+    if socket.assigns[:can_glossary_submit?] || false do
+      idx = String.to_integer(idx_str)
+      entries = List.delete_at(socket.assigns.glossary_entries, idx)
+      {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event(
@@ -606,15 +1438,19 @@ defmodule GlossiaWeb.DashboardLive do
         %{"entry-index" => entry_idx_str},
         socket
       ) do
-    entry_idx = String.to_integer(entry_idx_str)
-    entries = socket.assigns.glossary_entries
+    if socket.assigns[:can_glossary_submit?] || false do
+      entry_idx = String.to_integer(entry_idx_str)
+      entries = socket.assigns.glossary_entries
 
-    entry = Enum.at(entries, entry_idx)
-    translations = (entry.translations || []) ++ [%{locale: "", translation: ""}]
-    updated_entry = Map.put(entry, :translations, translations)
-    entries = List.replace_at(entries, entry_idx, updated_entry)
+      entry = Enum.at(entries, entry_idx)
+      translations = (entry.translations || []) ++ [%{locale: "", translation: ""}]
+      updated_entry = Map.put(entry, :translations, translations)
+      entries = List.replace_at(entries, entry_idx, updated_entry)
 
-    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+      {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event(
@@ -622,16 +1458,20 @@ defmodule GlossiaWeb.DashboardLive do
         %{"entry-index" => entry_idx_str, "translation-index" => t_idx_str},
         socket
       ) do
-    entry_idx = String.to_integer(entry_idx_str)
-    t_idx = String.to_integer(t_idx_str)
-    entries = socket.assigns.glossary_entries
+    if socket.assigns[:can_glossary_submit?] || false do
+      entry_idx = String.to_integer(entry_idx_str)
+      t_idx = String.to_integer(t_idx_str)
+      entries = socket.assigns.glossary_entries
 
-    entry = Enum.at(entries, entry_idx)
-    translations = List.delete_at(entry.translations, t_idx)
-    updated_entry = Map.put(entry, :translations, translations)
-    entries = List.replace_at(entries, entry_idx, updated_entry)
+      entry = Enum.at(entries, entry_idx)
+      translations = List.delete_at(entry.translations, t_idx)
+      updated_entry = Map.put(entry, :translations, translations)
+      entries = List.replace_at(entries, entry_idx, updated_entry)
 
-    {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+      {:noreply, assign(socket, glossary_entries: entries, glossary_changed?: true)}
+    else
+      {:noreply, socket}
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -656,15 +1496,69 @@ defmodule GlossiaWeb.DashboardLive do
 
   def handle_event(
         "resource_filter",
-        %{"key" => key, "value" => "", "table_id" => table_id},
+        %{"key" => _key, "value" => "", "table_id" => _table_id},
         socket
       ) do
-    filters = current_filters(socket, table_id) |> Map.delete(key)
-    {:noreply, push_table_params(socket, table_id, %{filters: filters, page: 1})}
+    {:noreply, socket}
   end
 
   def handle_event("resource_filter", %{"key" => key, "value" => val, "table_id" => tid}, socket) do
-    filters = current_filters(socket, tid) |> Map.put(key, val)
+    filters = current_filters(socket, tid)
+    existing = Map.get(filters, key, [])
+
+    updated = if val in existing, do: existing, else: existing ++ [val]
+    filters = Map.put(filters, key, updated)
+
+    {:noreply, push_table_params(socket, tid, %{filters: filters, page: 1})}
+  end
+
+  def handle_event(
+        "resource_remove_filter",
+        %{"key" => key, "filter_value" => val, "table_id" => tid},
+        socket
+      ) do
+    filters = current_filters(socket, tid)
+    existing = Map.get(filters, key, [])
+    updated = List.delete(existing, val)
+
+    filters =
+      if updated == [],
+        do: Map.delete(filters, key),
+        else: Map.put(filters, key, updated)
+
+    {:noreply, push_table_params(socket, tid, %{filters: filters, page: 1})}
+  end
+
+  def handle_event(
+        "resource_filter_text",
+        %{"key" => key, "value" => val, "table_id" => tid},
+        socket
+      ) do
+    filters = current_filters(socket, tid)
+
+    filters =
+      if val == "",
+        do: Map.delete(filters, key),
+        else: Map.put(filters, key, [val])
+
+    {:noreply, push_table_params(socket, tid, %{filters: filters, page: 1})}
+  end
+
+  def handle_event(
+        "resource_filter_date_range",
+        %{"key" => key, "from" => from, "to" => to, "table_id" => tid},
+        socket
+      ) do
+    filters = current_filters(socket, tid)
+
+    filters =
+      if from == "" and to == "" do
+        Map.delete(filters, key)
+      else
+        range = "#{from}..#{to}"
+        Map.put(filters, key, [range])
+      end
+
     {:noreply, push_table_params(socket, tid, %{filters: filters, page: 1})}
   end
 
@@ -692,6 +1586,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("member.invited", socket.assigns.account, user,
             resource_type: "invitation",
             resource_id: to_string(invitation.id),
+            resource_path: "/#{socket.assigns.handle}/-/members",
             summary: "Invited #{invitation.email} as #{invitation.role}"
           )
 
@@ -734,6 +1629,7 @@ defmodule GlossiaWeb.DashboardLive do
               Auditing.record("member.invitation_revoked", socket.assigns.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
+                resource_path: "/#{socket.assigns.handle}/-/members",
                 summary: "Revoked invitation for #{invitation.email}"
               )
 
@@ -783,6 +1679,7 @@ defmodule GlossiaWeb.DashboardLive do
               Auditing.record("member.removed", socket.assigns.account, current_user,
                 resource_type: "member",
                 resource_id: to_string(target_user.id),
+                resource_path: "/#{socket.assigns.handle}/-/members",
                 summary: "Removed #{target_user.email} from the organization"
               )
 
@@ -834,6 +1731,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("token.updated", account, user,
             resource_type: "account_token",
             resource_id: to_string(updated_token.id),
+            resource_path: "/#{socket.assigns.handle}/-/settings/tokens/#{updated_token.id}",
             summary: "Updated account token \"#{updated_token.name}\""
           )
 
@@ -879,6 +1777,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("token.created", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
+            resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
             summary: "Created account token \"#{token.name}\""
           )
 
@@ -907,6 +1806,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("token.revoked", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
+            resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
             summary: "Revoked account token \"#{token.name}\""
           )
 
@@ -960,6 +1860,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("oauth_app.created", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
+            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
             summary: "Created OAuth application \"#{app.name}\""
           )
 
@@ -992,6 +1893,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("oauth_app.updated", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
+            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
             summary: "Updated OAuth application \"#{updated_app.name}\""
           )
 
@@ -1019,6 +1921,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("oauth_app.secret_regenerated", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
+            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
             summary: "Regenerated client secret for \"#{app.name}\""
           )
 
@@ -1046,6 +1949,7 @@ defmodule GlossiaWeb.DashboardLive do
           Auditing.record("oauth_app.deleted", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
+            resource_path: "/#{socket.assigns.handle}/-/settings/apps",
             summary: "Deleted OAuth application \"#{app.name}\""
           )
 
@@ -1067,8 +1971,8 @@ defmodule GlossiaWeb.DashboardLive do
   # Ticket events
   # ---------------------------------------------------------------------------
 
-  def handle_event("ticket_validate", %{"_target" => target, "ticket" => params}, socket) do
-    description = params["description"] || ""
+  def handle_event("discussion_validate", %{"_target" => target, "ticket" => params}, socket) do
+    body = params["body"] || ""
     title = params["title"] || ""
 
     title_manually_edited? =
@@ -1079,8 +1983,8 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     socket =
-      if String.length(description) >= 20 and not title_manually_edited? do
-        schedule_title_generation(socket, description)
+      if String.length(body) >= 20 and not title_manually_edited? do
+        schedule_title_generation(socket, body)
       else
         cancel_title_generation(socket)
       end
@@ -1090,60 +1994,408 @@ defmodule GlossiaWeb.DashboardLive do
        title_manually_edited?: title_manually_edited?,
        ticket_form:
          to_form(
-           %{
-             "title" => title,
-             "description" => description,
-             "type" => params["type"] || "issue"
-           },
+           %{"title" => title, "body" => body},
            as: :ticket
          )
      )}
   end
 
-  def handle_event("create_ticket", %{"ticket" => params}, socket) do
+  def handle_event("create_discussion", %{"ticket" => params}, socket) do
     account = socket.assigns.account
     user = socket.assigns.current_user
 
-    case Support.create_ticket(account, user, params) do
-      {:ok, ticket} ->
-        Auditing.record("ticket.created", account, user,
-          resource_type: "ticket",
-          resource_id: to_string(ticket.id),
-          summary: "Created ticket \"#{ticket.title}\""
-        )
+    cond do
+      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Ticket created."))
-         |> push_patch(to: "/#{socket.assigns.handle}/-/tickets/#{ticket.number}")}
+      true ->
+        case Discussions.create_discussion(account, user, params) do
+          {:ok, ticket} ->
+            Auditing.record("discussion.created", account, user,
+              resource_type: "discussion",
+              resource_id: to_string(ticket.id),
+              resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
+              summary: "Created discussion \"#{ticket.title}\""
+            )
 
-      {:error, changeset} ->
-        {:noreply, assign(socket, ticket_form: to_form(changeset, as: :ticket))}
+            {:noreply,
+             socket
+             |> put_flash(:info, gettext("Discussion created."))
+             |> push_patch(to: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}")}
+
+          {:error, changeset} ->
+            {:noreply, assign(socket, ticket_form: to_form(changeset, as: :ticket))}
+        end
     end
   end
 
-  def handle_event("add_ticket_message", %{"message" => params}, socket) do
+  def handle_event("add_discussion_comment", %{"comment" => params}, socket) do
     ticket = socket.assigns.ticket
     user = socket.assigns.current_user
     account = socket.assigns.account
 
-    case Support.add_message(ticket, user, params) do
-      {:ok, _message} ->
-        Auditing.record("ticket.replied", account, user,
-          resource_type: "ticket",
-          resource_id: to_string(ticket.id),
-          summary: "Replied to ticket \"#{ticket.title}\""
-        )
+    cond do
+      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
-        ticket = Support.get_ticket!(ticket.id, account.id)
+      true ->
+        case Discussions.add_comment(ticket, user, params) do
+          {:ok, _comment} ->
+            Auditing.record("discussion.commented", account, user,
+              resource_type: "discussion",
+              resource_id: to_string(ticket.id),
+              resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
+              summary: "Commented on discussion \"#{ticket.title}\""
+            )
+
+            ticket = Discussions.get_discussion_by_number!(ticket.number, account.id)
+
+            {:noreply,
+             socket
+             |> assign(ticket: ticket, comment_form: to_form(%{"body" => ""}, as: :comment))
+             |> push_event("clear_editor:comment-body-editor", %{})}
+
+          {:error, _changeset} ->
+            {:noreply, put_flash(socket, :error, gettext("Could not add comment."))}
+        end
+    end
+  end
+
+  def handle_event("close_discussion", _params, socket) do
+    ticket = socket.assigns.ticket
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    if socket.assigns.can_write do
+      case Discussions.close_discussion(ticket, user) do
+        {:ok, updated_ticket} ->
+          Auditing.record("discussion.closed", account, user,
+            resource_type: "discussion",
+            resource_id: to_string(ticket.id),
+            resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
+            summary: "Closed discussion \"#{ticket.title}\""
+          )
+
+          ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
+          {:noreply, assign(socket, ticket: ticket)}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not close discussion."))}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    end
+  end
+
+  def handle_event("reopen_discussion", _params, socket) do
+    ticket = socket.assigns.ticket
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    if socket.assigns.can_write do
+      case Discussions.reopen_discussion(ticket) do
+        {:ok, updated_ticket} ->
+          Auditing.record("discussion.reopened", account, user,
+            resource_type: "discussion",
+            resource_id: to_string(ticket.id),
+            resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
+            summary: "Reopened discussion \"#{ticket.title}\""
+          )
+
+          ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
+          {:noreply, assign(socket, ticket: ticket)}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not reopen discussion."))}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    end
+  end
+
+  def handle_event("apply_suggestion", _params, socket) do
+    ticket = socket.assigns.ticket
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+
+    case apply_discussion_suggestion(ticket, account, user, handle) do
+      {:ok, message} ->
+        ticket = Discussions.get_discussion_by_number!(ticket.number, account.id)
+        {:noreply, socket |> assign(ticket: ticket) |> put_flash(:info, message)}
+
+      {:error, :not_allowed} ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+
+      {:error, :invalid_ticket} ->
+        {:noreply, put_flash(socket, :error, gettext("This discussion is not a suggestion."))}
+
+      {:error, :invalid_payload} ->
+        {:noreply, put_flash(socket, :error, gettext("Invalid suggestion payload."))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not apply suggestion."))}
+    end
+  end
+
+  def handle_event("quote_reply", %{"body" => body}, socket) do
+    quoted =
+      body
+      |> String.split("\n")
+      |> Enum.map_join("\n", &("> " <> &1))
+
+    {:noreply, push_event(socket, "quote_editor:comment-body-editor", %{text: quoted <> "\n\n"})}
+  end
+
+  def handle_event("markdown_preview", %{"source" => source}, socket) do
+    html =
+      case Earmark.as_html(source, %Earmark.Options{code_class_prefix: "language-"}) do
+        {:ok, html, _} -> html
+        {:error, html, _} -> html
+      end
+
+    sanitized = String.replace(html, ~r/<script[\s\S]*?<\/script>/i, "")
+    {:reply, %{html: sanitized}, socket}
+  end
+
+  def handle_event("disconnect_github", _params, socket) do
+    installation = socket.assigns.github_installation
+
+    case Glossia.Github.Installations.delete_installation(installation) do
+      {:ok, _} ->
+        Auditing.record(
+          "github_installation.deleted",
+          socket.assigns.account,
+          socket.assigns.current_user,
+          resource_type: "github_installation",
+          resource_id: to_string(installation.id),
+          summary: "Disconnected GitHub account #{installation.github_account_login}"
+        )
 
         {:noreply,
          socket
-         |> assign(ticket: ticket, message_form: to_form(%{"body" => ""}, as: :message))}
+         |> put_flash(:info, gettext("GitHub disconnected."))
+         |> assign(github_installation: nil)}
 
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, gettext("Could not send message."))}
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not disconnect GitHub."))}
     end
+  end
+
+  def handle_event("select_repo", params, socket) do
+    repo = %{
+      "id" => params["repo-id"],
+      "full_name" => params["full-name"],
+      "name" => params["name"],
+      "default_branch" => params["default-branch"],
+      "description" => params["description"],
+      "owner" => %{"login" => params["owner-login"]}
+    }
+
+    {:noreply,
+     socket
+     |> assign(wizard_selected_repo: repo)
+     |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=languages")}
+  end
+
+  def handle_event("toggle_language", %{"code" => code}, socket) do
+    current = socket.assigns.wizard_selected_languages
+
+    updated =
+      if code in current,
+        do: List.delete(current, code),
+        else: current ++ [code]
+
+    {:noreply, assign(socket, wizard_selected_languages: updated)}
+  end
+
+  def handle_event("search_languages", %{"value" => query}, socket) do
+    {:noreply, assign(socket, wizard_language_search: query)}
+  end
+
+  def handle_event("start_setup", _params, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+    installations = socket.assigns[:github_installations] || []
+    repo = socket.assigns.wizard_selected_repo
+    languages = socket.assigns.wizard_selected_languages
+
+    # Find the matching installation for this repo by matching the repo owner
+    repo_owner_login = get_in(repo, ["owner", "login"])
+
+    installation =
+      Enum.find(installations, fn inst ->
+        inst.github_account_login == repo_owner_login
+      end)
+
+    repo_name = repo["full_name"] |> String.split("/") |> List.last()
+    handle = repo_name |> String.downcase() |> String.replace(~r/[^a-z0-9-]/, "-")
+
+    attrs = %{
+      handle: handle,
+      name: repo["name"],
+      github_repo_id: repo["id"],
+      github_repo_full_name: repo["full_name"],
+      github_repo_default_branch: repo["default_branch"],
+      setup_status: "pending",
+      setup_target_languages: languages
+    }
+
+    installation_id = if installation, do: installation.id, else: nil
+
+    result =
+      if installation_id do
+        Glossia.Projects.create_project_from_github(account, installation_id, attrs)
+      else
+        Glossia.Projects.create_project(account, attrs)
+      end
+
+    case result do
+      {:ok, project} ->
+        Auditing.record("project.created", account, user,
+          resource_type: "project",
+          resource_id: to_string(project.id),
+          resource_path: "/#{socket.assigns.handle}/#{project.handle}",
+          summary: "Imported project #{project.handle} from #{repo["full_name"]}"
+        )
+
+        if installation_id do
+          %{project_id: project.id}
+          |> Glossia.Projects.SetupWorker.new()
+          |> Oban.insert()
+        end
+
+        {:noreply,
+         socket
+         |> assign(wizard_project: project)
+         |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
+
+      {:error, changeset} ->
+        Logger.warning("Failed to create project from wizard",
+          errors: inspect(changeset.errors)
+        )
+
+        message =
+          case changeset.errors do
+            [{:handle, {msg, _}} | _] -> msg
+            [{field, {msg, _}} | _] -> "#{field}: #{msg}"
+            _ -> gettext("Could not import repository.")
+          end
+
+        {:noreply, put_flash(socket, :error, message)}
+    end
+  end
+
+  def handle_event("finish_setup", _params, socket) do
+    project = socket.assigns.wizard_project
+
+    {:noreply, push_navigate(socket, to: "/#{socket.assigns.handle}/#{project.handle}")}
+  end
+
+  def handle_event("wizard_back", %{"step" => step}, socket) do
+    {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/projects/new?step=#{step}")}
+  end
+
+  def handle_event("search_repos", %{"value" => query}, socket) do
+    {:noreply, assign(socket, github_repos_search: query)}
+  end
+
+  # ---------------------------------------------------------------------------
+  # Project settings events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("validate_project_settings", %{"project" => params}, socket) do
+    project = socket.assigns.project
+
+    name_changed = String.trim(params["name"] || "") != (project.name || "")
+    desc_changed = String.trim(params["description"] || "") != (project.description || "")
+    url_changed = String.trim(params["url"] || "") != (project.url || "")
+
+    has_avatar_upload =
+      case socket.assigns[:uploads] do
+        %{project_avatar: %{entries: entries}} when entries != [] -> true
+        _ -> false
+      end
+
+    changed? = name_changed or desc_changed or url_changed or has_avatar_upload
+    {:noreply, assign(socket, project_settings_changed?: changed?)}
+  end
+
+  def handle_event("update_project_settings", %{"project" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      project = socket.assigns.project
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      handle = socket.assigns.handle
+
+      avatar_url =
+        case uploaded_entries(socket, :project_avatar) do
+          {[entry], []} ->
+            consume_uploaded_entry(socket, entry, fn %{path: path} ->
+              content = File.read!(path)
+              ext = upload_entry_extension(entry)
+              s3_path = "avatars/#{handle}/projects/#{project.handle}.#{ext}"
+              {:ok, _} = Glossia.Storage.upload(s3_path, content, content_type: entry.client_type)
+              {:ok, s3_path}
+            end)
+
+          _ ->
+            project.avatar_url
+        end
+
+      attrs = %{
+        "name" => params["name"],
+        "description" => params["description"],
+        "url" => params["url"],
+        "avatar_url" => avatar_url
+      }
+
+      case Glossia.Projects.update_project(project, attrs) do
+        {:ok, updated_project} ->
+          Auditing.record("project.updated", account, user,
+            resource_type: "project",
+            resource_id: to_string(updated_project.id),
+            resource_path: "/#{handle}/#{updated_project.handle}",
+            summary: "Updated project settings for \"#{updated_project.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Project settings updated."))
+           |> push_patch(to: "/#{handle}/#{updated_project.handle}/-/settings")}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not update project settings."))}
+      end
+    end
+  end
+
+  def handle_event("cancel_project_avatar", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :project_avatar, ref)}
+  end
+
+  def handle_event("translate_commit", %{"sha" => sha, "message" => message}, socket) do
+    require_write!(socket)
+    account = socket.assigns.account
+    project = socket.assigns.project
+
+    {:ok, session} =
+      Glossia.TranslationSessions.create_session(account, project, %{
+        "commit_sha" => sha,
+        "commit_message" => first_line(message),
+        "status" => "pending",
+        "source_language" => "en",
+        "target_languages" => ["es", "fr"]
+      })
+
+    handle = socket.assigns.handle
+
+    {:noreply,
+     push_navigate(socket,
+       to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
+     )}
   end
 
   # ---------------------------------------------------------------------------
@@ -1224,7 +2476,7 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, socket}
     else
       account = socket.assigns.account
-      description = socket.assigns[:ticket_description_for_title] || ""
+      body = socket.assigns[:ticket_body_for_title] || ""
 
       case Glossia.RateLimiter.hit("ai:title:#{account.id}", :timer.minutes(1), 10) do
         {:allow, _count} ->
@@ -1232,16 +2484,15 @@ defmodule GlossiaWeb.DashboardLive do
             %{
               role: :system,
               content:
-                "You are a support ticket assistant. Given a user's description of an issue or feature request, generate a clear, concise title (under 80 characters). Only output the title, nothing else."
+                "You are a ticket tracker assistant. Given a user's description, generate a clear, concise ticket title (under 80 characters). Only output the title, nothing else."
             },
-            %{role: :user, content: description}
+            %{role: :user, content: body}
           ]
 
           task = Task.async(fn -> Glossia.Minimax.chat(messages, max_tokens: 1024) end)
 
           form = socket.assigns.ticket_form
-          description_val = form[:description].value || ""
-          type_val = form[:type].value || "issue"
+          body_val = form[:body].value || ""
 
           {:noreply,
            assign(socket,
@@ -1249,7 +2500,7 @@ defmodule GlossiaWeb.DashboardLive do
              ticket_title_task_ref: task.ref,
              ticket_form:
                to_form(
-                 %{"title" => "", "description" => description_val, "type" => type_val},
+                 %{"title" => "", "body" => body_val},
                  as: :ticket
                )
            )}
@@ -1323,8 +2574,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:ok, %{content: title}} when is_binary(title) and title != "" ->
             title = String.trim(title)
             form = socket.assigns.ticket_form
-            description = form[:description].value || ""
-            type = form[:type].value || "issue"
+            body = form[:body].value || ""
 
             {:noreply,
              socket
@@ -1333,7 +2583,7 @@ defmodule GlossiaWeb.DashboardLive do
                ticket_title_task_ref: nil,
                ticket_form:
                  to_form(
-                   %{"title" => title, "description" => description, "type" => type},
+                   %{"title" => title, "body" => body},
                    as: :ticket
                  )
              )
@@ -1369,6 +2619,30 @@ defmodule GlossiaWeb.DashboardLive do
     {:noreply, socket}
   end
 
+  def handle_info({:setup_event, event}, socket) do
+    setup_events = socket.assigns[:setup_events] || []
+    {:noreply, assign(socket, setup_events: setup_events ++ [event])}
+  end
+
+  def handle_info({:translation_session_event, event}, socket) do
+    session_events = socket.assigns[:session_events] || []
+    {:noreply, assign(socket, session_events: session_events ++ [event])}
+  end
+
+  def handle_info({:setup_status, status}, socket) do
+    project = socket.assigns[:project]
+    wizard_project = socket.assigns[:wizard_project]
+
+    socket =
+      cond do
+        project -> assign(socket, project: %{project | setup_status: status})
+        wizard_project -> assign(socket, wizard_project: %{wizard_project | setup_status: status})
+        true -> socket
+      end
+
+    {:noreply, socket}
+  end
+
   # ---------------------------------------------------------------------------
   # Render (dispatches to page components)
   # ---------------------------------------------------------------------------
@@ -1377,7 +2651,16 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <%= case @live_action do %>
       <% :account -> %>
-        <.account_page projects={@projects} handle={@handle} can_write={@can_write} />
+        <.account_page
+          projects={@projects}
+          projects_total={@projects_total}
+          projects_search={@projects_search}
+          projects_sort_key={@projects_sort_key}
+          projects_sort_dir={@projects_sort_dir}
+          projects_page={@projects_page}
+          handle={@handle}
+          can_write={@can_write}
+        />
       <% :logs -> %>
         <.logs_page
           handle={@handle}
@@ -1393,36 +2676,100 @@ defmodule GlossiaWeb.DashboardLive do
       <% :voice -> %>
         <.voice_page
           voice={@voice}
+          original_voice={@original_voice}
           versions={@versions}
+          voice_suggestions={@voice_suggestions}
           overrides={@overrides}
+          original_overrides={@original_overrides}
           target_countries={@target_countries}
           cultural_notes={@cultural_notes}
           generating_contexts?={@generating_contexts?}
           handle={@handle}
-          can_write={@can_write}
+          can_voice_write={@can_voice_write}
+          can_voice_propose={@can_voice_propose}
+          can_voice_suggest?={assigns[:can_voice_suggest?] || false}
+          can_voice_submit?={@can_voice_submit?}
           changed?={@changed?}
           change_summary={@change_summary}
           generating_summary?={@generating_summary?}
           voice_form_params={@voice_form_params}
+          voice_back_path={assigns[:voice_back_path]}
+          suggestion_mode?={false}
+        />
+      <% :voice_suggestion_new -> %>
+        <.voice_page
+          voice={@voice}
+          original_voice={@original_voice}
+          versions={@versions}
+          voice_suggestions={@voice_suggestions}
+          overrides={@overrides}
+          original_overrides={@original_overrides}
+          target_countries={@target_countries}
+          cultural_notes={@cultural_notes}
+          generating_contexts?={@generating_contexts?}
+          handle={@handle}
+          can_voice_write={@can_voice_write}
+          can_voice_propose={@can_voice_propose}
+          can_voice_suggest?={assigns[:can_voice_suggest?] || false}
+          can_voice_submit?={@can_voice_submit?}
+          changed?={@changed?}
+          change_summary={@change_summary}
+          generating_summary?={@generating_summary?}
+          voice_form_params={@voice_form_params}
+          voice_back_path={assigns[:voice_back_path]}
+          suggestion_mode?={true}
         />
       <% :voice_version -> %>
-        <.voice_version_page voice={@voice} previous={@previous} handle={@handle} />
+        <.voice_version_page
+          voice={@voice}
+          previous={@previous}
+          handle={@handle}
+          can_voice_write={@can_voice_write}
+        />
       <% :glossary -> %>
         <.glossary_page
           glossary={@glossary}
           glossary_versions={@glossary_versions}
+          glossary_suggestions={@glossary_suggestions}
           glossary_entries={@glossary_entries}
+          original_glossary_entries={@original_glossary_entries}
           handle={@handle}
-          can_write={@can_write}
+          can_glossary_write={@can_glossary_write}
+          can_glossary_propose={@can_glossary_propose}
+          can_glossary_suggest?={assigns[:can_glossary_suggest?] || false}
+          can_glossary_submit?={@can_glossary_submit?}
           glossary_changed?={@glossary_changed?}
+          glossary_form_params={assigns[:glossary_form_params] || %{}}
           change_summary={@change_summary}
           generating_summary?={@generating_summary?}
+          glossary_back_path={assigns[:glossary_back_path]}
+          suggestion_mode?={false}
+        />
+      <% :glossary_suggestion_new -> %>
+        <.glossary_page
+          glossary={@glossary}
+          glossary_versions={@glossary_versions}
+          glossary_suggestions={@glossary_suggestions}
+          glossary_entries={@glossary_entries}
+          original_glossary_entries={@original_glossary_entries}
+          handle={@handle}
+          can_glossary_write={@can_glossary_write}
+          can_glossary_propose={@can_glossary_propose}
+          can_glossary_suggest?={assigns[:can_glossary_suggest?] || false}
+          can_glossary_submit?={@can_glossary_submit?}
+          glossary_changed?={@glossary_changed?}
+          glossary_form_params={assigns[:glossary_form_params] || %{}}
+          change_summary={@change_summary}
+          generating_summary?={@generating_summary?}
+          glossary_back_path={assigns[:glossary_back_path]}
+          suggestion_mode?={true}
         />
       <% :glossary_version -> %>
         <.glossary_version_page
           glossary={@glossary}
           previous_glossary={@previous_glossary}
           handle={@handle}
+          can_glossary_write={@can_glossary_write}
         />
       <% :members -> %>
         <.members_page
@@ -1474,22 +2821,88 @@ defmodule GlossiaWeb.DashboardLive do
           apps_sort_key={assigns[:apps_sort_key] || "inserted_at"}
           apps_sort_dir={assigns[:apps_sort_dir] || "desc"}
         />
-      <% action when action in [:tickets, :ticket_new, :ticket_show] -> %>
-        <.tickets_page
+      <% action when action in [:discussions, :discussion_new, :discussion_show] -> %>
+        <.discussions_page
           live_action={@live_action}
           handle={@handle}
-          tickets={assigns[:tickets] || []}
+          tickets={assigns[:discussions] || []}
           ticket={assigns[:ticket]}
           ticket_form={assigns[:ticket_form]}
-          message_form={assigns[:message_form]}
+          comment_form={assigns[:comment_form]}
           current_user={@current_user}
-          tickets_sort_key={assigns[:tickets_sort_key] || "inserted_at"}
-          tickets_sort_dir={assigns[:tickets_sort_dir] || "desc"}
-          tickets_active_filters={assigns[:tickets_active_filters] || %{}}
+          can_write={@can_write}
+          can_voice_write={assigns[:can_voice_write] || false}
+          can_glossary_write={assigns[:can_glossary_write] || false}
+          discussions_sort_key={assigns[:discussions_sort_key] || "inserted_at"}
+          discussions_sort_dir={assigns[:discussions_sort_dir] || "desc"}
+          discussions_active_filters={assigns[:discussions_active_filters] || %{}}
           generating_title?={assigns[:generating_title?] || false}
         />
+      <% :account -> %>
+        <.account_page
+          github_installation={@github_installation}
+          github_install_url={@github_install_url}
+        />
+      <% :project_new -> %>
+        <.project_new_wizard
+          handle={@handle}
+          step={@wizard_step}
+          github_repos={assigns[:github_repos] || []}
+          github_repos_search={assigns[:github_repos_search] || ""}
+          github_configured?={assigns[:github_configured?] || false}
+          selected_repo={assigns[:wizard_selected_repo]}
+          selected_languages={assigns[:wizard_selected_languages] || []}
+          language_search={assigns[:wizard_language_search] || ""}
+          wizard_project={assigns[:wizard_project]}
+          setup_events={assigns[:setup_events] || []}
+        />
+      <% :project_settings -> %>
+        <.project_settings_page
+          handle={@handle}
+          project={@project}
+          project_settings_form={@project_settings_form}
+          project_settings_changed?={@project_settings_changed?}
+          project_avatar_url={@project_avatar_url}
+          uploads={assigns[:uploads]}
+        />
+      <% :project_activity -> %>
+        <.project_activity_page
+          handle={@handle}
+          project={@project}
+          commits={assigns[:commits] || []}
+          sessions_by_sha={assigns[:sessions_by_sha] || %{}}
+          commits_error={assigns[:commits_error]}
+          commits_search={assigns[:commits_search] || ""}
+          commits_sort_key={assigns[:commits_sort_key] || "date"}
+          commits_sort_dir={assigns[:commits_sort_dir] || "desc"}
+          can_write={@can_write}
+        />
+      <% :project_translations -> %>
+        <.project_translations_page
+          handle={@handle}
+          project={@project}
+          translations={assigns[:translations] || []}
+          translations_total={assigns[:translations_total] || 0}
+          translations_search={assigns[:translations_search] || ""}
+          translations_sort_key={assigns[:translations_sort_key] || "inserted_at"}
+          translations_sort_dir={assigns[:translations_sort_dir] || "desc"}
+          translations_page={assigns[:translations_page] || 1}
+          translations_active_filters={assigns[:translations_active_filters] || %{}}
+        />
+      <% :project_session -> %>
+        <.session_detail_page
+          handle={@handle}
+          project={@project}
+          session={@session}
+          session_events={assigns[:session_events] || []}
+        />
       <% :project -> %>
-        <.project_page handle={@handle} project_name={@project_name} />
+        <.project_page
+          handle={@handle}
+          project={assigns[:project]}
+          project_name={@project_name}
+          setup_events={assigns[:setup_events] || []}
+        />
     <% end %>
     """
   end
@@ -1501,47 +2914,85 @@ defmodule GlossiaWeb.DashboardLive do
   defp account_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle}
-      ]} />
       <.page_header
         title={gettext("Projects")}
         description={gettext("Content sources connected to this account.")}
       >
         <:actions>
           <%= if @can_write do %>
-            <button class="dash-btn dash-btn-primary" disabled>{gettext("New project")}</button>
+            <.link patch={"/" <> @handle <> "/-/projects/new"} class="dash-btn dash-btn-primary">
+              {gettext("New project")}
+            </.link>
           <% end %>
         </:actions>
       </.page_header>
 
-      <%= if @projects == [] do %>
-        <div class="dash-empty-state">
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
-          </svg>
-          <h2>{gettext("No projects yet")}</h2>
-          <p>{gettext("Projects will show up here once you create one.")}</p>
-        </div>
-      <% else %>
-        <div class="dash-project-list">
-          <%= for project <- @projects do %>
-            <.link patch={"/" <> @handle <> "/" <> project.name} class="dash-project-card">
-              <h3>{project.name}</h3>
-            </.link>
+      <.resource_table
+        id="projects-table"
+        rows={@projects}
+        search={@projects_search}
+        search_placeholder={gettext("Search projects...")}
+        sort_key={@projects_sort_key}
+        sort_dir={@projects_sort_dir}
+        page={@projects_page}
+        per_page={25}
+        total={@projects_total}
+      >
+        <:col :let={project} label={gettext("Name")} key="name" sortable>
+          <.link navigate={"/" <> @handle <> "/" <> project.handle} class="resource-link">
+            {project.name}
+          </.link>
+        </:col>
+        <:col :let={project} label={gettext("Handle")} key="handle" sortable>
+          <span class="mono">{project.handle}</span>
+        </:col>
+        <:col :let={project} label={gettext("Repository")} key="repo">
+          <%= if project.github_repo_full_name do %>
+            <span class="mono">{project.github_repo_full_name}</span>
+          <% else %>
+            <span class="muted">&mdash;</span>
           <% end %>
-        </div>
-      <% end %>
+        </:col>
+        <:col :let={project} label={gettext("Status")} key="status">
+          <%= if project.setup_status do %>
+            <span class={[
+              "badge",
+              project.setup_status == "completed" && "badge-success",
+              project.setup_status == "failed" && "badge-error",
+              project.setup_status in ["pending", "running"] && "badge-info"
+            ]}>
+              {project.setup_status}
+            </span>
+          <% else %>
+            <span class="muted">&mdash;</span>
+          <% end %>
+        </:col>
+        <:col :let={project} label={gettext("Created")} key="inserted_at" sortable>
+          <time datetime={DateTime.to_iso8601(project.inserted_at)}>
+            {Calendar.strftime(project.inserted_at, "%b %d, %Y")}
+          </time>
+        </:col>
+
+        <:empty>
+          <div class="dash-empty-state">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
+            </svg>
+            <h2>{gettext("No projects yet")}</h2>
+            <p>{gettext("Projects will show up here once you create one.")}</p>
+          </div>
+        </:empty>
+      </.resource_table>
     </div>
     """
   end
@@ -1560,10 +3011,6 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Logs"), "/" <> @handle <> "/-/logs"}
-      ]} />
       <.page_header
         title={gettext("Logs")}
         description={gettext("Audit trail of actions and events for this account.")}
@@ -1583,12 +3030,15 @@ defmodule GlossiaWeb.DashboardLive do
         total={@total}
       >
         <:col :let={event} label={gettext("Event")} key="summary" sortable class="activity-event-cell">
-          <%= if event.resource_path != "" do %>
-            <a href={event.resource_path} class="activity-event-link">
-              {event.summary}
-            </a>
+          <% display_summary =
+            if event.summary != "", do: event.summary, else: humanize_event_name(event.name) %>
+          <% normalized_path = normalize_resource_path(event.resource_path) %>
+          <%= if normalized_path != "" do %>
+            <.link navigate={normalized_path} class="activity-event-link">
+              {display_summary}
+            </.link>
           <% else %>
-            <span>{event.summary}</span>
+            <span>{display_summary}</span>
           <% end %>
           <span class="activity-event-name">{event.name}</span>
         </:col>
@@ -1627,8 +3077,8 @@ defmodule GlossiaWeb.DashboardLive do
         <:empty>
           <div class="dash-empty-state">
             <svg
-              width="48"
-              height="48"
+              width="32"
+              height="32"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -1652,384 +3102,616 @@ defmodule GlossiaWeb.DashboardLive do
   # Page: Voice form
   # ---------------------------------------------------------------------------
 
+  attr :can_write, :boolean, required: true
+  attr :can_propose, :boolean, required: true
+  attr :resource_name, :string, required: true
+  attr :handle, :string, required: true
+
+  defp suggestion_mode_banner(assigns) do
+    ~H"""
+    <%= cond do %>
+      <% @can_propose -> %>
+        <div class="voice-mode-banner voice-mode-banner-propose">
+          <div class="voice-mode-banner-copy">
+            <h2>{gettext("Proposal mode")}</h2>
+            <p>
+              {gettext(
+                "Draft your %{resource} updates here. Once you have edits, the bottom bar lets you open a suggestion to finalize title and description.",
+                resource: @resource_name
+              )}
+            </p>
+          </div>
+        </div>
+      <% @can_write -> %>
+        <div class="voice-mode-banner voice-mode-banner-write">
+          <div class="voice-mode-banner-copy">
+            <h2>{gettext("Direct edit mode")}</h2>
+            <p>
+              {gettext(
+                "You can publish %{resource} changes directly. Contributors without write access use \"Suggest changes\".",
+                resource: @resource_name
+              )}
+            </p>
+          </div>
+        </div>
+      <% true -> %>
+    <% end %>
+    """
+  end
+
   defp voice_page(assigns) do
     assigns =
       assigns
+      |> assign_new(:suggestion_mode?, fn -> false end)
       |> Map.put(:tone_options, @tone_options)
       |> Map.put(:formality_options, @formality_options)
 
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Voice"), "/" <> @handle <> "/-/voice"}
-      ]} />
       <.page_header
-        title={gettext("Voice")}
-        description={gettext("Define the tone, formality, and style guidelines for your content.")}
+        title={if @suggestion_mode?, do: gettext("Suggest voice changes"), else: gettext("Voice")}
+        description={
+          if @suggestion_mode?,
+            do: gettext("Create a suggestion with title, description, and proposed voice updates."),
+            else: gettext("Define the tone, formality, and style guidelines for your content.")
+        }
       />
 
-      <form phx-change="validate" phx-submit="save_voice" class="voice-form" id="voice-form">
-        <div class="voice-section">
-          <div class="voice-section-info">
-            <h2>{gettext("About")}</h2>
-            <p>{gettext("Describe what you do and which countries you target.")}</p>
-          </div>
-          <div class="voice-card">
-            <div class="voice-card-fields">
-              <div class="voice-field">
-                <label for="voice_description">{gettext("Description")}</label>
-                <textarea
-                  id="voice_description"
-                  name="description"
-                  rows="3"
-                  placeholder={gettext("Briefly describe what you do and who you serve...")}
-                  disabled={!@can_write}
-                  phx-debounce="300"
-                >{@voice_form_params["description"] || (@voice && @voice.description) || ""}</textarea>
-                <span class="voice-field-help">
-                  {gettext("Used to generate cultural notes for target countries.")}
-                </span>
-              </div>
-              <div class="voice-field">
-                <label>{gettext("Target countries")}</label>
-                <%= if @target_countries != [] do %>
-                  <div class="voice-country-tags" id="voice-country-tags">
-                    <%= for code <- @target_countries do %>
-                      <span class="voice-country-tag">
-                        {country_flag(code)} {code}
-                        <%= if @can_write do %>
-                          <button
-                            type="button"
-                            class="voice-country-tag-remove"
-                            phx-click="remove_country"
-                            phx-value-code={code}
-                            aria-label={gettext("Remove %{country}", country: country_name(code))}
-                          >
-                            &times;
-                          </button>
-                        <% end %>
-                      </span>
-                    <% end %>
-                  </div>
-                <% end %>
-                <%= if @can_write do %>
-                  <.country_picker
-                    id="voice-country-picker"
-                    exclude={@target_countries}
+      <%= if not @suggestion_mode? do %>
+        <.suggestion_mode_banner
+          can_write={@can_voice_write}
+          can_propose={@can_voice_propose}
+          resource_name={gettext("voice")}
+          handle={@handle}
+        />
+      <% end %>
+
+      <form
+        phx-change="validate"
+        phx-submit={if @suggestion_mode?, do: "create_voice_suggestion", else: "save_voice"}
+        class="voice-form"
+        id="voice-form"
+      >
+        <%= if @suggestion_mode? do %>
+          <div class="voice-section">
+            <div class="voice-section-info">
+              <h2>{gettext("Suggestion details")}</h2>
+              <p>
+                {gettext("Provide a clear title, full context, and a concise summary of intent.")}
+              </p>
+            </div>
+            <div class="voice-card">
+              <div class="voice-card-fields">
+                <div class="ticket-form-field">
+                  <label for="voice_suggestion_title">{gettext("Title")}</label>
+                  <input
+                    type="text"
+                    id="voice_suggestion_title"
+                    name="suggestion_title"
+                    value={@voice_form_params["suggestion_title"] || ""}
+                    placeholder={gettext("Short summary of the suggested change")}
+                    required
                   />
+                </div>
+                <div class="ticket-form-field">
+                  <label>{gettext("Description")}</label>
+                  <.markdown_editor
+                    id="voice-suggestion-body-editor"
+                    name="suggestion_body"
+                    value={@voice_form_params["suggestion_body"] || ""}
+                    placeholder={gettext("Explain what should change and why...")}
+                    rows={8}
+                    required
+                  />
+                </div>
+                <div class="ticket-form-field">
+                  <label for="voice_suggestion_note">{gettext("Change note")}</label>
+                  <input
+                    type="text"
+                    id="voice_suggestion_note"
+                    name="change_note"
+                    value={@voice_form_params["change_note"] || ""}
+                    placeholder={gettext("One-line summary used when applying this suggestion")}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="voice-section-divider"></div>
+        <% end %>
+
+        <%= if @suggestion_mode? do %>
+          <.voice_suggestion_changes
+            voice={@voice}
+            original_voice={@original_voice}
+            voice_form_params={@voice_form_params}
+            overrides={@overrides}
+            original_overrides={@original_overrides}
+            target_countries={@target_countries}
+            cultural_notes={@cultural_notes}
+          />
+          <div class="voice-section-divider"></div>
+        <% end %>
+
+        <%= if not @suggestion_mode? do %>
+          <div class="voice-section">
+            <div class="voice-section-info">
+              <h2>{gettext("About")}</h2>
+              <p>{gettext("Describe what you do and which countries you target.")}</p>
+            </div>
+            <div class="voice-card">
+              <div class="voice-card-fields">
+                <div class={[
+                  "voice-field",
+                  voice_field_changed?(@voice_form_params, @original_voice, "description") &&
+                    "voice-field-changed"
+                ]}>
+                  <label for="voice_description">{gettext("Description")}</label>
+                  <textarea
+                    id="voice_description"
+                    name="description"
+                    rows="3"
+                    placeholder={gettext("Briefly describe what you do and who you serve...")}
+                    disabled={!@can_voice_submit?}
+                    phx-debounce="300"
+                  >{@voice_form_params["description"] || (@voice && @voice.description) || ""}</textarea>
+                  <span class="voice-field-help">
+                    {gettext("Used to generate cultural notes for target countries.")}
+                  </span>
+                </div>
+                <div class={[
+                  "voice-field",
+                  voice_target_countries_changed?(@target_countries, @original_voice) &&
+                    "voice-field-changed"
+                ]}>
+                  <label>{gettext("Target countries")}</label>
+                  <%= if @target_countries != [] do %>
+                    <div class="voice-country-tags" id="voice-country-tags">
+                      <%= for code <- @target_countries do %>
+                        <span class="voice-country-tag">
+                          {country_flag(code)} {code}
+                          <%= if @can_voice_submit? do %>
+                            <button
+                              type="button"
+                              class="voice-country-tag-remove"
+                              phx-click="remove_country"
+                              phx-value-code={code}
+                              aria-label={gettext("Remove %{country}", country: country_name(code))}
+                            >
+                              &times;
+                            </button>
+                          <% end %>
+                        </span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  <%= if @can_voice_submit? do %>
+                    <.country_picker
+                      id="voice-country-picker"
+                      exclude={@target_countries}
+                    />
+                  <% end %>
+                </div>
+                <%= if @target_countries != [] do %>
+                  <div class={[
+                    "voice-field",
+                    voice_cultural_notes_changed?(@cultural_notes, @original_voice) &&
+                      "voice-field-changed"
+                  ]}>
+                    <label>{gettext("Cultural notes")}</label>
+                    <span class="voice-field-help">
+                      <%= if @generating_contexts? do %>
+                        {gettext("Generating cultural notes...")}
+                      <% else %>
+                        {gettext("AI-generated cultural notes per country. You can edit them.")}
+                      <% end %>
+                    </span>
+                    <%= for code <- @target_countries do %>
+                      <div
+                        class={[
+                          "voice-country-context",
+                          voice_country_note_changed?(code, @cultural_notes, @original_voice) &&
+                            "voice-country-context-changed"
+                        ]}
+                        id={"country-context-#{code}"}
+                      >
+                        <label class="voice-country-context-label">
+                          {country_flag(code)} {country_name(code)}
+                        </label>
+                        <textarea
+                          name={"cultural_notes[#{code}]"}
+                          rows="3"
+                          placeholder={
+                            gettext("Cultural notes for %{country}...", country: country_name(code))
+                          }
+                          disabled={!@can_voice_submit?}
+                          phx-debounce="300"
+                        >{Map.get(@cultural_notes, code, "")}</textarea>
+                      </div>
+                    <% end %>
+                  </div>
                 <% end %>
               </div>
-              <%= if @target_countries != [] do %>
-                <div class="voice-field">
-                  <label>{gettext("Cultural notes")}</label>
-                  <span class="voice-field-help">
-                    <%= if @generating_contexts? do %>
-                      {gettext("Generating cultural notes...")}
-                    <% else %>
-                      {gettext("AI-generated cultural notes per country. You can edit them.")}
-                    <% end %>
-                  </span>
-                  <%= for code <- @target_countries do %>
-                    <div class="voice-country-context" id={"country-context-#{code}"}>
-                      <label class="voice-country-context-label">
-                        {country_flag(code)} {country_name(code)}
-                      </label>
-                      <textarea
-                        name={"cultural_notes[#{code}]"}
-                        rows="3"
-                        placeholder={
-                          gettext("Cultural notes for %{country}...", country: country_name(code))
-                        }
-                        disabled={!@can_write}
-                        phx-debounce="300"
-                      >{Map.get(@cultural_notes, code, "")}</textarea>
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
             </div>
           </div>
-        </div>
 
-        <div class="voice-section-divider"></div>
-
-        <div class="voice-section">
-          <div class="voice-section-info">
-            <h2>{gettext("Tone and style")}</h2>
-            <p>{gettext("Set the overall personality and formality level for your content.")}</p>
-          </div>
-          <div class="voice-card">
-            <div class="voice-card-fields">
-              <div class="voice-field">
-                <label for="voice_tone">{gettext("Tone")}</label>
-                <select
-                  id="voice_tone"
-                  name="tone"
-                  disabled={!@can_write}
-                  phx-debounce="300"
-                >
-                  <option value="">{gettext("Select a tone")}</option>
-                  <%= for opt <- @tone_options do %>
-                    <option value={opt} selected={@voice && @voice.tone == opt}>
-                      {opt |> String.capitalize()}
-                    </option>
-                  <% end %>
-                </select>
-                <span class="voice-field-help">
-                  {gettext("The general character of your writing.")}
-                </span>
-              </div>
-              <div class="voice-field">
-                <label for="voice_formality">{gettext("Formality")}</label>
-                <select
-                  id="voice_formality"
-                  name="formality"
-                  disabled={!@can_write}
-                  phx-debounce="300"
-                >
-                  <option value="">{gettext("Select a level")}</option>
-                  <%= for opt <- @formality_options do %>
-                    <option value={opt} selected={@voice && @voice.formality == opt}>
-                      {opt |> String.replace("_", " ") |> String.capitalize()}
-                    </option>
-                  <% end %>
-                </select>
-                <span class="voice-field-help">
-                  {gettext("How casual or formal the language should be.")}
-                </span>
-              </div>
-              <div class="voice-field">
-                <label for="voice_target_audience">{gettext("Target audience")}</label>
-                <input
-                  type="text"
-                  id="voice_target_audience"
-                  name="target_audience"
-                  value={(@voice && @voice.target_audience) || ""}
-                  placeholder={gettext("e.g. Developers, marketing teams, general public")}
-                  disabled={!@can_write}
-                  phx-debounce="300"
-                />
-                <span class="voice-field-help">{gettext("Who you are writing for.")}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="voice-section-divider"></div>
-
-        <div class="voice-section">
-          <div class="voice-section-info">
-            <h2>{gettext("Guidelines")}</h2>
-            <p>
-              {gettext(
-                "Detailed writing rules, brand voice notes, and things to avoid. Supports Markdown."
-              )}
-            </p>
-          </div>
-          <div class="voice-card">
-            <div class="voice-card-fields">
-              <div class="voice-field">
-                <label for="voice_guidelines">{gettext("Writing guidelines")}</label>
-                <textarea
-                  id="voice_guidelines"
-                  name="guidelines"
-                  rows="10"
-                  placeholder={gettext("Write your brand voice guidelines here...")}
-                  disabled={!@can_write}
-                  phx-debounce="300"
-                >{(@voice && @voice.guidelines) || ""}</textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="voice-section-divider"></div>
-
-        <div class="voice-section" id="voice-overrides">
-          <div class="voice-section-info">
-            <h2>{gettext("Language overrides")}</h2>
-            <p>
-              {gettext(
-                "Customize the voice for specific languages. Fields left empty will fall back to the base voice above."
-              )}
-            </p>
-          </div>
-          <div class="voice-card">
-            <div class={[@overrides != [] && "voice-card-fields"]} id="override-list">
-              <%= for {override, idx} <- Enum.with_index(@overrides) do %>
-                <div class="voice-override-block" data-override-index={idx}>
-                  <div class="voice-override-header">
-                    <span class="voice-override-locale">
-                      {if override.locale != "", do: override.locale, else: gettext("New override")}
-                    </span>
-                    <%= if @can_write do %>
-                      <button
-                        type="button"
-                        class="voice-link-btn voice-link-btn-danger"
-                        phx-click="remove_override"
-                        phx-value-index={idx}
-                      >
-                        {gettext("Remove")}
-                      </button>
-                    <% end %>
-                  </div>
-                  <%= if override.locale == "" do %>
-                    <div class="voice-override-fields">
-                      <div class="voice-field">
-                        <label>{gettext("Language")}</label>
-                        <.locale_picker
-                          id={"voice-locale-#{idx}"}
-                          name={"overrides[#{idx}][locale]"}
-                          value=""
-                        />
-                      </div>
-                    </div>
-                  <% else %>
-                    <input type="hidden" name={"overrides[#{idx}][locale]"} value={override.locale} />
-                  <% end %>
-                  <div class="voice-override-fields">
-                    <div class="voice-field-row">
-                      <div class="voice-field">
-                        <label>{gettext("Tone")}</label>
-                        <select name={"overrides[#{idx}][tone]"} disabled={!@can_write}>
-                          <option value="">{gettext("Use base")}</option>
-                          <%= for opt <- @tone_options do %>
-                            <option value={opt} selected={override.tone == opt}>
-                              {opt |> String.capitalize()}
-                            </option>
-                          <% end %>
-                        </select>
-                      </div>
-                      <div class="voice-field">
-                        <label>{gettext("Formality")}</label>
-                        <select name={"overrides[#{idx}][formality]"} disabled={!@can_write}>
-                          <option value="">{gettext("Use base")}</option>
-                          <%= for opt <- @formality_options do %>
-                            <option value={opt} selected={override.formality == opt}>
-                              {opt |> String.replace("_", " ") |> String.capitalize()}
-                            </option>
-                          <% end %>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="voice-field">
-                      <label>{gettext("Target audience")}</label>
-                      <input
-                        type="text"
-                        name={"overrides[#{idx}][target_audience]"}
-                        value={override.target_audience || ""}
-                        disabled={!@can_write}
-                        phx-debounce="300"
-                      />
-                    </div>
-                    <div class="voice-field">
-                      <label>{gettext("Guidelines")}</label>
-                      <textarea
-                        name={"overrides[#{idx}][guidelines]"}
-                        rows="4"
-                        disabled={!@can_write}
-                        phx-debounce="300"
-                      >{override.guidelines || ""}</textarea>
-                    </div>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-            <%= if @can_write do %>
-              <div class="voice-card-footer" style="justify-content: flex-start;">
-                <button type="button" class="voice-link-btn" phx-click="add_override">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    aria-hidden="true"
-                  >
-                    <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
-                  </svg>
-                  {gettext("Add language override")}
-                </button>
-              </div>
-            <% end %>
-          </div>
-        </div>
-
-        <%= if @versions != [] do %>
           <div class="voice-section-divider"></div>
 
           <div class="voice-section">
             <div class="voice-section-info">
-              <h2>{gettext("Version history")}</h2>
-              <p>{gettext("Previous versions of your voice configuration.")}</p>
+              <h2>{gettext("Tone and style")}</h2>
+              <p>{gettext("Set the overall personality and formality level for your content.")}</p>
             </div>
             <div class="voice-card">
-              <div class="voice-history-table-wrap">
-                <table class="voice-history-table">
-                  <thead>
-                    <tr>
-                      <th>{gettext("Version")}</th>
-                      <th>{gettext("Note")}</th>
-                      <th>{gettext("Date")}</th>
-                      <th>{gettext("By")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for v <- @versions do %>
-                      <tr>
-                        <td class="voice-history-version">
-                          <.link
-                            patch={"/" <> @handle <> "/-/voice/" <> to_string(v.version)}
-                            class="voice-history-link"
-                          >
-                            {"##{v.version}"}
-                          </.link>
-                        </td>
-                        <td class="voice-history-note">{v.change_note || "-"}</td>
-                        <td class="voice-history-date">
-                          <time datetime={DateTime.to_iso8601(v.inserted_at)}>
-                            {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
-                          </time>
-                        </td>
-                        <td class="voice-history-author">
-                          <%= if v.created_by do %>
-                            <span class="voice-author-chip">
-                              <img
-                                src={gravatar_url(v.created_by.email)}
-                                alt=""
-                                width="20"
-                                height="20"
-                                class="voice-author-avatar"
-                              />
-                              <span>
-                                {(v.created_by.account && v.created_by.account.handle) ||
-                                  v.created_by.email}
-                              </span>
-                            </span>
-                          <% else %>
-                            -
-                          <% end %>
-                        </td>
-                      </tr>
+              <div class="voice-card-fields">
+                <div class={[
+                  "voice-field",
+                  voice_field_changed?(@voice_form_params, @original_voice, "tone") &&
+                    "voice-field-changed"
+                ]}>
+                  <label for="voice_tone">{gettext("Tone")}</label>
+                  <select
+                    id="voice_tone"
+                    name="tone"
+                    disabled={!@can_voice_submit?}
+                    phx-debounce="300"
+                  >
+                    <option value="">{gettext("Select a tone")}</option>
+                    <%= for opt <- @tone_options do %>
+                      <option
+                        value={opt}
+                        selected={
+                          (@voice_form_params["tone"] || (@voice && @voice.tone) || "") == opt
+                        }
+                      >
+                        {opt |> String.capitalize()}
+                      </option>
                     <% end %>
-                  </tbody>
-                </table>
+                  </select>
+                  <span class="voice-field-help">
+                    {gettext("The general character of your writing.")}
+                  </span>
+                </div>
+                <div class={[
+                  "voice-field",
+                  voice_field_changed?(@voice_form_params, @original_voice, "formality") &&
+                    "voice-field-changed"
+                ]}>
+                  <label for="voice_formality">{gettext("Formality")}</label>
+                  <select
+                    id="voice_formality"
+                    name="formality"
+                    disabled={!@can_voice_submit?}
+                    phx-debounce="300"
+                  >
+                    <option value="">{gettext("Select a level")}</option>
+                    <%= for opt <- @formality_options do %>
+                      <option
+                        value={opt}
+                        selected={
+                          (@voice_form_params["formality"] || (@voice && @voice.formality) || "") ==
+                            opt
+                        }
+                      >
+                        {opt |> String.replace("_", " ") |> String.capitalize()}
+                      </option>
+                    <% end %>
+                  </select>
+                  <span class="voice-field-help">
+                    {gettext("How casual or formal the language should be.")}
+                  </span>
+                </div>
+                <div class={[
+                  "voice-field",
+                  voice_field_changed?(@voice_form_params, @original_voice, "target_audience") &&
+                    "voice-field-changed"
+                ]}>
+                  <label for="voice_target_audience">{gettext("Target audience")}</label>
+                  <input
+                    type="text"
+                    id="voice_target_audience"
+                    name="target_audience"
+                    value={
+                      @voice_form_params["target_audience"] || (@voice && @voice.target_audience) ||
+                        ""
+                    }
+                    placeholder={gettext("e.g. Developers, marketing teams, general public")}
+                    disabled={!@can_voice_submit?}
+                    phx-debounce="300"
+                  />
+                  <span class="voice-field-help">{gettext("Who you are writing for.")}</span>
+                </div>
               </div>
             </div>
           </div>
+
+          <div class="voice-section-divider"></div>
+
+          <div class="voice-section">
+            <div class="voice-section-info">
+              <h2>{gettext("Guidelines")}</h2>
+              <p>
+                {gettext(
+                  "Detailed writing rules, brand voice notes, and things to avoid. Supports Markdown."
+                )}
+              </p>
+            </div>
+            <div class="voice-card">
+              <div class="voice-card-fields">
+                <div class={[
+                  "voice-field",
+                  voice_field_changed?(@voice_form_params, @original_voice, "guidelines") &&
+                    "voice-field-changed"
+                ]}>
+                  <label for="voice_guidelines">{gettext("Writing guidelines")}</label>
+                  <textarea
+                    id="voice_guidelines"
+                    name="guidelines"
+                    rows="10"
+                    placeholder={gettext("Write your brand voice guidelines here...")}
+                    disabled={!@can_voice_submit?}
+                    phx-debounce="300"
+                  >{@voice_form_params["guidelines"] || (@voice && @voice.guidelines) || ""}</textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="voice-section-divider"></div>
+
+          <div class="voice-section" id="voice-overrides">
+            <div class="voice-section-info">
+              <h2>{gettext("Language overrides")}</h2>
+              <p>
+                {gettext(
+                  "Customize the voice for specific languages. Fields left empty will fall back to the base voice above."
+                )}
+              </p>
+            </div>
+            <div class="voice-card">
+              <div class={[@overrides != [] && "voice-card-fields"]} id="override-list">
+                <%= for {override, idx} <- Enum.with_index(@overrides) do %>
+                  <div
+                    class={[
+                      "voice-override-block",
+                      voice_override_changed?(override, @original_overrides) &&
+                        "voice-override-block-changed"
+                    ]}
+                    data-override-index={idx}
+                  >
+                    <div class="voice-override-header">
+                      <span class="voice-override-locale">
+                        {if override.locale != "", do: override.locale, else: gettext("New override")}
+                      </span>
+                      <%= if @can_voice_submit? do %>
+                        <button
+                          type="button"
+                          class="voice-link-btn voice-link-btn-danger"
+                          phx-click="remove_override"
+                          phx-value-index={idx}
+                        >
+                          {gettext("Remove")}
+                        </button>
+                      <% end %>
+                    </div>
+                    <%= if override.locale == "" do %>
+                      <div class="voice-override-fields">
+                        <div class="voice-field">
+                          <label>{gettext("Language")}</label>
+                          <.locale_picker
+                            id={"voice-locale-#{idx}"}
+                            name={"overrides[#{idx}][locale]"}
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    <% else %>
+                      <input type="hidden" name={"overrides[#{idx}][locale]"} value={override.locale} />
+                    <% end %>
+                    <div class="voice-override-fields">
+                      <div class="voice-field-row">
+                        <div class="voice-field">
+                          <label>{gettext("Tone")}</label>
+                          <select name={"overrides[#{idx}][tone]"} disabled={!@can_voice_submit?}>
+                            <option value="">{gettext("Use base")}</option>
+                            <%= for opt <- @tone_options do %>
+                              <option value={opt} selected={override.tone == opt}>
+                                {opt |> String.capitalize()}
+                              </option>
+                            <% end %>
+                          </select>
+                        </div>
+                        <div class="voice-field">
+                          <label>{gettext("Formality")}</label>
+                          <select name={"overrides[#{idx}][formality]"} disabled={!@can_voice_submit?}>
+                            <option value="">{gettext("Use base")}</option>
+                            <%= for opt <- @formality_options do %>
+                              <option value={opt} selected={override.formality == opt}>
+                                {opt |> String.replace("_", " ") |> String.capitalize()}
+                              </option>
+                            <% end %>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="voice-field">
+                        <label>{gettext("Target audience")}</label>
+                        <input
+                          type="text"
+                          name={"overrides[#{idx}][target_audience]"}
+                          value={override.target_audience || ""}
+                          disabled={!@can_voice_submit?}
+                          phx-debounce="300"
+                        />
+                      </div>
+                      <div class="voice-field">
+                        <label>{gettext("Guidelines")}</label>
+                        <textarea
+                          name={"overrides[#{idx}][guidelines]"}
+                          rows="4"
+                          disabled={!@can_voice_submit?}
+                          phx-debounce="300"
+                        >{override.guidelines || ""}</textarea>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+              <%= if @can_voice_submit? do %>
+                <div class="voice-card-footer" style="justify-content: flex-start;">
+                  <button type="button" class="voice-link-btn" phx-click="add_override">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+                      <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
+                    </svg>
+                    {gettext("Add language override")}
+                  </button>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <%= if (not @suggestion_mode?) and @versions != [] do %>
+            <div class="voice-section-divider"></div>
+
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Version history")}</h2>
+                <p>{gettext("Previous versions of your voice configuration.")}</p>
+              </div>
+              <.resource_table id="voice-versions" rows={@versions}>
+                <:col :let={v} label={gettext("Version")} class="resource-col-nowrap">
+                  <.link
+                    patch={"/" <> @handle <> "/-/voice/" <> to_string(v.version)}
+                    class="voice-history-link"
+                  >
+                    {"##{v.version}"}
+                  </.link>
+                </:col>
+                <:col :let={v} label={gettext("Note")}>{v.change_note || "-"}</:col>
+                <:col :let={v} label={gettext("Date")} class="resource-col-nowrap">
+                  <time datetime={DateTime.to_iso8601(v.inserted_at)}>
+                    {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
+                  </time>
+                </:col>
+                <:col :let={v} label={gettext("By")} class="resource-col-nowrap">
+                  <%= if v.created_by do %>
+                    <span class="voice-author-chip">
+                      <img
+                        src={gravatar_url(v.created_by.email)}
+                        alt=""
+                        width="20"
+                        height="20"
+                        class="voice-author-avatar"
+                      />
+                      <span>
+                        {(v.created_by.account && v.created_by.account.handle) ||
+                          v.created_by.email}
+                      </span>
+                    </span>
+                  <% else %>
+                    -
+                  <% end %>
+                </:col>
+              </.resource_table>
+            </div>
+          <% end %>
+
+          <%= if (not @suggestion_mode?) and @voice_suggestions != [] do %>
+            <div class="voice-section-divider"></div>
+
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Open suggestions")}</h2>
+                <p>{gettext("Pending voice proposals from contributors.")}</p>
+              </div>
+              <.resource_table id="voice-suggestions" rows={@voice_suggestions}>
+                <:col :let={ticket} label={gettext("Suggestion")} class="resource-col-nowrap">
+                  <.link
+                    patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
+                    class="voice-history-link"
+                  >
+                    {"##{ticket.number}"}
+                  </.link>
+                </:col>
+                <:col :let={ticket} label={gettext("Title")}>{ticket.title}</:col>
+                <:col :let={ticket} label={gettext("By")} class="resource-col-nowrap">
+                  <%= if ticket.user do %>
+                    <span class="voice-author-chip">
+                      <img
+                        src={gravatar_url(ticket.user.email)}
+                        alt=""
+                        width="20"
+                        height="20"
+                        class="voice-author-avatar"
+                      />
+                      <span>
+                        {(ticket.user.account && ticket.user.account.handle) || ticket.user.email}
+                      </span>
+                    </span>
+                  <% else %>
+                    -
+                  <% end %>
+                </:col>
+                <:col :let={ticket} label={gettext("Date")} class="resource-col-nowrap">
+                  <time datetime={DateTime.to_iso8601(ticket.inserted_at)}>
+                    {Calendar.strftime(ticket.inserted_at, "%b %d, %Y %H:%M")}
+                  </time>
+                </:col>
+              </.resource_table>
+            </div>
+          <% end %>
         <% end %>
 
-        <%= if @can_write do %>
-          <.save_bar
-            id="voice-save-bar"
-            visible={@changed?}
-            discard_event="discard_changes"
-            change_summary={@change_summary}
-            generating_summary?={@generating_summary?}
-          />
+        <%= if @suggestion_mode? do %>
+          <div class="ticket-form-actions">
+            <.link
+              patch={@voice_back_path || "/" <> @handle <> "/-/voice"}
+              class="dash-btn dash-btn-secondary"
+            >
+              {gettext("Cancel")}
+            </.link>
+            <button type="submit" class="dash-btn dash-btn-primary">
+              {gettext("Submit suggestion")}
+            </button>
+          </div>
+        <% else %>
+          <%= if @can_voice_write do %>
+            <.save_bar
+              id="voice-save-bar"
+              form="voice-form"
+              visible={@changed?}
+              discard_event="discard_changes"
+              change_summary={@change_summary}
+              generating_summary?={@generating_summary?}
+              state_label={gettext("Unsaved changes")}
+              note_placeholder={gettext("Describe your changes...")}
+              submit_label={gettext("Save")}
+            />
+          <% else %>
+            <%= if @can_voice_propose do %>
+              <.save_bar
+                id="voice-save-bar"
+                form="voice-form"
+                visible={@changed?}
+                discard_event="discard_changes"
+                change_summary={@change_summary}
+                generating_summary?={@generating_summary?}
+                state_label={gettext("Ready to submit a suggestion")}
+                submit_label={gettext("Submit suggestion")}
+                show_note={false}
+              />
+            <% end %>
+          <% end %>
         <% end %>
       </form>
     </div>
@@ -2043,11 +3725,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp voice_version_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Voice"), "/" <> @handle <> "/-/voice"},
-        {"##{@voice.version}", "/" <> @handle <> "/-/voice/versions/" <> @voice.id}
-      ]} />
       <div class="dash-page-header">
         <div class="voice-version-header">
           <h1>
@@ -2260,251 +3937,419 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   defp glossary_page(assigns) do
+    assigns = assign_new(assigns, :suggestion_mode?, fn -> false end)
+
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Glossary"), "/" <> @handle <> "/-/glossary"}
-      ]} />
       <.page_header
-        title={gettext("Glossary")}
-        description={gettext("Approved terms and translations to keep your content consistent.")}
+        title={
+          if @suggestion_mode?, do: gettext("Suggest glossary changes"), else: gettext("Glossary")
+        }
+        description={
+          if @suggestion_mode?,
+            do:
+              gettext("Create a suggestion with title, description, and proposed glossary updates."),
+            else: gettext("Approved terms and translations to keep your content consistent.")
+        }
       />
+
+      <%= if not @suggestion_mode? do %>
+        <.suggestion_mode_banner
+          can_write={@can_glossary_write}
+          can_propose={@can_glossary_propose}
+          resource_name={gettext("glossary")}
+          handle={@handle}
+        />
+      <% end %>
 
       <form
         phx-change="glossary_validate"
-        phx-submit="save_glossary"
+        phx-submit={if @suggestion_mode?, do: "create_glossary_suggestion", else: "save_glossary"}
         class="voice-form"
         id="glossary-form"
       >
-        <div class="voice-section" id="glossary-entries">
-          <div class="voice-section-info">
-            <h2>{gettext("Terms")}</h2>
-            <p>
-              {gettext(
-                "Define canonical terms and their approved translations per language. Terms are matched during content processing to ensure consistent terminology."
-              )}
-            </p>
+        <%= if @suggestion_mode? do %>
+          <div class="voice-section">
+            <div class="voice-section-info">
+              <h2>{gettext("Suggestion details")}</h2>
+              <p>
+                {gettext("Provide a clear title, full context, and a concise summary of intent.")}
+              </p>
+            </div>
+            <div class="voice-card">
+              <div class="voice-card-fields">
+                <div class="ticket-form-field">
+                  <label for="glossary_suggestion_title">{gettext("Title")}</label>
+                  <input
+                    type="text"
+                    id="glossary_suggestion_title"
+                    name="suggestion_title"
+                    value={@glossary_form_params["suggestion_title"] || ""}
+                    placeholder={gettext("Short summary of the suggested change")}
+                    required
+                  />
+                </div>
+                <div class="ticket-form-field">
+                  <label>{gettext("Description")}</label>
+                  <.markdown_editor
+                    id="glossary-suggestion-body-editor"
+                    name="suggestion_body"
+                    value={@glossary_form_params["suggestion_body"] || ""}
+                    placeholder={gettext("Explain what should change and why...")}
+                    rows={8}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="voice-card">
-            <div class={[@glossary_entries != [] && "voice-card-fields"]} id="glossary-entry-list">
-              <%= for {entry, idx} <- Enum.with_index(@glossary_entries) do %>
-                <div class="glossary-entry-block" data-entry-index={idx}>
-                  <div class="voice-override-header">
-                    <span class="voice-override-locale">
-                      {if(entry.term != "" && entry.term, do: entry.term, else: gettext("New term"))}
-                    </span>
-                    <%= if @can_write do %>
-                      <button
-                        type="button"
-                        class="voice-link-btn voice-link-btn-danger"
-                        phx-click="remove_glossary_entry"
-                        phx-value-index={idx}
-                      >
-                        {gettext("Remove")}
-                      </button>
-                    <% end %>
-                  </div>
-                  <div class="voice-override-fields">
-                    <div class="voice-field-row">
-                      <div class="voice-field">
-                        <label>{gettext("Term")}</label>
+
+          <div class="voice-section-divider"></div>
+        <% end %>
+
+        <%= if @suggestion_mode? do %>
+          <.glossary_suggestion_changes
+            glossary_entries={@glossary_entries}
+            original_glossary_entries={@original_glossary_entries}
+          />
+          <div class="voice-section-divider"></div>
+        <% end %>
+
+        <%= if not @suggestion_mode? do %>
+          <div class="voice-section" id="glossary-entries">
+            <div class="voice-section-info">
+              <h2>{gettext("Terms")}</h2>
+              <p>
+                {gettext(
+                  "Define canonical terms and their approved translations per language. Terms are matched during content processing to ensure consistent terminology."
+                )}
+              </p>
+            </div>
+            <div class="voice-card">
+              <div class={[@glossary_entries != [] && "voice-card-fields"]} id="glossary-entry-list">
+                <%= for {entry, idx} <- Enum.with_index(@glossary_entries) do %>
+                  <div
+                    class={[
+                      "glossary-entry-block",
+                      glossary_entry_changed?(entry, @original_glossary_entries) &&
+                        "glossary-entry-block-changed"
+                    ]}
+                    data-entry-index={idx}
+                  >
+                    <div class="voice-override-header">
+                      <span class="voice-override-locale">
+                        {if(entry.term != "" && entry.term, do: entry.term, else: gettext("New term"))}
+                      </span>
+                      <%= if @can_glossary_submit? do %>
+                        <button
+                          type="button"
+                          class="voice-link-btn voice-link-btn-danger"
+                          phx-click="remove_glossary_entry"
+                          phx-value-index={idx}
+                        >
+                          {gettext("Remove")}
+                        </button>
+                      <% end %>
+                    </div>
+                    <div class="voice-override-fields">
+                      <div class="voice-field-row">
+                        <div class={[
+                          "voice-field",
+                          glossary_entry_field_changed?(entry, @original_glossary_entries, :term) &&
+                            "voice-field-changed"
+                        ]}>
+                          <label>{gettext("Term")}</label>
+                          <input
+                            type="text"
+                            name={"entries[#{idx}][term]"}
+                            value={entry.term || ""}
+                            placeholder={gettext("e.g. API, workspace, deploy")}
+                            required
+                            disabled={!@can_glossary_submit?}
+                            phx-debounce="300"
+                          />
+                        </div>
+                        <div class={[
+                          "voice-field",
+                          glossary_entry_field_changed?(
+                            entry,
+                            @original_glossary_entries,
+                            :case_sensitive
+                          ) && "voice-field-changed"
+                        ]}>
+                          <label>{gettext("Case sensitive")}</label>
+                          <select
+                            name={"entries[#{idx}][case_sensitive]"}
+                            disabled={!@can_glossary_submit?}
+                            phx-debounce="300"
+                          >
+                            <option value="false" selected={!entry.case_sensitive}>
+                              {gettext("No")}
+                            </option>
+                            <option value="true" selected={entry.case_sensitive}>
+                              {gettext("Yes")}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class={[
+                        "voice-field",
+                        glossary_entry_field_changed?(
+                          entry,
+                          @original_glossary_entries,
+                          :definition
+                        ) && "voice-field-changed"
+                      ]}>
+                        <label>{gettext("Definition")}</label>
                         <input
                           type="text"
-                          name={"entries[#{idx}][term]"}
-                          value={entry.term || ""}
-                          placeholder={gettext("e.g. API, workspace, deploy")}
-                          required
-                          disabled={!@can_write}
+                          name={"entries[#{idx}][definition]"}
+                          value={entry.definition || ""}
+                          placeholder={gettext("Context or description (optional)")}
+                          disabled={!@can_glossary_submit?}
+                          phx-debounce="300"
                         />
                       </div>
-                      <div class="voice-field">
-                        <label>{gettext("Case sensitive")}</label>
-                        <select
-                          name={"entries[#{idx}][case_sensitive]"}
-                          disabled={!@can_write}
-                        >
-                          <option value="false" selected={!entry.case_sensitive}>
-                            {gettext("No")}
-                          </option>
-                          <option value="true" selected={entry.case_sensitive}>
-                            {gettext("Yes")}
-                          </option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="voice-field">
-                      <label>{gettext("Definition")}</label>
-                      <input
-                        type="text"
-                        name={"entries[#{idx}][definition]"}
-                        value={entry.definition || ""}
-                        placeholder={gettext("Context or description (optional)")}
-                        disabled={!@can_write}
-                      />
-                    </div>
-                    <div class="glossary-translations-section">
-                      <div class="glossary-translations-header">
-                        <span class="voice-diff-label">{gettext("Translations")}</span>
-                        <%= if @can_write do %>
-                          <button
-                            type="button"
-                            class="voice-link-btn"
-                            phx-click="add_glossary_translation"
-                            phx-value-entry-index={idx}
-                          >
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 20 20"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              aria-hidden="true"
-                            >
-                              <line x1="10" y1="4" x2="10" y2="16" /><line
-                                x1="4"
-                                y1="10"
-                                x2="16"
-                                y2="10"
-                              />
-                            </svg>
-                            {gettext("Add")}
-                          </button>
-                        <% end %>
-                      </div>
-                      <%= for {translation, tidx} <- Enum.with_index(entry.translations || []) do %>
-                        <div class="glossary-translation-row">
-                          <div class="voice-field">
-                            <.locale_picker
-                              id={"locale-picker-#{idx}-#{tidx}"}
-                              name={"entries[#{idx}][translations][#{tidx}][locale]"}
-                              value={translation.locale || ""}
-                              disabled={!@can_write}
-                            />
-                          </div>
-                          <div class="voice-field" style="flex: 1;">
-                            <input
-                              type="text"
-                              name={"entries[#{idx}][translations][#{tidx}][translation]"}
-                              value={translation.translation || ""}
-                              placeholder={gettext("Translation")}
-                              disabled={!@can_write}
-                            />
-                          </div>
-                          <%= if @can_write do %>
+                      <div class="glossary-translations-section">
+                        <div class="glossary-translations-header">
+                          <span class="voice-diff-label">{gettext("Translations")}</span>
+                          <%= if @can_glossary_submit? do %>
                             <button
                               type="button"
-                              class="voice-link-btn voice-link-btn-danger"
-                              phx-click="remove_glossary_translation"
+                              class="voice-link-btn"
+                              phx-click="add_glossary_translation"
                               phx-value-entry-index={idx}
-                              phx-value-translation-index={tidx}
                             >
-                              {gettext("Remove")}
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                aria-hidden="true"
+                              >
+                                <line x1="10" y1="4" x2="10" y2="16" /><line
+                                  x1="4"
+                                  y1="10"
+                                  x2="16"
+                                  y2="10"
+                                />
+                              </svg>
+                              {gettext("Add")}
                             </button>
                           <% end %>
                         </div>
-                      <% end %>
+                        <%= for {translation, tidx} <- Enum.with_index(entry.translations || []) do %>
+                          <div class={[
+                            "glossary-translation-row",
+                            glossary_translation_changed?(
+                              entry,
+                              translation,
+                              @original_glossary_entries
+                            ) && "glossary-translation-row-changed"
+                          ]}>
+                            <div class="voice-field">
+                              <.locale_picker
+                                id={"locale-picker-#{idx}-#{tidx}"}
+                                name={"entries[#{idx}][translations][#{tidx}][locale]"}
+                                value={translation.locale || ""}
+                                disabled={!@can_glossary_submit?}
+                              />
+                            </div>
+                            <div
+                              class={[
+                                "voice-field",
+                                glossary_translation_changed?(
+                                  entry,
+                                  translation,
+                                  @original_glossary_entries
+                                ) && "voice-field-changed"
+                              ]}
+                              style="flex: 1;"
+                            >
+                              <input
+                                type="text"
+                                name={"entries[#{idx}][translations][#{tidx}][translation]"}
+                                value={translation.translation || ""}
+                                placeholder={gettext("Translation")}
+                                disabled={!@can_glossary_submit?}
+                                phx-debounce="300"
+                              />
+                            </div>
+                            <%= if @can_glossary_submit? do %>
+                              <button
+                                type="button"
+                                class="voice-link-btn voice-link-btn-danger"
+                                phx-click="remove_glossary_translation"
+                                phx-value-entry-index={idx}
+                                phx-value-translation-index={tidx}
+                              >
+                                {gettext("Remove")}
+                              </button>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
                     </div>
                   </div>
+                <% end %>
+              </div>
+              <%= if @can_glossary_submit? do %>
+                <div class="voice-card-footer" style="justify-content: flex-start;">
+                  <button type="button" class="voice-link-btn" phx-click="add_glossary_entry">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+                      <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
+                    </svg>
+                    {gettext("Add term")}
+                  </button>
                 </div>
               <% end %>
             </div>
-            <%= if @can_write do %>
-              <div class="voice-card-footer" style="justify-content: flex-start;">
-                <button type="button" class="voice-link-btn" phx-click="add_glossary_entry">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    aria-hidden="true"
+          </div>
+
+          <%= if (not @suggestion_mode?) and @glossary_versions != [] do %>
+            <div class="voice-section-divider"></div>
+
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Version history")}</h2>
+                <p>{gettext("Previous versions of your glossary.")}</p>
+              </div>
+              <.resource_table id="glossary-versions" rows={@glossary_versions}>
+                <:col :let={v} label={gettext("Version")} class="resource-col-nowrap">
+                  <.link
+                    patch={"/" <> @handle <> "/-/glossary/" <> to_string(v.version)}
+                    class="voice-history-link"
                   >
-                    <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
-                  </svg>
-                  {gettext("Add term")}
-                </button>
-              </div>
-            <% end %>
-          </div>
-        </div>
-
-        <%= if @glossary_versions != [] do %>
-          <div class="voice-section-divider"></div>
-
-          <div class="voice-section">
-            <div class="voice-section-info">
-              <h2>{gettext("Version history")}</h2>
-              <p>{gettext("Previous versions of your glossary.")}</p>
+                    {"##{v.version}"}
+                  </.link>
+                </:col>
+                <:col :let={v} label={gettext("Note")}>{v.change_note || "-"}</:col>
+                <:col :let={v} label={gettext("Date")} class="resource-col-nowrap">
+                  <time datetime={DateTime.to_iso8601(v.inserted_at)}>
+                    {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
+                  </time>
+                </:col>
+                <:col :let={v} label={gettext("By")} class="resource-col-nowrap">
+                  <%= if v.created_by do %>
+                    <span class="voice-author-chip">
+                      <img
+                        src={gravatar_url(v.created_by.email)}
+                        alt=""
+                        width="20"
+                        height="20"
+                        class="voice-author-avatar"
+                      />
+                      <span>
+                        {(v.created_by.account && v.created_by.account.handle) ||
+                          v.created_by.email}
+                      </span>
+                    </span>
+                  <% else %>
+                    -
+                  <% end %>
+                </:col>
+              </.resource_table>
             </div>
-            <div class="voice-card">
-              <div class="voice-history-table-wrap">
-                <table class="voice-history-table">
-                  <thead>
-                    <tr>
-                      <th>{gettext("Version")}</th>
-                      <th>{gettext("Note")}</th>
-                      <th>{gettext("Date")}</th>
-                      <th>{gettext("By")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <%= for v <- @glossary_versions do %>
-                      <tr>
-                        <td class="voice-history-version">
-                          <.link
-                            patch={"/" <> @handle <> "/-/glossary/" <> to_string(v.version)}
-                            class="voice-history-link"
-                          >
-                            {"##{v.version}"}
-                          </.link>
-                        </td>
-                        <td class="voice-history-note">{v.change_note || "-"}</td>
-                        <td class="voice-history-date">
-                          <time datetime={DateTime.to_iso8601(v.inserted_at)}>
-                            {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
-                          </time>
-                        </td>
-                        <td class="voice-history-author">
-                          <%= if v.created_by do %>
-                            <span class="voice-author-chip">
-                              <img
-                                src={gravatar_url(v.created_by.email)}
-                                alt=""
-                                width="20"
-                                height="20"
-                                class="voice-author-avatar"
-                              />
-                              <span>
-                                {(v.created_by.account && v.created_by.account.handle) ||
-                                  v.created_by.email}
-                              </span>
-                            </span>
-                          <% else %>
-                            -
-                          <% end %>
-                        </td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
+          <% end %>
+
+          <%= if (not @suggestion_mode?) and @glossary_suggestions != [] do %>
+            <div class="voice-section-divider"></div>
+
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Open suggestions")}</h2>
+                <p>{gettext("Pending glossary proposals from contributors.")}</p>
               </div>
+              <.resource_table id="glossary-suggestions" rows={@glossary_suggestions}>
+                <:col :let={ticket} label={gettext("Suggestion")} class="resource-col-nowrap">
+                  <.link
+                    patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
+                    class="voice-history-link"
+                  >
+                    {"##{ticket.number}"}
+                  </.link>
+                </:col>
+                <:col :let={ticket} label={gettext("Title")}>{ticket.title}</:col>
+                <:col :let={ticket} label={gettext("By")} class="resource-col-nowrap">
+                  <%= if ticket.user do %>
+                    <span class="voice-author-chip">
+                      <img
+                        src={gravatar_url(ticket.user.email)}
+                        alt=""
+                        width="20"
+                        height="20"
+                        class="voice-author-avatar"
+                      />
+                      <span>
+                        {(ticket.user.account && ticket.user.account.handle) || ticket.user.email}
+                      </span>
+                    </span>
+                  <% else %>
+                    -
+                  <% end %>
+                </:col>
+                <:col :let={ticket} label={gettext("Date")} class="resource-col-nowrap">
+                  <time datetime={DateTime.to_iso8601(ticket.inserted_at)}>
+                    {Calendar.strftime(ticket.inserted_at, "%b %d, %Y %H:%M")}
+                  </time>
+                </:col>
+              </.resource_table>
             </div>
-          </div>
+          <% end %>
         <% end %>
 
-        <%= if @can_write do %>
-          <.save_bar
-            id="glossary-save-bar"
-            visible={@glossary_changed?}
-            discard_event="glossary_discard"
-            change_summary={@change_summary}
-            generating_summary?={@generating_summary?}
-          />
+        <%= if @suggestion_mode? do %>
+          <div class="ticket-form-actions">
+            <.link
+              patch={@glossary_back_path || "/" <> @handle <> "/-/glossary"}
+              class="dash-btn dash-btn-secondary"
+            >
+              {gettext("Cancel")}
+            </.link>
+            <button type="submit" class="dash-btn dash-btn-primary">
+              {gettext("Submit suggestion")}
+            </button>
+          </div>
+        <% else %>
+          <%= if @can_glossary_write do %>
+            <.save_bar
+              id="glossary-save-bar"
+              form="glossary-form"
+              visible={@glossary_changed?}
+              discard_event="glossary_discard"
+              change_summary={@change_summary}
+              generating_summary?={@generating_summary?}
+              state_label={gettext("Unsaved changes")}
+              note_placeholder={gettext("Describe your changes...")}
+              submit_label={gettext("Save")}
+            />
+          <% else %>
+            <%= if @can_glossary_propose do %>
+              <.save_bar
+                id="glossary-save-bar"
+                form="glossary-form"
+                visible={@glossary_changed?}
+                discard_event="glossary_discard"
+                change_summary={@change_summary}
+                generating_summary?={@generating_summary?}
+                state_label={gettext("Ready to submit a suggestion")}
+                submit_label={gettext("Submit suggestion")}
+                show_note={false}
+              />
+            <% end %>
+          <% end %>
         <% end %>
       </form>
     </div>
@@ -2518,11 +4363,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp glossary_version_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Glossary"), "/" <> @handle <> "/-/glossary"},
-        {"##{@glossary.version}", "/" <> @handle <> "/-/glossary/versions/" <> @glossary.id}
-      ]} />
       <div class="dash-page-header">
         <div class="voice-version-header">
           <h1>
@@ -2651,10 +4491,6 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Members"), "/" <> @handle <> "/-/members"}
-      ]} />
       <.page_header
         title={gettext("Members")}
         description={gettext("Manage who has access to this account.")}
@@ -2843,12 +4679,6 @@ defmodule GlossiaWeb.DashboardLive do
     <div class="dash-page">
       <%= cond do %>
         <% @live_action == :api_tokens_new -> %>
-          <.breadcrumb items={[
-            {@handle, "/" <> @handle},
-            {gettext("Settings"), nil},
-            {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"},
-            {gettext("New token"), "/" <> @handle <> "/-/settings/tokens/new"}
-          ]} />
           <.page_header title={gettext("New account token")} />
 
           <.form
@@ -2938,12 +4768,6 @@ defmodule GlossiaWeb.DashboardLive do
             />
           </.form>
         <% @live_action == :api_token_edit -> %>
-          <.breadcrumb items={[
-            {@handle, "/" <> @handle},
-            {gettext("Settings"), nil},
-            {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"},
-            {@editing_token.name, "/" <> @handle <> "/-/settings/tokens/" <> @editing_token.id}
-          ]} />
           <.page_header title={@editing_token.name} />
 
           <.form
@@ -3039,11 +4863,6 @@ defmodule GlossiaWeb.DashboardLive do
             </button>
           </div>
         <% true -> %>
-          <.breadcrumb items={[
-            {@handle, "/" <> @handle},
-            {gettext("Settings"), nil},
-            {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"}
-          ]} />
           <.page_header
             title={gettext("Account tokens")}
             description={
@@ -3169,8 +4988,8 @@ defmodule GlossiaWeb.DashboardLive do
             <:empty>
               <div class="dash-empty-state">
                 <svg
-                  width="48"
-                  height="48"
+                  width="32"
+                  height="32"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -3215,12 +5034,6 @@ defmodule GlossiaWeb.DashboardLive do
     <div class="dash-page">
       <%= cond do %>
         <% @live_action == :api_apps_new -> %>
-          <.breadcrumb items={[
-            {@handle, "/" <> @handle},
-            {gettext("Settings"), nil},
-            {gettext("OAuth apps"), "/" <> @handle <> "/-/settings/apps"},
-            {gettext("New application"), "/" <> @handle <> "/-/settings/apps/new"}
-          ]} />
           <.page_header title={gettext("Register a new OAuth application")} />
 
           <.form
@@ -3293,12 +5106,6 @@ defmodule GlossiaWeb.DashboardLive do
             />
           </.form>
         <% @live_action == :api_app_edit -> %>
-          <.breadcrumb items={[
-            {@handle, "/" <> @handle},
-            {gettext("Settings"), nil},
-            {gettext("OAuth apps"), "/" <> @handle <> "/-/settings/apps"},
-            {@oauth_app.name, "/" <> @handle <> "/-/settings/apps/" <> @oauth_app.id}
-          ]} />
           <.page_header title={@oauth_app.name} />
 
           <%= if @newly_regenerated_secret do %>
@@ -3457,11 +5264,6 @@ defmodule GlossiaWeb.DashboardLive do
             </button>
           </div>
         <% true -> %>
-          <.breadcrumb items={[
-            {@handle, "/" <> @handle},
-            {gettext("Settings"), nil},
-            {gettext("OAuth apps"), "/" <> @handle <> "/-/settings/apps"}
-          ]} />
           <.page_header
             title={gettext("OAuth applications")}
             description={
@@ -3540,8 +5342,8 @@ defmodule GlossiaWeb.DashboardLive do
             <:empty>
               <div class="dash-empty-state">
                 <svg
-                  width="48"
-                  height="48"
+                  width="32"
+                  height="32"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -3575,33 +5377,1748 @@ defmodule GlossiaWeb.DashboardLive do
   defp project_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {@project_name, "/" <> @handle <> "/" <> @project_name}
-      ]} />
       <.page_header title={@project_name} />
 
-      <div class="dash-empty-state">
-        <svg
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+      <%= if @project && @project.setup_status in ["pending", "running"] do %>
+        <div class="setup-feed">
+          <div class="setup-feed-header">
+            <span class="setup-feed-pulse"></span>
+            <h3>{gettext("Setting up localization...")}</h3>
+          </div>
+          <div class="setup-feed-events" id="setup-events" phx-hook=".SetupFeedScroll">
+            <%= for event <- @setup_events do %>
+              <.setup_event_item event={event} />
+            <% end %>
+          </div>
+        </div>
+        <script :type={Phoenix.LiveView.ColocatedHook} name=".SetupFeedScroll">
+          export default {
+            mounted() {
+              this.scrollToBottom()
+            },
+            updated() {
+              this.scrollToBottom()
+            },
+            scrollToBottom() {
+              this.el.scrollTop = this.el.scrollHeight
+            }
+          }
+        </script>
+      <% else %>
+        <%= if @project && @project.setup_status == "failed" do %>
+          <div class="setup-feed">
+            <div class="setup-feed-header setup-feed-header-error">
+              <h3>{gettext("Setup failed")}</h3>
+              <p class="setup-feed-error-msg">
+                {@project.setup_error || gettext("An error occurred during setup.")}
+              </p>
+            </div>
+            <%= if @setup_events != [] do %>
+              <details class="setup-feed-details">
+                <summary>{gettext("View agent session")}</summary>
+                <div class="setup-feed-events" id="setup-events">
+                  <%= for event <- @setup_events do %>
+                    <.setup_event_item event={event} />
+                  <% end %>
+                </div>
+              </details>
+            <% end %>
+          </div>
+        <% else %>
+          <%= if @setup_events != [] do %>
+            <details class="setup-feed-details">
+              <summary>{gettext("View setup session")}</summary>
+              <div class="setup-feed">
+                <div class="setup-feed-events" id="setup-events">
+                  <%= for event <- @setup_events do %>
+                    <.setup_event_item event={event} />
+                  <% end %>
+                </div>
+              </div>
+            </details>
+          <% end %>
+
+          <div class="dash-empty-state">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            <h2>{gettext("Project overview")}</h2>
+            <%= if @project && @project.github_repo_full_name do %>
+              <p>
+                {gettext("Connected to")}
+                <a
+                  href={"https://github.com/#{@project.github_repo_full_name}"}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {@project.github_repo_full_name}
+                </a>
+              </p>
+            <% else %>
+              <p>{gettext("This is a placeholder for the project detail page.")}</p>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp project_settings_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Project settings")}
+        description={gettext("Manage your project details and appearance.")}
+      />
+
+      <.form
+        for={@project_settings_form}
+        id="project-settings-form"
+        phx-submit="update_project_settings"
+        phx-change="validate_project_settings"
+      >
+        <div class="voice-section">
+          <div class="voice-section-info">
+            <h2>{gettext("Avatar")}</h2>
+            <p>{gettext("Upload an image to represent this project.")}</p>
+          </div>
+          <div class="voice-card">
+            <div class="voice-card-fields">
+              <div class="voice-field">
+                <div class="project-avatar-upload">
+                  <% project_avatar_upload =
+                    assigns[:uploads] && Map.get(assigns[:uploads], :project_avatar) %>
+                  <% has_pending_upload =
+                    project_avatar_upload && project_avatar_upload.entries != [] %>
+                  <% pending_entry =
+                    if(has_pending_upload, do: List.first(project_avatar_upload.entries)) %>
+                  <%= if has_pending_upload do %>
+                    <div class="project-avatar-preview-wrapper">
+                      <.live_img_preview
+                        entry={pending_entry}
+                        class="project-avatar-img"
+                      />
+                      <button
+                        type="button"
+                        phx-click="cancel_project_avatar"
+                        phx-value-ref={pending_entry.ref}
+                        class="project-avatar-remove"
+                        title={gettext("Remove")}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                    <%= for err <- upload_errors(project_avatar_upload, pending_entry) do %>
+                      <p class="project-avatar-error">
+                        {upload_error_to_string(err)}
+                      </p>
+                    <% end %>
+                  <% else %>
+                    <label
+                      for={if(project_avatar_upload, do: project_avatar_upload.ref, else: nil)}
+                      class="project-avatar-placeholder"
+                    >
+                      <%= if @project_avatar_url do %>
+                        <img
+                          src={@project_avatar_url}
+                          alt={gettext("Project avatar")}
+                          class="project-avatar-img"
+                        />
+                      <% else %>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                          <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                      <% end %>
+                      <span class="project-avatar-hint">{gettext("Click to upload")}</span>
+                    </label>
+                  <% end %>
+                  <%= if project_avatar_upload do %>
+                    <.live_file_input
+                      upload={project_avatar_upload}
+                      class="project-avatar-file-input"
+                    />
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="voice-section">
+          <div class="voice-section-info">
+            <h2>{gettext("General")}</h2>
+          </div>
+          <div class="voice-card">
+            <div class="voice-card-fields">
+              <div class="voice-field">
+                <label for="project-name">{gettext("Name")}</label>
+                <input
+                  type="text"
+                  id="project-name"
+                  name="project[name]"
+                  value={@project_settings_form[:name].value}
+                  required
+                />
+              </div>
+              <div class="voice-field">
+                <label for="project-description">{gettext("Description")}</label>
+                <textarea
+                  id="project-description"
+                  name="project[description]"
+                  rows="3"
+                  placeholder={gettext("A brief description of this project")}
+                >{@project_settings_form[:description].value}</textarea>
+              </div>
+              <div class="voice-field">
+                <label for="project-url">{gettext("URL")}</label>
+                <input
+                  type="url"
+                  id="project-url"
+                  name="project[url]"
+                  value={@project_settings_form[:url].value}
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <.form_save_bar
+          id="project-settings-save-bar"
+          visible={@project_settings_changed?}
+          cancel_path={"/" <> @handle <> "/" <> @project.handle}
+        />
+      </.form>
+    </div>
+    """
+  end
+
+  defp project_avatar_display_url(nil), do: nil
+  defp project_avatar_display_url(""), do: nil
+
+  defp project_avatar_display_url(s3_path) do
+    # Extract handle and project from the S3 path (avatars/{handle}/projects/{project}.{ext})
+    case Regex.run(~r{avatars/([^/]+)/projects/([^/.]+)}, s3_path) do
+      [_, handle, project_handle] -> "/avatars/#{handle}/projects/#{project_handle}"
+      _ -> nil
+    end
+  end
+
+  defp upload_error_to_string(:too_large), do: gettext("File is too large (max 5 MB)")
+  defp upload_error_to_string(:not_accepted), do: gettext("File type not accepted")
+  defp upload_error_to_string(:too_many_files), do: gettext("Too many files")
+  defp upload_error_to_string(_), do: gettext("Upload error")
+
+  defp project_activity_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Activity")}
+        description={gettext("Recent content activity for this project.")}
+      />
+
+      <%= if @commits_error do %>
+        <div class="dash-empty-state">
+          <p>{gettext("Could not load activity from GitHub.")}</p>
+        </div>
+      <% else %>
+        <.resource_table
+          id="commits-table"
+          rows={@commits}
+          search={@commits_search}
+          sort_key={@commits_sort_key}
+          sort_dir={@commits_sort_dir}
         >
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-        </svg>
-        <h2>{gettext("Project overview")}</h2>
-        <p>{gettext("This is a placeholder for the project detail page.")}</p>
+          <:col :let={commit} label={gettext("Commit")} key="message" sortable>
+            <div class="commit-message-cell">
+              <span class="commit-message-text">{first_line(commit.message)}</span>
+              <%= if @sessions_by_sha[commit.sha] do %>
+                <.link
+                  navigate={
+                    "/" <> @handle <> "/" <> @project.handle <> "/-/sessions/" <>
+                      hd(@sessions_by_sha[commit.sha]).id
+                  }
+                  class={[
+                    "commit-session-badge",
+                    "commit-session-badge-#{hd(@sessions_by_sha[commit.sha]).status}"
+                  ]}
+                >
+                  {hd(@sessions_by_sha[commit.sha]).status}
+                </.link>
+              <% end %>
+            </div>
+          </:col>
+          <:col
+            :let={commit}
+            label={gettext("Author")}
+            key="author"
+            sortable
+            class="resource-col-nowrap"
+          >
+            <div class="commit-author-cell">
+              <%= if commit.author_avatar_url do %>
+                <img
+                  src={commit.author_avatar_url}
+                  alt={commit.author_name}
+                  class="commit-author-avatar"
+                />
+              <% end %>
+              <span>{commit.author_name}</span>
+            </div>
+          </:col>
+          <:col :let={commit} label={gettext("Date")} key="date" sortable class="resource-col-nowrap">
+            <%= if commit.date do %>
+              {relative_time(commit.date)}
+            <% end %>
+          </:col>
+          <:action :let={commit}>
+            <%= if @can_write and !@sessions_by_sha[commit.sha] do %>
+              <button
+                class="commit-translate-btn"
+                phx-click="translate_commit"
+                phx-value-sha={commit.sha}
+                phx-value-message={commit.message}
+              >
+                {gettext("Translate")}
+              </button>
+            <% end %>
+            <a href={commit.url} target="_blank" rel="noopener" class="commit-sha">
+              {commit.short_sha}
+            </a>
+          </:action>
+          <:empty>
+            <p>{gettext("No commits yet.")}</p>
+          </:empty>
+        </.resource_table>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp project_translations_page(assigns) do
+    assigns =
+      assign(assigns,
+        translation_filters: [
+          %{
+            key: "status",
+            label: gettext("Status"),
+            type: "select",
+            options: [
+              %{value: "pending", label: gettext("Pending")},
+              %{value: "running", label: gettext("Running")},
+              %{value: "completed", label: gettext("Completed")},
+              %{value: "failed", label: gettext("Failed")}
+            ]
+          }
+        ]
+      )
+
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Translations")}
+        description={gettext("Translation sessions for this project.")}
+      />
+
+      <.resource_table
+        id="translations-table"
+        rows={@translations}
+        search={@translations_search}
+        sort_key={@translations_sort_key}
+        sort_dir={@translations_sort_dir}
+        page={@translations_page}
+        total={@translations_total}
+        filters={@translation_filters}
+        active_filters={@translations_active_filters}
+      >
+        <:col :let={session} label={gettext("Status")} key="status" sortable>
+          <span class={["badge", "badge-#{session.status}"]}>{session.status}</span>
+        </:col>
+        <:col :let={session} label={gettext("Languages")} key="languages">
+          <%= if session.source_language do %>
+            {session.source_language} &rarr; {Enum.join(session.target_languages || [], ", ")}
+          <% end %>
+        </:col>
+        <:col :let={session} label={gettext("Commit")} key="commit" class="resource-col-nowrap">
+          <%= if session.commit_sha do %>
+            <span class="mono">{String.slice(session.commit_sha, 0, 7)}</span>
+          <% end %>
+        </:col>
+        <:col
+          :let={session}
+          label={gettext("Created")}
+          key="inserted_at"
+          sortable
+          class="resource-col-nowrap"
+        >
+          {Calendar.strftime(session.inserted_at, "%b %d, %Y %H:%M")}
+        </:col>
+        <:action :let={session}>
+          <.link
+            navigate={
+              "/" <> @handle <> "/" <> @project.handle <> "/-/sessions/" <> session.id
+            }
+            class="button button-small"
+          >
+            {gettext("View")}
+          </.link>
+        </:action>
+        <:empty>
+          <p>{gettext("No translation sessions yet.")}</p>
+        </:empty>
+      </.resource_table>
+    </div>
+    """
+  end
+
+  defp session_detail_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Translation session")}
+        description={
+          if @session.commit_sha,
+            do: gettext("Session for commit %{sha}", sha: String.slice(@session.commit_sha, 0, 7)),
+            else: gettext("Translation session details")
+        }
+      />
+
+      <div class="session-header">
+        <div class="session-header-row">
+          <span class={["badge", "badge-#{@session.status}"]}>{@session.status}</span>
+          <%= if @session.source_language do %>
+            <span class="session-header-languages">
+              {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
+            </span>
+          <% end %>
+          <%= if @session.commit_sha && @project.github_repo_full_name do %>
+            <a
+              href={"https://github.com/#{@project.github_repo_full_name}/commit/#{@session.commit_sha}"}
+              target="_blank"
+              rel="noopener"
+              class="commit-sha"
+            >
+              {String.slice(@session.commit_sha, 0, 7)}
+            </a>
+          <% end %>
+        </div>
+        <%= if @session.commit_message do %>
+          <p class="session-header-commit-message">{@session.commit_message}</p>
+        <% end %>
+        <div class="session-header-meta">
+          <%= if @session.started_at do %>
+            <span>{gettext("Started %{time}", time: relative_time(@session.started_at))}</span>
+          <% end %>
+          <%= if @session.completed_at do %>
+            <span>{gettext("Completed %{time}", time: relative_time(@session.completed_at))}</span>
+          <% end %>
+          <%= if @session.summary do %>
+            <span>{@session.summary}</span>
+          <% end %>
+        </div>
+      </div>
+
+      <%= if @session_events == [] do %>
+        <div class="dash-empty-state">
+          <p>{gettext("No events recorded yet.")}</p>
+        </div>
+      <% else %>
+        <div class="session-event-feed">
+          <%= for event <- @session_events do %>
+            <.session_event_item event={event} project={@project} />
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp session_event_item(%{event: event} = assigns) do
+    event_type = event[:event_type] || Map.get(event, :event_type, "")
+    content = event[:content] || Map.get(event, :content, "")
+
+    assigns = assign(assigns, :event_type, event_type)
+    assigns = assign(assigns, :content, content || "")
+
+    ~H"""
+    <%= case @event_type do %>
+      <% "message" -> %>
+        <div class="setup-event setup-event-message">
+          <div class="setup-event-icon">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+          </div>
+          <div class="setup-event-content">
+            <p>{@content}</p>
+          </div>
+        </div>
+      <% "thought" -> %>
+        <div class="setup-event session-event-thought">
+          <div class="setup-event-icon">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <div class="setup-event-content">
+            <p>{@content}</p>
+          </div>
+        </div>
+      <% event_kind when event_kind in ["tool_call", "tool_result"] -> %>
+        <div class={"setup-event setup-event-#{@event_type}"}>
+          <div class="setup-event-icon">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" />
+            </svg>
+          </div>
+          <div class="setup-event-content">
+            <div class="setup-event-tool-header">
+              <span class="setup-event-tool-name">{extract_session_tool_name(@event)}</span>
+            </div>
+            <%= if @content != "" do %>
+              <pre class="setup-event-code">{@content}</pre>
+            <% end %>
+          </div>
+        </div>
+      <% "plan" -> %>
+        <div class="setup-event session-event-plan">
+          <div class="setup-event-icon">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+            </svg>
+          </div>
+          <div class="setup-event-content">
+            <div class="session-plan">
+              <%= for step <- parse_plan_entries(@event) do %>
+                <div class="session-plan-step" data-status={step["status"]}>
+                  <%= case step["status"] do %>
+                    <% "completed" -> %>
+                      <span class="session-plan-icon">&check;</span>
+                    <% "in_progress" -> %>
+                      <span class="session-plan-icon">&bull;</span>
+                    <% _ -> %>
+                      <span class="session-plan-icon">&cir;</span>
+                  <% end %>
+                  <span>{step["label"]}</span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% _ -> %>
+        <%= if @content != "" do %>
+          <div class="setup-event">
+            <div class="setup-event-content">
+              <p>{@content}</p>
+            </div>
+          </div>
+        <% end %>
+    <% end %>
+    """
+  end
+
+  defp extract_session_tool_name(event) do
+    metadata = event[:metadata] || Map.get(event, :metadata, "")
+
+    case metadata do
+      m when is_binary(m) and m != "" ->
+        case JSON.decode(m) do
+          {:ok, %{"tool_name" => name}} -> name
+          {:ok, %{"title" => title}} -> title
+          _ -> metadata
+        end
+
+      _ ->
+        ""
+    end
+  end
+
+  defp parse_plan_entries(event) do
+    metadata = event[:metadata] || Map.get(event, :metadata, "")
+
+    case metadata do
+      m when is_binary(m) and m != "" ->
+        case JSON.decode(m) do
+          {:ok, %{"entries" => entries}} when is_list(entries) -> entries
+          _ -> []
+        end
+
+      _ ->
+        []
+    end
+  end
+
+  defp first_line(nil), do: ""
+
+  defp first_line(message) do
+    message |> String.split("\n", parts: 2) |> List.first() |> String.trim()
+  end
+
+  defp relative_time(datetime) do
+    now = DateTime.utc_now()
+    diff = DateTime.diff(now, datetime, :second)
+
+    cond do
+      diff < 60 -> gettext("just now")
+      diff < 3600 -> gettext("%{count}m ago", count: div(diff, 60))
+      diff < 86400 -> gettext("%{count}h ago", count: div(diff, 3600))
+      diff < 604_800 -> gettext("%{count}d ago", count: div(diff, 86400))
+      true -> Calendar.strftime(datetime, "%b %d, %Y")
+    end
+  end
+
+  defp setup_event_item(%{event: event} = assigns) do
+    event_type = event[:event_type] || event.event_type
+    content = event[:content] || event.content
+
+    # Skip structural/empty events that have no user-facing value
+    if event_type in ["agent_start", "agent_end", "turn_start", "turn_end", "message_end"] or
+         (event_type == "message_start" and (content == nil or content == "")) do
+      ~H""
+    else
+      assigns = assign(assigns, :content, content || "")
+
+      ~H"""
+      <div class={[
+        "setup-event",
+        "setup-event-#{@event[:event_type] || @event.event_type}"
+      ]}>
+        <%= case @event[:event_type] || @event.event_type do %>
+          <% event_kind when event_kind in ["message_start", "message_update"] -> %>
+            <div class="setup-event-icon">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+            </div>
+            <div class="setup-event-content">
+              <p>{@content}</p>
+            </div>
+          <% event_kind when event_kind in ["tool_execution_start", "tool_execution_end"] -> %>
+            <div class="setup-event-icon">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+            </div>
+            <div class="setup-event-content">
+              <div class="setup-event-tool-header">
+                <span class="setup-event-tool-name">{extract_tool_name(assigns)}</span>
+              </div>
+              <%= if @content != "" do %>
+                <pre class="setup-event-code">{@content}</pre>
+              <% end %>
+            </div>
+          <% "error" -> %>
+            <div class="setup-event-icon setup-event-icon-error">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+            </div>
+            <div class="setup-event-content setup-event-content-error">
+              <p>{@content}</p>
+            </div>
+          <% _ -> %>
+            <%= if @content != "" do %>
+              <div class="setup-event-content">
+                <p>{@content}</p>
+              </div>
+            <% end %>
+        <% end %>
+      </div>
+      """
+    end
+  end
+
+  defp extract_tool_name(assigns) do
+    metadata = assigns.event[:metadata] || assigns.event.metadata
+
+    case metadata do
+      m when is_binary(m) and m != "" ->
+        case JSON.decode(m) do
+          {:ok, %{"tool_name" => name}} -> name
+          {:ok, %{"name" => name}} -> name
+          _ -> "tool"
+        end
+
+      _ ->
+        "tool"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Page: Account
+  # ---------------------------------------------------------------------------
+
+  defp account_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Account")}
+        description={gettext("Manage your account details and connected Git providers.")}
+      />
+
+      <%= if @github_installation do %>
+        <div class="voice-card">
+          <div
+            class="voice-card-fields"
+            style="display: flex; align-items: center; gap: var(--space-3);"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            <div style="flex: 1;">
+              <strong>{@github_installation.github_account_login}</strong>
+              <span class="muted" style="margin-left: var(--space-2);">
+                {String.downcase(@github_installation.github_account_type)}
+              </span>
+            </div>
+            <button
+              class="dash-btn dash-btn-danger dash-btn-sm"
+              phx-click="disconnect_github"
+              data-confirm={
+                gettext(
+                  "Are you sure you want to disconnect GitHub? Projects linked through this connection will lose their GitHub link."
+                )
+              }
+            >
+              {gettext("Disconnect")}
+            </button>
+          </div>
+        </div>
+      <% else %>
+        <div class="dash-empty-state">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <h2>{gettext("No GitHub connection")}</h2>
+          <p>{gettext("Install the Glossia GitHub App to import repositories as projects.")}</p>
+          <%= if @github_install_url do %>
+            <a
+              href={@github_install_url}
+              class="dash-btn dash-btn-primary"
+              style="margin-top: var(--space-3);"
+            >
+              {gettext("Connect GitHub")}
+            </a>
+          <% else %>
+            <p class="muted" style="font-size: var(--text-xs); margin-top: var(--space-2);">
+              {gettext(
+                "GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and GITHUB_APP_SLUG."
+              )}
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Page: New Project (wizard)
+  # ---------------------------------------------------------------------------
+
+  defp project_new_wizard(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("New project")}
+        description={gettext("Import a GitHub repository and set up localization.")}
+      />
+
+      <div class="wizard-step-nav">
+        <div class={[
+          "wizard-step-dot",
+          @step == "repo" && "wizard-step-active",
+          @step in ["languages", "setup"] && "wizard-step-completed"
+        ]}>
+          <span class="wizard-step-number">1</span>
+          <span class="wizard-step-label">{gettext("Repository")}</span>
+        </div>
+        <div class="wizard-step-connector"></div>
+        <div class={[
+          "wizard-step-dot",
+          @step == "languages" && "wizard-step-active",
+          @step == "setup" && "wizard-step-completed"
+        ]}>
+          <span class="wizard-step-number">2</span>
+          <span class="wizard-step-label">{gettext("Languages")}</span>
+        </div>
+        <div class="wizard-step-connector"></div>
+        <div class={["wizard-step-dot", @step == "setup" && "wizard-step-active"]}>
+          <span class="wizard-step-number">3</span>
+          <span class="wizard-step-label">{gettext("Setup")}</span>
+        </div>
+      </div>
+
+      <%= case @step do %>
+        <% "repo" -> %>
+          <.wizard_repo_step
+            handle={@handle}
+            github_repos={@github_repos}
+            github_repos_search={@github_repos_search}
+            github_configured?={@github_configured?}
+          />
+        <% "languages" -> %>
+          <.wizard_languages_step
+            handle={@handle}
+            selected_repo={@selected_repo}
+            selected_languages={@selected_languages}
+            language_search={@language_search}
+          />
+        <% "setup" -> %>
+          <.wizard_setup_step
+            handle={@handle}
+            wizard_project={@wizard_project}
+            setup_events={@setup_events}
+          />
+        <% _ -> %>
+          <.wizard_repo_step
+            handle={@handle}
+            github_repos={@github_repos}
+            github_repos_search={@github_repos_search}
+            github_configured?={@github_configured?}
+          />
+      <% end %>
+    </div>
+    """
+  end
+
+  defp wizard_repo_step(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :filtered_repos,
+        filtered_repos(assigns.github_repos, assigns.github_repos_search)
+      )
+
+    ~H"""
+    <%= cond do %>
+      <% @github_configured? and @github_repos != [] -> %>
+        <div class="resource-index" id="repo-picker">
+          <div class="resource-toolbar">
+            <form phx-change="search_repos" class="resource-search-form">
+              <div class="resource-search-wrap">
+                <svg
+                  class="resource-search-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="search"
+                  name="value"
+                  value={@github_repos_search}
+                  placeholder={gettext("Search repositories...")}
+                  phx-debounce="300"
+                  class="resource-search"
+                />
+              </div>
+            </form>
+          </div>
+
+          <div class="resource-table-wrap">
+            <table class="resource-table">
+              <thead>
+                <tr>
+                  <th>{gettext("Repository")}</th>
+                  <th>{gettext("Language")}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <%= if @filtered_repos == [] do %>
+                  <tr>
+                    <td colspan="3" class="resource-table-empty">
+                      <div class="dash-empty-state">
+                        <h2>{gettext("No matching repositories")}</h2>
+                        <p>{gettext("Try adjusting your search query.")}</p>
+                      </div>
+                    </td>
+                  </tr>
+                <% else %>
+                  <%= for repo <- @filtered_repos do %>
+                    <tr>
+                      <td>
+                        <div class="repo-cell-name">
+                          <span class="repo-full-name">{repo["full_name"]}</span>
+                          <%= if repo["description"] do %>
+                            <span class="repo-description muted">{repo["description"]}</span>
+                          <% end %>
+                        </div>
+                      </td>
+                      <td>
+                        <%= if repo["language"] do %>
+                          <span class="mono muted">{repo["language"]}</span>
+                        <% end %>
+                      </td>
+                      <td class="resource-action-cell">
+                        <button
+                          class="dash-btn dash-btn-primary dash-btn-sm"
+                          phx-click="select_repo"
+                          phx-value-repo-id={repo["id"]}
+                          phx-value-full-name={repo["full_name"]}
+                          phx-value-name={repo["name"]}
+                          phx-value-default-branch={repo["default_branch"]}
+                          phx-value-description={repo["description"]}
+                          phx-value-owner-login={get_in(repo, ["owner", "login"])}
+                        >
+                          {gettext("Select")}
+                        </button>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="wizard-repo-hint muted">
+            {gettext("Don't see your repository?")}
+            <a
+              href={"/" <> @handle <> "/-/projects/install-github"}
+              class="wizard-repo-hint-link"
+            >
+              {gettext("Configure repository access")}
+            </a>
+          </p>
+        </div>
+      <% @github_configured? -> %>
+        <div class="dash-empty-state">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+          </svg>
+          <h2>{gettext("No repositories accessible")}</h2>
+          <p>
+            {gettext(
+              "The GitHub App is installed but has no accessible repositories. Configure the installation to grant access to the repositories you want to import."
+            )}
+          </p>
+          <a
+            href={"/" <> @handle <> "/-/projects/install-github"}
+            class="dash-btn dash-btn-primary"
+          >
+            {gettext("Configure repository access")}
+          </a>
+        </div>
+      <% true -> %>
+        <div class="dash-empty-state">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          <h2>{gettext("Connect a Git provider")}</h2>
+          <p>
+            {gettext("Install the Glossia GitHub App to import repositories and set up localization.")}
+          </p>
+          <a
+            href={"/" <> @handle <> "/-/projects/install-github"}
+            class="dash-btn dash-btn-primary"
+          >
+            {gettext("Install GitHub App")}
+          </a>
+        </div>
+    <% end %>
+    """
+  end
+
+  defp wizard_languages_step(assigns) do
+    search = String.downcase(assigns.language_search || "")
+
+    filtered =
+      if search == "" do
+        @wizard_languages
+      else
+        Enum.filter(@wizard_languages, fn lang ->
+          String.contains?(String.downcase(lang.name), search) or
+            String.contains?(String.downcase(lang.native), search) or
+            String.contains?(String.downcase(lang.code), search)
+        end)
+      end
+
+    assigns = assign(assigns, :filtered_languages, filtered)
+    selected_count = length(assigns.selected_languages)
+    assigns = assign(assigns, :selected_count, selected_count)
+
+    ~H"""
+    <div class="wizard-lang-header">
+      <div class="wizard-lang-header-left">
+        <div class="wizard-selected-repo">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+          </svg>
+          <span>{@selected_repo["full_name"]}</span>
+        </div>
+        <%= if @selected_count > 0 do %>
+          <span class="wizard-lang-count">
+            {ngettext("%{count} language selected", "%{count} languages selected", @selected_count,
+              count: @selected_count
+            )}
+          </span>
+        <% end %>
+      </div>
+      <div class="wizard-lang-header-right">
+        <button
+          class="dash-btn dash-btn-secondary"
+          phx-click="wizard_back"
+          phx-value-step="repo"
+          type="button"
+        >
+          {gettext("Back")}
+        </button>
+        <button
+          class="dash-btn dash-btn-primary"
+          phx-click="start_setup"
+          disabled={@selected_count == 0}
+          type="button"
+        >
+          {gettext("Set up project")}
+        </button>
+      </div>
+    </div>
+
+    <div class="resource-index" id="language-picker">
+      <div class="resource-toolbar">
+        <form phx-change="search_languages" class="resource-search-form">
+          <div class="resource-search-wrap">
+            <svg
+              class="resource-search-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="search"
+              name="value"
+              value={@language_search}
+              placeholder={gettext("Search languages...")}
+              phx-debounce="200"
+              class="resource-search"
+            />
+          </div>
+        </form>
+      </div>
+
+      <div class="resource-table-wrap">
+        <table class="resource-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>{gettext("Language")}</th>
+              <th>{gettext("Native name")}</th>
+              <th>{gettext("Code")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= if @filtered_languages == [] do %>
+              <tr>
+                <td colspan="4" class="resource-table-empty">
+                  <div class="dash-empty-state">
+                    <h2>{gettext("No matching languages")}</h2>
+                    <p>{gettext("Try adjusting your search query.")}</p>
+                  </div>
+                </td>
+              </tr>
+            <% else %>
+              <%= for lang <- @filtered_languages do %>
+                <tr
+                  class={[
+                    "wizard-lang-row",
+                    lang.code in @selected_languages && "wizard-lang-row-selected"
+                  ]}
+                  phx-click="toggle_language"
+                  phx-value-code={lang.code}
+                  style="cursor: pointer;"
+                >
+                  <td style="width: 40px;">
+                    <span class={[
+                      "wizard-lang-check",
+                      lang.code in @selected_languages && "wizard-lang-check-active"
+                    ]}>
+                      <%= if lang.code in @selected_languages do %>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      <% end %>
+                    </span>
+                  </td>
+                  <td>{lang.name}</td>
+                  <td><span class="muted">{lang.native}</span></td>
+                  <td><span class="mono muted">{lang.code}</span></td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
       </div>
     </div>
     """
   end
+
+  defp wizard_setup_step(assigns) do
+    project = assigns.wizard_project
+    status = if project, do: project.setup_status, else: nil
+    assigns = assign(assigns, :status, status)
+
+    ~H"""
+    <div class="wizard-setup-container">
+      <%= cond do %>
+        <% @status in ["pending", "running"] -> %>
+          <div class="setup-feed">
+            <div class="setup-feed-header">
+              <span class="setup-feed-pulse"></span>
+              <h3>{gettext("Setting up localization...")}</h3>
+            </div>
+            <div class="setup-feed-events" id="wizard-setup-events" phx-hook=".SetupFeedScroll">
+              <%= for event <- @setup_events do %>
+                <.setup_event_item event={event} />
+              <% end %>
+            </div>
+          </div>
+          <script :type={Phoenix.LiveView.ColocatedHook} name=".SetupFeedScroll">
+            export default {
+              mounted() {
+                this.scrollToBottom()
+              },
+              updated() {
+                this.scrollToBottom()
+              },
+              scrollToBottom() {
+                this.el.scrollTop = this.el.scrollHeight
+              }
+            }
+          </script>
+        <% @status == "completed" -> %>
+          <div class="setup-feed">
+            <div class="setup-feed-header setup-feed-header-success">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <h3>{gettext("Setup complete")}</h3>
+            </div>
+            <%= if @setup_events != [] do %>
+              <details class="setup-feed-details">
+                <summary>{gettext("View agent session")}</summary>
+                <div class="setup-feed-events" id="wizard-setup-events">
+                  <%= for event <- @setup_events do %>
+                    <.setup_event_item event={event} />
+                  <% end %>
+                </div>
+              </details>
+            <% end %>
+          </div>
+          <div class="wizard-footer">
+            <div></div>
+            <button
+              class="dash-btn dash-btn-primary"
+              phx-click="finish_setup"
+              type="button"
+            >
+              {gettext("Go to project")}
+            </button>
+          </div>
+        <% @status == "failed" -> %>
+          <div class="setup-feed">
+            <div class="setup-feed-header setup-feed-header-error">
+              <h3>{gettext("Setup failed")}</h3>
+              <p class="setup-feed-error-msg">
+                {(@wizard_project && @wizard_project.setup_error) ||
+                  gettext("An error occurred during setup.")}
+              </p>
+            </div>
+            <%= if @setup_events != [] do %>
+              <details class="setup-feed-details">
+                <summary>{gettext("View agent session")}</summary>
+                <div class="setup-feed-events" id="wizard-setup-events">
+                  <%= for event <- @setup_events do %>
+                    <.setup_event_item event={event} />
+                  <% end %>
+                </div>
+              </details>
+            <% end %>
+          </div>
+          <div class="wizard-footer">
+            <div></div>
+            <button
+              class="dash-btn dash-btn-primary"
+              phx-click="finish_setup"
+              type="button"
+            >
+              {gettext("Go to project")}
+            </button>
+          </div>
+        <% true -> %>
+          <div class="dash-empty-state">
+            <h2>{gettext("Preparing...")}</h2>
+          </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :voice, :map, default: nil
+  attr :original_voice, :map, default: nil
+  attr :voice_form_params, :map, default: %{}
+  attr :overrides, :list, default: []
+  attr :original_overrides, :list, default: []
+  attr :target_countries, :list, default: []
+  attr :cultural_notes, :map, default: %{}
+
+  defp voice_suggestion_changes(assigns) do
+    proposed = %{
+      description:
+        Map.get(assigns.voice_form_params || %{}, "description") ||
+          ((assigns.voice && assigns.voice.description) || ""),
+      tone:
+        Map.get(assigns.voice_form_params || %{}, "tone") ||
+          ((assigns.voice && assigns.voice.tone) || ""),
+      formality:
+        Map.get(assigns.voice_form_params || %{}, "formality") ||
+          ((assigns.voice && assigns.voice.formality) || ""),
+      target_audience:
+        Map.get(assigns.voice_form_params || %{}, "target_audience") ||
+          ((assigns.voice && assigns.voice.target_audience) || ""),
+      guidelines:
+        Map.get(assigns.voice_form_params || %{}, "guidelines") ||
+          ((assigns.voice && assigns.voice.guidelines) || ""),
+      target_countries: Enum.sort(assigns.target_countries || []),
+      cultural_notes: assigns.cultural_notes || %{}
+    }
+
+    original = %{
+      description: (assigns.original_voice && assigns.original_voice.description) || "",
+      tone: (assigns.original_voice && assigns.original_voice.tone) || "",
+      formality: (assigns.original_voice && assigns.original_voice.formality) || "",
+      target_audience: (assigns.original_voice && assigns.original_voice.target_audience) || "",
+      guidelines: (assigns.original_voice && assigns.original_voice.guidelines) || "",
+      target_countries:
+        Enum.sort((assigns.original_voice && assigns.original_voice.target_countries) || []),
+      cultural_notes: (assigns.original_voice && assigns.original_voice.cultural_notes) || %{}
+    }
+
+    notes_changed_for =
+      changed_cultural_note_codes(proposed.cultural_notes, original.cultural_notes)
+
+    overrides_changed? =
+      overrides_signature(assigns.overrides || []) !=
+        overrides_signature(assigns.original_overrides || [])
+
+    has_changes? =
+      proposed.description != original.description or
+        proposed.tone != original.tone or
+        proposed.formality != original.formality or
+        proposed.target_audience != original.target_audience or
+        proposed.guidelines != original.guidelines or
+        proposed.target_countries != original.target_countries or
+        notes_changed_for != [] or overrides_changed?
+
+    assigns =
+      assign(assigns,
+        proposed: proposed,
+        original: original,
+        notes_changed_for: notes_changed_for,
+        overrides_changed?: overrides_changed?,
+        has_changes?: has_changes?
+      )
+
+    ~H"""
+    <div class="voice-section">
+      <div class="voice-section-info">
+        <h2>{gettext("Proposed changes")}</h2>
+        <p>{gettext("This review is read-only. Go back to continue editing your draft.")}</p>
+      </div>
+      <div class="voice-card">
+        <div class="voice-card-fields">
+          <%= if @has_changes? do %>
+            <.diff_field
+              :if={@proposed.description != @original.description}
+              label={gettext("Description")}
+              current={@proposed.description}
+              previous={@original.description}
+              formatter={&identity_text/1}
+            />
+            <.diff_field
+              :if={@proposed.tone != @original.tone}
+              label={gettext("Tone")}
+              current={@proposed.tone}
+              previous={@original.tone}
+              formatter={&identity_text/1}
+            />
+            <.diff_field
+              :if={@proposed.formality != @original.formality}
+              label={gettext("Formality")}
+              current={@proposed.formality}
+              previous={@original.formality}
+              formatter={&identity_text/1}
+            />
+            <.diff_field
+              :if={@proposed.target_audience != @original.target_audience}
+              label={gettext("Target audience")}
+              current={@proposed.target_audience}
+              previous={@original.target_audience}
+              formatter={&identity_text/1}
+            />
+            <.diff_field
+              :if={@proposed.guidelines != @original.guidelines}
+              label={gettext("Guidelines")}
+              current={@proposed.guidelines}
+              previous={@original.guidelines}
+              formatter={&identity_text/1}
+            />
+            <.diff_field
+              :if={@proposed.target_countries != @original.target_countries}
+              label={gettext("Target countries")}
+              current={countries_to_text(@proposed.target_countries)}
+              previous={countries_to_text(@original.target_countries)}
+              formatter={&identity_text/1}
+            />
+            <div :if={@notes_changed_for != []} class="voice-diff-field">
+              <span class="voice-diff-label">{gettext("Cultural notes")}</span>
+              <span class="voice-diff-new">
+                {gettext("Updated for: %{countries}", countries: Enum.join(@notes_changed_for, ", "))}
+              </span>
+            </div>
+            <.diff_field
+              :if={@overrides_changed?}
+              label={gettext("Language overrides")}
+              current={overrides_to_text(@overrides)}
+              previous={overrides_to_text(@original_overrides)}
+              formatter={&identity_text/1}
+            />
+          <% else %>
+            <p class="muted">{gettext("No proposed changes detected.")}</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr :glossary_entries, :list, default: []
+  attr :original_glossary_entries, :list, default: []
+
+  defp glossary_suggestion_changes(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :change_details,
+        glossary_change_details(assigns.glossary_entries, assigns.original_glossary_entries)
+      )
+
+    ~H"""
+    <div class="voice-section">
+      <div class="voice-section-info">
+        <h2>{gettext("Proposed changes")}</h2>
+        <p>
+          {gettext(
+            "This review is read-only and mirrors the glossary editor layout. Go back to continue editing your draft."
+          )}
+        </p>
+      </div>
+      <div class="voice-card">
+        <div class="voice-card-fields">
+          <%= if @change_details == [] do %>
+            <p class="muted">{gettext("No proposed glossary changes detected.")}</p>
+          <% else %>
+            <div class="glossary-suggestion-list">
+              <%= for change <- @change_details do %>
+                <% entry = glossary_change_display_entry(change) %>
+                <% term_class = glossary_change_field_class(change, @original_glossary_entries, :term) %>
+                <% case_sensitive_class =
+                  glossary_change_field_class(change, @original_glossary_entries, :case_sensitive) %>
+                <% definition_class =
+                  glossary_change_field_class(change, @original_glossary_entries, :definition) %>
+                <% translation_rows =
+                  glossary_change_translation_rows(change, @original_glossary_entries) %>
+                <% single_header_field? =
+                  (not is_nil(term_class) and is_nil(case_sensitive_class)) or
+                    (is_nil(term_class) and not is_nil(case_sensitive_class)) %>
+                <div class={[
+                  "glossary-entry-block",
+                  glossary_suggestion_change_block_class(change.kind)
+                ]}>
+                  <div class="voice-override-header">
+                    <span class="voice-override-locale">{change.term}</span>
+                    <span class={glossary_change_badge_class(change.kind)}>
+                      {glossary_change_kind_label(change.kind)}
+                    </span>
+                  </div>
+                  <div class="voice-override-fields">
+                    <div class={["voice-field-row", single_header_field? && "voice-field-row-single"]}>
+                      <div :if={term_class} class={["voice-field", term_class]}>
+                        <label>{gettext("Term")}</label>
+                        <div class="glossary-readonly-value">
+                          {glossary_readonly_text(map_get(entry, :term, ""))}
+                        </div>
+                      </div>
+                      <div :if={case_sensitive_class} class={["voice-field", case_sensitive_class]}>
+                        <label>{gettext("Case sensitive")}</label>
+                        <div class="glossary-readonly-value">
+                          <%= if map_get(entry, :case_sensitive, false) do %>
+                            {gettext("Yes")}
+                          <% else %>
+                            {gettext("No")}
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                    <div :if={definition_class} class={["voice-field", definition_class]}>
+                      <label>{gettext("Definition")}</label>
+                      <div class="glossary-readonly-value multiline">
+                        {glossary_readonly_text(map_get(entry, :definition, ""))}
+                      </div>
+                    </div>
+
+                    <div :if={translation_rows != []} class="glossary-translations-section">
+                      <div class="glossary-translations-header">
+                        <span class="voice-diff-label">{gettext("Translations")}</span>
+                      </div>
+
+                      <%= for row <- translation_rows do %>
+                        <div class={["glossary-translation-row", row.class]}>
+                          <div class="voice-field">
+                            <div class="glossary-readonly-value">
+                              {glossary_readonly_text(map_get(row.translation, :locale, ""))}
+                            </div>
+                          </div>
+                          <div class="voice-field" style="flex: 1;">
+                            <div class="glossary-readonly-value">
+                              {glossary_readonly_text(map_get(row.translation, :translation, ""))}
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp glossary_change_details(entries, original_entries) do
+    current_entries = glossary_entries_term_map(entries)
+    previous_entries = glossary_entries_term_map(original_entries)
+
+    glossary_change_items(entries, original_entries)
+    |> Enum.map(fn change ->
+      Map.merge(change, %{
+        current: Map.get(current_entries, change.term),
+        previous: Map.get(previous_entries, change.term)
+      })
+    end)
+  end
+
+  defp glossary_entries_term_map(entries) do
+    entries
+    |> List.wrap()
+    |> Enum.reduce(%{}, fn entry, acc ->
+      term = map_get(entry, :term, "")
+
+      if term in [nil, ""] do
+        acc
+      else
+        Map.put(acc, term, entry)
+      end
+    end)
+  end
+
+  defp glossary_change_display_entry(%{kind: :removed, previous: previous}), do: previous || %{}
+  defp glossary_change_display_entry(%{current: current}), do: current || %{}
+
+  defp glossary_suggestion_change_block_class(:added), do: "glossary-entry-block-added"
+  defp glossary_suggestion_change_block_class(:removed), do: "glossary-entry-block-removed"
+  defp glossary_suggestion_change_block_class(:updated), do: "glossary-entry-block-changed"
+  defp glossary_suggestion_change_block_class(_), do: "glossary-entry-block-changed"
+
+  defp glossary_change_badge_class(:added), do: "voice-diff-badge voice-diff-badge-added"
+  defp glossary_change_badge_class(:removed), do: "voice-diff-badge voice-diff-badge-removed"
+  defp glossary_change_badge_class(:updated), do: "voice-diff-badge voice-diff-badge-updated"
+  defp glossary_change_badge_class(_), do: "voice-diff-badge"
+
+  defp glossary_change_field_class(%{kind: :added}, _original_entries, _field),
+    do: "voice-field-added"
+
+  defp glossary_change_field_class(%{kind: :removed}, _original_entries, _field),
+    do: "voice-field-removed"
+
+  defp glossary_change_field_class(
+         %{kind: :updated, current: current},
+         original_entries,
+         field
+       ) do
+    if glossary_entry_field_changed?(current || %{}, original_entries, field) do
+      "voice-field-changed"
+    end
+  end
+
+  defp glossary_change_field_class(_change, _original_entries, _field), do: nil
+
+  defp glossary_change_translation_rows(%{kind: :added, current: current}, _original_entries) do
+    current
+    |> glossary_translation_pairs()
+    |> Enum.sort()
+    |> Enum.map(fn pair ->
+      %{
+        translation: glossary_translation_from_pair(pair),
+        class: "glossary-translation-row-added"
+      }
+    end)
+  end
+
+  defp glossary_change_translation_rows(%{kind: :removed, previous: previous}, _original_entries) do
+    previous
+    |> glossary_translation_pairs()
+    |> Enum.sort()
+    |> Enum.map(fn pair ->
+      %{
+        translation: glossary_translation_from_pair(pair),
+        class: "glossary-translation-row-removed"
+      }
+    end)
+  end
+
+  defp glossary_change_translation_rows(
+         %{kind: :updated, current: current, previous: previous},
+         _original_entries
+       ) do
+    current_pairs =
+      current
+      |> glossary_translation_pairs()
+      |> Enum.sort()
+
+    previous_pairs =
+      previous
+      |> glossary_translation_pairs()
+      |> Enum.sort()
+
+    added_rows =
+      current_pairs
+      |> Kernel.--(previous_pairs)
+      |> Enum.map(fn pair ->
+        %{
+          translation: glossary_translation_from_pair(pair),
+          class: "glossary-translation-row-added"
+        }
+      end)
+
+    removed_rows =
+      previous_pairs
+      |> Kernel.--(current_pairs)
+      |> Enum.map(fn pair ->
+        %{
+          translation: glossary_translation_from_pair(pair),
+          class: "glossary-translation-row-removed"
+        }
+      end)
+
+    added_rows ++ removed_rows
+  end
+
+  defp glossary_change_translation_rows(_change, _original_entries), do: []
+
+  defp glossary_translation_pairs(entry) do
+    entry
+    |> map_get(:translations, [])
+    |> List.wrap()
+    |> Enum.map(fn translation ->
+      {map_get(translation, :locale, ""), map_get(translation, :translation, "")}
+    end)
+    |> Enum.reject(fn {locale, translation} -> locale == "" and translation == "" end)
+  end
+
+  defp glossary_translation_from_pair({locale, translation}) do
+    %{locale: locale, translation: translation}
+  end
+
+  defp glossary_readonly_text(nil), do: "-"
+  defp glossary_readonly_text(""), do: "-"
+  defp glossary_readonly_text(value), do: to_string(value)
 
   # ---------------------------------------------------------------------------
   # Shared: Diff field component
@@ -3645,11 +7162,167 @@ defmodule GlossiaWeb.DashboardLive do
   # Helpers
   # ---------------------------------------------------------------------------
 
+  defp fetch_github_repos_via_installation(installation) do
+    with {:ok, token} <-
+           Glossia.Github.App.installation_token(installation.github_installation_id),
+         {:ok, %{repositories: repos}} <-
+           Glossia.Github.Client.list_installation_repos(token) do
+      {:ok, repos}
+    end
+  end
+
+  defp fetch_github_repos_via_oauth(user) do
+    case Glossia.Accounts.get_github_token_for_user(user.id) do
+      nil ->
+        {:error, :no_github_token}
+
+      token ->
+        case Glossia.Github.Client.list_user_repos(token) do
+          {:ok, %{repositories: repos}} -> {:ok, repos}
+          {:error, _} = err -> err
+        end
+    end
+  end
+
+  defp filtered_repos(repos, ""), do: repos
+  defp filtered_repos(repos, nil), do: repos
+
+  defp filtered_repos(repos, query) do
+    q = String.downcase(query)
+
+    Enum.filter(repos, fn repo ->
+      String.contains?(String.downcase(repo["name"] || ""), q) or
+        String.contains?(String.downcase(repo["full_name"] || ""), q) or
+        String.contains?(String.downcase(repo["description"] || ""), q)
+    end)
+  end
+
   defp format_field(nil, _formatter), do: "-"
   defp format_field(val, nil), do: val |> String.capitalize()
   defp format_field(val, fun), do: fun.(val)
 
+  defp identity_text(nil), do: "-"
+  defp identity_text(""), do: "-"
+  defp identity_text(val), do: to_string(val)
+
   defp humanize_formality(val), do: val |> String.replace("_", " ") |> String.capitalize()
+
+  defp countries_to_text([]), do: gettext("None")
+  defp countries_to_text(countries), do: Enum.join(countries, ", ")
+
+  defp overrides_to_text(overrides) do
+    locales =
+      overrides
+      |> List.wrap()
+      |> Enum.map(&map_get(&1, :locale, ""))
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> Enum.sort()
+
+    if locales == [], do: gettext("None"), else: Enum.join(locales, ", ")
+  end
+
+  defp changed_cultural_note_codes(current_notes, original_notes) do
+    current_notes = if is_map(current_notes), do: current_notes, else: %{}
+    original_notes = if is_map(original_notes), do: original_notes, else: %{}
+
+    current_notes
+    |> Map.keys()
+    |> Kernel.++(Map.keys(original_notes))
+    |> Enum.uniq()
+    |> Enum.filter(fn code ->
+      Map.get(current_notes, code, "") != Map.get(original_notes, code, "")
+    end)
+    |> Enum.sort()
+  end
+
+  defp overrides_signature(overrides) do
+    overrides
+    |> List.wrap()
+    |> Enum.map(fn override ->
+      {map_get(override, :locale, ""), map_get(override, :tone, ""),
+       map_get(override, :formality, ""), map_get(override, :target_audience, ""),
+       map_get(override, :guidelines, "")}
+    end)
+    |> Enum.reject(fn {locale, _tone, _formality, _audience, _guidelines} -> locale == "" end)
+    |> Enum.sort()
+  end
+
+  defp glossary_change_items(entries, original_entries) do
+    current = glossary_entries_index(entries)
+    previous = glossary_entries_index(original_entries)
+
+    current
+    |> Map.keys()
+    |> Kernel.++(Map.keys(previous))
+    |> Enum.uniq()
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.sort()
+    |> Enum.reduce([], fn term, acc ->
+      case {Map.get(previous, term), Map.get(current, term)} do
+        {nil, _present} ->
+          [%{term: term, kind: :added} | acc]
+
+        {_present, nil} ->
+          [%{term: term, kind: :removed} | acc]
+
+        {prev, cur} when prev != cur ->
+          [%{term: term, kind: :updated} | acc]
+
+        _ ->
+          acc
+      end
+    end)
+    |> Enum.reverse()
+  end
+
+  defp glossary_entries_index(entries) do
+    entries
+    |> List.wrap()
+    |> Enum.reduce(%{}, fn entry, acc ->
+      term = map_get(entry, :term, "")
+
+      if term in [nil, ""] do
+        acc
+      else
+        Map.put(acc, term, glossary_entry_signature(entry))
+      end
+    end)
+  end
+
+  defp glossary_entry_signature(entry) do
+    translations =
+      entry
+      |> map_get(:translations, [])
+      |> List.wrap()
+      |> Enum.map(fn translation ->
+        {map_get(translation, :locale, ""), map_get(translation, :translation, "")}
+      end)
+      |> Enum.reject(fn {locale, translation} -> locale == "" and translation == "" end)
+      |> Enum.sort()
+
+    %{
+      definition: map_get(entry, :definition, nil),
+      case_sensitive: map_get(entry, :case_sensitive, false),
+      translations: translations
+    }
+  end
+
+  defp glossary_change_kind_label(:added), do: gettext("Added")
+  defp glossary_change_kind_label(:removed), do: gettext("Removed")
+  defp glossary_change_kind_label(:updated), do: gettext("Updated")
+  defp glossary_change_kind_label(_), do: gettext("Changed")
+
+  defp map_get(nil, _key, default), do: default
+
+  defp map_get(map, key, default) when is_map(map) and is_atom(key) do
+    case Map.fetch(map, key) do
+      {:ok, value} ->
+        value
+
+      :error ->
+        Map.get(map, Atom.to_string(key), default)
+    end
+  end
 
   defp gravatar_url(email, size \\ 24) do
     hash =
@@ -3659,8 +7332,60 @@ defmodule GlossiaWeb.DashboardLive do
     "https://www.gravatar.com/avatar/#{hash}?s=#{size}&d=mp"
   end
 
+  defp user_avatar_url(user) do
+    user.avatar_url || gravatar_url(user.email)
+  end
+
   defp non_empty(""), do: nil
   defp non_empty(val), do: val
+
+  defp humanize_event_name(name) do
+    name
+    |> String.replace(".", " ")
+    |> String.replace("_", " ")
+    |> String.capitalize()
+  end
+
+  # Normalize legacy resource paths that predate the /:handle/-/ URL restructure.
+  # Paths like "/dev/voice/3" become "/dev/-/voice/3".
+  # Paths already containing "/-/" or starting with "/admin" are left unchanged.
+  @legacy_path_segments ~w(voice glossary discussions tickets members logs settings)
+  defp normalize_resource_path(""), do: ""
+
+  defp normalize_resource_path(path) when is_binary(path) do
+    if String.contains?(path, "/-/") or String.starts_with?(path, "/admin") do
+      path
+    else
+      case String.split(path, "/", parts: 4) do
+        ["", handle, segment | rest] ->
+          if segment in @legacy_path_segments do
+            "/" <> handle <> "/-/" <> segment <> if(rest != [], do: "/" <> hd(rest), else: "")
+          else
+            path
+          end
+
+        _ ->
+          path
+      end
+    end
+  end
+
+  defp list_suggestion_discussions(account, kind) do
+    params = %{
+      "order_by" => ["inserted_at"],
+      "order_directions" => ["desc"],
+      "page_size" => 10,
+      "filters" => [
+        %{"field" => "kind", "op" => "==", "value" => kind},
+        %{"field" => "status", "op" => "==", "value" => "open"}
+      ]
+    }
+
+    case Discussions.list_discussions(account, params) do
+      {:ok, {tickets, _meta}} -> tickets
+      _ -> []
+    end
+  end
 
   defp parse_glossary_entries_from_params(params, fallback_entries) do
     case params["entries"] do
@@ -3688,6 +7413,376 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp parse_voice_overrides_from_params(params, fallback_overrides) do
+    case params["overrides"] do
+      nil ->
+        fallback_overrides
+
+      overrides_map ->
+        overrides_map
+        |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
+        |> Enum.map(fn {_idx, override} ->
+          %{
+            locale: override["locale"] || "",
+            tone: non_empty(override["tone"] || ""),
+            formality: non_empty(override["formality"] || ""),
+            target_audience: non_empty(override["target_audience"] || ""),
+            guidelines: non_empty(override["guidelines"] || "")
+          }
+        end)
+    end
+  end
+
+  defp sanitize_voice_form_params(params) do
+    %{
+      "description" => Map.get(params, "description", ""),
+      "tone" => Map.get(params, "tone", ""),
+      "formality" => Map.get(params, "formality", ""),
+      "target_audience" => Map.get(params, "target_audience", ""),
+      "guidelines" => Map.get(params, "guidelines", ""),
+      "overrides" => sanitize_voice_overrides(Map.get(params, "overrides", %{})),
+      "suggestion_title" => suggestion_param_value(params, "suggestion_title", "request_title"),
+      "suggestion_body" => suggestion_param_value(params, "suggestion_body", "request_body"),
+      "change_note" => Map.get(params, "change_note", "")
+    }
+  end
+
+  defp sanitize_voice_overrides(overrides) when is_map(overrides) do
+    overrides
+    |> Enum.reduce(%{}, fn {idx, override}, acc ->
+      Map.put(acc, to_string(idx), %{
+        "locale" => Map.get(override, "locale", ""),
+        "tone" => Map.get(override, "tone", ""),
+        "formality" => Map.get(override, "formality", ""),
+        "target_audience" => Map.get(override, "target_audience", ""),
+        "guidelines" => Map.get(override, "guidelines", "")
+      })
+    end)
+  end
+
+  defp sanitize_voice_overrides(_), do: %{}
+
+  defp sanitize_glossary_form_params(params) do
+    %{
+      "entries" => sanitize_glossary_entries(Map.get(params, "entries", %{})),
+      "suggestion_title" => suggestion_param_value(params, "suggestion_title", "request_title"),
+      "suggestion_body" => suggestion_param_value(params, "suggestion_body", "request_body"),
+      "change_note" => Map.get(params, "change_note", "")
+    }
+  end
+
+  defp suggestion_param_value(params, new_key, old_key) do
+    Map.get(params, new_key, Map.get(params, old_key, ""))
+  end
+
+  defp suggestion_text_param(params, new_key, old_key) do
+    params
+    |> suggestion_param_value(new_key, old_key)
+    |> to_string()
+    |> String.trim()
+  end
+
+  defp sanitize_glossary_entries(entries) when is_map(entries) do
+    entries
+    |> Enum.reduce(%{}, fn {idx, entry}, acc ->
+      Map.put(acc, to_string(idx), %{
+        "term" => Map.get(entry, "term", ""),
+        "definition" => Map.get(entry, "definition", ""),
+        "case_sensitive" => Map.get(entry, "case_sensitive", "false"),
+        "translations" => sanitize_glossary_translations(Map.get(entry, "translations", %{}))
+      })
+    end)
+  end
+
+  defp sanitize_glossary_entries(_), do: %{}
+
+  defp sanitize_glossary_translations(translations) when is_map(translations) do
+    translations
+    |> Enum.reduce(%{}, fn {idx, translation}, acc ->
+      Map.put(acc, to_string(idx), %{
+        "locale" => Map.get(translation, "locale", ""),
+        "translation" => Map.get(translation, "translation", "")
+      })
+    end)
+  end
+
+  defp sanitize_glossary_translations(_), do: %{}
+
+  defp merge_suggestion_params(base_params, submit_params) do
+    Map.merge(base_params, submit_params, fn _key, old, new ->
+      if new in [nil, ""], do: old, else: new
+    end)
+  end
+
+  defp encode_draft_token(data) when is_map(data) do
+    data
+    |> JSON.encode!()
+    |> Base.url_encode64(padding: false)
+  end
+
+  defp decode_draft_token(nil), do: nil
+  defp decode_draft_token(""), do: nil
+
+  defp decode_draft_token(token) when is_binary(token) do
+    with {:ok, decoded} <- Base.url_decode64(token, padding: false),
+         {:ok, data} <- JSON.decode(decoded),
+         true <- is_map(data) do
+      data
+    else
+      _ -> nil
+    end
+  end
+
+  defp maybe_with_draft_param(path, nil), do: path
+  defp maybe_with_draft_param(path, ""), do: path
+
+  defp maybe_with_draft_param(path, token) do
+    path <> "?" <> URI.encode_query(%{"draft" => token})
+  end
+
+  defp existing_token_from_assign(socket, key) when is_atom(key) do
+    case socket.assigns[key] do
+      token when is_binary(token) and token != "" -> token
+      _ -> nil
+    end
+  end
+
+  defp maybe_redirect_to_suggestion_finalize(socket, params) do
+    handle = socket.assigns.handle
+
+    cond do
+      socket.assigns.live_action == :voice and
+          (socket.assigns[:pending_voice_suggestion_redirect] || false) ->
+        token = socket.assigns[:voice_draft_token] || Map.get(params, "draft")
+
+        if is_binary(token) and token != "" do
+          socket
+          |> assign(pending_voice_suggestion_redirect: false)
+          |> push_patch(to: maybe_with_draft_param("/#{handle}/-/voice/suggestion/new", token))
+        else
+          assign(socket, pending_voice_suggestion_redirect: false)
+        end
+
+      socket.assigns.live_action == :glossary and
+          (socket.assigns[:pending_glossary_suggestion_redirect] || false) ->
+        token = socket.assigns[:glossary_draft_token] || Map.get(params, "draft")
+
+        if is_binary(token) and token != "" do
+          socket
+          |> assign(pending_glossary_suggestion_redirect: false)
+          |> push_patch(to: maybe_with_draft_param("/#{handle}/-/glossary/suggestion/new", token))
+        else
+          assign(socket, pending_glossary_suggestion_redirect: false)
+        end
+
+      true ->
+        socket
+    end
+  end
+
+  defp voice_suggestion_draft_from_token(
+         token,
+         baseline_voice,
+         baseline_overrides,
+         baseline_countries,
+         baseline_notes
+       ) do
+    case decode_draft_token(token) do
+      %{"voice_form_params" => params} = decoded ->
+        draft_params = sanitize_voice_form_params(params)
+
+        target_countries =
+          normalize_draft_string_list(decoded["target_countries"], baseline_countries)
+
+        cultural_notes = normalize_draft_string_map(decoded["cultural_notes"], baseline_notes)
+        overrides = parse_voice_overrides_from_params(draft_params, baseline_overrides)
+
+        %{
+          voice: baseline_voice,
+          original_voice: baseline_voice,
+          overrides: overrides,
+          original_overrides: baseline_overrides,
+          target_countries: target_countries,
+          cultural_notes: cultural_notes,
+          voice_form_params: draft_params,
+          change_summary: to_string(decoded["change_summary"] || "")
+        }
+
+      _ ->
+        nil
+    end
+  end
+
+  defp glossary_suggestion_draft_from_token(token, baseline_glossary, baseline_entries) do
+    case decode_draft_token(token) do
+      %{"glossary_form_params" => params} = decoded ->
+        draft_params = sanitize_glossary_form_params(params)
+        entries = parse_glossary_entries_from_params(draft_params, baseline_entries)
+
+        %{
+          glossary: baseline_glossary,
+          original_glossary: baseline_glossary,
+          glossary_entries: entries,
+          original_glossary_entries: baseline_entries,
+          glossary_form_params: draft_params,
+          change_summary: to_string(decoded["change_summary"] || "")
+        }
+
+      _ ->
+        nil
+    end
+  end
+
+  defp normalize_draft_string_list(nil, fallback), do: fallback
+
+  defp normalize_draft_string_list(list, _fallback) when is_list(list) do
+    list
+    |> Enum.map(&to_string/1)
+    |> Enum.reject(&(&1 == ""))
+  end
+
+  defp normalize_draft_string_list(_, fallback), do: fallback
+
+  defp normalize_draft_string_map(nil, fallback), do: fallback
+
+  defp normalize_draft_string_map(map, _fallback) when is_map(map) do
+    map
+    |> Enum.into(%{}, fn {k, v} -> {to_string(k), to_string(v || "")} end)
+  end
+
+  defp normalize_draft_string_map(_, fallback), do: fallback
+
+  defp begin_voice_suggestion(params, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+
+    can_discussion_write =
+      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+
+    can_propose = socket.assigns[:can_voice_propose] || false
+
+    if not (can_discussion_write and can_propose) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      existing_params = socket.assigns[:voice_form_params] || %{}
+
+      merged_params =
+        Map.merge(existing_params, params, fn _key, old, new ->
+          if new in [nil, ""], do: old, else: new
+        end)
+
+      cultural_notes =
+        case merged_params["cultural_notes"] do
+          notes when is_map(notes) -> Map.merge(socket.assigns.cultural_notes, notes)
+          _ -> socket.assigns.cultural_notes
+        end
+
+      overrides = parse_voice_overrides_from_params(merged_params, socket.assigns.overrides)
+      change_note = socket.assigns[:change_summary] || ""
+
+      draft_params =
+        merged_params
+        |> Map.put_new("suggestion_title", "")
+        |> Map.put_new("suggestion_body", "")
+        |> Map.put("change_note", change_note)
+
+      draft_params = sanitize_voice_form_params(draft_params)
+
+      draft_token =
+        encode_draft_token(%{
+          "voice_form_params" => draft_params,
+          "target_countries" => socket.assigns.target_countries || [],
+          "cultural_notes" => cultural_notes || %{},
+          "change_summary" => socket.assigns.change_summary || ""
+        })
+
+      handle = socket.assigns.handle
+      voice_draft_path = maybe_with_draft_param("/#{handle}/-/voice", draft_token)
+
+      {:noreply,
+       socket
+       |> assign(
+         overrides: overrides,
+         cultural_notes: cultural_notes,
+         voice_form_params: draft_params,
+         voice_suggestion_draft: %{
+           voice: socket.assigns.voice,
+           original_voice: socket.assigns.original_voice,
+           overrides: overrides,
+           original_overrides: socket.assigns.original_overrides,
+           target_countries: socket.assigns.target_countries,
+           cultural_notes: cultural_notes,
+           voice_form_params: draft_params,
+           change_summary: socket.assigns.change_summary
+         },
+         voice_draft_token: draft_token,
+         pending_voice_suggestion_redirect: true,
+         voice_back_path: maybe_with_draft_param("/#{handle}/-/voice", draft_token)
+       )
+       |> push_patch(to: voice_draft_path)}
+    end
+  end
+
+  defp begin_glossary_suggestion(params, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+
+    can_discussion_write =
+      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+
+    can_propose = socket.assigns[:can_glossary_propose] || false
+
+    if not (can_discussion_write and can_propose) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      existing_params = socket.assigns[:glossary_form_params] || %{}
+
+      merged_params =
+        Map.merge(existing_params, params, fn _key, old, new ->
+          if new in [nil, ""], do: old, else: new
+        end)
+
+      entries = parse_glossary_entries_from_params(merged_params, socket.assigns.glossary_entries)
+      change_note = socket.assigns[:change_summary] || ""
+
+      draft_params =
+        merged_params
+        |> Map.put_new("suggestion_title", "")
+        |> Map.put_new("suggestion_body", "")
+        |> Map.put("change_note", change_note)
+
+      draft_params = sanitize_glossary_form_params(draft_params)
+
+      draft_token =
+        encode_draft_token(%{
+          "glossary_form_params" => draft_params,
+          "change_summary" => socket.assigns.change_summary || ""
+        })
+
+      handle = socket.assigns.handle
+      glossary_draft_path = maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
+
+      {:noreply,
+       socket
+       |> assign(
+         glossary_entries: entries,
+         glossary_form_params: draft_params,
+         glossary_suggestion_draft: %{
+           glossary: socket.assigns.glossary,
+           original_glossary: socket.assigns.original_glossary,
+           glossary_entries: entries,
+           original_glossary_entries: socket.assigns.original_glossary_entries,
+           glossary_form_params: draft_params,
+           change_summary: socket.assigns.change_summary
+         },
+         glossary_draft_token: draft_token,
+         pending_glossary_suggestion_redirect: true,
+         glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
+       )
+       |> push_patch(to: glossary_draft_path)}
+    end
+  end
+
   defp form_changed?(_params, nil, _original_overrides), do: true
 
   defp form_changed?(params, original_voice, original_overrides) do
@@ -3710,6 +7805,136 @@ defmodule GlossiaWeb.DashboardLive do
       |> MapSet.new()
 
     base_changed? or params_overrides != orig_overrides
+  end
+
+  defp voice_field_changed?(params, original_voice, field) do
+    original_value = voice_original_value(original_voice, field)
+    current_value = Map.get(params || %{}, field, original_value)
+    current_value != original_value
+  end
+
+  defp voice_target_countries_changed?(target_countries, nil), do: target_countries != []
+
+  defp voice_target_countries_changed?(target_countries, original_voice) do
+    target_countries != (original_voice.target_countries || [])
+  end
+
+  defp voice_cultural_notes_changed?(cultural_notes, nil), do: cultural_notes != %{}
+
+  defp voice_cultural_notes_changed?(cultural_notes, original_voice) do
+    cultural_notes != (original_voice.cultural_notes || %{})
+  end
+
+  defp voice_country_note_changed?(country_code, cultural_notes, nil) do
+    Map.get(cultural_notes || %{}, country_code, "") != ""
+  end
+
+  defp voice_country_note_changed?(country_code, cultural_notes, original_voice) do
+    current_note = Map.get(cultural_notes || %{}, country_code, "")
+    original_note = Map.get(original_voice.cultural_notes || %{}, country_code, "")
+    current_note != original_note
+  end
+
+  defp voice_override_changed?(override, original_overrides) do
+    current_override = normalize_override_struct(override)
+
+    original_overrides
+    |> List.wrap()
+    |> Enum.map(&normalize_override_struct/1)
+    |> MapSet.new()
+    |> MapSet.member?(current_override)
+    |> Kernel.not()
+  end
+
+  defp voice_original_value(nil, _field), do: ""
+
+  defp voice_original_value(voice, "description"), do: voice.description || ""
+  defp voice_original_value(voice, "tone"), do: voice.tone || ""
+  defp voice_original_value(voice, "formality"), do: voice.formality || ""
+  defp voice_original_value(voice, "target_audience"), do: voice.target_audience || ""
+  defp voice_original_value(voice, "guidelines"), do: voice.guidelines || ""
+  defp voice_original_value(_voice, _field), do: ""
+
+  defp glossary_entry_changed?(entry, original_entries) do
+    case glossary_original_entry(entry, original_entries) do
+      nil ->
+        true
+
+      original_entry ->
+        glossary_entry_signature(entry) != glossary_entry_signature(original_entry)
+    end
+  end
+
+  defp glossary_entry_field_changed?(entry, original_entries, :term) do
+    case glossary_original_entry(entry, original_entries) do
+      nil -> map_get(entry, :term, "") != ""
+      _ -> false
+    end
+  end
+
+  defp glossary_entry_field_changed?(entry, original_entries, :case_sensitive) do
+    current_value = map_get(entry, :case_sensitive, false)
+
+    case glossary_original_entry(entry, original_entries) do
+      nil ->
+        current_value
+
+      original_entry ->
+        current_value != map_get(original_entry, :case_sensitive, false)
+    end
+  end
+
+  defp glossary_entry_field_changed?(entry, original_entries, :definition) do
+    current_value = map_get(entry, :definition, "") || ""
+
+    case glossary_original_entry(entry, original_entries) do
+      nil ->
+        current_value != ""
+
+      original_entry ->
+        current_value != (map_get(original_entry, :definition, "") || "")
+    end
+  end
+
+  defp glossary_entry_field_changed?(_entry, _original_entries, _field), do: false
+
+  defp glossary_translation_changed?(entry, translation, original_entries) do
+    current_pair = {
+      map_get(translation, :locale, ""),
+      map_get(translation, :translation, "")
+    }
+
+    case glossary_original_entry(entry, original_entries) do
+      nil ->
+        current_pair != {"", ""}
+
+      original_entry ->
+        original_translation_pairs =
+          original_entry
+          |> map_get(:translations, [])
+          |> List.wrap()
+          |> Enum.map(fn original_translation ->
+            {
+              map_get(original_translation, :locale, ""),
+              map_get(original_translation, :translation, "")
+            }
+          end)
+          |> MapSet.new()
+
+        not MapSet.member?(original_translation_pairs, current_pair)
+    end
+  end
+
+  defp glossary_original_entry(entry, original_entries) do
+    term = map_get(entry, :term, "")
+
+    if term in [nil, ""] do
+      nil
+    else
+      Enum.find(List.wrap(original_entries), fn original_entry ->
+        map_get(original_entry, :term, "") == term
+      end)
+    end
   end
 
   defp form_changed_overrides?(overrides, original_overrides) do
@@ -3747,36 +7972,73 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
   # Save form helpers (extracted to avoid splitting handle_event clauses)
 
+  defp submit_voice_suggestion(params, change_note, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+    handle = socket.assigns.handle
+
+    merged_params = merge_suggestion_params(socket.assigns[:voice_form_params] || %{}, params)
+    payload = voice_payload_from_params(merged_params, socket)
+    base_version = socket.assigns.original_voice && socket.assigns.original_voice.version
+    suggestion_title_text = suggestion_text_param(params, "suggestion_title", "request_title")
+    suggestion_body_text = suggestion_text_param(params, "suggestion_body", "request_body")
+
+    attrs = %{
+      title:
+        if(suggestion_title_text != "",
+          do: suggestion_title_text,
+          else: suggestion_title(gettext("Voice"), change_note)
+        ),
+      body:
+        if(suggestion_body_text != "",
+          do: suggestion_body_text,
+          else: suggestion_body(gettext("voice"), change_note)
+        ),
+      kind: "voice_suggestion",
+      metadata: %{
+        "resource" => "voice",
+        "change_note" => change_note,
+        "base_version" => base_version,
+        "payload" => payload
+      }
+    }
+
+    case Discussions.create_discussion(account, user, attrs) do
+      {:ok, ticket} ->
+        Auditing.record("voice.suggested", account, user,
+          resource_type: "discussion",
+          resource_id: to_string(ticket.id),
+          resource_path: "/#{handle}/-/discussions/#{ticket.number}",
+          summary: change_note
+        )
+
+        {:noreply,
+         socket
+         |> assign(
+           voice_suggestion_draft: nil,
+           voice_draft_token: nil,
+           pending_voice_suggestion_redirect: false,
+           voice_back_path: "/#{handle}/-/voice"
+         )
+         |> put_flash(
+           :info,
+           gettext("Voice suggestion submitted as discussion #%{number}.", number: ticket.number)
+         )
+         |> push_patch(to: "/#{handle}/-/discussions/#{ticket.number}")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to submit voice suggestion."))}
+    end
+  end
+
   defp save_voice(params, change_note, socket) do
     account = socket.assigns.account
     user = socket.assigns.current_user
     handle = socket.assigns.handle
 
-    voice_attrs = %{
-      tone: params["tone"],
-      formality: params["formality"],
-      target_audience: params["target_audience"],
-      guidelines: params["guidelines"],
-      description: non_empty(params["description"]),
-      target_countries: socket.assigns.target_countries,
-      cultural_notes: socket.assigns.cultural_notes,
-      change_note: change_note
-    }
-
-    overrides =
-      (params["overrides"] || %{})
-      |> Enum.reject(fn {_idx, o} -> o["locale"] == "" or is_nil(o["locale"]) end)
-      |> Enum.map(fn {_idx, o} ->
-        %{
-          locale: o["locale"],
-          tone: non_empty(o["tone"]),
-          formality: non_empty(o["formality"]),
-          target_audience: non_empty(o["target_audience"]),
-          guidelines: non_empty(o["guidelines"])
-        }
-      end)
-
-    attrs = Map.put(voice_attrs, :overrides, overrides)
+    attrs =
+      voice_payload_from_params(params, socket)
+      |> Map.put(:change_note, change_note)
 
     case Voices.create_voice(account, attrs, user) do
       {:ok, %{voice: voice}} ->
@@ -3797,11 +8059,136 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp submit_glossary_suggestion(params, change_note, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+    handle = socket.assigns.handle
+
+    merged_params = merge_suggestion_params(socket.assigns[:glossary_form_params] || %{}, params)
+    payload = glossary_payload_from_params(merged_params)
+    base_version = socket.assigns.original_glossary && socket.assigns.original_glossary.version
+    suggestion_title_text = suggestion_text_param(params, "suggestion_title", "request_title")
+    suggestion_body_text = suggestion_text_param(params, "suggestion_body", "request_body")
+
+    attrs = %{
+      title:
+        if(suggestion_title_text != "",
+          do: suggestion_title_text,
+          else: suggestion_title(gettext("Glossary"), change_note)
+        ),
+      body:
+        if(suggestion_body_text != "",
+          do: suggestion_body_text,
+          else: suggestion_body(gettext("glossary"), change_note)
+        ),
+      kind: "glossary_suggestion",
+      metadata: %{
+        "resource" => "glossary",
+        "change_note" => change_note,
+        "base_version" => base_version,
+        "payload" => payload
+      }
+    }
+
+    case Discussions.create_discussion(account, user, attrs) do
+      {:ok, ticket} ->
+        Auditing.record("glossary.suggested", account, user,
+          resource_type: "discussion",
+          resource_id: to_string(ticket.id),
+          resource_path: "/#{handle}/-/discussions/#{ticket.number}",
+          summary: change_note
+        )
+
+        {:noreply,
+         socket
+         |> assign(
+           glossary_suggestion_draft: nil,
+           glossary_draft_token: nil,
+           pending_glossary_suggestion_redirect: false,
+           glossary_back_path: "/#{handle}/-/glossary"
+         )
+         |> put_flash(
+           :info,
+           gettext("Glossary suggestion submitted as discussion #%{number}.",
+             number: ticket.number
+           )
+         )
+         |> push_patch(to: "/#{handle}/-/discussions/#{ticket.number}")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to submit glossary suggestion."))}
+    end
+  end
+
   defp save_glossary(params, change_note, socket) do
     account = socket.assigns.account
     user = socket.assigns.current_user
     handle = socket.assigns.handle
 
+    attrs =
+      glossary_payload_from_params(params)
+      |> Map.put(:change_note, change_note)
+
+    case Glossaries.create_glossary(account, attrs, user) do
+      {:ok, %{glossary: glossary}} ->
+        Auditing.record("glossary.created", account, user,
+          resource_type: "glossary",
+          resource_id: to_string(glossary.version),
+          resource_path: "/#{handle}/-/glossary/#{glossary.version}",
+          summary: change_note
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Glossary saved."))
+         |> push_patch(to: "/#{handle}/-/glossary")}
+
+      {:error, _step, _changeset, _changes} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to save glossary."))}
+    end
+  end
+
+  defp glossary_suggestion_change_note(params, socket) do
+    suggestion_title_text = suggestion_text_param(params, "suggestion_title", "request_title")
+    summary = String.trim(socket.assigns[:change_summary] || "")
+    draft_note = String.trim((socket.assigns[:glossary_form_params] || %{})["change_note"] || "")
+
+    cond do
+      suggestion_title_text != "" -> suggestion_title_text
+      summary != "" -> summary
+      draft_note != "" -> draft_note
+      true -> gettext("Glossary suggestion")
+    end
+  end
+
+  defp voice_payload_from_params(params, socket) do
+    voice_attrs = %{
+      tone: params["tone"],
+      formality: params["formality"],
+      target_audience: params["target_audience"],
+      guidelines: params["guidelines"],
+      description: non_empty(params["description"]),
+      target_countries: socket.assigns.target_countries,
+      cultural_notes: socket.assigns.cultural_notes
+    }
+
+    overrides =
+      (params["overrides"] || %{})
+      |> Enum.reject(fn {_idx, o} -> o["locale"] == "" or is_nil(o["locale"]) end)
+      |> Enum.map(fn {_idx, o} ->
+        %{
+          locale: o["locale"],
+          tone: non_empty(o["tone"]),
+          formality: non_empty(o["formality"]),
+          target_audience: non_empty(o["target_audience"]),
+          guidelines: non_empty(o["guidelines"])
+        }
+      end)
+
+    Map.put(voice_attrs, :overrides, overrides)
+  end
+
+  defp glossary_payload_from_params(params) do
     entries =
       (params["entries"] || %{})
       |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
@@ -3825,29 +8212,134 @@ defmodule GlossiaWeb.DashboardLive do
         }
       end)
 
-    attrs = %{
-      change_note: change_note,
-      entries: entries
-    }
+    %{entries: entries}
+  end
 
-    case Glossaries.create_glossary(account, attrs, user) do
-      {:ok, %{glossary: glossary}} ->
-        Auditing.record("glossary.created", account, user,
-          resource_type: "glossary",
-          resource_id: to_string(glossary.version),
-          resource_path: "/#{handle}/-/glossary/#{glossary.version}",
-          summary: change_note
-        )
+  defp suggestion_title(resource_name, change_note) do
+    truncated = change_note |> String.trim() |> String.slice(0, 80)
+    "#{resource_name} #{gettext("suggestion")}: #{truncated}"
+  end
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Glossary saved."))
-         |> push_patch(to: "/#{handle}/-/glossary")}
+  defp suggestion_body(resource_name, change_note) do
+    gettext(
+      "Proposed %{resource} update.\n\nChange note: %{note}\n\nUse the discussion action to apply this suggestion when ready.",
+      resource: resource_name,
+      note: change_note
+    )
+  end
 
-      {:error, _step, _changeset, _changes} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to save glossary."))}
+  defp apply_discussion_suggestion(ticket, account, user, handle) do
+    cond do
+      is_nil(user) ->
+        {:error, :not_allowed}
+
+      ticket.status != "open" ->
+        {:error, :invalid_ticket}
+
+      ticket.kind == "voice_suggestion" ->
+        apply_voice_suggestion(ticket, account, user, handle)
+
+      ticket.kind == "glossary_suggestion" ->
+        apply_glossary_suggestion(ticket, account, user, handle)
+
+      true ->
+        {:error, :invalid_ticket}
     end
   end
+
+  defp apply_voice_suggestion(ticket, account, user, handle) do
+    if not Glossia.Policy.authorize?(:voice_write, user, account) do
+      {:error, :not_allowed}
+    else
+      metadata = ticket.metadata || %{}
+      payload = metadata["payload"]
+      change_note = metadata["change_note"]
+
+      if not is_map(payload) or not is_binary(change_note) or change_note == "" do
+        {:error, :invalid_payload}
+      else
+        attrs = Map.put(payload, "change_note", change_note)
+
+        case Voices.create_voice(account, attrs, user) do
+          {:ok, %{voice: voice}} ->
+            maybe_close_discussion(ticket, user)
+
+            _ =
+              Discussions.add_comment(ticket, user, %{
+                body: applied_comment(:voice, voice.version)
+              })
+
+            Auditing.record("voice.suggestion.applied", account, user,
+              resource_type: "discussion",
+              resource_id: to_string(ticket.id),
+              resource_path: "/#{handle}/-/discussions/#{ticket.number}",
+              summary: "Applied voice suggestion ##{ticket.number} as version ##{voice.version}"
+            )
+
+            {:ok,
+             gettext("Applied voice suggestion as version #%{version}.", version: voice.version)}
+
+          {:error, _step, _changeset, _changes} ->
+            {:error, :invalid_payload}
+        end
+      end
+    end
+  end
+
+  defp apply_glossary_suggestion(ticket, account, user, handle) do
+    if not Glossia.Policy.authorize?(:glossary_write, user, account) do
+      {:error, :not_allowed}
+    else
+      metadata = ticket.metadata || %{}
+      payload = metadata["payload"]
+      change_note = metadata["change_note"]
+
+      if not is_map(payload) or not is_binary(change_note) or change_note == "" do
+        {:error, :invalid_payload}
+      else
+        attrs = Map.put(payload, "change_note", change_note)
+
+        case Glossaries.create_glossary(account, attrs, user) do
+          {:ok, %{glossary: glossary}} ->
+            maybe_close_discussion(ticket, user)
+
+            _ =
+              Discussions.add_comment(ticket, user, %{
+                body: applied_comment(:glossary, glossary.version)
+              })
+
+            Auditing.record("glossary.suggestion.applied", account, user,
+              resource_type: "discussion",
+              resource_id: to_string(ticket.id),
+              resource_path: "/#{handle}/-/discussions/#{ticket.number}",
+              summary:
+                "Applied glossary suggestion ##{ticket.number} as version ##{glossary.version}"
+            )
+
+            {:ok,
+             gettext("Applied glossary suggestion as version #%{version}.",
+               version: glossary.version
+             )}
+
+          {:error, _step, _changeset, _changes} ->
+            {:error, :invalid_payload}
+        end
+      end
+    end
+  end
+
+  defp maybe_close_discussion(%{status: "open"} = ticket, user) do
+    _ = Discussions.close_discussion(ticket, user)
+    :ok
+  end
+
+  defp maybe_close_discussion(_ticket, _user), do: :ok
+
+  defp applied_comment(:voice, version),
+    do: gettext("Applied this suggestion as voice version #%{version}.", version: version)
+
+  defp applied_comment(:glossary, version),
+    do: gettext("Applied this suggestion as glossary version #%{version}.", version: version)
 
   # LLM summary helpers
   # ---------------------------------------------------------------------------
@@ -3874,7 +8366,7 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket, summary_timer_ref: nil)
   end
 
-  defp schedule_title_generation(socket, description) do
+  defp schedule_title_generation(socket, body) do
     if timer = socket.assigns[:ticket_title_timer_ref] do
       Process.cancel_timer(timer)
     end
@@ -3885,7 +8377,7 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket,
       ticket_title_generation: generation,
       ticket_title_timer_ref: timer_ref,
-      ticket_description_for_title: description
+      ticket_body_for_title: body
     )
   end
 
@@ -3942,12 +8434,15 @@ defmodule GlossiaWeb.DashboardLive do
 
   # Table ID -> param prefix mapping
   @table_prefixes %{
+    "projects-table" => "p",
     "activity-table" => "",
     "members-table" => "m",
     "invitations-table" => "i",
     "tokens-table" => "t",
     "oauth-apps-table" => "a",
-    "tickets-table" => "k"
+    "discussions-table" => "k",
+    "translations-table" => "ts",
+    "commits-table" => "c"
   }
 
   defp push_table_params(socket, table_id, overrides) do
@@ -3967,13 +8462,20 @@ defmodule GlossiaWeb.DashboardLive do
       |> add_filter_params(prefix, merged[:filters] || %{})
       |> merge_other_table_params(socket, table_id)
 
+    project_handle =
+      if action in [:project_translations, :project_activity],
+        do: socket.assigns.project.handle,
+        else: nil
+
     path =
       case action do
         :logs -> "/#{handle}/-/logs"
         :members -> "/#{handle}/-/members"
         :api_tokens -> "/#{handle}/-/settings/tokens"
         :api_apps -> "/#{handle}/-/settings/apps"
-        :tickets -> "/#{handle}/-/tickets"
+        :discussions -> "/#{handle}/-/discussions"
+        :project_translations -> "/#{handle}/#{project_handle}/-/translations"
+        :project_activity -> "/#{handle}/#{project_handle}/-/activity"
         _ -> "/#{handle}"
       end
 
@@ -3984,28 +8486,80 @@ defmodule GlossiaWeb.DashboardLive do
         path <> "?" <> URI.encode_query(query_params)
       end
 
-    push_patch(socket, to: url)
+    socket
+    |> push_event("filters_updated:" <> table_id, %{active: merged[:filters] || %{}})
+    |> push_patch(to: url)
   end
 
   defp maybe_add_param(params, _key, value, default) when value == default, do: params
   defp maybe_add_param(params, key, value, _default), do: params ++ [{key, to_string(value)}]
 
-  defp maybe_add_flop_filters(params, filters) when map_size(filters) == 0, do: params
+  defp maybe_add_flop_filters(params, filters, _filter_types) when map_size(filters) == 0,
+    do: params
 
-  defp maybe_add_flop_filters(params, filters) do
+  defp maybe_add_flop_filters(params, filters, filter_types) do
     flop_filters =
-      Enum.map(filters, fn {field, value} ->
-        %{"field" => field, "op" => "==", "value" => value}
+      Enum.flat_map(filters, fn {field, values} ->
+        type = Map.get(filter_types, field, "select")
+        values = List.wrap(values)
+        build_flop_filter(field, values, type)
       end)
 
     Map.put(params, "filters", flop_filters)
   end
 
+  defp build_flop_filter(field, [range], "date_range") do
+    case String.split(range, "..", parts: 2) do
+      [from, to] ->
+        filters = []
+
+        filters =
+          if from != "" do
+            from_val =
+              if String.contains?(from, "T"), do: from <> ":00", else: from <> "T00:00:00"
+
+            filters ++ [%{"field" => field, "op" => ">=", "value" => from_val}]
+          else
+            filters
+          end
+
+        filters =
+          if to != "" do
+            to_val =
+              if String.contains?(to, "T"), do: to <> ":59", else: to <> "T23:59:59"
+
+            filters ++ [%{"field" => field, "op" => "<=", "value" => to_val}]
+          else
+            filters
+          end
+
+        filters
+
+      _ ->
+        []
+    end
+  end
+
+  defp build_flop_filter(field, [text], "text") when text != "" do
+    [%{"field" => field, "op" => "ilike", "value" => "%" <> text <> "%"}]
+  end
+
+  defp build_flop_filter(_field, _values, "text"), do: []
+
+  defp build_flop_filter(field, [single], _type) do
+    [%{"field" => field, "op" => "==", "value" => single}]
+  end
+
+  defp build_flop_filter(field, multiple, _type) do
+    [%{"field" => field, "op" => "in", "value" => multiple}]
+  end
+
   defp add_filter_params(params, _prefix, filters) when map_size(filters) == 0, do: params
 
   defp add_filter_params(params, prefix, filters) do
-    Enum.reduce(filters, params, fn {key, value}, acc ->
-      if value == "", do: acc, else: acc ++ [{prefix <> "f_" <> key, value}]
+    Enum.reduce(filters, params, fn {key, values}, acc ->
+      joined = values |> List.wrap() |> Enum.join(",")
+      if joined == "", do: acc, else: acc ++ [{prefix <> "f_" <> key, joined}]
     end)
   end
 
@@ -4085,29 +8639,64 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
-  defp current_table_state(socket, "tickets-table") do
+  defp current_table_state(socket, "discussions-table") do
     %{
       search: "",
-      sort: socket.assigns[:tickets_sort_key] || "inserted_at",
-      dir: socket.assigns[:tickets_sort_dir] || "desc",
+      sort: socket.assigns[:discussions_sort_key] || "inserted_at",
+      dir: socket.assigns[:discussions_sort_dir] || "desc",
       page: 1,
-      filters: socket.assigns[:tickets_active_filters] || %{}
+      filters: socket.assigns[:discussions_active_filters] || %{}
+    }
+  end
+
+  defp current_table_state(socket, "projects-table") do
+    %{
+      search: socket.assigns[:projects_search] || "",
+      sort: socket.assigns[:projects_sort_key] || "name",
+      dir: socket.assigns[:projects_sort_dir] || "asc",
+      page: socket.assigns[:projects_page] || 1,
+      filters: %{}
+    }
+  end
+
+  defp current_table_state(socket, "translations-table") do
+    %{
+      search: socket.assigns[:translations_search] || "",
+      sort: socket.assigns[:translations_sort_key] || "inserted_at",
+      dir: socket.assigns[:translations_sort_dir] || "desc",
+      page: socket.assigns[:translations_page] || 1,
+      filters: socket.assigns[:translations_active_filters] || %{}
+    }
+  end
+
+  defp current_table_state(socket, "commits-table") do
+    %{
+      search: socket.assigns[:commits_search] || "",
+      sort: socket.assigns[:commits_sort_key] || "date",
+      dir: socket.assigns[:commits_sort_dir] || "desc",
+      page: 1,
+      filters: %{}
     }
   end
 
   defp current_table_state(_socket, _id),
     do: %{search: "", sort: "", dir: "asc", page: 1, filters: %{}}
 
+  defp default_sort_key("commits-table"), do: "date"
+  defp default_sort_key("projects-table"), do: "name"
   defp default_sort_key("activity-table"), do: "date"
   defp default_sort_key("members-table"), do: "name"
   defp default_sort_key("invitations-table"), do: "email"
   defp default_sort_key("tokens-table"), do: "name"
   defp default_sort_key("oauth-apps-table"), do: "name"
-  defp default_sort_key("tickets-table"), do: "inserted_at"
+  defp default_sort_key("discussions-table"), do: "inserted_at"
+  defp default_sort_key("translations-table"), do: "inserted_at"
   defp default_sort_key(_), do: ""
 
   defp default_sort_dir("activity-table"), do: "desc"
-  defp default_sort_dir("tickets-table"), do: "desc"
+  defp default_sort_dir("discussions-table"), do: "desc"
+  defp default_sort_dir("translations-table"), do: "desc"
+  defp default_sort_dir("commits-table"), do: "desc"
   defp default_sort_dir(_), do: "asc"
 
   defp current_sort(socket, "activity-table"),
@@ -4125,20 +8714,215 @@ defmodule GlossiaWeb.DashboardLive do
   defp current_sort(socket, "oauth-apps-table"),
     do: {socket.assigns[:apps_sort_key] || "name", socket.assigns[:apps_sort_dir] || "asc"}
 
-  defp current_sort(socket, "tickets-table"),
+  defp current_sort(socket, "discussions-table"),
     do:
-      {socket.assigns[:tickets_sort_key] || "inserted_at",
-       socket.assigns[:tickets_sort_dir] || "desc"}
+      {socket.assigns[:discussions_sort_key] || "inserted_at",
+       socket.assigns[:discussions_sort_dir] || "desc"}
+
+  defp current_sort(socket, "projects-table"),
+    do:
+      {socket.assigns[:projects_sort_key] || "name", socket.assigns[:projects_sort_dir] || "asc"}
+
+  defp current_sort(socket, "translations-table"),
+    do:
+      {socket.assigns[:translations_sort_key] || "inserted_at",
+       socket.assigns[:translations_sort_dir] || "desc"}
+
+  defp current_sort(socket, "commits-table"),
+    do: {socket.assigns[:commits_sort_key] || "date", socket.assigns[:commits_sort_dir] || "desc"}
 
   defp current_sort(_socket, _), do: {"", "asc"}
 
   defp current_filters(socket, "activity-table"), do: socket.assigns.events_filters
   defp current_filters(socket, "members-table"), do: socket.assigns.members_filters
 
-  defp current_filters(socket, "tickets-table"),
-    do: socket.assigns[:tickets_active_filters] || %{}
+  defp current_filters(socket, "discussions-table"),
+    do: socket.assigns[:discussions_active_filters] || %{}
+
+  defp current_filters(socket, "translations-table"),
+    do: socket.assigns[:translations_active_filters] || %{}
 
   defp current_filters(_socket, _), do: %{}
+
+  defp apply_url_params_activity(socket, params) do
+    prefix = "c"
+    search = Map.get(params, prefix <> "q", "")
+    sort_key = Map.get(params, prefix <> "sort", "date")
+    sort_dir = Map.get(params, prefix <> "dir", "desc")
+
+    all_commits = socket.assigns[:all_commits] || []
+
+    filtered =
+      if search == "" do
+        all_commits
+      else
+        needle = String.downcase(search)
+
+        Enum.filter(all_commits, fn commit ->
+          String.contains?(String.downcase(commit.message || ""), needle) ||
+            String.contains?(String.downcase(commit.author_name || ""), needle) ||
+            String.contains?(String.downcase(commit.short_sha || ""), needle)
+        end)
+      end
+
+    sorted = sort_commits(filtered, sort_key, sort_dir)
+
+    assign(socket,
+      commits_search: search,
+      commits_sort_key: sort_key,
+      commits_sort_dir: sort_dir,
+      commits: sorted
+    )
+  end
+
+  defp sort_commits(commits, "author", dir) do
+    Enum.sort_by(commits, &String.downcase(&1.author_name || ""), sort_direction(dir))
+  end
+
+  defp sort_commits(commits, "message", dir) do
+    Enum.sort_by(commits, &String.downcase(&1.message || ""), sort_direction(dir))
+  end
+
+  defp sort_commits(commits, _key, dir) do
+    Enum.sort_by(commits, & &1.date, {sort_direction(dir), DateTime})
+  end
+
+  defp sort_direction("asc"), do: :asc
+  defp sort_direction(_), do: :desc
+
+  defp apply_url_params_translations(socket, params) do
+    prefix = "ts"
+    search = Map.get(params, prefix <> "q", "")
+    sort_key = Map.get(params, prefix <> "sort", "inserted_at")
+    sort_dir = Map.get(params, prefix <> "dir", "desc")
+    page = parse_int(Map.get(params, prefix <> "page"), 1)
+    active_filters = extract_filters(params, prefix)
+
+    order_dir = if sort_dir == "desc", do: :desc, else: :asc
+    order_by = if sort_key == "status", do: :status, else: :inserted_at
+
+    flop_params =
+      %{
+        "page" => page,
+        "page_size" => 25,
+        "order_by" => [Atom.to_string(order_by)],
+        "order_directions" => [Atom.to_string(order_dir)]
+      }
+      |> maybe_add_flop_filters(active_filters, @translations_filter_types)
+
+    project = socket.assigns.project
+
+    {sessions, total} =
+      case Glossia.TranslationSessions.list_project_sessions(project, flop_params) do
+        {:ok, {sessions, meta}} -> {sessions, meta.total_count}
+        _ -> {[], 0}
+      end
+
+    assign(socket,
+      translations: sessions,
+      translations_total: total,
+      translations_search: search,
+      translations_sort_key: sort_key,
+      translations_sort_dir: sort_dir,
+      translations_page: page,
+      translations_active_filters: active_filters
+    )
+  end
+
+  defp apply_url_params_project_new(socket, params) do
+    step = Map.get(params, "step", "repo")
+
+    case step do
+      "languages" ->
+        if socket.assigns[:wizard_selected_repo] do
+          assign(socket, wizard_step: "languages", wizard_language_search: "")
+        else
+          assign(socket, wizard_step: "repo")
+        end
+
+      "setup" ->
+        project = socket.assigns[:wizard_project]
+
+        if project do
+          # Re-fetch from DB to get current setup_status (may have changed via Oban worker)
+          project = Glossia.Repo.get(Glossia.Accounts.Project, project.id) || project
+          setup_events = Glossia.Ingestion.list_setup_events(project.id)
+
+          socket =
+            if connected?(socket) and project.setup_status in ["pending", "running"] do
+              Glossia.Projects.subscribe_setup_events(project)
+              socket
+            else
+              socket
+            end
+
+          socket
+          |> assign(wizard_project: project)
+          |> assign(wizard_step: "setup", setup_events: setup_events)
+        else
+          assign(socket, wizard_step: "repo")
+        end
+
+      _ ->
+        assign(socket, wizard_step: "repo")
+    end
+  end
+
+  defp apply_url_params_projects(socket, params) do
+    prefix = "p"
+    search = Map.get(params, prefix <> "q", "")
+    sort_key = Map.get(params, prefix <> "sort", "name")
+    sort_dir = Map.get(params, prefix <> "dir", "asc")
+    page = parse_int(Map.get(params, prefix <> "page"), 1)
+
+    socket
+    |> assign(
+      projects_search: search,
+      projects_sort_key: sort_key,
+      projects_sort_dir: sort_dir,
+      projects_page: page
+    )
+    |> reload_projects()
+  end
+
+  defp reload_projects(socket) do
+    account = socket.assigns.account
+    search = socket.assigns.projects_search
+    sort_key = socket.assigns.projects_sort_key
+    sort_dir = socket.assigns.projects_sort_dir
+    page = socket.assigns.projects_page
+
+    order_dir = if sort_dir == "desc", do: :desc, else: :asc
+
+    order_by =
+      case sort_key do
+        "handle" -> :handle
+        "inserted_at" -> :inserted_at
+        _ -> :name
+      end
+
+    flop_params = %{
+      page: page,
+      page_size: 25,
+      order_by: [order_by],
+      order_directions: [order_dir]
+    }
+
+    flop_params =
+      if search != "" do
+        Map.put(flop_params, :filters, [%{field: :name, op: :ilike_and, value: search}])
+      else
+        flop_params
+      end
+
+    {projects, total} =
+      case Glossia.Projects.list_projects(account, flop_params) do
+        {:ok, {projects, meta}} -> {projects, meta.total_count}
+        _ -> {[], 0}
+      end
+
+    assign(socket, projects: projects, projects_total: total)
+  end
 
   defp apply_url_params_logs(socket, params) do
     socket
@@ -4168,12 +8952,166 @@ defmodule GlossiaWeb.DashboardLive do
     |> apply_invitations_filters()
   end
 
+  defp apply_url_params_voice(socket, params) do
+    token = Map.get(params, "draft")
+    handle = socket.assigns.handle
+
+    case decode_draft_token(token) do
+      %{"voice_form_params" => form_params} = decoded ->
+        draft_params = sanitize_voice_form_params(form_params)
+
+        target_countries =
+          normalize_draft_string_list(
+            decoded["target_countries"],
+            socket.assigns.target_countries
+          )
+
+        cultural_notes =
+          normalize_draft_string_map(decoded["cultural_notes"], socket.assigns.cultural_notes)
+
+        overrides = parse_voice_overrides_from_params(draft_params, socket.assigns.overrides)
+
+        base_changed? =
+          form_changed?(
+            draft_params,
+            socket.assigns.original_voice,
+            socket.assigns.original_overrides
+          )
+
+        countries_changed? =
+          voice_countries_changed?(
+            target_countries,
+            cultural_notes,
+            socket.assigns.original_voice
+          )
+
+        assign(socket,
+          voice_form_params: draft_params,
+          overrides: overrides,
+          target_countries: target_countries,
+          cultural_notes: cultural_notes,
+          changed?: base_changed? or countries_changed?,
+          change_summary: to_string(decoded["change_summary"] || ""),
+          voice_draft_token: token,
+          voice_back_path: maybe_with_draft_param("/#{handle}/-/voice", token)
+        )
+
+      _ ->
+        case socket.assigns[:voice_suggestion_draft] do
+          %{
+            voice_form_params: draft_params,
+            overrides: draft_overrides,
+            target_countries: draft_countries,
+            cultural_notes: draft_notes
+          } = draft ->
+            fallback_token =
+              existing_token_from_assign(socket, :voice_draft_token) ||
+                encode_draft_token(%{
+                  "voice_form_params" => sanitize_voice_form_params(draft_params || %{}),
+                  "target_countries" => draft_countries || [],
+                  "cultural_notes" => draft_notes || %{},
+                  "change_summary" => draft[:change_summary] || ""
+                })
+
+            base_changed? =
+              form_changed?(
+                draft_params,
+                socket.assigns.original_voice,
+                socket.assigns.original_overrides
+              )
+
+            countries_changed? =
+              voice_countries_changed?(
+                draft_countries || [],
+                draft_notes || %{},
+                socket.assigns.original_voice
+              )
+
+            assign(socket,
+              voice_form_params: draft_params || %{},
+              overrides: draft_overrides || socket.assigns.overrides,
+              target_countries: draft_countries || socket.assigns.target_countries,
+              cultural_notes: draft_notes || socket.assigns.cultural_notes,
+              changed?: base_changed? or countries_changed?,
+              change_summary: draft[:change_summary] || "",
+              voice_draft_token: fallback_token,
+              voice_back_path: maybe_with_draft_param("/#{handle}/-/voice", fallback_token)
+            )
+
+          _ ->
+            assign(socket,
+              voice_draft_token: nil,
+              voice_back_path: "/#{handle}/-/voice"
+            )
+        end
+    end
+  end
+
+  defp apply_url_params_glossary(socket, params) do
+    token = Map.get(params, "draft")
+    handle = socket.assigns.handle
+
+    case decode_draft_token(token) do
+      %{"glossary_form_params" => form_params} = decoded ->
+        draft_params = sanitize_glossary_form_params(form_params)
+
+        entries =
+          parse_glossary_entries_from_params(draft_params, socket.assigns.glossary_entries)
+
+        changed? =
+          glossary_entries_index(entries) !=
+            glossary_entries_index(socket.assigns.original_glossary_entries)
+
+        assign(socket,
+          glossary_form_params: draft_params,
+          glossary_entries: entries,
+          glossary_changed?: changed?,
+          change_summary: to_string(decoded["change_summary"] || ""),
+          glossary_draft_token: token,
+          glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", token)
+        )
+
+      _ ->
+        case socket.assigns[:glossary_suggestion_draft] do
+          %{glossary_form_params: draft_params, glossary_entries: draft_entries} = draft ->
+            fallback_token =
+              existing_token_from_assign(socket, :glossary_draft_token) ||
+                encode_draft_token(%{
+                  "glossary_form_params" => sanitize_glossary_form_params(draft_params || %{}),
+                  "change_summary" => draft[:change_summary] || ""
+                })
+
+            changed? =
+              glossary_entries_index(draft_entries || []) !=
+                glossary_entries_index(socket.assigns.original_glossary_entries)
+
+            assign(socket,
+              glossary_form_params: draft_params || %{},
+              glossary_entries: draft_entries || socket.assigns.glossary_entries,
+              glossary_changed?: changed?,
+              change_summary: draft[:change_summary] || "",
+              glossary_draft_token: fallback_token,
+              glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", fallback_token)
+            )
+
+          _ ->
+            assign(socket,
+              glossary_draft_token: nil,
+              glossary_back_path: "/#{handle}/-/glossary"
+            )
+        end
+    end
+  end
+
   defp extract_filters(params, prefix) do
     filter_prefix = prefix <> "f_"
 
     params
     |> Enum.filter(fn {k, v} -> String.starts_with?(k, filter_prefix) && v != "" end)
-    |> Enum.into(%{}, fn {k, v} -> {String.replace_prefix(k, filter_prefix, ""), v} end)
+    |> Enum.into(%{}, fn {k, v} ->
+      key = String.replace_prefix(k, filter_prefix, "")
+      {key, String.split(v, ",", trim: true)}
+    end)
   end
 
   defp parse_int(nil, default), do: default
@@ -4235,7 +9173,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp filter_events_by_filters(events, filters) do
     Enum.filter(events, fn e ->
       Enum.all?(filters, fn
-        {"type", val} -> e.name == val
+        {"type", values} -> e.name in List.wrap(values)
         _ -> true
       end)
     end)
@@ -4300,9 +9238,15 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp filter_members_by_role(members, filters) do
     case Map.get(filters, "role") do
-      nil -> members
-      "" -> members
-      role -> Enum.filter(members, &(&1.role == role))
+      nil ->
+        members
+
+      [] ->
+        members
+
+      roles ->
+        roles = List.wrap(roles)
+        Enum.filter(members, &(&1.role in roles))
     end
   end
 
@@ -4379,66 +9323,67 @@ defmodule GlossiaWeb.DashboardLive do
   # Page: Tickets
   # ---------------------------------------------------------------------------
 
-  defp tickets_page(assigns) do
+  defp discussions_page(assigns) do
     case assigns.live_action do
-      :tickets -> tickets_list_page(assigns)
-      :ticket_new -> ticket_new_page(assigns)
-      :ticket_show -> ticket_show_page(assigns)
+      :discussions -> discussions_list_page(assigns)
+      :discussion_new -> ticket_new_page(assigns)
+      :discussion_show -> ticket_show_page(assigns)
     end
   end
 
-  defp tickets_list_page(assigns) do
+  defp discussions_list_page(assigns) do
     assigns =
       assign(assigns,
         ticket_filters: [
-          %{
-            key: "type",
-            label: gettext("Type"),
-            options: [
-              %{value: "issue", label: gettext("Issue")},
-              %{value: "request", label: gettext("Feature request")}
-            ]
-          },
+          %{key: "title", label: gettext("Title"), type: "text"},
           %{
             key: "status",
             label: gettext("Status"),
+            type: "select",
             options: [
               %{value: "open", label: gettext("Open")},
-              %{value: "in_progress", label: gettext("In progress")},
-              %{value: "resolved", label: gettext("Resolved")},
-              %{value: "implemented", label: gettext("Implemented")}
+              %{value: "closed", label: gettext("Closed")}
             ]
-          }
+          },
+          %{
+            key: "kind",
+            label: gettext("Type"),
+            type: "select",
+            options: [
+              %{value: "general", label: gettext("General")},
+              %{value: "voice_suggestion", label: gettext("Voice suggestion")},
+              %{value: "glossary_suggestion", label: gettext("Glossary suggestion")}
+            ]
+          },
+          %{key: "inserted_at", label: gettext("Created"), type: "date_range"}
         ]
       )
 
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Tickets"), "/" <> @handle <> "/-/tickets"}
-      ]} />
       <.page_header
-        title={gettext("Tickets")}
-        description={gettext("Report issues or request features.")}
+        title={gettext("Discussions")}
+        description={gettext("Track bugs, suggestions, and discussions.")}
       >
         <:actions>
-          <.link patch={"/" <> @handle <> "/-/tickets/new"} class="dash-btn dash-btn-primary">
-            {gettext("New ticket")}
-          </.link>
+          <%= if @current_user do %>
+            <.link patch={"/" <> @handle <> "/-/discussions/new"} class="dash-btn dash-btn-primary">
+              {gettext("New discussion")}
+            </.link>
+          <% end %>
         </:actions>
       </.page_header>
       <.resource_table
-        id="tickets-table"
+        id="discussions-table"
         rows={@tickets}
-        sort_key={@tickets_sort_key}
-        sort_dir={@tickets_sort_dir}
+        sort_key={@discussions_sort_key}
+        sort_dir={@discussions_sort_dir}
         filters={@ticket_filters}
-        active_filters={@tickets_active_filters}
+        active_filters={@discussions_active_filters}
       >
-        <:col :let={ticket} label="#" key="number" sortable>
+        <:col :let={ticket} label={gettext("Number")} key="number" sortable>
           <.link
-            patch={"/" <> @handle <> "/-/tickets/" <> Integer.to_string(ticket.number)}
+            patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
             class="resource-link"
           >
             {"##{ticket.number}"}
@@ -4446,16 +9391,18 @@ defmodule GlossiaWeb.DashboardLive do
         </:col>
         <:col :let={ticket} label={gettext("Title")} key="title" sortable>
           <.link
-            patch={"/" <> @handle <> "/-/tickets/" <> Integer.to_string(ticket.number)}
+            patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
             class="resource-link"
           >
             {ticket.title}
           </.link>
-        </:col>
-        <:col :let={ticket} label={gettext("Type")} key="type">
-          <.badge variant={ticket_type_variant(ticket.type)}>
-            {ticket_type_label(ticket.type)}
-          </.badge>
+          <%= if ticket.kind != "general" do %>
+            <span style="margin-left: var(--space-2);">
+              <.badge variant={ticket_kind_variant(ticket.kind)}>
+                {ticket_kind_label(ticket.kind)}
+              </.badge>
+            </span>
+          <% end %>
         </:col>
         <:col :let={ticket} label={gettext("Status")} key="status" sortable>
           <.badge variant={ticket_status_variant(ticket.status)}>
@@ -4467,7 +9414,7 @@ defmodule GlossiaWeb.DashboardLive do
         </:col>
         <:action :let={ticket}>
           <.link
-            patch={"/" <> @handle <> "/-/tickets/" <> Integer.to_string(ticket.number)}
+            patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
             class="dash-btn dash-btn-secondary dash-btn-sm"
           >
             {gettext("View")}
@@ -4475,7 +9422,23 @@ defmodule GlossiaWeb.DashboardLive do
         </:action>
         <:empty>
           <div class="dash-empty-state">
-            <p>{gettext("No tickets yet. Create one to get started.")}</p>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <h2>{gettext("No discussions yet")}</h2>
+            <p>{gettext("Create one to track a bug, suggestion, or discussion.")}</p>
           </div>
         </:empty>
       </.resource_table>
@@ -4486,33 +9449,17 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_new_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Tickets"), "/" <> @handle <> "/-/tickets"},
-        {gettext("New ticket"), "/" <> @handle <> "/-/tickets/new"}
-      ]} />
       <.page_header
-        title={gettext("New ticket")}
-        description={gettext("Describe your issue or feature request.")}
+        title={gettext("New discussion")}
+        description={gettext("Describe what you want to report or discuss.")}
       />
       <.form
         for={@ticket_form}
         id="ticket-form"
-        phx-submit="create_ticket"
-        phx-change="ticket_validate"
+        phx-submit="create_discussion"
+        phx-change="discussion_validate"
         class="ticket-form"
       >
-        <div class="ticket-form-field">
-          <label for="ticket_type">{gettext("Type")}</label>
-          <select name="ticket[type]" id="ticket_type">
-            <option value="issue" selected={@ticket_form[:type].value == "issue"}>
-              {gettext("Issue")}
-            </option>
-            <option value="request" selected={@ticket_form[:type].value == "request"}>
-              {gettext("Feature request")}
-            </option>
-          </select>
-        </div>
         <div class="ticket-form-field">
           <label for="ticket_title">{gettext("Title")}</label>
           <div class={["ticket-title-wrapper", @generating_title? && "generating"]}>
@@ -4522,7 +9469,9 @@ defmodule GlossiaWeb.DashboardLive do
               id="ticket_title"
               value={@ticket_form[:title].value}
               placeholder={
-                if @generating_title?, do: gettext("Generating..."), else: gettext("Brief summary...")
+                if @generating_title?,
+                  do: gettext("Generating..."),
+                  else: gettext("Brief summary...")
               }
               phx-hook=".TicketTitle"
               required
@@ -4531,22 +9480,23 @@ defmodule GlossiaWeb.DashboardLive do
           </div>
         </div>
         <div class="ticket-form-field">
-          <label for="ticket_description">{gettext("Description")}</label>
-          <textarea
-            name="ticket[description]"
-            id="ticket_description"
-            rows="6"
+          <label>{gettext("Description")}</label>
+          <.markdown_editor
+            id="ticket-body-editor"
+            name="ticket[body]"
+            value={@ticket_form[:body].value}
             placeholder={gettext("Provide details...")}
-            phx-debounce="500"
+            rows={6}
             required
-          >{@ticket_form[:description].value}</textarea>
+            upload={get_in(assigns, [:uploads, :ticket_images])}
+          />
         </div>
         <div class="ticket-form-actions">
-          <.link patch={"/" <> @handle <> "/-/tickets"} class="dash-btn dash-btn-secondary">
+          <.link patch={"/" <> @handle <> "/-/discussions"} class="dash-btn dash-btn-secondary">
             {gettext("Cancel")}
           </.link>
           <button type="submit" class="dash-btn dash-btn-primary">
-            {gettext("Create ticket")}
+            {gettext("Submit new discussion")}
           </button>
         </div>
       </.form>
@@ -4566,88 +9516,130 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_show_page(assigns) do
     ~H"""
     <div class="dash-page">
-      <.breadcrumb items={[
-        {@handle, "/" <> @handle},
-        {gettext("Tickets"), "/" <> @handle <> "/-/tickets"},
-        {"##{@ticket.number}", "/" <> @handle <> "/-/tickets/" <> Integer.to_string(@ticket.number)}
-      ]} />
       <div class="ticket-detail-header">
         <div>
-          <h1 class="ticket-detail-title">{@ticket.title}</h1>
+          <h1 class="ticket-detail-title">
+            {@ticket.title}
+            <span class="ticket-detail-number">{"##{@ticket.number}"}</span>
+          </h1>
           <div class="ticket-detail-meta">
-            <.badge variant={ticket_type_variant(@ticket.type)}>
-              {ticket_type_label(@ticket.type)}
-            </.badge>
             <.badge variant={ticket_status_variant(@ticket.status)}>
               {ticket_status_label(@ticket.status)}
             </.badge>
+            <%= if @ticket.kind != "general" do %>
+              <.badge variant={ticket_kind_variant(@ticket.kind)}>
+                {ticket_kind_label(@ticket.kind)}
+              </.badge>
+            <% end %>
             <span class="ticket-detail-date">
-              {gettext("Opened %{date}",
+              {gettext("Opened by %{author} on %{date}",
+                author: @ticket.user.name || @ticket.user.email,
                 date: Calendar.strftime(@ticket.inserted_at, "%b %d, %Y")
               )}
             </span>
           </div>
         </div>
+        <%= if @can_write or can_apply_suggestion?(@ticket, @can_voice_write, @can_glossary_write) do %>
+          <div class="ticket-detail-actions">
+            <%= if can_apply_suggestion?(@ticket, @can_voice_write, @can_glossary_write) and
+                  @ticket.status == "open" do %>
+              <button phx-click="apply_suggestion" class="dash-btn dash-btn-primary">
+                {gettext("Apply suggestion")}
+              </button>
+            <% end %>
+            <%= if @ticket.status == "open" do %>
+              <%= if @can_write do %>
+                <button phx-click="close_discussion" class="dash-btn dash-btn-secondary">
+                  {gettext("Close discussion")}
+                </button>
+              <% end %>
+            <% else %>
+              <%= if @can_write do %>
+                <button phx-click="reopen_discussion" class="dash-btn dash-btn-secondary">
+                  {gettext("Reopen discussion")}
+                </button>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      <div class="ticket-body-section" id="ticket-body">
+        <div class="ticket-body-content prose">{raw(render_markdown(@ticket.body))}</div>
+      </div>
+      <div class="ticket-conversation-label">
+        {gettext("Comments (%{count})", count: length(@ticket.comments))}
       </div>
       <div class="ticket-conversation">
-        <div class="ticket-message ticket-message-user" id="ticket-description">
-          <div class="ticket-message-header">
-            <span class="ticket-message-author">{@ticket.user.name || @ticket.user.email}</span>
-            <span class="ticket-message-time">
-              {Calendar.strftime(@ticket.inserted_at, "%b %d, %Y at %H:%M")}
-            </span>
-          </div>
-          <div class="ticket-message-body">{@ticket.description}</div>
-        </div>
         <div
-          :for={msg <- @ticket.messages}
-          class={[
-            "ticket-message",
-            if(msg.is_staff, do: "ticket-message-staff", else: "ticket-message-user")
-          ]}
-          id={"msg-" <> msg.id}
+          :for={comment <- @ticket.comments}
+          class="ticket-comment"
+          id={"comment-" <> comment.id}
         >
-          <div class="ticket-message-header">
-            <span class="ticket-message-author">
-              {msg.user.name || msg.user.email}
-              <.badge :if={msg.is_staff} variant="info">{gettext("Staff")}</.badge>
-            </span>
-            <span class="ticket-message-time">
-              {Calendar.strftime(msg.inserted_at, "%b %d, %Y at %H:%M")}
-            </span>
+          <div class="ticket-comment-header">
+            <a href={"/" <> comment.user.account.handle} class="ticket-comment-author">
+              <img
+                src={user_avatar_url(comment.user)}
+                alt=""
+                width="20"
+                height="20"
+                class="ticket-comment-avatar"
+              />
+              {"@#{comment.user.account.handle}"}
+            </a>
+            <div class="ticket-comment-header-right">
+              <a href={"#comment-" <> comment.id} class="ticket-comment-time">
+                {Calendar.strftime(comment.inserted_at, "%b %d, %Y at %H:%M")}
+              </a>
+              <%= if @current_user do %>
+                <button
+                  type="button"
+                  class="ticket-comment-quote-btn"
+                  phx-click="quote_reply"
+                  phx-value-body={comment.body}
+                  title={gettext("Quote reply")}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </button>
+              <% end %>
+            </div>
           </div>
-          <div class="ticket-message-body">{msg.body}</div>
+          <div class="ticket-comment-body prose">{raw(render_markdown(comment.body))}</div>
         </div>
       </div>
-      <%= if @ticket.status in ~w(open in_progress) and @current_user do %>
+      <%= if @current_user do %>
         <.form
-          for={@message_form}
-          id="message-form"
-          phx-submit="add_ticket_message"
+          for={@comment_form}
+          id="comment-form"
+          phx-submit="add_discussion_comment"
           class="ticket-reply-form"
         >
-          <div class="ticket-reply-input-wrap">
-            <textarea
-              name="message[body]"
-              id="message_body"
-              rows="1"
-              placeholder={gettext("Write a reply...")}
-              required
-            >{@message_form[:body].value}</textarea>
-            <button type="submit" class="ticket-reply-send" aria-label={gettext("Send reply")}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
-              </svg>
+          <.markdown_editor
+            id="comment-body-editor"
+            name="comment[body]"
+            value={@comment_form[:body].value}
+            placeholder={gettext("Leave a comment...")}
+            rows={3}
+            required
+            upload={get_in(assigns, [:uploads, :comment_images])}
+          />
+          <div class="ticket-reply-actions">
+            <.link patch={"/" <> @handle <> "/-/discussions"} class="dash-btn dash-btn-secondary">
+              {gettext("Cancel")}
+            </.link>
+            <button type="submit" class="dash-btn dash-btn-primary">
+              {gettext("Comment")}
             </button>
           </div>
         </.form>
@@ -4656,23 +9648,101 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  defp ticket_status_variant("open"), do: "neutral"
-  defp ticket_status_variant("in_progress"), do: "info"
-  defp ticket_status_variant("resolved"), do: "success"
-  defp ticket_status_variant("implemented"), do: "success"
+  defp ticket_status_variant("open"), do: "success"
+  defp ticket_status_variant("closed"), do: "neutral"
   defp ticket_status_variant(_), do: "neutral"
 
   defp ticket_status_label("open"), do: gettext("Open")
-  defp ticket_status_label("in_progress"), do: gettext("In progress")
-  defp ticket_status_label("resolved"), do: gettext("Resolved")
-  defp ticket_status_label("implemented"), do: gettext("Implemented")
+  defp ticket_status_label("closed"), do: gettext("Closed")
   defp ticket_status_label(other), do: other
 
-  defp ticket_type_variant("issue"), do: "warning"
-  defp ticket_type_variant("request"), do: "info"
-  defp ticket_type_variant(_), do: "neutral"
+  defp ticket_kind_variant("voice_suggestion"), do: "info"
+  defp ticket_kind_variant("glossary_suggestion"), do: "warning"
+  defp ticket_kind_variant(_), do: "neutral"
 
-  defp ticket_type_label("issue"), do: gettext("Issue")
-  defp ticket_type_label("request"), do: gettext("Feature request")
-  defp ticket_type_label(other), do: other
+  defp ticket_kind_label("voice_suggestion"), do: gettext("Voice suggestion")
+  defp ticket_kind_label("glossary_suggestion"), do: gettext("Glossary suggestion")
+  defp ticket_kind_label("general"), do: gettext("General")
+  defp ticket_kind_label(other), do: other
+
+  defp can_apply_suggestion?(ticket, can_voice_write, can_glossary_write) do
+    ticket.status == "open" and
+      ((ticket.kind == "voice_suggestion" and can_voice_write) or
+         (ticket.kind == "glossary_suggestion" and can_glossary_write))
+  end
+
+  defp render_markdown(nil), do: ""
+  defp render_markdown(""), do: ""
+
+  defp render_markdown(text) do
+    case Earmark.as_html(text, %Earmark.Options{code_class_prefix: "language-"}) do
+      {:ok, html, _} -> html
+      {:error, html, _} -> html
+    end
+    |> String.replace(~r/<script[\s\S]*?<\/script>/i, "")
+  end
+
+  defp maybe_allow_upload(socket, name) do
+    cond do
+      not connected?(socket) ->
+        socket
+
+      Map.has_key?(socket.assigns, :uploads) and Map.has_key?(socket.assigns.uploads, name) ->
+        socket
+
+      true ->
+        allow_upload(socket, name,
+          accept: ~w(.jpg .jpeg .png .gif .webp),
+          max_entries: 5,
+          max_file_size: 10_000_000,
+          auto_upload: true,
+          progress: &handle_upload_progress/3
+        )
+    end
+  end
+
+  defp handle_upload_progress(_upload_name, entry, socket) do
+    if entry.done? do
+      uploaded_url =
+        consume_uploaded_entry(socket, entry, fn %{path: path} ->
+          content = File.read!(path)
+          ext = upload_entry_extension(entry)
+          uuid = Uniq.UUID.uuid7()
+          account_id = socket.assigns.account.id
+
+          context_id =
+            if Map.has_key?(socket.assigns, :upload_context_id),
+              do: socket.assigns.upload_context_id,
+              else: socket.assigns.ticket.id
+
+          s3_path = "uploads/#{account_id}/discussions/#{context_id}/#{uuid}.#{ext}"
+          {:ok, _} = Glossia.Storage.upload(s3_path, content, content_type: entry.client_type)
+          {:ok, url} = Glossia.Storage.presigned_url(s3_path, expires_in: 604_800)
+          {:ok, url}
+        end)
+
+      editor_id =
+        if Map.has_key?(socket.assigns, :upload_context_id),
+          do: "ticket-body-editor",
+          else: "comment-body-editor"
+
+      {:noreply,
+       push_event(socket, "image_uploaded:#{editor_id}", %{
+         url: uploaded_url,
+         filename: entry.client_name
+       })}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp upload_entry_extension(entry) do
+    case entry.client_type do
+      "image/jpeg" -> "jpg"
+      "image/png" -> "png"
+      "image/gif" -> "gif"
+      "image/webp" -> "webp"
+      _ -> "bin"
+    end
+  end
 end
