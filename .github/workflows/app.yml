@@ -50,11 +50,6 @@ jobs:
           CLICKHOUSE_SKIP_USER_SETUP: "1"
         ports:
           - 8123:8123
-        options: >-
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
     env:
       MIX_ENV: test
     defaults:
@@ -69,6 +64,20 @@ jobs:
         run: mise install
       - name: Install dependencies
         run: mix deps.get
+      - name: Wait for ClickHouse
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:8123/ping | grep -q "Ok."; then
+              echo "ClickHouse is ready"
+              exit 0
+            fi
+
+            echo "Waiting for ClickHouse... ($attempt/30)"
+            sleep 2
+          done
+
+          echo "::error::ClickHouse did not become ready in time"
+          exit 1
       - name: Ensure ClickHouse test database exists
         run: curl -fsS "http://localhost:8123/?query=CREATE%20DATABASE%20IF%20NOT%20EXISTS%20glossia_test"
       - name: Run test suite
