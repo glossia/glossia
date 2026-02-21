@@ -154,23 +154,33 @@ jobs:
           sha512sum *.tar.gz *.zip > SHA512SUMS
 
       - name: Validate release environment
+        id: release-env-check
         shell: bash
         run: |
           required=(AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY RELEASE_AWS_REGION RELEASE_S3_BUCKET RELEASE_BASE_URL)
+          missing=()
           for key in "${required[@]}"; do
             value="${!key:-}"
             if [ -z "$value" ]; then
-              echo "::error::Missing required secret/variable: $key"
-              exit 1
+              missing+=("$key")
             fi
           done
 
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::warning::Skipping release publish because required values are missing: ${missing[*]}"
+            echo "can_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "can_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install rclone
+        if: steps.release-env-check.outputs.can_publish == 'true'
         run: |
           command -v rclone >/dev/null 2>&1 || curl https://rclone.org/install.sh | sudo bash
           rclone version | head -1
 
       - name: Configure rclone remote
+        if: steps.release-env-check.outputs.can_publish == 'true'
         shell: bash
         run: |
           {
@@ -186,6 +196,7 @@ jobs:
           } > rclone.conf
 
       - name: Upload release artifacts to S3
+        if: steps.release-env-check.outputs.can_publish == 'true'
         shell: bash
         env:
           RCLONE_CONFIG: ${{ github.workspace }}/rclone.conf
@@ -203,6 +214,7 @@ jobs:
           rclone copy release "$latest_path" --progress --checksum
 
       - name: Push release commit and tag
+        if: steps.release-env-check.outputs.can_publish == 'true'
         run: git push origin main --follow-tags
 
   aqua-registry:
