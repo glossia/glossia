@@ -52,6 +52,13 @@ defmodule GlossiaWeb.Router do
 
   get "/up", GlossiaWeb.HealthController, :index
 
+  # Agent script serving (Deno fetches TS modules from here)
+  scope "/agent/scripts", GlossiaWeb do
+    pipe_through :api
+
+    get "/*path", AgentScriptController, :show
+  end
+
   # Webhooks (no session, no CSRF)
   scope "/webhooks", GlossiaWeb do
     pipe_through :api
@@ -59,6 +66,13 @@ defmodule GlossiaWeb.Router do
     post "/stripe", StripeWebhookController, :create
     post "/github", GithubWebhookController, :create
     post "/gitlab", GitlabWebhookController, :create
+  end
+
+  # GitHub App install callback (needs browser session for user lookup)
+  scope "/callbacks", GlossiaWeb do
+    pipe_through :browser
+
+    get "/github/install", GithubInstallCallbackController, :create
   end
 
   scope "/auth", GlossiaWeb do
@@ -100,6 +114,7 @@ defmodule GlossiaWeb.Router do
     pipe_through :api
 
     post "/register", RegisterController, :register
+    post "/device_authorization", DeviceController, :device_authorization
     post "/token", TokenController, :token
     post "/revoke", RevokeController, :revoke
     post "/introspect", IntrospectController, :introspect
@@ -111,6 +126,9 @@ defmodule GlossiaWeb.Router do
 
     get "/authorize", AuthorizeController, :authorize
     post "/authorize", AuthorizeController, :authorize
+    get "/device", DeviceController, :verify
+    post "/device", DeviceController, :submit_code
+    post "/device/confirm", DeviceController, :confirm
   end
 
   # OpenAPI spec
@@ -126,6 +144,12 @@ defmodule GlossiaWeb.Router do
 
     get "/oauth-authorization-server", WellKnownController, :oauth_authorization_server
     get "/oauth-protected-resource", WellKnownController, :oauth_protected_resource
+  end
+
+  scope "/avatars", GlossiaWeb do
+    pipe_through :api
+
+    get "/:handle/projects/:project_handle", AvatarController, :project
   end
 
   scope "/og", GlossiaWeb do
@@ -163,6 +187,8 @@ defmodule GlossiaWeb.Router do
     get "/privacy/:date", LegalController, :privacy
     get "/cookies", LegalController, :cookies
     get "/cookies/:date", LegalController, :cookies
+
+    get "/sitemap.xml", SitemapController, :show
   end
 
   scope "/", GlossiaWeb do
@@ -189,6 +215,7 @@ defmodule GlossiaWeb.Router do
     pipe_through [
       :api,
       GlossiaWeb.Plugs.BearerAuth,
+      GlossiaWeb.Plugs.ApiRateLimit,
       GlossiaWeb.Plugs.RequireApiAuth,
       GlossiaWeb.Plugs.OtelAttributes
     ]
@@ -225,6 +252,7 @@ defmodule GlossiaWeb.Router do
     post "/:handle/oauth-apps/:id/regenerate-secret", OAuthAppApiController, :regenerate_secret
 
     get "/:handle/projects", ProjectApiController, :index
+    post "/:handle/projects", ProjectApiController, :create
     get "/:handle/voice", VoiceApiController, :show
     post "/:handle/voice", VoiceApiController, :create
     get "/:handle/voice/history", VoiceApiController, :history
@@ -239,6 +267,7 @@ defmodule GlossiaWeb.Router do
       :api,
       GlossiaWeb.Plugs.BearerAuth,
       GlossiaWeb.Plugs.RequireApiAuth,
+      GlossiaWeb.Plugs.McpRateLimit,
       GlossiaWeb.Plugs.OtelAttributes
     ]
 
@@ -251,6 +280,7 @@ defmodule GlossiaWeb.Router do
       :api,
       GlossiaWeb.Plugs.BearerAuth,
       GlossiaWeb.Plugs.RequireApiAuth,
+      GlossiaWeb.Plugs.McpRateLimit,
       GlossiaWeb.Plugs.RequireSuperAdminApi
     ]
 
@@ -282,8 +312,10 @@ defmodule GlossiaWeb.Router do
       live "/", AdminLive, :home
       live "/users", AdminLive, :users
       live "/accounts", AdminLive, :accounts
-      live "/tickets", AdminLive, :tickets
-      live "/tickets/:ticket_id", AdminLive, :ticket_show
+      live "/discussions", AdminLive, :discussions
+      live "/discussions/:discussion_id", AdminLive, :discussion_show
+      live "/tickets", AdminLive, :discussions
+      live "/tickets/:ticket_id", AdminLive, :discussion_show
     end
   end
 
@@ -303,6 +335,22 @@ defmodule GlossiaWeb.Router do
     post "/:token/decline", InvitationController, :decline
   end
 
+  # GitHub App install redirect (sets session, then redirects to GitHub)
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth]
+
+    get "/:handle/-/projects/install-github",
+        GithubInstallRedirectController,
+        :redirect_to_install
+  end
+
+  # Redirect old commits URL to activity
+  scope "/", GlossiaWeb do
+    pipe_through :browser
+
+    get "/:handle/:project/-/commits", RedirectController, :project_activity
+  end
+
   # Platform routes (access controlled by on_mount hooks)
   scope "/", GlossiaWeb do
     pipe_through [:browser, :platform]
@@ -316,12 +364,19 @@ defmodule GlossiaWeb.Router do
       ] do
       # App routes (/-/ separator disambiguates from project handles)
       live "/:handle/-/voice", DashboardLive, :voice
+      live "/:handle/-/voice/suggestion/new", DashboardLive, :voice_suggestion_new
+      live "/:handle/-/voice/request/new", DashboardLive, :voice_suggestion_new
       live "/:handle/-/voice/:version", DashboardLive, :voice_version
       live "/:handle/-/glossary", DashboardLive, :glossary
+      live "/:handle/-/glossary/suggestion/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/glossary/request/new", DashboardLive, :glossary_suggestion_new
       live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
-      live "/:handle/-/tickets", DashboardLive, :tickets
-      live "/:handle/-/tickets/new", DashboardLive, :ticket_new
-      live "/:handle/-/tickets/:ticket_number", DashboardLive, :ticket_show
+      live "/:handle/-/discussions", DashboardLive, :discussions
+      live "/:handle/-/discussions/new", DashboardLive, :discussion_new
+      live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show
+      live "/:handle/-/tickets", DashboardLive, :discussions
+      live "/:handle/-/tickets/new", DashboardLive, :discussion_new
+      live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show
       live "/:handle/-/members", DashboardLive, :members
       live "/:handle/-/logs", DashboardLive, :logs
       live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
@@ -330,9 +385,16 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/apps", DashboardLive, :api_apps
       live "/:handle/-/settings/apps/new", DashboardLive, :api_apps_new
       live "/:handle/-/settings/apps/:app_id", DashboardLive, :api_app_edit
+      live "/:handle/-/account", DashboardLive, :account
+      live "/:handle/-/settings/github", DashboardLive, :account
+      live "/:handle/-/projects/new", DashboardLive, :project_new
 
       # Content routes (no /-/, MUST come last)
       live "/:handle", DashboardLive, :account
+      live "/:handle/:project/-/settings", DashboardLive, :project_settings
+      live "/:handle/:project/-/activity", DashboardLive, :project_activity
+      live "/:handle/:project/-/translations", DashboardLive, :project_translations
+      live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
       live "/:handle/:project", DashboardLive, :project
     end
   end
