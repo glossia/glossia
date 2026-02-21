@@ -33,6 +33,8 @@ jobs:
 
       - name: Decrypt secrets
         run: |
+          set -euo pipefail
+
           if [ -z "${GLOSSIA_AGE_KEY:-}" ]; then
             echo "::error::Missing GLOSSIA_AGE_KEY secret"
             exit 1
@@ -42,7 +44,8 @@ jobs:
           printf '%s\n' "$GLOSSIA_AGE_KEY" > ~/.config/fnox/glossia-age.txt
           chmod 600 ~/.config/fnox/glossia-age.txt
 
-          fnox export --format env | sed '/^#/d;/^$/d' >> "$GITHUB_ENV"
+          fnox export --format env \
+            | sed -e '/^#/d' -e '/^$/d' -e 's/^export //' >> "$GITHUB_ENV"
         env:
           GLOSSIA_AGE_KEY: ${{ secrets.GLOSSIA_AGE_KEY }}
 
