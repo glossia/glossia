@@ -46,9 +46,18 @@ jobs:
           printf '%s\n' "$GLOSSIA_AGE_KEY" > ~/.config/fnox/glossia-age.txt
           chmod 600 ~/.config/fnox/glossia-age.txt
 
+          tmp_fnox_env="$(mktemp)"
+          fnox export --format env | sed -e '/^#/d' -e '/^$/d' -e 's/^export //' > "$tmp_fnox_env"
+
           set -a
-          eval "$(fnox export --format env | sed -e '/^#/d' -e '/^$/d' -e 's/^export //')"
+          source "$tmp_fnox_env"
           set +a
+
+          mkdir -p .kamal
+          cp "$tmp_fnox_env" .kamal/secrets-common
+          : > .kamal/secrets
+          chmod 600 .kamal/secrets-common .kamal/secrets
+          rm -f "$tmp_fnox_env"
 
           if [ -z "${SSH_PRIVATE_KEY_B64:-}" ]; then
             echo "::error::Missing SSH_PRIVATE_KEY_B64 in fnox secrets"
