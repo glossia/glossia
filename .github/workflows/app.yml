@@ -79,7 +79,11 @@ jobs:
           echo "::error::ClickHouse did not become ready in time"
           exit 1
       - name: Ensure ClickHouse test database exists
-        run: curl -fsS "http://localhost:8123/?query=CREATE%20DATABASE%20IF%20NOT%20EXISTS%20glossia_test"
+        run: |
+          curl --fail --show-error --silent \
+            -X POST \
+            "http://localhost:8123/" \
+            --data-binary "CREATE DATABASE IF NOT EXISTS glossia_test"
       - name: Run test suite
         run: mix test
 
