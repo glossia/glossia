@@ -1,0 +1,107 @@
+name: App
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      clickhouse:
+        image: clickhouse/clickhouse-server:24.12-alpine
+        env:
+          CLICKHOUSE_DB: glossia_test
+          CLICKHOUSE_SKIP_USER_SETUP: "1"
+        ports:
+          - 8123:8123
+    env:
+      MIX_ENV: test
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Wait for ClickHouse
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:8123/ping | grep -q "Ok."; then
+              echo "ClickHouse is ready"
+              exit 0
+            fi
+
+            echo "Waiting for ClickHouse... ($attempt/30)"
+            sleep 2
+          done
+
+          echo "::error::ClickHouse did not become ready in time"
+          exit 1
+      - name: Ensure ClickHouse test database exists
+        run: |
+          curl --fail --show-error --silent \
+            -X POST \
+            "http://localhost:8123/" \
+            --data-binary "CREATE DATABASE IF NOT EXISTS glossia_test"
+      - name: Run test suite
+        run: mix test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Format check (Quokka + Phoenix formatter)
+        run: mix format --check-formatted
