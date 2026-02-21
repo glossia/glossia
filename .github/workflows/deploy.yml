@@ -29,9 +29,11 @@ jobs:
       - name: Add server host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H 89.167.60.202 >> ~/.ssh/known_hosts
+          ssh-keygen -R 89.167.60.202 >/dev/null 2>&1 || true
+          ssh-keyscan -t ed25519 89.167.60.202 > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
-      - name: Decrypt secrets
+      - name: Deploy with Kamal
         run: |
           set -euo pipefail
 
@@ -44,13 +46,10 @@ jobs:
           printf '%s\n' "$GLOSSIA_AGE_KEY" > ~/.config/fnox/glossia-age.txt
           chmod 600 ~/.config/fnox/glossia-age.txt
 
-          fnox export --format env \
-            | sed -e '/^#/d' -e '/^$/d' -e 's/^export //' >> "$GITHUB_ENV"
-        env:
-          GLOSSIA_AGE_KEY: ${{ secrets.GLOSSIA_AGE_KEY }}
+          set -a
+          eval "$(fnox export --format env | sed -e '/^#/d' -e '/^$/d' -e 's/^export //')"
+          set +a
 
-      - name: Configure SSH key from fnox
-        run: |
           if [ -z "${SSH_PRIVATE_KEY_B64:-}" ]; then
             echo "::error::Missing SSH_PRIVATE_KEY_B64 in fnox secrets"
             exit 1
@@ -63,5 +62,6 @@ jobs:
           printf '%s' "$ssh_private_key_b64" | base64 --decode > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-      - name: Deploy with Kamal
-        run: kamal deploy
+          kamal deploy
+        env:
+          GLOSSIA_AGE_KEY: ${{ secrets.GLOSSIA_AGE_KEY }}
