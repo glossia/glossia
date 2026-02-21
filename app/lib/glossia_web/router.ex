@@ -4,6 +4,18 @@ defmodule GlossiaWeb.Router do
   import Phoenix.LiveDashboard.Router
   import Oban.Web.Router
 
+  @compile {:no_warn_undefined,
+            [
+              GlossiaWeb.AgentScriptController,
+              GlossiaWeb.AvatarController,
+              GlossiaWeb.GithubInstallCallbackController,
+              GlossiaWeb.Plugs.ApiRateLimit,
+              GlossiaWeb.Plugs.McpRateLimit,
+              GlossiaWeb.RedirectController,
+              GlossiaWeb.SitemapController,
+              GlossiaWeb.OAuth.DeviceController
+            ]}
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
