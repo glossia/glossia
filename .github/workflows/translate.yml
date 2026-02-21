@@ -47,17 +47,22 @@ jobs:
           fi
 
       - name: Run translations
-        if: steps.status.outputs.stale == 'true' && secrets.ANTHROPIC_API_KEY != ''
+        id: translate
+        if: steps.status.outputs.stale == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: ./cli/dist/bin/glossia translate
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "translated=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping translations because ANTHROPIC_API_KEY is not configured"
+            exit 0
+          fi
 
-      - name: Skip translations (missing API key)
-        if: steps.status.outputs.stale == 'true' && secrets.ANTHROPIC_API_KEY == ''
-        run: echo "Skipping translations because ANTHROPIC_API_KEY is not configured"
+          ./cli/dist/bin/glossia translate
+          echo "translated=true" >> "$GITHUB_OUTPUT"
 
       - name: Create PR with translations
-        if: steps.status.outputs.stale == 'true' && secrets.ANTHROPIC_API_KEY != ''
+        if: steps.status.outputs.stale == 'true' && steps.translate.outputs.translated == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
