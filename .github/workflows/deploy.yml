@@ -56,8 +56,11 @@ jobs:
             exit 1
           fi
 
+          ssh_private_key_b64="${SSH_PRIVATE_KEY_B64#\'}"
+          ssh_private_key_b64="${ssh_private_key_b64%\'}"
+
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY_B64" | base64 --decode > ~/.ssh/id_ed25519
+          printf '%s' "$ssh_private_key_b64" | base64 --decode > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
       - name: Deploy with Kamal
