@@ -23,6 +23,20 @@ end
 config :glossia, GlossiaWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4050"))]
 
+if config_env() in [:dev, :test] do
+  Code.require_file("worktree_db.exs", __DIR__)
+
+  worktree_database =
+    case config_env() do
+      :dev -> Glossia.Config.WorktreeDB.dev_database()
+      :test -> Glossia.Config.WorktreeDB.test_database()
+    end
+
+  config :glossia, Glossia.Repo, database: worktree_database
+  config :glossia, Glossia.ClickHouseRepo, database: worktree_database
+  config :glossia, Glossia.IngestRepo, database: worktree_database
+end
+
 stripe_secret_key = System.get_env("STRIPE_SECRET_KEY") || System.get_env("STRIPE_API_KEY")
 
 stripe_price_id =
