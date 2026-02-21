@@ -62,93 +62,11 @@ jobs:
             echo "version=$bumped" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Generate changelog
-        if: steps.releasable.outputs.should_release == 'true'
-        run: |
-          mkdir -p cli
-          git cliff --config cliff.toml --bump -o cli/CHANGELOG.md
-
-      - name: Upload changelog
-        if: steps.releasable.outputs.should_release == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: changelog
-          path: cli/CHANGELOG.md
-
-  build:
-    name: Build artifacts
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: prepare
-    if: needs.prepare.outputs.should_release == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            ext: ""
-            archive: tar.gz
-            artifact: glossia-linux-x64.tar.gz
-          - goos: linux
-            goarch: arm64
-            ext: ""
-            archive: tar.gz
-            artifact: glossia-linux-arm64.tar.gz
-          - goos: darwin
-            goarch: amd64
-            ext: ""
-            archive: tar.gz
-            artifact: glossia-darwin-x64.tar.gz
-          - goos: darwin
-            goarch: arm64
-            ext: ""
-            archive: tar.gz
-            artifact: glossia-darwin-arm64.tar.gz
-          - goos: windows
-            goarch: amd64
-            ext: ".exe"
-            archive: zip
-            artifact: glossia-windows-x64.zip
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: cli/go.mod
-          cache-dependency-path: cli/go.sum
-
-      - name: Build executable
-        run: |
-          mkdir -p ./dist/bin
-          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -trimpath -ldflags "-s -w" -o ./dist/bin/glossia${{ matrix.ext }} ./cmd/glossia
-        working-directory: cli
-
-      - name: Package artifact
-        shell: bash
-        run: |
-          mkdir -p dist
-          cp "cli/dist/bin/glossia${{ matrix.ext }}" "dist/glossia${{ matrix.ext }}"
-          cd dist
-          if [ "${{ matrix.archive }}" = "zip" ]; then
-            zip -q "${{ matrix.artifact }}" "glossia${{ matrix.ext }}"
-          else
-            tar -czf "${{ matrix.artifact }}" "glossia${{ matrix.ext }}"
-          fi
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.artifact }}
-
   publish:
     name: Publish to S3
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [prepare, build]
+    timeout-minutes: 30
+    needs: [prepare]
     if: needs.prepare.outputs.should_release == 'true'
     outputs:
       version: ${{ needs.prepare.outputs.version }}
@@ -166,10 +84,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download changelog
-        uses: actions/download-artifact@v4
+      - uses: actions/setup-go@v5
         with:
-          name: changelog
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff@2.10.0
+
+      - name: Generate changelog
+        run: |
+          mkdir -p cli
+          git cliff --config cliff.toml --bump -o cli/CHANGELOG.md
 
       - name: Commit changelog and tag release
         run: |
@@ -185,19 +113,43 @@ jobs:
             git tag "${RELEASE_VERSION}"
           fi
 
-          git push origin main --tags
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-          pattern: glossia-*
-
-      - name: Gather release artifacts and checksums
+      - name: Build release artifacts and checksums
         shell: bash
+        working-directory: cli
         run: |
-          mkdir -p release
-          find dist -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec cp {} release/ \;
-          cd release
+          mkdir -p dist/bin ../release
+
+          targets=(
+            "linux amd64 glossia-linux-x64 tar.gz"
+            "linux arm64 glossia-linux-arm64 tar.gz"
+            "darwin amd64 glossia-darwin-x64 tar.gz"
+            "darwin arm64 glossia-darwin-arm64 tar.gz"
+            "windows amd64 glossia-windows-x64 zip"
+          )
+
+          for target in "${targets[@]}"; do
+            read -r goos goarch name archive <<< "$target"
+            ext=""
+            if [ "$goos" = "windows" ]; then
+              ext=".exe"
+            fi
+
+            output="dist/bin/${name}${ext}"
+            CGO_ENABLED=0 GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags "-s -w" -o "$output" ./cmd/glossia
+
+            stagedir="$(mktemp -d)"
+            cp "$output" "$stagedir/glossia${ext}"
+
+            if [ "$archive" = "zip" ]; then
+              (cd "$stagedir" && zip -q "${GITHUB_WORKSPACE}/release/${name}.zip" "glossia${ext}")
+            else
+              tar -C "$stagedir" -czf "../release/${name}.tar.gz" "glossia${ext}"
+            fi
+
+            rm -rf "$stagedir"
+          done
+
+          cd ../release
           sha256sum *.tar.gz *.zip > SHA256SUMS
           sha512sum *.tar.gz *.zip > SHA512SUMS
 
@@ -249,6 +201,9 @@ jobs:
 
           rclone copy release "$version_path" --progress --checksum
           rclone copy release "$latest_path" --progress --checksum
+
+      - name: Push release commit and tag
+        run: git push origin main --follow-tags
 
   aqua-registry:
     name: Contribute Aqua Registry entry

@@ -31,20 +31,33 @@ jobs:
       - name: Check translation status
         id: status
         run: |
-          if ./cli/dist/bin/glossia status; then
+          set +e
+          status_output="$(./cli/dist/bin/glossia status 2>&1)"
+          status_code=$?
+          set -e
+
+          printf '%s\n' "$status_output"
+
+          if [ "$status_code" -eq 0 ]; then
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          elif printf '%s' "$status_output" | grep -qi "no sources found"; then
             echo "stale=false" >> "$GITHUB_OUTPUT"
           else
             echo "stale=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run translations
-        if: steps.status.outputs.stale == 'true'
+        if: steps.status.outputs.stale == 'true' && secrets.ANTHROPIC_API_KEY != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: ./cli/dist/bin/glossia translate
 
+      - name: Skip translations (missing API key)
+        if: steps.status.outputs.stale == 'true' && secrets.ANTHROPIC_API_KEY == ''
+        run: echo "Skipping translations because ANTHROPIC_API_KEY is not configured"
+
       - name: Create PR with translations
-        if: steps.status.outputs.stale == 'true'
+        if: steps.status.outputs.stale == 'true' && secrets.ANTHROPIC_API_KEY != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
