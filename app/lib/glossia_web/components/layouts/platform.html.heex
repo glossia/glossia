@@ -91,6 +91,16 @@
         <% else %>
           <span class="gl-context-name">{@handle}</span>
         <% end %>
+        <%= if assigns[:breadcrumb_items] do %>
+          <%= for {label, path} <- @breadcrumb_items do %>
+            <span class="gl-topbar-sep">/</span>
+            <%= if path do %>
+              <.link navigate={path} class="gl-topbar-crumb-link">{label}</.link>
+            <% else %>
+              <span class="gl-topbar-crumb">{label}</span>
+            <% end %>
+          <% end %>
+        <% end %>
       </nav>
     </div>
     <div class="gl-topbar-right">
@@ -109,6 +119,13 @@
               <li role="none">
                 <a role="menuitem" href={~p"/admin"}>
                   {gettext("Admin")}
+                </a>
+              </li>
+            <% end %>
+            <%= if assigns[:is_admin] do %>
+              <li role="none">
+                <a role="menuitem" href={~p"/#{@handle}/-/account"}>
+                  {gettext("Account")}
                 </a>
               </li>
             <% end %>
@@ -143,145 +160,203 @@
   <div class="gl-body">
     <%!-- Left sidebar (hidden for public/anonymous views) --%>
     <aside :if={assigns[:show_sidebar]} class="gl-sidebar" id="gl-sidebar">
-      <nav class="gl-nav">
-        <%!-- Primary section --%>
-        <div class="gl-nav-section">
-          <.link
-            navigate={"/#{@handle}"}
-            class={["gl-nav-item", @live_action in [:account, :project] && "active"]}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
-            </svg>
-            <span>{gettext("Projects")}</span>
-          </.link>
-          <%= if @can_write do %>
-            <.link
-              navigate={"/#{@handle}/-/voice"}
-              class={["gl-nav-item", @live_action in [:voice, :voice_version] && "active"]}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line
-                  x1="12"
-                  y1="19"
-                  x2="12"
-                  y2="23"
-                /><line x1="8" y1="23" x2="16" y2="23" />
-              </svg>
-              <span>{gettext("Voice")}</span>
-            </.link>
-            <.link
-              navigate={"/#{@handle}/-/glossary"}
-              class={["gl-nav-item", @live_action in [:glossary, :glossary_version] && "active"]}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-              </svg>
-              <span>{gettext("Glossary")}</span>
-            </.link>
-            <.link
-              navigate={"/#{@handle}/-/tickets"}
-              class={[
-                "gl-nav-item",
-                @live_action in [:tickets, :ticket_new, :ticket_show] && "active"
-              ]}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-              </svg>
-              <span>{gettext("Tickets")}</span>
-            </.link>
-          <% end %>
-        </div>
-
-        <%!-- Account section --%>
-        <%= if assigns[:is_admin] or @can_write do %>
-          <div class="gl-nav-section">
-            <span class="gl-nav-section-label">{gettext("Account")}</span>
-            <%= if assigns[:is_admin] and @account.type == "organization" do %>
+      <%= case assigns[:sidebar_context] || :account do %>
+        <% :project -> %>
+          <nav class="gl-nav">
+            <div class="gl-nav-section">
+              <span class="gl-nav-section-label">{@sidebar_project.handle}</span>
               <.link
-                navigate={"/#{@handle}/-/members"}
-                class={["gl-nav-item gl-nav-subitem", @live_action == :members && "active"]}
+                navigate={"/#{@handle}/#{@sidebar_project.handle}"}
+                class={["gl-nav-item gl-nav-subitem", @live_action == :project && "active"]}
               >
-                <span>{gettext("Members")}</span>
+                <span>{gettext("Overview")}</span>
               </.link>
-            <% end %>
-            <%= if @can_write do %>
               <.link
-                navigate={"/#{@handle}/-/logs"}
-                class={["gl-nav-item gl-nav-subitem", @live_action == :logs && "active"]}
+                navigate={"/#{@handle}/#{@sidebar_project.handle}/-/activity"}
+                class={[
+                  "gl-nav-item gl-nav-subitem",
+                  @live_action == :project_activity && "active"
+                ]}
               >
-                <span>{gettext("Logs")}</span>
+                <span>{gettext("Activity")}</span>
               </.link>
-            <% end %>
-          </div>
-        <% end %>
+              <.link
+                navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
+                class={[
+                  "gl-nav-item gl-nav-subitem",
+                  @live_action in [:project_translations, :project_session] && "active"
+                ]}
+              >
+                <span>{gettext("Translations")}</span>
+              </.link>
+              <%= if assigns[:is_admin] do %>
+                <.link
+                  navigate={"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
+                  class={[
+                    "gl-nav-item gl-nav-subitem",
+                    @live_action == :project_settings && "active"
+                  ]}
+                >
+                  <span>{gettext("Settings")}</span>
+                </.link>
+              <% end %>
+            </div>
+          </nav>
+        <% _ -> %>
+          <nav class="gl-nav">
+            <%!-- Primary section --%>
+            <div class="gl-nav-section">
+              <.link
+                navigate={"/#{@handle}"}
+                class={["gl-nav-item", @live_action == :account && "active"]}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
+                </svg>
+                <span>{gettext("Projects")}</span>
+              </.link>
+              <%= if @can_voice_read or @can_voice_write or @can_voice_propose do %>
+                <.link
+                  navigate={assigns[:voice_back_path] || "/#{@handle}/-/voice"}
+                  class={[
+                    "gl-nav-item",
+                    @live_action in [:voice, :voice_suggestion_new, :voice_version] && "active"
+                  ]}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line
+                      x1="12"
+                      y1="19"
+                      x2="12"
+                      y2="23"
+                    /><line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
+                  <span>{gettext("Voice")}</span>
+                </.link>
+              <% end %>
+              <%= if @can_glossary_read or @can_glossary_write or @can_glossary_propose do %>
+                <.link
+                  navigate={assigns[:glossary_back_path] || "/#{@handle}/-/glossary"}
+                  class={[
+                    "gl-nav-item",
+                    @live_action in [:glossary, :glossary_suggestion_new, :glossary_version] &&
+                      "active"
+                  ]}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+                  </svg>
+                  <span>{gettext("Glossary")}</span>
+                </.link>
+              <% end %>
+              <.link
+                navigate={"/#{@handle}/-/discussions"}
+                class={[
+                  "gl-nav-item",
+                  @live_action in [:discussions, :discussion_new, :discussion_show] && "active"
+                ]}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>{gettext("Discussions")}</span>
+              </.link>
+            </div>
 
-        <%!-- Settings section --%>
-        <%= if assigns[:is_admin] do %>
-          <div class="gl-nav-section">
-            <span class="gl-nav-section-label">{gettext("Settings")}</span>
-            <.link
-              navigate={"/#{@handle}/-/settings/tokens"}
-              class={[
-                "gl-nav-item gl-nav-subitem",
-                @live_action in [:api_tokens, :api_tokens_new, :api_token_edit] && "active"
-              ]}
-            >
-              <span>{gettext("Account tokens")}</span>
-            </.link>
-            <.link
-              navigate={"/#{@handle}/-/settings/apps"}
-              class={[
-                "gl-nav-item gl-nav-subitem",
-                @live_action in [:api_apps, :api_apps_new, :api_app_edit] && "active"
-              ]}
-            >
-              <span>{gettext("OAuth apps")}</span>
-            </.link>
-          </div>
-        <% end %>
-      </nav>
+            <%!-- Account section --%>
+            <%= if assigns[:is_admin] or @can_write do %>
+              <div class="gl-nav-section">
+                <span class="gl-nav-section-label">{gettext("Account")}</span>
+                <%= if assigns[:is_admin] and @account.type == "organization" do %>
+                  <.link
+                    navigate={"/#{@handle}/-/members"}
+                    class={[
+                      "gl-nav-item gl-nav-subitem",
+                      @live_action == :members && "active"
+                    ]}
+                  >
+                    <span>{gettext("Members")}</span>
+                  </.link>
+                <% end %>
+                <%= if @can_write do %>
+                  <.link
+                    navigate={"/#{@handle}/-/logs"}
+                    class={["gl-nav-item gl-nav-subitem", @live_action == :logs && "active"]}
+                  >
+                    <span>{gettext("Logs")}</span>
+                  </.link>
+                <% end %>
+              </div>
+            <% end %>
+
+            <%!-- Settings section --%>
+            <%= if assigns[:is_admin] do %>
+              <div class="gl-nav-section">
+                <span class="gl-nav-section-label">{gettext("Settings")}</span>
+                <.link
+                  navigate={"/#{@handle}/-/settings/tokens"}
+                  class={[
+                    "gl-nav-item gl-nav-subitem",
+                    @live_action in [:api_tokens, :api_tokens_new, :api_token_edit] && "active"
+                  ]}
+                >
+                  <span>{gettext("Account tokens")}</span>
+                </.link>
+                <.link
+                  navigate={"/#{@handle}/-/settings/apps"}
+                  class={[
+                    "gl-nav-item gl-nav-subitem",
+                    @live_action in [:api_apps, :api_apps_new, :api_app_edit] && "active"
+                  ]}
+                >
+                  <span>{gettext("OAuth apps")}</span>
+                </.link>
+              </div>
+            <% end %>
+          </nav>
+      <% end %>
     </aside>
 
     <div class="gl-sidebar-backdrop" id="gl-sidebar-backdrop"></div>
@@ -302,16 +377,18 @@
     var sidebarToggle = document.getElementById('gl-sidebar-toggle');
     var sidebar = document.getElementById('gl-sidebar');
     var backdrop = document.getElementById('gl-sidebar-backdrop');
-    var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    function checkMobile() {
+      return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    }
 
-    if (!isMobile && localStorage.getItem('gl-sidebar-collapsed') === 'true') {
+    if (!checkMobile() && localStorage.getItem('gl-sidebar-collapsed') === 'true') {
       shell.setAttribute('data-sidebar', 'collapsed');
     }
 
     if (sidebarToggle) {
       sidebarToggle.addEventListener('click', function(e) {
         e.stopPropagation();
-        if (isMobile) {
+        if (checkMobile()) {
           var isOpen = sidebar && sidebar.classList.contains('open');
           if (isOpen) {
             sidebar.classList.remove('open');
@@ -321,15 +398,6 @@
             if (sidebar) sidebar.classList.add('open');
             if (backdrop) backdrop.classList.add('open');
             sidebarToggle.setAttribute('aria-expanded', 'true');
-          }
-        } else {
-          var current = shell.getAttribute('data-sidebar');
-          if (current === 'collapsed') {
-            shell.setAttribute('data-sidebar', 'visible');
-            localStorage.setItem('gl-sidebar-collapsed', 'false');
-          } else if (current === 'visible') {
-            shell.setAttribute('data-sidebar', 'collapsed');
-            localStorage.setItem('gl-sidebar-collapsed', 'true');
           }
         }
       });
@@ -345,7 +413,7 @@
 
     if (sidebar) {
       sidebar.addEventListener('click', function(e) {
-        if (isMobile && e.target.closest('a')) {
+        if (checkMobile() && e.target.closest('a')) {
           sidebar.classList.remove('open');
           if (backdrop) backdrop.classList.remove('open');
           if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
@@ -361,33 +429,35 @@
       }
     });
 
-    var ctxSwitcher = document.querySelector('.gl-context-switcher');
-    if (ctxSwitcher) {
-      var ctxBtn = ctxSwitcher.querySelector('.gl-context-switcher-toggle');
-      ctxBtn.addEventListener('click', function(e) {
+    document.addEventListener('click', function(e) {
+      var ctxToggle = e.target.closest('.gl-context-switcher-toggle');
+      var ctxSwitcher = document.querySelector('.gl-context-switcher');
+      if (ctxToggle && ctxSwitcher) {
         e.stopPropagation();
         ctxSwitcher.classList.toggle('open');
-        ctxBtn.setAttribute('aria-expanded', ctxSwitcher.classList.contains('open'));
-      });
-      document.addEventListener('click', function() {
+        ctxToggle.setAttribute('aria-expanded', ctxSwitcher.classList.contains('open'));
+        return;
+      }
+      if (ctxSwitcher) {
         ctxSwitcher.classList.remove('open');
-        ctxBtn.setAttribute('aria-expanded', 'false');
-      });
-    }
+        var ctxBtn = ctxSwitcher.querySelector('.gl-context-switcher-toggle');
+        if (ctxBtn) ctxBtn.setAttribute('aria-expanded', 'false');
+      }
 
-    var avatarDd = document.querySelector('.gl-avatar-dropdown');
-    if (avatarDd) {
-      var avatarBtn = avatarDd.querySelector('.gl-avatar-toggle');
-      avatarBtn.addEventListener('click', function(e) {
+      var avatarToggle = e.target.closest('.gl-avatar-toggle');
+      var avatarDd = document.querySelector('.gl-avatar-dropdown');
+      if (avatarToggle && avatarDd) {
         e.stopPropagation();
         avatarDd.classList.toggle('open');
-        avatarBtn.setAttribute('aria-expanded', avatarDd.classList.contains('open'));
-      });
-      document.addEventListener('click', function() {
+        avatarToggle.setAttribute('aria-expanded', avatarDd.classList.contains('open'));
+        return;
+      }
+      if (avatarDd) {
         avatarDd.classList.remove('open');
-        avatarBtn.setAttribute('aria-expanded', 'false');
-      });
-    }
+        var avatarBtn = avatarDd.querySelector('.gl-avatar-toggle');
+        if (avatarBtn) avatarBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
 
     document.querySelectorAll('a[data-method="delete"]').forEach(function(link) {
       link.addEventListener('click', function(e) {
