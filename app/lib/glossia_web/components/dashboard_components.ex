@@ -494,6 +494,11 @@ defmodule GlossiaWeb.DashboardComponents do
   attr :id, :string, required: true
   attr :visible, :boolean, default: false
   attr :discard_event, :string, required: true
+  attr :form, :string, default: nil
+  attr :state_label, :string, default: nil
+  attr :note_placeholder, :string, default: nil
+  attr :submit_label, :string, default: nil
+  attr :show_note, :boolean, default: true
   attr :change_summary, :string, default: ""
   attr :generating_summary?, :boolean, default: false
 
@@ -501,24 +506,27 @@ defmodule GlossiaWeb.DashboardComponents do
     ~H"""
     <div class={["voice-save-bar", @visible && "visible"]} id={@id}>
       <div class="voice-save-bar-inner">
-        <span class="voice-save-bar-label">{gettext("Unsaved changes")}</span>
+        <span class="voice-save-bar-label">{@state_label || gettext("Unsaved changes")}</span>
         <div class="voice-save-bar-actions">
-          <div
-            class="voice-save-bar-note-wrap"
-            id={"#{@id}-hook"}
-            phx-hook=".SaveBarSummary"
-            phx-update="ignore"
-            data-generating={to_string(@generating_summary?)}
-          >
-            <input
-              type="text"
-              id={"#{@id}-note"}
-              name="change_note"
-              class="voice-save-bar-note"
-              placeholder={gettext("Describe your changes...")}
-              required
-            />
-          </div>
+          <%= if @show_note do %>
+            <div
+              class="voice-save-bar-note-wrap"
+              id={"#{@id}-hook"}
+              phx-hook=".SaveBarSummary"
+              phx-update="ignore"
+              data-generating={to_string(@generating_summary?)}
+            >
+              <input
+                type="text"
+                id={"#{@id}-note"}
+                name="change_note"
+                class="voice-save-bar-note"
+                placeholder={@note_placeholder || gettext("Describe your changes...")}
+                required
+                form={@form}
+              />
+            </div>
+          <% end %>
           <button
             type="button"
             class="dash-btn dash-btn-secondary"
@@ -526,8 +534,8 @@ defmodule GlossiaWeb.DashboardComponents do
           >
             {gettext("Discard")}
           </button>
-          <button type="submit" class="dash-btn dash-btn-primary">
-            {gettext("Save")}
+          <button type="submit" class="dash-btn dash-btn-primary" form={@form}>
+            {@submit_label || gettext("Save")}
           </button>
         </div>
       </div>

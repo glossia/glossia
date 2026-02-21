@@ -89,6 +89,7 @@ defmodule Glossia.MixProject do
       {:opentelemetry_req, "~> 1.0"},
       {:prom_ex, "~> 1.11"},
       {:tidewave, "~> 0.5", only: :dev},
+      {:quokka, "~> 2.12", only: [:dev, :test], runtime: false},
       {:ecto_ch, "~> 0.8"},
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},

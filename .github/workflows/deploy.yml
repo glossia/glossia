@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy Production
 
 on:
   push:
@@ -8,10 +8,15 @@ on:
 
 jobs:
   deploy:
+    name: Deploy to Production
     runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Set up mise
         uses: jdx/mise-action@v2
@@ -21,15 +26,26 @@ jobs:
       - name: Install tools
         run: mise install
 
-      - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Add server host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 89.167.60.202 >> ~/.ssh/known_hosts
 
       - name: Decrypt secrets
         run: fnox export --format env >> "$GITHUB_ENV"
         env:
           GLOSSIA_AGE_KEY: ${{ secrets.GLOSSIA_AGE_KEY }}
+
+      - name: Configure SSH key from fnox
+        run: |
+          if [ -z "${SSH_PRIVATE_KEY_B64:-}" ]; then
+            echo "::error::Missing SSH_PRIVATE_KEY_B64 in fnox secrets"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY_B64" | base64 --decode > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
 
       - name: Deploy with Kamal
         run: kamal deploy
