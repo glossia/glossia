@@ -14,6 +14,20 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Discussions
   alias Glossia.Voices
 
+  @compile {:no_warn_undefined,
+            [
+              Glossia.Discussions,
+              Glossia.Github.Client,
+              Glossia.Github.Installations,
+              Glossia.Ingestion,
+              Glossia.Projects.SetupWorker,
+              Glossia.TranslationSessions,
+              {Glossia.Accounts, :get_github_token_for_user, 1},
+              {Glossia.Projects, :create_project_from_github, 3},
+              {Glossia.Projects, :subscribe_setup_events, 1},
+              {Glossia.Projects, :update_project, 2}
+            ]}
+
   @tone_options ~w(casual formal playful authoritative neutral)
   @formality_options ~w(informal neutral formal very_formal)
 
@@ -616,11 +630,12 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp apply_action(socket, :account, _params) do
+  defp apply_action(socket, :account_settings, _params) do
     require_admin!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
     installation = Glossia.Github.Installations.get_installation_for_account(account.id)
+
     github_install_url =
       case Glossia.Github.App.install_url() do
         {:ok, url} -> url
@@ -2838,8 +2853,8 @@ defmodule GlossiaWeb.DashboardLive do
           discussions_active_filters={assigns[:discussions_active_filters] || %{}}
           generating_title?={assigns[:generating_title?] || false}
         />
-      <% :account -> %>
-        <.account_page
+      <% :account_settings -> %>
+        <.account_settings_page
           github_installation={@github_installation}
           github_install_url={@github_install_url}
         />
@@ -2911,7 +2926,7 @@ defmodule GlossiaWeb.DashboardLive do
   # Page: Account (projects list)
   # ---------------------------------------------------------------------------
 
-  defp account_page(assigns) do
+  defp account_settings_page(assigns) do
     ~H"""
     <div class="dash-page">
       <.page_header
@@ -9442,6 +9457,38 @@ defmodule GlossiaWeb.DashboardLive do
           </div>
         </:empty>
       </.resource_table>
+    </div>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :value, :string, default: ""
+  attr :placeholder, :string, default: nil
+  attr :rows, :integer, default: 6
+  attr :required, :boolean, default: false
+  attr :upload, :any, default: nil
+
+  defp markdown_editor(assigns) do
+    ~H"""
+    <div class="markdown-editor">
+      <textarea
+        id={@id}
+        name={@name}
+        rows={@rows}
+        placeholder={@placeholder}
+        required={@required}
+      >{@value || ""}</textarea>
+
+      <%= if @upload do %>
+        <div class="markdown-editor-upload">
+          <label for={"#{@id}-upload"} class="sr-only">{gettext("Upload image")}</label>
+          <.live_file_input upload={@upload} id={"#{@id}-upload"} />
+        </div>
+        <%= for err <- upload_errors(@upload) do %>
+          <p class="form-error">{upload_error_to_string(err)}</p>
+        <% end %>
+      <% end %>
     </div>
     """
   end

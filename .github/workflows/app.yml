@@ -1,0 +1,94 @@
+name: App
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      clickhouse:
+        image: clickhouse/clickhouse-server:24.12-alpine
+        env:
+          CLICKHOUSE_DB: glossia_test
+          CLICKHOUSE_SKIP_USER_SETUP: "1"
+        ports:
+          - 8123:8123
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MIX_ENV: test
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Ensure ClickHouse test database exists
+        run: curl -fsS "http://localhost:8123/?query=CREATE%20DATABASE%20IF%20NOT%20EXISTS%20glossia_test"
+      - name: Run test suite
+        run: mix test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Format check (Quokka + Phoenix formatter)
+        run: mix format --check-formatted
