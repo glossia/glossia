@@ -32,7 +32,17 @@ jobs:
           ssh-keyscan -H 89.167.60.202 >> ~/.ssh/known_hosts
 
       - name: Decrypt secrets
-        run: fnox export --format env >> "$GITHUB_ENV"
+        run: |
+          if [ -z "${GLOSSIA_AGE_KEY:-}" ]; then
+            echo "::error::Missing GLOSSIA_AGE_KEY secret"
+            exit 1
+          fi
+
+          mkdir -p ~/.config/fnox
+          printf '%s\n' "$GLOSSIA_AGE_KEY" > ~/.config/fnox/glossia-age.txt
+          chmod 600 ~/.config/fnox/glossia-age.txt
+
+          fnox export --format env | sed '/^#/d;/^$/d' >> "$GITHUB_ENV"
         env:
           GLOSSIA_AGE_KEY: ${{ secrets.GLOSSIA_AGE_KEY }}
 
