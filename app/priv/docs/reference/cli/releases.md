@@ -9,12 +9,20 @@
 
 Glossia CLI releases are published as pre-built executables for all major platforms. Each release is uploaded to S3 and made available via direct download or the [aqua](https://aquaproj.github.io/) package manager.
 
+## Install with mise
+
+If you use mise, install the CLI from the aqua registry with:
+
+```bash
+mise use aqua:glossia.ai/cli@latest
+```
+
 ## Install via aqua
 
 If you use aqua, install the CLI with:
 
 ```bash
-aqua g -i glossia/glossia
+aqua g -i glossia.ai/cli@latest
 ```
 
 Aqua handles platform detection and version management automatically.
