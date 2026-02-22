@@ -8,7 +8,13 @@ Localize like you ship software. `glossia` is a Go CLI that translates files loc
 ## Install 📦
 
 ```bash
-mise use github:glossia/glossia
+mise use aqua:glossia.ai/cli@latest
+```
+
+Or install with aqua directly:
+
+```bash
+aqua g -i glossia.ai/cli@latest
 ```
 
 Or build from source:

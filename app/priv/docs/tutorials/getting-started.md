@@ -15,10 +15,16 @@ This tutorial walks you through installing Glossia, creating a configuration fil
 
 ## Install Glossia
 
-Download the latest release from the [GitHub releases page](https://github.com/pepicrft/glossia) or install via Cargo:
+Install with mise:
 
 ```bash
-cargo install glossia
+mise use aqua:glossia.ai/cli@latest
+```
+
+Or install with aqua directly:
+
+```bash
+aqua g -i glossia.ai/cli@latest
 ```
 
 ## Initialize your project
