@@ -1,7 +1,7 @@
 <section class="section hero">
   <div class="container">
     <div class="hero-content reveal">
-      <h1>{gettext("The language OS for your organization")}</h1>
+      <h1>{gettext("The open-source language OS for your organization")}</h1>
       <p class="lead">
         {gettext(
           "Glossia captures your voice, terminology, and tone in one place so linguists and teams can shape how your organization speaks across every language and surface."
@@ -95,35 +95,81 @@
   </div>
 </section>
 
-<section id="how" class="section section-accent">
+<section id="why" class="section section-accent">
   <div class="container">
-    <h2 class="reveal">{gettext("How it works")}</h2>
+    <h2 class="reveal">{gettext("Why a language OS")}</h2>
+    <p class="muted lead reveal">
+      {gettext(
+        "Your organization already has systems for code, design, and data. Language deserves the same level of care."
+      )}
+    </p>
     <div class="steps">
       <div class="step reveal">
-        <div class="step-number">01</div>
-        <strong>{gettext("Give agents context")}</strong>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 7v14m-9-3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4a4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3a3 3 0 0 0-3-3z" />
+          </svg>
+        </div>
+        <strong>{gettext("One source of truth for how you speak")}</strong>
         <p>
-          {gettext("Add")} <code>GLOSSIA.md</code>
           {gettext(
-            "context files alongside your content. Glossia tracks their dependency so when context or content changes, only the affected outputs get regenerated."
+            "All of your linguistic preferences live in one place. Every team draws from the same foundation, so your organization sounds consistent whether it is a product screen, a marketing campaign, or a support reply."
           )}
         </p>
       </div>
       <div class="step reveal">
-        <div class="step-number">02</div>
-        <strong>{gettext("Choose the best model for the job")}</strong>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20M2 12h20" />
+          </svg>
+        </div>
+        <strong>{gettext("Speak new languages, reach new markets")}</strong>
         <p>
           {gettext(
-            "Assign different models to different roles and mix providers freely. Glossia acts as a broker between your code and the models, so you don't need to register with each provider separately."
+            "The same linguistic foundation that keeps your content consistent also powers expansion into new languages. Linguists refine the voice once, and every market benefits from that work immediately."
           )}
         </p>
       </div>
       <div class="step reveal">
-        <div class="step-number">03</div>
-        <strong>{gettext("Close the feedback loop")}</strong>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 22v-5m3-9V2m2 6a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1zM9 8V2" />
+          </svg>
+        </div>
+        <strong>{gettext("Bring context to the tools you already use")}</strong>
         <p>
-          {gettext(
-            "Glossia ships first-party tools for syntax validation and content checks, and you can bring your own. Agents run these tools after each generation and retry on errors, so the loop closes before you even review."
+          {gettext("Glossia integrates with your existing workflows through")}
+          <a href={~p"/docs/reference/api"}>{gettext("APIs")}</a>
+          {gettext("and open standards like")}
+          <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">MCP</a>. {gettext(
+            "Your writing tools, content platforms, and AI assistants can all tap into your organization's linguistic knowledge without switching systems."
           )}
         </p>
       </div>
@@ -133,10 +179,10 @@
 
 <section id="capabilities" class="section">
   <div class="container">
-    <h2 class="reveal">{gettext("Two workflows, one tool")}</h2>
+    <h2 class="reveal">{gettext("Built on the foundation, ready for your use cases")}</h2>
     <p class="muted lead reveal">
       {gettext(
-        "Whether you need to reach new audiences or sharpen what you already have, the same config file and CLI drives both."
+        "We build solutions on top of the language OS, and you can build your own. The same foundation powers everything."
       )}
     </p>
     <div class="tools-grid tools-grid-2col">
@@ -152,16 +198,14 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2m16 0h2m-7-1v2m-6-2v2" />
           </svg>
         </div>
-        <h3>{gettext("Localize")}</h3>
+        <h3>{gettext("Agentic localization and content revisiting")}</h3>
         <p>
           {gettext(
-            "Make your content speak new languages. Point Glossia at your source files, list target languages, and it produces localized versions that preserve structure, code blocks, and formatting. Run"
+            "AI agents translate, adapt, and refine your content, guided by your linguistic preferences. When context changes, the system knows what is affected and revisits it automatically."
           )}
-          <code>glossia translate</code>
-          {gettext("and ship to every market.")}
         </p>
       </div>
       <div class="card tool-card reveal" data-interactive>
@@ -176,52 +220,153 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            <path d="M15 6a9 9 0 0 0-9 9V3" /><circle cx="18" cy="6" r="3" /><circle
+              cx="6"
+              cy="18"
+              r="3"
+            />
           </svg>
         </div>
-        <h3>{gettext("Revisit")}</h3>
+        <h3>{gettext("Context graph")}</h3>
         <p>
           {gettext(
-            "Improve your content in place. Glossia reviews source files for clarity, accuracy, and tone using the context you provide. The revised output overwrites the original or writes to a separate path. Run"
+            "A queryable map that connects your voices, glossaries, audiences, and rules. Agents and integrations query it at runtime, so every decision a linguist makes flows through to every piece of content it touches."
           )}
-          <code>glossia revisit</code>
-          {gettext("to sharpen your docs, guides, or blog posts.")}
+        </p>
+      </div>
+      <div class="card tool-card reveal" data-interactive>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M10 22V7a1 1 0 0 0-1-1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5a1 1 0 0 0-1-1H2" /><rect
+              width="8"
+              height="8"
+              x="14"
+              y="2"
+              rx="1"
+            />
+          </svg>
+        </div>
+        <h3>{gettext("Open integrations")}</h3>
+        <p>
+          {gettext("Build your own solutions on top of the foundation through")}
+          <a href={~p"/docs/reference/api"}>{gettext("REST APIs")}</a>
+          {gettext("and")}
+          <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">MCP</a>. {gettext(
+            "Connect your writing platforms, content systems, and AI assistants to your organization's linguistic knowledge."
+          )}
+        </p>
+      </div>
+      <div class="card tool-card reveal" data-interactive>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3.128a4 4 0 0 1 0 7.744M22 21v-2a4 4 0 0 0-3-3.87" /><circle
+              cx="9"
+              cy="7"
+              r="4"
+            />
+          </svg>
+        </div>
+        <h3>{gettext("Linguist-centered collaboration")}</h3>
+        <p>
+          {gettext(
+            "Linguists review, refine, and approve content directly. They are not at the end of a chain but at the center, shaping how your organization speaks before anything ships."
+          )}
         </p>
       </div>
     </div>
   </div>
 </section>
 
-<section id="tools" class="section">
+<section id="platform" class="section section-accent">
   <div class="container">
-    <h2 class="reveal">{gettext("Closing the loop")}</h2>
+    <h2 class="reveal">{gettext("A collaborative platform for your linguistic identity")}</h2>
     <p class="muted lead reveal">
       {gettext(
-        "Agents don't just generate content. They verify it, catch errors, and retry until the output meets your standards."
+        "One place where linguists and language managers define how an organization speaks, track every change, and collaborate across projects. Think of it as what GitHub did for software teams, but for the people who shape language."
       )}
     </p>
     <div class="tools-grid">
       <div class="card tool-card reveal" data-interactive>
-        <h3>{gettext("Generate")}</h3>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M10 12h4m-4-4h4m0 13v-3a2 2 0 0 0-4 0v3" /><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2" /><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />
+          </svg>
+        </div>
+        <h3>{gettext("Organizations and projects")}</h3>
         <p>
           {gettext(
-            "Agents produce content based on your source files and the context you provide in"
-          )} <code>GLOSSIA.md</code>.
-        </p>
-      </div>
-      <div class="card tool-card reveal" data-interactive>
-        <h3>{gettext("Verify")}</h3>
-        <p>
-          {gettext(
-            "Built-in tools check syntax, structure, and preserved tokens. You can also plug in your own linters, compilers, or validators."
+            "Create an organization, invite your team, and organize work into projects. Each project has its own voices, glossaries, and rules that linguists iterate on together."
           )}
         </p>
       </div>
       <div class="card tool-card reveal" data-interactive>
-        <h3>{gettext("Retry")}</h3>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5m4-1v5l4 2" />
+          </svg>
+        </div>
+        <h3>{gettext("Version everything")}</h3>
         <p>
           {gettext(
-            "When a check fails, agents see the error and try again. The loop repeats until the output is valid or the retry limit is reached."
+            "Every change to a voice, glossary entry, or rule is versioned. See what changed, who changed it, and why. Roll back when needed."
+          )}
+        </p>
+      </div>
+      <div class="card tool-card reveal" data-interactive>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294zM5 21h14" />
+          </svg>
+        </div>
+        <h3>{gettext("Linguists at the center")}</h3>
+        <p>
+          {gettext(
+            "Linguists contribute across multiple organizations, refine preferences, and see the impact of their decisions propagate through the system in real time."
           )}
         </p>
       </div>
@@ -231,30 +376,25 @@
 
 <section id="config" class="section">
   <div class="container">
-    <h2 class="reveal">{gettext("Context flows down, config stays close")}</h2>
+    <h2 class="reveal">{gettext("The more specific the context, the closer to the content")}</h2>
     <p class="muted lead reveal">
       {gettext(
-        "The narrower the scope, the closer to the code. Global defaults live at the root, project-specific rules nest deeper, and shared resources like glossaries live in Glossia so they can be reused across repositories."
+        "Global definitions on Glossia set the baseline for your organization. Project-level context narrows the scope. The result: every agent gets exactly the right instructions without you repeating yourself."
       )}
     </p>
     <div class="config-grid">
       <div class="card config-card reveal">
-        <h3>GLOSSIA.md</h3>
+        <h3>{gettext("Project context (repository example)")}</h3>
         <p>
-          {gettext("Define content sources, targets, and output patterns in TOML frontmatter.")}
-        </p>
-        <pre class="code-block"><code>{raw("+++\n<span class=\"token punctuation\">[</span><span class=\"token punctuation\">[</span><span class=\"token table class-name\">content</span><span class=\"token punctuation\">]</span><span class=\"token punctuation\">]</span>\n<span class=\"token key property\">source</span> <span class=\"token punctuation\">=</span> <span class=\"token string\">&quot;site/src/_data/home.json&quot;</span>\n<span class=\"token key property\">targets</span> <span class=\"token punctuation\">=</span> <span class=\"token punctuation\">[</span><span class=\"token string\">&quot;es&quot;</span><span class=\"token punctuation\">,</span> <span class=\"token string\">&quot;de&quot;</span><span class=\"token punctuation\">,</span> <span class=\"token string\">&quot;ko&quot;</span><span class=\"token punctuation\">,</span> <span class=\"token string\">&quot;ja&quot;</span><span class=\"token punctuation\">]</span>\n<span class=\"token key property\">output</span> <span class=\"token punctuation\">=</span> <span class=\"token string\">&quot;site/src/_data/i18n/{lang}/{basename}.{ext}&quot;</span>\n\n<span class=\"token punctuation\">[</span><span class=\"token punctuation\">[</span><span class=\"token table class-name\">content</span><span class=\"token punctuation\">]</span><span class=\"token punctuation\">]</span>\n<span class=\"token key property\">source</span> <span class=\"token punctuation\">=</span> <span class=\"token string\">&quot;docs/guide/*.md&quot;</span>\n+++\n\n<span class=\"token comment\"># Context for the content agent...</span>")}</code></pre>
-      </div>
-      <div class="card config-card reveal">
-        <h3>{gettext("Project layout")}</h3>
-        <p>
-          {gettext("Context files nest alongside your content. Language overrides sit next door.")}
+          {gettext(
+            "GLOSSIA.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
+          )}
         </p>
         <div class="file-tree">
           <ul>
             <li><span class="highlight">GLOSSIA.md</span></li>
             <li>
-              <span class="dir">GLOSSIA/</span>
+              <span class="dir">LANGUAGE/</span>
               <ul>
                 <li><span class="file">es.md</span></li>
                 <li><span class="file">ja.md</span></li>
@@ -265,12 +405,6 @@
               <ul>
                 <li><span class="highlight">GLOSSIA.md</span></li>
                 <li>
-                  <span class="dir">GLOSSIA/</span>
-                  <ul>
-                    <li><span class="file">de.md</span></li>
-                  </ul>
-                </li>
-                <li>
                   <span class="dir">guide/</span>
                   <ul>
                     <li><span class="file">intro.md</span></li>
@@ -278,13 +412,33 @@
                 </li>
               </ul>
             </li>
+          </ul>
+        </div>
+      </div>
+      <div class="card config-card reveal">
+        <h3>{gettext("On Glossia")}</h3>
+        <p>
+          {gettext(
+            "Voices, glossaries, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
+          )}
+        </p>
+        <div class="file-tree">
+          <ul>
             <li>
-              <span class="dir">site/</span>
+              <span class="dir">{gettext("Organization")}</span>
               <ul>
+                <li><span class="highlight">{gettext("Voices")}</span></li>
+                <li><span class="highlight">{gettext("Glossary")}</span></li>
                 <li>
-                  <span class="dir">src/</span>
+                  <span class="dir">{gettext("Project A")}</span>
                   <ul>
-                    <li><span class="file">home.json</span></li>
+                    <li><span class="file">{gettext("Linked repo")}</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="dir">{gettext("Project B")}</span>
+                  <ul>
+                    <li><span class="file">{gettext("Linked repo")}</span></li>
                   </ul>
                 </li>
               </ul>
@@ -296,97 +450,84 @@
   </div>
 </section>
 
-<section id="features" class="section section-accent">
+<section id="audience" class="section section-accent">
   <div class="container">
-    <h2 class="reveal">{gettext("Ship content like you ship code")}</h2>
+    <h2 class="reveal">{gettext("Built for the people who shape how organizations speak")}</h2>
     <p class="muted lead reveal">
       {gettext(
-        "Glossia borrows proven patterns from software engineering and applies them to content workflows, so you can ship content with the same confidence you ship code."
+        "Whether you define the voice, manage the workflows, or build the products, Glossia gives you a shared system to work from."
       )}
     </p>
-    <div class="feature-grid">
-      <div class="card feature reveal" data-interactive>
-        <div class="feature-icon violet">#</div>
-        <h3>{gettext("Incremental updates")}</h3>
+    <div class="tools-grid">
+      <div class="card tool-card reveal" data-interactive>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2m16 0h2m-7-1v2m-6-2v2" />
+          </svg>
+        </div>
+        <h3>{gettext("Linguists and translators")}</h3>
         <p>
           {gettext(
-            "We use lockfiles and DAG graphs to update only what changed, so you skip redundant work and save both time and money on every run."
+            "Refine voice definitions, update glossaries, and review content directly. Your expertise becomes the foundation that agents and integrations draw from across every project."
           )}
         </p>
       </div>
-      <div class="card feature reveal" data-interactive>
-        <div class="feature-icon amber">&#10003;</div>
-        <h3>{gettext("Linting and validation")}</h3>
+      <div class="card tool-card reveal" data-interactive>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /><rect
+              width="20"
+              height="14"
+              x="2"
+              y="6"
+              rx="2"
+            />
+          </svg>
+        </div>
+        <h3>{gettext("Language managers")}</h3>
         <p>
           {gettext(
-            "The same idea behind CI checks: run syntax validators, linters, and custom commands against every output before it lands."
+            "Stop gluing tools together. Glossia is the system you have been looking for: one place to maintain terminology, enforce consistency, and coordinate across teams and projects."
           )}
         </p>
       </div>
-      <div class="card feature reveal" data-interactive>
-        <div class="feature-icon green">&#187;</div>
-        <h3>{gettext("Retry on failure")}</h3>
+      <div class="card tool-card reveal" data-interactive>
+        <div class="step-number">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+        </div>
+        <h3>{gettext("Product and engineering teams")}</h3>
         <p>
           {gettext(
-            "When a check fails, agents see the error and try again. Automatic retries with feedback, the same pattern behind resilient distributed systems."
-          )}
-        </p>
-      </div>
-      <div class="card feature reveal" data-interactive>
-        <div class="feature-icon violet">&#182;</div>
-        <h3>{gettext("Human feedback loop")}</h3>
-        <p>
-          {gettext(
-            "Reviewers flag issues through pull requests and update context files. Each correction feeds back into the next run, so the output gets closer to your voice with every cycle."
-          )}
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="refinement" class="section">
-  <div class="container">
-    <h2 class="reveal">{gettext("Progressive Refinement")}</h2>
-    <p class="muted lead reveal">
-      {gettext(
-        "Outputs don't have to be perfect on day one. Like code, they improve through iteration."
-      )}
-    </p>
-    <div class="feature-grid">
-      <div class="card feature reveal" data-interactive>
-        <div class="step-number">01</div>
-        <h3>{gettext("Draft")}</h3>
-        <p>
-          {gettext(
-            "The LLM generates a structurally valid first pass from your context files. Formatting, code blocks, and frontmatter come through intact so the output is ready to review, not rebuild."
-          )}
-        </p>
-      </div>
-      <div class="card feature reveal" data-interactive>
-        <div class="step-number">02</div>
-        <h3>{gettext("Review")}</h3>
-        <p>
-          {gettext(
-            "Your team flags issues through pull requests, just like code review. Reviewers comment on tone, accuracy, or missing nuance, and those notes become input for the next cycle."
-          )}
-        </p>
-      </div>
-      <div class="card feature reveal" data-interactive>
-        <div class="step-number">03</div>
-        <h3>{gettext("Refine")}</h3>
-        <p>
-          {gettext(
-            "Updated context and glossary corrections feed into the next run. Every edit to a context file or glossary entry tightens the instructions the agent follows, so repeated mistakes disappear."
-          )}
-        </p>
-      </div>
-      <div class="card feature reveal" data-interactive>
-        <div class="step-number">04</div>
-        <h3>{gettext("Converge")}</h3>
-        <p>
-          {gettext(
-            "Each cycle narrows the gap. The system learns your product's voice. Over time, outputs need fewer corrections and start matching the quality your team would produce by hand."
+            "Integrate linguistic context into your existing tools and workflows through APIs and MCP. Your content stays consistent without adding manual steps to the development process."
           )}
         </p>
       </div>
@@ -428,7 +569,7 @@
 
 <section id="blog" class="section">
   <div class="container">
-    <h2 class="reveal">{gettext("Updates")}</h2>
+    <h2 class="reveal">{gettext("From the blog")}</h2>
     <div class="blog-list">
       <article :for={post <- @posts} class="card blog-card reveal" data-interactive>
         <a href={~p"/blog/#{post.slug}"}>
@@ -442,5 +583,8 @@
         </a>
       </article>
     </div>
+    <p class="reveal" style="text-align: center; margin-top: var(--space-8);">
+      <a href={~p"/blog"} class="button secondary">{gettext("View all posts")}</a>
+    </p>
   </div>
 </section>
