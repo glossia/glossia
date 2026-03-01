@@ -1,6 +1,7 @@
 defmodule Glossia.Kits.Kit do
   use Glossia.Schema
   import Ecto.Changeset
+  import Glossia.Validations
 
   @derive {
     Flop.Schema,
@@ -42,11 +43,10 @@ defmodule Glossia.Kits.Kit do
       :visibility
     ])
     |> validate_required([:handle, :name, :source_language])
-    |> validate_length(:handle, min: 1, max: 64)
+    |> validate_handle(:handle, min: 1, max: 64)
+    |> validate_locale(:source_language)
+    |> validate_locales(:target_languages)
     |> validate_length(:name, min: 1, max: 255)
-    |> validate_format(:handle, ~r/\A[a-z0-9]([a-z0-9-]*[a-z0-9])?\z/,
-      message: "must be lowercase alphanumeric with optional hyphens"
-    )
     |> validate_inclusion(:visibility, @visibilities)
     |> unique_constraint([:account_id, :handle])
   end

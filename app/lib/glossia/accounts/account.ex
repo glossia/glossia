@@ -1,6 +1,7 @@
 defmodule Glossia.Accounts.Account do
   use Glossia.Schema
   import Ecto.Changeset
+  import Glossia.Validations
 
   @derive {
     Flop.Schema,
@@ -42,10 +43,7 @@ defmodule Glossia.Accounts.Account do
     |> validate_required([:handle])
     |> validate_inclusion(:type, ["user", "organization"])
     |> validate_inclusion(:visibility, ["private", "public"])
-    |> validate_format(:handle, ~r/^[a-z]([a-z0-9-]*[a-z0-9])?$/,
-      message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
-    )
-    |> validate_length(:handle, min: 2, max: 39)
+    |> validate_handle(:handle)
     |> validate_not_reserved()
     |> unique_constraint(:handle)
   end

@@ -1,6 +1,7 @@
 defmodule Glossia.Accounts.VoiceOverride do
   use Glossia.Schema
   import Ecto.Changeset
+  import Glossia.Validations
 
   schema "voice_overrides" do
     field :locale, :string
@@ -18,9 +19,7 @@ defmodule Glossia.Accounts.VoiceOverride do
     override
     |> cast(attrs, [:locale, :tone, :formality, :target_audience, :guidelines])
     |> validate_required([:locale])
-    |> validate_format(:locale, ~r/^[a-z]{2}(-[A-Za-z]{2,})?$/,
-      message: "must be a valid locale like 'en', 'ja', 'es-MX'"
-    )
+    |> validate_locale(:locale)
     |> validate_inclusion(:tone, ~w(casual formal playful authoritative neutral))
     |> validate_inclusion(:formality, ~w(informal neutral formal very_formal))
     |> unique_constraint([:voice_id, :locale])

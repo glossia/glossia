@@ -1,6 +1,7 @@
 defmodule Glossia.Accounts.Project do
   use Glossia.Schema
   import Ecto.Changeset
+  import Glossia.Validations
 
   @derive {
     Flop.Schema,
@@ -42,10 +43,7 @@ defmodule Glossia.Accounts.Project do
       :setup_target_languages
     ])
     |> validate_required([:handle, :name])
-    |> validate_format(:handle, ~r/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/,
-      message: "must contain only lowercase letters, numbers, and hyphens"
-    )
-    |> validate_length(:handle, min: 2, max: 39)
+    |> validate_handle(:handle)
     |> validate_inclusion(:setup_status, ~w(pending running completed failed),
       message: "is invalid"
     )
