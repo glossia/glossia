@@ -4,6 +4,15 @@ defmodule GlossiaWeb.DocsController do
   alias Glossia.Docs
   alias Glossia.OgImage
 
+  plug GlossiaWeb.Plugs.RateLimit,
+       [
+         key_prefix: "docs_search_index",
+         scale: :timer.minutes(1),
+         limit: 120,
+         by: :ip
+       ]
+       when action in [:search_index]
+
   def index(conn, _params) do
     categories = Docs.categories()
 

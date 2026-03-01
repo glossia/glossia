@@ -236,7 +236,7 @@ func resolveEntries(root string, entries []Entry, fileList []string) ([]resolved
 			if excludes[match] {
 				continue
 			}
-			if path.Base(match) == "GLOSSIA.md" {
+			if path.Base(match) == "LANGUAGE.md" {
 				continue
 			}
 
@@ -348,7 +348,7 @@ func discoverContent(root string) ([]*ContentFile, error) {
 
 	var contentPaths []string
 	for _, file := range fileList {
-		if path.Base(file) == "GLOSSIA.md" {
+		if path.Base(file) == "LANGUAGE.md" {
 			contentPaths = append(contentPaths, file)
 		}
 	}
@@ -410,7 +410,7 @@ func readLangContext(dir string, lang string) (string, error) {
 		return "", fmt.Errorf("invalid language code %q", lang)
 	}
 
-	filePath := filepath.Join(dir, "GLOSSIA", trimmed+".md")
+	filePath := filepath.Join(dir, "LANGUAGE", trimmed+".md")
 
 	if _, err := os.Stat(filePath); err != nil {
 		return "", nil

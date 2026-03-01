@@ -4,8 +4,8 @@ defmodule GlossiaWeb.Admin.AdminLive do
   alias Glossia.Accounts
   alias Glossia.Accounts.{Account, User}
   alias Glossia.Auditing
+  alias Glossia.Discussions
   alias Glossia.Repo
-  alias Glossia.Support
 
   import Ecto.Query
   import GlossiaWeb.DashboardComponents
@@ -15,7 +15,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
   @table_prefixes %{
     "users-table" => "",
     "accounts-table" => "a",
-    "tickets-table" => "t"
+    "discussions-table" => "t"
   }
 
   # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
       case socket.assigns.live_action do
         :users -> apply_url_params_users(socket, params)
         :accounts -> apply_url_params_accounts(socket, params)
-        :tickets -> apply_url_params_tickets(socket, params)
+        :discussions -> apply_url_params_discussions(socket, params)
         _ -> socket
       end
 
@@ -91,25 +91,26 @@ defmodule GlossiaWeb.Admin.AdminLive do
     )
   end
 
-  defp apply_action(socket, :tickets, _params) do
+  defp apply_action(socket, :discussions, _params) do
     assign(socket,
-      page_title: gettext("Tickets"),
-      tickets: [],
-      tickets_total: 0,
-      tickets_search: "",
-      tickets_sort_key: "created",
-      tickets_sort_dir: "desc",
-      tickets_page: 1
+      page_title: gettext("Discussions"),
+      discussions: [],
+      discussions_total: 0,
+      discussions_search: "",
+      discussions_sort_key: "created",
+      discussions_sort_dir: "desc",
+      discussions_page: 1
     )
   end
 
-  defp apply_action(socket, :ticket_show, %{"ticket_id" => ticket_id}) do
-    ticket = Support.get_ticket!(ticket_id)
+  defp apply_action(socket, :discussion_show, params) do
+    discussion_id = Map.get(params, "discussion_id") || Map.get(params, "ticket_id")
+    discussion = Discussions.get_discussion!(discussion_id)
 
     assign(socket,
-      page_title: ticket.title,
-      ticket: ticket,
-      message_form: to_form(%{"body" => ""}, as: :message)
+      page_title: discussion.title,
+      discussion: discussion,
+      comment_form: to_form(%{"body" => ""}, as: :comment)
     )
   end
 
@@ -207,55 +208,81 @@ defmodule GlossiaWeb.Admin.AdminLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Ticket admin events
+  # Discussion admin events
   # ---------------------------------------------------------------------------
 
-  def handle_event("update_ticket_status", %{"id" => ticket_id, "status" => status}, socket) do
-    ticket = Support.get_ticket!(ticket_id)
+  def handle_event("close_discussion", %{"id" => discussion_id}, socket) do
+    discussion = Discussions.get_discussion!(discussion_id)
     user = socket.assigns.current_user
 
-    resolved_by = if status in ~w(resolved implemented), do: user, else: nil
-
-    case Support.update_ticket_status(ticket, status, resolved_by) do
-      {:ok, updated_ticket} ->
-        Auditing.record("ticket.status_changed", updated_ticket.account, user,
-          resource_type: "ticket",
-          resource_id: to_string(updated_ticket.id),
-          summary: "Changed ticket status to \"#{status}\""
+    case Discussions.close_discussion(discussion, user) do
+      {:ok, updated_discussion} ->
+        Auditing.record("discussion.closed", updated_discussion.account, user,
+          resource_type: "discussion",
+          resource_id: to_string(updated_discussion.id),
+          resource_path: "/admin/discussions/#{updated_discussion.id}",
+          summary: "Closed discussion \"#{updated_discussion.title}\""
         )
 
-        updated_ticket = Support.get_ticket!(updated_ticket.id)
+        updated_discussion = Discussions.get_discussion!(updated_discussion.id)
 
         {:noreply,
          socket
-         |> assign(ticket: updated_ticket)
-         |> put_flash(:info, gettext("Ticket status updated."))}
+         |> assign(discussion: updated_discussion)
+         |> put_flash(:info, gettext("Discussion closed."))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to update ticket status."))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to close discussion."))}
     end
   end
 
-  def handle_event("admin_reply_ticket", %{"message" => params}, socket) do
-    ticket = socket.assigns.ticket
-    user = socket.assigns.current_user
+  def handle_event("reopen_discussion", %{"id" => discussion_id}, socket) do
+    discussion = Discussions.get_discussion!(discussion_id)
 
-    case Support.add_message(ticket, user, params, is_staff: true) do
-      {:ok, _message} ->
-        Auditing.record("ticket.replied", ticket.account, user,
-          resource_type: "ticket",
-          resource_id: to_string(ticket.id),
-          summary: "Staff replied to ticket \"#{ticket.title}\""
+    case Discussions.reopen_discussion(discussion) do
+      {:ok, updated_discussion} ->
+        user = socket.assigns.current_user
+
+        Auditing.record("discussion.reopened", updated_discussion.account, user,
+          resource_type: "discussion",
+          resource_id: to_string(updated_discussion.id),
+          resource_path: "/admin/discussions/#{updated_discussion.id}",
+          summary: "Reopened discussion \"#{updated_discussion.title}\""
         )
 
-        ticket = Support.get_ticket!(ticket.id)
+        updated_discussion = Discussions.get_discussion!(updated_discussion.id)
 
         {:noreply,
          socket
-         |> assign(ticket: ticket, message_form: to_form(%{"body" => ""}, as: :message))}
+         |> assign(discussion: updated_discussion)
+         |> put_flash(:info, gettext("Discussion reopened."))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to reopen discussion."))}
+    end
+  end
+
+  def handle_event("admin_comment_discussion", %{"comment" => params}, socket) do
+    discussion = socket.assigns.discussion
+    user = socket.assigns.current_user
+
+    case Discussions.add_comment(discussion, user, params) do
+      {:ok, _comment} ->
+        Auditing.record("discussion.commented", discussion.account, user,
+          resource_type: "discussion",
+          resource_id: to_string(discussion.id),
+          resource_path: "/admin/discussions/#{discussion.id}",
+          summary: "Admin commented on discussion \"#{discussion.title}\""
+        )
+
+        discussion = Discussions.get_discussion!(discussion.id)
+
+        {:noreply,
+         socket
+         |> assign(discussion: discussion, comment_form: to_form(%{"body" => ""}, as: :comment))}
 
       {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, gettext("Could not send message."))}
+        {:noreply, put_flash(socket, :error, gettext("Could not add comment."))}
     end
   end
 
@@ -285,8 +312,8 @@ defmodule GlossiaWeb.Admin.AdminLive do
       :home -> render_home(assigns)
       :users -> render_users(assigns)
       :accounts -> render_accounts(assigns)
-      :tickets -> render_tickets(assigns)
-      :ticket_show -> render_ticket_show(assigns)
+      :discussions -> render_discussions(assigns)
+      :discussion_show -> render_discussion_show(assigns)
     end
   end
 
@@ -505,7 +532,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
       case socket.assigns.live_action do
         :users -> "/admin/users"
         :accounts -> "/admin/accounts"
-        :tickets -> "/admin/tickets"
+        :discussions -> "/admin/discussions"
         _ -> "/admin"
       end
 
@@ -531,12 +558,12 @@ defmodule GlossiaWeb.Admin.AdminLive do
     }
   end
 
-  defp current_table_state(socket, "tickets-table") do
+  defp current_table_state(socket, "discussions-table") do
     %{
-      search: socket.assigns[:tickets_search] || "",
-      sort: socket.assigns[:tickets_sort_key] || "created",
-      dir: socket.assigns[:tickets_sort_dir] || "desc",
-      page: socket.assigns[:tickets_page] || 1
+      search: socket.assigns[:discussions_search] || "",
+      sort: socket.assigns[:discussions_sort_key] || "created",
+      dir: socket.assigns[:discussions_sort_dir] || "desc",
+      page: socket.assigns[:discussions_page] || 1
     }
   end
 
@@ -548,10 +575,10 @@ defmodule GlossiaWeb.Admin.AdminLive do
       {socket.assigns[:accounts_sort_key] || "created",
        socket.assigns[:accounts_sort_dir] || "desc"}
 
-  defp current_sort(socket, "tickets-table"),
+  defp current_sort(socket, "discussions-table"),
     do:
-      {socket.assigns[:tickets_sort_key] || "created",
-       socket.assigns[:tickets_sort_dir] || "desc"}
+      {socket.assigns[:discussions_sort_key] || "created",
+       socket.assigns[:discussions_sort_dir] || "desc"}
 
   defp default_sort_key(_table_id), do: "created"
   defp default_sort_dir(_table_id), do: "desc"
@@ -640,231 +667,206 @@ defmodule GlossiaWeb.Admin.AdminLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Tickets data
+  # Discussions data
   # ---------------------------------------------------------------------------
 
-  defp apply_url_params_tickets(socket, params) do
+  defp apply_url_params_discussions(socket, params) do
     search = Map.get(params, "tq", "")
     sort_key = Map.get(params, "tsort", "created")
     sort_dir = Map.get(params, "tdir", "desc")
     page = parse_page(params, "tpage")
 
-    {tickets, total} = list_all_tickets(page, search, sort_key, sort_dir)
+    {discussions, total} = list_all_admin_discussions(page, search, sort_key, sort_dir)
 
     assign(socket,
-      tickets: tickets,
-      tickets_total: total,
-      tickets_search: search,
-      tickets_sort_key: sort_key,
-      tickets_sort_dir: sort_dir,
-      tickets_page: page
+      discussions: discussions,
+      discussions_total: total,
+      discussions_search: search,
+      discussions_sort_key: sort_key,
+      discussions_sort_dir: sort_dir,
+      discussions_page: page
     )
   end
 
-  defp list_all_tickets(page, search, sort_key, sort_dir) do
-    alias Glossia.Support.Ticket
+  defp list_all_admin_discussions(page, search, sort_key, sort_dir) do
+    alias Glossia.Discussions.Discussion
 
-    query = Ticket |> preload([:user, :account])
+    query = Discussion |> preload([:user, :account])
 
     query =
       if search != "" do
         pattern = "%#{search}%"
-        where(query, [t], ilike(t.title, ^pattern))
+        where(query, [i], ilike(i.title, ^pattern))
       else
         query
       end
 
-    query = apply_ticket_sort(query, sort_key, sort_dir)
+    query = apply_discussion_sort(query, sort_key, sort_dir)
     total = Repo.aggregate(query, :count)
 
-    tickets =
+    discussions =
       query
       |> limit(@page_size)
       |> offset(^(max(page - 1, 0) * @page_size))
       |> Repo.all()
 
-    {tickets, total}
+    {discussions, total}
   end
 
-  defp apply_ticket_sort(query, "title", "asc"), do: order_by(query, asc: :title)
-  defp apply_ticket_sort(query, "title", _), do: order_by(query, desc: :title)
-  defp apply_ticket_sort(query, "status", "asc"), do: order_by(query, asc: :status)
-  defp apply_ticket_sort(query, "status", _), do: order_by(query, desc: :status)
-  defp apply_ticket_sort(query, _key, "asc"), do: order_by(query, asc: :inserted_at)
-  defp apply_ticket_sort(query, _key, _), do: order_by(query, desc: :inserted_at)
+  defp apply_discussion_sort(query, "title", "asc"), do: order_by(query, asc: :title)
+  defp apply_discussion_sort(query, "title", _), do: order_by(query, desc: :title)
+  defp apply_discussion_sort(query, "status", "asc"), do: order_by(query, asc: :status)
+  defp apply_discussion_sort(query, "status", _), do: order_by(query, desc: :status)
+  defp apply_discussion_sort(query, _key, "asc"), do: order_by(query, asc: :inserted_at)
+  defp apply_discussion_sort(query, _key, _), do: order_by(query, desc: :inserted_at)
 
   # ---------------------------------------------------------------------------
-  # Render: Tickets
+  # Render: Discussions
   # ---------------------------------------------------------------------------
 
-  defp render_tickets(assigns) do
+  defp render_discussions(assigns) do
     ~H"""
     <.page_header
-      title={gettext("Tickets")}
-      description={gettext("%{count} tickets total", count: @tickets_total)}
+      title={gettext("Discussions")}
+      description={gettext("%{count} discussions total", count: @discussions_total)}
     />
 
     <.resource_table
-      id="tickets-table"
-      rows={@tickets}
-      search={@tickets_search}
+      id="discussions-table"
+      rows={@discussions}
+      search={@discussions_search}
       search_placeholder={gettext("Search by title...")}
-      sort_key={@tickets_sort_key}
-      sort_dir={@tickets_sort_dir}
-      page={@tickets_page}
+      sort_key={@discussions_sort_key}
+      sort_dir={@discussions_sort_dir}
+      page={@discussions_page}
       per_page={@page_size}
-      total={@tickets_total}
+      total={@discussions_total}
     >
-      <:col :let={ticket} label="#" key="number" sortable>
-        <a href={~p"/admin/tickets/#{ticket.id}"} class="admin-link">{"##{ticket.number}"}</a>
+      <:col :let={discussion} label="#" key="number" sortable>
+        <a href={~p"/admin/discussions/#{discussion.id}"} class="admin-link">
+          {"##{discussion.number}"}
+        </a>
       </:col>
-      <:col :let={ticket} label={gettext("Title")} key="title" sortable>
-        <a href={~p"/admin/tickets/#{ticket.id}"} class="admin-link">{ticket.title}</a>
+      <:col :let={discussion} label={gettext("Title")} key="title" sortable>
+        <a href={~p"/admin/discussions/#{discussion.id}"} class="admin-link">
+          {discussion.title}
+        </a>
       </:col>
-      <:col :let={ticket} label={gettext("Account")}>
-        {ticket.account.handle}
+      <:col :let={discussion} label={gettext("Account")}>
+        {discussion.account.handle}
       </:col>
-      <:col :let={ticket} label={gettext("Type")}>
-        <.badge variant={ticket_type_variant(ticket.type)}>
-          {ticket_type_label(ticket.type)}
-        </.badge>
-      </:col>
-      <:col :let={ticket} label={gettext("Status")} key="status" sortable>
-        <.badge variant={ticket_status_variant(ticket.status)}>
-          {ticket_status_label(ticket.status)}
+      <:col :let={discussion} label={gettext("Status")} key="status" sortable>
+        <.badge variant={discussion_status_variant(discussion.status)}>
+          {discussion_status_label(discussion.status)}
         </.badge>
       </:col>
       <:col
-        :let={ticket}
+        :let={discussion}
         label={gettext("Created")}
         key="created"
         sortable
         class="resource-col-nowrap"
       >
-        {Calendar.strftime(ticket.inserted_at, "%Y-%m-%d")}
+        {Calendar.strftime(discussion.inserted_at, "%Y-%m-%d")}
       </:col>
       <:empty>
-        <span class="resource-empty-text">{gettext("No tickets found.")}</span>
+        <span class="resource-empty-text">{gettext("No discussions found.")}</span>
       </:empty>
     </.resource_table>
     """
   end
 
-  defp render_ticket_show(assigns) do
+  defp render_discussion_show(assigns) do
     ~H"""
     <.page_header
-      title={@ticket.title}
-      description={gettext("Ticket from %{handle}", handle: @ticket.account.handle)}
+      title={@discussion.title}
+      description={gettext("Discussion from %{handle}", handle: @discussion.account.handle)}
     />
 
     <div class="ticket-detail-meta">
-      <.badge variant={ticket_type_variant(@ticket.type)}>
-        {ticket_type_label(@ticket.type)}
-      </.badge>
-      <.badge variant={ticket_status_variant(@ticket.status)}>
-        {ticket_status_label(@ticket.status)}
+      <.badge variant={discussion_status_variant(@discussion.status)}>
+        {discussion_status_label(@discussion.status)}
       </.badge>
       <span class="ticket-detail-date">
-        {gettext("Opened %{date}", date: Calendar.strftime(@ticket.inserted_at, "%b %d, %Y"))}
+        {gettext("Opened %{date}", date: Calendar.strftime(@discussion.inserted_at, "%b %d, %Y"))}
       </span>
     </div>
 
     <div style="margin-bottom: var(--space-4);">
-      <label
-        for="ticket-status-select"
-        style="font-weight: var(--weight-medium); margin-right: var(--space-2);"
-      >
-        {gettext("Change status:")}
-      </label>
-      <select
-        id="ticket-status-select"
-        phx-change="update_ticket_status"
-        name="status"
-        phx-value-id={@ticket.id}
-        style="padding: var(--space-1) var(--space-2); border-radius: var(--radius-md); border: 1px solid var(--color-border);"
-      >
-        <option value="open" selected={@ticket.status == "open"}>{gettext("Open")}</option>
-        <option value="in_progress" selected={@ticket.status == "in_progress"}>
-          {gettext("In progress")}
-        </option>
-        <option value="resolved" selected={@ticket.status == "resolved"}>
-          {gettext("Resolved")}
-        </option>
-        <option value="implemented" selected={@ticket.status == "implemented"}>
-          {gettext("Implemented")}
-        </option>
-      </select>
+      <%= if @discussion.status == "open" do %>
+        <button
+          phx-click="close_discussion"
+          phx-value-id={@discussion.id}
+          class="dash-btn dash-btn-secondary"
+        >
+          {gettext("Close discussion")}
+        </button>
+      <% else %>
+        <button
+          phx-click="reopen_discussion"
+          phx-value-id={@discussion.id}
+          class="dash-btn dash-btn-secondary"
+        >
+          {gettext("Reopen discussion")}
+        </button>
+      <% end %>
     </div>
 
     <div class="ticket-conversation">
-      <div class="ticket-message ticket-message-user" id="ticket-description">
-        <div class="ticket-message-header">
-          <span class="ticket-message-author">{@ticket.user.name || @ticket.user.email}</span>
-          <span class="ticket-message-time">
-            {Calendar.strftime(@ticket.inserted_at, "%b %d, %Y at %H:%M")}
+      <div class="ticket-comment" id="ticket-body">
+        <div class="ticket-comment-header">
+          <span class="ticket-comment-author">
+            {@discussion.user.name || @discussion.user.email}
+          </span>
+          <span class="ticket-comment-time">
+            {Calendar.strftime(@discussion.inserted_at, "%b %d, %Y at %H:%M")}
           </span>
         </div>
-        <div class="ticket-message-body">{@ticket.description}</div>
+        <div class="ticket-comment-body">{@discussion.body}</div>
       </div>
 
       <div
-        :for={msg <- @ticket.messages}
-        class={[
-          "ticket-message",
-          if(msg.is_staff, do: "ticket-message-staff", else: "ticket-message-user")
-        ]}
-        id={"msg-" <> msg.id}
+        :for={comment <- @discussion.comments}
+        class="ticket-comment"
+        id={"comment-" <> comment.id}
       >
-        <div class="ticket-message-header">
-          <span class="ticket-message-author">
-            {msg.user.name || msg.user.email}
-            <.badge :if={msg.is_staff} variant="info">{gettext("Staff")}</.badge>
+        <div class="ticket-comment-header">
+          <span class="ticket-comment-author">
+            {comment.user.name || comment.user.email}
           </span>
-          <span class="ticket-message-time">
-            {Calendar.strftime(msg.inserted_at, "%b %d, %Y at %H:%M")}
+          <span class="ticket-comment-time">
+            {Calendar.strftime(comment.inserted_at, "%b %d, %Y at %H:%M")}
           </span>
         </div>
-        <div class="ticket-message-body">{msg.body}</div>
+        <div class="ticket-comment-body">{comment.body}</div>
       </div>
     </div>
 
     <.form
-      for={@message_form}
-      id="admin-message-form"
-      phx-submit="admin_reply_ticket"
+      for={@comment_form}
+      id="admin-comment-form"
+      phx-submit="admin_comment_discussion"
       class="ticket-reply-form"
     >
       <textarea
-        name="message[body]"
-        id="admin_message_body"
+        name="comment[body]"
+        id="admin_comment_body"
         rows="3"
-        placeholder={gettext("Write a staff reply...")}
+        placeholder={gettext("Write a comment...")}
         required
-      >{@message_form[:body].value}</textarea>
+      >{@comment_form[:body].value}</textarea>
       <button type="submit" class="dash-btn dash-btn-primary">
-        {gettext("Send staff reply")}
+        {gettext("Add comment")}
       </button>
     </.form>
     """
   end
 
-  defp ticket_status_variant("open"), do: "neutral"
-  defp ticket_status_variant("in_progress"), do: "info"
-  defp ticket_status_variant("resolved"), do: "success"
-  defp ticket_status_variant("implemented"), do: "success"
-  defp ticket_status_variant(_), do: "neutral"
+  defp discussion_status_variant("open"), do: "success"
+  defp discussion_status_variant("closed"), do: "neutral"
+  defp discussion_status_variant(_), do: "neutral"
 
-  defp ticket_status_label("open"), do: gettext("Open")
-  defp ticket_status_label("in_progress"), do: gettext("In progress")
-  defp ticket_status_label("resolved"), do: gettext("Resolved")
-  defp ticket_status_label("implemented"), do: gettext("Implemented")
-  defp ticket_status_label(other), do: other
-
-  defp ticket_type_variant("issue"), do: "warning"
-  defp ticket_type_variant("request"), do: "info"
-  defp ticket_type_variant(_), do: "neutral"
-
-  defp ticket_type_label("issue"), do: gettext("Issue")
-  defp ticket_type_label("request"), do: gettext("Feature request")
-  defp ticket_type_label(other), do: other
+  defp discussion_status_label("open"), do: gettext("Open")
+  defp discussion_status_label("closed"), do: gettext("Closed")
+  defp discussion_status_label(other), do: other
 end

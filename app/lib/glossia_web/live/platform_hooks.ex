@@ -80,14 +80,30 @@ defmodule GlossiaWeb.PlatformHooks do
     account = socket.assigns[:account]
     can_write = Glossia.Policy.authorize?(:project_write, user, account)
     is_admin = Glossia.Policy.authorize?(:project_admin, user, account)
+    can_voice_read = Glossia.Policy.authorize?(:voice_read, user, account)
+    can_voice_write = Glossia.Policy.authorize?(:voice_write, user, account)
+    can_glossary_read = Glossia.Policy.authorize?(:glossary_read, user, account)
+    can_glossary_write = Glossia.Policy.authorize?(:glossary_write, user, account)
+    can_discussion_write = Glossia.Policy.authorize?(:discussion_write, user, account)
 
-    show_sidebar = can_write or is_admin
+    can_voice_propose = can_discussion_write
+    can_glossary_propose = can_discussion_write
+
+    show_sidebar = user != nil
 
     {:cont,
      socket
      |> assign(:can_write, can_write)
      |> assign(:is_admin, is_admin)
-     |> assign(:show_sidebar, show_sidebar)}
+     |> assign(:can_voice_read, can_voice_read)
+     |> assign(:can_voice_write, can_voice_write)
+     |> assign(:can_voice_propose, can_voice_propose)
+     |> assign(:can_glossary_read, can_glossary_read)
+     |> assign(:can_glossary_write, can_glossary_write)
+     |> assign(:can_glossary_propose, can_glossary_propose)
+     |> assign(:show_sidebar, show_sidebar)
+     |> assign(:sidebar_context, :account)
+     |> assign(:sidebar_project, nil)}
   end
 
   def on_mount(:require_auth, _params, _session, socket) do

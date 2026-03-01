@@ -22,6 +22,7 @@ defmodule Glossia.MCP.RevokeTokenTool do
           Glossia.Auditing.record("token.revoked", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
+            resource_path: "/#{account.handle}/-/settings/tokens",
             summary: "Revoked account token \"#{token.name}\""
           )
 

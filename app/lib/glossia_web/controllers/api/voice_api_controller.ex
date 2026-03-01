@@ -66,7 +66,6 @@ defmodule GlossiaWeb.Api.VoiceApiController do
               formality: params["formality"],
               target_audience: params["target_audience"],
               guidelines: params["guidelines"],
-              change_note: params["change_note"],
               overrides: params["overrides"] || []
             }
 
@@ -78,7 +77,7 @@ defmodule GlossiaWeb.Api.VoiceApiController do
                   resource_type: "voice",
                   resource_id: to_string(voice.version),
                   resource_path: "/#{handle}/-/voice/#{voice.version}",
-                  summary: attrs.change_note || "Updated voice configuration"
+                  summary: "Updated voice configuration"
                 )
 
                 voice = %{voice | overrides: overrides}
@@ -115,7 +114,6 @@ defmodule GlossiaWeb.Api.VoiceApiController do
                     Enum.map(versions, fn v ->
                       %{
                         version: v.version,
-                        change_note: v.change_note,
                         inserted_at: v.inserted_at
                       }
                     end),
@@ -141,7 +139,6 @@ defmodule GlossiaWeb.Api.VoiceApiController do
       formality: voice.formality,
       target_audience: voice.target_audience,
       guidelines: voice.guidelines,
-      change_note: voice.change_note,
       inserted_at: voice.inserted_at,
       overrides:
         Enum.map(voice.overrides, fn o ->

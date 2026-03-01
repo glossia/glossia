@@ -4,6 +4,16 @@ defmodule GlossiaWeb.InvitationController do
   alias Glossia.Auditing
   alias Glossia.Organizations
 
+  plug GlossiaWeb.Plugs.RateLimit,
+       [
+         key_prefix: "invitation_response",
+         scale: :timer.hours(1),
+         limit: 30,
+         by: :user,
+         format: :text
+       ]
+       when action in [:accept, :decline]
+
   def show(conn, %{"token" => token}) do
     case Organizations.get_invitation_by_token(token) do
       nil ->
@@ -67,6 +77,7 @@ defmodule GlossiaWeb.InvitationController do
               Auditing.record("member.invitation_accepted", org.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
+                resource_path: "/#{handle}/-/members",
                 summary: "#{user.email} accepted invitation as #{invitation.role}"
               )
 
@@ -114,6 +125,7 @@ defmodule GlossiaWeb.InvitationController do
               Auditing.record("member.invitation_declined", org.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
+                resource_path: "/#{org.account.handle}/-/members",
                 summary: "#{invitation.email} declined invitation as #{invitation.role}"
               )
             end

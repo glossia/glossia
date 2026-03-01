@@ -32,7 +32,7 @@ defmodule Glossia.MCP.InviteOrganizationMemberTool do
           Auditing.record("member.invited", account, user,
             resource_type: "invitation",
             resource_id: to_string(invitation.id),
-            resource_path: ~p"/#{account.handle}/members",
+            resource_path: "/#{account.handle}/-/members",
             summary: "Invited #{invitation.email} as #{invitation.role}"
           )
 

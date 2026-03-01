@@ -1,51 +1,185 @@
-<div
-  class="gl-shell"
-  id="gl-shell"
-  data-sidebar={if assigns[:show_sidebar], do: "visible", else: "hidden"}
+<.app_shell
+  current_user={@current_user}
+  data_sidebar={if assigns[:show_sidebar], do: "visible", else: "hidden"}
+  show_sidebar={assigns[:show_sidebar] || false}
 >
-  <%!-- Global top bar (always visible, full-width) --%>
-  <header class="gl-topbar" id="gl-topbar">
-    <div class="gl-topbar-left">
-      <button
-        class="gl-sidebar-toggle"
-        id="gl-sidebar-toggle"
-        aria-expanded="false"
-        aria-haspopup="true"
-        aria-controls="gl-sidebar"
-        aria-label={gettext("Toggle sidebar")}
+  <%!-- Sidebar toggle button (before the logo) --%>
+  <:topbar_prepend :if={assigns[:show_sidebar]}>
+    <button
+      class="gl-sidebar-toggle"
+      id="gl-sidebar-toggle"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-controls="gl-sidebar"
+      aria-label={gettext("Toggle sidebar")}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+  </:topbar_prepend>
+
+  <%!-- Account context switcher + breadcrumbs --%>
+  <:topbar_context>
+    <%= if @current_user do %>
+      <div :if={assigns[:accounts]} class="gl-context-switcher">
+        <button
+          class="gl-context-switcher-toggle"
+          aria-expanded="false"
+          aria-haspopup="true"
         >
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
-      <a class="gl-topbar-logo" href={if @current_user, do: ~p"/dashboard", else: ~p"/"}>
-        <img src={~p"/images/logo-rounded.png"} alt="Glossia" width="20" height="20" />
-      </a>
-      <%!-- Breadcrumb-style context indicator --%>
-      <nav class="gl-topbar-context" aria-label={gettext("Context")}>
-        <%= if @current_user do %>
-          <div :if={assigns[:accounts]} class="gl-context-switcher">
-            <button
-              class="gl-context-switcher-toggle"
-              aria-expanded="false"
-              aria-haspopup="true"
+          <span class="gl-context-name">{@handle}</span>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <ul class="gl-context-menu" role="menu">
+          <li :for={account <- @accounts} role="none">
+            <a
+              role="menuitem"
+              href={"/#{account.handle}"}
+              class={if account.handle == @handle, do: "active"}
             >
-              <span class="gl-context-name">{@handle}</span>
+              <span class="gl-context-handle">{account.handle}</span>
+              <span :if={account.type == "user"} class="gl-context-badge">
+                {gettext("Personal")}
+              </span>
+              <span
+                :if={account.type == "organization"}
+                class="gl-context-badge gl-context-badge-org"
+              >
+                {gettext("Org")}
+              </span>
+            </a>
+          </li>
+          <li role="none" class="gl-context-divider"></li>
+          <li role="none">
+            <a role="menuitem" href={~p"/organizations/new"} class="gl-context-create">
+              {gettext("Create organization")}
+            </a>
+          </li>
+        </ul>
+      </div>
+    <% else %>
+      <span class="gl-context-name">{@handle}</span>
+    <% end %>
+    <%= if assigns[:breadcrumb_items] do %>
+      <%= for {label, path} <- @breadcrumb_items do %>
+        <span class="gl-topbar-sep">/</span>
+        <%= if path do %>
+          <.link navigate={path} class="gl-topbar-crumb-link">{label}</.link>
+        <% else %>
+          <span class="gl-topbar-crumb">{label}</span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </:topbar_context>
+
+  <%!-- Extra avatar menu items (Admin, Profile preferences, Account settings) --%>
+  <:avatar_menu_extra>
+    <%= if @current_user && @current_user.super_admin do %>
+      <li role="none">
+        <a role="menuitem" href={~p"/admin"}>{gettext("Admin")}</a>
+      </li>
+    <% end %>
+    <li role="none">
+      <a role="menuitem" href={~p"/-/settings/profile"}>{gettext("Settings")}</a>
+    </li>
+  </:avatar_menu_extra>
+
+  <%!-- Impersonation banner --%>
+  <:extra_banner>
+    <%= if assigns[:impersonating_from] do %>
+      <div class="impersonation-banner">
+        <span>{gettext("You are impersonating %{email}", email: @current_user.email)}</span>
+        <form method="post" action={~p"/admin/impersonate"} style="display:inline">
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+          <input type="hidden" name="_method" value="delete" />
+          <button type="submit" class="impersonation-banner-stop">
+            {gettext("Stop impersonating")}
+          </button>
+        </form>
+      </div>
+    <% end %>
+  </:extra_banner>
+
+  <%!-- Sidebar nav --%>
+  <:sidebar>
+    <%= case assigns[:sidebar_context] || :account do %>
+      <% :project -> %>
+        <nav class="gl-nav">
+          <div class="gl-nav-section">
+            <span class="gl-nav-section-label">{@sidebar_project.handle}</span>
+            <.link
+              navigate={"/#{@handle}/#{@sidebar_project.handle}"}
+              class={["gl-nav-item gl-nav-subitem", @live_action == :project && "active"]}
+            >
+              <span>{gettext("Overview")}</span>
+            </.link>
+            <.link
+              navigate={"/#{@handle}/#{@sidebar_project.handle}/-/activity"}
+              class={[
+                "gl-nav-item gl-nav-subitem",
+                @live_action == :project_activity && "active"
+              ]}
+            >
+              <span>{gettext("Activity")}</span>
+            </.link>
+            <.link
+              navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
+              class={[
+                "gl-nav-item gl-nav-subitem",
+                @live_action in [:project_translations, :project_session] && "active"
+              ]}
+            >
+              <span>{gettext("Translations")}</span>
+            </.link>
+            <%= if assigns[:is_admin] do %>
+              <.link
+                navigate={"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
+                class={[
+                  "gl-nav-item gl-nav-subitem",
+                  @live_action == :project_settings && "active"
+                ]}
+              >
+                <span>{gettext("Settings")}</span>
+              </.link>
+            <% end %>
+          </div>
+        </nav>
+      <% _ -> %>
+        <nav class="gl-nav">
+          <%!-- Primary section --%>
+          <div class="gl-nav-section">
+            <.link
+              navigate={"/#{@handle}"}
+              class={["gl-nav-item", @live_action == :account && "active"]}
+            >
               <svg
-                width="12"
-                height="12"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -54,236 +188,16 @@
                 stroke-linejoin="round"
                 aria-hidden="true"
               >
-                <polyline points="6 9 12 15 18 9" />
+                <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
               </svg>
-            </button>
-            <ul class="gl-context-menu" role="menu">
-              <li :for={account <- @accounts} role="none">
-                <a
-                  role="menuitem"
-                  href={"/#{account.handle}"}
-                  class={if account.handle == @handle, do: "active"}
-                >
-                  <span class="gl-context-handle">{account.handle}</span>
-                  <span :if={account.type == "user"} class="gl-context-badge">
-                    {gettext("Personal")}
-                  </span>
-                  <span
-                    :if={account.type == "organization"}
-                    class="gl-context-badge gl-context-badge-org"
-                  >
-                    {gettext("Org")}
-                  </span>
-                </a>
-              </li>
-              <li role="none" class="gl-context-divider"></li>
-              <li role="none">
-                <a
-                  role="menuitem"
-                  href={~p"/organizations/new"}
-                  class="gl-context-create"
-                >
-                  {gettext("Create organization")}
-                </a>
-              </li>
-            </ul>
-          </div>
-        <% else %>
-          <span class="gl-context-name">{@handle}</span>
-        <% end %>
-        <%= if assigns[:breadcrumb_items] do %>
-          <%= for {label, path} <- @breadcrumb_items do %>
-            <span class="gl-topbar-sep">/</span>
-            <%= if path do %>
-              <.link navigate={path} class="gl-topbar-crumb-link">{label}</.link>
-            <% else %>
-              <span class="gl-topbar-crumb">{label}</span>
-            <% end %>
-          <% end %>
-        <% end %>
-      </nav>
-    </div>
-    <div class="gl-topbar-right">
-      <%= if @current_user do %>
-        <div class="gl-avatar-dropdown">
-          <button class="gl-avatar-toggle" aria-expanded="false" aria-haspopup="true">
-            <img
-              src={"https://www.gravatar.com/avatar/#{Base.encode16(:crypto.hash(:md5, String.downcase(String.trim(@current_user.email))), case: :lower)}?s=64&d=identicon"}
-              alt={@current_user.name || @current_user.email}
-              width="24"
-              height="24"
-            />
-          </button>
-          <ul class="gl-avatar-menu" role="menu">
-            <%= if @current_user.super_admin do %>
-              <li role="none">
-                <a role="menuitem" href={~p"/admin"}>
-                  {gettext("Admin")}
-                </a>
-              </li>
-            <% end %>
-            <%= if assigns[:is_admin] do %>
-              <li role="none">
-                <a role="menuitem" href={~p"/#{@handle}/-/account"}>
-                  {gettext("Account")}
-                </a>
-              </li>
-            <% end %>
-            <li role="none">
-              <a role="menuitem" href={~p"/auth/logout"} data-method="delete">
-                {gettext("Log out")}
-              </a>
-            </li>
-          </ul>
-        </div>
-      <% else %>
-        <a href={~p"/auth/login"} class="gl-btn gl-btn-primary">{gettext("Sign in")}</a>
-      <% end %>
-    </div>
-  </header>
-
-  <%!-- Impersonation banner --%>
-  <%= if assigns[:impersonating_from] do %>
-    <div class="impersonation-banner">
-      <span>{gettext("You are impersonating %{email}", email: @current_user.email)}</span>
-      <form method="post" action={~p"/admin/impersonate"} style="display:inline">
-        <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
-        <input type="hidden" name="_method" value="delete" />
-        <button type="submit" class="impersonation-banner-stop">
-          {gettext("Stop impersonating")}
-        </button>
-      </form>
-    </div>
-  <% end %>
-
-  <%!-- Body: sidebar + content --%>
-  <div class="gl-body">
-    <%!-- Left sidebar (hidden for public/anonymous views) --%>
-    <aside :if={assigns[:show_sidebar]} class="gl-sidebar" id="gl-sidebar">
-      <%= case assigns[:sidebar_context] || :account do %>
-        <% :project -> %>
-          <nav class="gl-nav">
-            <div class="gl-nav-section">
-              <span class="gl-nav-section-label">{@sidebar_project.handle}</span>
+              <span>{gettext("Projects")}</span>
+            </.link>
+            <%= if @can_voice_read or @can_voice_write or @can_voice_propose do %>
               <.link
-                navigate={"/#{@handle}/#{@sidebar_project.handle}"}
-                class={["gl-nav-item gl-nav-subitem", @live_action == :project && "active"]}
-              >
-                <span>{gettext("Overview")}</span>
-              </.link>
-              <.link
-                navigate={"/#{@handle}/#{@sidebar_project.handle}/-/activity"}
-                class={[
-                  "gl-nav-item gl-nav-subitem",
-                  @live_action == :project_activity && "active"
-                ]}
-              >
-                <span>{gettext("Activity")}</span>
-              </.link>
-              <.link
-                navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
-                class={[
-                  "gl-nav-item gl-nav-subitem",
-                  @live_action in [:project_translations, :project_session] && "active"
-                ]}
-              >
-                <span>{gettext("Translations")}</span>
-              </.link>
-              <%= if assigns[:is_admin] do %>
-                <.link
-                  navigate={"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
-                  class={[
-                    "gl-nav-item gl-nav-subitem",
-                    @live_action == :project_settings && "active"
-                  ]}
-                >
-                  <span>{gettext("Settings")}</span>
-                </.link>
-              <% end %>
-            </div>
-          </nav>
-        <% _ -> %>
-          <nav class="gl-nav">
-            <%!-- Primary section --%>
-            <div class="gl-nav-section">
-              <.link
-                navigate={"/#{@handle}"}
-                class={["gl-nav-item", @live_action == :account && "active"]}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
-                </svg>
-                <span>{gettext("Projects")}</span>
-              </.link>
-              <%= if @can_voice_read or @can_voice_write or @can_voice_propose do %>
-                <.link
-                  navigate={assigns[:voice_back_path] || "/#{@handle}/-/voice"}
-                  class={[
-                    "gl-nav-item",
-                    @live_action in [:voice, :voice_suggestion_new, :voice_version] && "active"
-                  ]}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line
-                      x1="12"
-                      y1="19"
-                      x2="12"
-                      y2="23"
-                    /><line x1="8" y1="23" x2="16" y2="23" />
-                  </svg>
-                  <span>{gettext("Voice")}</span>
-                </.link>
-              <% end %>
-              <%= if @can_glossary_read or @can_glossary_write or @can_glossary_propose do %>
-                <.link
-                  navigate={assigns[:glossary_back_path] || "/#{@handle}/-/glossary"}
-                  class={[
-                    "gl-nav-item",
-                    @live_action in [:glossary, :glossary_suggestion_new, :glossary_version] &&
-                      "active"
-                  ]}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-                  </svg>
-                  <span>{gettext("Glossary")}</span>
-                </.link>
-              <% end %>
-              <.link
-                navigate={"/#{@handle}/-/discussions"}
+                navigate={assigns[:voice_back_path] || "/#{@handle}/-/voice"}
                 class={[
                   "gl-nav-item",
-                  @live_action in [:discussions, :discussion_new, :discussion_show] && "active"
+                  @live_action in [:voice, :voice_suggestion_new, :voice_version] && "active"
                 ]}
               >
                 <svg
@@ -297,79 +211,198 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                  <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line
+                    x1="12"
+                    y1="19"
+                    x2="12"
+                    y2="23"
+                  /><line x1="8" y1="23" x2="16" y2="23" />
                 </svg>
-                <span>{gettext("Discussions")}</span>
+                <span>{gettext("Voice")}</span>
               </.link>
-            </div>
-
-            <%!-- Account section --%>
-            <%= if assigns[:is_admin] or @can_write do %>
-              <div class="gl-nav-section">
-                <span class="gl-nav-section-label">{gettext("Account")}</span>
-                <%= if assigns[:is_admin] and @account.type == "organization" do %>
-                  <.link
-                    navigate={"/#{@handle}/-/members"}
-                    class={[
-                      "gl-nav-item gl-nav-subitem",
-                      @live_action == :members && "active"
-                    ]}
-                  >
-                    <span>{gettext("Members")}</span>
-                  </.link>
-                <% end %>
-                <%= if @can_write do %>
-                  <.link
-                    navigate={"/#{@handle}/-/logs"}
-                    class={["gl-nav-item gl-nav-subitem", @live_action == :logs && "active"]}
-                  >
-                    <span>{gettext("Logs")}</span>
-                  </.link>
-                <% end %>
-              </div>
             <% end %>
-
-            <%!-- Settings section --%>
-            <%= if assigns[:is_admin] do %>
-              <div class="gl-nav-section">
-                <span class="gl-nav-section-label">{gettext("Settings")}</span>
-                <.link
-                  navigate={"/#{@handle}/-/settings/tokens"}
-                  class={[
-                    "gl-nav-item gl-nav-subitem",
-                    @live_action in [:api_tokens, :api_tokens_new, :api_token_edit] && "active"
-                  ]}
+            <%= if @can_glossary_read or @can_glossary_write or @can_glossary_propose do %>
+              <.link
+                navigate={assigns[:glossary_back_path] || "/#{@handle}/-/glossary"}
+                class={[
+                  "gl-nav-item",
+                  @live_action in [:glossary, :glossary_suggestion_new, :glossary_version] &&
+                    "active"
+                ]}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
                 >
-                  <span>{gettext("Account tokens")}</span>
-                </.link>
-                <.link
-                  navigate={"/#{@handle}/-/settings/apps"}
-                  class={[
-                    "gl-nav-item gl-nav-subitem",
-                    @live_action in [:api_apps, :api_apps_new, :api_app_edit] && "active"
-                  ]}
-                >
-                  <span>{gettext("OAuth apps")}</span>
-                </.link>
-              </div>
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+                </svg>
+                <span>{gettext("Glossary")}</span>
+              </.link>
             <% end %>
-          </nav>
-      <% end %>
-    </aside>
+            <.link
+              navigate={"/#{@handle}/-/discussions"}
+              class={[
+                "gl-nav-item",
+                @live_action in [:discussions, :discussion_new, :discussion_show] && "active"
+              ]}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{gettext("Discussions")}</span>
+            </.link>
+          </div>
 
-    <div class="gl-sidebar-backdrop" id="gl-sidebar-backdrop"></div>
+          <%!-- Account section (collapsible) --%>
+          <%= if assigns[:is_admin] or @can_write do %>
+            <details
+              class="gl-nav-section gl-nav-section-collapsible"
+              open={@live_action in [:members, :logs]}
+            >
+              <summary class="gl-nav-section-toggle">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="8" r="3" />
+                  <path d="M5 20a7 7 0 0 1 14 0" />
+                </svg>
+                <span>{gettext("Account")}</span>
+                <svg
+                  class="gl-nav-chevron"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </summary>
+              <%= if assigns[:is_admin] and @account.type == "organization" do %>
+                <.link
+                  navigate={"/#{@handle}/-/members"}
+                  class={["gl-nav-item", @live_action == :members && "active"]}
+                >
+                  <span>{gettext("Members")}</span>
+                </.link>
+              <% end %>
+              <%= if @can_write do %>
+                <.link
+                  navigate={"/#{@handle}/-/logs"}
+                  class={["gl-nav-item", @live_action == :logs && "active"]}
+                >
+                  <span>{gettext("Logs")}</span>
+                </.link>
+              <% end %>
+            </details>
+          <% end %>
 
-    <%!-- Main content --%>
-    <div class="gl-content">
-      <.flash_group :if={assigns[:flash]} flash={@flash} />
-      <main class="dash-main">
-        {@inner_content}
-      </main>
-    </div>
-  </div>
-</div>
+          <%!-- Settings section (collapsible) --%>
+          <%= if assigns[:is_admin] do %>
+            <details
+              class="gl-nav-section gl-nav-section-collapsible"
+              open={
+                @live_action in [
+                  :api_tokens,
+                  :api_tokens_new,
+                  :api_token_edit,
+                  :api_apps,
+                  :api_apps_new,
+                  :api_app_edit
+                ]
+              }
+            >
+              <summary class="gl-nav-section-toggle">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                  />
+                </svg>
+                <span>{gettext("Settings")}</span>
+                <svg
+                  class="gl-nav-chevron"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </summary>
+              <.link
+                navigate={"/#{@handle}/-/settings/tokens"}
+                class={[
+                  "gl-nav-item",
+                  @live_action in [:api_tokens, :api_tokens_new, :api_token_edit] && "active"
+                ]}
+              >
+                <span>{gettext("Account tokens")}</span>
+              </.link>
+              <.link
+                navigate={"/#{@handle}/-/settings/apps"}
+                class={[
+                  "gl-nav-item",
+                  @live_action in [:api_apps, :api_apps_new, :api_app_edit] && "active"
+                ]}
+              >
+                <span>{gettext("OAuth apps")}</span>
+              </.link>
+            </details>
+          <% end %>
+        </nav>
+    <% end %>
+  </:sidebar>
+
+  <%!-- Main content --%>
+  <.flash_group :if={assigns[:flash]} flash={@flash} />
+  <main class="dash-main">
+    {@inner_content}
+  </main>
+</.app_shell>
 
 <script>
   (function() {
@@ -377,6 +410,7 @@
     var sidebarToggle = document.getElementById('gl-sidebar-toggle');
     var sidebar = document.getElementById('gl-sidebar');
     var backdrop = document.getElementById('gl-sidebar-backdrop');
+
     function checkMobile() {
       return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     }
@@ -443,44 +477,6 @@
         var ctxBtn = ctxSwitcher.querySelector('.gl-context-switcher-toggle');
         if (ctxBtn) ctxBtn.setAttribute('aria-expanded', 'false');
       }
-
-      var avatarToggle = e.target.closest('.gl-avatar-toggle');
-      var avatarDd = document.querySelector('.gl-avatar-dropdown');
-      if (avatarToggle && avatarDd) {
-        e.stopPropagation();
-        avatarDd.classList.toggle('open');
-        avatarToggle.setAttribute('aria-expanded', avatarDd.classList.contains('open'));
-        return;
-      }
-      if (avatarDd) {
-        avatarDd.classList.remove('open');
-        var avatarBtn = avatarDd.querySelector('.gl-avatar-toggle');
-        if (avatarBtn) avatarBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
-
-    document.querySelectorAll('a[data-method="delete"]').forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        var form = document.createElement('form');
-        form.method = 'POST';
-        form.action = link.getAttribute('href');
-        var csrf = document.querySelector('meta[name="csrf-token"]');
-        if (csrf) {
-          var csrfInput = document.createElement('input');
-          csrfInput.type = 'hidden';
-          csrfInput.name = '_csrf_token';
-          csrfInput.value = csrf.getAttribute('content');
-          form.appendChild(csrfInput);
-        }
-        var methodInput = document.createElement('input');
-        methodInput.type = 'hidden';
-        methodInput.name = '_method';
-        methodInput.value = 'delete';
-        form.appendChild(methodInput);
-        document.body.appendChild(form);
-        form.submit();
-      });
     });
   })();
 </script>

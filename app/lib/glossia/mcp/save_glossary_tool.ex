@@ -38,7 +38,7 @@ defmodule Glossia.MCP.SaveGlossaryTool do
           Auditing.record("glossary.created", account, user,
             resource_type: "glossary",
             resource_id: to_string(glossary.version),
-            resource_path: "/#{handle}/glossary/#{glossary.version}",
+            resource_path: "/#{handle}/-/glossary/#{glossary.version}",
             summary: glossary.change_note || "Updated glossary."
           )
 

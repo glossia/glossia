@@ -7,7 +7,7 @@ defmodule GlossiaWeb.OAuth.RevokeController do
     key_prefix: "oauth_revoke",
     scale: :timer.minutes(1),
     limit: 30,
-    by: :ip
+    by: [:ip, :client_id]
 
   def revoke(%Plug.Conn{} = conn, _params) do
     Boruta.Oauth.revoke(conn, __MODULE__)

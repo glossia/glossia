@@ -175,7 +175,7 @@ defmodule Glossia.ChangeSummaryTest do
 
     test "returns error when API key not configured" do
       assert {:error, :not_configured} =
-               ChangeSummary.generate("some diff", "glossary")
+               ChangeSummary.generate("some diff", "glossary", api_key: nil)
     end
 
     test "trims whitespace from summary" do

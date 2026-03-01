@@ -1,6 +1,6 @@
 # Glossia
 
-The open-source language OS for your organization.
+The language OS for your organization.
 
 Glossia captures your voice, terminology, and tone in one place so linguists and teams can shape how your organization speaks across every language and surface.
 
@@ -42,6 +42,3 @@ mix phx.server
 - [Forum](https://community.glossia.ai/)
 - [Discord](https://discord.gg/7FRHkwvs)
 
-## License
-
-[MPL-2.0](LICENSE)

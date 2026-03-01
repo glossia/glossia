@@ -50,6 +50,10 @@ defmodule GlossiaWeb.Router do
     plug :put_layout, html: {GlossiaWeb.Layouts, :platform}
   end
 
+  pipeline :user_profile do
+    plug :put_layout, html: {GlossiaWeb.Layouts, :user_profile}
+  end
+
   pipeline :admin do
     plug :put_layout, html: {GlossiaWeb.Layouts, :admin}
   end
@@ -162,6 +166,7 @@ defmodule GlossiaWeb.Router do
     pipe_through :api
 
     get "/:handle/projects/:project_handle", AvatarController, :project
+    get "/users/:user_id", AvatarController, :user
   end
 
   scope "/og", GlossiaWeb do
@@ -363,6 +368,21 @@ defmodule GlossiaWeb.Router do
     get "/:handle/:project/-/commits", RedirectController, :project_activity
   end
 
+  # User settings routes (/-/settings/*, user-scoped, no handle)
+  # Must come BEFORE the platform scope to avoid /:handle/:project catching /-/...
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth, :user_profile]
+
+    post "/-/settings/profile/avatar", ProfileAvatarController, :update
+
+    live_session :user_profile,
+      layout: {GlossiaWeb.Layouts, :user_profile},
+      on_mount: [{GlossiaWeb.ProfileHooks, :load_user_and_require_auth}] do
+      live "/-/settings/profile", ProfileLive, :overview
+      live "/-/settings/connected-accounts", ProfileLive, :connected_accounts
+    end
+  end
+
   # Platform routes (access controlled by on_mount hooks)
   scope "/", GlossiaWeb do
     pipe_through [:browser, :platform]
@@ -398,7 +418,6 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/apps/new", DashboardLive, :api_apps_new
       live "/:handle/-/settings/apps/:app_id", DashboardLive, :api_app_edit
       live "/:handle/-/account", DashboardLive, :account
-      live "/:handle/-/settings/github", DashboardLive, :account
       live "/:handle/-/projects/new", DashboardLive, :project_new
 
       # Content routes (no /-/, MUST come last)

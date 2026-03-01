@@ -98,40 +98,66 @@ defmodule GlossiaWeb.DashboardComponents do
           </div>
         </form>
         <%= if @filters != [] do %>
-          <div class="resource-filter-controls">
-            <%= for filter <- @filters do %>
-              <form phx-change="resource_filter" class="resource-filter-form">
-                <input type="hidden" name="table_id" value={@id} />
-                <input type="hidden" name="key" value={filter.key} />
-                <select name="value" class="resource-filter-select">
-                  <option value="">{filter.label}</option>
-                  <%= for opt <- filter.options do %>
-                    <option
-                      value={opt.value}
-                      selected={Map.get(@active_filters, filter.key) == opt.value}
-                    >
-                      {opt.label}
-                    </option>
-                  <% end %>
-                </select>
-              </form>
-            <% end %>
+          <div
+            class="rf-dropdown"
+            id={"#{@id}-filter-dropdown"}
+            phx-hook=".ResourceFilterDropdown"
+            phx-update="ignore"
+            data-filters={
+              JSON.encode!(
+                Enum.map(@filters, fn f ->
+                  base = %{key: f.key, label: f.label, type: Map.get(f, :type, "select")}
+
+                  if Map.has_key?(f, :options) do
+                    Map.put(
+                      base,
+                      :options,
+                      Enum.map(f.options, fn o -> %{value: o.value, label: o.label} end)
+                    )
+                  else
+                    base
+                  end
+                end)
+              )
+            }
+            data-active={JSON.encode!(@active_filters)}
+            data-table-id={@id}
+          >
+            <button type="button" class="rf-trigger" aria-expanded="false" aria-haspopup="true">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              <span>{gettext("Filter")}</span>
+            </button>
+            <div class="rf-panel" role="menu"></div>
           </div>
         <% end %>
       </div>
 
-      <%= if @active_filters != %{} do %>
+      <%= if has_active_filters?(@active_filters, @filters) do %>
         <div class="resource-filter-chips">
-          <%= for {key, value} <- @active_filters do %>
+          <%= for {key, values} <- @active_filters, chip <- chip_items(@filters, key, values) do %>
             <span class="resource-filter-chip">
-              <span class="resource-filter-chip-label">{humanize_filter(key)}: {value}</span>
+              <span class="resource-filter-chip-label">
+                {chip.label}: {chip.display}
+              </span>
               <button
                 type="button"
                 class="resource-filter-chip-remove"
-                phx-click="resource_filter"
+                phx-click={chip.remove_event}
                 phx-value-table_id={@id}
                 phx-value-key={key}
-                phx-value-value=""
+                phx-value-filter_value={chip.remove_value}
                 aria-label={gettext("Remove filter")}
               >
                 <svg
@@ -333,6 +359,257 @@ defmodule GlossiaWeb.DashboardComponents do
         </div>
       <% end %>
     </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".ResourceFilterDropdown">
+      export default {
+        mounted() {
+          this.filters = JSON.parse(this.el.dataset.filters);
+          this.active = JSON.parse(this.el.dataset.active);
+          this.tableId = this.el.dataset.tableId;
+          this.trigger = this.el.querySelector(".rf-trigger");
+          this.panel = this.el.querySelector(".rf-panel");
+          this.step = "columns";
+          this.selectedFilter = null;
+
+          this.trigger.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (this.el.classList.contains("open")) {
+              this.close();
+            } else {
+              this.open();
+            }
+          });
+
+          this._onDocClick = () => this.close();
+          document.addEventListener("click", this._onDocClick);
+          this.panel.addEventListener("click", (e) => e.stopPropagation());
+
+          this._onEsc = (e) => { if (e.key === "Escape") this.close(); };
+          document.addEventListener("keydown", this._onEsc);
+
+          this.handleEvent("filters_updated:" + this.tableId, ({ active }) => {
+            this.active = active;
+          });
+        },
+
+        destroyed() {
+          document.removeEventListener("click", this._onDocClick);
+          document.removeEventListener("keydown", this._onEsc);
+        },
+
+        open() {
+          this.step = "columns";
+          this.selectedFilter = null;
+          this.renderColumns();
+          this.el.classList.add("open");
+          this.trigger.setAttribute("aria-expanded", "true");
+        },
+
+        close() {
+          this.el.classList.remove("open");
+          this.trigger.setAttribute("aria-expanded", "false");
+        },
+
+        renderColumns() {
+          const items = this.filters.map(f =>
+            '<button type="button" class="rf-option" data-key="' + this.esc(f.key) + '">' +
+              this.esc(f.label) +
+            '</button>'
+          ).join("");
+          this.panel.innerHTML =
+            '<div class="rf-header">Filter by\u2026</div>' +
+            '<div class="rf-list">' + items + '</div>';
+          this.panel.querySelectorAll(".rf-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+              this.selectedFilter = this.filters.find(f => f.key === btn.dataset.key);
+              this.step = "value";
+              this.renderValue();
+            });
+          });
+        },
+
+        renderValue() {
+          const f = this.selectedFilter;
+          const type = f.type || "select";
+          const backBtn = '<button type="button" class="rf-back">\u2190 ' + this.esc(f.label) + '</button>';
+
+          if (type === "select") {
+            this.renderSelect(f, backBtn);
+          } else if (type === "text") {
+            this.renderText(f, backBtn);
+          } else if (type === "date_range") {
+            this.renderDateRange(f, backBtn);
+          }
+        },
+
+        renderSelect(f, backBtn) {
+          const activeVals = this.active[f.key] || [];
+          const opts = (f.options || []).map(o =>
+            '<button type="button" class="rf-option' +
+              (activeVals.includes(o.value) ? ' rf-option-active' : '') +
+            '" data-value="' + this.esc(o.value) + '">' +
+              '<span class="rf-check">' + (activeVals.includes(o.value) ? '\u2713' : '') + '</span>' +
+              this.esc(o.label) +
+            '</button>'
+          ).join("");
+          this.panel.innerHTML = backBtn + '<div class="rf-list">' + opts + '</div>';
+          this.wireBack();
+          this.panel.querySelectorAll(".rf-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const val = btn.dataset.value;
+              if ((this.active[f.key] || []).includes(val)) {
+                this.pushEvent("resource_remove_filter", {
+                  table_id: this.tableId, key: f.key, filter_value: val
+                });
+              } else {
+                this.pushEvent("resource_filter", {
+                  table_id: this.tableId, key: f.key, value: val
+                });
+              }
+              this.close();
+            });
+          });
+        },
+
+        renderText(f, backBtn) {
+          const currentVal = (this.active[f.key] || [""])[0] || "";
+          this.panel.innerHTML = backBtn +
+            '<div class="rf-text-body">' +
+              '<input type="text" class="rf-text-input" placeholder="' + this.esc(f.label) + '\u2026" value="' + this.esc(currentVal) + '" />' +
+              '<button type="button" class="rf-apply">Apply</button>' +
+            '</div>';
+          this.wireBack();
+          const input = this.panel.querySelector(".rf-text-input");
+          const applyBtn = this.panel.querySelector(".rf-apply");
+          input.focus();
+          const apply = () => {
+            this.pushEvent("resource_filter_text", {
+              table_id: this.tableId, key: f.key, value: input.value
+            });
+            this.close();
+          };
+          applyBtn.addEventListener("click", apply);
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); apply(); }
+          });
+        },
+
+        renderDateRange(f, backBtn) {
+          const rangeVal = (this.active[f.key] || [""])[0] || "";
+          let fromVal = "", toVal = "", fromTime = "00:00", toTime = "23:59";
+          if (rangeVal && rangeVal.includes("..")) {
+            const parts = rangeVal.split("..");
+            const fromPart = parts[0] || "";
+            const toPart = parts[1] || "";
+            if (fromPart.includes("T")) {
+              fromVal = fromPart.split("T")[0];
+              fromTime = fromPart.split("T")[1] || "00:00";
+            } else { fromVal = fromPart; }
+            if (toPart.includes("T")) {
+              toVal = toPart.split("T")[0];
+              toTime = toPart.split("T")[1] || "23:59";
+            } else { toVal = toPart; }
+          }
+
+          this.panel.innerHTML = backBtn +
+            '<div class="rf-date-presets">' +
+              '<button type="button" class="rf-preset" data-preset="today">Today</button>' +
+              '<button type="button" class="rf-preset" data-preset="yesterday">Yesterday</button>' +
+              '<button type="button" class="rf-preset" data-preset="last7">Last 7 days</button>' +
+              '<button type="button" class="rf-preset" data-preset="last30">Last 30 days</button>' +
+              '<button type="button" class="rf-preset" data-preset="this_month">This month</button>' +
+              '<button type="button" class="rf-preset" data-preset="last_month">Last month</button>' +
+            '</div>' +
+            '<div class="rf-date-divider"></div>' +
+            '<div class="rf-date-custom">' +
+              '<span class="rf-date-custom-label">Custom range</span>' +
+              '<div class="rf-date-row">' +
+                '<label>From</label>' +
+                '<input type="date" class="rf-date-input" name="from" value="' + fromVal + '" />' +
+                '<input type="time" class="rf-time-input" name="from_time" value="' + fromTime + '" />' +
+              '</div>' +
+              '<div class="rf-date-row">' +
+                '<label>To</label>' +
+                '<input type="date" class="rf-date-input" name="to" value="' + toVal + '" />' +
+                '<input type="time" class="rf-time-input" name="to_time" value="' + toTime + '" />' +
+              '</div>' +
+              '<button type="button" class="rf-apply">Apply</button>' +
+            '</div>';
+          this.wireBack();
+
+          this.panel.querySelectorAll(".rf-preset").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const range = this.computePreset(btn.dataset.preset);
+              this.applyDateRange(f.key, range.from, range.to);
+            });
+          });
+
+          this.panel.querySelector(".rf-apply").addEventListener("click", () => {
+            const fromD = this.panel.querySelector('[name="from"]').value;
+            const toD = this.panel.querySelector('[name="to"]').value;
+            const fromT = this.panel.querySelector('[name="from_time"]').value || "00:00";
+            const toT = this.panel.querySelector('[name="to_time"]').value || "23:59";
+            const from = fromD ? fromD + "T" + fromT : "";
+            const to = toD ? toD + "T" + toT : "";
+            this.applyDateRange(f.key, from, to);
+          });
+        },
+
+        applyDateRange(key, from, to) {
+          this.pushEvent("resource_filter_date_range", {
+            table_id: this.tableId, key: key, from: from, to: to
+          });
+          this.close();
+        },
+
+        computePreset(preset) {
+          const today = new Date();
+          const fmt = (d) => d.toISOString().split("T")[0];
+          const sod = (d) => fmt(d) + "T00:00";
+          const eod = (d) => fmt(d) + "T23:59";
+          switch (preset) {
+            case "today":
+              return { from: sod(today), to: eod(today) };
+            case "yesterday": {
+              const y = new Date(today); y.setDate(y.getDate() - 1);
+              return { from: sod(y), to: eod(y) };
+            }
+            case "last7": {
+              const d = new Date(today); d.setDate(d.getDate() - 7);
+              return { from: sod(d), to: eod(today) };
+            }
+            case "last30": {
+              const d = new Date(today); d.setDate(d.getDate() - 30);
+              return { from: sod(d), to: eod(today) };
+            }
+            case "this_month": {
+              const s = new Date(today.getFullYear(), today.getMonth(), 1);
+              return { from: sod(s), to: eod(today) };
+            }
+            case "last_month": {
+              const s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+              const e = new Date(today.getFullYear(), today.getMonth(), 0);
+              return { from: sod(s), to: eod(e) };
+            }
+            default: return { from: "", to: "" };
+          }
+        },
+
+        wireBack() {
+          const back = this.panel.querySelector(".rf-back");
+          if (back) back.addEventListener("click", () => {
+            this.step = "columns";
+            this.renderColumns();
+          });
+        },
+
+        esc(s) {
+          if (!s) return "";
+          const d = document.createElement("div");
+          d.textContent = s;
+          return d.innerHTML;
+        }
+      }
+    </script>
     """
   end
 
@@ -354,6 +631,125 @@ defmodule GlossiaWeb.DashboardComponents do
   end
 
   defp humanize_filter(key) when is_atom(key), do: humanize_filter(Atom.to_string(key))
+
+  defp has_active_filters?(active_filters, _filter_defs) do
+    Enum.any?(active_filters, fn {_key, values} ->
+      values = List.wrap(values)
+      values != [] and values != [""]
+    end)
+  end
+
+  defp find_filter_type(filter_defs, key) do
+    case Enum.find(filter_defs, fn f -> f.key == key end) do
+      %{type: type} -> type
+      _ -> "select"
+    end
+  end
+
+  defp filter_label(filters, key) do
+    case Enum.find(filters, fn f -> f.key == key end) do
+      %{label: label} -> label
+      _ -> humanize_filter(key)
+    end
+  end
+
+  defp chip_items(filter_defs, key, values) do
+    filter_type = find_filter_type(filter_defs, key)
+    label = filter_label(filter_defs, key)
+
+    case filter_type do
+      "text" ->
+        values = List.wrap(values)
+
+        case values do
+          [text] when is_binary(text) and text != "" ->
+            [
+              %{
+                label: label,
+                display: text,
+                remove_event: "resource_remove_filter",
+                remove_value: text
+              }
+            ]
+
+          _ ->
+            []
+        end
+
+      "date_range" ->
+        values = List.wrap(values)
+
+        case values do
+          [range] when is_binary(range) and range != "" ->
+            [
+              %{
+                label: label,
+                display: format_date_range(range),
+                remove_event: "resource_remove_filter",
+                remove_value: range
+              }
+            ]
+
+          _ ->
+            []
+        end
+
+      _select ->
+        values
+        |> List.wrap()
+        |> Enum.map(fn value ->
+          %{
+            label: label,
+            display: filter_value_label(filter_defs, key, value),
+            remove_event: "resource_remove_filter",
+            remove_value: value
+          }
+        end)
+    end
+  end
+
+  defp filter_value_label(filters, key, value) do
+    case Enum.find(filters, fn f -> f.key == key end) do
+      %{options: options} ->
+        case Enum.find(options, fn o -> o.value == value end) do
+          %{label: label} -> label
+          _ -> value
+        end
+
+      _ ->
+        value
+    end
+  end
+
+  defp format_date_range(range) do
+    case String.split(range, "..", parts: 2) do
+      [from, to] ->
+        from_str = format_date_short(from)
+        to_str = format_date_short(to)
+
+        case {from_str, to_str} do
+          {"", ""} -> ""
+          {f, ""} -> "from #{f}"
+          {"", t} -> "until #{t}"
+          {f, t} -> "#{f} - #{t}"
+        end
+
+      _ ->
+        range
+    end
+  end
+
+  defp format_date_short(""), do: ""
+
+  defp format_date_short(date_str) do
+    # Strip time component if present (e.g. "2026-01-15T14:30" -> "2026-01-15")
+    date_only = date_str |> String.split("T") |> List.first()
+
+    case Date.from_iso8601(date_only) do
+      {:ok, date} -> Calendar.strftime(date, "%b %d, %Y")
+      _ -> date_str
+    end
+  end
 
   # ---------------------------------------------------------------------------
   # Page Header
@@ -494,19 +890,25 @@ defmodule GlossiaWeb.DashboardComponents do
   attr :id, :string, required: true
   attr :visible, :boolean, default: false
   attr :discard_event, :string, required: true
-  attr :form, :string, default: nil
-  attr :state_label, :string, default: nil
-  attr :note_placeholder, :string, default: nil
-  attr :submit_label, :string, default: nil
-  attr :show_note, :boolean, default: true
   attr :change_summary, :string, default: ""
   attr :generating_summary?, :boolean, default: false
+  attr :submit_label, :string, default: nil
+  attr :state_label, :string, default: nil
+  attr :note_placeholder, :string, default: nil
+  attr :show_note, :boolean, default: true
+  attr :form, :string, default: nil
 
   def save_bar(assigns) do
+    assigns = assign_new(assigns, :submit_label, fn -> gettext("Save") end)
+    assigns = assign_new(assigns, :state_label, fn -> gettext("Unsaved changes") end)
+
+    assigns =
+      assign_new(assigns, :note_placeholder, fn -> gettext("Describe your changes...") end)
+
     ~H"""
     <div class={["voice-save-bar", @visible && "visible"]} id={@id}>
       <div class="voice-save-bar-inner">
-        <span class="voice-save-bar-label">{@state_label || gettext("Unsaved changes")}</span>
+        <span class="voice-save-bar-label">{@state_label}</span>
         <div class="voice-save-bar-actions">
           <%= if @show_note do %>
             <div
@@ -521,9 +923,9 @@ defmodule GlossiaWeb.DashboardComponents do
                 id={"#{@id}-note"}
                 name="change_note"
                 class="voice-save-bar-note"
-                placeholder={@note_placeholder || gettext("Describe your changes...")}
-                required
+                placeholder={@note_placeholder}
                 form={@form}
+                required
               />
             </div>
           <% end %>
@@ -535,12 +937,12 @@ defmodule GlossiaWeb.DashboardComponents do
             {gettext("Discard")}
           </button>
           <button type="submit" class="dash-btn dash-btn-primary" form={@form}>
-            {@submit_label || gettext("Save")}
+            {@submit_label}
           </button>
         </div>
       </div>
     </div>
-    <script :type={Phoenix.LiveView.ColocatedHook} name=".SaveBarSummary">
+    <script :if={@show_note} :type={Phoenix.LiveView.ColocatedHook} name=".SaveBarSummary">
       export default {
         mounted() {
           this.input = this.el.querySelector("input[name='change_note']");
@@ -1001,7 +1403,7 @@ defmodule GlossiaWeb.DashboardComponents do
   ## Examples
 
       <.badge variant="success">Active</.badge>
-      <.badge variant="warning">Issue</.badge>
+      <.badge variant="warning">Ticket</.badge>
       <.badge variant="info">In progress</.badge>
   """
   attr :variant, :string, values: ~w(neutral info success warning), default: "neutral"
@@ -1014,6 +1416,212 @@ defmodule GlossiaWeb.DashboardComponents do
     <span class={["badge", "badge-#{@variant}", @class]}>
       {render_slot(@inner_block)}
     </span>
+    """
+  end
+
+  @doc """
+  Renders a markdown editor with Write/Preview tabs and image upload support.
+
+  The editor uses a colocated JS hook to manage tab switching, image paste/drop,
+  and preview rendering. The textarea value flows via standard form `name` attribute.
+
+  ## Examples
+
+      <.markdown_editor
+        id="ticket-body-editor"
+        name="ticket[body]"
+        value={@form[:body].value}
+        placeholder="Describe the ticket..."
+        upload={@uploads.ticket_images}
+      />
+  """
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :value, :string, default: ""
+  attr :placeholder, :string, default: ""
+  attr :rows, :integer, default: 6
+  attr :required, :boolean, default: false
+  attr :upload, :any, default: nil, doc: "The upload assign from allow_upload"
+
+  def markdown_editor(assigns) do
+    ~H"""
+    <div class="md-editor" id={@id} phx-hook=".MarkdownEditor">
+      <div class="md-editor-tabs">
+        <button type="button" class="md-editor-tab active" data-tab="write">
+          {gettext("Write")}
+        </button>
+        <button type="button" class="md-editor-tab" data-tab="preview">
+          {gettext("Preview")}
+        </button>
+      </div>
+      <div class="md-editor-write">
+        <textarea
+          name={@name}
+          id={"#{@id}-textarea"}
+          rows={@rows}
+          placeholder={@placeholder}
+          required={@required}
+        >{@value}</textarea>
+        <div class="md-editor-drop-hint">{gettext("Drop image to upload")}</div>
+      </div>
+      <div class="md-editor-preview" style="display:none;">
+        <div class="prose md-editor-preview-content"></div>
+      </div>
+      <.live_file_input :if={@upload} upload={@upload} class="sr-only" />
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".MarkdownEditor">
+      export default {
+        mounted() {
+          const el = this.el;
+          const textarea = el.querySelector("textarea");
+          const writePane = el.querySelector(".md-editor-write");
+          const previewPane = el.querySelector(".md-editor-preview");
+          const previewContent = el.querySelector(".md-editor-preview-content");
+          const tabs = el.querySelectorAll(".md-editor-tab");
+          const dropHint = el.querySelector(".md-editor-drop-hint");
+          const fileInput = el.querySelector("input[type='file']");
+
+          tabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+              tabs.forEach(t => t.classList.remove("active"));
+              tab.classList.add("active");
+              if (tab.dataset.tab === "write") {
+                writePane.style.display = "";
+                previewPane.style.display = "none";
+                textarea.focus();
+              } else {
+                writePane.style.display = "none";
+                previewPane.style.display = "";
+                this.pushEvent("markdown_preview", {
+                  source: textarea.value,
+                  editor_id: el.id
+                }, (reply) => {
+                  previewContent.innerHTML = reply.html;
+                  this.highlightCode(previewContent);
+                  this.addCopyButtons(previewContent);
+                });
+              }
+            });
+          });
+
+          textarea.addEventListener("paste", (e) => {
+            const items = e.clipboardData && e.clipboardData.items;
+            if (!items || !fileInput) return;
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type.startsWith("image/")) {
+                e.preventDefault();
+                const file = items[i].getAsFile();
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+                break;
+              }
+            }
+          });
+
+          textarea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropHint.classList.add("visible");
+          });
+          textarea.addEventListener("dragleave", () => {
+            dropHint.classList.remove("visible");
+          });
+          textarea.addEventListener("drop", (e) => {
+            dropHint.classList.remove("visible");
+            const files = e.dataTransfer && e.dataTransfer.files;
+            if (!files || !files.length || !fileInput) return;
+            const imageFiles = [];
+            for (let i = 0; i < files.length; i++) {
+              if (files[i].type.startsWith("image/")) imageFiles.push(files[i]);
+            }
+            if (!imageFiles.length) return;
+            e.preventDefault();
+            const dt = new DataTransfer();
+            imageFiles.forEach(f => dt.items.add(f));
+            fileInput.files = dt.files;
+            fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+
+          this.handleEvent("image_uploaded:" + el.id, ({ url, filename }) => {
+            const start = textarea.selectionStart;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(textarea.selectionEnd);
+            const mdImage = "![" + filename + "](" + url + ")";
+            textarea.value = before + mdImage + after;
+            textarea.selectionStart = textarea.selectionEnd = start + mdImage.length;
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          });
+
+          this.handleEvent("clear_editor:" + el.id, () => {
+            textarea.value = "";
+            tabs.forEach(t => t.classList.remove("active"));
+            tabs[0].classList.add("active");
+            writePane.style.display = "";
+            previewPane.style.display = "none";
+            previewContent.innerHTML = "";
+          });
+
+          this.handleEvent("quote_editor:" + el.id, ({ text }) => {
+            tabs.forEach(t => t.classList.remove("active"));
+            tabs[0].classList.add("active");
+            writePane.style.display = "";
+            previewPane.style.display = "none";
+            const start = textarea.selectionStart;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(textarea.selectionEnd);
+            const prefix = before.length > 0 && !before.endsWith("\n") ? "\n" : "";
+            textarea.value = before + prefix + text + after;
+            const newPos = (before + prefix + text).length;
+            textarea.selectionStart = textarea.selectionEnd = newPos;
+            textarea.focus();
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          });
+        },
+        highlightCode(container) {
+          if (!window.hljs) {
+            if (this._hljsLoading) return;
+            this._hljsLoading = true;
+            const link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css";
+            document.head.appendChild(link);
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js";
+            script.onload = () => {
+              this._hljsLoading = false;
+              container.querySelectorAll("pre code").forEach(block => window.hljs.highlightElement(block));
+              this.addCopyButtons(container);
+            };
+            document.head.appendChild(script);
+          } else {
+            container.querySelectorAll("pre code").forEach(block => window.hljs.highlightElement(block));
+          }
+        },
+        addCopyButtons(container) {
+          const copyIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+          const checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+          container.querySelectorAll("pre").forEach(pre => {
+            if (pre.querySelector(".code-copy-btn")) return;
+            const btn = document.createElement("button");
+            btn.className = "code-copy-btn";
+            btn.setAttribute("type", "button");
+            btn.setAttribute("aria-label", "Copy code");
+            btn.innerHTML = copyIcon;
+            btn.addEventListener("click", () => {
+              const code = pre.querySelector("code");
+              const text = code ? code.textContent : pre.textContent;
+              navigator.clipboard.writeText(text).then(() => {
+                btn.innerHTML = checkIcon;
+                btn.classList.add("copied");
+                setTimeout(() => { btn.innerHTML = copyIcon; btn.classList.remove("copied"); }, 1500);
+              });
+            });
+            pre.appendChild(btn);
+          });
+        }
+      }
+    </script>
     """
   end
 end

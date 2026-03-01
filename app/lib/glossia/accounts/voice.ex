@@ -4,7 +4,7 @@ defmodule Glossia.Accounts.Voice do
 
   @derive {
     Flop.Schema,
-    filterable: [:version, :tone, :formality, :change_note],
+    filterable: [:version, :tone, :formality],
     sortable: [:version, :inserted_at],
     default_order: %{order_by: [:version], order_directions: [:desc]}
   }
@@ -18,7 +18,6 @@ defmodule Glossia.Accounts.Voice do
     field :description, :string
     field :target_countries, {:array, :string}, default: []
     field :cultural_notes, :map, default: %{}
-    field :change_note, :string
 
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :created_by, Glossia.Accounts.User
@@ -37,7 +36,6 @@ defmodule Glossia.Accounts.Voice do
       :description,
       :target_countries,
       :cultural_notes,
-      :change_note,
       :version
     ])
     |> validate_required([:version])

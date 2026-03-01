@@ -5,17 +5,18 @@ defmodule GlossiaWeb.PageController do
   alias Glossia.OgImage
 
   def home(conn, _params) do
-    posts = Blog.recent_posts(2)
+    posts = Blog.recent_posts(3)
 
     og_attrs = %{
       title: "Glossia",
-      description: "Content agents for multi-lingual and mono-lingual projects",
+      description:
+        "Glossia captures your voice, terminology, and tone in one place so linguists and teams can shape how your organization speaks across every language and surface.",
       category: "home"
     }
 
     render(conn, :home,
       posts: posts,
-      page_title: gettext("Home"),
+      page_title: nil,
       page_description: og_attrs.description,
       og_image_url: OgImage.marketing_url(og_attrs)
     )

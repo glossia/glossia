@@ -24,9 +24,13 @@ defmodule Glossia.MCP.Authorization do
   @spec authorize(Hermes.Server.Frame.t(), Glossia.Policy.action(), any, any) ::
           :ok | {:error, Error.t()}
   def authorize(frame, action, user, object \\ nil) do
-    case Glossia.Authz.authorize(action, user, object, scopes: scopes(frame)) do
-      :ok ->
-        :ok
+    with :ok <- rate_limit(frame, action, object),
+         :ok <- Glossia.Authz.authorize(action, user, object, scopes: scopes(frame)) do
+      :ok
+    else
+      {:error, :rate_limited, retry_after_ms} ->
+        retry_after = ceil(retry_after_ms / 1_000)
+        {:error, Error.execution("Rate limit exceeded. Retry in #{retry_after}s.")}
 
       {:error, :insufficient_scope, required_scope} ->
         {:error, Error.execution("Insufficient scope (required: #{required_scope})")}
@@ -51,4 +55,45 @@ defmodule Glossia.MCP.Authorization do
       _ -> {:error, Error.execution("Organization '#{handle}' not found")}
     end
   end
+
+  defp rate_limit(frame, action, object) do
+    {key_prefix, limit} = action_limit(action)
+    actor_key = actor_key(frame)
+    account_suffix = account_suffix(object)
+    key = "#{key_prefix}:#{actor_key}#{account_suffix}"
+
+    case Glossia.RateLimiter.hit(key, :timer.minutes(1), limit) do
+      {:allow, _count} -> :ok
+      {:deny, retry_after_ms} -> {:error, :rate_limited, retry_after_ms}
+    end
+  end
+
+  defp action_limit(action) when is_atom(action) do
+    scope = Glossia.Authz.required_scope!(action)
+
+    cond do
+      String.ends_with?(scope, ":read") -> {"mcp_tool_read", 120}
+      String.ends_with?(scope, ":admin") -> {"mcp_tool_admin", 15}
+      String.ends_with?(scope, ":delete") -> {"mcp_tool_write", 30}
+      String.ends_with?(scope, ":write") -> {"mcp_tool_write", 30}
+      true -> {"mcp_tool", 60}
+    end
+  end
+
+  defp actor_key(frame) do
+    case frame.assigns[:current_token] do
+      %{id: id} when not is_nil(id) ->
+        "token:#{id}"
+
+      _ ->
+        case frame.assigns[:current_user] do
+          %User{id: id} -> "user:#{id}"
+          _ -> "anonymous"
+        end
+    end
+  end
+
+  defp account_suffix(%Account{id: id}), do: ":account:#{id}"
+  defp account_suffix(%{account_id: id}) when not is_nil(id), do: ":account:#{id}"
+  defp account_suffix(_), do: ""
 end

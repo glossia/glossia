@@ -5,35 +5,71 @@ defmodule GlossiaWeb.OgImageController do
 
   alias Glossia.OgImage
 
+  plug GlossiaWeb.Plugs.RateLimit,
+    key_prefix: "og_image",
+    scale: :timer.minutes(1),
+    limit: 30,
+    by: :ip,
+    format: :text
+
   def marketing(conn, %{"category" => category, "hash" => hash} = params) do
     s3_path = "og/marketing/#{category}/#{hash}"
-    fallback = %{title: category, description: "", category: category}
-    attrs = decode_attrs(params, fallback)
-    serve_og_image(conn, s3_path, attrs)
+
+    with {:ok, attrs} <- decode_attrs(params),
+         :ok <- validate_hash(attrs, hash) do
+      serve_og_image(conn, s3_path, attrs)
+    else
+      _ -> fallback_redirect(conn)
+    end
   end
 
   def account(conn, %{"handle" => handle, "hash" => hash} = params) do
     s3_path = "og/app/#{handle}/#{hash}"
-    fallback = %{title: handle, description: "", category: "account"}
-    attrs = decode_attrs(params, fallback)
-    serve_og_image(conn, s3_path, attrs)
+
+    with {:ok, attrs} <- decode_attrs(params),
+         :ok <- validate_hash(attrs, hash) do
+      serve_og_image(conn, s3_path, attrs)
+    else
+      _ -> fallback_redirect(conn)
+    end
   end
 
   def project(conn, %{"handle" => handle, "project" => project, "hash" => hash} = params) do
     s3_path = "og/app/#{handle}/#{project}/#{hash}"
-    fallback = %{title: project, description: "", category: "project"}
-    attrs = decode_attrs(params, fallback)
-    serve_og_image(conn, s3_path, attrs)
-  end
 
-  defp decode_attrs(%{"d" => token}, fallback) when is_binary(token) do
-    case OgImage.verify_attrs(token) do
-      {:ok, attrs} -> attrs
-      _ -> fallback
+    with {:ok, attrs} <- decode_attrs(params),
+         :ok <- validate_hash(attrs, hash) do
+      serve_og_image(conn, s3_path, attrs)
+    else
+      _ -> fallback_redirect(conn)
     end
   end
 
-  defp decode_attrs(_params, fallback), do: fallback
+  defp decode_attrs(%{"d" => token}) when is_binary(token) do
+    case OgImage.verify_attrs(token) do
+      {:ok, attrs} -> {:ok, attrs}
+      _ -> {:error, :invalid_token}
+    end
+  end
+
+  defp decode_attrs(_params), do: {:error, :missing_token}
+
+  defp validate_hash(attrs, route_hash) do
+    expected_hash = OgImage.hash(attrs)
+    actual_hash = normalize_hash(route_hash)
+
+    if actual_hash == expected_hash do
+      :ok
+    else
+      {:error, :invalid_hash}
+    end
+  end
+
+  defp normalize_hash(hash) when is_binary(hash) do
+    hash
+    |> String.split(".", parts: 2)
+    |> List.first()
+  end
 
   defp serve_og_image(conn, s3_path, attrs) do
     case OgImage.fetch_or_generate(s3_path, attrs) do

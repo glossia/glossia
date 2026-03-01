@@ -6,6 +6,13 @@ defmodule GlossiaWeb.StripeWebhookController do
   alias Glossia.Stripe
   alias Glossia.Stripe.Webhook
 
+  plug GlossiaWeb.Plugs.RateLimit,
+    key_prefix: "webhook_stripe",
+    scale: :timer.minutes(1),
+    limit: 240,
+    by: :ip,
+    format: :text
+
   # Stripe webhooks are verified against the raw request body.
   # We store it via GlossiaWeb.BodyReader configured in the endpoint.
   def create(conn, _params) do
@@ -19,10 +26,22 @@ defmodule GlossiaWeb.StripeWebhookController do
     else
       {:error, reason} ->
         Logger.warning("Stripe webhook rejected: #{inspect(reason)}")
-        send_resp(conn, 400, "invalid")
+        respond_invalid(conn, "stripe")
 
       _ ->
+        respond_invalid(conn, "stripe")
+    end
+  end
+
+  defp respond_invalid(conn, provider) do
+    key = "webhook_invalid:#{provider}:ip:#{GlossiaWeb.ClientIP.value(conn)}"
+
+    case Glossia.RateLimiter.hit(key, :timer.minutes(1), 20) do
+      {:allow, _count} ->
         send_resp(conn, 400, "invalid")
+
+      {:deny, _retry_after_ms} ->
+        send_resp(conn, 429, "too many invalid webhook attempts")
     end
   end
 end

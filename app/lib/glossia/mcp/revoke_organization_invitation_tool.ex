@@ -34,7 +34,7 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
               Auditing.record("member.invitation_revoked", account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
-                resource_path: ~p"/#{account.handle}/members",
+                resource_path: "/#{account.handle}/-/members",
                 summary: "Revoked invitation for #{invitation.email}"
               )
 

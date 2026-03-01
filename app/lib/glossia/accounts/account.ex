@@ -22,6 +22,7 @@ defmodule Glossia.Accounts.Account do
     has_one :user, Glossia.Accounts.User
     has_one :organization, Glossia.Accounts.Organization
     has_many :projects, Glossia.Accounts.Project
+    has_many :github_installations, Glossia.Accounts.GithubInstallation
 
     timestamps()
   end

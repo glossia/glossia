@@ -5,6 +5,20 @@ defmodule GlossiaWeb.WaitlistController do
   alias Glossia.Waitlist
   alias Glossia.Waitlist.Submission
 
+  plug GlossiaWeb.Plugs.RateLimit,
+       [
+         key_prefix: "waitlist_create",
+         scale: :timer.hours(1),
+         limit: 10,
+         by: :user,
+         format: :text
+       ]
+       when action in [:create]
+
+  def new(%{assigns: %{current_user: %{account: %{has_access: true}}}} = conn, _params) do
+    redirect(conn, to: ~p"/dashboard")
+  end
+
   def new(conn, _params) do
     user = conn.assigns.current_user
 
@@ -21,6 +35,10 @@ defmodule GlossiaWeb.WaitlistController do
           page_title: gettext("Waitlist")
         )
     end
+  end
+
+  def create(%{assigns: %{current_user: %{account: %{has_access: true}}}} = conn, _params) do
+    redirect(conn, to: ~p"/dashboard")
   end
 
   def create(conn, %{"submission" => submission_params}) do

@@ -8,16 +8,31 @@
 # times without creating a pile of duplicate records.
 
 defmodule Glossia.Seeds do
+  alias Boruta.Ecto.Client, as: BorutaClient
+
   alias Glossia.Repo
 
-  alias Glossia.Accounts.{Account, Glossary, Identity, AccountToken, Project, User, Voice}
+  alias Glossia.Accounts.{
+    Account,
+    GithubInstallation,
+    Glossary,
+    Identity,
+    AccountToken,
+    Project,
+    User,
+    Voice
+  }
 
   alias Glossia.DeveloperTokens
+  alias Glossia.Github.Installations
   alias Glossia.Glossaries
+  alias Glossia.OAuth.FirstPartyClient
   alias Glossia.Organizations
   alias Glossia.Projects
-  alias Glossia.Support
-  alias Glossia.Support.{Ticket, TicketMessage}
+  alias Glossia.Discussions
+  alias Glossia.Discussions.{Discussion, DiscussionComment}
+  alias Glossia.TranslationSessions
+  alias Glossia.TranslationSessions.TranslationSession
   alias Glossia.Voices
 
   import Ecto.Query
@@ -86,6 +101,58 @@ defmodule Glossia.Seeds do
     ensure_project!(acme.account, "mobile", "Mobile app")
     ensure_project!(northwind.account, "catalog", "Product catalog")
 
+    # GitHub installations
+    dev_gh =
+      ensure_github_installation!(dev.account,
+        github_installation_id: 12_345_678,
+        github_account_login: "dev-user",
+        github_account_type: "User",
+        github_account_id: 98_765_432
+      )
+
+    acme_gh =
+      ensure_github_installation!(acme.account,
+        github_installation_id: 87_654_321,
+        github_account_login: "acme-industries",
+        github_account_type: "Organization",
+        github_account_id: 11_223_344
+      )
+
+    # GitHub-linked projects
+    ensure_github_project!(dev.account, dev_gh, "blog",
+      name: "Blog",
+      github_repo_id: 100_001,
+      github_repo_full_name: "dev-user/blog",
+      github_repo_default_branch: "main",
+      setup_status: "completed",
+      setup_target_languages: ["es", "fr"]
+    )
+
+    ensure_github_project!(dev.account, dev_gh, "landing-page",
+      name: "Landing page",
+      github_repo_id: 100_002,
+      github_repo_full_name: "dev-user/landing-page",
+      github_repo_default_branch: "main",
+      setup_status: "pending",
+      setup_target_languages: ["de", "ja", "pt-BR"]
+    )
+
+    ensure_github_project!(acme.account, acme_gh, "acme-docs",
+      name: "Acme docs",
+      github_repo_id: 200_001,
+      github_repo_full_name: "acme-industries/docs",
+      github_repo_default_branch: "main",
+      setup_status: "completed",
+      setup_target_languages: ["es", "fr", "de"]
+    )
+
+    # Setup events for the "blog" project to exercise the agent session UI
+    blog_project = Projects.get_project(dev.account, "blog")
+    if blog_project, do: ensure_setup_events!(blog_project)
+
+    # Translation sessions for the "blog" project to exercise the activity timeline
+    if blog_project, do: ensure_translation_sessions!(blog_project, dev)
+
     # Voice configs: create a couple of versions to exercise history and diff UX.
     ensure_voice_versions!(
       dev.account,
@@ -106,8 +173,7 @@ defmodule Glossia.Seeds do
 
           - Use \"projects\" for repos and apps.
           - Use \"voice\" for brand guidelines.
-          """,
-          change_note: "Initial voice"
+          """
         },
         %{
           tone: "authoritative",
@@ -137,8 +203,7 @@ defmodule Glossia.Seeds do
 
           - Use code fences for commands.
           - Use tables for structured reference data.
-          """,
-          change_note: "Add product context and target countries"
+          """
         }
       ]
     )
@@ -170,8 +235,7 @@ defmodule Glossia.Seeds do
               formality: "formal",
               guidelines: "Usa un tono formal y directo. Evita anglicismos innecesarios."
             }
-          ],
-          change_note: "Initial org voice"
+          ]
         }
       ]
     )
@@ -326,47 +390,114 @@ defmodule Glossia.Seeds do
       scope: "voice:read voice:write glossary:read glossary:write"
     )
 
-    # ── Support tickets ──
+    # ── First-party mobile OAuth client ──
+    ensure_first_party_mobile_client!()
+
+    # ── Tickets ──
     ticket1 =
-      ensure_ticket!(dev.account, dev,
+      ensure_discussion!(dev.account, dev,
         title: "Voice settings not saving",
-        description:
+        body:
           "When I change the tone to 'playful' and click save, the page reloads but the tone reverts to 'casual'. Tried in Chrome and Firefox.",
-        type: "issue",
-        status: "in_progress"
+        status: "open"
       )
 
-    ensure_ticket_message!(ticket1, dev,
-      body: "I can reproduce this every time. Attaching a screen recording would help.",
-      is_staff: true
+    ensure_discussion_comment!(ticket1, dev,
+      body: "I can reproduce this every time. Attaching a screen recording would help."
     )
 
-    ensure_ticket_message!(ticket1, dev,
+    ensure_discussion_comment!(ticket1, dev,
       body: "Thanks! I recorded it. The save button shows a spinner but the value snaps back."
     )
 
     _ticket2 =
-      ensure_ticket!(alex.account, alex,
+      ensure_discussion!(alex.account, alex,
         title: "Add support for Portuguese (Brazil) glossary",
-        description:
+        body:
           "We need pt-BR as a supported language in the glossary section. Right now only pt-PT is available.",
-        type: "request",
         status: "open"
       )
 
-    ticket3 =
-      ensure_ticket!(dev.account, dev,
-        title: "OAuth redirect URI validation too strict",
-        description:
-          "When I enter http://localhost:3000/callback as a redirect URI it gets rejected. Local development URIs should be allowed.",
-        type: "issue",
-        status: "resolved"
+    _voice_request =
+      ensure_discussion!(acme.account, maria,
+        title: "Voice suggestion: Simplify launch messaging",
+        body:
+          "Please review this proposed voice update to simplify launch messaging for external contributors.",
+        status: "open",
+        kind: "voice_suggestion",
+        metadata: %{
+          "resource" => "voice",
+          "base_version" => 1,
+          "payload" => %{
+            "tone" => "authoritative",
+            "formality" => "neutral",
+            "target_audience" => "Enterprise users evaluating the launch docs",
+            "guidelines" =>
+              "Use shorter sentences, preserve technical precision, and avoid internal jargon.",
+            "target_countries" => ["US", "MX"],
+            "cultural_notes" => %{
+              "US" => "Lead with outcomes and direct language.",
+              "MX" => "Prefer clear, respectful language and explicit next steps."
+            },
+            "overrides" => [
+              %{
+                "locale" => "es-MX",
+                "tone" => "authoritative",
+                "formality" => "formal",
+                "guidelines" => "Evita frases largas y mantiene terminologia consistente."
+              }
+            ]
+          }
+        }
       )
 
-    ensure_ticket_message!(ticket3, dev,
+    _glossary_request =
+      ensure_discussion!(acme.account, maria,
+        title: "Glossary suggestion: Add billing terms",
+        body:
+          "Proposed glossary update with billing terminology for support and onboarding content.",
+        status: "open",
+        kind: "glossary_suggestion",
+        metadata: %{
+          "resource" => "glossary",
+          "change_note" => "Add billing and invoice terminology",
+          "base_version" => 1,
+          "payload" => %{
+            "entries" => [
+              %{
+                "term" => "invoice",
+                "definition" => "A billing document sent to customers.",
+                "case_sensitive" => false,
+                "translations" => [
+                  %{"locale" => "es-MX", "translation" => "factura"},
+                  %{"locale" => "pt-BR", "translation" => "fatura"}
+                ]
+              },
+              %{
+                "term" => "billing cycle",
+                "definition" => "Recurring period used for subscription charges.",
+                "case_sensitive" => false,
+                "translations" => [
+                  %{"locale" => "es-MX", "translation" => "ciclo de facturacion"},
+                  %{"locale" => "pt-BR", "translation" => "ciclo de cobranca"}
+                ]
+              }
+            ]
+          }
+        }
+      )
+
+    ticket3 =
+      ensure_discussion!(dev.account, dev,
+        title: "OAuth redirect URI validation too strict",
+        body:
+          "When I enter http://localhost:3000/callback as a redirect URI it gets rejected. Local development URIs should be allowed.",
+        status: "closed"
+      )
+
+    ensure_discussion_comment!(ticket3, dev,
       body:
-        "We have relaxed the URI validation for localhost addresses. This should work now. Let us know if you still see issues.",
-      is_staff: true
+        "We have relaxed the URI validation for localhost addresses. This should work now. Let us know if you still see tickets."
     )
 
     :ok
@@ -613,35 +744,53 @@ defmodule Glossia.Seeds do
     end
   end
 
+  defp ensure_first_party_mobile_client! do
+    client_attrs = FirstPartyClient.mobile_client_attrs()
+    client_id = FirstPartyClient.mobile_client_id()
+
+    case Repo.get(BorutaClient, client_id) do
+      nil ->
+        {:ok, _client} = Boruta.Ecto.Admin.create_client(client_attrs)
+        :ok
+
+      %BorutaClient{} = client ->
+        {:ok, _client} = Boruta.Ecto.Admin.update_client(client, client_attrs)
+        :ok
+    end
+  end
+
   # ----------------------------------------------------------------------------
-  # Support tickets
+  # Tickets
   # ----------------------------------------------------------------------------
 
-  defp ensure_ticket!(account, user, opts) do
+  defp ensure_discussion!(account, user, opts) do
     title = Keyword.fetch!(opts, :title)
+    kind = Keyword.get(opts, :kind, "general")
+    metadata = Keyword.get(opts, :metadata, %{})
 
     import Ecto.Query
 
     existing =
       Repo.one(
-        from t in Ticket,
-          where: t.account_id == ^account.id and t.title == ^title
+        from t in Discussion,
+          where: t.account_id == ^account.id and t.title == ^title and t.kind == ^kind
       )
 
     if existing do
       existing
     else
       {:ok, ticket} =
-        Support.create_ticket(account, user, %{
+        Discussions.create_discussion(account, user, %{
           "title" => title,
-          "description" => Keyword.fetch!(opts, :description),
-          "type" => Keyword.get(opts, :type, "issue")
+          "body" => Keyword.fetch!(opts, :body),
+          "kind" => kind,
+          "metadata" => metadata
         })
 
       status = Keyword.get(opts, :status, "open")
 
-      if status != "open" do
-        {:ok, ticket} = Support.update_ticket_status(ticket, status)
+      if status == "closed" do
+        {:ok, ticket} = Discussions.close_discussion(ticket, user)
         ticket
       else
         ticket
@@ -649,23 +798,257 @@ defmodule Glossia.Seeds do
     end
   end
 
-  defp ensure_ticket_message!(ticket, user, opts) do
+  # ----------------------------------------------------------------------------
+  # GitHub installations
+  # ----------------------------------------------------------------------------
+
+  defp ensure_github_installation!(%Account{} = account, opts) do
+    github_installation_id = Keyword.fetch!(opts, :github_installation_id)
+
+    case Installations.get_installation_by_github_id(github_installation_id) do
+      nil ->
+        {:ok, installation} =
+          Installations.create_installation(account, %{
+            github_installation_id: github_installation_id,
+            github_account_login: Keyword.fetch!(opts, :github_account_login),
+            github_account_type: Keyword.fetch!(opts, :github_account_type),
+            github_account_id: Keyword.fetch!(opts, :github_account_id)
+          })
+
+        installation
+
+      %GithubInstallation{} = installation ->
+        installation
+    end
+  end
+
+  defp ensure_github_project!(
+         %Account{} = account,
+         %GithubInstallation{} = installation,
+         handle,
+         opts
+       ) do
+    case Projects.get_project(account, handle) do
+      nil ->
+        {:ok, _project} =
+          Projects.create_project_from_github(account, installation.id, %{
+            handle: handle,
+            name: Keyword.fetch!(opts, :name),
+            github_repo_id: Keyword.fetch!(opts, :github_repo_id),
+            github_repo_full_name: Keyword.fetch!(opts, :github_repo_full_name),
+            github_repo_default_branch: Keyword.fetch!(opts, :github_repo_default_branch),
+            setup_status: Keyword.get(opts, :setup_status, "pending"),
+            setup_target_languages: Keyword.get(opts, :setup_target_languages, [])
+          })
+
+        :ok
+
+      %Project{} ->
+        :ok
+    end
+  end
+
+  defp ensure_setup_events!(%Project{} = project) do
+    existing = Glossia.Ingestion.list_setup_events(project.id)
+
+    if existing == [] do
+      events = [
+        {0, "agent_start", "", "{}"},
+        {1, "turn_start", "", "{}"},
+        {2, "message_start", "Analyzing repository structure...", "{}"},
+        {3, "message_update",
+         "I can see this is a blog built with Astro. Let me examine the content directory and configuration files.",
+         "{}"},
+        {4, "message_end", "", "{}"},
+        {5, "tool_execution_start", "ls -la src/content/", ~s({"tool_name":"shell"})},
+        {6, "tool_execution_end", "blog/\nen/\nes/\nfr/", ~s({"tool_name":"shell"})},
+        {7, "message_start",
+         "The repository has content organized by language in src/content/. I can see English, Spanish, and French directories.",
+         "{}"},
+        {8, "message_end", "", "{}"},
+        {9, "tool_execution_start", "cat astro.config.mjs", ~s({"tool_name":"shell"})},
+        {10, "tool_execution_end",
+         "export default defineConfig({ integrations: [mdx()], i18n: { defaultLocale: 'en', locales: ['en', 'es', 'fr'] } })",
+         ~s({"tool_name":"shell"})},
+        {11, "message_start",
+         "The Astro config confirms i18n support with English as the default locale and Spanish and French as additional locales. Now let me create the GLOSSIA.md file.",
+         "{}"},
+        {12, "message_end", "", "{}"},
+        {13, "tool_execution_start", "Writing GLOSSIA.md", ~s({"tool_name":"file_write"})},
+        {14, "tool_execution_end", "File written successfully", ~s({"tool_name":"file_write"})},
+        {15, "message_start",
+         "I have created GLOSSIA.md with the localization configuration for this Astro blog. The file describes the content structure, supported languages, and recommended translation workflow.",
+         "{}"},
+        {16, "message_end", "", "{}"},
+        {17, "turn_end", "", "{}"},
+        {18, "agent_end", "", "{}"}
+      ]
+
+      for {seq, type, content, metadata} <- events do
+        Glossia.Ingestion.record_setup_event(project.id, seq, type, content, metadata)
+      end
+
+      Process.sleep(2_000)
+    end
+  end
+
+  # ----------------------------------------------------------------------------
+  # Translation Sessions
+  # ----------------------------------------------------------------------------
+
+  defp ensure_translation_sessions!(%Project{} = project, %User{} = user) do
+    existing =
+      Repo.one(
+        from s in TranslationSession,
+          where: s.project_id == ^project.id,
+          select: count(s.id)
+      )
+
+    if existing > 0, do: :ok, else: seed_translation_sessions!(project, user)
+  end
+
+  defp seed_translation_sessions!(%Project{} = project, %User{} = user) do
+    now = DateTime.utc_now()
+    two_hours_ago = DateTime.add(now, -7200, :second)
+    one_hour_ago = DateTime.add(now, -3600, :second)
+
+    # Session 1: completed translation (en -> es, fr)
+    {:ok, session1} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "a1b2c3d",
+        commit_message: "Update blog post: Getting started with Glossia",
+        status: "completed",
+        source_language: "en",
+        target_languages: ["es", "fr"],
+        summary:
+          "Translated 3 files into Spanish and French. All translations verified against glossary.",
+        started_at: two_hours_ago,
+        completed_at: DateTime.add(two_hours_ago, 342, :second)
+      })
+
+    session1_events = [
+      {0, "message", "Starting translation session for commit a1b2c3d.", "{}"},
+      {1, "thought",
+       "This commit modifies a blog post. I need to check which languages are configured and translate the changed files.",
+       "{}"},
+      {2, "tool_call", "glossia status",
+       ~s({"tool_name":"glossia-cli","command":"glossia status"})},
+      {3, "tool_result",
+       "Source language: en\nTarget languages: es, fr\nStale files: 3\n  - content/blog/getting-started.md (es, fr)\n  - content/blog/getting-started-meta.json (es, fr)",
+       ~s({"tool_name":"glossia-cli"})},
+      {4, "plan", "Translation plan for 3 files",
+       ~s({"entries":[{"label":"Read voice and glossary configuration","status":"completed"},{"label":"Translate getting-started.md to Spanish","status":"completed"},{"label":"Translate getting-started.md to French","status":"completed"},{"label":"Translate getting-started-meta.json to Spanish","status":"completed"},{"label":"Translate getting-started-meta.json to French","status":"completed"},{"label":"Run glossary validation","status":"completed"}]})},
+      {5, "tool_call", "glossia voice show",
+       ~s({"tool_name":"glossia-cli","command":"glossia voice show"})},
+      {6, "tool_result",
+       "Tone: casual\nFormality: neutral\nTarget audience: Developers evaluating Glossia\nGuidelines: Write in short, concrete sentences. Prefer active voice. Use American English.",
+       ~s({"tool_name":"glossia-cli"})},
+      {7, "message",
+       "Voice loaded. Translating content/blog/getting-started.md to Spanish with casual tone and developer-focused language.",
+       "{}"},
+      {8, "tool_call", "glossia translate content/blog/getting-started.md --lang es",
+       ~s({"tool_name":"glossia-cli","command":"glossia translate content/blog/getting-started.md --lang es"})},
+      {9, "tool_result",
+       "Translated content/blog/getting-started.md -> content/es/blog/getting-started.md",
+       ~s({"tool_name":"glossia-cli"})},
+      {10, "message", "Spanish translation complete. Now translating to French.", "{}"},
+      {11, "tool_call", "glossia translate content/blog/getting-started.md --lang fr",
+       ~s({"tool_name":"glossia-cli","command":"glossia translate content/blog/getting-started.md --lang fr"})},
+      {12, "tool_result",
+       "Translated content/blog/getting-started.md -> content/fr/blog/getting-started.md",
+       ~s({"tool_name":"glossia-cli"})},
+      {13, "thought",
+       "Both language translations for the main blog post are done. Now I need to handle the meta JSON file and run glossary validation.",
+       "{}"},
+      {14, "tool_call", "glossia translate content/blog/getting-started-meta.json --lang es,fr",
+       ~s({"tool_name":"glossia-cli","command":"glossia translate content/blog/getting-started-meta.json --lang es,fr"})},
+      {15, "tool_result",
+       "Translated content/blog/getting-started-meta.json -> content/es/blog/getting-started-meta.json\nTranslated content/blog/getting-started-meta.json -> content/fr/blog/getting-started-meta.json",
+       ~s({"tool_name":"glossia-cli"})},
+      {16, "tool_call", "glossia validate --glossary",
+       ~s({"tool_name":"glossia-cli","command":"glossia validate --glossary"})},
+      {17, "tool_result", "Glossary validation passed. All terms consistent across translations.",
+       ~s({"tool_name":"glossia-cli"})},
+      {18, "message",
+       "All translations completed and validated. 3 files translated into Spanish and French. Glossary terms are consistent.",
+       "{}"}
+    ]
+
+    for {seq, type, content, metadata} <- session1_events do
+      Glossia.Ingestion.record_translation_session_event(
+        session1.id,
+        seq,
+        type,
+        content,
+        metadata
+      )
+    end
+
+    # Session 2: running translation (en -> ja, de)
+    {:ok, session2} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "e4f5g6h",
+        commit_message: "Add new blog post: Advanced localization patterns",
+        status: "running",
+        source_language: "en",
+        target_languages: ["ja", "de"],
+        started_at: one_hour_ago
+      })
+
+    session2_events = [
+      {0, "message", "Starting translation session for commit e4f5g6h.", "{}"},
+      {1, "thought",
+       "New blog post added. I need to translate it into Japanese and German. Japanese requires careful handling of honorifics and sentence structure.",
+       "{}"},
+      {2, "tool_call", "glossia status",
+       ~s({"tool_name":"glossia-cli","command":"glossia status"})},
+      {3, "tool_result",
+       "Source language: en\nTarget languages: ja, de\nStale files: 2\n  - content/blog/advanced-localization.md (ja, de)\n  - content/blog/advanced-localization-meta.json (ja, de)",
+       ~s({"tool_name":"glossia-cli"})},
+      {4, "plan", "Translation plan for 2 files",
+       ~s({"entries":[{"label":"Read voice and glossary configuration","status":"completed"},{"label":"Translate advanced-localization.md to Japanese","status":"in_progress"},{"label":"Translate advanced-localization.md to German","status":"pending"},{"label":"Translate advanced-localization-meta.json to Japanese and German","status":"pending"},{"label":"Run glossary validation","status":"pending"}]})},
+      {5, "tool_call", "glossia voice show",
+       ~s({"tool_name":"glossia-cli","command":"glossia voice show"})},
+      {6, "tool_result",
+       "Tone: casual\nFormality: neutral\nTarget audience: Developers evaluating Glossia\nCultural notes (JP): Japanese communication style values politeness and indirectness.",
+       ~s({"tool_name":"glossia-cli"})},
+      {7, "thought",
+       "The cultural notes for Japan emphasize politeness. I should adjust the tone to be more formal for the Japanese translation while keeping the technical content accurate.",
+       "{}"},
+      {8, "message",
+       "Translating advanced-localization.md to Japanese with adjusted formality level.", "{}"}
+    ]
+
+    for {seq, type, content, metadata} <- session2_events do
+      Glossia.Ingestion.record_translation_session_event(
+        session2.id,
+        seq,
+        type,
+        content,
+        metadata
+      )
+    end
+
+    # Wait for buffer flush
+    Process.sleep(2_000)
+  end
+
+  defp ensure_discussion_comment!(ticket, user, opts) do
     body = Keyword.fetch!(opts, :body)
-    is_staff = Keyword.get(opts, :is_staff, false)
 
     import Ecto.Query
 
     existing =
       Repo.one(
-        from m in TicketMessage,
-          where: m.ticket_id == ^ticket.id and m.body == ^body
+        from c in DiscussionComment,
+          where: c.discussion_id == ^ticket.id and c.body == ^body
       )
 
     if existing do
       existing
     else
-      {:ok, message} = Support.add_message(ticket, user, %{"body" => body}, is_staff: is_staff)
-      message
+      {:ok, comment} = Discussions.add_comment(ticket, user, %{"body" => body})
+      comment
     end
   end
 end

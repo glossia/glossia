@@ -55,6 +55,22 @@ defmodule Glossia.Application do
          (Glossia.Ingestion.Event.buffer_opts()
           |> Map.take([:insert_sql, :insert_opts, :header])
           |> Map.to_list())},
+      Supervisor.child_spec(
+        {Glossia.Ingestion.Buffer,
+         [name: Glossia.Ingestion.SetupEventBuffer, flush_interval_ms: 1_000] ++
+           (Glossia.Ingestion.SetupEvent.buffer_opts()
+            |> Map.take([:insert_sql, :insert_opts, :header])
+            |> Map.to_list())},
+        id: Glossia.Ingestion.SetupEventBuffer
+      ),
+      Supervisor.child_spec(
+        {Glossia.Ingestion.Buffer,
+         [name: Glossia.Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
+           (Glossia.Ingestion.TranslationSessionEvent.buffer_opts()
+            |> Map.take([:insert_sql, :insert_opts, :header])
+            |> Map.to_list())},
+        id: Glossia.Ingestion.TranslationSessionEventBuffer
+      ),
       # Start to serve requests, typically the last entry
       GlossiaWeb.Endpoint
     ]

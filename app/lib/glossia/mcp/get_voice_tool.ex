@@ -72,7 +72,6 @@ defmodule Glossia.MCP.GetVoiceTool do
       formality: voice.formality,
       target_audience: voice.target_audience,
       guidelines: voice.guidelines,
-      change_note: voice.change_note,
       inserted_at: voice.inserted_at,
       overrides:
         Enum.map(voice.overrides, fn o ->

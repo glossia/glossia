@@ -38,6 +38,7 @@ defmodule Glossia.Admin.MCP.SetSuperAdminTool do
               Auditing.record(event, admin.account, admin,
                 resource_type: "user",
                 resource_id: to_string(updated.id),
+                resource_path: "/admin/users",
                 summary: "Set super_admin=#{value} for #{updated.email}"
               )
 

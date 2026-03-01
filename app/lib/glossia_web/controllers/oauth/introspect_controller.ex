@@ -7,7 +7,7 @@ defmodule GlossiaWeb.OAuth.IntrospectController do
     key_prefix: "oauth_introspect",
     scale: :timer.minutes(1),
     limit: 30,
-    by: :ip
+    by: [:ip, :client_id]
 
   def introspect(%Plug.Conn{} = conn, _params) do
     Boruta.Oauth.introspect(conn, __MODULE__)

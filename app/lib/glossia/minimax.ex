@@ -110,15 +110,16 @@ defmodule Glossia.Minimax do
   end
 
   defp fetch_api_key(opts) do
-    case Keyword.get(opts, :api_key) do
-      key when is_binary(key) and key != "" ->
-        {:ok, key}
-
-      _ ->
-        case config() |> Keyword.get(:api_key) do
-          key when is_binary(key) and key != "" -> {:ok, key}
-          _ -> {:error, :not_configured}
-        end
+    if Keyword.has_key?(opts, :api_key) do
+      case Keyword.get(opts, :api_key) do
+        key when is_binary(key) and key != "" -> {:ok, key}
+        _ -> {:error, :not_configured}
+      end
+    else
+      case config() |> Keyword.get(:api_key) do
+        key when is_binary(key) and key != "" -> {:ok, key}
+        _ -> {:error, :not_configured}
+      end
     end
   end
 

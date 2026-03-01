@@ -370,9 +370,19 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  smtp_host = System.get_env("SMTP_HOST") || "smtp.useplunk.com"
+  smtp_host =
+    System.get_env("SMTP_HOST") ||
+      raise """
+      environment variable SMTP_HOST is missing.
+      """
+
   smtp_port = String.to_integer(System.get_env("SMTP_PORT") || "587")
-  smtp_username = System.get_env("SMTP_USERNAME") || "plunk"
+
+  smtp_username =
+    System.get_env("SMTP_USERNAME") ||
+      raise """
+      environment variable SMTP_USERNAME is missing.
+      """
 
   smtp_password =
     System.get_env("SMTP_PASSWORD") ||
