@@ -14,40 +14,57 @@ defmodule Glossia.Kits do
   @entry_preloads [:translations]
   @kit_preloads [:created_by, :account, entries: @entry_preloads]
 
+  defp with_stars_count(query) do
+    stars_subquery =
+      from s in KitStar,
+        where: s.kit_id == parent_as(:kit).id,
+        select: count(s.id)
+
+    from k in query,
+      as: :kit,
+      select_merge: %{stars_count: subquery(stars_subquery)}
+  end
+
   # --- Kits ---
 
   def list_kits(%Account{} = account, params \\ %{}) do
     query =
-      from k in Kit,
+      from(k in Kit,
         where: k.account_id == ^account.id,
         preload: [:created_by]
+      )
+      |> with_stars_count()
 
     Flop.validate_and_run(query, params, for: Kit)
   end
 
   def list_public_kits(%Account{} = account, params \\ %{}) do
     query =
-      from k in Kit,
+      from(k in Kit,
         where: k.account_id == ^account.id and k.visibility == "public",
         preload: [:created_by]
+      )
+      |> with_stars_count()
 
     Flop.validate_and_run(query, params, for: Kit)
   end
 
   def get_kit!(id) do
-    Repo.one!(
-      from k in Kit,
-        where: k.id == ^id,
-        preload: ^@kit_preloads
+    from(k in Kit,
+      where: k.id == ^id,
+      preload: ^@kit_preloads
     )
+    |> with_stars_count()
+    |> Repo.one!()
   end
 
   def get_kit_by_handle(%Account{} = account, handle) do
-    Repo.one(
-      from k in Kit,
-        where: k.account_id == ^account.id and k.handle == ^handle,
-        preload: ^@kit_preloads
+    from(k in Kit,
+      where: k.account_id == ^account.id and k.handle == ^handle,
+      preload: ^@kit_preloads
     )
+    |> with_stars_count()
+    |> Repo.one()
   end
 
   def create_kit(%Account{} = account, %User{} = user, attrs) do
@@ -194,54 +211,19 @@ defmodule Glossia.Kits do
 
   def star_kit(%Kit{} = kit, %User{} = user) do
     Tracer.with_span "glossia.kits.star_kit" do
-      Repo.transaction(fn ->
-        star_result =
-          %KitStar{}
-          |> KitStar.changeset(%{})
-          |> Ecto.Changeset.put_change(:kit_id, kit.id)
-          |> Ecto.Changeset.put_change(:user_id, user.id)
-          |> Repo.insert()
-
-        case star_result do
-          {:ok, star} ->
-            from(k in Kit, where: k.id == ^kit.id)
-            |> Repo.update_all(inc: [stars_count: 1])
-
-            star
-
-          {:error, changeset} ->
-            Repo.rollback({:validation, changeset})
-        end
-      end)
-      |> case do
-        {:ok, star} -> {:ok, star}
-        {:error, {:validation, changeset}} -> {:error, changeset}
-        {:error, reason} -> {:error, reason}
-      end
+      %KitStar{}
+      |> KitStar.changeset(%{})
+      |> Ecto.Changeset.put_change(:kit_id, kit.id)
+      |> Ecto.Changeset.put_change(:user_id, user.id)
+      |> Repo.insert()
     end
   end
 
   def unstar_kit(%Kit{} = kit, %User{} = user) do
     Tracer.with_span "glossia.kits.unstar_kit" do
-      star =
-        Repo.one(
-          from s in KitStar,
-            where: s.kit_id == ^kit.id and s.user_id == ^user.id
-        )
-
-      case star do
-        nil ->
-          {:error, :not_found}
-
-        %KitStar{} = star ->
-          Repo.transaction(fn ->
-            Repo.delete!(star)
-
-            from(k in Kit, where: k.id == ^kit.id)
-            |> Repo.update_all(inc: [stars_count: -1])
-
-            :ok
-          end)
+      case Repo.one(from s in KitStar, where: s.kit_id == ^kit.id and s.user_id == ^user.id) do
+        nil -> {:error, :not_found}
+        %KitStar{} = star -> Repo.delete(star)
       end
     end
   end

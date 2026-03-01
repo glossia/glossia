@@ -10176,7 +10176,7 @@ defmodule GlossiaWeb.DashboardLive do
             {kit.visibility}
           </.badge>
         </:col>
-        <:col :let={kit} label={gettext("Stars")} key="stars_count" sortable>
+        <:col :let={kit} label={gettext("Stars")}>
           {kit.stars_count}
         </:col>
         <:col :let={kit} label={gettext("Created")} key="inserted_at" sortable>

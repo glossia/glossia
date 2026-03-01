@@ -6,7 +6,7 @@ defmodule Glossia.Kits.Kit do
   @derive {
     Flop.Schema,
     filterable: [:name, :visibility, :source_language, :inserted_at],
-    sortable: [:name, :source_language, :stars_count, :inserted_at],
+    sortable: [:name, :source_language, :inserted_at],
     default_order: %{order_by: [:inserted_at], order_directions: [:desc]}
   }
 
@@ -20,7 +20,7 @@ defmodule Glossia.Kits.Kit do
     field :target_languages, {:array, :string}, default: []
     field :domain_tags, {:array, :string}, default: []
     field :visibility, :string, default: "public"
-    field :stars_count, :integer, default: 0
+    field :stars_count, :integer, virtual: true, default: 0
 
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :created_by, Glossia.Accounts.User
