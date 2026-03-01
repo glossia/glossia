@@ -28,7 +28,7 @@ defmodule GlossiaWeb.GithubInstallRedirectController do
             "GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and GITHUB_APP_SLUG."
           )
         )
-        |> redirect(to: ~p"/#{handle}/-/settings/github")
+        |> redirect(to: ~p"/#{handle}/-/account")
     end
   end
 end

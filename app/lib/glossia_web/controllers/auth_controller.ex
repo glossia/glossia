@@ -7,6 +7,27 @@ defmodule GlossiaWeb.AuthController do
 
   @dev_routes Application.compile_env(:glossia, :dev_routes, false)
 
+  @login_rate_limit [
+    key_prefix: "auth_login_page",
+    scale: :timer.minutes(1),
+    limit: 120,
+    by: :ip,
+    format: :text
+  ]
+
+  @oauth_rate_limit [
+    key_prefix: "auth_oauth_flow",
+    scale: :timer.minutes(1),
+    limit: 20,
+    by: :ip,
+    format: :text
+  ]
+
+  plug GlossiaWeb.Plugs.RateLimit, @login_rate_limit when action in [:login]
+
+  plug GlossiaWeb.Plugs.RateLimit,
+       @oauth_rate_limit when action in [:request, :callback, :dev_login]
+
   def login(conn, _params) do
     render(conn, :login, dev_routes: @dev_routes, page_title: gettext("Log in"))
   end

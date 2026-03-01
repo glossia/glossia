@@ -118,9 +118,17 @@ if (process.env.NODE_ENV === "development") {
     //   * click with "c" key pressed to open at caller location
     //   * click with "d" key pressed to open at function component definition location
     let keyDown
-    window.addEventListener("keydown", e => keyDown = e.key)
-    window.addEventListener("keyup", _e => keyDown = null)
+    const resetKeyDown = () => keyDown = null
+
+    window.addEventListener("keydown", e => keyDown = e.key?.toLowerCase())
+    window.addEventListener("keyup", _e => resetKeyDown())
+    window.addEventListener("blur", () => resetKeyDown())
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible") resetKeyDown()
+    })
+
     window.addEventListener("click", e => {
+      if (!e.altKey) return
       if(keyDown === "c"){
         e.preventDefault()
         e.stopImmediatePropagation()

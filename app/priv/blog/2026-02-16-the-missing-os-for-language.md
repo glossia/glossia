@@ -44,7 +44,7 @@ That is exactly the gap a system should fill. Not by replacing the Language Mana
 
 We think the answer looks less like a translation tool and more like what GitHub did for code.
 
-GitHub took Git, a system for tracking changes to files, and turned it into a collaborative platform where developers review each other's work, discuss changes, and iterate together. Before GitHub, contributing to [open source](https://en.wikipedia.org/wiki/Open-source_software) projects (software that anyone can inspect, modify, and improve) required emailing files back and forth. After GitHub, anyone with an account could participate.
+GitHub took Git, a system for tracking changes to files, and turned it into a collaborative platform where developers review each other's work, discuss changes, and iterate together. Before GitHub, contributing to software projects required emailing files back and forth. After GitHub, anyone with an account could participate.
 
 We want to do the same thing for language.
 
@@ -52,7 +52,7 @@ Glossia is the OS where organizations capture their linguistic preferences, thei
 
 We talked about this in our post on [the context graph](https://glossia.ai/blog/2026-02-15-context-graph): we are building a structured map of connected knowledge that captures everything an organization knows about its language over time. Voice definitions, glossary entries, audience profiles, formality rules. Each piece is versioned (so you can see what changed and when) and connected to everything it relates to. When something changes, the system knows exactly what content is affected and what needs to be revisited.
 
-This is your account on Glossia, and the many projects you can contribute to. A linguist can work across multiple organizations, bring their expertise to different contexts, and see the impact of their decisions propagate through the system. Like a developer who contributes to multiple open source projects on GitHub, a linguist on Glossia can shape how dozens of products speak.
+This is your account on Glossia, and the many projects you can contribute to. A linguist can work across multiple organizations, bring their expertise to different contexts, and see the impact of their decisions propagate through the system. Like a developer who contributes to multiple projects on GitHub, a linguist on Glossia can shape how dozens of products speak.
 
 ## AI as an amplifier, not a replacement
 
@@ -86,4 +86,4 @@ We are still early. The [CLI agent](https://glossia.ai/docs) (a command-line too
 
 We are designing experiences where linguists can see content and context side by side, refine voice definitions through collaborative sessions, and watch their decisions flow through the system in real time. We want the experience of contributing linguistic expertise to feel as natural and rewarding as contributing code on GitHub.
 
-If any of this resonates with you, whether you are a linguist who has felt sidelined by the tools you are asked to use, a Language Manager looking for the system you wish existed, or just someone who believes that how we speak matters as much as how we build, we would love to hear from you. Join our [Discord](https://discord.gg/7FRHkwvs) or keep an eye on the [blog](https://glossia.ai/blog). We are building this in the open, and the conversation is just getting started.
+If any of this resonates with you, whether you are a linguist who has felt sidelined by the tools you are asked to use, a Language Manager looking for the system you wish existed, or just someone who believes that how we speak matters as much as how we build, we would love to hear from you. Join our [Discord](https://discord.gg/7FRHkwvs) or keep an eye on the [blog](https://glossia.ai/blog). The conversation is just getting started.

@@ -11,7 +11,8 @@ defmodule GlossiaWeb.OpenApiSpec do
         "title" => "Glossia API",
         "description" =>
           "OAuth 2.1 API for Glossia. Supports dynamic client registration, " <>
-            "authorization code flow with PKCE, token introspection, and revocation.",
+            "authorization code flow with PKCE, device authorization flow, " <>
+            "token introspection, and revocation.",
         "version" => "1.0.0"
       },
       "servers" => [%{"url" => issuer, "description" => "Glossia server"}],
@@ -86,11 +87,56 @@ defmodule GlossiaWeb.OpenApiSpec do
           }
         }
       },
+      "/oauth/device_authorization" => %{
+        "post" => %{
+          "summary" => "Device authorization",
+          "description" =>
+            "Start the OAuth 2.0 device flow and return a device_code/user_code pair. " <>
+              "Rate limited to 20 requests per minute per IP.",
+          "operationId" => "deviceAuthorization",
+          "tags" => ["OAuth"],
+          "requestBody" => %{
+            "required" => true,
+            "content" => %{
+              "application/x-www-form-urlencoded" => %{
+                "schema" => %{"$ref" => "#/components/schemas/DeviceAuthorizationRequest"}
+              }
+            }
+          },
+          "responses" => %{
+            "200" => %{
+              "description" => "Device code issued successfully",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/DeviceAuthorizationResponse"}
+                }
+              }
+            },
+            "400" => %{
+              "description" => "Invalid request",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/OAuthError"}
+                }
+              }
+            },
+            "401" => %{
+              "description" => "Invalid client",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{"$ref" => "#/components/schemas/OAuthError"}
+                }
+              }
+            },
+            "429" => %{"description" => "Rate limit exceeded"}
+          }
+        }
+      },
       "/oauth/token" => %{
         "post" => %{
           "summary" => "Token exchange",
           "description" =>
-            "Exchange an authorization code or refresh token for an access token. " <>
+            "Exchange an authorization code, refresh token, or device code for an access token. " <>
               "Rate limited to 30 requests per minute per IP.",
           "operationId" => "token",
           "tags" => ["OAuth"],
@@ -298,6 +344,10 @@ defmodule GlossiaWeb.OpenApiSpec do
                     "properties" => %{
                       "issuer" => %{"type" => "string"},
                       "authorization_endpoint" => %{"type" => "string", "format" => "uri"},
+                      "device_authorization_endpoint" => %{
+                        "type" => "string",
+                        "format" => "uri"
+                      },
                       "token_endpoint" => %{"type" => "string", "format" => "uri"},
                       "revocation_endpoint" => %{"type" => "string", "format" => "uri"},
                       "introspection_endpoint" => %{"type" => "string", "format" => "uri"},
@@ -323,13 +373,18 @@ defmodule GlossiaWeb.OpenApiSpec do
                   "example" => %{
                     "issuer" => issuer,
                     "authorization_endpoint" => "#{issuer}/oauth/authorize",
+                    "device_authorization_endpoint" => "#{issuer}/oauth/device_authorization",
                     "token_endpoint" => "#{issuer}/oauth/token",
                     "revocation_endpoint" => "#{issuer}/oauth/revoke",
                     "introspection_endpoint" => "#{issuer}/oauth/introspect",
                     "registration_endpoint" => "#{issuer}/oauth/register",
                     "scopes_supported" => Map.keys(build_scopes()),
                     "response_types_supported" => ["code"],
-                    "grant_types_supported" => ["authorization_code", "refresh_token"],
+                    "grant_types_supported" => [
+                      "authorization_code",
+                      "refresh_token",
+                      "urn:ietf:params:oauth:grant-type:device_code"
+                    ],
                     "code_challenge_methods_supported" => ["S256"]
                   }
                 }
@@ -887,7 +942,6 @@ defmodule GlossiaWeb.OpenApiSpec do
                 filter_parameter("version", "integer", "Filter by version number"),
                 filter_parameter("tone", "string", "Filter by tone"),
                 filter_parameter("formality", "string", "Filter by formality"),
-                filter_parameter("change_note", "string", "Filter by change note"),
                 sort_parameter("version, inserted_at")
               ],
           "responses" => %{
@@ -904,7 +958,6 @@ defmodule GlossiaWeb.OpenApiSpec do
                           "type" => "object",
                           "properties" => %{
                             "version" => %{"type" => "integer"},
-                            "change_note" => %{"type" => "string"},
                             "inserted_at" => %{"type" => "string", "format" => "date-time"}
                           }
                         }
@@ -1148,13 +1201,48 @@ defmodule GlossiaWeb.OpenApiSpec do
           "error_description" => %{"type" => "object"}
         }
       },
+      "DeviceAuthorizationRequest" => %{
+        "type" => "object",
+        "required" => ["client_id"],
+        "properties" => %{
+          "client_id" => %{"type" => "string"},
+          "client_secret" => %{"type" => "string"},
+          "scope" => %{
+            "type" => "string",
+            "description" => "Space-separated list of requested scopes"
+          }
+        }
+      },
+      "DeviceAuthorizationResponse" => %{
+        "type" => "object",
+        "required" => [
+          "device_code",
+          "user_code",
+          "verification_uri",
+          "verification_uri_complete",
+          "expires_in",
+          "interval"
+        ],
+        "properties" => %{
+          "device_code" => %{"type" => "string"},
+          "user_code" => %{"type" => "string"},
+          "verification_uri" => %{"type" => "string", "format" => "uri"},
+          "verification_uri_complete" => %{"type" => "string", "format" => "uri"},
+          "expires_in" => %{"type" => "integer"},
+          "interval" => %{"type" => "integer"}
+        }
+      },
       "TokenRequest" => %{
         "type" => "object",
         "required" => ["grant_type"],
         "properties" => %{
           "grant_type" => %{
             "type" => "string",
-            "enum" => ["authorization_code", "refresh_token"]
+            "enum" => [
+              "authorization_code",
+              "refresh_token",
+              "urn:ietf:params:oauth:grant-type:device_code"
+            ]
           },
           "code" => %{
             "type" => "string",
@@ -1174,6 +1262,11 @@ defmodule GlossiaWeb.OpenApiSpec do
           "refresh_token" => %{
             "type" => "string",
             "description" => "Refresh token (for refresh_token grant)"
+          },
+          "device_code" => %{
+            "type" => "string",
+            "description" =>
+              "Device code returned by /oauth/device_authorization (for device_code grant)"
           }
         }
       },
@@ -1298,7 +1391,6 @@ defmodule GlossiaWeb.OpenApiSpec do
           },
           "target_audience" => %{"type" => "string"},
           "guidelines" => %{"type" => "string", "description" => "Markdown content"},
-          "change_note" => %{"type" => "string"},
           "overrides" => %{
             "type" => "array",
             "items" => %{"$ref" => "#/components/schemas/VoiceOverride"}
@@ -1313,7 +1405,6 @@ defmodule GlossiaWeb.OpenApiSpec do
           "formality" => %{"type" => "string"},
           "target_audience" => %{"type" => "string"},
           "guidelines" => %{"type" => "string"},
-          "change_note" => %{"type" => "string"},
           "inserted_at" => %{"type" => "string", "format" => "date-time"},
           "overrides" => %{
             "type" => "array",

@@ -23,9 +23,6 @@ defmodule Glossia.MCP.SaveVoiceTool do
 
     field :guidelines, :string, description: "Detailed writing/brand guidelines in Markdown."
 
-    field :change_note, :string,
-      description: "Optional note describing what changed in this version."
-
     field :overrides, {:array, :map},
       description:
         "Language-specific overrides. Each override is an object with: locale (required), tone, formality, target_audience, guidelines. Non-null fields override the base voice for that locale."
@@ -43,7 +40,6 @@ defmodule Glossia.MCP.SaveVoiceTool do
         formality: params["formality"],
         target_audience: params["target_audience"],
         guidelines: params["guidelines"],
-        change_note: params["change_note"],
         overrides: params["overrides"] || []
       }
 
@@ -54,8 +50,8 @@ defmodule Glossia.MCP.SaveVoiceTool do
           Auditing.record("voice.created", account, user,
             resource_type: "voice",
             resource_id: to_string(voice.version),
-            resource_path: "/#{handle}/voice/#{voice.version}",
-            summary: voice.change_note || "Updated voice settings."
+            resource_path: "/#{handle}/-/voice/#{voice.version}",
+            summary: "Updated voice settings."
           )
 
           response =
@@ -67,7 +63,6 @@ defmodule Glossia.MCP.SaveVoiceTool do
                 formality: voice.formality,
                 target_audience: voice.target_audience,
                 guidelines: voice.guidelines,
-                change_note: voice.change_note,
                 overrides:
                   Enum.map(overrides, fn o ->
                     %{locale: o.locale, tone: o.tone, formality: o.formality}

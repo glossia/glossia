@@ -15,6 +15,10 @@ defmodule GlossiaWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  socket "/agent/socket", GlossiaWeb.AgentSocket,
+    websocket: [timeout: 660_000],
+    longpoll: false
+
   if Code.ensure_loaded?(Tidewave) do
     plug Tidewave
   end

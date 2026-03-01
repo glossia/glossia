@@ -40,7 +40,7 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
             Auditing.record("member.removed", account, user,
               resource_type: "member",
               resource_id: to_string(target_user.id),
-              resource_path: ~p"/#{account.handle}/members",
+              resource_path: "/#{account.handle}/-/members",
               summary: "Removed #{user_handle} from organization"
             )
 

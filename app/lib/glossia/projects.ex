@@ -16,6 +16,24 @@ defmodule Glossia.Projects do
     end
   end
 
+  def create_project_from_github(%Account{id: account_id}, installation_id, attrs) do
+    Tracer.with_span "glossia.projects.create_project_from_github" do
+      Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
+
+      %Project{account_id: account_id, github_installation_id: installation_id}
+      |> Project.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  def update_project_setup_status(project, status, error \\ nil) do
+    project
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.force_change(:setup_status, status)
+    |> Ecto.Changeset.force_change(:setup_error, error)
+    |> Repo.update()
+  end
+
   def get_project(%Account{id: account_id}, handle) do
     Tracer.with_span "glossia.projects.get_project" do
       Tracer.set_attributes([
@@ -41,5 +59,62 @@ defmodule Glossia.Projects do
 
       Flop.validate_and_run(query, params, for: Project)
     end
+  end
+
+  def list_imported_github_repositories(%Account{id: account_id}) do
+    Tracer.with_span "glossia.projects.list_imported_github_repositories" do
+      Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
+
+      Project
+      |> where(account_id: ^account_id)
+      |> where([p], not is_nil(p.github_repo_id) or not is_nil(p.github_repo_full_name))
+      |> select([p], %{
+        github_repo_id: p.github_repo_id,
+        github_repo_full_name: p.github_repo_full_name
+      })
+      |> Repo.all()
+    end
+  end
+
+  def update_project(%Project{} = project, attrs) do
+    Tracer.with_span "glossia.projects.update_project" do
+      Tracer.set_attributes([{"glossia.project.id", to_string(project.id)}])
+
+      project
+      |> Project.settings_changeset(attrs)
+      |> Repo.update()
+    end
+  end
+
+  def update_project_sandbox_id(project, sandbox_id) do
+    project
+    |> Ecto.Changeset.change(setup_sandbox_id: sandbox_id)
+    |> Repo.update()
+  end
+
+  def list_projects_with_active_setup do
+    Project
+    |> where([p], p.setup_status in ["pending", "running"])
+    |> Repo.all()
+  end
+
+  def subscribe_setup_events(%Project{id: project_id}) do
+    Phoenix.PubSub.subscribe(Glossia.PubSub, "project_setup:#{project_id}")
+  end
+
+  def broadcast_setup_event(%Project{id: project_id}, event) do
+    Phoenix.PubSub.broadcast(
+      Glossia.PubSub,
+      "project_setup:#{project_id}",
+      {:setup_event, event}
+    )
+  end
+
+  def broadcast_setup_status(%Project{id: project_id}, status) do
+    Phoenix.PubSub.broadcast(
+      Glossia.PubSub,
+      "project_setup:#{project_id}",
+      {:setup_status, status}
+    )
   end
 end

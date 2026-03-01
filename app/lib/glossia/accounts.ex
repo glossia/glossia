@@ -13,6 +13,8 @@ defmodule Glossia.Accounts do
 
   import Ecto.Query
 
+  @dev_env Mix.env() == :dev
+
   # ----------------------------------------------------------------------------
   # Accounts
   # ----------------------------------------------------------------------------
@@ -76,6 +78,18 @@ defmodule Glossia.Accounts do
     end
   end
 
+  def update_user_profile(%User{} = user, attrs) do
+    user
+    |> User.profile_changeset(attrs)
+    |> Repo.update()
+  end
+
+  def list_user_identities(user) do
+    Identity
+    |> where(user_id: ^user.id)
+    |> Repo.all()
+  end
+
   defp get_identity(provider, provider_uid) do
     Identity
     |> where(provider: ^to_string(provider), provider_uid: ^provider_uid)
@@ -89,8 +103,10 @@ defmodule Glossia.Accounts do
         user_info["preferred_username"] || user_info["nickname"] || user_info["name"]
       )
 
+    account_attrs = %{handle: handle, type: "user", has_access: @dev_env}
+
     Ecto.Multi.new()
-    |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, %{handle: handle, type: "user"}))
+    |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, account_attrs))
     |> Ecto.Multi.insert(:user, fn %{account: account} ->
       %User{account_id: account.id}
       |> User.changeset(%{
@@ -129,6 +145,13 @@ defmodule Glossia.Accounts do
       {:ok, _identity} -> {:ok, identity.user}
       {:error, changeset} -> {:error, changeset}
     end
+  end
+
+  def get_github_token_for_user(user_id) do
+    Identity
+    |> where(user_id: ^user_id, provider: "github")
+    |> select([i], i.provider_token)
+    |> Repo.one()
   end
 
   # ----------------------------------------------------------------------------

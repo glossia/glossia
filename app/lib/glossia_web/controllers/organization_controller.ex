@@ -5,6 +5,16 @@ defmodule GlossiaWeb.OrganizationController do
   alias Glossia.Auditing
   alias Glossia.Organizations
 
+  plug GlossiaWeb.Plugs.RateLimit,
+       [
+         key_prefix: "organization_create",
+         scale: :timer.hours(1),
+         limit: 20,
+         by: :user,
+         format: :text
+       ]
+       when action in [:create]
+
   def new(conn, _params) do
     changeset = Accounts.Account.changeset(%Accounts.Account{}, %{})
     render(conn, :new, changeset: changeset, page_title: gettext("New organization"))

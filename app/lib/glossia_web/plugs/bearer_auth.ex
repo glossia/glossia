@@ -26,10 +26,11 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
 
   defp validate_token(conn, token_value) do
     case validate_boruta_token(token_value) do
-      {:ok, user, scopes} ->
+      {:ok, user, scopes, token} ->
         conn
         |> assign(:current_user, user)
         |> assign(:scopes, scopes)
+        |> assign(:current_token, %{kind: :oauth_access_token, id: Map.get(token, :id)})
 
       :error ->
         validate_account_token(conn, token_value)
@@ -41,7 +42,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
          false <- revoked?(token),
          false <- expired?(token),
          user when not is_nil(user) <- Accounts.get_user(token.sub) do
-      {:ok, user, parse_scopes(token.scope)}
+      {:ok, user, parse_scopes(token.scope), token}
     else
       _ -> :error
     end
@@ -53,6 +54,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
         conn
         |> assign(:current_user, token.user)
         |> assign(:scopes, parse_scopes(token.scope))
+        |> assign(:current_token, %{kind: :account_token, id: token.id})
 
       _ ->
         reject_unauthorized(conn)
@@ -89,16 +91,30 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   defp expired?(_), do: true
 
   defp reject_unauthorized(conn) do
-    conn
-    |> put_resp_header("www-authenticate", "Bearer")
-    |> send_resp(401, JSON.encode!(%{error: "invalid_token"}))
-    |> halt()
+    key = "auth:invalid_bearer:ip:#{GlossiaWeb.ClientIP.value(conn)}"
+
+    case Glossia.RateLimiter.hit(key, :timer.minutes(1), 30) do
+      {:allow, _count} ->
+        conn
+        |> put_resp_header("www-authenticate", "Bearer")
+        |> send_resp(401, JSON.encode!(%{error: "invalid_token"}))
+        |> halt()
+
+      {:deny, retry_after_ms} ->
+        retry_after = ceil(retry_after_ms / 1_000)
+
+        conn
+        |> put_resp_header("retry-after", Integer.to_string(retry_after))
+        |> send_resp(429, JSON.encode!(%{error: "too_many_requests"}))
+        |> halt()
+    end
   end
 
   defp assign_unauthenticated(conn) do
     conn
     |> assign(:current_user, nil)
     |> assign(:scopes, [])
+    |> assign(:current_token, nil)
   end
 
   defp parse_scopes(nil), do: []

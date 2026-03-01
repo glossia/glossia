@@ -3,6 +3,13 @@ defmodule GlossiaWeb.OAuth.AuthorizeController do
 
   @behaviour Boruta.Oauth.AuthorizeApplication
 
+  plug GlossiaWeb.Plugs.RateLimit,
+    key_prefix: "oauth_authorize",
+    scale: :timer.minutes(1),
+    limit: 30,
+    by: :user,
+    format: :text
+
   # GET /oauth/authorize - preauthorize: validate request, show consent screen
   def authorize(%Plug.Conn{method: "GET"} = conn, _params) do
     resource_owner = current_resource_owner(conn)

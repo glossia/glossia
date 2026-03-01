@@ -95,7 +95,8 @@ defmodule Glossia.MixProject do
       {:ex_aws_s3, "~> 2.5"},
       {:flop, "~> 0.26"},
       {:chromic_pdf, "~> 1.17"},
-      {:mimic, "~> 1.10", only: :test}
+      {:mimic, "~> 1.10", only: :test},
+      {:muontrap, "~> 1.5"}
     ]
   end
 

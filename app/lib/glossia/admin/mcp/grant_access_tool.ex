@@ -20,6 +20,7 @@ defmodule Glossia.Admin.MCP.GrantAccessTool do
           Auditing.record("admin.access_granted", admin.account, admin,
             resource_type: "user",
             resource_id: to_string(user.id),
+            resource_path: "/admin/users",
             summary: "Granted access to #{user.email}"
           )
 

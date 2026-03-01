@@ -4,6 +4,16 @@ defmodule GlossiaWeb.BillingController do
   alias Glossia.Auditing
   alias Glossia.Stripe
 
+  plug GlossiaWeb.Plugs.RateLimit,
+       [
+         key_prefix: "billing_mutation",
+         scale: :timer.hours(1),
+         limit: 20,
+         by: :user,
+         format: :text
+       ]
+       when action in [:checkout, :portal, :return]
+
   def show(conn, _params) do
     user = conn.assigns.current_user
     account = user.account

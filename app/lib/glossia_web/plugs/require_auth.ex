@@ -15,7 +15,7 @@ defmodule GlossiaWeb.Plugs.RequireAuth do
 
       conn
       |> put_session(:return_to, return_to)
-      |> put_flash(:error, gettext("You must sign in to access this page."))
+      |> put_flash(:info, gettext("Sign in to continue."))
       |> redirect(to: ~p"/auth/login")
       |> halt()
     end

@@ -38,7 +38,8 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.create_sandbox(%{language: "python"})
+      assert {:error, :not_configured} =
+               Daytona.create_sandbox(%{language: "python"}, api_key: nil)
     end
   end
 
@@ -65,7 +66,7 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.get_sandbox("sb-123")
+      assert {:error, :not_configured} = Daytona.get_sandbox("sb-123", api_key: nil)
     end
   end
 
@@ -85,7 +86,7 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.list_sandboxes()
+      assert {:error, :not_configured} = Daytona.list_sandboxes(api_key: nil)
     end
   end
 
@@ -109,7 +110,7 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.delete_sandbox("sb-123")
+      assert {:error, :not_configured} = Daytona.delete_sandbox("sb-123", api_key: nil)
     end
   end
 
@@ -123,7 +124,7 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.start_sandbox("sb-123")
+      assert {:error, :not_configured} = Daytona.start_sandbox("sb-123", api_key: nil)
     end
   end
 
@@ -137,7 +138,7 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.stop_sandbox("sb-123")
+      assert {:error, :not_configured} = Daytona.stop_sandbox("sb-123", api_key: nil)
     end
   end
 
@@ -172,7 +173,8 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.execute("sb-123", %{command: "echo hello"})
+      assert {:error, :not_configured} =
+               Daytona.execute("sb-123", %{command: "echo hello"}, api_key: nil)
     end
   end
 
@@ -187,7 +189,7 @@ defmodule Glossia.DaytonaTest do
 
     test "returns not_configured when API key is missing" do
       assert {:error, :not_configured} =
-               Daytona.upload_file("sb-123", "/tmp/test.txt", "content")
+               Daytona.upload_file("sb-123", "/tmp/test.txt", "content", api_key: nil)
     end
   end
 
@@ -215,7 +217,8 @@ defmodule Glossia.DaytonaTest do
     end
 
     test "returns not_configured when API key is missing" do
-      assert {:error, :not_configured} = Daytona.download_file("sb-123", "/tmp/test.txt")
+      assert {:error, :not_configured} =
+               Daytona.download_file("sb-123", "/tmp/test.txt", api_key: nil)
     end
   end
 end

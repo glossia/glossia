@@ -170,6 +170,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
             Auditing.record("member.removed", org.account, user,
               resource_type: "member",
               resource_id: to_string(target_user.id),
+              resource_path: "/#{handle}/-/members",
               summary: "Removed #{user_handle} from the organization"
             )
 
@@ -207,6 +208,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
           Auditing.record("member.invited", org.account, user,
             resource_type: "invitation",
             resource_id: to_string(invitation.id),
+            resource_path: "/#{handle}/-/members",
             summary: "Invited #{invitation.email} as #{invitation.role}"
           )
 
@@ -254,6 +256,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
               Auditing.record("member.invitation_revoked", org.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
+                resource_path: "/#{handle}/-/members",
                 summary: "Revoked invitation for #{invitation.email}"
               )
 

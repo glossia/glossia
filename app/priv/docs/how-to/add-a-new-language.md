@@ -24,7 +24,7 @@ output = "docs/i18n/{lang}/{relpath}"
 If the new language needs special instructions (e.g., formality level, character set considerations), create a context override file:
 
 ```
-GLOSSIA/
+LANGUAGE/
   ja.md
 ```
 

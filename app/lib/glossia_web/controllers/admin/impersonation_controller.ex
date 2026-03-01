@@ -3,6 +3,16 @@ defmodule GlossiaWeb.Admin.ImpersonationController do
 
   alias Glossia.Accounts
 
+  plug GlossiaWeb.Plugs.RateLimit,
+       [
+         key_prefix: "admin_impersonation",
+         scale: :timer.hours(1),
+         limit: 20,
+         by: :user,
+         format: :text
+       ]
+       when action in [:create, :delete]
+
   def create(conn, %{"user_id" => user_id} = params) do
     reason = String.trim(params["reason"] || "")
     admin = conn.assigns.current_user

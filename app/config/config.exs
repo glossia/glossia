@@ -108,6 +108,8 @@ config :glossia, Glossia.Daytona,
   api_url: "https://app.daytona.io/api",
   proxy_url: "https://proxy.app.daytona.io"
 
+config :glossia, :sandbox_adapter, Glossia.Sandbox.Docker
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

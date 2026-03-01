@@ -1,78 +1,75 @@
 %{
   title: "Releases",
-  summary: "CLI release history and download links.",
+  summary: "CLI release history.",
   category: "reference",
   subcategory: "cli",
   order: 2
 }
 ---
 
-Glossia CLI releases are published as pre-built executables for all major platforms. Each release is uploaded to S3 and made available via direct download or the [aqua](https://aquaproj.github.io/) package manager.
+## 0.14.1
 
-## Install with mise
+*2026-02-14*
 
-If you use mise, install the CLI from the aqua registry with:
+#### Bug Fixes
+- Rename binary inside release archives from platform-specific name to just `glossia`.
+- Strip macOS quarantine xattr from binaries before packaging.
 
-```bash
-mise use aqua:glossia.ai/cli@latest
-```
+## 0.14.0
 
-## Install via aqua
+*2026-02-14*
 
-If you use aqua, install the CLI with:
+#### Features
+- Add local release script and manually-maintained changelog workflow.
 
-```bash
-aqua g -i glossia.ai/cli@latest
-```
+## 0.2.0
 
-Aqua handles platform detection and version management automatically.
+*2026-02-14*
 
-## Direct download
+#### Bug Fixes
+- Make OAuth provider config optional in production. The app should boot even without GitHub/GitLab OAuth credentials set. Only configure providers when the env vars are present.
+- Default to port 4000 for production, keep 4050 for dev. Kamal proxy expects the app on port 4000. The runtime.exs default was 4050 which caused health checks to fail during deploy.
 
-Every release publishes five platform-specific archives:
+#### Features
+- Add Phoenix app with OAuth login, docs enhancements, and UI improvements.
+- Use rounded logo as favicon.
+- Migrate CLI to Bun and update CI executable builds.
 
-| Platform | Archive |
-|----------|---------|
-| Linux x64 | `glossia-linux-x64.tar.gz` |
-| Linux ARM64 | `glossia-linux-arm64.tar.gz` |
-| macOS x64 | `glossia-darwin-x64.tar.gz` |
-| macOS ARM64 | `glossia-darwin-arm64.tar.gz` |
-| Windows x64 | `glossia-windows-x64.zip` |
+## 0.1.0
 
-Each archive contains a single `glossia` binary (or `glossia.exe` on Windows) ready to use.
+*2026-02-12*
 
-Each release directory also contains `SHA256SUMS` and `SHA512SUMS` files for verification.
+#### Bug Fixes
+- Prevent code snippet horizontal overflow on mobile.
+- Add proper right margin to code snippets on mobile.
+- Improve mobile responsive layout to prevent horizontal overflow.
+- Apply biome formatting.
+- Add group headings to release notes template.
+- Update translate workflow from Bun to Rust.
+- Align post body with hero layout and improve blog post content.
+- Center blog post content horizontally.
+- Fix panic when truncating multi-byte UTF-8 tool results.
 
-## macOS Gatekeeper
+#### Features
+- Add first-party tools and website section.
+- Surface tool verification steps.
+- Simplify progress output.
+- Tint progress lines.
+- Show translating and validating activity.
+- Format tool lines.
+- Make website responsive with mobile menu and multi-breakpoint layout.
+- Reimplement CLI in Bun/TypeScript.
+- Add CI workflow and tests.
+- Add format checking with Biome.
+- Add Progressive Refinement section to homepage.
+- Add blog section with SEO support and first blog post.
+- Unify CLI output with right-aligned verb format.
+- Colorize CLI output with richer message formatting.
+- Add square OG image and twitter card meta tags.
+- Make coordinator agent agentic with tool use.
+- Rewrite `glossia init` with Agent Client Protocol (ACP).
+- Add Gemini support, auto-validation, token tracking, and reliability improvements.
 
-When you download a binary via a browser on macOS, the system adds a quarantine attribute that triggers a "damaged and can't be opened" error. Remove it after extracting:
-
-```bash
-xattr -c glossia
-```
-
-## Verify checksums
-
-After downloading an archive, verify its integrity:
-
-```bash
-# Download the checksums file
-curl -O https://releases.glossia.ai/cli/latest/SHA256SUMS
-
-# Verify your download
-shasum -a 256 -c SHA256SUMS --ignore-missing
-```
-
-## Changelog
-
-The full changelog is maintained at [`cli/CHANGELOG.md`](https://github.com/glossia/glossia/blob/main/cli/CHANGELOG.md) in the repository. It follows a manually-maintained format where each release lists changes grouped by category: Features, Bug Fixes, Performance, Refactors, Documentation, and Chores.
-
-## Release process
-
-Releases are cut locally using `mise run cli/release`, which:
-
-1. Parses the `## NEXT` section of the changelog
-2. Determines the version bump (minor for new features, patch otherwise)
-3. Builds platform executables via Go
-4. Packages and uploads archives to S3
-5. Commits the version bump and tags the release
+#### Refactors
+- Split CI into separate format, typecheck, test, build jobs.
+- Rewrite CLI from TypeScript/Bun to Rust.

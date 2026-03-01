@@ -65,8 +65,8 @@
         <span class="admin-nav-label">{gettext("Accounts")}</span>
       </.link>
       <.link
-        patch={~p"/admin/tickets"}
-        class={["admin-nav-item", @live_action in [:tickets, :ticket_show] && "active"]}
+        patch={~p"/admin/discussions"}
+        class={["admin-nav-item", @live_action in [:discussions, :discussion_show] && "active"]}
       >
         <svg
           width="18"
@@ -79,9 +79,11 @@
           stroke-linejoin="round"
           aria-hidden="true"
         >
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        <span class="admin-nav-label">{gettext("Tickets")}</span>
+        <span class="admin-nav-label">{gettext("Discussions")}</span>
       </.link>
     </nav>
     <div class="admin-sidebar-bottom">

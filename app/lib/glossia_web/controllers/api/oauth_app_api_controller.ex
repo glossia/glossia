@@ -47,6 +47,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
                 Glossia.Auditing.record("oauth_app.created", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
+                  resource_path: "/#{handle}/-/settings/apps/#{app.id}",
                   summary: "Created OAuth application \"#{app.name}\""
                 )
 
@@ -112,6 +113,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
                 Glossia.Auditing.record("oauth_app.updated", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
+                  resource_path: "/#{handle}/-/settings/apps/#{app.id}",
                   summary: "Updated OAuth application \"#{updated_app.name}\""
                 )
 
@@ -145,6 +147,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
                 Glossia.Auditing.record("oauth_app.deleted", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
+                  resource_path: "/#{handle}/-/settings/apps",
                   summary: "Deleted OAuth application \"#{app.name}\""
                 )
 
@@ -178,6 +181,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
                 Glossia.Auditing.record("oauth_app.secret_regenerated", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
+                  resource_path: "/#{handle}/-/settings/apps/#{app.id}",
                   summary: "Regenerated client secret for \"#{app.name}\""
                 )
 

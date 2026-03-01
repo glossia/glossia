@@ -20,6 +20,7 @@ defmodule Glossia.Admin.MCP.RevokeAccessTool do
           Auditing.record("admin.access_revoked", admin.account, admin,
             resource_type: "user",
             resource_id: to_string(user.id),
+            resource_path: "/admin/users",
             summary: "Revoked access from #{user.email}"
           )
 

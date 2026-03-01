@@ -41,6 +41,7 @@ defmodule Glossia.MCP.CreateTokenTool do
           Glossia.Auditing.record("token.created", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
+            resource_path: "/#{account.handle}/-/settings/tokens",
             summary: "Created account token \"#{token.name}\""
           )
 

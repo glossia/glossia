@@ -112,3 +112,7 @@ config :swoosh, :api_client, false
 config :glossia, Glossia.Daytona,
   api_url: "http://localhost:3000/api",
   proxy_url: "http://localhost:3000"
+
+# Keep local Chrome usable while running `mix phx.server`.
+# ChromicPDF runs a persistent headless Google Chrome process.
+config :glossia, Glossia.OgImage, enabled: false

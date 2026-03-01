@@ -21,12 +21,75 @@ All secrets (API keys, tokens, credentials) are managed through `fnox`. Never ha
 - **API and MCP parity**: When adding new data structures that represent features, ensure they are exposed through both the REST API and the MCP server. Every resource available via the API should have a corresponding MCP tool, and vice versa, so that users get a consistent experience regardless of the interface they use
 - **JSON encoding/decoding**: Use Elixir's built-in `JSON` module (available since Elixir 1.18) instead of the `Jason` library for all new code. The `JSON` module is part of the standard library and requires no external dependency
 - **Error handling**: Prefer pattern matching on `{:ok, _}` / `{:error, _}` tuples over `try/rescue` blocks. Use `rescue` only when interfacing with code that raises exceptions (e.g., third-party libraries with no tuple-returning alternative). Idiomatic Elixir uses tagged tuples and `with` chains for control flow, not exceptions
+- **Process execution**: When executing OS commands from Elixir, use `MuonTrap` (`MuonTrap.cmd/3`) instead of `System` APIs (`System.cmd/3`, `System.find_executable/1`, etc.) or raw `Port` usage (`Port.open/2`, `Port.command/2`). This gives safer subprocess handling and cleaner shutdown behavior
 - **Public accounts**: The app supports public accounts that are read-only, allowing non-authenticated users to experience the product. Always design pages considering what an unauthenticated visitor will see. Be careful with authorization: public account pages must be accessible without login, but write/mutation actions must still require authentication. Every dashboard or content page should gracefully handle the "viewing as guest" case
 - **URL-driven state**: All interactive page state (search queries, sort column/direction, active filters, pagination page) must be reflected in URL search params. Use `push_patch/2` to update the URL when state changes, and read params in `handle_params/3` to restore state. This ensures pages are shareable, bookmarkable, and work correctly with browser back/forward navigation
 - **Auditability**: When implementing features that involve user-visible mutations (creating, updating, deleting resources, membership changes, billing events, etc.), add audit log entries via `Glossia.Auditing.record/4`. If a mutation is useful for auditability or compliance, log it. Event names follow a `resource.action` convention (e.g., `member.invited`, `voice.created`)
 - **Seeds**: Keep `priv/repo/seeds.exs` realistic and up to date. When you add a new domain concept (schema/context/API resource) or a UI workflow that depends on data, extend seeds with representative records so developers and agents can exercise the feature end-to-end.
 - **Worktree DB isolation**: Database isolation for Git worktrees is handled automatically by app runtime config (`config/runtime.exs` + `config/worktree_db.exs`). Do not add `.codex`-specific setup for this. If you need a custom suffix, use `GLOSSIA_DB_SUFFIX`. When using a fresh worktree, run `cd app && mix ecto.create && mix ecto.migrate`.
 - **API pagination and filtering**: All REST API list endpoints must support pagination, filtering, and sorting via [Flop](https://hex.pm/packages/flop). Every Ecto schema exposed through a list endpoint must derive `Flop.Schema` with explicit `filterable` and `sortable` fields. Context list functions accept a `params` map and call `Flop.validate_and_run/3`. Controllers return a `meta` object alongside the resource list containing `total_count`, `total_pages`, `current_page`, `page_size`, `has_next_page?`, and `has_previous_page?`. Clients paginate with `page` and `page_size` query parameters and filter with `filters[field]` parameters
+
+## Rate Limiting and Abuse Prevention (Implemented)
+
+This is the current, enforced app-level policy as of `2026-02-16`.
+
+### Core mechanism
+
+- `GlossiaWeb.Plugs.RateLimit` is the shared plug for HTTP limits.
+  - Supports `by: :ip | :user | :token | :account | :client_id | [...]`.
+  - Supports `format: :json | :text`.
+  - Emits telemetry on every decision: `[:glossia, :rate_limit, :decision]`.
+- `GlossiaWeb.ClientIP` resolves client IP from `x-forwarded-for` (first valid IP) with fallback to `conn.remote_ip`.
+- `GlossiaWeb.Plugs.BearerAuth` now assigns `:current_token` and rate-limits invalid bearer attempts.
+
+### Enforced quotas by surface
+
+| Surface | Scope | Limit | Key |
+|---|---|---|---|
+| Invalid bearer auth | Any invalid bearer token | 30/min | `ip` |
+| Auth browser | `/auth/login` | 120/min | `ip` |
+| Auth browser | `/auth/:provider`, callback, dev login | 20/min | `ip` |
+| OAuth browser | `/oauth/authorize` | 30/min | `user` fallback `ip` |
+| OAuth device | `/oauth/device_authorization` | 20/min | `ip + client_id` |
+| OAuth device | `/oauth/device` verify + submit | 60/min | `ip` |
+| OAuth device | `/oauth/device/confirm` | 30/min | `user` |
+| OAuth machine | `/oauth/register` | 5/min | `ip` |
+| OAuth machine | `/oauth/token`, `/oauth/revoke`, `/oauth/introspect` | 30/min | `ip + client_id` |
+| REST API | `GET/HEAD /api/*` | 300/min | `token + user + ip` |
+| REST API | `POST/PATCH/DELETE /api/*` | 60/min | `token + user + ip` |
+| REST API sensitive writes | token + oauth-app endpoints | 15/min | `token + user + ip` |
+| MCP transport | `/mcp` | 120/min | `token + user + ip` |
+| MCP transport | `/admin/mcp` | 60/min | `token + user + ip` |
+| MCP tools (non-admin) | read tools | 120/min | token/user (+account suffix when present) |
+| MCP tools (non-admin) | write/delete tools | 30/min | token/user (+account suffix when present) |
+| MCP tools (non-admin) | admin-scoped tools | 15/min | token/user (+account suffix when present) |
+| MCP tools (admin server) | super-admin actions | 60/min | `super_admin_user` |
+| Webhooks | Stripe/GitHub/GitLab ingest | 240/min | `ip` |
+| Webhooks invalid auth | bad signature/token attempts | 20/min | `provider + ip` |
+| Browser mutations | waitlist create | 10/hour | `user` |
+| Browser mutations | organization create | 20/hour | `user` |
+| Browser mutations | invitation accept/decline | 30/hour | `user` |
+| Browser mutations | billing checkout/portal/return | 20/hour | `user` |
+| Browser mutations | admin impersonate start/stop | 20/hour | `user` |
+| Public expensive | `/og/*` | 30/min | `ip` |
+| Public discovery | `/.well-known/*`, `/api/openapi.json`, `/docs/search.json` | 120/min | `ip` |
+| Callback ingress | GitHub install callback | 30/min | `ip` |
+
+### Hardening rules in effect
+
+- OG image generation now requires signed attrs (`d`) and a route hash that matches `OgImage.hash(attrs)`. Invalid token/hash falls back without generation/upload.
+- Invalid webhook authentication attempts are on dedicated low-threshold buckets (`20/min`) separate from normal webhook throughput buckets.
+- API/MCP keying prefers token/user identity when available, with IP fallback.
+
+### Code references
+
+- Shared rate-limit plug: `app/lib/glossia_web/plugs/rate_limit.ex`
+- Client IP extraction: `app/lib/glossia_web/client_ip.ex`
+- API transport policy: `app/lib/glossia_web/plugs/api_rate_limit.ex`
+- MCP transport policy: `app/lib/glossia_web/plugs/mcp_rate_limit.ex`
+- Bearer invalid-attempt throttling: `app/lib/glossia_web/plugs/bearer_auth.ex`
+- MCP tool-level throttling: `app/lib/glossia/mcp/authorization.ex`
+- Admin MCP tool-level throttling: `app/lib/glossia/admin/mcp/authorization.ex`
 
 ## Design system
 

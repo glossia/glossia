@@ -54,6 +54,7 @@ defmodule GlossiaWeb.Api.TokenApiController do
                 Glossia.Auditing.record("token.created", account, user,
                   resource_type: "account_token",
                   resource_id: to_string(token.id),
+                  resource_path: "/#{handle}/-/settings/tokens",
                   summary: "Created account token \"#{token.name}\""
                 )
 
@@ -91,6 +92,7 @@ defmodule GlossiaWeb.Api.TokenApiController do
                 Glossia.Auditing.record("token.revoked", account, user,
                   resource_type: "account_token",
                   resource_id: to_string(token.id),
+                  resource_path: "/#{handle}/-/settings/tokens",
                   summary: "Revoked account token \"#{token.name}\""
                 )
 

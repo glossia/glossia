@@ -98,14 +98,14 @@ defmodule Glossia.MinimaxTest do
 
     test "returns not_configured when API key is missing" do
       messages = [%{role: "user", content: "Hi"}]
-      assert {:error, :not_configured} = Minimax.chat(messages)
+      assert {:error, :not_configured} = Minimax.chat(messages, api_key: nil)
     end
   end
 
   describe "stream/2" do
     test "returns not_configured when API key is missing" do
       messages = [%{role: "user", content: "Hi"}]
-      assert {:error, :not_configured} = Minimax.stream(messages)
+      assert {:error, :not_configured} = Minimax.stream(messages, api_key: nil)
     end
   end
 end
