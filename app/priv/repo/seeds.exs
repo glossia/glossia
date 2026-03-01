@@ -26,6 +26,8 @@ defmodule Glossia.Seeds do
   alias Glossia.DeveloperTokens
   alias Glossia.Github.Installations
   alias Glossia.Glossaries
+  alias Glossia.Kits
+  alias Glossia.Kits.Kit
   alias Glossia.OAuth.FirstPartyClient
   alias Glossia.Organizations
   alias Glossia.Projects
@@ -487,6 +489,65 @@ defmodule Glossia.Seeds do
         }
       )
 
+    # ── Kits ──
+    ensure_kit!(dev.account, dev,
+      handle: "medical-terms",
+      name: "Medical Terminology",
+      description: "Standard medical terminology translations for healthcare content.",
+      source_language: "en",
+      target_languages: ["es", "de", "ja"],
+      domain_tags: ["healthcare", "medical"],
+      visibility: "public",
+      entries: [
+        %{
+          source_term: "diagnosis",
+          definition: "The identification of the nature and cause of a certain phenomenon.",
+          tags: ["clinical"],
+          translations: [
+            %{
+              "language" => "es",
+              "translated_term" => "diagnostico",
+              "usage_note" => "Use with accent: diagnostico"
+            },
+            %{"language" => "de", "translated_term" => "Diagnose"},
+            %{"language" => "ja", "translated_term" => "\u8A3A\u65AD"}
+          ]
+        },
+        %{
+          source_term: "prescription",
+          definition:
+            "An instruction written by a medical practitioner for medicine to be dispensed.",
+          tags: ["pharmacy"],
+          translations: [
+            %{"language" => "es", "translated_term" => "receta"},
+            %{"language" => "de", "translated_term" => "Rezept"},
+            %{"language" => "ja", "translated_term" => "\u51E6\u65B9\u7B8B"}
+          ]
+        }
+      ]
+    )
+
+    ensure_kit!(acme.account, dev,
+      handle: "internal-glossary",
+      name: "Internal Glossary",
+      description: "Private terminology for Acme Industries internal docs.",
+      source_language: "en",
+      target_languages: ["es-MX", "pt-BR"],
+      domain_tags: ["internal"],
+      visibility: "private",
+      entries: [
+        %{
+          source_term: "workspace",
+          definition: "A logical container for projects within the Acme platform.",
+          tags: ["product"],
+          translations: [
+            %{"language" => "es-MX", "translated_term" => "espacio de trabajo"},
+            %{"language" => "pt-BR", "translated_term" => "espaco de trabalho"}
+          ]
+        }
+      ]
+    )
+
     ticket3 =
       ensure_discussion!(dev.account, dev,
         title: "OAuth redirect URI validation too strict",
@@ -795,6 +856,51 @@ defmodule Glossia.Seeds do
       else
         ticket
       end
+    end
+  end
+
+  # ----------------------------------------------------------------------------
+  # Kits
+  # ----------------------------------------------------------------------------
+
+  defp ensure_kit!(%Account{} = account, %User{} = user, opts) do
+    handle = Keyword.fetch!(opts, :handle)
+
+    existing =
+      Repo.one(
+        from k in Kit,
+          where: k.account_id == ^account.id and k.handle == ^handle
+      )
+
+    if existing do
+      existing
+    else
+      {:ok, kit} =
+        Kits.create_kit(account, user, %{
+          "handle" => handle,
+          "name" => Keyword.fetch!(opts, :name),
+          "description" => Keyword.get(opts, :description, ""),
+          "source_language" => Keyword.fetch!(opts, :source_language),
+          "target_languages" => Keyword.get(opts, :target_languages, []),
+          "domain_tags" => Keyword.get(opts, :domain_tags, []),
+          "visibility" => Keyword.get(opts, :visibility, "public")
+        })
+
+      entries = Keyword.get(opts, :entries, [])
+
+      for entry_attrs <- entries do
+        translations = Map.get(entry_attrs, :translations, [])
+
+        {:ok, _entry} =
+          Kits.add_entry(kit, %{
+            "source_term" => entry_attrs.source_term,
+            "definition" => Map.get(entry_attrs, :definition, ""),
+            "tags" => Map.get(entry_attrs, :tags, []),
+            "translations" => translations
+          })
+      end
+
+      kit
     end
   end
 

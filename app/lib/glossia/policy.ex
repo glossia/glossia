@@ -192,6 +192,34 @@ defmodule Glossia.Policy do
     end
   end
 
+  object :kit do
+    action :read do
+      allow(:super_admin)
+      allow(:account_owner)
+      allow(:organization_admin)
+      allow(:organization_member)
+      allow(:public_account)
+    end
+
+    action :write do
+      deny(:no_access)
+      allow(:account_owner)
+      allow(:organization_admin)
+    end
+
+    action :admin do
+      deny(:no_access)
+      allow(:account_owner)
+      allow(:organization_admin)
+    end
+
+    action :delete do
+      deny(:no_access)
+      allow(:account_owner)
+      allow(:organization_admin)
+    end
+  end
+
   object :api_credentials do
     action :read do
       allow(:super_admin)

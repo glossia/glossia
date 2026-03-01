@@ -10,6 +10,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.ChangeSummary
   alias Glossia.DeveloperTokens
   alias Glossia.Glossaries
+  alias Glossia.Kits
   alias Glossia.Organizations
   alias Glossia.Discussions
   alias Glossia.Voices
@@ -39,6 +40,7 @@ defmodule GlossiaWeb.DashboardLive do
         :members -> apply_url_params_members(socket, params)
         :voice -> apply_url_params_voice(socket, params)
         :glossary -> apply_url_params_glossary(socket, params)
+        :kits -> apply_url_params_kits(socket, params)
         :project_activity -> apply_url_params_activity(socket, params)
         :project_translations -> apply_url_params_translations(socket, params)
         :project_new -> apply_url_params_project_new(socket, params)
@@ -59,6 +61,12 @@ defmodule GlossiaWeb.DashboardLive do
         _ -> {[], 0}
       end
 
+    public_kits =
+      case Kits.list_public_kits(account) do
+        {:ok, {kits, _meta}} -> kits
+        _ -> []
+      end
+
     assign(socket,
       page_title: socket.assigns.handle,
       projects: projects,
@@ -67,6 +75,7 @@ defmodule GlossiaWeb.DashboardLive do
       projects_sort_key: "name",
       projects_sort_dir: "asc",
       projects_page: 1,
+      public_kits: public_kits,
       breadcrumb_items: []
     )
   end
@@ -729,6 +738,202 @@ defmodule GlossiaWeb.DashboardLive do
     %{code: "hu", name: "Hungarian", native: "Magyar"},
     %{code: "ca", name: "Catalan", native: "Catala"}
   ]
+
+  defp apply_action(socket, :kits, _params) do
+    require_action!(socket, :kit_read)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+
+    {:ok, {kits, _meta}} = Kits.list_kits(account)
+
+    assign(socket,
+      page_title: gettext("Kits"),
+      kits: kits,
+      kits_sort_key: "inserted_at",
+      kits_sort_dir: "desc",
+      kits_active_filters: %{},
+      breadcrumb_items: [{gettext("Kits"), "/" <> handle <> "/-/kits"}]
+    )
+  end
+
+  defp apply_action(socket, :kit_new, _params) do
+    require_action!(socket, :kit_write)
+    handle = socket.assigns.handle
+
+    assign(socket,
+      page_title: gettext("New kit"),
+      kit_form:
+        to_form(
+          %{
+            "handle" => "",
+            "name" => "",
+            "description" => "",
+            "source_language" => "en",
+            "target_languages" => [],
+            "domain_tags" => [],
+            "visibility" => "public"
+          },
+          as: :kit
+        ),
+      kit_form_valid?: false,
+      breadcrumb_items: [
+        {gettext("Kits"), "/" <> handle <> "/-/kits"},
+        {gettext("New kit"), nil}
+      ]
+    )
+  end
+
+  defp apply_action(socket, :kit_show, %{"kit_handle" => kit_handle}) do
+    require_action!(socket, :kit_read)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    user = socket.assigns.current_user
+
+    kit = Kits.get_kit_by_handle(account, kit_handle)
+
+    unless kit do
+      raise Ecto.NoResultsError, queryable: Glossia.Kits.Kit
+    end
+
+    starred? = if user, do: Kits.starred_by?(kit, user), else: false
+
+    assign(socket,
+      page_title: kit.name,
+      kit: kit,
+      kit_starred?: starred?,
+      breadcrumb_items: [
+        {gettext("Kits"), "/" <> handle <> "/-/kits"},
+        {kit.name, nil}
+      ]
+    )
+  end
+
+  defp apply_action(socket, :kit_edit, %{"kit_handle" => kit_handle}) do
+    require_action!(socket, :kit_write)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+
+    kit = Kits.get_kit_by_handle(account, kit_handle)
+
+    unless kit do
+      raise Ecto.NoResultsError, queryable: Glossia.Kits.Kit
+    end
+
+    assign(socket,
+      page_title: gettext("Edit %{name}", name: kit.name),
+      kit: kit,
+      kit_form:
+        to_form(
+          %{
+            "handle" => kit.handle,
+            "name" => kit.name,
+            "description" => kit.description || "",
+            "source_language" => kit.source_language,
+            "target_languages" => kit.target_languages,
+            "domain_tags" => kit.domain_tags,
+            "visibility" => kit.visibility
+          },
+          as: :kit
+        ),
+      kit_form_valid?: true,
+      kit_edit_changed?: false,
+      breadcrumb_items: [
+        {gettext("Kits"), "/" <> handle <> "/-/kits"},
+        {kit.name, "/" <> handle <> "/-/kits/" <> kit.handle},
+        {gettext("Edit"), nil}
+      ]
+    )
+  end
+
+  defp apply_action(socket, :kit_entry_new, %{"kit_handle" => kit_handle}) do
+    require_action!(socket, :kit_write)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+
+    kit = Kits.get_kit_by_handle(account, kit_handle)
+
+    unless kit do
+      raise Ecto.NoResultsError, queryable: Glossia.Kits.Kit
+    end
+
+    assign(socket,
+      page_title: gettext("New entry"),
+      kit: kit,
+      entry_form:
+        to_form(
+          %{
+            "source_term" => "",
+            "definition" => "",
+            "tags" => [],
+            "translations" =>
+              Enum.map(kit.target_languages, fn lang ->
+                %{"language" => lang, "translated_term" => "", "usage_note" => ""}
+              end)
+          },
+          as: :entry
+        ),
+      entry_form_valid?: false,
+      breadcrumb_items: [
+        {gettext("Kits"), "/" <> handle <> "/-/kits"},
+        {kit.name, "/" <> handle <> "/-/kits/" <> kit.handle},
+        {gettext("New entry"), nil}
+      ]
+    )
+  end
+
+  defp apply_action(socket, :kit_entry_edit, %{"kit_handle" => kit_handle, "entry_id" => entry_id}) do
+    require_action!(socket, :kit_write)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+
+    kit = Kits.get_kit_by_handle(account, kit_handle)
+
+    unless kit do
+      raise Ecto.NoResultsError, queryable: Glossia.Kits.Kit
+    end
+
+    entry = Kits.get_entry!(entry_id)
+
+    existing_translations =
+      Enum.map(entry.translations, fn t ->
+        %{
+          "language" => t.language,
+          "translated_term" => t.translated_term,
+          "usage_note" => t.usage_note || ""
+        }
+      end)
+
+    missing_langs = kit.target_languages -- Enum.map(entry.translations, & &1.language)
+
+    all_translations =
+      existing_translations ++
+        Enum.map(missing_langs, fn lang ->
+          %{"language" => lang, "translated_term" => "", "usage_note" => ""}
+        end)
+
+    assign(socket,
+      page_title: entry.source_term,
+      kit: kit,
+      entry: entry,
+      entry_form:
+        to_form(
+          %{
+            "source_term" => entry.source_term,
+            "definition" => entry.definition || "",
+            "tags" => entry.tags,
+            "translations" => all_translations
+          },
+          as: :entry
+        ),
+      entry_form_valid?: true,
+      entry_edit_changed?: false,
+      breadcrumb_items: [
+        {gettext("Kits"), "/" <> handle <> "/-/kits"},
+        {kit.name, "/" <> handle <> "/-/kits/" <> kit.handle},
+        {entry.source_term, nil}
+      ]
+    )
+  end
 
   defp apply_action(socket, :discussions, params) do
     account = socket.assigns.account
@@ -2012,6 +2217,272 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
+  # Kit events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("kit_validate", %{"kit" => params}, socket) do
+    valid? =
+      (params["handle"] || "") != "" and
+        (params["name"] || "") != "" and
+        (params["source_language"] || "") != ""
+
+    changed? =
+      case socket.assigns[:kit] do
+        nil ->
+          false
+
+        kit ->
+          params["handle"] != kit.handle or
+            params["name"] != kit.name or
+            (params["description"] || "") != (kit.description || "") or
+            params["source_language"] != kit.source_language or
+            params["visibility"] != kit.visibility
+      end
+
+    {:noreply,
+     assign(socket,
+       kit_form: to_form(params, as: :kit),
+       kit_form_valid?: valid?,
+       kit_edit_changed?: changed?
+     )}
+  end
+
+  def handle_event("create_kit", %{"kit" => params}, socket) do
+    account = socket.assigns.account
+    user = socket.assigns.current_user
+
+    unless Glossia.Policy.authorize?(:kit_write, user, account) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      case Kits.create_kit(account, user, params) do
+        {:ok, kit} ->
+          Auditing.record("kit.created", account, user,
+            resource_type: "kit",
+            resource_id: to_string(kit.id),
+            resource_path: "/#{socket.assigns.handle}/-/kits/#{kit.handle}",
+            summary: "Created kit \"#{kit.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Kit created."))
+           |> push_patch(to: "/#{socket.assigns.handle}/-/kits/#{kit.handle}")}
+
+        {:error, changeset} ->
+          {:noreply, assign(socket, kit_form: to_form(changeset, as: :kit))}
+      end
+    end
+  end
+
+  def handle_event("update_kit", %{"kit" => params}, socket) do
+    kit = socket.assigns.kit
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    unless Glossia.Policy.authorize?(:kit_write, user, account) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      case Kits.update_kit(kit, params) do
+        {:ok, updated_kit} ->
+          Auditing.record("kit.updated", account, user,
+            resource_type: "kit",
+            resource_id: to_string(kit.id),
+            resource_path: "/#{socket.assigns.handle}/-/kits/#{updated_kit.handle}",
+            summary: "Updated kit \"#{updated_kit.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Kit updated."))
+           |> push_patch(to: "/#{socket.assigns.handle}/-/kits/#{updated_kit.handle}")}
+
+        {:error, changeset} ->
+          {:noreply, assign(socket, kit_form: to_form(changeset, as: :kit))}
+      end
+    end
+  end
+
+  def handle_event("delete_kit", _params, socket) do
+    kit = socket.assigns.kit
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    unless Glossia.Policy.authorize?(:kit_delete, user, account) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      case Kits.delete_kit(kit) do
+        {:ok, _} ->
+          Auditing.record("kit.deleted", account, user,
+            resource_type: "kit",
+            resource_id: to_string(kit.id),
+            resource_path: "/#{socket.assigns.handle}/-/kits",
+            summary: "Deleted kit \"#{kit.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Kit deleted."))
+           |> push_patch(to: "/#{socket.assigns.handle}/-/kits")}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not delete kit."))}
+      end
+    end
+  end
+
+  def handle_event("entry_validate", %{"entry" => params}, socket) do
+    valid? = (params["source_term"] || "") != ""
+
+    changed? =
+      case socket.assigns[:entry] do
+        nil ->
+          false
+
+        entry ->
+          params["source_term"] != entry.source_term or
+            (params["definition"] || "") != (entry.definition || "")
+      end
+
+    {:noreply,
+     assign(socket,
+       entry_form: to_form(params, as: :entry),
+       entry_form_valid?: valid?,
+       entry_edit_changed?: changed?
+     )}
+  end
+
+  def handle_event("create_kit_entry", %{"entry" => params}, socket) do
+    kit = socket.assigns.kit
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    unless Glossia.Policy.authorize?(:kit_write, user, account) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      translations =
+        (params["translations"] || %{})
+        |> Enum.map(fn {_idx, t} -> t end)
+        |> Enum.reject(fn t -> (t["translated_term"] || "") == "" end)
+
+      entry_params = Map.put(params, "translations", translations)
+
+      case Kits.add_entry(kit, entry_params) do
+        {:ok, _entry} ->
+          Auditing.record("kit_entry.created", account, user,
+            resource_type: "kit_entry",
+            resource_id: to_string(kit.id),
+            resource_path: "/#{socket.assigns.handle}/-/kits/#{kit.handle}",
+            summary: "Added entry \"#{params["source_term"]}\" to kit \"#{kit.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Entry added."))
+           |> push_patch(to: "/#{socket.assigns.handle}/-/kits/#{kit.handle}")}
+
+        {:error, changeset} ->
+          {:noreply, assign(socket, entry_form: to_form(changeset, as: :entry))}
+      end
+    end
+  end
+
+  def handle_event("update_kit_entry", %{"entry" => params}, socket) do
+    entry = socket.assigns.entry
+    kit = socket.assigns.kit
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    unless Glossia.Policy.authorize?(:kit_write, user, account) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      translations =
+        (params["translations"] || %{})
+        |> Enum.map(fn {_idx, t} -> t end)
+        |> Enum.reject(fn t -> (t["translated_term"] || "") == "" end)
+
+      entry_params = Map.put(params, "translations", translations)
+
+      case Kits.update_entry(entry, entry_params) do
+        {:ok, _updated_entry} ->
+          Auditing.record("kit_entry.updated", account, user,
+            resource_type: "kit_entry",
+            resource_id: to_string(entry.id),
+            resource_path: "/#{socket.assigns.handle}/-/kits/#{kit.handle}",
+            summary: "Updated entry \"#{params["source_term"]}\" in kit \"#{kit.name}\""
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Entry updated."))
+           |> push_patch(to: "/#{socket.assigns.handle}/-/kits/#{kit.handle}")}
+
+        {:error, changeset} ->
+          {:noreply, assign(socket, entry_form: to_form(changeset, as: :entry))}
+      end
+    end
+  end
+
+  def handle_event("delete_kit_entry", %{"entry-id" => entry_id}, socket) do
+    kit = socket.assigns.kit
+    user = socket.assigns.current_user
+    account = socket.assigns.account
+
+    unless Glossia.Policy.authorize?(:kit_write, user, account) do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      entry = Kits.get_entry!(entry_id)
+
+      case Kits.delete_entry(entry) do
+        {:ok, _} ->
+          Auditing.record("kit_entry.deleted", account, user,
+            resource_type: "kit_entry",
+            resource_id: to_string(entry.id),
+            resource_path: "/#{socket.assigns.handle}/-/kits/#{kit.handle}",
+            summary: "Deleted entry \"#{entry.source_term}\" from kit \"#{kit.name}\""
+          )
+
+          kit = Kits.get_kit!(kit.id)
+
+          {:noreply,
+           socket
+           |> assign(kit: kit)
+           |> put_flash(:info, gettext("Entry deleted."))}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Could not delete entry."))}
+      end
+    end
+  end
+
+  def handle_event("star_kit", _params, socket) do
+    kit = socket.assigns.kit
+    user = socket.assigns.current_user
+
+    case Kits.star_kit(kit, user) do
+      {:ok, _} ->
+        kit = Kits.get_kit!(kit.id)
+        {:noreply, assign(socket, kit: kit, kit_starred?: true)}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not star kit."))}
+    end
+  end
+
+  def handle_event("unstar_kit", _params, socket) do
+    kit = socket.assigns.kit
+    user = socket.assigns.current_user
+
+    case Kits.unstar_kit(kit, user) do
+      {:ok, _} ->
+        kit = Kits.get_kit!(kit.id)
+        {:noreply, assign(socket, kit: kit, kit_starred?: false)}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not unstar kit."))}
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Ticket events
   # ---------------------------------------------------------------------------
 
@@ -2718,6 +3189,7 @@ defmodule GlossiaWeb.DashboardLive do
           projects_page={@projects_page}
           handle={@handle}
           can_write={@can_write}
+          public_kits={assigns[:public_kits] || []}
         />
       <% :logs -> %>
         <.logs_page
@@ -2878,6 +3350,26 @@ defmodule GlossiaWeb.DashboardLive do
           app_edit_changed?={assigns[:app_edit_changed?] || false}
           apps_sort_key={assigns[:apps_sort_key] || "inserted_at"}
           apps_sort_dir={assigns[:apps_sort_dir] || "desc"}
+        />
+      <% action when action in [:kits, :kit_new, :kit_show, :kit_edit, :kit_entry_new, :kit_entry_edit] -> %>
+        <.kits_page
+          live_action={@live_action}
+          handle={@handle}
+          kits={assigns[:kits] || []}
+          kit={assigns[:kit]}
+          kit_form={assigns[:kit_form]}
+          kit_form_valid?={assigns[:kit_form_valid?] || false}
+          kit_edit_changed?={assigns[:kit_edit_changed?] || false}
+          kit_starred?={assigns[:kit_starred?] || false}
+          entry={assigns[:entry]}
+          entry_form={assigns[:entry_form]}
+          entry_form_valid?={assigns[:entry_form_valid?] || false}
+          entry_edit_changed?={assigns[:entry_edit_changed?] || false}
+          kits_sort_key={assigns[:kits_sort_key] || "inserted_at"}
+          kits_sort_dir={assigns[:kits_sort_dir] || "desc"}
+          kits_active_filters={assigns[:kits_active_filters] || %{}}
+          current_user={@current_user}
+          can_kit_write={assigns[:can_kit_write] || false}
         />
       <% action when action in [:discussions, :discussion_new, :discussion_show] -> %>
         <.discussions_page
@@ -3048,6 +3540,34 @@ defmodule GlossiaWeb.DashboardLive do
           </div>
         </:empty>
       </.resource_table>
+
+      <%= if @public_kits != [] do %>
+        <div style="margin-top: var(--space-8);">
+          <h2 style="font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-bottom: var(--space-4);">
+            {gettext("Kits")}
+          </h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4);">
+            <%= for kit <- @public_kits do %>
+              <.link
+                navigate={"/" <> @handle <> "/-/kits/" <> kit.handle}
+                class="card"
+                style="text-decoration: none;"
+              >
+                <h3 style="font-weight: var(--weight-semibold); margin-bottom: var(--space-1);">
+                  {kit.name}
+                </h3>
+                <p style="color: var(--color-text-muted); font-size: var(--text-sm); margin-bottom: var(--space-2);">
+                  {kit.description || gettext("No description")}
+                </p>
+                <div style="display: flex; gap: var(--space-3); font-size: var(--text-xs); color: var(--color-text-muted);">
+                  <span>{kit.source_language} &rarr; {Enum.join(kit.target_languages, ", ")}</span>
+                  <span>&star; {kit.stars_count}</span>
+                </div>
+              </.link>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
     """
   end
@@ -8684,6 +9204,7 @@ defmodule GlossiaWeb.DashboardLive do
     "tokens-table" => "t",
     "oauth-apps-table" => "a",
     "discussions-table" => "k",
+    "kits-table" => "kt",
     "translations-table" => "ts",
     "commits-table" => "c"
   }
@@ -8716,6 +9237,7 @@ defmodule GlossiaWeb.DashboardLive do
         :members -> "/#{handle}/-/members"
         :api_tokens -> "/#{handle}/-/settings/tokens"
         :api_apps -> "/#{handle}/-/settings/apps"
+        :kits -> "/#{handle}/-/kits"
         :discussions -> "/#{handle}/-/discussions"
         :project_translations -> "/#{handle}/#{project_handle}/-/translations"
         :project_activity -> "/#{handle}/#{project_handle}/-/activity"
@@ -8922,6 +9444,14 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
+  defp current_table_state(socket, "kits-table") do
+    %{
+      sort: socket.assigns[:kits_sort_key] || "inserted_at",
+      dir: socket.assigns[:kits_sort_dir] || "desc",
+      filters: socket.assigns[:kits_active_filters] || %{}
+    }
+  end
+
   defp current_table_state(_socket, _id),
     do: %{search: "", sort: "", dir: "asc", page: 1, filters: %{}}
 
@@ -8932,11 +9462,13 @@ defmodule GlossiaWeb.DashboardLive do
   defp default_sort_key("invitations-table"), do: "email"
   defp default_sort_key("tokens-table"), do: "name"
   defp default_sort_key("oauth-apps-table"), do: "name"
+  defp default_sort_key("kits-table"), do: "inserted_at"
   defp default_sort_key("discussions-table"), do: "inserted_at"
   defp default_sort_key("translations-table"), do: "inserted_at"
   defp default_sort_key(_), do: ""
 
   defp default_sort_dir("activity-table"), do: "desc"
+  defp default_sort_dir("kits-table"), do: "desc"
   defp default_sort_dir("discussions-table"), do: "desc"
   defp default_sort_dir("translations-table"), do: "desc"
   defp default_sort_dir("commits-table"), do: "desc"
@@ -8956,6 +9488,10 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp current_sort(socket, "oauth-apps-table"),
     do: {socket.assigns[:apps_sort_key] || "name", socket.assigns[:apps_sort_dir] || "asc"}
+
+  defp current_sort(socket, "kits-table"),
+    do:
+      {socket.assigns[:kits_sort_key] || "inserted_at", socket.assigns[:kits_sort_dir] || "desc"}
 
   defp current_sort(socket, "discussions-table"),
     do:
@@ -9165,6 +9701,29 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     assign(socket, projects: projects, projects_total: total)
+  end
+
+  defp apply_url_params_kits(socket, params) do
+    prefix = "kt"
+    sort_key = Map.get(params, prefix <> "sort", "inserted_at")
+    sort_dir = Map.get(params, prefix <> "dir", "desc")
+    active_filters = extract_filters(params, prefix)
+
+    flop_params =
+      %{
+        "order_by" => [sort_key],
+        "order_directions" => [sort_dir]
+      }
+      |> maybe_add_flop_filters(active_filters, %{})
+
+    {:ok, {kits, _meta}} = Kits.list_kits(socket.assigns.account, flop_params)
+
+    assign(socket,
+      kits: kits,
+      kits_sort_key: sort_key,
+      kits_sort_dir: sort_dir,
+      kits_active_filters: active_filters
+    )
   end
 
   defp apply_url_params_logs(socket, params) do
@@ -9560,6 +10119,471 @@ defmodule GlossiaWeb.DashboardLive do
 
     sorted = Enum.sort_by(invitations, sorter)
     if dir == "desc", do: Enum.reverse(sorted), else: sorted
+  end
+
+  # ---------------------------------------------------------------------------
+  # Page: Kits
+  # ---------------------------------------------------------------------------
+
+  defp kits_page(assigns) do
+    case assigns.live_action do
+      :kits -> kits_list_page(assigns)
+      :kit_new -> kit_new_page(assigns)
+      :kit_show -> kit_show_page(assigns)
+      :kit_edit -> kit_edit_page(assigns)
+      :kit_entry_new -> kit_entry_new_page(assigns)
+      :kit_entry_edit -> kit_entry_edit_page(assigns)
+    end
+  end
+
+  defp kits_list_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Kits")}
+        description={gettext("Shareable translation terminology bundles.")}
+      >
+        <:actions>
+          <%= if @can_kit_write do %>
+            <.link patch={"/" <> @handle <> "/-/kits/new"} class="dash-btn dash-btn-primary">
+              {gettext("New kit")}
+            </.link>
+          <% end %>
+        </:actions>
+      </.page_header>
+      <.resource_table
+        id="kits-table"
+        rows={@kits}
+        sort_key={@kits_sort_key}
+        sort_dir={@kits_sort_dir}
+      >
+        <:col :let={kit} label={gettext("Name")} key="name" sortable>
+          <.link
+            patch={"/" <> @handle <> "/-/kits/" <> kit.handle}
+            class="resource-link"
+          >
+            {kit.name}
+          </.link>
+        </:col>
+        <:col :let={kit} label={gettext("Source")} key="source_language" sortable>
+          {kit.source_language}
+        </:col>
+        <:col :let={kit} label={gettext("Targets")}>
+          {Enum.join(kit.target_languages, ", ")}
+        </:col>
+        <:col :let={kit} label={gettext("Visibility")}>
+          <.badge variant={if kit.visibility == "public", do: "info", else: "default"}>
+            {kit.visibility}
+          </.badge>
+        </:col>
+        <:col :let={kit} label={gettext("Stars")} key="stars_count" sortable>
+          {kit.stars_count}
+        </:col>
+        <:col :let={kit} label={gettext("Created")} key="inserted_at" sortable>
+          {Calendar.strftime(kit.inserted_at, "%b %d, %Y")}
+        </:col>
+        <:empty>
+          <div class="dash-empty-state">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" />
+            </svg>
+            <h2>{gettext("No kits yet")}</h2>
+            <p>{gettext("Create a kit to bundle translation terminology for sharing.")}</p>
+          </div>
+        </:empty>
+      </.resource_table>
+    </div>
+    """
+  end
+
+  defp kit_new_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.form for={@kit_form} id="kit-form" phx-change="kit_validate" phx-submit="create_kit">
+        <div class="dash-form-section">
+          <h2 class="dash-form-section-title">{gettext("Kit details")}</h2>
+          <div class="dash-form-grid">
+            <.input
+              field={@kit_form[:handle]}
+              type="text"
+              label={gettext("Handle")}
+              placeholder="e.g. medical-terms"
+            />
+            <.input
+              field={@kit_form[:name]}
+              type="text"
+              label={gettext("Name")}
+              placeholder="e.g. Medical Terminology"
+            />
+          </div>
+          <.input field={@kit_form[:description]} type="textarea" label={gettext("Description")} />
+          <div class="dash-form-grid">
+            <.input
+              field={@kit_form[:source_language]}
+              type="text"
+              label={gettext("Source language")}
+              placeholder="e.g. en"
+            />
+            <.input
+              field={@kit_form[:visibility]}
+              type="select"
+              label={gettext("Visibility")}
+              options={[{gettext("Public"), "public"}, {gettext("Private"), "private"}]}
+            />
+          </div>
+        </div>
+        <.form_save_bar
+          id="kit-save-bar"
+          visible={@kit_form_valid?}
+          cancel_path={"/" <> @handle <> "/-/kits"}
+        />
+      </.form>
+    </div>
+    """
+  end
+
+  defp kit_show_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header title={@kit.name} description={@kit.description}>
+        <:actions>
+          <%= if @current_user do %>
+            <%= if @kit_starred? do %>
+              <button phx-click="unstar_kit" class="dash-btn dash-btn-secondary">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span>{@kit.stars_count}</span>
+              </button>
+            <% else %>
+              <button phx-click="star_kit" class="dash-btn dash-btn-secondary">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span>{@kit.stars_count}</span>
+              </button>
+            <% end %>
+          <% end %>
+          <%= if @can_kit_write do %>
+            <.link
+              patch={"/" <> @handle <> "/-/kits/" <> @kit.handle <> "/edit"}
+              class="dash-btn dash-btn-secondary"
+            >
+              {gettext("Edit")}
+            </.link>
+            <.link
+              patch={"/" <> @handle <> "/-/kits/" <> @kit.handle <> "/entries/new"}
+              class="dash-btn dash-btn-primary"
+            >
+              {gettext("Add entry")}
+            </.link>
+          <% end %>
+        </:actions>
+      </.page_header>
+
+      <div
+        class="dash-metadata"
+        style="margin-bottom: var(--space-6); display: flex; gap: var(--space-4); flex-wrap: wrap;"
+      >
+        <.badge variant="info">{@kit.source_language}</.badge>
+        <span style="color: var(--color-text-muted);">&rarr;</span>
+        <%= for lang <- @kit.target_languages do %>
+          <.badge>{lang}</.badge>
+        <% end %>
+        <%= if @kit.visibility == "private" do %>
+          <.badge variant="warning">{gettext("Private")}</.badge>
+        <% end %>
+      </div>
+
+      <%= if @kit.entries != [] do %>
+        <table class="dash-table" id="kit-entries-table">
+          <thead>
+            <tr>
+              <th>{gettext("Term")}</th>
+              <th>{gettext("Definition")}</th>
+              <th>{gettext("Translations")}</th>
+              <%= if @can_kit_write do %>
+                <th style="width: 100px;">{gettext("Actions")}</th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <%= for entry <- @kit.entries do %>
+              <tr id={"entry-#{entry.id}"}>
+                <td>
+                  <%= if @can_kit_write do %>
+                    <.link
+                      patch={"/" <> @handle <> "/-/kits/" <> @kit.handle <> "/entries/" <> entry.id}
+                      class="resource-link"
+                    >
+                      {entry.source_term}
+                    </.link>
+                  <% else %>
+                    {entry.source_term}
+                  <% end %>
+                </td>
+                <td style="color: var(--color-text-muted);">{entry.definition || "-"}</td>
+                <td>
+                  <%= for t <- entry.translations do %>
+                    <span style="display: inline-block; margin-right: var(--space-2);">
+                      <strong>{t.language}:</strong> {t.translated_term}
+                    </span>
+                  <% end %>
+                </td>
+                <%= if @can_kit_write do %>
+                  <td>
+                    <button
+                      phx-click="delete_kit_entry"
+                      phx-value-entry-id={entry.id}
+                      data-confirm={gettext("Are you sure you want to delete this entry?")}
+                      class="dash-btn dash-btn-danger dash-btn-sm"
+                    >
+                      {gettext("Delete")}
+                    </button>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="dash-empty-state">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" />
+          </svg>
+          <h2>{gettext("No entries yet")}</h2>
+          <p>{gettext("Add terminology entries to this kit.")}</p>
+        </div>
+      <% end %>
+
+      <%= if @can_kit_write do %>
+        <div style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--color-border);">
+          <h3 style="color: var(--color-danger); margin-bottom: var(--space-4);">
+            {gettext("Danger zone")}
+          </h3>
+          <button
+            phx-click="delete_kit"
+            data-confirm={
+              gettext("Are you sure you want to delete this kit? This action cannot be undone.")
+            }
+            class="dash-btn dash-btn-danger"
+          >
+            {gettext("Delete kit")}
+          </button>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp kit_edit_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.form for={@kit_form} id="kit-edit-form" phx-change="kit_validate" phx-submit="update_kit">
+        <div class="dash-form-section">
+          <h2 class="dash-form-section-title">{gettext("Edit kit")}</h2>
+          <div class="dash-form-grid">
+            <.input field={@kit_form[:handle]} type="text" label={gettext("Handle")} />
+            <.input field={@kit_form[:name]} type="text" label={gettext("Name")} />
+          </div>
+          <.input field={@kit_form[:description]} type="textarea" label={gettext("Description")} />
+          <div class="dash-form-grid">
+            <.input
+              field={@kit_form[:source_language]}
+              type="text"
+              label={gettext("Source language")}
+            />
+            <.input
+              field={@kit_form[:visibility]}
+              type="select"
+              label={gettext("Visibility")}
+              options={[{gettext("Public"), "public"}, {gettext("Private"), "private"}]}
+            />
+          </div>
+        </div>
+        <.form_save_bar
+          id="kit-edit-save-bar"
+          visible={@kit_form_valid? and @kit_edit_changed?}
+          cancel_path={"/" <> @handle <> "/-/kits/" <> @kit.handle}
+        />
+      </.form>
+    </div>
+    """
+  end
+
+  defp kit_entry_new_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.form
+        for={@entry_form}
+        id="entry-form"
+        phx-change="entry_validate"
+        phx-submit="create_kit_entry"
+      >
+        <div class="dash-form-section">
+          <h2 class="dash-form-section-title">{gettext("New entry")}</h2>
+          <.input
+            field={@entry_form[:source_term]}
+            type="text"
+            label={gettext("Source term")}
+            placeholder="e.g. diagnosis"
+          />
+          <.input field={@entry_form[:definition]} type="textarea" label={gettext("Definition")} />
+        </div>
+
+        <div class="dash-form-section">
+          <h2 class="dash-form-section-title">{gettext("Translations")}</h2>
+          <%= for {t, idx} <- Enum.with_index(@kit.target_languages) do %>
+            <div class="dash-form-grid" style="align-items: end;">
+              <input type="hidden" name={"entry[translations][#{idx}][language]"} value={t} />
+              <div>
+                <label class="dash-label">{gettext("Language")}</label>
+                <input
+                  type="text"
+                  value={t}
+                  disabled
+                  class="dash-input"
+                  style="opacity: 0.6; cursor: not-allowed;"
+                />
+              </div>
+              <div>
+                <label class="dash-label">{gettext("Translation")}</label>
+                <input
+                  type="text"
+                  name={"entry[translations][#{idx}][translated_term]"}
+                  class="dash-input"
+                />
+              </div>
+              <div>
+                <label class="dash-label">{gettext("Usage note")}</label>
+                <input
+                  type="text"
+                  name={"entry[translations][#{idx}][usage_note]"}
+                  class="dash-input"
+                />
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <.form_save_bar
+          id="entry-save-bar"
+          visible={@entry_form_valid?}
+          cancel_path={"/" <> @handle <> "/-/kits/" <> @kit.handle}
+        />
+      </.form>
+    </div>
+    """
+  end
+
+  defp kit_entry_edit_page(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :translations_by_lang,
+        Map.new(assigns.entry.translations || [], fn t -> {t.language, t} end)
+      )
+
+    ~H"""
+    <div class="dash-page">
+      <.form
+        for={@entry_form}
+        id="entry-edit-form"
+        phx-change="entry_validate"
+        phx-submit="update_kit_entry"
+      >
+        <div class="dash-form-section">
+          <h2 class="dash-form-section-title">{gettext("Edit entry")}</h2>
+          <.input field={@entry_form[:source_term]} type="text" label={gettext("Source term")} />
+          <.input field={@entry_form[:definition]} type="textarea" label={gettext("Definition")} />
+        </div>
+
+        <div class="dash-form-section">
+          <h2 class="dash-form-section-title">{gettext("Translations")}</h2>
+          <%= for {lang, idx} <- Enum.with_index(@kit.target_languages) do %>
+            <% t = Map.get(@translations_by_lang, lang) %>
+            <div class="dash-form-grid" style="align-items: end;">
+              <input type="hidden" name={"entry[translations][#{idx}][language]"} value={lang} />
+              <div>
+                <label class="dash-label">{gettext("Language")}</label>
+                <input
+                  type="text"
+                  value={lang}
+                  disabled
+                  class="dash-input"
+                  style="opacity: 0.6; cursor: not-allowed;"
+                />
+              </div>
+              <div>
+                <label class="dash-label">{gettext("Translation")}</label>
+                <input
+                  type="text"
+                  name={"entry[translations][#{idx}][translated_term]"}
+                  value={if(t, do: t.translated_term, else: "")}
+                  class="dash-input"
+                />
+              </div>
+              <div>
+                <label class="dash-label">{gettext("Usage note")}</label>
+                <input
+                  type="text"
+                  name={"entry[translations][#{idx}][usage_note]"}
+                  value={if(t, do: t.usage_note || "", else: "")}
+                  class="dash-input"
+                />
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <.form_save_bar
+          id="entry-edit-save-bar"
+          visible={@entry_form_valid? and @entry_edit_changed?}
+          cancel_path={"/" <> @handle <> "/-/kits/" <> @kit.handle}
+        />
+      </.form>
+    </div>
+    """
   end
 
   # ---------------------------------------------------------------------------

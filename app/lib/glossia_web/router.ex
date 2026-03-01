@@ -276,6 +276,10 @@ defmodule GlossiaWeb.Router do
     get "/:handle/glossary", GlossaryApiController, :show
     post "/:handle/glossary", GlossaryApiController, :create
     get "/:handle/glossary/history", GlossaryApiController, :history
+    get "/:handle/kits", KitApiController, :index
+    get "/:handle/kits/:kit_handle", KitApiController, :show
+    post "/:handle/kits", KitApiController, :create
+    post "/:handle/kits/:kit_handle/entries", KitApiController, :create_entry
   end
 
   # MCP server (StreamableHTTP transport)
@@ -403,6 +407,12 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/glossary/suggestion/new", DashboardLive, :glossary_suggestion_new
       live "/:handle/-/glossary/request/new", DashboardLive, :glossary_suggestion_new
       live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
+      live "/:handle/-/kits", DashboardLive, :kits
+      live "/:handle/-/kits/new", DashboardLive, :kit_new
+      live "/:handle/-/kits/:kit_handle", DashboardLive, :kit_show
+      live "/:handle/-/kits/:kit_handle/edit", DashboardLive, :kit_edit
+      live "/:handle/-/kits/:kit_handle/entries/new", DashboardLive, :kit_entry_new
+      live "/:handle/-/kits/:kit_handle/entries/:entry_id", DashboardLive, :kit_entry_edit
       live "/:handle/-/discussions", DashboardLive, :discussions
       live "/:handle/-/discussions/new", DashboardLive, :discussion_new
       live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show

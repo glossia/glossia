@@ -88,6 +88,8 @@ defmodule GlossiaWeb.PlatformHooks do
 
     can_voice_propose = can_discussion_write
     can_glossary_propose = can_discussion_write
+    can_kit_read = Glossia.Policy.authorize?(:kit_read, user, account)
+    can_kit_write = Glossia.Policy.authorize?(:kit_write, user, account)
 
     show_sidebar = user != nil
 
@@ -101,6 +103,8 @@ defmodule GlossiaWeb.PlatformHooks do
      |> assign(:can_glossary_read, can_glossary_read)
      |> assign(:can_glossary_write, can_glossary_write)
      |> assign(:can_glossary_propose, can_glossary_propose)
+     |> assign(:can_kit_read, can_kit_read)
+     |> assign(:can_kit_write, can_kit_write)
      |> assign(:show_sidebar, show_sidebar)
      |> assign(:sidebar_context, :account)
      |> assign(:sidebar_project, nil)}
