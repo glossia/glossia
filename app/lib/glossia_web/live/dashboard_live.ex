@@ -845,7 +845,7 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp apply_action(socket, :kit_entry_new, %{"kit_handle" => kit_handle}) do
+  defp apply_action(socket, :kit_term_new, %{"kit_handle" => kit_handle}) do
     require_action!(socket, :kit_write)
     account = socket.assigns.account
     handle = socket.assigns.handle
@@ -857,9 +857,9 @@ defmodule GlossiaWeb.DashboardLive do
     end
 
     assign(socket,
-      page_title: gettext("New entry"),
+      page_title: gettext("New term"),
       kit: kit,
-      entry_form:
+      term_form:
         to_form(
           %{
             "source_term" => "",
@@ -870,18 +870,18 @@ defmodule GlossiaWeb.DashboardLive do
                 %{"language" => lang, "translated_term" => "", "usage_note" => ""}
               end)
           },
-          as: :entry
+          as: :term
         ),
-      entry_form_valid?: false,
+      term_form_valid?: false,
       breadcrumb_items: [
         {gettext("Kits"), "/" <> handle <> "/-/kits"},
         {kit.name, "/" <> handle <> "/-/kits/" <> kit.handle},
-        {gettext("New entry"), nil}
+        {gettext("New term"), nil}
       ]
     )
   end
 
-  defp apply_action(socket, :kit_entry_edit, %{"kit_handle" => kit_handle, "entry_id" => entry_id}) do
+  defp apply_action(socket, :kit_term_edit, %{"kit_handle" => kit_handle, "term_id" => term_id}) do
     require_action!(socket, :kit_write)
     account = socket.assigns.account
     handle = socket.assigns.handle
@@ -892,10 +892,10 @@ defmodule GlossiaWeb.DashboardLive do
       raise Ecto.NoResultsError, queryable: Glossia.Kits.Kit
     end
 
-    entry = Kits.get_entry!(entry_id)
+    term = Kits.get_term!(term_id)
 
     existing_translations =
-      Enum.map(entry.translations, fn t ->
+      Enum.map(term.translations, fn t ->
         %{
           "language" => t.language,
           "translated_term" => t.translated_term,
@@ -903,7 +903,7 @@ defmodule GlossiaWeb.DashboardLive do
         }
       end)
 
-    missing_langs = kit.target_languages -- Enum.map(entry.translations, & &1.language)
+    missing_langs = kit.target_languages -- Enum.map(term.translations, & &1.language)
 
     all_translations =
       existing_translations ++
@@ -912,25 +912,25 @@ defmodule GlossiaWeb.DashboardLive do
         end)
 
     assign(socket,
-      page_title: entry.source_term,
+      page_title: term.source_term,
       kit: kit,
-      entry: entry,
-      entry_form:
+      term: term,
+      term_form:
         to_form(
           %{
-            "source_term" => entry.source_term,
-            "definition" => entry.definition || "",
-            "tags" => entry.tags,
+            "source_term" => term.source_term,
+            "definition" => term.definition || "",
+            "tags" => term.tags,
             "translations" => all_translations
           },
-          as: :entry
+          as: :term
         ),
-      entry_form_valid?: true,
-      entry_edit_changed?: false,
+      term_form_valid?: true,
+      term_edit_changed?: false,
       breadcrumb_items: [
         {gettext("Kits"), "/" <> handle <> "/-/kits"},
         {kit.name, "/" <> handle <> "/-/kits/" <> kit.handle},
-        {entry.source_term, nil}
+        {term.source_term, nil}
       ]
     )
   end
@@ -2330,28 +2330,28 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  def handle_event("entry_validate", %{"entry" => params}, socket) do
+  def handle_event("term_validate", %{"term" => params}, socket) do
     valid? = (params["source_term"] || "") != ""
 
     changed? =
-      case socket.assigns[:entry] do
+      case socket.assigns[:term] do
         nil ->
           false
 
-        entry ->
-          params["source_term"] != entry.source_term or
-            (params["definition"] || "") != (entry.definition || "")
+        term ->
+          params["source_term"] != term.source_term or
+            (params["definition"] || "") != (term.definition || "")
       end
 
     {:noreply,
      assign(socket,
-       entry_form: to_form(params, as: :entry),
-       entry_form_valid?: valid?,
-       entry_edit_changed?: changed?
+       term_form: to_form(params, as: :term),
+       term_form_valid?: valid?,
+       term_edit_changed?: changed?
      )}
   end
 
-  def handle_event("create_kit_entry", %{"entry" => params}, socket) do
+  def handle_event("create_kit_term", %{"term" => params}, socket) do
     kit = socket.assigns.kit
     user = socket.assigns.current_user
     account = socket.assigns.account
@@ -2364,30 +2364,30 @@ defmodule GlossiaWeb.DashboardLive do
         |> Enum.map(fn {_idx, t} -> t end)
         |> Enum.reject(fn t -> (t["translated_term"] || "") == "" end)
 
-      entry_params = Map.put(params, "translations", translations)
+      term_params = Map.put(params, "translations", translations)
 
-      case Kits.add_entry(kit, entry_params) do
-        {:ok, _entry} ->
-          Auditing.record("kit_entry.created", account, user,
-            resource_type: "kit_entry",
+      case Kits.add_term(kit, term_params) do
+        {:ok, _term} ->
+          Auditing.record("kit_term.created", account, user,
+            resource_type: "kit_term",
             resource_id: to_string(kit.id),
             resource_path: "/#{socket.assigns.handle}/-/kits/#{kit.handle}",
-            summary: "Added entry \"#{params["source_term"]}\" to kit \"#{kit.name}\""
+            summary: "Added term \"#{params["source_term"]}\" to kit \"#{kit.name}\""
           )
 
           {:noreply,
            socket
-           |> put_flash(:info, gettext("Entry added."))
+           |> put_flash(:info, gettext("Term added."))
            |> push_patch(to: "/#{socket.assigns.handle}/-/kits/#{kit.handle}")}
 
         {:error, changeset} ->
-          {:noreply, assign(socket, entry_form: to_form(changeset, as: :entry))}
+          {:noreply, assign(socket, term_form: to_form(changeset, as: :term))}
       end
     end
   end
 
-  def handle_event("update_kit_entry", %{"entry" => params}, socket) do
-    entry = socket.assigns.entry
+  def handle_event("update_kit_term", %{"term" => params}, socket) do
+    term = socket.assigns.term
     kit = socket.assigns.kit
     user = socket.assigns.current_user
     account = socket.assigns.account
@@ -2400,29 +2400,29 @@ defmodule GlossiaWeb.DashboardLive do
         |> Enum.map(fn {_idx, t} -> t end)
         |> Enum.reject(fn t -> (t["translated_term"] || "") == "" end)
 
-      entry_params = Map.put(params, "translations", translations)
+      term_params = Map.put(params, "translations", translations)
 
-      case Kits.update_entry(entry, entry_params) do
-        {:ok, _updated_entry} ->
-          Auditing.record("kit_entry.updated", account, user,
-            resource_type: "kit_entry",
-            resource_id: to_string(entry.id),
+      case Kits.update_term(term, term_params) do
+        {:ok, _updated_term} ->
+          Auditing.record("kit_term.updated", account, user,
+            resource_type: "kit_term",
+            resource_id: to_string(term.id),
             resource_path: "/#{socket.assigns.handle}/-/kits/#{kit.handle}",
-            summary: "Updated entry \"#{params["source_term"]}\" in kit \"#{kit.name}\""
+            summary: "Updated term \"#{params["source_term"]}\" in kit \"#{kit.name}\""
           )
 
           {:noreply,
            socket
-           |> put_flash(:info, gettext("Entry updated."))
+           |> put_flash(:info, gettext("Term updated."))
            |> push_patch(to: "/#{socket.assigns.handle}/-/kits/#{kit.handle}")}
 
         {:error, changeset} ->
-          {:noreply, assign(socket, entry_form: to_form(changeset, as: :entry))}
+          {:noreply, assign(socket, term_form: to_form(changeset, as: :term))}
       end
     end
   end
 
-  def handle_event("delete_kit_entry", %{"entry-id" => entry_id}, socket) do
+  def handle_event("delete_kit_term", %{"term-id" => term_id}, socket) do
     kit = socket.assigns.kit
     user = socket.assigns.current_user
     account = socket.assigns.account
@@ -2430,15 +2430,15 @@ defmodule GlossiaWeb.DashboardLive do
     unless Glossia.Policy.authorize?(:kit_write, user, account) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
-      entry = Kits.get_entry!(entry_id)
+      term = Kits.get_term!(term_id)
 
-      case Kits.delete_entry(entry) do
+      case Kits.delete_term(term) do
         {:ok, _} ->
-          Auditing.record("kit_entry.deleted", account, user,
-            resource_type: "kit_entry",
-            resource_id: to_string(entry.id),
+          Auditing.record("kit_term.deleted", account, user,
+            resource_type: "kit_term",
+            resource_id: to_string(term.id),
             resource_path: "/#{socket.assigns.handle}/-/kits/#{kit.handle}",
-            summary: "Deleted entry \"#{entry.source_term}\" from kit \"#{kit.name}\""
+            summary: "Deleted term \"#{term.source_term}\" from kit \"#{kit.name}\""
           )
 
           kit = Kits.get_kit!(kit.id)
@@ -2446,10 +2446,10 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> assign(kit: kit)
-           |> put_flash(:info, gettext("Entry deleted."))}
+           |> put_flash(:info, gettext("Term deleted."))}
 
         {:error, _} ->
-          {:noreply, put_flash(socket, :error, gettext("Could not delete entry."))}
+          {:noreply, put_flash(socket, :error, gettext("Could not delete term."))}
       end
     end
   end
@@ -3351,7 +3351,7 @@ defmodule GlossiaWeb.DashboardLive do
           apps_sort_key={assigns[:apps_sort_key] || "inserted_at"}
           apps_sort_dir={assigns[:apps_sort_dir] || "desc"}
         />
-      <% action when action in [:kits, :kit_new, :kit_show, :kit_edit, :kit_entry_new, :kit_entry_edit] -> %>
+      <% action when action in [:kits, :kit_new, :kit_show, :kit_edit, :kit_term_new, :kit_term_edit] -> %>
         <.kits_page
           live_action={@live_action}
           handle={@handle}
@@ -3361,10 +3361,10 @@ defmodule GlossiaWeb.DashboardLive do
           kit_form_valid?={assigns[:kit_form_valid?] || false}
           kit_edit_changed?={assigns[:kit_edit_changed?] || false}
           kit_starred?={assigns[:kit_starred?] || false}
-          entry={assigns[:entry]}
-          entry_form={assigns[:entry_form]}
-          entry_form_valid?={assigns[:entry_form_valid?] || false}
-          entry_edit_changed?={assigns[:entry_edit_changed?] || false}
+          term={assigns[:term]}
+          term_form={assigns[:term_form]}
+          term_form_valid?={assigns[:term_form_valid?] || false}
+          term_edit_changed?={assigns[:term_edit_changed?] || false}
           kits_sort_key={assigns[:kits_sort_key] || "inserted_at"}
           kits_sort_dir={assigns[:kits_sort_dir] || "desc"}
           kits_active_filters={assigns[:kits_active_filters] || %{}}
@@ -10131,8 +10131,8 @@ defmodule GlossiaWeb.DashboardLive do
       :kit_new -> kit_new_page(assigns)
       :kit_show -> kit_show_page(assigns)
       :kit_edit -> kit_edit_page(assigns)
-      :kit_entry_new -> kit_entry_new_page(assigns)
-      :kit_entry_edit -> kit_entry_edit_page(assigns)
+      :kit_term_new -> kit_term_new_page(assigns)
+      :kit_term_edit -> kit_term_edit_page(assigns)
     end
   end
 
@@ -10302,10 +10302,10 @@ defmodule GlossiaWeb.DashboardLive do
               {gettext("Edit")}
             </.link>
             <.link
-              patch={"/" <> @handle <> "/-/kits/" <> @kit.handle <> "/entries/new"}
+              patch={"/" <> @handle <> "/-/kits/" <> @kit.handle <> "/terms/new"}
               class="dash-btn dash-btn-primary"
             >
-              {gettext("Add entry")}
+              {gettext("Add term")}
             </.link>
           <% end %>
         </:actions>
@@ -10325,8 +10325,8 @@ defmodule GlossiaWeb.DashboardLive do
         <% end %>
       </div>
 
-      <%= if @kit.entries != [] do %>
-        <table class="dash-table" id="kit-entries-table">
+      <%= if @kit.terms != [] do %>
+        <table class="dash-table" id="kit-terms-table">
           <thead>
             <tr>
               <th>{gettext("Term")}</th>
@@ -10338,23 +10338,23 @@ defmodule GlossiaWeb.DashboardLive do
             </tr>
           </thead>
           <tbody>
-            <%= for entry <- @kit.entries do %>
-              <tr id={"entry-#{entry.id}"}>
+            <%= for term <- @kit.terms do %>
+              <tr id={"term-#{term.id}"}>
                 <td>
                   <%= if @can_kit_write do %>
                     <.link
-                      patch={"/" <> @handle <> "/-/kits/" <> @kit.handle <> "/entries/" <> entry.id}
+                      patch={"/" <> @handle <> "/-/kits/" <> @kit.handle <> "/terms/" <> term.id}
                       class="resource-link"
                     >
-                      {entry.source_term}
+                      {term.source_term}
                     </.link>
                   <% else %>
-                    {entry.source_term}
+                    {term.source_term}
                   <% end %>
                 </td>
-                <td style="color: var(--color-text-muted);">{entry.definition || "-"}</td>
+                <td style="color: var(--color-text-muted);">{term.definition || "-"}</td>
                 <td>
-                  <%= for t <- entry.translations do %>
+                  <%= for t <- term.translations do %>
                     <span style="display: inline-block; margin-right: var(--space-2);">
                       <strong>{t.language}:</strong> {t.translated_term}
                     </span>
@@ -10363,9 +10363,9 @@ defmodule GlossiaWeb.DashboardLive do
                 <%= if @can_kit_write do %>
                   <td>
                     <button
-                      phx-click="delete_kit_entry"
-                      phx-value-entry-id={entry.id}
-                      data-confirm={gettext("Are you sure you want to delete this entry?")}
+                      phx-click="delete_kit_term"
+                      phx-value-term-id={term.id}
+                      data-confirm={gettext("Are you sure you want to delete this term?")}
                       class="dash-btn dash-btn-danger dash-btn-sm"
                     >
                       {gettext("Delete")}
@@ -10391,8 +10391,8 @@ defmodule GlossiaWeb.DashboardLive do
           >
             <path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" />
           </svg>
-          <h2>{gettext("No entries yet")}</h2>
-          <p>{gettext("Add terminology entries to this kit.")}</p>
+          <h2>{gettext("No terms yet")}</h2>
+          <p>{gettext("Add terms to this kit.")}</p>
         </div>
       <% end %>
 
@@ -10451,31 +10451,31 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  defp kit_entry_new_page(assigns) do
+  defp kit_term_new_page(assigns) do
     ~H"""
     <div class="dash-page">
       <.form
-        for={@entry_form}
-        id="entry-form"
-        phx-change="entry_validate"
-        phx-submit="create_kit_entry"
+        for={@term_form}
+        id="term-form"
+        phx-change="term_validate"
+        phx-submit="create_kit_term"
       >
         <div class="dash-form-section">
-          <h2 class="dash-form-section-title">{gettext("New entry")}</h2>
+          <h2 class="dash-form-section-title">{gettext("New term")}</h2>
           <.input
-            field={@entry_form[:source_term]}
+            field={@term_form[:source_term]}
             type="text"
             label={gettext("Source term")}
             placeholder="e.g. diagnosis"
           />
-          <.input field={@entry_form[:definition]} type="textarea" label={gettext("Definition")} />
+          <.input field={@term_form[:definition]} type="textarea" label={gettext("Definition")} />
         </div>
 
         <div class="dash-form-section">
           <h2 class="dash-form-section-title">{gettext("Translations")}</h2>
           <%= for {t, idx} <- Enum.with_index(@kit.target_languages) do %>
             <div class="dash-form-grid" style="align-items: end;">
-              <input type="hidden" name={"entry[translations][#{idx}][language]"} value={t} />
+              <input type="hidden" name={"term[translations][#{idx}][language]"} value={t} />
               <div>
                 <label class="dash-label">{gettext("Language")}</label>
                 <input
@@ -10490,7 +10490,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <label class="dash-label">{gettext("Translation")}</label>
                 <input
                   type="text"
-                  name={"entry[translations][#{idx}][translated_term]"}
+                  name={"term[translations][#{idx}][translated_term]"}
                   class="dash-input"
                 />
               </div>
@@ -10498,7 +10498,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <label class="dash-label">{gettext("Usage note")}</label>
                 <input
                   type="text"
-                  name={"entry[translations][#{idx}][usage_note]"}
+                  name={"term[translations][#{idx}][usage_note]"}
                   class="dash-input"
                 />
               </div>
@@ -10507,8 +10507,8 @@ defmodule GlossiaWeb.DashboardLive do
         </div>
 
         <.form_save_bar
-          id="entry-save-bar"
-          visible={@entry_form_valid?}
+          id="term-save-bar"
+          visible={@term_form_valid?}
           cancel_path={"/" <> @handle <> "/-/kits/" <> @kit.handle}
         />
       </.form>
@@ -10516,26 +10516,26 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  defp kit_entry_edit_page(assigns) do
+  defp kit_term_edit_page(assigns) do
     assigns =
       assign(
         assigns,
         :translations_by_lang,
-        Map.new(assigns.entry.translations || [], fn t -> {t.language, t} end)
+        Map.new(assigns.term.translations || [], fn t -> {t.language, t} end)
       )
 
     ~H"""
     <div class="dash-page">
       <.form
-        for={@entry_form}
-        id="entry-edit-form"
-        phx-change="entry_validate"
-        phx-submit="update_kit_entry"
+        for={@term_form}
+        id="term-edit-form"
+        phx-change="term_validate"
+        phx-submit="update_kit_term"
       >
         <div class="dash-form-section">
-          <h2 class="dash-form-section-title">{gettext("Edit entry")}</h2>
-          <.input field={@entry_form[:source_term]} type="text" label={gettext("Source term")} />
-          <.input field={@entry_form[:definition]} type="textarea" label={gettext("Definition")} />
+          <h2 class="dash-form-section-title">{gettext("Edit term")}</h2>
+          <.input field={@term_form[:source_term]} type="text" label={gettext("Source term")} />
+          <.input field={@term_form[:definition]} type="textarea" label={gettext("Definition")} />
         </div>
 
         <div class="dash-form-section">
@@ -10543,7 +10543,7 @@ defmodule GlossiaWeb.DashboardLive do
           <%= for {lang, idx} <- Enum.with_index(@kit.target_languages) do %>
             <% t = Map.get(@translations_by_lang, lang) %>
             <div class="dash-form-grid" style="align-items: end;">
-              <input type="hidden" name={"entry[translations][#{idx}][language]"} value={lang} />
+              <input type="hidden" name={"term[translations][#{idx}][language]"} value={lang} />
               <div>
                 <label class="dash-label">{gettext("Language")}</label>
                 <input
@@ -10558,7 +10558,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <label class="dash-label">{gettext("Translation")}</label>
                 <input
                   type="text"
-                  name={"entry[translations][#{idx}][translated_term]"}
+                  name={"term[translations][#{idx}][translated_term]"}
                   value={if(t, do: t.translated_term, else: "")}
                   class="dash-input"
                 />
@@ -10567,7 +10567,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <label class="dash-label">{gettext("Usage note")}</label>
                 <input
                   type="text"
-                  name={"entry[translations][#{idx}][usage_note]"}
+                  name={"term[translations][#{idx}][usage_note]"}
                   value={if(t, do: t.usage_note || "", else: "")}
                   class="dash-input"
                 />
@@ -10577,8 +10577,8 @@ defmodule GlossiaWeb.DashboardLive do
         </div>
 
         <.form_save_bar
-          id="entry-edit-save-bar"
-          visible={@entry_form_valid? and @entry_edit_changed?}
+          id="term-edit-save-bar"
+          visible={@term_form_valid? and @term_edit_changed?}
           cancel_path={"/" <> @handle <> "/-/kits/" <> @kit.handle}
         />
       </.form>

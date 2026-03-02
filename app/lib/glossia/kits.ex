@@ -9,10 +9,10 @@ defmodule Glossia.Kits do
 
   alias Glossia.Repo
   alias Glossia.Accounts.{Account, User}
-  alias Glossia.Kits.{Kit, KitEntry, KitEntryTranslation, KitStar}
+  alias Glossia.Kits.{Kit, KitTerm, KitTermTranslation, KitStar}
 
-  @entry_preloads [:translations]
-  @kit_preloads [:created_by, :account, entries: @entry_preloads]
+  @term_preloads [:translations]
+  @kit_preloads [:created_by, :account, terms: @term_preloads]
 
   defp with_stars_count(query) do
     stars_subquery =
@@ -103,81 +103,80 @@ defmodule Glossia.Kits do
     Kit.changeset(%Kit{}, attrs)
   end
 
-  # --- Entries ---
+  # --- Terms ---
 
-  def add_entry(%Kit{} = kit, attrs) do
-    Tracer.with_span "glossia.kits.add_entry" do
+  def add_term(%Kit{} = kit, attrs) do
+    Tracer.with_span "glossia.kits.add_term" do
       Tracer.set_attributes([{"glossia.kit.id", to_string(kit.id)}])
 
       translations = Map.get(attrs, "translations") || Map.get(attrs, :translations) || []
 
       Repo.transaction(fn ->
-        entry_result =
-          %KitEntry{}
-          |> KitEntry.changeset(attrs)
+        term_result =
+          %KitTerm{}
+          |> KitTerm.changeset(attrs)
           |> Ecto.Changeset.put_change(:kit_id, kit.id)
           |> Repo.insert()
 
-        case entry_result do
-          {:ok, entry} ->
+        case term_result do
+          {:ok, term} ->
             translations =
               Enum.map(translations, fn t_attrs ->
                 {:ok, translation} =
-                  %KitEntryTranslation{}
-                  |> KitEntryTranslation.changeset(t_attrs)
-                  |> Ecto.Changeset.put_change(:kit_entry_id, entry.id)
+                  %KitTermTranslation{}
+                  |> KitTermTranslation.changeset(t_attrs)
+                  |> Ecto.Changeset.put_change(:kit_term_id, term.id)
                   |> Repo.insert()
 
                 translation
               end)
 
-            %{entry | translations: translations}
+            %{term | translations: translations}
 
           {:error, changeset} ->
             Repo.rollback({:validation, changeset})
         end
       end)
       |> case do
-        {:ok, entry} -> {:ok, entry}
+        {:ok, term} -> {:ok, term}
         {:error, {:validation, changeset}} -> {:error, changeset}
         {:error, reason} -> {:error, reason}
       end
     end
   end
 
-  def update_entry(%KitEntry{} = entry, attrs) do
-    Tracer.with_span "glossia.kits.update_entry" do
-      Tracer.set_attributes([{"glossia.kit_entry.id", to_string(entry.id)}])
+  def update_term(%KitTerm{} = term, attrs) do
+    Tracer.with_span "glossia.kits.update_term" do
+      Tracer.set_attributes([{"glossia.kit_term.id", to_string(term.id)}])
 
       translations = Map.get(attrs, "translations") || Map.get(attrs, :translations)
 
       Repo.transaction(fn ->
-        entry_result =
-          entry
-          |> KitEntry.changeset(attrs)
+        term_result =
+          term
+          |> KitTerm.changeset(attrs)
           |> Repo.update()
 
-        case entry_result do
-          {:ok, updated_entry} ->
+        case term_result do
+          {:ok, updated_term} ->
             if translations do
-              # Delete existing translations and re-insert
-              from(t in KitEntryTranslation, where: t.kit_entry_id == ^updated_entry.id)
+              from(t in KitTermTranslation, where: t.kit_term_id == ^updated_term.id)
               |> Repo.delete_all()
 
               new_translations =
                 Enum.map(translations, fn t_attrs ->
                   {:ok, translation} =
-                    %KitEntryTranslation{}
-                    |> KitEntryTranslation.changeset(t_attrs)
-                    |> Ecto.Changeset.put_change(:kit_entry_id, updated_entry.id)
+                    %KitTermTranslation{}
+                    |> KitTermTranslation.changeset(t_attrs)
+                    |> Ecto.Changeset.put_change(:kit_term_id, updated_term.id)
                     |> Repo.insert()
 
                   translation
                 end)
 
-              %{updated_entry | translations: new_translations}
+              %{updated_term | translations: new_translations}
             else
-              Repo.preload(updated_entry, :translations)
+              Repo.preload(updated_term, :translations)
             end
 
           {:error, changeset} ->
@@ -185,25 +184,25 @@ defmodule Glossia.Kits do
         end
       end)
       |> case do
-        {:ok, entry} -> {:ok, entry}
+        {:ok, term} -> {:ok, term}
         {:error, {:validation, changeset}} -> {:error, changeset}
         {:error, reason} -> {:error, reason}
       end
     end
   end
 
-  def delete_entry(%KitEntry{} = entry) do
-    Tracer.with_span "glossia.kits.delete_entry" do
-      Tracer.set_attributes([{"glossia.kit_entry.id", to_string(entry.id)}])
-      Repo.delete(entry)
+  def delete_term(%KitTerm{} = term) do
+    Tracer.with_span "glossia.kits.delete_term" do
+      Tracer.set_attributes([{"glossia.kit_term.id", to_string(term.id)}])
+      Repo.delete(term)
     end
   end
 
-  def get_entry!(id) do
+  def get_term!(id) do
     Repo.one!(
-      from e in KitEntry,
-        where: e.id == ^id,
-        preload: ^@entry_preloads
+      from t in KitTerm,
+        where: t.id == ^id,
+        preload: ^@term_preloads
     )
   end
 

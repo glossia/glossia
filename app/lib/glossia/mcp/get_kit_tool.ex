@@ -1,5 +1,5 @@
 defmodule Glossia.MCP.GetKitTool do
-  @moduledoc "Get a translation terminology kit by handle, including all entries and translations."
+  @moduledoc "Get a translation terminology kit by handle, including all terms and translations."
 
   use Hermes.Server.Component, type: :tool
 
@@ -36,15 +36,15 @@ defmodule Glossia.MCP.GetKitTool do
             visibility: kit.visibility,
             stars_count: kit.stars_count,
             inserted_at: kit.inserted_at,
-            entries:
-              Enum.map(kit.entries, fn entry ->
+            terms:
+              Enum.map(kit.terms, fn term ->
                 %{
-                  id: entry.id,
-                  source_term: entry.source_term,
-                  definition: entry.definition,
-                  tags: entry.tags,
+                  id: term.id,
+                  source_term: term.source_term,
+                  definition: term.definition,
+                  tags: term.tags,
                   translations:
-                    Enum.map(entry.translations, fn t ->
+                    Enum.map(term.translations, fn t ->
                       %{
                         language: t.language,
                         translated_term: t.translated_term,

@@ -48,7 +48,7 @@ defmodule GlossiaWeb.Api.KitApiController do
                 conn |> put_status(:not_found) |> json(%{error: "kit not found"})
 
               kit ->
-                json(conn, serialize_kit_with_entries(kit))
+                json(conn, serialize_kit_with_terms(kit))
             end
 
           {:error, conn} ->
@@ -92,7 +92,7 @@ defmodule GlossiaWeb.Api.KitApiController do
     end
   end
 
-  def create_entry(conn, %{"handle" => handle, "kit_handle" => kit_handle} = params) do
+  def create_term(conn, %{"handle" => handle, "kit_handle" => kit_handle} = params) do
     case Accounts.get_account_by_handle(handle) do
       nil ->
         conn |> put_status(:not_found) |> json(%{error: "account not found"})
@@ -107,18 +107,18 @@ defmodule GlossiaWeb.Api.KitApiController do
               kit ->
                 user = conn.assigns[:current_user]
 
-                case Kits.add_entry(kit, params) do
-                  {:ok, entry} ->
-                    Auditing.record("kit_entry.created", account, user,
-                      resource_type: "kit_entry",
-                      resource_id: to_string(entry.id),
+                case Kits.add_term(kit, params) do
+                  {:ok, term} ->
+                    Auditing.record("kit_term.created", account, user,
+                      resource_type: "kit_term",
+                      resource_id: to_string(term.id),
                       resource_path: "/#{handle}/kits/#{kit.handle}",
-                      summary: "Added entry \"#{entry.source_term}\" to kit #{kit.handle} via API"
+                      summary: "Added term \"#{term.source_term}\" to kit #{kit.handle} via API"
                     )
 
                     conn
                     |> put_status(:created)
-                    |> json(serialize_entry(entry))
+                    |> json(serialize_term(term))
 
                   {:error, changeset} ->
                     conn
@@ -147,27 +147,27 @@ defmodule GlossiaWeb.Api.KitApiController do
     }
   end
 
-  defp serialize_kit_with_entries(kit) do
+  defp serialize_kit_with_terms(kit) do
     kit
     |> serialize_kit()
-    |> Map.put(:entries, Enum.map(kit.entries, &serialize_entry/1))
+    |> Map.put(:terms, Enum.map(kit.terms, &serialize_term/1))
   end
 
-  defp serialize_entry(entry) do
+  defp serialize_term(term) do
     %{
-      id: entry.id,
-      source_term: entry.source_term,
-      definition: entry.definition,
-      tags: entry.tags,
+      id: term.id,
+      source_term: term.source_term,
+      definition: term.definition,
+      tags: term.tags,
       translations:
-        Enum.map(entry.translations, fn t ->
+        Enum.map(term.translations, fn t ->
           %{
             language: t.language,
             translated_term: t.translated_term,
             usage_note: t.usage_note
           }
         end),
-      inserted_at: entry.inserted_at
+      inserted_at: term.inserted_at
     }
   end
 end

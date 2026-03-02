@@ -25,7 +25,7 @@ defmodule Glossia.Kits.Kit do
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :created_by, Glossia.Accounts.User
 
-    has_many :entries, Glossia.Kits.KitEntry
+    has_many :terms, Glossia.Kits.KitTerm
     has_many :stars, Glossia.Kits.KitStar
 
     timestamps()

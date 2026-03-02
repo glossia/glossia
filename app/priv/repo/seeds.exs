@@ -498,7 +498,7 @@ defmodule Glossia.Seeds do
       target_languages: ["es", "de", "ja"],
       domain_tags: ["healthcare", "medical"],
       visibility: "public",
-      entries: [
+      terms: [
         %{
           source_term: "diagnosis",
           definition: "The identification of the nature and cause of a certain phenomenon.",
@@ -535,7 +535,7 @@ defmodule Glossia.Seeds do
       target_languages: ["es-MX", "pt-BR"],
       domain_tags: ["internal"],
       visibility: "private",
-      entries: [
+      terms: [
         %{
           source_term: "workspace",
           definition: "A logical container for projects within the Acme platform.",
@@ -886,16 +886,16 @@ defmodule Glossia.Seeds do
           "visibility" => Keyword.get(opts, :visibility, "public")
         })
 
-      entries = Keyword.get(opts, :entries, [])
+      terms = Keyword.get(opts, :terms, [])
 
-      for entry_attrs <- entries do
-        translations = Map.get(entry_attrs, :translations, [])
+      for term_attrs <- terms do
+        translations = Map.get(term_attrs, :translations, [])
 
-        {:ok, _entry} =
-          Kits.add_entry(kit, %{
-            "source_term" => entry_attrs.source_term,
-            "definition" => Map.get(entry_attrs, :definition, ""),
-            "tags" => Map.get(entry_attrs, :tags, []),
+        {:ok, _term} =
+          Kits.add_term(kit, %{
+            "source_term" => term_attrs.source_term,
+            "definition" => Map.get(term_attrs, :definition, ""),
+            "tags" => Map.get(term_attrs, :tags, []),
             "translations" => translations
           })
       end

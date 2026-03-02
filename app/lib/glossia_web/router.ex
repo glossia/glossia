@@ -279,7 +279,7 @@ defmodule GlossiaWeb.Router do
     get "/:handle/kits", KitApiController, :index
     get "/:handle/kits/:kit_handle", KitApiController, :show
     post "/:handle/kits", KitApiController, :create
-    post "/:handle/kits/:kit_handle/entries", KitApiController, :create_entry
+    post "/:handle/kits/:kit_handle/terms", KitApiController, :create_term
   end
 
   # MCP server (StreamableHTTP transport)
@@ -411,8 +411,8 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/kits/new", DashboardLive, :kit_new
       live "/:handle/-/kits/:kit_handle", DashboardLive, :kit_show
       live "/:handle/-/kits/:kit_handle/edit", DashboardLive, :kit_edit
-      live "/:handle/-/kits/:kit_handle/entries/new", DashboardLive, :kit_entry_new
-      live "/:handle/-/kits/:kit_handle/entries/:entry_id", DashboardLive, :kit_entry_edit
+      live "/:handle/-/kits/:kit_handle/terms/new", DashboardLive, :kit_term_new
+      live "/:handle/-/kits/:kit_handle/terms/:term_id", DashboardLive, :kit_term_edit
       live "/:handle/-/discussions", DashboardLive, :discussions
       live "/:handle/-/discussions/new", DashboardLive, :discussion_new
       live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show

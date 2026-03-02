@@ -1163,6 +1163,7 @@ msgid "Showing %{first}-%{last} of %{total}"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:4770
+#: lib/glossia_web/live/dashboard_live.ex:10308
 #, elixir-autogen, elixir-format
 msgid "Add term"
 msgstr ""
@@ -1238,7 +1239,10 @@ msgstr ""
 msgid "Invitation not found."
 msgstr ""
 
+#: lib/glossia_web/live/dashboard_live.ex:860
+#: lib/glossia_web/live/dashboard_live.ex:879
 #: lib/glossia_web/live/dashboard_live.ex:4597
+#: lib/glossia_web/live/dashboard_live.ex:10464
 #, elixir-autogen, elixir-format
 msgid "New term"
 msgstr ""
@@ -3669,29 +3673,9 @@ msgstr ""
 msgid "The language OS for your organization"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:10308
-#, elixir-autogen, elixir-format
-msgid "Add entry"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:10395
-#, elixir-autogen, elixir-format
-msgid "Add terminology entries to this kit."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:10368
-#, elixir-autogen, elixir-format
-msgid "Are you sure you want to delete this entry?"
-msgstr ""
-
 #: lib/glossia_web/live/dashboard_live.ex:10407
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to delete this kit? This action cannot be undone."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:2452
-#, elixir-autogen, elixir-format
-msgid "Could not delete entry."
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:2328
@@ -3735,29 +3719,9 @@ msgstr ""
 msgid "Edit %{name}"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:10536
-#, elixir-autogen, elixir-format
-msgid "Edit entry"
-msgstr ""
-
 #: lib/glossia_web/live/dashboard_live.ex:10424
 #, elixir-autogen, elixir-format
 msgid "Edit kit"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:2380
-#, elixir-autogen, elixir-format
-msgid "Entry added."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:2449
-#, elixir-autogen, elixir-format
-msgid "Entry deleted."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:2416
-#, elixir-autogen, elixir-format
-msgid "Entry updated."
 msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:6
@@ -3799,13 +3763,6 @@ msgstr ""
 msgid "Kits"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:860
-#: lib/glossia_web/live/dashboard_live.ex:879
-#: lib/glossia_web/live/dashboard_live.ex:10464
-#, elixir-autogen, elixir-format
-msgid "New entry"
-msgstr ""
-
 #: lib/glossia_web/live/dashboard_live.ex:764
 #: lib/glossia_web/live/dashboard_live.ex:781
 #: lib/glossia_web/live/dashboard_live.ex:10149
@@ -3816,11 +3773,6 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex:3560
 #, elixir-autogen, elixir-format
 msgid "No description"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:10394
-#, elixir-autogen, elixir-format
-msgid "No entries yet"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:10200
@@ -3877,4 +3829,44 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex:10567
 #, elixir-autogen, elixir-format
 msgid "Usage note"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10395
+#, elixir-autogen, elixir-format
+msgid "Add terms to this kit."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10368
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete this term?"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:2452
+#, elixir-autogen, elixir-format
+msgid "Could not delete term."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10536
+#, elixir-autogen, elixir-format
+msgid "Edit term"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10394
+#, elixir-autogen, elixir-format
+msgid "No terms yet"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:2380
+#, elixir-autogen, elixir-format
+msgid "Term added."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:2449
+#, elixir-autogen, elixir-format
+msgid "Term deleted."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:2416
+#, elixir-autogen, elixir-format
+msgid "Term updated."
 msgstr ""
