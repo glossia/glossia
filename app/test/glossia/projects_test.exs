@@ -39,4 +39,26 @@ defmodule Glossia.ProjectsTest do
              }
            ]
   end
+
+  describe "get_project_by_github_repo_id/1" do
+    test "returns the project matching the github_repo_id" do
+      %{account: account} =
+        ApiTestHelpers.create_user("gh-repo-lookup@test.com", "gh-repo-lookup")
+
+      {:ok, project} =
+        Projects.create_project(account, %{
+          handle: "gh-project-#{System.unique_integer([:positive])}",
+          name: "GH Project",
+          github_repo_id: 999_001
+        })
+
+      result = Projects.get_project_by_github_repo_id(999_001)
+      assert result.id == project.id
+      assert result.account.id == account.id
+    end
+
+    test "returns nil when no project matches" do
+      assert Projects.get_project_by_github_repo_id(0) == nil
+    end
+  end
 end
