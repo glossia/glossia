@@ -38,6 +38,9 @@ defmodule Glossia.Seeds do
   import Ecto.Query
 
   def run do
+    # Create local git repos with realistic content for development testing.
+    repo_shas = Glossia.ContentSource.SeedRepos.create_all()
+
     dev =
       ensure_user!(
         handle: "dev",
@@ -118,14 +121,16 @@ defmodule Glossia.Seeds do
         github_account_id: 11_223_344
       )
 
-    # GitHub-linked projects
+    # GitHub-linked projects (using local git repos for dev testing)
     ensure_github_project!(dev.account, dev_gh, "blog",
       name: "Blog",
       github_repo_id: 100_001,
       github_repo_full_name: "dev-user/blog",
       github_repo_default_branch: "main",
       setup_status: "completed",
-      setup_target_languages: ["es", "fr"]
+      setup_target_languages: ["es", "fr"],
+      content_source: "local_git",
+      content_source_path: "dev-user/blog"
     )
 
     ensure_github_project!(dev.account, dev_gh, "landing-page",
@@ -143,7 +148,9 @@ defmodule Glossia.Seeds do
       github_repo_full_name: "acme-industries/docs",
       github_repo_default_branch: "main",
       setup_status: "completed",
-      setup_target_languages: ["es", "fr", "de"]
+      setup_target_languages: ["es", "fr", "de"],
+      content_source: "local_git",
+      content_source_path: "acme-industries/docs"
     )
 
     # Setup events for the "blog" project to exercise the agent session UI
@@ -151,7 +158,8 @@ defmodule Glossia.Seeds do
     if blog_project, do: ensure_setup_events!(blog_project)
 
     # Translation sessions for the "blog" project to exercise the activity timeline
-    if blog_project, do: ensure_translation_sessions!(blog_project, dev)
+    blog_shas = Map.get(repo_shas, "dev-user/blog", [])
+    if blog_project, do: ensure_translation_sessions!(blog_project, dev, blog_shas)
 
     # Voice configs: create a couple of versions to exercise history and diff UX.
     ensure_voice_versions!(
@@ -830,8 +838,8 @@ defmodule Glossia.Seeds do
        ) do
     case Projects.get_project(account, handle) do
       nil ->
-        {:ok, _project} =
-          Projects.create_project_from_github(account, installation.id, %{
+        attrs =
+          %{
             handle: handle,
             name: Keyword.fetch!(opts, :name),
             github_repo_id: Keyword.fetch!(opts, :github_repo_id),
@@ -839,11 +847,29 @@ defmodule Glossia.Seeds do
             github_repo_default_branch: Keyword.fetch!(opts, :github_repo_default_branch),
             setup_status: Keyword.get(opts, :setup_status, "pending"),
             setup_target_languages: Keyword.get(opts, :setup_target_languages, [])
-          })
+          }
+          |> maybe_put(:content_source, Keyword.get(opts, :content_source))
+          |> maybe_put(:content_source_path, Keyword.get(opts, :content_source_path))
+
+        {:ok, _project} =
+          Projects.create_project_from_github(account, installation.id, attrs)
 
         :ok
 
-      %Project{} ->
+      %Project{} = project ->
+        updates =
+          %{}
+          |> maybe_put(:content_source, Keyword.get(opts, :content_source))
+          |> maybe_put(:content_source_path, Keyword.get(opts, :content_source_path))
+          |> maybe_put(:setup_status, Keyword.get(opts, :setup_status))
+          |> maybe_put(:setup_target_languages, Keyword.get(opts, :setup_target_languages))
+
+        if map_size(updates) > 0 do
+          project
+          |> Ecto.Changeset.change(updates)
+          |> Repo.update!()
+        end
+
         :ok
     end
   end
@@ -896,7 +922,7 @@ defmodule Glossia.Seeds do
   # Translation Sessions
   # ----------------------------------------------------------------------------
 
-  defp ensure_translation_sessions!(%Project{} = project, %User{} = user) do
+  defp ensure_translation_sessions!(%Project{} = project, %User{} = user, shas) do
     existing =
       Repo.one(
         from s in TranslationSession,
@@ -904,18 +930,22 @@ defmodule Glossia.Seeds do
           select: count(s.id)
       )
 
-    if existing > 0, do: :ok, else: seed_translation_sessions!(project, user)
+    if existing > 0, do: :ok, else: seed_translation_sessions!(project, user, shas)
   end
 
-  defp seed_translation_sessions!(%Project{} = project, %User{} = user) do
+  defp seed_translation_sessions!(%Project{} = project, %User{} = user, shas) do
     now = DateTime.utc_now()
     two_hours_ago = DateTime.add(now, -7200, :second)
     one_hour_ago = DateTime.add(now, -3600, :second)
 
+    # Use real commit SHAs from the local repo when available
+    sha1 = Enum.at(shas, 3) || "a1b2c3d"
+    sha2 = Enum.at(shas, 5) || "e4f5g6h"
+
     # Session 1: completed translation (en -> es, fr)
     {:ok, session1} =
       TranslationSessions.create_session(user.account, project, %{
-        commit_sha: "a1b2c3d",
+        commit_sha: String.slice(sha1, 0, 7),
         commit_message: "Update blog post: Getting started with Glossia",
         status: "completed",
         source_language: "en",
@@ -987,7 +1017,7 @@ defmodule Glossia.Seeds do
     # Session 2: running translation (en -> ja, de)
     {:ok, session2} =
       TranslationSessions.create_session(user.account, project, %{
-        commit_sha: "e4f5g6h",
+        commit_sha: String.slice(sha2, 0, 7),
         commit_message: "Add new blog post: Advanced localization patterns",
         status: "running",
         source_language: "en",
@@ -1051,6 +1081,9 @@ defmodule Glossia.Seeds do
       comment
     end
   end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end
 
 Glossia.Seeds.run()

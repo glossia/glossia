@@ -19,7 +19,8 @@ defmodule GlossiaWeb.GithubWebhookController do
 
     with :ok <- Webhook.verify(conn.req_headers, payload, secret),
          {:ok, event} <- Jason.decode(payload) do
-      _ = Github.handle_webhook_event(event)
+      event_type = github_event_type(conn)
+      _ = Github.handle_webhook_event(event_type, event)
       send_resp(conn, 200, "ok")
     else
       {:error, reason} ->
@@ -28,6 +29,13 @@ defmodule GlossiaWeb.GithubWebhookController do
 
       _ ->
         respond_invalid(conn, "github")
+    end
+  end
+
+  defp github_event_type(conn) do
+    case Plug.Conn.get_req_header(conn, "x-github-event") do
+      [type | _] -> type
+      _ -> nil
     end
   end
 

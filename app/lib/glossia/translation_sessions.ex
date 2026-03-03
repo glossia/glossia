@@ -56,6 +56,24 @@ defmodule Glossia.TranslationSessions do
     |> Repo.insert()
   end
 
+  def cancel_active_sessions(%Project{} = project) do
+    sessions =
+      from(s in TranslationSession,
+        where: s.project_id == ^project.id,
+        where: s.status in ["pending", "running"]
+      )
+      |> Repo.all()
+
+    Enum.each(sessions, fn session ->
+      {:ok, updated} =
+        update_session_status(session, "failed", error: "Cancelled: superseded by newer commit")
+
+      broadcast_session_event(updated, :cancelled)
+    end)
+
+    {:ok, length(sessions)}
+  end
+
   def update_session_status(%TranslationSession{} = session, status, opts \\ []) do
     changes = %{status: status}
 

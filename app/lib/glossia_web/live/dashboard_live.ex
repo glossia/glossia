@@ -992,107 +992,10 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp fetch_project_commits(project) do
-    if project.github_installation_id && project.github_repo_full_name do
-      installation =
-        Glossia.Repo.preload(project, :github_installation).github_installation
-
-      case Glossia.Github.App.installation_token(installation.github_installation_id) do
-        {:ok, token} ->
-          case Glossia.Github.Client.list_commits(project.github_repo_full_name, token,
-                 per_page: 30
-               ) do
-            {:ok, raw_commits} when is_list(raw_commits) ->
-              {Enum.map(raw_commits, &normalize_commit(&1, project.github_repo_full_name)), nil}
-
-            {:error, _reason} ->
-              if Application.get_env(:glossia, :dev_routes) do
-                {sample_commits(project.github_repo_full_name), nil}
-              else
-                {[], gettext("Could not load commits from GitHub.")}
-              end
-          end
-
-        {:error, _reason} ->
-          if Application.get_env(:glossia, :dev_routes) do
-            {sample_commits(project.github_repo_full_name), nil}
-          else
-            {[], gettext("Could not load commits from GitHub.")}
-          end
-      end
-    else
-      {[], nil}
+    case Glossia.ContentSource.list_commits(project, per_page: 30) do
+      {:ok, commits} -> {commits, nil}
+      {:error, _} -> {[], gettext("Could not load commits.")}
     end
-  end
-
-  defp normalize_commit(raw, repo_full_name) do
-    commit = raw["commit"] || %{}
-    author = raw["author"] || commit["author"] || %{}
-
-    %{
-      sha: raw["sha"] || "",
-      short_sha: String.slice(raw["sha"] || "", 0, 7),
-      message: commit["message"] || "",
-      author_name: author["login"] || get_in(commit, ["author", "name"]) || "",
-      author_avatar_url: author["avatar_url"],
-      date: parse_commit_date(get_in(commit, ["author", "date"])),
-      url: "https://github.com/#{repo_full_name}/commit/#{raw["sha"]}"
-    }
-  end
-
-  defp parse_commit_date(nil), do: nil
-
-  defp parse_commit_date(date_string) do
-    case DateTime.from_iso8601(date_string) do
-      {:ok, dt, _offset} -> dt
-      _ -> nil
-    end
-  end
-
-  defp sample_commits(repo_full_name) do
-    now = DateTime.utc_now()
-
-    messages = [
-      {"feat: add multilingual content support for blog posts",
-       "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0", -1200},
-      {"fix: resolve encoding issue with Japanese characters",
-       "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1", -3600},
-      {"chore: update translation glossary for Spanish locale",
-       "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2", -7200},
-      {"feat: implement automatic language detection on upload",
-       "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3", -14400},
-      {"fix: correct RTL layout for Arabic content pages",
-       "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4", -28800},
-      {"docs: add contributing guide for translators", "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5",
-       -86400},
-      {"feat: add voice consistency checks to CI pipeline",
-       "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6", -172_800},
-      {"refactor: extract content parser into dedicated module",
-       "b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7", -259_200},
-      {"fix: handle empty frontmatter in markdown files",
-       "c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8", -345_600},
-      {"feat: support .mdx files in content directory",
-       "d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9", -432_000}
-    ]
-
-    authors = [
-      {"pepicrft", "https://avatars.githubusercontent.com/u/663605?v=4"},
-      {"alexchen", nil},
-      {"mariarossi", nil}
-    ]
-
-    Enum.map(messages, fn {message, sha, offset_seconds} ->
-      {author_login, avatar_url} = Enum.random(authors)
-
-      %{
-        sha: sha,
-        short_sha: String.slice(sha, 0, 7),
-        message: message,
-        author_name: author_login,
-        author_avatar_url: avatar_url,
-        date: DateTime.add(now, offset_seconds, :second),
-        url: "https://github.com/#{repo_full_name}/commit/#{sha}"
-      }
-    end)
   end
 
   defp require_admin!(socket) do
@@ -2421,25 +2324,46 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("translate_commit", %{"sha" => sha, "message" => message}, socket) do
-    require_write!(socket)
-    account = socket.assigns.account
     project = socket.assigns.project
 
-    {:ok, session} =
-      Glossia.TranslationSessions.create_session(account, project, %{
-        "commit_sha" => sha,
-        "commit_message" => first_line(message),
-        "status" => "pending",
-        "source_language" => "en",
-        "target_languages" => ["es", "fr"]
-      })
+    unless socket.assigns.can_write or project.content_source == "local_git" do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
+    end
 
-    handle = socket.assigns.handle
+    account = socket.assigns.account
+    target_languages = project.setup_target_languages || []
 
-    {:noreply,
-     push_navigate(socket,
-       to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
-     )}
+    if target_languages == [] do
+      {:noreply,
+       put_flash(socket, :error, gettext("No target languages configured for this project."))}
+    else
+      Glossia.TranslationSessions.cancel_active_sessions(project)
+
+      {:ok, session} =
+        Glossia.TranslationSessions.create_session(account, project, %{
+          "commit_sha" => sha,
+          "commit_message" => first_line(message),
+          "status" => "pending",
+          "source_language" => "en",
+          "target_languages" => target_languages
+        })
+
+      Glossia.Auditing.record(
+        "translation_session.created",
+        account,
+        socket.assigns[:current_user],
+        resource_type: "translation_session",
+        resource_id: to_string(session.id),
+        metadata: JSON.encode!(%{triggered_by: "manual", commit_sha: sha})
+      )
+
+      handle = socket.assigns.handle
+
+      {:noreply,
+       push_navigate(socket,
+         to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
+       )}
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -5713,7 +5637,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       <%= if @commits_error do %>
         <div class="dash-empty-state">
-          <p>{gettext("Could not load activity from GitHub.")}</p>
+          <p>{gettext("Could not load activity.")}</p>
         </div>
       <% else %>
         <.resource_table
@@ -5723,7 +5647,13 @@ defmodule GlossiaWeb.DashboardLive do
           sort_key={@commits_sort_key}
           sort_dir={@commits_sort_dir}
         >
-          <:col :let={commit} label={gettext("Commit")} key="message" sortable>
+          <:col
+            :let={commit}
+            label={gettext("Commit")}
+            key="message"
+            sortable
+            class="resource-col-truncate"
+          >
             <div class="commit-message-cell">
               <span class="commit-message-text">{first_line(commit.message)}</span>
               <%= if @sessions_by_sha[commit.sha] do %>
@@ -5766,7 +5696,7 @@ defmodule GlossiaWeb.DashboardLive do
             <% end %>
           </:col>
           <:action :let={commit}>
-            <%= if @can_write and !@sessions_by_sha[commit.sha] do %>
+            <%= if (@can_write or @project.content_source == "local_git") and !@sessions_by_sha[commit.sha] do %>
               <button
                 class="commit-translate-btn"
                 phx-click="translate_commit"

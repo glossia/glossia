@@ -48,6 +48,13 @@ defmodule Glossia.Projects do
     end
   end
 
+  def get_project_by_github_repo_id(github_repo_id) when is_integer(github_repo_id) do
+    Project
+    |> where(github_repo_id: ^github_repo_id)
+    |> preload(:account)
+    |> Repo.one()
+  end
+
   def list_projects(%Account{id: account_id}, params \\ %{}) do
     Tracer.with_span "glossia.projects.list_projects" do
       Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])

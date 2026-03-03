@@ -19,6 +19,8 @@ defmodule Glossia.Accounts.Project do
     field :setup_error, :string
     field :setup_sandbox_id, :string
     field :setup_target_languages, {:array, :string}, default: []
+    field :content_source, :string, default: "github"
+    field :content_source_path, :string
     field :description, :string
     field :url, :string
     field :avatar_url, :string
@@ -39,7 +41,9 @@ defmodule Glossia.Accounts.Project do
       :github_repo_default_branch,
       :setup_status,
       :setup_error,
-      :setup_target_languages
+      :setup_target_languages,
+      :content_source,
+      :content_source_path
     ])
     |> validate_required([:handle, :name])
     |> validate_format(:handle, ~r/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/,
@@ -49,6 +53,7 @@ defmodule Glossia.Accounts.Project do
     |> validate_inclusion(:setup_status, ~w(pending running completed failed),
       message: "is invalid"
     )
+    |> validate_inclusion(:content_source, ~w(github local_git), message: "is invalid")
     |> unique_constraint([:account_id, :handle])
     |> unique_constraint(:github_repo_id)
   end

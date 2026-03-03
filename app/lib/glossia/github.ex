@@ -14,7 +14,19 @@ defmodule Glossia.Github do
     end
   end
 
-  def handle_webhook_event(%{"action" => action, "installation" => installation} = event)
+  def handle_webhook_event("push", event) do
+    Logger.info("GitHub push webhook received",
+      github_repo_id: get_in(event, ["repository", "id"]),
+      github_ref: event["ref"]
+    )
+
+    handle_push_event(event)
+  end
+
+  def handle_webhook_event(
+        _event_type,
+        %{"action" => action, "installation" => installation} = event
+      )
       when is_map(installation) do
     type = Map.get(event, "type", "installation")
 
@@ -26,7 +38,7 @@ defmodule Glossia.Github do
     handle_installation_event(action, installation)
   end
 
-  def handle_webhook_event(%{"action" => action} = event) do
+  def handle_webhook_event(_event_type, %{"action" => action} = event) do
     type = Map.get(event, "type", event |> Map.keys() |> Enum.join(","))
 
     Logger.info("GitHub webhook received",
@@ -38,13 +50,57 @@ defmodule Glossia.Github do
     :ok
   end
 
-  def handle_webhook_event(event) do
-    Logger.info("GitHub webhook received (no action)",
+  def handle_webhook_event(event_type, event) do
+    Logger.info("GitHub webhook received (unhandled)",
+      github_event_type: event_type,
       github_event_keys: event |> Map.keys() |> Enum.join(",")
     )
 
     :ok
   end
+
+  defp handle_push_event(event) do
+    repo_id = get_in(event, ["repository", "id"])
+    ref = event["ref"]
+    head_commit = event["head_commit"]
+
+    with project when not is_nil(project) <-
+           Glossia.Projects.get_project_by_github_repo_id(repo_id),
+         true <- push_to_default_branch?(ref, project),
+         commit when is_map(commit) <- head_commit do
+      Glossia.TranslationSessions.TranslateWorker.new(%{
+        "project_id" => project.id,
+        "commit_sha" => commit["id"],
+        "commit_message" => first_line(commit["message"]),
+        "triggered_by" => "webhook"
+      })
+      |> Oban.insert()
+
+      Logger.info("Enqueued translation for push",
+        project_id: project.id,
+        commit_sha: commit["id"]
+      )
+    else
+      nil ->
+        Logger.debug("No project found for GitHub repo_id: #{repo_id}")
+
+      false ->
+        Logger.debug("Push to non-default branch, skipping translation")
+
+      _ ->
+        Logger.debug("Push event missing head_commit")
+    end
+
+    :ok
+  end
+
+  defp push_to_default_branch?(ref, project) do
+    default_branch = project.github_repo_default_branch || "main"
+    ref == "refs/heads/#{default_branch}"
+  end
+
+  defp first_line(nil), do: nil
+  defp first_line(text), do: text |> String.split("\n") |> hd()
 
   defp handle_installation_event("created", installation) do
     Logger.info("GitHub App installed",

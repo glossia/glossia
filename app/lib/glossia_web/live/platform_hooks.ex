@@ -89,7 +89,7 @@ defmodule GlossiaWeb.PlatformHooks do
     can_voice_propose = can_discussion_write
     can_glossary_propose = can_discussion_write
 
-    show_sidebar = user != nil
+    show_sidebar = true
 
     {:cont,
      socket
