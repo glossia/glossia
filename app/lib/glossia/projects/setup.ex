@@ -55,6 +55,98 @@ defmodule Glossia.Projects.Setup do
       summary: "Setup started for #{project.handle}"
     )
 
+    case project.content_source do
+      "local_git" -> run_locally(project, account)
+      _ -> run_in_sandbox(project, account)
+    end
+  end
+
+  defp run_locally(project, account) do
+    case Glossia.ContentSource.LocalGit.repo_path(project) do
+      {:ok, repo_path} ->
+        minimax_api_key = Application.get_env(:glossia, Glossia.Minimax)[:api_key] || ""
+        emitter = GlossiaAgent.Events.LocalEmitter.new(self())
+
+        pid =
+          spawn_link(fn ->
+            GlossiaAgent.setup(
+              repo_path: repo_path,
+              minimax_api_key: minimax_api_key,
+              model: "MiniMax-M2.5",
+              target_languages: project.setup_target_languages || [],
+              emitter: emitter
+            )
+          end)
+
+        old_trap = Process.flag(:trap_exit, true)
+        result = wait_for_local_setup(project)
+        Process.flag(:trap_exit, old_trap)
+        _ = pid
+
+        case result do
+          {:ok, :completed} ->
+            # For local_git, GLOSSIA.md is written directly to the repo
+            Projects.update_project_setup_status(project, "completed")
+            Projects.broadcast_setup_status(project, "completed")
+
+            Auditing.record("project.setup_completed", account, nil,
+              resource_type: "project",
+              resource_id: to_string(project.id),
+              resource_path: "/#{account.handle}/#{project.handle}",
+              summary: "Setup completed for #{project.handle} (local, no PR)"
+            )
+
+            :ok
+
+          {:error, reason} ->
+            error_msg = humanize_error(reason)
+            Logger.error("Setup failed (local) for project #{project.id}: #{inspect(reason)}")
+            Projects.update_project_setup_status(project, "failed", error_msg)
+            Projects.broadcast_setup_status(project, "failed")
+
+            Auditing.record("project.setup_failed", account, nil,
+              resource_type: "project",
+              resource_id: to_string(project.id),
+              resource_path: "/#{account.handle}/#{project.handle}",
+              summary: "Setup failed for #{project.handle}: #{String.slice(error_msg, 0, 200)}"
+            )
+
+            {:error, reason}
+        end
+
+      {:error, reason} ->
+        error_msg = humanize_error(reason)
+        Logger.error("Setup failed for project #{project.id}: #{inspect(reason)}")
+        Projects.update_project_setup_status(project, "failed", error_msg)
+        Projects.broadcast_setup_status(project, "failed")
+        {:error, reason}
+    end
+  end
+
+  defp wait_for_local_setup(project) do
+    receive do
+      {:agent_done, :completed} ->
+        {:ok, :completed}
+
+      {:agent_done, {:failed, reason}} ->
+        {:error, reason}
+
+      {:agent_event, %{type: type, content: content}} ->
+        Logger.debug("Setup agent [#{type}]: #{String.slice(content, 0, 200)}")
+        wait_for_local_setup(project)
+
+      {:EXIT, _pid, :normal} ->
+        {:ok, :completed}
+
+      {:EXIT, _pid, reason} ->
+        {:error, {:agent_crashed, reason}}
+    after
+      660_000 ->
+        {:error, :agent_timeout}
+    end
+  end
+
+  defp run_in_sandbox(project, account) do
     sandbox = Glossia.Sandbox.adapter()
 
     with {:ok, token} <- get_clone_token(project),
@@ -205,7 +297,7 @@ defmodule Glossia.Projects.Setup do
   end
 
   defp sandbox_alive?(sandbox, sandbox_id) do
-    case sandbox.execute(sandbox_id, "echo ok") do
+    case sandbox.execute(sandbox_id, "echo ok", []) do
       {:ok, %{"exitCode" => 0}} -> true
       _ -> false
     end
@@ -356,8 +448,8 @@ defmodule Glossia.Projects.Setup do
   defp humanize_error({:github_token_failed, _}),
     do: "Could not authenticate with GitHub. Check the app installation."
 
-  defp humanize_error({:deno_install_failed, _, _}),
-    do: "The setup environment could not be initialized."
+  defp humanize_error(:agent_binary_not_available),
+    do: "The agent binary is not available. Build and deploy the Elixir agent first."
 
   defp humanize_error(reason) when is_binary(reason), do: reason
   defp humanize_error(reason), do: inspect(reason)

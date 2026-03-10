@@ -31,8 +31,8 @@ defmodule Glossia.Seeds do
   alias Glossia.Projects
   alias Glossia.Discussions
   alias Glossia.Discussions.{Discussion, DiscussionComment}
-  alias Glossia.TranslationSessions
-  alias Glossia.TranslationSessions.TranslationSession
+  alias Glossia.Translations
+  alias Glossia.Translations.Translation
   alias Glossia.Voices
 
   import Ecto.Query
@@ -157,9 +157,9 @@ defmodule Glossia.Seeds do
     blog_project = Projects.get_project(dev.account, "blog")
     if blog_project, do: ensure_setup_events!(blog_project)
 
-    # Translation sessions for the "blog" project to exercise the activity timeline
+    # Translations for the "blog" project to exercise the activity timeline
     blog_shas = Map.get(repo_shas, "dev-user/blog", [])
-    if blog_project, do: ensure_translation_sessions!(blog_project, dev, blog_shas)
+    if blog_project, do: ensure_translations!(blog_project, dev, blog_shas)
 
     # Voice configs: create a couple of versions to exercise history and diff UX.
     ensure_voice_versions!(
@@ -919,21 +919,21 @@ defmodule Glossia.Seeds do
   end
 
   # ----------------------------------------------------------------------------
-  # Translation Sessions
+  # Translations
   # ----------------------------------------------------------------------------
 
-  defp ensure_translation_sessions!(%Project{} = project, %User{} = user, shas) do
+  defp ensure_translations!(%Project{} = project, %User{} = user, shas) do
     existing =
       Repo.one(
-        from s in TranslationSession,
-          where: s.project_id == ^project.id,
-          select: count(s.id)
+        from t in Translation,
+          where: t.project_id == ^project.id,
+          select: count(t.id)
       )
 
-    if existing > 0, do: :ok, else: seed_translation_sessions!(project, user, shas)
+    if existing > 0, do: :ok, else: seed_translations!(project, user, shas)
   end
 
-  defp seed_translation_sessions!(%Project{} = project, %User{} = user, shas) do
+  defp seed_translations!(%Project{} = project, %User{} = user, shas) do
     now = DateTime.utc_now()
     two_hours_ago = DateTime.add(now, -7200, :second)
     one_hour_ago = DateTime.add(now, -3600, :second)
@@ -942,9 +942,9 @@ defmodule Glossia.Seeds do
     sha1 = Enum.at(shas, 3) || "a1b2c3d"
     sha2 = Enum.at(shas, 5) || "e4f5g6h"
 
-    # Session 1: completed translation (en -> es, fr)
+    # Translation 1: completed translation (en -> es, fr)
     {:ok, session1} =
-      TranslationSessions.create_session(user.account, project, %{
+      Translations.create_translation(user.account, project, %{
         commit_sha: String.slice(sha1, 0, 7),
         commit_message: "Update blog post: Getting started with Glossia",
         status: "completed",
@@ -1005,7 +1005,7 @@ defmodule Glossia.Seeds do
     ]
 
     for {seq, type, content, metadata} <- session1_events do
-      Glossia.Ingestion.record_translation_session_event(
+      Glossia.Ingestion.record_translation_event(
         session1.id,
         seq,
         type,
@@ -1014,9 +1014,9 @@ defmodule Glossia.Seeds do
       )
     end
 
-    # Session 2: running translation (en -> ja, de)
+    # Translation 2: running translation (en -> ja, de)
     {:ok, session2} =
-      TranslationSessions.create_session(user.account, project, %{
+      Translations.create_translation(user.account, project, %{
         commit_sha: String.slice(sha2, 0, 7),
         commit_message: "Add new blog post: Advanced localization patterns",
         status: "running",
@@ -1050,7 +1050,7 @@ defmodule Glossia.Seeds do
     ]
 
     for {seq, type, content, metadata} <- session2_events do
-      Glossia.Ingestion.record_translation_session_event(
+      Glossia.Ingestion.record_translation_event(
         session2.id,
         seq,
         type,

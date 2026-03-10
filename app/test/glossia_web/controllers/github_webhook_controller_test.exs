@@ -3,7 +3,7 @@ defmodule GlossiaWeb.GithubWebhookControllerTest do
   use Mimic
 
   alias Glossia.Projects
-  alias Glossia.TranslationSessions.TranslationSession
+  alias Glossia.Translations.Translation
   alias GlossiaWeb.ApiTestHelpers
 
   import Ecto.Query
@@ -24,12 +24,24 @@ defmodule GlossiaWeb.GithubWebhookControllerTest do
       })
 
     stub(Glossia.Github.Webhook, :verify, fn _headers, _payload, _secret -> :ok end)
+    stub(Glossia.Sandbox.Docker, :create, fn _params -> {:ok, "glossia-sandbox-test"} end)
+    stub(Glossia.Sandbox.Docker, :delete, fn _id -> :ok end)
+
+    stub(Glossia.Sandbox.Docker, :execute, fn _id, _cmd, _opts ->
+      {:ok, %{"exitCode" => 0, "result" => ""}}
+    end)
+
+    stub(Glossia.Sandbox.Docker, :upload_file, fn _id, _path, _content -> :ok end)
+
+    stub(Glossia.Sandbox.Docker, :download_file, fn _id, _path ->
+      {:ok, ~s({"status":"completed"})}
+    end)
 
     %{project: project}
   end
 
   describe "POST /webhooks/github" do
-    test "creates a translation session for a valid push event", %{conn: conn, project: project} do
+    test "creates a translation for a valid push event", %{conn: conn, project: project} do
       payload =
         JSON.encode!(%{
           "ref" => "refs/heads/main",
@@ -48,14 +60,14 @@ defmodule GlossiaWeb.GithubWebhookControllerTest do
 
       assert conn.status == 200
 
-      sessions =
+      translations =
         Glossia.Repo.all(
-          from(s in TranslationSession,
-            where: s.project_id == ^project.id and s.commit_sha == "webhook-sha-123"
+          from(t in Translation,
+            where: t.project_id == ^project.id and t.commit_sha == "webhook-sha-123"
           )
         )
 
-      assert length(sessions) == 1
+      assert length(translations) == 1
     end
 
     test "passes event type from x-github-event header", %{conn: conn} do

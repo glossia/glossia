@@ -1,4 +1,4 @@
-defmodule Glossia.TranslationSessions.TranslationSession do
+defmodule Glossia.Translations.Translation do
   use Glossia.Schema
   import Ecto.Changeset
 
@@ -11,7 +11,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
 
   @statuses ~w(pending running completed failed)
 
-  schema "translation_sessions" do
+  schema "translations" do
     field :commit_sha, :string
     field :commit_message, :string
     field :status, :string, default: "pending"
@@ -19,6 +19,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
     field :target_languages, {:array, :string}, default: []
     field :summary, :string
     field :error, :string
+    field :sandbox_id, :string
     field :started_at, :utc_datetime_usec
     field :completed_at, :utc_datetime_usec
 
@@ -28,8 +29,8 @@ defmodule Glossia.TranslationSessions.TranslationSession do
     timestamps()
   end
 
-  def changeset(session, attrs) do
-    session
+  def changeset(translation, attrs) do
+    translation
     |> cast(attrs, [
       :commit_sha,
       :commit_message,

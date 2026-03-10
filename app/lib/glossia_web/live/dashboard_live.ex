@@ -798,50 +798,6 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp apply_action(socket, :project, %{"project" => project_handle}) do
-    account = socket.assigns.account
-    project = Glossia.Projects.get_project(account, project_handle)
-
-    unless project do
-      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
-    end
-
-    og_image_url =
-      if account.visibility == "public" do
-        og_attrs = %{
-          title: project.name,
-          description: socket.assigns.handle <> "/" <> project.handle,
-          category: "project"
-        }
-
-        Glossia.OgImage.project_url(socket.assigns.handle, project.handle, og_attrs)
-      end
-
-    setup_events = Glossia.Ingestion.list_setup_events(project.id)
-
-    socket =
-      if connected?(socket) and project.setup_status in ["pending", "running"] do
-        Glossia.Projects.subscribe_setup_events(project)
-        socket
-      else
-        socket
-      end
-
-    assign(socket,
-      page_title: project.name,
-      project: project,
-      project_name: project.name,
-      og_image_url: og_image_url,
-      breadcrumb_items: [
-        {project.handle, "/" <> socket.assigns.handle <> "/" <> project.handle},
-        {gettext("Overview"), nil}
-      ],
-      setup_events: setup_events,
-      sidebar_context: :project,
-      sidebar_project: project
-    )
-  end
-
   defp apply_action(socket, :project_settings, %{"project" => project_handle}) do
     require_admin!(socket)
     account = socket.assigns.account
@@ -911,11 +867,12 @@ defmodule GlossiaWeb.DashboardLive do
         fetch_project_commits(project)
       end
 
-    sessions_by_sha = Glossia.TranslationSessions.sessions_by_commit_sha(project)
+    sessions_by_sha = Glossia.Translations.translations_by_commit_sha(project)
 
     assign(socket,
-      page_title: gettext("Activity"),
+      page_title: project.name,
       project: project,
+      project_name: project.name,
       all_commits: all_commits,
       commits: all_commits,
       commits_search: "",
@@ -932,9 +889,9 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp apply_action(socket, :project_session, %{
+  defp apply_action(socket, :project_translation, %{
          "project" => project_handle,
-         "session_id" => session_id
+         "translation_id" => session_id
        }) do
     account = socket.assigns.account
     handle = socket.assigns.handle
@@ -944,12 +901,12 @@ defmodule GlossiaWeb.DashboardLive do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
     end
 
-    session = Glossia.TranslationSessions.get_session!(session_id)
-    events = Glossia.Ingestion.list_translation_session_events(session.id)
+    session = Glossia.Translations.get_translation!(session_id)
+    events = Glossia.Ingestion.list_translation_events(session.id)
 
     socket =
       if connected?(socket) and session.status in ["pending", "running"] do
-        Glossia.TranslationSessions.subscribe_session_events(session)
+        Glossia.Translations.subscribe_translation_events(session)
         socket
       else
         socket
@@ -962,7 +919,7 @@ defmodule GlossiaWeb.DashboardLive do
       session_events: events,
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
-        {gettext("Translations"), "/" <> handle <> "/" <> project.handle <> "/-/translations"},
+        {gettext("Translations"), "/" <> handle <> "/" <> project.handle <> "/translations"},
         {gettext("Session"), nil}
       ],
       sidebar_context: :project,
@@ -977,6 +934,10 @@ defmodule GlossiaWeb.DashboardLive do
 
     unless project do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
+    if connected?(socket) do
+      Glossia.Translations.subscribe_project_translations(project)
     end
 
     assign(socket,
@@ -2311,7 +2272,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> put_flash(:info, gettext("Project settings updated."))
-           |> push_patch(to: "/#{handle}/#{updated_project.handle}/-/settings")}
+           |> push_patch(to: "/#{handle}/#{updated_project.handle}/settings")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not update project settings."))}
@@ -2326,42 +2287,28 @@ defmodule GlossiaWeb.DashboardLive do
   def handle_event("translate_commit", %{"sha" => sha, "message" => message}, socket) do
     project = socket.assigns.project
 
-    unless socket.assigns.can_write or project.content_source == "local_git" do
+    unless socket.assigns.can_write do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
     end
 
-    account = socket.assigns.account
     target_languages = project.setup_target_languages || []
 
     if target_languages == [] do
       {:noreply,
        put_flash(socket, :error, gettext("No target languages configured for this project."))}
     else
-      Glossia.TranslationSessions.cancel_active_sessions(project)
-
-      {:ok, session} =
-        Glossia.TranslationSessions.create_session(account, project, %{
-          "commit_sha" => sha,
-          "commit_message" => first_line(message),
-          "status" => "pending",
-          "source_language" => "en",
-          "target_languages" => target_languages
-        })
-
-      Glossia.Auditing.record(
-        "translation_session.created",
-        account,
-        socket.assigns[:current_user],
-        resource_type: "translation_session",
-        resource_id: to_string(session.id),
-        metadata: JSON.encode!(%{triggered_by: "manual", commit_sha: sha})
-      )
+      Glossia.Translations.TranslateWorker.new(%{
+        "project_id" => project.id,
+        "commit_sha" => sha,
+        "commit_message" => first_line(message)
+      })
+      |> Oban.insert()
 
       handle = socket.assigns.handle
 
       {:noreply,
        push_navigate(socket,
-         to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
+         to: "/" <> handle <> "/" <> project.handle <> "/translations"
        )}
     end
   end
@@ -2592,9 +2539,43 @@ defmodule GlossiaWeb.DashboardLive do
     {:noreply, assign(socket, setup_events: setup_events ++ [event])}
   end
 
-  def handle_info({:translation_session_event, event}, socket) do
+  def handle_info({:translation_event, status}, socket)
+      when status in [:running, :completed, :failed, :cancelled] do
+    session = socket.assigns[:session]
+
+    if session do
+      {:noreply, assign(socket, session: %{session | status: to_string(status)})}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:translation_event, event}, socket) when is_map(event) do
     session_events = socket.assigns[:session_events] || []
     {:noreply, assign(socket, session_events: session_events ++ [event])}
+  end
+
+  def handle_info({:project_translation_updated, _translation, _event}, socket) do
+    if socket.assigns[:live_action] == :project_translations do
+      project = socket.assigns.project
+
+      {translations, total} =
+        case Glossia.Translations.list_project_translations(project, %{
+               "page" => socket.assigns[:translations_page] || 1,
+               "page_size" => 25,
+               "order_by" => [socket.assigns[:translations_sort_key] || "inserted_at"],
+               "order_directions" => [
+                 if(socket.assigns[:translations_sort_dir] == "asc", do: "asc", else: "desc")
+               ]
+             }) do
+          {:ok, {translations, meta}} -> {translations, meta.total_count}
+          _ -> {[], 0}
+        end
+
+      {:noreply, assign(socket, translations: translations, translations_total: total)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info({:setup_status, status}, socket) do
@@ -2867,20 +2848,12 @@ defmodule GlossiaWeb.DashboardLive do
           translations_page={assigns[:translations_page] || 1}
           translations_active_filters={assigns[:translations_active_filters] || %{}}
         />
-      <% :project_session -> %>
+      <% :project_translation -> %>
         <.session_detail_page
           handle={@handle}
           project={@project}
           session={@session}
           session_events={assigns[:session_events] || []}
-        />
-      <% :project -> %>
-        <.project_page
-          handle={@handle}
-          account={@account}
-          project={assigns[:project]}
-          project_name={@project_name}
-          setup_events={assigns[:setup_events] || []}
         />
     <% end %>
     """
@@ -5307,155 +5280,6 @@ defmodule GlossiaWeb.DashboardLive do
   # Page: Project
   # ---------------------------------------------------------------------------
 
-  defp project_page(assigns) do
-    project = assigns[:project]
-
-    setup_pr_url =
-      setup_pr_url(assigns[:setup_events] || []) ||
-        setup_pr_url_from_audit(assigns[:account], project)
-
-    assigns = assign(assigns, :setup_pr_url, setup_pr_url)
-
-    ~H"""
-    <div class="dash-page">
-      <.page_header title={@project_name} />
-
-      <%= if @project && @project.setup_status in ["pending", "running"] do %>
-        <div class="setup-feed">
-          <div class="setup-feed-header">
-            <span class="setup-feed-pulse"></span>
-            <h3>{gettext("Setting up localization...")}</h3>
-          </div>
-          <div class="setup-feed-events" id="setup-events" phx-hook=".SetupFeedScroll">
-            <%= for event <- @setup_events do %>
-              <.setup_event_item event={event} />
-            <% end %>
-          </div>
-        </div>
-        <script :type={Phoenix.LiveView.ColocatedHook} name=".SetupFeedScroll">
-          export default {
-            mounted() {
-              this.scrollToBottom()
-            },
-            updated() {
-              this.scrollToBottom()
-            },
-            scrollToBottom() {
-              this.el.scrollTop = this.el.scrollHeight
-            }
-          }
-        </script>
-      <% else %>
-        <%= if @project && @project.setup_status == "failed" do %>
-          <div class="setup-feed">
-            <div class="setup-feed-header setup-feed-header-error">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line
-                  x1="9"
-                  y1="9"
-                  x2="15"
-                  y2="15"
-                />
-              </svg>
-              <div class="setup-feed-header-copy">
-                <h3>{gettext("Setup failed")}</h3>
-                <p class="setup-feed-error-msg">
-                  {@project.setup_error || gettext("An error occurred during setup.")}
-                </p>
-              </div>
-            </div>
-            <%= if @setup_events != [] do %>
-              <details class="setup-feed-details">
-                <summary>{gettext("View agent session")}</summary>
-                <div class="setup-feed-events" id="setup-events">
-                  <%= for event <- @setup_events do %>
-                    <.setup_event_item event={event} />
-                  <% end %>
-                </div>
-              </details>
-            <% end %>
-          </div>
-        <% else %>
-          <%= if @setup_pr_url do %>
-            <div class="setup-pr-card">
-              <span class="setup-pr-card-label">{gettext("Pull request ready")}</span>
-              <a href={@setup_pr_url} target="_blank" rel="noopener noreferrer" class="setup-pr-link">
-                {gettext("Open pull request")}
-              </a>
-            </div>
-          <% else %>
-            <%= if @project && @project.setup_status == "completed" do %>
-              <div class="setup-pr-card">
-                <span class="setup-pr-card-label">{gettext("Pull request unavailable")}</span>
-                <p>
-                  {gettext(
-                    "Setup finished without a pull request link. Check setup events for details."
-                  )}
-                </p>
-              </div>
-            <% end %>
-          <% end %>
-
-          <%= if @setup_events != [] do %>
-            <details class="setup-feed-details">
-              <summary>{gettext("View setup session")}</summary>
-              <div class="setup-feed">
-                <div class="setup-feed-events" id="setup-events">
-                  <%= for event <- @setup_events do %>
-                    <.setup_event_item event={event} />
-                  <% end %>
-                </div>
-              </div>
-            </details>
-          <% end %>
-
-          <div class="dash-empty-state">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
-            <h2>{gettext("Project overview")}</h2>
-            <%= if @project && @project.github_repo_full_name do %>
-              <p>
-                {gettext("Connected to")}
-                <a
-                  href={"https://github.com/#{@project.github_repo_full_name}"}
-                  target="_blank"
-                  rel="noopener"
-                >
-                  {@project.github_repo_full_name}
-                </a>
-              </p>
-            <% else %>
-              <p>{gettext("This is a placeholder for the project detail page.")}</p>
-            <% end %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-    """
-  end
-
   defp project_settings_page(assigns) do
     ~H"""
     <div class="dash-page">
@@ -5657,17 +5481,13 @@ defmodule GlossiaWeb.DashboardLive do
             <div class="commit-message-cell">
               <span class="commit-message-text">{first_line(commit.message)}</span>
               <%= if @sessions_by_sha[commit.sha] do %>
-                <.link
-                  navigate={
-                    "/" <> @handle <> "/" <> @project.handle <> "/-/sessions/" <>
+                <.link navigate={
+                    "/" <> @handle <> "/" <> @project.handle <> "/translations/" <>
                       hd(@sessions_by_sha[commit.sha]).id
-                  }
-                  class={[
-                    "commit-session-badge",
-                    "commit-session-badge-#{hd(@sessions_by_sha[commit.sha]).status}"
-                  ]}
-                >
-                  {hd(@sessions_by_sha[commit.sha]).status}
+                  }>
+                  <.badge status={hd(@sessions_by_sha[commit.sha]).status}>
+                    {hd(@sessions_by_sha[commit.sha]).status}
+                  </.badge>
                 </.link>
               <% end %>
             </div>
@@ -5696,7 +5516,7 @@ defmodule GlossiaWeb.DashboardLive do
             <% end %>
           </:col>
           <:action :let={commit}>
-            <%= if (@can_write or @project.content_source == "local_git") and !@sessions_by_sha[commit.sha] do %>
+            <%= if @can_write and !@sessions_by_sha[commit.sha] do %>
               <button
                 class="commit-translate-btn"
                 phx-click="translate_commit"
@@ -5756,7 +5576,7 @@ defmodule GlossiaWeb.DashboardLive do
         active_filters={@translations_active_filters}
       >
         <:col :let={session} label={gettext("Status")} key="status" sortable>
-          <span class={["badge", "badge-#{session.status}"]}>{session.status}</span>
+          <.badge status={session.status}>{session.status}</.badge>
         </:col>
         <:col :let={session} label={gettext("Languages")} key="languages">
           <%= if session.source_language do %>
@@ -5780,7 +5600,7 @@ defmodule GlossiaWeb.DashboardLive do
         <:action :let={session}>
           <.link
             navigate={
-              "/" <> @handle <> "/" <> @project.handle <> "/-/sessions/" <> session.id
+              "/" <> @handle <> "/" <> @project.handle <> "/translations/" <> session.id
             }
             class="button button-small"
           >
@@ -5809,7 +5629,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       <div class="session-header">
         <div class="session-header-row">
-          <span class={["badge", "badge-#{@session.status}"]}>{@session.status}</span>
+          <.badge status={@session.status}>{@session.status}</.badge>
           <%= if @session.source_language do %>
             <span class="session-header-languages">
               {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
@@ -8647,8 +8467,8 @@ defmodule GlossiaWeb.DashboardLive do
         :api_tokens -> "/#{handle}/-/settings/tokens"
         :api_apps -> "/#{handle}/-/settings/apps"
         :discussions -> "/#{handle}/-/discussions"
-        :project_translations -> "/#{handle}/#{project_handle}/-/translations"
-        :project_activity -> "/#{handle}/#{project_handle}/-/activity"
+        :project_translations -> "/#{handle}/#{project_handle}/translations"
+        :project_activity -> "/#{handle}/#{project_handle}"
         _ -> "/#{handle}"
       end
 
@@ -8986,7 +8806,7 @@ defmodule GlossiaWeb.DashboardLive do
     project = socket.assigns.project
 
     {sessions, total} =
-      case Glossia.TranslationSessions.list_project_sessions(project, flop_params) do
+      case Glossia.Translations.list_project_translations(project, flop_params) do
         {:ok, {sessions, meta}} -> {sessions, meta.total_count}
         _ -> {[], 0}
       end

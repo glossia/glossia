@@ -3,9 +3,9 @@ defmodule Glossia.Sandbox do
   Behaviour for sandboxed execution environments and shared agent session logic.
 
   Adapters (Docker for dev, Daytona for prod) implement the five primitive
-  callbacks. The agent session orchestration -- installing Deno, uploading
-  config, running the setup script, polling for completion -- lives here
-  so it is written once.
+  callbacks. The agent session orchestration -- uploading the Elixir agent
+  binary, uploading config, launching the agent, polling for completion --
+  lives here so it is written once.
   """
 
   require Logger
@@ -25,6 +25,7 @@ defmodule Glossia.Sandbox do
   @max_poll_duration_ms 600_000
   @status_path "/tmp/agent-status.json"
   @config_path "/tmp/glossia-setup.json"
+  @agent_binary_path "/tmp/glossia_agent"
 
   def adapter do
     Application.get_env(:glossia, :sandbox_adapter, Glossia.Sandbox.Docker)
@@ -33,8 +34,8 @@ defmodule Glossia.Sandbox do
   @doc """
   Start an agent session inside a sandbox.
 
-  Installs Deno, uploads the setup config JSON, launches the Deno-based
-  setup agent, and polls `status.json` for completion. Sends
+  Uploads the Elixir agent binary and config JSON, launches the agent,
+  and polls `status.json` for completion. Sends
   `{:agent_done, :completed | :failed}` to `receiver` when finished.
   """
   @spec start_agent_session(module(), sandbox_id(), pid(), keyword()) ::
@@ -56,11 +57,9 @@ defmodule Glossia.Sandbox do
     project_id = Keyword.fetch!(opts, :project_id)
     config_json = Keyword.fetch!(opts, :config_json)
 
-    # Clear any stale status file from a previous run so the poll loop
-    # doesn't immediately read an old "failed" or "completed" value.
     clear_status_file(adapter, sandbox_id)
 
-    with :ok <- install_deno(adapter, sandbox_id),
+    with :ok <- install_agent(adapter, sandbox_id),
          :ok <- upload_config(adapter, sandbox_id, config_json),
          :ok <- run_agent(adapter, sandbox_id, server_url, session_token, project_id) do
       poll_loop(adapter, sandbox_id, receiver, 0)
@@ -78,19 +77,28 @@ defmodule Glossia.Sandbox do
   end
 
   defp clear_status_file(adapter, sandbox_id) do
-    adapter.execute(sandbox_id, "rm -f #{@status_path}")
+    adapter.execute(sandbox_id, "rm -f #{@status_path}", [])
   end
 
-  defp install_deno(adapter, sandbox_id) do
-    case adapter.execute(sandbox_id, "curl -fsSL https://deno.land/install.sh | sh") do
-      {:ok, %{"exitCode" => 0}} ->
+  defp install_agent(adapter, sandbox_id) do
+    path = Application.app_dir(:glossia, "priv/agent/glossia_agent")
+
+    if File.exists?(path) do
+      binary = File.read!(path)
+
+      with :ok <- adapter.upload_file(sandbox_id, @agent_binary_path, binary),
+           {:ok, %{"exitCode" => 0}} <-
+             adapter.execute(sandbox_id, "chmod +x #{@agent_binary_path}", []) do
         :ok
+      else
+        {:ok, %{"exitCode" => code}} ->
+          {:error, {:agent_chmod_failed, code}}
 
-      {:ok, %{"exitCode" => code, "result" => output}} ->
-        {:error, {:deno_install_failed, code, output}}
-
-      {:error, reason} ->
-        {:error, {:deno_install_failed, reason}}
+        {:error, reason} ->
+          {:error, {:agent_upload_failed, reason}}
+      end
+    else
+      {:error, :agent_binary_not_available}
     end
   end
 
@@ -99,22 +107,19 @@ defmodule Glossia.Sandbox do
   end
 
   defp run_agent(adapter, sandbox_id, server_url, session_token, project_id) do
-    deno_path = "/root/.deno/bin/deno"
-
     # Docker containers can't reach host's localhost; use host.docker.internal.
     # On Daytona this is a no-op since server_url is a public URL.
     effective_url = String.replace(server_url, "://localhost", "://host.docker.internal")
 
     command =
-      "nohup #{deno_path} run --allow-all " <>
-        "\"#{effective_url}/agent/scripts/mod.ts\" " <>
+      "nohup #{@agent_binary_path} " <>
         "--server-url=\"#{effective_url}\" " <>
         "--token=\"#{session_token}\" " <>
         "--project-id=\"#{project_id}\" " <>
         "--config-path=\"#{@config_path}\" " <>
         "> /tmp/agent-runner.log 2>&1 &"
 
-    case adapter.execute(sandbox_id, command) do
+    case adapter.execute(sandbox_id, command, []) do
       {:ok, _} ->
         Process.sleep(1_000)
         :ok

@@ -36,7 +36,7 @@ defmodule Glossia.ContentSource.LocalGit do
     end
   end
 
-  defp repo_path(project) do
+  def repo_path(project) do
     relative = project.content_source_path
 
     if relative do

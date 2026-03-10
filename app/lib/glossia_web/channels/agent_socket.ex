@@ -4,6 +4,7 @@ defmodule GlossiaWeb.AgentSocket do
   use Phoenix.Socket
 
   channel "agent:setup:*", GlossiaWeb.AgentChannel
+  channel "agent:translate:*", GlossiaWeb.AgentChannel
 
   @impl true
   def connect(%{"token" => token}, socket, _connect_info) do

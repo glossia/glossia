@@ -4,6 +4,7 @@ fnox = "1.7.0"
 aws-cli = "2"
 "gem:kamal" = "2.9.0"
 ruby = "3.4.7"
+"npm:@tobilu/qmd" = "latest"
 
 [env]
 _.file = ".env"

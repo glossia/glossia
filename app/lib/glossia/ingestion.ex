@@ -3,13 +3,13 @@ defmodule Glossia.Ingestion do
   Context for ingesting and querying ClickHouse data beyond audit events.
   """
 
-  alias Glossia.Ingestion.{Buffer, SetupEvent, TranslationSessionEvent}
+  alias Glossia.Ingestion.{Buffer, SetupEvent, TranslationEvent}
   alias Glossia.ClickHouseRepo
 
   import Ecto.Query
 
   @setup_event_buffer Glossia.Ingestion.SetupEventBuffer
-  @translation_session_event_buffer Glossia.Ingestion.TranslationSessionEventBuffer
+  @translation_event_buffer Glossia.Ingestion.TranslationEventBuffer
 
   def record_setup_event(project_id, sequence, event_type, content, metadata \\ "") do
     buffer_opts = SetupEvent.buffer_opts()
@@ -71,12 +71,12 @@ defmodule Glossia.Ingestion do
 
   # --- Translation session events ---
 
-  def record_translation_session_event(session_id, sequence, event_type, content, metadata \\ "") do
-    buffer_opts = TranslationSessionEvent.buffer_opts()
+  def record_translation_event(translation_id, sequence, event_type, content, metadata \\ "") do
+    buffer_opts = TranslationEvent.buffer_opts()
 
     row = [
       Uniq.UUID.uuid7(:raw),
-      to_string(session_id),
+      to_string(translation_id),
       sequence,
       event_type,
       content || "",
@@ -84,12 +84,12 @@ defmodule Glossia.Ingestion do
     ]
 
     row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)
-    Buffer.insert(@translation_session_event_buffer, row_binary)
+    Buffer.insert(@translation_event_buffer, row_binary)
   end
 
-  def list_translation_session_events(session_id) do
+  def list_translation_events(translation_id) do
     from(e in "translation_session_events",
-      where: e.session_id == ^to_string(session_id),
+      where: e.session_id == ^to_string(translation_id),
       order_by: [asc: e.sequence],
       select: %{
         id: e.id,

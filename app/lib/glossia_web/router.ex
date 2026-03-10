@@ -6,7 +6,6 @@ defmodule GlossiaWeb.Router do
 
   @compile {:no_warn_undefined,
             [
-              GlossiaWeb.AgentScriptController,
               GlossiaWeb.AvatarController,
               GlossiaWeb.GithubInstallCallbackController,
               GlossiaWeb.Plugs.ApiRateLimit,
@@ -67,13 +66,6 @@ defmodule GlossiaWeb.Router do
   end
 
   get "/up", GlossiaWeb.HealthController, :index
-
-  # Agent script serving (Deno fetches TS modules from here)
-  scope "/agent/scripts", GlossiaWeb do
-    pipe_through :api
-
-    get "/*path", AgentScriptController, :show
-  end
 
   # Webhooks (no session, no CSRF)
   scope "/webhooks", GlossiaWeb do
@@ -365,7 +357,7 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through :browser
 
-    get "/:handle/:project/-/commits", RedirectController, :project_activity
+    get "/:handle/:project/commits", RedirectController, :project_activity
   end
 
   # User settings routes (/-/settings/*, user-scoped, no handle)
@@ -422,11 +414,10 @@ defmodule GlossiaWeb.Router do
 
       # Content routes (no /-/, MUST come last)
       live "/:handle", DashboardLive, :account
-      live "/:handle/:project/-/settings", DashboardLive, :project_settings
-      live "/:handle/:project/-/activity", DashboardLive, :project_activity
-      live "/:handle/:project/-/translations", DashboardLive, :project_translations
-      live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
-      live "/:handle/:project", DashboardLive, :project
+      live "/:handle/:project/settings", DashboardLive, :project_settings
+      live "/:handle/:project/translations", DashboardLive, :project_translations
+      live "/:handle/:project/translations/:translation_id", DashboardLive, :project_translation
+      live "/:handle/:project", DashboardLive, :project_activity
     end
   end
 end

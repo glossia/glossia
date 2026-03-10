@@ -1,4 +1,4 @@
-defmodule Glossia.Ingestion.TranslationSessionEvent do
+defmodule Glossia.Ingestion.TranslationEvent do
   use Ecto.Schema
   use Glossia.Ingestion.Bufferable
 

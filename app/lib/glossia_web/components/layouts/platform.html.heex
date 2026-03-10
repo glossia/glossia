@@ -134,12 +134,6 @@
             <span class="gl-nav-section-label">{@sidebar_project.handle}</span>
             <.link
               navigate={"/#{@handle}/#{@sidebar_project.handle}"}
-              class={["gl-nav-item gl-nav-subitem", @live_action == :project && "active"]}
-            >
-              <span>{gettext("Overview")}</span>
-            </.link>
-            <.link
-              navigate={"/#{@handle}/#{@sidebar_project.handle}/-/activity"}
               class={[
                 "gl-nav-item gl-nav-subitem",
                 @live_action == :project_activity && "active"
@@ -148,7 +142,7 @@
               <span>{gettext("Activity")}</span>
             </.link>
             <.link
-              navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
+              navigate={"/#{@handle}/#{@sidebar_project.handle}/translations"}
               class={[
                 "gl-nav-item gl-nav-subitem",
                 @live_action in [:project_translations, :project_session] && "active"
@@ -158,7 +152,7 @@
             </.link>
             <%= if assigns[:is_admin] do %>
               <.link
-                navigate={"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
+                navigate={"/#{@handle}/#{@sidebar_project.handle}/settings"}
                 class={[
                   "gl-nav-item gl-nav-subitem",
                   @live_action == :project_settings && "active"

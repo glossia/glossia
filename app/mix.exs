@@ -72,7 +72,7 @@ defmodule Glossia.MixProject do
       {:opentelemetry_bandit, "~> 0.3.0"},
       {:opentelemetry_ecto, "~> 1.2"},
       {:opentelemetry_logger_metadata, "~> 0.2.0"},
-      {:gettext, "~> 1.0"},
+      {:gettext, "~> 1.0", override: true},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
@@ -96,7 +96,8 @@ defmodule Glossia.MixProject do
       {:flop, "~> 0.26"},
       {:chromic_pdf, "~> 1.17"},
       {:mimic, "~> 1.10", only: :test},
-      {:muontrap, "~> 1.5"}
+      {:muontrap, "~> 1.5"},
+      {:glossia_agent, path: "../agent"}
     ]
   end
 

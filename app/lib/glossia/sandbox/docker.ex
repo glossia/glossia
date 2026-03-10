@@ -13,18 +13,20 @@ defmodule Glossia.Sandbox.Docker do
   @image "node:22"
 
   @impl true
-  def create(_params) do
-    id = "glossia-setup-#{Uniq.UUID.uuid7()}"
+  def create(params) do
+    id = "glossia-sandbox-#{Uniq.UUID.uuid7()}"
+    volumes = Map.get(params, :volumes, [])
+
+    volume_args =
+      Enum.flat_map(volumes, fn {host_path, container_path} ->
+        ["-v", "#{host_path}:#{container_path}"]
+      end)
 
     {_, 0} =
-      MuonTrap.cmd("docker", [
-        "create",
-        "--name",
-        id,
-        @image,
-        "sleep",
-        "infinity"
-      ])
+      MuonTrap.cmd(
+        "docker",
+        ["create", "--name", id] ++ volume_args ++ [@image, "sleep", "infinity"]
+      )
 
     {_, 0} = MuonTrap.cmd("docker", ["start", id])
 

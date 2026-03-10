@@ -1,8 +1,9 @@
-defmodule Glossia.TranslationSessions.TranslateWorkerTest do
+defmodule Glossia.Translations.TranslateWorkerTest do
   use Glossia.DataCase, async: true
+  use Mimic
 
-  alias Glossia.TranslationSessions
-  alias Glossia.TranslationSessions.{TranslateWorker, TranslationSession}
+  alias Glossia.Translations
+  alias Glossia.Translations.{TranslateWorker, Translation}
   alias Glossia.Projects
   alias GlossiaWeb.ApiTestHelpers
 
@@ -18,11 +19,25 @@ defmodule Glossia.TranslationSessions.TranslateWorkerTest do
         setup_target_languages: ["es", "fr"]
       })
 
+    stub(Glossia.Sandbox.Docker, :create, fn _params -> {:ok, "glossia-sandbox-test"} end)
+    stub(Glossia.Sandbox.Docker, :delete, fn _id -> :ok end)
+
+    stub(Glossia.Sandbox.Docker, :execute, fn _id, _cmd, _opts ->
+      {:ok, %{"exitCode" => 0, "result" => ""}}
+    end)
+
+    stub(Glossia.Sandbox.Docker, :upload_file, fn _id, _path, _content -> :ok end)
+    stub(Glossia.Sandbox.Docker, :download_file, fn _id, _path -> {:error, :file_not_found} end)
+
     %{account: account, project: project}
   end
 
   describe "perform/1" do
-    test "creates a translation session for a commit", %{project: project} do
+    test "creates a translation for a commit", %{project: project} do
+      stub(Glossia.Sandbox.Docker, :download_file, fn _id, _path ->
+        {:ok, ~s({"status":"completed"})}
+      end)
+
       assert :ok =
                TranslateWorker.perform(%Oban.Job{
                  args: %{
@@ -32,32 +47,35 @@ defmodule Glossia.TranslationSessions.TranslateWorkerTest do
                  }
                })
 
-      sessions =
+      translations =
         Repo.all(
-          from(s in TranslationSession,
-            where: s.project_id == ^project.id and s.commit_sha == "abc123"
+          from(t in Translation,
+            where: t.project_id == ^project.id and t.commit_sha == "abc123"
           )
         )
 
-      assert length(sessions) == 1
-      [session] = sessions
-      assert session.status == "pending"
-      assert session.source_language == "en"
-      assert session.target_languages == ["es", "fr"]
-      assert session.commit_message == "feat: add new feature"
+      assert length(translations) == 1
+      [translation] = translations
+      assert translation.source_language == "en"
+      assert translation.target_languages == ["es", "fr"]
+      assert translation.commit_message == "feat: add new feature"
     end
 
-    test "cancels active sessions before creating a new one", %{
+    test "cancels active translations before creating a new one", %{
       account: account,
       project: project
     } do
       {:ok, existing} =
-        TranslationSessions.create_session(account, project, %{
+        Translations.create_translation(account, project, %{
           "commit_sha" => "old-commit",
           "status" => "pending",
           "source_language" => "en",
           "target_languages" => ["es"]
         })
+
+      stub(Glossia.Sandbox.Docker, :download_file, fn _id, _path ->
+        {:ok, ~s({"status":"completed"})}
+      end)
 
       assert :ok =
                TranslateWorker.perform(%Oban.Job{
@@ -68,12 +86,12 @@ defmodule Glossia.TranslationSessions.TranslateWorkerTest do
                  }
                })
 
-      cancelled = Repo.get!(TranslationSession, existing.id)
+      cancelled = Repo.get!(Translation, existing.id)
       assert cancelled.status == "failed"
       assert cancelled.error =~ "superseded"
     end
 
-    test "skips session creation when no target languages configured", %{account: account} do
+    test "skips translation when no target languages configured", %{account: account} do
       {:ok, empty_project} =
         Projects.create_project(account, %{
           handle: "empty-proj-#{System.unique_integer([:positive])}",
@@ -91,14 +109,14 @@ defmodule Glossia.TranslationSessions.TranslateWorkerTest do
                  }
                })
 
-      sessions =
+      translations =
         Repo.all(
-          from(s in TranslationSession,
-            where: s.project_id == ^empty_project.id
+          from(t in Translation,
+            where: t.project_id == ^empty_project.id
           )
         )
 
-      assert sessions == []
+      assert translations == []
     end
   end
 end

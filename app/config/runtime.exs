@@ -84,7 +84,18 @@ if is_binary(github_webhook_secret) and github_webhook_secret != "" do
 end
 
 github_app_id = System.get_env("GITHUB_APP_ID")
-github_app_private_key = System.get_env("GITHUB_APP_PRIVATE_KEY")
+github_app_private_key_raw = System.get_env("GITHUB_APP_PRIVATE_KEY")
+
+github_app_private_key =
+  if is_binary(github_app_private_key_raw) and github_app_private_key_raw != "" do
+    case Base.decode64(github_app_private_key_raw) do
+      {:ok, decoded} -> decoded
+      :error -> github_app_private_key_raw
+    end
+  else
+    nil
+  end
+
 github_app_slug = System.get_env("GITHUB_APP_SLUG")
 
 if is_binary(github_app_id) and github_app_id != "" do

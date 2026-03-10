@@ -137,3 +137,48 @@ When touching styles, incrementally fix these gaps. Do not attempt a full rewrit
 
 - `app/priv/repo/seeds.exs` must stay **realistic and up to date**. When adding a new domain feature (schema/context/API surface), extend seeds with representative data so developers and agents can exercise it end-to-end.
 - Keep seeds idempotent (safe to run multiple times) and include data that covers: public accounts, access-gated accounts (`has_access: false`), organization memberships, invitations, projects, and voice/version history.
+
+## Vault (internal brainstorming)
+
+The `vault/` directory is an Obsidian-compatible vault for **internal brainstorming, knowledge capture, and ideas that don't fit the documentation yet**. It's not user-facing docs -- it's where we think through product concepts, architecture explorations, and design decisions before they're ready to become formal docs or code.
+
+### Format
+
+Files are markdown with YAML frontmatter:
+
+```yaml
+---
+title: "Concept Name"
+tags: [product, feature-area, mvp]
+created: 2026-03-01
+---
+```
+
+### Search with qmd
+
+The vault is indexed with `qmd` for semantic and keyword search. Use the `qmd` MCP tools to find relevant brainstorming notes:
+
+- `qmd_search` -- fast keyword search (BM25)
+- `qmd_vsearch` -- semantic similarity search (finds conceptually related content even without exact keyword matches)
+- `qmd_query` -- highest quality combined search with reranking
+- `qmd_get` -- retrieve full document content by file path
+
+After adding or changing vault files, re-index and re-embed:
+
+```sh
+qmd add vault/
+qmd embed
+```
+
+### When to use the vault
+
+- Exploring a new product concept or feature idea
+- Capturing brainstorming session outcomes
+- Writing up architecture trade-offs before committing to an approach
+- Storing research notes that inform future decisions
+
+### When NOT to use the vault
+
+- Anything ready for users to read -- put it in `app/priv/docs/` instead
+- Code-level documentation -- put it in code comments or AGENTS.md
+- Deployment/ops notes -- put them in the relevant config files

@@ -2601,41 +2601,33 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
   color: var(--color-bg);
 }
 
-/* --- Commit session badge (inline in commit row) --- */
-.commit-session-badge {
-  display: inline-block;
-  padding: var(--space-0-5) var(--space-2);
-  font-size: var(--text-2xs);
-  font-weight: var(--weight-medium);
-  border-radius: var(--radius-full);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-decoration: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: opacity var(--transition);
-}
-.commit-session-badge:hover { opacity: 0.8; }
-.commit-session-badge-pending { background: var(--color-bg-subtle); color: var(--color-text-muted); }
-.commit-session-badge-running { background: var(--color-primary-soft); color: var(--color-primary); }
-.commit-session-badge-completed { background: var(--color-bg-subtle); color: var(--color-success); }
-.commit-session-badge-failed { background: var(--color-bg-subtle); color: var(--color-error); }
-
 /* --- Status badges --- */
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   padding: var(--space-0-5) var(--space-2);
   font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
-  border-radius: var(--radius-full);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
   flex-shrink: 0;
+  text-decoration: none;
+  transition: opacity var(--transition);
 }
-.badge-pending { background: var(--color-bg-subtle); color: var(--color-text-muted); }
-.badge-running { background: var(--color-primary-soft); color: var(--color-primary); }
-.badge-completed { background: var(--color-bg-subtle); color: var(--color-success); }
-.badge-failed { background: var(--color-bg-subtle); color: var(--color-error); }
+.badge:hover { opacity: 0.85; }
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  background: currentColor;
+}
+.badge-neutral { background: var(--color-bg-subtle); color: var(--color-text-muted); }
+.badge-info { background: var(--color-primary-soft); color: var(--color-primary); }
+.badge-success { background: var(--color-bg-subtle); color: var(--color-success); }
+.badge-warning { background: var(--color-warning-soft, #fef3c7); color: var(--color-warning, #b45309); }
+.badge-error { background: var(--color-bg-subtle); color: var(--color-error); }
 
 /* --- Session detail page --- */
 .session-header {

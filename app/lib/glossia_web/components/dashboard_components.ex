@@ -1398,22 +1398,45 @@ defmodule GlossiaWeb.DashboardComponents do
   # ---------------------------------------------------------------------------
 
   @doc """
-  Renders a status badge with a variant color.
+  Renders a status badge with a variant color and an optional status dot.
 
   ## Examples
 
       <.badge variant="success">Active</.badge>
       <.badge variant="warning">Ticket</.badge>
       <.badge variant="info">In progress</.badge>
+      <.badge variant="error">Failed</.badge>
+      <.badge status="pending">pending</.badge>
+      <.badge status="running">running</.badge>
   """
-  attr :variant, :string, values: ~w(neutral info success warning), default: "neutral"
+  attr :variant, :string,
+    values: ~w(neutral info success warning error),
+    default: "neutral"
+
+  attr :status, :string,
+    default: nil,
+    doc:
+      "Translation status shortcut (pending/running/completed/failed). Overrides :variant with the mapped color."
+
   attr :class, :any, default: nil
 
   slot :inner_block, required: true
 
   def badge(assigns) do
+    variant =
+      case assigns.status do
+        "pending" -> "neutral"
+        "running" -> "info"
+        "completed" -> "success"
+        "failed" -> "error"
+        _ -> assigns.variant
+      end
+
+    assigns = assign(assigns, :resolved_variant, variant)
+
     ~H"""
-    <span class={["badge", "badge-#{@variant}", @class]}>
+    <span class={["badge", "badge-#{@resolved_variant}", @class]}>
+      <span class="badge-dot"></span>
       {render_slot(@inner_block)}
     </span>
     """

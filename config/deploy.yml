@@ -53,6 +53,7 @@ env:
     - GITHUB_WEBHOOK_SECRET
     - GITHUB_APP_ID
     - GITHUB_APP_PRIVATE_KEY
+    - GITHUB_APP_SLUG
     - GITLAB_CLIENT_ID
     - GITLAB_CLIENT_SECRET
     - GITLAB_WEBHOOK_SECRET
@@ -315,3 +316,69 @@ accessories:
     directories:
       - data:/shared
       - log:/var/log
+  peertube-postgres:
+    image: postgres:17
+    host: 89.167.60.202
+    env:
+      clear:
+        POSTGRES_USER: peertube
+        POSTGRES_DB: peertube
+      secret:
+        - POSTGRES_PASSWORD:PEERTUBE_POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+  peertube-redis:
+    image: redis:7-alpine
+    host: 89.167.60.202
+    directories:
+      - data:/data
+  peertube:
+    image: chocobozzz/peertube:v7.1.0-bookworm
+    host: 89.167.60.202
+    proxy:
+      ssl: true
+      host: videos.glossia.ai
+      app_port: 9000
+      forward_headers: true
+      healthcheck:
+        path: /api/v1/config
+        timeout: 120
+      response_timeout: 120
+    env:
+      clear:
+        PEERTUBE_WEBSERVER_HOSTNAME: videos.glossia.ai
+        PEERTUBE_WEBSERVER_PORT: "443"
+        PEERTUBE_WEBSERVER_HTTPS: "true"
+        PEERTUBE_TRUST_PROXY: '["127.0.0.1", "loopback", "172.16.0.0/12"]'
+        PEERTUBE_DB_HOSTNAME: glossia-peertube-postgres
+        PEERTUBE_DB_NAME: peertube
+        PEERTUBE_DB_USERNAME: peertube
+        PEERTUBE_REDIS_HOSTNAME: glossia-peertube-redis
+        PEERTUBE_ADMIN_EMAIL: pedro@glossia.ai
+        PEERTUBE_SMTP_FROM: noreply@glossia.ai
+        PEERTUBE_SMTP_TLS: "false"
+        PEERTUBE_OBJECT_STORAGE_ENABLED: "true"
+        PEERTUBE_OBJECT_STORAGE_UPLOAD_ACL_PUBLIC: "public-read"
+        PEERTUBE_OBJECT_STORAGE_UPLOAD_ACL_PRIVATE: "private"
+        PEERTUBE_OBJECT_STORAGE_PROXY_ENABLED: "true"
+        PEERTUBE_OBJECT_STORAGE_WEB_VIDEOS_PREFIX: "web-videos/"
+        PEERTUBE_OBJECT_STORAGE_ORIGINAL_VIDEO_FILES_PREFIX: "original-video-files/"
+        PEERTUBE_OBJECT_STORAGE_STREAMING_PLAYLISTS_PREFIX: "streaming-playlists/"
+        PEERTUBE_OBJECT_STORAGE_USER_EXPORTS_PREFIX: "user-exports/"
+      secret:
+        - PEERTUBE_DB_PASSWORD:PEERTUBE_POSTGRES_PASSWORD
+        - PEERTUBE_SECRET
+        - PEERTUBE_OBJECT_STORAGE_CREDENTIALS_ACCESS_KEY_ID
+        - PEERTUBE_OBJECT_STORAGE_CREDENTIALS_SECRET_ACCESS_KEY
+        - PEERTUBE_OBJECT_STORAGE_ENDPOINT
+        - PEERTUBE_OBJECT_STORAGE_REGION
+        - PEERTUBE_OBJECT_STORAGE_WEB_VIDEOS_BUCKET_NAME
+        - PEERTUBE_OBJECT_STORAGE_ORIGINAL_VIDEO_FILES_BUCKET_NAME
+        - PEERTUBE_OBJECT_STORAGE_STREAMING_PLAYLISTS_BUCKET_NAME
+        - PEERTUBE_OBJECT_STORAGE_USER_EXPORTS_BUCKET_NAME
+        - PEERTUBE_SMTP_HOSTNAME:SMTP_HOST
+        - PEERTUBE_SMTP_PORT:SMTP_PORT
+        - PEERTUBE_SMTP_USERNAME:SMTP_USERNAME
+        - PEERTUBE_SMTP_PASSWORD:SMTP_PASSWORD
+    directories:
+      - data:/data

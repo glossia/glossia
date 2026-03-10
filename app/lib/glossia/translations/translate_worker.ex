@@ -1,12 +1,13 @@
-defmodule Glossia.TranslationSessions.TranslateWorker do
+defmodule Glossia.Translations.TranslateWorker do
   @moduledoc """
-  Oban worker that creates a translation session for a commit,
-  cancelling any active sessions for the same project first.
+  Oban worker that creates a translation for a commit,
+  cancelling any active translations for the same project first,
+  then delegates to the Translate orchestrator.
   """
 
   use Oban.Worker, queue: :default, max_attempts: 3, unique: [keys: [:project_id, :commit_sha]]
 
-  alias Glossia.TranslationSessions
+  alias Glossia.Translations
 
   require Logger
 
@@ -20,14 +21,14 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
       }) do
     project =
       Glossia.Repo.get!(Glossia.Accounts.Project, project_id)
-      |> Glossia.Repo.preload(:account)
+      |> Glossia.Repo.preload([:account, :github_installation])
 
     account = project.account
 
-    {:ok, cancelled_count} = TranslationSessions.cancel_active_sessions(project)
+    {:ok, cancelled_count} = Translations.cancel_active_translations(project)
 
     if cancelled_count > 0 do
-      Logger.info("Cancelled #{cancelled_count} active session(s) for project #{project_id}")
+      Logger.info("Cancelled #{cancelled_count} active translation(s) for project #{project_id}")
     end
 
     target_languages = project.setup_target_languages || []
@@ -36,8 +37,8 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
       Logger.warning("No target languages configured for project #{project_id}, skipping")
       :ok
     else
-      {:ok, session} =
-        TranslationSessions.create_session(account, project, %{
+      {:ok, translation} =
+        Translations.create_translation(account, project, %{
           "commit_sha" => commit_sha,
           "commit_message" => commit_message,
           "status" => "pending",
@@ -45,15 +46,15 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
           "target_languages" => target_languages
         })
 
-      Glossia.Auditing.record("translation_session.created", account, nil,
-        resource_type: "translation_session",
-        resource_id: to_string(session.id),
+      Glossia.Auditing.record("translation.created", account, nil,
+        resource_type: "translation",
+        resource_id: to_string(translation.id),
         metadata: JSON.encode!(%{triggered_by: "webhook", commit_sha: commit_sha})
       )
 
-      Logger.info("Created translation session #{session.id} for commit #{commit_sha}")
+      Logger.info("Created translation #{translation.id} for commit #{commit_sha}")
 
-      :ok
+      Glossia.Translations.Translate.run(project, account, translation)
     end
   end
 end

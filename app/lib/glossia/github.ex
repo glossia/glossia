@@ -63,12 +63,13 @@ defmodule Glossia.Github do
     repo_id = get_in(event, ["repository", "id"])
     ref = event["ref"]
     head_commit = event["head_commit"]
+    payload_default_branch = get_in(event, ["repository", "default_branch"])
 
     with project when not is_nil(project) <-
            Glossia.Projects.get_project_by_github_repo_id(repo_id),
-         true <- push_to_default_branch?(ref, project),
+         true <- push_to_default_branch?(ref, project, payload_default_branch),
          commit when is_map(commit) <- head_commit do
-      Glossia.TranslationSessions.TranslateWorker.new(%{
+      Glossia.Translations.TranslateWorker.new(%{
         "project_id" => project.id,
         "commit_sha" => commit["id"],
         "commit_message" => first_line(commit["message"]),
@@ -94,8 +95,8 @@ defmodule Glossia.Github do
     :ok
   end
 
-  defp push_to_default_branch?(ref, project) do
-    default_branch = project.github_repo_default_branch || "main"
+  defp push_to_default_branch?(ref, project, payload_default_branch) do
+    default_branch = payload_default_branch || project.github_repo_default_branch || "main"
     ref == "refs/heads/#{default_branch}"
   end
 
