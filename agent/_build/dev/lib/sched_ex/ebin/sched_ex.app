@@ -1,1 +1,0 @@
-{application,sched_ex,[{modules,['Elixir.SchedEx','Elixir.SchedEx.IdentityTimeScale','Elixir.SchedEx.Runner','Elixir.SchedEx.Stats','Elixir.SchedEx.Stats.Value','Elixir.SchedEx.TimeScale']},{optional_applications,[]},{applications,[kernel,stdlib,elixir,crontab,logger,timex]},{description,"sched_ex"},{registered,[]},{vsn,"1.1.4"}]}.

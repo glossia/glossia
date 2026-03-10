@@ -11,3 +11,8 @@
 /.kamal/secrets
 
 /tmp
+
+# Agent mix build artifacts
+/agent/_build/
+/agent/deps/
+/agent/erl_crash.dump
