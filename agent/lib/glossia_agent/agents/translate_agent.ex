@@ -2,9 +2,9 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
   @moduledoc """
   Jido Agent for the translation workflow.
 
-  Orchestrates the full translation pipeline: parsing GLOSSIA.md config,
-  building a plan of source/output pairs, translating each file via LLM,
-  writing outputs, and updating lock files for incremental processing.
+  Executes a prepared translation plan by translating each source/output
+  pair via LLM, writing outputs, and updating lock files for incremental
+  processing.
 
   State tracks progress through the pipeline so callers can observe
   how many files have been processed, any errors, and the overall status.
@@ -14,7 +14,7 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
     name: "translate_agent",
     description: "Orchestrates the GLOSSIA translation workflow",
     schema: [
-      repo_path: [type: :string, doc: "Path to the repository root"],
+      repo_path: [type: :string, doc: "Path to the root directory"],
       status: [type: :atom, default: :idle, doc: "Current workflow status"],
       progress: [type: :integer, default: 0, doc: "Number of pairs processed"],
       total: [type: :integer, default: 0, doc: "Total number of source/output pairs"],
@@ -34,45 +34,14 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
   """
   def run_workflow(opts) do
     repo_path = Keyword.fetch!(opts, :repo_path)
-    minimax_api_key = Keyword.fetch!(opts, :minimax_api_key)
-    model = Keyword.get(opts, :model, "MiniMax-M2.5")
+    translate_sources = Keyword.fetch!(opts, :translate_sources)
+    total_pairs = Keyword.fetch!(opts, :total_pairs)
     emitter = Keyword.fetch!(opts, :emitter)
 
-    {:ok, agent} = new(state: %{repo_path: repo_path, status: :parsing})
+    {:ok, agent} = new(state: %{repo_path: repo_path, status: :planning})
 
     try do
-      Emitter.emit(emitter, "status", "Resolving LLM configuration...")
-      Emitter.emit(emitter, "status", "Parsing GLOSSIA.md...")
-
-      {agent, _directives} =
-        cmd(
-          agent,
-          {Actions.ParseConfig,
-           %{
-             minimax_api_key: minimax_api_key,
-             model: model
-           }}
-        )
-
-      # ParseConfig result is deep-merged into state: %{fallback_agent: ...}
-      fallback_agent = agent.state.fallback_agent
-
-      {:ok, agent} = set(agent, %{status: :planning})
-      Emitter.emit(emitter, "status", "Building translation plan...")
-
-      {agent, _directives} =
-        cmd(
-          agent,
-          {Actions.BuildPlan,
-           %{
-             repo_path: repo_path,
-             fallback_agent: fallback_agent
-           }}
-        )
-
-      # BuildPlan result is deep-merged: %{plan: ..., translate_sources: ..., total_pairs: ...}
-      translate_sources = agent.state.translate_sources
-      total_pairs = agent.state.total_pairs
+      Emitter.emit(emitter, "status", "Using prepared translation plan...")
 
       if translate_sources == [] do
         Emitter.emit(emitter, "status", "No translation sources found in plan.")
@@ -126,7 +95,8 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
   end
 
   defp translate_source(agent, source, repo_path, emitter) do
-    source_content = File.read!(source.abs_path)
+    source_abs_path = Path.join(repo_path, source.source_path)
+    source_content = File.read!(source_abs_path)
     source_hash = Hash.hash_string(source_content)
     context_parts = source.context_bodies
     context_hash = Hash.hash_strings(context_parts)

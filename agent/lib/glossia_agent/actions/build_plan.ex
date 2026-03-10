@@ -10,7 +10,7 @@ defmodule GlossiaAgent.Actions.BuildPlan do
     name: "build_plan",
     description: "Build a translation plan from parsed GLOSSIA.md config",
     schema: [
-      repo_path: [type: :string, required: true, doc: "Path to the repository root"],
+      repo_path: [type: :string, required: true, doc: "Path to the root directory"],
       fallback_agent: [type: :any, required: true, doc: "Fallback LLM agent config"]
     ]
 

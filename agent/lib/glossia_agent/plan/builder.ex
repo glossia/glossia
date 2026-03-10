@@ -158,8 +158,8 @@ defmodule GlossiaAgent.Plan.Builder do
   # -- Source plan building ----------------------------------------------------
 
   defp build_source_plan(root_abs, source_path, candidate, content_files, fallback_agent) do
-    abs_path = Path.join(root_abs, source_path)
-    context_files = ancestors_for(abs_path, content_files)
+    source_abs_path = Path.join(root_abs, source_path)
+    context_files = ancestors_for(source_abs_path, content_files)
 
     is_translate = candidate.entry.targets != []
     kind = if is_translate, do: :translate, else: :revisit
@@ -191,7 +191,7 @@ defmodule GlossiaAgent.Plan.Builder do
 
     rel_path =
       Path.relative_to(
-        abs_path,
+        source_abs_path,
         Path.join(root_abs, candidate.base_path)
       )
 
@@ -234,7 +234,6 @@ defmodule GlossiaAgent.Plan.Builder do
 
     %SourcePlan{
       source_path: source_path,
-      abs_path: abs_path,
       base_path: candidate.base_path,
       rel_path: rel_path,
       format: Format.detect(source_path),

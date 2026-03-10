@@ -12,7 +12,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     name: "setup_agent",
     description: "Orchestrates the GLOSSIA setup workflow",
     schema: [
-      repo_path: [type: :string, doc: "Path to the repository root"],
+      repo_path: [type: :string, doc: "Path to the root directory"],
       status: [type: :atom, default: :idle, doc: "Current workflow status"],
       result_content: [type: :string, default: "", doc: "Generated GLOSSIA.md content"]
     ]

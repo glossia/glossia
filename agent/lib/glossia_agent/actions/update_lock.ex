@@ -10,7 +10,7 @@ defmodule GlossiaAgent.Actions.UpdateLock do
     name: "update_lock",
     description: "Update lock file after successful translation",
     schema: [
-      repo_path: [type: :string, required: true, doc: "Path to the repository root"],
+      repo_path: [type: :string, required: true, doc: "Path to the root directory"],
       source_path: [type: :string, required: true, doc: "Relative source file path"],
       lang_key: [type: :string, required: true, doc: "Language key for the output"],
       output_path: [type: :string, required: true, doc: "Relative output file path"],

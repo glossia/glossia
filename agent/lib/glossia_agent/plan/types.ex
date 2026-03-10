@@ -20,7 +20,6 @@ defmodule GlossiaAgent.Plan.Types do
     @moduledoc false
     defstruct [
       :source_path,
-      :abs_path,
       :base_path,
       :rel_path,
       :format,
@@ -34,7 +33,6 @@ defmodule GlossiaAgent.Plan.Types do
 
     @type t :: %__MODULE__{
             source_path: String.t(),
-            abs_path: String.t(),
             base_path: String.t(),
             rel_path: String.t(),
             format: GlossiaAgent.Format.t(),
