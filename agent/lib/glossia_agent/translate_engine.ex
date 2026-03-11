@@ -20,7 +20,6 @@ defmodule GlossiaAgent.TranslateEngine do
           target_lang: String.t(),
           format: Format.t(),
           context: String.t(),
-          preserve: [String.t()],
           frontmatter: String.t(),
           translator: AgentConfig.t()
         }
@@ -64,8 +63,7 @@ defmodule GlossiaAgent.TranslateEngine do
             translated
           end
 
-        check_err =
-          Validator.validate(req.format, translated, req.source, preserve: req.preserve)
+        check_err = Validator.validate(req.format, translated, req.source)
 
         if check_err == nil do
           %{text: translated, usage: usage}
@@ -129,7 +127,7 @@ defmodule GlossiaAgent.TranslateEngine do
     lines =
       [
         "Translate the content faithfully and naturally.",
-        "Preserve code blocks, inline code, URLs, and placeholders.",
+        "Keep code blocks, inline code, URLs, and placeholders unchanged.",
         "Keep formatting, lists, and headings intact.",
         "Return only the translated content."
       ] ++

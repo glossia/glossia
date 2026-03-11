@@ -22,7 +22,6 @@ import (
 )
 
 type CheckOptions struct {
-	Preserve  []string
 	CheckCmd  string
 	CheckCmds map[string]string
 
@@ -31,8 +30,6 @@ type CheckOptions struct {
 	Current  int
 	Total    int
 }
-
-var defaultPreserve = []string{"code_blocks", "inline_code", "urls", "placeholders"}
 
 func validate(root string, format Format, output string, source string, options CheckOptions) error {
 	if options.Reporter != nil && strings.TrimSpace(options.Label) != "" {
@@ -44,16 +41,6 @@ func validate(root string, format Format, output string, source string, options 
 	}
 	if syntaxErr := validateSyntax(format, output, source); strings.TrimSpace(syntaxErr) != "" {
 		return fmt.Errorf("syntax-validator tool failed: %s", syntaxErr)
-	}
-
-	preserveKinds := resolvePreserve(options.Preserve)
-	if len(preserveKinds) > 0 {
-		if options.Reporter != nil {
-			options.Reporter.Log(verbChecking, "preserve-check: verify preserved tokens")
-		}
-		if preserveErr := validatePreserve(output, source, preserveKinds); strings.TrimSpace(preserveErr) != "" {
-			return fmt.Errorf("preserve-check tool failed: %s", preserveErr)
-		}
 	}
 
 	command := selectCheckCommand(format, options.CheckCmd, options.CheckCmds)
@@ -128,110 +115,6 @@ func validateMarkdown(content string) string {
 	var v any
 	if err := toml.Unmarshal([]byte(frontmatter), &v); err != nil {
 		return fmt.Sprintf("markdown frontmatter invalid toml: %s", err.Error())
-	}
-	return ""
-}
-
-func resolvePreserve(kinds []string) []string {
-	if len(kinds) == 0 {
-		out := make([]string, 0, len(defaultPreserve))
-		out = append(out, defaultPreserve...)
-		return out
-	}
-
-	for _, k := range kinds {
-		if strings.ToLower(strings.TrimSpace(k)) == "none" {
-			return []string{}
-		}
-	}
-
-	out := make([]string, 0, len(kinds))
-	for _, k := range kinds {
-		n := strings.ToLower(strings.TrimSpace(k))
-		if n != "" {
-			out = append(out, n)
-		}
-	}
-	return out
-}
-
-func extractPreservables(source string, preserveKinds []string) []string {
-	set := map[string]bool{}
-	var output []string
-
-	push := func(match string) {
-		if !set[match] {
-			set[match] = true
-			output = append(output, match)
-		}
-	}
-
-	working := source
-
-	if containsString(preserveKinds, "code_blocks") {
-		var stripped strings.Builder
-		for i := 0; i < len(working); {
-			start := strings.Index(working[i:], "```")
-			if start < 0 {
-				stripped.WriteString(working[i:])
-				break
-			}
-			start += i
-			stripped.WriteString(working[i:start])
-
-			end := strings.Index(working[start+3:], "```")
-			if end < 0 {
-				// No closing fence: stop stripping.
-				stripped.WriteString(working[start:])
-				break
-			}
-			end = start + 3 + end + 3
-			push(working[start:end])
-			i = end
-		}
-		working = stripped.String()
-	}
-
-	if containsString(preserveKinds, "inline_code") {
-		re := regexp.MustCompile("`[^`\\n]+`")
-		for _, match := range re.FindAllString(working, -1) {
-			push(match)
-		}
-	}
-
-	if containsString(preserveKinds, "urls") {
-		re := regexp.MustCompile(`https?://[^\s\)"'<>]+`)
-		for _, match := range re.FindAllString(working, -1) {
-			push(match)
-		}
-	}
-
-	if containsString(preserveKinds, "placeholders") {
-		re := regexp.MustCompile(`\{[^\s{}]+\}`)
-		for _, match := range re.FindAllString(working, -1) {
-			push(match)
-		}
-	}
-
-	return output
-}
-
-func validatePreserve(output string, source string, preserveKinds []string) string {
-	tokens := extractPreservables(source, preserveKinds)
-	var missing []string
-
-	for _, token := range tokens {
-		if !strings.Contains(output, token) {
-			missing = append(missing, token)
-			if len(missing) >= 5 {
-				break
-			}
-		}
-	}
-
-	if len(missing) > 0 {
-		b, _ := json.Marshal(missing)
-		return fmt.Sprintf("preserved tokens missing from output: %s", string(b))
 	}
 	return ""
 }
@@ -319,15 +202,6 @@ func filterNonEmpty(parts []string) []string {
 		}
 	}
 	return out
-}
-
-func containsString(list []string, value string) bool {
-	for _, item := range list {
-		if item == value {
-			return true
-		}
-	}
-	return false
 }
 
 // --- PO validation ---

@@ -37,7 +37,6 @@ defmodule GlossiaAgent.Setup.Prompt do
     - `targets`: array of ISO 639-1 language codes
     - `output`: path template using {lang}, {relpath}, {basename}, {ext}
     - `exclude`: optional array of glob patterns to skip
-    - `preserve`: optional array of elements to preserve (e.g. "code_blocks", "inline_code", "urls")
     - `frontmatter`: optional, "preserve" (default) or "translate" for markdown files
 
     Output format rules:

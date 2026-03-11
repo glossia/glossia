@@ -11,7 +11,6 @@ type TranslationRequest struct {
 	TargetLang      string
 	Format          Format
 	Context         string
-	Preserve        []string
 	Frontmatter     string
 	CheckCmd        string
 	CheckCmds       map[string]string
@@ -84,7 +83,6 @@ func translate(req TranslationRequest) (*TranslationResult, error) {
 		}
 
 		if err := validate(req.Root, req.Format, translated, req.Source, CheckOptions{
-			Preserve:  req.Preserve,
 			CheckCmd:  req.CheckCmd,
 			CheckCmds: req.CheckCmds,
 			Reporter:  req.Reporter,
@@ -124,7 +122,6 @@ func revisit(req RevisitRequest) (*TranslationResult, error) {
 		output := stripStructuredCodeFence(req.Format, trimEnd(result.Text))
 
 		if err := validate(req.Root, req.Format, output, req.Source, CheckOptions{
-			Preserve:  []string{},
 			CheckCmd:  req.CheckCmd,
 			CheckCmds: req.CheckCmds,
 			Reporter:  req.Reporter,
@@ -171,7 +168,6 @@ func buildBrief(req TranslationRequest) briefResult {
 				"",
 				fmt.Sprintf("Target language: %s", req.TargetLang),
 				fmt.Sprintf("Format: %s", req.Format),
-				fmt.Sprintf("Preserve: %s", strings.Join(req.Preserve, ", ")),
 				fmt.Sprintf("Frontmatter mode: %s", req.Frontmatter),
 				"",
 				"Context:\n" + req.Context,
@@ -265,7 +261,7 @@ func revisitOnce(req RevisitRequest, lastErr error) (*TranslationResult, error) 
 func defaultBrief(req TranslationRequest) string {
 	lines := []string{
 		"Translate the content faithfully and naturally.",
-		"Preserve code blocks, inline code, URLs, and placeholders.",
+		"Keep code blocks, inline code, URLs, and placeholders unchanged.",
 		"Keep formatting, lists, and headings intact.",
 		"Return only the translated content.",
 	}

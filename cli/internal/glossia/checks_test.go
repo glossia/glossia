@@ -11,21 +11,17 @@ func TestValidateSyntax_JSON(t *testing.T) {
 	}
 }
 
-func TestValidate_PreserveInlineCode_OK(t *testing.T) {
+func TestValidate_Text_OK(t *testing.T) {
 	root := t.TempDir()
-	err := validate(root, FormatText, "Hola `code` mundo", "Hello `code` world", CheckOptions{
-		Preserve: []string{"inline_code"},
-	})
+	err := validate(root, FormatText, "Hola mundo", "Hello world", CheckOptions{})
 	if err != nil {
 		t.Fatalf("expected validate to succeed, got: %v", err)
 	}
 }
 
-func TestValidate_PreserveInlineCode_Missing(t *testing.T) {
+func TestValidate_SyntaxError(t *testing.T) {
 	root := t.TempDir()
-	err := validate(root, FormatText, "Hola mundo", "Hello `code` world", CheckOptions{
-		Preserve: []string{"inline_code"},
-	})
+	err := validate(root, FormatJSON, "not-json", "{}", CheckOptions{})
 	if err == nil {
 		t.Fatalf("expected validate to fail")
 	}

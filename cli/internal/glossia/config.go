@@ -29,7 +29,6 @@ type ContentEntry struct {
 	Targets     []string
 	Output      string
 	Exclude     []string
-	Preserve    []string
 	Frontmatter string
 	Prompt      string
 	CheckCmd    string
@@ -84,7 +83,6 @@ type Entry struct {
 	Targets     []string
 	Output      string
 	Exclude     []string
-	Preserve    []string
 	Frontmatter string
 	Prompt      string
 	CheckCmd    string
@@ -559,7 +557,6 @@ func parseContentEntry(input map[string]any) ContentEntry {
 		Targets:     asStringArray(input["targets"]),
 		Output:      asString(input["output"]),
 		Exclude:     asStringArray(input["exclude"]),
-		Preserve:    asStringArray(input["preserve"]),
 		Frontmatter: asString(input["frontmatter"]),
 		Prompt:      asString(input["prompt"]),
 		CheckCmd:    asString(input["check_cmd"]),
@@ -697,7 +694,6 @@ func collectEntries(contentFiles []*ContentFile) []Entry {
 				Targets:     append([]string{}, raw.Targets...),
 				Output:      raw.Output,
 				Exclude:     append([]string{}, raw.Exclude...),
-				Preserve:    append([]string{}, raw.Preserve...),
 				Frontmatter: frontmatter,
 				Prompt:      raw.Prompt,
 				CheckCmd:    raw.CheckCmd,

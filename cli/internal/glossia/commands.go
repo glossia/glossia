@@ -381,7 +381,6 @@ func translateCommand(root string, options TranslateOptions) error {
 				TargetLang:      langKey,
 				Format:          item.Source.Format,
 				Context:         strings.Join(contextPartsFor(item.Source, langKey), "\n\n"),
-				Preserve:        append([]string{}, item.Source.Entry.Preserve...),
 				Frontmatter:     item.Source.Entry.Frontmatter,
 				CheckCmd:        checkCmd,
 				CheckCmds:       checkCmds,
@@ -646,7 +645,6 @@ func checkCommand(root string, options CheckCommandOptions) error {
 			}
 
 			if err := validate(root, source.Format, string(outputTextBytes), sourceText, CheckOptions{
-				Preserve:  source.Entry.Preserve,
 				CheckCmd:  checkCmd,
 				CheckCmds: checkCmds,
 				Reporter:  options.Reporter,

@@ -202,7 +202,6 @@ defmodule GlossiaAgent.Plan.Builder do
         path: source_path,
         format: Format.detect(source_path),
         context: Enum.join(context_parts, "\n\n"),
-        preserve: candidate.entry.preserve,
         frontmatter: candidate.entry.frontmatter,
         translator: translator,
         outputs: outputs
