@@ -156,7 +156,7 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
             agent,
             {Actions.UpdateLock,
              %{
-               repo_path: repo_path,
+               directory: repo_path,
                source_path: source.path,
                lang_key: lang_key,
                output_path: output.path,
