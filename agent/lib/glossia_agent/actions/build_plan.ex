@@ -1,16 +1,17 @@
 defmodule GlossiaAgent.Actions.BuildPlan do
   @moduledoc """
-  Jido Action: Build translation sources from parsed config.
+  Jido Action: Build translation sources from a localizable directory.
 
-  Takes the parsed GLOSSIA.md configuration and builds translation
-  source entries with source paths, target languages, and output paths.
+  Scans the provided directory for GLOSSIA.md / LANGUAGE.md config files
+  and builds translation source entries with source paths, target
+  languages, and output paths.
   """
 
   use Jido.Action,
     name: "build_plan",
-    description: "Build translation sources from parsed GLOSSIA.md config",
+    description: "Build translation sources from a localizable directory",
     schema: [
-      repo_path: [type: :string, required: true, doc: "Path to the root directory"]
+      repo_path: [type: :string, required: true, doc: "Path to the localizable directory"]
     ]
 
   alias GlossiaAgent.Plan
