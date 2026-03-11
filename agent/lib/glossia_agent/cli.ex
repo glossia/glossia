@@ -158,7 +158,7 @@ defmodule GlossiaAgent.CLI do
     target_languages = config["target_languages"] || []
 
     case GlossiaAgent.setup(
-           repo_path: repo_path,
+           directory: repo_path,
            minimax_api_key: minimax_api_key,
            model: model,
            target_languages: target_languages,

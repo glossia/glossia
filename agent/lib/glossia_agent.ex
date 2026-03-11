@@ -8,7 +8,7 @@ defmodule GlossiaAgent do
     of the runtime translation agent, then runs the agent to translate files
     via LLM API calls with validation and lock-file based incrementality.
 
-  - **setup/1** -- Analyzes a repository and generates a GLOSSIA.md configuration
+  - **setup/1** -- Analyzes a localizable directory and generates a GLOSSIA.md configuration
     file using an LLM.
 
   It can run locally (as a library integrated with the Phoenix server) or
@@ -19,11 +19,11 @@ defmodule GlossiaAgent do
   """
 
   @doc """
-  Run the setup workflow -- analyze a repository and generate GLOSSIA.md.
+  Run the setup workflow -- analyze a localizable directory and generate GLOSSIA.md.
 
   ## Options
 
-    * `:repo_path` - Path to the repository (required)
+    * `:directory` - Path to the localizable directory (required)
     * `:minimax_api_key` - MiniMax API key for LLM (required)
     * `:model` - LLM model name (default: "MiniMax-M2.5")
     * `:target_languages` - Target language codes (optional, inferred if omitted)
