@@ -3,7 +3,7 @@ defmodule GlossiaAgent.Actions.TranslateFile do
   Jido Action: Translate a single source file to a target language.
 
   Reads the source content, calls the LLM translation engine with
-  retry and validation, and returns the translated text.
+  validation, and returns the translated text.
   """
 
   use Jido.Action,
@@ -16,7 +16,6 @@ defmodule GlossiaAgent.Actions.TranslateFile do
       context: [type: :string, default: "", doc: "Additional context for translation"],
       preserve: [type: {:list, :string}, default: [], doc: "Elements to preserve"],
       frontmatter: [type: :string, default: "preserve", doc: "Frontmatter handling mode"],
-      retries: [type: :integer, default: 2, doc: "Number of retry attempts"],
       translator: [type: :any, required: true, doc: "LLM translator agent config"]
     ]
 
@@ -30,7 +29,6 @@ defmodule GlossiaAgent.Actions.TranslateFile do
         context: params.context,
         preserve: params.preserve,
         frontmatter: params.frontmatter,
-        retries: params.retries,
         translator: params.translator
       })
 

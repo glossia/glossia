@@ -19,7 +19,6 @@ type TranslationRequest struct {
 	ProgressLabel   string
 	ProgressCurrent int
 	ProgressTotal   int
-	Retries         int
 	Coordinator     AgentConfig
 	Translator      AgentConfig
 	Root            string
@@ -36,7 +35,6 @@ type RevisitRequest struct {
 	ProgressLabel   string
 	ProgressCurrent int
 	ProgressTotal   int
-	Retries         int
 	Coordinator     AgentConfig
 	Translator      AgentConfig
 	Root            string
@@ -46,6 +44,8 @@ type TranslationResult struct {
 	Text  string
 	Usage TokenUsage
 }
+
+const defaultValidationAttempts = 2
 
 func translate(req TranslationRequest) (*TranslationResult, error) {
 	content := req.Source
@@ -63,10 +63,7 @@ func translate(req TranslationRequest) (*TranslationResult, error) {
 	usage := briefResult.Usage
 	brief := briefResult.Text
 
-	attempts := 0
-	if req.Retries >= 0 {
-		attempts = req.Retries
-	}
+	attempts := defaultValidationAttempts
 
 	var lastErr error
 	for attempt := 0; attempt <= attempts; attempt++ {
@@ -111,10 +108,7 @@ func translate(req TranslationRequest) (*TranslationResult, error) {
 }
 
 func revisit(req RevisitRequest) (*TranslationResult, error) {
-	attempts := 0
-	if req.Retries >= 0 {
-		attempts = req.Retries
-	}
+	attempts := defaultValidationAttempts
 
 	usage := emptyUsage()
 	var lastErr error

@@ -9,12 +9,12 @@ defmodule GlossiaAgent.Plan.Builder do
   alias GlossiaAgent.Format
   alias GlossiaAgent.Glob
   alias GlossiaAgent.Output
-  alias GlossiaAgent.Plan.Types.{Plan, SourcePlan, OutputPlan}
+  alias GlossiaAgent.Plan.Types.{TranslationSource, TranslationOutput}
 
   @config_filenames ["GLOSSIA.md", "LANGUAGE.md"]
 
-  @doc "Build a translation plan from the repo root."
-  @spec build(String.t(), LLMConfig.AgentConfig.t()) :: Plan.t()
+  @doc "Build translation sources from the root directory."
+  @spec build(String.t(), LLMConfig.AgentConfig.t()) :: [TranslationSource.t()]
   def build(root, fallback_agent) do
     root_abs = Path.expand(root)
 
@@ -23,14 +23,12 @@ defmodule GlossiaAgent.Plan.Builder do
     file_list = Glob.walk_files(root_abs)
     resolved = resolve_entries(root_abs, entries, file_list)
 
-    sources =
-      resolved
-      |> Enum.map(fn %{source_path: source_path, candidate: candidate} ->
-        build_source_plan(root_abs, source_path, candidate, content_files, fallback_agent)
-      end)
-      |> Enum.sort_by(& &1.source_path)
-
-    %Plan{root: root_abs, content_files: content_files, sources: sources}
+    resolved
+    |> Enum.map(fn %{source_path: source_path, candidate: candidate} ->
+      build_translation_source(root_abs, source_path, candidate, content_files, fallback_agent)
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort_by(& &1.path)
   end
 
   # -- Content discovery -------------------------------------------------------
@@ -155,25 +153,19 @@ defmodule GlossiaAgent.Plan.Builder do
     end
   end
 
-  # -- Source plan building ----------------------------------------------------
+  # -- Translation source building ---------------------------------------------
 
-  defp build_source_plan(root_abs, source_path, candidate, content_files, fallback_agent) do
+  defp build_translation_source(root_abs, source_path, candidate, content_files, fallback_agent) do
     source_abs_path = Path.join(root_abs, source_path)
     context_files = ancestors_for(source_abs_path, content_files)
 
-    is_translate = candidate.entry.targets != []
-    kind = if is_translate, do: :translate, else: :revisit
-
-    {context_bodies, context_paths, llm_cfg} =
-      Enum.reduce(context_files, {[], [], %LLMConfig{}}, fn file, {bodies, paths, llm} ->
-        bodies =
-          if String.trim(file.body) != "", do: bodies ++ [file.body], else: bodies
-
-        paths =
-          if String.trim(file.body) != "", do: paths ++ [file.path], else: paths
+    {context_parts, llm_cfg} =
+      Enum.reduce(context_files, {[], %LLMConfig{}}, fn file, {parts, llm} ->
+        parts =
+          if String.trim(file.body) != "", do: parts ++ [file.body], else: parts
 
         llm = LLMConfig.merge(llm, file.llm)
-        {bodies, paths, llm}
+        {parts, llm}
       end)
 
     has_llm_config =
@@ -199,12 +191,14 @@ defmodule GlossiaAgent.Plan.Builder do
     ext = String.trim_leading(ext_with_dot, ".")
     basename = Path.basename(source_path, ext_with_dot)
 
-    outputs =
-      if is_translate do
+    if candidate.entry.targets == [] do
+      nil
+    else
+      outputs =
         Enum.map(candidate.entry.targets, fn lang ->
-          %OutputPlan{
-            lang: lang,
-            output_path:
+          %TranslationOutput{
+            language: lang,
+            path:
               Output.expand(candidate.entry.output, %{
                 lang: lang,
                 rel_path: String.replace(rel_path, "\\", "/"),
@@ -213,37 +207,17 @@ defmodule GlossiaAgent.Plan.Builder do
               })
           }
         end)
-      else
-        if String.trim(candidate.entry.output) == "" do
-          [%OutputPlan{lang: "", output_path: source_path}]
-        else
-          [
-            %OutputPlan{
-              lang: "",
-              output_path:
-                Output.expand(candidate.entry.output, %{
-                  lang: "",
-                  rel_path: String.replace(rel_path, "\\", "/"),
-                  basename: basename,
-                  ext: ext
-                })
-            }
-          ]
-        end
-      end
 
-    %SourcePlan{
-      source_path: source_path,
-      base_path: candidate.base_path,
-      rel_path: rel_path,
-      format: Format.detect(source_path),
-      kind: kind,
-      entry: candidate.entry,
-      context_bodies: context_bodies,
-      context_paths: context_paths,
-      translator: translator,
-      outputs: outputs
-    }
+      %TranslationSource{
+        path: source_path,
+        format: Format.detect(source_path),
+        context: Enum.join(context_parts, "\n\n"),
+        preserve: candidate.entry.preserve,
+        frontmatter: candidate.entry.frontmatter,
+        translator: translator,
+        outputs: outputs
+      }
+    end
   end
 
   defp ancestors_for(source_abs_path, content_files) do

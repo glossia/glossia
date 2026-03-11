@@ -30,7 +30,6 @@ glossia translate [OPTIONS]
 | `--force` | Re-translate all files, ignoring hashes |
 | `--yolo` | Skip validation checks |
 | `--no-yolo` | Force validation even if `--yolo` is set |
-| `--retries <N>` | Override retry count |
 | `--dry-run` | Show what would be translated without doing it |
 | `--check-cmd <CMD>` | Override the validation command |
 
@@ -45,7 +44,6 @@ glossia revisit [OPTIONS]
 | Flag | Description |
 |---|---|
 | `--force` | Re-process all files, ignoring hashes |
-| `--retries <N>` | Override retry count |
 | `--dry-run` | Show what would be revised without doing it |
 | `--check-cmd <CMD>` | Override the validation command |
 

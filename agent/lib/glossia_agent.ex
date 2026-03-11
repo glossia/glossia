@@ -4,9 +4,9 @@ defmodule GlossiaAgent do
 
   This library provides two workflows:
 
-  - **translate/1** -- Parses GLOSSIA.md and builds a translation plan outside
+  - **translate/1** -- Parses GLOSSIA.md and builds translation sources outside
     of the runtime translation agent, then runs the agent to translate files
-    via LLM API calls with retry/validation and lock-file based incrementality.
+    via LLM API calls with validation and lock-file based incrementality.
 
   - **setup/1** -- Analyzes a repository and generates a GLOSSIA.md configuration
     file using an LLM.
@@ -53,18 +53,11 @@ defmodule GlossiaAgent do
     model = Keyword.get(opts, :model, "MiniMax-M2.5")
 
     fallback_agent = GlossiaAgent.Config.LLMConfig.build_fallback_agent(minimax_api_key, model)
-    plan = GlossiaAgent.Plan.Builder.build(repo_path, fallback_agent)
-    translate_sources = Enum.filter(plan.sources, &(&1.kind == :translate))
-
-    total_pairs =
-      Enum.reduce(translate_sources, 0, fn source, acc ->
-        acc + length(source.outputs)
-      end)
+    translation_sources = GlossiaAgent.Plan.Builder.build(repo_path, fallback_agent)
 
     agent_opts =
       opts
-      |> Keyword.put(:translate_sources, translate_sources)
-      |> Keyword.put(:total_pairs, total_pairs)
+      |> Keyword.put(:translation_sources, translation_sources)
 
     case GlossiaAgent.Agents.TranslateAgent.run_workflow(agent_opts) do
       {:ok, _agent} -> :ok

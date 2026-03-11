@@ -34,7 +34,6 @@ type ContentEntry struct {
 	Prompt      string
 	CheckCmd    string
 	CheckCmds   map[string]string
-	Retries     *int
 }
 
 type PartialAgentConfig struct {
@@ -90,7 +89,6 @@ type Entry struct {
 	Prompt      string
 	CheckCmd    string
 	CheckCmds   map[string]string
-	Retries     *int
 
 	OriginPath  string
 	OriginDir   string
@@ -566,7 +564,6 @@ func parseContentEntry(input map[string]any) ContentEntry {
 		Prompt:      asString(input["prompt"]),
 		CheckCmd:    asString(input["check_cmd"]),
 		CheckCmds:   asStringMap(input["check_cmds"]),
-		Retries:     asInt(input["retries"]),
 	}
 }
 
@@ -705,7 +702,6 @@ func collectEntries(contentFiles []*ContentFile) []Entry {
 				Prompt:      raw.Prompt,
 				CheckCmd:    raw.CheckCmd,
 				CheckCmds:   copyStringMap(raw.CheckCmds),
-				Retries:     raw.Retries,
 				OriginPath:  file.Path,
 				OriginDir:   file.Dir,
 				OriginDepth: file.Depth,

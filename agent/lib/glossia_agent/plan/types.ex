@@ -4,62 +4,44 @@ defmodule GlossiaAgent.Plan.Types do
   """
 
   alias GlossiaAgent.Config.LLMConfig.AgentConfig
-  alias GlossiaAgent.Config.Parser.Entry
 
-  defmodule OutputPlan do
+  defmodule TranslationOutput do
     @moduledoc false
-    defstruct [:lang, :output_path]
+    defstruct [:language, :path]
 
     @type t :: %__MODULE__{
-            lang: String.t(),
-            output_path: String.t()
+            language: String.t(),
+            path: String.t()
           }
   end
 
-  defmodule SourcePlan do
+  defmodule TranslationSource do
     @moduledoc false
     defstruct [
-      :source_path,
-      :base_path,
-      :rel_path,
+      :path,
       :format,
-      :kind,
-      :entry,
-      :context_bodies,
-      :context_paths,
+      :context,
+      :preserve,
+      :frontmatter,
       :translator,
       :outputs
     ]
 
     @type t :: %__MODULE__{
-            source_path: String.t(),
-            base_path: String.t(),
-            rel_path: String.t(),
+            path: String.t(),
             format: GlossiaAgent.Format.t(),
-            kind: :translate | :revisit,
-            entry: Entry.t(),
-            context_bodies: [String.t()],
-            context_paths: [String.t()],
+            context: String.t(),
+            preserve: [String.t()],
+            frontmatter: String.t(),
             translator: AgentConfig.t(),
-            outputs: [OutputPlan.t()]
-          }
-  end
-
-  defmodule Plan do
-    @moduledoc false
-    defstruct [:root, :content_files, :sources]
-
-    @type t :: %__MODULE__{
-            root: String.t(),
-            content_files: [GlossiaAgent.Config.Parser.ContentFile.t()],
-            sources: [SourcePlan.t()]
+            outputs: [TranslationOutput.t()]
           }
   end
 
   @doc "Get the language key for an output plan entry."
-  @spec output_lang_key(OutputPlan.t()) :: String.t()
-  def output_lang_key(%OutputPlan{lang: lang}) do
-    trimmed = String.trim(lang)
+  @spec output_language_key(TranslationOutput.t()) :: String.t()
+  def output_language_key(%TranslationOutput{language: language}) do
+    trimmed = String.trim(language)
     if trimmed == "", do: "_", else: trimmed
   end
 end

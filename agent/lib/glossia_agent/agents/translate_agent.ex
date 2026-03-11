@@ -34,28 +34,28 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
   """
   def run_workflow(opts) do
     repo_path = Keyword.fetch!(opts, :repo_path)
-    translate_sources = Keyword.fetch!(opts, :translate_sources)
-    total_pairs = Keyword.fetch!(opts, :total_pairs)
+    translation_sources = Keyword.fetch!(opts, :translation_sources)
     emitter = Keyword.fetch!(opts, :emitter)
+    total_outputs = count_outputs(translation_sources)
 
     {:ok, agent} = new(state: %{repo_path: repo_path, status: :planning})
 
     try do
       Emitter.emit(emitter, "status", "Using prepared translation plan...")
 
-      if translate_sources == [] do
+      if translation_sources == [] do
         Emitter.emit(emitter, "status", "No translation sources found in plan.")
         {:ok, agent} = set(agent, %{status: :completed})
         Emitter.complete(emitter)
         {:ok, agent}
       else
-        emit_plan(emitter, translate_sources)
-        {:ok, agent} = set(agent, %{status: :translating, total: total_pairs})
+        emit_plan(emitter, translation_sources)
+        {:ok, agent} = set(agent, %{status: :translating, total: total_outputs})
 
         agent =
           translate_all_sources(
             agent,
-            translate_sources,
+            translation_sources,
             repo_path,
             emitter
           )
@@ -77,11 +77,17 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
     end
   end
 
-  defp emit_plan(emitter, translate_sources) do
+  defp count_outputs(translation_sources) do
+    Enum.reduce(translation_sources, 0, fn source, acc ->
+      acc + length(source.outputs)
+    end)
+  end
+
+  defp emit_plan(emitter, translation_sources) do
     plan_lines =
-      Enum.flat_map(translate_sources, fn source ->
+      Enum.flat_map(translation_sources, fn source ->
         Enum.map(source.outputs, fn output ->
-          "#{source.source_path} -> #{output.lang}: #{output.output_path}"
+          "#{source.path} -> #{output.language}: #{output.path}"
         end)
       end)
 
@@ -95,20 +101,18 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
   end
 
   defp translate_source(agent, source, repo_path, emitter) do
-    source_abs_path = Path.join(repo_path, source.source_path)
+    source_abs_path = Path.join(repo_path, source.path)
     source_content = File.read!(source_abs_path)
     source_hash = Hash.hash_string(source_content)
-    context_parts = source.context_bodies
-    context_hash = Hash.hash_strings(context_parts)
-    context = Enum.join(context_parts, "\n\n")
+    context_hash = Hash.hash_string(source.context)
 
     Enum.reduce(source.outputs, agent, fn output, agent ->
-      lang_key = Plan.Types.output_lang_key(output)
-      output_abs_path = Path.join(repo_path, output.output_path)
+      lang_key = Plan.Types.output_language_key(output)
+      output_abs_path = Path.join(repo_path, output.path)
       progress = agent.state.progress + 1
-      label = "[#{progress}/#{agent.state.total}] #{source.source_path} -> #{output.lang}"
+      label = "[#{progress}/#{agent.state.total}] #{source.path} -> #{output.language}"
 
-      lock = Locks.read_lock(repo_path, source.source_path)
+      lock = Locks.read_lock(repo_path, source.path)
 
       if lock_fresh?(lock, lang_key, source_hash, context_hash, output_abs_path) do
         Emitter.emit(emitter, "status", "Skipping #{label} (up to date)")
@@ -117,20 +121,17 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
       else
         Emitter.emit(emitter, "status", "Translating #{label}")
 
-        retries = if source.entry.retries != nil, do: source.entry.retries, else: 2
-
         {agent, _directives} =
           cmd(
             agent,
             {Actions.TranslateFile,
              %{
                source_content: source_content,
-               target_lang: output.lang,
+               target_lang: output.language,
                format: source.format,
-               context: context,
-               preserve: source.entry.preserve,
-               frontmatter: source.entry.frontmatter,
-               retries: retries,
+               context: source.context,
+               preserve: source.preserve,
+               frontmatter: source.frontmatter,
                translator: source.translator
              }}
           )
@@ -148,7 +149,7 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
              }}
           )
 
-        Emitter.emit(emitter, "status", "Wrote #{output.output_path}")
+        Emitter.emit(emitter, "status", "Wrote #{output.path}")
 
         output_hash = Hash.hash_string(translated_text)
 
@@ -158,9 +159,9 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
             {Actions.UpdateLock,
              %{
                repo_path: repo_path,
-               source_path: source.source_path,
+               source_path: source.path,
                lang_key: lang_key,
-               output_path: output.output_path,
+               output_path: output.path,
                source_hash: source_hash,
                context_hash: context_hash,
                output_hash: output_hash

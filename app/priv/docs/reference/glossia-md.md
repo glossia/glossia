@@ -63,7 +63,6 @@ Each `[[content]]` block defines a set of files to process.
 | `source` | string | yes | Glob pattern for source files |
 | `exclude` | array | no | Glob patterns to skip |
 | `check_cmd` | string | no | Validation command (use `{file}` placeholder) |
-| `retries` | integer | no | Retry count on validation failure (default: 2) |
 
 ### Translation fields
 

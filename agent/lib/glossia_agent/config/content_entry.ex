@@ -16,8 +16,7 @@ defmodule GlossiaAgent.Config.ContentEntry do
     :frontmatter,
     :prompt,
     :check_cmd,
-    :check_cmds,
-    :retries
+    :check_cmds
   ]
 
   @type t :: %__MODULE__{
@@ -30,8 +29,7 @@ defmodule GlossiaAgent.Config.ContentEntry do
           frontmatter: String.t(),
           prompt: String.t(),
           check_cmd: String.t(),
-          check_cmds: %{String.t() => String.t()},
-          retries: non_neg_integer() | nil
+          check_cmds: %{String.t() => String.t()}
         }
 
   def frontmatter_preserve, do: @frontmatter_preserve
@@ -50,8 +48,7 @@ defmodule GlossiaAgent.Config.ContentEntry do
       frontmatter: as_string(obj["frontmatter"]),
       prompt: as_string(obj["prompt"]),
       check_cmd: as_string(obj["check_cmd"]),
-      check_cmds: as_string_map(obj["check_cmds"]),
-      retries: as_int_or_nil(obj["retries"])
+      check_cmds: as_string_map(obj["check_cmds"])
     }
   end
 
@@ -86,9 +83,4 @@ defmodule GlossiaAgent.Config.ContentEntry do
   end
 
   defp as_string_map(_), do: %{}
-
-  defp as_int_or_nil(nil), do: nil
-  defp as_int_or_nil(v) when is_integer(v), do: v
-  defp as_int_or_nil(v) when is_float(v), do: trunc(v)
-  defp as_int_or_nil(_), do: nil
 end

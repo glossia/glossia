@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -62,7 +61,6 @@ func ensureNoUnexpectedFlags(argv []string, name string) {
 type TranslateOptions struct {
 	Force    bool
 	Yolo     bool
-	Retries  int
 	DryRun   bool
 	CheckCmd string
 	Reporter Reporter
@@ -72,7 +70,6 @@ func parseTranslateOptions(argv []string) (TranslateOptions, error) {
 	force := false
 	yolo := true
 	noYolo := false
-	retries := -1
 	dryRun := false
 	checkCmd := ""
 
@@ -91,21 +88,6 @@ func parseTranslateOptions(argv []string) (TranslateOptions, error) {
 			continue
 		case "--dry-run":
 			dryRun = true
-			continue
-		case "--retries":
-			value := ""
-			if i+1 < len(argv) {
-				value = argv[i+1]
-			}
-			if value == "" || strings.HasPrefix(value, "-") {
-				return TranslateOptions{}, fmt.Errorf("--retries requires a value")
-			}
-			n, err := strconv.Atoi(value)
-			if err != nil {
-				return TranslateOptions{}, fmt.Errorf("--retries must be a number")
-			}
-			retries = n
-			i++
 			continue
 		case "--check-cmd":
 			value := ""
@@ -130,7 +112,6 @@ func parseTranslateOptions(argv []string) (TranslateOptions, error) {
 	return TranslateOptions{
 		Force:    force,
 		Yolo:     yolo,
-		Retries:  retries,
 		DryRun:   dryRun,
 		CheckCmd: checkCmd,
 	}, nil
@@ -138,7 +119,6 @@ func parseTranslateOptions(argv []string) (TranslateOptions, error) {
 
 type RevisitOptions struct {
 	Force    bool
-	Retries  int
 	DryRun   bool
 	CheckCmd string
 	Reporter Reporter
@@ -146,7 +126,6 @@ type RevisitOptions struct {
 
 func parseRevisitOptions(argv []string) (RevisitOptions, error) {
 	force := false
-	retries := -1
 	dryRun := false
 	checkCmd := ""
 
@@ -159,21 +138,6 @@ func parseRevisitOptions(argv []string) (RevisitOptions, error) {
 			continue
 		case "--dry-run":
 			dryRun = true
-			continue
-		case "--retries":
-			value := ""
-			if i+1 < len(argv) {
-				value = argv[i+1]
-			}
-			if value == "" || strings.HasPrefix(value, "-") {
-				return RevisitOptions{}, fmt.Errorf("--retries requires a value")
-			}
-			n, err := strconv.Atoi(value)
-			if err != nil {
-				return RevisitOptions{}, fmt.Errorf("--retries must be a number")
-			}
-			retries = n
-			i++
 			continue
 		case "--check-cmd":
 			value := ""
@@ -193,7 +157,6 @@ func parseRevisitOptions(argv []string) (RevisitOptions, error) {
 
 	return RevisitOptions{
 		Force:    force,
-		Retries:  retries,
 		DryRun:   dryRun,
 		CheckCmd: checkCmd,
 	}, nil
@@ -406,14 +369,6 @@ func translateCommand(root string, options TranslateOptions) error {
 				continue
 			}
 
-			retries := options.Retries
-			if retries < 0 && item.Source.Entry.Retries != nil {
-				retries = *item.Source.Entry.Retries
-			}
-			if retries < 0 {
-				retries = 2
-			}
-
 			checkCmds := map[string]string{}
 			checkCmd := strings.TrimSpace(options.CheckCmd)
 			if checkCmd == "" {
@@ -434,7 +389,6 @@ func translateCommand(root string, options TranslateOptions) error {
 				ProgressLabel:   label,
 				ProgressCurrent: step,
 				ProgressTotal:   total,
-				Retries:         retries,
 				Coordinator:     item.Source.LLM.Coordinator,
 				Translator:      item.Source.LLM.Translator,
 				Root:            root,
@@ -588,14 +542,6 @@ func revisitCommand(root string, options RevisitOptions) error {
 				continue
 			}
 
-			retries := options.Retries
-			if retries < 0 && item.Source.Entry.Retries != nil {
-				retries = *item.Source.Entry.Retries
-			}
-			if retries < 0 {
-				retries = 2
-			}
-
 			checkCmds := map[string]string{}
 			checkCmd := strings.TrimSpace(options.CheckCmd)
 			if checkCmd == "" {
@@ -614,7 +560,6 @@ func revisitCommand(root string, options RevisitOptions) error {
 				ProgressLabel:   label,
 				ProgressCurrent: step,
 				ProgressTotal:   total,
-				Retries:         retries,
 				Coordinator:     item.Source.LLM.Coordinator,
 				Translator:      item.Source.LLM.Translator,
 				Root:            root,

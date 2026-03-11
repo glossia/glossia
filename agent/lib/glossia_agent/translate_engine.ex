@@ -1,6 +1,6 @@
 defmodule GlossiaAgent.TranslateEngine do
   @moduledoc """
-  Core translation logic with retry loop.
+  Core translation logic with a bounded validation loop.
   Ported from agent/translate_engine.ts / cli/internal/glossia/agent.go
 
   v1 simplifications:
@@ -13,6 +13,8 @@ defmodule GlossiaAgent.TranslateEngine do
   alias GlossiaAgent.Checks.Validator
   alias GlossiaAgent.Config.LLMConfig.AgentConfig
 
+  @max_validation_attempts 2
+
   @type request :: %{
           source: String.t(),
           target_lang: String.t(),
@@ -20,22 +22,21 @@ defmodule GlossiaAgent.TranslateEngine do
           context: String.t(),
           preserve: [String.t()],
           frontmatter: String.t(),
-          retries: non_neg_integer(),
           translator: AgentConfig.t()
         }
 
   @type result :: %{text: String.t(), usage: LLM.usage()}
 
   @doc """
-  Translate a single file, retrying on validation failure.
+  Translate a single file with validation/correction attempts.
 
-  Raises on exhausted retries.
+  Raises when all correction attempts are exhausted.
   """
   @spec translate_file(request()) :: result()
   def translate_file(req) do
     {content, frontmatter} = maybe_split_frontmatter(req)
     brief = default_brief(req)
-    attempts = max(req.retries, 0)
+    attempts = @max_validation_attempts
 
     do_translate(req, brief, content, frontmatter, nil, 0, attempts, empty_usage())
   end
