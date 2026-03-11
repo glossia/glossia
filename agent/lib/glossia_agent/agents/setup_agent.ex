@@ -38,12 +38,13 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     {:ok, agent} = new(state: %{directory: directory, status: :analyzing})
     llm_agent = Config.LLMConfig.build_server_translator(minimax_api_key, model)
 
-    try do
-      do_setup(agent, llm_agent, target_languages, emitter)
-    rescue
-      e ->
-        Emitter.fail(emitter, Exception.message(e))
-        {:error, Exception.message(e)}
+    case do_setup(agent, llm_agent, target_languages, emitter) do
+      {:ok, content} ->
+        {:ok, content}
+
+      {:error, reason} ->
+        Emitter.fail(emitter, reason)
+        {:error, reason}
     end
   end
 
@@ -55,37 +56,58 @@ defmodule GlossiaAgent.Agents.SetupAgent do
 
     if context.has_glossia_md do
       Emitter.emit(emitter, "status", "GLOSSIA.md already exists, skipping setup.")
-      existing = File.read!(Path.join(directory, "GLOSSIA.md"))
-      {:ok, _agent} = set(agent, %{status: :completed, result_content: existing})
-      Emitter.complete(emitter)
-      {:ok, existing}
-    else
-      {:ok, agent} = set(agent, %{status: :generating})
-      Emitter.emit(emitter, "status", "Building setup prompt...")
 
-      system = Setup.Prompt.system_prompt()
-      user = Setup.Prompt.user_prompt(context, target_languages)
-      Emitter.emit(emitter, "prompt", user)
-
-      messages = [
-        %{role: "system", content: system},
-        %{role: "user", content: user}
-      ]
-
-      model_name = String.trim(llm_agent.model)
-      Emitter.emit(emitter, "status", "Calling LLM (#{model_name}) to generate GLOSSIA.md...")
-
-      result = LLM.Client.chat(llm_agent, model_name, messages)
-      Emitter.emit(emitter, "text", result.text)
-
-      case Setup.Extractor.extract(result.text) do
-        {:ok, glossia_md} ->
-          write_glossia_md(agent, directory, glossia_md, emitter)
+      case File.read(Path.join(directory, "GLOSSIA.md")) do
+        {:ok, existing} ->
+          {:ok, _agent} = set(agent, %{status: :completed, result_content: existing})
+          Emitter.complete(emitter)
+          {:ok, existing}
 
         {:error, reason} ->
-          Emitter.emit(emitter, "status", "First attempt failed: #{reason}. Retrying...")
-          retry_setup(agent, llm_agent, result.text, reason, emitter)
+          {:error, "failed to read existing GLOSSIA.md: #{:file.format_error(reason)}"}
       end
+    else
+      with {:ok, agent} <- set(agent, %{status: :generating}),
+           {:ok, result} <-
+             request_setup_generation(llm_agent, context, target_languages, emitter) do
+        Emitter.emit(emitter, "text", result.text)
+
+        case Setup.Extractor.extract(result.text) do
+          {:ok, glossia_md} ->
+            write_glossia_md(agent, directory, glossia_md, emitter)
+
+          {:error, reason} ->
+            Emitter.emit(emitter, "status", "First attempt failed: #{reason}. Retrying...")
+            retry_setup(agent, llm_agent, result.text, reason, emitter)
+        end
+      else
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+  end
+
+  defp request_setup_generation(llm_agent, context, target_languages, emitter) do
+    Emitter.emit(emitter, "status", "Building setup prompt...")
+
+    system = Setup.Prompt.system_prompt()
+    user = Setup.Prompt.user_prompt(context, target_languages)
+    Emitter.emit(emitter, "prompt", user)
+
+    messages = [
+      %{role: "system", content: system},
+      %{role: "user", content: user}
+    ]
+
+    model_name = String.trim(llm_agent.model)
+    Emitter.emit(emitter, "status", "Calling LLM (#{model_name}) to generate GLOSSIA.md...")
+
+    case LLM.Client.safe_chat(llm_agent, model_name, messages) do
+      {:ok, result} ->
+        {:ok, result}
+
+      {:error, reason} ->
+        {:error, "failed to generate GLOSSIA.md: #{reason}"}
     end
   end
 
@@ -108,24 +130,33 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     ]
 
     model_name = String.trim(llm_agent.model)
-    result = LLM.Client.chat(llm_agent, model_name, messages)
 
-    case Setup.Extractor.extract(result.text) do
-      {:ok, glossia_md} ->
-        write_glossia_md(agent, agent.state.directory, glossia_md, emitter)
+    with {:ok, result} <- LLM.Client.safe_chat(llm_agent, model_name, messages) do
+      case Setup.Extractor.extract(result.text) do
+        {:ok, glossia_md} ->
+          write_glossia_md(agent, agent.state.directory, glossia_md, emitter)
 
+        {:error, reason} ->
+          {:error, "failed to generate valid GLOSSIA.md: #{reason}"}
+      end
+    else
       {:error, reason} ->
-        Emitter.fail(emitter, "Failed to generate valid GLOSSIA.md: #{reason}")
-        {:error, reason}
+        {:error, "failed to retry GLOSSIA.md generation: #{reason}"}
     end
   end
 
   defp write_glossia_md(agent, directory, glossia_md, emitter) do
     output_path = Path.join(directory, "GLOSSIA.md")
-    File.write!(output_path, glossia_md)
-    Emitter.emit(emitter, "status", "Wrote GLOSSIA.md")
-    {:ok, _agent} = set(agent, %{status: :completed, result_content: glossia_md})
-    Emitter.complete(emitter)
-    {:ok, glossia_md}
+
+    case File.write(output_path, glossia_md) do
+      :ok ->
+        Emitter.emit(emitter, "status", "Wrote GLOSSIA.md")
+        {:ok, _agent} = set(agent, %{status: :completed, result_content: glossia_md})
+        Emitter.complete(emitter)
+        {:ok, glossia_md}
+
+      {:error, reason} ->
+        {:error, "failed to write GLOSSIA.md: #{:file.format_error(reason)}"}
+    end
   end
 end

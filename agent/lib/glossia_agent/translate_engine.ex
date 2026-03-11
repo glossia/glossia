@@ -103,12 +103,7 @@ defmodule GlossiaAgent.TranslateEngine do
         %{role: "user", content: user_message}
       ]
 
-      try do
-        result = LLM.chat(req.translator, model, messages)
-        {:ok, result}
-      rescue
-        e -> {:error, Exception.message(e)}
-      end
+      LLM.safe_chat(req.translator, model, messages)
     end
   end
 

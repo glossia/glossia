@@ -25,6 +25,16 @@ defmodule GlossiaAgent.LLM.Client do
     end
   end
 
+  @doc "Send a chat completion request and return tagged tuples instead of raising."
+  @spec safe_chat(AgentConfig.t(), String.t(), [message()]) ::
+          {:ok, result()} | {:error, String.t()}
+  def safe_chat(%AgentConfig{} = cfg, model, messages) do
+    {:ok, chat(cfg, model, messages)}
+  rescue
+    error ->
+      {:error, Exception.message(error)}
+  end
+
   @doc "Resolve API key from config (inline value or env var)."
   @spec resolve_api_key(AgentConfig.t()) :: String.t()
   def resolve_api_key(%AgentConfig{} = cfg) do
