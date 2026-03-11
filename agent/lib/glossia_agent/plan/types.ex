@@ -34,9 +34,9 @@ defmodule GlossiaAgent.Plan.Types do
           }
   end
 
-  @doc "Get the language key for an output plan entry."
-  @spec output_language_key(TranslationOutput.t()) :: String.t()
-  def output_language_key(%TranslationOutput{language: language}) do
+  @doc "Get the normalized language value for an output plan entry."
+  @spec output_language(TranslationOutput.t()) :: String.t()
+  def output_language(%TranslationOutput{language: language}) do
     trimmed = String.trim(language)
     if trimmed == "", do: "_", else: trimmed
   end

@@ -12,7 +12,7 @@ defmodule GlossiaAgent.Actions.UpdateLock do
     schema: [
       directory: [type: :string, required: true, doc: "Path to the localizable directory"],
       source_path: [type: :string, required: true, doc: "Relative source file path"],
-      lang_key: [type: :string, required: true, doc: "Language key for the output"],
+      language: [type: :string, required: true, doc: "Output language code"],
       output_path: [type: :string, required: true, doc: "Relative output file path"],
       source_hash: [type: :string, required: true, doc: "SHA-256 hash of source content"],
       context_hash: [type: :string, required: true, doc: "SHA-256 hash of context"],
@@ -27,7 +27,7 @@ defmodule GlossiaAgent.Actions.UpdateLock do
     # %{
     #   directory: "/content",
     #   source_path: "docs/intro.md",
-    #   lang_key: "es",
+    #   language: "es",
     #   output_path: "docs/i18n/es/intro.md",
     #   source_hash: "abc...",
     #   context_hash: "def...",
@@ -40,7 +40,7 @@ defmodule GlossiaAgent.Actions.UpdateLock do
     updated_lock = %{lock | source_hash: params.source_hash, context_hash: params.context_hash}
 
     updated_lock =
-      put_in(updated_lock.outputs[params.lang_key], %Locks.OutputLock{
+      put_in(updated_lock.outputs[params.language], %Locks.OutputLock{
         path: params.output_path,
         hash: params.output_hash,
         context_hash: params.context_hash,
@@ -50,7 +50,7 @@ defmodule GlossiaAgent.Actions.UpdateLock do
     Locks.write_lock(params.directory, params.source_path, updated_lock)
 
     # Output shape merged into agent state:
-    # %{lock_updated: true, source_path: "docs/intro.md", lang_key: "es"}
-    {:ok, %{lock_updated: true, source_path: params.source_path, lang_key: params.lang_key}}
+    # %{lock_updated: true, source_path: "docs/intro.md", language: "es"}
+    {:ok, %{lock_updated: true, source_path: params.source_path, language: params.language}}
   end
 end

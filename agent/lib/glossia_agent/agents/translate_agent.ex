@@ -107,14 +107,14 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
     context_hash = Hash.hash_string(source.context)
 
     Enum.reduce(source.outputs, agent, fn output, agent ->
-      lang_key = Plan.Types.output_language_key(output)
+      language = Plan.Types.output_language(output)
       output_abs_path = Path.join(repo_path, output.path)
       progress = agent.state.progress + 1
       label = "[#{progress}/#{agent.state.total}] #{source.path} -> #{output.language}"
 
       lock = Locks.read_lock(repo_path, source.path)
 
-      if lock_fresh?(lock, lang_key, source_hash, context_hash, output_abs_path) do
+      if lock_fresh?(lock, language, source_hash, context_hash, output_abs_path) do
         Emitter.emit(emitter, "status", "Skipping #{label} (up to date)")
         {:ok, agent} = set(agent, %{progress: progress})
         agent
@@ -158,7 +158,7 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
              %{
                directory: repo_path,
                source_path: source.path,
-               lang_key: lang_key,
+               language: language,
                output_path: output.path,
                source_hash: source_hash,
                context_hash: context_hash,
@@ -172,11 +172,11 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
     end)
   end
 
-  defp lock_fresh?(nil, _lang_key, _source_hash, _context_hash, _output_path), do: false
+  defp lock_fresh?(nil, _language, _source_hash, _context_hash, _output_path), do: false
 
-  defp lock_fresh?(lock, lang_key, source_hash, context_hash, output_abs_path) do
-    lock_ctx_hash = Locks.lock_context_hash(lock, lang_key)
-    output_entry = Map.get(lock.outputs, lang_key)
+  defp lock_fresh?(lock, language, source_hash, context_hash, output_abs_path) do
+    lock_ctx_hash = Locks.lock_context_hash(lock, language)
+    output_entry = Map.get(lock.outputs, language)
 
     lock.source_hash == source_hash &&
       lock_ctx_hash == context_hash &&

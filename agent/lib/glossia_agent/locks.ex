@@ -69,12 +69,12 @@ defmodule GlossiaAgent.Locks do
     :ok
   end
 
-  @doc "Get the context hash from a lock for a specific language key."
+  @doc "Get the context hash from a lock for a specific language."
   @spec lock_context_hash(LockFile.t() | nil, String.t()) :: String.t()
-  def lock_context_hash(nil, _lang_key), do: ""
+  def lock_context_hash(nil, _language), do: ""
 
-  def lock_context_hash(lock, lang_key) do
-    case Map.get(lock.outputs, lang_key) do
+  def lock_context_hash(lock, language) do
+    case Map.get(lock.outputs, language) do
       %OutputLock{context_hash: hash} when hash != "" -> hash
       _ -> lock.context_hash || ""
     end
