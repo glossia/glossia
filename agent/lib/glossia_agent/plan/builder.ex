@@ -14,8 +14,8 @@ defmodule GlossiaAgent.Plan.Builder do
   @config_filenames ["GLOSSIA.md", "LANGUAGE.md"]
 
   @doc "Build translation sources from the root directory."
-  @spec build(String.t(), LLMConfig.AgentConfig.t()) :: [TranslationSource.t()]
-  def build(root, fallback_agent) do
+  @spec build(String.t()) :: [TranslationSource.t()]
+  def build(root) do
     root_abs = Path.expand(root)
 
     content_files = discover_content(root_abs)
@@ -25,7 +25,7 @@ defmodule GlossiaAgent.Plan.Builder do
 
     resolved
     |> Enum.map(fn %{source_path: source_path, candidate: candidate} ->
-      build_translation_source(root_abs, source_path, candidate, content_files, fallback_agent)
+      build_translation_source(root_abs, source_path, candidate, content_files)
     end)
     |> Enum.reject(&is_nil/1)
     |> Enum.sort_by(& &1.path)
@@ -155,7 +155,7 @@ defmodule GlossiaAgent.Plan.Builder do
 
   # -- Translation source building ---------------------------------------------
 
-  defp build_translation_source(root_abs, source_path, candidate, content_files, fallback_agent) do
+  defp build_translation_source(root_abs, source_path, candidate, content_files) do
     source_abs_path = Path.join(root_abs, source_path)
     context_files = ancestors_for(source_abs_path, content_files)
 
@@ -168,18 +168,8 @@ defmodule GlossiaAgent.Plan.Builder do
         {parts, llm}
       end)
 
-    has_llm_config =
-      String.trim(llm_cfg.provider) != "" ||
-        String.trim(llm_cfg.translator_model) != "" ||
-        llm_cfg.agents != []
-
-    translator =
-      if has_llm_config do
-        agents = LLMConfig.resolve_agents(llm_cfg)
-        agents.translator
-      else
-        fallback_agent
-      end
+    agents = LLMConfig.resolve_agents(llm_cfg)
+    translator = agents.translator
 
     rel_path =
       Path.relative_to(

@@ -164,9 +164,9 @@ defmodule GlossiaAgent.Config.LLMConfig do
     %{coordinator: coord, translator: trans}
   end
 
-  @doc "Build a fallback AgentConfig from server-provided MiniMax credentials."
-  @spec build_fallback_agent(String.t(), String.t()) :: AgentConfig.t()
-  def build_fallback_agent(minimax_api_key, model) do
+  @doc "Build the server-controlled default translator config."
+  @spec build_server_translator(String.t(), String.t()) :: AgentConfig.t()
+  def build_server_translator(minimax_api_key, model) do
     model_name =
       if String.contains?(model, "/"),
         do: model |> String.split("/") |> List.last(),

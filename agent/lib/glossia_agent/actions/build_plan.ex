@@ -10,15 +10,14 @@ defmodule GlossiaAgent.Actions.BuildPlan do
     name: "build_plan",
     description: "Build translation sources from parsed GLOSSIA.md config",
     schema: [
-      repo_path: [type: :string, required: true, doc: "Path to the root directory"],
-      fallback_agent: [type: :any, required: true, doc: "Fallback LLM agent config"]
+      repo_path: [type: :string, required: true, doc: "Path to the root directory"]
     ]
 
   alias GlossiaAgent.Plan
 
   @spec run(map(), map()) :: {:ok, map()}
   def run(params, _context) do
-    translation_sources = Plan.Builder.build(params.repo_path, params.fallback_agent)
+    translation_sources = Plan.Builder.build(params.repo_path)
 
     # Jido actions return maps that are merged into agent state, so this is wrapped
     # under a key instead of returning a bare list.

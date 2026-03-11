@@ -41,8 +41,8 @@ defmodule GlossiaAgent do
   ## Options
 
     * `:repo_path` - Path to the root directory (required)
-    * `:minimax_api_key` - MiniMax API key for fallback LLM (required)
-    * `:model` - LLM model name (default: "MiniMax-M2.5")
+    * `:minimax_api_key` - MiniMax API key for server-controlled translator (required)
+    * `:model` - Server-controlled LLM model name (default: "MiniMax-M2.5")
     * `:emitter` - Event emitter (required, implements `GlossiaAgent.Events.Emitter`)
 
   Returns `:ok` on success or `{:error, reason}` on failure.
@@ -52,8 +52,13 @@ defmodule GlossiaAgent do
     minimax_api_key = Keyword.fetch!(opts, :minimax_api_key)
     model = Keyword.get(opts, :model, "MiniMax-M2.5")
 
-    fallback_agent = GlossiaAgent.Config.LLMConfig.build_fallback_agent(minimax_api_key, model)
-    translation_sources = GlossiaAgent.Plan.Builder.build(repo_path, fallback_agent)
+    server_translator =
+      GlossiaAgent.Config.LLMConfig.build_server_translator(minimax_api_key, model)
+
+    translation_sources =
+      repo_path
+      |> GlossiaAgent.Plan.Builder.build()
+      |> apply_server_translator(server_translator)
 
     agent_opts =
       opts
@@ -63,5 +68,17 @@ defmodule GlossiaAgent do
       {:ok, _agent} -> :ok
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp apply_server_translator(translation_sources, server_translator) do
+    Enum.map(translation_sources, fn source ->
+      source_translator = source.translator || %GlossiaAgent.Config.LLMConfig.AgentConfig{}
+
+      if String.trim(source_translator.model || "") == "" do
+        %{source | translator: server_translator}
+      else
+        source
+      end
+    end)
   end
 end

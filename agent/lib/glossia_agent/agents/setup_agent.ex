@@ -36,7 +36,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     emitter = Keyword.fetch!(opts, :emitter)
 
     {:ok, agent} = new(state: %{repo_path: repo_path, status: :analyzing})
-    llm_agent = Config.LLMConfig.build_fallback_agent(minimax_api_key, model)
+    llm_agent = Config.LLMConfig.build_server_translator(minimax_api_key, model)
 
     try do
       do_setup(agent, llm_agent, target_languages, emitter)
