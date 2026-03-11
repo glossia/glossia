@@ -72,7 +72,6 @@ When `targets` is present, the entry is a translation entry:
 |---|---|---|---|
 | `targets` | array | yes | Target language codes |
 | `output` | string | yes | Output path template |
-| `frontmatter` | string | no | `"preserve"` (default) or `"translate"` |
 
 ### Revisit fields
 

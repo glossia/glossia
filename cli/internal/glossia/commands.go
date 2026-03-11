@@ -381,7 +381,6 @@ func translateCommand(root string, options TranslateOptions) error {
 				TargetLang:      langKey,
 				Format:          item.Source.Format,
 				Context:         strings.Join(contextPartsFor(item.Source, langKey), "\n\n"),
-				Frontmatter:     item.Source.Entry.Frontmatter,
 				CheckCmd:        checkCmd,
 				CheckCmds:       checkCmds,
 				Reporter:        options.Reporter,

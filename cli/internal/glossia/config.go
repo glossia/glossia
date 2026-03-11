@@ -24,15 +24,14 @@ type AgentConfig struct {
 }
 
 type ContentEntry struct {
-	Source      string
-	Path        string
-	Targets     []string
-	Output      string
-	Exclude     []string
-	Frontmatter string
-	Prompt      string
-	CheckCmd    string
-	CheckCmds   map[string]string
+	Source    string
+	Path      string
+	Targets   []string
+	Output    string
+	Exclude   []string
+	Prompt    string
+	CheckCmd  string
+	CheckCmds map[string]string
 }
 
 type PartialAgentConfig struct {
@@ -78,26 +77,20 @@ type ContentFile struct {
 }
 
 type Entry struct {
-	Source      string
-	Path        string
-	Targets     []string
-	Output      string
-	Exclude     []string
-	Frontmatter string
-	Prompt      string
-	CheckCmd    string
-	CheckCmds   map[string]string
+	Source    string
+	Path      string
+	Targets   []string
+	Output    string
+	Exclude   []string
+	Prompt    string
+	CheckCmd  string
+	CheckCmds map[string]string
 
 	OriginPath  string
 	OriginDir   string
 	OriginDepth int
 	Index       int
 }
-
-const (
-	FrontmatterPreserve  = "preserve"
-	FrontmatterTranslate = "translate"
-)
 
 type splitResult struct {
 	Frontmatter    string
@@ -174,9 +167,6 @@ func parseContentFile(filePath string) (*ContentFile, error) {
 		if strings.TrimSpace(cfg.Content[i].Source) == "" {
 			cfg.Content[i].Source = cfg.Content[i].Path
 		}
-		if len(cfg.Content[i].Targets) > 0 && strings.TrimSpace(cfg.Content[i].Frontmatter) == "" {
-			cfg.Content[i].Frontmatter = FrontmatterPreserve
-		}
 	}
 
 	absPath, err := filepath.Abs(filePath)
@@ -210,10 +200,6 @@ func validateContentEntry(entry ContentEntry) error {
 
 	if len(entry.Targets) > 0 && strings.TrimSpace(entry.Output) == "" {
 		return fmt.Errorf("content entry %q has targets but no output", source)
-	}
-
-	if entry.Frontmatter != "" && entry.Frontmatter != FrontmatterPreserve && entry.Frontmatter != FrontmatterTranslate {
-		return fmt.Errorf("content entry %q has invalid frontmatter mode %q", source, entry.Frontmatter)
 	}
 
 	return nil
@@ -552,15 +538,14 @@ func parsePartialAgent(input any) PartialAgentConfig {
 
 func parseContentEntry(input map[string]any) ContentEntry {
 	return ContentEntry{
-		Source:      asString(input["source"]),
-		Path:        asString(input["path"]),
-		Targets:     asStringArray(input["targets"]),
-		Output:      asString(input["output"]),
-		Exclude:     asStringArray(input["exclude"]),
-		Frontmatter: asString(input["frontmatter"]),
-		Prompt:      asString(input["prompt"]),
-		CheckCmd:    asString(input["check_cmd"]),
-		CheckCmds:   asStringMap(input["check_cmds"]),
+		Source:    asString(input["source"]),
+		Path:      asString(input["path"]),
+		Targets:   asStringArray(input["targets"]),
+		Output:    asString(input["output"]),
+		Exclude:   asStringArray(input["exclude"]),
+		Prompt:    asString(input["prompt"]),
+		CheckCmd:  asString(input["check_cmd"]),
+		CheckCmds: asStringMap(input["check_cmds"]),
 	}
 }
 
@@ -683,18 +668,12 @@ func collectEntries(contentFiles []*ContentFile) []Entry {
 				continue
 			}
 
-			frontmatter := raw.Frontmatter
-			if strings.TrimSpace(frontmatter) == "" && len(raw.Targets) > 0 {
-				frontmatter = FrontmatterPreserve
-			}
-
 			entries = append(entries, Entry{
 				Source:      firstNonEmpty(raw.Source, raw.Path),
 				Path:        firstNonEmpty(raw.Path, raw.Source),
 				Targets:     append([]string{}, raw.Targets...),
 				Output:      raw.Output,
 				Exclude:     append([]string{}, raw.Exclude...),
-				Frontmatter: frontmatter,
 				Prompt:      raw.Prompt,
 				CheckCmd:    raw.CheckCmd,
 				CheckCmds:   copyStringMap(raw.CheckCmds),

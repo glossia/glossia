@@ -14,7 +14,6 @@ defmodule GlossiaAgent.Actions.TranslateFile do
       target_lang: [type: :string, required: true, doc: "Target language code"],
       format: [type: :atom, required: true, doc: "File format (e.g. :markdown, :json)"],
       context: [type: :string, default: "", doc: "Additional context for translation"],
-      frontmatter: [type: :string, default: "preserve", doc: "Frontmatter handling mode"],
       translator: [type: :any, required: true, doc: "LLM translator agent config"]
     ]
 
@@ -26,7 +25,6 @@ defmodule GlossiaAgent.Actions.TranslateFile do
         target_lang: params.target_lang,
         format: params.format,
         context: params.context,
-        frontmatter: params.frontmatter,
         translator: params.translator
       })
 

@@ -20,7 +20,6 @@ defmodule GlossiaAgent.TranslateEngine do
           target_lang: String.t(),
           format: Format.t(),
           context: String.t(),
-          frontmatter: String.t(),
           translator: AgentConfig.t()
         }
 
@@ -33,14 +32,13 @@ defmodule GlossiaAgent.TranslateEngine do
   """
   @spec translate_file(request()) :: result()
   def translate_file(req) do
-    {content, frontmatter} = maybe_split_frontmatter(req)
     brief = default_brief(req)
     attempts = @max_validation_attempts
 
-    do_translate(req, brief, content, frontmatter, nil, 0, attempts, empty_usage())
+    do_translate(req, brief, req.source, nil, 0, attempts, empty_usage())
   end
 
-  defp do_translate(_req, _brief, _content, _frontmatter, last_err, attempt, max_attempts, _usage)
+  defp do_translate(_req, _brief, _content, last_err, attempt, max_attempts, _usage)
        when attempt > max_attempts do
     if last_err do
       raise last_err
@@ -49,19 +47,11 @@ defmodule GlossiaAgent.TranslateEngine do
     end
   end
 
-  defp do_translate(req, brief, content, frontmatter, last_err, attempt, max_attempts, usage) do
+  defp do_translate(req, brief, content, last_err, attempt, max_attempts, usage) do
     case translate_once(req, brief, content, last_err) do
       {:ok, result} ->
         usage = add_usage(usage, result.usage)
         translated = strip_structured_code_fence(req.format, String.trim_trailing(result.text))
-
-        translated =
-          if frontmatter != "" do
-            trimmed = String.trim(translated)
-            if trimmed != "", do: frontmatter <> "\n" <> trimmed, else: frontmatter <> "\n"
-          else
-            translated
-          end
 
         check_err = Validator.validate(req.format, translated, req.source)
 
@@ -72,7 +62,6 @@ defmodule GlossiaAgent.TranslateEngine do
             req,
             brief,
             content,
-            frontmatter,
             check_err,
             attempt + 1,
             max_attempts,
@@ -81,7 +70,7 @@ defmodule GlossiaAgent.TranslateEngine do
         end
 
       {:error, err} ->
-        do_translate(req, brief, content, frontmatter, err, attempt + 1, max_attempts, usage)
+        do_translate(req, brief, content, err, attempt + 1, max_attempts, usage)
     end
   end
 
@@ -137,57 +126,7 @@ defmodule GlossiaAgent.TranslateEngine do
           []
         end
 
-    lines =
-      lines ++
-        if req.frontmatter == "preserve" do
-          ["Frontmatter is preserved separately; do not add new frontmatter."]
-        else
-          []
-        end
-
     Enum.join(lines, "\n")
-  end
-
-  @doc """
-  Split markdown frontmatter from body when frontmatter mode is "preserve".
-  Returns `{body, frontmatter}` where frontmatter includes the delimiters.
-  """
-  @spec split_markdown_frontmatter(String.t()) :: {String.t(), String.t()} | :no_frontmatter
-  def split_markdown_frontmatter(content) do
-    lines = String.split(content, "\n")
-
-    case lines do
-      [] ->
-        :no_frontmatter
-
-      [first | rest] ->
-        marker = String.trim(first)
-
-        if marker not in ["---", "+++"] do
-          :no_frontmatter
-        else
-          end_idx = Enum.find_index(rest, &(String.trim(&1) == marker))
-
-          if end_idx == nil do
-            :no_frontmatter
-          else
-            frontmatter_lines = [first | Enum.take(rest, end_idx + 1)]
-            body_lines = Enum.drop(rest, end_idx + 1)
-            {Enum.join(body_lines, "\n"), Enum.join(frontmatter_lines, "\n")}
-          end
-        end
-    end
-  end
-
-  defp maybe_split_frontmatter(req) do
-    if req.format == :markdown && req.frontmatter == "preserve" do
-      case split_markdown_frontmatter(req.source) do
-        {body, frontmatter} -> {body, frontmatter}
-        :no_frontmatter -> {req.source, ""}
-      end
-    else
-      {req.source, ""}
-    end
   end
 
   defp strip_structured_code_fence(format, text) do

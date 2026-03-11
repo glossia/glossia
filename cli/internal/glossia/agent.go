@@ -11,7 +11,6 @@ type TranslationRequest struct {
 	TargetLang      string
 	Format          Format
 	Context         string
-	Frontmatter     string
 	CheckCmd        string
 	CheckCmds       map[string]string
 	Reporter        Reporter
@@ -47,17 +46,6 @@ type TranslationResult struct {
 const defaultValidationAttempts = 2
 
 func translate(req TranslationRequest) (*TranslationResult, error) {
-	content := req.Source
-	frontmatter := ""
-
-	if req.Format == FormatMarkdown && req.Frontmatter == FrontmatterPreserve {
-		split := splitMarkdownFrontmatter(req.Source)
-		if split.OK {
-			frontmatter = split.Frontmatter
-			content = split.Body
-		}
-	}
-
 	briefResult := buildBrief(req)
 	usage := briefResult.Usage
 	brief := briefResult.Text
@@ -66,7 +54,7 @@ func translate(req TranslationRequest) (*TranslationResult, error) {
 
 	var lastErr error
 	for attempt := 0; attempt <= attempts; attempt++ {
-		result, err := translateOnce(req, brief, content, lastErr)
+		result, err := translateOnce(req, brief, req.Source, lastErr)
 		if err != nil {
 			lastErr = err
 			continue
@@ -74,13 +62,6 @@ func translate(req TranslationRequest) (*TranslationResult, error) {
 		usage = addUsage(usage, result.Usage)
 
 		translated := stripStructuredCodeFence(req.Format, trimEnd(result.Text))
-		if frontmatter != "" {
-			if strings.TrimSpace(translated) != "" {
-				translated = frontmatter + "\n" + translated
-			} else {
-				translated = frontmatter + "\n"
-			}
-		}
 
 		if err := validate(req.Root, req.Format, translated, req.Source, CheckOptions{
 			CheckCmd:  req.CheckCmd,
@@ -168,7 +149,6 @@ func buildBrief(req TranslationRequest) briefResult {
 				"",
 				fmt.Sprintf("Target language: %s", req.TargetLang),
 				fmt.Sprintf("Format: %s", req.Format),
-				fmt.Sprintf("Frontmatter mode: %s", req.Frontmatter),
 				"",
 				"Context:\n" + req.Context,
 			}, "\n"),
@@ -270,10 +250,6 @@ func defaultBrief(req TranslationRequest) string {
 		lines = append(lines, fmt.Sprintf("Return valid %s only. Do not wrap in markdown fences.", req.Format))
 	}
 
-	if req.Frontmatter == FrontmatterPreserve {
-		lines = append(lines, "Frontmatter is preserved separately; do not add new frontmatter.")
-	}
-
 	return strings.Join(lines, "\n")
 }
 
@@ -297,41 +273,6 @@ func stripStructuredCodeFence(format Format, text string) string {
 	}
 
 	return strings.Join(lines[1:len(lines)-1], "\n")
-}
-
-type markdownSplit struct {
-	Frontmatter string
-	Body        string
-	OK          bool
-}
-
-func splitMarkdownFrontmatter(content string) markdownSplit {
-	lines := strings.Split(content, "\n")
-	if len(lines) == 0 {
-		return markdownSplit{Frontmatter: "", Body: content, OK: false}
-	}
-
-	marker := strings.TrimSpace(lines[0])
-	if marker != "---" && marker != "+++" {
-		return markdownSplit{Frontmatter: "", Body: content, OK: false}
-	}
-
-	end := -1
-	for i := 1; i < len(lines); i++ {
-		if strings.TrimSpace(lines[i]) == marker {
-			end = i
-			break
-		}
-	}
-	if end < 0 {
-		return markdownSplit{Frontmatter: "", Body: content, OK: false}
-	}
-
-	return markdownSplit{
-		Frontmatter: strings.Join(lines[:end+1], "\n"),
-		Body:        strings.Join(lines[end+1:], "\n"),
-		OK:          true,
-	}
 }
 
 func trimEnd(input string) string {

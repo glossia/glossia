@@ -21,7 +21,6 @@ defmodule GlossiaAgent.Plan.Types do
       :path,
       :format,
       :context,
-      :frontmatter,
       :translator,
       :outputs
     ]
@@ -30,7 +29,6 @@ defmodule GlossiaAgent.Plan.Types do
             path: String.t(),
             format: GlossiaAgent.Format.t(),
             context: String.t(),
-            frontmatter: String.t(),
             translator: AgentConfig.t(),
             outputs: [TranslationOutput.t()]
           }

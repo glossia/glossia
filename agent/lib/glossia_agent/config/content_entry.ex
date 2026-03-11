@@ -3,16 +3,12 @@ defmodule GlossiaAgent.Config.ContentEntry do
   Content entry from a GLOSSIA.md `[[content]]` section.
   """
 
-  @frontmatter_preserve "preserve"
-  @frontmatter_translate "translate"
-
   defstruct [
     :source,
     :path,
     :targets,
     :output,
     :exclude,
-    :frontmatter,
     :prompt,
     :check_cmd,
     :check_cmds
@@ -24,14 +20,10 @@ defmodule GlossiaAgent.Config.ContentEntry do
           targets: [String.t()],
           output: String.t(),
           exclude: [String.t()],
-          frontmatter: String.t(),
           prompt: String.t(),
           check_cmd: String.t(),
           check_cmds: %{String.t() => String.t()}
         }
-
-  def frontmatter_preserve, do: @frontmatter_preserve
-  def frontmatter_translate, do: @frontmatter_translate
 
   @doc "Parse a content entry from a TOML map."
   @spec from_toml(map()) :: t()
@@ -42,7 +34,6 @@ defmodule GlossiaAgent.Config.ContentEntry do
       targets: as_string_list(obj["targets"]),
       output: as_string(obj["output"]),
       exclude: as_string_list(obj["exclude"]),
-      frontmatter: as_string(obj["frontmatter"]),
       prompt: as_string(obj["prompt"]),
       check_cmd: as_string(obj["check_cmd"]),
       check_cmds: as_string_map(obj["check_cmds"])
@@ -57,7 +48,6 @@ defmodule GlossiaAgent.Config.ContentEntry do
     cond do
       source == "" -> false
       entry.targets != [] && String.trim(entry.output) == "" -> false
-      entry.frontmatter not in ["", @frontmatter_preserve, @frontmatter_translate] -> false
       true -> true
     end
   end

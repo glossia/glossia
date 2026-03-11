@@ -130,7 +130,6 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
                target_lang: output.language,
                format: source.format,
                context: source.context,
-               frontmatter: source.frontmatter,
                translator: source.translator
              }}
           )

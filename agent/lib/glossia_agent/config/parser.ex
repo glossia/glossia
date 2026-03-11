@@ -29,7 +29,6 @@ defmodule GlossiaAgent.Config.Parser do
       :targets,
       :output,
       :exclude,
-      :frontmatter,
       :prompt,
       :check_cmd,
       :check_cmds,
@@ -45,7 +44,6 @@ defmodule GlossiaAgent.Config.Parser do
             targets: [String.t()],
             output: String.t(),
             exclude: [String.t()],
-            frontmatter: String.t(),
             prompt: String.t(),
             check_cmd: String.t(),
             check_cmds: %{String.t() => String.t()},
@@ -98,13 +96,8 @@ defmodule GlossiaAgent.Config.Parser do
           # Apply defaults
           entries =
             Enum.map(raw_entries, fn entry ->
-              entry =
-                if String.trim(entry.source) == "",
-                  do: %{entry | source: entry.path},
-                  else: entry
-
-              if entry.targets != [] && String.trim(entry.frontmatter) == "",
-                do: %{entry | frontmatter: ContentEntry.frontmatter_preserve()},
+              if String.trim(entry.source) == "",
+                do: %{entry | source: entry.path},
                 else: entry
             end)
 
@@ -136,20 +129,12 @@ defmodule GlossiaAgent.Config.Parser do
       |> Enum.with_index()
       |> Enum.filter(fn {entry, _idx} -> ContentEntry.valid?(entry) end)
       |> Enum.map(fn {raw, idx} ->
-        frontmatter =
-          if String.trim(raw.frontmatter) == "" && raw.targets != [] do
-            ContentEntry.frontmatter_preserve()
-          else
-            raw.frontmatter
-          end
-
         %Entry{
           source: first_non_empty(raw.source, raw.path),
           path: first_non_empty(raw.path, raw.source),
           targets: raw.targets,
           output: raw.output,
           exclude: raw.exclude,
-          frontmatter: frontmatter,
           prompt: raw.prompt,
           check_cmd: raw.check_cmd,
           check_cmds: raw.check_cmds,
