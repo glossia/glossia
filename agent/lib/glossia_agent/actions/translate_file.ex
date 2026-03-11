@@ -19,6 +19,14 @@ defmodule GlossiaAgent.Actions.TranslateFile do
 
   @spec run(map(), map()) :: {:ok, map()} | {:error, term()}
   def run(params, _context) do
+    # Input shape (params):
+    # %{
+    #   source_content: "# Hello",
+    #   target_lang: "es",
+    #   format: :markdown,
+    #   context: "Project glossary and tone",
+    #   translator: %GlossiaAgent.Config.LLMConfig.AgentConfig{...}
+    # }
     result =
       GlossiaAgent.TranslateEngine.translate_file(%{
         source: params.source_content,
@@ -28,6 +36,11 @@ defmodule GlossiaAgent.Actions.TranslateFile do
         translator: params.translator
       })
 
+    # Output shape merged into agent state:
+    # %{
+    #   translated_text: "# Hola",
+    #   usage: %{prompt_tokens: 120, completion_tokens: 95, total_tokens: 215}
+    # }
     {:ok, %{translated_text: result.text, usage: result.usage}}
   end
 end

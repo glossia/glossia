@@ -18,11 +18,11 @@ defmodule GlossiaAgent.Actions.BuildPlan do
 
   @spec run(map(), map()) :: {:ok, map()}
   def run(params, _context) do
+    # Input shape (params):
+    # %{repo_path: "/repo/content"}
     translation_sources = Plan.Builder.build(params.repo_path)
 
-    # Jido actions return maps that are merged into agent state, so this is wrapped
-    # under a key instead of returning a bare list.
-    # Example:
+    # Output shape merged into agent state:
     # %{
     #   translation_sources: [
     #     %GlossiaAgent.Plan.Types.TranslationSource{

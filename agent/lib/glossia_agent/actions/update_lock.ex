@@ -23,6 +23,16 @@ defmodule GlossiaAgent.Actions.UpdateLock do
 
   @spec run(map(), map()) :: {:ok, map()}
   def run(params, _context) do
+    # Input shape (params):
+    # %{
+    #   repo_path: "/repo",
+    #   source_path: "docs/intro.md",
+    #   lang_key: "es",
+    #   output_path: "docs/i18n/es/intro.md",
+    #   source_hash: "abc...",
+    #   context_hash: "def...",
+    #   output_hash: "ghi..."
+    # }
     lock =
       Locks.read_lock(params.repo_path, params.source_path) ||
         Locks.create_lock(params.source_path)
@@ -38,6 +48,9 @@ defmodule GlossiaAgent.Actions.UpdateLock do
       })
 
     Locks.write_lock(params.repo_path, params.source_path, updated_lock)
+
+    # Output shape merged into agent state:
+    # %{lock_updated: true, source_path: "docs/intro.md", lang_key: "es"}
     {:ok, %{lock_updated: true, source_path: params.source_path, lang_key: params.lang_key}}
   end
 end
