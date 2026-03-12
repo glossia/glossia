@@ -3,6 +3,7 @@ defmodule GlossiaAgent.Setup.Prompt do
   Builds the LLM prompt for GLOSSIA.md generation.
   """
 
+  alias GlossiaAgent.Setup.FrameworkHints
   alias GlossiaAgent.Setup.RepoContext
 
   @doc """
@@ -54,6 +55,7 @@ defmodule GlossiaAgent.Setup.Prompt do
   @spec user_prompt(map(), [String.t()]) :: String.t()
   def user_prompt(context, target_languages \\ []) do
     context_text = RepoContext.format_context(context)
+    framework_requirements = FrameworkHints.format_for_prompt(context.framework_hints || [])
 
     target_instruction =
       if target_languages != [] do
@@ -73,8 +75,11 @@ defmodule GlossiaAgent.Setup.Prompt do
     - Use appropriate glob patterns for source files
     - Choose output path templates that follow the project's existing conventions
     - If the project already has i18n directories, follow that pattern
+    - If framework requirements are provided, include them exactly
     - Keep the configuration minimal but complete
     - Add brief free-text context describing the product and tone
+
+    #{framework_requirements}
 
     #{context_text}
     """

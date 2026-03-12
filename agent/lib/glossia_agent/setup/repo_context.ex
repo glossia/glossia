@@ -7,6 +7,8 @@ defmodule GlossiaAgent.Setup.RepoContext do
   GLOSSIA.md configuration.
   """
 
+  alias GlossiaAgent.Setup.FrameworkHints
+
   @max_file_size 8_192
   @max_tree_entries 500
 
@@ -54,6 +56,7 @@ defmodule GlossiaAgent.Setup.RepoContext do
   - `:key_files` - map of filename => content for key project files
   - `:i18n_dirs` - directories that look like i18n/locale directories
   - `:content_dirs` - directories containing markdown/content files
+  - `:framework_hints` - deterministic framework requirements for localization
   - `:has_glossia_md` - whether GLOSSIA.md already exists
   """
   @spec gather(String.t()) :: map()
@@ -62,6 +65,7 @@ defmodule GlossiaAgent.Setup.RepoContext do
     key_file_contents = read_key_files(repo_path, tree)
     i18n_dirs = detect_i18n_dirs(tree)
     content_dirs = detect_content_dirs(tree)
+    framework_hints = FrameworkHints.detect(tree, key_file_contents)
     has_glossia_md = Enum.any?(tree, &(Path.basename(&1) == "GLOSSIA.md"))
 
     %{
@@ -69,6 +73,7 @@ defmodule GlossiaAgent.Setup.RepoContext do
       key_files: key_file_contents,
       i18n_dirs: i18n_dirs,
       content_dirs: content_dirs,
+      framework_hints: framework_hints,
       has_glossia_md: has_glossia_md
     }
   end
@@ -104,13 +109,35 @@ defmodule GlossiaAgent.Setup.RepoContext do
     sections = sections ++ key_file_sections
 
     # I18n directories
-    if context.i18n_dirs != [] do
-      dirs = Enum.join(context.i18n_dirs, ", ")
-      sections = sections ++ ["## Detected i18n/locale directories\n\n#{dirs}"]
-      Enum.join(sections, "\n\n")
-    else
-      Enum.join(sections, "\n\n")
-    end
+    sections =
+      if context.i18n_dirs != [] do
+        dirs = Enum.join(context.i18n_dirs, ", ")
+        sections ++ ["## Detected i18n/locale directories\n\n#{dirs}"]
+      else
+        sections
+      end
+
+    # Framework hints
+    sections =
+      if context.framework_hints != [] do
+        lines =
+          Enum.map_join(context.framework_hints, "\n", fn hint ->
+            required =
+              if hint.required_sources == [] do
+                "none"
+              else
+                Enum.join(hint.required_sources, ", ")
+              end
+
+            "- #{hint.framework}: #{hint.summary}; required sources: #{required}"
+          end)
+
+        sections ++ ["## Framework localization hints\n\n#{lines}"]
+      else
+        sections
+      end
+
+    Enum.join(sections, "\n\n")
   end
 
   defp build_tree(repo_path) do

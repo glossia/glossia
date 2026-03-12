@@ -24,6 +24,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
   # Jido state-machine style: keep an explicit phase in state and move it with set/2.
   # Setup status flow is: :idle -> :analyzing -> :generating -> :completed.
   alias GlossiaAgent.Events.Emitter
+  alias GlossiaAgent.Setup.FrameworkHints
   alias GlossiaAgent.LLM
   alias GlossiaAgent.Setup
 
@@ -77,11 +78,34 @@ defmodule GlossiaAgent.Agents.SetupAgent do
 
         case Setup.Extractor.extract(result.text) do
           {:ok, glossia_md} ->
-            write_glossia_md(agent, directory, glossia_md, emitter)
+            case Setup.Requirements.validate_glossia(glossia_md, context.framework_hints || []) do
+              :ok ->
+                write_glossia_md(agent, directory, glossia_md, emitter)
+
+              {:error, reason} ->
+                Emitter.emit(emitter, "status", "First attempt failed: #{reason}. Retrying...")
+
+                retry_setup(
+                  agent,
+                  translator,
+                  result.text,
+                  reason,
+                  context.framework_hints || [],
+                  emitter
+                )
+            end
 
           {:error, reason} ->
             Emitter.emit(emitter, "status", "First attempt failed: #{reason}. Retrying...")
-            retry_setup(agent, translator, result.text, reason, emitter)
+
+            retry_setup(
+              agent,
+              translator,
+              result.text,
+              reason,
+              context.framework_hints || [],
+              emitter
+            )
         end
       else
         {:error, reason} ->
@@ -114,13 +138,17 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     end
   end
 
-  defp retry_setup(agent, translator, previous_output, previous_error, emitter) do
+  defp retry_setup(agent, translator, previous_output, previous_error, framework_hints, emitter) do
+    framework_requirements = FrameworkHints.format_for_prompt(framework_hints)
+
     retry_prompt = """
     Your previous output could not be parsed as a valid GLOSSIA.md file.
     Error: #{previous_error}
 
     Your previous output was:
     #{String.slice(previous_output, 0, 2000)}
+
+    #{framework_requirements}
 
     Please output ONLY the GLOSSIA.md file content, starting with +++ and ending \
     after the free-text context. Include at least one [[content]] entry with source, \
@@ -137,7 +165,13 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     with {:ok, result} <- LLM.Client.safe_chat(translator, model_name, messages) do
       case Setup.Extractor.extract(result.text) do
         {:ok, glossia_md} ->
-          write_glossia_md(agent, agent.state.directory, glossia_md, emitter)
+          case Setup.Requirements.validate_glossia(glossia_md, framework_hints) do
+            :ok ->
+              write_glossia_md(agent, agent.state.directory, glossia_md, emitter)
+
+            {:error, reason} ->
+              {:error, "failed to generate valid GLOSSIA.md: #{reason}"}
+          end
 
         {:error, reason} ->
           {:error, "failed to generate valid GLOSSIA.md: #{reason}"}
