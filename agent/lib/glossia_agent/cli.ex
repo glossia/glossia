@@ -133,13 +133,11 @@ defmodule GlossiaAgent.CLI do
   end
 
   defp run_workflow("translate", config, repo_path, emitter) do
-    minimax_api_key = config["minimax_api_key"] || ""
-    model = config["model"] || "MiniMax-M2.5"
+    llm = llm_config(config)
 
     case GlossiaAgent.translate(
            repo_path: repo_path,
-           minimax_api_key: minimax_api_key,
-           model: model,
+           llm: llm,
            emitter: emitter
          ) do
       :ok ->
@@ -153,14 +151,12 @@ defmodule GlossiaAgent.CLI do
   end
 
   defp run_workflow(_mode, config, repo_path, emitter) do
-    minimax_api_key = config["minimax_api_key"] || ""
-    model = config["model"] || "MiniMax-M2.5"
+    llm = llm_config(config)
     target_languages = config["target_languages"] || []
 
     case GlossiaAgent.setup(
            directory: repo_path,
-           minimax_api_key: minimax_api_key,
-           model: model,
+           llm: llm,
            target_languages: target_languages,
            emitter: emitter
          ) do
@@ -172,5 +168,9 @@ defmodule GlossiaAgent.CLI do
         Logger.error("Setup workflow failed: #{inspect(reason)}")
         System.halt(1)
     end
+  end
+
+  defp llm_config(config) do
+    config["llm"] || raise "llm config is required"
   end
 end

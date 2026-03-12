@@ -24,15 +24,19 @@ defmodule GlossiaAgent do
   ## Options
 
     * `:directory` - Path to the localizable directory (required)
-    * `:minimax_api_key` - MiniMax API key for LLM (required)
-    * `:model` - LLM model name (default: "MiniMax-M2.5")
+    * `:llm` - LLM settings map (required), e.g. `%{provider: "anthropic", model: "claude-3-5-sonnet-latest", authentication: %{api_key: "..."}}`
     * `:target_languages` - Target language codes (optional, inferred if omitted)
     * `:emitter` - Event emitter (required)
 
   Returns `{:ok, glossia_md_content}` on success or `{:error, reason}` on failure.
   """
   def setup(opts) do
-    GlossiaAgent.Agents.SetupAgent.run_workflow(opts)
+    llm = Keyword.fetch!(opts, :llm)
+    translator = GlossiaAgent.Config.LLMConfig.build_server_translator(llm)
+
+    opts
+    |> Keyword.put(:translator, translator)
+    |> GlossiaAgent.Agents.SetupAgent.run_workflow()
   end
 
   @doc """
@@ -41,19 +45,17 @@ defmodule GlossiaAgent do
   ## Options
 
     * `:repo_path` - Path to the root directory (required)
-    * `:minimax_api_key` - MiniMax API key for server-controlled translator (required)
-    * `:model` - Server-controlled LLM model name (default: "MiniMax-M2.5")
+    * `:llm` - LLM settings map (required), e.g. `%{provider: "anthropic", model: "claude-3-5-sonnet-latest", authentication: %{api_key: "..."}}`
     * `:emitter` - Event emitter (required, implements `GlossiaAgent.Events.Emitter`)
 
   Returns `:ok` on success or `{:error, reason}` on failure.
   """
   def translate(opts) do
     repo_path = Keyword.fetch!(opts, :repo_path)
-    minimax_api_key = Keyword.fetch!(opts, :minimax_api_key)
-    model = Keyword.get(opts, :model, "MiniMax-M2.5")
+    llm = Keyword.fetch!(opts, :llm)
 
     server_translator =
-      GlossiaAgent.Config.LLMConfig.build_server_translator(minimax_api_key, model)
+      GlossiaAgent.Config.LLMConfig.build_server_translator(llm)
 
     translation_sources =
       repo_path

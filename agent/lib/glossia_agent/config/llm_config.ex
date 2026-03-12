@@ -164,23 +164,44 @@ defmodule GlossiaAgent.Config.LLMConfig do
     %{coordinator: coord, translator: trans}
   end
 
-  @doc "Build the server-controlled default translator config."
-  @spec build_server_translator(String.t(), String.t()) :: AgentConfig.t()
-  def build_server_translator(minimax_api_key, model) do
-    model_name =
-      if String.contains?(model, "/"),
-        do: model |> String.split("/") |> List.last(),
-        else: model
+  @doc """
+  Build a server-controlled translator config from generic LLM settings.
 
-    %AgentConfig{
+  Expected map shape:
+
+      %{
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-latest",
+        authentication: %{
+          api_key: "...",
+          api_key_env: "ANTHROPIC_API_KEY"
+        }
+      }
+  """
+  @spec build_server_translator(map()) :: AgentConfig.t()
+  def build_server_translator(llm) when is_map(llm) do
+    auth = map_get_map(llm, :authentication)
+
+    cfg = %AgentConfig{
       role: "translator",
-      provider: "anthropic",
-      base_url: "https://api.minimax.io/anthropic/v1",
-      chat_completions_path: "/v1/messages",
-      api_key: minimax_api_key,
-      model: model_name,
-      timeout_seconds: 300
+      provider: as_string(map_get(llm, :provider)),
+      base_url: as_string(map_get(llm, :base_url)),
+      chat_completions_path: as_string(map_get(llm, :chat_completions_path)),
+      api_key: pick(as_string(map_get(auth, :api_key)), as_string(map_get(llm, :api_key))),
+      api_key_env:
+        pick(as_string(map_get(auth, :api_key_env)), as_string(map_get(llm, :api_key_env))),
+      model: as_string(map_get(llm, :model)),
+      temperature: as_number_or_nil(map_get(llm, :temperature)),
+      max_tokens: as_int_or_nil(map_get(llm, :max_tokens)),
+      headers: as_string_map(map_get(llm, :headers)),
+      timeout_seconds:
+        if(as_int(map_get(llm, :timeout_seconds)) > 0,
+          do: as_int(map_get(llm, :timeout_seconds)),
+          else: 300
+        )
     }
+
+    apply_agent_defaults(cfg)
   end
 
   # -- Private -----------------------------------------------------------------
@@ -310,6 +331,19 @@ defmodule GlossiaAgent.Config.LLMConfig do
 
   defp pick(primary, fallback) do
     if String.trim(primary || "") != "", do: primary, else: fallback
+  end
+
+  defp map_get(map, key) when is_map(map) and is_atom(key) do
+    Map.get(map, key) || Map.get(map, Atom.to_string(key))
+  end
+
+  defp map_get(_map, _key), do: nil
+
+  defp map_get_map(map, key) do
+    case map_get(map, key) do
+      value when is_map(value) -> value
+      _ -> %{}
+    end
   end
 
   defp as_string(nil), do: ""

@@ -64,15 +64,14 @@ defmodule Glossia.Projects.Setup do
   defp run_locally(project, account) do
     case Glossia.ContentSource.LocalGit.repo_path(project) do
       {:ok, repo_path} ->
-        minimax_api_key = Application.get_env(:glossia, Glossia.Minimax)[:api_key] || ""
+        llm = default_llm_config()
         emitter = GlossiaAgent.Events.LocalEmitter.new(self())
 
         pid =
           spawn_link(fn ->
             GlossiaAgent.setup(
-              repo_path: repo_path,
-              minimax_api_key: minimax_api_key,
-              model: "MiniMax-M2.5",
+              directory: repo_path,
+              llm: llm,
               target_languages: project.setup_target_languages || [],
               emitter: emitter
             )
@@ -314,7 +313,6 @@ defmodule Glossia.Projects.Setup do
       )
 
     server_url = GlossiaWeb.Endpoint.url()
-    minimax_api_key = Application.get_env(:glossia, Glossia.Minimax)[:api_key] || ""
 
     config_json =
       JSON.encode!(%{
@@ -323,8 +321,7 @@ defmodule Glossia.Projects.Setup do
         github_token: github_token,
         repo_path: "/home/user/repo",
         target_languages: project.setup_target_languages || [],
-        minimax_api_key: minimax_api_key,
-        model: "minimax/MiniMax-M2.5"
+        llm: default_llm_config()
       })
 
     {:ok, _pid} =
@@ -437,6 +434,18 @@ defmodule Glossia.Projects.Setup do
       content: content || "",
       metadata: metadata_json
     })
+  end
+
+  defp default_llm_config do
+    api_key = Application.get_env(:glossia, Glossia.Minimax)[:api_key] || ""
+
+    %{
+      provider: "anthropic",
+      model: "MiniMax-M2.5",
+      base_url: "https://api.minimax.io/anthropic/v1",
+      chat_completions_path: "/v1/messages",
+      authentication: %{api_key: api_key}
+    }
   end
 
   defp humanize_error(:agent_session_failed),

@@ -17,7 +17,6 @@ defmodule GlossiaAgent.Agents.SetupAgent do
       result_content: [type: :string, default: "", doc: "Generated GLOSSIA.md content"]
     ]
 
-  alias GlossiaAgent.Config
   alias GlossiaAgent.Events.Emitter
   alias GlossiaAgent.LLM
   alias GlossiaAgent.Setup
@@ -30,15 +29,13 @@ defmodule GlossiaAgent.Agents.SetupAgent do
   """
   def run_workflow(opts) do
     directory = Keyword.fetch!(opts, :directory)
-    minimax_api_key = Keyword.fetch!(opts, :minimax_api_key)
-    model = Keyword.get(opts, :model, "MiniMax-M2.5")
+    translator = Keyword.fetch!(opts, :translator)
     target_languages = Keyword.get(opts, :target_languages, [])
     emitter = Keyword.fetch!(opts, :emitter)
 
     {:ok, agent} = new(state: %{directory: directory, status: :analyzing})
-    llm_agent = Config.LLMConfig.build_server_translator(minimax_api_key, model)
 
-    case do_setup(agent, llm_agent, target_languages, emitter) do
+    case do_setup(agent, translator, target_languages, emitter) do
       {:ok, content} ->
         {:ok, content}
 
@@ -48,7 +45,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     end
   end
 
-  defp do_setup(agent, llm_agent, target_languages, emitter) do
+  defp do_setup(agent, translator, target_languages, emitter) do
     directory = agent.state.directory
 
     Emitter.emit(emitter, "status", "Analyzing directory structure...")
@@ -69,7 +66,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     else
       with {:ok, agent} <- set(agent, %{status: :generating}),
            {:ok, result} <-
-             request_setup_generation(llm_agent, context, target_languages, emitter) do
+             request_setup_generation(translator, context, target_languages, emitter) do
         Emitter.emit(emitter, "text", result.text)
 
         case Setup.Extractor.extract(result.text) do
@@ -78,7 +75,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
 
           {:error, reason} ->
             Emitter.emit(emitter, "status", "First attempt failed: #{reason}. Retrying...")
-            retry_setup(agent, llm_agent, result.text, reason, emitter)
+            retry_setup(agent, translator, result.text, reason, emitter)
         end
       else
         {:error, reason} ->
@@ -87,7 +84,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     end
   end
 
-  defp request_setup_generation(llm_agent, context, target_languages, emitter) do
+  defp request_setup_generation(translator, context, target_languages, emitter) do
     Emitter.emit(emitter, "status", "Building setup prompt...")
 
     system = Setup.Prompt.system_prompt()
@@ -99,10 +96,10 @@ defmodule GlossiaAgent.Agents.SetupAgent do
       %{role: "user", content: user}
     ]
 
-    model_name = String.trim(llm_agent.model)
+    model_name = String.trim(translator.model)
     Emitter.emit(emitter, "status", "Calling LLM (#{model_name}) to generate GLOSSIA.md...")
 
-    case LLM.Client.safe_chat(llm_agent, model_name, messages) do
+    case LLM.Client.safe_chat(translator, model_name, messages) do
       {:ok, result} ->
         {:ok, result}
 
@@ -111,7 +108,7 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     end
   end
 
-  defp retry_setup(agent, llm_agent, previous_output, previous_error, emitter) do
+  defp retry_setup(agent, translator, previous_output, previous_error, emitter) do
     retry_prompt = """
     Your previous output could not be parsed as a valid GLOSSIA.md file.
     Error: #{previous_error}
@@ -129,9 +126,9 @@ defmodule GlossiaAgent.Agents.SetupAgent do
       %{role: "user", content: retry_prompt}
     ]
 
-    model_name = String.trim(llm_agent.model)
+    model_name = String.trim(translator.model)
 
-    with {:ok, result} <- LLM.Client.safe_chat(llm_agent, model_name, messages) do
+    with {:ok, result} <- LLM.Client.safe_chat(translator, model_name, messages) do
       case Setup.Extractor.extract(result.text) do
         {:ok, glossia_md} ->
           write_glossia_md(agent, agent.state.directory, glossia_md, emitter)
