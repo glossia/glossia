@@ -15,12 +15,18 @@ defmodule GlossiaAgent.Agents.TranslateAgent do
     description: "Orchestrates the GLOSSIA translation workflow",
     schema: [
       repo_path: [type: :string, doc: "Path to the root directory"],
-      status: [type: :atom, default: :idle, doc: "Current workflow status"],
+      status: [
+        type: :atom,
+        default: :idle,
+        doc: "Current workflow status (:idle | :planning | :translating | :completed)"
+      ],
       progress: [type: :integer, default: 0, doc: "Number of pairs processed"],
       total: [type: :integer, default: 0, doc: "Total number of source/output pairs"],
       errors: [type: {:list, :any}, default: [], doc: "Accumulated errors"]
     ]
 
+  # Jido state-machine style: keep an explicit phase in state and move it with set/2.
+  # Translation status flow is: :idle -> :planning -> :translating -> :completed.
   alias GlossiaAgent.Actions
   alias GlossiaAgent.Events.Emitter
   alias GlossiaAgent.{Hash, Locks, Plan}

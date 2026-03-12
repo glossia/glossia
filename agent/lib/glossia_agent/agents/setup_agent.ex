@@ -13,10 +13,16 @@ defmodule GlossiaAgent.Agents.SetupAgent do
     description: "Orchestrates the GLOSSIA setup workflow",
     schema: [
       directory: [type: :string, doc: "Path to the localizable directory"],
-      status: [type: :atom, default: :idle, doc: "Current workflow status"],
+      status: [
+        type: :atom,
+        default: :idle,
+        doc: "Current workflow status (:idle | :analyzing | :generating | :completed)"
+      ],
       result_content: [type: :string, default: "", doc: "Generated GLOSSIA.md content"]
     ]
 
+  # Jido state-machine style: keep an explicit phase in state and move it with set/2.
+  # Setup status flow is: :idle -> :analyzing -> :generating -> :completed.
   alias GlossiaAgent.Events.Emitter
   alias GlossiaAgent.LLM
   alias GlossiaAgent.Setup
