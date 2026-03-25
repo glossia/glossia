@@ -274,7 +274,9 @@ accessories:
     directories:
       - data:/data
   discourse:
-    image: discourse/discourse:latest
+    # Built from config/discourse/Dockerfile to keep pg_dump/psql aligned with
+    # the discourse-postgres accessory major version for backup/restore jobs.
+    image: 89.167.60.202:5000/glossia/discourse:pg17
     host: 89.167.60.202
     proxy:
       ssl: true
