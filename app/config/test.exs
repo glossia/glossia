@@ -9,20 +9,32 @@ config :glossia, Glossia.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "glossia_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database:
+    System.get_env(
+      "GLOSSIA_TEST_POSTGRES_DB",
+      "glossia_test#{System.get_env("MIX_TEST_PARTITION")}"
+    ),
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
 config :glossia, Glossia.ClickHouseRepo,
   hostname: "localhost",
-  port: 8123,
-  database: "glossia_test#{System.get_env("MIX_TEST_PARTITION")}",
+  port: String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_PORT", "8123")),
+  database:
+    System.get_env(
+      "GLOSSIA_TEST_CLICKHOUSE_DB",
+      "glossia_test#{System.get_env("MIX_TEST_PARTITION")}"
+    ),
   settings: [readonly: 1]
 
 config :glossia, Glossia.IngestRepo,
   hostname: "localhost",
-  port: 8123,
-  database: "glossia_test#{System.get_env("MIX_TEST_PARTITION")}",
+  port: String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_PORT", "8123")),
+  database:
+    System.get_env(
+      "GLOSSIA_TEST_CLICKHOUSE_DB",
+      "glossia_test#{System.get_env("MIX_TEST_PARTITION")}"
+    ),
   flush_interval_ms: 5000,
   max_buffer_size: 100_000,
   pool_size: 5
@@ -30,7 +42,7 @@ config :glossia, Glossia.IngestRepo,
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :glossia, GlossiaWeb.Endpoint,
-  http: [ip: {127, 0, 0, 1}, port: 4002],
+  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("GLOSSIA_TEST_PORT", "4002"))],
   secret_key_base: "qSsvrUWYZI7plNpHSFNvM/HoGGRZ+FIAyhrfEvxrIAH6OrdCSvfCBxO/Sa30L5UU",
   server: false
 

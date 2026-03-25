@@ -5,21 +5,21 @@ config :glossia, Glossia.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "glossia_dev",
+  database: System.get_env("GLOSSIA_POSTGRES_DB", "glossia_dev"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
 config :glossia, Glossia.ClickHouseRepo,
   hostname: "localhost",
-  port: 8123,
-  database: "glossia_dev",
+  port: String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_PORT", "8123")),
+  database: System.get_env("GLOSSIA_CLICKHOUSE_DB", "glossia_dev"),
   settings: [readonly: 1]
 
 config :glossia, Glossia.IngestRepo,
   hostname: "localhost",
-  port: 8123,
-  database: "glossia_dev",
+  port: String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_PORT", "8123")),
+  database: System.get_env("GLOSSIA_CLICKHOUSE_DB", "glossia_dev"),
   flush_interval_ms: 5000,
   max_buffer_size: 100_000,
   pool_size: 5
@@ -33,7 +33,7 @@ config :glossia, Glossia.IngestRepo,
 config :glossia, GlossiaWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4050],
+  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("GLOSSIA_SERVER_PORT", "4050"))],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -109,9 +109,11 @@ config :phoenix_live_view,
 config :swoosh, :api_client, false
 
 # Daytona sandbox API (local Docker Compose stack)
+daytona_port = System.get_env("GLOSSIA_DAYTONA_PORT", "3000")
+
 config :glossia, Glossia.Daytona,
-  api_url: "http://localhost:3000/api",
-  proxy_url: "http://localhost:3000"
+  api_url: "http://localhost:#{daytona_port}/api",
+  proxy_url: "http://localhost:#{daytona_port}"
 
 # Keep local Chrome usable while running `mix phx.server`.
 # ChromicPDF runs a persistent headless Google Chrome process.

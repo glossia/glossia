@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    if: github.event.pull_request.draft != true
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -27,6 +28,7 @@ jobs:
         run: mix compile --warnings-as-errors
 
   test:
+    if: github.event.pull_request.draft != true
     name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -88,6 +90,7 @@ jobs:
         run: mix test
 
   lint:
+    if: github.event.pull_request.draft != true
     name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 20
