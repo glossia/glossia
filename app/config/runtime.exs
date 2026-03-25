@@ -21,7 +21,7 @@ if System.get_env("PHX_SERVER") do
 end
 
 config :glossia, GlossiaWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4050"))]
+  http: [port: String.to_integer(System.get_env("PORT") || System.get_env("GLOSSIA_SERVER_PORT") || "4050")]
 
 if config_env() in [:dev, :test] do
   Code.require_file("worktree_db.exs", __DIR__)

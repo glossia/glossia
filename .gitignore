@@ -10,4 +10,7 @@
 # Kamal
 /.kamal/secrets
 
+# Dev instance scoping
+.glossia-dev-instance
+
 /tmp

@@ -8,6 +8,7 @@ on:
 
 jobs:
   format:
+    if: github.event.pull_request.draft != true
     name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -31,6 +32,7 @@ jobs:
           fi
 
   test-build:
+    if: github.event.pull_request.draft != true
     name: Test, Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -51,6 +53,7 @@ jobs:
           go build -o dist/glossia ./cmd/glossia
 
   executables:
+    if: github.event.pull_request.draft != true
     name: Executable (${{ matrix.goos }}-${{ matrix.goarch }})
     runs-on: ubuntu-latest
     timeout-minutes: 20

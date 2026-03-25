@@ -7,3 +7,4 @@ ruby = "3.4.7"
 
 [env]
 _.file = ".env"
+_.source = "{{config_root}}/mise/utilities/dev_instance_env.sh"
