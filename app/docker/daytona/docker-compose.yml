@@ -22,7 +22,7 @@ services:
   daytona:
     image: daytonaio/daytona:latest
     ports:
-      - "${GLOSSIA_DAYTONA_PORT:-3000}:3000"
+      - "3000:3000"
     environment:
       - DAYTONA_SERVER_MODE=local
       - DAYTONA_SERVER_API_PORT=3000

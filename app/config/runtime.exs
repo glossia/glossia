@@ -36,20 +36,6 @@ if config_env() in [:dev, :test] do
   config :glossia, Glossia.ClickHouseRepo, database: worktree_database
   config :glossia, Glossia.IngestRepo, database: worktree_database
 
-  # Scoped ClickHouse port (dev_instance_env.sh sets GLOSSIA_CLICKHOUSE_PORT)
-  if clickhouse_port = System.get_env("GLOSSIA_CLICKHOUSE_PORT") do
-    port = String.to_integer(clickhouse_port)
-    config :glossia, Glossia.ClickHouseRepo, port: port
-    config :glossia, Glossia.IngestRepo, port: port
-  end
-
-  # Scoped Daytona port
-  if daytona_port = System.get_env("GLOSSIA_DAYTONA_PORT") do
-    config :glossia, Glossia.Daytona,
-      api_url: "http://localhost:#{daytona_port}/api",
-      proxy_url: "http://localhost:#{daytona_port}"
-  end
-
   # Scoped test server port
   if config_env() == :test do
     if test_port = System.get_env("GLOSSIA_TEST_PORT") do
