@@ -21,7 +21,7 @@ if System.get_env("PHX_SERVER") do
 end
 
 config :glossia, GlossiaWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4050"))]
+  http: [port: String.to_integer(System.get_env("PORT") || System.get_env("GLOSSIA_SERVER_PORT") || "4050")]
 
 if config_env() in [:dev, :test] do
   Code.require_file("worktree_db.exs", __DIR__)
@@ -35,6 +35,14 @@ if config_env() in [:dev, :test] do
   config :glossia, Glossia.Repo, database: worktree_database
   config :glossia, Glossia.ClickHouseRepo, database: worktree_database
   config :glossia, Glossia.IngestRepo, database: worktree_database
+
+  # Scoped test server port
+  if config_env() == :test do
+    if test_port = System.get_env("GLOSSIA_TEST_PORT") do
+      config :glossia, GlossiaWeb.Endpoint,
+        http: [ip: {127, 0, 0, 1}, port: String.to_integer(test_port)]
+    end
+  end
 end
 
 stripe_secret_key = System.get_env("STRIPE_SECRET_KEY") || System.get_env("STRIPE_API_KEY")
