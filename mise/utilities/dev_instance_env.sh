@@ -3,6 +3,11 @@
 # multiple worktrees / checkouts can run side-by-side without port or
 # database collisions.
 #
+# Only app-level ports (Phoenix, test server) are scoped. Infrastructure
+# services (PostgreSQL, ClickHouse, Daytona) keep their default ports
+# since they are shared across checkouts. Database *names* are scoped
+# to avoid data collisions.
+#
 # Sourced automatically by mise via mise.toml.
 
 set -euo pipefail
@@ -26,24 +31,10 @@ fi
 
 export GLOSSIA_DEV_INSTANCE
 
-# Server
+# App ports (scoped)
 export GLOSSIA_SERVER_PORT=$(( 4050 + GLOSSIA_DEV_INSTANCE ))
 export GLOSSIA_SERVER_URL="http://localhost:${GLOSSIA_SERVER_PORT}"
-
-# PostgreSQL
-export GLOSSIA_POSTGRES_DB="glossia_dev_${GLOSSIA_DEV_INSTANCE}"
-
-# ClickHouse
-export GLOSSIA_CLICKHOUSE_DB="glossia_dev_${GLOSSIA_DEV_INSTANCE}"
-export GLOSSIA_CLICKHOUSE_PORT=$(( 8123 + GLOSSIA_DEV_INSTANCE ))
-
-# Daytona
-export GLOSSIA_DAYTONA_PORT=$(( 3000 + GLOSSIA_DEV_INSTANCE ))
-
-# Test
 export GLOSSIA_TEST_PORT=$(( 4002 + GLOSSIA_DEV_INSTANCE ))
-export GLOSSIA_TEST_POSTGRES_DB="glossia_test${MIX_TEST_PARTITION:-}_${GLOSSIA_DEV_INSTANCE}"
-export GLOSSIA_TEST_CLICKHOUSE_DB="glossia_test${MIX_TEST_PARTITION:-}_${GLOSSIA_DEV_INSTANCE}"
 
-# Legacy suffix used by app/config/worktree_db.exs
+# Database names (scoped)
 export GLOSSIA_DB_SUFFIX="${GLOSSIA_DEV_INSTANCE}"
