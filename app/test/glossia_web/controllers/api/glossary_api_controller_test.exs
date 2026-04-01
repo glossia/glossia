@@ -2,18 +2,18 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
   alias Glossia.Glossaries
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   @read_scopes ~w(glossary:read)
   @write_scopes ~w(glossary:write)
   @read_write_scopes ~w(glossary:read glossary:write)
 
   setup do
-    owner = ApiTestHelpers.create_user("glossary-owner@test.com", "glossary-owner")
-    outsider = ApiTestHelpers.create_user("glossary-outsider@test.com", "glossary-outsider")
+    owner = TestHelpers.create_user("glossary-owner@test.com", "glossary-owner")
+    outsider = TestHelpers.create_user("glossary-outsider@test.com", "glossary-outsider")
 
     no_access =
-      ApiTestHelpers.create_user("glossary-noaccess@test.com", "glossary-noaccess",
+      TestHelpers.create_user("glossary-noaccess@test.com", "glossary-noaccess",
         has_access: false
       )
 
@@ -52,7 +52,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "returns the latest glossary when authorized", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @read_scopes)
+        |> TestHelpers.authenticate(owner, @read_scopes)
         |> get("/api/#{owner.account.handle}/glossary")
 
       assert %{"version" => 1, "entries" => entries} = json_response(conn, 200)
@@ -66,7 +66,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "returns resolved glossary for a locale", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @read_scopes)
+        |> TestHelpers.authenticate(owner, @read_scopes)
         |> get("/api/#{owner.account.handle}/glossary?locale=es")
 
       assert %{"version" => 1, "locale" => "es", "entries" => entries} =
@@ -79,7 +79,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "returns 400 for invalid version param", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @read_scopes)
+        |> TestHelpers.authenticate(owner, @read_scopes)
         |> get("/api/#{owner.account.handle}/glossary?version=not-an-int")
 
       assert %{"error" => "invalid_version"} = json_response(conn, 400)
@@ -88,7 +88,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "returns 403 when missing required scope", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, [])
+        |> TestHelpers.authenticate(owner, [])
         |> get("/api/#{owner.account.handle}/glossary")
 
       assert %{"error" => "insufficient_scope", "required_scope" => "glossary:read"} =
@@ -98,7 +98,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "returns 403 for a different account", %{conn: conn, owner: owner, outsider: outsider} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(outsider, @read_scopes)
+        |> TestHelpers.authenticate(outsider, @read_scopes)
         |> get("/api/#{owner.account.handle}/glossary")
 
       assert %{"error" => "not_authorized"} = json_response(conn, 403)
@@ -109,7 +109,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "creates a new glossary version when authorized", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @write_scopes)
+        |> TestHelpers.authenticate(owner, @write_scopes)
         |> post("/api/#{owner.account.handle}/glossary", %{
           change_note: "Add new term",
           entries: [
@@ -129,7 +129,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "returns 403 for users without access", %{conn: conn, no_access: no_access} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(no_access, @write_scopes)
+        |> TestHelpers.authenticate(no_access, @write_scopes)
         |> post("/api/#{no_access.account.handle}/glossary", %{
           entries: [%{term: "test"}]
         })
@@ -142,7 +142,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     test "returns glossary versions when authorized", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @read_write_scopes)
+        |> TestHelpers.authenticate(owner, @read_write_scopes)
         |> get("/api/#{owner.account.handle}/glossary/history")
 
       assert %{"versions" => versions} = json_response(conn, 200)

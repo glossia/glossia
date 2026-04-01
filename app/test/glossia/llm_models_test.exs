@@ -2,10 +2,10 @@ defmodule Glossia.LLMModelsTest do
   use Glossia.DataCase, async: true
 
   alias Glossia.LLMModels
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   setup do
-    user = ApiTestHelpers.create_user("llm-test@test.com", "llm-test")
+    user = TestHelpers.create_user("llm-test@test.com", "llm-test")
     %{user: user, account: user.account}
   end
 
@@ -42,7 +42,7 @@ defmodule Glossia.LLMModelsTest do
     end
 
     test "allows same handle on different accounts", %{user: user} do
-      other_user = ApiTestHelpers.create_user("other@test.com", "other")
+      other_user = TestHelpers.create_user("other@test.com", "other")
       attrs = valid_attrs(%{"handle" => "shared-handle"})
       assert {:ok, _} = LLMModels.create_model(user.account, user, attrs)
       assert {:ok, _} = LLMModels.create_model(other_user.account, other_user, attrs)
@@ -59,7 +59,7 @@ defmodule Glossia.LLMModelsTest do
     end
 
     test "does not return models from other accounts", %{account: account, user: user} do
-      other_user = ApiTestHelpers.create_user("other2@test.com", "other2")
+      other_user = TestHelpers.create_user("other2@test.com", "other2")
       {:ok, _} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "mine"}))
 
       {:ok, _} =
@@ -83,7 +83,7 @@ defmodule Glossia.LLMModelsTest do
     end
 
     test "returns nil for wrong account", %{account: account, user: user} do
-      other_user = ApiTestHelpers.create_user("other3@test.com", "other3")
+      other_user = TestHelpers.create_user("other3@test.com", "other3")
       {:ok, created} = LLMModels.create_model(account, user, valid_attrs())
       assert is_nil(LLMModels.get_model(created.id, other_user.account.id))
     end
@@ -101,7 +101,7 @@ defmodule Glossia.LLMModelsTest do
     end
 
     test "returns nil for wrong account", %{account: account, user: user} do
-      other_user = ApiTestHelpers.create_user("other4@test.com", "other4")
+      other_user = TestHelpers.create_user("other4@test.com", "other4")
       {:ok, _} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "scoped"}))
       assert is_nil(LLMModels.get_model_by_handle("scoped", other_user.account.id))
     end

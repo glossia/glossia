@@ -2,7 +2,7 @@ defmodule GlossiaWeb.OAuth.DeviceControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
   alias Glossia.Repo
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   @device_grant_type "urn:ietf:params:oauth:grant-type:device_code"
 
@@ -87,7 +87,7 @@ defmodule GlossiaWeb.OAuth.DeviceControllerTest do
 
     test "issues tokens after user approval", %{} do
       client = create_client(first_party?: true)
-      user = ApiTestHelpers.create_user("oauth-device@test.com", "oauth-device")
+      user = TestHelpers.create_user("oauth-device@test.com", "oauth-device")
 
       %{"device_code" => device_code, "user_code" => user_code} =
         issue_device_code(build_conn(), client.id)
