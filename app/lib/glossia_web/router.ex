@@ -272,13 +272,13 @@ defmodule GlossiaWeb.Router do
     post "/:handle/glossary", GlossaryApiController, :create
     get "/:handle/glossary/history", GlossaryApiController, :history
 
-    get "/:handle/models", LlmModelApiController, :index
-    post "/:handle/models", LlmModelApiController, :create
-    get "/:handle/models/:id", LlmModelApiController, :show
-    patch "/:handle/models/:id", LlmModelApiController, :update
-    delete "/:handle/models/:id", LlmModelApiController, :delete
+    get "/:handle/models", LLMModelApiController, :index
+    post "/:handle/models", LLMModelApiController, :create
+    get "/:handle/models/:id", LLMModelApiController, :show
+    patch "/:handle/models/:id", LLMModelApiController, :update
+    delete "/:handle/models/:id", LLMModelApiController, :delete
 
-    post "/:handle/llm/generate", LlmProxyController, :generate
+    post "/:handle/llm/generate", LLMProxyController, :generate
   end
 
   # MCP server (StreamableHTTP transport)

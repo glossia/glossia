@@ -1,9 +1,9 @@
-defmodule Glossia.MCP.DeleteLlmModelTool do
+defmodule Glossia.MCP.DeleteLLMModelTool do
   @moduledoc "Delete an LLM model configuration from an account."
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.LlmModels
+  alias Glossia.LLMModels
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
 
@@ -17,12 +17,12 @@ defmodule Glossia.MCP.DeleteLlmModelTool do
     with {:ok, user} <- Auth.current_user(frame),
          {:ok, account} <- Auth.fetch_account(handle),
          :ok <- Auth.authorize(frame, :llm_model_write, user, account) do
-      case LlmModels.get_model(model_id, account.id) do
+      case LLMModels.get_model(model_id, account.id) do
         nil ->
           {:error, Hermes.MCP.Error.execution("Model not found"), frame}
 
         model ->
-          case LlmModels.delete_model(model) do
+          case LLMModels.delete_model(model) do
             {:ok, _} ->
               Glossia.Auditing.record("llm_model.deleted", account, user,
                 resource_type: "llm_model",

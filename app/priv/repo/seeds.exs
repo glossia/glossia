@@ -24,7 +24,7 @@ defmodule Glossia.Seeds do
   }
 
   alias Glossia.DeveloperTokens
-  alias Glossia.LlmModels
+  alias Glossia.LLMModels
   alias Glossia.Github.Installations
   alias Glossia.Glossaries
   alias Glossia.OAuth.FirstPartyClient
@@ -1075,7 +1075,7 @@ defmodule Glossia.Seeds do
   defp ensure_llm_model!(account, user, opts) do
     handle = Keyword.fetch!(opts, :handle)
 
-    case LlmModels.get_model_by_handle(handle, account.id) do
+    case LLMModels.get_model_by_handle(handle, account.id) do
       nil ->
         attrs = %{
           "handle" => handle,
@@ -1083,7 +1083,7 @@ defmodule Glossia.Seeds do
           "api_key" => Keyword.fetch!(opts, :api_key)
         }
 
-        {:ok, model} = LlmModels.create_model(account, user, attrs)
+        {:ok, model} = LLMModels.create_model(account, user, attrs)
         model
 
       existing ->

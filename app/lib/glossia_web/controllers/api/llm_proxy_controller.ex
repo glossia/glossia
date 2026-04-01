@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.Api.LlmProxyController do
+defmodule GlossiaWeb.Api.LLMProxyController do
   @moduledoc """
   Proxies LLM requests through Glossia, acting as a broker.
 
@@ -11,8 +11,8 @@ defmodule GlossiaWeb.Api.LlmProxyController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.Accounts.LlmModel
-  alias Glossia.LlmModels
+  alias Glossia.Accounts.LLMModel
+  alias Glossia.LLMModels
   alias GlossiaWeb.ApiAuthorization
 
   def generate(conn, %{"handle" => handle, "model_handle" => model_handle} = params) do
@@ -23,7 +23,7 @@ defmodule GlossiaWeb.Api.LlmProxyController do
       account ->
         case ApiAuthorization.authorize(conn, :llm_model_read, account) do
           {:ok, conn} ->
-            case LlmModels.get_model_by_handle(model_handle, account.id) do
+            case LLMModels.get_model_by_handle(model_handle, account.id) do
               nil ->
                 conn |> put_status(:not_found) |> json(%{error: "model not found"})
 
@@ -40,7 +40,7 @@ defmodule GlossiaWeb.Api.LlmProxyController do
   defp proxy_request(conn, model, params) do
     llm_model_id = model.model
 
-    case LlmModel.decrypted_api_key(model) do
+    case LLMModel.decrypted_api_key(model) do
       {:ok, api_key} ->
         prompt = params["prompt"] || params["messages"]
         opts = build_opts(params, api_key)

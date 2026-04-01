@@ -1,8 +1,8 @@
-defmodule GlossiaWeb.Api.LlmModelApiController do
+defmodule GlossiaWeb.Api.LLMModelApiController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.LlmModels
+  alias Glossia.LLMModels
   alias GlossiaWeb.Api.Serialization
   alias GlossiaWeb.ApiAuthorization
 
@@ -14,7 +14,7 @@ defmodule GlossiaWeb.Api.LlmModelApiController do
       account ->
         case ApiAuthorization.authorize(conn, :llm_model_read, account) do
           {:ok, conn} ->
-            case LlmModels.list_models(account, params) do
+            case LLMModels.list_models(account, params) do
               {:ok, {models, meta}} ->
                 conn
                 |> json(%{
@@ -40,7 +40,7 @@ defmodule GlossiaWeb.Api.LlmModelApiController do
       account ->
         case ApiAuthorization.authorize(conn, :llm_model_read, account) do
           {:ok, conn} ->
-            case LlmModels.get_model(id, account.id) do
+            case LLMModels.get_model(id, account.id) do
               nil ->
                 conn |> put_status(:not_found) |> json(%{error: "model not found"})
 
@@ -70,7 +70,7 @@ defmodule GlossiaWeb.Api.LlmModelApiController do
               "api_key" => params["api_key"]
             }
 
-            case LlmModels.create_model(account, user, attrs) do
+            case LLMModels.create_model(account, user, attrs) do
               {:ok, model} ->
                 Glossia.Auditing.record("llm_model.created", account, user,
                   resource_type: "llm_model",
@@ -105,7 +105,7 @@ defmodule GlossiaWeb.Api.LlmModelApiController do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
 
-            case LlmModels.get_model(id, account.id) do
+            case LLMModels.get_model(id, account.id) do
               nil ->
                 conn |> put_status(:not_found) |> json(%{error: "model not found"})
 
@@ -116,7 +116,7 @@ defmodule GlossiaWeb.Api.LlmModelApiController do
                   |> maybe_put("model", params["model"])
                   |> maybe_put("api_key", params["api_key"])
 
-                case LlmModels.update_model(model, attrs) do
+                case LLMModels.update_model(model, attrs) do
                   {:ok, updated} ->
                     Glossia.Auditing.record("llm_model.updated", account, user,
                       resource_type: "llm_model",
@@ -150,12 +150,12 @@ defmodule GlossiaWeb.Api.LlmModelApiController do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
 
-            case LlmModels.get_model(id, account.id) do
+            case LLMModels.get_model(id, account.id) do
               nil ->
                 conn |> put_status(:not_found) |> json(%{error: "model not found"})
 
               model ->
-                case LlmModels.delete_model(model) do
+                case LLMModels.delete_model(model) do
                   {:ok, _} ->
                     Glossia.Auditing.record("llm_model.deleted", account, user,
                       resource_type: "llm_model",
