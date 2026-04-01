@@ -107,24 +107,30 @@ defmodule Glossia.LLMModelsTest do
     end
   end
 
-  describe "update_model/2" do
+  describe "update_model/4" do
     test "updates model fields", %{account: account, user: user} do
       {:ok, model} = LLMModels.create_model(account, user, valid_attrs())
-      assert {:ok, updated} = LLMModels.update_model(model, %{"handle" => "new-handle"})
+
+      assert {:ok, updated} =
+               LLMModels.update_model(account, user, model, %{"handle" => "new-handle"})
+
       assert updated.handle == "new-handle"
     end
 
     test "does not require api_key on update", %{account: account, user: user} do
       {:ok, model} = LLMModels.create_model(account, user, valid_attrs())
-      assert {:ok, updated} = LLMModels.update_model(model, %{"model" => "openai:gpt-4o"})
+
+      assert {:ok, updated} =
+               LLMModels.update_model(account, user, model, %{"model" => "openai:gpt-4o"})
+
       assert updated.model == "openai:gpt-4o"
     end
   end
 
-  describe "delete_model/1" do
+  describe "delete_model/3" do
     test "deletes the model", %{account: account, user: user} do
       {:ok, model} = LLMModels.create_model(account, user, valid_attrs())
-      assert {:ok, _} = LLMModels.delete_model(model)
+      assert {:ok, _} = LLMModels.delete_model(account, user, model)
       assert is_nil(LLMModels.get_model(model.id, account.id))
     end
   end

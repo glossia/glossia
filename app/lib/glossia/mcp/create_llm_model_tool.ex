@@ -40,13 +40,6 @@ defmodule Glossia.MCP.CreateLLMModelTool do
 
       case LLMModels.create_model(account, user, attrs) do
         {:ok, created} ->
-          Glossia.Auditing.record("llm_model.created", account, user,
-            resource_type: "llm_model",
-            resource_id: to_string(created.id),
-            resource_path: "/#{account.handle}/-/settings/models",
-            summary: "Created LLM model \"#{created.handle}\""
-          )
-
           response =
             Response.tool()
             |> Response.text(
