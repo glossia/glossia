@@ -45,7 +45,7 @@ defmodule Glossia.LLMModels do
 
   def update_model(%LLMModel{} = model, attrs) do
     model
-    |> LLMModel.update_changeset(attrs)
+    |> LLMModel.changeset(attrs, require_api_key: false)
     |> Repo.update()
   end
 
