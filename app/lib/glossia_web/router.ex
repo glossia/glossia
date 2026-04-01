@@ -278,7 +278,8 @@ defmodule GlossiaWeb.Router do
     patch "/:handle/models/:id", LLMModelApiController, :update
     delete "/:handle/models/:id", LLMModelApiController, :delete
 
-    post "/:handle/llm/generate", LLMProxyController, :generate
+    post "/:handle/v1/chat/completions", LLMProxyController, :chat_completions
+    post "/:handle/v1/completions", LLMProxyController, :completions
   end
 
   # MCP server (StreamableHTTP transport)

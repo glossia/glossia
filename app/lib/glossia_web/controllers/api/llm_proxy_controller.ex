@@ -1,11 +1,15 @@
 defmodule GlossiaWeb.Api.LLMProxyController do
   @moduledoc """
-  Proxies LLM requests through Glossia, acting as a broker.
+  OpenAI-compatible completion endpoints that proxy through account-configured models.
 
-  The CLI sends a request with the account handle and model handle,
-  and Glossia resolves the model configuration (provider, model ID,
-  API key) and forwards the request to the appropriate LLM provider
-  via req_llm.
+  Clients point any OpenAI-compatible SDK at:
+
+      POST /api/:handle/v1/chat/completions
+      POST /api/:handle/v1/completions
+
+  The `model` field in the request body is resolved as the account's model handle.
+  Glossia looks up the real provider and API key, forwards the request, and returns
+  the response in standard OpenAI format.
   """
 
   use GlossiaWeb, :controller
@@ -14,20 +18,60 @@ defmodule GlossiaWeb.Api.LLMProxyController do
   alias Glossia.LLMModels
   alias GlossiaWeb.ApiAuthorization
 
-  def generate(conn, %{"handle" => handle, "model_handle" => model_handle} = params) do
+  def chat_completions(conn, %{"handle" => handle} = params) do
+    with {:ok, conn, model} <- resolve_model(conn, handle, params["model"]) do
+      messages = params["messages"] || []
+      opts = build_opts(params, model.api_key)
+
+      case generate(model.model, messages, opts) do
+        {:ok, response} ->
+          conn |> json(to_chat_completion_response(response, params["model"]))
+
+        {:error, reason} ->
+          conn |> put_status(:bad_gateway) |> json(error_response(reason))
+      end
+    end
+  end
+
+  def completions(conn, %{"handle" => handle} = params) do
+    with {:ok, conn, model} <- resolve_model(conn, handle, params["model"]) do
+      prompt = params["prompt"] || ""
+      opts = build_opts(params, model.api_key)
+
+      case generate(model.model, prompt, opts) do
+        {:ok, response} ->
+          conn |> json(to_completion_response(response, params["model"]))
+
+        {:error, reason} ->
+          conn |> put_status(:bad_gateway) |> json(error_response(reason))
+      end
+    end
+  end
+
+  defp resolve_model(conn, handle, model_handle) do
     case Accounts.get_account_by_handle(handle) do
       nil ->
-        conn |> put_status(:not_found) |> json(%{error: "account not found"})
+        conn
+        |> put_status(:not_found)
+        |> json(error_response("account not found"))
+        |> halt()
 
       account ->
         case ApiAuthorization.authorize(conn, :llm_model_read, account) do
           {:ok, conn} ->
             case LLMModels.get_model_by_handle(model_handle, account.id) do
               nil ->
-                conn |> put_status(:not_found) |> json(%{error: "model not found"})
+                conn
+                |> put_status(:not_found)
+                |> json(
+                  error_response(
+                    "model '#{model_handle}' not found — configure it in account settings"
+                  )
+                )
+                |> halt()
 
               model ->
-                proxy_request(conn, model, params)
+                {:ok, conn, model}
             end
 
           {:error, conn} ->
@@ -36,41 +80,13 @@ defmodule GlossiaWeb.Api.LLMProxyController do
     end
   end
 
-  defp proxy_request(conn, model, params) do
-    prompt = params["prompt"] || params["messages"]
-    opts = build_opts(params, model.api_key)
-
-    case do_generate(model.model, prompt, opts) do
-      {:ok, response} ->
-        conn |> json(%{result: serialize_response(response)})
-
-      {:error, reason} ->
-        conn
-        |> put_status(:bad_gateway)
-        |> json(%{error: "llm_request_failed", detail: inspect(reason)})
-    end
-  end
-
-  defp do_generate(model_id, prompt, opts) when is_binary(prompt) do
+  defp generate(model_id, input, opts) do
     try do
-      response = ReqLLM.generate_text(model_id, prompt, opts)
+      response = ReqLLM.generate_text(model_id, input, opts)
       {:ok, response}
     rescue
       e -> {:error, Exception.message(e)}
     end
-  end
-
-  defp do_generate(model_id, messages, opts) when is_list(messages) do
-    try do
-      response = ReqLLM.generate_text(model_id, messages, opts)
-      {:ok, response}
-    rescue
-      e -> {:error, Exception.message(e)}
-    end
-  end
-
-  defp do_generate(_model_id, nil, _opts) do
-    {:error, "missing prompt or messages parameter"}
   end
 
   defp build_opts(params, api_key) do
@@ -88,29 +104,73 @@ defmodule GlossiaWeb.Api.LLMProxyController do
         _ -> opts
       end
 
-    opts =
-      case params["system"] do
-        s when is_binary(s) and s != "" -> Keyword.put(opts, :system, s)
-        _ -> opts
-      end
-
-    opts
+    case params["top_p"] do
+      p when is_number(p) -> Keyword.put(opts, :top_p, p)
+      _ -> opts
+    end
   end
 
-  defp serialize_response(response) do
+  defp to_chat_completion_response(response, model) do
+    text = Map.get(response, :text, "")
+    usage = Map.get(response, :usage)
+
     %{
-      text: Map.get(response, :text, ""),
-      usage: serialize_usage(Map.get(response, :usage))
+      id: "chatcmpl-#{System.unique_integer([:positive])}",
+      object: "chat.completion",
+      created: System.system_time(:second),
+      model: model,
+      choices: [
+        %{
+          index: 0,
+          message: %{role: "assistant", content: text},
+          finish_reason: "stop"
+        }
+      ],
+      usage: format_usage(usage)
     }
   end
 
-  defp serialize_usage(nil), do: nil
+  defp to_completion_response(response, model) do
+    text = Map.get(response, :text, "")
+    usage = Map.get(response, :usage)
 
-  defp serialize_usage(usage) do
     %{
-      input_tokens: Map.get(usage, :input_tokens),
-      output_tokens: Map.get(usage, :output_tokens),
-      total_cost: Map.get(usage, :total_cost)
+      id: "cmpl-#{System.unique_integer([:positive])}",
+      object: "text_completion",
+      created: System.system_time(:second),
+      model: model,
+      choices: [
+        %{
+          index: 0,
+          text: text,
+          finish_reason: "stop"
+        }
+      ],
+      usage: format_usage(usage)
     }
   end
+
+  defp format_usage(nil), do: %{prompt_tokens: 0, completion_tokens: 0, total_tokens: 0}
+
+  defp format_usage(usage) do
+    input = Map.get(usage, :input_tokens, 0) || 0
+    output = Map.get(usage, :output_tokens, 0) || 0
+
+    %{
+      prompt_tokens: input,
+      completion_tokens: output,
+      total_tokens: input + output
+    }
+  end
+
+  defp error_response(reason) do
+    %{
+      error: %{
+        message: if(is_binary(reason), do: reason, else: inspect(reason)),
+        type: "api_error",
+        code: nil
+      }
+    }
+  end
+
 end
