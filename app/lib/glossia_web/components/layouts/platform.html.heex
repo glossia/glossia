@@ -395,7 +395,7 @@
                 <span>{gettext("OAuth apps")}</span>
               </.link>
               <.link
-                navigate={"/#{@handle}/-/settings/models"}
+                navigate={~p"/#{@handle}/-/settings/models"}
                 class={[
                   "gl-nav-item",
                   @live_action in [:llm_models, :llm_model_new, :llm_model_edit] && "active"
