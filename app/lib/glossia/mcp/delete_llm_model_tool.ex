@@ -22,15 +22,8 @@ defmodule Glossia.MCP.DeleteLLMModelTool do
           {:error, Hermes.MCP.Error.execution("Model not found"), frame}
 
         model ->
-          case LLMModels.delete_model(model) do
+          case LLMModels.delete_model(account, user, model) do
             {:ok, _} ->
-              Glossia.Auditing.record("llm_model.deleted", account, user,
-                resource_type: "llm_model",
-                resource_id: to_string(model.id),
-                resource_path: "/#{account.handle}/-/settings/models",
-                summary: "Deleted LLM model \"#{model.handle}\""
-              )
-
               response =
                 Response.tool()
                 |> Response.text(JSON.encode!(%{status: "deleted", handle: model.handle}))

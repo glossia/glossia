@@ -1270,14 +1270,7 @@ defmodule GlossiaWeb.DashboardLive do
       user = socket.assigns.current_user
 
       case LLMModels.create_model(account, user, params) do
-        {:ok, model} ->
-          Auditing.record("llm_model.created", account, user,
-            resource_type: "llm_model",
-            resource_id: to_string(model.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/models",
-            summary: "Created LLM model \"#{model.handle}\""
-          )
-
+        {:ok, _model} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Model created."))
@@ -1308,15 +1301,8 @@ defmodule GlossiaWeb.DashboardLive do
           params
         end
 
-      case LLMModels.update_model(model, attrs) do
-        {:ok, updated} ->
-          Auditing.record("llm_model.updated", account, user,
-            resource_type: "llm_model",
-            resource_id: to_string(updated.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/models/#{updated.id}",
-            summary: "Updated LLM model \"#{updated.handle}\""
-          )
-
+      case LLMModels.update_model(account, user, model, attrs) do
+        {:ok, _updated} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Model updated."))
@@ -1343,15 +1329,8 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply, put_flash(socket, :error, gettext("Model not found."))}
 
         model ->
-          case LLMModels.delete_model(model) do
+          case LLMModels.delete_model(account, user, model) do
             {:ok, _} ->
-              Auditing.record("llm_model.deleted", account, user,
-                resource_type: "llm_model",
-                resource_id: to_string(model.id),
-                resource_path: "/#{socket.assigns.handle}/-/settings/models",
-                summary: "Deleted LLM model \"#{model.handle}\""
-              )
-
               {:ok, {models, _meta}} = LLMModels.list_models(account)
 
               {:noreply,

@@ -72,13 +72,6 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
 
             case LLMModels.create_model(account, user, attrs) do
               {:ok, model} ->
-                Glossia.Auditing.record("llm_model.created", account, user,
-                  resource_type: "llm_model",
-                  resource_id: to_string(model.id),
-                  resource_path: "/#{handle}/-/settings/models",
-                  summary: "Created LLM model \"#{model.handle}\""
-                )
-
                 conn
                 |> put_status(:created)
                 |> json(%{model: serialize_model(model)})
@@ -116,15 +109,8 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
                   |> maybe_put("model", params["model"])
                   |> maybe_put("api_key", params["api_key"])
 
-                case LLMModels.update_model(model, attrs) do
+                case LLMModels.update_model(account, user, model, attrs) do
                   {:ok, updated} ->
-                    Glossia.Auditing.record("llm_model.updated", account, user,
-                      resource_type: "llm_model",
-                      resource_id: to_string(updated.id),
-                      resource_path: "/#{handle}/-/settings/models/#{updated.id}",
-                      summary: "Updated LLM model \"#{updated.handle}\""
-                    )
-
                     conn |> json(%{model: serialize_model(updated)})
 
                   {:error, changeset} ->
@@ -155,15 +141,8 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
                 conn |> put_status(:not_found) |> json(%{error: "model not found"})
 
               model ->
-                case LLMModels.delete_model(model) do
+                case LLMModels.delete_model(account, user, model) do
                   {:ok, _} ->
-                    Glossia.Auditing.record("llm_model.deleted", account, user,
-                      resource_type: "llm_model",
-                      resource_id: to_string(model.id),
-                      resource_path: "/#{handle}/-/settings/models",
-                      summary: "Deleted LLM model \"#{model.handle}\""
-                    )
-
                     conn |> json(%{status: "deleted"})
 
                   {:error, _} ->
