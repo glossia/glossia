@@ -3,6 +3,8 @@ defmodule Glossia.LLMModels do
   Context for managing LLM model configurations per account.
   """
 
+  use GlossiaWeb, :verified_routes
+
   import Ecto.Query
 
   alias Glossia.Accounts.{Account, LLMModel, User}
@@ -48,7 +50,7 @@ defmodule Glossia.LLMModels do
       Auditing.record("llm_model.created", account, user,
         resource_type: "llm_model",
         resource_id: to_string(model.id),
-        resource_path: "/#{account.handle}/-/settings/models",
+        resource_path: ~p"/#{account.handle}/-/settings/models",
         summary: "Created LLM model \"#{model.handle}\""
       )
 
@@ -66,7 +68,7 @@ defmodule Glossia.LLMModels do
       Auditing.record("llm_model.updated", account, user,
         resource_type: "llm_model",
         resource_id: to_string(updated.id),
-        resource_path: "/#{account.handle}/-/settings/models/#{updated.id}",
+        resource_path: ~p"/#{account.handle}/-/settings/models/#{updated.id}",
         summary: "Updated LLM model \"#{updated.handle}\""
       )
 
@@ -81,7 +83,7 @@ defmodule Glossia.LLMModels do
       Auditing.record("llm_model.deleted", account, user,
         resource_type: "llm_model",
         resource_id: to_string(deleted.id),
-        resource_path: "/#{account.handle}/-/settings/models",
+        resource_path: ~p"/#{account.handle}/-/settings/models",
         summary: "Deleted LLM model \"#{deleted.handle}\""
       )
 
