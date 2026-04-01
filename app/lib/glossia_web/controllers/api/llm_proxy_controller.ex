@@ -11,7 +11,6 @@ defmodule GlossiaWeb.Api.LLMProxyController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.Accounts.LLMModel
   alias Glossia.LLMModels
   alias GlossiaWeb.ApiAuthorization
 
@@ -38,27 +37,17 @@ defmodule GlossiaWeb.Api.LLMProxyController do
   end
 
   defp proxy_request(conn, model, params) do
-    llm_model_id = model.model
+    prompt = params["prompt"] || params["messages"]
+    opts = build_opts(params, model.api_key)
 
-    case LLMModel.decrypted_api_key(model) do
-      {:ok, api_key} ->
-        prompt = params["prompt"] || params["messages"]
-        opts = build_opts(params, api_key)
+    case do_generate(model.model, prompt, opts) do
+      {:ok, response} ->
+        conn |> json(%{result: serialize_response(response)})
 
-        case do_generate(llm_model_id, prompt, opts) do
-          {:ok, response} ->
-            conn |> json(%{result: serialize_response(response)})
-
-          {:error, reason} ->
-            conn
-            |> put_status(:bad_gateway)
-            |> json(%{error: "llm_request_failed", detail: inspect(reason)})
-        end
-
-      {:error, _} ->
+      {:error, reason} ->
         conn
-        |> put_status(:internal_server_error)
-        |> json(%{error: "could not decrypt model credentials"})
+        |> put_status(:bad_gateway)
+        |> json(%{error: "llm_request_failed", detail: inspect(reason)})
     end
   end
 

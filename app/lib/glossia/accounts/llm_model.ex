@@ -14,7 +14,7 @@ defmodule Glossia.Accounts.LLMModel do
   schema "llm_models" do
     field :handle, :string
     field :model, :string
-    field :api_key_encrypted, Glossia.Encrypted.Binary
+    field :api_key, Glossia.Encrypted.Binary
 
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :created_by, Glossia.Accounts.User
@@ -24,9 +24,8 @@ defmodule Glossia.Accounts.LLMModel do
 
   def changeset(model_struct, attrs) do
     model_struct
-    |> cast(attrs, [:handle, :model, :api_key_encrypted])
-    |> put_encrypted_api_key(attrs)
-    |> validate_required([:handle, :model, :api_key_encrypted])
+    |> cast(attrs, [:handle, :model, :api_key])
+    |> validate_required([:handle, :model, :api_key])
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
     )
@@ -39,8 +38,7 @@ defmodule Glossia.Accounts.LLMModel do
 
   def update_changeset(model_struct, attrs) do
     model_struct
-    |> cast(attrs, [:handle, :model])
-    |> put_encrypted_api_key(attrs)
+    |> cast(attrs, [:handle, :model, :api_key])
     |> validate_required([:handle, :model])
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
@@ -51,22 +49,6 @@ defmodule Glossia.Accounts.LLMModel do
     )
     |> unique_constraint([:account_id, :handle])
   end
-
-  defp put_encrypted_api_key(changeset, attrs) do
-    api_key = attrs["api_key"] || attrs[:api_key]
-
-    if is_binary(api_key) and api_key != "" do
-      put_change(changeset, :api_key_encrypted, api_key)
-    else
-      changeset
-    end
-  end
-
-  def decrypted_api_key(%__MODULE__{api_key_encrypted: api_key}) when is_binary(api_key) do
-    {:ok, api_key}
-  end
-
-  def decrypted_api_key(_), do: {:error, :no_key}
 
   @doc """
   Returns a list of `{label, value}` tuples for all available models,
