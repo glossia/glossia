@@ -1,4 +1,4 @@
-defmodule Glossia.Accounts.LlmModel do
+defmodule Glossia.Accounts.LLMModel do
   use Glossia.Schema
   import Ecto.Changeset
 

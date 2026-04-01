@@ -1,9 +1,9 @@
-defmodule Glossia.MCP.ListLlmModelsTool do
+defmodule Glossia.MCP.ListLLMModelsTool do
   @moduledoc "List LLM model configurations for an account."
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.LlmModels
+  alias Glossia.LLMModels
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
 
@@ -16,7 +16,7 @@ defmodule Glossia.MCP.ListLlmModelsTool do
     with {:ok, user} <- Auth.current_user(frame),
          {:ok, account} <- Auth.fetch_account(handle),
          :ok <- Auth.authorize(frame, :llm_model_read, user, account) do
-      {:ok, {models, _meta}} = LlmModels.list_models(account)
+      {:ok, {models, _meta}} = LLMModels.list_models(account)
 
       response =
         Response.tool()

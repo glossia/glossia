@@ -12,7 +12,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Glossaries
   alias Glossia.Organizations
   alias Glossia.Discussions
-  alias Glossia.LlmModels
+  alias Glossia.LLMModels
   alias Glossia.Voices
 
   @tone_options ~w(casual formal playful authoritative neutral)
@@ -635,7 +635,7 @@ defmodule GlossiaWeb.DashboardLive do
       "order_directions" => [sort_dir]
     }
 
-    {:ok, {models, _meta}} = LlmModels.list_models(account, flop_params)
+    {:ok, {models, _meta}} = LLMModels.list_models(account, flop_params)
 
     assign(socket,
       page_title: gettext("LLM models"),
@@ -673,7 +673,7 @@ defmodule GlossiaWeb.DashboardLive do
     require_admin!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
-    model = LlmModels.get_model!(model_id, account.id)
+    model = LLMModels.get_model!(model_id, account.id)
 
     assign(socket,
       page_title: model.handle,
@@ -1269,7 +1269,7 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case LlmModels.create_model(account, user, params) do
+      case LLMModels.create_model(account, user, params) do
         {:ok, model} ->
           Auditing.record("llm_model.created", account, user,
             resource_type: "llm_model",
@@ -1308,7 +1308,7 @@ defmodule GlossiaWeb.DashboardLive do
           params
         end
 
-      case LlmModels.update_model(model, attrs) do
+      case LLMModels.update_model(model, attrs) do
         {:ok, updated} ->
           Auditing.record("llm_model.updated", account, user,
             resource_type: "llm_model",
@@ -1338,12 +1338,12 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case LlmModels.get_model(model_id, account.id) do
+      case LLMModels.get_model(model_id, account.id) do
         nil ->
           {:noreply, put_flash(socket, :error, gettext("Model not found."))}
 
         model ->
-          case LlmModels.delete_model(model) do
+          case LLMModels.delete_model(model) do
             {:ok, _} ->
               Auditing.record("llm_model.deleted", account, user,
                 resource_type: "llm_model",
@@ -1352,7 +1352,7 @@ defmodule GlossiaWeb.DashboardLive do
                 summary: "Deleted LLM model \"#{model.handle}\""
               )
 
-              {:ok, {models, _meta}} = LlmModels.list_models(account)
+              {:ok, {models, _meta}} = LLMModels.list_models(account)
 
               {:noreply,
                socket
@@ -10220,7 +10220,7 @@ defmodule GlossiaWeb.DashboardLive do
   attr :model_edit_changed?, :boolean, default: false
 
   defp llm_models_page(assigns) do
-    available_models = Glossia.Accounts.LlmModel.available_models()
+    available_models = Glossia.Accounts.LLMModel.available_models()
     assigns = assign(assigns, :available_models, available_models)
 
     ~H"""

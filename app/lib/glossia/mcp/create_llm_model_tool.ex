@@ -1,9 +1,9 @@
-defmodule Glossia.MCP.CreateLlmModelTool do
+defmodule Glossia.MCP.CreateLLMModelTool do
   @moduledoc "Create an LLM model configuration for an account."
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.LlmModels
+  alias Glossia.LLMModels
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
 
@@ -38,7 +38,7 @@ defmodule Glossia.MCP.CreateLlmModelTool do
         "api_key" => api_key
       }
 
-      case LlmModels.create_model(account, user, attrs) do
+      case LLMModels.create_model(account, user, attrs) do
         {:ok, created} ->
           Glossia.Auditing.record("llm_model.created", account, user,
             resource_type: "llm_model",
