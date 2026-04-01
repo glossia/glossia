@@ -3,11 +3,6 @@ defmodule GlossiaWeb.DashboardController do
 
   def index(conn, _params) do
     user = conn.assigns.current_user
-
-    if user.account.has_access do
-      redirect(conn, to: ~p"/#{user.account.handle}")
-    else
-      redirect(conn, to: ~p"/billing")
-    end
+    redirect(conn, to: ~p"/#{user.account.handle}")
   end
 end

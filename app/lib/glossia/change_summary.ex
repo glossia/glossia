@@ -16,23 +16,28 @@ defmodule Glossia.ChangeSummary do
 
   ## Options
 
-    * `:client` - LLM client module (default: `Glossia.Minimax`)
+    * `:client` - LLM client module that implements `chat/2` (required)
     * All other options are forwarded to the client's `chat/2`.
   """
   def generate(diff_description, context_label, opts \\ []) do
-    {client, opts} = Keyword.pop(opts, :client, Glossia.Minimax)
-    system = String.replace(@system_prompt, "%{context}", context_label)
+    {client, opts} = Keyword.pop(opts, :client)
 
-    messages = [
-      %{role: :system, content: system},
-      %{role: :user, content: diff_description}
-    ]
+    if is_nil(client) do
+      {:error, :no_llm_client}
+    else
+      system = String.replace(@system_prompt, "%{context}", context_label)
 
-    opts = Keyword.put_new(opts, :max_tokens, 1024)
+      messages = [
+        %{role: :system, content: system},
+        %{role: :user, content: diff_description}
+      ]
 
-    case client.chat(messages, opts) do
-      {:ok, %{content: content}} -> {:ok, String.trim(content)}
-      {:error, reason} -> {:error, reason}
+      opts = Keyword.put_new(opts, :max_tokens, 1024)
+
+      case client.chat(messages, opts) do
+        {:ok, %{content: content}} -> {:ok, String.trim(content)}
+        {:error, reason} -> {:error, reason}
+      end
     end
   end
 
