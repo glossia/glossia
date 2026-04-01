@@ -2,12 +2,12 @@ defmodule GlossiaWeb.Api.AccountApiControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
   alias Glossia.Organizations
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   @scopes ~w(account:read)
 
   setup do
-    user = ApiTestHelpers.create_user("account-api@test.com", "account-api")
+    user = TestHelpers.create_user("account-api@test.com", "account-api")
     %{user: user}
   end
 
@@ -21,7 +21,7 @@ defmodule GlossiaWeb.Api.AccountApiControllerTest do
 
       conn =
         conn
-        |> ApiTestHelpers.authenticate(user, @scopes)
+        |> TestHelpers.authenticate(user, @scopes)
         |> get("/api/accounts")
 
       assert %{"accounts" => accounts} = json_response(conn, 200)
@@ -33,7 +33,7 @@ defmodule GlossiaWeb.Api.AccountApiControllerTest do
     test "returns 403 when the token is missing the required scope", %{conn: conn, user: user} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(user, [])
+        |> TestHelpers.authenticate(user, [])
         |> get("/api/accounts")
 
       assert %{"error" => "insufficient_scope", "required_scope" => "account:read"} =

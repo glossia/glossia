@@ -1,4 +1,4 @@
-defmodule GlossiaWeb.ApiTestHelpers do
+defmodule Glossia.TestHelpers do
   @moduledoc false
 
   import Plug.Conn, only: [put_req_header: 3]

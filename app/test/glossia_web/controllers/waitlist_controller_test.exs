@@ -2,11 +2,11 @@ defmodule GlossiaWeb.WaitlistControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
   alias Glossia.Waitlist
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   describe "GET /interest" do
     test "redirects users with access to dashboard", %{conn: conn} do
-      user = ApiTestHelpers.create_user("has-access@test.com", "hasaccess", has_access: true)
+      user = TestHelpers.create_user("has-access@test.com", "hasaccess", has_access: true)
 
       conn =
         conn
@@ -17,7 +17,7 @@ defmodule GlossiaWeb.WaitlistControllerTest do
     end
 
     test "renders waitlist form for users without access", %{conn: conn} do
-      user = ApiTestHelpers.create_user("no-access@test.com", "noaccess", has_access: false)
+      user = TestHelpers.create_user("no-access@test.com", "noaccess", has_access: false)
 
       conn =
         conn
@@ -31,7 +31,7 @@ defmodule GlossiaWeb.WaitlistControllerTest do
   describe "POST /interest" do
     test "redirects users with access to dashboard and does not create submission", %{conn: conn} do
       user =
-        ApiTestHelpers.create_user("has-access-post@test.com", "hasaccesspost", has_access: true)
+        TestHelpers.create_user("has-access-post@test.com", "hasaccesspost", has_access: true)
 
       conn =
         conn
