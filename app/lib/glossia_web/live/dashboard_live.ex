@@ -10385,7 +10385,14 @@ defmodule GlossiaWeb.DashboardLive do
             />
           </.form>
         <% true -> %>
-          <.page_header title={gettext("LLM models")}>
+          <.page_header
+            title={gettext("LLM models")}
+            description={
+              gettext(
+                "Configure LLM providers and API keys that can be referenced from any repository's language automation. Glossia acts as a broker, routing requests to the right provider with your credentials."
+              )
+            }
+          >
             <:actions>
               <.link navigate={"/" <> @handle <> "/-/settings/models/new"} class="button">
                 {gettext("New model")}
