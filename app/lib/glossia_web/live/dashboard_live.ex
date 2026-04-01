@@ -1281,7 +1281,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> put_flash(:info, gettext("Model created."))
-           |> push_patch(to: "/#{socket.assigns.handle}/-/settings/models")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models")}
 
         {:error, changeset} ->
           {:noreply,
@@ -1320,7 +1320,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> put_flash(:info, gettext("Model updated."))
-           |> push_patch(to: "/#{socket.assigns.handle}/-/settings/models")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models")}
 
         {:error, changeset} ->
           {:noreply,
@@ -1358,7 +1358,7 @@ defmodule GlossiaWeb.DashboardLive do
                socket
                |> assign(llm_models: models)
                |> put_flash(:info, gettext("Model deleted."))
-               |> push_patch(to: "/#{socket.assigns.handle}/-/settings/models")}
+               |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models")}
 
             {:error, _} ->
               {:noreply, put_flash(socket, :error, gettext("Could not delete model."))}
@@ -10299,7 +10299,7 @@ defmodule GlossiaWeb.DashboardLive do
             <.form_save_bar
               id="model-save-bar"
               visible={@model_form_valid?}
-              cancel_path={"/" <> @handle <> "/-/settings/models"}
+              cancel_path={~p"/#{@handle}/-/settings/models"}
             />
           </.form>
         <% @live_action == :llm_model_edit -> %>
@@ -10381,7 +10381,7 @@ defmodule GlossiaWeb.DashboardLive do
             <.form_save_bar
               id="model-edit-save-bar"
               visible={@model_edit_changed?}
-              cancel_path={"/" <> @handle <> "/-/settings/models"}
+              cancel_path={~p"/#{@handle}/-/settings/models"}
             />
           </.form>
         <% true -> %>
@@ -10394,7 +10394,7 @@ defmodule GlossiaWeb.DashboardLive do
             }
           >
             <:actions>
-              <.link navigate={"/" <> @handle <> "/-/settings/models/new"} class="button">
+              <.link navigate={~p"/#{@handle}/-/settings/models/new"} class="button">
                 {gettext("New model")}
               </.link>
             </:actions>
@@ -10408,7 +10408,7 @@ defmodule GlossiaWeb.DashboardLive do
           >
             <:col :let={model} label={gettext("Handle")} key="handle" sortable>
               <.link
-                navigate={"/" <> @handle <> "/-/settings/models/" <> model.id}
+                navigate={~p"/#{@handle}/-/settings/models/#{model.id}"}
                 class="table-link"
               >
                 {model.handle}
