@@ -23,25 +23,34 @@ end
 config :glossia, GlossiaWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT") || System.get_env("GLOSSIA_SERVER_PORT") || "4050")]
 
-if config_env() in [:dev, :test] do
-  Code.require_file("worktree_db.exs", __DIR__)
+if config_env() == :dev do
+  if postgres_db = System.get_env("GLOSSIA_POSTGRES_DB") do
+    config :glossia, Glossia.Repo, database: postgres_db
+  end
 
-  worktree_database =
-    case config_env() do
-      :dev -> Glossia.Config.WorktreeDB.dev_database()
-      :test -> Glossia.Config.WorktreeDB.test_database()
-    end
+  if clickhouse_db = System.get_env("GLOSSIA_CLICKHOUSE_DB") do
+    config :glossia, Glossia.ClickHouseRepo, database: clickhouse_db
+    config :glossia, Glossia.IngestRepo, database: clickhouse_db
+  end
 
-  config :glossia, Glossia.Repo, database: worktree_database
-  config :glossia, Glossia.ClickHouseRepo, database: worktree_database
-  config :glossia, Glossia.IngestRepo, database: worktree_database
+  if server_url = System.get_env("GLOSSIA_SERVER_URL") do
+    config :boruta, Boruta.Oauth, issuer: server_url
+  end
+end
 
-  # Scoped test server port
-  if config_env() == :test do
-    if test_port = System.get_env("GLOSSIA_TEST_PORT") do
-      config :glossia, GlossiaWeb.Endpoint,
-        http: [ip: {127, 0, 0, 1}, port: String.to_integer(test_port)]
-    end
+if config_env() == :test do
+  if postgres_db = System.get_env("GLOSSIA_TEST_POSTGRES_DB") do
+    config :glossia, Glossia.Repo, database: postgres_db
+  end
+
+  if clickhouse_db = System.get_env("GLOSSIA_TEST_CLICKHOUSE_DB") do
+    config :glossia, Glossia.ClickHouseRepo, database: clickhouse_db
+    config :glossia, Glossia.IngestRepo, database: clickhouse_db
+  end
+
+  if test_port = System.get_env("GLOSSIA_TEST_PORT") do
+    config :glossia, GlossiaWeb.Endpoint,
+      http: [ip: {127, 0, 0, 1}, port: String.to_integer(test_port)]
   end
 end
 
