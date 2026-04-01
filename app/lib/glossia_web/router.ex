@@ -79,7 +79,6 @@ defmodule GlossiaWeb.Router do
   scope "/webhooks", GlossiaWeb do
     pipe_through :api
 
-    post "/stripe", StripeWebhookController, :create
     post "/github", GithubWebhookController, :create
     post "/gitlab", GitlabWebhookController, :create
   end
@@ -95,9 +94,10 @@ defmodule GlossiaWeb.Router do
     pipe_through :browser
 
     get "/login", AuthController, :login
+    delete "/logout", AuthController, :logout
+    get "/logout", AuthController, :logout
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
-    delete "/logout", AuthController, :logout
   end
 
   if Application.compile_env(:glossia, :dev_routes) do
@@ -213,11 +213,6 @@ defmodule GlossiaWeb.Router do
 
     get "/interest", WaitlistController, :new
     post "/interest", WaitlistController, :create
-
-    get "/billing", BillingController, :show
-    post "/billing/checkout", BillingController, :checkout
-    get "/billing/return", BillingController, :return
-    post "/billing/portal", BillingController, :portal
   end
 
   scope "/", GlossiaWeb do
@@ -276,6 +271,14 @@ defmodule GlossiaWeb.Router do
     get "/:handle/glossary", GlossaryApiController, :show
     post "/:handle/glossary", GlossaryApiController, :create
     get "/:handle/glossary/history", GlossaryApiController, :history
+
+    get "/:handle/models", LlmModelApiController, :index
+    post "/:handle/models", LlmModelApiController, :create
+    get "/:handle/models/:id", LlmModelApiController, :show
+    patch "/:handle/models/:id", LlmModelApiController, :update
+    delete "/:handle/models/:id", LlmModelApiController, :delete
+
+    post "/:handle/llm/generate", LlmProxyController, :generate
   end
 
   # MCP server (StreamableHTTP transport)
@@ -417,6 +420,9 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/apps", DashboardLive, :api_apps
       live "/:handle/-/settings/apps/new", DashboardLive, :api_apps_new
       live "/:handle/-/settings/apps/:app_id", DashboardLive, :api_app_edit
+      live "/:handle/-/settings/models", DashboardLive, :llm_models
+      live "/:handle/-/settings/models/new", DashboardLive, :llm_model_new
+      live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
       live "/:handle/-/account", DashboardLive, :account
       live "/:handle/-/projects/new", DashboardLive, :project_new
 

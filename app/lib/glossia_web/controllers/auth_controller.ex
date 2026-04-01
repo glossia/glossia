@@ -69,9 +69,7 @@ defmodule GlossiaWeb.AuthController do
             |> delete_session(:return_to)
             |> put_session(:user_id, user.id)
             |> configure_session(renew: true)
-            |> redirect(
-              to: return_to || if(user.account.has_access, do: ~p"/dashboard", else: ~p"/billing")
-            )
+            |> redirect(to: return_to || ~p"/dashboard")
 
           {:error, _changeset} ->
             conn
@@ -114,9 +112,7 @@ defmodule GlossiaWeb.AuthController do
         |> delete_session(:return_to)
         |> put_session(:user_id, user.id)
         |> configure_session(renew: true)
-        |> redirect(
-          to: return_to || if(user.account.has_access, do: ~p"/dashboard", else: ~p"/billing")
-        )
+        |> redirect(to: return_to || ~p"/dashboard")
     end
   end
 

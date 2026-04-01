@@ -108,11 +108,17 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# Daytona sandbox API (local Docker Compose stack)
-config :glossia, Glossia.Daytona,
-  api_url: "http://localhost:3000/api",
-  proxy_url: "http://localhost:3000"
-
 # Keep local Chrome usable while running `mix phx.server`.
 # ChromicPDF runs a persistent headless Google Chrome process.
 config :glossia, Glossia.OgImage, enabled: false
+
+# Cloak encryption vault (deterministic dev key)
+config :glossia, Glossia.Vault,
+  ciphers: [
+    default: {
+      Cloak.Ciphers.AES.GCM,
+      tag: "AES.GCM.V1",
+      key: Base.decode64!("L1gSQ6tifJPmcSH/5s3apb+SApxmeIkwXk/j2sjXbxE="),
+      iv_length: 12
+    }
+  ]
