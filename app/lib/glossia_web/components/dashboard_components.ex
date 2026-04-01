@@ -67,8 +67,23 @@ defmodule GlossiaWeb.DashboardComponents do
   def resource_table(assigns) do
     assigns = assign(assigns, :total_pages, total_pages(assigns.total, assigns.per_page))
 
+    has_content =
+      assigns.rows != [] or assigns.search != "" or
+        has_active_filters?(assigns.active_filters, assigns.filters)
+
+    assigns = assign(assigns, :has_content, has_content)
+
     ~H"""
     <div class="resource-index" id={@id}>
+      <%= if @rows == [] and not @has_content do %>
+        <div class="resource-empty-state">
+          <%= if @empty != [] do %>
+            {render_slot(@empty)}
+          <% else %>
+            <span class="resource-empty-text">{gettext("No results found.")}</span>
+          <% end %>
+        </div>
+      <% else %>
       <div class="resource-toolbar">
         <form phx-change="resource_search" class="resource-search-form">
           <input type="hidden" name="table_id" value={@id} />
@@ -357,6 +372,7 @@ defmodule GlossiaWeb.DashboardComponents do
             </button>
           </div>
         </div>
+      <% end %>
       <% end %>
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".ResourceFilterDropdown">
