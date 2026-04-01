@@ -22,24 +22,15 @@ defmodule Glossia.Accounts.LLMModel do
     timestamps()
   end
 
-  def changeset(model_struct, attrs) do
-    model_struct
-    |> cast(attrs, [:handle, :model, :api_key])
-    |> validate_required([:handle, :model, :api_key])
-    |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
-      message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
-    )
-    |> validate_length(:handle, min: 2, max: 64)
-    |> validate_format(:model, ~r/^[a-z0-9_-]+:.+$/,
-      message: "must be in provider:model format (e.g. anthropic:claude-sonnet-4-20250514)"
-    )
-    |> unique_constraint([:account_id, :handle])
-  end
+  def changeset(model_struct, attrs, opts \\ []) do
+    required =
+      if Keyword.get(opts, :require_api_key, true),
+        do: [:handle, :model, :api_key],
+        else: [:handle, :model]
 
-  def update_changeset(model_struct, attrs) do
     model_struct
     |> cast(attrs, [:handle, :model, :api_key])
-    |> validate_required([:handle, :model])
+    |> validate_required(required)
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
     )
