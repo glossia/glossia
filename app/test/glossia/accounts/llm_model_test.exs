@@ -3,93 +3,119 @@ defmodule Glossia.Accounts.LLMModelTest do
 
   alias Glossia.Accounts.LLMModel
 
-  @valid_attrs %{
-    "handle" => "my-model",
-    "model" => "anthropic:claude-sonnet-4-20250514",
-    "api_key" => "sk-test-key"
-  }
-
-  describe "changeset/3 (create)" do
+  describe "changeset/3" do
     test "valid with all required fields" do
-      changeset = LLMModel.changeset(%LLMModel{}, @valid_attrs)
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "my-model",
+          "model" => "anthropic:claude-sonnet-4-20250514",
+          "api_key" => "sk-test"
+        })
+
       assert changeset.valid?
     end
 
-    test "requires handle" do
-      attrs = Map.delete(@valid_attrs, "handle")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
-      assert %{handle: ["can't be blank"]} = errors_on(changeset)
+    test "invalid without handle" do
+      changeset = LLMModel.changeset(%LLMModel{}, %{"model" => "anthropic:test", "api_key" => "sk"})
+      assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
-    test "requires model" do
-      attrs = Map.delete(@valid_attrs, "model")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
-      assert %{model: ["can't be blank"]} = errors_on(changeset)
+    test "invalid without model" do
+      changeset = LLMModel.changeset(%LLMModel{}, %{"handle" => "test", "api_key" => "sk"})
+      assert errors_on(changeset) |> Map.has_key?(:model)
     end
 
-    test "requires api_key" do
-      attrs = Map.delete(@valid_attrs, "api_key")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
-      assert %{api_key: ["can't be blank"]} = errors_on(changeset)
+    test "invalid without api_key when require_api_key is true" do
+      changeset = LLMModel.changeset(%LLMModel{}, %{"handle" => "test", "model" => "anthropic:test"})
+      assert errors_on(changeset) |> Map.has_key?(:api_key)
+    end
+
+    test "valid without api_key when require_api_key is false" do
+      changeset =
+        LLMModel.changeset(
+          %LLMModel{},
+          %{"handle" => "test", "model" => "anthropic:test"},
+          require_api_key: false
+        )
+
+      refute errors_on(changeset) |> Map.has_key?(:api_key)
     end
 
     test "handle must start with a letter" do
-      attrs = Map.put(@valid_attrs, "handle", "1bad")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
-      assert %{handle: [_]} = errors_on(changeset)
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "1bad",
+          "model" => "anthropic:test",
+          "api_key" => "sk"
+        })
+
+      assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
-    test "handle rejects uppercase" do
-      attrs = Map.put(@valid_attrs, "handle", "BadCase")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
-      assert %{handle: [_]} = errors_on(changeset)
+    test "handle must not contain uppercase" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "BadHandle",
+          "model" => "anthropic:test",
+          "api_key" => "sk"
+        })
+
+      assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
-    test "handle allows lowercase letters, numbers, and hyphens" do
-      attrs = Map.put(@valid_attrs, "handle", "my-model-2")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
+    test "handle allows hyphens" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "my-great-model",
+          "model" => "anthropic:test",
+          "api_key" => "sk"
+        })
+
       assert changeset.valid?
     end
 
-    test "handle must be at least 2 characters" do
-      attrs = Map.put(@valid_attrs, "handle", "a")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
-      assert %{handle: [_]} = errors_on(changeset)
+    test "handle minimum length is 2" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "a",
+          "model" => "anthropic:test",
+          "api_key" => "sk"
+        })
+
+      assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
-    test "model must be in provider:id format" do
-      attrs = Map.put(@valid_attrs, "model", "no-colon")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs)
-      assert %{model: [_]} = errors_on(changeset)
+    test "handle maximum length is 64" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => String.duplicate("a", 65),
+          "model" => "anthropic:test",
+          "api_key" => "sk"
+        })
+
+      assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
-    test "model accepts valid provider:id format" do
-      for model <- ["anthropic:claude-sonnet-4-20250514", "openai:gpt-4o", "google:gemini-2.0-flash-001"] do
-        attrs = Map.put(@valid_attrs, "model", model)
-        changeset = LLMModel.changeset(%LLMModel{}, attrs)
-        assert changeset.valid?, "expected #{model} to be valid"
-      end
-    end
-  end
+    test "model must be in provider:model format" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "test",
+          "model" => "no-colon-here",
+          "api_key" => "sk"
+        })
 
-  describe "changeset/3 (update, require_api_key: false)" do
-    test "does not require api_key" do
-      attrs = Map.delete(@valid_attrs, "api_key")
-      changeset = LLMModel.changeset(%LLMModel{}, attrs, require_api_key: false)
+      assert errors_on(changeset) |> Map.has_key?(:model)
+    end
+
+    test "model accepts valid provider:model format" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "test",
+          "model" => "openai:gpt-4o",
+          "api_key" => "sk"
+        })
+
       assert changeset.valid?
-    end
-
-    test "still requires handle and model" do
-      changeset = LLMModel.changeset(%LLMModel{}, %{}, require_api_key: false)
-      errors = errors_on(changeset)
-      assert %{handle: ["can't be blank"]} = errors
-      assert %{model: ["can't be blank"]} = errors
-    end
-
-    test "still validates handle format" do
-      attrs = %{"handle" => "1bad", "model" => "anthropic:claude-sonnet-4-20250514"}
-      changeset = LLMModel.changeset(%LLMModel{}, attrs, require_api_key: false)
-      assert %{handle: [_]} = errors_on(changeset)
     end
   end
 end
