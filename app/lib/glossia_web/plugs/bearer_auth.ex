@@ -10,6 +10,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   import Plug.Conn
 
   alias Glossia.Accounts
+  alias Glossia.Accounts.Scope
   alias Glossia.DeveloperTokens
 
   def init(opts), do: opts
@@ -28,6 +29,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
     case validate_boruta_token(token_value) do
       {:ok, user, scopes, token} ->
         conn
+        |> assign(:current_scope, Scope.for_user(user))
         |> assign(:current_user, user)
         |> assign(:scopes, scopes)
         |> assign(:current_token, %{kind: :oauth_access_token, id: Map.get(token, :id)})
@@ -52,6 +54,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
     case DeveloperTokens.get_account_token_by_value(token_value) do
       {:ok, token} ->
         conn
+        |> assign(:current_scope, Scope.for_user(token.user))
         |> assign(:current_user, token.user)
         |> assign(:scopes, parse_scopes(token.scope))
         |> assign(:current_token, %{kind: :account_token, id: token.id})
@@ -112,6 +115,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
 
   defp assign_unauthenticated(conn) do
     conn
+    |> assign(:current_scope, nil)
     |> assign(:current_user, nil)
     |> assign(:scopes, [])
     |> assign(:current_token, nil)
