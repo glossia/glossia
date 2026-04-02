@@ -14,7 +14,8 @@ defmodule Glossia.MCP.CreateLLMModelTool do
       description: "Unique handle for the model within the account"
 
     field :model, {:required, :string},
-      description: "Model ID in provider:model format (e.g. anthropic:claude-sonnet-4-20250514)"
+      description:
+        "Model ID in provider:model format (e.g. anthropic:claude-sonnet-4-20250514). Browse available models at https://models.dev"
 
     field :api_key, {:required, :string}, description: "Provider API key"
   end
@@ -29,8 +30,7 @@ defmodule Glossia.MCP.CreateLLMModelTool do
         },
         frame
       ) do
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_account(handle),
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :llm_model_write, user, account) do
       attrs = %{
         "handle" => model_handle,

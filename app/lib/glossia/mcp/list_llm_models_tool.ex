@@ -13,8 +13,7 @@ defmodule Glossia.MCP.ListLLMModelsTool do
 
   @impl true
   def execute(%{"handle" => handle}, frame) do
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_account(handle),
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :llm_model_read, user, account) do
       {:ok, {models, _meta}} = LLMModels.list_models(account)
 

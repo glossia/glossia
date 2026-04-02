@@ -20,8 +20,7 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
     handle = params["handle"]
     user_handle = params["user_handle"]
 
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_organization_account(handle),
+    with {:ok, user, account} <- Auth.fetch_organization_context(frame, handle),
          :ok <- Auth.authorize(frame, :members_write, user, account) do
       org = Organizations.get_organization_for_account(account)
 
