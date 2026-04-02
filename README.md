@@ -17,6 +17,17 @@ Your organization already has systems for code, design, and data. Language deser
 - **`app/`** -- The web application, built with [Elixir](https://elixir-lang.org/) and [Phoenix](https://www.phoenixframework.org/).
 - **`cli/`** -- The CLI, written in [Go](https://go.dev/). Translates files locally using LLMs, keeps content in-repo, and validates output with your own tooling.
 
+## OSS and enterprise boundary
+
+Glossia OSS remains the shared product core. Enterprise-specific concerns live in the
+enterprise repository and integrate through explicit extension points.
+
+- Marketing and docs pages belong in the enterprise repository.
+- Deployment automation, including Kamal, belongs in the enterprise repository.
+- Secrets management belongs in the enterprise repository.
+- Auditing is emitted by OSS workflows but stored and enriched by the configured audit sink.
+- Authorization defaults to the OSS policy backend, but deployments can replace it with an enterprise permission system.
+
 ## Getting started
 
 Visit [glossia.ai](https://glossia.ai) to learn more, or check out the [docs](https://glossia.ai/docs).
@@ -41,4 +52,3 @@ mix phx.server
 
 - [Forum](https://community.glossia.ai/)
 - [Discord](https://discord.gg/7FRHkwvs)
-

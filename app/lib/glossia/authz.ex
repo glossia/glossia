@@ -1,14 +1,10 @@
 defmodule Glossia.Authz do
   @moduledoc """
-  Authorization helpers that combine OAuth scopes with LetMe policy checks.
+  Authorization facade for the configured backend.
 
-  The API and MCP server enforce both:
-
-  - The access token must include the required `object:action` scope
-  - The subject must be authorized for the specific resource via `Glossia.Policy`
+  Open source Glossia uses the default policy backend. Enterprise deployments
+  can swap in a finer-grained authorization module without changing call sites.
   """
-
-  alias LetMe.Rule
 
   @type scopes :: :all | [String.t()]
 
@@ -18,10 +14,7 @@ defmodule Glossia.Authz do
 
   @spec required_scope(Glossia.Policy.action()) :: String.t() | nil
   def required_scope(action) when is_atom(action) do
-    case Glossia.Policy.get_rule(action) do
-      %Rule{object: object, action: rule_action} -> "#{object}:#{rule_action}"
-      nil -> nil
-    end
+    authorizer().required_scope(action)
   end
 
   @spec required_scope!(Glossia.Policy.action()) :: String.t()
@@ -38,30 +31,17 @@ defmodule Glossia.Authz do
 
   @spec authorize(Glossia.Policy.action(), any, any, keyword) :: :ok | authorize_error
   def authorize(action, subject, object \\ nil, opts \\ []) when is_atom(action) do
-    scopes = Keyword.get(opts, :scopes, :all)
-
-    with :ok <- authorize_scope(action, scopes),
-         :ok <- Glossia.Policy.authorize(action, subject, object, opts) do
-      :ok
-    end
+    authorizer().authorize(action, subject, object, opts)
   end
 
   @spec authorize?(Glossia.Policy.action(), any, any, keyword) :: boolean
   def authorize?(action, subject, object \\ nil, opts \\ []) do
-    match?(:ok, authorize(action, subject, object, opts))
+    authorizer().authorize?(action, subject, object, opts)
   end
 
   @spec authorize_scope(Glossia.Policy.action(), scopes) ::
           :ok | {:error, :insufficient_scope, required_scope :: String.t()}
-  def authorize_scope(_action, :all), do: :ok
+  def authorize_scope(action, scopes), do: authorizer().authorize_scope(action, scopes)
 
-  def authorize_scope(action, scopes) when is_list(scopes) do
-    required = required_scope!(action)
-
-    if required in scopes do
-      :ok
-    else
-      {:error, :insufficient_scope, required}
-    end
-  end
+  defp authorizer, do: Glossia.Extensions.authorizer()
 end

@@ -1,116 +1,19 @@
 defmodule Glossia.Auditing do
   @moduledoc """
-  Context for recording and querying audit events.
+  Facade for audit recording.
 
-  Events are buffered and written to ClickHouse asynchronously via
-  the Ingestion.Buffer GenServer.
+  The default OSS sink writes events to ClickHouse. Enterprise deployments can
+  replace the sink in config while keeping the same `Glossia.Auditing.record/4`
+  calls throughout the app.
   """
 
-  alias Glossia.Ingestion.{Buffer, Event}
-  alias Glossia.ClickHouseRepo
-
-  import Ecto.Query
-
-  require Logger
-
-  @event_buffer Glossia.Ingestion.EventBuffer
-
-  @doc """
-  Records an audit event asynchronously via the buffer.
-
-  ## Parameters
-
-    - `name` - event name, e.g. `"voice.created"`
-    - `account` - the Account struct
-    - `user` - the User struct (actor) with `:account` preloaded, or `nil`
-    - `opts` - keyword list:
-      - `:resource_type` - e.g. `"voice"`
-      - `:resource_id` - resource identifier
-      - `:resource_path` - clickable URL path
-      - `:summary` - human-readable description
-      - `:duration_ms` - optional duration in milliseconds
-      - `:metadata` - optional JSON string
-  """
   def record(name, account, user, opts \\ []) do
-    buffer_opts = Event.buffer_opts()
-
-    actor_handle = user_actor_handle(user)
-    actor_email = user_actor_email(user)
-    user_id = user_actor_id(user)
-
-    row = [
-      Uniq.UUID.uuid7(:raw),
-      name,
-      to_string(account.id),
-      user_id,
-      actor_handle,
-      actor_email,
-      opts[:resource_type] || "",
-      opts[:resource_id] || "",
-      opts[:resource_path] || "",
-      opts[:summary] || "",
-      opts[:duration_ms] || 0,
-      opts[:metadata] || ""
-    ]
-
-    row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)
-    Buffer.insert(@event_buffer, row_binary)
-
-    Logger.info(fn ->
-      JSON.encode!(%{
-        type: "audit_event",
-        name: name,
-        account_id: to_string(account.id),
-        user_id: if(user_id == "", do: nil, else: user_id),
-        actor_handle: if(actor_handle == "", do: nil, else: actor_handle),
-        actor_email: if(actor_email == "", do: nil, else: actor_email),
-        resource_type: opts[:resource_type],
-        resource_id: opts[:resource_id],
-        resource_path: opts[:resource_path],
-        summary: opts[:summary],
-        duration_ms: opts[:duration_ms],
-        metadata: opts[:metadata]
-      })
-    end)
+    sink().record(%{name: name, account: account, user: user, opts: opts})
   end
 
-  @doc """
-  Lists recent audit events for an account, ordered by most recent first.
-  """
   def list_events(account_id, opts \\ []) do
-    limit = Keyword.get(opts, :limit, 50)
-    offset = Keyword.get(opts, :offset, 0)
-
-    from(e in "events",
-      where: e.account_id == ^to_string(account_id),
-      order_by: [desc: e.inserted_at],
-      limit: ^limit,
-      offset: ^offset,
-      select: %{
-        id: e.id,
-        name: e.name,
-        actor_handle: e.actor_handle,
-        actor_email: e.actor_email,
-        resource_type: e.resource_type,
-        resource_path: e.resource_path,
-        summary: e.summary,
-        inserted_at: e.inserted_at
-      }
-    )
-    |> ClickHouseRepo.all()
+    sink().list_events(account_id, opts)
   end
 
-  defp user_actor_id(nil), do: ""
-  defp user_actor_id(%{id: id}), do: to_string(id)
-
-  defp user_actor_handle(nil), do: ""
-
-  defp user_actor_handle(%{account: %{handle: handle}}) when is_binary(handle),
-    do: handle
-
-  defp user_actor_handle(_user), do: ""
-
-  defp user_actor_email(nil), do: ""
-  defp user_actor_email(%{email: email}) when is_binary(email), do: email
-  defp user_actor_email(_user), do: ""
+  defp sink, do: Glossia.Extensions.audit_sink()
 end
