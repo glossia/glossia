@@ -38,7 +38,10 @@ defmodule Glossia.Accounts.LLMModel do
     |> validate_format(:model, ~r/^[a-z0-9_-]+:.+$/,
       message: "must be in provider:model format (e.g. anthropic:claude-sonnet-4-20250514)"
     )
-    |> unique_constraint([:account_id, :handle], error_key: :handle, message: "has already been taken")
+    |> unique_constraint([:account_id, :handle],
+      error_key: :handle,
+      message: "has already been taken"
+    )
   end
 
   @doc """
