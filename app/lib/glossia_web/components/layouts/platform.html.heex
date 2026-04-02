@@ -274,10 +274,17 @@
           </div>
 
           <%!-- Account section (collapsible) --%>
-          <%= if assigns[:is_admin] or @can_write do %>
+          <% account_nav_items =
+            Glossia.Extensions.account_nav_items(assigns)
+            |> Enum.map(fn item ->
+              Map.update(item, :active, false, & &1)
+            end) %>
+          <% account_section_open =
+            @live_action in [:members] or Enum.any?(account_nav_items, &Map.get(&1, :active, false)) %>
+          <%= if assigns[:is_admin] or @can_write or account_nav_items != [] do %>
             <details
               class="gl-nav-section gl-nav-section-collapsible"
-              open={@live_action in [:members]}
+              open={account_section_open}
             >
               <summary class="gl-nav-section-toggle">
                 <svg
@@ -316,6 +323,13 @@
                   <span>{gettext("Members")}</span>
                 </.link>
               <% end %>
+              <.link
+                :for={item <- account_nav_items}
+                navigate={item.navigate}
+                class={["gl-nav-item", item.active && "active"]}
+              >
+                <span>{item.label}</span>
+              </.link>
             </details>
           <% end %>
 
