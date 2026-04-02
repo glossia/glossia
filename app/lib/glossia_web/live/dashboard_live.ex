@@ -2885,18 +2885,6 @@ defmodule GlossiaWeb.DashboardLive do
           handle={@handle}
           can_write={@can_write}
         />
-      <% :logs -> %>
-        <.logs_page
-          handle={@handle}
-          events={@events}
-          event_types={@event_types}
-          search={@events_search}
-          sort_key={@events_sort_key}
-          sort_dir={@events_sort_dir}
-          filters={@events_filters}
-          page={@events_page}
-          total={@events_total}
-        />
       <% :voice -> %>
         <.voice_page
           voice={@voice}

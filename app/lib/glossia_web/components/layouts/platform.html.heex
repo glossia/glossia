@@ -277,7 +277,7 @@
           <%= if assigns[:is_admin] or @can_write do %>
             <details
               class="gl-nav-section gl-nav-section-collapsible"
-              open={@live_action in [:members, :logs]}
+              open={@live_action in [:members]}
             >
               <summary class="gl-nav-section-toggle">
                 <svg
@@ -314,14 +314,6 @@
                   class={["gl-nav-item", @live_action == :members && "active"]}
                 >
                   <span>{gettext("Members")}</span>
-                </.link>
-              <% end %>
-              <%= if @can_write do %>
-                <.link
-                  navigate={"/#{@handle}/-/logs"}
-                  class={["gl-nav-item", @live_action == :logs && "active"]}
-                >
-                  <span>{gettext("Logs")}</span>
                 </.link>
               <% end %>
             </details>

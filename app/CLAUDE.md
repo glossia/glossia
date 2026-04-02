@@ -1,12 +1,10 @@
 This is a web application written using the Phoenix web framework.
 
-## Deployment
+## Deployment and secrets
 
-Deploy with `fnox exec kamal deploy`. The `fnox exec` wrapper injects secrets (like `KAMAL_REGISTRY_PASSWORD`) that Kamal needs at deploy time.
-
-## Secrets
-
-All secrets (API keys, tokens, credentials) are managed through `fnox`. Never hardcode secrets in source files or commit them to the repository. To add or update a secret, use `fnox set SECRET_NAME "value"`. For environment-specific secrets, use the `-P` flag (e.g., `fnox set -P development SECRET_NAME "value"`). Secrets are automatically available as environment variables when running commands through `fnox exec`.
+Deployment automation and secret management live in the enterprise repository.
+This OSS repository should remain runnable for contributors without requiring
+deploy credentials or secret-management tooling.
 
 ## Project guidelines
 
