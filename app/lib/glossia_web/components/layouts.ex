@@ -63,6 +63,7 @@ defmodule GlossiaWeb.Layouts do
 
   The `inner_block` slot is the main page content rendered inside `gl-content`.
   """
+  attr :current_scope, :any, default: nil, doc: "The current Scope struct (Phoenix 1.8 pattern)"
   attr :current_user, :map, required: true
   attr :data_sidebar, :string, default: "visible"
   attr :show_sidebar, :boolean, default: true
