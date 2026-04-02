@@ -24,8 +24,7 @@ defmodule Glossia.MCP.CreateProjectTool do
   def execute(params, frame) do
     handle = params["handle"]
 
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_account(handle),
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :project_write, user, account) do
       attrs = %{
         handle: params["project_handle"],

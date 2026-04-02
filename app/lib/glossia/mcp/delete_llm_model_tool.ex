@@ -14,8 +14,7 @@ defmodule Glossia.MCP.DeleteLLMModelTool do
 
   @impl true
   def execute(%{"handle" => handle, "model_id" => model_id}, frame) do
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_account(handle),
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :llm_model_write, user, account) do
       case LLMModels.get_model(model_id, account.id) do
         nil ->
