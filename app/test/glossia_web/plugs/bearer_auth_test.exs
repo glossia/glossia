@@ -2,11 +2,11 @@ defmodule GlossiaWeb.Plugs.BearerAuthTest do
   use GlossiaWeb.ConnCase, async: true
 
   alias Glossia.DeveloperTokens
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
   alias GlossiaWeb.Plugs.BearerAuth
 
   test "authenticates an account token and assigns user + scopes", %{conn: conn} do
-    user = ApiTestHelpers.create_user("token-auth@test.com", "token-auth")
+    user = TestHelpers.create_user("token-auth@test.com", "token-auth")
 
     {:ok, %{plain_token: plain_token}} =
       DeveloperTokens.create_account_token(user.account, user, %{

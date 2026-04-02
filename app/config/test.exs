@@ -57,3 +57,14 @@ config :phoenix,
 config :glossia, Oban, testing: :inline
 
 config :glossia, Glossia.OgImage, enabled: false
+
+# Cloak encryption vault (deterministic test key)
+config :glossia, Glossia.Vault,
+  ciphers: [
+    default: {
+      Cloak.Ciphers.AES.GCM,
+      tag: "AES.GCM.V1",
+      key: Base.decode64!("L1gSQ6tifJPmcSH/5s3apb+SApxmeIkwXk/j2sjXbxE="),
+      iv_length: 12
+    }
+  ]

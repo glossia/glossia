@@ -67,66 +67,31 @@ defmodule GlossiaWeb.DashboardComponents do
   def resource_table(assigns) do
     assigns = assign(assigns, :total_pages, total_pages(assigns.total, assigns.per_page))
 
+    has_content =
+      assigns.rows != [] or assigns.search != "" or
+        has_active_filters?(assigns.active_filters, assigns.filters)
+
+    assigns = assign(assigns, :has_content, has_content)
+
     ~H"""
     <div class="resource-index" id={@id}>
-      <div class="resource-toolbar">
-        <form phx-change="resource_search" class="resource-search-form">
-          <input type="hidden" name="table_id" value={@id} />
-          <div class="resource-search-wrap">
-            <svg
-              class="resource-search-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="search"
-              name="search"
-              value={@search}
-              placeholder={@search_placeholder || gettext("Search...")}
-              phx-debounce="300"
-              class="resource-search"
-            />
-          </div>
-        </form>
-        <%= if @filters != [] do %>
-          <div
-            class="rf-dropdown"
-            id={"#{@id}-filter-dropdown"}
-            phx-hook=".ResourceFilterDropdown"
-            phx-update="ignore"
-            data-filters={
-              JSON.encode!(
-                Enum.map(@filters, fn f ->
-                  base = %{key: f.key, label: f.label, type: Map.get(f, :type, "select")}
-
-                  if Map.has_key?(f, :options) do
-                    Map.put(
-                      base,
-                      :options,
-                      Enum.map(f.options, fn o -> %{value: o.value, label: o.label} end)
-                    )
-                  else
-                    base
-                  end
-                end)
-              )
-            }
-            data-active={JSON.encode!(@active_filters)}
-            data-table-id={@id}
-          >
-            <button type="button" class="rf-trigger" aria-expanded="false" aria-haspopup="true">
+      <%= if @rows == [] and not @has_content do %>
+        <div class="resource-empty-state">
+          <%= if @empty != [] do %>
+            {render_slot(@empty)}
+          <% else %>
+            <span class="resource-empty-text">{gettext("No results found.")}</span>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="resource-toolbar">
+          <form phx-change="resource_search" class="resource-search-form">
+            <input type="hidden" name="table_id" value={@id} />
+            <div class="resource-search-wrap">
               <svg
-                width="14"
-                height="14"
+                class="resource-search-icon"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -135,228 +100,279 @@ defmodule GlossiaWeb.DashboardComponents do
                 stroke-linejoin="round"
                 aria-hidden="true"
               >
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <span>{gettext("Filter")}</span>
+              <input
+                type="search"
+                name="search"
+                value={@search}
+                placeholder={@search_placeholder || gettext("Search...")}
+                phx-debounce="300"
+                class="resource-search"
+              />
+            </div>
+          </form>
+          <%= if @filters != [] do %>
+            <div
+              class="rf-dropdown"
+              id={"#{@id}-filter-dropdown"}
+              phx-hook=".ResourceFilterDropdown"
+              phx-update="ignore"
+              data-filters={
+                JSON.encode!(
+                  Enum.map(@filters, fn f ->
+                    base = %{key: f.key, label: f.label, type: Map.get(f, :type, "select")}
+
+                    if Map.has_key?(f, :options) do
+                      Map.put(
+                        base,
+                        :options,
+                        Enum.map(f.options, fn o -> %{value: o.value, label: o.label} end)
+                      )
+                    else
+                      base
+                    end
+                  end)
+                )
+              }
+              data-active={JSON.encode!(@active_filters)}
+              data-table-id={@id}
+            >
+              <button type="button" class="rf-trigger" aria-expanded="false" aria-haspopup="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                <span>{gettext("Filter")}</span>
+              </button>
+              <div class="rf-panel" role="menu"></div>
+            </div>
+          <% end %>
+        </div>
+
+        <%= if has_active_filters?(@active_filters, @filters) do %>
+          <div class="resource-filter-chips">
+            <%= for {key, values} <- @active_filters, chip <- chip_items(@filters, key, values) do %>
+              <span class="resource-filter-chip">
+                <span class="resource-filter-chip-label">
+                  {chip.label}: {chip.display}
+                </span>
+                <button
+                  type="button"
+                  class="resource-filter-chip-remove"
+                  phx-click={chip.remove_event}
+                  phx-value-table_id={@id}
+                  phx-value-key={key}
+                  phx-value-filter_value={chip.remove_value}
+                  aria-label={gettext("Remove filter")}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="5" y1="5" x2="15" y2="15" /><line x1="15" y1="5" x2="5" y2="15" />
+                  </svg>
+                </button>
+              </span>
+            <% end %>
+            <button
+              type="button"
+              class="resource-clear-filters"
+              phx-click="resource_clear_filters"
+              phx-value-table_id={@id}
+            >
+              {gettext("Clear all")}
             </button>
-            <div class="rf-panel" role="menu"></div>
           </div>
         <% end %>
-      </div>
 
-      <%= if has_active_filters?(@active_filters, @filters) do %>
-        <div class="resource-filter-chips">
-          <%= for {key, values} <- @active_filters, chip <- chip_items(@filters, key, values) do %>
-            <span class="resource-filter-chip">
-              <span class="resource-filter-chip-label">
-                {chip.label}: {chip.display}
-              </span>
+        <div class="resource-table-wrap">
+          <table class="resource-table">
+            <thead>
+              <tr>
+                <%= for col <- @col do %>
+                  <th
+                    class={[
+                      col[:class],
+                      col[:sortable] && "resource-col-sortable"
+                    ]}
+                    phx-click={col[:sortable] && "resource_sort"}
+                    phx-value-key={col[:sortable] && col[:key]}
+                    phx-value-table_id={col[:sortable] && @id}
+                    aria-sort={sort_aria(@sort_key, @sort_dir, col[:key])}
+                  >
+                    <span class="resource-col-header">
+                      {col[:label]}
+                      <%= if col[:sortable] do %>
+                        <span class="resource-sort-indicator" aria-hidden="true">
+                          <%= cond do %>
+                            <% @sort_key == col[:key] && @sort_dir == "asc" -> %>
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              >
+                                <polyline points="4 10 8 6 12 10" />
+                              </svg>
+                            <% @sort_key == col[:key] && @sort_dir == "desc" -> %>
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              >
+                                <polyline points="4 6 8 10 12 6" />
+                              </svg>
+                            <% true -> %>
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="resource-sort-inactive"
+                              >
+                                <polyline points="5 6.5 8 3.5 11 6.5" />
+                                <polyline points="5 9.5 8 12.5 11 9.5" />
+                              </svg>
+                          <% end %>
+                        </span>
+                      <% end %>
+                    </span>
+                  </th>
+                <% end %>
+                <%= if @action != [] do %>
+                  <th class="resource-col-actions">
+                    <span class="sr-only">{gettext("Actions")}</span>
+                  </th>
+                <% end %>
+              </tr>
+            </thead>
+            <tbody>
+              <%= if @rows == [] do %>
+                <tr>
+                  <td
+                    colspan={length(@col) + if(@action != [], do: 1, else: 0)}
+                    class="resource-empty-cell"
+                  >
+                    <%= if @empty != [] do %>
+                      {render_slot(@empty)}
+                    <% else %>
+                      <span class="resource-empty-text">{gettext("No results found.")}</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% else %>
+                <%= for row <- @rows do %>
+                  <tr>
+                    <%= for col <- @col do %>
+                      <td class={col[:class]}>{render_slot(col, row)}</td>
+                    <% end %>
+                    <%= if @action != [] do %>
+                      <td class="resource-col-actions">
+                        <div class="resource-col-actions-inner">
+                          {render_slot(@action, row)}
+                        </div>
+                      </td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <%= if @total && @total > @per_page do %>
+          <% first = (@page - 1) * @per_page + 1
+          last = min(@page * @per_page, @total) %>
+          <div class="resource-pagination">
+            <span class="resource-pagination-info">
+              {gettext("Showing %{first}-%{last} of %{total}",
+                first: first,
+                last: last,
+                total: @total
+              )}
+            </span>
+            <div class="resource-pagination-controls">
               <button
                 type="button"
-                class="resource-filter-chip-remove"
-                phx-click={chip.remove_event}
+                class="resource-pagination-btn"
+                phx-click="resource_page"
+                phx-value-page={@page - 1}
                 phx-value-table_id={@id}
-                phx-value-key={key}
-                phx-value-filter_value={chip.remove_value}
-                aria-label={gettext("Remove filter")}
+                disabled={@page <= 1}
+                aria-label={gettext("Previous page")}
               >
                 <svg
-                  width="12"
-                  height="12"
+                  width="16"
+                  height="16"
                   viewBox="0 0 20 20"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2.5"
+                  stroke-width="2"
                   stroke-linecap="round"
+                  stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <line x1="5" y1="5" x2="15" y2="15" /><line x1="15" y1="5" x2="5" y2="15" />
+                  <polyline points="12 4 6 10 12 16" />
                 </svg>
               </button>
-            </span>
-          <% end %>
-          <button
-            type="button"
-            class="resource-clear-filters"
-            phx-click="resource_clear_filters"
-            phx-value-table_id={@id}
-          >
-            {gettext("Clear all")}
-          </button>
-        </div>
-      <% end %>
-
-      <div class="resource-table-wrap">
-        <table class="resource-table">
-          <thead>
-            <tr>
-              <%= for col <- @col do %>
-                <th
-                  class={[
-                    col[:class],
-                    col[:sortable] && "resource-col-sortable"
-                  ]}
-                  phx-click={col[:sortable] && "resource_sort"}
-                  phx-value-key={col[:sortable] && col[:key]}
-                  phx-value-table_id={col[:sortable] && @id}
-                  aria-sort={sort_aria(@sort_key, @sort_dir, col[:key])}
-                >
-                  <span class="resource-col-header">
-                    {col[:label]}
-                    <%= if col[:sortable] do %>
-                      <span class="resource-sort-indicator" aria-hidden="true">
-                        <%= cond do %>
-                          <% @sort_key == col[:key] && @sort_dir == "asc" -> %>
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <polyline points="4 10 8 6 12 10" />
-                            </svg>
-                          <% @sort_key == col[:key] && @sort_dir == "desc" -> %>
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <polyline points="4 6 8 10 12 6" />
-                            </svg>
-                          <% true -> %>
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              class="resource-sort-inactive"
-                            >
-                              <polyline points="5 6.5 8 3.5 11 6.5" />
-                              <polyline points="5 9.5 8 12.5 11 9.5" />
-                            </svg>
-                        <% end %>
-                      </span>
-                    <% end %>
-                  </span>
-                </th>
-              <% end %>
-              <%= if @action != [] do %>
-                <th class="resource-col-actions">
-                  <span class="sr-only">{gettext("Actions")}</span>
-                </th>
-              <% end %>
-            </tr>
-          </thead>
-          <tbody>
-            <%= if @rows == [] do %>
-              <tr>
-                <td
-                  colspan={length(@col) + if(@action != [], do: 1, else: 0)}
-                  class="resource-empty-cell"
-                >
-                  <%= if @empty != [] do %>
-                    {render_slot(@empty)}
-                  <% else %>
-                    <span class="resource-empty-text">{gettext("No results found.")}</span>
-                  <% end %>
-                </td>
-              </tr>
-            <% else %>
-              <%= for row <- @rows do %>
-                <tr>
-                  <%= for col <- @col do %>
-                    <td class={col[:class]}>{render_slot(col, row)}</td>
-                  <% end %>
-                  <%= if @action != [] do %>
-                    <td class="resource-col-actions">
-                      <div class="resource-col-actions-inner">
-                        {render_slot(@action, row)}
-                      </div>
-                    </td>
-                  <% end %>
-                </tr>
-              <% end %>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-
-      <%= if @total && @total > @per_page do %>
-        <% first = (@page - 1) * @per_page + 1
-        last = min(@page * @per_page, @total) %>
-        <div class="resource-pagination">
-          <span class="resource-pagination-info">
-            {gettext("Showing %{first}-%{last} of %{total}",
-              first: first,
-              last: last,
-              total: @total
-            )}
-          </span>
-          <div class="resource-pagination-controls">
-            <button
-              type="button"
-              class="resource-pagination-btn"
-              phx-click="resource_page"
-              phx-value-page={@page - 1}
-              phx-value-table_id={@id}
-              disabled={@page <= 1}
-              aria-label={gettext("Previous page")}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
+              <span class="resource-pagination-page">
+                {gettext("Page %{page} of %{total}", page: @page, total: @total_pages)}
+              </span>
+              <button
+                type="button"
+                class="resource-pagination-btn"
+                phx-click="resource_page"
+                phx-value-page={@page + 1}
+                phx-value-table_id={@id}
+                disabled={@page >= @total_pages}
+                aria-label={gettext("Next page")}
               >
-                <polyline points="12 4 6 10 12 16" />
-              </svg>
-            </button>
-            <span class="resource-pagination-page">
-              {gettext("Page %{page} of %{total}", page: @page, total: @total_pages)}
-            </span>
-            <button
-              type="button"
-              class="resource-pagination-btn"
-              phx-click="resource_page"
-              phx-value-page={@page + 1}
-              phx-value-table_id={@id}
-              disabled={@page >= @total_pages}
-              aria-label={gettext("Next page")}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <polyline points="8 4 14 10 8 16" />
-              </svg>
-            </button>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="8 4 14 10 8 16" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        <% end %>
       <% end %>
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".ResourceFilterDropdown">

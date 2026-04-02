@@ -2,10 +2,10 @@ defmodule Glossia.DeveloperTokens.AccountTokensTest do
   use Glossia.DataCase, async: true
 
   alias Glossia.DeveloperTokens
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   test "get_account_token_by_value/1 preloads user account" do
-    user = ApiTestHelpers.create_user("token-user@test.com", "token-user")
+    user = TestHelpers.create_user("token-user@test.com", "token-user")
 
     {:ok, %{plain_token: plain_token}} =
       DeveloperTokens.create_account_token(user.account, user, %{"name" => "Test token"})

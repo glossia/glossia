@@ -12,6 +12,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Glossaries
   alias Glossia.Organizations
   alias Glossia.Discussions
+  alias Glossia.LLMModels
   alias Glossia.Voices
 
   @tone_options ~w(casual formal playful authoritative neutral)
@@ -621,6 +622,84 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
+  defp apply_action(socket, :llm_models, params) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+
+    sort_key = Map.get(params, "msort", "handle")
+    sort_dir = Map.get(params, "mdir", "asc")
+
+    flop_params = %{
+      "order_by" => [sort_key],
+      "order_directions" => [sort_dir]
+    }
+
+    {:ok, {models, _meta}} = LLMModels.list_models(account, flop_params)
+
+    assign(socket,
+      page_title: gettext("LLM models"),
+      llm_models: models,
+      models_sort_key: sort_key,
+      models_sort_dir: sort_dir,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("LLM models"), "/" <> handle <> "/-/settings/models"}
+      ]
+    )
+  end
+
+  defp apply_action(socket, :llm_model_new, _params) do
+    require_admin!(socket)
+    handle = socket.assigns.handle
+
+    assign(socket,
+      page_title: gettext("New LLM model"),
+      model_form:
+        to_form(
+          %{"handle" => "", "model" => "", "api_key" => ""},
+          as: :model
+        ),
+      model_form_valid?: false,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("LLM models"), "/" <> handle <> "/-/settings/models"},
+        {gettext("New model"), nil}
+      ]
+    )
+  end
+
+  defp apply_action(socket, :llm_model_edit, %{"model_id" => model_id}) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    model = LLMModels.get_model!(model_id, account.id)
+
+    assign(socket,
+      page_title: model.handle,
+      editing_model: model,
+      model_edit_form:
+        to_form(
+          %{
+            "handle" => model.handle,
+            "model" => model.model,
+            "api_key" => ""
+          },
+          as: :model
+        ),
+      model_edit_original: %{
+        "handle" => model.handle,
+        "model" => model.model
+      },
+      model_edit_changed?: false,
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("LLM models"), "/" <> handle <> "/-/settings/models"},
+        {model.handle, nil}
+      ]
+    )
+  end
+
   defp apply_action(socket, :project_new, _params) do
     if not socket.assigns.can_write do
       socket
@@ -1156,6 +1235,114 @@ defmodule GlossiaWeb.DashboardLive do
 
       _ ->
         scope
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # LLM model events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("validate_model", %{"model" => params}, socket) do
+    valid? =
+      String.trim(params["handle"] || "") != "" and
+        String.trim(params["model"] || "") != "" and
+        String.trim(params["api_key"] || "") != ""
+
+    {:noreply, assign(socket, model_form_valid?: valid?)}
+  end
+
+  def handle_event("validate_model_edit", %{"model" => params}, socket) do
+    original = socket.assigns.model_edit_original
+
+    changed? =
+      String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
+        String.trim(params["model"] || "") != String.trim(original["model"] || "") or
+        String.trim(params["api_key"] || "") != ""
+
+    {:noreply, assign(socket, model_edit_changed?: changed?)}
+  end
+
+  def handle_event("create_model", %{"model" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case LLMModels.create_model(account, user, params) do
+        {:ok, _model} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Model created."))
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models")}
+
+        {:error, changeset} ->
+          {:noreply,
+           socket
+           |> assign(model_form: to_form(changeset, as: :model))
+           |> put_flash(:error, gettext("Could not create model."))}
+      end
+    end
+  end
+
+  def handle_event("update_model", %{"model" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      model = socket.assigns.editing_model
+
+      # Only include api_key if a new one was provided
+      attrs =
+        if String.trim(params["api_key"] || "") == "" do
+          Map.delete(params, "api_key")
+        else
+          params
+        end
+
+      case LLMModels.update_model(account, user, model, attrs) do
+        {:ok, _updated} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Model updated."))
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models")}
+
+        {:error, changeset} ->
+          {:noreply,
+           socket
+           |> assign(model_edit_form: to_form(changeset, as: :model))
+           |> put_flash(:error, gettext("Could not update model."))}
+      end
+    end
+  end
+
+  def handle_event("delete_model", %{"id" => model_id}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case LLMModels.get_model(model_id, account.id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Model not found."))}
+
+        model ->
+          case LLMModels.delete_model(account, user, model) do
+            {:ok, _} ->
+              {:ok, {models, _meta}} = LLMModels.list_models(account)
+
+              {:noreply,
+               socket
+               |> assign(llm_models: models)
+               |> put_flash(:info, gettext("Model deleted."))
+               |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models")}
+
+            {:error, _} ->
+              {:noreply, put_flash(socket, :error, gettext("Could not delete model."))}
+          end
+      end
     end
   end
 
@@ -2453,7 +2640,7 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       description = socket.assigns.voice_form_params["description"] || ""
 
-      description =
+      _description =
         if description == "",
           do: if(socket.assigns.voice, do: socket.assigns.voice.description || "", else: ""),
           else: description
@@ -2478,22 +2665,9 @@ defmodule GlossiaWeb.DashboardLive do
                     fn code ->
                       country_name = GlossiaWeb.DashboardComponents.country_name(code)
 
-                      messages = [
-                        %{
-                          role: :system,
-                          content:
-                            "You are a cultural advisor. Given a description and a target country, write 2-3 sentences about cultural considerations for communicating in that country. Focus on communication style, values, and preferences. Only output the advice, nothing else."
-                        },
-                        %{
-                          role: :user,
-                          content: "Description: #{description}\nCountry: #{country_name}"
-                        }
-                      ]
-
-                      case Glossia.Minimax.chat(messages, max_tokens: 512) do
-                        {:ok, %{content: text}} -> {code, String.trim(text)}
-                        _ -> {code, ""}
-                      end
+                      _country_name = country_name
+                      # TODO: re-implement with account LLM model system
+                      {code, ""}
                     end,
                     timeout: :infinity
                   )
@@ -2520,20 +2694,12 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, socket}
     else
       account = socket.assigns.account
-      body = socket.assigns[:ticket_body_for_title] || ""
+      _body = socket.assigns[:ticket_body_for_title] || ""
 
       case Glossia.RateLimiter.hit("ai:title:#{account.id}", :timer.minutes(1), 10) do
         {:allow, _count} ->
-          messages = [
-            %{
-              role: :system,
-              content:
-                "You are a ticket tracker assistant. Given a user's description, generate a clear, concise ticket title (under 80 characters). Only output the title, nothing else."
-            },
-            %{role: :user, content: body}
-          ]
-
-          task = Task.async(fn -> Glossia.Minimax.chat(messages, max_tokens: 1024) end)
+          # TODO: re-implement with account LLM model system
+          task = Task.async(fn -> {:error, :no_llm_client} end)
 
           form = socket.assigns.ticket_form
           body_val = form[:body].value || ""
@@ -2878,6 +3044,19 @@ defmodule GlossiaWeb.DashboardLive do
           app_edit_changed?={assigns[:app_edit_changed?] || false}
           apps_sort_key={assigns[:apps_sort_key] || "inserted_at"}
           apps_sort_dir={assigns[:apps_sort_dir] || "desc"}
+        />
+      <% action when action in [:llm_models, :llm_model_new, :llm_model_edit] -> %>
+        <.llm_models_page
+          live_action={@live_action}
+          handle={@handle}
+          llm_models={assigns[:llm_models] || []}
+          model_form={assigns[:model_form]}
+          model_form_valid?={assigns[:model_form_valid?] || false}
+          models_sort_key={assigns[:models_sort_key] || "handle"}
+          models_sort_dir={assigns[:models_sort_dir] || "asc"}
+          editing_model={assigns[:editing_model]}
+          model_edit_form={assigns[:model_edit_form]}
+          model_edit_changed?={assigns[:model_edit_changed?] || false}
         />
       <% action when action in [:discussions, :discussion_new, :discussion_show] -> %>
         <.discussions_page
@@ -8685,7 +8864,8 @@ defmodule GlossiaWeb.DashboardLive do
     "oauth-apps-table" => "a",
     "discussions-table" => "k",
     "translations-table" => "ts",
-    "commits-table" => "c"
+    "commits-table" => "c",
+    "models" => "md"
   }
 
   defp push_table_params(socket, table_id, overrides) do
@@ -8922,6 +9102,16 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
+  defp current_table_state(socket, "models") do
+    %{
+      search: "",
+      sort: socket.assigns[:models_sort_key] || "handle",
+      dir: socket.assigns[:models_sort_dir] || "asc",
+      page: 1,
+      filters: %{}
+    }
+  end
+
   defp current_table_state(_socket, _id),
     do: %{search: "", sort: "", dir: "asc", page: 1, filters: %{}}
 
@@ -8934,6 +9124,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp default_sort_key("oauth-apps-table"), do: "name"
   defp default_sort_key("discussions-table"), do: "inserted_at"
   defp default_sort_key("translations-table"), do: "inserted_at"
+  defp default_sort_key("models"), do: "handle"
   defp default_sort_key(_), do: ""
 
   defp default_sort_dir("activity-table"), do: "desc"
@@ -8973,6 +9164,9 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp current_sort(socket, "commits-table"),
     do: {socket.assigns[:commits_sort_key] || "date", socket.assigns[:commits_sort_dir] || "desc"}
+
+  defp current_sort(socket, "models"),
+    do: {socket.assigns[:models_sort_key] || "handle", socket.assigns[:models_sort_dir] || "asc"}
 
   defp current_sort(_socket, _), do: {"", "asc"}
 
@@ -9987,5 +10181,227 @@ defmodule GlossiaWeb.DashboardLive do
       "image/webp" -> "webp"
       _ -> "bin"
     end
+  end
+
+  # ---------------------------------------------------------------------------
+  # LLM models page component
+  # ---------------------------------------------------------------------------
+
+  attr :live_action, :atom, required: true
+  attr :handle, :string, required: true
+  attr :llm_models, :list, default: []
+  attr :model_form, :any, default: nil
+  attr :model_form_valid?, :boolean, default: false
+  attr :models_sort_key, :string, default: "handle"
+  attr :models_sort_dir, :string, default: "asc"
+  attr :editing_model, :any, default: nil
+  attr :model_edit_form, :any, default: nil
+  attr :model_edit_changed?, :boolean, default: false
+
+  defp llm_models_page(assigns) do
+    available_models = Glossia.Accounts.LLMModel.available_models()
+    assigns = assign(assigns, :available_models, available_models)
+
+    ~H"""
+    <div class="dash-page">
+      <%= cond do %>
+        <% @live_action == :llm_model_new -> %>
+          <.page_header title={gettext("New LLM model")} />
+
+          <.form
+            for={@model_form}
+            id="model-form"
+            phx-submit="create_model"
+            phx-change="validate_model"
+          >
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Model configuration")}</h2>
+                <p>
+                  {gettext(
+                    "Configure an LLM model that can be referenced from your repository context files."
+                  )}
+                </p>
+              </div>
+              <div class="voice-card">
+                <div class="voice-card-fields">
+                  <div class="voice-field">
+                    <label for="model-handle">{gettext("Handle")}</label>
+                    <input
+                      type="text"
+                      id="model-handle"
+                      name="model[handle]"
+                      value={@model_form[:handle].value}
+                      required
+                      placeholder={gettext("e.g. my-claude-model")}
+                    />
+                    <span class="voice-field-help">
+                      {gettext(
+                        "A unique identifier for this model within your account. Used to reference the model from context files."
+                      )}
+                    </span>
+                  </div>
+                  <div class="voice-field">
+                    <label for="model-model">{gettext("Model")}</label>
+                    <select id="model-model" name="model[model]" required>
+                      <option value="">{gettext("Select a model...")}</option>
+                      <%= for {provider_name, models} <- @available_models do %>
+                        <optgroup label={provider_name}>
+                          <%= for {label, value} <- models do %>
+                            <option value={value}>{label}</option>
+                          <% end %>
+                        </optgroup>
+                      <% end %>
+                    </select>
+                    <span class="voice-field-help">
+                      {gettext("The LLM model to use, sourced from models.dev.")}
+                    </span>
+                  </div>
+                  <div class="voice-field">
+                    <label for="model-api-key">{gettext("API key")}</label>
+                    <input
+                      type="password"
+                      id="model-api-key"
+                      name="model[api_key]"
+                      value={@model_form[:api_key].value}
+                      required
+                      placeholder={gettext("sk-...")}
+                    />
+                    <span class="voice-field-help">
+                      {gettext("Your provider API key. This will be encrypted at rest.")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <.form_save_bar
+              id="model-save-bar"
+              visible={@model_form_valid?}
+              cancel_path={~p"/#{@handle}/-/settings/models"}
+            />
+          </.form>
+        <% @live_action == :llm_model_edit -> %>
+          <.page_header title={@editing_model.handle} />
+
+          <.form
+            for={@model_edit_form}
+            id="model-edit-form"
+            phx-submit="update_model"
+            phx-change="validate_model_edit"
+          >
+            <div class="voice-section">
+              <div class="voice-section-info">
+                <h2>{gettext("Model configuration")}</h2>
+              </div>
+              <div class="voice-card">
+                <div class="voice-card-fields">
+                  <div class="voice-field">
+                    <label for="edit-model-handle">{gettext("Handle")}</label>
+                    <input
+                      type="text"
+                      id="edit-model-handle"
+                      name="model[handle]"
+                      value={@model_edit_form[:handle].value}
+                      required
+                    />
+                  </div>
+                  <div class="voice-field">
+                    <label for="edit-model-model">{gettext("Model")}</label>
+                    <select id="edit-model-model" name="model[model]" required>
+                      <%= for {provider_name, models} <- @available_models do %>
+                        <optgroup label={provider_name}>
+                          <%= for {label, value} <- models do %>
+                            <option
+                              value={value}
+                              selected={@model_edit_form[:model].value == value}
+                            >
+                              {label}
+                            </option>
+                          <% end %>
+                        </optgroup>
+                      <% end %>
+                    </select>
+                  </div>
+                  <div class="voice-field">
+                    <label for="edit-model-api-key">{gettext("API key")}</label>
+                    <input
+                      type="password"
+                      id="edit-model-api-key"
+                      name="model[api_key]"
+                      value={@model_edit_form[:api_key].value}
+                      placeholder={gettext("Leave blank to keep current key")}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="voice-section-divider"></div>
+
+            <div class="api-action-section api-action-danger">
+              <div class="api-action-info">
+                <h2>{gettext("Delete model")}</h2>
+                <p>
+                  {gettext("Permanently remove this model configuration. This cannot be undone.")}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="dash-btn dash-btn-danger"
+                phx-click="delete_model"
+                phx-value-id={@editing_model.id}
+                data-confirm={gettext("Are you sure you want to delete this model?")}
+              >
+                {gettext("Delete model")}
+              </button>
+            </div>
+
+            <.form_save_bar
+              id="model-edit-save-bar"
+              visible={@model_edit_changed?}
+              cancel_path={~p"/#{@handle}/-/settings/models"}
+            />
+          </.form>
+        <% true -> %>
+          <.page_header
+            title={gettext("LLM models")}
+            description={
+              gettext(
+                "Configure LLM providers and API keys that can be referenced from any repository's operations. Glossia acts as a broker, routing requests to the right provider with your credentials."
+              )
+            }
+          >
+            <:actions>
+              <.link navigate={~p"/#{@handle}/-/settings/models/new"} class="button">
+                {gettext("New model")}
+              </.link>
+            </:actions>
+          </.page_header>
+
+          <.resource_table
+            id="models"
+            rows={@llm_models}
+            sort_key={@models_sort_key}
+            sort_dir={@models_sort_dir}
+          >
+            <:col :let={model} label={gettext("Handle")} key="handle" sortable>
+              <.link
+                navigate={~p"/#{@handle}/-/settings/models/#{model.id}"}
+                class="table-link"
+              >
+                {model.handle}
+              </.link>
+            </:col>
+            <:col :let={model} label={gettext("Model")} key="model" sortable>
+              {model.model}
+            </:col>
+            <:empty>
+              <p>{gettext("No LLM models configured yet.")}</p>
+            </:empty>
+          </.resource_table>
+      <% end %>
+    </div>
+    """
   end
 end

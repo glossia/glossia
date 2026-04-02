@@ -2,11 +2,11 @@ defmodule Glossia.DiscussionsTest do
   use Glossia.DataCase, async: true
 
   alias Glossia.Discussions
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   describe "create_discussion/3" do
     test "assigns incrementing numbers per account" do
-      %{account: account} = user = ApiTestHelpers.create_user("tickets@test.com", "tickets-user")
+      %{account: account} = user = TestHelpers.create_user("tickets@test.com", "tickets-user")
 
       assert {:ok, discussion_one} =
                Discussions.create_discussion(account, user, %{
@@ -26,7 +26,7 @@ defmodule Glossia.DiscussionsTest do
 
     test "persists suggestion kind and metadata" do
       %{account: account} =
-        user = ApiTestHelpers.create_user("change-request@test.com", "cr-user")
+        user = TestHelpers.create_user("change-request@test.com", "cr-user")
 
       attrs = %{
         title: "Voice suggestion: tone update",
@@ -46,7 +46,7 @@ defmodule Glossia.DiscussionsTest do
     end
 
     test "rejects invalid discussion kind" do
-      %{account: account} = user = ApiTestHelpers.create_user("invalid-kind@test.com", "bad-kind")
+      %{account: account} = user = TestHelpers.create_user("invalid-kind@test.com", "bad-kind")
 
       assert {:error, changeset} =
                Discussions.create_discussion(account, user, %{

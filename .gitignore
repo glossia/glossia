@@ -1,6 +1,7 @@
 /.l10n/tmp
 .env
 .DS_Store
+.claude/worktrees
 
 # CLI build outputs
 /cli/target

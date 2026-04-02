@@ -2,18 +2,18 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
   alias Glossia.Voices
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   @read_scopes ~w(voice:read)
   @write_scopes ~w(voice:write)
   @read_write_scopes ~w(voice:read voice:write)
 
   setup do
-    owner = ApiTestHelpers.create_user("voice-owner@test.com", "voice-owner")
-    outsider = ApiTestHelpers.create_user("voice-outsider@test.com", "voice-outsider")
+    owner = TestHelpers.create_user("voice-owner@test.com", "voice-owner")
+    outsider = TestHelpers.create_user("voice-outsider@test.com", "voice-outsider")
 
     no_access =
-      ApiTestHelpers.create_user("voice-noaccess@test.com", "voice-noaccess", has_access: false)
+      TestHelpers.create_user("voice-noaccess@test.com", "voice-noaccess", has_access: false)
 
     {:ok, %{voice: voice}} =
       Voices.create_voice(owner.account, %{tone: "formal", formality: "neutral"}, owner)
@@ -25,7 +25,7 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     test "returns the latest voice when authorized", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @read_scopes)
+        |> TestHelpers.authenticate(owner, @read_scopes)
         |> get("/api/#{owner.account.handle}/voice")
 
       assert %{"version" => 1, "tone" => "formal", "formality" => "neutral"} =
@@ -35,7 +35,7 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     test "returns 400 for invalid version param", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @read_scopes)
+        |> TestHelpers.authenticate(owner, @read_scopes)
         |> get("/api/#{owner.account.handle}/voice?version=not-an-int")
 
       assert %{"error" => "invalid_version"} = json_response(conn, 400)
@@ -44,7 +44,7 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     test "returns 403 when missing required scope", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, [])
+        |> TestHelpers.authenticate(owner, [])
         |> get("/api/#{owner.account.handle}/voice")
 
       assert %{"error" => "insufficient_scope", "required_scope" => "voice:read"} =
@@ -54,7 +54,7 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     test "returns 403 for a different account", %{conn: conn, owner: owner, outsider: outsider} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(outsider, @read_scopes)
+        |> TestHelpers.authenticate(outsider, @read_scopes)
         |> get("/api/#{owner.account.handle}/voice")
 
       assert %{"error" => "not_authorized"} = json_response(conn, 403)
@@ -65,7 +65,7 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     test "creates a new voice version when authorized", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @write_scopes)
+        |> TestHelpers.authenticate(owner, @write_scopes)
         |> post("/api/#{owner.account.handle}/voice", %{
           tone: "casual",
           formality: "informal",
@@ -79,7 +79,7 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     test "returns 403 for users without access", %{conn: conn, no_access: no_access} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(no_access, @write_scopes)
+        |> TestHelpers.authenticate(no_access, @write_scopes)
         |> post("/api/#{no_access.account.handle}/voice", %{
           tone: "casual",
           formality: "informal"
@@ -93,7 +93,7 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     test "returns voice versions when authorized", %{conn: conn, owner: owner} do
       conn =
         conn
-        |> ApiTestHelpers.authenticate(owner, @read_write_scopes)
+        |> TestHelpers.authenticate(owner, @read_write_scopes)
         |> get("/api/#{owner.account.handle}/voice/history")
 
       assert %{"versions" => versions} = json_response(conn, 200)

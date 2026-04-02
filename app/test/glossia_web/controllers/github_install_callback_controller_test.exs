@@ -1,14 +1,14 @@
 defmodule GlossiaWeb.GithubInstallCallbackControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   test "GET /callbacks/github/install handles invalid installation IDs without crashing", %{
     conn: conn
   } do
     %{account: account} =
       user =
-      ApiTestHelpers.create_user("install-callback@test.com", "install-callback")
+      TestHelpers.create_user("install-callback@test.com", "install-callback")
 
     conn =
       conn

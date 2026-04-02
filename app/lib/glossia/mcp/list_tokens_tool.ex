@@ -13,8 +13,7 @@ defmodule Glossia.MCP.ListTokensTool do
 
   @impl true
   def execute(%{"handle" => handle}, frame) do
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_account(handle),
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :api_credentials_read, user, account) do
       {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
 

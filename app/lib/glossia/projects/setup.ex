@@ -1,4 +1,5 @@
 defmodule Glossia.Projects.Setup do
+  @compile {:no_warn_undefined, [Glossia.Sandbox]}
   @moduledoc """
   Runs the project setup process: creates a sandbox, starts the agent,
   waits for completion, and optionally opens a PR with the generated
@@ -222,7 +223,6 @@ defmodule Glossia.Projects.Setup do
       )
 
     server_url = GlossiaWeb.Endpoint.url()
-    minimax_api_key = Application.get_env(:glossia, Glossia.Minimax)[:api_key] || ""
 
     config_json =
       JSON.encode!(%{
@@ -230,9 +230,7 @@ defmodule Glossia.Projects.Setup do
         github_repo_default_branch: project.github_repo_default_branch || "main",
         github_token: github_token,
         repo_path: "/home/user/repo",
-        target_languages: project.setup_target_languages || [],
-        minimax_api_key: minimax_api_key,
-        model: "minimax/MiniMax-M2.5"
+        target_languages: project.setup_target_languages || []
       })
 
     {:ok, _pid} =

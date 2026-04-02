@@ -82,9 +82,12 @@ defmodule GlossiaWeb.ProfileLive do
 
     case Glossia.Accounts.update_user_profile(user, params) do
       {:ok, updated_user} ->
+        refreshed_user = Glossia.Accounts.get_user(updated_user.id)
+
         {:noreply,
          socket
-         |> assign(:current_user, Glossia.Accounts.get_user(updated_user.id))
+         |> assign(:current_user, refreshed_user)
+         |> assign(:current_scope, Glossia.Accounts.Scope.for_user(refreshed_user))
          |> put_flash(:info, gettext("Profile updated."))
          |> push_patch(to: ~p"/-/settings/profile")}
 
