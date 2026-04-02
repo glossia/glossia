@@ -10368,7 +10368,7 @@ defmodule GlossiaWeb.DashboardLive do
             title={gettext("LLM models")}
             description={
               gettext(
-                "Configure LLM providers and API keys that can be referenced from any repository's language automation. Glossia acts as a broker, routing requests to the right provider with your credentials."
+                "Configure LLM providers and API keys that can be referenced from any repository's operations. Glossia acts as a broker, routing requests to the right provider with your credentials."
               )
             }
           >

@@ -172,5 +172,4 @@ defmodule GlossiaWeb.Api.LLMProxyController do
       }
     }
   end
-
 end

@@ -16,7 +16,9 @@ defmodule Glossia.Accounts.LLMModelTest do
     end
 
     test "invalid without handle" do
-      changeset = LLMModel.changeset(%LLMModel{}, %{"model" => "anthropic:test", "api_key" => "sk"})
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{"model" => "anthropic:test", "api_key" => "sk"})
+
       assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
@@ -26,7 +28,9 @@ defmodule Glossia.Accounts.LLMModelTest do
     end
 
     test "invalid without api_key when require_api_key is true" do
-      changeset = LLMModel.changeset(%LLMModel{}, %{"handle" => "test", "model" => "anthropic:test"})
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{"handle" => "test", "model" => "anthropic:test"})
+
       assert errors_on(changeset) |> Map.has_key?(:api_key)
     end
 

@@ -30,7 +30,9 @@ defmodule Glossia.LLMModelsTest do
     end
 
     test "encrypts the api_key", %{user: user, account: account} do
-      {:ok, model} = LLMModels.create_model(account, user, valid_attrs(%{"api_key" => "sk-secret"}))
+      {:ok, model} =
+        LLMModels.create_model(account, user, valid_attrs(%{"api_key" => "sk-secret"}))
+
       assert model.api_key == "sk-secret"
     end
 
@@ -72,7 +74,8 @@ defmodule Glossia.LLMModelsTest do
     end
 
     test "does not require api_key on update", %{user: user, account: account} do
-      {:ok, model} = LLMModels.create_model(account, user, valid_attrs(%{"api_key" => "sk-original"}))
+      {:ok, model} =
+        LLMModels.create_model(account, user, valid_attrs(%{"api_key" => "sk-original"}))
 
       assert {:ok, updated} =
                LLMModels.update_model(account, user, model, %{"handle" => "new-handle"})
@@ -110,7 +113,13 @@ defmodule Glossia.LLMModelsTest do
     test "does not return models from other accounts", %{user: user, account: account} do
       other_user = TestHelpers.create_user("llm-iso@test.com", "llm-iso")
       {:ok, _} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "mine"}))
-      {:ok, _} = LLMModels.create_model(other_user.account, other_user, valid_attrs(%{"handle" => "theirs"}))
+
+      {:ok, _} =
+        LLMModels.create_model(
+          other_user.account,
+          other_user,
+          valid_attrs(%{"handle" => "theirs"})
+        )
 
       assert {:ok, {models, _meta}} = LLMModels.list_models(account)
       assert length(models) == 1
