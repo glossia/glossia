@@ -17,6 +17,7 @@ defmodule GlossiaWeb.PlatformHooks do
   import Phoenix.Component, only: [assign: 3]
 
   alias Glossia.Accounts
+  alias Glossia.Accounts.Scope
   alias Glossia.OgImage
 
   def on_mount(:load_user, _params, session, socket) do
@@ -28,6 +29,7 @@ defmodule GlossiaWeb.PlatformHooks do
 
     {:cont,
      socket
+     |> assign(:current_scope, Scope.for_user(user))
      |> assign(:current_user, user)
      |> assign(:impersonating_from, session["impersonating_from"])}
   end

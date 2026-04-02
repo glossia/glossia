@@ -2,12 +2,12 @@ defmodule GlossiaWeb.InvitationControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
   alias Glossia.Organizations
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   setup do
     Mimic.stub(Glossia.Mailer, :deliver, fn _email -> {:ok, %{}} end)
 
-    admin = ApiTestHelpers.create_user("admin@test.com", "ctrlorgadmin")
+    admin = TestHelpers.create_user("admin@test.com", "ctrlorgadmin")
 
     {:ok, %{account: account}} =
       Organizations.create_organization(admin, %{
@@ -34,7 +34,7 @@ defmodule GlossiaWeb.InvitationControllerTest do
     end
 
     test "renders invitation page for authenticated user", %{conn: conn, invitation: invitation} do
-      user = ApiTestHelpers.create_user("viewer@test.com", "viewer")
+      user = TestHelpers.create_user("viewer@test.com", "viewer")
 
       conn =
         conn
@@ -45,7 +45,7 @@ defmodule GlossiaWeb.InvitationControllerTest do
     end
 
     test "redirects with error for invalid token", %{conn: conn} do
-      user = ApiTestHelpers.create_user("viewer2@test.com", "viewer2")
+      user = TestHelpers.create_user("viewer2@test.com", "viewer2")
 
       conn =
         conn
@@ -60,7 +60,7 @@ defmodule GlossiaWeb.InvitationControllerTest do
       conn: conn,
       invitation: invitation
     } do
-      acceptor = ApiTestHelpers.create_user("acceptor@test.com", "acceptor")
+      acceptor = TestHelpers.create_user("acceptor@test.com", "acceptor")
       Organizations.accept_invitation(invitation, acceptor)
 
       conn =
@@ -78,7 +78,7 @@ defmodule GlossiaWeb.InvitationControllerTest do
       invitation: invitation,
       account: account
     } do
-      acceptor = ApiTestHelpers.create_user("accept2@test.com", "accept2")
+      acceptor = TestHelpers.create_user("accept2@test.com", "accept2")
 
       conn =
         conn

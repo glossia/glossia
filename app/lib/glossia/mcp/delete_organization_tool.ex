@@ -17,8 +17,7 @@ defmodule Glossia.MCP.DeleteOrganizationTool do
   def execute(params, frame) do
     handle = params["handle"]
 
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_organization_account(handle),
+    with {:ok, user, account} <- Auth.fetch_organization_context(frame, handle),
          :ok <- Auth.authorize(frame, :organization_delete, user, account) do
       org = Organizations.get_organization_for_account(account)
 

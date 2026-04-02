@@ -14,8 +14,7 @@ defmodule Glossia.MCP.RevokeTokenTool do
 
   @impl true
   def execute(%{"handle" => handle, "token_id" => token_id}, frame) do
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_account(handle),
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :api_credentials_write, user, account) do
       case DeveloperTokens.revoke_account_token(token_id, account.id) do
         {:ok, token} ->

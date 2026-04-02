@@ -2,6 +2,7 @@ defmodule GlossiaWeb.Plugs.Auth do
   import Plug.Conn
 
   alias Glossia.Accounts
+  alias Glossia.Accounts.Scope
 
   def init(opts), do: opts
 
@@ -14,13 +15,18 @@ defmodule GlossiaWeb.Plugs.Auth do
           nil ->
             conn
             |> delete_session(:user_id)
+            |> assign(:current_scope, nil)
             |> assign(:current_user, nil)
 
           user ->
-            assign(conn, :current_user, user)
+            conn
+            |> assign(:current_scope, Scope.for_user(user))
+            |> assign(:current_user, user)
         end
       else
-        assign(conn, :current_user, nil)
+        conn
+        |> assign(:current_scope, nil)
+        |> assign(:current_user, nil)
       end
 
     conn

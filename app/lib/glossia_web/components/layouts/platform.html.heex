@@ -1,4 +1,5 @@
 <.app_shell
+  current_scope={assigns[:current_scope]}
   current_user={@current_user}
   data_sidebar={if assigns[:show_sidebar], do: "visible", else: "hidden"}
   show_sidebar={assigns[:show_sidebar] || false}
@@ -337,7 +338,10 @@
                   :api_token_edit,
                   :api_apps,
                   :api_apps_new,
-                  :api_app_edit
+                  :api_app_edit,
+                  :llm_models,
+                  :llm_model_new,
+                  :llm_model_edit
                 ]
               }
             >
@@ -390,6 +394,15 @@
                 ]}
               >
                 <span>{gettext("OAuth apps")}</span>
+              </.link>
+              <.link
+                navigate={~p"/#{@handle}/-/settings/models"}
+                class={[
+                  "gl-nav-item",
+                  @live_action in [:llm_models, :llm_model_new, :llm_model_edit] && "active"
+                ]}
+              >
+                <span>{gettext("LLM models")}</span>
               </.link>
             </details>
           <% end %>

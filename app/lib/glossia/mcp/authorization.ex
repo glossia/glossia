@@ -40,11 +40,29 @@ defmodule Glossia.MCP.Authorization do
     end
   end
 
+  @spec fetch_context(Hermes.Server.Frame.t(), String.t()) ::
+          {:ok, %User{}, %Account{}} | {:error, Error.t()}
+  def fetch_context(frame, handle) do
+    with {:ok, user} <- current_user(frame),
+         {:ok, account} <- fetch_account(handle) do
+      {:ok, user, account}
+    end
+  end
+
   @spec fetch_account(String.t()) :: {:ok, %Account{}} | {:error, Error.t()}
   def fetch_account(handle) when is_binary(handle) do
     case Accounts.get_account_by_handle(handle) do
       nil -> {:error, Error.execution("Account '#{handle}' not found")}
       %Account{} = account -> {:ok, account}
+    end
+  end
+
+  @spec fetch_organization_context(Hermes.Server.Frame.t(), String.t()) ::
+          {:ok, %User{}, %Account{}} | {:error, Error.t()}
+  def fetch_organization_context(frame, handle) do
+    with {:ok, user} <- current_user(frame),
+         {:ok, account} <- fetch_organization_account(handle) do
+      {:ok, user, account}
     end
   end
 

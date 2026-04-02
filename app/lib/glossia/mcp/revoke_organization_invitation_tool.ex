@@ -19,8 +19,7 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
     handle = params["handle"]
     invitation_id = params["invitation_id"]
 
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_organization_account(handle),
+    with {:ok, user, account} <- Auth.fetch_organization_context(frame, handle),
          :ok <- Auth.authorize(frame, :members_write, user, account) do
       org = Organizations.get_organization_for_account(account)
 

@@ -5,12 +5,16 @@ defmodule Glossia.Application do
 
   use Application
 
+  @compile {:no_warn_undefined, [LLMDB]}
+
   @impl true
   def start(_type, _args) do
     Glossia.OTel.setup()
     Logger.add_handlers(:glossia)
+    {:ok, _} = LLMDB.load()
 
     children = [
+      Glossia.Vault,
       {Finch,
        name: Glossia.Finch,
        pools: %{

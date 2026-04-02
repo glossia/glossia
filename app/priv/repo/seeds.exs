@@ -24,6 +24,7 @@ defmodule Glossia.Seeds do
   }
 
   alias Glossia.DeveloperTokens
+  alias Glossia.LLMModels
   alias Glossia.Github.Installations
   alias Glossia.Glossaries
   alias Glossia.OAuth.FirstPartyClient
@@ -498,6 +499,25 @@ defmodule Glossia.Seeds do
     ensure_discussion_comment!(ticket3, dev,
       body:
         "We have relaxed the URI validation for localhost addresses. This should work now. Let us know if you still see tickets."
+    )
+
+    # LLM model configurations
+    ensure_llm_model!(dev.account, dev,
+      handle: "claude-sonnet",
+      model: "anthropic:claude-sonnet-4-20250514",
+      api_key: "sk-ant-dev-placeholder-key"
+    )
+
+    ensure_llm_model!(dev.account, dev,
+      handle: "gpt-4o",
+      model: "openai:gpt-4o",
+      api_key: "sk-dev-placeholder-key"
+    )
+
+    ensure_llm_model!(acme.account, dev,
+      handle: "acme-claude",
+      model: "anthropic:claude-sonnet-4-20250514",
+      api_key: "sk-ant-acme-placeholder-key"
     )
 
     :ok
@@ -1049,6 +1069,25 @@ defmodule Glossia.Seeds do
     else
       {:ok, comment} = Discussions.add_comment(ticket, user, %{"body" => body})
       comment
+    end
+  end
+
+  defp ensure_llm_model!(account, user, opts) do
+    handle = Keyword.fetch!(opts, :handle)
+
+    case LLMModels.get_model_by_handle(handle, account.id) do
+      nil ->
+        attrs = %{
+          "handle" => handle,
+          "model" => Keyword.fetch!(opts, :model),
+          "api_key" => Keyword.fetch!(opts, :api_key)
+        }
+
+        {:ok, model} = LLMModels.create_model(account, user, attrs)
+        model
+
+      existing ->
+        existing
     end
   end
 end

@@ -25,4 +25,7 @@ defmodule Glossia.MCP.Server do
   component(Glossia.MCP.CreateTokenTool, name: "create_token")
   component(Glossia.MCP.RevokeTokenTool, name: "revoke_token")
   component(Glossia.MCP.ListOAuthAppsTool, name: "list_oauth_apps")
+  component(Glossia.MCP.ListLLMModelsTool, name: "list_llm_models")
+  component(Glossia.MCP.CreateLLMModelTool, name: "create_llm_model")
+  component(Glossia.MCP.DeleteLLMModelTool, name: "delete_llm_model")
 end

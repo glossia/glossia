@@ -61,7 +61,6 @@ defmodule Glossia.MixProject do
       {:swoosh, "~> 1.16"},
       {:gen_smtp, "~> 1.0"},
       {:req, "~> 0.5"},
-      {:stripity_stripe, "~> 3.2"},
       {:sentry, "~> 11.0"},
       {:hackney, "~> 1.20"},
       {:telemetry_metrics, "~> 1.0"},
@@ -96,7 +95,10 @@ defmodule Glossia.MixProject do
       {:flop, "~> 0.26"},
       {:chromic_pdf, "~> 1.17"},
       {:mimic, "~> 1.10", only: :test},
-      {:muontrap, "~> 1.5"}
+      {:muontrap, "~> 1.5"},
+      {:req_llm, "~> 1.9"},
+      {:cloak_ecto, "~> 1.3"},
+      {:cloak, "~> 1.1"}
     ]
   end
 

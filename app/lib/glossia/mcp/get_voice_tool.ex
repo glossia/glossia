@@ -24,8 +24,7 @@ defmodule Glossia.MCP.GetVoiceTool do
   def execute(params, frame) do
     handle = params["handle"]
 
-    with {:ok, user} <- Auth.current_user(frame),
-         {:ok, account} <- Auth.fetch_account(handle),
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :voice_read, user, account) do
       locale = params["locale"]
       version = params["version"]

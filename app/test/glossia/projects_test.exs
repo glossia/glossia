@@ -2,13 +2,13 @@ defmodule Glossia.ProjectsTest do
   use Glossia.DataCase, async: true
 
   alias Glossia.Projects
-  alias GlossiaWeb.ApiTestHelpers
+  alias Glossia.TestHelpers
 
   test "list_imported_github_repositories/1 returns only imported repos for the account" do
-    %{account: account} = ApiTestHelpers.create_user("projects-owner@test.com", "projects-owner")
+    %{account: account} = TestHelpers.create_user("projects-owner@test.com", "projects-owner")
 
     %{account: other_account} =
-      ApiTestHelpers.create_user("projects-other@test.com", "projects-other")
+      TestHelpers.create_user("projects-other@test.com", "projects-other")
 
     assert {:ok, imported_project} =
              Projects.create_project(account, %{
