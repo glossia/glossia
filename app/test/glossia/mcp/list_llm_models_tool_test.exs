@@ -6,89 +6,56 @@ defmodule Glossia.MCP.ListLLMModelsToolTest do
   alias Glossia.TestHelpers
   alias Hermes.Server.Frame
 
+  @all_scopes Glossia.Policy.list_rules()
+              |> Enum.map(&"#{&1.object}:#{&1.action}")
+              |> Enum.uniq()
+
   setup do
     user = TestHelpers.create_user("mcp-list@test.com", "mcp-list")
     %{user: user, account: user.account}
   end
 
-  @all_scopes Glossia.Policy.list_rules()
-             |> Enum.map(&"#{&1.object}:#{&1.action}")
-             |> Enum.uniq()
-
   defp frame_for(user, scopes \\ nil) do
     Frame.new(%{current_user: user, scopes: scopes || @all_scopes})
   end
 
+  defp create_model(account, user, handle) do
+    {:ok, model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => handle,
+        "model" => "anthropic:claude-sonnet-4-20250514",
+        "api_key" => "sk-test"
+      })
+
+    model
+  end
+
   describe "execute/2" do
+    test "returns empty list when no models exist", %{user: user, account: account} do
+      assert {:reply, response, _frame} =
+               ListLLMModelsTool.execute(%{"handle" => account.handle}, frame_for(user))
+
+      [content] = response.content
+      result = JSON.decode!(content["text"])
+      assert result == []
+    end
+
     test "returns models for the account", %{user: user, account: account} do
-      {:ok, _} =
-        LLMModels.create_model(account, user, %{
-          "handle" => "test-model",
-          "model" => "anthropic:claude-sonnet-4-20250514",
-          "api_key" => "sk-test"
-        })
+      create_model(account, user, "model-a")
+      create_model(account, user, "model-b")
 
       assert {:reply, response, _frame} =
                ListLLMModelsTool.execute(%{"handle" => account.handle}, frame_for(user))
 
       [content] = response.content
-      models = JSON.decode!(content["text"])
-      assert length(models) == 1
-      assert hd(models)["handle"] == "test-model"
-      assert hd(models)["model"] == "anthropic:claude-sonnet-4-20250514"
-    end
-
-    test "returns empty list when no models configured", %{user: user, account: account} do
-      assert {:reply, response, _frame} =
-               ListLLMModelsTool.execute(%{"handle" => account.handle}, frame_for(user))
-
-      [content] = response.content
-      assert JSON.decode!(content["text"]) == []
-    end
-
-    test "does not leak models from other accounts", %{user: user, account: account} do
-      other_user = TestHelpers.create_user("other-mcp@test.com", "other-mcp")
-
-      {:ok, _} =
-        LLMModels.create_model(other_user.account, other_user, %{
-          "handle" => "their-model",
-          "model" => "openai:gpt-4o",
-          "api_key" => "sk-other"
-        })
-
-      assert {:reply, response, _frame} =
-               ListLLMModelsTool.execute(%{"handle" => account.handle}, frame_for(user))
-
-      [content] = response.content
-      assert JSON.decode!(content["text"]) == []
-    end
-
-    test "returns error for nonexistent account", %{user: user} do
-      assert {:error, _error, _frame} =
-               ListLLMModelsTool.execute(%{"handle" => "nonexistent"}, frame_for(user))
-    end
-
-    test "returns error when not authenticated" do
-      frame = Frame.new(%{})
-
-      assert {:error, _error, _frame} =
-               ListLLMModelsTool.execute(%{"handle" => "any"}, frame)
-    end
-
-    test "returns error with insufficient scope", %{user: user, account: account} do
-      frame = frame_for(user, ["voice:read"])
-
-      assert {:error, _error, _frame} =
-               ListLLMModelsTool.execute(%{"handle" => account.handle}, frame)
+      result = JSON.decode!(content["text"])
+      assert length(result) == 2
+      handles = Enum.map(result, & &1["handle"]) |> Enum.sort()
+      assert handles == ["model-a", "model-b"]
     end
 
     test "does not include api_key in response", %{user: user, account: account} do
-      {:ok, _} =
-        LLMModels.create_model(account, user, %{
-          "handle" => "secret-model",
-          "model" => "anthropic:claude-sonnet-4-20250514",
-          "api_key" => "sk-super-secret"
-        })
+      create_model(account, user, "secret-model")
 
       assert {:reply, response, _frame} =
                ListLLMModelsTool.execute(%{"handle" => account.handle}, frame_for(user))
@@ -96,6 +63,37 @@ defmodule Glossia.MCP.ListLLMModelsToolTest do
       [content] = response.content
       [model] = JSON.decode!(content["text"])
       refute Map.has_key?(model, "api_key")
+    end
+
+    test "does not return models from other accounts", %{user: user, account: account} do
+      other_user = TestHelpers.create_user("other-list@test.com", "other-list")
+      create_model(other_user.account, other_user, "other-model")
+      create_model(account, user, "my-model")
+
+      assert {:reply, response, _frame} =
+               ListLLMModelsTool.execute(%{"handle" => account.handle}, frame_for(user))
+
+      [content] = response.content
+      result = JSON.decode!(content["text"])
+      assert length(result) == 1
+      assert hd(result)["handle"] == "my-model"
+    end
+
+    test "returns error for nonexistent account", %{user: user} do
+      assert {:error, _error, _frame} =
+               ListLLMModelsTool.execute(%{"handle" => "nonexistent"}, frame_for(user))
+    end
+
+    test "returns error when not authenticated", %{account: account} do
+      assert {:error, _error, _frame} =
+               ListLLMModelsTool.execute(%{"handle" => account.handle}, Frame.new(%{}))
+    end
+
+    test "returns error with insufficient scope", %{user: user, account: account} do
+      frame = frame_for(user, ["llm_model:write"])
+
+      assert {:error, _error, _frame} =
+               ListLLMModelsTool.execute(%{"handle" => account.handle}, frame)
     end
   end
 end
