@@ -58,6 +58,7 @@ defmodule Glossia.Auditing.DefaultSink do
     :ok
   end
 
+  @impl true
   def list_events(account_id, opts \\ []) do
     limit = Keyword.get(opts, :limit, 50)
     offset = Keyword.get(opts, :offset, 0)
