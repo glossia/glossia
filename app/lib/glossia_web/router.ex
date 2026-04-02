@@ -414,6 +414,7 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/tickets/new", DashboardLive, :discussion_new
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show
       live "/:handle/-/members", DashboardLive, :members
+      live "/:handle/-/logs", DashboardLive, :logs
       live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
       live "/:handle/-/settings/tokens/new", DashboardLive, :api_tokens_new
       live "/:handle/-/settings/tokens/:token_id", DashboardLive, :api_token_edit

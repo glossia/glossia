@@ -14,4 +14,12 @@ defmodule Glossia.Extensions do
   def authorizer do
     Application.get_env(:glossia, :authorizer, Glossia.Authorizers.Default)
   end
+
+  def navigation do
+    Application.get_env(:glossia, :navigation, Glossia.Navigation.Default)
+  end
+
+  def account_nav_items(assigns) do
+    navigation().account_nav_items(assigns)
+  end
 end
