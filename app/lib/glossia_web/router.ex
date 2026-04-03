@@ -222,6 +222,12 @@ defmodule GlossiaWeb.Router do
     post "/organizations", OrganizationController, :create
   end
 
+  scope "/", GlossiaWeb do
+    pipe_through :public
+
+    get "/*path", MarketingController, :show
+  end
+
   # Authenticated API
   scope "/api", GlossiaWeb.Api do
     pipe_through [
