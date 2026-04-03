@@ -16,5 +16,9 @@ defmodule Glossia.Events do
     |> handler().handle_event()
   end
 
+  def list_events(account_id, opts \\ []) do
+    handler().list_events(account_id, opts)
+  end
+
   defp handler, do: Glossia.Extensions.event_handler()
 end

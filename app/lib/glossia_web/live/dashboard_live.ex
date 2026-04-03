@@ -6,7 +6,6 @@ defmodule GlossiaWeb.DashboardLive do
   import GlossiaWeb.DashboardComponents
 
   alias Glossia.Accounts
-  alias Glossia.Auditing
   alias Glossia.Events
   alias Glossia.ChangeSummary
   alias Glossia.DeveloperTokens
@@ -81,7 +80,7 @@ defmodule GlossiaWeb.DashboardLive do
       if Map.has_key?(socket.assigns, :all_events) do
         socket
       else
-        all_events = Auditing.list_events(socket.assigns.account.id)
+        all_events = Events.list_events(socket.assigns.account.id)
         event_types = all_events |> Enum.map(& &1.name) |> Enum.uniq() |> Enum.sort()
 
         assign(socket,
@@ -6620,7 +6619,7 @@ defmodule GlossiaWeb.DashboardLive do
     project_path = "/#{account.handle}/#{project.handle}"
 
     account.id
-    |> Glossia.Auditing.list_events(limit: 200)
+    |> Glossia.Events.list_events(limit: 200)
     |> Enum.find_value(fn event ->
       if event.name == "project.setup_completed" and event.resource_path == project_path do
         extract_setup_pr_url(event.summary || "")

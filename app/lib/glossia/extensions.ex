@@ -7,10 +7,6 @@ defmodule Glossia.Extensions do
   config without changing call sites throughout the app.
   """
 
-  def audit_sink do
-    Application.get_env(:glossia, :audit_sink, Glossia.Auditing.DefaultSink)
-  end
-
   def event_handler do
     Application.get_env(:glossia, :event_handler, Glossia.Events.NoopHandler)
   end
