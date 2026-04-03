@@ -17,7 +17,6 @@ defmodule GlossiaWeb.DashboardLive do
 
   @tone_options ~w(casual formal playful authoritative neutral)
   @formality_options ~w(informal neutral formal very_formal)
-
   # ---------------------------------------------------------------------------
   # Mount
   # ---------------------------------------------------------------------------
@@ -110,7 +109,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_voice_propose = socket.assigns[:can_voice_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     voice = Voices.get_latest_voice(account)
     {:ok, {versions, _meta}} = Voices.list_voice_versions(account)
@@ -165,7 +164,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_voice_propose = socket.assigns[:can_voice_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     unless can_discussion_write and (can_voice_propose or can_voice_write) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
@@ -281,7 +280,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_glossary_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     glossary = Glossaries.get_latest_glossary(account)
     {:ok, {versions, _meta}} = Glossaries.list_glossary_versions(account)
@@ -328,7 +327,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_glossary_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     unless can_discussion_write and (can_glossary_propose or can_glossary_write) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
@@ -448,7 +447,8 @@ defmodule GlossiaWeb.DashboardLive do
           invitations_search: "",
           invitations_sort_key: "email",
           invitations_sort_dir: "asc",
-          invite_form: to_form(%{"email" => "", "role" => "member"}, as: :invite)
+          invite_form:
+            to_form(%{"email" => "", "role" => default_organization_role()}, as: :invite)
         )
       end
 
@@ -1191,16 +1191,23 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
     account = socket.assigns.account
 
-    unless Glossia.Policy.authorize?(action, user, account) do
+    unless Glossia.Authz.authorize?(action, user, account) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
     end
   end
 
   defp available_scopes do
-    Glossia.Policy.list_rules()
-    |> Enum.map(&"#{&1.object}:#{&1.action}")
+    Glossia.Authz.available_scopes()
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp organization_roles do
+    Glossia.Extensions.organization_roles().valid_roles()
+  end
+
+  defp default_organization_role do
+    Glossia.Extensions.organization_roles().default_role()
   end
 
   @acronyms ~w(api)
@@ -1413,7 +1420,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_propose = socket.assigns[:can_voice_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     cond do
       can_discussion_write and (can_propose or can_write) ->
@@ -1431,7 +1438,7 @@ defmodule GlossiaWeb.DashboardLive do
     suggestion_body_text = suggestion_text_param(params, "suggestion_body", "request_body")
 
     cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+      is_nil(user) or not Glossia.Authz.authorize?(:discussion_write, user, account) ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       not ((socket.assigns[:can_voice_propose] || false) or
@@ -1557,7 +1564,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     cond do
       can_discussion_write and (can_propose or can_write) ->
@@ -1576,7 +1583,7 @@ defmodule GlossiaWeb.DashboardLive do
     change_note = glossary_suggestion_change_note(params, socket)
 
     cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+      is_nil(user) or not Glossia.Authz.authorize?(:discussion_write, user, account) ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       not ((socket.assigns[:can_glossary_propose] || false) or
@@ -1808,7 +1815,8 @@ defmodule GlossiaWeb.DashboardLive do
            |> put_flash(:info, gettext("Invitation sent to %{email}.", email: params["email"]))
            |> assign(
              all_invitations: Organizations.list_pending_invitations(org),
-             invite_form: to_form(%{"email" => "", "role" => "member"}, as: :invite)
+             invite_form:
+               to_form(%{"email" => "", "role" => default_organization_role()}, as: :invite)
            )
            |> apply_invitations_filters()}
 
@@ -2237,7 +2245,7 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
 
     cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+      is_nil(user) or not Glossia.Authz.authorize?(:discussion_write, user, account) ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       true ->
@@ -2267,7 +2275,7 @@ defmodule GlossiaWeb.DashboardLive do
     account = socket.assigns.account
 
     cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+      is_nil(user) or not Glossia.Authz.authorize?(:discussion_write, user, account) ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       true ->
@@ -4718,17 +4726,18 @@ defmodule GlossiaWeb.DashboardLive do
                 placeholder={gettext("colleague@example.com")}
               />
             </div>
-            <div class="voice-field">
-              <label for="invite_role">{gettext("Role")}</label>
-              <select id="invite_role" name="invite[role]">
-                <option value="member" selected={@invite_form[:role].value == "member"}>
-                  {gettext("Member")}
-                </option>
-                <option value="admin" selected={@invite_form[:role].value == "admin"}>
-                  {gettext("Admin")}
-                </option>
-              </select>
-            </div>
+             <div class="voice-field">
+               <label for="invite_role">{gettext("Role")}</label>
+               <select id="invite_role" name="invite[role]">
+                <option
+                  :for={role <- organization_roles()}
+                  value={role}
+                  selected={@invite_form[:role].value == role}
+                >
+                   {String.capitalize(role)}
+                 </option>
+               </select>
+             </div>
           </div>
           <button type="submit" class="dash-btn dash-btn-primary">
             {gettext("Send invitation")}
@@ -8150,7 +8159,7 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     can_propose = socket.assigns[:can_voice_propose] || false
 
@@ -8219,7 +8228,7 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     can_propose = socket.assigns[:can_glossary_propose] || false
 
@@ -8674,7 +8683,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_voice_suggestion(ticket, account, user, handle) do
-    if not Glossia.Policy.authorize?(:voice_write, user, account) do
+    if not Glossia.Authz.authorize?(:voice_write, user, account) do
       {:error, :not_allowed}
     else
       metadata = ticket.metadata || %{}
@@ -8710,7 +8719,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_glossary_suggestion(ticket, account, user, handle) do
-    if not Glossia.Policy.authorize?(:glossary_write, user, account) do
+    if not Glossia.Authz.authorize?(:glossary_write, user, account) do
       {:error, :not_allowed}
     else
       metadata = ticket.metadata || %{}

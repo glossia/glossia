@@ -6,9 +6,7 @@ defmodule Glossia.MCP.ListLLMModelsToolTest do
   alias Glossia.TestHelpers
   alias Hermes.Server.Frame
 
-  @all_scopes Glossia.Policy.list_rules()
-              |> Enum.map(&"#{&1.object}:#{&1.action}")
-              |> Enum.uniq()
+  @all_scopes Glossia.Authz.available_scopes()
 
   setup do
     user = TestHelpers.create_user("mcp-list@test.com", "mcp-list")

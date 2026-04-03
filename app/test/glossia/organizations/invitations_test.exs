@@ -69,7 +69,7 @@ defmodule Glossia.Organizations.InvitationsTest do
                })
     end
 
-    test "supports linguist role", %{org: org} do
+    test "defaults invitations to member role in OSS", %{org: org} do
       inviter = create_user("inviter4@test.com", "inviter4")
       Organizations.add_member(org, inviter, "admin")
 
@@ -79,7 +79,7 @@ defmodule Glossia.Organizations.InvitationsTest do
                  "role" => "linguist"
                })
 
-      assert invitation.role == "linguist"
+      assert invitation.role == "member"
     end
   end
 
@@ -124,7 +124,7 @@ defmodule Glossia.Organizations.InvitationsTest do
       assert updated.status == "accepted"
       assert membership.user_id == acceptor.id
       assert membership.organization_id == org.id
-      assert membership.role == "linguist"
+      assert membership.role == "member"
     end
 
     test "returns error for expired invitation", %{org: org} do

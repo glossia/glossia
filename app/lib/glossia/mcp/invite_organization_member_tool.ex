@@ -14,8 +14,7 @@ defmodule Glossia.MCP.InviteOrganizationMemberTool do
     field :handle, {:required, :string}, description: "Organization handle."
     field :email, {:required, :string}, description: "Email address to invite."
 
-    field :role, :string,
-      description: "Role for the invitee (admin, member, linguist). Defaults to member."
+    field :role, :string, description: "Role for the invitee. Defaults to member."
   end
 
   @impl true
