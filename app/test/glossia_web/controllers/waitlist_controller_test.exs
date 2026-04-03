@@ -49,5 +49,32 @@ defmodule GlossiaWeb.WaitlistControllerTest do
       assert redirected_to(conn) == "/dashboard"
       assert Waitlist.get_submission_by_user(user.id) == nil
     end
+
+    test "creates a submission and emits an event for users without access", %{conn: conn} do
+      user = TestHelpers.create_user("waitlist@test.com", "waitlist", has_access: false)
+
+      conn =
+        TestHelpers.expect_event(
+          "waitlist.submitted",
+          fn ->
+            conn
+            |> init_test_session(%{user_id: user.id})
+            |> post("/interest", %{
+              "submission" => %{
+                "company" => "Acme",
+                "url" => "https://example.com",
+                "description" => "Acme product",
+                "motivation" => "We need localization",
+                "target_languages" => "Spanish"
+              }
+            })
+          end,
+          account_id: user.account.id,
+          user_id: user.id
+        )
+
+      assert redirected_to(conn) == "/interest"
+      assert Waitlist.get_submission_by_user(user.id)
+    end
   end
 end

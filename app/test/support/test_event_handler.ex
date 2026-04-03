@@ -1,11 +1,6 @@
-defmodule Glossia.Events.NoopHandler do
+defmodule Glossia.TestEventHandler do
   @moduledoc false
 
-  @behaviour Glossia.Events.Handler
-
-  @impl true
   def handle_event(_event), do: :ok
-
-  @impl true
   def list_events(_account_id, _opts \\ []), do: []
 end
