@@ -36,9 +36,16 @@ defmodule GlossiaWeb.Endpoint do
     only_matching: ~w(favicon),
     raise_on_missing_only: code_reloading?
 
+  plug Plug.Static,
+    at: "/enterprise-assets",
+    from: :glossia_enterprise,
+    gzip: not code_reloading?,
+    only: ~w(js),
+    raise_on_missing_only: code_reloading?
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
-  if code_reloading? do
+  if code_reloading? and Code.ensure_loaded?(Phoenix.LiveReloader) do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
