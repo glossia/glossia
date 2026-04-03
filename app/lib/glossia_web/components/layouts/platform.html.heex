@@ -274,17 +274,42 @@
           </div>
 
           <%!-- Account section (collapsible) --%>
-          <% account_nav_items =
-            Glossia.Extensions.account_nav_items(assigns)
-            |> Enum.map(fn item ->
-              Map.update(item, :active, false, & &1)
+          <% account_sections =
+            [
+              %{
+                id: :account,
+                label: gettext("Account"),
+                visible: assigns[:is_admin] or @can_write,
+                open: @live_action in [:members],
+                items:
+                  [
+                    assigns[:is_admin] and @account.type == "organization" && %{
+                      label: gettext("Members"),
+                      navigate: "/#{@handle}/-/members",
+                      active: @live_action == :members
+                    }
+                  ]
+                  |> Enum.reject(&is_nil/1)
+              }
+            ]
+            |> Glossia.Extensions.account_nav_sections(assigns)
+            |> Enum.map(fn section ->
+              items =
+                section
+                |> Map.get(:items, [])
+                |> Enum.map(fn item -> Map.update(item, :active, false, fn active -> active end) end)
+
+              section
+              |> Map.put(:items, items)
+              |> Map.update(:visible, items != [], fn visible -> visible or items != [] end)
+              |> Map.update(:open, Enum.any?(items, &Map.get(&1, :active, false)), fn open ->
+                open or Enum.any?(items, &Map.get(&1, :active, false))
+              end)
             end) %>
-          <% account_section_open =
-            @live_action in [:members] or Enum.any?(account_nav_items, &Map.get(&1, :active, false)) %>
-          <%= if assigns[:is_admin] or @can_write or account_nav_items != [] do %>
+          <%= for section <- account_sections, section.visible do %>
             <details
               class="gl-nav-section gl-nav-section-collapsible"
-              open={account_section_open}
+              open={section.open}
             >
               <summary class="gl-nav-section-toggle">
                 <svg
@@ -300,7 +325,7 @@
                   <circle cx="12" cy="8" r="3" />
                   <path d="M5 20a7 7 0 0 1 14 0" />
                 </svg>
-                <span>{gettext("Account")}</span>
+                <span>{section.label}</span>
                 <svg
                   class="gl-nav-chevron"
                   width="16"
@@ -315,16 +340,8 @@
                   <path d="m9 18 6-6-6-6" />
                 </svg>
               </summary>
-              <%= if assigns[:is_admin] and @account.type == "organization" do %>
-                <.link
-                  navigate={"/#{@handle}/-/members"}
-                  class={["gl-nav-item", @live_action == :members && "active"]}
-                >
-                  <span>{gettext("Members")}</span>
-                </.link>
-              <% end %>
               <.link
-                :for={item <- account_nav_items}
+                :for={item <- section.items}
                 navigate={item.navigate}
                 class={["gl-nav-item", item.active && "active"]}
               >

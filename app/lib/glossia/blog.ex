@@ -1,22 +1,17 @@
 defmodule Glossia.Blog do
-  alias Glossia.Blog.Post
+  defmodule Source do
+    @moduledoc false
 
-  use NimblePublisher,
-    build: Post,
-    from: Application.app_dir(:glossia, "priv/blog/**/*.md"),
-    as: :posts,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-"}
-
-  @posts Enum.sort_by(@posts, & &1.date, {:desc, Date})
-
-  def all_posts, do: @posts
-
-  def recent_posts(count \\ 2), do: Enum.take(@posts, count)
-
-  def get_post_by_slug!(slug) do
-    Enum.find(@posts, &(&1.slug == slug)) ||
-      raise Glossia.Blog.NotFoundError, "post with slug=#{slug} not found"
+    @callback all_posts() :: [map()]
+    @callback recent_posts(pos_integer()) :: [map()]
+    @callback get_post_by_slug!(String.t()) :: map()
   end
+
+  def all_posts, do: Glossia.Extensions.blog().all_posts()
+
+  def recent_posts(count \\ 2), do: Glossia.Extensions.blog().recent_posts(count)
+
+  def get_post_by_slug!(slug), do: Glossia.Extensions.blog().get_post_by_slug!(slug)
 end
 
 defmodule Glossia.Blog.NotFoundError do

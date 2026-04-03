@@ -3,5 +3,5 @@ defmodule Glossia.Navigation do
   Behaviour for optional navigation extensions.
   """
 
-  @callback account_nav_items(map()) :: [map()]
+  @callback account_nav_sections([map()], map()) :: [map()]
 end

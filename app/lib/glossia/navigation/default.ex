@@ -4,5 +4,5 @@ defmodule Glossia.Navigation.Default do
   @behaviour Glossia.Navigation
 
   @impl true
-  def account_nav_items(_assigns), do: []
+  def account_nav_sections(sections, _assigns), do: sections
 end

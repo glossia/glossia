@@ -1,20 +1,13 @@
 defmodule Glossia.Features do
-  alias Glossia.Features.Page
+  defmodule Source do
+    @moduledoc false
 
-  use NimblePublisher,
-    build: Page,
-    from: Application.app_dir(:glossia, "priv/features/**/*.md"),
-    as: :pages,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-"}
-
-  @pages Enum.sort_by(@pages, & &1.order, :asc)
-
-  def all_pages, do: @pages
-
-  def get_page_by_slug!(slug) do
-    Enum.find(@pages, &(&1.slug == slug)) ||
-      raise Glossia.Features.NotFoundError, "feature page with slug=#{slug} not found"
+    @callback all_pages() :: [map()]
+    @callback get_page_by_slug!(String.t()) :: map()
   end
+
+  def all_pages, do: Glossia.Extensions.features().all_pages()
+  def get_page_by_slug!(slug), do: Glossia.Extensions.features().get_page_by_slug!(slug)
 end
 
 defmodule Glossia.Features.NotFoundError do

@@ -1,13 +1,9 @@
 defmodule Glossia.Changelog do
-  alias Glossia.Changelog.Entry
+  defmodule Source do
+    @moduledoc false
 
-  use NimblePublisher,
-    build: Entry,
-    from: Application.app_dir(:glossia, "priv/changelog/**/*.md"),
-    as: :entries,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-"}
+    @callback all_entries() :: [map()]
+  end
 
-  @entries Enum.sort_by(@entries, & &1.date, {:desc, Date})
-
-  def all_entries, do: @entries
+  def all_entries, do: Glossia.Extensions.changelog().all_entries()
 end
