@@ -2,7 +2,7 @@ defmodule GlossiaWeb.ProfileAvatarController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.Auditing
+  alias Glossia.Events
 
   @max_file_size 5_000_000
   @allowed_extensions ~w(.jpg .jpeg .png .gif .webp)
@@ -26,7 +26,7 @@ defmodule GlossiaWeb.ProfileAvatarController do
          {:ok, avatar_path} <- store_avatar(user, avatar_upload),
          {:ok, _updated_user} <-
            Accounts.update_user_profile(user, %{"avatar_url" => avatar_path}) do
-      Auditing.record("user.avatar_updated", user.account, user,
+      Events.emit("user.avatar_updated", user.account, user,
         resource_type: "user",
         resource_id: to_string(user.id),
         resource_path: ~p"/-/settings/profile",

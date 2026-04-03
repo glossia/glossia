@@ -3,7 +3,7 @@ defmodule GlossiaWeb.AuthController do
 
   alias Glossia.Auth
   alias Glossia.Accounts
-  alias Glossia.Auditing
+  alias Glossia.Events
 
   @dev_routes Application.compile_env(:glossia, :dev_routes, false)
 
@@ -59,7 +59,7 @@ defmodule GlossiaWeb.AuthController do
           {:ok, user} ->
             return_to = get_session(conn, :return_to)
 
-            Auditing.record("user.signed_in", user.account, user,
+            Events.emit("user.signed_in", user.account, user,
               resource_type: "user",
               resource_id: to_string(user.id),
               summary: "Signed in"
@@ -102,7 +102,7 @@ defmodule GlossiaWeb.AuthController do
       user ->
         return_to = get_session(conn, :return_to)
 
-        Auditing.record("user.signed_in", user.account, user,
+        Events.emit("user.signed_in", user.account, user,
           resource_type: "user",
           resource_id: to_string(user.id),
           summary: "Signed in (dev)"
@@ -118,7 +118,7 @@ defmodule GlossiaWeb.AuthController do
 
   def logout(conn, _params) do
     if user = conn.assigns[:current_user] do
-      Auditing.record("user.signed_out", user.account, user,
+      Events.emit("user.signed_out", user.account, user,
         resource_type: "user",
         resource_id: to_string(user.id),
         summary: "Signed out"

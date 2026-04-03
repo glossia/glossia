@@ -70,7 +70,7 @@ defmodule GlossiaWeb.Api.GlossaryApiController do
 
             case Glossaries.create_glossary(account, attrs, user) do
               {:ok, %{glossary: glossary, entries: entries}} ->
-                Glossia.Auditing.record("glossary.created", account, user,
+                Glossia.Events.emit("glossary.created", account, user,
                   resource_type: "glossary",
                   resource_id: to_string(glossary.version),
                   resource_path: "/#{handle}/-/glossary/#{glossary.version}",

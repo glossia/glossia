@@ -1,14 +1,11 @@
 defmodule Glossia.Auditing do
   @moduledoc """
-  Facade for audit recording.
-
-  The default OSS sink writes events to ClickHouse. Enterprise deployments can
-  replace the sink in config while keeping the same `Glossia.Auditing.record/4`
-  calls throughout the app.
+  Read-side facade for audit log queries while OSS mutations move to
+  `Glossia.Events.emit/4`.
   """
 
   def record(name, account, user, opts \\ []) do
-    sink().record(%{name: name, account: account, user: user, opts: opts})
+    Glossia.Events.emit(name, account, user, opts)
   end
 
   def list_events(account_id, opts \\ []) do

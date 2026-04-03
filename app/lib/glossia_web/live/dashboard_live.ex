@@ -7,6 +7,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   alias Glossia.Accounts
   alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.ChangeSummary
   alias Glossia.DeveloperTokens
   alias Glossia.Glossaries
@@ -189,7 +190,8 @@ defmodule GlossiaWeb.DashboardLive do
         )
 
     {voice, original_voice, overrides, original_overrides, target_countries, cultural_notes,
-     voice_form_params, change_summary} =
+     voice_form_params,
+     change_summary} =
       case draft do
         %{
           voice: draft_voice,
@@ -1795,7 +1797,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case Organizations.create_invitation(org, user, params) do
         {:ok, invitation} ->
-          Auditing.record("member.invited", socket.assigns.account, user,
+          Events.emit("member.invited", socket.assigns.account, user,
             resource_type: "invitation",
             resource_id: to_string(invitation.id),
             resource_path: "/#{socket.assigns.handle}/-/members",
@@ -1838,7 +1840,7 @@ defmodule GlossiaWeb.DashboardLive do
         invitation ->
           case Organizations.revoke_invitation(invitation) do
             {:ok, _} ->
-              Auditing.record("member.invitation_revoked", socket.assigns.account, user,
+              Events.emit("member.invitation_revoked", socket.assigns.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
                 resource_path: "/#{socket.assigns.handle}/-/members",
@@ -1888,7 +1890,7 @@ defmodule GlossiaWeb.DashboardLive do
             true ->
               Organizations.remove_member(org, target_user)
 
-              Auditing.record("member.removed", socket.assigns.account, current_user,
+              Events.emit("member.removed", socket.assigns.account, current_user,
                 resource_type: "member",
                 resource_id: to_string(target_user.id),
                 resource_path: "/#{socket.assigns.handle}/-/members",
@@ -1959,7 +1961,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case DeveloperTokens.update_account_token(token, attrs) do
         {:ok, updated_token} ->
-          Auditing.record("token.updated", account, user,
+          Events.emit("token.updated", account, user,
             resource_type: "account_token",
             resource_id: to_string(updated_token.id),
             resource_path: "/#{socket.assigns.handle}/-/settings/tokens/#{updated_token.id}",
@@ -2005,7 +2007,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case DeveloperTokens.create_account_token(account, user, attrs) do
         {:ok, %{token: token, plain_token: plain_token}} ->
-          Auditing.record("token.created", account, user,
+          Events.emit("token.created", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
             resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
@@ -2034,7 +2036,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case DeveloperTokens.revoke_account_token(token_id, account.id) do
         {:ok, token} ->
-          Auditing.record("token.revoked", account, user,
+          Events.emit("token.revoked", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
             resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
@@ -2088,7 +2090,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case DeveloperTokens.create_oauth_application(account, user, params) do
         {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
-          Auditing.record("oauth_app.created", account, user,
+          Events.emit("oauth_app.created", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
             resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
@@ -2121,7 +2123,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case DeveloperTokens.update_oauth_application(app, params) do
         {:ok, updated_app} ->
-          Auditing.record("oauth_app.updated", account, user,
+          Events.emit("oauth_app.updated", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
             resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
@@ -2149,7 +2151,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case DeveloperTokens.regenerate_oauth_application_secret(app) do
         {:ok, %{client_secret: secret}} ->
-          Auditing.record("oauth_app.secret_regenerated", account, user,
+          Events.emit("oauth_app.secret_regenerated", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
             resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
@@ -2177,7 +2179,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case DeveloperTokens.delete_oauth_application(app) do
         :ok ->
-          Auditing.record("oauth_app.deleted", account, user,
+          Events.emit("oauth_app.deleted", account, user,
             resource_type: "oauth_application",
             resource_id: to_string(app.id),
             resource_path: "/#{socket.assigns.handle}/-/settings/apps",
@@ -2242,7 +2244,7 @@ defmodule GlossiaWeb.DashboardLive do
       true ->
         case Discussions.create_discussion(account, user, params) do
           {:ok, ticket} ->
-            Auditing.record("discussion.created", account, user,
+            Events.emit("discussion.created", account, user,
               resource_type: "discussion",
               resource_id: to_string(ticket.id),
               resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
@@ -2272,7 +2274,7 @@ defmodule GlossiaWeb.DashboardLive do
       true ->
         case Discussions.add_comment(ticket, user, params) do
           {:ok, _comment} ->
-            Auditing.record("discussion.commented", account, user,
+            Events.emit("discussion.commented", account, user,
               resource_type: "discussion",
               resource_id: to_string(ticket.id),
               resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
@@ -2300,7 +2302,7 @@ defmodule GlossiaWeb.DashboardLive do
     if socket.assigns.can_write do
       case Discussions.close_discussion(ticket, user) do
         {:ok, updated_ticket} ->
-          Auditing.record("discussion.closed", account, user,
+          Events.emit("discussion.closed", account, user,
             resource_type: "discussion",
             resource_id: to_string(ticket.id),
             resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
@@ -2326,7 +2328,7 @@ defmodule GlossiaWeb.DashboardLive do
     if socket.assigns.can_write do
       case Discussions.reopen_discussion(ticket) do
         {:ok, updated_ticket} ->
-          Auditing.record("discussion.reopened", account, user,
+          Events.emit("discussion.reopened", account, user,
             resource_type: "discussion",
             resource_id: to_string(ticket.id),
             resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
@@ -2394,7 +2396,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     case Glossia.Github.Installations.delete_installation(installation) do
       {:ok, _} ->
-        Auditing.record(
+        Events.emit(
           "github_installation.deleted",
           socket.assigns.account,
           socket.assigns.current_user,
@@ -2483,7 +2485,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     case result do
       {:ok, project} ->
-        Auditing.record("project.created", account, user,
+        Events.emit("project.created", account, user,
           resource_type: "project",
           resource_id: to_string(project.id),
           resource_path: "/#{socket.assigns.handle}/#{project.handle}",
@@ -2585,7 +2587,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case Glossia.Projects.update_project(project, attrs) do
         {:ok, updated_project} ->
-          Auditing.record("project.updated", account, user,
+          Events.emit("project.updated", account, user,
             resource_type: "project",
             resource_id: to_string(updated_project.id),
             resource_path: "/#{handle}/#{updated_project.handle}",
@@ -8486,7 +8488,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     case Discussions.create_discussion(account, user, attrs) do
       {:ok, ticket} ->
-        Auditing.record("voice.suggested", account, user,
+        Events.emit("voice.suggested", account, user,
           resource_type: "discussion",
           resource_id: to_string(ticket.id),
           resource_path: "/#{handle}/-/discussions/#{ticket.number}",
@@ -8545,7 +8547,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     case Discussions.create_discussion(account, user, attrs) do
       {:ok, ticket} ->
-        Auditing.record("glossary.suggested", account, user,
+        Events.emit("glossary.suggested", account, user,
           resource_type: "discussion",
           resource_id: to_string(ticket.id),
           resource_path: "/#{handle}/-/discussions/#{ticket.number}",
@@ -8691,7 +8693,7 @@ defmodule GlossiaWeb.DashboardLive do
                 body: applied_comment(:voice, voice.version)
               })
 
-            Auditing.record("voice.suggestion.applied", account, user,
+            Events.emit("voice.suggestion.applied", account, user,
               resource_type: "discussion",
               resource_id: to_string(ticket.id),
               resource_path: "/#{handle}/-/discussions/#{ticket.number}",
@@ -8730,7 +8732,7 @@ defmodule GlossiaWeb.DashboardLive do
                 body: applied_comment(:glossary, glossary.version)
               })
 
-            Auditing.record("glossary.suggestion.applied", account, user,
+            Events.emit("glossary.suggestion.applied", account, user,
               resource_type: "discussion",
               resource_id: to_string(ticket.id),
               resource_path: "/#{handle}/-/discussions/#{ticket.number}",

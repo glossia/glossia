@@ -2,7 +2,7 @@ defmodule GlossiaWeb.OrganizationController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
 
   plug GlossiaWeb.Plugs.RateLimit,
@@ -26,7 +26,7 @@ defmodule GlossiaWeb.OrganizationController do
     with :ok <- Glossia.Policy.authorize(:organization_write, user, nil) do
       case Organizations.create_organization(user, account_params) do
         {:ok, %{account: account, organization: org}} ->
-          Auditing.record("organization.created", account, user,
+          Events.emit("organization.created", account, user,
             resource_type: "organization",
             resource_id: to_string(org.id),
             resource_path: ~p"/#{account.handle}",

@@ -5,7 +5,7 @@ defmodule Glossia.MCP.InviteOrganizationMemberTool do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -28,7 +28,7 @@ defmodule Glossia.MCP.InviteOrganizationMemberTool do
 
       case Organizations.create_invitation(org, user, params) do
         {:ok, invitation} ->
-          Auditing.record("member.invited", account, user,
+          Events.emit("member.invited", account, user,
             resource_type: "invitation",
             resource_id: to_string(invitation.id),
             resource_path: "/#{account.handle}/-/members",

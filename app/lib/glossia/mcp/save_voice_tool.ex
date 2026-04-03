@@ -5,7 +5,7 @@ defmodule Glossia.MCP.SaveVoiceTool do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Voices
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -46,7 +46,7 @@ defmodule Glossia.MCP.SaveVoiceTool do
         {:ok, %{voice: voice, overrides: overrides}} ->
           voice = %{voice | overrides: overrides}
 
-          Auditing.record("voice.created", account, user,
+          Events.emit("voice.created", account, user,
             resource_type: "voice",
             resource_id: to_string(voice.version),
             resource_path: "/#{handle}/-/voice/#{voice.version}",

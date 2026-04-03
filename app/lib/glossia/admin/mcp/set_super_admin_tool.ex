@@ -6,7 +6,7 @@ defmodule Glossia.Admin.MCP.SetSuperAdminTool do
   alias Glossia.Admin.MCP.Authorization, as: Auth
   alias Glossia.Accounts
   alias Glossia.Accounts.User
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Repo
   alias Hermes.Server.Response
 
@@ -35,7 +35,7 @@ defmodule Glossia.Admin.MCP.SetSuperAdminTool do
               event =
                 if(value, do: "admin.super_admin_granted", else: "admin.super_admin_revoked")
 
-              Auditing.record(event, admin.account, admin,
+              Events.emit(event, admin.account, admin,
                 resource_type: "user",
                 resource_id: to_string(updated.id),
                 resource_path: "/admin/users",

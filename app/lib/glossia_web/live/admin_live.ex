@@ -3,7 +3,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
 
   alias Glossia.Accounts
   alias Glossia.Accounts.{Account, User}
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Discussions
   alias Glossia.Repo
 
@@ -217,7 +217,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
 
     case Discussions.close_discussion(discussion, user) do
       {:ok, updated_discussion} ->
-        Auditing.record("discussion.closed", updated_discussion.account, user,
+        Events.emit("discussion.closed", updated_discussion.account, user,
           resource_type: "discussion",
           resource_id: to_string(updated_discussion.id),
           resource_path: "/admin/discussions/#{updated_discussion.id}",
@@ -243,7 +243,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
       {:ok, updated_discussion} ->
         user = socket.assigns.current_user
 
-        Auditing.record("discussion.reopened", updated_discussion.account, user,
+        Events.emit("discussion.reopened", updated_discussion.account, user,
           resource_type: "discussion",
           resource_id: to_string(updated_discussion.id),
           resource_path: "/admin/discussions/#{updated_discussion.id}",
@@ -268,7 +268,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
 
     case Discussions.add_comment(discussion, user, params) do
       {:ok, _comment} ->
-        Auditing.record("discussion.commented", discussion.account, user,
+        Events.emit("discussion.commented", discussion.account, user,
           resource_type: "discussion",
           resource_id: to_string(discussion.id),
           resource_path: "/admin/discussions/#{discussion.id}",

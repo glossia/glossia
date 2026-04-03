@@ -18,7 +18,7 @@ defmodule Glossia.MCP.RevokeTokenTool do
          :ok <- Auth.authorize(frame, :api_credentials_write, user, account) do
       case DeveloperTokens.revoke_account_token(token_id, account.id) do
         {:ok, token} ->
-          Glossia.Auditing.record("token.revoked", account, user,
+          Glossia.Events.emit("token.revoked", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
             resource_path: "/#{account.handle}/-/settings/tokens",

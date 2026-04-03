@@ -6,7 +6,7 @@ defmodule Glossia.Admin.MCP.CloseDiscussionTool do
 
   alias Glossia.Admin.MCP.Authorization, as: Auth
   alias Glossia.Admin.MCP.DiscussionHelpers
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Discussions
   alias Hermes.Server.Response
 
@@ -36,7 +36,7 @@ defmodule Glossia.Admin.MCP.CloseDiscussionTool do
           event_name = if action == "close", do: "discussion.closed", else: "discussion.reopened"
           summary = if action == "close", do: "Closed", else: "Reopened"
 
-          Auditing.record(event_name, discussion.account, user,
+          Events.emit(event_name, discussion.account, user,
             resource_type: "discussion",
             resource_id: to_string(discussion.id),
             resource_path: ~p"/admin/discussions/#{discussion.id}",
