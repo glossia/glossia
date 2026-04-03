@@ -48,7 +48,16 @@
         content={"@" <> String.trim_leading(URI.parse(@author.x).path, "/")}
       />
     <% end %>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/styles.css"} />
+    <link
+      phx-track-static
+      rel="stylesheet"
+      href={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:stylesheet] || "/assets/styles.css"
+        )
+      }
+    />
     <%= if sentry_dsn = Application.get_env(:glossia, :sentry_dsn_js) do %>
       <meta name="sentry-dsn" content={sentry_dsn} />
       <meta
@@ -63,7 +72,17 @@
       >
       </script>
     <% end %>
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    <script
+      defer
+      phx-track-static
+      type="text/javascript"
+      src={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:javascript] || "/assets/js/app.js"
+        )
+      }
+    >
     </script>
     <script>
       window.Prism = window.Prism || {}; Prism.manual = true;

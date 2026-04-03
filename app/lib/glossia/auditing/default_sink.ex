@@ -3,40 +3,13 @@ defmodule Glossia.Auditing.DefaultSink do
 
   @behaviour Glossia.Auditing.Sink
 
-  alias Glossia.ClickHouseRepo
-  alias Glossia.Ingestion.{Buffer, Event}
-
-  import Ecto.Query
-
   require Logger
-
-  @event_buffer Glossia.Ingestion.EventBuffer
 
   @impl true
   def record(%{name: name, account: account, user: user, opts: opts}) do
-    buffer_opts = Event.buffer_opts()
-
     actor_handle = user_actor_handle(user)
     actor_email = user_actor_email(user)
     user_id = user_actor_id(user)
-
-    row = [
-      Uniq.UUID.uuid7(:raw),
-      name,
-      to_string(account.id),
-      user_id,
-      actor_handle,
-      actor_email,
-      opts[:resource_type] || "",
-      opts[:resource_id] || "",
-      opts[:resource_path] || "",
-      opts[:summary] || "",
-      opts[:duration_ms] || 0,
-      opts[:metadata] || ""
-    ]
-
-    row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)
-    Buffer.insert(@event_buffer, row_binary)
 
     Logger.info(fn ->
       JSON.encode!(%{
@@ -59,28 +32,7 @@ defmodule Glossia.Auditing.DefaultSink do
   end
 
   @impl true
-  def list_events(account_id, opts \\ []) do
-    limit = Keyword.get(opts, :limit, 50)
-    offset = Keyword.get(opts, :offset, 0)
-
-    from(e in "events",
-      where: e.account_id == ^to_string(account_id),
-      order_by: [desc: e.inserted_at],
-      limit: ^limit,
-      offset: ^offset,
-      select: %{
-        id: e.id,
-        name: e.name,
-        actor_handle: e.actor_handle,
-        actor_email: e.actor_email,
-        resource_type: e.resource_type,
-        resource_path: e.resource_path,
-        summary: e.summary,
-        inserted_at: e.inserted_at
-      }
-    )
-    |> ClickHouseRepo.all()
-  end
+  def list_events(_account_id, _opts \\ []), do: []
 
   defp user_actor_id(nil), do: ""
   defp user_actor_id(%{id: id}), do: to_string(id)

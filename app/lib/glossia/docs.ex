@@ -13,15 +13,23 @@ defmodule Glossia.Docs do
     @callback search_index() :: [map()]
   end
 
-  defdelegate all_pages(), to: Glossia.Extensions.docs()
-  defdelegate categories(), to: Glossia.Extensions.docs()
-  defdelegate pages_by_category(category), to: Glossia.Extensions.docs()
-  defdelegate subcategories_for(category), to: Glossia.Extensions.docs()
-  defdelegate subcategory!(category, key), to: Glossia.Extensions.docs()
-  defdelegate pages_by_subcategory(category, subcategory), to: Glossia.Extensions.docs()
-  defdelegate get_page!(category, slug), to: Glossia.Extensions.docs()
-  defdelegate get_subcategory_page!(category, subcategory, slug), to: Glossia.Extensions.docs()
-  defdelegate search_index(), to: Glossia.Extensions.docs()
+  def all_pages(), do: Glossia.Extensions.docs().all_pages()
+  def categories(), do: Glossia.Extensions.docs().categories()
+  def pages_by_category(category), do: Glossia.Extensions.docs().pages_by_category(category)
+  def subcategories_for(category), do: Glossia.Extensions.docs().subcategories_for(category)
+  def subcategory!(category, key), do: Glossia.Extensions.docs().subcategory!(category, key)
+
+  def pages_by_subcategory(category, subcategory) do
+    Glossia.Extensions.docs().pages_by_subcategory(category, subcategory)
+  end
+
+  def get_page!(category, slug), do: Glossia.Extensions.docs().get_page!(category, slug)
+
+  def get_subcategory_page!(category, subcategory, slug) do
+    Glossia.Extensions.docs().get_subcategory_page!(category, subcategory, slug)
+  end
+
+  def search_index(), do: Glossia.Extensions.docs().search_index()
 end
 
 defmodule Glossia.Docs.NotFoundError do

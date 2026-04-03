@@ -288,6 +288,12 @@ defmodule GlossiaWeb.Router do
     post "/:handle/v1/completions", LLMProxyController, :completions
   end
 
+  scope "/", GlossiaWeb do
+    pipe_through :public
+
+    get "/*path", MarketingController, :show
+  end
+
   # MCP server (StreamableHTTP transport)
   scope "/mcp" do
     pipe_through [
