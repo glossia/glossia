@@ -11,6 +11,10 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :audit_sink, Glossia.Auditing.DefaultSink)
   end
 
+  def event_handler do
+    Application.get_env(:glossia, :event_handler, Glossia.Events.NoopHandler)
+  end
+
   def authorizer do
     Application.get_env(:glossia, :authorizer, Glossia.Authorizers.Default)
   end

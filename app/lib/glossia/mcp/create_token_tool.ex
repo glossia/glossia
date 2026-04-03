@@ -37,7 +37,7 @@ defmodule Glossia.MCP.CreateTokenTool do
 
       case DeveloperTokens.create_account_token(account, user, attrs) do
         {:ok, %{token: token, plain_token: plain_token}} ->
-          Glossia.Auditing.record("token.created", account, user,
+          Glossia.Events.emit("token.created", account, user,
             resource_type: "account_token",
             resource_id: to_string(token.id),
             resource_path: "/#{account.handle}/-/settings/tokens",

@@ -73,7 +73,7 @@ defmodule GlossiaWeb.Api.VoiceApiController do
 
             case Voices.create_voice(account, attrs, user) do
               {:ok, %{voice: voice, overrides: overrides}} ->
-                Glossia.Auditing.record("voice.created", account, user,
+                Glossia.Events.emit("voice.created", account, user,
                   resource_type: "voice",
                   resource_id: to_string(voice.version),
                   resource_path: "/#{handle}/-/voice/#{voice.version}",

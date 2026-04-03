@@ -3,7 +3,7 @@ defmodule Glossia.MCP.CreateProjectTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.ChangesetErrors
   alias Glossia.Projects
   alias Glossia.MCP.Authorization, as: Auth
@@ -33,7 +33,7 @@ defmodule Glossia.MCP.CreateProjectTool do
 
       case Projects.create_project(account, attrs) do
         {:ok, project} ->
-          Auditing.record("project.created", account, user,
+          Events.emit("project.created", account, user,
             resource_type: "project",
             resource_id: to_string(project.id),
             resource_path: "/#{handle}/#{project.handle}",

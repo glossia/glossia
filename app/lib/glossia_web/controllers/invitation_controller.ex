@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.InvitationController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
 
   plug GlossiaWeb.Plugs.RateLimit,
@@ -74,7 +74,7 @@ defmodule GlossiaWeb.InvitationController do
               org = Organizations.get_organization(invitation.organization_id)
               handle = org.account.handle
 
-              Auditing.record("member.invitation_accepted", org.account, user,
+              Events.emit("member.invitation_accepted", org.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
                 resource_path: "/#{handle}/-/members",
@@ -122,7 +122,7 @@ defmodule GlossiaWeb.InvitationController do
         case Organizations.decline_invitation(invitation) do
           {:ok, _} ->
             if org = Organizations.get_organization(invitation.organization_id) do
-              Auditing.record("member.invitation_declined", org.account, user,
+              Events.emit("member.invitation_declined", org.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
                 resource_path: "/#{org.account.handle}/-/members",

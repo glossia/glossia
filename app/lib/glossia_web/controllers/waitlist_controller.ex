@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.WaitlistController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Waitlist
   alias Glossia.Waitlist.Submission
 
@@ -51,7 +51,7 @@ defmodule GlossiaWeb.WaitlistController do
 
     case Waitlist.create_submission(attrs) do
       {:ok, submission} ->
-        Auditing.record("waitlist.submitted", user.account, user,
+        Events.emit("waitlist.submitted", user.account, user,
           resource_type: "waitlist_submission",
           resource_id: to_string(submission.id),
           resource_path: ~p"/interest",

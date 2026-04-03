@@ -6,7 +6,7 @@ defmodule Glossia.Admin.MCP.CommentDiscussionTool do
 
   alias Glossia.Admin.MCP.Authorization, as: Auth
   alias Glossia.Admin.MCP.DiscussionHelpers
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Discussions
   alias Hermes.Server.Response
 
@@ -21,7 +21,7 @@ defmodule Glossia.Admin.MCP.CommentDiscussionTool do
          {:ok, discussion} <- DiscussionHelpers.fetch_discussion(params["id"]) do
       case Discussions.add_comment(discussion, user, %{body: params["body"]}) do
         {:ok, comment} ->
-          Auditing.record("discussion.commented", discussion.account, user,
+          Events.emit("discussion.commented", discussion.account, user,
             resource_type: "discussion",
             resource_id: to_string(discussion.id),
             resource_path: ~p"/admin/discussions/#{discussion.id}",

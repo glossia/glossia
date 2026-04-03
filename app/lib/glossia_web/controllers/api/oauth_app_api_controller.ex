@@ -44,7 +44,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
 
             case DeveloperTokens.create_oauth_application(account, user, params) do
               {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
-                Glossia.Auditing.record("oauth_app.created", account, user,
+                Glossia.Events.emit("oauth_app.created", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
                   resource_path: "/#{handle}/-/settings/apps/#{app.id}",
@@ -110,7 +110,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
 
             case DeveloperTokens.update_oauth_application(app, params) do
               {:ok, updated_app} ->
-                Glossia.Auditing.record("oauth_app.updated", account, user,
+                Glossia.Events.emit("oauth_app.updated", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
                   resource_path: "/#{handle}/-/settings/apps/#{app.id}",
@@ -144,7 +144,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
 
             case DeveloperTokens.delete_oauth_application(app) do
               :ok ->
-                Glossia.Auditing.record("oauth_app.deleted", account, user,
+                Glossia.Events.emit("oauth_app.deleted", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
                   resource_path: "/#{handle}/-/settings/apps",
@@ -178,7 +178,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
 
             case DeveloperTokens.regenerate_oauth_application_secret(app) do
               {:ok, %{client_secret: secret}} ->
-                Glossia.Auditing.record("oauth_app.secret_regenerated", account, user,
+                Glossia.Events.emit("oauth_app.secret_regenerated", account, user,
                   resource_type: "oauth_application",
                   resource_id: to_string(app.id),
                   resource_path: "/#{handle}/-/settings/apps/#{app.id}",

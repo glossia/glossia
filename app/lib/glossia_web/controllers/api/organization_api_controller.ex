@@ -4,7 +4,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
   alias Glossia.ChangesetErrors
   alias Glossia.Accounts
   alias Glossia.Accounts.Account
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
   alias GlossiaWeb.ApiAuthorization
   alias Glossia.Repo
@@ -49,7 +49,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
 
         case Organizations.create_organization(user, %{"handle" => handle, "name" => name}) do
           {:ok, %{account: account, organization: org}} ->
-            Auditing.record("organization.created", account, user,
+            Events.emit("organization.created", account, user,
               resource_type: "organization",
               resource_id: to_string(org.id),
               resource_path: ~p"/#{account.handle}",
@@ -86,7 +86,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
         {:ok, org} ->
           user = conn.assigns[:current_user]
 
-          Auditing.record("organization.updated", org.account, user,
+          Events.emit("organization.updated", org.account, user,
             resource_type: "organization",
             resource_id: to_string(org.id),
             resource_path: ~p"/#{org.account.handle}",
@@ -114,7 +114,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
         {:ok, _} ->
           user = conn.assigns[:current_user]
 
-          Auditing.record("organization.deleted", org.account, user,
+          Events.emit("organization.deleted", org.account, user,
             resource_type: "organization",
             resource_id: to_string(org.id),
             resource_path: ~p"/#{org.account.handle}",
@@ -167,7 +167,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
           else
             Organizations.remove_member(org, target_user)
 
-            Auditing.record("member.removed", org.account, user,
+            Events.emit("member.removed", org.account, user,
               resource_type: "member",
               resource_id: to_string(target_user.id),
               resource_path: "/#{handle}/-/members",
@@ -205,7 +205,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
     with_authorized_org(conn, handle, :members_write, fn conn, org ->
       case Organizations.create_invitation(org, user, params) do
         {:ok, invitation} ->
-          Auditing.record("member.invited", org.account, user,
+          Events.emit("member.invited", org.account, user,
             resource_type: "invitation",
             resource_id: to_string(invitation.id),
             resource_path: "/#{handle}/-/members",
@@ -253,7 +253,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
         invitation ->
           case Organizations.revoke_invitation(invitation) do
             {:ok, _} ->
-              Auditing.record("member.invitation_revoked", org.account, user,
+              Events.emit("member.invitation_revoked", org.account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
                 resource_path: "/#{handle}/-/members",

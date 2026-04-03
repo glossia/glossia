@@ -4,7 +4,7 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
   use Hermes.Server.Component, type: :tool
   use GlossiaWeb, :verified_routes
 
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -30,7 +30,7 @@ defmodule Glossia.MCP.RevokeOrganizationInvitationTool do
         invitation ->
           case Organizations.revoke_invitation(invitation) do
             {:ok, _} ->
-              Auditing.record("member.invitation_revoked", account, user,
+              Events.emit("member.invitation_revoked", account, user,
                 resource_type: "invitation",
                 resource_id: to_string(invitation.id),
                 resource_path: "/#{account.handle}/-/members",

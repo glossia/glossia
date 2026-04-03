@@ -5,7 +5,7 @@ defmodule Glossia.MCP.CreateOrganizationTool do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -28,7 +28,7 @@ defmodule Glossia.MCP.CreateOrganizationTool do
 
       case Organizations.create_organization(user, %{"handle" => handle, "name" => name}) do
         {:ok, %{account: account, organization: org}} ->
-          Auditing.record("organization.created", account, user,
+          Events.emit("organization.created", account, user,
             resource_type: "organization",
             resource_id: to_string(org.id),
             resource_path: ~p"/#{account.handle}",

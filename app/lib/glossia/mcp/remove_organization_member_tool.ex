@@ -5,7 +5,7 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.Accounts
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -36,7 +36,7 @@ defmodule Glossia.MCP.RemoveOrganizationMemberTool do
           else
             Organizations.remove_member(org, target_user)
 
-            Auditing.record("member.removed", account, user,
+            Events.emit("member.removed", account, user,
               resource_type: "member",
               resource_id: to_string(target_user.id),
               resource_path: "/#{account.handle}/-/members",
