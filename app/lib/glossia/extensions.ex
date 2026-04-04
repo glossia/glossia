@@ -11,10 +11,6 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :event_handler, Glossia.Events.NoopHandler)
   end
 
-  def organization_roles do
-    Application.get_env(:glossia, :organization_roles, Glossia.OrganizationRoles.Default)
-  end
-
   def authorizer do
     Application.get_env(:glossia, :authorizer, Glossia.Authorizers.Default)
   end

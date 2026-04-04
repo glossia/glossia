@@ -40,21 +40,13 @@ defmodule GlossiaWeb.OpenApiSpec do
   end
 
   defp build_scopes do
-    Glossia.Authz.available_scopes()
-    |> Enum.map(&{&1, ""})
+    Glossia.Policy.list_rules()
+    |> Enum.map(fn rule -> {"#{rule.object}:#{rule.action}", ""} end)
     |> Map.new()
   end
 
   defp oauth_security(required_scopes) when is_list(required_scopes) do
     [%{"oauth2" => required_scopes}]
-  end
-
-  defp organization_roles do
-    Glossia.Extensions.organization_roles().valid_roles()
-  end
-
-  defp default_organization_role do
-    Glossia.Extensions.organization_roles().default_role()
   end
 
   defp paths(issuer) do
@@ -1356,7 +1348,7 @@ defmodule GlossiaWeb.OpenApiSpec do
         "properties" => %{
           "handle" => %{"type" => "string"},
           "email" => %{"type" => "string"},
-          "role" => %{"type" => "string", "enum" => organization_roles()},
+          "role" => %{"type" => "string", "enum" => ["admin", "member", "linguist"]},
           "joined_at" => %{"type" => "string", "format" => "date-time"}
         }
       },
@@ -1365,7 +1357,7 @@ defmodule GlossiaWeb.OpenApiSpec do
         "properties" => %{
           "id" => %{"type" => "string"},
           "email" => %{"type" => "string"},
-          "role" => %{"type" => "string", "enum" => organization_roles()},
+          "role" => %{"type" => "string", "enum" => ["admin", "member", "linguist"]},
           "status" => %{"type" => "string"},
           "expires_at" => %{"type" => "string", "format" => "date-time"}
         }
@@ -1380,9 +1372,9 @@ defmodule GlossiaWeb.OpenApiSpec do
           },
           "role" => %{
             "type" => "string",
-            "enum" => organization_roles(),
-            "description" => "Role for the invitee. Defaults to #{default_organization_role()}.",
-            "default" => default_organization_role()
+            "enum" => ["admin", "member", "linguist"],
+            "description" => "Role for the invitee. Defaults to member.",
+            "default" => "member"
           }
         }
       },

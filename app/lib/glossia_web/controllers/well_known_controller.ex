@@ -11,7 +11,8 @@ defmodule GlossiaWeb.WellKnownController do
     issuer = Boruta.Config.issuer()
 
     scopes_supported =
-      Glossia.Authz.available_scopes()
+      Glossia.Policy.list_rules()
+      |> Enum.map(fn rule -> "#{rule.object}:#{rule.action}" end)
 
     json(conn, %{
       issuer: issuer,
@@ -36,7 +37,8 @@ defmodule GlossiaWeb.WellKnownController do
     issuer = Boruta.Config.issuer()
 
     scopes_supported =
-      Glossia.Authz.available_scopes()
+      Glossia.Policy.list_rules()
+      |> Enum.map(fn rule -> "#{rule.object}:#{rule.action}" end)
 
     json(conn, %{
       resource: issuer,
