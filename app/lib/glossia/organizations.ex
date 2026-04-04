@@ -13,8 +13,6 @@ defmodule Glossia.Organizations do
 
   import Ecto.Query
 
-  defp organization_roles, do: Glossia.Extensions.organization_roles()
-
   # Organization CRUD
 
   def create_organization(%User{} = user, attrs) do
@@ -39,10 +37,7 @@ defmodule Glossia.Organizations do
       end)
       |> Ecto.Multi.insert(:membership, fn %{organization: org} ->
         %OrganizationMembership{user_id: user.id, organization_id: org.id}
-        |> OrganizationMembership.changeset(%{})
-      end)
-      |> Ecto.Multi.run(:membership_with_role, fn _repo, %{membership: membership} ->
-        organization_roles().assign_membership_role(membership, "admin")
+        |> OrganizationMembership.changeset(%{role: "admin"})
       end)
       |> Repo.transaction()
     end
@@ -130,8 +125,6 @@ defmodule Glossia.Organizations do
   # Organization membership management
 
   def add_member(%Organization{id: org_id}, %User{id: user_id}, role \\ "member") do
-    role = organization_roles().normalize_role(role)
-
     Tracer.with_span "glossia.organizations.add_member" do
       Tracer.set_attributes([
         {"glossia.organization.id", to_string(org_id)},
@@ -140,12 +133,8 @@ defmodule Glossia.Organizations do
       ])
 
       %OrganizationMembership{user_id: user_id, organization_id: org_id}
-      |> OrganizationMembership.changeset(%{})
+      |> OrganizationMembership.changeset(%{role: role})
       |> Repo.insert()
-      |> case do
-        {:ok, membership} -> organization_roles().assign_membership_role(membership, role)
-        error -> error
-      end
     end
   end
 
@@ -166,10 +155,6 @@ defmodule Glossia.Organizations do
     OrganizationMembership
     |> where(organization_id: ^org_id, user_id: ^user_id)
     |> Repo.one()
-    |> case do
-      nil -> nil
-      membership -> organization_roles().attach_membership_role(membership)
-    end
   end
 
   def update_member_role(%Organization{} = org, %User{} = target_user, new_role) do
@@ -185,10 +170,9 @@ defmodule Glossia.Organizations do
           {:error, :not_a_member}
 
         membership ->
-          organization_roles().assign_membership_role(
-            membership,
-            organization_roles().normalize_role(new_role)
-          )
+          membership
+          |> OrganizationMembership.changeset(%{role: new_role})
+          |> Repo.update()
       end
     end
   end
@@ -199,17 +183,18 @@ defmodule Glossia.Organizations do
     |> preload(user: :account)
     |> order_by(:inserted_at)
     |> Repo.all()
-    |> organization_roles().attach_membership_roles()
   end
 
   def sole_admin?(%Organization{id: org_id}, %User{id: user_id}) do
-    admin_count = organization_roles().count_memberships_with_role(org_id, "admin")
+    admin_count =
+      OrganizationMembership
+      |> where(organization_id: ^org_id, role: "admin")
+      |> Repo.aggregate(:count)
 
     is_admin =
-      case get_membership(%Organization{id: org_id}, %User{id: user_id}) do
-        nil -> false
-        membership -> organization_roles().membership_has_role?(membership, "admin")
-      end
+      OrganizationMembership
+      |> where(organization_id: ^org_id, user_id: ^user_id, role: "admin")
+      |> Repo.exists?()
 
     is_admin and admin_count == 1
   end
@@ -225,12 +210,11 @@ defmodule Glossia.Organizations do
     |> preload(:invited_by)
     |> order_by(desc: :inserted_at)
     |> Repo.all()
-    |> organization_roles().attach_invitation_roles()
   end
 
   def create_invitation(%Organization{} = org, %User{} = invited_by, attrs) do
     email = attrs["email"] || attrs[:email]
-    role = organization_roles().normalize_role(attrs["role"] || attrs[:role] || "member")
+    role = attrs["role"] || attrs[:role] || "member"
 
     Tracer.with_span "glossia.organizations.create_invitation" do
       Tracer.set_attributes([
@@ -266,22 +250,20 @@ defmodule Glossia.Organizations do
             }
             |> OrganizationInvitation.changeset(%{
               email: email,
+              role: role,
               expires_at: expires_at
             })
             |> Repo.insert()
 
           case result do
             {:ok, invitation} ->
-              with {:ok, invitation} <-
-                     organization_roles().assign_invitation_role(invitation, role) do
-                org = Repo.preload(org, :account)
-                org_name = org.account.handle
+              org = Repo.preload(org, :account)
+              org_name = org.account.handle
 
-                Glossia.Emails.invitation_email(invitation, org_name)
-                |> Glossia.Mailer.deliver()
+              Glossia.Emails.invitation_email(invitation, org_name)
+              |> Glossia.Mailer.deliver()
 
-                {:ok, invitation}
-              end
+              {:ok, invitation}
 
             error ->
               error
@@ -296,10 +278,6 @@ defmodule Glossia.Organizations do
     |> where(token: ^token)
     |> preload(organization: :account)
     |> Repo.one()
-    |> case do
-      nil -> nil
-      invitation -> organization_roles().attach_invitation_role(invitation)
-    end
   end
 
   def get_invitation(%Organization{id: org_id}, invitation_id) do
@@ -307,10 +285,6 @@ defmodule Glossia.Organizations do
       OrganizationInvitation
       |> where(id: ^id, organization_id: ^org_id)
       |> Repo.one()
-      |> case do
-        nil -> nil
-        invitation -> organization_roles().attach_invitation_role(invitation)
-      end
     else
       :error -> nil
     end
@@ -344,11 +318,9 @@ defmodule Glossia.Organizations do
             )
             |> Ecto.Multi.insert(:membership, %OrganizationMembership{
               user_id: user.id,
-              organization_id: invitation.organization_id
+              organization_id: invitation.organization_id,
+              role: invitation.role
             })
-            |> Ecto.Multi.run(:membership_with_role, fn _repo, %{membership: membership} ->
-              organization_roles().assign_membership_role(membership, invitation.role)
-            end)
             |> Repo.transaction()
           end
       end

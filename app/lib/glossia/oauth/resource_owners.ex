@@ -27,10 +27,11 @@ defmodule Glossia.OAuth.ResourceOwners do
 
   @impl Boruta.Oauth.ResourceOwners
   def authorized_scopes(_resource_owner) do
-    # Keep this derived from the configured authorizer so scope discovery,
+    # Keep this derived from `Glossia.Policy` so scope discovery (`/.well-known/*`),
     # OAuth consent, the REST API, and the MCP server cannot drift.
-    Glossia.Authz.available_scopes()
-    |> Enum.map(&to_scope/1)
+    Glossia.Policy.list_rules()
+    |> Enum.map(fn rule -> to_scope("#{rule.object}:#{rule.action}") end)
+    |> Enum.uniq_by(& &1.name)
   end
 
   @impl Boruta.Oauth.ResourceOwners

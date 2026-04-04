@@ -4,7 +4,7 @@ defmodule Glossia.Accounts.OrganizationInvitation do
 
   schema "organization_invitations" do
     field :email, :string
-    field :role, :string, virtual: true, default: "member"
+    field :role, :string, default: "member"
     field :token, :string
     field :status, :string, default: "pending"
     field :expires_at, :utc_datetime_usec
@@ -17,9 +17,10 @@ defmodule Glossia.Accounts.OrganizationInvitation do
 
   def changeset(invitation, attrs) do
     invitation
-    |> cast(attrs, [:email, :status, :expires_at])
-    |> validate_required([:email, :status, :expires_at])
+    |> cast(attrs, [:email, :role, :status, :expires_at])
+    |> validate_required([:email, :role, :status, :expires_at])
     |> validate_format(:email, ~r/@/)
+    |> validate_inclusion(:role, ["admin", "member", "linguist"])
     |> validate_inclusion(:status, ["pending", "accepted", "declined", "revoked"])
   end
 end

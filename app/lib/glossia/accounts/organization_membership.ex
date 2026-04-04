@@ -3,7 +3,7 @@ defmodule Glossia.Accounts.OrganizationMembership do
   import Ecto.Changeset
 
   schema "organization_memberships" do
-    field :role, :string, virtual: true, default: "member"
+    field :role, :string, default: "member"
 
     belongs_to :user, Glossia.Accounts.User
     belongs_to :organization, Glossia.Accounts.Organization
@@ -11,9 +11,11 @@ defmodule Glossia.Accounts.OrganizationMembership do
     timestamps()
   end
 
-  def changeset(membership, _attrs) do
+  def changeset(membership, attrs) do
     membership
-    |> change()
+    |> cast(attrs, [:role])
+    |> validate_required([:role])
+    |> validate_inclusion(:role, ["admin", "member", "linguist"])
     |> unique_constraint([:user_id, :organization_id])
   end
 end
