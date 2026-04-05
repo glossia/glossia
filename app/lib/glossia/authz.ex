@@ -13,7 +13,7 @@ defmodule Glossia.Authz do
 
   @spec required_scope(Glossia.Policy.action()) :: String.t() | nil
   def required_scope(action) when is_atom(action) do
-    policy_extension().required_scope(action) || policy_scope(action)
+    extension_scope(action) || policy_scope(action)
   end
 
   @spec required_scope!(Glossia.Policy.action()) :: String.t()
@@ -30,7 +30,7 @@ defmodule Glossia.Authz do
 
   @spec available_scopes() :: [String.t()]
   def available_scopes do
-    (policy_scopes() ++ policy_extension().available_scopes())
+    (policy_scopes() ++ extension_scopes())
     |> Enum.uniq()
     |> Enum.sort()
   end
@@ -65,9 +65,15 @@ defmodule Glossia.Authz do
   end
 
   defp do_authorize(action, subject, object, opts) do
-    case policy_extension().authorize(action, subject, object, opts) do
-      :unknown_action -> Glossia.Policy.authorize(action, subject, object, opts)
-      result -> result
+    case policy_extension() do
+      nil ->
+        Glossia.Policy.authorize(action, subject, object, opts)
+
+      extension ->
+        case extension.authorize(action, subject, object, opts) do
+          :unknown_action -> Glossia.Policy.authorize(action, subject, object, opts)
+          result -> result
+        end
     end
   end
 
@@ -84,4 +90,18 @@ defmodule Glossia.Authz do
   end
 
   defp policy_extension, do: Glossia.Extensions.policy_extension()
+
+  defp extension_scope(action) do
+    case policy_extension() do
+      nil -> nil
+      extension -> extension.required_scope(action)
+    end
+  end
+
+  defp extension_scopes do
+    case policy_extension() do
+      nil -> []
+      extension -> extension.available_scopes()
+    end
+  end
 end

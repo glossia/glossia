@@ -6,15 +6,9 @@ defmodule Glossia.Navigation do
   @callback account_nav_sections([map()], map()) :: [map()]
 
   def account_nav_sections(sections, assigns) do
-    Glossia.Extensions.navigation_extension().account_nav_sections(sections, assigns)
+    case Glossia.Extensions.navigation_extension() do
+      nil -> sections
+      extension -> extension.account_nav_sections(sections, assigns)
+    end
   end
-end
-
-defmodule Glossia.Navigation.Empty do
-  @moduledoc false
-
-  @behaviour Glossia.Navigation
-
-  @impl true
-  def account_nav_sections(sections, _assigns), do: sections
 end

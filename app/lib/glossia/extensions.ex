@@ -16,7 +16,7 @@ defmodule Glossia.Extensions do
   end
 
   def policy_extension do
-    Application.get_env(:glossia, :policy_extension, Glossia.PolicyExtensions.Noop)
+    Application.get_env(:glossia, :policy_extension)
   end
 
   def blog do
@@ -44,6 +44,6 @@ defmodule Glossia.Extensions do
   end
 
   def navigation_extension do
-    Application.get_env(:glossia, :navigation_extension, Glossia.Navigation.Empty)
+    Application.get_env(:glossia, :navigation_extension)
   end
 end
