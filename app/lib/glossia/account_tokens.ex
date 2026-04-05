@@ -1,4 +1,4 @@
-defmodule Glossia.DeveloperTokens do
+defmodule Glossia.AccountTokens do
   @moduledoc """
   Context for managing account tokens and OAuth applications.
   """

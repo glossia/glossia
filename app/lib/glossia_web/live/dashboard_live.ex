@@ -8,7 +8,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Accounts
   alias Glossia.Events
   alias Glossia.ChangeSummary
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
   alias Glossia.Glossaries
   alias Glossia.Organizations
   alias Glossia.Discussions
@@ -470,7 +470,7 @@ defmodule GlossiaWeb.DashboardLive do
       "order_directions" => [sort_dir]
     }
 
-    {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account, flop_params)
+    {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account, flop_params)
     available_scopes = available_scopes()
 
     assign(socket,
@@ -512,7 +512,7 @@ defmodule GlossiaWeb.DashboardLive do
     require_admin!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
-    token = DeveloperTokens.get_account_token!(params["token_id"], account.id)
+    token = AccountTokens.get_account_token!(params["token_id"], account.id)
     current_scopes = String.split(token.scope || "", " ", trim: true)
 
     assign(socket,
@@ -550,7 +550,7 @@ defmodule GlossiaWeb.DashboardLive do
       "order_directions" => [sort_dir]
     }
 
-    {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account, flop_params)
+    {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account, flop_params)
 
     assign(socket,
       page_title: gettext("OAuth Apps"),
@@ -588,8 +588,8 @@ defmodule GlossiaWeb.DashboardLive do
     require_admin!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
-    app = DeveloperTokens.get_oauth_application!(app_id, account.id)
-    client = DeveloperTokens.get_boruta_client_for_app(app)
+    app = AccountTokens.get_oauth_application!(app_id, account.id)
+    client = AccountTokens.get_boruta_client_for_app(app)
 
     redirect_uris = Enum.join(client.redirect_uris || [], "\n")
 
@@ -1957,7 +1957,7 @@ defmodule GlossiaWeb.DashboardLive do
         "scope" => new_scopes
       }
 
-      case DeveloperTokens.update_account_token(token, attrs) do
+      case AccountTokens.update_account_token(token, attrs, actor: user, via: :dashboard) do
         {:ok, updated_token} ->
           Events.emit("token.updated", account, user,
             resource_type: "account_token",
@@ -2003,7 +2003,7 @@ defmodule GlossiaWeb.DashboardLive do
         "expires_at" => expires_at
       }
 
-      case DeveloperTokens.create_account_token(account, user, attrs) do
+      case AccountTokens.create_account_token(account, user, attrs, via: :dashboard) do
         {:ok, %{token: token, plain_token: plain_token}} ->
           Events.emit("token.created", account, user,
             resource_type: "account_token",
@@ -2012,7 +2012,7 @@ defmodule GlossiaWeb.DashboardLive do
             summary: "Created account token \"#{token.name}\""
           )
 
-          {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
+          {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account)
 
           {:noreply,
            socket
@@ -2032,7 +2032,7 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case DeveloperTokens.revoke_account_token(token_id, account.id) do
+      case AccountTokens.revoke_account_token(token_id, account.id, actor: user, via: :dashboard) do
         {:ok, token} ->
           Events.emit("token.revoked", account, user,
             resource_type: "account_token",
@@ -2041,7 +2041,7 @@ defmodule GlossiaWeb.DashboardLive do
             summary: "Revoked account token \"#{token.name}\""
           )
 
-          {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
+          {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account)
 
           {:noreply,
            socket
@@ -2086,7 +2086,7 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case DeveloperTokens.create_oauth_application(account, user, params) do
+      case AccountTokens.create_oauth_application(account, user, params, via: :dashboard) do
         {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
           Events.emit("oauth_app.created", account, user,
             resource_type: "oauth_application",
@@ -2095,7 +2095,7 @@ defmodule GlossiaWeb.DashboardLive do
             summary: "Created OAuth application \"#{app.name}\""
           )
 
-          {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account)
+          {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account)
 
           {:noreply,
            socket
@@ -2119,7 +2119,7 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case DeveloperTokens.update_oauth_application(app, params) do
+      case AccountTokens.update_oauth_application(app, params, actor: user, via: :dashboard) do
         {:ok, updated_app} ->
           Events.emit("oauth_app.updated", account, user,
             resource_type: "oauth_application",
@@ -2145,9 +2145,9 @@ defmodule GlossiaWeb.DashboardLive do
     else
       account = socket.assigns.account
       user = socket.assigns.current_user
-      app = DeveloperTokens.get_oauth_application!(app_id, account.id)
+      app = AccountTokens.get_oauth_application!(app_id, account.id)
 
-      case DeveloperTokens.regenerate_oauth_application_secret(app) do
+      case AccountTokens.regenerate_oauth_application_secret(app, actor: user, via: :dashboard) do
         {:ok, %{client_secret: secret}} ->
           Events.emit("oauth_app.secret_regenerated", account, user,
             resource_type: "oauth_application",
@@ -2173,9 +2173,9 @@ defmodule GlossiaWeb.DashboardLive do
     else
       account = socket.assigns.account
       user = socket.assigns.current_user
-      app = DeveloperTokens.get_oauth_application!(app_id, account.id)
+      app = AccountTokens.get_oauth_application!(app_id, account.id)
 
-      case DeveloperTokens.delete_oauth_application(app) do
+      case AccountTokens.delete_oauth_application(app, actor: user, via: :dashboard) do
         :ok ->
           Events.emit("oauth_app.deleted", account, user,
             resource_type: "oauth_application",
@@ -2184,7 +2184,7 @@ defmodule GlossiaWeb.DashboardLive do
             summary: "Deleted OAuth application \"#{app.name}\""
           )
 
-          {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account)
+          {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account)
 
           {:noreply,
            socket

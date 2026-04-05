@@ -11,7 +11,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
 
   alias Glossia.Accounts
   alias Glossia.Accounts.Scope
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
 
   def init(opts), do: opts
 
@@ -51,7 +51,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   end
 
   defp validate_account_token(conn, "glsa_" <> _ = token_value) do
-    case DeveloperTokens.get_account_token_by_value(token_value) do
+    case AccountTokens.get_account_token_by_value(token_value) do
       {:ok, token} ->
         conn
         |> assign(:current_scope, Scope.for_user(token.user))
