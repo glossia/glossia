@@ -239,17 +239,8 @@ defmodule GlossiaWeb.Admin.AdminLive do
   def handle_event("reopen_discussion", %{"id" => discussion_id}, socket) do
     discussion = Discussions.get_discussion!(discussion_id)
 
-    case Discussions.reopen_discussion(discussion) do
+    case Discussions.reopen_discussion(discussion, socket.assigns.current_user, via: :dashboard) do
       {:ok, updated_discussion} ->
-        user = socket.assigns.current_user
-
-        Events.emit("discussion.reopened", updated_discussion.account, user,
-          resource_type: "discussion",
-          resource_id: to_string(updated_discussion.id),
-          resource_path: "/admin/discussions/#{updated_discussion.id}",
-          summary: "Reopened discussion \"#{updated_discussion.title}\""
-        )
-
         updated_discussion = Discussions.get_discussion!(updated_discussion.id)
 
         {:noreply,
