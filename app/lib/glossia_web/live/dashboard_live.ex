@@ -1197,8 +1197,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp available_scopes do
-    Glossia.Policy.list_rules()
-    |> Enum.map(&"#{&1.object}:#{&1.action}")
+    Glossia.Authz.available_scopes()
     |> Enum.uniq()
     |> Enum.sort()
   end

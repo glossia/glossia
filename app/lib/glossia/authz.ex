@@ -29,6 +29,11 @@ defmodule Glossia.Authz do
     end
   end
 
+  @spec available_scopes() :: [String.t()]
+  def available_scopes do
+    authorizer().available_scopes()
+  end
+
   @spec authorize(Glossia.Policy.action(), any, any, keyword) :: :ok | authorize_error
   def authorize(action, subject, object \\ nil, opts \\ []) when is_atom(action) do
     authorizer().authorize(action, subject, object, opts)

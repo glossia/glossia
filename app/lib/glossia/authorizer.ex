@@ -13,6 +13,7 @@ defmodule Glossia.Authorizer do
           | {:error, :insufficient_scope, required_scope :: String.t()}
 
   @callback required_scope(atom()) :: String.t() | nil
+  @callback available_scopes() :: [String.t()]
   @callback authorize(atom(), any(), any(), keyword()) :: :ok | authorize_error()
   @callback authorize?(atom(), any(), any(), keyword()) :: boolean()
   @callback authorize_scope(atom(), scopes()) ::
