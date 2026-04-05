@@ -1,11 +1,11 @@
 defmodule GlossiaWeb.ChangelogController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Changelog
+  alias Glossia.Extensions
   alias Glossia.OgImage
 
   def index(conn, _params) do
-    entries = Changelog.all_entries()
+    entries = Extensions.marketing().all_changelog_entries()
 
     og_attrs = %{
       title: "Changelog",
@@ -22,7 +22,7 @@ defmodule GlossiaWeb.ChangelogController do
   end
 
   def feed(conn, _params) do
-    entries = Changelog.all_entries()
+    entries = Extensions.marketing().all_changelog_entries()
 
     conn
     |> put_resp_content_type("application/xml")

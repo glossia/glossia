@@ -1,9 +1,7 @@
 defmodule GlossiaWeb.SitemapController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Blog
-  alias Glossia.Docs
-  alias Glossia.Features
+  alias Glossia.Extensions
 
   def show(conn, _params) do
     base = GlossiaWeb.Endpoint.url()
@@ -33,14 +31,14 @@ defmodule GlossiaWeb.SitemapController do
   end
 
   defp blog_urls(base) do
-    Blog.all_posts()
+    Extensions.marketing().all_blog_posts()
     |> Enum.map(fn post ->
       %{loc: base <> "/blog/#{post.slug}", lastmod: Date.to_iso8601(post.date)}
     end)
   end
 
   defp feature_urls(base) do
-    Features.all_pages()
+    Extensions.marketing().all_feature_pages()
     |> Enum.map(fn page ->
       %{loc: base <> "/features/#{page.slug}"}
     end)
@@ -48,7 +46,7 @@ defmodule GlossiaWeb.SitemapController do
 
   defp doc_urls(base) do
     doc_pages =
-      Docs.all_pages()
+      Extensions.marketing().all_docs_pages()
       |> Enum.map(fn page ->
         path =
           if page.subcategory do
@@ -61,7 +59,7 @@ defmodule GlossiaWeb.SitemapController do
       end)
 
     category_pages =
-      Docs.all_pages()
+      Extensions.marketing().all_docs_pages()
       |> Enum.map(& &1.category)
       |> Enum.uniq()
       |> Enum.map(fn category ->

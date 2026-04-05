@@ -1,11 +1,11 @@
 defmodule GlossiaWeb.FeatureController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Features
+  alias Glossia.Extensions
   alias Glossia.OgImage
 
   def index(conn, _params) do
-    pages = Features.all_pages()
+    pages = Extensions.marketing().all_feature_pages()
 
     description =
       gettext(
@@ -23,7 +23,7 @@ defmodule GlossiaWeb.FeatureController do
   end
 
   def show(conn, %{"slug" => slug}) do
-    page = Features.get_page_by_slug!(slug)
+    page = Extensions.marketing().feature_page_by_slug!(slug)
 
     og_attrs = %{title: page.title, description: page.summary, category: "feature"}
 
