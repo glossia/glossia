@@ -40,6 +40,18 @@ defmodule Glossia.AccountTokensTest do
     assert token.token_prefix == String.slice(plain_token, 0, 12)
   end
 
+  test "create_account_token/4 persists scopes" do
+    user = TestHelpers.create_user("scoped-token@test.com", "scoped-token")
+
+    assert {:ok, %{token: token}} =
+             AccountTokens.create_account_token(user.account, user, %{
+               "name" => "Scoped token",
+               "scope" => "voice:read voice:write"
+             })
+
+    assert token.scope == "voice:read voice:write"
+  end
+
   test "update_account_token/3 updates the token and emits an event" do
     user = TestHelpers.create_user("update-token@test.com", "update-token")
 
