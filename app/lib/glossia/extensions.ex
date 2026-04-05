@@ -39,11 +39,11 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :marketing_router, Glossia.MarketingRouter.Default)
   end
 
-  def navigation do
-    Application.get_env(:glossia, :navigation, Glossia.Navigation.Default)
+  def account_nav_sections(sections, assigns) do
+    Glossia.Navigation.account_nav_sections(sections, assigns)
   end
 
-  def account_nav_sections(sections, assigns) do
-    navigation().account_nav_sections(sections, assigns)
+  def navigation_extension do
+    Application.get_env(:glossia, :navigation_extension, Glossia.Navigation.Empty)
   end
 end
