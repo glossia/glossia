@@ -16,15 +16,8 @@ defmodule Glossia.MCP.RevokeTokenTool do
   def execute(%{"handle" => handle, "token_id" => token_id}, frame) do
     with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :api_credentials_write, user, account) do
-      case DeveloperTokens.revoke_account_token(token_id, account.id) do
+      case DeveloperTokens.revoke_account_token(token_id, account.id, actor: user, via: :mcp) do
         {:ok, token} ->
-          Glossia.Events.emit("token.revoked", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(token.id),
-            resource_path: "/#{account.handle}/-/settings/tokens",
-            summary: "Revoked account token \"#{token.name}\""
-          )
-
           response =
             Response.tool()
             |> Response.text(JSON.encode!(%{status: "revoked", id: token.id}))

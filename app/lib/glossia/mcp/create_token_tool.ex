@@ -35,15 +35,8 @@ defmodule Glossia.MCP.CreateTokenTool do
         "expires_at" => expires_at
       }
 
-      case DeveloperTokens.create_account_token(account, user, attrs) do
+      case DeveloperTokens.create_account_token(account, user, attrs, via: :mcp) do
         {:ok, %{token: token, plain_token: plain_token}} ->
-          Glossia.Events.emit("token.created", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(token.id),
-            resource_path: "/#{account.handle}/-/settings/tokens",
-            summary: "Created account token \"#{token.name}\""
-          )
-
           response =
             Response.tool()
             |> Response.text(

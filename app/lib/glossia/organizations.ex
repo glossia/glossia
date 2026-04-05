@@ -9,13 +9,14 @@ defmodule Glossia.Organizations do
     User
   }
 
+  alias Glossia.Events
   alias Glossia.Repo
 
   import Ecto.Query
 
   # Organization CRUD
 
-  def create_organization(%User{} = user, attrs) do
+  def create_organization(%User{} = user, attrs, opts \\ []) do
     handle = attrs["handle"] || attrs[:handle]
     name = attrs["name"] || attrs[:name] || handle
 
@@ -40,6 +41,21 @@ defmodule Glossia.Organizations do
         |> OrganizationMembership.changeset(%{role: "admin"})
       end)
       |> Repo.transaction()
+      |> case do
+        {:ok, %{account: account, organization: org} = result} ->
+          Events.emit("organization.created", account, user,
+            resource_type: "organization",
+            resource_id: to_string(org.id),
+            resource_path: "/#{account.handle}",
+            summary: "Created organization \"#{account.handle}\"",
+            via: Keyword.get(opts, :via)
+          )
+
+          {:ok, result}
+
+        other ->
+          other
+      end
     end
   end
 
@@ -66,7 +82,7 @@ defmodule Glossia.Organizations do
     |> Repo.get(id)
   end
 
-  def update_organization(%Organization{} = org, attrs) do
+  def update_organization(%Organization{} = org, attrs, opts \\ []) do
     name = attrs["name"] || attrs[:name]
     visibility = attrs["visibility"] || attrs[:visibility]
 
@@ -102,7 +118,18 @@ defmodule Glossia.Organizations do
       |> Repo.transaction()
       |> case do
         {:ok, %{organization: organization, account: account}} ->
-          {:ok, %{organization | account: account}}
+          organization = %{organization | account: account}
+
+          if actor = Keyword.get(opts, :actor) do
+            Events.emit("organization.updated", account, actor,
+              resource_type: "organization",
+              resource_id: to_string(organization.id),
+              resource_path: "/#{account.handle}",
+              summary: "Updated organization \"#{account.handle}\""
+            )
+          end
+
+          {:ok, organization}
 
         {:error, _step, changeset, _changes} ->
           {:error, changeset}
@@ -110,7 +137,7 @@ defmodule Glossia.Organizations do
     end
   end
 
-  def delete_organization(%Organization{} = org) do
+  def delete_organization(%Organization{} = org, opts \\ []) do
     Tracer.with_span "glossia.organizations.delete_organization" do
       Tracer.set_attributes([
         {"glossia.organization.id", to_string(org.id)},
@@ -118,7 +145,24 @@ defmodule Glossia.Organizations do
       ])
 
       org = Repo.preload(org, :account)
+
       Repo.delete(org.account)
+      |> case do
+        {:ok, deleted_account} ->
+          if actor = Keyword.get(opts, :actor) do
+            Events.emit("organization.deleted", org.account, actor,
+              resource_type: "organization",
+              resource_id: to_string(org.id),
+              resource_path: "/#{org.account.handle}",
+              summary: "Deleted organization \"#{org.account.handle}\""
+            )
+          end
+
+          {:ok, deleted_account}
+
+        other ->
+          other
+      end
     end
   end
 
@@ -138,7 +182,7 @@ defmodule Glossia.Organizations do
     end
   end
 
-  def remove_member(%Organization{id: org_id}, %User{id: user_id}) do
+  def remove_member(%Organization{id: org_id} = org, %User{id: user_id} = target_user, opts \\ []) do
     Tracer.with_span "glossia.organizations.remove_member" do
       Tracer.set_attributes([
         {"glossia.organization.id", to_string(org_id)},
@@ -148,6 +192,24 @@ defmodule Glossia.Organizations do
       OrganizationMembership
       |> where(organization_id: ^org_id, user_id: ^user_id)
       |> Repo.delete_all()
+      |> case do
+        {count, _} = result ->
+          actor = Keyword.get(opts, :actor)
+
+          if count > 0 and actor do
+            org = Repo.preload(org, :account)
+
+            Events.emit("member.removed", org.account, actor,
+              resource_type: "member",
+              resource_id: to_string(target_user.id),
+              resource_path: "/#{org.account.handle}/-/members",
+              summary: "Removed #{target_user.email || target_user.id} from the organization",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
+          result
+      end
     end
   end
 
@@ -212,7 +274,7 @@ defmodule Glossia.Organizations do
     |> Repo.all()
   end
 
-  def create_invitation(%Organization{} = org, %User{} = invited_by, attrs) do
+  def create_invitation(%Organization{} = org, %User{} = invited_by, attrs, opts \\ []) do
     email = attrs["email"] || attrs[:email]
     role = attrs["role"] || attrs[:role] || "member"
 
@@ -263,6 +325,14 @@ defmodule Glossia.Organizations do
               Glossia.Emails.invitation_email(invitation, org_name)
               |> Glossia.Mailer.deliver()
 
+              Events.emit("member.invited", org.account, invited_by,
+                resource_type: "invitation",
+                resource_id: to_string(invitation.id),
+                resource_path: "/#{org.account.handle}/-/members",
+                summary: "Invited #{invitation.email} as #{invitation.role}",
+                via: Keyword.get(opts, :via)
+              )
+
               {:ok, invitation}
 
             error ->
@@ -290,7 +360,7 @@ defmodule Glossia.Organizations do
     end
   end
 
-  def accept_invitation(%OrganizationInvitation{} = invitation, %User{} = user) do
+  def accept_invitation(%OrganizationInvitation{} = invitation, %User{} = user, opts \\ []) do
     Tracer.with_span "glossia.organizations.accept_invitation" do
       Tracer.set_attributes([
         {"glossia.invitation.id", to_string(invitation.id)},
@@ -322,12 +392,29 @@ defmodule Glossia.Organizations do
               role: invitation.role
             })
             |> Repo.transaction()
+            |> case do
+              {:ok, %{membership: membership}} = ok ->
+                org = get_organization(invitation.organization_id)
+
+                Events.emit("member.invitation_accepted", org.account, user,
+                  resource_type: "invitation",
+                  resource_id: to_string(invitation.id),
+                  resource_path: "/#{org.account.handle}/-/members",
+                  summary: "#{user.email} accepted invitation as #{membership.role}",
+                  via: Keyword.get(opts, :via)
+                )
+
+                ok
+
+              other ->
+                other
+            end
           end
       end
     end
   end
 
-  def decline_invitation(%OrganizationInvitation{} = invitation) do
+  def decline_invitation(%OrganizationInvitation{} = invitation, opts \\ []) do
     Tracer.with_span "glossia.organizations.decline_invitation" do
       Tracer.set_attributes([
         {"glossia.invitation.id", to_string(invitation.id)},
@@ -337,10 +424,27 @@ defmodule Glossia.Organizations do
       invitation
       |> OrganizationInvitation.changeset(%{status: "declined"})
       |> Repo.update()
+      |> case do
+        {:ok, declined} = ok ->
+          if org = get_organization(invitation.organization_id) do
+            Events.emit("member.invitation_declined", org.account, Keyword.get(opts, :actor),
+              resource_type: "invitation",
+              resource_id: to_string(invitation.id),
+              resource_path: "/#{org.account.handle}/-/members",
+              summary: "#{declined.email} declined invitation as #{declined.role}",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
 
-  def revoke_invitation(%OrganizationInvitation{} = invitation) do
+  def revoke_invitation(%OrganizationInvitation{} = invitation, opts \\ []) do
     Tracer.with_span "glossia.organizations.revoke_invitation" do
       Tracer.set_attributes([
         {"glossia.invitation.id", to_string(invitation.id)},
@@ -350,6 +454,25 @@ defmodule Glossia.Organizations do
       invitation
       |> OrganizationInvitation.changeset(%{status: "revoked"})
       |> Repo.update()
+      |> case do
+        {:ok, revoked} = ok ->
+          if actor = Keyword.get(opts, :actor) do
+            org = get_organization(invitation.organization_id)
+
+            Events.emit("member.invitation_revoked", org.account, actor,
+              resource_type: "invitation",
+              resource_id: to_string(invitation.id),
+              resource_path: "/#{org.account.handle}/-/members",
+              summary: "Revoked invitation for #{revoked.email}",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
 

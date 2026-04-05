@@ -68,15 +68,8 @@ defmodule GlossiaWeb.Api.GlossaryApiController do
 
             user = conn.assigns[:current_user]
 
-            case Glossaries.create_glossary(account, attrs, user) do
+            case Glossaries.create_glossary(account, attrs, user, via: :api) do
               {:ok, %{glossary: glossary, entries: entries}} ->
-                Glossia.Events.emit("glossary.created", account, user,
-                  resource_type: "glossary",
-                  resource_id: to_string(glossary.version),
-                  resource_path: "/#{handle}/-/glossary/#{glossary.version}",
-                  summary: attrs.change_note || "Updated glossary"
-                )
-
                 glossary = %{glossary | entries: entries}
 
                 conn

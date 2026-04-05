@@ -42,15 +42,8 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
 
-            case DeveloperTokens.create_oauth_application(account, user, params) do
+            case DeveloperTokens.create_oauth_application(account, user, params, via: :api) do
               {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
-                Glossia.Events.emit("oauth_app.created", account, user,
-                  resource_type: "oauth_application",
-                  resource_id: to_string(app.id),
-                  resource_path: "/#{handle}/-/settings/apps/#{app.id}",
-                  summary: "Created OAuth application \"#{app.name}\""
-                )
-
                 conn
                 |> put_status(:created)
                 |> json(%{
@@ -108,15 +101,8 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
             user = conn.assigns[:current_user]
             app = DeveloperTokens.get_oauth_application!(id, account.id)
 
-            case DeveloperTokens.update_oauth_application(app, params) do
+            case DeveloperTokens.update_oauth_application(app, params, actor: user, via: :api) do
               {:ok, updated_app} ->
-                Glossia.Events.emit("oauth_app.updated", account, user,
-                  resource_type: "oauth_application",
-                  resource_id: to_string(app.id),
-                  resource_path: "/#{handle}/-/settings/apps/#{app.id}",
-                  summary: "Updated OAuth application \"#{updated_app.name}\""
-                )
-
                 conn |> json(%{oauth_application: serialize_app(updated_app)})
 
               {:error, changeset} ->
@@ -142,15 +128,8 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
             user = conn.assigns[:current_user]
             app = DeveloperTokens.get_oauth_application!(id, account.id)
 
-            case DeveloperTokens.delete_oauth_application(app) do
+            case DeveloperTokens.delete_oauth_application(app, actor: user, via: :api) do
               :ok ->
-                Glossia.Events.emit("oauth_app.deleted", account, user,
-                  resource_type: "oauth_application",
-                  resource_id: to_string(app.id),
-                  resource_path: "/#{handle}/-/settings/apps",
-                  summary: "Deleted OAuth application \"#{app.name}\""
-                )
-
                 conn |> json(%{status: "deleted"})
 
               {:error, _} ->
@@ -176,15 +155,8 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
             user = conn.assigns[:current_user]
             app = DeveloperTokens.get_oauth_application!(id, account.id)
 
-            case DeveloperTokens.regenerate_oauth_application_secret(app) do
+            case DeveloperTokens.regenerate_oauth_application_secret(app, actor: user, via: :api) do
               {:ok, %{client_secret: secret}} ->
-                Glossia.Events.emit("oauth_app.secret_regenerated", account, user,
-                  resource_type: "oauth_application",
-                  resource_id: to_string(app.id),
-                  resource_path: "/#{handle}/-/settings/apps/#{app.id}",
-                  summary: "Regenerated client secret for \"#{app.name}\""
-                )
-
                 conn |> json(%{client_secret: secret})
 
               {:error, _} ->
