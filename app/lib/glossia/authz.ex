@@ -11,11 +11,13 @@ defmodule Glossia.Authz do
           {:error, :unauthorized}
           | {:error, :insufficient_scope, required_scope :: String.t()}
 
+  @doc "Returns the OAuth/API scope string for an authorization action."
   @spec required_scope(Glossia.Policy.action()) :: String.t() | nil
   def required_scope(action) when is_atom(action) do
     extension_scope(action) || policy_scope(action)
   end
 
+  @doc "Returns the scope for an action or raises if the action is unknown."
   @spec required_scope!(Glossia.Policy.action()) :: String.t()
   def required_scope!(action) do
     case required_scope(action) do
@@ -28,6 +30,7 @@ defmodule Glossia.Authz do
     end
   end
 
+  @doc "Lists all available scopes from the built-in policy and any configured extension."
   @spec available_scopes() :: [String.t()]
   def available_scopes do
     (policy_scopes() ++ extension_scopes())
@@ -35,6 +38,7 @@ defmodule Glossia.Authz do
     |> Enum.sort()
   end
 
+  @doc "Checks both scope access and policy authorization for an action."
   @spec authorize(Glossia.Policy.action(), any, any, keyword) :: :ok | authorize_error
   def authorize(action, subject, object \\ nil, opts \\ []) when is_atom(action) do
     scopes = Keyword.get(opts, :scopes, :all)
@@ -45,11 +49,13 @@ defmodule Glossia.Authz do
     end
   end
 
+  @doc "Boolean variant of `authorize/4`."
   @spec authorize?(Glossia.Policy.action(), any, any, keyword) :: boolean
   def authorize?(action, subject, object \\ nil, opts \\ []) do
     match?(:ok, authorize(action, subject, object, opts))
   end
 
+  @doc "Validates that the provided scopes cover the requested action."
   @spec authorize_scope(Glossia.Policy.action(), scopes) ::
           :ok | {:error, :insufficient_scope, required_scope :: String.t()}
   def authorize_scope(_action, :all), do: :ok
