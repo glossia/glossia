@@ -16,7 +16,7 @@ defmodule Glossia.Tickets do
 
   defdelegate create_ticket(account, user, attrs), to: Discussions, as: :create_discussion
   defdelegate close_ticket(ticket, user), to: Discussions, as: :close_discussion
-  defdelegate reopen_ticket(ticket), to: Discussions, as: :reopen_discussion
+  defdelegate reopen_ticket(ticket, user), to: Discussions, as: :reopen_discussion
   defdelegate add_comment(ticket, user, attrs), to: Discussions, as: :add_comment
   def change_ticket(attrs \\ %{}), do: Discussions.change_discussion(attrs)
   def change_comment(attrs \\ %{}), do: Discussions.change_comment(attrs)

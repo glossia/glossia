@@ -6,7 +6,6 @@ defmodule Glossia.Admin.MCP.CloseDiscussionTool do
 
   alias Glossia.Admin.MCP.Authorization, as: Auth
   alias Glossia.Admin.MCP.DiscussionHelpers
-  alias Glossia.Events
   alias Glossia.Discussions
   alias Hermes.Server.Response
 
@@ -26,23 +25,13 @@ defmodule Glossia.Admin.MCP.CloseDiscussionTool do
 
       result =
         case action do
-          "close" -> Discussions.close_discussion(discussion, user)
-          "reopen" -> Discussions.reopen_discussion(discussion)
+          "close" -> Discussions.close_discussion(discussion, user, via: :mcp)
+          "reopen" -> Discussions.reopen_discussion(discussion, user, via: :mcp)
           _ -> {:error, :invalid_action}
         end
 
       case result do
         {:ok, updated_discussion} ->
-          event_name = if action == "close", do: "discussion.closed", else: "discussion.reopened"
-          summary = if action == "close", do: "Closed", else: "Reopened"
-
-          Events.emit(event_name, discussion.account, user,
-            resource_type: "discussion",
-            resource_id: to_string(discussion.id),
-            resource_path: ~p"/admin/discussions/#{discussion.id}",
-            summary: "#{summary} discussion \"#{discussion.title}\""
-          )
-
           response =
             Response.tool()
             |> Response.text(

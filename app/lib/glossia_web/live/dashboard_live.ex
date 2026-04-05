@@ -6,7 +6,6 @@ defmodule GlossiaWeb.DashboardLive do
   import GlossiaWeb.DashboardComponents
 
   alias Glossia.Accounts
-  alias Glossia.Events
   alias Glossia.ChangeSummary
   alias Glossia.AccountTokens
   alias Glossia.Glossaries
@@ -1793,15 +1792,8 @@ defmodule GlossiaWeb.DashboardLive do
       org = socket.assigns.organization
       user = socket.assigns.current_user
 
-      case Organizations.create_invitation(org, user, params) do
-        {:ok, invitation} ->
-          Events.emit("member.invited", socket.assigns.account, user,
-            resource_type: "invitation",
-            resource_id: to_string(invitation.id),
-            resource_path: "/#{socket.assigns.handle}/-/members",
-            summary: "Invited #{invitation.email} as #{invitation.role}"
-          )
-
+      case Organizations.create_invitation(org, user, params, via: :dashboard) do
+        {:ok, _invitation} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Invitation sent to %{email}.", email: params["email"]))
@@ -1836,15 +1828,8 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply, put_flash(socket, :error, gettext("Invitation not found."))}
 
         invitation ->
-          case Organizations.revoke_invitation(invitation) do
+          case Organizations.revoke_invitation(invitation, actor: user, via: :dashboard) do
             {:ok, _} ->
-              Events.emit("member.invitation_revoked", socket.assigns.account, user,
-                resource_type: "invitation",
-                resource_id: to_string(invitation.id),
-                resource_path: "/#{socket.assigns.handle}/-/members",
-                summary: "Revoked invitation for #{invitation.email}"
-              )
-
               {:noreply,
                socket
                |> assign(all_invitations: Organizations.list_pending_invitations(org))
@@ -1886,14 +1871,7 @@ defmodule GlossiaWeb.DashboardLive do
                )}
 
             true ->
-              Organizations.remove_member(org, target_user)
-
-              Events.emit("member.removed", socket.assigns.account, current_user,
-                resource_type: "member",
-                resource_id: to_string(target_user.id),
-                resource_path: "/#{socket.assigns.handle}/-/members",
-                summary: "Removed #{target_user.email} from the organization"
-              )
+              Organizations.remove_member(org, target_user, actor: current_user, via: :dashboard)
 
               all_members = Organizations.list_members(org)
               member_roles = all_members |> Enum.map(& &1.role) |> Enum.uniq() |> Enum.sort()
@@ -1946,7 +1924,6 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       token = socket.assigns.editing_token
-      account = socket.assigns.account
       user = socket.assigns.current_user
 
       new_scopes = List.wrap(params["scopes"]) |> Enum.join(" ")
@@ -1958,14 +1935,7 @@ defmodule GlossiaWeb.DashboardLive do
       }
 
       case AccountTokens.update_account_token(token, attrs, actor: user, via: :dashboard) do
-        {:ok, updated_token} ->
-          Events.emit("token.updated", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(updated_token.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/tokens/#{updated_token.id}",
-            summary: "Updated account token \"#{updated_token.name}\""
-          )
-
+        {:ok, _updated_token} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Token updated."))
@@ -2004,14 +1974,7 @@ defmodule GlossiaWeb.DashboardLive do
       }
 
       case AccountTokens.create_account_token(account, user, attrs, via: :dashboard) do
-        {:ok, %{token: token, plain_token: plain_token}} ->
-          Events.emit("token.created", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(token.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
-            summary: "Created account token \"#{token.name}\""
-          )
-
+        {:ok, %{token: _token, plain_token: plain_token}} ->
           {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account)
 
           {:noreply,
@@ -2033,14 +1996,7 @@ defmodule GlossiaWeb.DashboardLive do
       user = socket.assigns.current_user
 
       case AccountTokens.revoke_account_token(token_id, account.id, actor: user, via: :dashboard) do
-        {:ok, token} ->
-          Events.emit("token.revoked", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(token.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
-            summary: "Revoked account token \"#{token.name}\""
-          )
-
+        {:ok, _token} ->
           {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account)
 
           {:noreply,
@@ -2087,14 +2043,7 @@ defmodule GlossiaWeb.DashboardLive do
       user = socket.assigns.current_user
 
       case AccountTokens.create_oauth_application(account, user, params, via: :dashboard) do
-        {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
-          Events.emit("oauth_app.created", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
-            summary: "Created OAuth application \"#{app.name}\""
-          )
-
+        {:ok, %{app: _app, client_id: client_id, client_secret: client_secret}} ->
           {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account)
 
           {:noreply,
@@ -2116,18 +2065,10 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       app = socket.assigns.oauth_app
-      account = socket.assigns.account
       user = socket.assigns.current_user
 
       case AccountTokens.update_oauth_application(app, params, actor: user, via: :dashboard) do
-        {:ok, updated_app} ->
-          Events.emit("oauth_app.updated", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
-            summary: "Updated OAuth application \"#{updated_app.name}\""
-          )
-
+        {:ok, _updated_app} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Application updated."))
@@ -2149,13 +2090,6 @@ defmodule GlossiaWeb.DashboardLive do
 
       case AccountTokens.regenerate_oauth_application_secret(app, actor: user, via: :dashboard) do
         {:ok, %{client_secret: secret}} ->
-          Events.emit("oauth_app.secret_regenerated", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
-            summary: "Regenerated client secret for \"#{app.name}\""
-          )
-
           {:noreply,
            socket
            |> assign(newly_regenerated_secret: secret)
@@ -2177,13 +2111,6 @@ defmodule GlossiaWeb.DashboardLive do
 
       case AccountTokens.delete_oauth_application(app, actor: user, via: :dashboard) do
         :ok ->
-          Events.emit("oauth_app.deleted", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps",
-            summary: "Deleted OAuth application \"#{app.name}\""
-          )
-
           {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account)
 
           {:noreply,
@@ -2240,15 +2167,8 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       true ->
-        case Discussions.create_discussion(account, user, params) do
+        case Discussions.create_discussion(account, user, params, via: :dashboard) do
           {:ok, ticket} ->
-            Events.emit("discussion.created", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-              summary: "Created discussion \"#{ticket.title}\""
-            )
-
             {:noreply,
              socket
              |> put_flash(:info, gettext("Discussion created."))
@@ -2270,15 +2190,8 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       true ->
-        case Discussions.add_comment(ticket, user, params) do
+        case Discussions.add_comment(ticket, user, params, via: :dashboard) do
           {:ok, _comment} ->
-            Events.emit("discussion.commented", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-              summary: "Commented on discussion \"#{ticket.title}\""
-            )
-
             ticket = Discussions.get_discussion_by_number!(ticket.number, account.id)
 
             {:noreply,
@@ -2298,15 +2211,8 @@ defmodule GlossiaWeb.DashboardLive do
     account = socket.assigns.account
 
     if socket.assigns.can_write do
-      case Discussions.close_discussion(ticket, user) do
+      case Discussions.close_discussion(ticket, user, via: :dashboard) do
         {:ok, updated_ticket} ->
-          Events.emit("discussion.closed", account, user,
-            resource_type: "discussion",
-            resource_id: to_string(ticket.id),
-            resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-            summary: "Closed discussion \"#{ticket.title}\""
-          )
-
           ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
           {:noreply, assign(socket, ticket: ticket)}
 
@@ -2324,15 +2230,8 @@ defmodule GlossiaWeb.DashboardLive do
     account = socket.assigns.account
 
     if socket.assigns.can_write do
-      case Discussions.reopen_discussion(ticket) do
+      case Discussions.reopen_discussion(ticket, user, via: :dashboard) do
         {:ok, updated_ticket} ->
-          Events.emit("discussion.reopened", account, user,
-            resource_type: "discussion",
-            resource_id: to_string(ticket.id),
-            resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-            summary: "Reopened discussion \"#{ticket.title}\""
-          )
-
           ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
           {:noreply, assign(socket, ticket: ticket)}
 
@@ -2392,17 +2291,11 @@ defmodule GlossiaWeb.DashboardLive do
   def handle_event("disconnect_github", _params, socket) do
     installation = socket.assigns.github_installation
 
-    case Glossia.Github.Installations.delete_installation(installation) do
+    case Glossia.Github.Installations.delete_installation(installation,
+           actor: socket.assigns.current_user,
+           via: :dashboard
+         ) do
       {:ok, _} ->
-        Events.emit(
-          "github_installation.deleted",
-          socket.assigns.account,
-          socket.assigns.current_user,
-          resource_type: "github_installation",
-          resource_id: to_string(installation.id),
-          summary: "Disconnected GitHub account #{installation.github_account_login}"
-        )
-
         {:noreply,
          socket
          |> put_flash(:info, gettext("GitHub disconnected."))
@@ -2476,20 +2369,16 @@ defmodule GlossiaWeb.DashboardLive do
 
     result =
       if installation_id do
-        Glossia.Projects.create_project_from_github(account, installation_id, attrs)
+        Glossia.Projects.create_project_from_github(account, installation_id, attrs,
+          actor: user,
+          via: :dashboard
+        )
       else
-        Glossia.Projects.create_project(account, attrs)
+        Glossia.Projects.create_project(account, attrs, actor: user, via: :dashboard)
       end
 
     case result do
       {:ok, project} ->
-        Events.emit("project.created", account, user,
-          resource_type: "project",
-          resource_id: to_string(project.id),
-          resource_path: "/#{socket.assigns.handle}/#{project.handle}",
-          summary: "Imported project #{project.handle} from #{repo["full_name"]}"
-        )
-
         if installation_id do
           %{project_id: project.id}
           |> Glossia.Projects.SetupWorker.new()
@@ -2557,7 +2446,6 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       project = socket.assigns.project
-      account = socket.assigns.account
       user = socket.assigns.current_user
       handle = socket.assigns.handle
 
@@ -2583,15 +2471,8 @@ defmodule GlossiaWeb.DashboardLive do
         "avatar_url" => avatar_url
       }
 
-      case Glossia.Projects.update_project(project, attrs) do
+      case Glossia.Projects.update_project(project, attrs, actor: user, via: :dashboard) do
         {:ok, updated_project} ->
-          Events.emit("project.updated", account, user,
-            resource_type: "project",
-            resource_id: to_string(updated_project.id),
-            resource_path: "/#{handle}/#{updated_project.handle}",
-            summary: "Updated project settings for \"#{updated_project.name}\""
-          )
-
           {:noreply,
            socket
            |> put_flash(:info, gettext("Project settings updated."))
@@ -8484,15 +8365,8 @@ defmodule GlossiaWeb.DashboardLive do
       }
     }
 
-    case Discussions.create_discussion(account, user, attrs) do
+    case Discussions.create_discussion(account, user, attrs, via: :dashboard) do
       {:ok, ticket} ->
-        Events.emit("voice.suggested", account, user,
-          resource_type: "discussion",
-          resource_id: to_string(ticket.id),
-          resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-          summary: suggestion_title_text
-        )
-
         {:noreply,
          socket
          |> assign(
@@ -8543,15 +8417,8 @@ defmodule GlossiaWeb.DashboardLive do
       }
     }
 
-    case Discussions.create_discussion(account, user, attrs) do
+    case Discussions.create_discussion(account, user, attrs, via: :dashboard) do
       {:ok, ticket} ->
-        Events.emit("glossary.suggested", account, user,
-          resource_type: "discussion",
-          resource_id: to_string(ticket.id),
-          resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-          summary: change_note
-        )
-
         {:noreply,
          socket
          |> assign(
@@ -8672,7 +8539,7 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  defp apply_voice_suggestion(ticket, account, user, handle) do
+  defp apply_voice_suggestion(ticket, account, user, _handle) do
     if not Glossia.Policy.authorize?(:voice_write, user, account) do
       {:error, :not_allowed}
     else
@@ -8684,19 +8551,10 @@ defmodule GlossiaWeb.DashboardLive do
       else
         case Voices.create_voice(account, payload, user) do
           {:ok, %{voice: voice}} ->
-            maybe_close_discussion(ticket, user)
-
-            _ =
-              Discussions.add_comment(ticket, user, %{
-                body: applied_comment(:voice, voice.version)
-              })
-
-            Events.emit("voice.suggestion.applied", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-              summary: "Applied voice suggestion ##{ticket.number} as version ##{voice.version}"
-            )
+            :ok =
+              Discussions.mark_suggestion_applied(ticket, user, :voice, voice.version,
+                via: :dashboard
+              )
 
             {:ok,
              gettext("Applied voice suggestion as version #%{version}.", version: voice.version)}
@@ -8708,7 +8566,7 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  defp apply_glossary_suggestion(ticket, account, user, handle) do
+  defp apply_glossary_suggestion(ticket, account, user, _handle) do
     if not Glossia.Policy.authorize?(:glossary_write, user, account) do
       {:error, :not_allowed}
     else
@@ -8723,20 +8581,14 @@ defmodule GlossiaWeb.DashboardLive do
 
         case Glossaries.create_glossary(account, attrs, user) do
           {:ok, %{glossary: glossary}} ->
-            maybe_close_discussion(ticket, user)
-
-            _ =
-              Discussions.add_comment(ticket, user, %{
-                body: applied_comment(:glossary, glossary.version)
-              })
-
-            Events.emit("glossary.suggestion.applied", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-              summary:
-                "Applied glossary suggestion ##{ticket.number} as version ##{glossary.version}"
-            )
+            :ok =
+              Discussions.mark_suggestion_applied(
+                ticket,
+                user,
+                :glossary,
+                glossary.version,
+                via: :dashboard
+              )
 
             {:ok,
              gettext("Applied glossary suggestion as version #%{version}.",
@@ -8749,19 +8601,6 @@ defmodule GlossiaWeb.DashboardLive do
       end
     end
   end
-
-  defp maybe_close_discussion(%{status: "open"} = ticket, user) do
-    _ = Discussions.close_discussion(ticket, user)
-    :ok
-  end
-
-  defp maybe_close_discussion(_ticket, _user), do: :ok
-
-  defp applied_comment(:voice, version),
-    do: gettext("Applied this suggestion as voice version #%{version}.", version: version)
-
-  defp applied_comment(:glossary, version),
-    do: gettext("Applied this suggestion as glossary version #%{version}.", version: version)
 
   # LLM summary helpers
   # ---------------------------------------------------------------------------
