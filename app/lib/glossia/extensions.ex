@@ -23,6 +23,10 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :marketing, Glossia.Marketing.Empty)
   end
 
+  def marketing_markdown do
+    Application.get_env(:glossia, :marketing_markdown)
+  end
+
   def marketing_router do
     Application.get_env(:glossia, :marketing_router, Glossia.MarketingRouter.Default)
   end
