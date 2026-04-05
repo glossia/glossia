@@ -20,7 +20,7 @@ defmodule Glossia.Extensions do
   end
 
   def docs do
-    Application.get_env(:glossia, :docs, Glossia.Docs.Default)
+    Application.get_env(:glossia, :docs, Glossia.Docs.Empty)
   end
 
   def features do
