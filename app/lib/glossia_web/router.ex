@@ -177,12 +177,6 @@ defmodule GlossiaWeb.Router do
     get "/app/:handle/:project/:hash", OgImageController, :project
   end
 
-  scope "/docs", GlossiaWeb do
-    pipe_through :api
-
-    get "/search.json", DocsController, :search_index
-  end
-
   scope "/", GlossiaWeb do
     pipe_through :public
 
@@ -190,14 +184,8 @@ defmodule GlossiaWeb.Router do
     get "/blog", BlogController, :index
     get "/blog/feed.xml", BlogController, :feed
     get "/blog/:slug", BlogController, :show
-    get "/features", FeatureController, :index
-    get "/features/:slug", FeatureController, :show
     get "/changelog", ChangelogController, :index
     get "/changelog/feed.xml", ChangelogController, :feed
-    get "/docs", DocsController, :index
-    get "/docs/:category", DocsController, :category
-    get "/docs/:category/:subcategory/:slug", DocsController, :subcategory_page
-    get "/docs/:category/:slug", DocsController, :show
     get "/terms", LegalController, :terms
     get "/terms/:date", LegalController, :terms
     get "/privacy", LegalController, :privacy
@@ -440,6 +428,6 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through :public
 
-    get "/*path", MarketingController, :show
+    forward "/", Plugs.MarketingRouter
   end
 end
