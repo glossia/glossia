@@ -5,7 +5,4 @@ defmodule Glossia.Events.NoopHandler do
 
   @impl true
   def handle_event(_event), do: :ok
-
-  @impl true
-  def list_events(_account_id, _opts \\ []), do: []
 end

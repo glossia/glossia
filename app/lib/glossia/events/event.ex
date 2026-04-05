@@ -1,6 +1,6 @@
 defmodule Glossia.Events.Event do
   @moduledoc """
-  Immutable domain event emitted by OSS mutation flows.
+  Immutable domain event emitted by application mutation flows.
   """
 
   @enforce_keys [:name, :account, :user, :opts, :occurred_at]

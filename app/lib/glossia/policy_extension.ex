@@ -1,6 +1,6 @@
 defmodule Glossia.PolicyExtension do
   @moduledoc """
-  Optional extension point for adding enterprise policy actions and scopes.
+  Optional extension point for adding policy actions and scopes.
   """
 
   @type authorize_error ::
