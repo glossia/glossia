@@ -23,7 +23,7 @@ defmodule GlossiaWeb.OrganizationController do
   def create(conn, %{"account" => account_params}) do
     user = conn.assigns.current_user
 
-    with :ok <- Glossia.Policy.authorize(:organization_write, user, nil) do
+    with :ok <- Glossia.Authz.authorize(:organization_write, user, nil) do
       case Organizations.create_organization(user, account_params) do
         {:ok, %{account: account, organization: org}} ->
           Events.emit("organization.created", account, user,
