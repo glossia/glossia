@@ -184,8 +184,6 @@ defmodule GlossiaWeb.Router do
     get "/blog", BlogController, :index
     get "/blog/feed.xml", BlogController, :feed
     get "/blog/:slug", BlogController, :show
-    get "/changelog", ChangelogController, :index
-    get "/changelog/feed.xml", ChangelogController, :feed
     get "/terms", LegalController, :terms
     get "/terms/:date", LegalController, :terms
     get "/privacy", LegalController, :privacy
