@@ -2,7 +2,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
   alias GlossiaWeb.Api.Serialization
   alias GlossiaWeb.ApiAuthorization
 
@@ -14,7 +14,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
       account ->
         case ApiAuthorization.authorize(conn, :api_credentials_read, account) do
           {:ok, conn} ->
-            case DeveloperTokens.list_oauth_applications(account, params) do
+            case AccountTokens.list_oauth_applications(account, params) do
               {:ok, {apps, meta}} ->
                 conn
                 |> json(%{
@@ -42,7 +42,7 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
 
-            case DeveloperTokens.create_oauth_application(account, user, params, via: :api) do
+            case AccountTokens.create_oauth_application(account, user, params, via: :api) do
               {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
                 conn
                 |> put_status(:created)
@@ -72,8 +72,8 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
       account ->
         case ApiAuthorization.authorize(conn, :api_credentials_read, account) do
           {:ok, conn} ->
-            app = DeveloperTokens.get_oauth_application!(id, account.id)
-            client = DeveloperTokens.get_boruta_client_for_app(app)
+            app = AccountTokens.get_oauth_application!(id, account.id)
+            client = AccountTokens.get_boruta_client_for_app(app)
 
             conn
             |> json(%{
@@ -99,9 +99,9 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
         case ApiAuthorization.authorize(conn, :api_credentials_write, account) do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
-            app = DeveloperTokens.get_oauth_application!(id, account.id)
+            app = AccountTokens.get_oauth_application!(id, account.id)
 
-            case DeveloperTokens.update_oauth_application(app, params, actor: user, via: :api) do
+            case AccountTokens.update_oauth_application(app, params, actor: user, via: :api) do
               {:ok, updated_app} ->
                 conn |> json(%{oauth_application: serialize_app(updated_app)})
 
@@ -126,9 +126,9 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
         case ApiAuthorization.authorize(conn, :api_credentials_write, account) do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
-            app = DeveloperTokens.get_oauth_application!(id, account.id)
+            app = AccountTokens.get_oauth_application!(id, account.id)
 
-            case DeveloperTokens.delete_oauth_application(app, actor: user, via: :api) do
+            case AccountTokens.delete_oauth_application(app, actor: user, via: :api) do
               :ok ->
                 conn |> json(%{status: "deleted"})
 
@@ -153,9 +153,9 @@ defmodule GlossiaWeb.Api.OAuthAppApiController do
         case ApiAuthorization.authorize(conn, :api_credentials_write, account) do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
-            app = DeveloperTokens.get_oauth_application!(id, account.id)
+            app = AccountTokens.get_oauth_application!(id, account.id)
 
-            case DeveloperTokens.regenerate_oauth_application_secret(app, actor: user, via: :api) do
+            case AccountTokens.regenerate_oauth_application_secret(app, actor: user, via: :api) do
               {:ok, %{client_secret: secret}} ->
                 conn |> json(%{client_secret: secret})
 

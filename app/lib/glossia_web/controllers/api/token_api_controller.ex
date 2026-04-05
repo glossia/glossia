@@ -2,7 +2,7 @@ defmodule GlossiaWeb.Api.TokenApiController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
   alias GlossiaWeb.Api.Serialization
   alias GlossiaWeb.ApiAuthorization
 
@@ -14,7 +14,7 @@ defmodule GlossiaWeb.Api.TokenApiController do
       account ->
         case ApiAuthorization.authorize(conn, :api_credentials_read, account) do
           {:ok, conn} ->
-            case DeveloperTokens.list_account_tokens(account, params) do
+            case AccountTokens.list_account_tokens(account, params) do
               {:ok, {tokens, meta}} ->
                 conn
                 |> json(%{
@@ -49,7 +49,7 @@ defmodule GlossiaWeb.Api.TokenApiController do
               "expires_at" => parse_expires_at(params["expires_in_days"])
             }
 
-            case DeveloperTokens.create_account_token(account, user, attrs, via: :api) do
+            case AccountTokens.create_account_token(account, user, attrs, via: :api) do
               {:ok, %{token: token, plain_token: plain_token}} ->
                 conn
                 |> put_status(:created)
@@ -80,7 +80,7 @@ defmodule GlossiaWeb.Api.TokenApiController do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
 
-            case DeveloperTokens.revoke_account_token(id, account.id, actor: user, via: :api) do
+            case AccountTokens.revoke_account_token(id, account.id, actor: user, via: :api) do
               {:ok, _token} ->
                 conn |> json(%{status: "revoked"})
 
