@@ -15,8 +15,8 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :authorizer, Glossia.Authorizers.Default)
   end
 
-  def authorizer_extension do
-    Application.get_env(:glossia, :authorizer_extension, Glossia.AuthorizerExtensions.Noop)
+  def policy_extension do
+    Application.get_env(:glossia, :policy_extension, Glossia.PolicyExtensions.Noop)
   end
 
   def blog do

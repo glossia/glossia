@@ -1,7 +1,7 @@
-defmodule Glossia.AuthorizerExtensions.Noop do
+defmodule Glossia.PolicyExtensions.Noop do
   @moduledoc false
 
-  @behaviour Glossia.AuthorizerExtension
+  @behaviour Glossia.PolicyExtension
 
   @impl true
   def required_scope(_action), do: nil
