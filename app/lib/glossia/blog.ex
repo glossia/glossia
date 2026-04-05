@@ -14,6 +14,23 @@ defmodule Glossia.Blog do
   def get_post_by_slug!(slug), do: Glossia.Extensions.blog().get_post_by_slug!(slug)
 end
 
+defmodule Glossia.Blog.Empty do
+  @moduledoc false
+
+  @behaviour Glossia.Blog.Source
+
+  @impl true
+  def all_posts, do: []
+
+  @impl true
+  def recent_posts(_count \\ 2), do: []
+
+  @impl true
+  def get_post_by_slug!(slug) do
+    raise Glossia.Blog.NotFoundError, "post with slug=#{slug} not found"
+  end
+end
+
 defmodule Glossia.Blog.NotFoundError do
   defexception [:message, plug_status: 404]
 end

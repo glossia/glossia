@@ -16,7 +16,7 @@ defmodule Glossia.Extensions do
   end
 
   def blog do
-    Application.get_env(:glossia, :blog, Glossia.Blog.Default)
+    Application.get_env(:glossia, :blog, Glossia.Blog.Empty)
   end
 
   def docs do
@@ -28,7 +28,7 @@ defmodule Glossia.Extensions do
   end
 
   def changelog do
-    Application.get_env(:glossia, :changelog, Glossia.Changelog.Default)
+    Application.get_env(:glossia, :changelog, Glossia.Changelog.Empty)
   end
 
   def marketing_router do
