@@ -1,11 +1,11 @@
 defmodule GlossiaWeb.BlogController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Blog
+  alias Glossia.Extensions
   alias Glossia.OgImage
 
   def index(conn, _params) do
-    posts = Blog.all_posts()
+    posts = Extensions.marketing().all_blog_posts()
 
     og_attrs = %{
       title: "Blog",
@@ -22,7 +22,7 @@ defmodule GlossiaWeb.BlogController do
   end
 
   def show(conn, %{"slug" => slug}) do
-    post = Blog.get_post_by_slug!(slug)
+    post = Extensions.marketing().blog_post_by_slug!(slug)
 
     og_attrs = %{
       title: post.title,
@@ -43,7 +43,7 @@ defmodule GlossiaWeb.BlogController do
   end
 
   def feed(conn, _params) do
-    posts = Blog.all_posts()
+    posts = Extensions.marketing().all_blog_posts()
 
     conn
     |> put_resp_content_type("application/xml")

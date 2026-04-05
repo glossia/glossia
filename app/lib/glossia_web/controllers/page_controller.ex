@@ -1,11 +1,11 @@
 defmodule GlossiaWeb.PageController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Blog
+  alias Glossia.Extensions
   alias Glossia.OgImage
 
   def home(conn, _params) do
-    posts = Blog.recent_posts(3)
+    posts = Extensions.marketing().recent_blog_posts(3)
 
     og_attrs = %{
       title: "Glossia",

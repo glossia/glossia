@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.DocsController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Docs
+  alias Glossia.Extensions
   alias Glossia.OgImage
 
   plug GlossiaWeb.Plugs.RateLimit,
@@ -14,7 +14,7 @@ defmodule GlossiaWeb.DocsController do
        when action in [:search_index]
 
   def index(conn, _params) do
-    categories = Docs.categories()
+    categories = Extensions.marketing().docs_categories()
 
     og_attrs = %{
       title: "Documentation",
@@ -31,14 +31,14 @@ defmodule GlossiaWeb.DocsController do
   end
 
   def category(conn, %{"category" => category}) do
-    categories = Docs.categories()
+    categories = Extensions.marketing().docs_categories()
 
     category_meta =
       Map.get(categories, category) ||
-        raise Glossia.Docs.NotFoundError, "category #{category} not found"
+        raise Glossia.Marketing.NotFoundError, "category #{category} not found"
 
-    pages = Docs.pages_by_category(category)
-    subcategories = Docs.subcategories_for(category)
+    pages = Extensions.marketing().docs_pages_by_category(category)
+    subcategories = Extensions.marketing().docs_subcategories_for(category)
 
     items =
       (Enum.map(pages, fn p ->
@@ -73,13 +73,13 @@ defmodule GlossiaWeb.DocsController do
   end
 
   def show(conn, %{"category" => category, "slug" => slug}) do
-    subcategories = Docs.subcategories_for(category)
+    subcategories = Extensions.marketing().docs_subcategories_for(category)
 
     if Enum.any?(subcategories, &(&1.key == slug)) do
       render_subcategory(conn, category, slug)
     else
-      page = Docs.get_page!(category, slug)
-      categories = Docs.categories()
+      page = Extensions.marketing().doc_page!(category, slug)
+      categories = Extensions.marketing().docs_categories()
       sidebar = build_sidebar(category)
 
       og_attrs = %{title: page.title, description: page.summary || "", category: "docs"}
@@ -102,11 +102,11 @@ defmodule GlossiaWeb.DocsController do
         "subcategory" => "apis",
         "slug" => "rest"
       }) do
-    subcategory_meta = Docs.subcategory!("reference", "apis")
+    subcategory_meta = Extensions.marketing().docs_subcategory!("reference", "apis")
     sidebar = build_sidebar("reference")
 
     render(conn, :api_reference,
-      categories: Docs.categories(),
+      categories: Extensions.marketing().docs_categories(),
       sidebar: sidebar,
       current_category: "reference",
       current_subcategory: "apis",
@@ -120,9 +120,9 @@ defmodule GlossiaWeb.DocsController do
         "subcategory" => subcategory,
         "slug" => slug
       }) do
-    page = Docs.get_subcategory_page!(category, subcategory, slug)
-    subcategory_meta = Docs.subcategory!(category, subcategory)
-    categories = Docs.categories()
+    page = Extensions.marketing().doc_subcategory_page!(category, subcategory, slug)
+    subcategory_meta = Extensions.marketing().docs_subcategory!(category, subcategory)
+    categories = Extensions.marketing().docs_categories()
     sidebar = build_sidebar(category)
 
     render(conn, :show,
@@ -138,13 +138,13 @@ defmodule GlossiaWeb.DocsController do
   end
 
   def search_index(conn, _params) do
-    json(conn, Docs.search_index())
+    json(conn, Extensions.marketing().docs_search_index())
   end
 
   defp render_subcategory(conn, category, subcategory_key) do
-    subcategory_meta = Docs.subcategory!(category, subcategory_key)
-    category_meta = Map.fetch!(Docs.categories(), category)
-    pages = Docs.pages_by_subcategory(category, subcategory_key)
+    subcategory_meta = Extensions.marketing().docs_subcategory!(category, subcategory_key)
+    category_meta = Map.fetch!(Extensions.marketing().docs_categories(), category)
+    pages = Extensions.marketing().docs_pages_by_subcategory(category, subcategory_key)
     sidebar = build_sidebar(category)
 
     render(conn, :subcategory,
@@ -153,24 +153,24 @@ defmodule GlossiaWeb.DocsController do
       subcategory_key: subcategory_key,
       subcategory_meta: subcategory_meta,
       pages: pages,
-      categories: Docs.categories(),
+      categories: Extensions.marketing().docs_categories(),
       sidebar: sidebar,
       page_title: subcategory_meta.title
     )
   end
 
   defp build_sidebar(current_category) do
-    Docs.categories()
+    Extensions.marketing().docs_categories()
     |> Enum.map(fn {key, meta} ->
-      pages = Docs.pages_by_category(key)
-      subcategories = Docs.subcategories_for(key)
+      pages = Extensions.marketing().docs_pages_by_category(key)
+      subcategories = Extensions.marketing().docs_subcategories_for(key)
 
       subcategory_items =
         Enum.map(subcategories, fn sc ->
           %{
             key: sc.key,
             title: sc.title,
-            pages: Docs.pages_by_subcategory(key, sc.key)
+            pages: Extensions.marketing().docs_pages_by_subcategory(key, sc.key)
           }
         end)
 

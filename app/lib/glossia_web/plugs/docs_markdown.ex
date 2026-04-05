@@ -18,7 +18,7 @@ defmodule GlossiaWeb.Plugs.DocsMarkdown do
   def call(conn, _opts), do: conn
 
   defp serve_markdown(conn, category, slug) do
-    page = Glossia.Docs.get_page!(category, slug)
+    page = Glossia.Extensions.marketing().doc_page!(category, slug)
 
     case page.markdown do
       nil ->
@@ -31,6 +31,6 @@ defmodule GlossiaWeb.Plugs.DocsMarkdown do
         |> halt()
     end
   rescue
-    Glossia.Docs.NotFoundError -> conn
+    Glossia.Marketing.NotFoundError -> conn
   end
 end

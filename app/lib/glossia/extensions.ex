@@ -19,20 +19,8 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :policy_extension)
   end
 
-  def blog do
-    Application.get_env(:glossia, :blog, Glossia.Blog.Empty)
-  end
-
-  def docs do
-    Application.get_env(:glossia, :docs, Glossia.Docs.Empty)
-  end
-
-  def features do
-    Application.get_env(:glossia, :features, Glossia.Features.Empty)
-  end
-
-  def changelog do
-    Application.get_env(:glossia, :changelog, Glossia.Changelog.Empty)
+  def marketing do
+    Application.get_env(:glossia, :marketing, Glossia.Marketing.Empty)
   end
 
   def marketing_router do
