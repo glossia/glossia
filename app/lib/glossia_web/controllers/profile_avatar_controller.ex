@@ -21,7 +21,7 @@ defmodule GlossiaWeb.ProfileAvatarController do
   def update(conn, %{"avatar" => %Plug.Upload{} = avatar_upload}) do
     user = conn.assigns.current_user
 
-    with :ok <- Glossia.Policy.authorize(:user_write, user, user),
+    with :ok <- Glossia.Authz.authorize(:user_write, user, user),
          :ok <- validate_upload(avatar_upload),
          {:ok, avatar_path} <- store_avatar(user, avatar_upload),
          {:ok, _updated_user} <-
