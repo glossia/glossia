@@ -49,15 +49,8 @@ defmodule GlossiaWeb.Api.TokenApiController do
               "expires_at" => parse_expires_at(params["expires_in_days"])
             }
 
-            case DeveloperTokens.create_account_token(account, user, attrs) do
+            case DeveloperTokens.create_account_token(account, user, attrs, via: :api) do
               {:ok, %{token: token, plain_token: plain_token}} ->
-                Glossia.Events.emit("token.created", account, user,
-                  resource_type: "account_token",
-                  resource_id: to_string(token.id),
-                  resource_path: "/#{handle}/-/settings/tokens",
-                  summary: "Created account token \"#{token.name}\""
-                )
-
                 conn
                 |> put_status(:created)
                 |> json(%{
@@ -87,15 +80,8 @@ defmodule GlossiaWeb.Api.TokenApiController do
           {:ok, conn} ->
             user = conn.assigns[:current_user]
 
-            case DeveloperTokens.revoke_account_token(id, account.id) do
-              {:ok, token} ->
-                Glossia.Events.emit("token.revoked", account, user,
-                  resource_type: "account_token",
-                  resource_id: to_string(token.id),
-                  resource_path: "/#{handle}/-/settings/tokens",
-                  summary: "Revoked account token \"#{token.name}\""
-                )
-
+            case DeveloperTokens.revoke_account_token(id, account.id, actor: user, via: :api) do
+              {:ok, _token} ->
                 conn |> json(%{status: "revoked"})
 
               {:error, :not_found} ->
