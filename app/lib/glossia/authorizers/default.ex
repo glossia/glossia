@@ -7,12 +7,12 @@ defmodule Glossia.Authorizers.Default do
 
   @impl true
   def required_scope(action) when is_atom(action) do
-    extension().required_scope(action) || policy_scope(action)
+    policy_extension().required_scope(action) || policy_scope(action)
   end
 
   @impl true
   def available_scopes do
-    (policy_scopes() ++ extension().available_scopes())
+    (policy_scopes() ++ policy_extension().available_scopes())
     |> Enum.uniq()
     |> Enum.sort()
   end
@@ -57,7 +57,7 @@ defmodule Glossia.Authorizers.Default do
   end
 
   defp do_authorize(action, subject, object, opts) do
-    case extension().authorize(action, subject, object, opts) do
+    case policy_extension().authorize(action, subject, object, opts) do
       :unknown_action -> Glossia.Policy.authorize(action, subject, object, opts)
       result -> result
     end
@@ -75,5 +75,5 @@ defmodule Glossia.Authorizers.Default do
     |> Enum.map(fn rule -> "#{rule.object}:#{rule.action}" end)
   end
 
-  defp extension, do: Glossia.Extensions.authorizer_extension()
+  defp policy_extension, do: Glossia.Extensions.policy_extension()
 end
