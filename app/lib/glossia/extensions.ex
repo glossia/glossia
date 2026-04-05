@@ -28,7 +28,7 @@ defmodule Glossia.Extensions do
   end
 
   def features do
-    Application.get_env(:glossia, :features, Glossia.Features.Default)
+    Application.get_env(:glossia, :features, Glossia.Features.Empty)
   end
 
   def changelog do
