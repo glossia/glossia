@@ -1,14 +1,18 @@
 defmodule Glossia.Extensions do
   @moduledoc """
-  Resolves optional enterprise extension modules.
+  Resolves optional extension modules.
 
-  Open source Glossia keeps a usable default implementation for each
-  extension point. Enterprise deployments can override these modules in
-  config without changing call sites throughout the app.
+  Glossia keeps a usable default implementation for each extension point.
+  Deployments can override these modules in config without changing call
+  sites throughout the app.
   """
 
   def event_handler do
     Application.get_env(:glossia, :event_handler, Glossia.Events.NoopHandler)
+  end
+
+  def event_log do
+    Application.get_env(:glossia, :event_log, Glossia.EventLog.Empty)
   end
 
   def policy_extension do

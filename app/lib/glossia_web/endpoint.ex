@@ -37,7 +37,7 @@ defmodule GlossiaWeb.Endpoint do
     raise_on_missing_only: code_reloading?
 
   plug Plug.Static,
-    at: "/enterprise-assets",
+    at: "/extension-assets",
     from: :glossia_enterprise,
     gzip: not code_reloading?,
     only: ~w(js),

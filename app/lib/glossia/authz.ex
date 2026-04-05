@@ -1,6 +1,6 @@
 defmodule Glossia.Authz do
   @moduledoc """
-  Authorization facade for the OSS policy plus optional enterprise policy extensions.
+  Authorization facade for the built-in policy plus optional policy extensions.
   """
 
   alias LetMe.Rule

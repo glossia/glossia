@@ -1,6 +1,6 @@
 defmodule Glossia.Events do
   @moduledoc """
-  Facade for emitting imperative domain events from OSS mutation flows.
+  Facade for emitting imperative domain events.
   """
 
   alias Glossia.Events.Event
@@ -14,10 +14,6 @@ defmodule Glossia.Events do
       occurred_at: DateTime.utc_now()
     }
     |> handler().handle_event()
-  end
-
-  def list_events(account_id, opts \\ []) do
-    handler().list_events(account_id, opts)
   end
 
   defp handler, do: Glossia.Extensions.event_handler()
