@@ -32,6 +32,46 @@ defmodule Glossia.Docs do
   def search_index(), do: Glossia.Extensions.docs().search_index()
 end
 
+defmodule Glossia.Docs.Empty do
+  @moduledoc false
+
+  @behaviour Glossia.Docs.Source
+
+  @impl true
+  def all_pages, do: []
+
+  @impl true
+  def categories, do: %{}
+
+  @impl true
+  def pages_by_category(_category), do: []
+
+  @impl true
+  def subcategories_for(_category), do: []
+
+  @impl true
+  def subcategory!(category, key) do
+    raise Glossia.Docs.NotFoundError, "subcategory #{category}/#{key} not found"
+  end
+
+  @impl true
+  def pages_by_subcategory(_category, _subcategory), do: []
+
+  @impl true
+  def get_page!(category, slug) do
+    raise Glossia.Docs.NotFoundError, "doc page with category=#{category} slug=#{slug} not found"
+  end
+
+  @impl true
+  def get_subcategory_page!(category, subcategory, slug) do
+    raise Glossia.Docs.NotFoundError,
+          "doc page with category=#{category} subcategory=#{subcategory} slug=#{slug} not found"
+  end
+
+  @impl true
+  def search_index, do: []
+end
+
 defmodule Glossia.Docs.NotFoundError do
   defexception [:message, plug_status: 404]
 end
