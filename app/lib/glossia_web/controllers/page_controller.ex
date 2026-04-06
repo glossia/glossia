@@ -5,7 +5,7 @@ defmodule GlossiaWeb.PageController do
   alias Glossia.OgImage
 
   def home(conn, _params) do
-    posts = Extensions.marketing().recent_blog_posts(3)
+    posts = Extensions.site().recent_blog_posts(3)
 
     og_attrs = %{
       title: "Glossia",

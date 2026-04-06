@@ -5,7 +5,7 @@ defmodule GlossiaWeb.BlogController do
   alias Glossia.OgImage
 
   def index(conn, _params) do
-    posts = Extensions.marketing().all_blog_posts()
+    posts = Extensions.site().all_blog_posts()
 
     og_attrs = %{
       title: "Blog",
@@ -22,7 +22,7 @@ defmodule GlossiaWeb.BlogController do
   end
 
   def show(conn, %{"slug" => slug}) do
-    post = Extensions.marketing().blog_post_by_slug!(slug)
+    post = Extensions.site().blog_post_by_slug!(slug)
 
     og_attrs = %{
       title: post.title,
@@ -43,7 +43,7 @@ defmodule GlossiaWeb.BlogController do
   end
 
   def feed(conn, _params) do
-    posts = Extensions.marketing().all_blog_posts()
+    posts = Extensions.site().all_blog_posts()
 
     conn
     |> put_resp_content_type("application/xml")

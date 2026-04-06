@@ -72,6 +72,6 @@ defmodule GlossiaWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug GlossiaWeb.Plugs.MarketingMarkdown
+  plug GlossiaWeb.Plugs.SiteMarkdown
   plug GlossiaWeb.Router
 end

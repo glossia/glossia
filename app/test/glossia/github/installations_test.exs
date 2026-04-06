@@ -38,7 +38,7 @@ defmodule Glossia.Github.InstallationsTest do
     membership
   end
 
-  defp installation_attrs(id, login \\ "glossia") do
+  defp installation_attrs(id, login) do
     %{
       github_installation_id: id,
       github_account_login: login,
