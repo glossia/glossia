@@ -426,6 +426,6 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through :public
 
-    forward "/", Plugs.MarketingRouter
+    forward "/", Plugs.SiteRouter
   end
 end

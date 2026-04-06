@@ -19,16 +19,16 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :policy_extension)
   end
 
-  def marketing do
-    Application.get_env(:glossia, :marketing, Glossia.Marketing.Empty)
+  def site do
+    Application.get_env(:glossia, :site, Glossia.Site.Empty)
   end
 
-  def marketing_markdown do
-    Application.get_env(:glossia, :marketing_markdown)
+  def site_markdown do
+    Application.get_env(:glossia, :site_markdown)
   end
 
-  def marketing_router do
-    Application.get_env(:glossia, :marketing_router, Glossia.MarketingRouter.Default)
+  def site_router do
+    Application.get_env(:glossia, :site_router, Glossia.SiteRouter.Default)
   end
 
   def account_nav_sections(sections, assigns) do

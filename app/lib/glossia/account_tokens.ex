@@ -341,7 +341,7 @@ defmodule Glossia.AccountTokens do
         client = Boruta.Ecto.Admin.get_client!(app.boruta_client_id)
         Boruta.Ecto.Admin.delete_client(client)
       end)
-      |> Ecto.Multi.delete(:oauth_application, app)
+      |> Ecto.Multi.delete(:oauth_application, app, allow_stale: true)
       |> Repo.transaction()
       |> case do
         {:ok, _} ->
