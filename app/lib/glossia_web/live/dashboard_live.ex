@@ -35,7 +35,6 @@ defmodule GlossiaWeb.DashboardLive do
     socket =
       case socket.assigns.live_action do
         :account -> apply_url_params_projects(socket, params)
-        :logs -> apply_url_params_logs(socket, params)
         :members -> apply_url_params_members(socket, params)
         :voice -> apply_url_params_voice(socket, params)
         :glossary -> apply_url_params_glossary(socket, params)
@@ -68,34 +67,6 @@ defmodule GlossiaWeb.DashboardLive do
       projects_sort_dir: "asc",
       projects_page: 1,
       breadcrumb_items: []
-    )
-  end
-
-  defp apply_action(socket, :logs, _params) do
-    require_write!(socket)
-    handle = socket.assigns.handle
-
-    socket =
-      if Map.has_key?(socket.assigns, :all_events) do
-        socket
-      else
-        all_events = Glossia.EventLog.list_events(socket.assigns.account.id)
-        event_types = all_events |> Enum.map(& &1.name) |> Enum.uniq() |> Enum.sort()
-
-        assign(socket,
-          page_title: gettext("Logs"),
-          all_events: all_events,
-          event_types: event_types,
-          events_search: "",
-          events_sort_key: "date",
-          events_sort_dir: "desc",
-          events_filters: %{},
-          events_page: 1
-        )
-      end
-
-    assign(socket,
-      breadcrumb_items: [{gettext("Logs"), "/" <> handle <> "/-/logs"}]
     )
   end
 
@@ -2766,18 +2737,6 @@ defmodule GlossiaWeb.DashboardLive do
           handle={@handle}
           can_write={@can_write}
         />
-      <% :logs -> %>
-        <.logs_page
-          handle={@handle}
-          events={@events}
-          event_types={@event_types}
-          search={@events_search}
-          sort_key={@events_sort_key}
-          sort_dir={@events_sort_dir}
-          filters={@events_filters}
-          page={@events_page}
-          total={@events_total}
-        />
       <% :voice -> %>
         <.voice_page
           voice={@voice}
@@ -3115,103 +3074,6 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
   # Page: Logs
   # ---------------------------------------------------------------------------
-
-  defp logs_page(assigns) do
-    assigns =
-      assign(
-        assigns,
-        :type_filter_options,
-        Enum.map(assigns.event_types, fn t -> %{value: t, label: t} end)
-      )
-
-    ~H"""
-    <div class="dash-page">
-      <.page_header
-        title={gettext("Logs")}
-        description={gettext("Audit trail of actions and events for this account.")}
-      />
-
-      <.resource_table
-        id="activity-table"
-        rows={@events}
-        search={@search}
-        search_placeholder={gettext("Search events...")}
-        sort_key={@sort_key}
-        sort_dir={@sort_dir}
-        filters={[%{key: "type", label: gettext("Event type"), options: @type_filter_options}]}
-        active_filters={@filters}
-        page={@page}
-        per_page={25}
-        total={@total}
-      >
-        <:col :let={event} label={gettext("Event")} key="summary" sortable class="activity-event-cell">
-          <% display_summary =
-            if event.summary != "", do: event.summary, else: humanize_event_name(event.name) %>
-          <% normalized_path = normalize_resource_path(event.resource_path) %>
-          <%= if normalized_path != "" do %>
-            <.link navigate={normalized_path} class="activity-event-link">
-              {display_summary}
-            </.link>
-          <% else %>
-            <span>{display_summary}</span>
-          <% end %>
-          <span class="activity-event-name">{event.name}</span>
-        </:col>
-        <:col :let={event} label={gettext("By")} key="actor" sortable class="activity-actor-cell">
-          <%= if event.actor_email != "" do %>
-            <span class="voice-author-chip">
-              <img
-                src={gravatar_url(event.actor_email)}
-                alt=""
-                width="20"
-                height="20"
-                class="voice-author-avatar"
-              />
-              <span>
-                {if event.actor_handle != "",
-                  do: event.actor_handle,
-                  else: event.actor_email}
-              </span>
-            </span>
-          <% else %>
-            <span class="activity-system-actor">{gettext("System")}</span>
-          <% end %>
-        </:col>
-        <:col
-          :let={event}
-          label={gettext("Date")}
-          key="date"
-          sortable
-          class="activity-time-cell"
-        >
-          <time datetime={DateTime.to_iso8601(event.inserted_at)}>
-            {Calendar.strftime(event.inserted_at, "%b %d, %Y %H:%M")}
-          </time>
-        </:col>
-
-        <:empty>
-          <div class="dash-empty-state">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-            </svg>
-            <h2>{gettext("No logs yet")}</h2>
-            <p>{gettext("Events will appear here as you and your team make changes.")}</p>
-          </div>
-        </:empty>
-      </.resource_table>
-    </div>
-    """
-  end
 
   # ---------------------------------------------------------------------------
   # Page: Voice form
@@ -6492,31 +6354,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp setup_pr_url(_events), do: nil
 
-  defp setup_pr_url_from_audit(nil, _project), do: nil
-  defp setup_pr_url_from_audit(_account, nil), do: nil
-
-  defp setup_pr_url_from_audit(account, project) do
-    project_path = "/#{account.handle}/#{project.handle}"
-
-    account.id
-    |> Glossia.EventLog.list_events(limit: 200)
-    |> Enum.find_value(fn event ->
-      if event.name == "project.setup_completed" and event.resource_path == project_path do
-        extract_setup_pr_url(event.summary || "")
-      end
-    end)
-  rescue
-    _ -> nil
-  end
-
-  defp extract_setup_pr_url(text) when is_binary(text) do
-    case Regex.run(~r/https?:\/\/github\.com\/[^\s]+\/pull\/\d+/, text) do
-      [url | _] -> url
-      _ -> nil
-    end
-  end
-
-  defp extract_setup_pr_url(_), do: nil
+  defp setup_pr_url_from_audit(_account, _project), do: nil
 
   # ---------------------------------------------------------------------------
   # Page: New Project (wizard)
@@ -7713,37 +7551,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp non_empty(""), do: nil
   defp non_empty(val), do: val
 
-  defp humanize_event_name(name) do
-    name
-    |> String.replace(".", " ")
-    |> String.replace("_", " ")
-    |> String.capitalize()
-  end
-
-  # Normalize legacy resource paths that predate the /:handle/-/ URL restructure.
-  # Paths like "/dev/voice/3" become "/dev/-/voice/3".
-  # Paths already containing "/-/" or starting with "/admin" are left unchanged.
-  @legacy_path_segments ~w(voice glossary discussions tickets members logs settings)
-  defp normalize_resource_path(""), do: ""
-
-  defp normalize_resource_path(path) when is_binary(path) do
-    if String.contains?(path, "/-/") or String.starts_with?(path, "/admin") do
-      path
-    else
-      case String.split(path, "/", parts: 4) do
-        ["", handle, segment | rest] ->
-          if segment in @legacy_path_segments do
-            "/" <> handle <> "/-/" <> segment <> if(rest != [], do: "/" <> hd(rest), else: "")
-          else
-            path
-          end
-
-        _ ->
-          path
-      end
-    end
-  end
-
   defp list_suggestion_discussions(account, kind) do
     params = %{
       "order_by" => ["inserted_at"],
@@ -8696,7 +8503,6 @@ defmodule GlossiaWeb.DashboardLive do
   # Table ID -> param prefix mapping
   @table_prefixes %{
     "projects-table" => "p",
-    "activity-table" => "",
     "members-table" => "m",
     "invitations-table" => "i",
     "tokens-table" => "t",
@@ -8731,7 +8537,6 @@ defmodule GlossiaWeb.DashboardLive do
 
     path =
       case action do
-        :logs -> "/#{handle}/-/logs"
         :members -> "/#{handle}/-/members"
         :api_tokens -> "/#{handle}/-/settings/tokens"
         :api_apps -> "/#{handle}/-/settings/apps"
@@ -8851,16 +8656,6 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  defp current_table_state(socket, "activity-table") do
-    %{
-      search: socket.assigns[:events_search] || "",
-      sort: socket.assigns[:events_sort_key] || "date",
-      dir: socket.assigns[:events_sort_dir] || "desc",
-      page: socket.assigns[:events_page] || 1,
-      filters: socket.assigns[:events_filters] || %{}
-    }
-  end
-
   defp current_table_state(socket, "members-table") do
     %{
       search: socket.assigns[:members_search] || "",
@@ -8956,7 +8751,6 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp default_sort_key("commits-table"), do: "date"
   defp default_sort_key("projects-table"), do: "name"
-  defp default_sort_key("activity-table"), do: "date"
   defp default_sort_key("members-table"), do: "name"
   defp default_sort_key("invitations-table"), do: "email"
   defp default_sort_key("tokens-table"), do: "name"
@@ -8966,14 +8760,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp default_sort_key("models"), do: "handle"
   defp default_sort_key(_), do: ""
 
-  defp default_sort_dir("activity-table"), do: "desc"
   defp default_sort_dir("discussions-table"), do: "desc"
   defp default_sort_dir("translations-table"), do: "desc"
   defp default_sort_dir("commits-table"), do: "desc"
   defp default_sort_dir(_), do: "asc"
-
-  defp current_sort(socket, "activity-table"),
-    do: {socket.assigns.events_sort_key, socket.assigns.events_sort_dir}
 
   defp current_sort(socket, "members-table"),
     do: {socket.assigns.members_sort_key, socket.assigns.members_sort_dir}
@@ -9009,7 +8799,6 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp current_sort(_socket, _), do: {"", "asc"}
 
-  defp current_filters(socket, "activity-table"), do: socket.assigns.events_filters
   defp current_filters(socket, "members-table"), do: socket.assigns.members_filters
 
   defp current_filters(socket, "discussions-table"),
@@ -9200,18 +8989,6 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket, projects: projects, projects_total: total)
   end
 
-  defp apply_url_params_logs(socket, params) do
-    socket
-    |> assign(
-      events_search: Map.get(params, "q", ""),
-      events_sort_key: Map.get(params, "sort", "date"),
-      events_sort_dir: Map.get(params, "dir", "desc"),
-      events_page: parse_int(Map.get(params, "page"), 1),
-      events_filters: extract_filters(params, "")
-    )
-    |> apply_events_filters()
-  end
-
   defp apply_url_params_members(socket, params) do
     socket
     |> assign(
@@ -9400,73 +9177,6 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp parse_int(val, _default) when is_integer(val), do: val
-
-  # ---------------------------------------------------------------------------
-  # Activity event filtering / sorting / pagination
-  # ---------------------------------------------------------------------------
-
-  @events_per_page 25
-
-  defp apply_events_filters(socket) do
-    %{
-      all_events: all,
-      events_search: search,
-      events_sort_key: sort_key,
-      events_sort_dir: sort_dir,
-      events_filters: filters,
-      events_page: page
-    } = socket.assigns
-
-    filtered =
-      all
-      |> filter_events_by_search(search)
-      |> filter_events_by_filters(filters)
-      |> sort_events(sort_key, sort_dir)
-
-    total = length(filtered)
-    max_page = max(1, ceil(total / @events_per_page))
-    clamped_page = min(max(1, page), max_page)
-    events = Enum.slice(filtered, (clamped_page - 1) * @events_per_page, @events_per_page)
-
-    assign(socket, events: events, events_total: total, events_page: clamped_page)
-  end
-
-  defp filter_events_by_search(events, ""), do: events
-
-  defp filter_events_by_search(events, query) do
-    q = String.downcase(query)
-
-    Enum.filter(events, fn e ->
-      String.contains?(String.downcase(e.summary), q) or
-        String.contains?(String.downcase(e.name), q) or
-        String.contains?(String.downcase(e.actor_handle), q) or
-        String.contains?(String.downcase(e.actor_email), q)
-    end)
-  end
-
-  defp filter_events_by_filters(events, filters) when map_size(filters) == 0, do: events
-
-  defp filter_events_by_filters(events, filters) do
-    Enum.filter(events, fn e ->
-      Enum.all?(filters, fn
-        {"type", values} -> e.name in List.wrap(values)
-        _ -> true
-      end)
-    end)
-  end
-
-  defp sort_events(events, key, dir) do
-    sorter =
-      case key do
-        "summary" -> & &1.summary
-        "actor" -> & &1.actor_handle
-        "date" -> & &1.inserted_at
-        _ -> & &1.inserted_at
-      end
-
-    sorted = Enum.sort_by(events, sorter)
-    if dir == "desc", do: Enum.reverse(sorted), else: sorted
-  end
 
   # ---------------------------------------------------------------------------
   # Members filtering / sorting / pagination
