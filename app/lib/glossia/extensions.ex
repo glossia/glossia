@@ -11,12 +11,12 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :event_handler, Glossia.Events.NoopHandler)
   end
 
-  def event_log do
-    Application.get_env(:glossia, :event_log, Glossia.EventLog.Empty)
-  end
-
   def policy_extension do
     Application.get_env(:glossia, :policy_extension)
+  end
+
+  def account_router do
+    Application.get_env(:glossia, :account_router, Glossia.AccountRouter.Default)
   end
 
   def site do

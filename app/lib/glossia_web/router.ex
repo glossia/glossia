@@ -400,7 +400,6 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/tickets/new", DashboardLive, :discussion_new
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show
       live "/:handle/-/members", DashboardLive, :members
-      live "/:handle/-/logs", DashboardLive, :logs
       live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
       live "/:handle/-/settings/tokens/new", DashboardLive, :api_tokens_new
       live "/:handle/-/settings/tokens/:token_id", DashboardLive, :api_token_edit
@@ -421,6 +420,12 @@ defmodule GlossiaWeb.Router do
       live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
       live "/:handle/:project", DashboardLive, :project
     end
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth, :require_access, :platform]
+
+    get "/:handle/-/*path", AccountRouterController, :show
   end
 
   scope "/", GlossiaWeb do
