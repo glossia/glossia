@@ -19,10 +19,6 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :account_router, Glossia.AccountRouter.Default)
   end
 
-  def site do
-    Application.get_env(:glossia, :site, Glossia.Site.Empty)
-  end
-
   def site_markdown do
     Application.get_env(:glossia, :site_markdown)
   end

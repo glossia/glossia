@@ -180,18 +180,12 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through :public
 
-    get "/", PageController, :home
-    get "/blog", BlogController, :index
-    get "/blog/feed.xml", BlogController, :feed
-    get "/blog/:slug", BlogController, :show
     get "/terms", LegalController, :terms
     get "/terms/:date", LegalController, :terms
     get "/privacy", LegalController, :privacy
     get "/privacy/:date", LegalController, :privacy
     get "/cookies", LegalController, :cookies
     get "/cookies/:date", LegalController, :cookies
-
-    get "/sitemap.xml", SitemapController, :show
   end
 
   scope "/", GlossiaWeb do
