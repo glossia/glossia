@@ -190,9 +190,6 @@ defmodule GlossiaWeb.Router do
 
   scope "/", GlossiaWeb do
     pipe_through [:browser, :require_auth]
-
-    get "/interest", WaitlistController, :new
-    post "/interest", WaitlistController, :create
   end
 
   scope "/", GlossiaWeb do
@@ -420,6 +417,13 @@ defmodule GlossiaWeb.Router do
     pipe_through [:browser, :require_auth, :require_access, :platform]
 
     get "/:handle/-/*path", AccountRouterController, :show
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth]
+
+    get "/*path", AuthenticatedRouterController, :show
+    post "/*path", AuthenticatedRouterController, :show
   end
 
   scope "/", GlossiaWeb do
