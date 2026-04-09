@@ -19,6 +19,10 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :account_router, Glossia.AccountRouter.Default)
   end
 
+  def authenticated_router do
+    Application.get_env(:glossia, :authenticated_router, Glossia.AuthenticatedRouter.Default)
+  end
+
   def site_markdown do
     Application.get_env(:glossia, :site_markdown)
   end
