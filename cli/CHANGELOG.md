@@ -57,7 +57,7 @@ All notable changes to this project will be documented in this file.
 - Add format checking with Biome.
 - Add Progressive Refinement section to homepage.
 - Add blog section with SEO support and first blog post.
-- Update blog post with install instructions and open source closing.
+- Update blog post with install instructions and revised closing copy.
 - Add experimental phase warning admonition to README.
 - Unify CLI output with right-aligned verb format.
 - Colorize CLI output with richer message formatting.
