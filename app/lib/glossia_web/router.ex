@@ -177,15 +177,34 @@ defmodule GlossiaWeb.Router do
     get "/app/:handle/:project/:hash", OgImageController, :project
   end
 
+  scope "/docs", GlossiaWeb do
+    pipe_through :api
+
+    get "/search.json", RetiredPublicController, :search_index
+  end
+
   scope "/", GlossiaWeb do
     pipe_through :public
 
+    get "/", PageController, :home
+    get "/blog", RetiredPublicController, :show
+    get "/blog/feed.xml", RetiredPublicController, :show
+    get "/blog/:slug", RetiredPublicController, :show
+    get "/features", RetiredPublicController, :show
+    get "/features/:slug", RetiredPublicController, :show
+    get "/changelog", RetiredPublicController, :show
+    get "/changelog/feed.xml", RetiredPublicController, :show
+    get "/docs", RetiredPublicController, :show
+    get "/docs/:category", RetiredPublicController, :show
+    get "/docs/:category/:subcategory/:slug", RetiredPublicController, :show
+    get "/docs/:category/:slug", RetiredPublicController, :show
     get "/terms", LegalController, :terms
     get "/terms/:date", LegalController, :terms
     get "/privacy", LegalController, :privacy
     get "/privacy/:date", LegalController, :privacy
     get "/cookies", LegalController, :cookies
     get "/cookies/:date", LegalController, :cookies
+    get "/sitemap.xml", RetiredPublicController, :show
   end
 
   scope "/", GlossiaWeb do
