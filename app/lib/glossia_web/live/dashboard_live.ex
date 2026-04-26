@@ -159,8 +159,7 @@ defmodule GlossiaWeb.DashboardLive do
         )
 
     {voice, original_voice, overrides, original_overrides, target_countries, cultural_notes,
-     voice_form_params,
-     change_summary} =
+     voice_form_params, change_summary} =
       case draft do
         %{
           voice: draft_voice,
