@@ -4,7 +4,6 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
   alias Glossia.ChangesetErrors
   alias Glossia.Accounts
   alias Glossia.Accounts.Account
-  alias Glossia.Auditing
   alias Glossia.Organizations
   alias GlossiaWeb.ApiAuthorization
   alias Glossia.Repo
@@ -47,15 +46,10 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
         handle = params["handle"]
         name = params["name"] || handle
 
-        case Organizations.create_organization(user, %{"handle" => handle, "name" => name}) do
+        case Organizations.create_organization(user, %{"handle" => handle, "name" => name},
+               via: :api
+             ) do
           {:ok, %{account: account, organization: org}} ->
-            Auditing.record("organization.created", account, user,
-              resource_type: "organization",
-              resource_id: to_string(org.id),
-              resource_path: ~p"/#{account.handle}",
-              summary: "Created organization \"#{account.handle}\""
-            )
-
             conn
             |> put_status(:created)
             |> json(%{handle: account.handle, name: org.name, type: "organization"})
@@ -78,21 +72,14 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
 
   def update(conn, %{"handle" => handle} = params) do
     with_authorized_org(conn, handle, :organization_write, fn conn, org ->
+      user = conn.assigns[:current_user]
+
       update_attrs =
         params
         |> Map.take(["name", "visibility"])
 
-      case Organizations.update_organization(org, update_attrs) do
+      case Organizations.update_organization(org, update_attrs, actor: user, via: :api) do
         {:ok, org} ->
-          user = conn.assigns[:current_user]
-
-          Auditing.record("organization.updated", org.account, user,
-            resource_type: "organization",
-            resource_id: to_string(org.id),
-            resource_path: ~p"/#{org.account.handle}",
-            summary: "Updated organization \"#{org.account.handle}\""
-          )
-
           json(conn, %{
             handle: org.account.handle,
             name: org.name,
@@ -110,17 +97,10 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
 
   def delete(conn, %{"handle" => handle}) do
     with_authorized_org(conn, handle, :organization_delete, fn conn, org ->
-      case Organizations.delete_organization(org) do
+      user = conn.assigns[:current_user]
+
+      case Organizations.delete_organization(org, actor: user, via: :api) do
         {:ok, _} ->
-          user = conn.assigns[:current_user]
-
-          Auditing.record("organization.deleted", org.account, user,
-            resource_type: "organization",
-            resource_id: to_string(org.id),
-            resource_path: ~p"/#{org.account.handle}",
-            summary: "Deleted organization \"#{org.account.handle}\""
-          )
-
           send_resp(conn, :no_content, "")
 
         {:error, changeset} ->
@@ -165,14 +145,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
             |> put_status(:conflict)
             |> json(%{error: "Cannot remove the only admin of the organization"})
           else
-            Organizations.remove_member(org, target_user)
-
-            Auditing.record("member.removed", org.account, user,
-              resource_type: "member",
-              resource_id: to_string(target_user.id),
-              resource_path: "/#{handle}/-/members",
-              summary: "Removed #{user_handle} from the organization"
-            )
+            Organizations.remove_member(org, target_user, actor: user, via: :api)
 
             send_resp(conn, :no_content, "")
           end
@@ -203,15 +176,8 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
     user = conn.assigns[:current_user]
 
     with_authorized_org(conn, handle, :members_write, fn conn, org ->
-      case Organizations.create_invitation(org, user, params) do
+      case Organizations.create_invitation(org, user, params, via: :api) do
         {:ok, invitation} ->
-          Auditing.record("member.invited", org.account, user,
-            resource_type: "invitation",
-            resource_id: to_string(invitation.id),
-            resource_path: "/#{handle}/-/members",
-            summary: "Invited #{invitation.email} as #{invitation.role}"
-          )
-
           conn
           |> put_status(:created)
           |> json(%{
@@ -251,15 +217,8 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
           |> json(%{error: "Invitation not found"})
 
         invitation ->
-          case Organizations.revoke_invitation(invitation) do
+          case Organizations.revoke_invitation(invitation, actor: user, via: :api) do
             {:ok, _} ->
-              Auditing.record("member.invitation_revoked", org.account, user,
-                resource_type: "invitation",
-                resource_id: to_string(invitation.id),
-                resource_path: "/#{handle}/-/members",
-                summary: "Revoked invitation for #{invitation.email}"
-              )
-
               send_resp(conn, :no_content, "")
 
             {:error, changeset} ->

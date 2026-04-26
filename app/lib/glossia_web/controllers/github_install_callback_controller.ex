@@ -74,7 +74,7 @@ defmodule GlossiaWeb.GithubInstallCallbackController do
 
     case fetch_and_create_installation(account, installation_id) do
       {:ok, installation} ->
-        Glossia.Auditing.record("github_installation.created", account, user,
+        Glossia.Events.emit("github_installation.created", account, user,
           resource_type: "github_installation",
           resource_id: to_string(installation.id),
           resource_path: "/#{account.handle}/-/settings/github",

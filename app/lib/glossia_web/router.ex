@@ -180,39 +180,35 @@ defmodule GlossiaWeb.Router do
   scope "/docs", GlossiaWeb do
     pipe_through :api
 
-    get "/search.json", DocsController, :search_index
+    get "/search.json", RetiredPublicController, :search_index
   end
 
   scope "/", GlossiaWeb do
     pipe_through :public
 
     get "/", PageController, :home
-    get "/blog", BlogController, :index
-    get "/blog/feed.xml", BlogController, :feed
-    get "/blog/:slug", BlogController, :show
-    get "/features", FeatureController, :index
-    get "/features/:slug", FeatureController, :show
-    get "/changelog", ChangelogController, :index
-    get "/changelog/feed.xml", ChangelogController, :feed
-    get "/docs", DocsController, :index
-    get "/docs/:category", DocsController, :category
-    get "/docs/:category/:subcategory/:slug", DocsController, :subcategory_page
-    get "/docs/:category/:slug", DocsController, :show
+    get "/blog", RetiredPublicController, :show
+    get "/blog/feed.xml", RetiredPublicController, :show
+    get "/blog/:slug", RetiredPublicController, :show
+    get "/features", RetiredPublicController, :show
+    get "/features/:slug", RetiredPublicController, :show
+    get "/changelog", RetiredPublicController, :show
+    get "/changelog/feed.xml", RetiredPublicController, :show
+    get "/docs", RetiredPublicController, :show
+    get "/docs/:category", RetiredPublicController, :show
+    get "/docs/:category/:subcategory/:slug", RetiredPublicController, :show
+    get "/docs/:category/:slug", RetiredPublicController, :show
     get "/terms", LegalController, :terms
     get "/terms/:date", LegalController, :terms
     get "/privacy", LegalController, :privacy
     get "/privacy/:date", LegalController, :privacy
     get "/cookies", LegalController, :cookies
     get "/cookies/:date", LegalController, :cookies
-
-    get "/sitemap.xml", SitemapController, :show
+    get "/sitemap.xml", RetiredPublicController, :show
   end
 
   scope "/", GlossiaWeb do
     pipe_through [:browser, :require_auth]
-
-    get "/interest", WaitlistController, :new
-    post "/interest", WaitlistController, :create
   end
 
   scope "/", GlossiaWeb do
@@ -414,7 +410,6 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/tickets/new", DashboardLive, :discussion_new
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show
       live "/:handle/-/members", DashboardLive, :members
-      live "/:handle/-/logs", DashboardLive, :logs
       live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
       live "/:handle/-/settings/tokens/new", DashboardLive, :api_tokens_new
       live "/:handle/-/settings/tokens/:token_id", DashboardLive, :api_token_edit
@@ -435,5 +430,24 @@ defmodule GlossiaWeb.Router do
       live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
       live "/:handle/:project", DashboardLive, :project
     end
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth, :require_access, :platform]
+
+    get "/:handle/-/*path", AccountRouterController, :show
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth]
+
+    get "/*path", AuthenticatedRouterController, :show
+    post "/*path", AuthenticatedRouterController, :show
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through :public
+
+    forward "/", Plugs.SiteRouter
   end
 end

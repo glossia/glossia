@@ -11,7 +11,7 @@ defmodule Glossia.Projects.Setup do
 
   require Logger
 
-  alias Glossia.{Auditing, Ingestion, Projects}
+  alias Glossia.{Events, Ingestion, Projects}
 
   @doc """
   Runs setup for the given project ID. Broadcasts status updates via PubSub
@@ -49,7 +49,7 @@ defmodule Glossia.Projects.Setup do
     Projects.update_project_setup_status(project, "running")
     Projects.broadcast_setup_status(project, "running")
 
-    Auditing.record("project.setup_started", account, nil,
+    Events.emit("project.setup_started", account, nil,
       resource_type: "project",
       resource_id: to_string(project.id),
       resource_path: "/#{account.handle}/#{project.handle}",
@@ -75,7 +75,7 @@ defmodule Glossia.Projects.Setup do
           Projects.update_project_setup_status(project, "completed")
           Projects.broadcast_setup_status(project, "completed")
 
-          Auditing.record("project.setup_completed", account, nil,
+          Events.emit("project.setup_completed", account, nil,
             resource_type: "project",
             resource_id: to_string(project.id),
             resource_path: "/#{account.handle}/#{project.handle}",
@@ -92,7 +92,7 @@ defmodule Glossia.Projects.Setup do
           Projects.update_project_setup_status(project, "completed")
           Projects.broadcast_setup_status(project, "completed")
 
-          Auditing.record("project.setup_completed", account, nil,
+          Events.emit("project.setup_completed", account, nil,
             resource_type: "project",
             resource_id: to_string(project.id),
             resource_path: "/#{account.handle}/#{project.handle}",
@@ -109,7 +109,7 @@ defmodule Glossia.Projects.Setup do
           Projects.update_project_setup_status(project, "failed", error_msg)
           Projects.broadcast_setup_status(project, "failed")
 
-          Auditing.record("project.setup_failed", account, nil,
+          Events.emit("project.setup_failed", account, nil,
             resource_type: "project",
             resource_id: to_string(project.id),
             resource_path: "/#{account.handle}/#{project.handle}",
@@ -132,7 +132,7 @@ defmodule Glossia.Projects.Setup do
         Projects.update_project_setup_status(project, "failed", error_msg)
         Projects.broadcast_setup_status(project, "failed")
 
-        Auditing.record("project.setup_failed", account, nil,
+        Events.emit("project.setup_failed", account, nil,
           resource_type: "project",
           resource_id: to_string(project.id),
           resource_path: "/#{account.handle}/#{project.handle}",

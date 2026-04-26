@@ -22,7 +22,19 @@ defmodule Glossia.LLMModelsTest do
 
   describe "create_model/3" do
     test "creates a model with valid attrs", %{user: user, account: account} do
-      assert {:ok, model} = LLMModels.create_model(account, user, valid_attrs())
+      assert {:ok, model} =
+               TestHelpers.expect_event(
+                 "llm_model.created",
+                 fn ->
+                   LLMModels.create_model(account, user, valid_attrs())
+                 end,
+                 %{
+                   {:opt, :resource_type} => "llm_model",
+                   :account_id => account.id,
+                   :user_id => user.id
+                 }
+               )
+
       assert model.handle
       assert model.model == "anthropic:claude-sonnet-4-20250514"
       assert model.account_id == account.id
@@ -64,10 +76,20 @@ defmodule Glossia.LLMModelsTest do
       {:ok, model} = LLMModels.create_model(account, user, valid_attrs())
 
       assert {:ok, updated} =
-               LLMModels.update_model(account, user, model, %{
-                 "handle" => "updated-handle",
-                 "model" => "openai:gpt-4o"
-               })
+               TestHelpers.expect_event(
+                 "llm_model.updated",
+                 fn ->
+                   LLMModels.update_model(account, user, model, %{
+                     "handle" => "updated-handle",
+                     "model" => "openai:gpt-4o"
+                   })
+                 end,
+                 %{
+                   {:opt, :resource_type} => "llm_model",
+                   :account_id => account.id,
+                   :user_id => user.id
+                 }
+               )
 
       assert updated.handle == "updated-handle"
       assert updated.model == "openai:gpt-4o"
@@ -96,7 +118,20 @@ defmodule Glossia.LLMModelsTest do
   describe "delete_model/3" do
     test "deletes the model", %{user: user, account: account} do
       {:ok, model} = LLMModels.create_model(account, user, valid_attrs())
-      assert {:ok, _deleted} = LLMModels.delete_model(account, user, model)
+
+      assert {:ok, _deleted} =
+               TestHelpers.expect_event(
+                 "llm_model.deleted",
+                 fn ->
+                   LLMModels.delete_model(account, user, model)
+                 end,
+                 %{
+                   {:opt, :resource_type} => "llm_model",
+                   :account_id => account.id,
+                   :user_id => user.id
+                 }
+               )
+
       assert LLMModels.get_model(model.id, account.id) == nil
     end
   end

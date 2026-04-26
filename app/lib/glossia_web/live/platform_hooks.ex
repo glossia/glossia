@@ -43,7 +43,7 @@ defmodule GlossiaWeb.PlatformHooks do
         raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
 
       account ->
-        if Glossia.Policy.authorize?(:project_read, user, account) do
+        if Glossia.Authz.authorize?(:project_read, user, account) do
           accounts =
             if user do
               {:ok, {accounts, _meta}} = Accounts.list_user_accounts(user)
@@ -80,13 +80,13 @@ defmodule GlossiaWeb.PlatformHooks do
   def on_mount(:check_write, _params, _session, socket) do
     user = socket.assigns[:current_user]
     account = socket.assigns[:account]
-    can_write = Glossia.Policy.authorize?(:project_write, user, account)
-    is_admin = Glossia.Policy.authorize?(:project_admin, user, account)
-    can_voice_read = Glossia.Policy.authorize?(:voice_read, user, account)
-    can_voice_write = Glossia.Policy.authorize?(:voice_write, user, account)
-    can_glossary_read = Glossia.Policy.authorize?(:glossary_read, user, account)
-    can_glossary_write = Glossia.Policy.authorize?(:glossary_write, user, account)
-    can_discussion_write = Glossia.Policy.authorize?(:discussion_write, user, account)
+    can_write = Glossia.Authz.authorize?(:project_write, user, account)
+    is_admin = Glossia.Authz.authorize?(:project_admin, user, account)
+    can_voice_read = Glossia.Authz.authorize?(:voice_read, user, account)
+    can_voice_write = Glossia.Authz.authorize?(:voice_write, user, account)
+    can_glossary_read = Glossia.Authz.authorize?(:glossary_read, user, account)
+    can_glossary_write = Glossia.Authz.authorize?(:glossary_write, user, account)
+    can_discussion_write = Glossia.Authz.authorize?(:discussion_write, user, account)
 
     can_voice_propose = can_discussion_write
     can_glossary_propose = can_discussion_write
