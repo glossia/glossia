@@ -283,11 +283,12 @@
                 open: @live_action in [:members],
                 items:
                   [
-                    assigns[:is_admin] and @account.type == "organization" && %{
-                      label: gettext("Members"),
-                      navigate: "/#{@handle}/-/members",
-                      active: @live_action == :members
-                    }
+                    (assigns[:is_admin] and @account.type == "organization") &&
+                      %{
+                        label: gettext("Members"),
+                        navigate: "/#{@handle}/-/members",
+                        active: @live_action == :members
+                      }
                   ]
                   |> Enum.reject(&is_nil/1)
               }
@@ -297,7 +298,9 @@
               items =
                 section
                 |> Map.get(:items, [])
-                |> Enum.map(fn item -> Map.update(item, :active, false, fn active -> active end) end)
+                |> Enum.map(fn item ->
+                  Map.update(item, :active, false, fn active -> active end)
+                end)
 
               section
               |> Map.put(:items, items)
