@@ -3,7 +3,7 @@ defmodule Glossia.MCP.ListTokensTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
 
@@ -15,7 +15,7 @@ defmodule Glossia.MCP.ListTokensTool do
   def execute(%{"handle" => handle}, frame) do
     with {:ok, user, account} <- Auth.fetch_context(frame, handle),
          :ok <- Auth.authorize(frame, :api_credentials_read, user, account) do
-      {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
+      {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account)
 
       response =
         Response.tool()

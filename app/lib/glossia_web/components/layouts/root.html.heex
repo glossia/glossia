@@ -4,7 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="Glossia · The language OS for your organization" suffix=" · Glossia">
+    <.live_title
+      default={gettext("Glossia")}
+      suffix={if(assigns[:page_title], do: " · Glossia", else: "")}
+    >
       {assigns[:page_title]}
     </.live_title>
     <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
@@ -35,12 +38,6 @@
       }
     />
     <meta name="twitter:image" content={assigns[:og_image_url] || ~p"/images/logo-squared.jpg"} />
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title="Glossia Blog"
-      href={~p"/blog/feed.xml"}
-    />
     <%= if assigns[:author] do %>
       <link rel="me" href={@author.mastodon} />
       <meta
@@ -48,7 +45,16 @@
         content={"@" <> String.trim_leading(URI.parse(@author.x).path, "/")}
       />
     <% end %>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/styles.css"} />
+    <link
+      phx-track-static
+      rel="stylesheet"
+      href={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:stylesheet] || "/assets/styles.css"
+        )
+      }
+    />
     <%= if sentry_dsn = Application.get_env(:glossia, :sentry_dsn_js) do %>
       <meta name="sentry-dsn" content={sentry_dsn} />
       <meta
@@ -63,23 +69,19 @@
       >
       </script>
     <% end %>
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    <script
+      defer
+      phx-track-static
+      type="text/javascript"
+      src={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:javascript] || "/assets/js/app.js"
+        )
+      }
+    >
     </script>
-    <script>
-      window.Prism = window.Prism || {}; Prism.manual = true;
-    </script>
-    <script defer src={~p"/assets/js/prism.min.js"}>
-    </script>
-    <script defer src={~p"/assets/js/prism-bash.min.js"}>
-    </script>
-    <script defer src={~p"/assets/js/prism-toml.min.js"}>
-    </script>
-    <script defer src={~p"/assets/js/prism-json.min.js"}>
-    </script>
-    <script defer src={~p"/assets/js/code-blocks.js"}>
-    </script>
-    
-<!-- Privacy-friendly analytics by Plausible -->
+    <!-- Privacy-friendly analytics by Plausible -->
     <script async src="https://analytics.glossia.ai/js/pa-84qsYWfrw3GEhImM-L9G4.js">
     </script>
     <script>

@@ -8,7 +8,7 @@ defmodule Glossia.LLMModels do
   import Ecto.Query
 
   alias Glossia.Accounts.{Account, LLMModel, User}
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Repo
 
   def list_models(%Account{} = account, params \\ %{}) do
@@ -47,7 +47,7 @@ defmodule Glossia.LLMModels do
       |> Repo.insert()
 
     with {:ok, model} <- result do
-      Auditing.record("llm_model.created", account, user,
+      Events.emit("llm_model.created", account, user,
         resource_type: "llm_model",
         resource_id: to_string(model.id),
         resource_path: ~p"/#{account.handle}/-/settings/models",
@@ -65,7 +65,7 @@ defmodule Glossia.LLMModels do
       |> Repo.update()
 
     with {:ok, updated} <- result do
-      Auditing.record("llm_model.updated", account, user,
+      Events.emit("llm_model.updated", account, user,
         resource_type: "llm_model",
         resource_id: to_string(updated.id),
         resource_path: ~p"/#{account.handle}/-/settings/models/#{updated.id}",
@@ -80,7 +80,7 @@ defmodule Glossia.LLMModels do
     result = Repo.delete(model)
 
     with {:ok, deleted} <- result do
-      Auditing.record("llm_model.deleted", account, user,
+      Events.emit("llm_model.deleted", account, user,
         resource_type: "llm_model",
         resource_id: to_string(deleted.id),
         resource_path: ~p"/#{account.handle}/-/settings/models",

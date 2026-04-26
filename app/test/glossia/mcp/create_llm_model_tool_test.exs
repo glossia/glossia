@@ -33,7 +33,17 @@ defmodule Glossia.MCP.CreateLLMModelToolTest do
       params = valid_params(account)
 
       assert {:reply, response, _frame} =
-               CreateLLMModelTool.execute(params, frame_for(user))
+               TestHelpers.expect_event(
+                 "llm_model.created",
+                 fn ->
+                   CreateLLMModelTool.execute(params, frame_for(user))
+                 end,
+                 %{
+                   {:opt, :resource_type} => "llm_model",
+                   :account_id => account.id,
+                   :user_id => user.id
+                 }
+               )
 
       [content] = response.content
       result = JSON.decode!(content["text"])

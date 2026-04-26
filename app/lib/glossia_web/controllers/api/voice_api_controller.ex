@@ -71,15 +71,8 @@ defmodule GlossiaWeb.Api.VoiceApiController do
 
             user = conn.assigns[:current_user]
 
-            case Voices.create_voice(account, attrs, user) do
+            case Voices.create_voice(account, attrs, user, via: :api) do
               {:ok, %{voice: voice, overrides: overrides}} ->
-                Glossia.Auditing.record("voice.created", account, user,
-                  resource_type: "voice",
-                  resource_id: to_string(voice.version),
-                  resource_path: "/#{handle}/-/voice/#{voice.version}",
-                  summary: "Updated voice configuration"
-                )
-
                 voice = %{voice | overrides: overrides}
 
                 conn

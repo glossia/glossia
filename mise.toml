@@ -2,9 +2,7 @@
 erlang = "latest"
 elixir = "latest"
 go = "1.22.0"
-fnox = "1.7.0"
 aws-cli = "2"
-"gem:kamal" = "2.9.0"
 ruby = "3.4.7"
 
 [env]

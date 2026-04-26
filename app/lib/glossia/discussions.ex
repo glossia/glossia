@@ -7,6 +7,7 @@ defmodule Glossia.Discussions do
 
   import Ecto.Query
 
+  alias Glossia.Events
   alias Glossia.Repo
   alias Glossia.Accounts.{Account, Project, User}
   alias Glossia.Discussions.{Discussion, DiscussionComment}
@@ -87,7 +88,7 @@ defmodule Glossia.Discussions do
     )
   end
 
-  def create_discussion(%Account{} = account, %User{} = user, attrs) do
+  def create_discussion(%Account{} = account, %User{} = user, attrs, opts \\ []) do
     Tracer.with_span "glossia.discussions.create_discussion" do
       Tracer.set_attributes([
         {"glossia.account.id", to_string(account.id)},
@@ -127,6 +128,17 @@ defmodule Glossia.Discussions do
       |> case do
         {:ok, discussion} ->
           Tracer.set_attributes([{"glossia.discussion.number", discussion.number}])
+
+          {event_name, summary} = discussion_event_metadata(discussion, attrs)
+
+          Events.emit(event_name, account, user,
+            resource_type: "discussion",
+            resource_id: to_string(discussion.id),
+            resource_path: "/#{account.handle}/-/discussions/#{discussion.number}",
+            summary: summary,
+            via: Keyword.get(opts, :via)
+          )
+
           {:ok, discussion}
 
         {:error, {:validation, changeset}} ->
@@ -138,7 +150,7 @@ defmodule Glossia.Discussions do
     end
   end
 
-  def close_discussion(%Discussion{} = discussion, %User{} = user) do
+  def close_discussion(%Discussion{} = discussion, %User{} = user, opts \\ []) do
     Tracer.with_span "glossia.discussions.close_discussion" do
       Tracer.set_attributes([
         {"glossia.discussion.id", to_string(discussion.id)},
@@ -152,10 +164,27 @@ defmodule Glossia.Discussions do
         closed_by_id: user.id
       })
       |> Repo.update()
+      |> case do
+        {:ok, updated} = ok ->
+          account = discussion_account(updated)
+
+          Events.emit("discussion.closed", account, user,
+            resource_type: "discussion",
+            resource_id: to_string(updated.id),
+            resource_path: "/#{account.handle}/-/discussions/#{updated.number}",
+            summary: "Closed discussion \"#{updated.title}\"",
+            via: Keyword.get(opts, :via)
+          )
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
 
-  def reopen_discussion(%Discussion{} = discussion) do
+  def reopen_discussion(%Discussion{} = discussion, %User{} = user, opts \\ []) do
     Tracer.with_span "glossia.discussions.reopen_discussion" do
       Tracer.set_attributes([{"glossia.discussion.id", to_string(discussion.id)}])
 
@@ -166,12 +195,29 @@ defmodule Glossia.Discussions do
         closed_by_id: nil
       })
       |> Repo.update()
+      |> case do
+        {:ok, updated} = ok ->
+          account = discussion_account(updated)
+
+          Events.emit("discussion.reopened", account, user,
+            resource_type: "discussion",
+            resource_id: to_string(updated.id),
+            resource_path: "/#{account.handle}/-/discussions/#{updated.number}",
+            summary: "Reopened discussion \"#{updated.title}\"",
+            via: Keyword.get(opts, :via)
+          )
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
 
   # --- Comments ---
 
-  def add_comment(%Discussion{} = discussion, %User{} = user, attrs) do
+  def add_comment(%Discussion{} = discussion, %User{} = user, attrs, opts \\ []) do
     Tracer.with_span "glossia.discussions.add_comment" do
       Tracer.set_attributes([
         {"glossia.discussion.id", to_string(discussion.id)},
@@ -183,8 +229,93 @@ defmodule Glossia.Discussions do
       |> Ecto.Changeset.put_change(:discussion_id, discussion.id)
       |> Ecto.Changeset.put_change(:user_id, user.id)
       |> Repo.insert()
+      |> case do
+        {:ok, _comment} = ok ->
+          account = discussion_account(discussion)
+
+          Events.emit("discussion.commented", account, user,
+            resource_type: "discussion",
+            resource_id: to_string(discussion.id),
+            resource_path: "/#{account.handle}/-/discussions/#{discussion.number}",
+            summary: "Commented on discussion \"#{discussion.title}\"",
+            via: Keyword.get(opts, :via)
+          )
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
+
+  def mark_suggestion_applied(
+        %Discussion{} = discussion,
+        %User{} = user,
+        kind,
+        version,
+        opts \\ []
+      )
+      when kind in [:voice, :glossary] do
+    account = discussion_account(discussion)
+
+    maybe_close_discussion(discussion, user, opts)
+
+    _ =
+      add_comment(discussion, user, %{body: applied_comment(kind, version)},
+        via: Keyword.get(opts, :via)
+      )
+
+    Events.emit("#{kind}.suggestion.applied", account, user,
+      resource_type: "discussion",
+      resource_id: to_string(discussion.id),
+      resource_path: "/#{account.handle}/-/discussions/#{discussion.number}",
+      summary: "Applied #{kind} suggestion ##{discussion.number} as version ##{version}",
+      via: Keyword.get(opts, :via)
+    )
+
+    :ok
+  end
+
+  defp discussion_event_metadata(discussion, attrs) do
+    case attrs[:kind] || attrs["kind"] do
+      "voice_suggestion" ->
+        {"voice.suggested", attrs[:title] || attrs["title"] || discussion.title}
+
+      "glossary_suggestion" ->
+        metadata = attrs[:metadata] || attrs["metadata"] || %{}
+
+        {"glossary.suggested",
+         metadata["change_note"] || attrs[:title] || attrs["title"] || discussion.title}
+
+      _ ->
+        {"discussion.created", "Created discussion \"#{discussion.title}\""}
+    end
+  end
+
+  defp discussion_account(%Discussion{account: %Account{} = account}), do: account
+  defp discussion_account(%Discussion{account_id: account_id}), do: Repo.get!(Account, account_id)
+
+  defp maybe_close_discussion(%{status: "open"} = discussion, user, opts) do
+    _ = close_discussion(discussion, user, opts)
+    :ok
+  end
+
+  defp maybe_close_discussion(_discussion, _user, _opts), do: :ok
+
+  defp applied_comment(:voice, version),
+    do:
+      Gettext.gettext(GlossiaWeb.Gettext, "Applied this suggestion as voice version #%{version}.",
+        version: version
+      )
+
+  defp applied_comment(:glossary, version),
+    do:
+      Gettext.gettext(
+        GlossiaWeb.Gettext,
+        "Applied this suggestion as glossary version #%{version}.",
+        version: version
+      )
 
   def change_discussion(attrs \\ %{}) do
     Discussion.changeset(%Discussion{}, attrs)
