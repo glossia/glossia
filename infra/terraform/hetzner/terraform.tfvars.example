@@ -1,0 +1,33 @@
+# Prefer exporting TF_VAR_hcloud_token from your shell or loading it from
+# 1Password instead of storing the token in a file.
+# hcloud_token = "replace-me"
+
+cluster_name   = "glossia"
+location       = "fsn1"
+network_region = "eu-central"
+
+ssh_public_key_path  = "~/.ssh/id_ed25519.pub"
+ssh_private_key_path = "~/.ssh/id_ed25519"
+
+control_plane_count       = 3
+control_plane_server_type = "cx23"
+
+# Set this to false when running fewer than three control planes.
+# The wrapper defaults to false automatically for non-HA clusters, but
+# keeping it explicit in local tfvars can make the tradeoff easier to spot.
+# automatically_upgrade_os = false
+
+app_node_count       = 2
+app_node_server_type = "cx23"
+
+stateful_node_count       = 3
+stateful_node_server_type = "cx33"
+
+# Optional: enable k3s etcd snapshots to an S3-compatible bucket.
+# etcd_s3_backup = {
+#   etcd-s3-endpoint   = "objects.example.com"
+#   etcd-s3-access-key = "replace-me"
+#   etcd-s3-secret-key = "replace-me"
+#   etcd-s3-bucket     = "glossia-k3s-etcd"
+#   etcd-s3-region     = "eu-central"
+# }

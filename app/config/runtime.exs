@@ -160,6 +160,9 @@ if config_env() == :prod do
       protocol -> raise "unsupported OTEL_EXPORTER_OTLP_PROTOCOL=#{inspect(protocol)}"
     end
 
+  otel_exporter_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT")
+  enable_otel_exporter = is_binary(otel_exporter_endpoint) and otel_exporter_endpoint != ""
+
   metrics_bearer_token =
     System.get_env("GLOSSIA_METRICS_BEARER_TOKEN") ||
       raise """
@@ -181,7 +184,8 @@ if config_env() == :prod do
 
   otel_service_name = System.get_env("OTEL_SERVICE_NAME", "glossia-web")
   otel_deployment_environment = System.get_env("OTEL_DEPLOYMENT_ENVIRONMENT", "production")
-  loki_url = System.get_env("GLOSSIA_LOKI_URL", "http://glossia-loki:3100")
+  loki_url = System.get_env("GLOSSIA_LOKI_URL")
+  enable_loki_logging = is_binary(loki_url) and loki_url != ""
   loki_org_id = System.get_env("GLOSSIA_LOKI_ORG_ID", "fake")
   sentry_dsn = System.get_env("GLOSSIA_SENTRY_DSN")
   sentry_dsn_js = System.get_env("GLOSSIA_SENTRY_DSN_JS")
@@ -256,7 +260,6 @@ if config_env() == :prod do
 
   config :opentelemetry,
     span_processor: :batch,
-    traces_exporter: :otlp,
     resource: [
       service: %{
         name: otel_service_name,
@@ -267,24 +270,32 @@ if config_env() == :prod do
       }
     ]
 
-  config :opentelemetry_exporter,
-    otlp_protocol: otel_protocol,
-    otlp_endpoint: System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT", "http://glossia-alloy:4317")
+  if enable_otel_exporter do
+    config :opentelemetry, traces_exporter: :otlp
 
-  config :logger, :backends, [:console, Glossia.Logger.LokiBackend]
+    config :opentelemetry_exporter,
+      otlp_protocol: otel_protocol,
+      otlp_endpoint: otel_exporter_endpoint
+  end
 
-  config :logger, Glossia.Logger.LokiBackend,
-    level: :info,
-    metadata: [:request_id, :trace_id, :span_id],
-    max_buffer: 20,
-    flush_interval_ms: 1_000,
-    url: loki_url,
-    org_id: loki_org_id,
-    labels: %{
-      service: otel_service_name,
-      environment: otel_deployment_environment,
-      source: "elixir-runtime"
-    }
+  if enable_loki_logging do
+    config :logger, :backends, [:console, Glossia.Logger.LokiBackend]
+
+    config :logger, Glossia.Logger.LokiBackend,
+      level: :info,
+      metadata: [:request_id, :trace_id, :span_id],
+      max_buffer: 20,
+      flush_interval_ms: 1_000,
+      url: loki_url,
+      org_id: loki_org_id,
+      labels: %{
+        service: otel_service_name,
+        environment: otel_deployment_environment,
+        source: "elixir-runtime"
+      }
+  else
+    config :logger, :backends, [:console]
+  end
 
   secret_key_base =
     System.get_env("GLOSSIA_SECRET_KEY_BASE") ||

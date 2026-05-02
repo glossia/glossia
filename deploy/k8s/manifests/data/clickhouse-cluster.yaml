@@ -1,0 +1,63 @@
+apiVersion: clickhouse.com/v1alpha1
+kind: KeeperCluster
+metadata:
+  name: glossia-keeper
+  namespace: glossia
+spec:
+  replicas: 1
+  dataVolumeClaimSpec:
+    storageClassName: hcloud-volumes
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+  podTemplate:
+    nodeSelector:
+      node-role.glossia.ai/stateful: "true"
+    tolerations:
+      - key: node-role.glossia.ai/stateful
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+  containerTemplate:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+---
+apiVersion: clickhouse.com/v1alpha1
+kind: ClickHouseCluster
+metadata:
+  name: glossia-clickhouse
+  namespace: glossia
+spec:
+  replicas: 1
+  dataVolumeClaimSpec:
+    storageClassName: hcloud-volumes
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 100Gi
+  keeperClusterRef:
+    name: glossia-keeper
+  podTemplate:
+    nodeSelector:
+      node-role.glossia.ai/stateful: "true"
+    tolerations:
+      - key: node-role.glossia.ai/stateful
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+  containerTemplate:
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi

@@ -1,0 +1,14 @@
+.terraform/
+.terraform.tfvars
+terraform.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfstate
+*.tfstate.backup
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+glossia_kubeconfig.yaml
+glossia_kustomization_backup.yaml

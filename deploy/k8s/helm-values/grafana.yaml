@@ -1,0 +1,72 @@
+plugins:
+  - grafana-clickhouse-datasource
+
+admin:
+  existingSecret: grafana-admin
+  userKey: admin-user
+  passwordKey: admin-password
+
+envFromSecret: grafana-datasource-env
+
+grafana.ini:
+  server:
+    domain: data.glossia.ai
+    root_url: https://data.glossia.ai
+
+service:
+  type: ClusterIP
+
+persistence:
+  enabled: true
+  storageClassName: hcloud-volumes
+  size: 10Gi
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Postgres
+        uid: postgres
+        type: postgres
+        access: proxy
+        url: glossia-postgres-rw.glossia.svc.cluster.local:5432
+        user: glossia
+        editable: false
+        jsonData:
+          database: glossia_prod
+          sslmode: disable
+          postgresVersion: 1700
+        secureJsonData:
+          password: ${GRAFANA_POSTGRES_PASSWORD}
+      - name: ClickHouse
+        uid: clickhouse
+        type: grafana-clickhouse-datasource
+        access: proxy
+        editable: false
+        jsonData:
+          host: glossia-clickhouse-headless.glossia.svc.cluster.local
+          port: 9000
+          protocol: native
+          defaultDatabase: glossia
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  hosts:
+    - data.glossia.ai
+  path: /
+  tls:
+    - secretName: data-glossia-ai-tls
+      hosts:
+        - data.glossia.ai
+
+nodeSelector:
+  node-role.glossia.ai/stateful: "true"
+
+tolerations:
+  - key: node-role.glossia.ai/stateful
+    operator: Equal
+    value: "true"
+    effect: NoSchedule

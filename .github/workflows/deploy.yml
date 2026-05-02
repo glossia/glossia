@@ -11,6 +11,9 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      packages: write
     concurrency:
       group: deploy-production
       cancel-in-progress: false
@@ -26,7 +29,171 @@ jobs:
       - name: Install tools
         run: mise install
 
+      - name: Select secret source
+        id: secret-source
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          if [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
+            echo "source=1password" >> "$GITHUB_OUTPUT"
+          else
+            echo "source=fnox" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Select deploy mode
+        id: deploy-mode
+        env:
+          SECRET_SOURCE: ${{ steps.secret-source.outputs.source }}
+          K8S_KUBECONFIG_B64: ${{ secrets.K8S_KUBECONFIG_B64 }}
+        run: |
+          if [ "${SECRET_SOURCE}" = "1password" ] || [ -n "${K8S_KUBECONFIG_B64:-}" ]; then
+            echo "mode=k8s" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=kamal" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Load Kubernetes secrets from 1Password
+        if: steps.deploy-mode.outputs.mode == 'k8s' && steps.secret-source.outputs.source == '1password'
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: ./deploy/1password/load-kubernetes-env.sh --github-env "$GITHUB_ENV" --require K8S_KUBECONFIG_B64
+
+      - name: Install kubectl and Helm
+        if: steps.deploy-mode.outputs.mode == 'k8s'
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          curl -fsSL -o kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -m 0755 kubectl /usr/local/bin/kubectl
+          rm -f kubectl
+          kubectl version --client
+          helm version
+
+      - name: Write kubeconfig from 1Password
+        if: steps.deploy-mode.outputs.mode == 'k8s' && steps.secret-source.outputs.source == '1password'
+        run: |
+          if [ -z "${K8S_KUBECONFIG_B64:-}" ]; then
+            echo "::error::Missing K8S_KUBECONFIG_B64 in 1Password"
+            exit 1
+          fi
+
+          printf '%s' "$K8S_KUBECONFIG_B64" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+
+      - name: Write kubeconfig from GitHub secret
+        if: steps.deploy-mode.outputs.mode == 'k8s' && steps.secret-source.outputs.source == 'fnox'
+        env:
+          K8S_KUBECONFIG_B64: ${{ secrets.K8S_KUBECONFIG_B64 }}
+        run: |
+          printf '%s' "$K8S_KUBECONFIG_B64" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        if: steps.deploy-mode.outputs.mode == 'k8s'
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        if: steps.deploy-mode.outputs.mode == 'k8s'
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: app
+          file: app/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:main
+
+      - name: Render Kubernetes secrets from 1Password
+        if: steps.deploy-mode.outputs.mode == 'k8s' && steps.secret-source.outputs.source == '1password'
+        run: |
+          kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
+          ./deploy/k8s/render-secrets.sh | kubectl apply -f -
+
+      - name: Render Kubernetes secrets from fnox
+        if: steps.deploy-mode.outputs.mode == 'k8s' && steps.secret-source.outputs.source == 'fnox'
+        env:
+          GLOSSIA_AGE_KEY: ${{ secrets.GLOSSIA_AGE_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${GLOSSIA_AGE_KEY:-}" ]; then
+            echo "::error::Missing GLOSSIA_AGE_KEY secret"
+            exit 1
+          fi
+
+          mkdir -p ~/.config/fnox
+          printf '%s\n' "$GLOSSIA_AGE_KEY" > ~/.config/fnox/glossia-age.txt
+          chmod 600 ~/.config/fnox/glossia-age.txt
+
+          tmp_fnox_env="$(mktemp)"
+          fnox export --format env | sed -e '/^#/d' -e '/^$/d' -e 's/^export //' > "$tmp_fnox_env"
+
+          set -a
+          source "$tmp_fnox_env"
+          set +a
+
+          kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
+          ./deploy/k8s/render-secrets.sh | kubectl apply -f -
+
+          rm -f "$tmp_fnox_env"
+
+      - name: Create GHCR pull secret from 1Password
+        if: steps.deploy-mode.outputs.mode == 'k8s' && steps.secret-source.outputs.source == '1password'
+        run: |
+          if [ -z "${GHCR_PULL_USERNAME:-}" ] || [ -z "${GHCR_PULL_TOKEN:-}" ]; then
+            exit 0
+          fi
+
+          kubectl -n glossia create secret docker-registry ghcr-pull-secret \
+            --docker-server=ghcr.io \
+            --docker-username="$GHCR_PULL_USERNAME" \
+            --docker-password="$GHCR_PULL_TOKEN" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Create GHCR pull secret from GitHub secrets
+        if: steps.deploy-mode.outputs.mode == 'k8s' && steps.secret-source.outputs.source == 'fnox'
+        env:
+          GHCR_PULL_USERNAME: ${{ secrets.GHCR_PULL_USERNAME }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+        run: |
+          if [ -z "${GHCR_PULL_USERNAME:-}" ] || [ -z "${GHCR_PULL_TOKEN:-}" ]; then
+            exit 0
+          fi
+
+          kubectl -n glossia create secret docker-registry ghcr-pull-secret \
+            --docker-server=ghcr.io \
+            --docker-username="$GHCR_PULL_USERNAME" \
+            --docker-password="$GHCR_PULL_TOKEN" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Deploy to Kubernetes
+        if: steps.deploy-mode.outputs.mode == 'k8s'
+        run: |
+          helm_args=()
+
+          if kubectl -n glossia get secret ghcr-pull-secret >/dev/null 2>&1; then
+            helm_args+=(--set imagePullSecrets[0].name=ghcr-pull-secret)
+          fi
+
+          helm upgrade --install glossia deploy/helm/glossia \
+            --namespace glossia \
+            --create-namespace \
+            --values deploy/k8s/helm-values/glossia-production.yaml \
+            --set image.repository="ghcr.io/${GITHUB_REPOSITORY}" \
+            --set image.tag="${GITHUB_SHA}" \
+            "${helm_args[@]}"
+
+          kubectl rollout status deployment/glossia -n glossia --timeout=10m
+
       - name: Add server host key
+        if: steps.deploy-mode.outputs.mode == 'kamal'
         run: |
           mkdir -p ~/.ssh
           ssh-keygen -R 89.167.60.202 >/dev/null 2>&1 || true
@@ -34,6 +201,7 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
 
       - name: Deploy with Kamal
+        if: steps.deploy-mode.outputs.mode == 'kamal'
         run: |
           set -euo pipefail
 

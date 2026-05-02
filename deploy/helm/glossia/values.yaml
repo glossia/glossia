@@ -1,0 +1,65 @@
+fullnameOverride: ""
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/example/glossia
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  port: 80
+  targetPort: 4050
+
+ingress:
+  enabled: false
+  className: traefik
+  annotations: {}
+  hosts:
+    - host: glossia.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+secrets:
+  envSecretName: glossia-app-env
+
+env:
+  GLOSSIA_HOST: glossia.example.com
+  OTEL_SERVICE_NAME: glossia-web
+  OTEL_DEPLOYMENT_ENVIRONMENT: production
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: glossia
+          topologyKey: kubernetes.io/hostname
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+migrationJob:
+  enabled: true
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  clickhouseInitImage: curlimages/curl:8.12.1
