@@ -1,0 +1,53 @@
+{{- if .Values.migrationJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "glossia.fullname" . }}-clickhouse-init
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrationJob.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.migrationJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "glossia.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: clickhouse-init
+          image: {{ .Values.migrationJob.clickhouseInitImage | quote }}
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              if [ -z "${GLOSSIA_CLICKHOUSE_URL:-}" ]; then
+                exit 0
+              fi
+
+              clickhouse_base_url="${GLOSSIA_CLICKHOUSE_URL%/*}"
+              clickhouse_database="${GLOSSIA_CLICKHOUSE_URL##*/}"
+
+              until curl -fsS "${clickhouse_base_url}/ping" | grep -q "Ok."; do
+                sleep 2
+              done
+
+              curl --fail --show-error --silent \
+                -X POST \
+                "${clickhouse_base_url}/" \
+                --data-binary "CREATE DATABASE IF NOT EXISTS ${clickhouse_database}"
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.envSecretName }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
