@@ -1,9 +1,17 @@
 # Glossia
 
-To start your Phoenix server:
+The web app lives in this directory. Repository-wide conventions for this app live in [AGENTS.md](./AGENTS.md).
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Local development
+
+From the repository root:
+
+```bash
+mise install
+cd app
+mix setup
+mix phx.server
+```
 
 ## Worktree-aware databases
 
@@ -12,14 +20,17 @@ No `.codex` setup is required: each Git worktree gets isolated Postgres and Clic
 
 Set `GLOSSIA_DB_SUFFIX` only if you need to override the automatic suffix.
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+The dev server port also scopes per worktree via `GLOSSIA_SERVER_PORT`, which is loaded automatically through `mise`.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+After the server boots, visit `http://localhost:${GLOSSIA_SERVER_PORT}`. If that variable is unset in your shell, the runtime falls back to `4050`.
+
+## Production
+
+Production deploys are managed from the repository root through GitHub Actions in `.github/workflows/` and target the Hetzner Kubernetes cluster.
 
 ## Learn more
 
-* Official website: https://www.phoenixframework.org/
-* Guides: https://hexdocs.pm/phoenix/overview.html
-* Docs: https://hexdocs.pm/phoenix
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+* Glossia docs: https://glossia.ai/docs
+* Phoenix guides: https://hexdocs.pm/phoenix/overview.html
+* Phoenix docs: https://hexdocs.pm/phoenix
+* Elixir Forum: https://elixirforum.com/c/phoenix-forum
