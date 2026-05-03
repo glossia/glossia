@@ -22,15 +22,6 @@ jobs:
       - name: Install tools
         run: mise install
 
-      - name: Require 1Password service account
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          if [ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
-            echo "::error::Missing OP_SERVICE_ACCOUNT_TOKEN in the production environment"
-            exit 1
-          fi
-
       - name: Load Kubernetes secrets from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
