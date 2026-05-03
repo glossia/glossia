@@ -10,13 +10,13 @@ import Config
 # ## Using releases
 #
 # If you use `mix release`, you need to explicitly enable the server
-# by passing the GLOSSIA_PHX_SERVER=true when you start it:
+# by passing GLOSSIA_PHX_SERVER=true or PHX_SERVER=true when you start it:
 #
 #     GLOSSIA_PHX_SERVER=true bin/glossia start
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
-if System.get_env("GLOSSIA_PHX_SERVER") do
+if System.get_env("GLOSSIA_PHX_SERVER") || System.get_env("PHX_SERVER") do
   config :glossia, GlossiaWeb.Endpoint, server: true
 end
 
