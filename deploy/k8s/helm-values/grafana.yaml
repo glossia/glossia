@@ -44,7 +44,7 @@ datasources:
         access: proxy
         editable: false
         jsonData:
-          host: glossia-clickhouse-headless.glossia.svc.cluster.local
+          host: glossia-clickhouse-clickhouse-headless.glossia.svc.cluster.local
           port: 9000
           protocol: native
           defaultDatabase: glossia

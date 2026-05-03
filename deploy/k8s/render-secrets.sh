@@ -9,7 +9,7 @@ postgres_user="${GLOSSIA_POSTGRES_USER:-glossia}"
 postgres_db="${GLOSSIA_POSTGRES_DB:-glossia_prod}"
 clickhouse_db="${GLOSSIA_CLICKHOUSE_DB:-glossia}"
 postgres_host="${GLOSSIA_POSTGRES_HOST:-glossia-postgres-rw.${namespace}.svc.cluster.local}"
-clickhouse_host="${GLOSSIA_CLICKHOUSE_HOST:-glossia-clickhouse-headless.${namespace}.svc.cluster.local}"
+clickhouse_host="${GLOSSIA_CLICKHOUSE_HOST:-glossia-clickhouse-clickhouse-headless.${namespace}.svc.cluster.local}"
 
 require_env() {
   local name="$1"
