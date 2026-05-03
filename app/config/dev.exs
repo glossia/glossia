@@ -103,7 +103,7 @@ config :phoenix_live_view,
 
 # OAuth providers are configured at runtime via config/runtime.exs
 # which reads GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITLAB_CLIENT_ID,
-# and GITLAB_CLIENT_SECRET from environment variables (e.g. via fnox).
+# and GITLAB_CLIENT_SECRET from environment variables loaded into the shell.
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

@@ -1,22 +1,15 @@
-name: Deploy Production
+name: Bootstrap Kubernetes Cluster
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  bootstrap:
+    name: Bootstrap Kubernetes Cluster
     runs-on: ubuntu-latest
     environment: production
     permissions:
       contents: read
-      packages: write
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -50,23 +43,6 @@ jobs:
           chmod 600 "$RUNNER_TEMP/kubeconfig"
           echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
 
-      - name: Log in to GHCR
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: app
-          file: app/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}:main
-
       - name: Render Kubernetes secrets from 1Password
         run: |
           mise exec -- kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
@@ -85,20 +61,5 @@ jobs:
             --dry-run=client \
             -o yaml | mise exec -- kubectl apply -f -
 
-      - name: Deploy to Kubernetes
-        run: |
-          helm_args=()
-
-          if mise exec -- kubectl -n glossia get secret ghcr-pull-secret >/dev/null 2>&1; then
-            helm_args+=(--set imagePullSecrets[0].name=ghcr-pull-secret)
-          fi
-
-          mise exec -- helm upgrade --install glossia deploy/helm/glossia \
-            --namespace glossia \
-            --create-namespace \
-            --values deploy/k8s/helm-values/glossia-production.yaml \
-            --set image.repository="ghcr.io/${GITHUB_REPOSITORY}" \
-            --set image.tag="${GITHUB_SHA}" \
-            "${helm_args[@]}"
-
-          mise exec -- kubectl rollout status deployment/glossia -n glossia --timeout=10m
+      - name: Bootstrap cluster services
+        run: mise exec -- ./deploy/k8s/bootstrap-cluster.sh
