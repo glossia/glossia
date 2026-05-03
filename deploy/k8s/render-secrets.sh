@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-namespace="${GLOSSIA_NAMESPACE:-glossia}"
-monitoring_namespace="${GLOSSIA_MONITORING_NAMESPACE:-monitoring}"
-cert_manager_namespace="${GLOSSIA_CERT_MANAGER_NAMESPACE:-cert-manager}"
-networking_namespace="${GLOSSIA_NETWORKING_NAMESPACE:-networking}"
-postgres_user="${GLOSSIA_POSTGRES_USER:-glossia}"
-postgres_db="${GLOSSIA_POSTGRES_DB:-glossia_prod}"
-clickhouse_db="${GLOSSIA_CLICKHOUSE_DB:-glossia}"
-postgres_host="${GLOSSIA_POSTGRES_HOST:-glossia-postgres-rw.${namespace}.svc.cluster.local}"
-clickhouse_host="${GLOSSIA_CLICKHOUSE_HOST:-glossia-clickhouse-clickhouse-headless.${namespace}.svc.cluster.local}"
+namespace="${GLOSSIA_K8S_NAMESPACE:-glossia}"
+monitoring_namespace="${GLOSSIA_K8S_MONITORING_NAMESPACE:-monitoring}"
+cert_manager_namespace="${GLOSSIA_K8S_CERT_MANAGER_NAMESPACE:-cert-manager}"
+networking_namespace="${GLOSSIA_K8S_NETWORKING_NAMESPACE:-networking}"
+postgres_user="${GLOSSIA_K8S_POSTGRES_USER:-glossia}"
+postgres_db="${GLOSSIA_K8S_POSTGRES_DB:-glossia_prod}"
+clickhouse_db="${GLOSSIA_K8S_CLICKHOUSE_DB:-glossia}"
+postgres_host="${GLOSSIA_K8S_POSTGRES_HOST:-glossia-postgres-rw.${namespace}.svc.cluster.local}"
+clickhouse_host="${GLOSSIA_K8S_CLICKHOUSE_HOST:-glossia-clickhouse-clickhouse-headless.${namespace}.svc.cluster.local}"
 
 require_env() {
   local name="$1"

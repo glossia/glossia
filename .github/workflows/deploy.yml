@@ -70,7 +70,7 @@ jobs:
       - name: Render Kubernetes secrets from 1Password
         run: |
           mise exec -- kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
-          mise exec -- ./deploy/k8s/render-secrets.sh | mise exec -- kubectl apply -f -
+          ./deploy/k8s/render-secrets.sh | mise exec -- kubectl apply -f -
 
       - name: Create GHCR pull secret from 1Password
         run: |

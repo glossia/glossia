@@ -47,6 +47,7 @@ emit_env() {
   local value="$2"
 
   if [[ -n "${github_env}" ]]; then
+    mask_value "${value}"
     local delimiter="OP_ENV_${key}_$$"
     {
       printf '%s<<%s\n' "${key}" "${delimiter}"
@@ -56,6 +57,25 @@ emit_env() {
   else
     export "${key}=${value}"
   fi
+}
+
+github_escape() {
+  local value="$1"
+
+  value="${value//'%'/'%25'}"
+  value="${value//$'\r'/'%0D'}"
+  value="${value//$'\n'/'%0A'}"
+
+  printf '%s' "${value}"
+}
+
+mask_value() {
+  local value="$1"
+
+  [[ -n "${github_env}" ]] || return 0
+  [[ -n "${value}" ]] || return 0
+
+  printf '::add-mask::%s\n' "$(github_escape "${value}")"
 }
 
 while [[ $# -gt 0 ]]; do
