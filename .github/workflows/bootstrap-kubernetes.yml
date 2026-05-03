@@ -22,19 +22,16 @@ jobs:
       - name: Install tools
         run: mise install
 
-      - name: Select secret source
-        id: secret-source
+      - name: Require 1Password service account
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          if [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
-            echo "source=1password" >> "$GITHUB_OUTPUT"
-          else
-            echo "source=fnox" >> "$GITHUB_OUTPUT"
+          if [ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
+            echo "::error::Missing OP_SERVICE_ACCOUNT_TOKEN in the production environment"
+            exit 1
           fi
 
       - name: Load Kubernetes secrets from 1Password
-        if: steps.secret-source.outputs.source == '1password'
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: ./deploy/1password/load-kubernetes-env.sh --github-env "$GITHUB_ENV" --require K8S_KUBECONFIG_B64
@@ -49,7 +46,6 @@ jobs:
           helm version
 
       - name: Write kubeconfig from 1Password
-        if: steps.secret-source.outputs.source == '1password'
         run: |
           if [ -z "${K8S_KUBECONFIG_B64:-}" ]; then
             echo "::error::Missing K8S_KUBECONFIG_B64 in 1Password"
@@ -60,73 +56,12 @@ jobs:
           chmod 600 "$RUNNER_TEMP/kubeconfig"
           echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
 
-      - name: Write kubeconfig from GitHub secret
-        if: steps.secret-source.outputs.source == 'fnox'
-        env:
-          K8S_KUBECONFIG_B64: ${{ secrets.K8S_KUBECONFIG_B64 }}
-        run: |
-          if [ -z "${K8S_KUBECONFIG_B64:-}" ]; then
-            echo "::error::Missing K8S_KUBECONFIG_B64 secret"
-            exit 1
-          fi
-
-          printf '%s' "$K8S_KUBECONFIG_B64" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
-          chmod 600 "$RUNNER_TEMP/kubeconfig"
-          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
-
       - name: Render Kubernetes secrets from 1Password
-        if: steps.secret-source.outputs.source == '1password'
         run: |
           kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
           ./deploy/k8s/render-secrets.sh | kubectl apply -f -
-
-      - name: Render Kubernetes secrets from fnox
-        if: steps.secret-source.outputs.source == 'fnox'
-        env:
-          GLOSSIA_AGE_KEY: ${{ secrets.GLOSSIA_AGE_KEY }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "${GLOSSIA_AGE_KEY:-}" ]; then
-            echo "::error::Missing GLOSSIA_AGE_KEY secret"
-            exit 1
-          fi
-
-          mkdir -p ~/.config/fnox
-          printf '%s\n' "$GLOSSIA_AGE_KEY" > ~/.config/fnox/glossia-age.txt
-          chmod 600 ~/.config/fnox/glossia-age.txt
-
-          tmp_fnox_env="$(mktemp)"
-          fnox export --format env | sed -e '/^#/d' -e '/^$/d' -e 's/^export //' > "$tmp_fnox_env"
-
-          set -a
-          source "$tmp_fnox_env"
-          set +a
-
-          kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
-          ./deploy/k8s/render-secrets.sh | kubectl apply -f -
-
-          rm -f "$tmp_fnox_env"
 
       - name: Create GHCR pull secret from 1Password
-        if: steps.secret-source.outputs.source == '1password'
-        run: |
-          if [ -z "${GHCR_PULL_USERNAME:-}" ] || [ -z "${GHCR_PULL_TOKEN:-}" ]; then
-            exit 0
-          fi
-
-          kubectl -n glossia create secret docker-registry ghcr-pull-secret \
-            --docker-server=ghcr.io \
-            --docker-username="$GHCR_PULL_USERNAME" \
-            --docker-password="$GHCR_PULL_TOKEN" \
-            --dry-run=client \
-            -o yaml | kubectl apply -f -
-
-      - name: Create GHCR pull secret from GitHub secrets
-        if: steps.secret-source.outputs.source == 'fnox'
-        env:
-          GHCR_PULL_USERNAME: ${{ secrets.GHCR_PULL_USERNAME }}
-          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
         run: |
           if [ -z "${GHCR_PULL_USERNAME:-}" ] || [ -z "${GHCR_PULL_TOKEN:-}" ]; then
             exit 0
