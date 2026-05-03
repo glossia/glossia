@@ -1,5 +1,9 @@
 # Discourse image
 
+This documents the legacy single-host accessory deployment in `config/deploy.yml`.
+The primary Glossia application no longer deploys through that path, but the Discourse accessory
+configuration is kept here while the surrounding legacy stack still exists.
+
 The production Discourse deployment uses a custom image defined in
 `config/discourse/Dockerfile`.
 

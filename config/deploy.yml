@@ -1,3 +1,6 @@
+# Legacy single-host deployment configuration retained for auxiliary services and migration reference.
+# The active Glossia production application deploy path is GitHub Actions -> Hetzner Kubernetes.
+
 service: glossia
 image: glossia/glossia
 
