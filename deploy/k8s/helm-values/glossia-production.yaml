@@ -1,0 +1,31 @@
+fullnameOverride: glossia
+
+replicaCount: 2
+
+env:
+  GLOSSIA_HOST: glossia.ai
+  OTEL_SERVICE_NAME: glossia-web
+  OTEL_DEPLOYMENT_ENVIRONMENT: production
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  hosts:
+    - host: glossia.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: glossia-ai-tls
+      hosts:
+        - glossia.ai
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 768Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi

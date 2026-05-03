@@ -1,0 +1,37 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: glossia-postgres
+  namespace: glossia
+spec:
+  instances: 3
+
+  bootstrap:
+    initdb:
+      database: glossia_prod
+      owner: glossia
+      secret:
+        name: glossia-postgres-app
+
+  storage:
+    storageClass: hcloud-volumes
+    size: 50Gi
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    nodeSelector:
+      node-role.glossia.ai/stateful: "true"
+    tolerations:
+      - key: node-role.glossia.ai/stateful
+        operator: Equal
+        value: "true"
+        effect: NoSchedule

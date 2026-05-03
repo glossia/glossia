@@ -1,0 +1,31 @@
+fullnameOverride: external-dns
+
+provider:
+  name: cloudflare
+
+sources:
+  - ingress
+
+policy: upsert-only
+registry: txt
+txtOwnerId: glossia-production
+
+domainFilters:
+  - glossia.ai
+
+triggerLoopOnEvent: true
+
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-token
+        key: CF_API_TOKEN
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
