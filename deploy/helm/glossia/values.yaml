@@ -29,6 +29,7 @@ secrets:
 
 env:
   GLOSSIA_HOST: glossia.example.com
+  GLOSSIA_PHX_SERVER: "true"
   OTEL_SERVICE_NAME: glossia-web
   OTEL_DEPLOYMENT_ENVIRONMENT: production
 
