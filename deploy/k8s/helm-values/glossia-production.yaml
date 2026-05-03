@@ -1,6 +1,12 @@
 fullnameOverride: glossia
 
-replicaCount: 2
+replicaCount: 1
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
 
 env:
   GLOSSIA_HOST: glossia.ai
