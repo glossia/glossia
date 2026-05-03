@@ -40,8 +40,8 @@ defmodule GlossiaWeb.OpenApiSpec do
   end
 
   defp build_scopes do
-    Glossia.Policy.list_rules()
-    |> Enum.map(fn rule -> {"#{rule.object}:#{rule.action}", ""} end)
+    Glossia.Authz.available_scopes()
+    |> Enum.map(&{&1, ""})
     |> Map.new()
   end
 

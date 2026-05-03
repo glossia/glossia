@@ -25,7 +25,7 @@ defmodule GlossiaWeb.Admin.ImpersonationController do
       target = Accounts.get_user(user_id)
 
       if target do
-        Glossia.Auditing.record("admin.impersonation_started", admin.account, admin,
+        Glossia.Events.emit("admin.impersonation_started", admin.account, admin,
           resource_type: "user",
           resource_id: to_string(target.id),
           summary: "#{admin.email} started impersonating #{target.email}",
@@ -63,7 +63,7 @@ defmodule GlossiaWeb.Admin.ImpersonationController do
       if admin do
         target = conn.assigns.current_user
 
-        Glossia.Auditing.record("admin.impersonation_ended", admin.account, admin,
+        Glossia.Events.emit("admin.impersonation_ended", admin.account, admin,
           resource_type: "user",
           resource_id: if(target, do: to_string(target.id), else: ""),
           summary:

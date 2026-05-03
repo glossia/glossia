@@ -1,2 +1,0 @@
-#!/bin/bash
-echo "Skipping SSL setup (TLS is terminated by the legacy kamal-proxy layer)"

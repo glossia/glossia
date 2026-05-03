@@ -2,6 +2,7 @@ defmodule Glossia.Glossaries do
   require OpenTelemetry.Tracer, as: Tracer
 
   alias Glossia.Accounts.{Account, User, Glossary, GlossaryEntry, GlossaryTranslation}
+  alias Glossia.Events
   alias Glossia.Repo
 
   import Ecto.Query
@@ -62,7 +63,7 @@ defmodule Glossia.Glossaries do
     end
   end
 
-  def create_glossary(%Account{id: account_id}, attrs, user \\ nil) do
+  def create_glossary(%Account{id: account_id} = account, attrs, user \\ nil, opts \\ []) do
     Tracer.with_span "glossia.glossaries.create_glossary" do
       Tracer.set_attributes([
         {"glossia.account.id", to_string(account_id)},
@@ -93,6 +94,17 @@ defmodule Glossia.Glossaries do
       |> case do
         {:ok, %{glossary: glossary}} = ok ->
           Tracer.set_attributes([{"glossia.glossary.version", glossary.version}])
+
+          if match?(%User{}, user) do
+            Events.emit("glossary.created", account, user,
+              resource_type: "glossary",
+              resource_id: to_string(glossary.version),
+              resource_path: "/#{account.handle}/-/glossary/#{glossary.version}",
+              summary: glossary.change_note || "Updated glossary.",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
           ok
 
         other ->

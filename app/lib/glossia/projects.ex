@@ -2,27 +2,70 @@ defmodule Glossia.Projects do
   require OpenTelemetry.Tracer, as: Tracer
 
   alias Glossia.Accounts.{Account, Project}
+  alias Glossia.Events
   alias Glossia.Repo
 
   import Ecto.Query
 
-  def create_project(%Account{id: account_id}, attrs) do
+  def create_project(%Account{id: account_id} = account, attrs, opts \\ []) do
     Tracer.with_span "glossia.projects.create_project" do
       Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
 
       %Project{account_id: account_id}
       |> Project.changeset(attrs)
       |> Repo.insert()
+      |> case do
+        {:ok, project} = ok ->
+          if actor = Keyword.get(opts, :actor) do
+            Events.emit("project.created", account, actor,
+              resource_type: "project",
+              resource_id: to_string(project.id),
+              resource_path: "/#{account.handle}/#{project.handle}",
+              summary: "Created project #{project.handle}",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
 
-  def create_project_from_github(%Account{id: account_id}, installation_id, attrs) do
+  def create_project_from_github(
+        %Account{id: account_id} = account,
+        installation_id,
+        attrs,
+        opts \\ []
+      ) do
     Tracer.with_span "glossia.projects.create_project_from_github" do
       Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
 
       %Project{account_id: account_id, github_installation_id: installation_id}
       |> Project.changeset(attrs)
       |> Repo.insert()
+      |> case do
+        {:ok, project} = ok ->
+          if actor = Keyword.get(opts, :actor) do
+            repo_name =
+              attrs[:github_repo_full_name] || attrs["github_repo_full_name"] || project.handle
+
+            Events.emit("project.created", account, actor,
+              resource_type: "project",
+              resource_id: to_string(project.id),
+              resource_path: "/#{account.handle}/#{project.handle}",
+              summary: "Imported project #{project.handle} from #{repo_name}",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
 
@@ -76,13 +119,32 @@ defmodule Glossia.Projects do
     end
   end
 
-  def update_project(%Project{} = project, attrs) do
+  def update_project(%Project{} = project, attrs, opts \\ []) do
     Tracer.with_span "glossia.projects.update_project" do
       Tracer.set_attributes([{"glossia.project.id", to_string(project.id)}])
 
       project
       |> Project.settings_changeset(attrs)
       |> Repo.update()
+      |> case do
+        {:ok, updated_project} = ok ->
+          if actor = Keyword.get(opts, :actor) do
+            account = Repo.preload(updated_project, :account).account
+
+            Events.emit("project.updated", account, actor,
+              resource_type: "project",
+              resource_id: to_string(updated_project.id),
+              resource_path: "/#{account.handle}/#{updated_project.handle}",
+              summary: "Updated project settings for \"#{updated_project.name}\"",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
+          ok
+
+        other ->
+          other
+      end
     end
   end
 

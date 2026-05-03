@@ -5,7 +5,6 @@ defmodule Glossia.MCP.SaveGlossaryTool do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
-  alias Glossia.Auditing
   alias Glossia.Glossaries
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -32,15 +31,8 @@ defmodule Glossia.MCP.SaveGlossaryTool do
         entries: params["entries"] || []
       }
 
-      case Glossaries.create_glossary(account, attrs, user) do
+      case Glossaries.create_glossary(account, attrs, user, via: :mcp) do
         {:ok, %{glossary: glossary, entries: entries}} ->
-          Auditing.record("glossary.created", account, user,
-            resource_type: "glossary",
-            resource_id: to_string(glossary.version),
-            resource_path: "/#{handle}/-/glossary/#{glossary.version}",
-            summary: glossary.change_note || "Updated glossary."
-          )
-
           response =
             Response.tool()
             |> Response.text(

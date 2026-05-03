@@ -2,6 +2,7 @@ defmodule Glossia.Voices do
   require OpenTelemetry.Tracer, as: Tracer
 
   alias Glossia.Accounts.{Account, User, Voice, VoiceOverride}
+  alias Glossia.Events
   alias Glossia.Repo
 
   import Ecto.Query
@@ -62,7 +63,7 @@ defmodule Glossia.Voices do
     end
   end
 
-  def create_voice(%Account{id: account_id}, attrs, user \\ nil) do
+  def create_voice(%Account{id: account_id} = account, attrs, user \\ nil, opts \\ []) do
     Tracer.with_span "glossia.voices.create_voice" do
       Tracer.set_attributes([
         {"glossia.account.id", to_string(account_id)},
@@ -103,6 +104,17 @@ defmodule Glossia.Voices do
       |> case do
         {:ok, %{voice: voice}} = ok ->
           Tracer.set_attributes([{"glossia.voice.version", voice.version}])
+
+          if match?(%User{}, user) do
+            Events.emit("voice.created", account, user,
+              resource_type: "voice",
+              resource_id: to_string(voice.version),
+              resource_path: "/#{account.handle}/-/voice/#{voice.version}",
+              summary: "Updated voice settings.",
+              via: Keyword.get(opts, :via)
+            )
+          end
+
           ok
 
         other ->

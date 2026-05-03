@@ -10,9 +10,7 @@ defmodule GlossiaWeb.WellKnownController do
   def oauth_authorization_server(conn, _params) do
     issuer = Boruta.Config.issuer()
 
-    scopes_supported =
-      Glossia.Policy.list_rules()
-      |> Enum.map(fn rule -> "#{rule.object}:#{rule.action}" end)
+    scopes_supported = Glossia.Authz.available_scopes()
 
     json(conn, %{
       issuer: issuer,
@@ -36,9 +34,7 @@ defmodule GlossiaWeb.WellKnownController do
   def oauth_protected_resource(conn, _params) do
     issuer = Boruta.Config.issuer()
 
-    scopes_supported =
-      Glossia.Policy.list_rules()
-      |> Enum.map(fn rule -> "#{rule.object}:#{rule.action}" end)
+    scopes_supported = Glossia.Authz.available_scopes()
 
     json(conn, %{
       resource: issuer,

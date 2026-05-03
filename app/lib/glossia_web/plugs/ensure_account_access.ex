@@ -28,8 +28,8 @@ defmodule GlossiaWeb.Plugs.EnsureAccountAccess do
         |> halt()
 
       account ->
-        if Glossia.Policy.authorize?(:project_read, user, account) do
-          can_write = Glossia.Policy.authorize?(:project_write, user, account)
+        if Glossia.Authz.authorize?(:project_read, user, account) do
+          can_write = Glossia.Authz.authorize?(:project_write, user, account)
 
           accounts =
             if user do

@@ -277,8 +277,7 @@ defmodule Glossia.OAuth.DeviceFlow do
 
   defp validate_scope(scope) when is_binary(scope) do
     allowed_scopes =
-      Glossia.Policy.list_rules()
-      |> Enum.map(fn rule -> "#{rule.object}:#{rule.action}" end)
+      Glossia.Authz.available_scopes()
       |> MapSet.new()
 
     requested_scopes = scope |> String.split(" ", trim: true) |> MapSet.new()

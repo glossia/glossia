@@ -70,6 +70,23 @@ defmodule GlossiaWeb.InvitationControllerTest do
 
       assert redirected_to(conn) == "/"
     end
+
+    test "redirects with error for expired invitation", %{conn: conn, invitation: invitation} do
+      user = TestHelpers.create_user("expired-viewer@test.com", "expired-viewer")
+
+      expired_invitation =
+        invitation
+        |> Ecto.Changeset.change(expires_at: DateTime.add(DateTime.utc_now(), -3600, :second))
+        |> Glossia.Repo.update!()
+
+      conn =
+        conn
+        |> init_test_session(%{user_id: user.id})
+        |> get("/invitations/#{expired_invitation.token}")
+
+      assert redirected_to(conn) == "/"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "expired"
+    end
   end
 
   describe "POST /invitations/:token/accept" do
@@ -89,6 +106,53 @@ defmodule GlossiaWeb.InvitationControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "joined"
     end
 
+    test "redirects with error for invalid token", %{conn: conn} do
+      user = TestHelpers.create_user("accept-invalid@test.com", "accept-invalid")
+
+      conn =
+        conn
+        |> init_test_session(%{user_id: user.id})
+        |> post("/invitations/badtoken/accept")
+
+      assert redirected_to(conn) == "/"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "not valid"
+    end
+
+    test "redirects with info when already a member", %{
+      conn: conn,
+      invitation: invitation,
+      org: org
+    } do
+      acceptor = TestHelpers.create_user("already-member@test.com", "already-member")
+      Organizations.add_member(org, acceptor)
+
+      conn =
+        conn
+        |> init_test_session(%{user_id: acceptor.id})
+        |> post("/invitations/#{invitation.token}/accept")
+
+      assert redirected_to(conn) == "/"
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "already a member"
+    end
+
+    test "redirects with info when invitation was already accepted", %{
+      conn: conn,
+      invitation: invitation
+    } do
+      acceptor = TestHelpers.create_user("already-accepted@test.com", "already-accepted")
+      Organizations.accept_invitation(invitation, acceptor)
+
+      other_user = TestHelpers.create_user("already-accepted-2@test.com", "already-accepted-2")
+
+      conn =
+        conn
+        |> init_test_session(%{user_id: other_user.id})
+        |> post("/invitations/#{invitation.token}/accept")
+
+      assert redirected_to(conn) == "/"
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "already been accepted"
+    end
+
     test "redirects unauthenticated user to login", %{conn: conn, invitation: invitation} do
       conn = post(conn, "/invitations/#{invitation.token}/accept")
       assert redirected_to(conn) == "/auth/login"
@@ -106,6 +170,18 @@ defmodule GlossiaWeb.InvitationControllerTest do
       conn = post(conn, "/invitations/badtoken/decline")
       assert redirected_to(conn) == "/"
       assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "not valid"
+    end
+
+    test "redirects with error when declining an already accepted invitation", %{
+      conn: conn,
+      invitation: invitation
+    } do
+      acceptor = TestHelpers.create_user("decline-accepted@test.com", "decline-accepted")
+      Organizations.accept_invitation(invitation, acceptor)
+
+      conn = post(conn, "/invitations/#{invitation.token}/decline")
+
+      assert redirected_to(conn) == "/"
     end
   end
 end

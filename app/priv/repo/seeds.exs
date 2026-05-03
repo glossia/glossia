@@ -23,7 +23,7 @@ defmodule Glossia.Seeds do
     Voice
   }
 
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
   alias Glossia.LLMModels
   alias Glossia.Github.Installations
   alias Glossia.Glossaries
@@ -753,7 +753,7 @@ defmodule Glossia.Seeds do
       existing
     else
       {:ok, %{token: token}} =
-        DeveloperTokens.create_account_token(account, user, %{
+        AccountTokens.create_account_token(account, user, %{
           "name" => name,
           "description" => Keyword.get(opts, :description, ""),
           "scope" => Keyword.get(opts, :scope, ""),

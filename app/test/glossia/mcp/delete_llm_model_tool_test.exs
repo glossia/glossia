@@ -32,7 +32,17 @@ defmodule Glossia.MCP.DeleteLLMModelToolTest do
       params = %{"handle" => account.handle, "model_id" => model.id}
 
       assert {:reply, response, _frame} =
-               DeleteLLMModelTool.execute(params, frame_for(user))
+               TestHelpers.expect_event(
+                 "llm_model.deleted",
+                 fn ->
+                   DeleteLLMModelTool.execute(params, frame_for(user))
+                 end,
+                 %{
+                   {:opt, :resource_type} => "llm_model",
+                   :account_id => account.id,
+                   :user_id => user.id
+                 }
+               )
 
       [content] = response.content
       result = JSON.decode!(content["text"])

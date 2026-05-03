@@ -5,7 +5,7 @@ defmodule Glossia.MCP.UpdateOrganizationTool do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
-  alias Glossia.Auditing
+  alias Glossia.Events
   alias Glossia.Organizations
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -27,7 +27,7 @@ defmodule Glossia.MCP.UpdateOrganizationTool do
 
       case Organizations.update_organization(org, update_attrs) do
         {:ok, org} ->
-          Auditing.record("organization.updated", org.account, user,
+          Events.emit("organization.updated", org.account, user,
             resource_type: "organization",
             resource_id: to_string(org.id),
             resource_path: ~p"/#{org.account.handle}",
