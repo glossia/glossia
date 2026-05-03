@@ -36,14 +36,10 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: ./deploy/1password/load-kubernetes-env.sh --github-env "$GITHUB_ENV" --require K8S_KUBECONFIG_B64
 
-      - name: Install kubectl and Helm
+      - name: Verify kubectl and Helm from mise
         run: |
-          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          curl -fsSL -o kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo install -m 0755 kubectl /usr/local/bin/kubectl
-          rm -f kubectl
-          kubectl version --client
-          helm version
+          mise exec -- kubectl version --client
+          mise exec -- helm version
 
       - name: Write kubeconfig from 1Password
         run: |
@@ -58,8 +54,8 @@ jobs:
 
       - name: Render Kubernetes secrets from 1Password
         run: |
-          kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
-          ./deploy/k8s/render-secrets.sh | kubectl apply -f -
+          mise exec -- kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
+          mise exec -- ./deploy/k8s/render-secrets.sh | mise exec -- kubectl apply -f -
 
       - name: Create GHCR pull secret from 1Password
         run: |
@@ -67,12 +63,12 @@ jobs:
             exit 0
           fi
 
-          kubectl -n glossia create secret docker-registry ghcr-pull-secret \
+          mise exec -- kubectl -n glossia create secret docker-registry ghcr-pull-secret \
             --docker-server=ghcr.io \
             --docker-username="$GHCR_PULL_USERNAME" \
             --docker-password="$GHCR_PULL_TOKEN" \
             --dry-run=client \
-            -o yaml | kubectl apply -f -
+            -o yaml | mise exec -- kubectl apply -f -
 
       - name: Bootstrap cluster services
-        run: ./deploy/k8s/bootstrap-cluster.sh
+        run: mise exec -- ./deploy/k8s/bootstrap-cluster.sh

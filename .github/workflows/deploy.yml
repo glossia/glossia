@@ -43,14 +43,10 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: ./deploy/1password/load-kubernetes-env.sh --github-env "$GITHUB_ENV" --require K8S_KUBECONFIG_B64
 
-      - name: Install kubectl and Helm
+      - name: Verify kubectl and Helm from mise
         run: |
-          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          curl -fsSL -o kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo install -m 0755 kubectl /usr/local/bin/kubectl
-          rm -f kubectl
-          kubectl version --client
-          helm version
+          mise exec -- kubectl version --client
+          mise exec -- helm version
 
       - name: Write kubeconfig from 1Password
         run: |
@@ -82,8 +78,8 @@ jobs:
 
       - name: Render Kubernetes secrets from 1Password
         run: |
-          kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
-          ./deploy/k8s/render-secrets.sh | kubectl apply -f -
+          mise exec -- kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
+          mise exec -- ./deploy/k8s/render-secrets.sh | mise exec -- kubectl apply -f -
 
       - name: Create GHCR pull secret from 1Password
         run: |
@@ -91,22 +87,22 @@ jobs:
             exit 0
           fi
 
-          kubectl -n glossia create secret docker-registry ghcr-pull-secret \
+          mise exec -- kubectl -n glossia create secret docker-registry ghcr-pull-secret \
             --docker-server=ghcr.io \
             --docker-username="$GHCR_PULL_USERNAME" \
             --docker-password="$GHCR_PULL_TOKEN" \
             --dry-run=client \
-            -o yaml | kubectl apply -f -
+            -o yaml | mise exec -- kubectl apply -f -
 
       - name: Deploy to Kubernetes
         run: |
           helm_args=()
 
-          if kubectl -n glossia get secret ghcr-pull-secret >/dev/null 2>&1; then
+          if mise exec -- kubectl -n glossia get secret ghcr-pull-secret >/dev/null 2>&1; then
             helm_args+=(--set imagePullSecrets[0].name=ghcr-pull-secret)
           fi
 
-          helm upgrade --install glossia deploy/helm/glossia \
+          mise exec -- helm upgrade --install glossia deploy/helm/glossia \
             --namespace glossia \
             --create-namespace \
             --values deploy/k8s/helm-values/glossia-production.yaml \
@@ -114,4 +110,4 @@ jobs:
             --set image.tag="${GITHUB_SHA}" \
             "${helm_args[@]}"
 
-          kubectl rollout status deployment/glossia -n glossia --timeout=10m
+          mise exec -- kubectl rollout status deployment/glossia -n glossia --timeout=10m
