@@ -2,11 +2,11 @@ This is a web application written using the Phoenix web framework.
 
 ## Deployment
 
-Deploy with `fnox exec kamal deploy`. The `fnox exec` wrapper injects secrets (like `KAMAL_REGISTRY_PASSWORD`) that Kamal needs at deploy time.
+Production deploys go through the GitHub Actions workflows in `.github/workflows/` against the Hetzner Kubernetes cluster. Use `.github/workflows/bootstrap-kubernetes.yml` to bootstrap cluster services and `.github/workflows/deploy.yml` to ship new application versions.
 
 ## Secrets
 
-All secrets (API keys, tokens, credentials) are managed through `fnox`. Never hardcode secrets in source files or commit them to the repository. To add or update a secret, use `fnox set SECRET_NAME "value"`. For environment-specific secrets, use the `-P` flag (e.g., `fnox set -P development SECRET_NAME "value"`). Secrets are automatically available as environment variables when running commands through `fnox exec`.
+Secrets are managed through 1Password. Never hardcode secrets in source files or commit them to the repository. Production Kubernetes deploy secrets live in the `glossia-production/kubernetes` item, and GitHub Actions authenticates through `OP_SERVICE_ACCOUNT_TOKEN`. For local commands, load any required values into your shell via the 1Password CLI instead of relying on committed secret files.
 
 ## Project guidelines
 

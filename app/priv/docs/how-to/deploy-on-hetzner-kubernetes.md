@@ -129,9 +129,9 @@ base64 < glossia_kubeconfig.yaml | tr -d '\n'
 
 ## 3. Bootstrap the cluster services
 
-For local bootstrap, you can use either 1Password or the existing `fnox` path.
+The supported path uses 1Password.
 
-The preferred 1Password path expects:
+It expects:
 
 - `kubectl`
 - `helm`
@@ -148,14 +148,6 @@ kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
 
 If `CLOUDFLARE_API_TOKEN` is present, the bootstrap script also installs ExternalDNS and switches cert-manager to Cloudflare-backed `DNS-01` validation. From that point on, the `glossia.ai` and `data.glossia.ai` records are managed from the Kubernetes ingresses instead of by hand, and TLS no longer depends on HTTP challenge routing through Traefik.
 
-If you want to keep using `fnox` locally instead, the old path still works:
-
-```bash
-kubectl apply -f deploy/k8s/manifests/base/namespaces.yaml
-fnox exec -- sh -c './deploy/k8s/render-secrets.sh | kubectl apply -f -'
-./deploy/k8s/bootstrap-cluster.sh
-```
-
 That bootstrap installs:
 
 - CloudNativePG for PostgreSQL
@@ -170,36 +162,20 @@ The ClickHouse layout is intentionally conservative to keep the starting cluster
 
 ## 4. Configure GitHub Actions
 
-The production deploy workflow now supports two secret backends:
-
-- **1Password** if the `OP_SERVICE_ACCOUNT_TOKEN` secret exists
-- **fnox** otherwise
-
-For Kubernetes deployments, the workflow also supports two deploy modes:
-
-- **Kubernetes mode** if `OP_SERVICE_ACCOUNT_TOKEN` exists or `K8S_KUBECONFIG_B64` exists
-- **Kamal mode** otherwise
-
-That means you can switch the production deploy to 1Password-backed Kubernetes by adding a single GitHub secret.
+The production deploy and bootstrap workflows use 1Password only.
 
 Recommended GitHub production environment secrets:
 
 1. `OP_SERVICE_ACCOUNT_TOKEN`
 
-Fallback GitHub production environment secrets if you stay on `fnox`:
-
-1. `GLOSSIA_AGE_KEY`
-2. `K8S_KUBECONFIG_B64`
-
-If your `ghcr.io` image stays private, add `GHCR_PULL_USERNAME` and `GHCR_PULL_TOKEN` either to the 1Password item or as GitHub secrets for the `fnox` path.
+If your `ghcr.io` image stays private, add `GHCR_PULL_USERNAME` and `GHCR_PULL_TOKEN` to the same 1Password item.
 
 ## 5. Run the first bootstrap from GitHub
 
-After either `OP_SERVICE_ACCOUNT_TOKEN` or `K8S_KUBECONFIG_B64` exists, run the **Bootstrap Kubernetes Cluster** workflow once. It performs the same steps as the local bootstrap path:
+After `OP_SERVICE_ACCOUNT_TOKEN` exists, run the **Bootstrap Kubernetes Cluster** workflow once. It performs the same steps as the local bootstrap path:
 
 - creates namespaces
-- renders secrets from 1Password when `OP_SERVICE_ACCOUNT_TOKEN` is present
-- otherwise renders secrets from `fnox`
+- renders secrets from 1Password
 - installs the operators
 - applies the Postgres and ClickHouse manifests
 - installs Grafana
@@ -210,7 +186,7 @@ Once the cluster is bootstrapped, the normal **Deploy Production** workflow will
 
 1. build the app image from `app/Dockerfile`
 2. push it to `ghcr.io`
-3. render the Kubernetes secrets from 1Password when `OP_SERVICE_ACCOUNT_TOKEN` is present
+3. render the Kubernetes secrets from 1Password
 4. optionally create the GHCR pull secret
 5. run `helm upgrade --install` for `deploy/helm/glossia`
 

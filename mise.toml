@@ -2,7 +2,6 @@
 erlang = "latest"
 elixir = "latest"
 go = "1.22.0"
-fnox = "1.7.0"
 aws-cli = "2"
 terraform = "1"
 packer = "1"
