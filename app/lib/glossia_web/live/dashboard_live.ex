@@ -6,9 +6,8 @@ defmodule GlossiaWeb.DashboardLive do
   import GlossiaWeb.DashboardComponents
 
   alias Glossia.Accounts
-  alias Glossia.Auditing
   alias Glossia.ChangeSummary
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
   alias Glossia.Glossaries
   alias Glossia.Organizations
   alias Glossia.Discussions
@@ -36,7 +35,6 @@ defmodule GlossiaWeb.DashboardLive do
     socket =
       case socket.assigns.live_action do
         :account -> apply_url_params_projects(socket, params)
-        :logs -> apply_url_params_logs(socket, params)
         :members -> apply_url_params_members(socket, params)
         :voice -> apply_url_params_voice(socket, params)
         :glossary -> apply_url_params_glossary(socket, params)
@@ -69,34 +67,6 @@ defmodule GlossiaWeb.DashboardLive do
       projects_sort_dir: "asc",
       projects_page: 1,
       breadcrumb_items: []
-    )
-  end
-
-  defp apply_action(socket, :logs, _params) do
-    require_write!(socket)
-    handle = socket.assigns.handle
-
-    socket =
-      if Map.has_key?(socket.assigns, :all_events) do
-        socket
-      else
-        all_events = Auditing.list_events(socket.assigns.account.id)
-        event_types = all_events |> Enum.map(& &1.name) |> Enum.uniq() |> Enum.sort()
-
-        assign(socket,
-          page_title: gettext("Logs"),
-          all_events: all_events,
-          event_types: event_types,
-          events_search: "",
-          events_sort_key: "date",
-          events_sort_dir: "desc",
-          events_filters: %{},
-          events_page: 1
-        )
-      end
-
-    assign(socket,
-      breadcrumb_items: [{gettext("Logs"), "/" <> handle <> "/-/logs"}]
     )
   end
 
@@ -469,7 +439,7 @@ defmodule GlossiaWeb.DashboardLive do
       "order_directions" => [sort_dir]
     }
 
-    {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account, flop_params)
+    {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account, flop_params)
     available_scopes = available_scopes()
 
     assign(socket,
@@ -511,7 +481,7 @@ defmodule GlossiaWeb.DashboardLive do
     require_admin!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
-    token = DeveloperTokens.get_account_token!(params["token_id"], account.id)
+    token = AccountTokens.get_account_token!(params["token_id"], account.id)
     current_scopes = String.split(token.scope || "", " ", trim: true)
 
     assign(socket,
@@ -549,7 +519,7 @@ defmodule GlossiaWeb.DashboardLive do
       "order_directions" => [sort_dir]
     }
 
-    {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account, flop_params)
+    {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account, flop_params)
 
     assign(socket,
       page_title: gettext("OAuth Apps"),
@@ -587,8 +557,8 @@ defmodule GlossiaWeb.DashboardLive do
     require_admin!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
-    app = DeveloperTokens.get_oauth_application!(app_id, account.id)
-    client = DeveloperTokens.get_boruta_client_for_app(app)
+    app = AccountTokens.get_oauth_application!(app_id, account.id)
+    client = AccountTokens.get_boruta_client_for_app(app)
 
     redirect_uris = Enum.join(client.redirect_uris || [], "\n")
 
@@ -1196,8 +1166,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp available_scopes do
-    Glossia.Policy.list_rules()
-    |> Enum.map(&"#{&1.object}:#{&1.action}")
+    Glossia.Authz.available_scopes()
     |> Enum.uniq()
     |> Enum.sort()
   end
@@ -1793,15 +1762,8 @@ defmodule GlossiaWeb.DashboardLive do
       org = socket.assigns.organization
       user = socket.assigns.current_user
 
-      case Organizations.create_invitation(org, user, params) do
-        {:ok, invitation} ->
-          Auditing.record("member.invited", socket.assigns.account, user,
-            resource_type: "invitation",
-            resource_id: to_string(invitation.id),
-            resource_path: "/#{socket.assigns.handle}/-/members",
-            summary: "Invited #{invitation.email} as #{invitation.role}"
-          )
-
+      case Organizations.create_invitation(org, user, params, via: :dashboard) do
+        {:ok, _invitation} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Invitation sent to %{email}.", email: params["email"]))
@@ -1836,15 +1798,8 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply, put_flash(socket, :error, gettext("Invitation not found."))}
 
         invitation ->
-          case Organizations.revoke_invitation(invitation) do
+          case Organizations.revoke_invitation(invitation, actor: user, via: :dashboard) do
             {:ok, _} ->
-              Auditing.record("member.invitation_revoked", socket.assigns.account, user,
-                resource_type: "invitation",
-                resource_id: to_string(invitation.id),
-                resource_path: "/#{socket.assigns.handle}/-/members",
-                summary: "Revoked invitation for #{invitation.email}"
-              )
-
               {:noreply,
                socket
                |> assign(all_invitations: Organizations.list_pending_invitations(org))
@@ -1886,14 +1841,7 @@ defmodule GlossiaWeb.DashboardLive do
                )}
 
             true ->
-              Organizations.remove_member(org, target_user)
-
-              Auditing.record("member.removed", socket.assigns.account, current_user,
-                resource_type: "member",
-                resource_id: to_string(target_user.id),
-                resource_path: "/#{socket.assigns.handle}/-/members",
-                summary: "Removed #{target_user.email} from the organization"
-              )
+              Organizations.remove_member(org, target_user, actor: current_user, via: :dashboard)
 
               all_members = Organizations.list_members(org)
               member_roles = all_members |> Enum.map(& &1.role) |> Enum.uniq() |> Enum.sort()
@@ -1946,7 +1894,6 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       token = socket.assigns.editing_token
-      account = socket.assigns.account
       user = socket.assigns.current_user
 
       new_scopes = List.wrap(params["scopes"]) |> Enum.join(" ")
@@ -1957,15 +1904,8 @@ defmodule GlossiaWeb.DashboardLive do
         "scope" => new_scopes
       }
 
-      case DeveloperTokens.update_account_token(token, attrs) do
-        {:ok, updated_token} ->
-          Auditing.record("token.updated", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(updated_token.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/tokens/#{updated_token.id}",
-            summary: "Updated account token \"#{updated_token.name}\""
-          )
-
+      case AccountTokens.update_account_token(token, attrs, actor: user, via: :dashboard) do
+        {:ok, _updated_token} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Token updated."))
@@ -2003,16 +1943,9 @@ defmodule GlossiaWeb.DashboardLive do
         "expires_at" => expires_at
       }
 
-      case DeveloperTokens.create_account_token(account, user, attrs) do
-        {:ok, %{token: token, plain_token: plain_token}} ->
-          Auditing.record("token.created", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(token.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
-            summary: "Created account token \"#{token.name}\""
-          )
-
-          {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
+      case AccountTokens.create_account_token(account, user, attrs, via: :dashboard) do
+        {:ok, %{token: _token, plain_token: plain_token}} ->
+          {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account)
 
           {:noreply,
            socket
@@ -2032,16 +1965,9 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case DeveloperTokens.revoke_account_token(token_id, account.id) do
-        {:ok, token} ->
-          Auditing.record("token.revoked", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(token.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/tokens",
-            summary: "Revoked account token \"#{token.name}\""
-          )
-
-          {:ok, {tokens, _meta}} = DeveloperTokens.list_account_tokens(account)
+      case AccountTokens.revoke_account_token(token_id, account.id, actor: user, via: :dashboard) do
+        {:ok, _token} ->
+          {:ok, {tokens, _meta}} = AccountTokens.list_account_tokens(account)
 
           {:noreply,
            socket
@@ -2086,16 +2012,9 @@ defmodule GlossiaWeb.DashboardLive do
       account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case DeveloperTokens.create_oauth_application(account, user, params) do
-        {:ok, %{app: app, client_id: client_id, client_secret: client_secret}} ->
-          Auditing.record("oauth_app.created", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
-            summary: "Created OAuth application \"#{app.name}\""
-          )
-
-          {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account)
+      case AccountTokens.create_oauth_application(account, user, params, via: :dashboard) do
+        {:ok, %{app: _app, client_id: client_id, client_secret: client_secret}} ->
+          {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account)
 
           {:noreply,
            socket
@@ -2116,18 +2035,10 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       app = socket.assigns.oauth_app
-      account = socket.assigns.account
       user = socket.assigns.current_user
 
-      case DeveloperTokens.update_oauth_application(app, params) do
-        {:ok, updated_app} ->
-          Auditing.record("oauth_app.updated", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
-            summary: "Updated OAuth application \"#{updated_app.name}\""
-          )
-
+      case AccountTokens.update_oauth_application(app, params, actor: user, via: :dashboard) do
+        {:ok, _updated_app} ->
           {:noreply,
            socket
            |> put_flash(:info, gettext("Application updated."))
@@ -2145,17 +2056,10 @@ defmodule GlossiaWeb.DashboardLive do
     else
       account = socket.assigns.account
       user = socket.assigns.current_user
-      app = DeveloperTokens.get_oauth_application!(app_id, account.id)
+      app = AccountTokens.get_oauth_application!(app_id, account.id)
 
-      case DeveloperTokens.regenerate_oauth_application_secret(app) do
+      case AccountTokens.regenerate_oauth_application_secret(app, actor: user, via: :dashboard) do
         {:ok, %{client_secret: secret}} ->
-          Auditing.record("oauth_app.secret_regenerated", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps/#{app.id}",
-            summary: "Regenerated client secret for \"#{app.name}\""
-          )
-
           {:noreply,
            socket
            |> assign(newly_regenerated_secret: secret)
@@ -2173,18 +2077,11 @@ defmodule GlossiaWeb.DashboardLive do
     else
       account = socket.assigns.account
       user = socket.assigns.current_user
-      app = DeveloperTokens.get_oauth_application!(app_id, account.id)
+      app = AccountTokens.get_oauth_application!(app_id, account.id)
 
-      case DeveloperTokens.delete_oauth_application(app) do
+      case AccountTokens.delete_oauth_application(app, actor: user, via: :dashboard) do
         :ok ->
-          Auditing.record("oauth_app.deleted", account, user,
-            resource_type: "oauth_application",
-            resource_id: to_string(app.id),
-            resource_path: "/#{socket.assigns.handle}/-/settings/apps",
-            summary: "Deleted OAuth application \"#{app.name}\""
-          )
-
-          {:ok, {apps, _meta}} = DeveloperTokens.list_oauth_applications(account)
+          {:ok, {apps, _meta}} = AccountTokens.list_oauth_applications(account)
 
           {:noreply,
            socket
@@ -2240,15 +2137,8 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       true ->
-        case Discussions.create_discussion(account, user, params) do
+        case Discussions.create_discussion(account, user, params, via: :dashboard) do
           {:ok, ticket} ->
-            Auditing.record("discussion.created", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-              summary: "Created discussion \"#{ticket.title}\""
-            )
-
             {:noreply,
              socket
              |> put_flash(:info, gettext("Discussion created."))
@@ -2270,15 +2160,8 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       true ->
-        case Discussions.add_comment(ticket, user, params) do
+        case Discussions.add_comment(ticket, user, params, via: :dashboard) do
           {:ok, _comment} ->
-            Auditing.record("discussion.commented", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-              summary: "Commented on discussion \"#{ticket.title}\""
-            )
-
             ticket = Discussions.get_discussion_by_number!(ticket.number, account.id)
 
             {:noreply,
@@ -2298,15 +2181,8 @@ defmodule GlossiaWeb.DashboardLive do
     account = socket.assigns.account
 
     if socket.assigns.can_write do
-      case Discussions.close_discussion(ticket, user) do
+      case Discussions.close_discussion(ticket, user, via: :dashboard) do
         {:ok, updated_ticket} ->
-          Auditing.record("discussion.closed", account, user,
-            resource_type: "discussion",
-            resource_id: to_string(ticket.id),
-            resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-            summary: "Closed discussion \"#{ticket.title}\""
-          )
-
           ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
           {:noreply, assign(socket, ticket: ticket)}
 
@@ -2324,15 +2200,8 @@ defmodule GlossiaWeb.DashboardLive do
     account = socket.assigns.account
 
     if socket.assigns.can_write do
-      case Discussions.reopen_discussion(ticket) do
+      case Discussions.reopen_discussion(ticket, user, via: :dashboard) do
         {:ok, updated_ticket} ->
-          Auditing.record("discussion.reopened", account, user,
-            resource_type: "discussion",
-            resource_id: to_string(ticket.id),
-            resource_path: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}",
-            summary: "Reopened discussion \"#{ticket.title}\""
-          )
-
           ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
           {:noreply, assign(socket, ticket: ticket)}
 
@@ -2392,17 +2261,11 @@ defmodule GlossiaWeb.DashboardLive do
   def handle_event("disconnect_github", _params, socket) do
     installation = socket.assigns.github_installation
 
-    case Glossia.Github.Installations.delete_installation(installation) do
+    case Glossia.Github.Installations.delete_installation(installation,
+           actor: socket.assigns.current_user,
+           via: :dashboard
+         ) do
       {:ok, _} ->
-        Auditing.record(
-          "github_installation.deleted",
-          socket.assigns.account,
-          socket.assigns.current_user,
-          resource_type: "github_installation",
-          resource_id: to_string(installation.id),
-          summary: "Disconnected GitHub account #{installation.github_account_login}"
-        )
-
         {:noreply,
          socket
          |> put_flash(:info, gettext("GitHub disconnected."))
@@ -2476,20 +2339,16 @@ defmodule GlossiaWeb.DashboardLive do
 
     result =
       if installation_id do
-        Glossia.Projects.create_project_from_github(account, installation_id, attrs)
+        Glossia.Projects.create_project_from_github(account, installation_id, attrs,
+          actor: user,
+          via: :dashboard
+        )
       else
-        Glossia.Projects.create_project(account, attrs)
+        Glossia.Projects.create_project(account, attrs, actor: user, via: :dashboard)
       end
 
     case result do
       {:ok, project} ->
-        Auditing.record("project.created", account, user,
-          resource_type: "project",
-          resource_id: to_string(project.id),
-          resource_path: "/#{socket.assigns.handle}/#{project.handle}",
-          summary: "Imported project #{project.handle} from #{repo["full_name"]}"
-        )
-
         if installation_id do
           %{project_id: project.id}
           |> Glossia.Projects.SetupWorker.new()
@@ -2557,7 +2416,6 @@ defmodule GlossiaWeb.DashboardLive do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       project = socket.assigns.project
-      account = socket.assigns.account
       user = socket.assigns.current_user
       handle = socket.assigns.handle
 
@@ -2583,15 +2441,8 @@ defmodule GlossiaWeb.DashboardLive do
         "avatar_url" => avatar_url
       }
 
-      case Glossia.Projects.update_project(project, attrs) do
+      case Glossia.Projects.update_project(project, attrs, actor: user, via: :dashboard) do
         {:ok, updated_project} ->
-          Auditing.record("project.updated", account, user,
-            resource_type: "project",
-            resource_id: to_string(updated_project.id),
-            resource_path: "/#{handle}/#{updated_project.handle}",
-            summary: "Updated project settings for \"#{updated_project.name}\""
-          )
-
           {:noreply,
            socket
            |> put_flash(:info, gettext("Project settings updated."))
@@ -2884,18 +2735,6 @@ defmodule GlossiaWeb.DashboardLive do
           projects_page={@projects_page}
           handle={@handle}
           can_write={@can_write}
-        />
-      <% :logs -> %>
-        <.logs_page
-          handle={@handle}
-          events={@events}
-          event_types={@event_types}
-          search={@events_search}
-          sort_key={@events_sort_key}
-          sort_dir={@events_sort_dir}
-          filters={@events_filters}
-          page={@events_page}
-          total={@events_total}
         />
       <% :voice -> %>
         <.voice_page
@@ -3234,103 +3073,6 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
   # Page: Logs
   # ---------------------------------------------------------------------------
-
-  defp logs_page(assigns) do
-    assigns =
-      assign(
-        assigns,
-        :type_filter_options,
-        Enum.map(assigns.event_types, fn t -> %{value: t, label: t} end)
-      )
-
-    ~H"""
-    <div class="dash-page">
-      <.page_header
-        title={gettext("Logs")}
-        description={gettext("Audit trail of actions and events for this account.")}
-      />
-
-      <.resource_table
-        id="activity-table"
-        rows={@events}
-        search={@search}
-        search_placeholder={gettext("Search events...")}
-        sort_key={@sort_key}
-        sort_dir={@sort_dir}
-        filters={[%{key: "type", label: gettext("Event type"), options: @type_filter_options}]}
-        active_filters={@filters}
-        page={@page}
-        per_page={25}
-        total={@total}
-      >
-        <:col :let={event} label={gettext("Event")} key="summary" sortable class="activity-event-cell">
-          <% display_summary =
-            if event.summary != "", do: event.summary, else: humanize_event_name(event.name) %>
-          <% normalized_path = normalize_resource_path(event.resource_path) %>
-          <%= if normalized_path != "" do %>
-            <.link navigate={normalized_path} class="activity-event-link">
-              {display_summary}
-            </.link>
-          <% else %>
-            <span>{display_summary}</span>
-          <% end %>
-          <span class="activity-event-name">{event.name}</span>
-        </:col>
-        <:col :let={event} label={gettext("By")} key="actor" sortable class="activity-actor-cell">
-          <%= if event.actor_email != "" do %>
-            <span class="voice-author-chip">
-              <img
-                src={gravatar_url(event.actor_email)}
-                alt=""
-                width="20"
-                height="20"
-                class="voice-author-avatar"
-              />
-              <span>
-                {if event.actor_handle != "",
-                  do: event.actor_handle,
-                  else: event.actor_email}
-              </span>
-            </span>
-          <% else %>
-            <span class="activity-system-actor">{gettext("System")}</span>
-          <% end %>
-        </:col>
-        <:col
-          :let={event}
-          label={gettext("Date")}
-          key="date"
-          sortable
-          class="activity-time-cell"
-        >
-          <time datetime={DateTime.to_iso8601(event.inserted_at)}>
-            {Calendar.strftime(event.inserted_at, "%b %d, %Y %H:%M")}
-          </time>
-        </:col>
-
-        <:empty>
-          <div class="dash-empty-state">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-            </svg>
-            <h2>{gettext("No logs yet")}</h2>
-            <p>{gettext("Events will appear here as you and your team make changes.")}</p>
-          </div>
-        </:empty>
-      </.resource_table>
-    </div>
-    """
-  end
 
   # ---------------------------------------------------------------------------
   # Page: Voice form
@@ -6611,31 +6353,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp setup_pr_url(_events), do: nil
 
-  defp setup_pr_url_from_audit(nil, _project), do: nil
-  defp setup_pr_url_from_audit(_account, nil), do: nil
-
-  defp setup_pr_url_from_audit(account, project) do
-    project_path = "/#{account.handle}/#{project.handle}"
-
-    account.id
-    |> Glossia.Auditing.list_events(limit: 200)
-    |> Enum.find_value(fn event ->
-      if event.name == "project.setup_completed" and event.resource_path == project_path do
-        extract_setup_pr_url(event.summary || "")
-      end
-    end)
-  rescue
-    _ -> nil
-  end
-
-  defp extract_setup_pr_url(text) when is_binary(text) do
-    case Regex.run(~r/https?:\/\/github\.com\/[^\s]+\/pull\/\d+/, text) do
-      [url | _] -> url
-      _ -> nil
-    end
-  end
-
-  defp extract_setup_pr_url(_), do: nil
+  defp setup_pr_url_from_audit(_account, _project), do: nil
 
   # ---------------------------------------------------------------------------
   # Page: New Project (wizard)
@@ -7832,37 +7550,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp non_empty(""), do: nil
   defp non_empty(val), do: val
 
-  defp humanize_event_name(name) do
-    name
-    |> String.replace(".", " ")
-    |> String.replace("_", " ")
-    |> String.capitalize()
-  end
-
-  # Normalize legacy resource paths that predate the /:handle/-/ URL restructure.
-  # Paths like "/dev/voice/3" become "/dev/-/voice/3".
-  # Paths already containing "/-/" or starting with "/admin" are left unchanged.
-  @legacy_path_segments ~w(voice glossary discussions tickets members logs settings)
-  defp normalize_resource_path(""), do: ""
-
-  defp normalize_resource_path(path) when is_binary(path) do
-    if String.contains?(path, "/-/") or String.starts_with?(path, "/admin") do
-      path
-    else
-      case String.split(path, "/", parts: 4) do
-        ["", handle, segment | rest] ->
-          if segment in @legacy_path_segments do
-            "/" <> handle <> "/-/" <> segment <> if(rest != [], do: "/" <> hd(rest), else: "")
-          else
-            path
-          end
-
-        _ ->
-          path
-      end
-    end
-  end
-
   defp list_suggestion_discussions(account, kind) do
     params = %{
       "order_by" => ["inserted_at"],
@@ -8484,15 +8171,8 @@ defmodule GlossiaWeb.DashboardLive do
       }
     }
 
-    case Discussions.create_discussion(account, user, attrs) do
+    case Discussions.create_discussion(account, user, attrs, via: :dashboard) do
       {:ok, ticket} ->
-        Auditing.record("voice.suggested", account, user,
-          resource_type: "discussion",
-          resource_id: to_string(ticket.id),
-          resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-          summary: suggestion_title_text
-        )
-
         {:noreply,
          socket
          |> assign(
@@ -8543,15 +8223,8 @@ defmodule GlossiaWeb.DashboardLive do
       }
     }
 
-    case Discussions.create_discussion(account, user, attrs) do
+    case Discussions.create_discussion(account, user, attrs, via: :dashboard) do
       {:ok, ticket} ->
-        Auditing.record("glossary.suggested", account, user,
-          resource_type: "discussion",
-          resource_id: to_string(ticket.id),
-          resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-          summary: change_note
-        )
-
         {:noreply,
          socket
          |> assign(
@@ -8672,7 +8345,7 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  defp apply_voice_suggestion(ticket, account, user, handle) do
+  defp apply_voice_suggestion(ticket, account, user, _handle) do
     if not Glossia.Policy.authorize?(:voice_write, user, account) do
       {:error, :not_allowed}
     else
@@ -8684,19 +8357,10 @@ defmodule GlossiaWeb.DashboardLive do
       else
         case Voices.create_voice(account, payload, user) do
           {:ok, %{voice: voice}} ->
-            maybe_close_discussion(ticket, user)
-
-            _ =
-              Discussions.add_comment(ticket, user, %{
-                body: applied_comment(:voice, voice.version)
-              })
-
-            Auditing.record("voice.suggestion.applied", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-              summary: "Applied voice suggestion ##{ticket.number} as version ##{voice.version}"
-            )
+            :ok =
+              Discussions.mark_suggestion_applied(ticket, user, :voice, voice.version,
+                via: :dashboard
+              )
 
             {:ok,
              gettext("Applied voice suggestion as version #%{version}.", version: voice.version)}
@@ -8708,7 +8372,7 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  defp apply_glossary_suggestion(ticket, account, user, handle) do
+  defp apply_glossary_suggestion(ticket, account, user, _handle) do
     if not Glossia.Policy.authorize?(:glossary_write, user, account) do
       {:error, :not_allowed}
     else
@@ -8723,20 +8387,14 @@ defmodule GlossiaWeb.DashboardLive do
 
         case Glossaries.create_glossary(account, attrs, user) do
           {:ok, %{glossary: glossary}} ->
-            maybe_close_discussion(ticket, user)
-
-            _ =
-              Discussions.add_comment(ticket, user, %{
-                body: applied_comment(:glossary, glossary.version)
-              })
-
-            Auditing.record("glossary.suggestion.applied", account, user,
-              resource_type: "discussion",
-              resource_id: to_string(ticket.id),
-              resource_path: "/#{handle}/-/discussions/#{ticket.number}",
-              summary:
-                "Applied glossary suggestion ##{ticket.number} as version ##{glossary.version}"
-            )
+            :ok =
+              Discussions.mark_suggestion_applied(
+                ticket,
+                user,
+                :glossary,
+                glossary.version,
+                via: :dashboard
+              )
 
             {:ok,
              gettext("Applied glossary suggestion as version #%{version}.",
@@ -8749,19 +8407,6 @@ defmodule GlossiaWeb.DashboardLive do
       end
     end
   end
-
-  defp maybe_close_discussion(%{status: "open"} = ticket, user) do
-    _ = Discussions.close_discussion(ticket, user)
-    :ok
-  end
-
-  defp maybe_close_discussion(_ticket, _user), do: :ok
-
-  defp applied_comment(:voice, version),
-    do: gettext("Applied this suggestion as voice version #%{version}.", version: version)
-
-  defp applied_comment(:glossary, version),
-    do: gettext("Applied this suggestion as glossary version #%{version}.", version: version)
 
   # LLM summary helpers
   # ---------------------------------------------------------------------------
@@ -8857,7 +8502,6 @@ defmodule GlossiaWeb.DashboardLive do
   # Table ID -> param prefix mapping
   @table_prefixes %{
     "projects-table" => "p",
-    "activity-table" => "",
     "members-table" => "m",
     "invitations-table" => "i",
     "tokens-table" => "t",
@@ -8892,7 +8536,6 @@ defmodule GlossiaWeb.DashboardLive do
 
     path =
       case action do
-        :logs -> "/#{handle}/-/logs"
         :members -> "/#{handle}/-/members"
         :api_tokens -> "/#{handle}/-/settings/tokens"
         :api_apps -> "/#{handle}/-/settings/apps"
@@ -9012,16 +8655,6 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  defp current_table_state(socket, "activity-table") do
-    %{
-      search: socket.assigns[:events_search] || "",
-      sort: socket.assigns[:events_sort_key] || "date",
-      dir: socket.assigns[:events_sort_dir] || "desc",
-      page: socket.assigns[:events_page] || 1,
-      filters: socket.assigns[:events_filters] || %{}
-    }
-  end
-
   defp current_table_state(socket, "members-table") do
     %{
       search: socket.assigns[:members_search] || "",
@@ -9117,7 +8750,6 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp default_sort_key("commits-table"), do: "date"
   defp default_sort_key("projects-table"), do: "name"
-  defp default_sort_key("activity-table"), do: "date"
   defp default_sort_key("members-table"), do: "name"
   defp default_sort_key("invitations-table"), do: "email"
   defp default_sort_key("tokens-table"), do: "name"
@@ -9127,14 +8759,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp default_sort_key("models"), do: "handle"
   defp default_sort_key(_), do: ""
 
-  defp default_sort_dir("activity-table"), do: "desc"
   defp default_sort_dir("discussions-table"), do: "desc"
   defp default_sort_dir("translations-table"), do: "desc"
   defp default_sort_dir("commits-table"), do: "desc"
   defp default_sort_dir(_), do: "asc"
-
-  defp current_sort(socket, "activity-table"),
-    do: {socket.assigns.events_sort_key, socket.assigns.events_sort_dir}
 
   defp current_sort(socket, "members-table"),
     do: {socket.assigns.members_sort_key, socket.assigns.members_sort_dir}
@@ -9170,7 +8798,6 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp current_sort(_socket, _), do: {"", "asc"}
 
-  defp current_filters(socket, "activity-table"), do: socket.assigns.events_filters
   defp current_filters(socket, "members-table"), do: socket.assigns.members_filters
 
   defp current_filters(socket, "discussions-table"),
@@ -9361,18 +8988,6 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket, projects: projects, projects_total: total)
   end
 
-  defp apply_url_params_logs(socket, params) do
-    socket
-    |> assign(
-      events_search: Map.get(params, "q", ""),
-      events_sort_key: Map.get(params, "sort", "date"),
-      events_sort_dir: Map.get(params, "dir", "desc"),
-      events_page: parse_int(Map.get(params, "page"), 1),
-      events_filters: extract_filters(params, "")
-    )
-    |> apply_events_filters()
-  end
-
   defp apply_url_params_members(socket, params) do
     socket
     |> assign(
@@ -9561,73 +9176,6 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp parse_int(val, _default) when is_integer(val), do: val
-
-  # ---------------------------------------------------------------------------
-  # Activity event filtering / sorting / pagination
-  # ---------------------------------------------------------------------------
-
-  @events_per_page 25
-
-  defp apply_events_filters(socket) do
-    %{
-      all_events: all,
-      events_search: search,
-      events_sort_key: sort_key,
-      events_sort_dir: sort_dir,
-      events_filters: filters,
-      events_page: page
-    } = socket.assigns
-
-    filtered =
-      all
-      |> filter_events_by_search(search)
-      |> filter_events_by_filters(filters)
-      |> sort_events(sort_key, sort_dir)
-
-    total = length(filtered)
-    max_page = max(1, ceil(total / @events_per_page))
-    clamped_page = min(max(1, page), max_page)
-    events = Enum.slice(filtered, (clamped_page - 1) * @events_per_page, @events_per_page)
-
-    assign(socket, events: events, events_total: total, events_page: clamped_page)
-  end
-
-  defp filter_events_by_search(events, ""), do: events
-
-  defp filter_events_by_search(events, query) do
-    q = String.downcase(query)
-
-    Enum.filter(events, fn e ->
-      String.contains?(String.downcase(e.summary), q) or
-        String.contains?(String.downcase(e.name), q) or
-        String.contains?(String.downcase(e.actor_handle), q) or
-        String.contains?(String.downcase(e.actor_email), q)
-    end)
-  end
-
-  defp filter_events_by_filters(events, filters) when map_size(filters) == 0, do: events
-
-  defp filter_events_by_filters(events, filters) do
-    Enum.filter(events, fn e ->
-      Enum.all?(filters, fn
-        {"type", values} -> e.name in List.wrap(values)
-        _ -> true
-      end)
-    end)
-  end
-
-  defp sort_events(events, key, dir) do
-    sorter =
-      case key do
-        "summary" -> & &1.summary
-        "actor" -> & &1.actor_handle
-        "date" -> & &1.inserted_at
-        _ -> & &1.inserted_at
-      end
-
-    sorted = Enum.sort_by(events, sorter)
-    if dir == "desc", do: Enum.reverse(sorted), else: sorted
-  end
 
   # ---------------------------------------------------------------------------
   # Members filtering / sorting / pagination

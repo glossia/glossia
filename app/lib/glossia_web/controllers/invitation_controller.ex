@@ -1,7 +1,6 @@
 defmodule GlossiaWeb.InvitationController do
   use GlossiaWeb, :controller
 
-  alias Glossia.Auditing
   alias Glossia.Organizations
 
   plug GlossiaWeb.Plugs.RateLimit,
@@ -69,17 +68,10 @@ defmodule GlossiaWeb.InvitationController do
           |> redirect(to: ~p"/")
 
         invitation ->
-          case Organizations.accept_invitation(invitation, user) do
+          case Organizations.accept_invitation(invitation, user, via: :dashboard) do
             {:ok, _result} ->
               org = Organizations.get_organization(invitation.organization_id)
               handle = org.account.handle
-
-              Auditing.record("member.invitation_accepted", org.account, user,
-                resource_type: "invitation",
-                resource_id: to_string(invitation.id),
-                resource_path: "/#{handle}/-/members",
-                summary: "#{user.email} accepted invitation as #{invitation.role}"
-              )
 
               conn
               |> put_flash(:info, gettext("You have joined %{org}.", org: org.name))
@@ -119,17 +111,8 @@ defmodule GlossiaWeb.InvitationController do
         |> redirect(to: ~p"/")
 
       invitation ->
-        case Organizations.decline_invitation(invitation) do
+        case Organizations.decline_invitation(invitation, actor: user, via: :dashboard) do
           {:ok, _} ->
-            if org = Organizations.get_organization(invitation.organization_id) do
-              Auditing.record("member.invitation_declined", org.account, user,
-                resource_type: "invitation",
-                resource_id: to_string(invitation.id),
-                resource_path: "/#{org.account.handle}/-/members",
-                summary: "#{invitation.email} declined invitation as #{invitation.role}"
-              )
-            end
-
             conn
             |> put_flash(:info, gettext("Invitation declined."))
             |> redirect(to: ~p"/")

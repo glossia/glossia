@@ -5,7 +5,6 @@ defmodule Glossia.MCP.SaveVoiceTool do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.ChangesetErrors
-  alias Glossia.Auditing
   alias Glossia.Voices
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
@@ -42,16 +41,9 @@ defmodule Glossia.MCP.SaveVoiceTool do
         overrides: params["overrides"] || []
       }
 
-      case Voices.create_voice(account, attrs, user) do
+      case Voices.create_voice(account, attrs, user, via: :mcp) do
         {:ok, %{voice: voice, overrides: overrides}} ->
           voice = %{voice | overrides: overrides}
-
-          Auditing.record("voice.created", account, user,
-            resource_type: "voice",
-            resource_id: to_string(voice.version),
-            resource_path: "/#{handle}/-/voice/#{voice.version}",
-            summary: "Updated voice settings."
-          )
 
           response =
             Response.tool()

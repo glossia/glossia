@@ -2,6 +2,7 @@ defmodule Glossia.Github.Installations do
   @moduledoc false
 
   alias Glossia.Accounts.GithubInstallation
+  alias Glossia.Events
   alias Glossia.Repo
 
   import Ecto.Query
@@ -55,8 +56,26 @@ defmodule Glossia.Github.Installations do
     Repo.get_by(GithubInstallation, github_installation_id: github_installation_id)
   end
 
-  def delete_installation(%GithubInstallation{} = installation) do
+  def delete_installation(%GithubInstallation{} = installation, opts \\ []) do
     Repo.delete(installation)
+    |> case do
+      {:ok, deleted} = ok ->
+        if actor = Keyword.get(opts, :actor) do
+          account = Repo.preload(deleted, :account).account
+
+          Events.emit("github_installation.deleted", account, actor,
+            resource_type: "github_installation",
+            resource_id: to_string(deleted.id),
+            summary: "Disconnected GitHub account #{deleted.github_account_login}",
+            via: Keyword.get(opts, :via)
+          )
+        end
+
+        ok
+
+      other ->
+        other
+    end
   end
 
   def delete_installation_by_github_id(github_installation_id) do

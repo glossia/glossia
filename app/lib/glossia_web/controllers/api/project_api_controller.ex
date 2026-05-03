@@ -2,7 +2,6 @@ defmodule GlossiaWeb.Api.ProjectApiController do
   use GlossiaWeb, :controller
 
   alias Glossia.Accounts
-  alias Glossia.Auditing
   alias Glossia.ChangesetErrors
   alias Glossia.Projects
   alias GlossiaWeb.Api.Serialization
@@ -50,15 +49,8 @@ defmodule GlossiaWeb.Api.ProjectApiController do
 
             user = conn.assigns[:current_user]
 
-            case Projects.create_project(account, attrs) do
+            case Projects.create_project(account, attrs, actor: user, via: :api) do
               {:ok, project} ->
-                Auditing.record("project.created", account, user,
-                  resource_type: "project",
-                  resource_id: to_string(project.id),
-                  resource_path: "/#{handle}/#{project.handle}",
-                  summary: "Created project #{project.handle} via API"
-                )
-
                 conn
                 |> put_status(:created)
                 |> json(serialize_project(project))

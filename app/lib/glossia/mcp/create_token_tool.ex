@@ -3,7 +3,7 @@ defmodule Glossia.MCP.CreateTokenTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Glossia.DeveloperTokens
+  alias Glossia.AccountTokens
   alias Glossia.MCP.Authorization, as: Auth
   alias Hermes.Server.Response
 
@@ -35,15 +35,8 @@ defmodule Glossia.MCP.CreateTokenTool do
         "expires_at" => expires_at
       }
 
-      case DeveloperTokens.create_account_token(account, user, attrs) do
+      case AccountTokens.create_account_token(account, user, attrs, via: :mcp) do
         {:ok, %{token: token, plain_token: plain_token}} ->
-          Glossia.Auditing.record("token.created", account, user,
-            resource_type: "account_token",
-            resource_id: to_string(token.id),
-            resource_path: "/#{account.handle}/-/settings/tokens",
-            summary: "Created account token \"#{token.name}\""
-          )
-
           response =
             Response.tool()
             |> Response.text(
