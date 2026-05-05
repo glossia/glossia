@@ -31,9 +31,8 @@ jobs:
 
       - name: Set up mise
         uses: jdx/mise-action@v2
-
-      - name: Install mise tools
-        run: mise install git-cliff
+        with:
+          install_args: git-cliff
 
       - name: Detect releasable changes
         id: detect
@@ -96,9 +95,8 @@ jobs:
 
       - name: Set up mise
         uses: jdx/mise-action@v2
-
-      - name: Install mise tools
-        run: mise install git-cliff
+        with:
+          install_args: git-cliff
 
       - name: Generate CHANGELOG
         run: |
