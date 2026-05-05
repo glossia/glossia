@@ -11,6 +11,7 @@ helm = "3"
 op = "latest"
 "gem:kamal" = "2.9.0"
 ruby = "3.4.7"
+git-cliff = "2.10.0"
 
 [env]
 _.file = ".env"
