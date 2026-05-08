@@ -197,11 +197,11 @@ function buildPrompt(config: SetupConfig): string {
     "Set up Glossia localization for this repository.",
     "",
     "Primary objective",
-    "- Produce the minimum useful GLOSSIA.md so the resulting PR is a clean reference example.",
+    "- Produce the minimum useful L10N.md so the resulting PR is a clean reference example.",
     "- Keep the file concise, practical, and easy to adapt.",
     "",
-    "GLOSSIA.md structure (Glossia spec: /docs/reference/glossia-md)",
-    "- GLOSSIA.md is the repository-level Glossia configuration file.",
+    "L10N.md structure (Glossia spec: /docs/reference/l10n-md)",
+    "- L10N.md is the repository-level Glossia configuration file.",
     "- Include TOML frontmatter between +++ markers.",
     "- Add one or more [[content]] entries.",
     "- For translation entries, include source, targets, and output.",
@@ -213,7 +213,7 @@ function buildPrompt(config: SetupConfig): string {
     "- Use output templates with {lang} and {relpath} for translated paths.",
     "",
     "Definition of done",
-    `- Write exactly one file: ${config.repo_path}/GLOSSIA.md`,
+    `- Write exactly one file: ${config.repo_path}/L10N.md`,
     "- The result should be minimal but complete enough for reviewers to merge directly as a baseline.",
     "- Do not return extra narrative; focus on the file content.",
   ].join("\n");
@@ -718,16 +718,16 @@ class AcpClient {
 // File verification helpers
 // ---------------------------------------------------------------------------
 
-function glossiaMdExists(repoPath: string): boolean {
+function l10nMdExists(repoPath: string): boolean {
   try {
-    Deno.statSync(`${repoPath}/GLOSSIA.md`);
+    Deno.statSync(`${repoPath}/L10N.md`);
     return true;
   } catch {
     return false;
   }
 }
 
-function extractGlossiaMdFromText(text: string): string | null {
+function extractL10nMdFromText(text: string): string | null {
   const fencePattern = /```[a-z]*\n([\s\S]*?)\n```/g;
   let best: string | null = null;
 
@@ -779,7 +779,7 @@ async function main(): Promise<void> {
     // 4. Build prompt
     const promptText = buildPrompt(config);
     emit("prompt", promptText, {
-      docs_ref: "/docs/reference/glossia-md",
+      docs_ref: "/docs/reference/l10n-md",
       prompt_version: "setup-v2",
     });
 
@@ -805,15 +805,15 @@ async function main(): Promise<void> {
         return;
       }
 
-      // 9. Verify GLOSSIA.md was written; retry if not
-      if (!glossiaMdExists(config.repo_path)) {
-        emit("status", "GLOSSIA.md not found after first attempt, retrying...");
+      // 9. Verify L10N.md was written; retry if not
+      if (!l10nMdExists(config.repo_path)) {
+        emit("status", "L10N.md not found after first attempt, retrying...");
         client.clearAccumulatedText();
 
         const retryPrompt = [
-          "CRITICAL: The GLOSSIA.md file was NOT written to disk. You must write it now.",
+          "CRITICAL: The L10N.md file was NOT written to disk. You must write it now.",
           "",
-          `Write the file to the absolute path: ${config.repo_path}/GLOSSIA.md`,
+          `Write the file to the absolute path: ${config.repo_path}/L10N.md`,
           "The file must contain TOML frontmatter (between +++ markers) with [[content]] entries",
           "and free-text context below the frontmatter. This is the only required deliverable.",
           "",
@@ -830,15 +830,15 @@ async function main(): Promise<void> {
       }
 
       // 10. Final fallback: extract from accumulated text and write directly
-      if (!glossiaMdExists(config.repo_path)) {
-        emit("status", "Attempting to extract GLOSSIA.md from agent output...");
+      if (!l10nMdExists(config.repo_path)) {
+        emit("status", "Attempting to extract L10N.md from agent output...");
         const allText = client.getAccumulatedText();
-        const extracted = extractGlossiaMdFromText(allText);
+        const extracted = extractL10nMdFromText(allText);
 
         if (extracted) {
-          const filePath = `${config.repo_path}/GLOSSIA.md`;
+          const filePath = `${config.repo_path}/L10N.md`;
           Deno.writeTextFileSync(filePath, extracted);
-          emit("status", "Wrote GLOSSIA.md from extracted agent output.");
+          emit("status", "Wrote L10N.md from extracted agent output.");
         }
       }
 

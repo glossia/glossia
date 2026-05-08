@@ -3,7 +3,7 @@ defmodule Glossia.Projects.Setup do
   @moduledoc """
   Runs the project setup process: creates a sandbox, starts the agent,
   waits for completion, and optionally opens a PR with the generated
-  GLOSSIA.md file.
+  L10N.md file.
 
   Called by `Glossia.Projects.SetupWorker` (Oban) for retry semantics
   and lifecycle management.
@@ -101,9 +101,9 @@ defmodule Glossia.Projects.Setup do
 
           :ok
 
-        :no_language_md ->
+        :no_l10n_md ->
           error_msg =
-            "Setup finished without generating GLOSSIA.md, so no pull request was created."
+            "Setup finished without generating L10N.md, so no pull request was created."
 
           Logger.error("Setup failed for project #{project.id}: #{error_msg}")
           Projects.update_project_setup_status(project, "failed", error_msg)
@@ -116,7 +116,7 @@ defmodule Glossia.Projects.Setup do
             summary: "Setup failed for #{project.handle}: #{error_msg}"
           )
 
-          {:error, :language_md_missing}
+          {:error, :l10n_md_missing}
 
         {:error, reason} ->
           error_msg = humanize_error(reason)
@@ -261,16 +261,16 @@ defmodule Glossia.Projects.Setup do
   end
 
   defp maybe_create_pr(project, sandbox, sandbox_id) do
-    case sandbox.download_file(sandbox_id, "/home/user/repo/GLOSSIA.md") do
-      {:ok, language_md} when is_binary(language_md) and language_md != "" ->
-        create_pr(project, language_md)
+    case sandbox.download_file(sandbox_id, "/home/user/repo/L10N.md") do
+      {:ok, l10n_md} when is_binary(l10n_md) and l10n_md != "" ->
+        create_pr(project, l10n_md)
 
       _ ->
-        :no_language_md
+        :no_l10n_md
     end
   end
 
-  defp create_pr(project, language_md) do
+  defp create_pr(project, l10n_md) do
     installation = project.github_installation
 
     if is_nil(installation) do
@@ -280,7 +280,7 @@ defmodule Glossia.Projects.Setup do
     else
       case Glossia.Github.App.installation_token(installation.github_installation_id) do
         {:ok, token} ->
-          do_create_pr(project, token, language_md)
+          do_create_pr(project, token, l10n_md)
 
         {:error, :not_configured} ->
           Logger.info("GitHub App not configured, skipping PR creation for project #{project.id}")
@@ -293,7 +293,7 @@ defmodule Glossia.Projects.Setup do
     end
   end
 
-  defp do_create_pr(project, token, language_md) do
+  defp do_create_pr(project, token, l10n_md) do
     full_name = project.github_repo_full_name
     default_branch = project.github_repo_default_branch || "main"
     branch_name = "glossia/setup-localization"
@@ -303,13 +303,13 @@ defmodule Glossia.Projects.Setup do
          sha = ref_data["object"]["sha"],
          {:ok, _} <-
            Glossia.Github.Client.create_branch(full_name, branch_name, sha, token),
-         encoded_content = Base.encode64(language_md),
+         encoded_content = Base.encode64(l10n_md),
          {:ok, _} <-
            Glossia.Github.Client.create_or_update_file(
              full_name,
-             "GLOSSIA.md",
+             "L10N.md",
              %{
-               message: "Add GLOSSIA.md for Glossia localization",
+               message: "Add L10N.md for Glossia localization",
                content: encoded_content,
                branch: branch_name
              },
@@ -319,9 +319,9 @@ defmodule Glossia.Projects.Setup do
            Glossia.Github.Client.create_pull_request(
              full_name,
              %{
-               title: "Add GLOSSIA.md for Glossia localization",
+               title: "Add L10N.md for Glossia localization",
                body:
-                 "This PR was automatically created by [Glossia](https://glossia.ai) to set up localization for this repository.\n\nThe `GLOSSIA.md` file configures how Glossia processes and translates content in your project. Review the configuration and merge when ready.",
+                 "This PR was automatically created by [Glossia](https://glossia.ai) to set up localization for this repository.\n\nThe `L10N.md` file configures how Glossia processes and translates content in your project. Review the configuration and merge when ready.",
                head: branch_name,
                base: default_branch
              },
