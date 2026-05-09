@@ -6771,7 +6771,7 @@ defmodule GlossiaWeb.DashboardLive do
               <div class="setup-feed-header-copy">
                 <h3>{gettext("Setting up localization...")}</h3>
                 <p>
-                  {gettext("Building a minimal GLOSSIA.md baseline that your team can reuse.")}
+                  {gettext("Building a minimal L10N.md baseline that your team can reuse.")}
                 </p>
               </div>
             </div>

@@ -3635,12 +3635,12 @@ msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:7098
 #, elixir-autogen, elixir-format
-msgid "Building a minimal GLOSSIA.md baseline that your team can reuse."
+msgid "Building a minimal L10N.md baseline that your team can reuse."
 msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:389
 #, elixir-autogen, elixir-format
-msgid "GLOSSIA.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
+msgid "L10N.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
 msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
