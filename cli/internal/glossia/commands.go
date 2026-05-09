@@ -258,10 +258,10 @@ type InitOptions struct {
 }
 
 func initCommand(root string, options InitOptions) error {
-	contentPath := filepath.Join(root, "LANGUAGE.md")
+	contentPath := filepath.Join(root, "L10N.md")
 
 	if _, err := os.Stat(contentPath); err == nil {
-		return fmt.Errorf("LANGUAGE.md already exists at %s", contentPath)
+		return fmt.Errorf("L10N.md already exists at %s", contentPath)
 	}
 
 	const starterContent = `+++
@@ -287,7 +287,7 @@ Project context for translators goes here.
 	if err := os.WriteFile(contentPath, []byte(starterContent), 0o644); err != nil {
 		return err
 	}
-	options.Reporter.Log(verbCreated, "LANGUAGE.md")
+	options.Reporter.Log(verbCreated, "L10N.md")
 	return nil
 }
 

@@ -236,7 +236,7 @@ func resolveEntries(root string, entries []Entry, fileList []string) ([]resolved
 			if excludes[match] {
 				continue
 			}
-			if path.Base(match) == "LANGUAGE.md" {
+			if path.Base(match) == "L10N.md" {
 				continue
 			}
 
@@ -348,7 +348,7 @@ func discoverContent(root string) ([]*ContentFile, error) {
 
 	var contentPaths []string
 	for _, file := range fileList {
-		if path.Base(file) == "LANGUAGE.md" {
+		if path.Base(file) == "L10N.md" {
 			contentPaths = append(contentPaths, file)
 		}
 	}
