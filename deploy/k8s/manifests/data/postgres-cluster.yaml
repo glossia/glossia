@@ -29,9 +29,9 @@ spec:
     enablePodAntiAffinity: true
     topologyKey: kubernetes.io/hostname
     nodeSelector:
-      node-role.glossia.ai/stateful: "true"
+      node.cluster.x-k8s.io/pool: stateful
     tolerations:
-      - key: node-role.glossia.ai/stateful
+      - key: node.cluster.x-k8s.io/pool
         operator: Equal
-        value: "true"
+        value: stateful
         effect: NoSchedule

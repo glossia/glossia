@@ -51,9 +51,9 @@ datasources:
 
 ingress:
   enabled: true
-  ingressClassName: traefik
+  ingressClassName: nginx
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
   hosts:
     - data.glossia.ai
   path: /
@@ -63,10 +63,10 @@ ingress:
         - data.glossia.ai
 
 nodeSelector:
-  node-role.glossia.ai/stateful: "true"
+  node.cluster.x-k8s.io/pool: stateful
 
 tolerations:
-  - key: node-role.glossia.ai/stateful
+  - key: node.cluster.x-k8s.io/pool
     operator: Equal
-    value: "true"
+    value: stateful
     effect: NoSchedule

@@ -15,9 +15,9 @@ env:
 
 ingress:
   enabled: true
-  className: traefik
+  className: nginx
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
   hosts:
     - host: glossia.ai
       paths:
