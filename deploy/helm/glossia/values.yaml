@@ -21,7 +21,7 @@ service:
 
 ingress:
   enabled: false
-  className: traefik
+  className: nginx
   annotations: {}
   hosts:
     - host: glossia.example.com
