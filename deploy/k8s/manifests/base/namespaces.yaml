@@ -11,10 +11,3 @@ metadata:
   name: monitoring
   labels:
     app.kubernetes.io/part-of: glossia
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: networking
-  labels:
-    app.kubernetes.io/part-of: glossia

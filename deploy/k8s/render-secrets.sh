@@ -3,8 +3,6 @@ set -euo pipefail
 
 namespace="${GLOSSIA_K8S_NAMESPACE:-glossia}"
 monitoring_namespace="${GLOSSIA_K8S_MONITORING_NAMESPACE:-monitoring}"
-cert_manager_namespace="${GLOSSIA_K8S_CERT_MANAGER_NAMESPACE:-cert-manager}"
-networking_namespace="${GLOSSIA_K8S_NETWORKING_NAMESPACE:-networking}"
 postgres_user="${GLOSSIA_K8S_POSTGRES_USER:-glossia}"
 postgres_db="${GLOSSIA_K8S_POSTGRES_DB:-glossia_prod}"
 clickhouse_db="${GLOSSIA_K8S_CLICKHOUSE_DB:-glossia}"
@@ -113,34 +111,7 @@ kubectl create secret generic grafana-datasource-env \
   -o yaml \
   --from-literal="GRAFANA_POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
 
-if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
-  cert_manager_secret_args=(
-    create secret generic cloudflare-api-token
-    --namespace "${cert_manager_namespace}"
-    --dry-run=client
-    -o yaml
-    --from-literal="api-token=${CLOUDFLARE_API_TOKEN}"
-  )
-
-  if [[ -n "${CLOUDFLARE_ZONE_ID:-}" ]]; then
-    cert_manager_secret_args+=(--from-literal="CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID}")
-  fi
-
-  printf -- "---\n"
-  kubectl "${cert_manager_secret_args[@]}"
-
-  cloudflare_secret_args=(
-    create secret generic cloudflare-api-token
-    --namespace "${networking_namespace}"
-    --dry-run=client
-    -o yaml
-    --from-literal="CF_API_TOKEN=${CLOUDFLARE_API_TOKEN}"
-  )
-
-  if [[ -n "${CLOUDFLARE_ZONE_ID:-}" ]]; then
-    cloudflare_secret_args+=(--from-literal="CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID}")
-  fi
-
-  printf -- "---\n"
-  kubectl "${cloudflare_secret_args[@]}"
-fi
+# Cloudflare API token secrets used to be created here for cert-manager
+# (DNS-01 ACME) and external-dns. Both moved to the `platform` namespace
+# managed by the platform Helm chart in glossia/infra, so this script
+# no longer touches the cert-manager / networking namespaces.
