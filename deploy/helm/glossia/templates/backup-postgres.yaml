@@ -1,0 +1,45 @@
+{{- if and .Values.backups.enabled .Values.backups.postgres.enabled .Values.postgres.enabled }}
+# Barman Cloud object store + schedule for the bundled CNPG cluster. The
+# plugin controller is installed by the infra platform chart; the Cluster
+# CR references this ObjectStore via spec.plugins (see postgres-cluster.yaml).
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ printf "%s-backup" .Values.postgres.clusterName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  configuration:
+    destinationPath: {{ printf "s3://%s/%s/postgres" .Values.backups.s3.bucket .Values.backups.s3.prefix | quote }}
+    {{- with .Values.backups.s3.endpointURL }}
+    endpointURL: {{ . | quote }}
+    {{- end }}
+    s3Credentials:
+      accessKeyId:
+        name: {{ .Values.backups.secretName | quote }}
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: {{ .Values.backups.secretName | quote }}
+        key: SECRET_ACCESS_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip
+    retentionPolicy: {{ .Values.backups.postgres.retentionPolicy | quote }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ printf "%s-backup" .Values.postgres.clusterName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backups.postgres.schedule | quote }}
+  immediate: true
+  backupOwnerReference: self
+  cluster:
+    name: {{ .Values.postgres.clusterName }}
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+{{- end }}

@@ -1,0 +1,136 @@
+# Production overrides for the Glossia Helm chart.
+# Layered on top of deploy/helm/glossia/values.yaml by deploy.yml.
+
+fullnameOverride: glossia
+
+# Bootstrap-shape replica count. Bump to 2+ once the cluster has the
+# headroom for a real RollingUpdate (maxSurge>0).
+replicaCount: 1
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
+
+env:
+  GLOSSIA_HOST: glossia.ai
+  OTEL_SERVICE_NAME: glossia-web
+  OTEL_DEPLOYMENT_ENVIRONMENT: production
+
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+  hosts:
+    - host: glossia.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: glossia-ai-tls
+      hosts:
+        - glossia.ai
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 768Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# CAPI/Hetzner stateful pool: hcloud-volumes for PVCs, taint+nodeSelector
+# pin Postgres + ClickHouse to the dedicated stateful nodes.
+postgres:
+  storage:
+    storageClass: hcloud-volumes
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+clickhouse:
+  storage:
+    storageClass: hcloud-volumes
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+# Dedicated DB-backup bucket — SEPARATE provider/credentials from the
+# app's GLOSSIA_S3_* store (DR isolation). Provision the bucket and the
+# 1Password item `glossia-db-backups-keys` per infra/k8s/onboarding.md
+# §B.6, then fill bucket/endpointURL/region for that provider below.
+backups:
+  enabled: true
+  s3:
+    bucket: glossia-production-db-backups
+    prefix: glossia-production
+    endpointURL: ""   # ← set to the backup provider's S3 endpoint
+    region: ""        # ← set to the backup provider's region
+  postgres:
+    schedule: "0 0 3 * * *"
+    retentionPolicy: "30d"
+  clickhouse:
+    schedule: "30 3 * * *"
+    keepRemote: 30
+
+# Pull every secret from the per-environment 1Password vault via the
+# `onepassword` ClusterSecretStore (provisioned by infra/k8s/onboarding.md).
+externalSecrets:
+  enabled: true
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: onepassword
+  appEnv:
+    itemKey: kubernetes
+    fields:
+      GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
+      GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
+      GLOSSIA_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
+      GLOSSIA_SMTP_HOST: SMTP_HOST
+      GLOSSIA_SMTP_PORT: SMTP_PORT
+      GLOSSIA_SMTP_USERNAME: SMTP_USERNAME
+      GLOSSIA_SMTP_PASSWORD: SMTP_PASSWORD
+      GLOSSIA_ENCRYPTION_KEY: ENCRYPTION_KEY
+      GLOSSIA_SENTRY_DSN: SENTRY_DSN
+      GLOSSIA_SENTRY_DSN_JS: SENTRY_DSN_JS
+      GLOSSIA_GITHUB_CLIENT_ID: GITHUB_CLIENT_ID
+      GLOSSIA_GITHUB_CLIENT_SECRET: GITHUB_CLIENT_SECRET
+      GLOSSIA_GITHUB_WEBHOOK_SECRET: GITHUB_WEBHOOK_SECRET
+      GLOSSIA_GITHUB_APP_ID: GITHUB_APP_ID
+      GLOSSIA_GITHUB_APP_PRIVATE_KEY: GITHUB_APP_PRIVATE_KEY
+      GLOSSIA_GITHUB_APP_SLUG: GITHUB_APP_SLUG
+      GLOSSIA_GITLAB_CLIENT_ID: GITLAB_CLIENT_ID
+      GLOSSIA_GITLAB_CLIENT_SECRET: GITLAB_CLIENT_SECRET
+      GLOSSIA_GITLAB_WEBHOOK_SECRET: GITLAB_WEBHOOK_SECRET
+      GLOSSIA_S3_ACCESS_KEY_ID: S3_ACCESS_KEY_ID
+      GLOSSIA_S3_SECRET_ACCESS_KEY: S3_SECRET_ACCESS_KEY
+      GLOSSIA_S3_ENDPOINT: S3_ENDPOINT
+      GLOSSIA_S3_REGION: S3_REGION
+      GLOSSIA_S3_BUCKET: S3_BUCKET
+  postgres:
+    itemKey: kubernetes
+    passwordField: POSTGRES_PASSWORD
+  backup:
+    itemKey: glossia-db-backups-keys
+    accessKeyIdField: access_key_id
+    secretAccessKeyField: secret_access_key
+  imagePullSecret:
+    enabled: true
+    name: ghcr-pull-secret
+    registry: ghcr.io
+    itemKey: kubernetes
+    usernameField: GHCR_PULL_USERNAME
+    passwordField: GHCR_PULL_TOKEN

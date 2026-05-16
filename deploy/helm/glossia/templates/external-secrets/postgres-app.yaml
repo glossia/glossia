@@ -1,0 +1,24 @@
+{{- if and .Values.externalSecrets.enabled .Values.postgres.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.postgres.appSecretName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.postgres.appSecretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: kubernetes.io/basic-auth
+      data:
+        username: {{ .Values.postgres.user | quote }}
+        password: {{ printf "{{ .%s }}" .Values.externalSecrets.postgres.passwordField | quote }}
+  dataFrom:
+    - extract:
+        key: {{ .Values.externalSecrets.postgres.itemKey | quote }}
+{{- end }}

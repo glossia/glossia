@@ -29,3 +29,19 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- define "glossia.headlessServiceFQDN" -}}
 {{ include "glossia.headlessServiceName" . }}.{{ .Release.Namespace }}.svc.cluster.local
 {{- end -}}
+
+{{- define "glossia.postgresHost" -}}
+{{- if .Values.postgres.host -}}
+{{- .Values.postgres.host -}}
+{{- else -}}
+{{- printf "%s-rw" .Values.postgres.clusterName -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "glossia.clickhouseHost" -}}
+{{- if .Values.clickhouse.host -}}
+{{- .Values.clickhouse.host -}}
+{{- else -}}
+{{- printf "%s-clickhouse-headless" .Values.clickhouse.clusterName -}}
+{{- end -}}
+{{- end -}}

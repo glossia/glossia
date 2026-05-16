@@ -1,0 +1,23 @@
+{{- if and .Values.externalSecrets.enabled .Values.backups.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.backups.secretName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.backups.secretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        ACCESS_KEY_ID: {{ printf "{{ .%s }}" .Values.externalSecrets.backup.accessKeyIdField | quote }}
+        SECRET_ACCESS_KEY: {{ printf "{{ .%s }}" .Values.externalSecrets.backup.secretAccessKeyField | quote }}
+  dataFrom:
+    - extract:
+        key: {{ .Values.externalSecrets.backup.itemKey | quote }}
+{{- end }}
