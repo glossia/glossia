@@ -180,6 +180,10 @@ backups:
     schedule: "30 3 * * *"
     # BACKUPS_TO_KEEP_REMOTE — remote backups to retain before pruning.
     keepRemote: 30
+    # S3_FORCE_PATH_STYLE. Leave false for AWS. Set true for Cloudflare
+    # R2 and most non-AWS S3 (path-style addressing avoids bucket-in-
+    # hostname TLS/DNS issues against jurisdiction endpoints).
+    forcePathStyle: false
     # Native protocol (TCP). Host defaults to the operator headless
     # service (glossia.clickhouseHost); 9000 is the native port.
     user: default

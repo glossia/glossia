@@ -68,23 +68,26 @@ clickhouse:
       value: stateful
       effect: NoSchedule
 
-# Dedicated DB-backup bucket — SEPARATE provider/credentials from the
-# app's GLOSSIA_S3_* store (DR isolation). Provision the bucket and the
-# 1Password item `glossia-db-backups-keys` per infra/k8s/onboarding.md
-# §B.6, then fill bucket/endpointURL/region for that provider below.
+# Dedicated DB-backup bucket on Cloudflare R2 — SEPARATE provider and
+# credentials from the app's GLOSSIA_S3_* store (DR isolation). The
+# bucket + the scoped R2 token live behind the `glossia-db-backups-keys`
+# 1Password item (infra/k8s/onboarding.md §B.6). endpointURL is the
+# account's EU-jurisdiction R2 S3 endpoint; R2's region is always "auto".
 backups:
   enabled: true
   s3:
     bucket: glossia-production-db-backups
     prefix: glossia-production
-    endpointURL: ""   # ← set to the backup provider's S3 endpoint
-    region: ""        # ← set to the backup provider's region
+    endpointURL: https://bb7ccb20a20a58b2d5242d0277c750fe.eu.r2.cloudflarestorage.com
+    region: auto
   postgres:
     schedule: "0 0 3 * * *"
     retentionPolicy: "30d"
   clickhouse:
     schedule: "30 3 * * *"
     keepRemote: 30
+    # R2 needs path-style addressing for clickhouse-backup.
+    forcePathStyle: true
 
 # Pull every secret from the per-environment 1Password vault via the
 # `onepassword` ClusterSecretStore (provisioned by infra/k8s/onboarding.md).
