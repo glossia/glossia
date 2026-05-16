@@ -1,3 +1,7 @@
+# Default values for the Glossia Helm chart.
+# Override per-environment by passing -f my-values.yaml to `helm install`.
+# See README.md for the full list of prerequisites.
+
 fullnameOverride: ""
 
 replicaCount: 2
@@ -9,10 +13,13 @@ strategy:
     maxUnavailable: 0
 
 image:
-  repository: ghcr.io/example/glossia
-  tag: latest
+  repository: ghcr.io/glossia/glossia
+  tag: main
   pullPolicy: IfNotPresent
 
+# Pod-level imagePullSecrets. When externalSecrets.imagePullSecret.enabled is
+# true, the chart creates the named Secret via ExternalSecret and you should
+# add it here too (or set it via --set imagePullSecrets[0].name=...).
 imagePullSecrets: []
 
 service:
@@ -30,14 +37,14 @@ ingress:
           pathType: Prefix
   tls: []
 
+# Name of the Secret consumed by the app pod (envFrom). The chart either
+# creates it via ExternalSecret (see externalSecrets below) or expects you
+# to provision it out-of-band before installing.
 secrets:
   envSecretName: glossia-app-env
 
 env:
-  GLOSSIA_HOST: glossia.example.com
   GLOSSIA_PHX_SERVER: "true"
-  OTEL_SERVICE_NAME: glossia-web
-  OTEL_DEPLOYMENT_ENVIRONMENT: production
 
 resources:
   requests:
@@ -70,3 +77,183 @@ migrationJob:
   backoffLimit: 2
   ttlSecondsAfterFinished: 300
   clickhouseInitImage: curlimages/curl:8.12.1
+
+# Postgres (CloudNativePG Cluster CR). Disable to BYO Postgres — set
+# postgres.host to your existing rw service / external endpoint and
+# provision postgres.appSecretName yourself (basic-auth Secret with
+# `username` + `password` keys).
+postgres:
+  enabled: true
+  clusterName: glossia-postgres
+  user: glossia
+  database: glossia_prod
+  # Empty → defaults to "<clusterName>-rw" (CNPG's read-write service in
+  # the release namespace). Override with FQDN for cross-namespace or
+  # external Postgres.
+  host: ""
+  appSecretName: glossia-postgres-app
+  instances: 3
+  storage:
+    storageClass: ""
+    size: 50Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  enablePodAntiAffinity: true
+  topologyKey: kubernetes.io/hostname
+  nodeSelector: {}
+  tolerations: []
+
+# ClickHouse (official clickhouse.com/v1alpha1 operator — ClickHouseCluster
+# + KeeperCluster CRs). Disable to BYO ClickHouse.
+clickhouse:
+  enabled: true
+  clusterName: glossia-clickhouse
+  keeperName: glossia-keeper
+  database: glossia
+  # Empty → defaults to "<clusterName>-clickhouse-headless" in the release
+  # namespace (the operator-managed headless service).
+  host: ""
+  port: 8123
+  replicas: 1
+  keeperReplicas: 1
+  storage:
+    storageClass: ""
+    size: 100Gi
+  keeperStorageSize: 10Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  keeperResources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+  nodeSelector: {}
+  tolerations: []
+
+# Off-cluster backups for the bundled Postgres + ClickHouse. Targets a
+# DEDICATED S3-compatible bucket with its OWN credentials — keep this
+# separate from the app's object storage so a compromise or fat-fingered
+# policy on one can't take out the other. Postgres backups go through the
+# CNPG Barman Cloud plugin, which is installed by the infra platform
+# chart (cluster-level), not here. ClickHouse has no native backup, so a
+# clickhouse-backup CronJob handles it.
+backups:
+  enabled: false
+  s3:
+    # destinationPath becomes s3://<bucket>/<prefix>/postgres and the
+    # ClickHouse CronJob writes under <prefix>/clickhouse.
+    bucket: ""
+    prefix: glossia
+    # Blank → AWS S3 default endpoint. Set for R2 / B2 / Hetzner / MinIO.
+    endpointURL: ""
+    # S3 region. Feeds the ClickHouse job (S3_REGION) directly and the
+    # Postgres ObjectStore via a REGION key in backups.secretName (the
+    # CNPG plugin only accepts region as a secret ref). "auto" is the
+    # right value for Cloudflare R2 and harmless for most S3-compatible
+    # stores; set "" to omit it entirely.
+    region: auto
+  # Secret holding the bucket credentials. Created from the backend by
+  # ExternalSecret when externalSecrets.backup is set (see below);
+  # otherwise provision it yourself with keys ACCESS_KEY_ID and
+  # SECRET_ACCESS_KEY.
+  secretName: glossia-db-backup
+  postgres:
+    enabled: true
+    # CNPG ScheduledBackup cron — SIX fields (leading field is seconds),
+    # not the standard five.
+    schedule: "0 0 3 * * *"
+    # CNPG Barman retention grammar: XXu where u ∈ d|w|m.
+    retentionPolicy: "30d"
+  clickhouse:
+    enabled: true
+    image: altinity/clickhouse-backup:2.6.43
+    # Standard five-field Kubernetes CronJob cron.
+    schedule: "30 3 * * *"
+    # BACKUPS_TO_KEEP_REMOTE — remote backups to retain before pruning.
+    keepRemote: 30
+    # S3_FORCE_PATH_STYLE. Leave false for AWS. Set true for Cloudflare
+    # R2 and most non-AWS S3 (path-style addressing avoids bucket-in-
+    # hostname TLS/DNS issues against jurisdiction endpoints).
+    forcePathStyle: false
+    # Native protocol (TCP). Host defaults to the operator headless
+    # service (glossia.clickhouseHost); 9000 is the native port.
+    user: default
+    port: 9000
+    # Optional Secret for the ClickHouse user password. The default user
+    # on a fresh operator-managed cluster has none.
+    passwordSecret:
+      name: ""
+      key: ""
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+# External Secrets Operator integration. When enabled, the chart emits
+# ExternalSecret CRs that pull from the configured SecretStore. When
+# disabled, the chart consumes pre-existing Secrets by name (so you can
+# manage them with sealed-secrets, sops, kubectl create, etc.).
+#
+# Defaults assume the External Secrets Operator is installed cluster-wide
+# and a ClusterSecretStore named "default" exists. Override secretStoreRef
+# to point at your own SecretStore (e.g. 1Password, Vault, AWS SM).
+externalSecrets:
+  enabled: false
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: default
+  # ExternalSecret for the app env Secret. The provider item at `itemKey`
+  # is expected to expose every field listed in `fields` (chart key →
+  # remote field). The chart adds GLOSSIA_DATABASE_URL and
+  # GLOSSIA_CLICKHOUSE_URL automatically, computed from postgres/clickhouse
+  # values + the password fetched from the postgres item.
+  appEnv:
+    itemKey: glossia
+    fields:
+      GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
+      GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
+      GLOSSIA_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
+      GLOSSIA_SMTP_HOST: SMTP_HOST
+      GLOSSIA_SMTP_PORT: SMTP_PORT
+      GLOSSIA_SMTP_USERNAME: SMTP_USERNAME
+      GLOSSIA_SMTP_PASSWORD: SMTP_PASSWORD
+  # ExternalSecret for the Postgres basic-auth Secret. Username comes from
+  # postgres.user (literal, set at chart-render time); password is fetched
+  # from `passwordField` of the item at `itemKey`.
+  postgres:
+    itemKey: glossia
+    passwordField: POSTGRES_PASSWORD
+  # ExternalSecret for the dedicated DB-backup bucket credentials. Pulls
+  # from a SEPARATE backend item (not appEnv.itemKey) so backup creds are
+  # not entangled with the app's secrets. Maps remote fields →
+  # ACCESS_KEY_ID / SECRET_ACCESS_KEY in backups.secretName.
+  backup:
+    itemKey: glossia-db-backups-keys
+    accessKeyIdField: access_key_id
+    secretAccessKeyField: secret_access_key
+  # ExternalSecret for the image pull Secret (kubernetes.io/dockerconfigjson).
+  # Disable if your registry doesn't need auth or you create the pull secret
+  # by other means.
+  imagePullSecret:
+    enabled: false
+    name: ghcr-pull-secret
+    registry: ghcr.io
+    itemKey: glossia
+    usernameField: GHCR_PULL_USERNAME
+    passwordField: GHCR_PULL_TOKEN

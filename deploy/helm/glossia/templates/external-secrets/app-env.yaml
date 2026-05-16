@@ -1,0 +1,26 @@
+{{- if .Values.externalSecrets.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.secrets.envSecretName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.secrets.envSecretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        GLOSSIA_DATABASE_URL: {{ printf "ecto://%s:{{ .%s | urlquery }}@%s/%s" .Values.postgres.user .Values.externalSecrets.postgres.passwordField (include "glossia.postgresHost" .) .Values.postgres.database | quote }}
+        GLOSSIA_CLICKHOUSE_URL: {{ printf "http://%s:%d/%s" (include "glossia.clickhouseHost" .) (int .Values.clickhouse.port) .Values.clickhouse.database | quote }}
+        {{- range $key, $remoteKey := .Values.externalSecrets.appEnv.fields }}
+        {{ $key }}: {{ printf "{{ .%s }}" $remoteKey | quote }}
+        {{- end }}
+  dataFrom:
+    - extract:
+        key: {{ .Values.externalSecrets.appEnv.itemKey | quote }}
+{{- end }}
