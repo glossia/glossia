@@ -158,9 +158,12 @@ backups:
     prefix: glossia
     # Blank → AWS S3 default endpoint. Set for R2 / B2 / Hetzner / MinIO.
     endpointURL: ""
-    # Used by the ClickHouse CronJob (S3_REGION). Optional; many
-    # S3-compatible stores infer it from endpointURL.
-    region: ""
+    # S3 region. Feeds the ClickHouse job (S3_REGION) directly and the
+    # Postgres ObjectStore via a REGION key in backups.secretName (the
+    # CNPG plugin only accepts region as a secret ref). "auto" is the
+    # right value for Cloudflare R2 and harmless for most S3-compatible
+    # stores; set "" to omit it entirely.
+    region: auto
   # Secret holding the bucket credentials. Created from the backend by
   # ExternalSecret when externalSecrets.backup is set (see below);
   # otherwise provision it yourself with keys ACCESS_KEY_ID and

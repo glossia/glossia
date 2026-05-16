@@ -17,6 +17,9 @@ spec:
       data:
         ACCESS_KEY_ID: {{ printf "{{ .%s }}" .Values.externalSecrets.backup.accessKeyIdField | quote }}
         SECRET_ACCESS_KEY: {{ printf "{{ .%s }}" .Values.externalSecrets.backup.secretAccessKeyField | quote }}
+        {{- with .Values.backups.s3.region }}
+        REGION: {{ . | quote }}
+        {{- end }}
   dataFrom:
     - extract:
         key: {{ .Values.externalSecrets.backup.itemKey | quote }}

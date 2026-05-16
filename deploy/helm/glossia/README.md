@@ -115,8 +115,8 @@ backups:
     bucket: my-glossia-db-backups
     prefix: glossia
     endpointURL: https://s3.eu-central-1.example.com   # blank → AWS
-    region: eu-central-1
-  secretName: glossia-db-backup   # keys: ACCESS_KEY_ID, SECRET_ACCESS_KEY
+    region: auto                   # "" to omit; "auto" suits R2
+  secretName: glossia-db-backup    # keys: ACCESS_KEY_ID, SECRET_ACCESS_KEY[, REGION]
   postgres:
     schedule: "0 0 3 * * *"       # CNPG cron — SIX fields (secs first)
     retentionPolicy: "30d"
@@ -135,8 +135,11 @@ backups:
   `BACKUPS_TO_KEEP_REMOTE`).
 
 Provide `backups.secretName` yourself (keys `ACCESS_KEY_ID`,
-`SECRET_ACCESS_KEY`), or let the External Secrets integration create it
-from a dedicated backend item:
+`SECRET_ACCESS_KEY`, and `REGION` when `s3.region` is set — the CNPG
+plugin only takes the region via a secret ref), or let the External
+Secrets integration create it from a dedicated backend item (it injects
+`REGION` from `s3.region` for you; the backend item only needs the two
+keys):
 
 ```yaml
 externalSecrets:
