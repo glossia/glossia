@@ -1,0 +1,59 @@
+{{- if .Values.clickhouse.enabled }}
+apiVersion: clickhouse.com/v1alpha1
+kind: KeeperCluster
+metadata:
+  name: {{ .Values.clickhouse.keeperName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.clickhouse.keeperReplicas }}
+  dataVolumeClaimSpec:
+    storageClassName: {{ .Values.clickhouse.storage.storageClass | quote }}
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: {{ .Values.clickhouse.keeperStorageSize | quote }}
+  podTemplate:
+    {{- with .Values.clickhouse.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  containerTemplate:
+    resources:
+      {{- toYaml .Values.clickhouse.keeperResources | nindent 6 }}
+---
+apiVersion: clickhouse.com/v1alpha1
+kind: ClickHouseCluster
+metadata:
+  name: {{ .Values.clickhouse.clusterName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.clickhouse.replicas }}
+  dataVolumeClaimSpec:
+    storageClassName: {{ .Values.clickhouse.storage.storageClass | quote }}
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: {{ .Values.clickhouse.storage.size | quote }}
+  keeperClusterRef:
+    name: {{ .Values.clickhouse.keeperName }}
+  podTemplate:
+    {{- with .Values.clickhouse.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  containerTemplate:
+    resources:
+      {{- toYaml .Values.clickhouse.resources | nindent 6 }}
+{{- end }}

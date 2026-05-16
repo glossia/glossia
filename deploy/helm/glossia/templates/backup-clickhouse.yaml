@@ -1,0 +1,89 @@
+{{- if and .Values.backups.enabled .Values.backups.clickhouse.enabled .Values.clickhouse.enabled }}
+# The official ClickHouse operator has no native backup CR, so back up
+# with Altinity's clickhouse-backup tool on a schedule. create_remote
+# makes a backup and uploads it; BACKUPS_TO_KEEP_REMOTE prunes old ones.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "glossia.fullname" . }}-clickhouse-backup
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backups.clickhouse.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            {{- include "glossia.selectorLabels" . | nindent 12 }}
+        spec:
+          restartPolicy: OnFailure
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: clickhouse-backup
+              image: {{ .Values.backups.clickhouse.image | quote }}
+              args: ["create_remote"]
+              env:
+                - name: LOG_LEVEL
+                  value: info
+                - name: CLICKHOUSE_HOST
+                  value: {{ include "glossia.clickhouseHost" . | quote }}
+                - name: CLICKHOUSE_PORT
+                  value: {{ .Values.backups.clickhouse.port | quote }}
+                - name: CLICKHOUSE_USERNAME
+                  value: {{ .Values.backups.clickhouse.user | quote }}
+                {{- with .Values.backups.clickhouse.passwordSecret }}
+                {{- if .name }}
+                - name: CLICKHOUSE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .name | quote }}
+                      key: {{ .key | quote }}
+                {{- end }}
+                {{- end }}
+                - name: REMOTE_STORAGE
+                  value: s3
+                - name: S3_BUCKET
+                  value: {{ .Values.backups.s3.bucket | quote }}
+                - name: S3_PATH
+                  value: {{ printf "%s/clickhouse" .Values.backups.s3.prefix | quote }}
+                {{- with .Values.backups.s3.endpointURL }}
+                - name: S3_ENDPOINT
+                  value: {{ . | quote }}
+                {{- end }}
+                {{- with .Values.backups.s3.region }}
+                - name: S3_REGION
+                  value: {{ . | quote }}
+                {{- end }}
+                - name: S3_FORCE_PATH_STYLE
+                  value: {{ .Values.backups.clickhouse.forcePathStyle | quote }}
+                - name: S3_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.backups.secretName | quote }}
+                      key: ACCESS_KEY_ID
+                - name: S3_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.backups.secretName | quote }}
+                      key: SECRET_ACCESS_KEY
+                - name: BACKUPS_TO_KEEP_REMOTE
+                  value: {{ .Values.backups.clickhouse.keepRemote | quote }}
+              resources:
+                {{- toYaml .Values.backups.clickhouse.resources | nindent 16 }}
+{{- end }}
