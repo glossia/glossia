@@ -62,6 +62,23 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ github.sha }}
             ghcr.io/${{ github.repository }}:main
 
+      - name: Deploy platform
+        run: |
+          mise exec -- kubectl create namespace glossia --dry-run=client -o yaml | mise exec -- kubectl apply -f -
+          mise exec -- kubectl create namespace platform --dry-run=client -o yaml | mise exec -- kubectl apply -f -
+          mise exec -- kubectl label --overwrite namespace platform \
+            pod-security.kubernetes.io/enforce=privileged \
+            pod-security.kubernetes.io/audit=privileged \
+            pod-security.kubernetes.io/warn=privileged
+
+          mise exec -- helm dependency update infra/helm/platform
+          mise exec -- helm upgrade --install platform infra/helm/platform \
+            --namespace platform \
+            --create-namespace \
+            --values infra/helm/platform/values-hetzner.yaml
+
+          mise exec -- kubectl -n glossia wait --for=create secret/glossia-s3 --timeout=30m
+
       - name: Deploy to Kubernetes
         run: |
           mise exec -- helm upgrade --install glossia deploy/helm/glossia \
