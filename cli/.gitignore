@@ -1,0 +1,12 @@
+/.l10n/tmp
+.blick/runs/
+.env
+.DS_Store
+.claude/worktrees
+
+# CLI build outputs
+/dist
+/release
+/target
+
+/tmp

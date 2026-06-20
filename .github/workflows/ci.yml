@@ -18,23 +18,15 @@ jobs:
         working-directory: cli
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: actions/setup-go@v5
+      - uses: jdx/mise-action@v2
         with:
-          go-version-file: cli/go.mod
-          cache-dependency-path: cli/go.sum
+          cache: true
       - name: Format check
-        shell: bash
-        run: |
-          out="$(gofmt -l .)"
-          if [ -n "$out" ]; then
-            echo "::error::gofmt needed for:"
-            echo "$out"
-            exit 1
-          fi
+        run: cargo fmt -- --check
 
-  test-build:
+  clippy:
     if: github.event.pull_request.draft != true
-    name: Test, Build
+    name: Clippy
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -42,52 +34,53 @@ jobs:
         working-directory: cli
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: actions/setup-go@v5
+      - uses: jdx/mise-action@v2
         with:
-          go-version-file: cli/go.mod
-          cache-dependency-path: cli/go.sum
-      - name: Test
-        run: go test ./...
-      - name: Build
-        run: |
-          mkdir -p dist
-          go build -o dist/glossia ./cmd/glossia
+          cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cli -> target
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
-  executables:
+  test:
     if: github.event.pull_request.draft != true
-    name: Executable (${{ matrix.goos }}-${{ matrix.goarch }})
+    name: Test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [format, test-build]
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            artifact: glossia-linux-x64
-          - goos: linux
-            goarch: arm64
-            artifact: glossia-linux-arm64
-          - goos: darwin
-            goarch: amd64
-            artifact: glossia-darwin-x64
-          - goos: darwin
-            goarch: arm64
-            artifact: glossia-darwin-arm64
-          - goos: windows
-            goarch: amd64
-            artifact: glossia-windows-x64.exe
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: cli
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: actions/setup-go@v5
+      - uses: jdx/mise-action@v2
         with:
-          go-version-file: cli/go.mod
-          cache-dependency-path: cli/go.sum
-      - name: Build executable
-        run: |
-          mkdir -p dist/bin
-          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -trimpath -ldflags "-s -w" -o dist/bin/${{ matrix.artifact }} ./cmd/glossia
+          cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cli -> target
+      - name: Test library
+        run: cargo test --lib
+      - name: Test end-to-end translation
+        run: cargo test --test e2e_translate
+
+  build:
+    if: github.event.pull_request.draft != true
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cli -> target
+      - name: Build
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo build --release --bin glossia
