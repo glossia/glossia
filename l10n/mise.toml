@@ -1,0 +1,19 @@
+[tools]
+node = "24"
+aube = "latest"
+
+[tasks.install]
+description = "Install dependencies with aube"
+run = "aube install"
+
+[tasks.validate]
+description = "Validate L10N markdown files against the versioned JSON Schema"
+run = "aube run validate"
+
+[tasks.dev]
+description = "Run the Eleventy site locally"
+run = "aube run dev"
+
+[tasks.build]
+description = "Build the Eleventy site"
+run = "aube run build"

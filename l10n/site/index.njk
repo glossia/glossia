@@ -1,0 +1,73 @@
+---
+layout: base.njk
+title: L10N.md Standard
+description: The L10N.md specification, a monochrome standards document for repository-resident translation context and its versioned JSON Schemas.
+specFormat: html
+pagination:
+  data: specPages
+  size: 1
+  alias: specPage
+permalink: "/v{{ specPage.spec.version }}/{% if specPage.locale.code != 'en' %}{{ specPage.locale.code }}/{% endif %}index.html"
+eleventyComputed:
+  title: "L10N.md Standard v{{ specPage.spec.version }} ({{ specPage.locale.label }})"
+---
+
+{% set spec = specPage.spec %}
+{% set locale = specPage.locale %}
+{% set sections = specPage.sections %}
+{% set referenceVersion = reference.byVersion[spec.version] %}
+
+<article class="spec" lang="{{ locale.code }}">
+
+  <header class="spec-head">
+    <p class="spec-eyebrow">Specification</p>
+    <h1 class="spec-title">{{ site.spec.name }}</h1>
+    <p class="spec-subtitle">{{ site.spec.subtitle }}</p>
+    <dl class="spec-meta">
+      <div><dt>Status</dt><dd>{{ site.spec.status }}</dd></div>
+      <div><dt>Version</dt><dd>{{ spec.version }}</dd></div>
+      <div><dt>Updated</dt><dd>{{ site.spec.updated }}</dd></div>
+      <div><dt>Source</dt><dd><a href="{{ site.repo }}">github.com/glossia/l10n</a></dd></div>
+      <div><dt>License</dt><dd>{{ site.spec.license }}</dd></div>
+    </dl>
+  </header>
+
+  {% for section in sections %}
+    {% if section.kind == "preamble" %}
+      <section id="{{ section.id }}" class="{% if section.id == 'abstract' %}abstract{% else %}status-note{% endif %}">
+        <h2 class="label">{{ section.label or section.title }}</h2>
+        {{ section.body | specBody | safe }}
+      </section>
+    {% endif %}
+  {% endfor %}
+
+  <nav id="contents" class="toc" aria-label="Table of contents">
+    <h2 class="label">Contents</h2>
+    <ol>
+      {% for section in sections %}
+        {% if section.kind == "section" or section.kind == "appendix" %}
+          <li>
+            <a href="#{{ section.id }}"><span class="toc-n">{{ section.number }}</span> {{ section.title }}{% if section.kind == "appendix" %} (Informative){% endif %}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+  </nav>
+
+  <hr class="rule">
+
+  {% for section in sections %}
+    {% if section.kind == "section" %}
+      <section id="{{ section.id }}" class="sec">
+        <h2><span class="num">{{ section.number }}</span><span class="htext">{{ section.title }}</span></h2>
+        {{ section.body | specBody | safe }}
+      </section>
+    {% elif section.kind == "appendix" %}
+      <section id="{{ section.id }}" class="sec appendix">
+        <h2><span class="num">{{ section.number }}</span><span class="htext">{{ section.title }}</span></h2>
+        {{ section.body | specBody | safe }}
+      </section>
+    {% endif %}
+  {% endfor %}
+
+</article>

@@ -1,0 +1,20 @@
+{
+  "name": "@glossia/l10n",
+  "private": true,
+  "version": "0.1.0",
+  "description": "An Eleventy site and JSON Schema for the L10N.md translation-context standard.",
+  "type": "module",
+  "scripts": {
+    "build": "aube run validate && eleventy",
+    "dev": "aube run validate && eleventy --serve",
+    "validate": "node scripts/validate-l10n.mjs"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "3.1.5",
+    "ajv": "8.20.0",
+    "gray-matter": "4.0.3",
+    "markdown-it": "^14.1.1",
+    "markdown-it-attrs": "^4.5.0",
+    "nunjucks": "^3.2.4"
+  }
+}

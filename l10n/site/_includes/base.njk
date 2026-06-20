@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="{{ locale.code or 'en' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title or site.title }}</title>
+    <meta name="description" content="{{ description or site.description }}">
+    <meta name="color-scheme" content="light dark">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="L10N.md Standard">
+    <meta property="og:title" content="{{ title or site.title }}">
+    <meta property="og:description" content="{{ description or site.description }}">
+    <meta property="og:image" content="{{ site.url }}/assets/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="L10N.md - A convention for repository-resident translation context.">
+    {% if locale %}<meta property="og:locale" content="{{ locale.code }}">{% endif %}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ title or site.title }}">
+    <meta name="twitter:description" content="{{ description or site.description }}">
+    <meta name="twitter:image" content="{{ site.url }}/assets/og-image.png">
+    {% if locale %}
+      {% for l in spec.locales %}
+        {% set href %}/v{{ spec.version }}/{% if l.code != 'en' %}{{ l.code }}/{% endif %}{% endset %}
+        <link rel="alternate" hreflang="{{ l.code }}" href="{{ href }}">
+      {% endfor %}
+      {% set mdHref %}/v{{ spec.version }}/{% if locale.code != 'en' %}{{ locale.code }}/{% endif %}spec.md{% endset %}
+      <link rel="alternate" type="text/markdown" href="{{ mdHref }}" title="Specification source (Markdown)">
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#abstract">Skip to content</a>
+
+    {% if spec and spec.version %}
+      {% set currentSpecVersion = spec.version %}
+    {% else %}
+      {% set currentSpecVersion = site.spec.latest %}
+    {% endif %}
+
+    <header class="runninghead">
+      <a class="rh-name" href="/latest/">{{ site.spec.name }}</a>
+      <span class="rh-sep" aria-hidden="true">/</span>
+      <nav class="rh-versions" aria-label="Specification versions">
+        <details class="rh-version-switcher">
+          <summary class="rh-version-summary">v{{ currentSpecVersion }}</summary>
+          <div class="rh-version-menu">
+            {% for v in site.spec.versions %}
+              {% set versionHref %}/v{{ v }}/{% endset %}
+              {% if locale %}
+                {% if specFormat == "markdown" %}
+                  {% set versionHref %}/v{{ v }}/spec.md{% endset %}
+                {% else %}
+                  {% set versionHref %}/v{{ v }}/{% endset %}
+                {% endif %}
+              {% endif %}
+              {% if v == currentSpecVersion %}
+                <span class="rh-version-option rh-version-option-current" aria-current="true">v{{ v }}</span>
+              {% else %}
+                <a class="rh-version-option" href="{{ versionHref }}">v{{ v }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </details>
+      </nav>
+      <div class="rh-links">
+        {% if locale %}
+          <nav class="rh-locales" aria-label="Languages">
+            {% for l in spec.locales %}
+              {% if specFormat == "markdown" %}
+                {% set href %}/v{{ spec.version }}/{% if l.code != 'en' %}{{ l.code }}/{% endif %}spec.md{% endset %}
+              {% else %}
+                {% set href %}/v{{ spec.version }}/{% if l.code != 'en' %}{{ l.code }}/{% endif %}{% endset %}
+              {% endif %}
+              {% if l.code == locale.code %}
+                <span class="rh-locale rh-locale-current" aria-current="true">{{ l.code | upper }}</span>
+              {% else %}
+                <a class="rh-locale" href="{{ href }}" hreflang="{{ l.code }}">{{ l.code | upper }}</a>
+              {% endif %}
+            {% endfor %}
+          </nav>
+        {% endif %}
+        <div class="rh-sources">
+          <a class="rh-source" href="/blog/">Blog</a>
+          <a class="rh-source" href="{{ site.repo }}">Source</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="doc">
+      {{ content | safe }}
+    </main>
+
+    <footer class="colophon">
+      <p>
+        {{ site.spec.name }} specification{% if locale %}, version {{ spec.version }}{% else %}, current stable version {{ site.spec.latest }}{% endif %}.
+        Maintained at <a href="{{ site.repo }}">github.com/glossia/l10n</a>.
+      </p>
+      <p>This document follows its own formatting rules: no em dashes, source structure preserved.</p>
+    </footer>
+  </body>
+</html>

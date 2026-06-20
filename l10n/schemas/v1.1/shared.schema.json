@@ -1,0 +1,30 @@
+{
+  "$id": "https://glossia.dev/schemas/l10n/v1.1/shared.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "localeIdentifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{2,8})*$",
+      "examples": ["en", "es", "ja", "zh_Hant"]
+    },
+    "modelIdentifier": {
+      "type": "string",
+      "minLength": 1,
+      "examples": ["openai/gpt-5"]
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      },
+      "minItems": 1
+    },
+    "markdownBody": {
+      "type": "string"
+    }
+  }
+}
