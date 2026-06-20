@@ -2,26 +2,44 @@
 
 The language OS for your organization.
 
-Glossia captures your voice, terminology, and tone in one place so linguists and teams can shape how your organization speaks across every language and surface.
+Glossia captures your voice, terminology, and tone in one place so linguists
+and teams can shape how your organization speaks across every language and
+surface.
 
-## 🗣️ What is a language OS?
+Glossia is proprietary software. The source is available to authorized
+contributors only and is not licensed for copying, redistribution, or external
+use. See [LICENSE.md](./LICENSE.md).
 
-Your organization already has systems for code, design, and data. Language deserves the same level of care. Glossia provides:
+## Product Shape
 
-- **🧭 One source of truth for how you speak.** All of your linguistic preferences live in one place. Every team draws from the same foundation, so your organization sounds consistent whether it is a product screen, a marketing campaign, or a support reply.
-- **🌍 Speak new languages, reach new markets.** The same linguistic foundation that keeps your content consistent also powers expansion into new languages. Linguists refine the voice once, and every market benefits from that work immediately.
-- **🔌 Context for the tools you already use.** Glossia integrates with your existing workflows through APIs and open standards like [MCP](https://modelcontextprotocol.io/). Your writing tools, content platforms, and AI assistants can all tap into your organization's linguistic knowledge without switching systems.
+Glossia is now a single multi-tenant Phoenix application. The public website,
+blog, docs, changelog, product app, OAuth server, API, MCP surface, and account
+workflows live in `app/`.
 
-## 🧱 Project Structure
+The previous standalone website, CLI, infra, and L10N repositories have been
+folded into this monorepo. The separate cloud control-plane repository is
+retired for this direction and was not imported because tenancy belongs in the
+main Phoenix application.
 
-- **🌐 `app/`** The web application, built with [Elixir](https://elixir-lang.org/) and [Phoenix](https://www.phoenixframework.org/).
-- **⌨️ `cli/`** The CLI, written in [Go](https://go.dev/). Translates files locally using LLMs, keeps content in-repo, and validates output with your own tooling.
+## Project Structure
 
-## 🚀 Getting Started
+- `app/`: Elixir and Phoenix application. It serves the product and the public
+  website content from `app/priv/`.
+- `cli/`: active Rust CLI implementation, with release automation scoped to
+  `cli/**`.
+- `infra/`: infrastructure sources imported from the infra repository, including
+  Helm platform charts, Kubernetes cluster assets, and Terraform.
+- `l10n/`: L10N standard package, including the specification, schemas,
+  examples, and Eleventy reference site. This package keeps its own MIT license
+  notice in `l10n/LICENSE`.
+- `deploy/`: application deployment chart and production values.
+- `mobile/`: mobile app prototype.
+
+## Getting Started
 
 Visit [glossia.ai](https://glossia.ai) to learn more, or check out the [docs](https://glossia.ai/docs).
 
-### ⌨️ CLI
+### CLI
 
 ```bash
 mise use aqua:glossia.ai/cli@latest
@@ -29,7 +47,7 @@ glossia init
 glossia translate
 ```
 
-### 🌐 Web App
+### Web App
 
 ```bash
 cd app
@@ -37,7 +55,24 @@ mix setup
 mix phx.server
 ```
 
-## 🤝 Community
+### CLI Development
+
+```bash
+cd cli
+mise exec -- cargo test --lib
+mise exec -- cargo test --test e2e_translate
+```
+
+### L10N Standard
+
+```bash
+cd l10n
+mise run install
+mise run validate
+mise run build
+```
+
+## Community
 
 - [Forum](https://community.glossia.ai/)
 - [Discord](https://discord.gg/7FRHkwvs)
