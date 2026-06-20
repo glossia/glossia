@@ -41,6 +41,10 @@ spec:
               env:
                 - name: LOG_LEVEL
                   value: info
+                # This backup pod runs outside the ClickHouse container and
+                # does not mount /var/lib/clickhouse/preprocessed_configs.
+                - name: RBAC_BACKUP_ALWAYS
+                  value: "false"
                 - name: CLICKHOUSE_HOST
                   value: {{ include "glossia.clickhouseHost" . | quote }}
                 - name: CLICKHOUSE_PORT
