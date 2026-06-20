@@ -8,6 +8,7 @@ on:
       - "app/**"
       - "deploy/helm/glossia/**"
       - "deploy/values-production.yaml"
+      - "infra/helm/platform/**"
       - "mise/**"
       - "mise.toml"
       - ".github/workflows/deploy.yml"
