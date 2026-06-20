@@ -1,0 +1,127 @@
+{{- if and .Values.postgres.enabled .Values.postgres.storageAutoResize.enabled }}
+{{- $name := printf "%s-postgres-storage-autoscaler" (include "glossia.fullname" .) | trunc 63 | trimSuffix "-" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "persistentvolumeclaims"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["patch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusters"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $name }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.postgres.storageAutoResize.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.postgres.storageAutoResize.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.postgres.storageAutoResize.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "glossia.labels" . | nindent 12 }}
+            app.kubernetes.io/component: postgres-storage-autoscaler
+        spec:
+          serviceAccountName: {{ $name }}
+          restartPolicy: OnFailure
+          containers:
+            - name: kubectl
+              image: {{ .Values.postgres.storageAutoResize.image | quote }}
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: CLUSTER_NAME
+                  value: {{ .Values.postgres.clusterName | quote }}
+                - name: THRESHOLD_PERCENT
+                  value: {{ .Values.postgres.storageAutoResize.thresholdPercent | quote }}
+                - name: SCALE_FACTOR_PERCENT
+                  value: {{ .Values.postgres.storageAutoResize.scaleFactorPercent | quote }}
+                - name: MIN_INCREMENT_GI
+                  value: {{ .Values.postgres.storageAutoResize.minIncrementGi | quote }}
+                - name: MAX_SIZE
+                  value: {{ .Values.postgres.storageAutoResize.maxSize | quote }}
+                - name: MOUNT_PATH
+                  value: {{ .Values.postgres.storageAutoResize.mountPath | quote }}
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  threshold="${THRESHOLD_PERCENT}"
+                  max_gi="$(printf "%s" "${MAX_SIZE}" | sed -E 's/Gi$//')"
+                  current_size="$(kubectl get cluster "${CLUSTER_NAME}" -o jsonpath='{.spec.storage.size}')"
+                  current_gi="$(printf "%s" "${current_size}" | sed -E 's/Gi$//')"
+                  resize=false
+
+                  for pod in $(kubectl get pods -l "cnpg.io/cluster=${CLUSTER_NAME},cnpg.io/podRole=instance" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
+                    usage="$(kubectl exec "${pod}" -c postgres -- sh -c "df -P ${MOUNT_PATH} | awk 'NR==2 {gsub(\"%\", \"\", \\$5); print \\$5}'" 2>/dev/null || true)"
+                    if [ -n "${usage}" ] && [ "${usage}" -ge "${threshold}" ]; then
+                      echo "${pod} is at ${usage}% disk usage"
+                      resize=true
+                    fi
+                  done
+
+                  if [ "${resize}" != "true" ]; then
+                    echo "No Postgres PVC is above ${threshold}%"
+                    exit 0
+                  fi
+
+                  next_gi="$(( current_gi * SCALE_FACTOR_PERCENT / 100 ))"
+                  min_next_gi="$(( current_gi + MIN_INCREMENT_GI ))"
+                  if [ "${next_gi}" -lt "${min_next_gi}" ]; then
+                    next_gi="${min_next_gi}"
+                  fi
+                  if [ "${next_gi}" -gt "${max_gi}" ]; then
+                    next_gi="${max_gi}"
+                  fi
+                  if [ "${next_gi}" -le "${current_gi}" ]; then
+                    echo "Storage is already at ${current_gi}Gi, max is ${max_gi}Gi"
+                    exit 0
+                  fi
+
+                  next_size="${next_gi}Gi"
+                  echo "Resizing ${CLUSTER_NAME} from ${current_size} to ${next_size}"
+                  kubectl patch cluster "${CLUSTER_NAME}" --type merge -p "{\"spec\":{\"storage\":{\"size\":\"${next_size}\"}}}"
+
+                  for pvc in $(kubectl get pvc -l "cnpg.io/cluster=${CLUSTER_NAME},cnpg.io/pvcRole=PG_DATA" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
+                    kubectl patch pvc "${pvc}" --type merge -p "{\"spec\":{\"resources\":{\"requests\":{\"storage\":\"${next_size}\"}}}}"
+                  done
+              resources:
+                {{- toYaml .Values.postgres.storageAutoResize.resources | nindent 16 }}
+{{- end }}
