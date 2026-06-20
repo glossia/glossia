@@ -180,31 +180,32 @@ defmodule GlossiaWeb.Router do
   scope "/docs", GlossiaWeb do
     pipe_through :api
 
-    get "/search.json", RetiredPublicController, :search_index
+    get "/search.json", DocsController, :search_index
   end
 
   scope "/", GlossiaWeb do
     pipe_through :public
 
     get "/", PageController, :home
-    get "/blog", RetiredPublicController, :show
-    get "/blog/feed.xml", RetiredPublicController, :show
-    get "/blog/:slug", RetiredPublicController, :show
-    get "/features", RetiredPublicController, :show
-    get "/features/:slug", RetiredPublicController, :show
-    get "/changelog", RetiredPublicController, :show
-    get "/changelog/feed.xml", RetiredPublicController, :show
-    get "/docs", RetiredPublicController, :show
-    get "/docs/:category", RetiredPublicController, :show
-    get "/docs/:category/:subcategory/:slug", RetiredPublicController, :show
-    get "/docs/:category/:slug", RetiredPublicController, :show
+    get "/interest", PageController, :interest
+    get "/blog", BlogController, :index
+    get "/blog/feed.xml", BlogController, :feed
+    get "/blog/:slug", BlogController, :show
+    get "/features", FeatureController, :index
+    get "/features/:slug", FeatureController, :show
+    get "/changelog", ChangelogController, :index
+    get "/changelog/feed.xml", ChangelogController, :feed
+    get "/docs", DocsController, :index
+    get "/docs/:category/:subcategory/:slug", DocsController, :show
+    get "/docs/:category/:section", DocsController, :section
+    get "/docs/:category", DocsController, :category
     get "/terms", LegalController, :terms
     get "/terms/:date", LegalController, :terms
     get "/privacy", LegalController, :privacy
     get "/privacy/:date", LegalController, :privacy
     get "/cookies", LegalController, :cookies
     get "/cookies/:date", LegalController, :cookies
-    get "/sitemap.xml", RetiredPublicController, :show
+    get "/sitemap.xml", SitemapController, :show
   end
 
   scope "/", GlossiaWeb do

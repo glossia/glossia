@@ -1,0 +1,46 @@
+<section class="auth-page">
+  <div class="waitlist-card">
+    <div class="auth-header">
+      <img src={~p"/images/logo-rounded.png"} alt="" class="auth-logo" />
+      <h1>{gettext("Get started with Glossia")}</h1>
+      <p class="auth-subtitle">
+        {gettext(
+          "Tell us what you want to build, or join the community while we keep opening access."
+        )}
+      </p>
+    </div>
+
+    <div class="waitlist-summary">
+      <dl>
+        <dt>{gettext("Email")}</dt>
+        <dd><a href="mailto:contact@glossia.ai">contact@glossia.ai</a></dd>
+        <dt>{gettext("Community")}</dt>
+        <dd>
+          <a href="https://discord.gg/7FRHkwvs" target="_blank" rel="noopener noreferrer">
+            {gettext("Join the Discord")}
+          </a>
+        </dd>
+        <dt>{gettext("What to include")}</dt>
+        <dd>
+          {gettext(
+            "Share your team size, content workflow, target languages, and where you want Glossia to fit."
+          )}
+        </dd>
+      </dl>
+    </div>
+
+    <div class="waitlist-actions">
+      <a class="button primary waitlist-submit" href="mailto:contact@glossia.ai">
+        {gettext("Email us")}
+      </a>
+      <a
+        class="button secondary waitlist-submit"
+        href="https://discord.gg/7FRHkwvs"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {gettext("Join the Discord")}
+      </a>
+    </div>
+  </div>
+</section>

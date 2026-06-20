@@ -18,9 +18,13 @@
           <h2>
             <a href={"##{entry.slug}"} class="changelog-anchor">{entry.title}</a>
           </h2>
-          <div class="prose">
-            {Phoenix.HTML.raw(entry.body)}
-          </div>
+          <p class="changelog-summary">{entry.summary}</p>
+          <details class="changelog-details">
+            <summary>{gettext("Details")}</summary>
+            <div class="prose">
+              {Phoenix.HTML.raw(entry.body)}
+            </div>
+          </details>
         </div>
       </article>
     </div>
