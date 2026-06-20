@@ -10,7 +10,7 @@ All notable changes to the Glossia CLI will be documented in this file.
 * add discussions, GitHub installations, OAuth device flow, sandboxing, translation sessions, profiles, and project management by [@pepicrft](https://github.com/pepicrft)
 ### Refactors
 
-* rename LANGUAGE.md and GLOSSIA.md to L10N.md by [@pepicrft](https://github.com/pepicrft) in [#15](https://github.com/glossia/glossia/pull/15)
+* rename LANGUAGE.md and GLOSSIA.md to L10N.md by [@pepicrft](https://github.com/pepicrft)
 ### Documentation
 
 * remove open source references by [@pepicrft](https://github.com/pepicrft)
