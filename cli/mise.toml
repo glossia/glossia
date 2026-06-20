@@ -1,0 +1,8 @@
+[tools]
+rust = "stable"
+git-cliff = "2.10.0"
+"github:tuist/blick" = "0.8.0"
+opencode = "1.15.4"
+
+[env]
+_.file = ".env"

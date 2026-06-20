@@ -6,10 +6,13 @@ All notable changes to the Glossia CLI will be documented in this file.
 
 ### Features
 
-* add discussions, GitHub installations, OAuth device flow, sandboxing, translation sessions, profiles, and project management
+* add discussions, GitHub installations, OAuth device flow, sandboxing, translation sessions, profiles, and project management by [@pepicrft](https://github.com/pepicrft)
+### Refactors
+
+* rename LANGUAGE.md and GLOSSIA.md to L10N.md by [@pepicrft](https://github.com/pepicrft) in [#15](https://github.com/glossia/glossia/pull/15)
 ### Documentation
 
-* remove open source references
+* remove open source references by [@pepicrft](https://github.com/pepicrft)
 
 
 
@@ -18,8 +21,8 @@ All notable changes to the Glossia CLI will be documented in this file.
 
 ### Features
 
-* rewrite CLI in Go, rename dashboard to platform, and add new blog post
-* add organization CRUD, member management APIs, and UI polish
+* rewrite CLI in Go, rename dashboard to platform, and add new blog post by [@pepicrft](https://github.com/pepicrft)
+* add organization CRUD, member management APIs, and UI polish by [@pepicrft](https://github.com/pepicrft)
 
 
 
@@ -30,8 +33,8 @@ All notable changes to the Glossia CLI will be documented in this file.
 
 ### Features
 
-* publish CLI releases to S3 and add aqua registry flow
-* migrate CLI to Bun and update CI executable builds
+* publish CLI releases to S3 and add aqua registry flow by [@pepicrft](https://github.com/pepicrft)
+* migrate CLI to Bun and update CI executable builds by [@pepicrft](https://github.com/pepicrft)
 
 
 
