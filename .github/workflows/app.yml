@@ -3,9 +3,19 @@ name: App
 on:
   push:
     branches: [main]
+    paths:
+      - "app/**"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/workflows/app.yml"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "app/**"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/workflows/app.yml"
 
 jobs:
   build:

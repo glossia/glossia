@@ -3,9 +3,19 @@ name: CLI
 on:
   push:
     branches: [main]
+    paths:
+      - "cli/**"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "cli/**"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/workflows/ci.yml"
 
 jobs:
   format:
