@@ -1,0 +1,26 @@
+---
+layout: base.njk
+pagination:
+  data: blog
+  size: 1
+  alias: post
+permalink: /blog/{{ post.slug }}/index.html
+eleventyComputed:
+  title: "{{ post.title }}"
+  description: "{{ post.description }}"
+---
+
+<article class="blog-post">
+  <header class="spec-head">
+    <p class="spec-eyebrow"><a href="/blog/">Blog</a></p>
+    <h1 class="spec-title">{{ post.title }}</h1>
+    <dl class="spec-meta">
+      <div><dt>Published</dt><dd><time datetime="{{ post.date }}">{{ post.date }}</time></dd></div>
+      {% if post.author %}<div><dt>Author</dt><dd>{{ post.author }}</dd></div>{% endif %}
+    </dl>
+  </header>
+
+  <div class="blog-body">
+    {{ post.body | markdownify | safe }}
+  </div>
+</article>

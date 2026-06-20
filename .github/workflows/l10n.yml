@@ -1,0 +1,33 @@
+name: L10N
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "l10n/**"
+      - ".github/workflows/l10n.yml"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "l10n/**"
+      - ".github/workflows/l10n.yml"
+
+jobs:
+  build:
+    if: github.event.pull_request.draft != true
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: l10n
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install dependencies
+        run: mise run install
+      - name: Build
+        run: mise run build

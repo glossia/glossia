@@ -1,0 +1,42 @@
+{
+  "$id": "https://glossia.dev/schemas/l10n/v1.1/scoped-document.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L10N Scoped Document",
+  "description": "Schema for nested L10N.md files that define scope-specific translation settings.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "pattern": "^(?!L10N\\.md$).+/L10N\\.md$"
+    },
+    "model": {
+      "$ref": "./shared.schema.json#/$defs/modelIdentifier"
+    },
+    "validation": {
+      "$ref": "./shared.schema.json#/$defs/nonEmptyStringArray"
+    },
+    "sources": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "./shared.schema.json#/$defs/nonEmptyString"
+      },
+      "additionalProperties": {
+        "$ref": "./shared.schema.json#/$defs/nonEmptyString"
+      },
+      "minProperties": 1
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "$ref": "./shared.schema.json#/$defs/localeIdentifier"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "body": {
+      "$ref": "./shared.schema.json#/$defs/markdownBody"
+    }
+  },
+  "required": ["path", "body"],
+  "additionalProperties": true
+}

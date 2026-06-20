@@ -1,0 +1,27 @@
+{
+  "$id": "https://glossia.dev/schemas/l10n/v1.1/locale-overlay.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L10N Locale Overlay",
+  "description": "Schema for locale-specific overlay files stored in an L10N directory.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "pattern": "^(?:.+/)?L10N/[A-Za-z0-9_-]+\\.md$"
+    },
+    "locale": {
+      "$ref": "./shared.schema.json#/$defs/localeIdentifier"
+    },
+    "model": {
+      "$ref": "./shared.schema.json#/$defs/modelIdentifier"
+    },
+    "validation": {
+      "$ref": "./shared.schema.json#/$defs/nonEmptyStringArray"
+    },
+    "body": {
+      "$ref": "./shared.schema.json#/$defs/markdownBody"
+    }
+  },
+  "required": ["path", "body"],
+  "additionalProperties": true
+}

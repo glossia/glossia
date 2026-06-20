@@ -1,0 +1,17 @@
+{
+  "$id": "https://glossia.dev/schemas/l10n/v1/l10n-document.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L10N Document",
+  "description": "Entry-point schema for any document that participates in the L10N.md standard.",
+  "oneOf": [
+    {
+      "$ref": "./global-document.schema.json"
+    },
+    {
+      "$ref": "./scoped-document.schema.json"
+    },
+    {
+      "$ref": "./locale-overlay.schema.json"
+    }
+  ]
+}
