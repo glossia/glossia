@@ -26,7 +26,8 @@ applied to the mgmt cluster.
   too — the runbook calls out where it differs. Splitting later is
   a Secret rotation, not a re-bootstrap.
 - A Cloudflare account with an API token scoped to `Zone.DNS:Edit` on
-  `glossia.ai`, saved to 1Password as `cloudflare-glossia-dns`.
+  `glossia.ai` and `l10n.md`, saved to 1Password as
+  `cloudflare-glossia-dns`.
 - A Tailscale tenant with admin access (one-time bootstrap below).
 - An S3-compatible bucket for hourly etcd snapshots
   (`glossia-mgmt-etcd-snapshots`) with bucket-scoped access keys saved

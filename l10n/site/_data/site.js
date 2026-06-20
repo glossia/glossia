@@ -10,7 +10,7 @@ export default async function () {
     title: "L10N.md Standard",
     description:
       "A small, versioned standard for translation-context documents and their JSON Schemas.",
-    url: process.env.SITE_URL || "https://l10n.glossia.dev",
+    url: process.env.SITE_URL || "https://l10n.md",
     repo: "https://github.com/glossia/l10n",
     spec: {
       name: "L10N.md",
