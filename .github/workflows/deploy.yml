@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "app/**"
+      - "deploy/helm/glossia/**"
+      - "deploy/values-production.yaml"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 jobs:

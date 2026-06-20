@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "cli/**"
+      - "cliff.toml"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/release-notes.tmpl"
+      - ".github/workflows/release.yml"
   workflow_dispatch:
     inputs:
       version:
