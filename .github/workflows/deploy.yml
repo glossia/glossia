@@ -73,12 +73,14 @@ jobs:
             pod-security.kubernetes.io/warn=privileged
 
           mise exec -- helm dependency update infra/helm/platform
-          mise exec -- helm upgrade --install platform infra/helm/platform \
-            --namespace platform \
-            --create-namespace \
-            --values infra/helm/platform/values-hetzner.yaml \
-            --set rook-ceph-cluster.enabled=false \
-            --set rookObjectStorage.enabled=false
+          if ! mise exec -- helm status platform --namespace platform >/dev/null 2>&1; then
+            mise exec -- helm upgrade --install platform infra/helm/platform \
+              --namespace platform \
+              --create-namespace \
+              --values infra/helm/platform/values-hetzner.yaml \
+              --set rook-ceph-cluster.enabled=false \
+              --set rookObjectStorage.enabled=false
+          fi
 
           mise exec -- kubectl wait --for=condition=Established \
             crd/cephclusters.ceph.rook.io \
