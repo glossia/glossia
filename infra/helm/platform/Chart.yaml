@@ -4,13 +4,15 @@ description: >
   Platform-level Helm chart installed once per Glossia-managed Kubernetes cluster.
   Bundles cert-manager, ingress-nginx, external-dns (Cloudflare),
   external-secrets-operator, the CloudNativePG and ClickHouse operators, and
-  the CNPG Barman Cloud backup plugin as dependencies, plus the ClusterIssuer
-  and shared Secrets that wire them together. These operators are the
-  cluster-level capabilities the Glossia application chart consumes (it ships
-  the Postgres/ClickHouse instances; this chart ships the controllers).
+  the CNPG Barman Cloud backup plugin as dependencies, plus optional Rook and
+  Ceph object storage compatible with Amazon Simple Storage Service. The chart
+  also ships the ClusterIssuer and shared resources that wire these
+  capabilities together. These operators are the cluster-level capabilities the
+  Glossia application chart consumes (it ships the Postgres/ClickHouse
+  instances; this chart ships the controllers and shared storage plane).
 type: application
-version: 0.3.0
-appVersion: "0.3.0"
+version: 0.4.0
+appVersion: "0.4.0"
 dependencies:
   - name: cert-manager
     version: v1.16.2
@@ -58,3 +60,15 @@ dependencies:
     version: 0.0.4
     repository: oci://ghcr.io/clickhouse
     condition: clickhouse-operator.enabled
+  # Rook/Ceph operator and cluster chart. These stay disabled by default
+  # because Rook owns CRDs, CSI drivers, privileged daemons, and durable data.
+  # Enable them only on clusters where this platform release is the single
+  # owner of the Ceph storage plane.
+  - name: rook-ceph
+    version: v1.20.1
+    repository: https://charts.rook.io/release
+    condition: rook-ceph.enabled
+  - name: rook-ceph-cluster
+    version: v1.20.1
+    repository: https://charts.rook.io/release
+    condition: rook-ceph-cluster.enabled

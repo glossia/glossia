@@ -13,6 +13,7 @@ defmodule GlossiaWeb.Router do
               GlossiaWeb.Plugs.McpRateLimit,
               GlossiaWeb.RedirectController,
               GlossiaWeb.SitemapController,
+              GlossiaWeb.UploadController,
               GlossiaWeb.OAuth.DeviceController
             ]}
 
@@ -60,6 +61,13 @@ defmodule GlossiaWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :upload_proxy do
+    plug :fetch_session
+    plug :put_secure_browser_headers
+    plug GlossiaWeb.Plugs.Auth
+    plug GlossiaWeb.Plugs.OtelAttributes
   end
 
   pipeline :ops do
@@ -175,6 +183,12 @@ defmodule GlossiaWeb.Router do
     get "/marketing/:category/:hash", OgImageController, :marketing
     get "/app/:handle/:hash", OgImageController, :account
     get "/app/:handle/:project/:hash", OgImageController, :project
+  end
+
+  scope "/uploads", GlossiaWeb do
+    pipe_through :upload_proxy
+
+    get "/*path", UploadController, :show
   end
 
   scope "/docs", GlossiaWeb do

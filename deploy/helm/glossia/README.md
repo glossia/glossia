@@ -19,6 +19,7 @@ needs whichever of these match the components you enable:
 | `externalSecrets.enabled` | [External Secrets Operator](https://external-secrets.io/) + a `SecretStore` / `ClusterSecretStore` you reference |
 | `backups.enabled` + `backups.postgres.enabled` | [CNPG Barman Cloud plugin](https://cloudnative-pg.io/plugin-barman-cloud/) installed cluster-wide |
 | `backups.enabled` (either DB) | A reachable, **dedicated** S3-compatible bucket + credentials |
+| `objectStorage.rook.enabled` | A Rook and Ceph `ObjectBucketClaim` Secret with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` |
 
 ## Install
 
@@ -80,6 +81,32 @@ externalSecrets:
 `GLOSSIA_DATABASE_URL` and `GLOSSIA_CLICKHOUSE_URL` are computed from
 `postgres.*` / `clickhouse.*` and the password fetched from the postgres
 item — you do not list them in `appEnv.fields`.
+
+## Object Storage
+
+By default, provide `GLOSSIA_S3_ACCESS_KEY_ID`,
+`GLOSSIA_S3_SECRET_ACCESS_KEY`, `GLOSSIA_S3_ENDPOINT`,
+`GLOSSIA_S3_REGION`, and `GLOSSIA_S3_BUCKET` in `secrets.envSecretName`.
+
+When the platform chart provisions an in-cluster Rook and Ceph
+[Amazon Simple Storage Service](https://aws.amazon.com/s3/)-compatible
+bucket, enable the Rook mode instead. It reads credentials from the Secret
+created by the `ObjectBucketClaim` and sets the endpoint/bucket values
+directly:
+
+```yaml
+objectStorage:
+  rook:
+    enabled: true
+    endpointURL: http://rook-ceph-rgw-glossia-s3.platform.svc.cluster.local
+    region: us-east-1
+    bucketName: glossia-production
+    bucketSecretName: glossia-s3
+```
+
+Use the internal Rook Ceph Object Gateway service endpoint here when the bucket
+is private to the cluster. The app proxies user-facing uploads through its own
+routes, so browsers do not need to reach the object gateway directly.
 
 ## BYO Postgres / ClickHouse
 

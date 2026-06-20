@@ -368,15 +368,29 @@ helm upgrade --install hcloud-csi hcloud/hcloud-csi \
   -n kube-system \
   -f infra/k8s/mgmt/bootstrap/hcloud-csi-values.yaml
 
-# 4. Platform chart: cert-manager, ingress-nginx, external-dns, ESO.
+# 4. Platform chart: cert-manager, ingress-nginx, external-dns, ESO,
+#    and Rook and Ceph object storage when enabled by the provider overlay.
 #    The CNPG / ClickHouse / Barman-plugin subcharts ship with the chart
 #    but default OFF — those are cluster-scoped operators managed
 #    standalone here (step 6), so the chart must not double-install them.
-kubectl create namespace platform
+APP_NS=glossia
+kubectl create namespace "${APP_NS}" --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace platform --dry-run=client -o yaml | kubectl apply -f -
+
+# Rook's CSI/node and OSD pods need privileges that Talos's restricted
+# namespace default blocks. This is scoped to the platform namespace where
+# the Rook operator and Ceph cluster are installed.
+kubectl label --overwrite ns platform \
+  pod-security.kubernetes.io/enforce=privileged \
+  pod-security.kubernetes.io/audit=privileged \
+  pod-security.kubernetes.io/warn=privileged
+
 kubectl -n platform create secret generic cloudflare-api-token \
-  --from-literal=api-token="$(op read 'op://glossia-production/cloudflare-glossia-dns/credential')"
+  --from-literal=api-token="$(op read 'op://glossia-production/cloudflare-glossia-dns/credential')" \
+  --dry-run=client -o yaml | kubectl apply -f -
 
 # charts/ and Chart.lock are gitignored — deps resolve at install time.
+helm repo add rook-release https://charts.rook.io/release
 helm dependency update infra/helm/platform
 helm upgrade --install platform infra/helm/platform \
   -n platform \
@@ -385,6 +399,17 @@ helm upgrade --install platform infra/helm/platform \
 # cert-manager + ESO install in the same release; if a cold first apply
 # reports a webhook not-ready it is self-healing — re-run the upgrade
 # once cert-manager's Deployment is Ready, or wait a reconcile cycle.
+
+# Rook and Ceph object storage readiness. Ceph can take several minutes
+# while Hetzner volumes attach and storage daemons initialize.
+kubectl -n platform wait --for=condition=Ready cephcluster/rook-ceph --timeout=30m
+kubectl -n platform get cephobjectstore glossia-s3
+kubectl -n "${APP_NS}" get objectbucketclaim glossia-s3
+kubectl -n platform get networkpolicy glossia-s3-rgw-ingress
+
+# The app bucket is intentionally cluster-internal. The app points at the
+# in-cluster Rook Ceph Object Gateway service, and the Kubernetes
+# NetworkPolicy is enforced by Cilium.
 
 # 5. ESO ClusterSecretStore (1Password). Use a DEDICATED 1Password
 #    Service Account with READ on only the glossia-production vault, so
@@ -427,7 +452,7 @@ kubectl get crd | grep -E 'objectstores.barmancloud|clusters.postgresql.cnpg|cli
 ### B.4 CI ServiceAccount + KUBECONFIG GitHub secret
 
 ```bash
-APP_NS=glossia-production
+APP_NS=glossia
 
 sed "s/__NAMESPACE__/${APP_NS}/g" infra/k8s/mgmt/ci-service-account.yaml \
   | KUBECONFIG=~/.kube/glossia-production.yaml kubectl apply -f -

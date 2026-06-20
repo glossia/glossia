@@ -90,6 +90,221 @@ external-secrets:
   webhook:
     port: 9443
 
+# --- Rook and Ceph object storage ------------------------------------------
+# Optional in-cluster object storage compatible with Amazon Simple Storage
+# Service. This follows the same operator/instance split as the database
+# operators: the rook-ceph chart installs the operator and custom resource
+# definitions, while rook-ceph-cluster creates one persistent volume
+# claim-backed Ceph cluster and a Rook Ceph Object Gateway object store.
+#
+# Defaults are conservative and OFF. The Hetzner overlay enables and sizes this
+# for the Glossia workload cluster.
+rook-ceph:
+  enabled: false
+  crds:
+    enabled: true
+  currentNamespaceOnly: false
+  csi:
+    installCsiOperator: true
+    serviceMonitor:
+      enabled: false
+  monitoring:
+    enabled: false
+
+rook-ceph-cluster:
+  enabled: false
+  # Must match the namespace where this platform release installs rook-ceph.
+  operatorNamespace: platform
+  clusterName: rook-ceph
+  toolbox:
+    enabled: false
+  monitoring:
+    enabled: false
+    createPrometheusRules: false
+  cephImage:
+    repository: quay.io/ceph/ceph
+    tag: v20.2.1
+    allowUnsupported: false
+  cephClusterSpec:
+    dataDirHostPath: /var/lib/rook
+    skipUpgradeChecks: false
+    continueUpgradeAfterChecksEvenIfNotHealthy: false
+    mon:
+      count: 3
+      allowMultiplePerNode: false
+    mgr:
+      count: 2
+      allowMultiplePerNode: false
+    dashboard:
+      enabled: false
+      ssl: true
+    crashCollector:
+      disable: false
+    logCollector:
+      enabled: true
+      periodicity: daily
+      maxLogSize: 500M
+    cleanupPolicy:
+      confirmation: ""
+      allowUninstallWithVolumes: false
+    resources:
+      mgr:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 512Mi
+      mon:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      osd:
+        limits:
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 4Gi
+      prepareosd:
+        requests:
+          cpu: 500m
+          memory: 50Mi
+    storage:
+      useAllNodes: false
+      useAllDevices: false
+      allowOsdCrushWeightUpdate: true
+      storageClassDeviceSets:
+        - name: default
+          count: 3
+          portable: true
+          tuneFastDeviceClass: true
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 4Gi
+          volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 100Gi
+                storageClassName: ""
+                volumeMode: Block
+    disruptionManagement:
+      managePodBudgets: true
+      osdMaintenanceTimeout: 30
+  # Glossia only needs object storage here. Leave block and file storage
+  # classes off until another workload explicitly needs them.
+  cephBlockPools: []
+  cephFileSystems: []
+  cephObjectStores:
+    - name: glossia-s3
+      spec:
+        metadataPool:
+          failureDomain: host
+          replicated:
+            size: 3
+        dataPool:
+          failureDomain: host
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          parameters:
+            bulk: "true"
+        preservePoolsOnDelete: true
+        gateway:
+          port: 80
+          instances: 2
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          priorityClassName: system-cluster-critical
+      storageClass:
+        enabled: true
+        name: glossia-s3-bucket
+        reclaimPolicy: Retain
+        volumeBindingMode: Immediate
+        annotations: {}
+        labels: {}
+        parameters:
+          region: us-east-1
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+
+# Resources around the Rook object store that are not part of the upstream
+# rook-ceph-cluster chart: the app bucket claim and autoscaling policy.
+rookObjectStorage:
+  enabled: false
+  clusterNamespace: platform
+  clusterName: rook-ceph
+  objectStoreName: glossia-s3
+  appNamespace: glossia
+  bucketClaim:
+    enabled: true
+    name: glossia-s3
+    bucketName: glossia-production
+    storageClassName: glossia-s3-bucket
+    additionalConfig: {}
+  autoscaling:
+    storage:
+      enabled: false
+      schedule: "*/15 * * * *"
+      image: alpine/k8s:1.34.1
+      deviceSetIndex: 0
+      thresholdPercent: 75
+      increment: 1
+      maxDeviceCount: 9
+      blockOnHealthError: true
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 3
+      resources:
+        requests:
+          cpu: 25m
+          memory: 64Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
+    gateway:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 8
+      cpuAverageUtilization: 65
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 60
+            - type: Pods
+              value: 2
+              periodSeconds: 60
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 60
+  networkPolicy:
+    enabled: false
+    # Restricts Object Gateway ingress to the platform namespace, where Rook
+    # reconciles bucket/user state, plus the selected app pods in appNamespace.
+    appPodSelector:
+      app.kubernetes.io/name: glossia
+      app.kubernetes.io/instance: glossia
+
 # Whether to emit the ClusterIssuer template below. Turn off if you manage
 # cert-manager issuers with a separate GitOps process.
 clusterIssuer:
