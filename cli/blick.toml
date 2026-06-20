@@ -1,0 +1,7 @@
+[[reviews]]
+name = "cli"
+skills = ["glossia-cli-review"]
+prompt = """
+Focus on correctness, headless translation architecture, provider-agnostic
+context hashing, release automation, and test coverage.
+"""

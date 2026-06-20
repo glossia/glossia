@@ -2,7 +2,7 @@
 .env
 .DS_Store
 .claude/worktrees
-.blick/runs/
+**/.blick/runs/
 
 # CLI build outputs
 /cli/target
