@@ -1,39 +1,7 @@
-[agent]
-kind = "opencode"
-model = "fireworks-ai/accounts/fireworks/models/kimi-k2p5"
-
-[defaults]
-base = "origin/main"
-max_concurrency = 2
-fail_on = "high"
-
-[[skills]]
-name = "glossia-cli-review"
-source = "./.blick/skills/glossia-cli-review"
-
 [[reviews]]
-name = "default"
+name = "cli"
 skills = ["glossia-cli-review"]
-include = [
-  "src/**/*.rs",
-  "spec/**/*.sh",
-  "spec/**/*.js",
-  ".github/workflows/*.yml",
-  "Cargo.toml",
-  "Cargo.lock",
-  "mise.toml",
-  "README.md",
-  "RELEASE.md"
-]
 prompt = """
 Focus on correctness, headless translation architecture, provider-agnostic
 context hashing, release automation, and test coverage.
 """
-
-[learn]
-lookback_days = 7
-min_signal = 3
-labels = []
-base = "main"
-draft = true
-branch = "blick/learn"
