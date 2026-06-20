@@ -183,8 +183,6 @@ defmodule GlossiaWeb.OAuth.DeviceController do
     end
   end
 
-  defp authorization_state(_), do: :unknown
-
   defp authenticate_client(%{"client_id" => client_id} = params) when is_binary(client_id) do
     client = ClientsAdapter.get_client(client_id)
     client_secret = Map.get(params, "client_secret")

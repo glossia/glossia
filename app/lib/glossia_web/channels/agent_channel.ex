@@ -3,8 +3,6 @@ defmodule GlossiaWeb.AgentChannel do
 
   use GlossiaWeb, :channel
 
-  require Logger
-
   alias Glossia.Ingestion
   alias Glossia.Projects
 

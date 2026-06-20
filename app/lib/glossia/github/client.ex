@@ -1,8 +1,6 @@
 defmodule Glossia.Github.Client do
   @moduledoc false
 
-  require Logger
-
   @github_api_url "https://api.github.com"
 
   def list_installation_repos(access_token, opts \\ []) do

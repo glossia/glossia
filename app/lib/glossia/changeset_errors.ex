@@ -17,18 +17,11 @@ defmodule Glossia.ChangesetErrors do
 
   defp interpolate_error({msg, opts}) do
     Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-      atom_key =
-        try do
-          String.to_existing_atom(key)
-        rescue
-          ArgumentError -> nil
-        end
-
       value =
-        if is_atom(atom_key) do
-          Keyword.get(opts, atom_key, key)
-        else
-          key
+        try do
+          Keyword.get(opts, String.to_existing_atom(key), key)
+        rescue
+          ArgumentError -> key
         end
 
       Kernel.to_string(value)
