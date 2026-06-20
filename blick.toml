@@ -1,0 +1,84 @@
+[agent]
+kind = "opencode"
+model = "fireworks-ai/accounts/fireworks/models/kimi-k2p6"
+
+[defaults]
+base = "origin/main"
+max_concurrency = 2
+fail_on = "high"
+
+[[skills]]
+name = "glossia-elixir-review"
+source = "./.blick/skills/glossia-elixir-review"
+
+[[skills]]
+name = "glossia-cli-review"
+source = "./.blick/skills/glossia-cli-review"
+
+[[skills]]
+name = "glossia-mobile-review"
+source = "./.blick/skills/glossia-mobile-review"
+
+[[skills]]
+name = "glossia-infra-review"
+source = "./.blick/skills/glossia-infra-review"
+
+[[reviews]]
+name = "elixir"
+skills = ["glossia-elixir-review"]
+include = [
+  "app/**/*.ex",
+  "app/**/*.exs",
+  "app/**/*.heex",
+  "app/priv/**/*.sql",
+  "app/priv/static/assets/styles.css",
+]
+
+[[reviews]]
+name = "cli"
+skills = ["glossia-cli-review"]
+include = [
+  "cli/src/**/*.rs",
+  "cli/tests/**/*.rs",
+  "cli/Cargo.toml",
+  "cli/Cargo.lock",
+  "cli/mise.toml",
+  "cli/RELEASE.md",
+]
+prompt = """
+Focus on correctness, headless translation architecture, provider-agnostic
+context hashing, release automation, and test coverage.
+"""
+
+[[reviews]]
+name = "mobile"
+skills = ["glossia-mobile-review"]
+include = [
+  "mobile/**/*.ts",
+  "mobile/**/*.tsx",
+  "mobile/app.json",
+  "mobile/package.json",
+]
+
+[[reviews]]
+name = "infra"
+skills = ["glossia-infra-review"]
+include = [
+  "infra/**/*.yaml",
+  "infra/**/*.yml",
+  "infra/**/*.tf",
+  "infra/**/*.tfvars",
+  "deploy/**/*.yaml",
+  "deploy/**/*.yml",
+  ".kamal/**/*.yml",
+  ".github/workflows/*.yml",
+]
+
+[learn]
+lookback_days = 7
+min_signal = 3
+team_reviewers = ["glossia/engineering"]
+labels = []
+base = "main"
+draft = true
+branch = "blick/learn"
