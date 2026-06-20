@@ -37,6 +37,54 @@ rook-ceph-cluster:
   enabled: true
   operatorNamespace: platform
   cephClusterSpec:
+    placement:
+      mon:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.cluster.x-k8s.io/pool
+                    operator: In
+                    values:
+                      - stateful
+        tolerations:
+          - key: node.cluster.x-k8s.io/pool
+            operator: Equal
+            value: stateful
+            effect: NoSchedule
+      mgr:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.cluster.x-k8s.io/pool
+                    operator: In
+                    values:
+                      - stateful
+        tolerations:
+          - key: node.cluster.x-k8s.io/pool
+            operator: Equal
+            value: stateful
+            effect: NoSchedule
+    resources:
+      mgr:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      mon:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      osd:
+        limits:
+          memory: 4Gi
+        requests:
+          cpu: 500m
+          memory: 2Gi
     storage:
       useAllNodes: false
       useAllDevices: false
@@ -64,8 +112,8 @@ rook-ceph-cluster:
             limits:
               memory: 4Gi
             requests:
-              cpu: 1000m
-              memory: 4Gi
+              cpu: 500m
+              memory: 2Gi
           volumeClaimTemplates:
             - metadata:
                 name: data

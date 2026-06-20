@@ -301,6 +301,8 @@ rookObjectStorage:
     enabled: false
     # Restricts Object Gateway ingress to the platform namespace, where Rook
     # reconciles bucket/user state, plus the selected app pods in appNamespace.
+    servicePort: 80
+    podPort: 8080
     appPodSelector:
       app.kubernetes.io/name: glossia
       app.kubernetes.io/instance: glossia

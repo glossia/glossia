@@ -23,7 +23,9 @@ spec:
               kubernetes.io/metadata.name: {{ .Values.rookObjectStorage.clusterNamespace }}
       ports:
         - protocol: TCP
-          port: 80
+          port: {{ .Values.rookObjectStorage.networkPolicy.servicePort }}
+        - protocol: TCP
+          port: {{ .Values.rookObjectStorage.networkPolicy.podPort }}
     - from:
         - namespaceSelector:
             matchLabels:
@@ -33,5 +35,7 @@ spec:
               {{- toYaml .Values.rookObjectStorage.networkPolicy.appPodSelector | nindent 14 }}
       ports:
         - protocol: TCP
-          port: 80
+          port: {{ .Values.rookObjectStorage.networkPolicy.servicePort }}
+        - protocol: TCP
+          port: {{ .Values.rookObjectStorage.networkPolicy.podPort }}
 {{- end }}
