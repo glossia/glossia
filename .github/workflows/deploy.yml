@@ -75,6 +75,19 @@ jobs:
           mise exec -- helm upgrade --install platform infra/helm/platform \
             --namespace platform \
             --create-namespace \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --set rook-ceph-cluster.enabled=false \
+            --set rookObjectStorage.enabled=false
+
+          mise exec -- kubectl wait --for=condition=Established \
+            crd/cephclusters.ceph.rook.io \
+            crd/cephobjectstores.ceph.rook.io \
+            crd/objectbucketclaims.objectbucket.io \
+            --timeout=5m
+
+          mise exec -- helm upgrade --install platform infra/helm/platform \
+            --namespace platform \
+            --create-namespace \
             --values infra/helm/platform/values-hetzner.yaml
 
           mise exec -- kubectl -n glossia wait --for=create secret/glossia-s3 --timeout=30m
