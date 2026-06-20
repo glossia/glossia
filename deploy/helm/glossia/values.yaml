@@ -46,6 +46,25 @@ secrets:
 env:
   GLOSSIA_PHX_SERVER: "true"
 
+# App object storage. By default the app expects the storage environment
+# variables to come from secrets.envSecretName. Set objectStorage.rook.enabled
+# when the platform chart creates a Rook and Ceph ObjectBucketClaim and exposes
+# its generated credentials as a Kubernetes Secret in this namespace.
+objectStorage:
+  rook:
+    enabled: false
+    # Endpoint used by the app for object storage requests. For in-cluster
+    # Rook, use the internal Rook Ceph Object Gateway service. Browser-facing
+    # uploads are served through app routes, not direct object gateway links.
+    endpointURL: ""
+    region: us-east-1
+    bucketName: ""
+    # Secret created by the ObjectBucketClaim. Rook stores keys as
+    # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+    bucketSecretName: glossia-s3
+    accessKeyIdKey: AWS_ACCESS_KEY_ID
+    secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+
 resources:
   requests:
     cpu: 250m
