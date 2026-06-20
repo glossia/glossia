@@ -25,3 +25,118 @@ ingress-nginx:
         # TLS failures until manually patched). An explicit "false" makes
         # HCCM send proxyprotocol=false and the chart converges.
         load-balancer.hetzner.cloud/uses-proxyprotocol: "false"
+
+# Rook and Ceph object storage for the app. This runs in the platform
+# namespace because the platform chart is installed there; keep
+# operatorNamespace and rookObjectStorage.clusterNamespace aligned with the
+# Helm release namespace.
+rook-ceph:
+  enabled: true
+
+rook-ceph-cluster:
+  enabled: true
+  operatorNamespace: platform
+  cephClusterSpec:
+    storage:
+      useAllNodes: false
+      useAllDevices: false
+      allowOsdCrushWeightUpdate: true
+      storageClassDeviceSets:
+        - name: hcloud-volumes
+          count: 3
+          portable: true
+          tuneFastDeviceClass: true
+          placement:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node.cluster.x-k8s.io/pool
+                        operator: In
+                        values:
+                          - stateful
+            tolerations:
+              - key: node.cluster.x-k8s.io/pool
+                operator: Equal
+                value: stateful
+                effect: NoSchedule
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 4Gi
+          volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 100Gi
+                storageClassName: hcloud-volumes
+                volumeMode: Block
+  cephObjectStores:
+    - name: glossia-s3
+      spec:
+        metadataPool:
+          failureDomain: host
+          replicated:
+            size: 3
+        dataPool:
+          failureDomain: host
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          parameters:
+            bulk: "true"
+        preservePoolsOnDelete: true
+        gateway:
+          port: 80
+          instances: 2
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          priorityClassName: system-cluster-critical
+      storageClass:
+        enabled: true
+        name: glossia-s3-bucket
+        reclaimPolicy: Retain
+        volumeBindingMode: Immediate
+        annotations: {}
+        labels: {}
+        parameters:
+          region: us-east-1
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+
+rookObjectStorage:
+  enabled: true
+  clusterNamespace: platform
+  clusterName: rook-ceph
+  objectStoreName: glossia-s3
+  appNamespace: glossia
+  bucketClaim:
+    enabled: true
+    name: glossia-s3
+    bucketName: glossia-production
+    storageClassName: glossia-s3-bucket
+  autoscaling:
+    storage:
+      enabled: true
+      thresholdPercent: 75
+      increment: 1
+      maxDeviceCount: 9
+    gateway:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      cpuAverageUtilization: 65
+  networkPolicy:
+    enabled: true

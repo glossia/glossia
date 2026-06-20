@@ -1,0 +1,29 @@
+{{- if and .Values.rookObjectStorage.enabled .Values.rookObjectStorage.autoscaling.gateway.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ printf "%s-rgw" .Values.rookObjectStorage.objectStoreName }}
+  namespace: {{ .Values.rookObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  scaleTargetRef:
+    apiVersion: ceph.rook.io/v1
+    kind: CephObjectStore
+    name: {{ .Values.rookObjectStorage.objectStoreName }}
+  minReplicas: {{ .Values.rookObjectStorage.autoscaling.gateway.minReplicas }}
+  maxReplicas: {{ .Values.rookObjectStorage.autoscaling.gateway.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.rookObjectStorage.autoscaling.gateway.cpuAverageUtilization }}
+  {{- with .Values.rookObjectStorage.autoscaling.gateway.behavior }}
+  behavior:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,129 @@
+{{- if and .Values.rookObjectStorage.enabled .Values.rookObjectStorage.autoscaling.storage.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rook-s3-storage-autoscaler
+  namespace: {{ .Values.rookObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rook-s3-storage-autoscaler
+  namespace: {{ .Values.rookObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+rules:
+  - apiGroups: ["ceph.rook.io"]
+    resources: ["cephclusters"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rook-s3-storage-autoscaler
+  namespace: {{ .Values.rookObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+subjects:
+  - kind: ServiceAccount
+    name: rook-s3-storage-autoscaler
+    namespace: {{ .Values.rookObjectStorage.clusterNamespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rook-s3-storage-autoscaler
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rook-s3-storage-autoscaler
+  namespace: {{ .Values.rookObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  schedule: {{ .Values.rookObjectStorage.autoscaling.storage.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.rookObjectStorage.autoscaling.storage.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.rookObjectStorage.autoscaling.storage.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: rook-s3-storage-autoscaler
+          restartPolicy: OnFailure
+          containers:
+            - name: autoscaler
+              image: {{ .Values.rookObjectStorage.autoscaling.storage.image | quote }}
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: CEPH_NAMESPACE
+                  value: {{ .Values.rookObjectStorage.clusterNamespace | quote }}
+                - name: CEPH_CLUSTER_NAME
+                  value: {{ .Values.rookObjectStorage.clusterName | quote }}
+                - name: DEVICE_SET_INDEX
+                  value: {{ .Values.rookObjectStorage.autoscaling.storage.deviceSetIndex | quote }}
+                - name: THRESHOLD_PERCENT
+                  value: {{ .Values.rookObjectStorage.autoscaling.storage.thresholdPercent | quote }}
+                - name: INCREMENT
+                  value: {{ .Values.rookObjectStorage.autoscaling.storage.increment | quote }}
+                - name: MAX_DEVICE_COUNT
+                  value: {{ .Values.rookObjectStorage.autoscaling.storage.maxDeviceCount | quote }}
+                - name: BLOCK_ON_HEALTH_ERROR
+                  value: {{ .Values.rookObjectStorage.autoscaling.storage.blockOnHealthError | quote }}
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  total_bytes="$(kubectl -n "${CEPH_NAMESPACE}" get cephcluster "${CEPH_CLUSTER_NAME}" -o jsonpath='{.status.ceph.capacity.bytesTotal}' 2>/dev/null || true)"
+                  used_bytes="$(kubectl -n "${CEPH_NAMESPACE}" get cephcluster "${CEPH_CLUSTER_NAME}" -o jsonpath='{.status.ceph.capacity.bytesUsed}' 2>/dev/null || true)"
+                  health="$(kubectl -n "${CEPH_NAMESPACE}" get cephcluster "${CEPH_CLUSTER_NAME}" -o jsonpath='{.status.ceph.health}' 2>/dev/null || true)"
+
+                  if [ -z "${total_bytes}" ] || [ -z "${used_bytes}" ] || [ "${total_bytes}" = "0" ]; then
+                    echo "Ceph capacity is not reported yet; skipping"
+                    exit 0
+                  fi
+
+                  if [ "${BLOCK_ON_HEALTH_ERROR}" = "true" ] && [ "${health}" = "HEALTH_ERR" ]; then
+                    echo "Ceph health is ${health}; refusing to add OSDs automatically"
+                    exit 0
+                  fi
+
+                  usage_percent=$(( used_bytes * 100 / total_bytes ))
+                  echo "Ceph usage is ${usage_percent}% (${used_bytes}/${total_bytes} bytes), health=${health:-unknown}"
+
+                  if [ "${usage_percent}" -lt "${THRESHOLD_PERCENT}" ]; then
+                    exit 0
+                  fi
+
+                  current_count="$(kubectl -n "${CEPH_NAMESPACE}" get cephcluster "${CEPH_CLUSTER_NAME}" -o jsonpath="{.spec.storage.storageClassDeviceSets[${DEVICE_SET_INDEX}].count}")"
+                  if [ -z "${current_count}" ]; then
+                    echo "storageClassDeviceSets[${DEVICE_SET_INDEX}].count is empty; skipping"
+                    exit 0
+                  fi
+
+                  next_count=$(( current_count + INCREMENT ))
+                  if [ "${next_count}" -gt "${MAX_DEVICE_COUNT}" ]; then
+                    next_count="${MAX_DEVICE_COUNT}"
+                  fi
+
+                  if [ "${next_count}" -le "${current_count}" ]; then
+                    echo "Already at max device count (${current_count}); skipping"
+                    exit 0
+                  fi
+
+                  echo "Scaling Ceph OSD device set ${DEVICE_SET_INDEX} from ${current_count} to ${next_count}"
+                  kubectl -n "${CEPH_NAMESPACE}" patch cephcluster "${CEPH_CLUSTER_NAME}" --type=json \
+                    -p "[{\"op\":\"replace\",\"path\":\"/spec/storage/storageClassDeviceSets/${DEVICE_SET_INDEX}/count\",\"value\":${next_count}}]"
+              resources:
+                {{- toYaml .Values.rookObjectStorage.autoscaling.storage.resources | nindent 16 }}
+{{- end }}
