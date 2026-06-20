@@ -2232,9 +2232,6 @@ defmodule GlossiaWeb.DashboardLive do
 
       {:error, :invalid_payload} ->
         {:noreply, put_flash(socket, :error, gettext("Invalid suggestion payload."))}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, gettext("Could not apply suggestion."))}
     end
   end
 
@@ -3544,7 +3541,7 @@ defmodule GlossiaWeb.DashboardLive do
             </div>
           </div>
 
-          <%= if (not @suggestion_mode?) and @versions != [] do %>
+          <%= if @versions != [] do %>
             <div class="voice-section-divider"></div>
 
             <div class="voice-section">
@@ -3589,7 +3586,7 @@ defmodule GlossiaWeb.DashboardLive do
             </div>
           <% end %>
 
-          <%= if (not @suggestion_mode?) and @voice_suggestions != [] do %>
+          <%= if @voice_suggestions != [] do %>
             <div class="voice-section-divider"></div>
 
             <div class="voice-section">
@@ -4175,7 +4172,7 @@ defmodule GlossiaWeb.DashboardLive do
             </div>
           </div>
 
-          <%= if (not @suggestion_mode?) and @glossary_versions != [] do %>
+          <%= if @glossary_versions != [] do %>
             <div class="voice-section-divider"></div>
 
             <div class="voice-section">
@@ -4221,7 +4218,7 @@ defmodule GlossiaWeb.DashboardLive do
             </div>
           <% end %>
 
-          <%= if (not @suggestion_mode?) and @glossary_suggestions != [] do %>
+          <%= if @glossary_suggestions != [] do %>
             <div class="voice-section-divider"></div>
 
             <div class="voice-section">

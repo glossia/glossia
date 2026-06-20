@@ -4,7 +4,7 @@ defmodule GlossiaWeb.Plugs.OtelAttributes do
   subject (account handle from URL params).
   """
 
-  require OpenTelemetry.Tracer, as: Tracer
+  alias OpenTelemetry.Tracer
 
   def init(opts), do: opts
 
