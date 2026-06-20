@@ -96,6 +96,24 @@ postgres:
   storage:
     storageClass: ""
     size: 50Gi
+  storageAutoResize:
+    enabled: false
+    schedule: "*/15 * * * *"
+    image: alpine/k8s:1.34.1
+    thresholdPercent: 80
+    scaleFactorPercent: 150
+    minIncrementGi: 25
+    maxSize: 500Gi
+    mountPath: /var/lib/postgresql/data
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
   resources:
     requests:
       cpu: 500m

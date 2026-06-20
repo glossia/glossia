@@ -47,8 +47,18 @@ resources:
 # CAPI/Hetzner stateful pool: hcloud-volumes for PVCs, taint+nodeSelector
 # pin Postgres + ClickHouse to the dedicated stateful nodes.
 postgres:
+  # Two 200Gi instances fit the current Hetzner project volume quota after
+  # retiring glossia-cloud. Raise the quota before returning to 3 instances.
+  instances: 2
   storage:
     storageClass: hcloud-volumes
+    size: 200Gi
+  storageAutoResize:
+    enabled: true
+    thresholdPercent: 80
+    scaleFactorPercent: 150
+    minIncrementGi: 50
+    maxSize: 500Gi
   nodeSelector:
     node.cluster.x-k8s.io/pool: stateful
   tolerations:
