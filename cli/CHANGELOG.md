@@ -1,11 +1,12 @@
 # Changelog
 
 All notable changes to the Glossia CLI will be documented in this file.
-## What's Changed
+## What's Changed in cli-v0.16.0
 <!-- RELEASE NOTES START -->
 
 ### Features
 
+* import Rust CLI into monorepo by [@pepicrft](https://github.com/pepicrft)
 * add discussions, GitHub installations, OAuth device flow, sandboxing, translation sessions, profiles, and project management by [@pepicrft](https://github.com/pepicrft)
 ### Refactors
 
@@ -15,6 +16,8 @@ All notable changes to the Glossia CLI will be documented in this file.
 * remove open source references by [@pepicrft](https://github.com/pepicrft)
 
 
+
+**Full Changelog**: https://github.com/glossia/glossia/compare/cli-v0.15.0...cli-v0.16.0
 
 ## What's Changed in cli-v0.15.0
 <!-- RELEASE NOTES START -->
