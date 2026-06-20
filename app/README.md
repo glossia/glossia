@@ -1,6 +1,14 @@
-# Glossia
+# Glossia App
 
-The web app lives in this directory. Repository-wide conventions for this app live in [AGENTS.md](./AGENTS.md).
+This directory contains the multi-tenant Phoenix application. It serves both
+the authenticated product and the public website:
+
+- Blog content lives in `priv/blog/`.
+- Changelog entries live in `priv/changelog/`.
+- Documentation lives in `priv/docs/`.
+- Feature pages live in `priv/features/`.
+
+Repository-wide conventions for this app live in [AGENTS.md](./AGENTS.md).
 
 ## Local development
 
@@ -26,7 +34,8 @@ After the server boots, visit `http://localhost:${GLOSSIA_SERVER_PORT}`. If that
 
 ## Production
 
-Production deploys are managed from the repository root through GitHub Actions in `.github/workflows/` and target the Hetzner Kubernetes cluster.
+Production deploys are managed from the repository root through GitHub Actions
+in `.github/workflows/` and target the Hetzner Kubernetes cluster.
 
 ## Learn more
 

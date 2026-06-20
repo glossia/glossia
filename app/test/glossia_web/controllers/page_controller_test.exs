@@ -3,9 +3,9 @@ defmodule GlossiaWeb.PageControllerTest do
 
   alias Glossia.TestHelpers
 
-  test "GET / redirects guests to login", %{conn: conn} do
+  test "GET / renders the public homepage for guests", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert redirected_to(conn) == "/auth/login"
+    assert html_response(conn, 200) =~ "The language OS for your organization"
   end
 
   test "GET / redirects users with access to their account", %{conn: conn} do
@@ -30,19 +30,31 @@ defmodule GlossiaWeb.PageControllerTest do
     assert redirected_to(conn) == "/interest"
   end
 
-  for path <- [
-        "/blog",
-        "/blog/feed.xml",
-        "/features",
-        "/changelog",
-        "/changelog/feed.xml",
-        "/docs",
-        "/docs/search.json",
-        "/sitemap.xml"
-      ] do
-    test "GET #{path} is no longer exposed", %{conn: conn} do
+  for path <- ["/blog", "/features", "/changelog", "/docs"] do
+    test "GET #{path} is exposed as a public page", %{conn: conn} do
       conn = get(conn, unquote(path))
-      assert response(conn, 404)
+      assert html_response(conn, 200)
     end
+  end
+
+  test "GET /blog/feed.xml exposes the blog feed", %{conn: conn} do
+    conn = get(conn, ~p"/blog/feed.xml")
+    assert response(conn, 200) =~ "<rss version=\"2.0\">"
+  end
+
+  test "GET /docs/search.json exposes the docs search index", %{conn: conn} do
+    conn = get(conn, ~p"/docs/search.json")
+
+    assert Enum.any?(json_response(conn, 200), &(&1["title"] == "Getting started"))
+  end
+
+  test "GET /docs/:category/:slug.md exposes raw markdown", %{conn: conn} do
+    conn = get(conn, "/docs/tutorials/getting-started.md")
+    assert response(conn, 200) =~ "This tutorial walks you through installing Glossia"
+  end
+
+  test "GET /sitemap.xml exposes the sitemap", %{conn: conn} do
+    conn = get(conn, ~p"/sitemap.xml")
+    assert response(conn, 200) =~ "<urlset"
   end
 end

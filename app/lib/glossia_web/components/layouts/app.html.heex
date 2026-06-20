@@ -4,6 +4,10 @@
       <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" /> Glossia
     </a>
     <nav class="nav-links">
+      <a href={~p"/blog"}>{gettext("Blog")}</a>
+      <a href={~p"/features"}>{gettext("Features")}</a>
+      <a href={~p"/docs"}>{gettext("Docs")}</a>
+      <a href={~p"/changelog"}>{gettext("Changelog")}</a>
       <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
         <div class="avatar-dropdown">
           <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
@@ -27,6 +31,7 @@
           </ul>
         </div>
       <% else %>
+        <a href={~p"/interest"}>{gettext("Get started")}</a>
         <a href={~p"/auth/login"}>{gettext("Log in")}</a>
       <% end %>
     </nav>
@@ -68,10 +73,15 @@
 <.flash_group :if={assigns[:flash]} flash={@flash} />
 
 <nav class="mobile-menu" aria-label="Mobile navigation">
+  <a href={~p"/blog"}>{gettext("Blog")}</a>
+  <a href={~p"/features"}>{gettext("Features")}</a>
+  <a href={~p"/docs"}>{gettext("Docs")}</a>
+  <a href={~p"/changelog"}>{gettext("Changelog")}</a>
   <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
     <a href={~p"/dashboard"}>{gettext("Your profile")}</a>
     <a href={~p"/auth/logout"} data-method="delete">{gettext("Log out")}</a>
   <% else %>
+    <a href={~p"/interest"}>{gettext("Get started")}</a>
     <a href={~p"/auth/login"}>{gettext("Log in")}</a>
   <% end %>
 </nav>
@@ -87,6 +97,15 @@
         <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" /> Glossia
       </a>
       <p>{gettext("Built with love from Berlin.")}</p>
+    </div>
+    <div>
+      <h4>{gettext("Navigate")}</h4>
+      <ul class="legal-links">
+        <li><a href={~p"/blog"}>{gettext("Blog")}</a></li>
+        <li><a href={~p"/features"}>{gettext("Features")}</a></li>
+        <li><a href={~p"/docs"}>{gettext("Documentation")}</a></li>
+        <li><a href={~p"/changelog"}>{gettext("Changelog")}</a></li>
+      </ul>
     </div>
     <div>
       <h4>{gettext("Legal")}</h4>
