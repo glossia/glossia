@@ -9699,8 +9699,7 @@ defmodule GlossiaWeb.DashboardLive do
 
           s3_path = "uploads/#{account_id}/discussions/#{context_id}/#{uuid}.#{ext}"
           {:ok, _} = Glossia.Storage.upload(s3_path, content, content_type: entry.client_type)
-          {:ok, url} = Glossia.Storage.presigned_url(s3_path, expires_in: 604_800)
-          {:ok, url}
+          {:ok, "/#{s3_path}"}
         end)
 
       editor_id =

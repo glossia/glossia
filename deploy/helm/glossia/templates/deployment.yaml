@@ -33,6 +33,24 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
+            {{- if .Values.objectStorage.rook.enabled }}
+            - name: GLOSSIA_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.rook.bucketSecretName | quote }}
+                  key: {{ .Values.objectStorage.rook.accessKeyIdKey | quote }}
+            - name: GLOSSIA_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.rook.bucketSecretName | quote }}
+                  key: {{ .Values.objectStorage.rook.secretAccessKeyKey | quote }}
+            - name: GLOSSIA_S3_ENDPOINT
+              value: {{ required "objectStorage.rook.endpointURL is required when objectStorage.rook.enabled=true" .Values.objectStorage.rook.endpointURL | quote }}
+            - name: GLOSSIA_S3_REGION
+              value: {{ .Values.objectStorage.rook.region | quote }}
+            - name: GLOSSIA_S3_BUCKET
+              value: {{ required "objectStorage.rook.bucketName is required when objectStorage.rook.enabled=true" .Values.objectStorage.rook.bucketName | quote }}
+            {{- end }}
             - name: GLOSSIA_DNS_CLUSTER_QUERY
               value: {{ include "glossia.headlessServiceFQDN" . | quote }}
           envFrom:

@@ -91,8 +91,22 @@ if is_binary(s3_access_key) and s3_access_key != "" do
     secret_access_key: s3_secret_key,
     region: s3_region
 
-  s3_host = URI.parse(s3_endpoint).host
-  config :ex_aws, :s3, scheme: "https://", host: s3_host, port: 443
+  if is_binary(s3_endpoint) and s3_endpoint != "" do
+    s3_uri =
+      if String.contains?(s3_endpoint, "://") do
+        URI.parse(s3_endpoint)
+      else
+        URI.parse("https://#{s3_endpoint}")
+      end
+
+    s3_scheme = "#{s3_uri.scheme}://"
+    s3_port = s3_uri.port || if(s3_scheme == "http://", do: 80, else: 443)
+
+    config :ex_aws, :s3,
+      scheme: s3_scheme,
+      host: s3_uri.host || s3_endpoint,
+      port: s3_port
+  end
 
   config :glossia, Glossia.Storage, bucket: s3_bucket
 end
