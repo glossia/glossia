@@ -9717,13 +9717,24 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  @upload_extensions ~w(gif jpeg jpg png webp)
+
   defp upload_entry_extension(entry) do
-    case entry.client_type do
-      "image/jpeg" -> "jpg"
-      "image/png" -> "png"
-      "image/gif" -> "gif"
-      "image/webp" -> "webp"
-      _ -> "bin"
+    ext =
+      entry.client_name
+      |> Path.extname()
+      |> String.trim_leading(".")
+      |> String.downcase()
+
+    if ext in @upload_extensions do
+      ext
+    else
+      case entry.client_type do
+        "image/jpeg" -> "jpg"
+        "image/png" -> "png"
+        "image/gif" -> "gif"
+        "image/webp" -> "webp"
+      end
     end
   end
 

@@ -63,6 +63,13 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :upload_proxy do
+    plug :fetch_session
+    plug :put_secure_browser_headers
+    plug GlossiaWeb.Plugs.Auth
+    plug GlossiaWeb.Plugs.OtelAttributes
+  end
+
   pipeline :ops do
     plug GlossiaWeb.Plugs.OpsAuth
   end
@@ -179,7 +186,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/uploads", GlossiaWeb do
-    pipe_through :api
+    pipe_through :upload_proxy
 
     get "/*path", UploadController, :show
   end

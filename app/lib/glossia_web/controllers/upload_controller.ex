@@ -1,12 +1,16 @@
 defmodule GlossiaWeb.UploadController do
   use GlossiaWeb, :controller
 
+  alias Glossia.Discussions
+
   @allowed_extensions ~w(gif jpeg jpg png webp)
 
   def show(conn, %{"path" => [account_id, "discussions", discussion_id, filename]}) do
-    with :ok <- validate_segment(account_id),
-         :ok <- validate_segment(discussion_id),
+    with {:ok, account_id} <- cast_uuid(account_id),
+         {:ok, discussion_id} <- cast_uuid(discussion_id),
          {:ok, content_type} <- content_type(filename),
+         {:ok, discussion} <- fetch_discussion(account_id, discussion_id),
+         :ok <- authorize_discussion(conn, discussion),
          s3_path = "uploads/#{account_id}/discussions/#{discussion_id}/#{filename}",
          {:ok, %{body: body}} <- Glossia.Storage.download(s3_path) do
       conn
@@ -20,10 +24,27 @@ defmodule GlossiaWeb.UploadController do
 
   def show(conn, _params), do: send_resp(conn, 404, "")
 
-  defp validate_segment(segment) when is_binary(segment) and segment not in ["", ".", ".."],
-    do: :ok
+  defp cast_uuid(segment) do
+    case Ecto.UUID.cast(segment) do
+      {:ok, uuid} -> {:ok, uuid}
+      :error -> :error
+    end
+  end
 
-  defp validate_segment(_segment), do: :error
+  defp fetch_discussion(account_id, discussion_id) do
+    case Discussions.get_discussion(discussion_id) do
+      %{account_id: ^account_id} = discussion -> {:ok, discussion}
+      _ -> :error
+    end
+  end
+
+  defp authorize_discussion(conn, discussion) do
+    if Glossia.Authz.authorize?(:discussion_read, conn.assigns[:current_user], discussion.account) do
+      :ok
+    else
+      :error
+    end
+  end
 
   defp content_type(filename) do
     ext =
