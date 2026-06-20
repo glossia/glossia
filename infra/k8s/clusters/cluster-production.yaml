@@ -1,0 +1,84 @@
+# Production workload Cluster, topology mode against glossia-hcloud.
+#
+# Shape:
+#   - 1 × cpx22 control plane (single-node — bump to 3 when real traffic
+#     lands; etcd quorum needs an odd number ≥3 for HA).
+#   - 2 × cpx22 workers in pool=app (Glossia server, async workers).
+#   - 3 × cpx32 workers in pool=stateful (Postgres CNPG, ClickHouse,
+#     Grafana). Taint keeps anything without a stateful toleration off
+#     these nodes; 8 GB RAM per node fits one PG replica (4 GiB limit)
+#     plus room for a ClickHouse / Keeper co-tenant.
+#
+# Existing Glossia manifests use `node-role.glossia.ai/stateful` as the
+# label+taint key. Kubelet's --node-labels allowlist rejects custom
+# prefixes outside {node-role,node-restriction,node.cluster.x-k8s.io}/,
+# so the new key is `node.cluster.x-k8s.io/pool`. Glossia manifests'
+# nodeSelector + toleration need updating on migration:
+#   node-role.glossia.ai/stateful: "true"
+#     →  node.cluster.x-k8s.io/pool: stateful
+#   key: node-role.glossia.ai/stateful, value: "true"
+#     →  key: node.cluster.x-k8s.io/pool, value: stateful
+
+apiVersion: cluster.x-k8s.io/v1beta2
+kind: Cluster
+metadata:
+  name: glossia-production
+  namespace: org-glossia
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks:
+        - 10.128.0.0/12
+    pods:
+      cidrBlocks:
+        - 192.168.0.0/16
+    serviceDomain: cluster.local
+  topology:
+    classRef:
+      name: glossia-hcloud
+    version: v1.34.6
+    controlPlane:
+      replicas: 1
+    variables:
+      - name: region
+        value: fsn1
+      - name: hcloudControlPlaneMachineType
+        value: cpx22
+      - name: hcloudWorkerMachineType
+        value: cpx22
+      - name: hcloudSSHKeyName
+        value:
+          - name: glossia-ops
+    workers:
+      machineDeployments:
+        # App pool: Glossia server, async workers, system daemons.
+        # No taint — app pods schedule here by default. Label is for
+        # explicit nodeSelector when needed (e.g., observability stack
+        # pinning to non-stateful nodes).
+        - class: hcloud-worker
+          name: md-app
+          replicas: 2
+          failureDomain: fsn1
+          metadata:
+            labels:
+              node.cluster.x-k8s.io/pool: app
+        # Stateful pool: Postgres CNPG (3 replicas, anti-affinity by
+        # hostname → 1 per node), ClickHouse, Keeper, Grafana. Tainted
+        # so nothing without a matching toleration lands here; storage-
+        # bound workloads need both nodeSelector + toleration.
+        - class: hcloud-worker
+          name: md-stateful
+          replicas: 3
+          failureDomain: fsn1
+          metadata:
+            labels:
+              node.cluster.x-k8s.io/pool: stateful
+          variables:
+            overrides:
+              - name: hcloudWorkerMachineType
+                value: cpx32
+              - name: workerNodeTaints
+                value:
+                  - key: node.cluster.x-k8s.io/pool
+                    value: stateful
+                    effect: NoSchedule

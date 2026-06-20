@@ -1,0 +1,145 @@
+# Platform-level values for the Glossia-managed Kubernetes cluster.
+# This chart is installed once per cluster, not per app release.
+#
+# Install:
+#   helm dependency update infra/helm/platform
+#   helm upgrade --install platform infra/helm/platform \
+#     -n platform --create-namespace \
+#     -f infra/helm/platform/values-hetzner.yaml
+#
+# The Cloudflare API token is expected in a pre-existing Secret in the platform
+# namespace (see infra/k8s/onboarding.md for the bootstrap commands).
+
+# Cloudflare wiring shared by cert-manager (DNS-01 ACME) and external-dns.
+cloudflare:
+  email: ops@glossia.ai
+  # Name + key of the Secret that holds the Cloudflare API token. The chart
+  # does not create this Secret; create it out-of-band so the token never
+  # lands in values / helm history. Token must have Zone.DNS:Edit scope on
+  # the glossia.ai zone (and any other managed zones).
+  apiTokenSecret:
+    name: cloudflare-api-token
+    key: api-token
+
+# Lets Encrypt account email for certificates issued by cert-manager.
+letsencrypt:
+  email: ops@glossia.ai
+
+cert-manager:
+  enabled: true
+  installCRDs: true
+  prometheus:
+    enabled: true
+
+ingress-nginx:
+  enabled: true
+  controller:
+    replicaCount: 2
+    publishService:
+      enabled: true
+    service:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      # Provider-specific LB annotations are set via overlays so this base
+      # chart stays portable (see values-hetzner.yaml). Leaving annotations
+      # empty here means any cloud provider's default LB controller will
+      # provision a plain public LB with its own defaults — works everywhere,
+      # but without provider-native features like PROXY protocol.
+      annotations: {}
+    # X-Forwarded-For from upstream proxies (Cloudflare, Hetzner LB) is
+    # the canonical client-IP source. PROXY protocol is OFF by default
+    # because Cloudflare's free/Pro plans don't pass it through; orange-
+    # cloud proxying breaks if ingress-nginx insists on it. Re-enable
+    # via a provider overlay only when the LB path is end-to-end PROXY-
+    # protocol-aware AND the front edge (Cloudflare) is gray-cloud.
+    config:
+      use-forwarded-headers: "true"
+      compute-full-forwarded-for: "true"
+    metrics:
+      enabled: true
+
+external-dns:
+  enabled: true
+  provider: cloudflare
+  sources:
+    - service
+    - ingress
+  txtOwnerId: glossia-platform
+  # Limit which records external-dns will touch; be explicit for prod safety.
+  domainFilters: []
+  policy: sync
+  cloudflare:
+    # Reference the Cloudflare API token Secret created out-of-band. The
+    # external-dns chart accepts env from an existing Secret under env[].
+    apiTokenType: token
+  env:
+    - name: CF_API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: cloudflare-api-token
+          key: api-token
+
+external-secrets:
+  enabled: true
+  installCRDs: true
+  crds:
+    # Existing app charts still ship external-secrets.io/v1beta1 resources.
+    # Keep serving v1beta1 while the platform controller is upgraded to a
+    # version that also supports the 1Password SDK provider.
+    unsafeServeV1Beta1: true
+  webhook:
+    port: 9443
+
+# Whether to emit the ClusterIssuer template below. Turn off if you manage
+# cert-manager issuers with a separate GitOps process.
+clusterIssuer:
+  enabled: true
+  name: letsencrypt-cloudflare
+  server: https://acme-v02.api.letsencrypt.org/directory
+
+# --- Database operators -----------------------------------------------------
+# These are the cluster-level controllers the Glossia application chart
+# (deploy/helm/glossia in glossia/glossia) consumes. The app chart ships the
+# Postgres/ClickHouse *instances* (CRs); this chart can ship the *operators*
+# that reconcile them — the standard operator/instance split.
+#
+# Default OFF. They are cluster-scoped singletons (CRDs, webhooks, leader
+# election); on any cluster where CNPG / the ClickHouse operator / the Barman
+# plugin are already installed out-of-band (e.g. the Hetzner workload cluster
+# runs them standalone in cnpg-system / clickhouse-operator-system), turning
+# these on would stand up a SECOND, conflicting controller. Flip the relevant
+# ones to true only on a greenfield cluster where you want this chart to own
+# them, and keep exactly one owner per operator.
+
+# CloudNativePG — reconciles postgresql.cnpg.io/v1 Cluster.
+cloudnative-pg:
+  enabled: false
+  # CRDs ship with the chart so the app chart's Cluster CR is schema-valid.
+  crds:
+    create: true
+  # No Prometheus Operator on the cluster (Grafana is community Grafana with
+  # direct datasources), so don't emit a PodMonitor it can't consume.
+  monitoring:
+    podMonitorEnabled: false
+
+# CNPG Barman Cloud backup plugin. Installs the plugin controller only; the
+# ObjectStore + ScheduledBackup CRs and Cluster.spec.plugins wiring live in
+# the Glossia application chart, pointed at a dedicated backup bucket with
+# its own credentials (see k8s/onboarding.md). Uses cert-manager (above) via
+# a self-signed issuer for plugin<->operator mTLS.
+plugin-barman-cloud:
+  enabled: false
+
+# Official ClickHouse operator — reconciles clickhouse.com/v1alpha1
+# ClickHouseCluster + KeeperCluster. The official operator has no native
+# backup CR; ClickHouse backups run as a clickhouse-backup CronJob defined in
+# the Glossia application chart.
+clickhouse-operator:
+  enabled: false
+  certManager:
+    # Use cert-manager for the operator's admission-webhook certificate…
+    enable: true
+    # …but the platform-level cert-manager above, not a vendored copy. (This
+    # is already the chart default; pinned explicitly because flipping it on
+    # would install a second, conflicting cert-manager.)
+    install: false

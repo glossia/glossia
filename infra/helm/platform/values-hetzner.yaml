@@ -1,0 +1,27 @@
+# Hetzner-specific overlay for the platform chart.
+# Layer on top of the base values:
+#   helm upgrade --install platform infra/helm/platform \
+#     -n platform --create-namespace \
+#     -f infra/helm/platform/values-hetzner.yaml
+
+ingress-nginx:
+  controller:
+    service:
+      annotations:
+        # Hetzner Cloud LB, provisioned by hcloud-cloud-controller-manager
+        # which the bootstrap procedure installs on every workload cluster.
+        load-balancer.hetzner.cloud/location: fsn1
+        # PROXY protocol is explicitly OFF (not just absent). Cloudflare's
+        # free/Pro proxy doesn't pass PROXY protocol through, so orange-
+        # cloud DNS relies on HTTP-header client-IP propagation
+        # (CF-Connecting-IP / X-Forwarded-For) which ingress-nginx trusts
+        # via use-forwarded-headers.
+        #
+        # Set to "false" rather than removed: HCCM's UpdateService omits
+        # the proxyprotocol field when the annotation is absent, so a
+        # `helm upgrade` of a cluster whose LB was previously created with
+        # uses-proxyprotocol="true" would leave the LB still prepending
+        # PROXY lines to an ingress that no longer consumes them (525 /
+        # TLS failures until manually patched). An explicit "false" makes
+        # HCCM send proxyprotocol=false and the chart converges.
+        load-balancer.hetzner.cloud/uses-proxyprotocol: "false"

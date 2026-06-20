@@ -1,0 +1,60 @@
+apiVersion: v2
+name: glossia-platform
+description: >
+  Platform-level Helm chart installed once per Glossia-managed Kubernetes cluster.
+  Bundles cert-manager, ingress-nginx, external-dns (Cloudflare),
+  external-secrets-operator, the CloudNativePG and ClickHouse operators, and
+  the CNPG Barman Cloud backup plugin as dependencies, plus the ClusterIssuer
+  and shared Secrets that wire them together. These operators are the
+  cluster-level capabilities the Glossia application chart consumes (it ships
+  the Postgres/ClickHouse instances; this chart ships the controllers).
+type: application
+version: 0.3.0
+appVersion: "0.3.0"
+dependencies:
+  - name: cert-manager
+    version: v1.16.2
+    repository: https://charts.jetstack.io
+    condition: cert-manager.enabled
+  - name: ingress-nginx
+    version: 4.11.3
+    repository: https://kubernetes.github.io/ingress-nginx
+    condition: ingress-nginx.enabled
+  - name: external-dns
+    version: 1.15.0
+    repository: https://kubernetes-sigs.github.io/external-dns
+    condition: external-dns.enabled
+  # Bumped 0.10.4 → 2.5.0: 0.10.4 predates both the external-secrets.io/v1
+  # API and the onepasswordSDK provider (Service-Account token, no Connect
+  # server). 2.5.0 serves v1 only — all ExternalSecret/SecretStore manifests
+  # must be external-secrets.io/v1 (v1beta1 dropped at ESO 0.17).
+  - name: external-secrets
+    version: 2.5.0
+    repository: https://charts.external-secrets.io
+    condition: external-secrets.enabled
+  # CloudNativePG operator — reconciles the postgresql.cnpg.io/v1 Cluster CR
+  # the Glossia chart ships when postgres.enabled.
+  - name: cloudnative-pg
+    version: 0.28.2
+    repository: https://cloudnative-pg.github.io/charts
+    condition: cloudnative-pg.enabled
+  # CNPG-I Barman Cloud plugin — enables base + WAL backups of CNPG clusters
+  # to S3-compatible object storage. Needs cert-manager (present above) for
+  # the plugin<->operator mTLS. The per-app ObjectStore/ScheduledBackup CRs
+  # live in the Glossia application chart, not here.
+  - name: plugin-barman-cloud
+    version: 0.6.0
+    repository: https://cloudnative-pg.github.io/charts
+    condition: plugin-barman-cloud.enabled
+  # Official ClickHouse operator — reconciles the clickhouse.com/v1alpha1
+  # ClickHouseCluster + KeeperCluster CRs the Glossia chart ships when
+  # clickhouse.enabled. Early-stage (v0.0.x) but it is the project that owns
+  # this API (distinct from Altinity's clickhouse.altinity.com operator).
+  # Aliased so the values key is `clickhouse-operator` rather than the long
+  # chart name. certManager.install defaults to false → it reuses the
+  # cert-manager installed above instead of vendoring its own.
+  - name: clickhouse-operator-helm
+    alias: clickhouse-operator
+    version: 0.0.4
+    repository: oci://ghcr.io/clickhouse
+    condition: clickhouse-operator.enabled
