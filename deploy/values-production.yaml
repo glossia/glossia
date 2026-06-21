@@ -17,6 +17,8 @@ env:
   GLOSSIA_HOST: glossia.ai
   OTEL_SERVICE_NAME: glossia-web
   OTEL_DEPLOYMENT_ENVIRONMENT: production
+  OTEL_EXPORTER_OTLP_PROTOCOL: http_protobuf
+  OTEL_EXPORTER_OTLP_ENDPOINT: https://tempo.glossia.ai/v1/traces
 
 imagePullSecrets:
   - name: ghcr-pull-secret
@@ -136,6 +138,7 @@ externalSecrets:
       GLOSSIA_GITLAB_CLIENT_ID: GITLAB_CLIENT_ID
       GLOSSIA_GITLAB_CLIENT_SECRET: GITLAB_CLIENT_SECRET
       GLOSSIA_GITLAB_WEBHOOK_SECRET: GITLAB_WEBHOOK_SECRET
+      OTEL_EXPORTER_OTLP_HEADERS: OTEL_EXPORTER_OTLP_HEADERS
   postgres:
     itemKey: kubernetes
     passwordField: POSTGRES_PASSWORD

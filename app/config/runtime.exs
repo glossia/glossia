@@ -170,6 +170,7 @@ if config_env() == :prod do
   otel_protocol =
     case System.get_env("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc") do
       "grpc" -> :grpc
+      "http/protobuf" -> :http_protobuf
       "http_protobuf" -> :http_protobuf
       protocol -> raise "unsupported OTEL_EXPORTER_OTLP_PROTOCOL=#{inspect(protocol)}"
     end
