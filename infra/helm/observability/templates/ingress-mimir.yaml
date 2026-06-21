@@ -1,0 +1,40 @@
+{{- if and .Values.ingress.enabled (index .Values "mimir-distributed" "enabled") }}
+# Mimir push + query — served at .Values.ingress.mimir.host. Workload
+# clusters' Alloy installs remote_write to /api/v1/push here; basic auth
+# is enforced via the htpasswd Secret. Grafana queries against this same
+# host are unnecessary (in-cluster Service DNS used instead — see
+# grafana.datasources in values.yaml).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mimir
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    # remote_write payloads commonly exceed nginx's 1m default body cap;
+    # 32m matches Mimir's default ingester body size limit.
+    nginx.ingress.kubernetes.io/proxy-body-size: 32m
+    {{- include "observability.pushAuthAnnotations" . | nindent 4 }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.mimir.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # nginx-fronted gateway shipped by mimir-distributed.
+                name: {{ .Release.Name }}-mimir-nginx
+                port:
+                  number: 80
+  tls:
+    - secretName: mimir-tls
+      hosts:
+        - {{ .Values.ingress.mimir.host | quote }}
+{{- end }}

@@ -1,0 +1,674 @@
+# Default values for the Glossia observability chart.
+# Install:
+#   helm dependency update infra/helm/observability
+#   helm upgrade --install observability infra/helm/observability \
+#     -n observability --create-namespace \
+#     -f infra/helm/observability/values-hetzner.yaml
+#
+# Subchart values live nested under their dependency name (see Chart.yaml).
+# Top-level keys below are chart-owned (CephObjectStore CR + ExternalSecrets +
+# Ingresses).
+
+# ---------------------------------------------------------------------------
+# Chart-owned objects
+# ---------------------------------------------------------------------------
+
+# CephObjectStore CR (RGW endpoint) + per-tenant CephObjectStoreUsers (mimir,
+# loki, tempo). The CephObjectStore creates the RGW Deployment + Service +
+# data/metadata pools; each User gets an isolated bucket prefix and its own
+# AccessKey/SecretKey landed in a Secret by Rook (`rook-ceph-object-user-
+# <store>-<user>`), which the Mimir/Loki/Tempo subcharts reference via
+# extraEnvFrom for their S3 client config.
+cephObjectStore:
+  enabled: true
+  # Store name → drives the RGW Service name:
+  #   rook-ceph-rgw-<storeName>.observability.svc:80
+  name: glossia-store
+  # Replica size on the RGW data pool. Hetzner Volumes are already
+  # replicated by the SAN, so 3x Ceph replication on top is 9x overhead.
+  # 2x still survives an OSD pod loss (which is the failure Ceph protects
+  # against — the underlying device redundancy is Hetzner's concern).
+  dataPoolReplicaSize: 2
+  metadataPoolReplicaSize: 2
+  # RGW Deployment replica count. HPA below scales 2..6.
+  gateway:
+    replicas: 2
+    instances: 1
+    port: 80
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+  bucketInit:
+    enabled: true
+    image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+    backoffLimit: 30
+    ttlSecondsAfterFinished: 86400
+  # Tenants — one CephObjectStoreUser per consumer for blast-radius
+  # isolation. Each gets its own bucket (created on first write by the
+  # consumer) and credentials in `rook-ceph-object-user-<store>-<user>`.
+  users:
+    - name: mimir
+      displayName: Glossia Mimir
+      bucket: glossia-mimir
+    - name: loki
+      displayName: Glossia Loki
+      bucket: glossia-loki
+    - name: tempo
+      displayName: Glossia Tempo
+      bucket: glossia-tempo
+
+# ExternalSecret CRs against the per-cluster 1Password vault. The
+# `onepassword` ClusterSecretStore is provisioned by the bootstrap step
+# (infra/k8s/mgmt/bootstrap/onepassword-secretstore.yaml) with
+# VAULT_NAME=glossia-observability.
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: onepassword
+
+  # → grafana-admin Secret (keys: admin-user, admin-password). Consumed
+  # by the grafana subchart via `grafana.admin.existingSecret`.
+  grafana:
+    secretName: grafana-admin
+    itemKey: kubernetes
+    userField: GF_SECURITY_ADMIN_USER
+    passwordField: GF_SECURITY_ADMIN_PASSWORD
+
+  # → push-endpoints-auth Secret (single key `auth`, htpasswd-formatted).
+  # Mounted by the Mimir/Loki/Tempo Ingresses for basic auth on the public
+  # push endpoints. We ask the user to maintain the htpasswd content in
+  # 1Password directly (one line per workload-cluster token) because ESO
+  # has no bcrypt template function. Plain tokens per workload cluster
+  # live in their OWN 1Password items in their OWN vaults (e.g.,
+  # glossia-production:push-token-glossia-production with the matching
+  # bcrypt'd entry in the htpasswd here).
+  pushAuth:
+    secretName: push-endpoints-auth
+    itemKey: push-endpoints-auth
+    htpasswdField: htpasswd
+
+# Public ingress hosts. Created with `ingressClassName: nginx` and the
+# `letsencrypt-cloudflare` ClusterIssuer that the platform chart already
+# installs. cert-manager handles TLS via Cloudflare DNS-01.
+ingress:
+  enabled: true
+  className: nginx
+  clusterIssuer: letsencrypt-cloudflare
+  # Common annotations applied to every ingress. Mimir/Loki/Tempo push
+  # endpoints additionally get basic-auth annotations from this chart's
+  # template (the `auth` Secret is `externalSecrets.pushAuth.secretName`).
+  annotations: {}
+  grafana:
+    host: grafana.glossia.ai
+  mimir:
+    host: mimir.glossia.ai
+  loki:
+    host: loki.glossia.ai
+  tempo:
+    host: tempo.glossia.ai
+
+# Node placement shared by every workload this chart owns. The
+# observability cluster only has the `stateful` pool (see
+# infra/k8s/clusters/cluster-observability.yaml), so everything needs
+# the toleration. Subcharts get the same applied via their respective
+# nodeSelector / tolerations keys below.
+nodePlacement:
+  nodeSelector: &statefulNodeSelector
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations: &statefulTolerations
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+# ---------------------------------------------------------------------------
+# Subchart values — pinned defaults, overridden in values-hetzner.yaml
+# where needed.
+# ---------------------------------------------------------------------------
+
+# rook-ceph-cluster: the CephCluster CR (mons, OSDs, mgr, CSI). The
+# operator (rook-ceph chart) must already be installed (see README).
+rook-ceph-cluster:
+  enabled: true
+  # CRDs ship with the operator chart, not this one.
+  operatorNamespace: rook-ceph
+  monitoring:
+    enabled: false  # No Prometheus Operator on the cluster yet
+  toolbox:
+    enabled: true   # `ceph status` / debug pod
+    tolerations: *statefulTolerations
+  cephClusterSpec:
+    mon:
+      count: 3
+      allowMultiplePerNode: false
+    mgr:
+      count: 1
+      allowMultiplePerNode: false
+    dashboard:
+      enabled: true
+      ssl: false
+    network:
+      connections:
+        encryption:
+          enabled: false  # cluster-internal, fsn1-local
+        compression:
+          enabled: false
+    crashCollector:
+      disable: false
+    storage:
+      useAllNodes: false
+      useAllDevices: false
+      # PVC-based OSDs: one storageClassDeviceSet of N PVCs sourced from
+      # the cluster's hcloud-volumes StorageClass. Grow by editing
+      # `count` (adds OSDs) or by resizing the PVC template (grows
+      # existing OSDs — Hetzner volumes resize online up to 10 TiB).
+      storageClassDeviceSets:
+        - name: glossia-osds
+          count: 4
+          portable: false
+          encrypted: false
+          tuneDeviceClass: true
+          tuneFastDeviceClass: false
+          placement:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node.cluster.x-k8s.io/pool
+                        operator: In
+                        values: [stateful]
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values: [rook-ceph-osd]
+                        - key: ceph.rook.io/DeviceSet
+                          operator: In
+                          values: [glossia-osds]
+                    topologyKey: kubernetes.io/hostname
+            tolerations:
+              - key: node.cluster.x-k8s.io/pool
+                operator: Equal
+                value: stateful
+                effect: NoSchedule
+          volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                resources:
+                  requests:
+                    storage: 100Gi
+                storageClassName: hcloud-volumes
+                volumeMode: Block
+                accessModes: [ReadWriteOnce]
+    resources:
+      mon:
+        requests: { cpu: 250m, memory: 1Gi }
+        limits:   { memory: 2Gi }
+      mgr:
+        requests: { cpu: 250m, memory: 512Mi }
+        limits:   { memory: 1Gi }
+      osd:
+        requests: { cpu: 250m, memory: 1Gi }
+        limits:   { memory: 4Gi }
+      crashcollector:
+        requests: { cpu: 25m, memory: 32Mi }
+        limits:   { memory: 64Mi }
+    placement:
+      all:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.cluster.x-k8s.io/pool
+                    operator: In
+                    values: [stateful]
+        tolerations:
+          - key: node.cluster.x-k8s.io/pool
+            operator: Equal
+            value: stateful
+            effect: NoSchedule
+  # The chart ships a default block StorageClass `ceph-block` (RBD) —
+  # leave it on; Mimir/Loki/Tempo ingester WALs PVCs will source from it.
+  cephBlockPools:
+    - name: ceph-blockpool
+      spec:
+        failureDomain: host
+        replicated:
+          size: 2  # see cephObjectStore.dataPoolReplicaSize for why
+      storageClass:
+        enabled: true
+        name: ceph-block
+        isDefault: false
+        reclaimPolicy: Delete
+        allowVolumeExpansion: true
+        parameters:
+          imageFormat: "2"
+          imageFeatures: layering
+          csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+          csi.storage.k8s.io/provisioner-secret-namespace: observability
+          csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+          csi.storage.k8s.io/controller-expand-secret-namespace: observability
+          csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+          csi.storage.k8s.io/node-stage-secret-namespace: observability
+          csi.storage.k8s.io/fstype: ext4
+  # No CephFS / CephObjectStore at the subchart level — the
+  # CephObjectStore is defined in templates/ceph-objectstore.yaml so we
+  # can ship users + topology together.
+  cephFileSystems: []
+  cephObjectStores: []
+
+# Mimir — Prometheus-compatible metrics store. S3-backed against RGW.
+mimir-distributed:
+  enabled: true
+  # Pin retention; without this, blocks accumulate forever on RGW.
+  global:
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-mimir
+  mimir:
+    structuredConfig:
+      common:
+        storage:
+          backend: s3
+          s3:
+            endpoint: rook-ceph-rgw-glossia-store.observability.svc:80
+            bucket_name: glossia-mimir
+            insecure: true
+            # Credentials sourced from extraEnvFrom above. Mimir reads
+            # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY from env.
+            access_key_id: ${AccessKey}
+            secret_access_key: ${SecretKey}
+      blocks_storage:
+        backend: s3
+        s3:
+          bucket_name: glossia-mimir
+      limits:
+        compactor_blocks_retention_period: 30d
+  # Stateless components — HPA bounds defined per-component below.
+  distributor:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+  querier:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+  query_frontend:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+  query_scheduler:
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  # Ingesters: stable replicas, no HPA (scaling them is disruptive).
+  ingester:
+    replicas: 3
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    zoneAwareReplication:
+      zones:
+        - name: zone-a
+          nodeSelector: *statefulNodeSelector
+          extraAffinity: {}
+          storageClass: null
+        - name: zone-b
+          nodeSelector: *statefulNodeSelector
+          extraAffinity: {}
+          storageClass: null
+        - name: zone-c
+          nodeSelector: *statefulNodeSelector
+          extraAffinity: {}
+          storageClass: null
+    persistentVolume:
+      enabled: true
+      size: 50Gi
+      storageClass: ceph-block
+  store_gateway:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    zoneAwareReplication:
+      zones:
+        - name: zone-a
+          nodeSelector: *statefulNodeSelector
+          extraAffinity: {}
+          storageClass: null
+        - name: zone-b
+          nodeSelector: *statefulNodeSelector
+          extraAffinity: {}
+          storageClass: null
+        - name: zone-c
+          nodeSelector: *statefulNodeSelector
+          extraAffinity: {}
+          storageClass: null
+    persistentVolume:
+      enabled: true
+      size: 20Gi
+      storageClass: ceph-block
+  compactor:
+    replicas: 1
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    persistentVolume:
+      enabled: true
+      size: 20Gi
+      storageClass: ceph-block
+  alertmanager:
+    enabled: false   # not running yet; ship rules in a later iteration
+  ruler:
+    enabled: false   # same
+  overrides_exporter:
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  nginx:
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  # Disable the bundled MinIO — we use RGW instead.
+  minio:
+    enabled: false
+  # Bundled cache (memcached). Keep on for query performance.
+  chunks-cache:
+    enabled: true
+    allocatedMemory: 512
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  index-cache:
+    enabled: true
+    allocatedMemory: 512
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  metadata-cache:
+    enabled: true
+    allocatedMemory: 256
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  results-cache:
+    enabled: true
+    allocatedMemory: 256
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  rollout_operator:
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+
+# Loki — simple-scalable: read + write + backend StatefulSets, S3-backed.
+loki:
+  enabled: true
+  deploymentMode: SimpleScalable
+  loki:
+    auth_enabled: false
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: s3
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+    storage:
+      type: s3
+      bucketNames:
+        chunks: glossia-loki
+        ruler: glossia-loki
+        admin: glossia-loki
+      s3:
+        endpoint: rook-ceph-rgw-glossia-store.observability.svc:80
+        s3ForcePathStyle: true
+        insecure: true
+        accessKeyId: ${AccessKey}
+        secretAccessKey: ${SecretKey}
+        # Credentials projected via env from the Rook-generated Secret.
+        # See `loki.extraEnvFrom` below.
+    limits_config:
+      retention_period: 336h   # 14d
+    compactor:
+      retention_enabled: true
+      delete_request_store: s3
+    frontend:
+      scheduler_address: observability-loki-query-scheduler-discovery.observability.svc.cluster.local:9095
+      tail_proxy_url: ""
+    frontend_worker:
+      scheduler_address: observability-loki-query-scheduler-discovery.observability.svc.cluster.local:9095
+  read:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-loki
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+  write:
+    replicas: 3
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-loki
+    persistence:
+      size: 30Gi
+      storageClass: ceph-block
+  backend:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-loki
+    persistence:
+      size: 20Gi
+      storageClass: ceph-block
+  # Disable the bundled MinIO; we use RGW.
+  minio:
+    enabled: false
+  # Single-binary off; gateway on (nginx in front of read/write).
+  singleBinary:
+    replicas: 0
+  gateway:
+    enabled: true
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  lokiCanary:
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  chunksCache:
+    allocatedMemory: 512
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  resultsCache:
+    allocatedMemory: 256
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+
+# Tempo — distributed traces, OTLP-native.
+tempo-distributed:
+  enabled: true
+  storage:
+    trace:
+      backend: s3
+      s3:
+        endpoint: rook-ceph-rgw-glossia-store.observability.svc:80
+        bucket: glossia-tempo
+        access_key: ${AccessKey}
+        secret_key: ${SecretKey}
+        insecure: true
+        forcepathstyle: true
+        # Credentials env-from below.
+    # 7d retention; Tempo's compactor honors this.
+    compaction:
+      block_retention: 168h
+  global_overrides:
+    defaults:
+      ingestion:
+        rate_limit_bytes: 20000000        # 20 MB/s default tenant cap
+        burst_size_bytes: 30000000
+  distributor:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-tempo
+  ingester:
+    replicas: 3
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    persistence:
+      enabled: true
+      size: 30Gi
+      storageClass: ceph-block
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-tempo
+  querier:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-tempo
+  queryFrontend:
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 70
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-tempo
+  compactor:
+    replicas: 1
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    extraArgs:
+      - "-config.expand-env=true"
+    extraEnvFrom:
+      - secretRef:
+          name: rook-ceph-object-user-glossia-store-tempo
+  metricsGenerator:
+    enabled: false   # opt-in later when we want span metrics
+  minio:
+    enabled: false
+  gateway:
+    enabled: true
+    replicas: 2
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+  memcached:
+    tolerations: *statefulTolerations
+
+# Grafana UI. Datasources pre-pointed at the in-cluster Service DNS for
+# Mimir, Loki, Tempo so dashboard queries never round-trip the public
+# push endpoints.
+grafana:
+  enabled: true
+  # Grafana uses a single ReadWriteOnce volume in this chart.
+  replicas: 1
+  nodeSelector: *statefulNodeSelector
+  tolerations: *statefulTolerations
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence:
+    enabled: true
+    storageClassName: ceph-block
+    size: 10Gi
+  ingress:
+    enabled: false   # this chart ships its own ingress template
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Mimir
+          type: prometheus
+          uid: mimir
+          access: proxy
+          url: http://observability-mimir-nginx.observability.svc/prometheus
+          isDefault: true
+        - name: Loki
+          type: loki
+          uid: loki
+          access: proxy
+          url: http://observability-loki-gateway.observability.svc
+        - name: Tempo
+          type: tempo
+          uid: tempo
+          access: proxy
+          url: http://observability-tempo-gateway.observability.svc:3200
+          jsonData:
+            tracesToLogsV2:
+              datasourceUid: loki
+            tracesToMetrics:
+              datasourceUid: mimir
+  sidecar:
+    dashboards:
+      enabled: true
+      label: glossia-grafana-dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+    datasources:
+      enabled: false   # datasources hardcoded above

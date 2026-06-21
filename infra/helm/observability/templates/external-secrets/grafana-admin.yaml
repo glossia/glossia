@@ -1,0 +1,28 @@
+{{- if .Values.externalSecrets.enabled }}
+# Grafana admin login. Consumed by the grafana subchart via
+# `grafana.admin.existingSecret` (see values.yaml). The 1Password item
+# at `externalSecrets.grafana.itemKey` must expose two fields:
+#   - GF_SECURITY_ADMIN_USER     → admin-user
+#   - GF_SECURITY_ADMIN_PASSWORD → admin-password
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.externalSecrets.grafana.secretName }}
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.externalSecrets.grafana.secretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        admin-user: {{ printf "{{ .%s }}" .Values.externalSecrets.grafana.userField | quote }}
+        admin-password: {{ printf "{{ .%s }}" .Values.externalSecrets.grafana.passwordField | quote }}
+  dataFrom:
+    - extract:
+        key: {{ .Values.externalSecrets.grafana.itemKey | quote }}
+{{- end }}
