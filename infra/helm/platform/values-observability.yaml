@@ -16,9 +16,6 @@
 # platform, otherwise the observability cluster would carry two Ceph
 # clusters and an unused app bucket.
 cert-manager:
-  installCRDs: false
-  crds:
-    enabled: false
   tolerations: &statefulTolerations
     - key: node.cluster.x-k8s.io/pool
       operator: Equal

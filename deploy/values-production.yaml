@@ -18,7 +18,7 @@ env:
   OTEL_SERVICE_NAME: glossia-web
   OTEL_DEPLOYMENT_ENVIRONMENT: production
   OTEL_EXPORTER_OTLP_PROTOCOL: http_protobuf
-  OTEL_EXPORTER_OTLP_ENDPOINT: https://tempo.glossia.ai/v1/traces
+  OTEL_EXPORTER_OTLP_ENDPOINT: https://tempo.glossia.ai
 
 imagePullSecrets:
   - name: ghcr-pull-secret

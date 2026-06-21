@@ -525,6 +525,10 @@ loki:
 # Tempo — distributed traces, OTLP-native.
 tempo-distributed:
   enabled: true
+  traces:
+    otlp:
+      http:
+        enabled: true
   storage:
     trace:
       backend: s3
@@ -658,7 +662,7 @@ grafana:
           type: tempo
           uid: tempo
           access: proxy
-          url: http://observability-tempo-gateway.observability.svc:3200
+          url: http://observability-tempo-gateway.observability.svc
           jsonData:
             tracesToLogsV2:
               datasourceUid: loki

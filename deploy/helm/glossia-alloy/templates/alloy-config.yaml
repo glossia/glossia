@@ -31,7 +31,7 @@ data:
 
     	selectors {
     		role  = "pod"
-    		field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+            field = "spec.nodeName=" + coalesce(sys.env("NODE_NAME"), constants.hostname)
     	}
     }
 
@@ -40,7 +40,7 @@ data:
 
     	selectors {
     		role  = "node"
-    		field = "metadata.name=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+            field = "metadata.name=" + coalesce(sys.env("NODE_NAME"), constants.hostname)
     	}
     }
 
@@ -150,7 +150,7 @@ data:
 
     	rule {
     		target_label = "node"
-    		replacement  = coalesce(sys.env("HOSTNAME"), constants.hostname)
+            replacement  = coalesce(sys.env("NODE_NAME"), constants.hostname)
     	}
     }
 

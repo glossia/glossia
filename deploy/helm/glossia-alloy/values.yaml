@@ -108,6 +108,10 @@ alloy:
           mountPath: /host/run/udev/data
           readOnly: true
     extraEnv:
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
       - name: GLOSSIA_METRICS_BEARER_TOKEN
         valueFrom:
           secretKeyRef:
