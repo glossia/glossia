@@ -1,0 +1,92 @@
+{{- if .Values.cephObjectStore.enabled }}
+# CephObjectStore — RGW endpoint, in-cluster S3 backend for Mimir/Loki/Tempo.
+# Reachable from any pod in the observability cluster at the Service
+# created by Rook in this release namespace:
+#   http://rook-ceph-rgw-{{ .Values.cephObjectStore.name }}.{{ .Release.Namespace }}.svc:{{ .Values.cephObjectStore.gateway.port }}
+#
+# Tenant isolation: one CephObjectStoreUser per consumer below; Rook lands
+# AccessKey/SecretKey for each in a Secret named
+# `rook-ceph-object-user-{{ .Values.cephObjectStore.name }}-<userName>` in this
+# release namespace, which is the same namespace where Mimir, Loki, and Tempo
+# read them via extraEnvFrom in values.yaml.
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: {{ .Values.cephObjectStore.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+spec:
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: {{ .Values.cephObjectStore.metadataPoolReplicaSize }}
+      requireSafeReplicaSize: false
+  dataPool:
+    failureDomain: host
+    replicated:
+      size: {{ .Values.cephObjectStore.dataPoolReplicaSize }}
+      requireSafeReplicaSize: false
+  preservePoolsOnDelete: true
+  gateway:
+    port: {{ .Values.cephObjectStore.gateway.port }}
+    instances: {{ .Values.cephObjectStore.gateway.instances }}
+    resources:
+      {{- toYaml .Values.cephObjectStore.gateway.resources | nindent 6 }}
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node.cluster.x-k8s.io/pool
+                  operator: In
+                  values: [stateful]
+      tolerations:
+        - key: node.cluster.x-k8s.io/pool
+          operator: Equal
+          value: stateful
+          effect: NoSchedule
+
+{{- range .Values.cephObjectStore.users }}
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: glossia-observability
+    app.kubernetes.io/part-of: glossia
+    glossia.ai/tenant: {{ .name }}
+spec:
+  store: {{ $.Values.cephObjectStore.name }}
+  displayName: {{ .displayName | quote }}
+{{- end }}
+
+{{- if .Values.cephObjectStore.hpa.enabled }}
+---
+# HPA on the RGW Deployment. Rook names it `rook-ceph-rgw-<storeName>-a`
+# (single-zone), which is what we autoscale.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: rook-ceph-rgw-{{ .Values.cephObjectStore.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rook-ceph-rgw-{{ .Values.cephObjectStore.name }}-a
+  minReplicas: {{ .Values.cephObjectStore.hpa.minReplicas }}
+  maxReplicas: {{ .Values.cephObjectStore.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.cephObjectStore.hpa.targetCPUUtilizationPercentage }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,60 @@
+apiVersion: v2
+name: glossia-observability
+description: >
+  Self-hosted observability stack for Glossia, installed once on the
+  glossia-observability workload cluster. Bundles Rook-Ceph (CephCluster
+  + RGW S3 object store), Grafana Mimir, Loki, Tempo, and Grafana as
+  subcharts, plus the CephObjectStore + per-tenant CephObjectStoreUsers,
+  ExternalSecret CRs (pulling Grafana admin password + push-endpoint
+  basic-auth from the per-cluster 1Password vault), and ingress
+  manifests for the public hostnames.
+
+  PRE-INSTALL REQUIREMENT: install the Rook-Ceph OPERATOR (rook-release/
+  rook-ceph) as a separate Helm release BEFORE installing this chart.
+  The operator owns the CRDs that this chart's CephCluster /
+  CephObjectStore CRs depend on; bundling it as a subchart here would
+  race the CRDs against the CRs at install time. See README.md for the
+  install order.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  # Rook-Ceph CephCluster + default block/object StorageClasses. The
+  # operator (rook-ceph chart) is installed separately first; this
+  # chart only owns the cluster CRs.
+  - name: rook-ceph-cluster
+    version: v1.16.4
+    repository: https://charts.rook.io/release
+    condition: rook-ceph-cluster.enabled
+
+  # Grafana Mimir — horizontally scalable, S3-backed metrics store
+  # (Prometheus remote_write target). Scalable mode separates
+  # ingester / distributor / querier / query-frontend / compactor.
+  - name: mimir-distributed
+    version: 5.6.0
+    repository: https://grafana.github.io/helm-charts
+    condition: mimir-distributed.enabled
+
+  # Loki — horizontally scalable log store. simple-scalable mode runs
+  # read+write+backend StatefulSets (3 components vs full distributed
+  # mode's 6+), enough for our scale and easier to operate.
+  - name: loki
+    version: 6.24.0
+    repository: https://grafana.github.io/helm-charts
+    condition: loki.enabled
+
+  # Tempo — distributed traces store, OTLP-native (gRPC + HTTP).
+  # tempo-distributed is the scalable variant (separate distributor /
+  # ingester / querier / compactor / metrics-generator).
+  - name: tempo-distributed
+    version: 1.31.0
+    repository: https://grafana.github.io/helm-charts
+    condition: tempo-distributed.enabled
+
+  # Grafana UI. Datasources point at the in-cluster Mimir/Loki/Tempo
+  # Services (not the public push hostnames) so dashboard queries
+  # never leave the observability cluster.
+  - name: grafana
+    version: 8.5.2
+    repository: https://grafana.github.io/helm-charts
+    condition: grafana.enabled

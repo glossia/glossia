@@ -1,0 +1,177 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glossia-kubernetes-overview-dashboard
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+    glossia-grafana-dashboard: "1"
+data:
+  kubernetes-overview.json: |
+    {
+      "uid": "glossia-kubernetes-overview",
+      "title": "Glossia Kubernetes Overview",
+      "tags": ["glossia", "kubernetes"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "templating": {
+        "list": [
+          {
+            "name": "cluster",
+            "type": "query",
+            "label": "Cluster",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "mimir"
+            },
+            "query": "label_values(up, cluster)",
+            "refresh": 1,
+            "current": {
+              "selected": false,
+              "text": "glossia-production",
+              "value": "glossia-production"
+            }
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Ready Nodes",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "count(kube_node_status_condition{cluster=\"$cluster\", condition=\"Ready\", status=\"true\"})"
+            }
+          ],
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Running Pods",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(kube_pod_status_phase{cluster=\"$cluster\", phase=\"Running\"})"
+            }
+          ],
+          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Container Restarts In The Last Hour",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(increase(kube_pod_container_status_restarts_total{cluster=\"$cluster\"}[1h]))"
+            }
+          ],
+          "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Processor Cores Used",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(node_cpu_seconds_total{cluster=\"$cluster\", mode!=\"idle\"}[5m]))"
+            }
+          ],
+          "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Processor Use By Node",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (node) (rate(node_cpu_seconds_total{cluster=\"$cluster\", mode!=\"idle\"}[5m]))"
+            }
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Memory Used By Node",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (node) (node_memory_MemTotal_bytes{cluster=\"$cluster\"} - node_memory_MemAvailable_bytes{cluster=\"$cluster\"})"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+        },
+        {
+          "id": 7,
+          "type": "barchart",
+          "title": "Running Pods By Namespace",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (namespace) (kube_pod_status_phase{cluster=\"$cluster\", phase=\"Running\"})",
+              "instant": true
+            }
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+        },
+        {
+          "id": 8,
+          "type": "logs",
+          "title": "Recent Kubernetes Events",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "{cluster=\"$cluster\", job=\"integrations/kubernetes/eventhandler\"}"
+            }
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+        }
+      ]
+    }
+{{- end }}

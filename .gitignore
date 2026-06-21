@@ -10,6 +10,10 @@
 /cli/node_modules
 /release
 
+# Helm dependency outputs
+**/Chart.lock
+**/charts/
+
 # Kamal
 /.kamal/secrets
 

@@ -1,0 +1,65 @@
+# Hetzner-specific overlay for the observability chart.
+# Layer on top of values.yaml:
+#   helm upgrade --install observability infra/helm/observability \
+#     -n observability --create-namespace \
+#     -f infra/helm/observability/values-hetzner.yaml
+#
+# The base values.yaml is provider-portable; this overlay carries:
+#   - StorageClass pinning to hcloud-volumes for Ceph OSD PVCs
+#     (no-op — already set in base, included here for explicitness)
+#   - Hetzner LB / region tuning that doesn't apply elsewhere
+#
+# Most ingress LB annotations live on ingress-nginx (installed via the
+# platform chart); the observability chart only ships application-level
+# ingresses that consume that controller, so there is nothing
+# provider-specific to set per-ingress.
+
+# Pin Ceph OSD device-set PVCs to fsn1's hcloud-volumes class. (The base
+# already sets storageClassName: hcloud-volumes; this overlay would
+# override here if a future cluster used a different class.)
+rook-ceph-cluster:
+  cephClusterSpec:
+    storage:
+      storageClassDeviceSets:
+        - name: glossia-osds
+          count: 4
+          portable: false
+          encrypted: false
+          tuneDeviceClass: true
+          tuneFastDeviceClass: false
+          placement:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node.cluster.x-k8s.io/pool
+                        operator: In
+                        values: [stateful]
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values: [rook-ceph-osd]
+                        - key: ceph.rook.io/DeviceSet
+                          operator: In
+                          values: [glossia-osds]
+                    topologyKey: kubernetes.io/hostname
+            tolerations:
+              - key: node.cluster.x-k8s.io/pool
+                operator: Equal
+                value: stateful
+                effect: NoSchedule
+          volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                resources:
+                  requests:
+                    storage: 100Gi
+                storageClassName: hcloud-volumes
+                volumeMode: Block
+                accessModes: [ReadWriteOnce]

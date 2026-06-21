@@ -1,0 +1,57 @@
+# Hetzner overlay for the dedicated glossia-observability cluster.
+# Use after values-hetzner.yaml so provider-specific load balancer
+# settings are retained while app-specific object storage is disabled.
+#
+# Install:
+#   helm upgrade --install platform infra/helm/platform \
+#     -n platform \
+#     -f infra/helm/platform/values-hetzner.yaml \
+#     -f infra/helm/platform/values-observability.yaml
+
+# The observability chart owns its own Rook operator and Ceph cluster:
+#   - rook-ceph operator release in namespace rook-ceph
+#   - CephCluster and object store in namespace observability
+#
+# Do not also install the app platform object store into namespace
+# platform, otherwise the observability cluster would carry two Ceph
+# clusters and an unused app bucket.
+cert-manager:
+  tolerations: &statefulTolerations
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+  webhook:
+    tolerations: *statefulTolerations
+  cainjector:
+    tolerations: *statefulTolerations
+  startupapicheck:
+    tolerations: *statefulTolerations
+
+ingress-nginx:
+  controller:
+    tolerations: *statefulTolerations
+    admissionWebhooks:
+      patch:
+        tolerations: *statefulTolerations
+
+external-dns:
+  tolerations: *statefulTolerations
+
+external-secrets:
+  global:
+    tolerations: *statefulTolerations
+  tolerations: *statefulTolerations
+  webhook:
+    tolerations: *statefulTolerations
+  certController:
+    tolerations: *statefulTolerations
+
+rook-ceph:
+  enabled: false
+
+rook-ceph-cluster:
+  enabled: false
+
+rookObjectStorage:
+  enabled: false

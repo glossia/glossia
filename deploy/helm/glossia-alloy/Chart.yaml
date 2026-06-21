@@ -1,0 +1,44 @@
+apiVersion: v2
+name: glossia-alloy
+description: >
+  Workload-cluster observability shipper. Deploys Grafana Alloy as a
+  DaemonSet (one per node) configured to scrape the Glossia app's
+  /metrics endpoint, kube-state-metrics, kubelet cAdvisor, and
+  node-exporter (built-in Alloy component), and remote_write the
+  series to the central glossia-observability cluster's Mimir endpoint
+  (mimir.glossia.ai) with HTTP basic auth. Deploys a second singleton
+  Alloy Deployment for Kubernetes events so cluster-wide event streams
+  are not duplicated by the node DaemonSet.
+
+  Installed per workload cluster, separately from the application chart
+  so observability shipping doesn't share rollout cadence with the app.
+  The app's own OpenTelemetry client wiring (app/config/runtime.exs)
+  ships traces directly; this chart handles metrics and pod logs.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  # Grafana Alloy — successor to Grafana Agent. Single binary that
+  # speaks Prometheus scrape, OTLP, Loki push, etc. Deployed as a
+  # DaemonSet here so node-local cAdvisor/node-exporter scrape stays
+  # off-cluster-network.
+  - name: alloy
+    version: 0.10.1
+    repository: https://grafana.github.io/helm-charts
+    condition: alloy.enabled
+
+  # A second Alloy instance, installed from the same chart under an
+  # alias, streams cluster-wide Kubernetes events exactly once.
+  - name: alloy
+    alias: alloy-events
+    version: 0.10.1
+    repository: https://grafana.github.io/helm-charts
+    condition: alloy-events.enabled
+
+  # kube-state-metrics — exposes Deployment/Pod/Node/PVC state as
+  # metrics. Alloy scrapes its Service. A single Deployment is enough
+  # (no need to DaemonSet it).
+  - name: kube-state-metrics
+    version: 5.27.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-state-metrics.enabled

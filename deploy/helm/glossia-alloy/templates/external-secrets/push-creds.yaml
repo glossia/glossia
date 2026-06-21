@@ -1,0 +1,34 @@
+{{- if .Values.externalSecrets.enabled }}
+# Basic-auth credentials for the central observability cluster's push endpoints
+# (mimir.glossia.ai / loki.glossia.ai / tempo.glossia.ai). The plain
+# token here is THIS cluster's identity — the matching bcrypt'd entry
+# lives in the observability cluster's `push-endpoints-auth` 1Password item htpasswd
+# file. See infra/helm/observability/templates/external-secrets/push-endpoints-auth.yaml.
+#
+# To rotate: generate a new token, update both 1Password items (this
+# cluster's plain entry and the observability cluster's bcrypt entry), then let
+# ESO's refreshInterval pick up both within the hour.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.externalSecrets.pushCreds.secretName }}
+  labels:
+    app.kubernetes.io/name: glossia-alloy
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/part-of: glossia
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.externalSecrets.pushCreds.secretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        USERNAME: {{ printf "{{ .%s }}" .Values.externalSecrets.pushCreds.usernameField | quote }}
+        TOKEN: {{ printf "{{ .%s }}" .Values.externalSecrets.pushCreds.passwordField | quote }}
+  dataFrom:
+    - extract:
+        key: {{ .Values.externalSecrets.pushCreds.itemKey | quote }}
+{{- end }}

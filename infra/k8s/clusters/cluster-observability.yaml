@@ -1,0 +1,82 @@
+# Observability workload Cluster, topology mode against glossia-hcloud.
+# Sibling to glossia-production. Hosts Grafana + Mimir + Loki + Tempo +
+# Rook-Ceph, receiving metrics/logs/traces pushed from other workload
+# clusters. Lives in a separate failure domain so dashboards survive a
+# production-cluster outage (the whole reason it exists).
+#
+# Shape:
+#   - 1 × cpx22 control plane (single-node; bump to 3 once we feel HA
+#     pressure — same bootstrap-safe trade-off as production).
+#   - 4 × cpx32 workers in pool=stateful. Ceph wants at least 3 nodes
+#     for monitor quorum and replica-2 object storage daemons; the
+#     fourth worker leaves headroom for Grafana, gateways, query
+#     components, and cache pods.
+#
+# No "app" pool — there's nothing untainted to run, and tolerating the
+# stateful taint from Grafana/Mimir/Loki/Tempo Deployments is cheaper
+# than provisioning extra nodes.
+#
+# Rook-Ceph OSDs use PVC-based device sets sourced from the cluster's
+# only StorageClass, `hcloud-volumes` (Hetzner block storage, per
+# infra/k8s/mgmt/bootstrap/hcloud-csi-values.yaml). Replica 2 on the
+# RGW data pool — Hetzner Volumes are already replicated by Hetzner's
+# SAN, so 3× on top would be 9× total overhead; 2× still survives an
+# OSD pod loss.
+#
+# Push endpoints (mimir/loki/tempo.glossia.ai) and the Grafana UI
+# (grafana.glossia.ai) terminate at this cluster's ingress-nginx LB.
+# Workload clusters reach them over the public internet with basic
+# auth — fsn1↔fsn1 traffic stays inside Hetzner's region.
+
+apiVersion: cluster.x-k8s.io/v1beta2
+kind: Cluster
+metadata:
+  name: glossia-observability
+  namespace: org-glossia
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks:
+        - 10.128.0.0/12
+    pods:
+      cidrBlocks:
+        - 192.168.0.0/16
+    serviceDomain: cluster.local
+  topology:
+    classRef:
+      name: glossia-hcloud
+    version: v1.34.6
+    controlPlane:
+      replicas: 1
+    variables:
+      - name: region
+        value: fsn1
+      - name: hcloudControlPlaneMachineType
+        value: cpx22
+      - name: hcloudWorkerMachineType
+        value: cpx32
+      - name: hcloudSSHKeyName
+        value:
+          - name: glossia-ops
+    workers:
+      machineDeployments:
+        # Stateful pool: Rook-Ceph (mons + OSDs + RGW), Mimir / Loki /
+        # Tempo ingesters, Grafana. Tainted so nothing without a
+        # matching toleration lands here; the observability chart's
+        # workloads carry the toleration explicitly.
+        - class: hcloud-worker
+          name: md-stateful
+          replicas: 4
+          failureDomain: fsn1
+          metadata:
+            labels:
+              node.cluster.x-k8s.io/pool: stateful
+          variables:
+            overrides:
+              - name: hcloudWorkerMachineType
+                value: cpx32
+              - name: workerNodeTaints
+                value:
+                  - key: node.cluster.x-k8s.io/pool
+                    value: stateful
+                    effect: NoSchedule
