@@ -1,0 +1,89 @@
+name: Infra
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "deploy/helm/**"
+      - "deploy/values-*.yaml"
+      - "infra/helm/**"
+      - ".github/workflows/infra.yml"
+      - "mise/**"
+      - "mise.toml"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "deploy/helm/**"
+      - "deploy/values-*.yaml"
+      - "infra/helm/**"
+      - ".github/workflows/infra.yml"
+      - "mise/**"
+      - "mise.toml"
+
+permissions:
+  contents: read
+
+jobs:
+  helm:
+    if: github.event.pull_request.draft != true
+    name: Helm Charts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+
+      - name: Install tools
+        run: mise install
+
+      - name: Add Helm repositories
+        run: |
+          mise exec -- helm repo add jetstack https://charts.jetstack.io
+          mise exec -- helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          mise exec -- helm repo add external-dns https://kubernetes-sigs.github.io/external-dns
+          mise exec -- helm repo add external-secrets https://charts.external-secrets.io
+          mise exec -- helm repo add cnpg https://cloudnative-pg.github.io/charts
+          mise exec -- helm repo add rook-release https://charts.rook.io/release
+          mise exec -- helm repo add grafana https://grafana.github.io/helm-charts
+          mise exec -- helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          mise exec -- helm repo update
+
+      - name: Validate Helm charts
+        run: |
+          set -euo pipefail
+
+          validate_chart() {
+            local release="$1"
+            local chart="$2"
+            local namespace="$3"
+            shift 3
+
+            mise exec -- helm dependency build "$chart"
+            mise exec -- helm lint "$chart" "$@"
+            mise exec -- helm template "$release" "$chart" \
+              --namespace "$namespace" \
+              "$@" >/tmp/"$release"-rendered.yaml
+          }
+
+          validate_chart platform infra/helm/platform platform \
+            --values infra/helm/platform/values-hetzner.yaml
+
+          validate_chart platform-observability infra/helm/platform platform \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --values infra/helm/platform/values-observability.yaml
+
+          validate_chart observability infra/helm/observability observability \
+            --values infra/helm/observability/values-hetzner.yaml
+
+          validate_chart glossia deploy/helm/glossia glossia \
+            --values deploy/values-production.yaml
+
+          validate_chart alloy deploy/helm/glossia-alloy observability \
+            --values deploy/values-alloy-production.yaml
+
+          validate_chart l10n deploy/helm/l10n glossia \
+            --values deploy/values-l10n-production.yaml
