@@ -1,0 +1,20 @@
+# Production workload-cluster overlay for deploy/helm/glossia-alloy.
+# Installs the node-local Alloy collector plus the singleton Kubernetes
+# event collector into the production cluster and ships telemetry to
+# the dedicated glossia-observability cluster.
+
+externalSecrets:
+  pushCreds:
+    itemKey: push-token-glossia-production
+    usernameField: USERNAME
+    passwordField: TOKEN
+
+remoteEndpoints:
+  mimir:
+    url: https://mimir.glossia.ai/api/v1/push
+  loki:
+    url: https://loki.glossia.ai/loki/api/v1/push
+
+externalLabels:
+  cluster: glossia-production
+  region: fsn1

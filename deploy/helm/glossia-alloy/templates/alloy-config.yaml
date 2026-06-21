@@ -1,0 +1,228 @@
+{{- if (index .Values "alloy" "enabled") }}
+# Alloy River config - external ConfigMap referenced by the alloy
+# subchart (alloy.alloy.configMap.{create:false, name, key} in values).
+# Templated so cluster and region labels plus remote endpoint URLs can
+# vary per workload cluster without forking the River.
+#
+# What this scrapes:
+#   * Glossia app /metrics (port 4050, bearer token from
+#     glossia-metrics-token Secret, set in app/lib/glossia_web/plugs/metrics.ex)
+#   * kube-state-metrics (its Service in this namespace)
+#   * Kubelet cAdvisor (per-node, in-cluster Transport Layer Security)
+#   * node-exporter (Alloy's built-in prometheus.exporter.unix)
+#
+# All series remote_write to mimir.glossia.ai with Hypertext Transfer Protocol
+# basic auth from the glossia-push-creds Secret (env PUSH_USERNAME /
+# PUSH_PASSWORD).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glossia-alloy-config
+  labels:
+    app.kubernetes.io/name: glossia-alloy
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/part-of: glossia
+data:
+  config.alloy: |
+    // ===== Service discovery =====
+    discovery.kubernetes "pods" {
+    	role = "pod"
+
+    	selectors {
+    		role  = "pod"
+    		field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+    	}
+    }
+
+    discovery.kubernetes "nodes" {
+    	role = "node"
+
+    	selectors {
+    		role  = "node"
+    		field = "metadata.name=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+    	}
+    }
+
+    discovery.kubernetes "services" {
+    	role = "service"
+    }
+
+    // ===== Glossia app: /metrics on port 4050 with bearer token =====
+    discovery.relabel "glossia_app" {
+    	targets = discovery.kubernetes.pods.targets
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+    		regex         = "glossia"
+    		action        = "keep"
+    	}
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_pod_container_port_number"]
+    		regex         = "4050"
+    		action        = "keep"
+    	}
+    }
+
+    prometheus.scrape "glossia_app" {
+    	targets         = discovery.relabel.glossia_app.output
+    	forward_to      = [prometheus.remote_write.mimir.receiver]
+    	metrics_path    = "/metrics"
+    	scrape_interval = "30s"
+
+    	authorization {
+    		type        = "Bearer"
+    		credentials = sys.env("GLOSSIA_METRICS_BEARER_TOKEN")
+    	}
+    }
+
+    // ===== kube-state-metrics =====
+    discovery.relabel "ksm" {
+    	targets = discovery.kubernetes.services.targets
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_service_name"]
+    		regex         = "alloy-kube-state-metrics"
+    		action        = "keep"
+    	}
+    }
+
+    prometheus.scrape "ksm" {
+    	targets    = discovery.relabel.ksm.output
+    	forward_to = [prometheus.remote_write.mimir.receiver]
+    }
+
+    // ===== kubelet metrics =====
+    discovery.relabel "kubelet" {
+    	targets = discovery.kubernetes.nodes.targets
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_node_name"]
+    		target_label  = "node"
+    	}
+    }
+
+    prometheus.scrape "kubelet" {
+    	targets           = discovery.relabel.kubelet.output
+    	forward_to        = [prometheus.remote_write.mimir.receiver]
+    	scheme            = "https"
+    	metrics_path      = "/metrics"
+    	bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+    	tls_config {
+    		insecure_skip_verify = true
+    	}
+    }
+
+    // ===== cAdvisor (per node via kubelet) =====
+    discovery.relabel "cadvisor" {
+    	targets = discovery.kubernetes.nodes.targets
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_node_name"]
+    		target_label  = "node"
+    	}
+    }
+
+    prometheus.scrape "cadvisor" {
+    	targets           = discovery.relabel.cadvisor.output
+    	forward_to        = [prometheus.remote_write.mimir.receiver]
+    	scheme            = "https"
+    	metrics_path      = "/metrics/cadvisor"
+    	bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+    	tls_config {
+    		insecure_skip_verify = true
+    	}
+    }
+
+    // ===== node-exporter (built into Alloy) =====
+    prometheus.exporter.unix "node" {
+    	rootfs_path    = "/host/root"
+    	procfs_path    = "/host/proc"
+    	sysfs_path     = "/host/sys"
+    	udev_data_path = "/host/run/udev/data"
+    }
+
+    discovery.relabel "node" {
+    	targets = prometheus.exporter.unix.node.targets
+
+    	rule {
+    		target_label = "node"
+    		replacement  = coalesce(sys.env("HOSTNAME"), constants.hostname)
+    	}
+    }
+
+    prometheus.scrape "node" {
+    	targets    = discovery.relabel.node.output
+    	forward_to = [prometheus.remote_write.mimir.receiver]
+    }
+
+    // ===== Remote write to central Mimir =====
+    prometheus.remote_write "mimir" {
+    	external_labels = {
+    		cluster = {{ .Values.externalLabels.cluster | quote }},
+    		region  = {{ .Values.externalLabels.region | quote }},
+    	}
+
+    	endpoint {
+    		url = {{ .Values.remoteEndpoints.mimir.url | quote }}
+
+    		basic_auth {
+    			username = sys.env("PUSH_USERNAME")
+    			password = sys.env("PUSH_PASSWORD")
+    		}
+    	}
+    }
+
+    // ===== Log shipping: tail container stdout, ship to Loki =====
+    // Pod log discovery is driven by discovery.kubernetes.pods.targets.
+    // Because Alloy runs as a DaemonSet, the discovery selector above
+    // restricts each Alloy pod to workload pods on its own node so logs
+    // are not tailed once per Alloy replica.
+    discovery.relabel "loki" {
+    	targets = discovery.kubernetes.pods.targets
+    	// Attach pod/container/namespace as labels Loki indexes.
+    	rule {
+    		source_labels = ["__meta_kubernetes_namespace"]
+    		target_label  = "namespace"
+    	}
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_pod_name"]
+    		target_label  = "pod"
+    	}
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_pod_container_name"]
+    		target_label  = "container"
+    	}
+
+    	rule {
+    		source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+    		target_label  = "app"
+    	}
+    }
+
+    loki.source.kubernetes "pods" {
+    	targets    = discovery.relabel.loki.output
+    	forward_to = [loki.write.central.receiver]
+    }
+
+    loki.write "central" {
+    	external_labels = {
+    		cluster = {{ .Values.externalLabels.cluster | quote }},
+    		region  = {{ .Values.externalLabels.region | quote }},
+    	}
+
+    	endpoint {
+    		url = {{ .Values.remoteEndpoints.loki.url | quote }}
+
+    		basic_auth {
+    			username = sys.env("PUSH_USERNAME")
+    			password = sys.env("PUSH_PASSWORD")
+    		}
+    	}
+    }
+{{- end }}

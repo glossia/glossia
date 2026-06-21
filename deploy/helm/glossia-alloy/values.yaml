@@ -1,0 +1,176 @@
+# Default values for the glossia-alloy chart.
+# Install per workload cluster:
+#   helm dependency update deploy/helm/glossia-alloy
+#   helm upgrade --install alloy deploy/helm/glossia-alloy \
+#     -n observability --create-namespace \
+#     -f deploy/values-alloy-production.yaml
+#
+# Per-cluster overlay (cluster_label, push hostnames if multi-tenant later)
+# lives next to deploy/values-production.yaml.
+
+# ExternalSecret config — same pattern as deploy/helm/glossia. The
+# `onepassword` ClusterSecretStore is provisioned per workload cluster
+# by infra/k8s/mgmt/bootstrap/onepassword-secretstore.yaml.
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: onepassword
+
+  # Glossia /metrics requires a bearer token (see
+  # app/lib/glossia_web/plugs/metrics.ex). The token lives in the same
+  # 1Password item as the app's own env Secret — already provisioned
+  # for the app (key METRICS_BEARER_TOKEN). We pull it here too into
+  # a separate Secret so Alloy doesn't depend on the app's namespace.
+  metricsToken:
+    secretName: glossia-metrics-token
+    itemKey: kubernetes
+    field: METRICS_BEARER_TOKEN
+
+  # Basic-auth credentials for the central observability cluster's push endpoints.
+  # The plain token is workload-cluster-specific (1Password item
+  # `push-token-<cluster-name>`); the matching bcrypt'd entry lives in
+  # the observability cluster's `push-endpoints-auth` 1Password item htpasswd file.
+  pushCreds:
+    secretName: glossia-push-creds
+    itemKey: push-token-glossia-production   # per-cluster override
+    usernameField: USERNAME                  # e.g. "glossia-production"
+    passwordField: TOKEN                     # plain token matched against htpasswd
+
+# The central observability cluster's endpoints. These are public hostnames
+# reached over the internet; basic auth above protects them. For a
+# colocated workload cluster (same Hetzner region) the network path
+# stays inside Hetzner — cheap.
+remoteEndpoints:
+  mimir:
+    url: https://mimir.glossia.ai/api/v1/push
+  loki:
+    url: https://loki.glossia.ai/loki/api/v1/push
+
+# Labels added to every series shipped from this cluster, so Mimir can
+# disambiguate when multiple workload clusters ship to one Mimir
+# tenant. Overridden in the per-cluster values overlay.
+externalLabels:
+  cluster: glossia-production
+  region: fsn1
+
+# ---------------------------------------------------------------------------
+# Subchart values
+# ---------------------------------------------------------------------------
+
+alloy:
+  enabled: true
+  crds:
+    create: true
+  # DaemonSet so node-local scrapes (cAdvisor, node-exporter) stay
+  # local; one Alloy per node.
+  controller:
+    type: daemonset
+    tolerations:
+      - key: node.cluster.x-k8s.io/pool
+        operator: Equal
+        value: stateful
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+    volumes:
+      extra:
+        - name: host-root
+          hostPath:
+            path: /
+        - name: host-proc
+          hostPath:
+            path: /proc
+        - name: host-sys
+          hostPath:
+            path: /sys
+        - name: host-udev
+          hostPath:
+            path: /run/udev/data
+  # Mount the metricsToken + pushCreds Secrets so the River config below
+  # can read them via env / file lookups.
+  alloy:
+    mounts:
+      extra:
+        - name: host-root
+          mountPath: /host/root
+          readOnly: true
+          mountPropagation: HostToContainer
+        - name: host-proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: host-sys
+          mountPath: /host/sys
+          readOnly: true
+        - name: host-udev
+          mountPath: /host/run/udev/data
+          readOnly: true
+    extraEnv:
+      - name: GLOSSIA_METRICS_BEARER_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: glossia-metrics-token
+            key: METRICS_BEARER_TOKEN
+      - name: PUSH_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: glossia-push-creds
+            key: USERNAME
+      - name: PUSH_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: glossia-push-creds
+            key: TOKEN
+    # River config lives in an external ConfigMap rendered by this chart
+    # (templates/alloy-config.yaml) so cluster_label / region / remote
+    # endpoints can be Helm-templated from values. Disable subchart's
+    # auto-created ConfigMap and reference ours by name.
+    configMap:
+      create: false
+      name: glossia-alloy-config
+      key: config.alloy
+  serviceAccount:
+    create: true
+  # Cluster-wide RBAC so Alloy can discover pods/services/nodes everywhere.
+  rbac:
+    create: true
+
+alloy-events:
+  enabled: true
+  # The event stream is cluster-wide. Keep this as a singleton so each
+  # Kubernetes event is written to Loki once.
+  crds:
+    create: false
+  controller:
+    type: deployment
+    replicas: 1
+  alloy:
+    extraEnv:
+      - name: PUSH_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: glossia-push-creds
+            key: USERNAME
+      - name: PUSH_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: glossia-push-creds
+            key: TOKEN
+    configMap:
+      create: false
+      name: glossia-alloy-events-config
+      key: config.alloy
+  serviceAccount:
+    create: true
+  # Cluster-wide permissions are required to watch Kubernetes events.
+  rbac:
+    create: true
+
+# kube-state-metrics defaults are fine; chart names its Service
+# `<release>-kube-state-metrics` which the River discovery.relabel above
+# matches.
+kube-state-metrics:
+  enabled: true
+  fullnameOverride: alloy-kube-state-metrics
