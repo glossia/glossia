@@ -65,6 +65,12 @@ hubble:
   enabled: true
   relay:
     enabled: true
+    # Dedicated observability clusters can have only tainted stateful nodes.
+    tolerations:
+      - key: node.cluster.x-k8s.io/pool
+        operator: Equal
+        value: stateful
+        effect: NoSchedule
   ui:
     enabled: false  # access via port-forward; no in-cluster UI ingress
   metrics:
