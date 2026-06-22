@@ -37,6 +37,8 @@ ingress-nginx:
 
 external-dns:
   tolerations: *statefulTolerations
+  txtOwnerId: glossia-observability-platform
+  policy: upsert-only
 
 external-secrets:
   global:
