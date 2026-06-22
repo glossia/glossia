@@ -7,6 +7,7 @@ on:
       - "deploy/helm/**"
       - "deploy/values-*.yaml"
       - "infra/helm/**"
+      - "infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise/**"
       - "mise.toml"
@@ -17,6 +18,7 @@ on:
       - "deploy/helm/**"
       - "deploy/values-*.yaml"
       - "infra/helm/**"
+      - "infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise/**"
       - "mise.toml"
@@ -40,6 +42,48 @@ jobs:
       - name: Install tools
         run: mise install
 
+      - name: Validate Tailscale policy
+        run: |
+          ruby <<'RUBY'
+          require "json"
+
+          file = "infra/tailscale/policy.hujson"
+          input = File.read(file)
+          output = +""
+          in_string = false
+          escaped = false
+          index = 0
+
+          while index < input.length
+            character = input[index]
+            following = input[index + 1]
+
+            if !in_string && character == "/" && following == "/"
+              index += 1 while index < input.length && input[index] != "\n"
+              output << "\n"
+              next
+            end
+
+            output << character
+
+            if in_string
+              if escaped
+                escaped = false
+              elsif character == "\\"
+                escaped = true
+              elsif character == '"'
+                in_string = false
+              end
+            elsif character == '"'
+              in_string = true
+            end
+
+            index += 1
+          end
+
+          JSON.parse(output.gsub(/,\s*([}\]])/, '\1'))
+          RUBY
+
       - name: Add Helm repositories
         run: |
           mise exec -- helm repo add jetstack https://charts.jetstack.io
@@ -50,6 +94,7 @@ jobs:
           mise exec -- helm repo add rook-release https://charts.rook.io/release
           mise exec -- helm repo add grafana https://grafana.github.io/helm-charts
           mise exec -- helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          mise exec -- helm repo add tailscale https://pkgs.tailscale.com/helmcharts
           mise exec -- helm repo update
 
       - name: Validate Helm charts
@@ -87,3 +132,9 @@ jobs:
 
           validate_chart l10n deploy/helm/l10n glossia \
             --values deploy/values-l10n-production.yaml
+
+          validate_chart tailscale-operator-production infra/helm/tailscale-operator tailscale \
+            --values infra/helm/tailscale-operator/values-production.yaml
+
+          validate_chart tailscale-operator-observability infra/helm/tailscale-operator tailscale \
+            --values infra/helm/tailscale-operator/values-observability.yaml

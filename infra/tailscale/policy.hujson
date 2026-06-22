@@ -1,0 +1,45 @@
+// Glossia tailnet access policy.
+//
+// Mirror this file into the Tailscale admin console under Access
+// controls. Keeping the policy in the repository makes changes
+// reviewable even though the live policy still has to be applied from
+// Tailscale.
+//
+// Tags:
+//
+//   tag:glossia-k8s-production
+//     Tailscale Kubernetes operator and Kubernetes control-plane proxy
+//     running in the production workload cluster.
+//
+//   tag:glossia-k8s-observability
+//     Tailscale Kubernetes operator and Kubernetes control-plane proxy
+//     running in the observability workload cluster.
+//
+//   tag:glossia-github-actions
+//     GitHub Actions deploy jobs after tailscale/github-action joins
+//     the tailnet.
+
+{
+  "groups": {},
+
+  "tagOwners": {
+    "tag:glossia-k8s-production": ["autogroup:admin"],
+    "tag:glossia-k8s-observability": ["autogroup:admin"],
+    "tag:glossia-github-actions": ["autogroup:admin"],
+  },
+
+  "grants": [
+    {
+      "src": [
+        "autogroup:owner",
+        "autogroup:admin",
+        "tag:glossia-github-actions",
+      ],
+      "dst": [
+        "tag:glossia-k8s-production",
+        "tag:glossia-k8s-observability",
+      ],
+      "ip": ["tcp:443"],
+    },
+  ],
+}
