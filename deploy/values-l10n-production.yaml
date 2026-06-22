@@ -13,7 +13,7 @@ ingress:
   enabled: true
   className: nginx
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    cert-manager.io/cluster-issuer: letsencrypt-http01
   hosts:
     - host: l10n.md
       paths:

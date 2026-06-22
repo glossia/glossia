@@ -10,13 +10,13 @@
 # The Cloudflare API token is expected in a pre-existing Secret in the platform
 # namespace (see infra/k8s/onboarding.md for the bootstrap commands).
 
-# Cloudflare wiring shared by cert-manager (DNS-01 ACME) and external-dns.
+# Cloudflare wiring shared by cert-manager's DNS-01 ACME issuer and external-dns.
 cloudflare:
   email: ops@glossia.ai
   # Name + key of the Secret that holds the Cloudflare API token. The chart
   # does not create this Secret; create it out-of-band so the token never
   # lands in values / helm history. Token must have Zone.DNS:Edit scope on
-  # the glossia.ai and l10n.md zones (and any other managed zones).
+  # every zone that uses the Cloudflare DNS-01 issuer.
   apiTokenSecret:
     name: cloudflare-api-token
     key: api-token
@@ -313,6 +313,12 @@ clusterIssuer:
   enabled: true
   name: letsencrypt-cloudflare
   server: https://acme-v02.api.letsencrypt.org/directory
+
+http01ClusterIssuer:
+  enabled: true
+  name: letsencrypt-http01
+  server: https://acme-v02.api.letsencrypt.org/directory
+  ingressClassName: nginx
 
 # --- Database operators -----------------------------------------------------
 # These are the cluster-level controllers the Glossia application chart
