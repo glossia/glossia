@@ -24,6 +24,7 @@
 
 {
   "groups": {},
+  "acls": [],
 
   "tagOwners": {
     "tag:glossia-mgmt": ["autogroup:admin"],
