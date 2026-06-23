@@ -2245,14 +2245,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("markdown_preview", %{"source" => source}, socket) do
-    html =
-      case Earmark.as_html(source, %Earmark.Options{code_class_prefix: "language-"}) do
-        {:ok, html, _} -> html
-        {:error, html, _} -> html
-      end
-
-    sanitized = String.replace(html, ~r/<script[\s\S]*?<\/script>/i, "")
-    {:reply, %{html: sanitized}, socket}
+    {:reply, %{html: render_markdown(source)}, socket}
   end
 
   def handle_event("disconnect_github", _params, socket) do
@@ -9657,11 +9650,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp render_markdown(""), do: ""
 
   defp render_markdown(text) do
-    case Earmark.as_html(text, %Earmark.Options{code_class_prefix: "language-"}) do
-      {:ok, html, _} -> html
-      {:error, html, _} -> html
-    end
-    |> String.replace(~r/<script[\s\S]*?<\/script>/i, "")
+    Glossia.Markdown.to_html!(text)
   end
 
   defp maybe_allow_upload(socket, name) do
