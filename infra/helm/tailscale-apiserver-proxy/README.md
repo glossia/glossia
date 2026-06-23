@@ -25,8 +25,9 @@ Then create one tagged, pre-approved auth key for each long-running proxy:
 
 Store the production key in 1Password item
 `tailscale-apiserver-proxy-production`, field `authkey`, in the
-`glossia-production` vault. Store the observability key in
-`tailscale-apiserver-proxy-observability`, field `authkey`.
+`glossia-production` vault. Store the observability key in 1Password
+item `tailscale-apiserver-proxy-observability`, field `authkey`, in the
+`glossia-observability` vault.
 
 The key is only needed for the first join. After the proxy writes its
 Tailscale state Secret, `TS_AUTH_ONCE=true` keeps restarts from consuming a

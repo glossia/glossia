@@ -473,7 +473,8 @@ Create tagged, pre-approved auth keys:
   `tag:glossia-k8s-production`, stored in 1Password item
   `tailscale-apiserver-proxy-production`, field `authkey`.
 - Observability proxy: one-off is enough, tagged
-  `tag:glossia-k8s-observability`, stored in 1Password item
+  `tag:glossia-k8s-observability`, stored in the
+  `glossia-observability` vault as item
   `tailscale-apiserver-proxy-observability`, field `authkey`.
 - GitHub Actions: reusable and ephemeral, tagged
   `tag:glossia-github-actions`, stored as the production environment
