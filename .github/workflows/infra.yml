@@ -94,7 +94,6 @@ jobs:
           mise exec -- helm repo add rook-release https://charts.rook.io/release
           mise exec -- helm repo add grafana https://grafana.github.io/helm-charts
           mise exec -- helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          mise exec -- helm repo add tailscale https://pkgs.tailscale.com/helmcharts
           mise exec -- helm repo update
 
       - name: Validate Helm charts
@@ -133,8 +132,8 @@ jobs:
           validate_chart l10n deploy/helm/l10n glossia \
             --values deploy/values-l10n-production.yaml
 
-          validate_chart tailscale-operator-production infra/helm/tailscale-operator tailscale \
-            --values infra/helm/tailscale-operator/values-production.yaml
+          validate_chart tailscale-apiserver-proxy-production infra/helm/tailscale-apiserver-proxy tailscale \
+            --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
 
-          validate_chart tailscale-operator-observability infra/helm/tailscale-operator tailscale \
-            --values infra/helm/tailscale-operator/values-observability.yaml
+          validate_chart tailscale-apiserver-proxy-observability infra/helm/tailscale-apiserver-proxy tailscale \
+            --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml

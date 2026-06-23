@@ -458,83 +458,87 @@ kubectl get crd | grep -E 'objectstores.barmancloud|clusters.postgresql.cnpg|cli
 
 The workload cluster starts with a public Hetzner control-plane load
 balancer so bootstrap and automation have an initial path in. Before
-closing that endpoint, install the Tailscale operator in each workload
+closing that endpoint, install the Tailscale proxy in each workload
 cluster and cut operator plus GitHub Actions kubeconfigs over to the
-tailnet proxy.
-
-Create a Tailscale Open Authorization (https://oauth.net/2/) client
-with auth-key write permission and these reusable operator tags:
-
-- `tag:glossia-k8s-production`
-- `tag:glossia-k8s-observability`
-
-Store it in 1Password item `tailscale-operator` in the
-`glossia-production` vault with fields `client-id` and `client-secret`.
-Create a separate GitHub Actions Open Authorization client that can mint
-`tag:glossia-github-actions`, then store it as production environment
-secrets `TS_OAUTH_CLIENT_ID` and `TS_OAUTH_SECRET`.
+tailnet path.
 
 Keep `infra/tailscale/policy.hujson` mirrored into the Tailscale
-Access controls page. The policy must allow operators and
-`tag:glossia-github-actions` to connect to the workload cluster tags on
-Transmission Control Protocol port 443.
+Access controls page. The policy defines the proxy tags, the GitHub
+Actions tag, and the access grants for Transmission Control Protocol
+port 443.
+
+Create tagged, pre-approved auth keys:
+
+- Production proxy: one-off is enough, tagged
+  `tag:glossia-k8s-production`, stored in 1Password item
+  `tailscale-apiserver-proxy-production`, field `authkey`.
+- Observability proxy: one-off is enough, tagged
+  `tag:glossia-k8s-observability`, stored in 1Password item
+  `tailscale-apiserver-proxy-observability`, field `authkey`.
+- GitHub Actions: reusable and ephemeral, tagged
+  `tag:glossia-github-actions`, stored as the production environment
+  secret `TAILSCALE_AUTHKEY`.
+
+The long-running proxy key is only needed for the first join. The proxy
+writes its Tailscale node identity into `tailscale-apiserver-state`, and
+`TS_AUTH_ONCE=true` makes restarts use that state instead of consuming
+another auth key. If that state Secret is deleted, create and store a
+fresh key before the next restart.
 
 Install the production proxy after External Secrets Operator is Ready:
 
 ```bash
 export KUBECONFIG=~/.kube/glossia-production.yaml
 
-helm repo add tailscale https://pkgs.tailscale.com/helmcharts
-helm dependency build infra/helm/tailscale-operator
+kubectl create namespace tailscale --dry-run=client -o yaml | kubectl apply -f -
+kubectl label --overwrite namespace tailscale \
+  pod-security.kubernetes.io/enforce=privileged \
+  pod-security.kubernetes.io/audit=privileged \
+  pod-security.kubernetes.io/warn=privileged
 
-helm upgrade --install tailscale-operator infra/helm/tailscale-operator \
+helm upgrade --install tailscale-apiserver-proxy \
+  infra/helm/tailscale-apiserver-proxy \
   --namespace tailscale \
-  --create-namespace \
-  --values infra/helm/tailscale-operator/values-production.yaml
+  --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
 
-kubectl wait proxygroup glossia-production-kube \
-  --for=condition=ProxyGroupReady=true \
-  --timeout=10m
-PRODUCTION_PROXY_SERVER=$(kubectl get proxygroup glossia-production-kube \
-  -o jsonpath='{.status.url}')
-printf 'Production proxy: %s\n' "$PRODUCTION_PROXY_SERVER"
+kubectl -n tailscale rollout status deployment/tailscale-apiserver-proxy \
+  --timeout=5m
+tailscale ping glossia-production-kube
 ```
 
 Use `values-observability.yaml` instead when installing into the
 observability cluster:
 
 ```bash
-helm upgrade --install tailscale-operator infra/helm/tailscale-operator \
+helm upgrade --install tailscale-apiserver-proxy \
+  infra/helm/tailscale-apiserver-proxy \
   --namespace tailscale \
-  --create-namespace \
-  --values infra/helm/tailscale-operator/values-observability.yaml
+  --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml
 
-kubectl wait proxygroup glossia-observability-kube \
-  --for=condition=ProxyGroupReady=true \
-  --timeout=10m
-OBSERVABILITY_PROXY_SERVER=$(kubectl get proxygroup glossia-observability-kube \
-  -o jsonpath='{.status.url}')
-printf 'Observability proxy: %s\n' "$OBSERVABILITY_PROXY_SERVER"
+kubectl -n tailscale rollout status deployment/tailscale-apiserver-proxy \
+  --timeout=5m
+tailscale ping glossia-observability-kube
 ```
 
-After the proxy reports the `https://*.ts.net` address,
-rewrite each operator and automation kubeconfig so
-`clusters[].cluster.server` points at that address and remove
-`clusters[].cluster.certificate-authority-data`. The proxy presents a
-certificate for the tailnet name, while the existing Kubernetes token
-continues to authenticate the request.
+After the proxy is reachable, rewrite each operator and automation
+kubeconfig so `clusters[].cluster.server` points at the Tailscale name.
+Keep `clusters[].cluster.certificate-authority-data`, and set
+`clusters[].cluster.tls-server-name` to `kubernetes`, because the proxy
+forwards raw Kubernetes traffic and the Kubernetes
+[Application Programming Interface server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/)
+still presents its own certificate.
 
 Do not remove public Kubernetes access until both checks pass:
 
 ```bash
 KUBECONFIG=/tmp/operator-tailnet-kubeconfig.yaml kubectl get nodes
-KUBECONFIG=/tmp/ci-tailnet-kubeconfig.yaml kubectl -n glossia get pods
+KUBECONFIG=/tmp/github-actions-tailnet-kubeconfig.yaml kubectl -n glossia get pods
 ```
 
 GitHub Actions also needs to join the tailnet before any deploy step
 uses the proxied kubeconfig. The deploy workflows run the Tailscale
-GitHub Action with `tag:glossia-github-actions` before writing the
-kubeconfig file.
+GitHub Action with a `TAILSCALE_AUTHKEY` production environment secret
+before writing the kubeconfig file.
 
 The current Cluster Application Programming Interface Provider Hetzner
 control-plane load balancer schema does not expose source ranges in the
@@ -542,7 +546,7 @@ workload cluster manifest. Treat final public-endpoint closure as a
 separate cutover after the proxy path is proven and the remaining
 automation has moved behind Tailscale.
 
-### B.5 Continuous integration ServiceAccount + KUBECONFIG GitHub secret
+### B.5 GitHub Actions ServiceAccount and kubeconfig secret
 
 ```bash
 APP_NS=glossia
@@ -562,6 +566,7 @@ clusters:
     cluster:
       server: $SERVER
       certificate-authority-data: $CA
+      tls-server-name: kubernetes
 contexts:
   - name: ci
     context:

@@ -7,13 +7,16 @@
 //
 // Tags:
 //
+//   tag:glossia-mgmt
+//     Tailscale node running on the management cluster host.
+//
 //   tag:glossia-k8s-production
-//     Tailscale Kubernetes operator and Kubernetes control-plane proxy
-//     running in the production workload cluster.
+//     Kubernetes control-plane proxy running in the production workload
+//     cluster.
 //
 //   tag:glossia-k8s-observability
-//     Tailscale Kubernetes operator and Kubernetes control-plane proxy
-//     running in the observability workload cluster.
+//     Kubernetes control-plane proxy running in the observability
+//     workload cluster.
 //
 //   tag:glossia-github-actions
 //     GitHub Actions deploy jobs after tailscale/github-action joins
@@ -23,12 +26,23 @@
   "groups": {},
 
   "tagOwners": {
+    "tag:glossia-mgmt": ["autogroup:admin"],
     "tag:glossia-k8s-production": ["autogroup:admin"],
     "tag:glossia-k8s-observability": ["autogroup:admin"],
     "tag:glossia-github-actions": ["autogroup:admin"],
   },
 
   "grants": [
+    {
+      "src": [
+        "autogroup:owner",
+        "autogroup:admin",
+      ],
+      "dst": [
+        "tag:glossia-mgmt",
+      ],
+      "ip": ["tcp:50000"],
+    },
     {
       "src": [
         "autogroup:owner",
@@ -40,6 +54,15 @@
         "tag:glossia-k8s-observability",
       ],
       "ip": ["tcp:443"],
+    },
+  ],
+
+  "ssh": [
+    {
+      "action": "check",
+      "src": ["autogroup:member"],
+      "dst": ["autogroup:self"],
+      "users": ["autogroup:nonroot", "root"],
     },
   ],
 }

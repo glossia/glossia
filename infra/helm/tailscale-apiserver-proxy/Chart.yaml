@@ -1,0 +1,8 @@
+apiVersion: v2
+name: glossia-tailscale-apiserver-proxy
+description: >
+  Runs a Tailscale proxy that exposes the Kubernetes control plane
+  through the tailnet without publishing another public endpoint.
+type: application
+version: 0.1.0
+appVersion: "1.96.5"

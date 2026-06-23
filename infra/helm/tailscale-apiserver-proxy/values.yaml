@@ -1,0 +1,54 @@
+# Tailscale proxy for a workload cluster's Kubernetes control plane.
+
+nameOverride: tailscale-apiserver-proxy
+fullnameOverride: tailscale-apiserver-proxy
+
+image:
+  repository: ghcr.io/tailscale/tailscale
+  tag: v1.96.5
+  pullPolicy: IfNotPresent
+
+revisionHistoryLimit: 2
+
+serviceAccount:
+  name: ""
+
+externalSecrets:
+  enabled: true
+  refreshInterval: "1h"
+  storeRef:
+    kind: ClusterSecretStore
+    name: onepassword
+  item: tailscale-apiserver-proxy-production
+  field: authkey
+
+proxy:
+  hostname: glossia-production-kube
+  tag: tag:glossia-k8s-production
+  destinationIP: 10.128.0.1
+  stateSecretName: tailscale-apiserver-state
+  authSecretName: tailscale-apiserver-auth
+  authSecretKey: TS_AUTHKEY
+  authOnce: true
+  userspace: false
+  firewallMode: auto
+  health:
+    enabled: true
+  metrics:
+    enabled: true
+  localAddrPort: "[::]:9002"
+  localPort: 9002
+
+podAnnotations: {}
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    memory: 128Mi

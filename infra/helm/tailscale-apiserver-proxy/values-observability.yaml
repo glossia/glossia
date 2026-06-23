@@ -1,0 +1,16 @@
+# Observability workload cluster overlay. Every node in this cluster is
+# tainted as stateful, so the proxy needs the same toleration used by
+# the platform and observability releases.
+
+externalSecrets:
+  item: tailscale-apiserver-proxy-observability
+
+proxy:
+  hostname: glossia-observability-kube
+  tag: tag:glossia-k8s-observability
+
+tolerations:
+  - key: node.cluster.x-k8s.io/pool
+    operator: Equal
+    value: stateful
+    effect: NoSchedule
