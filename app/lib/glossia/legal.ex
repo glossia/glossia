@@ -1,11 +1,12 @@
 defmodule Glossia.Legal do
   alias Glossia.Legal.Version
 
-  use NimblePublisher,
+  use Glossia.ContentPublisher,
     build: Version,
     from: Application.app_dir(:glossia, "priv/legal/**/*.md"),
     as: :versions,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-", breaks: true}
+    html_converter: Glossia.Markdown.Publisher,
+    markdown_options: [breaks: true]
 
   @versions Enum.sort_by(@versions, & &1.date, {:desc, Date})
 

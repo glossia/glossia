@@ -38,11 +38,11 @@ defmodule Glossia.Changelog do
 
   alias Glossia.Changelog.Entry
 
-  use NimblePublisher,
+  use Glossia.ContentPublisher,
     build: Entry,
     from: Application.app_dir(:glossia, "priv/changelog/**/*.md"),
     as: :entries,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-"}
+    html_converter: Glossia.Markdown.Publisher
 
   @entries Enum.sort_by(@entries, & &1.date, {:desc, Date})
 

@@ -46,11 +46,11 @@ defmodule Glossia.Features do
 
   alias Glossia.Features.Page
 
-  use NimblePublisher,
+  use Glossia.ContentPublisher,
     build: Page,
     from: Application.app_dir(:glossia, "priv/features/**/*.md"),
     as: :pages,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-"}
+    html_converter: Glossia.Markdown.Publisher
 
   @pages Enum.sort_by(@pages, & &1.order)
 
