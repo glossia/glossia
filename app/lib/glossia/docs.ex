@@ -119,11 +119,11 @@ defmodule Glossia.Docs do
     }
   }
 
-  use NimblePublisher,
+  use Glossia.ContentPublisher,
     build: Page,
     from: Application.app_dir(:glossia, "priv/docs/**/*.md"),
     as: :content_pages,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-"}
+    html_converter: Glossia.Markdown.Publisher
 
   @content_pages Enum.sort_by(@content_pages, & &1.order)
 

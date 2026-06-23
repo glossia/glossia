@@ -66,11 +66,11 @@ defmodule Glossia.Blog do
 
   alias Glossia.Blog.Post
 
-  use NimblePublisher,
+  use Glossia.ContentPublisher,
     build: Post,
     from: Application.app_dir(:glossia, "priv/blog/**/*.md"),
     as: :posts,
-    earmark_options: %Earmark.Options{code_class_prefix: "language-"}
+    html_converter: Glossia.Markdown.Publisher
 
   @posts Enum.sort_by(@posts, & &1.date, {:desc, Date})
 
