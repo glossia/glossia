@@ -31,7 +31,8 @@ clusters/
 - `hcloudControlPlaneMachineType` / `hcloudWorkerMachineType` (required) — server type per pool.
 - `hcloudControlPlaneMachineImageName` / `hcloudWorkerMachineImageName` (default `ubuntu-24.04`).
 - `hcloudSSHKeyName` (required) — SSH keys to embed on every node.
-- `clusterEndpointHost` / `clusterEndpointPort` / `clusterLoadBalancerType` — optional kube-apiserver LB config.
+- `clusterEndpointHost` / `clusterEndpointPort` / `clusterLoadBalancerType` — optional Kubernetes control-plane load balancer config.
+- `clusterLoadBalancerEnabled` — controls whether fresh clusters create a provider-managed Kubernetes control-plane load balancer. Hetzner marks this field immutable after the cluster infrastructure object is created; for existing clusters, close public access by moving the endpoint to the firewalled control-plane server address and verifying Tailscale access before removing stale provider load balancers.
 - `clusterLoadBalancerExtraServices` — extra ports forwarded by the apiserver LB.
 - `hcloudPlacementGroups` — optional placement groups; default `[]`.
 - `hcloudNetwork` — optional Hetzner Cloud Network attachment; default disabled.

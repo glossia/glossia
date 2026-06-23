@@ -16,6 +16,9 @@
 # platform, otherwise the observability cluster would carry two Ceph
 # clusters and an unused app bucket.
 cert-manager:
+  # The observability cluster already has cert-manager CRDs from bootstrap.
+  # Keep platform from trying to import those cluster-scoped definitions.
+  installCRDs: false
   tolerations: &statefulTolerations
     - key: node.cluster.x-k8s.io/pool
       operator: Equal
@@ -37,6 +40,8 @@ ingress-nginx:
 
 external-dns:
   tolerations: *statefulTolerations
+  txtOwnerId: glossia-observability-platform
+  policy: upsert-only
 
 external-secrets:
   global:

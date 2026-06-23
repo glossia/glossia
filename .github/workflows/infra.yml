@@ -7,6 +7,7 @@ on:
       - "deploy/helm/**"
       - "deploy/values-*.yaml"
       - "infra/helm/**"
+      - "infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise/**"
       - "mise.toml"
@@ -17,6 +18,7 @@ on:
       - "deploy/helm/**"
       - "deploy/values-*.yaml"
       - "infra/helm/**"
+      - "infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise/**"
       - "mise.toml"
@@ -39,6 +41,48 @@ jobs:
 
       - name: Install tools
         run: mise install
+
+      - name: Validate Tailscale policy
+        run: |
+          ruby <<'RUBY'
+          require "json"
+
+          file = "infra/tailscale/policy.hujson"
+          input = File.read(file)
+          output = +""
+          in_string = false
+          escaped = false
+          index = 0
+
+          while index < input.length
+            character = input[index]
+            following = input[index + 1]
+
+            if !in_string && character == "/" && following == "/"
+              index += 1 while index < input.length && input[index] != "\n"
+              output << "\n"
+              next
+            end
+
+            output << character
+
+            if in_string
+              if escaped
+                escaped = false
+              elsif character == "\\"
+                escaped = true
+              elsif character == '"'
+                in_string = false
+              end
+            elsif character == '"'
+              in_string = true
+            end
+
+            index += 1
+          end
+
+          JSON.parse(output.gsub(/,\s*([}\]])/, '\1'))
+          RUBY
 
       - name: Add Helm repositories
         run: |
@@ -87,3 +131,9 @@ jobs:
 
           validate_chart l10n deploy/helm/l10n glossia \
             --values deploy/values-l10n-production.yaml
+
+          validate_chart tailscale-apiserver-proxy-production infra/helm/tailscale-apiserver-proxy tailscale \
+            --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
+
+          validate_chart tailscale-apiserver-proxy-observability infra/helm/tailscale-apiserver-proxy tailscale \
+            --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml

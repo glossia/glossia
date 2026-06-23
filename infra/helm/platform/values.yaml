@@ -16,7 +16,7 @@ cloudflare:
   # Name + key of the Secret that holds the Cloudflare API token. The chart
   # does not create this Secret; create it out-of-band so the token never
   # lands in values / helm history. Token must have Zone.DNS:Edit scope on
-  # the glossia.ai and l10n.md zones (and any other managed zones).
+  # the glossia.ai zone and any other managed zones.
   apiTokenSecret:
     name: cloudflare-api-token
     key: api-token

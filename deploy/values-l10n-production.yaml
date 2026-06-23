@@ -12,17 +12,13 @@ imagePullSecrets:
 ingress:
   enabled: true
   className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+  annotations: {}
   hosts:
     - host: l10n.md
       paths:
         - path: /
           pathType: Prefix
-  tls:
-    - secretName: l10n-md-tls
-      hosts:
-        - l10n.md
+  tls: []
 
 resources:
   requests:

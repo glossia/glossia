@@ -49,6 +49,15 @@ spec:
     controlPlane:
       replicas: 1
     variables:
+      # Public Kubernetes Application Programming Interface access is
+      # closed after Tailscale proxy cutover. Existing nodes and
+      # Cluster Application Programming Interface reconciliation use
+      # the firewalled control-plane server address directly until this
+      # cluster is rebuilt with a private Hetzner network.
+      - name: clusterEndpointHost
+        value: 46.224.2.77
+      - name: clusterEndpointPort
+        value: 6443
       - name: region
         value: fsn1
       - name: hcloudControlPlaneMachineType

@@ -69,6 +69,12 @@ jobs:
       - name: Install tools
         run: mise install
 
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          ping: glossia-production-kube.tail96f99b.ts.net
+
       - name: Read kubeconfig from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}

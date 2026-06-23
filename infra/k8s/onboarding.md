@@ -5,11 +5,16 @@ zero: bootstrap the management cluster, then bring up a workload
 cluster (e.g. `glossia-production`) and deploy onto it.
 
 We run a **management cluster** (a single-node Talos VM in Hetzner
-project `glossia-mgmt`) hosting CAPI v1.13 + caph v1.1. Operators reach
-`talosctl` only via Tailscale. Workload clusters live in a separate
-Hetzner project (`glossia-workloads`); each is described as a
-`Cluster` CR against the shared `glossia-hcloud` ClusterClass and is
-applied to the mgmt cluster.
+project `glossia-mgmt`) hosting
+[Cluster Application Programming Interface](https://cluster-api.sigs.k8s.io/)
+(CAPI) v1.13 + Cluster Application Programming Interface Provider
+Hetzner v1.1. Operators reach `talosctl` only via Tailscale.
+Workload clusters live in a separate Hetzner project
+(`glossia-workloads`); each is described as a `Cluster` custom resource
+against the shared `glossia-hcloud` ClusterClass and is applied to the
+mgmt cluster. Workload Kubernetes control-plane access should be cut
+over to the Tailscale proxy in §B.4 before the public Hetzner endpoint
+is closed.
 
 ---
 
@@ -449,7 +454,100 @@ kubectl get crd | grep -E 'objectstores.barmancloud|clusters.postgresql.cnpg|cli
 # Expect all three present before deploying the Glossia app chart.
 ```
 
-### B.4 CI ServiceAccount + KUBECONFIG GitHub secret
+### B.4 Tailscale Kubernetes control-plane proxy
+
+The workload cluster starts with a public Hetzner control-plane load
+balancer so bootstrap and automation have an initial path in. Before
+closing that endpoint, install the Tailscale proxy in each workload
+cluster and cut operator plus GitHub Actions kubeconfigs over to the
+tailnet path.
+
+Keep `infra/tailscale/policy.hujson` mirrored into the Tailscale
+Access controls page. The policy defines the proxy tags, the GitHub
+Actions tag, and the access grants for Transmission Control Protocol
+port 443.
+
+Create tagged, pre-approved auth keys:
+
+- Production proxy: one-off is enough, tagged
+  `tag:glossia-k8s-production`, stored in 1Password item
+  `tailscale-apiserver-proxy-production`, field `authkey`.
+- Observability proxy: one-off is enough, tagged
+  `tag:glossia-k8s-observability`, stored in the
+  `glossia-observability` vault as item
+  `tailscale-apiserver-proxy-observability`, field `authkey`.
+- GitHub Actions: reusable and ephemeral, tagged
+  `tag:glossia-github-actions`, stored as the production environment
+  secret `TAILSCALE_AUTHKEY`.
+
+The long-running proxy key is only needed for the first join. The proxy
+writes its Tailscale node identity into `tailscale-apiserver-state`, and
+`TS_AUTH_ONCE=true` makes restarts use that state instead of consuming
+another auth key. If that state Secret is deleted, create and store a
+fresh key before the next restart.
+
+Install the production proxy after External Secrets Operator is Ready:
+
+```bash
+export KUBECONFIG=~/.kube/glossia-production.yaml
+
+kubectl create namespace tailscale --dry-run=client -o yaml | kubectl apply -f -
+kubectl label --overwrite namespace tailscale \
+  pod-security.kubernetes.io/enforce=privileged \
+  pod-security.kubernetes.io/audit=privileged \
+  pod-security.kubernetes.io/warn=privileged
+
+helm upgrade --install tailscale-apiserver-proxy \
+  infra/helm/tailscale-apiserver-proxy \
+  --namespace tailscale \
+  --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
+
+kubectl -n tailscale rollout status deployment/tailscale-apiserver-proxy \
+  --timeout=5m
+tailscale ping glossia-production-kube
+```
+
+Use `values-observability.yaml` instead when installing into the
+observability cluster:
+
+```bash
+helm upgrade --install tailscale-apiserver-proxy \
+  infra/helm/tailscale-apiserver-proxy \
+  --namespace tailscale \
+  --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml
+
+kubectl -n tailscale rollout status deployment/tailscale-apiserver-proxy \
+  --timeout=5m
+tailscale ping glossia-observability-kube
+```
+
+After the proxy is reachable, rewrite each operator and automation
+kubeconfig so `clusters[].cluster.server` points at the Tailscale name.
+Keep `clusters[].cluster.certificate-authority-data`, and set
+`clusters[].cluster.tls-server-name` to `kubernetes`, because the proxy
+forwards raw Kubernetes traffic and the Kubernetes
+[Application Programming Interface server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/)
+still presents its own certificate.
+
+Do not remove public Kubernetes access until both checks pass:
+
+```bash
+KUBECONFIG=/tmp/operator-tailnet-kubeconfig.yaml kubectl get nodes
+KUBECONFIG=/tmp/github-actions-tailnet-kubeconfig.yaml kubectl -n glossia get pods
+```
+
+GitHub Actions also needs to join the tailnet before any deploy step
+uses the proxied kubeconfig. The deploy workflows run the Tailscale
+GitHub Action with a `TAILSCALE_AUTHKEY` production environment secret
+before writing the kubeconfig file.
+
+The current Cluster Application Programming Interface Provider Hetzner
+control-plane load balancer schema does not expose source ranges in the
+workload cluster manifest. Treat final public-endpoint closure as a
+separate cutover after the proxy path is proven and the remaining
+automation has moved behind Tailscale.
+
+### B.5 GitHub Actions ServiceAccount and kubeconfig secret
 
 ```bash
 APP_NS=glossia
@@ -469,6 +567,7 @@ clusters:
     cluster:
       server: $SERVER
       certificate-authority-data: $CA
+      tls-server-name: kubernetes
 contexts:
   - name: ci
     context:
@@ -491,7 +590,7 @@ shred -u /tmp/ci-kubeconfig.yaml
 The token is persistent; revoke by deleting the
 `github-actions-deployer-token` Secret, or rotate by recreating it.
 
-### B.5 First deploy
+### B.6 First deploy
 
 Hand the workload cluster kubeconfig over to whichever release
 workflow deploys the Glossia app chart. Smoke test with:
@@ -500,7 +599,7 @@ workflow deploys the Glossia app chart. Smoke test with:
 curl -v https://glossia.ai/ready
 ```
 
-### B.6 Database backup storage
+### B.7 Database backup storage
 
 Postgres (CNPG, via the Barman Cloud plugin installed in §B.3) and
 ClickHouse (a `clickhouse-backup` CronJob) back up to a **dedicated
@@ -527,7 +626,7 @@ projects the keys into the app namespace, and the chart's
 CronJob (ClickHouse) point at this bucket. Enabling/scheduling/retention
 all live in the app chart's values, not here.
 
-### B.7 Operator dashboard (Grafana)
+### B.8 Operator dashboard (Grafana)
 
 Cluster-level observability — one Grafana per workload cluster, wired
 straight to the in-cluster Postgres + ClickHouse the Glossia app chart
