@@ -60,8 +60,9 @@ jobs:
 
           release_filter=(
             --include-path 'cli/**'
+            --exclude-path 'cli/.blick/**'
             --exclude-path 'cli/CHANGELOG.md'
-            --exclude-path 'cli/RELEASE.md'
+            --exclude-path 'cli/README.md'
           )
 
           changelog="$(git cliff --config cliff.toml "${release_filter[@]}" --unreleased --bump 2>/dev/null || true)"
@@ -167,8 +168,9 @@ jobs:
           git cliff \
             --config cliff.toml \
             --include-path 'cli/**' \
+            --exclude-path 'cli/.blick/**' \
             --exclude-path 'cli/CHANGELOG.md' \
-            --exclude-path 'cli/RELEASE.md' \
+            --exclude-path 'cli/README.md' \
             --unreleased \
             --tag "${RELEASE_TAG}" \
             > release-notes.md
@@ -184,6 +186,8 @@ jobs:
         run: |
           mkdir -p release
           cp release-notes.md release/RELEASE_NOTES.md
+
+          find dist/artifacts -type f -name glossia -exec chmod 755 {} +
 
           tar -C dist/artifacts/binary-linux-x64 -czf release/glossia-linux-x64.tar.gz glossia
           tar -C dist/artifacts/binary-linux-arm64 -czf release/glossia-linux-arm64.tar.gz glossia
@@ -305,6 +309,23 @@ jobs:
 
           upload_prefix "${RELEASE_VERSION}"
           upload_prefix "latest"
+
+          if ! curl --fail --show-error --silent \
+            "${RELEASE_ENDPOINT}/${RELEASE_PREFIX}/versions.txt" \
+            --output release/versions.txt; then
+            : > release/versions.txt
+          fi
+
+          printf '%s\n' "${RELEASE_VERSION}" >> release/versions.txt
+          grep -E '^[0-9]+[.][0-9]+[.][0-9]+$' release/versions.txt \
+            | sort -V -u \
+            > release/versions.txt.tmp
+          mv release/versions.txt.tmp release/versions.txt
+
+          upload_file \
+            release/versions.txt \
+            "versions.txt" \
+            "text/plain; charset=utf-8"
 
           printf 'Published %s to %s/%s/%s/\n' "${RELEASE_TAG}" "${RELEASE_ENDPOINT}" "${RELEASE_PREFIX}" "${RELEASE_VERSION}"
 

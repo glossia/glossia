@@ -39,12 +39,24 @@ main Phoenix application.
 
 Visit [glossia.ai](https://glossia.ai) to learn more, or check out the [docs](https://glossia.ai/docs).
 
-### CLI
+### Command Line Interface
+
+Add Glossia to `mise.toml`:
+
+```toml
+[tools."http:glossia"]
+version = "latest"
+url = 'https://releases.glossia.ai/cli/{{ version }}/glossia-{{ os(macos="darwin") }}-{{ arch() }}.{{ os(windows="zip", macos="tar.gz", linux="tar.gz") }}'
+version_list_url = "https://releases.glossia.ai/cli/versions.txt"
+checksum_url = 'https://releases.glossia.ai/cli/{{ version }}/SHA256SUMS'
+```
+
+Then run:
 
 ```bash
-mise use aqua:glossia.ai/cli@latest
-glossia init
-glossia translate
+mise install
+mise exec -- glossia init
+mise exec -- glossia translate
 ```
 
 ### Web App
@@ -55,7 +67,7 @@ mix setup
 mix phx.server
 ```
 
-### CLI Development
+### Command Line Interface Development
 
 ```bash
 cd cli
