@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
   annotations:
     cert-manager.io/cluster-issuer: {{ .Values.releaseObjectStorage.ingress.clusterIssuer | quote }}
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.releaseObjectStorage.ingress.host | quote }}
     {{- with .Values.releaseObjectStorage.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -23,8 +24,41 @@ spec:
     - host: {{ .Values.releaseObjectStorage.ingress.host | quote }}
       http:
         paths:
-          - path: /
+          - path: {{ printf "/%s" .Values.releaseObjectStorage.bucketClaim.bucketName | quote }}
             pathType: Prefix
+            backend:
+              service:
+                name: {{ printf "rook-ceph-rgw-%s" .Values.releaseObjectStorage.objectStoreName }}
+                port:
+                  number: {{ .Values.releaseObjectStorage.networkPolicy.servicePort }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ printf "%s-public" .Values.releaseObjectStorage.bucketClaim.name }}
+  namespace: {{ .Values.releaseObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: {{ printf "/%s/$1/$3" .Values.releaseObjectStorage.bucketClaim.bucketName | quote }}
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    {{- with .Values.releaseObjectStorage.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.releaseObjectStorage.ingress.className | quote }}
+  tls:
+    - hosts:
+        - {{ .Values.releaseObjectStorage.ingress.host | quote }}
+      secretName: {{ .Values.releaseObjectStorage.ingress.tlsSecretName | quote }}
+  rules:
+    - host: {{ .Values.releaseObjectStorage.ingress.host | quote }}
+      http:
+        paths:
+          - path: {{ printf "/(%s)(/|$)(.*)" (.Values.releaseObjectStorage.ingress.publicPrefixes | join "|") | quote }}
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ printf "rook-ceph-rgw-%s" .Values.releaseObjectStorage.objectStoreName }}

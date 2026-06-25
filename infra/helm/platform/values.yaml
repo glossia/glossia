@@ -333,9 +333,18 @@ releaseObjectStorage:
     host: releases.glossia.ai
     clusterIssuer: letsencrypt-cloudflare
     tlsSecretName: glossia-releases-tls
+    publicPrefixes:
+      - cli
     annotations:
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
       nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  dnsCleanup:
+    enabled: false
+    image: python:3.13-alpine
+    zoneName: glossia.ai
+    backoffLimit: 3
+    activeDeadlineSeconds: 300
+    ttlSecondsAfterFinished: 86400
   networkPolicy:
     enabled: false
     servicePort: 80

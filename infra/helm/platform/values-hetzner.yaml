@@ -242,5 +242,7 @@ releaseObjectStorage:
   ingress:
     enabled: true
     host: releases.glossia.ai
+  dnsCleanup:
+    enabled: true
   networkPolicy:
     enabled: true
