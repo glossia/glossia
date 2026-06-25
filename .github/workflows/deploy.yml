@@ -115,17 +115,70 @@ jobs:
           echo "::add-mask::${access_key}"
           echo "::add-mask::${secret_key}"
 
+          item_template="${RUNNER_TEMP}/glossia-releases.json"
+          updated_template="${RUNNER_TEMP}/glossia-releases-updated.json"
+
+          if ! mise exec -- op item get glossia-releases --vault glossia-production --format json > "${item_template}" 2>/dev/null; then
+            mise exec -- op item template get login > "${item_template}"
+          fi
+
+          RELEASE_ACCESS_KEY="${access_key}" \
+          RELEASE_SECRET_KEY="${secret_key}" \
+          jq '
+            def upsert_field($id; $label; $type; $purpose; $value):
+              .fields = (
+                (.fields // []) as $fields |
+                if any($fields[]?; (.id == $id) or (.label == $label) or ((.purpose // "") == $purpose)) then
+                  $fields | map(
+                    if (.id == $id) or (.label == $label) or ((.purpose // "") == $purpose) then
+                      .value = $value
+                    else
+                      .
+                    end
+                  )
+                else
+                  $fields + [{
+                    "id": $id,
+                    "label": $label,
+                    "type": $type,
+                    "purpose": $purpose,
+                    "value": $value
+                  }]
+                end
+              );
+            def upsert_custom_field($id; $label; $type; $value):
+              .fields = (
+                (.fields // []) as $fields |
+                if any($fields[]?; (.id == $id) or (.label == $label)) then
+                  $fields | map(
+                    if (.id == $id) or (.label == $label) then
+                      .value = $value
+                    else
+                      .
+                    end
+                  )
+                else
+                  $fields + [{
+                    "id": $id,
+                    "label": $label,
+                    "type": $type,
+                    "value": $value
+                  }]
+                end
+              );
+
+            .title = "glossia-releases"
+            | .urls = [{"primary": true, "href": "https://releases.glossia.ai"}]
+            | upsert_field("username"; "username"; "STRING"; "USERNAME"; env.RELEASE_ACCESS_KEY)
+            | upsert_field("password"; "password"; "CONCEALED"; "PASSWORD"; env.RELEASE_SECRET_KEY)
+            | upsert_custom_field("AWS_ACCESS_KEY_ID"; "AWS_ACCESS_KEY_ID"; "STRING"; env.RELEASE_ACCESS_KEY)
+            | upsert_custom_field("AWS_SECRET_ACCESS_KEY"; "AWS_SECRET_ACCESS_KEY"; "CONCEALED"; env.RELEASE_SECRET_KEY)
+          ' "${item_template}" > "${updated_template}"
+
           if mise exec -- op item get glossia-releases --vault glossia-production >/dev/null 2>&1; then
-            mise exec -- op item edit glossia-releases --vault glossia-production \
-              "AWS_ACCESS_KEY_ID[text]=${access_key}" \
-              "AWS_SECRET_ACCESS_KEY[concealed]=${secret_key}" \
-              >/dev/null
+            mise exec -- op item edit glossia-releases --vault glossia-production --template "${updated_template}" >/dev/null
           else
-            mise exec -- op item create --category=login --title glossia-releases --vault glossia-production \
-              --url https://releases.glossia.ai \
-              "username=${access_key}" \
-              "password=${secret_key}" \
-              >/dev/null
+            mise exec -- op item create --vault glossia-production --template "${updated_template}" >/dev/null
           fi
 
       - name: Deploy to Kubernetes
