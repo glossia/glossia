@@ -35,7 +35,6 @@ spec:
             - |
               endpoint="http://rook-ceph-rgw-{{ .Values.releaseObjectStorage.objectStoreName }}.{{ .Values.releaseObjectStorage.clusterNamespace }}.svc:{{ .Values.releaseObjectStorage.networkPolicy.servicePort }}"
               mc alias set releases "$endpoint" "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY"
-              mc mb --ignore-existing "releases/{{ .Values.releaseObjectStorage.bucketClaim.bucketName }}"
               mc anonymous set download "releases/{{ .Values.releaseObjectStorage.bucketClaim.bucketName }}"
           env:
             - name: AWS_ACCESS_KEY_ID
