@@ -1,0 +1,33 @@
+{{- if and .Values.releaseObjectStorage.enabled .Values.releaseObjectStorage.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.releaseObjectStorage.bucketClaim.name }}
+  namespace: {{ .Values.releaseObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.releaseObjectStorage.ingress.clusterIssuer | quote }}
+    {{- with .Values.releaseObjectStorage.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.releaseObjectStorage.ingress.className | quote }}
+  tls:
+    - hosts:
+        - {{ .Values.releaseObjectStorage.ingress.host | quote }}
+      secretName: {{ .Values.releaseObjectStorage.ingress.tlsSecretName | quote }}
+  rules:
+    - host: {{ .Values.releaseObjectStorage.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ printf "rook-ceph-rgw-%s" .Values.releaseObjectStorage.objectStoreName }}
+                port:
+                  number: {{ .Values.releaseObjectStorage.networkPolicy.servicePort }}
+{{- end }}

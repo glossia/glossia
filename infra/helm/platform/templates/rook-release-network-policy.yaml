@@ -1,0 +1,31 @@
+{{- if and .Values.releaseObjectStorage.enabled .Values.releaseObjectStorage.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-rgw-ingress" .Values.releaseObjectStorage.objectStoreName }}
+  namespace: {{ .Values.releaseObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  podSelector:
+    matchLabels:
+      app: rook-ceph-rgw
+      rook_cluster: {{ .Values.releaseObjectStorage.clusterNamespace }}
+      rook_object_store: {{ .Values.releaseObjectStorage.objectStoreName }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        {{- range .Values.releaseObjectStorage.networkPolicy.allowedNamespaceNames }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.releaseObjectStorage.networkPolicy.servicePort }}
+        - protocol: TCP
+          port: {{ .Values.releaseObjectStorage.networkPolicy.podPort }}
+{{- end }}

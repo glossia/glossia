@@ -1,0 +1,51 @@
+{{- if and .Values.releaseObjectStorage.enabled .Values.releaseObjectStorage.publicAccess.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-public-access" .Values.releaseObjectStorage.bucketClaim.name }}
+  namespace: {{ .Values.releaseObjectStorage.bucketClaim.namespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.releaseObjectStorage.publicAccess.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.releaseObjectStorage.publicAccess.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.releaseObjectStorage.publicAccess.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: glossia-platform
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: release-bucket-policy
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: public-access
+          image: {{ .Values.releaseObjectStorage.publicAccess.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              endpoint="http://rook-ceph-rgw-{{ .Values.releaseObjectStorage.objectStoreName }}.{{ .Values.releaseObjectStorage.clusterNamespace }}.svc:{{ .Values.releaseObjectStorage.networkPolicy.servicePort }}"
+              mc alias set releases "$endpoint" "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY"
+              mc mb --ignore-existing "releases/{{ .Values.releaseObjectStorage.bucketClaim.bucketName }}"
+              mc anonymous set download "releases/{{ .Values.releaseObjectStorage.bucketClaim.bucketName }}"
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.releaseObjectStorage.bucketClaim.name }}
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.releaseObjectStorage.bucketClaim.name }}
+                  key: AWS_SECRET_ACCESS_KEY
+{{- end }}

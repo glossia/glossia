@@ -60,3 +60,6 @@ rook-ceph-cluster:
 
 rookObjectStorage:
   enabled: false
+
+releaseObjectStorage:
+  enabled: false
