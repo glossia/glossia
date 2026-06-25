@@ -176,9 +176,9 @@ jobs:
           ' "${item_template}" > "${updated_template}"
 
           if mise exec -- op item get glossia-releases --vault glossia-production >/dev/null 2>&1; then
-            mise exec -- op item edit glossia-releases --vault glossia-production --template "${updated_template}" >/dev/null
+            mise exec -- op item edit glossia-releases --vault glossia-production --template "${updated_template}" < /dev/null >/dev/null
           else
-            mise exec -- op item create --vault glossia-production --template "${updated_template}" >/dev/null
+            mise exec -- op item create --vault glossia-production --template "${updated_template}" < /dev/null >/dev/null
           fi
 
       - name: Deploy to Kubernetes
