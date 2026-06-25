@@ -4,6 +4,7 @@ defmodule Glossia.TestHelpers do
   import ExUnit.Assertions
   import Plug.Conn, only: [put_req_header: 3]
 
+  alias Glossia.Accounts
   alias Glossia.Accounts.{Account, User}
   alias Glossia.Repo
 
@@ -24,7 +25,10 @@ defmodule Glossia.TestHelpers do
       |> User.changeset(%{email: email, has_access: has_access})
       |> Repo.insert()
 
-    %{user | account: account}
+    user = %{user | account: account}
+    Accounts.ensure_personal_organization!(user)
+
+    user
   end
 
   def authenticate(conn, user, scopes) when is_list(scopes) do

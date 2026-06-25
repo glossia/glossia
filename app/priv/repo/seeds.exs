@@ -594,6 +594,7 @@ defmodule Glossia.Seeds do
     maybe_ensure_identity!(user, Keyword.get(opts, :identity))
 
     user = %{user | account: account}
+    Glossia.Accounts.ensure_personal_organization!(user)
 
     user
   end

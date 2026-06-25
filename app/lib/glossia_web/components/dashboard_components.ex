@@ -811,7 +811,7 @@ defmodule GlossiaWeb.DashboardComponents do
   ## Examples
 
       <.breadcrumb items={[
-        {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"},
+        {gettext("Organization tokens"), "/" <> @handle <> "/-/settings/tokens"},
         {gettext("New token"), "/" <> @handle <> "/-/settings/tokens/new"}
       ]} />
   """

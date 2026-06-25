@@ -20,25 +20,23 @@
   <:topbar_context>
     <.breadcrumbs>
       <.breadcrumb
-        id="account-breadcrumb"
+        id="organization-breadcrumb"
         label={@handle}
         href={"/#{@handle}"}
         show_avatar={true}
-        avatar_color={if(@account.type == "organization", do: "blue", else: "purple")}
+        avatar_color={account_avatar_color(@account)}
       >
         <.breadcrumb_item
           :for={account <- assigns[:accounts] || []}
-          id={"account-breadcrumb-#{account.handle}"}
+          id={"organization-breadcrumb-#{account.handle}"}
           value={account.handle}
           label={account.handle}
           href={"/#{account.handle}"}
           selected={account.handle == @handle}
           show_avatar={true}
-          avatar_color={if(account.type == "organization", do: "blue", else: "purple")}
-          badge_label={
-            if(account.type == "organization", do: gettext("Org"), else: gettext("Personal"))
-          }
-          badge_color={if(account.type == "organization", do: "information", else: "neutral")}
+          avatar_color={account_avatar_color(account)}
+          badge_label={account_badge_label(account)}
+          badge_color={account_badge_color(account)}
         />
         <:footer :if={@current_user}>
           <.dropdown_item
@@ -170,10 +168,10 @@
           <% account_sections =
             [
               %{
-                id: :account,
-                label: gettext("Account"),
+                id: :organization,
+                label: account_management_label(@account),
                 icon: "user",
-                visible: assigns[:is_admin] or @can_write,
+                visible: false,
                 open: @live_action in [:members],
                 items:
                   [
@@ -236,7 +234,7 @@
 
           <.sidebar_group
             :if={assigns[:is_admin]}
-            id="account-settings-navigation"
+            id="organization-settings-navigation"
             label={gettext("Settings")}
             icon="settings"
             default_open={
@@ -267,7 +265,7 @@
             }
           >
             <.sidebar_item
-              label={gettext("Account tokens")}
+              label={gettext("Organization tokens")}
               icon="lock_password"
               navigate={"/#{@handle}/-/settings/tokens"}
               selected={@live_action in [:api_tokens, :api_tokens_new, :api_token_edit]}

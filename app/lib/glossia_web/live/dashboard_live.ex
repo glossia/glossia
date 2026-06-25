@@ -443,7 +443,7 @@ defmodule GlossiaWeb.DashboardLive do
     available_scopes = available_scopes()
 
     assign(socket,
-      page_title: gettext("Account tokens"),
+      page_title: gettext("Organization tokens"),
       api_tokens: tokens,
       available_scopes: available_scopes,
       newly_created_token: nil,
@@ -451,7 +451,7 @@ defmodule GlossiaWeb.DashboardLive do
       tokens_sort_dir: sort_dir,
       breadcrumb_items: [
         {gettext("Settings"), nil},
-        {gettext("Account tokens"), "/" <> handle <> "/-/settings/tokens"}
+        {gettext("Organization tokens"), "/" <> handle <> "/-/settings/tokens"}
       ]
     )
   end
@@ -461,7 +461,7 @@ defmodule GlossiaWeb.DashboardLive do
     handle = socket.assigns.handle
 
     assign(socket,
-      page_title: gettext("New account token"),
+      page_title: gettext("New organization token"),
       available_scopes: available_scopes(),
       token_form:
         to_form(%{"name" => "", "description" => "", "scopes" => [], "expiration" => "90"},
@@ -471,7 +471,7 @@ defmodule GlossiaWeb.DashboardLive do
       token_form_valid?: false,
       breadcrumb_items: [
         {gettext("Settings"), nil},
-        {gettext("Account tokens"), "/" <> handle <> "/-/settings/tokens"},
+        {gettext("Organization tokens"), "/" <> handle <> "/-/settings/tokens"},
         {gettext("New token"), nil}
       ]
     )
@@ -500,7 +500,7 @@ defmodule GlossiaWeb.DashboardLive do
       token_edit_changed?: false,
       breadcrumb_items: [
         {gettext("Settings"), nil},
-        {gettext("Account tokens"), "/" <> handle <> "/-/settings/tokens"},
+        {gettext("Organization tokens"), "/" <> handle <> "/-/settings/tokens"},
         {token.name, nil}
       ]
     )
@@ -2978,8 +2978,8 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <div class="dash-page">
       <.page_header
-        title={gettext("Account")}
-        description={gettext("Projects and integrations connected to this account.")}
+        title={gettext("Organization")}
+        description={gettext("Projects connected to this organization.")}
       >
         <:actions>
           <%= if @can_write do %>
@@ -4426,7 +4426,7 @@ defmodule GlossiaWeb.DashboardLive do
     <div class="dash-page">
       <.page_header
         title={gettext("Members")}
-        description={gettext("Manage who has access to this account.")}
+        description={gettext("Manage who has access to this organization.")}
       />
 
       <div class="members-invite-section">
@@ -4620,7 +4620,7 @@ defmodule GlossiaWeb.DashboardLive do
     <div class="dash-page">
       <%= cond do %>
         <% @live_action == :api_tokens_new -> %>
-          <.page_header title={gettext("New account token")} />
+          <.page_header title={gettext("New organization token")} />
 
           <.form
             for={@token_form}
@@ -4818,7 +4818,7 @@ defmodule GlossiaWeb.DashboardLive do
               <h2>{gettext("Revoke token")}</h2>
               <p>
                 {gettext(
-                  "Revoking this token will immediately prevent any applications using it from accessing the API."
+                  "Revoking this token will immediately prevent any applications using it from accessing Glossia."
                 )}
               </p>
             </div>
@@ -4837,9 +4837,11 @@ defmodule GlossiaWeb.DashboardLive do
           </div>
         <% true -> %>
           <.page_header
-            title={gettext("Account tokens")}
+            title={gettext("Organization tokens")}
             description={
-              gettext("Tokens you have generated that can be used to access the Glossia API.")
+              gettext(
+                "Tokens you have generated that can be used to access Glossia programmatically."
+              )
             }
           >
             <:actions>
@@ -4856,7 +4858,7 @@ defmodule GlossiaWeb.DashboardLive do
             <div class="api-token-reveal" id="token-reveal">
               <p>
                 {gettext(
-                  "Make sure to copy your account token now. You will not be able to see it again."
+                  "Make sure to copy your organization token now. You will not be able to see it again."
                 )}
               </p>
               <div class="api-token-reveal-value">
@@ -4954,7 +4956,9 @@ defmodule GlossiaWeb.DashboardLive do
                   <circle cx="7.5" cy="15.5" r="5.5" />
                 </svg>
                 <h2>{gettext("No tokens yet")}</h2>
-                <p>{gettext("Account tokens allow you to authenticate with the Glossia API.")}</p>
+                <p>
+                  {gettext("Organization tokens allow automated tools to authenticate with Glossia.")}
+                </p>
               </div>
             </:empty>
           </.resource_table>

@@ -222,6 +222,26 @@ defmodule GlossiaWeb.Layouts do
     %{src: primary || fallback, fallback: fallback}
   end
 
+  defp account_avatar_color(account) do
+    if Glossia.Accounts.personal_account?(account), do: "purple", else: "blue"
+  end
+
+  defp account_badge_label(account) do
+    if Glossia.Accounts.personal_account?(account),
+      do: gettext("Personal"),
+      else: gettext("Organization")
+  end
+
+  defp account_badge_color(account) do
+    if Glossia.Accounts.personal_account?(account), do: "neutral", else: "information"
+  end
+
+  defp account_management_label(account) do
+    if Glossia.Accounts.personal_account?(account),
+      do: gettext("Personal"),
+      else: gettext("Organization")
+  end
+
   defp gravatar_url(email) do
     hash =
       :crypto.hash(:md5, String.downcase(String.trim(email)))
