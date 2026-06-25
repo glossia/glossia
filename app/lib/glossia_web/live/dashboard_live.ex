@@ -1374,6 +1374,14 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  def handle_event("select_voice_tone", params, socket) do
+    handle_voice_select("tone", params, socket)
+  end
+
+  def handle_event("select_voice_formality", params, socket) do
+    handle_voice_select("formality", params, socket)
+  end
+
   def handle_event("save_voice", params, socket) do
     account = socket.assigns.account
     user = socket.assigns.current_user
@@ -1484,6 +1492,10 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, socket}
       end
     end
+  end
+
+  def handle_event("remove_country", %{"data" => code}, socket) do
+    handle_event("remove_country", %{"code" => code}, socket)
   end
 
   def handle_event("remove_country", %{"code" => code}, socket) do
@@ -3165,17 +3177,19 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <%= cond do %>
       <% @can_propose or @can_write -> %>
-        <div class="voice-mode-banner voice-mode-banner-propose">
-          <div class="voice-mode-banner-copy">
-            <h2>{gettext("Suggestion mode")}</h2>
-            <p>
-              {gettext(
-                "Draft your %{resource} updates here. When you're ready, use the bottom bar to open a suggestion with title and details.",
-                resource: @resource_name
-              )}
-            </p>
-          </div>
-        </div>
+        <Noora.Alert.alert
+          id="voice-mode-alert"
+          status="warning"
+          type="secondary"
+          size="large"
+          title={gettext("Suggestion mode")}
+          description={
+            gettext(
+              "Draft your %{resource} updates here. When you're ready, use the bottom bar to open a suggestion with title and details.",
+              resource: @resource_name
+            )
+          }
+        />
       <% true -> %>
     <% end %>
     """
@@ -3189,26 +3203,32 @@ defmodule GlossiaWeb.DashboardLive do
       |> Map.put(:formality_options, @formality_options)
 
     ~H"""
-    <div class="dash-page">
-      <.page_header
-        title={if @suggestion_mode?, do: gettext("Suggest voice changes"), else: gettext("Voice")}
-        description={
-          if @suggestion_mode?,
-            do: gettext("Create a suggestion with title, description, and proposed voice updates."),
-            else: gettext("Define the tone, formality, and style guidelines for your content.")
-        }
-      >
-        <:actions>
+    <div class="dash-page noora-voice-page">
+      <div class="noora-page-header">
+        <div data-part="copy">
+          <h1 data-part="page-title">
+            {if @suggestion_mode?, do: gettext("Suggest voice changes"), else: gettext("Voice")}
+          </h1>
+          <p data-part="page-subtitle">
+            <%= if @suggestion_mode? do %>
+              {gettext("Create a suggestion with title, description, and proposed voice updates.")}
+            <% else %>
+              {gettext("Define the tone, formality, and style guidelines for your content.")}
+            <% end %>
+          </p>
+        </div>
+        <div data-part="actions">
           <%= if (not @suggestion_mode?) and @can_voice_suggest? do %>
-            <.link
+            <Noora.Button.button
               patch={"/" <> @handle <> "/-/voice/suggestion/new"}
-              class="dash-btn dash-btn-secondary"
+              label={gettext("Suggest changes")}
+              variant="secondary"
+              size="large"
             >
-              {gettext("Suggest changes")}
-            </.link>
+            </Noora.Button.button>
           <% end %>
-        </:actions>
-      </.page_header>
+        </div>
+      </div>
 
       <%= if not @suggestion_mode? do %>
         <.suggestion_mode_banner
@@ -3235,17 +3255,15 @@ defmodule GlossiaWeb.DashboardLive do
             </div>
             <div class="voice-card">
               <div class="voice-card-fields">
-                <div class="ticket-form-field">
-                  <label for="voice_suggestion_title">{gettext("Title")}</label>
-                  <input
-                    type="text"
-                    id="voice_suggestion_title"
-                    name="suggestion_title"
-                    value={@voice_form_params["suggestion_title"] || ""}
-                    placeholder={gettext("Short summary of the suggested change")}
-                    required
-                  />
-                </div>
+                <Noora.TextInput.text_input
+                  id="voice_suggestion_title"
+                  name="suggestion_title"
+                  value={@voice_form_params["suggestion_title"] || ""}
+                  label={gettext("Title")}
+                  placeholder={gettext("Short summary of the suggested change")}
+                  required
+                  show_required
+                />
                 <div class="ticket-form-field">
                   <label>{gettext("Description")}</label>
                   <.markdown_editor
@@ -3290,18 +3308,19 @@ defmodule GlossiaWeb.DashboardLive do
                   voice_field_changed?(@voice_form_params, @original_voice, "description") &&
                     "voice-field-changed"
                 ]}>
-                  <label for="voice_description">{gettext("Description")}</label>
-                  <textarea
+                  <Noora.TextArea.text_area
                     id="voice_description"
                     name="description"
-                    rows="3"
+                    label={gettext("Description")}
+                    value={voice_current_value(@voice_form_params, @voice, "description")}
+                    rows={3}
+                    max_length={2_000}
+                    show_character_count={false}
                     placeholder={gettext("Briefly describe what you do and who you serve...")}
                     disabled={!@can_voice_submit?}
                     phx-debounce="300"
-                  >{@voice_form_params["description"] || (@voice && @voice.description) || ""}</textarea>
-                  <span class="voice-field-help">
-                    {gettext("Used to generate cultural notes for target countries.")}
-                  </span>
+                    hint={gettext("Used to generate cultural notes for target countries.")}
+                  />
                 </div>
                 <div class={[
                   "voice-field",
@@ -3312,20 +3331,13 @@ defmodule GlossiaWeb.DashboardLive do
                   <%= if @target_countries != [] do %>
                     <div class="voice-country-tags" id="voice-country-tags">
                       <%= for code <- @target_countries do %>
-                        <span class="voice-country-tag">
-                          {country_flag(code)} {code}
-                          <%= if @can_voice_submit? do %>
-                            <button
-                              type="button"
-                              class="voice-country-tag-remove"
-                              phx-click="remove_country"
-                              phx-value-code={code}
-                              aria-label={gettext("Remove %{country}", country: country_name(code))}
-                            >
-                              &times;
-                            </button>
-                          <% end %>
-                        </span>
+                        <Noora.Tag.tag
+                          label={"#{country_flag(code)} #{code}"}
+                          dismissible={@can_voice_submit?}
+                          on_dismiss="remove_country"
+                          dismiss_value={code}
+                          aria-label={country_name(code)}
+                        />
                       <% end %>
                     </div>
                   <% end %>
@@ -3362,15 +3374,18 @@ defmodule GlossiaWeb.DashboardLive do
                         <label class="voice-country-context-label">
                           {country_flag(code)} {country_name(code)}
                         </label>
-                        <textarea
+                        <Noora.TextArea.text_area
                           name={"cultural_notes[#{code}]"}
-                          rows="3"
+                          value={Map.get(@cultural_notes, code, "")}
+                          rows={3}
+                          max_length={2_000}
+                          show_character_count={false}
                           placeholder={
                             gettext("Cultural notes for %{country}...", country: country_name(code))
                           }
                           disabled={!@can_voice_submit?}
                           phx-debounce="300"
-                        >{Map.get(@cultural_notes, code, "")}</textarea>
+                        />
                       </div>
                     <% end %>
                   </div>
@@ -3393,77 +3408,62 @@ defmodule GlossiaWeb.DashboardLive do
                   voice_field_changed?(@voice_form_params, @original_voice, "tone") &&
                     "voice-field-changed"
                 ]}>
-                  <label for="voice_tone">{gettext("Tone")}</label>
-                  <select
+                  <Noora.Label.label label={gettext("Tone")} />
+                  <Noora.Select.select
                     id="voice_tone"
                     name="tone"
+                    value={voice_current_value(@voice_form_params, @voice, "tone")}
+                    label={gettext("Select a tone")}
                     disabled={!@can_voice_submit?}
-                    phx-debounce="300"
+                    hint={gettext("The general character of your writing.")}
+                    on_value_change="select_voice_tone"
                   >
-                    <option value="">{gettext("Select a tone")}</option>
-                    <%= for opt <- @tone_options do %>
-                      <option
-                        value={opt}
-                        selected={
-                          (@voice_form_params["tone"] || (@voice && @voice.tone) || "") == opt
-                        }
-                      >
-                        {opt |> String.capitalize()}
-                      </option>
-                    <% end %>
-                  </select>
-                  <span class="voice-field-help">
-                    {gettext("The general character of your writing.")}
-                  </span>
+                    <:item
+                      :for={opt <- @tone_options}
+                      value={opt}
+                      label={opt |> String.capitalize()}
+                      icon="volume_3"
+                    />
+                  </Noora.Select.select>
                 </div>
                 <div class={[
                   "voice-field",
                   voice_field_changed?(@voice_form_params, @original_voice, "formality") &&
                     "voice-field-changed"
                 ]}>
-                  <label for="voice_formality">{gettext("Formality")}</label>
-                  <select
+                  <Noora.Label.label label={gettext("Formality")} />
+                  <Noora.Select.select
                     id="voice_formality"
                     name="formality"
+                    value={voice_current_value(@voice_form_params, @voice, "formality")}
+                    label={gettext("Select a level")}
                     disabled={!@can_voice_submit?}
-                    phx-debounce="300"
+                    hint={gettext("How casual or formal the language should be.")}
+                    on_value_change="select_voice_formality"
                   >
-                    <option value="">{gettext("Select a level")}</option>
-                    <%= for opt <- @formality_options do %>
-                      <option
-                        value={opt}
-                        selected={
-                          (@voice_form_params["formality"] || (@voice && @voice.formality) || "") ==
-                            opt
-                        }
-                      >
-                        {opt |> String.replace("_", " ") |> String.capitalize()}
-                      </option>
-                    <% end %>
-                  </select>
-                  <span class="voice-field-help">
-                    {gettext("How casual or formal the language should be.")}
-                  </span>
+                    <:item
+                      :for={opt <- @formality_options}
+                      value={opt}
+                      label={opt |> String.replace("_", " ") |> String.capitalize()}
+                      icon="settings"
+                    />
+                  </Noora.Select.select>
                 </div>
                 <div class={[
                   "voice-field",
                   voice_field_changed?(@voice_form_params, @original_voice, "target_audience") &&
                     "voice-field-changed"
                 ]}>
-                  <label for="voice_target_audience">{gettext("Target audience")}</label>
-                  <input
-                    type="text"
+                  <Noora.TextInput.text_input
                     id="voice_target_audience"
                     name="target_audience"
-                    value={
-                      @voice_form_params["target_audience"] || (@voice && @voice.target_audience) ||
-                        ""
-                    }
+                    label={gettext("Target audience")}
+                    value={voice_current_value(@voice_form_params, @voice, "target_audience")}
                     placeholder={gettext("e.g. Developers, marketing teams, general public")}
                     disabled={!@can_voice_submit?}
                     phx-debounce="300"
+                    hint={gettext("Who you are writing for.")}
                   />
-                  <span class="voice-field-help">{gettext("Who you are writing for.")}</span>
                 </div>
               </div>
             </div>
@@ -3487,15 +3487,18 @@ defmodule GlossiaWeb.DashboardLive do
                   voice_field_changed?(@voice_form_params, @original_voice, "guidelines") &&
                     "voice-field-changed"
                 ]}>
-                  <label for="voice_guidelines">{gettext("Writing guidelines")}</label>
-                  <textarea
+                  <Noora.TextArea.text_area
                     id="voice_guidelines"
                     name="guidelines"
-                    rows="10"
+                    label={gettext("Writing guidelines")}
+                    value={voice_current_value(@voice_form_params, @voice, "guidelines")}
+                    rows={10}
+                    max_length={8_000}
+                    show_character_count={false}
                     placeholder={gettext("Write your brand voice guidelines here...")}
                     disabled={!@can_voice_submit?}
                     phx-debounce="300"
-                  >{@voice_form_params["guidelines"] || (@voice && @voice.guidelines) || ""}</textarea>
+                  />
                 </div>
               </div>
             </div>
@@ -3715,15 +3718,13 @@ defmodule GlossiaWeb.DashboardLive do
 
         <%= if @suggestion_mode? do %>
           <div class="ticket-form-actions">
-            <.link
+            <Noora.Button.button
               patch={@voice_back_path || "/" <> @handle <> "/-/voice"}
-              class="dash-btn dash-btn-secondary"
+              label={gettext("Cancel")}
+              variant="secondary"
             >
-              {gettext("Cancel")}
-            </.link>
-            <button type="submit" class="dash-btn dash-btn-primary">
-              {gettext("Submit suggestion")}
-            </button>
+            </Noora.Button.button>
+            <Noora.Button.button label={gettext("Submit suggestion")} />
           </div>
         <% else %>
           <%= if @can_voice_submit? do %>
@@ -8042,6 +8043,52 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp handle_voice_select(field, params, socket) do
+    if not (socket.assigns[:can_voice_submit?] || false) do
+      {:noreply, socket}
+    else
+      case noora_select_value(params) do
+        nil ->
+          {:noreply, socket}
+
+        value ->
+          form_params =
+            socket
+            |> voice_form_params_with_current_values()
+            |> Map.put(field, value)
+
+          base_changed? =
+            form_changed?(
+              form_params,
+              socket.assigns.original_voice,
+              socket.assigns.original_overrides
+            )
+
+          countries_changed? =
+            voice_countries_changed?(
+              socket.assigns.target_countries,
+              socket.assigns.cultural_notes,
+              socket.assigns.original_voice
+            )
+
+          changed? = base_changed? or countries_changed?
+
+          socket =
+            socket
+            |> assign(changed?: changed?, voice_form_params: form_params)
+            |> then(fn socket ->
+              if changed? do
+                schedule_summary_generation(socket, :voice)
+              else
+                cancel_summary_generation(socket)
+              end
+            end)
+
+          {:noreply, socket}
+      end
+    end
+  end
+
   defp form_changed?(_params, nil, _original_overrides), do: true
 
   defp form_changed?(params, original_voice, original_overrides) do
@@ -8071,6 +8118,50 @@ defmodule GlossiaWeb.DashboardLive do
     current_value = Map.get(params || %{}, field, original_value)
     current_value != original_value
   end
+
+  defp voice_current_value(params, voice, field) do
+    Map.get(params || %{}, field, voice_original_value(voice, field))
+  end
+
+  defp voice_form_params_with_current_values(socket) do
+    voice = socket.assigns[:voice] || socket.assigns[:original_voice]
+    params = socket.assigns[:voice_form_params] || %{}
+
+    defaults = %{
+      "description" => voice_original_value(voice, "description"),
+      "tone" => voice_original_value(voice, "tone"),
+      "formality" => voice_original_value(voice, "formality"),
+      "target_audience" => voice_original_value(voice, "target_audience"),
+      "guidelines" => voice_original_value(voice, "guidelines"),
+      "overrides" => voice_overrides_form_params(socket.assigns[:overrides] || [])
+    }
+
+    Map.merge(defaults, params)
+  end
+
+  defp voice_overrides_form_params(overrides) do
+    overrides
+    |> Enum.with_index()
+    |> Map.new(fn {override, idx} ->
+      {to_string(idx),
+       %{
+         "locale" => voice_override_value(override, :locale),
+         "tone" => voice_override_value(override, :tone),
+         "formality" => voice_override_value(override, :formality),
+         "target_audience" => voice_override_value(override, :target_audience),
+         "guidelines" => voice_override_value(override, :guidelines)
+       }}
+    end)
+  end
+
+  defp voice_override_value(override, field) do
+    Map.get(override, field) || Map.get(override, Atom.to_string(field)) || ""
+  end
+
+  defp noora_select_value(%{"value" => [value | _]}), do: value
+  defp noora_select_value(%{"value" => value}) when is_binary(value), do: value
+  defp noora_select_value(%{"data" => value}) when is_binary(value), do: value
+  defp noora_select_value(_params), do: nil
 
   defp voice_target_countries_changed?(target_countries, nil), do: target_countries != []
 

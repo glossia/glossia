@@ -416,6 +416,10 @@
   gap: var(--noora-spacing-8);
 }
 
+.noora-shell .noora-voice-page {
+  gap: var(--noora-spacing-8);
+}
+
 .noora-shell .noora-page-header {
   display: flex;
   align-items: flex-start;
@@ -458,7 +462,7 @@
 
 .noora-shell .noora-sidebar [data-part="collapsible-group"] [data-part="root"] [data-part="content"] {
   gap: var(--noora-spacing-4);
-  padding-top: var(--noora-spacing-4);
+  padding-top: var(--noora-spacing-7);
   padding-left: var(--noora-spacing-5);
 }
 
@@ -554,6 +558,105 @@
 .noora-shell .noora-table [data-part="cell"][data-type="link_button"],
 .noora-shell .noora-table [data-part="cell"][data-type="tag"] {
   padding: var(--space-3) var(--space-4);
+}
+
+.noora-shell .voice-form {
+  gap: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-voice-page #voice-mode-alert {
+  margin: var(--space-0);
+  box-shadow: 0 0 0 var(--space-px) var(--color-warning-mid);
+  border-radius: var(--radius-default);
+  background: var(--color-warning-soft);
+}
+
+.noora-shell .noora-voice-page #voice-mode-alert[data-size="large"] {
+  padding: var(--space-3);
+}
+
+.noora-shell .noora-voice-page #voice-mode-alert [data-part="description"] {
+  font: var(--text-sm) / var(--leading-normal) var(--font-family-sans);
+}
+
+.noora-shell .voice-form .voice-field {
+  gap: var(--space-1);
+}
+
+.noora-shell .voice-form .voice-field .noora-label label,
+.noora-shell .voice-form .noora-text-input [data-part="label"] label,
+.noora-shell .voice-form .noora-text-area [data-part="label"] label {
+  color: var(--color-text);
+  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
+}
+
+.noora-shell .voice-form .noora-text-input,
+.noora-shell .voice-form .noora-text-area {
+  gap: var(--space-1);
+}
+
+.noora-shell .voice-form .noora-text-input [data-part="wrapper"],
+.noora-shell .voice-form .noora-text-area [data-part="wrapper"] {
+  box-shadow: 0 0 0 var(--space-px) var(--color-border);
+  border-radius: var(--radius-default);
+  background: var(--color-bg);
+}
+
+.noora-shell .voice-form .noora-text-input [data-part="wrapper"] {
+  padding: var(--space-1-5) var(--space-2-5);
+}
+
+.noora-shell .voice-form .noora-text-area [data-part="wrapper"] {
+  padding: var(--space-2) var(--space-2-5);
+}
+
+.noora-shell .voice-form .noora-text-input [data-part="wrapper"]:has(> input:focus),
+.noora-shell .voice-form .noora-text-area [data-part="wrapper"]:has(> textarea:focus) {
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .voice-form .voice-field .noora-text-input input,
+.noora-shell .voice-form .voice-field .noora-text-input input:focus,
+.noora-shell .voice-form .voice-field .noora-text-area textarea,
+.noora-shell .voice-form .voice-field .noora-text-area textarea:focus {
+  box-shadow: none;
+  border: 0;
+  border-radius: var(--space-0);
+  background: transparent;
+  padding: var(--space-0);
+  color: var(--color-text);
+  font: var(--text-sm) / var(--leading-normal) var(--font-family-sans);
+}
+
+.noora-shell .voice-form .voice-field .noora-text-area textarea {
+  line-height: var(--leading-relaxed);
+}
+
+.noora-shell .voice-form .noora-text-input .noora-hint-text,
+.noora-shell .voice-form .noora-text-area .noora-hint-text,
+.noora-shell .voice-form .noora-dropdown > [data-part="hint"] {
+  color: var(--color-text-muted);
+  font: var(--text-xs) / var(--leading-snug) var(--font-family-sans);
+}
+
+.noora-shell .voice-form .voice-field .noora-dropdown {
+  width: 100%;
+}
+
+.noora-shell .voice-form .voice-field .noora-dropdown > [data-part="trigger"] {
+  width: 100%;
+  box-shadow: 0 0 0 var(--space-px) var(--color-border);
+  border-radius: var(--radius-default);
+  background: var(--color-bg);
+}
+
+.noora-shell .voice-form .voice-field .noora-dropdown > [data-part="trigger"]:focus-visible {
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .voice-form .voice-country-tags .noora-tag {
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
 }
 
 .noora-shell__avatar {
