@@ -174,7 +174,7 @@
 }
 
 .noora-shell {
-  --noora-shell-header-height: calc(var(--noora-spacing-10) + var(--noora-spacing-5));
+  --noora-shell-header-height: calc(var(--noora-spacing-9) + var(--noora-spacing-5));
   --noora-shell-sidebar-width: calc(var(--noora-spacing-16) * 3 + var(--noora-spacing-8));
 
   display: flex;
@@ -218,7 +218,7 @@
 
 .noora-shell__context {
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .noora-shell__brand {
@@ -231,8 +231,8 @@
 .noora-shell__brand-logo {
   display: block;
   border-radius: var(--noora-radius-3);
-  width: var(--noora-spacing-10);
-  height: var(--noora-spacing-10);
+  width: var(--noora-spacing-9);
+  height: var(--noora-spacing-9);
   object-fit: cover;
 }
 
@@ -305,6 +305,46 @@
   max-width: calc(var(--noora-spacing-16) * 15);
 }
 
+.noora-shell .noora-projects-page {
+  gap: var(--noora-spacing-8);
+}
+
+.noora-shell .noora-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-6);
+}
+
+.noora-shell .noora-page-header [data-part="copy"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-page-header [data-part="page-title"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+  letter-spacing: 0;
+}
+
+.noora-shell .noora-page-header [data-part="page-subtitle"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-page-header [data-part="actions"] {
+  flex-shrink: 0;
+}
+
+.noora-shell .noora-projects-toolbar,
+.noora-shell .noora-projects-toolbar form {
+  width: 100%;
+}
+
 .noora-shell__avatar {
   display: block;
   border-radius: var(--noora-radius-99);
@@ -322,7 +362,7 @@
 
 .noora-shell .noora-breadcrumbs {
   min-width: var(--noora-spacing-0);
-  overflow: hidden;
+  overflow: visible;
 }
 
 @media (max-width: 768px) {
@@ -389,5 +429,14 @@
   .noora-shell .dash-main,
   .noora-shell .profile-main {
     padding: var(--noora-spacing-6);
+  }
+
+  .noora-shell .noora-page-header {
+    flex-direction: column;
+  }
+
+  .noora-shell .noora-page-header [data-part="actions"],
+  .noora-shell .noora-page-header [data-part="actions"] .noora-button {
+    width: 100%;
   }
 }

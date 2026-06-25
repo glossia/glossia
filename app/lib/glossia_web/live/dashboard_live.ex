@@ -2976,89 +2976,177 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp account_page(assigns) do
     ~H"""
-    <div class="dash-page">
-      <.page_header
-        title={gettext("Organization")}
-        description={gettext("Projects connected to this organization.")}
-      >
-        <:actions>
-          <%= if @can_write do %>
-            <.link patch={"/" <> @handle <> "/-/projects/new"} class="dash-btn dash-btn-primary">
-              {gettext("New project")}
-            </.link>
-          <% end %>
-        </:actions>
-      </.page_header>
+    <div class="dash-page noora-projects-page">
+      <div class="noora-page-header">
+        <div data-part="copy">
+          <h1 data-part="page-title">{gettext("Organization")}</h1>
+          <p data-part="page-subtitle">{gettext("Projects connected to this organization.")}</p>
+        </div>
+        <div :if={@can_write} data-part="actions">
+          <Noora.Button.button
+            patch={"/" <> @handle <> "/-/projects/new"}
+            label={gettext("New project")}
+            size="large"
+          >
+            <:icon_left><Noora.Icon.plus /></:icon_left>
+          </Noora.Button.button>
+        </div>
+      </div>
 
-      <.resource_table
+      <div class="noora-projects-toolbar">
+        <.form for={%{}} phx-change="resource_search">
+          <input type="hidden" name="table_id" value="projects-table" />
+          <Noora.TextInput.text_input
+            id="projects-search"
+            name="search"
+            type="search"
+            value={@projects_search}
+            placeholder={gettext("Search projects...")}
+            show_suffix={false}
+            phx-debounce="300"
+          />
+        </.form>
+      </div>
+
+      <Noora.Table.table
         id="projects-table"
         rows={@projects}
-        search={@projects_search}
-        search_placeholder={gettext("Search projects...")}
-        sort_key={@projects_sort_key}
-        sort_dir={@projects_sort_dir}
-        page={@projects_page}
-        per_page={25}
-        total={@projects_total}
+        row_key={fn project -> "project-#{project.id}" end}
+        row_navigate={fn project -> "/" <> @handle <> "/" <> project.handle end}
       >
-        <:col :let={project} label={gettext("Name")} key="name" sortable>
-          <.link navigate={"/" <> @handle <> "/" <> project.handle} class="resource-link">
-            {project.name}
-          </.link>
+        <:col
+          :let={project}
+          label={gettext("Name")}
+          patch={
+            projects_sort_patch(
+              @handle,
+              @projects_search,
+              @projects_sort_key,
+              @projects_sort_dir,
+              @projects_page,
+              "name"
+            )
+          }
+          sort_order={if(@projects_sort_key == "name", do: @projects_sort_dir)}
+        >
+          <Noora.Table.text_and_description_cell
+            icon="folder"
+            label={project.name}
+            description={project_description(project)}
+          />
         </:col>
-        <:col :let={project} label={gettext("Handle")} key="handle" sortable>
-          <span class="mono">{project.handle}</span>
+        <:col
+          :let={project}
+          label={gettext("Handle")}
+          patch={
+            projects_sort_patch(
+              @handle,
+              @projects_search,
+              @projects_sort_key,
+              @projects_sort_dir,
+              @projects_page,
+              "handle"
+            )
+          }
+          sort_order={if(@projects_sort_key == "handle", do: @projects_sort_dir)}
+        >
+          <Noora.Table.tag_cell label={project.handle} />
         </:col>
-        <:col :let={project} label={gettext("Repository")} key="repo">
+        <:col :let={project} label={gettext("Repository")}>
           <%= if project.github_repo_full_name do %>
-            <span class="mono">{project.github_repo_full_name}</span>
+            <Noora.Table.text_cell icon="git_branch" label={project.github_repo_full_name} />
           <% else %>
-            <span class="muted">&mdash;</span>
+            <Noora.Table.text_cell label={gettext("Not connected")} />
           <% end %>
         </:col>
-        <:col :let={project} label={gettext("Status")} key="status">
+        <:col :let={project} label={gettext("Status")}>
           <%= if project.setup_status do %>
-            <span class={[
-              "badge",
-              project.setup_status == "completed" && "badge-success",
-              project.setup_status == "failed" && "badge-error",
-              project.setup_status in ["pending", "running"] && "badge-info"
-            ]}>
-              {project.setup_status}
-            </span>
+            <Noora.Table.status_badge_cell
+              status={project_setup_status(project.setup_status)}
+              label={project_setup_status_label(project.setup_status)}
+            />
           <% else %>
-            <span class="muted">&mdash;</span>
+            <Noora.Table.status_badge_cell status="disabled" label={gettext("Not started")} />
           <% end %>
         </:col>
-        <:col :let={project} label={gettext("Created")} key="inserted_at" sortable>
-          <time datetime={DateTime.to_iso8601(project.inserted_at)}>
-            {Calendar.strftime(project.inserted_at, "%b %d, %Y")}
-          </time>
+        <:col
+          :let={project}
+          label={gettext("Created")}
+          patch={
+            projects_sort_patch(
+              @handle,
+              @projects_search,
+              @projects_sort_key,
+              @projects_sort_dir,
+              @projects_page,
+              "inserted_at"
+            )
+          }
+          sort_order={if(@projects_sort_key == "inserted_at", do: @projects_sort_dir)}
+        >
+          <Noora.Table.time_cell time={project.inserted_at} />
         </:col>
 
-        <:empty>
-          <div class="dash-empty-state">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
-            </svg>
-            <h2>{gettext("No projects yet")}</h2>
-            <p>{gettext("Projects will show up here once you create one.")}</p>
-          </div>
-        </:empty>
-      </.resource_table>
+        <:empty_state>
+          <Noora.Table.table_empty_state
+            icon="folder"
+            title={gettext("No projects yet")}
+            subtitle={gettext("Projects will show up here once you create one.")}
+          />
+        </:empty_state>
+      </Noora.Table.table>
     </div>
     """
   end
+
+  defp projects_sort_patch(handle, search, current_sort_key, current_sort_dir, page, sort_key) do
+    sort_dir =
+      if current_sort_key == sort_key and current_sort_dir == "asc",
+        do: "desc",
+        else: "asc"
+
+    projects_table_patch(handle, search, sort_key, sort_dir, page)
+  end
+
+  defp projects_table_patch(handle, search, sort_key, sort_dir, page) do
+    query_params =
+      []
+      |> maybe_add_param("pq", search, "")
+      |> maybe_add_param("psort", sort_key, default_sort_key("projects-table"))
+      |> maybe_add_param("pdir", sort_dir, default_sort_dir("projects-table"))
+      |> maybe_add_param("ppage", page, 1)
+
+    path = "/" <> handle
+
+    if query_params == [] do
+      path
+    else
+      path <> "?" <> URI.encode_query(query_params)
+    end
+  end
+
+  defp project_description(project) do
+    cond do
+      present?(project.description) -> project.description
+      present?(project.github_repo_full_name) -> project.github_repo_full_name
+      true -> project.handle
+    end
+  end
+
+  defp project_setup_status("completed"), do: "success"
+  defp project_setup_status("failed"), do: "error"
+  defp project_setup_status("running"), do: "in_progress"
+  defp project_setup_status("pending"), do: "attention"
+  defp project_setup_status(_), do: "disabled"
+
+  defp project_setup_status_label("completed"), do: gettext("Completed")
+  defp project_setup_status_label("failed"), do: gettext("Failed")
+  defp project_setup_status_label("running"), do: gettext("Running")
+  defp project_setup_status_label("pending"), do: gettext("Pending")
+  defp project_setup_status_label(_), do: gettext("Not started")
+
+  defp present?(value) when is_binary(value), do: String.trim(value) != ""
+  defp present?(value), do: not is_nil(value)
 
   # ---------------------------------------------------------------------------
   # Page: Logs
