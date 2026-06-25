@@ -1382,6 +1382,25 @@ defmodule GlossiaWeb.DashboardLive do
     handle_voice_select("formality", params, socket)
   end
 
+  def handle_event("select_voice_country", params, socket) do
+    case noora_select_value(params) do
+      nil -> {:noreply, socket}
+      code -> handle_event("add_country", %{"code" => code}, socket)
+    end
+  end
+
+  def handle_event("select_voice_override_locale:" <> idx, params, socket) do
+    handle_voice_override_select(idx, :locale, params, socket)
+  end
+
+  def handle_event("select_voice_override_tone:" <> idx, params, socket) do
+    handle_voice_override_select(idx, :tone, params, socket)
+  end
+
+  def handle_event("select_voice_override_formality:" <> idx, params, socket) do
+    handle_voice_override_select(idx, :formality, params, socket)
+  end
+
   def handle_event("save_voice", params, socket) do
     account = socket.assigns.account
     user = socket.assigns.current_user
@@ -3253,7 +3272,7 @@ defmodule GlossiaWeb.DashboardLive do
                 {gettext("Provide a clear title, full context, and a concise summary of intent.")}
               </p>
             </div>
-            <div class="voice-card">
+            <Noora.Card.card_section class="voice-card">
               <div class="voice-card-fields">
                 <Noora.TextInput.text_input
                   id="voice_suggestion_title"
@@ -3265,7 +3284,7 @@ defmodule GlossiaWeb.DashboardLive do
                   show_required
                 />
                 <div class="ticket-form-field">
-                  <label>{gettext("Description")}</label>
+                  <Noora.Label.label label={gettext("Description")} />
                   <.markdown_editor
                     id="voice-suggestion-body-editor"
                     name="suggestion_body"
@@ -3276,7 +3295,7 @@ defmodule GlossiaWeb.DashboardLive do
                   />
                 </div>
               </div>
-            </div>
+            </Noora.Card.card_section>
           </div>
 
           <div class="voice-section-divider"></div>
@@ -3301,7 +3320,7 @@ defmodule GlossiaWeb.DashboardLive do
               <h2>{gettext("About")}</h2>
               <p>{gettext("Describe what you do and which countries you target.")}</p>
             </div>
-            <div class="voice-card">
+            <Noora.Card.card_section class="voice-card">
               <div class="voice-card-fields">
                 <div class={[
                   "voice-field",
@@ -3327,7 +3346,7 @@ defmodule GlossiaWeb.DashboardLive do
                   voice_target_countries_changed?(@target_countries, @original_voice) &&
                     "voice-field-changed"
                 ]}>
-                  <label>{gettext("Target countries")}</label>
+                  <Noora.Label.label label={gettext("Target countries")} />
                   <%= if @target_countries != [] do %>
                     <div class="voice-country-tags" id="voice-country-tags">
                       <%= for code <- @target_countries do %>
@@ -3342,10 +3361,20 @@ defmodule GlossiaWeb.DashboardLive do
                     </div>
                   <% end %>
                   <%= if @can_voice_submit? do %>
-                    <.country_picker
-                      id="voice-country-picker"
-                      exclude={@target_countries}
-                    />
+                    <Noora.Select.select
+                      id="voice-country-select"
+                      name="country"
+                      label={gettext("Search country...")}
+                      value=""
+                      on_value_change="select_voice_country"
+                    >
+                      <:item
+                        :for={{code, {flag, name}} <- country_options(@target_countries)}
+                        value={code}
+                        label={"#{flag} #{code} - #{name}"}
+                        icon="world"
+                      />
+                    </Noora.Select.select>
                   <% end %>
                 </div>
                 <%= if @target_countries != [] do %>
@@ -3354,14 +3383,14 @@ defmodule GlossiaWeb.DashboardLive do
                     voice_cultural_notes_changed?(@cultural_notes, @original_voice) &&
                       "voice-field-changed"
                   ]}>
-                    <label>{gettext("Cultural notes")}</label>
-                    <span class="voice-field-help">
-                      <%= if @generating_contexts? do %>
-                        {gettext("Generating cultural notes...")}
-                      <% else %>
-                        {gettext("AI-generated cultural notes per country. You can edit them.")}
-                      <% end %>
-                    </span>
+                    <Noora.Label.label label={gettext("Cultural notes")} />
+                    <Noora.HintText.hint_text label={
+                      if @generating_contexts? do
+                        gettext("Generating cultural notes...")
+                      else
+                        gettext("AI-generated cultural notes per country. You can edit them.")
+                      end
+                    } />
                     <%= for code <- @target_countries do %>
                       <div
                         class={[
@@ -3371,9 +3400,10 @@ defmodule GlossiaWeb.DashboardLive do
                         ]}
                         id={"country-context-#{code}"}
                       >
-                        <label class="voice-country-context-label">
-                          {country_flag(code)} {country_name(code)}
-                        </label>
+                        <Noora.Label.label
+                          class="voice-country-context-label"
+                          label={"#{country_flag(code)} #{country_name(code)}"}
+                        />
                         <Noora.TextArea.text_area
                           name={"cultural_notes[#{code}]"}
                           value={Map.get(@cultural_notes, code, "")}
@@ -3391,7 +3421,7 @@ defmodule GlossiaWeb.DashboardLive do
                   </div>
                 <% end %>
               </div>
-            </div>
+            </Noora.Card.card_section>
           </div>
 
           <div class="voice-section-divider"></div>
@@ -3401,7 +3431,7 @@ defmodule GlossiaWeb.DashboardLive do
               <h2>{gettext("Tone and style")}</h2>
               <p>{gettext("Set the overall personality and formality level for your content.")}</p>
             </div>
-            <div class="voice-card">
+            <Noora.Card.card_section class="voice-card">
               <div class="voice-card-fields">
                 <div class={[
                   "voice-field",
@@ -3466,7 +3496,7 @@ defmodule GlossiaWeb.DashboardLive do
                   />
                 </div>
               </div>
-            </div>
+            </Noora.Card.card_section>
           </div>
 
           <div class="voice-section-divider"></div>
@@ -3480,7 +3510,7 @@ defmodule GlossiaWeb.DashboardLive do
                 )}
               </p>
             </div>
-            <div class="voice-card">
+            <Noora.Card.card_section class="voice-card">
               <div class="voice-card-fields">
                 <div class={[
                   "voice-field",
@@ -3501,7 +3531,7 @@ defmodule GlossiaWeb.DashboardLive do
                   />
                 </div>
               </div>
-            </div>
+            </Noora.Card.card_section>
           </div>
 
           <div class="voice-section-divider"></div>
@@ -3515,114 +3545,135 @@ defmodule GlossiaWeb.DashboardLive do
                 )}
               </p>
             </div>
-            <div class="voice-card">
+            <Noora.Card.card_section class="voice-card">
               <div class={[@overrides != [] && "voice-card-fields"]} id="override-list">
                 <%= for {override, idx} <- Enum.with_index(@overrides) do %>
-                  <div
-                    class={[
-                      "voice-override-block",
-                      voice_override_changed?(override, @original_overrides) &&
-                        "voice-override-block-changed"
-                    ]}
+                  <Noora.Card.card_section
+                    class={
+                      "voice-override-block" <>
+                        if(voice_override_changed?(override, @original_overrides),
+                          do: " voice-override-block-changed",
+                          else: ""
+                        )
+                    }
                     data-override-index={idx}
                   >
                     <div class="voice-override-header">
                       <span class="voice-override-locale">
-                        {if override.locale != "", do: override.locale, else: gettext("New override")}
+                        {if voice_override_value(override, :locale) != "",
+                          do: voice_override_value(override, :locale),
+                          else: gettext("New override")}
                       </span>
                       <%= if @can_voice_submit? do %>
-                        <button
+                        <Noora.Button.button
                           type="button"
-                          class="voice-link-btn voice-link-btn-danger"
+                          label={gettext("Remove")}
+                          variant="destructive"
+                          size="small"
                           phx-click="remove_override"
                           phx-value-index={idx}
-                        >
-                          {gettext("Remove")}
-                        </button>
+                        />
                       <% end %>
                     </div>
-                    <%= if override.locale == "" do %>
-                      <div class="voice-override-fields">
-                        <div class="voice-field">
-                          <label>{gettext("Language")}</label>
-                          <.locale_picker
-                            id={"voice-locale-#{idx}"}
-                            name={"overrides[#{idx}][locale]"}
-                            value=""
-                          />
-                        </div>
-                      </div>
-                    <% else %>
-                      <input type="hidden" name={"overrides[#{idx}][locale]"} value={override.locale} />
-                    <% end %>
                     <div class="voice-override-fields">
+                      <div class="voice-field">
+                        <Noora.Label.label label={gettext("Language")} />
+                        <Noora.Select.select
+                          id={"voice-override-locale-#{idx}"}
+                          name={"overrides[#{idx}][locale]"}
+                          value={voice_override_value(override, :locale)}
+                          label={gettext("Select a language")}
+                          disabled={!@can_voice_submit?}
+                          on_value_change={"select_voice_override_locale:#{idx}"}
+                        >
+                          <:item
+                            :for={{code, name} <- locale_options()}
+                            value={code}
+                            label={"#{code} - #{name}"}
+                            icon="language"
+                          />
+                        </Noora.Select.select>
+                      </div>
                       <div class="voice-field-row">
                         <div class="voice-field">
-                          <label>{gettext("Tone")}</label>
-                          <select name={"overrides[#{idx}][tone]"} disabled={!@can_voice_submit?}>
-                            <option value="">{gettext("Use base")}</option>
-                            <%= for opt <- @tone_options do %>
-                              <option value={opt} selected={override.tone == opt}>
-                                {opt |> String.capitalize()}
-                              </option>
-                            <% end %>
-                          </select>
+                          <Noora.Label.label label={gettext("Tone")} />
+                          <Noora.Select.select
+                            id={"voice-override-tone-#{idx}"}
+                            name={"overrides[#{idx}][tone]"}
+                            value={voice_override_select_value(override, :tone)}
+                            label={gettext("Use base")}
+                            disabled={!@can_voice_submit?}
+                            on_value_change={"select_voice_override_tone:#{idx}"}
+                          >
+                            <:item value="__base__" label={gettext("Use base")} icon="volume_3" />
+                            <:item
+                              :for={opt <- @tone_options}
+                              value={opt}
+                              label={opt |> String.capitalize()}
+                              icon="volume_3"
+                            />
+                          </Noora.Select.select>
                         </div>
                         <div class="voice-field">
-                          <label>{gettext("Formality")}</label>
-                          <select name={"overrides[#{idx}][formality]"} disabled={!@can_voice_submit?}>
-                            <option value="">{gettext("Use base")}</option>
-                            <%= for opt <- @formality_options do %>
-                              <option value={opt} selected={override.formality == opt}>
-                                {opt |> String.replace("_", " ") |> String.capitalize()}
-                              </option>
-                            <% end %>
-                          </select>
+                          <Noora.Label.label label={gettext("Formality")} />
+                          <Noora.Select.select
+                            id={"voice-override-formality-#{idx}"}
+                            name={"overrides[#{idx}][formality]"}
+                            value={voice_override_select_value(override, :formality)}
+                            label={gettext("Use base")}
+                            disabled={!@can_voice_submit?}
+                            on_value_change={"select_voice_override_formality:#{idx}"}
+                          >
+                            <:item value="__base__" label={gettext("Use base")} icon="settings" />
+                            <:item
+                              :for={opt <- @formality_options}
+                              value={opt}
+                              label={opt |> String.replace("_", " ") |> String.capitalize()}
+                              icon="settings"
+                            />
+                          </Noora.Select.select>
                         </div>
                       </div>
                       <div class="voice-field">
-                        <label>{gettext("Target audience")}</label>
-                        <input
-                          type="text"
+                        <Noora.TextInput.text_input
+                          id={"voice-override-target-audience-#{idx}"}
                           name={"overrides[#{idx}][target_audience]"}
-                          value={override.target_audience || ""}
+                          label={gettext("Target audience")}
+                          value={voice_override_value(override, :target_audience)}
                           disabled={!@can_voice_submit?}
                           phx-debounce="300"
                         />
                       </div>
                       <div class="voice-field">
-                        <label>{gettext("Guidelines")}</label>
-                        <textarea
+                        <Noora.TextArea.text_area
+                          id={"voice-override-guidelines-#{idx}"}
                           name={"overrides[#{idx}][guidelines]"}
-                          rows="4"
+                          label={gettext("Guidelines")}
+                          value={voice_override_value(override, :guidelines)}
+                          rows={4}
+                          max_length={8_000}
+                          show_character_count={false}
                           disabled={!@can_voice_submit?}
                           phx-debounce="300"
-                        >{override.guidelines || ""}</textarea>
+                        />
                       </div>
                     </div>
-                  </div>
+                  </Noora.Card.card_section>
                 <% end %>
               </div>
               <%= if @can_voice_submit? do %>
-                <div class="voice-card-footer" style="justify-content: flex-start;">
-                  <button type="button" class="voice-link-btn" phx-click="add_override">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      aria-hidden="true"
-                    >
-                      <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
-                    </svg>
-                    {gettext("Add language override")}
-                  </button>
+                <div class="voice-card-footer">
+                  <Noora.Button.button
+                    type="button"
+                    label={gettext("Add language override")}
+                    variant="secondary"
+                    phx-click="add_override"
+                  >
+                    <:icon_left><Noora.Icon.plus /></:icon_left>
+                  </Noora.Button.button>
                 </div>
               <% end %>
-            </div>
+            </Noora.Card.card_section>
           </div>
 
           <%= if @versions != [] do %>
@@ -3633,40 +3684,46 @@ defmodule GlossiaWeb.DashboardLive do
                 <h2>{gettext("Version history")}</h2>
                 <p>{gettext("Previous versions of your voice configuration.")}</p>
               </div>
-              <.resource_table id="voice-versions" rows={@versions}>
-                <:col :let={v} label={gettext("Version")} class="resource-col-nowrap">
-                  <.link
-                    patch={"/" <> @handle <> "/-/voice/" <> to_string(v.version)}
-                    class="voice-history-link"
-                  >
-                    {"##{v.version}"}
-                  </.link>
+              <Noora.Table.table
+                id="voice-versions"
+                rows={@versions}
+                row_key={fn version -> "voice-version-#{version.id}" end}
+                row_navigate={
+                  fn version -> "/" <> @handle <> "/-/voice/" <> to_string(version.version) end
+                }
+              >
+                <:col :let={version} label={gettext("Version")}>
+                  <Noora.Table.text_cell label={"##{version.version}"} />
                 </:col>
-                <:col :let={v} label={gettext("Date")} class="resource-col-nowrap">
-                  <time datetime={DateTime.to_iso8601(v.inserted_at)}>
-                    {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
-                  </time>
+                <:col :let={version} label={gettext("Date")}>
+                  <Noora.Table.time_cell time={version.inserted_at} show_time />
                 </:col>
-                <:col :let={v} label={gettext("By")} class="resource-col-nowrap">
-                  <%= if v.created_by do %>
-                    <span class="voice-author-chip">
-                      <img
-                        src={gravatar_url(v.created_by.email)}
-                        alt=""
-                        width="20"
-                        height="20"
-                        class="voice-author-avatar"
-                      />
-                      <span>
-                        {(v.created_by.account && v.created_by.account.handle) ||
-                          v.created_by.email}
-                      </span>
-                    </span>
+                <:col :let={version} label={gettext("By")}>
+                  <%= if version.created_by do %>
+                    <Noora.Table.text_and_description_cell
+                      label={
+                        (version.created_by.account && version.created_by.account.handle) ||
+                          version.created_by.email
+                      }
+                      description={version.created_by.email}
+                    >
+                      <:image>
+                        <Noora.Avatar.avatar
+                          id={"voice-version-#{version.id}-author"}
+                          name={
+                            (version.created_by.account && version.created_by.account.handle) ||
+                              version.created_by.email
+                          }
+                          image_href={gravatar_url(version.created_by.email)}
+                          size="small"
+                        />
+                      </:image>
+                    </Noora.Table.text_and_description_cell>
                   <% else %>
-                    -
+                    <Noora.Table.text_cell label="-" />
                   <% end %>
                 </:col>
-              </.resource_table>
+              </Noora.Table.table>
             </div>
           <% end %>
 
@@ -3678,40 +3735,47 @@ defmodule GlossiaWeb.DashboardLive do
                 <h2>{gettext("Open suggestions")}</h2>
                 <p>{gettext("Pending voice proposals from contributors.")}</p>
               </div>
-              <.resource_table id="voice-suggestions" rows={@voice_suggestions}>
-                <:col :let={ticket} label={gettext("Suggestion")} class="resource-col-nowrap">
-                  <.link
-                    patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
-                    class="voice-history-link"
-                  >
-                    {"##{ticket.number}"}
-                  </.link>
+              <Noora.Table.table
+                id="voice-suggestions"
+                rows={@voice_suggestions}
+                row_key={fn ticket -> "voice-suggestion-#{ticket.id}" end}
+                row_navigate={
+                  fn ticket ->
+                    "/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)
+                  end
+                }
+              >
+                <:col :let={ticket} label={gettext("Suggestion")}>
+                  <Noora.Table.text_cell label={"##{ticket.number}"} />
                 </:col>
-                <:col :let={ticket} label={gettext("Title")}>{ticket.title}</:col>
-                <:col :let={ticket} label={gettext("By")} class="resource-col-nowrap">
+                <:col :let={ticket} label={gettext("Title")}>
+                  <Noora.Table.text_cell label={ticket.title} />
+                </:col>
+                <:col :let={ticket} label={gettext("By")}>
                   <%= if ticket.user do %>
-                    <span class="voice-author-chip">
-                      <img
-                        src={gravatar_url(ticket.user.email)}
-                        alt=""
-                        width="20"
-                        height="20"
-                        class="voice-author-avatar"
-                      />
-                      <span>
-                        {(ticket.user.account && ticket.user.account.handle) || ticket.user.email}
-                      </span>
-                    </span>
+                    <Noora.Table.text_and_description_cell
+                      label={(ticket.user.account && ticket.user.account.handle) || ticket.user.email}
+                      description={ticket.user.email}
+                    >
+                      <:image>
+                        <Noora.Avatar.avatar
+                          id={"voice-suggestion-#{ticket.id}-author"}
+                          name={
+                            (ticket.user.account && ticket.user.account.handle) || ticket.user.email
+                          }
+                          image_href={gravatar_url(ticket.user.email)}
+                          size="small"
+                        />
+                      </:image>
+                    </Noora.Table.text_and_description_cell>
                   <% else %>
-                    -
+                    <Noora.Table.text_cell label="-" />
                   <% end %>
                 </:col>
-                <:col :let={ticket} label={gettext("Date")} class="resource-col-nowrap">
-                  <time datetime={DateTime.to_iso8601(ticket.inserted_at)}>
-                    {Calendar.strftime(ticket.inserted_at, "%b %d, %Y %H:%M")}
-                  </time>
+                <:col :let={ticket} label={gettext("Date")}>
+                  <Noora.Table.time_cell time={ticket.inserted_at} show_time />
                 </:col>
-              </.resource_table>
+              </Noora.Table.table>
             </div>
           <% end %>
         <% end %>
@@ -7631,6 +7695,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp non_empty(""), do: nil
+  defp non_empty("__base__"), do: nil
   defp non_empty(val), do: val
 
   defp list_suggestion_discussions(account, kind) do
@@ -7687,8 +7752,8 @@ defmodule GlossiaWeb.DashboardLive do
         |> Enum.map(fn {_idx, override} ->
           %{
             locale: override["locale"] || "",
-            tone: non_empty(override["tone"] || ""),
-            formality: non_empty(override["formality"] || ""),
+            tone: non_empty(normalize_noora_empty_value(override["tone"] || "")),
+            formality: non_empty(normalize_noora_empty_value(override["formality"] || "")),
             target_audience: non_empty(override["target_audience"] || ""),
             guidelines: non_empty(override["guidelines"] || "")
           }
@@ -7714,8 +7779,8 @@ defmodule GlossiaWeb.DashboardLive do
     |> Enum.reduce(%{}, fn {idx, override}, acc ->
       Map.put(acc, to_string(idx), %{
         "locale" => Map.get(override, "locale", ""),
-        "tone" => Map.get(override, "tone", ""),
-        "formality" => Map.get(override, "formality", ""),
+        "tone" => normalize_noora_empty_value(Map.get(override, "tone", "")),
+        "formality" => normalize_noora_empty_value(Map.get(override, "formality", "")),
         "target_audience" => Map.get(override, "target_audience", ""),
         "guidelines" => Map.get(override, "guidelines", "")
       })
@@ -8089,6 +8154,60 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp handle_voice_override_select(idx, field, params, socket) do
+    if not (socket.assigns[:can_voice_submit?] || false) do
+      {:noreply, socket}
+    else
+      case noora_select_value(params) do
+        nil ->
+          {:noreply, socket}
+
+        value ->
+          idx_int = String.to_integer(idx)
+          value = normalize_noora_empty_value(value)
+
+          overrides =
+            List.update_at(socket.assigns.overrides || [], idx_int, fn override ->
+              Map.put(override, field, value)
+            end)
+
+          form_params =
+            socket
+            |> voice_form_params_with_current_values()
+            |> put_voice_override_form_param(idx, Atom.to_string(field), value)
+
+          base_changed? =
+            form_changed?(
+              form_params,
+              socket.assigns.original_voice,
+              socket.assigns.original_overrides
+            )
+
+          countries_changed? =
+            voice_countries_changed?(
+              socket.assigns.target_countries,
+              socket.assigns.cultural_notes,
+              socket.assigns.original_voice
+            )
+
+          changed? = base_changed? or countries_changed?
+
+          socket =
+            socket
+            |> assign(overrides: overrides, changed?: changed?, voice_form_params: form_params)
+            |> then(fn socket ->
+              if changed? do
+                schedule_summary_generation(socket, :voice)
+              else
+                cancel_summary_generation(socket)
+              end
+            end)
+
+          {:noreply, socket}
+      end
+    end
+  end
+
   defp form_changed?(_params, nil, _original_overrides), do: true
 
   defp form_changed?(params, original_voice, original_overrides) do
@@ -8155,13 +8274,36 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp voice_override_value(override, field) do
-    Map.get(override, field) || Map.get(override, Atom.to_string(field)) || ""
+    normalize_noora_empty_value(
+      Map.get(override, field) || Map.get(override, Atom.to_string(field)) || ""
+    )
+  end
+
+  defp voice_override_select_value(override, field) do
+    case voice_override_value(override, field) do
+      "" -> "__base__"
+      value -> value
+    end
+  end
+
+  defp put_voice_override_form_param(form_params, idx, field, value) do
+    overrides = Map.get(form_params, "overrides", %{})
+    override = Map.get(overrides, idx, %{})
+
+    Map.put(
+      form_params,
+      "overrides",
+      Map.put(overrides, idx, Map.put(override, field, value || ""))
+    )
   end
 
   defp noora_select_value(%{"value" => [value | _]}), do: value
   defp noora_select_value(%{"value" => value}) when is_binary(value), do: value
   defp noora_select_value(%{"data" => value}) when is_binary(value), do: value
   defp noora_select_value(_params), do: nil
+
+  defp normalize_noora_empty_value("__base__"), do: ""
+  defp normalize_noora_empty_value(value), do: value
 
   defp voice_target_countries_changed?(target_countries, nil), do: target_countries != []
 
@@ -8303,7 +8445,8 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp normalize_override(o) do
-    {o["locale"], o["tone"] || "", o["formality"] || "", o["target_audience"] || "",
+    {o["locale"], normalize_noora_empty_value(o["tone"] || ""),
+     normalize_noora_empty_value(o["formality"] || ""), o["target_audience"] || "",
      o["guidelines"] || ""}
   end
 
@@ -8449,8 +8592,8 @@ defmodule GlossiaWeb.DashboardLive do
       |> Enum.map(fn {_idx, o} ->
         %{
           locale: o["locale"],
-          tone: non_empty(o["tone"]),
-          formality: non_empty(o["formality"]),
+          tone: non_empty(normalize_noora_empty_value(o["tone"] || "")),
+          formality: non_empty(normalize_noora_empty_value(o["formality"] || "")),
           target_audience: non_empty(o["target_audience"]),
           guidelines: non_empty(o["guidelines"])
         }

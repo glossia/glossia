@@ -1002,6 +1002,44 @@ defmodule GlossiaWeb.DashboardComponents do
   # Locale Picker (searchable combobox)
   # ---------------------------------------------------------------------------
 
+  @locale_options [
+    {"ar", "Arabic"},
+    {"bn", "Bengali"},
+    {"zh", "Chinese"},
+    {"zh-TW", "Chinese (Traditional)"},
+    {"cs", "Czech"},
+    {"da", "Danish"},
+    {"nl", "Dutch"},
+    {"en", "English"},
+    {"fi", "Finnish"},
+    {"fr", "French"},
+    {"de", "German"},
+    {"el", "Greek"},
+    {"he", "Hebrew"},
+    {"hi", "Hindi"},
+    {"hu", "Hungarian"},
+    {"id", "Indonesian"},
+    {"it", "Italian"},
+    {"ja", "Japanese"},
+    {"ko", "Korean"},
+    {"ms", "Malay"},
+    {"nb", "Norwegian"},
+    {"pl", "Polish"},
+    {"pt", "Portuguese"},
+    {"pt-BR", "Portuguese (Brazil)"},
+    {"ro", "Romanian"},
+    {"ru", "Russian"},
+    {"es", "Spanish"},
+    {"es-MX", "Spanish (Mexico)"},
+    {"sv", "Swedish"},
+    {"th", "Thai"},
+    {"tr", "Turkish"},
+    {"uk", "Ukrainian"},
+    {"vi", "Vietnamese"}
+  ]
+
+  def locale_options, do: @locale_options
+
   @doc """
   Renders a searchable locale picker combobox.
 
@@ -1408,6 +1446,14 @@ defmodule GlossiaWeb.DashboardComponents do
 
   def country_flag(code), do: elem(Map.get(@country_map, code, {"", code}), 0)
   def country_name(code), do: elem(Map.get(@country_map, code, {"", code}), 1)
+
+  def country_options(exclude \\ []) do
+    exclude = MapSet.new(exclude)
+
+    @country_map
+    |> Enum.reject(fn {code, _country} -> MapSet.member?(exclude, code) end)
+    |> Enum.sort_by(fn {_code, {_flag, name}} -> name end)
+  end
 
   # ---------------------------------------------------------------------------
   # Badge
