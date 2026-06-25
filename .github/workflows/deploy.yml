@@ -103,6 +103,30 @@ jobs:
           mise exec -- kubectl -n glossia wait --for=create secret/glossia-s3 --timeout=30m
           mise exec -- kubectl -n platform wait --for=create secret/glossia-releases --timeout=30m
 
+      - name: Sync release bucket credentials to 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          access_key="$(mise exec -- kubectl -n platform get secret glossia-releases -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 --decode)"
+          secret_key="$(mise exec -- kubectl -n platform get secret glossia-releases -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 --decode)"
+
+          echo "::add-mask::${access_key}"
+          echo "::add-mask::${secret_key}"
+
+          if mise exec -- op item get glossia-releases --vault glossia-production >/dev/null 2>&1; then
+            mise exec -- op item edit glossia-releases --vault glossia-production \
+              "AWS_ACCESS_KEY_ID[text]=${access_key}" \
+              "AWS_SECRET_ACCESS_KEY[concealed]=${secret_key}" \
+              >/dev/null
+          else
+            mise exec -- op item create --category=password --title glossia-releases --vault glossia-production \
+              "AWS_ACCESS_KEY_ID[text]=${access_key}" \
+              "AWS_SECRET_ACCESS_KEY[concealed]=${secret_key}" \
+              >/dev/null
+          fi
+
       - name: Deploy to Kubernetes
         run: |
           mise exec -- helm upgrade --install glossia deploy/helm/glossia \
