@@ -179,13 +179,13 @@ rook-ceph-cluster:
         preservePoolsOnDelete: true
         gateway:
           port: 80
-          instances: 2
+          instances: 1
           resources:
             limits:
-              memory: 1Gi
-            requests:
-              cpu: 250m
               memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
           priorityClassName: system-cluster-critical
         hosting:
           dnsNames:
