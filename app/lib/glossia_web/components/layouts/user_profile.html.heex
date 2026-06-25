@@ -52,25 +52,18 @@
 
   <:sidebar>
     <.sidebar id="profile-sidebar">
-      <.sidebar_group
-        id="profile-settings-navigation"
-        label={gettext("Settings")}
-        icon="settings"
-        collapsible={false}
-      >
-        <.sidebar_item
-          label={gettext("Profile")}
-          icon="user"
-          navigate={~p"/-/settings/profile"}
-          selected={@live_action == :overview}
-        />
-        <.sidebar_item
-          label={gettext("Connections")}
-          icon="link_icon"
-          navigate={~p"/-/settings/connected-accounts"}
-          selected={@live_action == :connected_accounts}
-        />
-      </.sidebar_group>
+      <.sidebar_item
+        label={gettext("Profile")}
+        icon="user"
+        navigate={~p"/-/settings/profile"}
+        selected={@live_action == :overview}
+      />
+      <.sidebar_item
+        label={gettext("Connections")}
+        icon="link_icon"
+        navigate={~p"/-/settings/connected-accounts"}
+        selected={@live_action == :connected_accounts}
+      />
     </.sidebar>
   </:sidebar>
 

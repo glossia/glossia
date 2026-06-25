@@ -391,7 +391,8 @@
 }
 
 .noora-shell .dash-main,
-.noora-shell .profile-main {
+.noora-shell .profile-main,
+.noora-shell .admin-main {
   flex: 1;
   height: 100%;
   min-width: var(--noora-spacing-0);
@@ -403,6 +404,12 @@
 .noora-shell .dash-page,
 .noora-shell .profile-page {
   max-width: calc(var(--noora-spacing-16) * 15);
+}
+
+.noora-shell .admin-main {
+  margin: var(--noora-spacing-0);
+  max-width: none;
+  width: auto;
 }
 
 .noora-shell .noora-projects-page {
@@ -631,7 +638,8 @@
   }
 
   .noora-shell .dash-main,
-  .noora-shell .profile-main {
+  .noora-shell .profile-main,
+  .noora-shell .admin-main {
     padding: var(--noora-spacing-6);
   }
 
