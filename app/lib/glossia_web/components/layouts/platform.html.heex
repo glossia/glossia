@@ -96,74 +96,60 @@
     <%= case assigns[:sidebar_context] || :account do %>
       <% :project -> %>
         <.sidebar id="platform-sidebar">
-          <.sidebar_group
-            id="project-navigation"
-            label={@sidebar_project.handle}
-            icon="folder"
-            collapsible={false}
-          >
-            <.sidebar_item
-              label={gettext("Overview")}
-              icon="smart_home"
-              navigate={"/#{@handle}/#{@sidebar_project.handle}"}
-              selected={@live_action == :project}
-            />
-            <.sidebar_item
-              label={gettext("Activity")}
-              icon="timeline_event"
-              navigate={"/#{@handle}/#{@sidebar_project.handle}/-/activity"}
-              selected={@live_action == :project_activity}
-            />
-            <.sidebar_item
-              label={gettext("Translations")}
-              icon="language"
-              navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
-              selected={@live_action in [:project_translations, :project_session]}
-            />
-            <.sidebar_item
-              :if={assigns[:is_admin]}
-              label={gettext("Settings")}
-              icon="settings"
-              navigate={"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
-              selected={@live_action == :project_settings}
-            />
-          </.sidebar_group>
+          <.sidebar_item
+            label={gettext("Overview")}
+            icon="smart_home"
+            navigate={"/#{@handle}/#{@sidebar_project.handle}"}
+            selected={@live_action == :project}
+          />
+          <.sidebar_item
+            label={gettext("Activity")}
+            icon="timeline_event"
+            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/activity"}
+            selected={@live_action == :project_activity}
+          />
+          <.sidebar_item
+            label={gettext("Translations")}
+            icon="language"
+            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
+            selected={@live_action in [:project_translations, :project_session]}
+          />
+          <.sidebar_item
+            :if={assigns[:is_admin]}
+            label={gettext("Settings")}
+            icon="settings"
+            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
+            selected={@live_action == :project_settings}
+          />
         </.sidebar>
       <% _ -> %>
         <.sidebar id="platform-sidebar">
-          <.sidebar_group
-            id="account-primary-navigation"
-            label={@handle}
+          <.sidebar_item
+            label={gettext("Projects")}
             icon="folders"
-            collapsible={false}
-          >
-            <.sidebar_item
-              label={gettext("Projects")}
-              icon="folders"
-              navigate={"/#{@handle}"}
-              selected={@live_action == :account}
-            />
-            <.sidebar_item
-              :if={@can_voice_read or @can_voice_write or @can_voice_propose}
-              label={gettext("Voice")}
-              icon="volume_3"
-              navigate={assigns[:voice_back_path] || "/#{@handle}/-/voice"}
-              selected={@live_action in [:voice, :voice_suggestion_new, :voice_version]}
-            />
-            <.sidebar_item
-              :if={@can_glossary_read or @can_glossary_write or @can_glossary_propose}
-              label={gettext("Glossary")}
-              icon="book_2"
-              navigate={assigns[:glossary_back_path] || "/#{@handle}/-/glossary"}
-              selected={@live_action in [:glossary, :glossary_suggestion_new, :glossary_version]}
-            />
-            <.sidebar_item
-              label={gettext("Discussions")}
-              icon="message_circle"
-              navigate={"/#{@handle}/-/discussions"}
-              selected={@live_action in [:discussions, :discussion_new, :discussion_show]}
-            />
-          </.sidebar_group>
+            navigate={"/#{@handle}"}
+            selected={@live_action == :account}
+          />
+          <.sidebar_item
+            :if={@can_voice_read or @can_voice_write or @can_voice_propose}
+            label={gettext("Voice")}
+            icon="volume_3"
+            navigate={assigns[:voice_back_path] || "/#{@handle}/-/voice"}
+            selected={@live_action in [:voice, :voice_suggestion_new, :voice_version]}
+          />
+          <.sidebar_item
+            :if={@can_glossary_read or @can_glossary_write or @can_glossary_propose}
+            label={gettext("Glossary")}
+            icon="book_2"
+            navigate={assigns[:glossary_back_path] || "/#{@handle}/-/glossary"}
+            selected={@live_action in [:glossary, :glossary_suggestion_new, :glossary_version]}
+          />
+          <.sidebar_item
+            label={gettext("Discussions")}
+            icon="message_circle"
+            navigate={"/#{@handle}/-/discussions"}
+            selected={@live_action in [:discussions, :discussion_new, :discussion_show]}
+          />
 
           <% account_sections =
             [

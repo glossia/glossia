@@ -14,7 +14,100 @@
   font-display: swap;
 }
 
+:root {
+  --noora-font-heading: var(--font-heading);
+  --noora-font-body: var(--font-body);
+  --noora-font-code: var(--font-code);
+  --noora-surface-background-primary: var(--color-surface);
+  --noora-surface-background-secondary: var(--color-bg-subtle);
+  --noora-surface-background-tertiary: var(--color-bg);
+  --noora-surface-label-primary: var(--color-text);
+  --noora-surface-label-secondary: var(--color-text-muted);
+  --noora-surface-label-tertiary: var(--color-stone-500);
+  --noora-surface-label-disabled: var(--color-stone-400);
+  --noora-surface-border-primary: var(--color-border-strong);
+  --noora-surface-table-header: var(--color-bg-subtle);
+  --noora-content-divider-line: var(--color-border);
+  --noora-border-light-default: 0 0 0 var(--space-px) var(--color-border);
+  --noora-border-light-focus:
+    0 0 0 var(--space-px) var(--color-primary),
+    0 0 0 var(--space-1) var(--color-primary-soft);
+  --noora-border-medium:
+    0 0 0 var(--space-px) var(--color-border),
+    var(--shadow-xs);
+  --noora-border-section: 0 0 0 var(--space-px) var(--color-border);
+  --noora-border-heavy:
+    0 0 0 var(--space-px) var(--color-border-strong),
+    var(--shadow-sm);
+  --noora-radius-2: var(--radius-xs);
+  --noora-radius-3: var(--radius-xs);
+  --noora-radius-4: var(--radius-sm);
+  --noora-radius-5: var(--radius-sm);
+  --noora-radius-6: var(--radius-md);
+  --noora-radius-7: var(--radius-lg);
+  --noora-radius-8: var(--radius-lg);
+  --noora-radius-99: var(--radius-full);
+  --noora-button-primary-background: var(--color-primary);
+  --noora-button-primary-label: var(--color-text-on-accent);
+  --noora-button-primary-disabled-background: var(--color-primary-mid);
+  --noora-button-primary-disabled-label: var(--color-stone-300);
+  --noora-button-secondary-background: var(--color-surface);
+  --noora-button-secondary-label: var(--color-text);
+  --noora-button-secondary-disabled-background: var(--color-bg-subtle);
+  --noora-button-secondary-disabled-label: var(--color-stone-400);
+  --noora-button-background-primary: var(--color-primary);
+  --noora-button-background-primary-hover: var(--color-primary-hover);
+  --noora-button-background-primary-active: var(--color-primary-hover);
+  --noora-button-background-primary-disabled: var(--color-primary-mid);
+  --noora-button-border-primary:
+    0 0 0 var(--space-px) var(--color-primary),
+    var(--shadow-accent);
+  --noora-button-border-primary-hover:
+    0 0 0 var(--space-px) var(--color-primary-hover),
+    var(--shadow-accent);
+  --noora-button-border-primary-focus:
+    0 0 0 var(--space-px) var(--color-surface),
+    0 0 0 var(--space-1) var(--color-primary-mid);
+  --noora-button-border-primary-active: 0 0 0 var(--space-px) var(--color-primary-hover);
+  --noora-button-border-primary-disabled: 0 0 0 var(--space-px) var(--color-primary-mid);
+  --noora-button-background-secondary: var(--color-surface);
+  --noora-button-background-secondary-hover: var(--color-bg-subtle);
+  --noora-button-background-secondary-active: var(--color-bg-subtle);
+  --noora-button-background-secondary-disabled: var(--color-bg-subtle);
+  --noora-button-border-secondary: 0 0 0 var(--space-px) var(--color-border);
+  --noora-button-border-secondary-hover: 0 0 0 var(--space-px) var(--color-border-strong);
+  --noora-button-border-secondary-focus:
+    0 0 0 var(--space-px) var(--color-primary),
+    0 0 0 var(--space-1) var(--color-primary-soft);
+  --noora-button-border-secondary-active: 0 0 0 var(--space-px) var(--color-border-strong);
+  --noora-button-border-secondary-disabled: 0 0 0 var(--space-px) var(--color-border);
+  --noora-badge-fill-primary: var(--color-primary);
+  --noora-badge-fill-success: var(--color-success);
+  --noora-badge-fill-warning: var(--color-warning);
+  --noora-badge-light-fill-primary-background: var(--color-primary-soft);
+  --noora-badge-light-fill-primary-label: var(--color-primary);
+  --noora-badge-light-fill-success-background: var(--color-success-soft);
+  --noora-badge-light-fill-success-label: var(--color-success);
+  --noora-badge-light-fill-warning-background: var(--color-warning-soft);
+  --noora-badge-light-fill-warning-label: var(--color-warning);
+  --noora-badge-disabled-background: var(--color-bg-subtle);
+  --noora-badge-disabled-label: var(--color-stone-400);
+  --noora-badge-status-success: var(--color-success);
+  --noora-badge-status-warning: var(--color-warning);
+  --noora-badge-status-attention: var(--color-warning);
+  --noora-icon-primary-label: var(--color-primary);
+  --noora-icon-primary-background: var(--color-primary-soft);
+  --noora-icon-neutral-label: var(--color-text-muted);
+  --noora-icon-neutral-background: var(--color-bg-subtle);
+}
+
 #login {
+  --font-body: var(--font-family-sans);
+  --font-heading: var(--font-family-sans);
+  --noora-font-body: var(--font-family-sans);
+  --noora-font-heading: var(--font-family-sans);
+  --noora-font-code: var(--font-family-mono);
+
   display: flex;
   position: relative;
   align-items: center;
@@ -175,7 +268,14 @@
 
 .noora-shell {
   --noora-shell-header-height: calc(var(--noora-spacing-9) + var(--noora-spacing-5));
-  --noora-shell-sidebar-width: calc(var(--noora-spacing-16) * 3 + var(--noora-spacing-8));
+  --noora-shell-sidebar-width: calc(
+    var(--noora-spacing-16) * 2 + var(--noora-spacing-9) + var(--space-1)
+  );
+  --font-body: var(--font-family-sans);
+  --font-heading: var(--font-family-sans);
+  --noora-font-body: var(--font-family-sans);
+  --noora-font-heading: var(--font-family-sans);
+  --noora-font-code: var(--font-family-mono);
 
   display: flex;
   flex-direction: column;
@@ -343,6 +443,110 @@
 .noora-shell .noora-projects-toolbar,
 .noora-shell .noora-projects-toolbar form {
   width: 100%;
+}
+
+.noora-shell .noora-sidebar > [data-part="viewport"] {
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .noora-sidebar [data-part="collapsible-group"] [data-part="root"] [data-part="content"] {
+  gap: var(--noora-spacing-4);
+  padding-top: var(--noora-spacing-4);
+  padding-left: var(--noora-spacing-5);
+}
+
+.noora-shell .noora-table {
+  box-shadow: 0 0 0 var(--space-px) var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+}
+
+.noora-shell .noora-table [data-part="scroll-container"] {
+  border-radius: var(--radius-sm);
+}
+
+.noora-shell .noora-table table:has(td)::after {
+  box-shadow: 0 0 0 var(--space-px) var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.noora-shell .noora-table th {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text-muted);
+  font: var(--weight-semibold) var(--text-xs) / var(--leading-snug) var(--font-family-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.noora-shell .noora-table th [data-part="icon"] {
+  color: var(--color-text-muted);
+}
+
+.noora-shell .noora-table table tbody tr:not(:first-child):not([data-part="expanded-row"]) td {
+  box-shadow: 0 var(--space-px) 0 0 var(--color-border) inset;
+}
+
+.noora-shell .noora-table table tbody tr:not(:last-child):not([data-part="expanded-row"]) td,
+.noora-shell .noora-table table tbody tr:not(:first-child):not([data-part="expanded-row"]) td {
+  padding-top: var(--space-0);
+  padding-bottom: var(--space-0);
+}
+
+.noora-shell .noora-table table tbody tr:hover td[data-selectable] {
+  background: var(--color-bg-subtle);
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text"] {
+  padding: var(--space-3) var(--space-4);
+  font: var(--text-sm) / var(--leading-snug) var(--font-family-sans);
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] {
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] [data-part="icon"] {
+  border-radius: var(--radius-sm);
+}
+
+.noora-shell
+  .noora-table
+  [data-part="cell"][data-type="text_and_description"]
+  [data-part="icon"]:not(:has(img)) {
+  padding: var(--space-2);
+}
+
+.noora-shell
+  .noora-table
+  [data-part="cell"][data-type="text_and_description"]
+  [data-part="icon"]
+  svg {
+  width: var(--noora-icon-size-medium);
+  height: var(--noora-icon-size-medium);
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] [data-part="column"] {
+  gap: var(--space-0-5);
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] [data-part="label"] {
+  font: var(--weight-semibold) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
+}
+
+.noora-shell
+  .noora-table
+  [data-part="cell"][data-type="text_and_description"]
+  [data-part="description"] {
+  font: var(--text-xs) / var(--leading-snug) var(--font-family-sans);
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="badge"],
+.noora-shell .noora-table [data-part="cell"][data-type="status_badge"],
+.noora-shell .noora-table [data-part="cell"][data-type="button"],
+.noora-shell .noora-table [data-part="cell"][data-type="link_button"],
+.noora-shell .noora-table [data-part="cell"][data-type="tag"] {
+  padding: var(--space-3) var(--space-4);
 }
 
 .noora-shell__avatar {
