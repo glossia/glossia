@@ -736,13 +736,6 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  @discussions_filter_types %{
-    "status" => "select",
-    "kind" => "select",
-    "title" => "text",
-    "inserted_at" => "date_range"
-  }
-
   @translations_filter_types %{
     "status" => "select"
   }
@@ -779,60 +772,21 @@ defmodule GlossiaWeb.DashboardLive do
     %{code: "ca", name: "Catalan", native: "Catala"}
   ]
 
-  defp apply_action(socket, :discussions, params) do
-    account = socket.assigns.account
-
-    sort_key = Map.get(params, "ksort", "inserted_at")
-    sort_dir = Map.get(params, "kdir", "desc")
-    active_filters = extract_filters(params, "k")
-
-    flop_params =
-      %{
-        "order_by" => [sort_key],
-        "order_directions" => [sort_dir]
-      }
-      |> maybe_add_flop_filters(active_filters, @discussions_filter_types)
-
-    {:ok, {tickets, _meta}} = Discussions.list_discussions(account, flop_params)
-
-    assign(socket,
-      page_title: gettext("Discussions"),
-      tickets: tickets,
-      discussions_sort_key: sort_key,
-      discussions_sort_dir: sort_dir,
-      discussions_active_filters: active_filters,
-      breadcrumb_items: [
-        {gettext("Discussions"), "/" <> socket.assigns.handle <> "/-/discussions"}
-      ]
-    )
-  end
-
-  defp apply_action(socket, :discussion_new, _params) do
-    handle = socket.assigns.handle
-
-    socket
-    |> maybe_allow_upload(:ticket_images)
-    |> assign(
-      page_title: gettext("New discussion"),
-      ticket_form: to_form(%{"title" => "", "body" => ""}, as: :ticket),
-      generating_title?: false,
-      title_manually_edited?: false,
-      ticket_title_generation: 0,
-      ticket_title_timer_ref: nil,
-      ticket_title_task_ref: nil,
-      upload_context_id: Uniq.UUID.uuid7(),
-      breadcrumb_items: [
-        {gettext("Discussions"), "/" <> handle <> "/-/discussions"},
-        {gettext("New discussion"), nil}
-      ]
-    )
-  end
-
   defp apply_action(socket, :discussion_show, params) do
     account = socket.assigns.account
-    handle = socket.assigns.handle
-    number_str = Map.get(params, "discussion_number") || Map.get(params, "ticket_number")
-    ticket = Discussions.get_discussion_by_number!(String.to_integer(number_str), account.id)
+
+    number_str =
+      Map.get(params, "suggestion_number") ||
+        Map.get(params, "discussion_number") ||
+        Map.get(params, "ticket_number")
+
+    ticket_number =
+      case Integer.parse(number_str || "") do
+        {number, ""} -> number
+        _ -> raise Ecto.NoResultsError, queryable: Glossia.Discussions.Discussion
+      end
+
+    ticket = Discussions.get_discussion_by_number!(ticket_number, account.id)
 
     socket
     |> maybe_allow_upload(:comment_images)
@@ -840,10 +794,7 @@ defmodule GlossiaWeb.DashboardLive do
       page_title: ticket.title,
       ticket: ticket,
       comment_form: to_form(%{"body" => ""}, as: :comment),
-      breadcrumb_items: [
-        {gettext("Discussions"), "/" <> handle <> "/-/discussions"},
-        {"##{ticket.number}", nil}
-      ]
+      breadcrumb_items: [{ticket_kind_label(ticket.kind), nil}]
     )
   end
 
@@ -2141,59 +2092,8 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Ticket events
+  # Suggestion review events
   # ---------------------------------------------------------------------------
-
-  def handle_event("discussion_validate", %{"_target" => target, "ticket" => params}, socket) do
-    body = params["body"] || ""
-    title = params["title"] || ""
-
-    title_manually_edited? =
-      cond do
-        target == ["ticket", "title"] and title != "" -> true
-        target == ["ticket", "title"] -> false
-        true -> socket.assigns[:title_manually_edited?] || false
-      end
-
-    socket =
-      if String.length(body) >= 20 and not title_manually_edited? do
-        schedule_title_generation(socket, body)
-      else
-        cancel_title_generation(socket)
-      end
-
-    {:noreply,
-     assign(socket,
-       title_manually_edited?: title_manually_edited?,
-       ticket_form:
-         to_form(
-           %{"title" => title, "body" => body},
-           as: :ticket
-         )
-     )}
-  end
-
-  def handle_event("create_discussion", %{"ticket" => params}, socket) do
-    account = socket.assigns.account
-    user = socket.assigns.current_user
-
-    cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
-        {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
-
-      true ->
-        case Discussions.create_discussion(account, user, params, via: :dashboard) do
-          {:ok, ticket} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, gettext("Discussion created."))
-             |> push_patch(to: "/#{socket.assigns.handle}/-/discussions/#{ticket.number}")}
-
-          {:error, changeset} ->
-            {:noreply, assign(socket, ticket_form: to_form(changeset, as: :ticket))}
-        end
-    end
-  end
 
   def handle_event("add_discussion_comment", %{"comment" => params}, socket) do
     ticket = socket.assigns.ticket
@@ -2232,7 +2132,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply, assign(socket, ticket: ticket)}
 
         {:error, _changeset} ->
-          {:noreply, put_flash(socket, :error, gettext("Could not close discussion."))}
+          {:noreply, put_flash(socket, :error, gettext("Could not close suggestion."))}
       end
     else
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
@@ -2251,7 +2151,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply, assign(socket, ticket: ticket)}
 
         {:error, _changeset} ->
-          {:noreply, put_flash(socket, :error, gettext("Could not reopen discussion."))}
+          {:noreply, put_flash(socket, :error, gettext("Could not reopen suggestion."))}
       end
     else
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
@@ -2273,7 +2173,7 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       {:error, :invalid_ticket} ->
-        {:noreply, put_flash(socket, :error, gettext("This discussion is not a suggestion."))}
+        {:noreply, put_flash(socket, :error, gettext("This item is not a suggestion."))}
 
       {:error, :invalid_payload} ->
         {:noreply, put_flash(socket, :error, gettext("Invalid suggestion payload."))}
@@ -2575,38 +2475,6 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  def handle_info({:generate_ticket_title, generation}, socket) do
-    if generation != socket.assigns[:ticket_title_generation] do
-      {:noreply, socket}
-    else
-      account = socket.assigns.account
-      _body = socket.assigns[:ticket_body_for_title] || ""
-
-      case Glossia.RateLimiter.hit("ai:title:#{account.id}", :timer.minutes(1), 10) do
-        {:allow, _count} ->
-          # TODO: re-implement with account LLM model system
-          task = Task.async(fn -> {:error, :no_llm_client} end)
-
-          form = socket.assigns.ticket_form
-          body_val = form[:body].value || ""
-
-          {:noreply,
-           assign(socket,
-             generating_title?: true,
-             ticket_title_task_ref: task.ref,
-             ticket_form:
-               to_form(
-                 %{"title" => "", "body" => body_val},
-                 as: :ticket
-               )
-           )}
-
-        {:deny, _retry_after} ->
-          {:noreply, socket}
-      end
-    end
-  end
-
   def handle_info({:generate_summary, context, generation}, socket) do
     if generation != socket.assigns.summary_generation do
       {:noreply, socket}
@@ -2663,30 +2531,6 @@ defmodule GlossiaWeb.DashboardLive do
              socket
              |> assign(generating_summary?: false, summary_task_ref: nil)
              |> push_event("summary_generated:#{bar_id}", %{summary: nil})}
-        end
-
-      ref == socket.assigns[:ticket_title_task_ref] ->
-        case result do
-          {:ok, %{content: title}} when is_binary(title) and title != "" ->
-            title = String.trim(title)
-            form = socket.assigns.ticket_form
-            body = form[:body].value || ""
-
-            {:noreply,
-             socket
-             |> assign(
-               generating_title?: false,
-               ticket_title_task_ref: nil,
-               ticket_form:
-                 to_form(
-                   %{"title" => title, "body" => body},
-                   as: :ticket
-                 )
-             )
-             |> push_event("title_generated", %{title: title})}
-
-          _other ->
-            {:noreply, assign(socket, generating_title?: false, ticket_title_task_ref: nil)}
         end
 
       ref == socket.assigns[:context_task_ref] ->
@@ -2932,22 +2776,15 @@ defmodule GlossiaWeb.DashboardLive do
           model_edit_form={assigns[:model_edit_form]}
           model_edit_changed?={assigns[:model_edit_changed?] || false}
         />
-      <% action when action in [:discussions, :discussion_new, :discussion_show] -> %>
-        <.discussions_page
-          live_action={@live_action}
+      <% :discussion_show -> %>
+        <.ticket_show_page
           handle={@handle}
-          tickets={assigns[:discussions] || []}
           ticket={assigns[:ticket]}
-          ticket_form={assigns[:ticket_form]}
           comment_form={assigns[:comment_form]}
           current_user={@current_user}
           can_write={@can_write}
           can_voice_write={assigns[:can_voice_write] || false}
           can_glossary_write={assigns[:can_glossary_write] || false}
-          discussions_sort_key={assigns[:discussions_sort_key] || "inserted_at"}
-          discussions_sort_dir={assigns[:discussions_sort_dir] || "desc"}
-          discussions_active_filters={assigns[:discussions_active_filters] || %{}}
-          generating_title?={assigns[:generating_title?] || false}
         />
       <% :project_new -> %>
         <.project_new_wizard
@@ -3763,7 +3600,7 @@ defmodule GlossiaWeb.DashboardLive do
                 row_key={fn ticket -> "voice-suggestion-#{ticket.id}" end}
                 row_navigate={
                   fn ticket ->
-                    "/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)
+                    suggestion_path(@handle, ticket)
                   end
                 }
               >
@@ -4425,7 +4262,7 @@ defmodule GlossiaWeb.DashboardLive do
                 row_key={fn ticket -> "glossary-suggestion-#{ticket.id}" end}
                 row_navigate={
                   fn ticket ->
-                    "/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)
+                    suggestion_path(@handle, ticket)
                   end
                 }
               >
@@ -8708,9 +8545,9 @@ defmodule GlossiaWeb.DashboardLive do
          )
          |> put_flash(
            :info,
-           gettext("Voice suggestion submitted as discussion #%{number}.", number: ticket.number)
+           gettext("Voice suggestion submitted as suggestion #%{number}.", number: ticket.number)
          )
-         |> push_patch(to: "/#{handle}/-/discussions/#{ticket.number}")}
+         |> push_patch(to: suggestion_path(handle, ticket))}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to submit voice suggestion."))}
@@ -8760,11 +8597,11 @@ defmodule GlossiaWeb.DashboardLive do
          )
          |> put_flash(
            :info,
-           gettext("Terminology suggestion submitted as discussion #%{number}.",
+           gettext("Terminology suggestion submitted as suggestion #%{number}.",
              number: ticket.number
            )
          )
-         |> push_patch(to: "/#{handle}/-/discussions/#{ticket.number}")}
+         |> push_patch(to: suggestion_path(handle, ticket))}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to submit terminology suggestion."))}
@@ -8845,7 +8682,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp suggestion_body(resource_name, change_note) do
     gettext(
-      "Proposed %{resource} update.\n\nChange note: %{note}\n\nUse the discussion action to apply this suggestion when ready.",
+      "Proposed %{resource} update.\n\nChange note: %{note}\n\nUse the suggestion action to apply this when ready.",
       resource: resource_name,
       note: change_note
     )
@@ -8958,29 +8795,6 @@ defmodule GlossiaWeb.DashboardLive do
     assign(socket, summary_timer_ref: nil)
   end
 
-  defp schedule_title_generation(socket, body) do
-    if timer = socket.assigns[:ticket_title_timer_ref] do
-      Process.cancel_timer(timer)
-    end
-
-    generation = (socket.assigns[:ticket_title_generation] || 0) + 1
-    timer_ref = Process.send_after(self(), {:generate_ticket_title, generation}, 1_500)
-
-    assign(socket,
-      ticket_title_generation: generation,
-      ticket_title_timer_ref: timer_ref,
-      ticket_body_for_title: body
-    )
-  end
-
-  defp cancel_title_generation(socket) do
-    if timer = socket.assigns[:ticket_title_timer_ref] do
-      Process.cancel_timer(timer)
-    end
-
-    assign(socket, ticket_title_timer_ref: nil)
-  end
-
   # Country context generation (debounced)
 
   defp schedule_context_generation(socket) do
@@ -9031,7 +8845,6 @@ defmodule GlossiaWeb.DashboardLive do
     "invitations-table" => "i",
     "tokens-table" => "t",
     "oauth-apps-table" => "a",
-    "discussions-table" => "k",
     "translations-table" => "ts",
     "commits-table" => "c",
     "models" => "md"
@@ -9064,7 +8877,6 @@ defmodule GlossiaWeb.DashboardLive do
         :members -> "/#{handle}/-/members"
         :api_tokens -> "/#{handle}/-/settings/tokens"
         :api_apps -> "/#{handle}/-/settings/apps"
-        :discussions -> "/#{handle}/-/discussions"
         :project_translations -> "/#{handle}/#{project_handle}/-/translations"
         :project_activity -> "/#{handle}/#{project_handle}/-/activity"
         _ -> "/#{handle}"
@@ -9220,16 +9032,6 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
-  defp current_table_state(socket, "discussions-table") do
-    %{
-      search: "",
-      sort: socket.assigns[:discussions_sort_key] || "inserted_at",
-      dir: socket.assigns[:discussions_sort_dir] || "desc",
-      page: 1,
-      filters: socket.assigns[:discussions_active_filters] || %{}
-    }
-  end
-
   defp current_table_state(socket, "projects-table") do
     %{
       search: socket.assigns[:projects_search] || "",
@@ -9279,12 +9081,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp default_sort_key("invitations-table"), do: "email"
   defp default_sort_key("tokens-table"), do: "name"
   defp default_sort_key("oauth-apps-table"), do: "name"
-  defp default_sort_key("discussions-table"), do: "inserted_at"
   defp default_sort_key("translations-table"), do: "inserted_at"
   defp default_sort_key("models"), do: "handle"
   defp default_sort_key(_), do: ""
 
-  defp default_sort_dir("discussions-table"), do: "desc"
   defp default_sort_dir("translations-table"), do: "desc"
   defp default_sort_dir("commits-table"), do: "desc"
   defp default_sort_dir(_), do: "asc"
@@ -9300,11 +9100,6 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp current_sort(socket, "oauth-apps-table"),
     do: {socket.assigns[:apps_sort_key] || "name", socket.assigns[:apps_sort_dir] || "asc"}
-
-  defp current_sort(socket, "discussions-table"),
-    do:
-      {socket.assigns[:discussions_sort_key] || "inserted_at",
-       socket.assigns[:discussions_sort_dir] || "desc"}
 
   defp current_sort(socket, "projects-table"),
     do:
@@ -9324,9 +9119,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp current_sort(_socket, _), do: {"", "asc"}
 
   defp current_filters(socket, "members-table"), do: socket.assigns.members_filters
-
-  defp current_filters(socket, "discussions-table"),
-    do: socket.assigns[:discussions_active_filters] || %{}
 
   defp current_filters(socket, "translations-table"),
     do: socket.assigns[:translations_active_filters] || %{}
@@ -9831,198 +9623,8 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Page: Tickets
+  # Page: Suggestion detail
   # ---------------------------------------------------------------------------
-
-  defp discussions_page(assigns) do
-    case assigns.live_action do
-      :discussions -> discussions_list_page(assigns)
-      :discussion_new -> ticket_new_page(assigns)
-      :discussion_show -> ticket_show_page(assigns)
-    end
-  end
-
-  defp discussions_list_page(assigns) do
-    assigns =
-      assign(assigns,
-        ticket_filters: [
-          %{key: "title", label: gettext("Title"), type: "text"},
-          %{
-            key: "status",
-            label: gettext("Status"),
-            type: "select",
-            options: [
-              %{value: "open", label: gettext("Open")},
-              %{value: "closed", label: gettext("Closed")}
-            ]
-          },
-          %{
-            key: "kind",
-            label: gettext("Type"),
-            type: "select",
-            options: [
-              %{value: "general", label: gettext("General")},
-              %{value: "voice_suggestion", label: gettext("Voice suggestion")},
-              %{value: "glossary_suggestion", label: gettext("Terminology suggestion")}
-            ]
-          },
-          %{key: "inserted_at", label: gettext("Created"), type: "date_range"}
-        ]
-      )
-
-    ~H"""
-    <div class="dash-page">
-      <.page_header
-        title={gettext("Discussions")}
-        description={gettext("Track bugs, suggestions, and discussions.")}
-      >
-        <:actions>
-          <%= if @current_user do %>
-            <.link patch={"/" <> @handle <> "/-/discussions/new"} class="dash-btn dash-btn-primary">
-              {gettext("New discussion")}
-            </.link>
-          <% end %>
-        </:actions>
-      </.page_header>
-      <.resource_table
-        id="discussions-table"
-        rows={@tickets}
-        sort_key={@discussions_sort_key}
-        sort_dir={@discussions_sort_dir}
-        filters={@ticket_filters}
-        active_filters={@discussions_active_filters}
-      >
-        <:col :let={ticket} label={gettext("Number")} key="number" sortable>
-          <.link
-            patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
-            class="resource-link"
-          >
-            {"##{ticket.number}"}
-          </.link>
-        </:col>
-        <:col :let={ticket} label={gettext("Title")} key="title" sortable>
-          <.link
-            patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
-            class="resource-link"
-          >
-            {ticket.title}
-          </.link>
-          <%= if ticket.kind != "general" do %>
-            <span style="margin-left: var(--space-2);">
-              <.badge variant={ticket_kind_variant(ticket.kind)}>
-                {ticket_kind_label(ticket.kind)}
-              </.badge>
-            </span>
-          <% end %>
-        </:col>
-        <:col :let={ticket} label={gettext("Status")} key="status" sortable>
-          <.badge variant={ticket_status_variant(ticket.status)}>
-            {ticket_status_label(ticket.status)}
-          </.badge>
-        </:col>
-        <:col :let={ticket} label={gettext("Created")} key="inserted_at" sortable>
-          {Calendar.strftime(ticket.inserted_at, "%b %d, %Y")}
-        </:col>
-        <:action :let={ticket}>
-          <.link
-            patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
-            class="dash-btn dash-btn-secondary dash-btn-sm"
-          >
-            {gettext("View")}
-          </.link>
-        </:action>
-        <:empty>
-          <div class="dash-empty-state">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <h2>{gettext("No discussions yet")}</h2>
-            <p>{gettext("Create one to track a bug, suggestion, or discussion.")}</p>
-          </div>
-        </:empty>
-      </.resource_table>
-    </div>
-    """
-  end
-
-  defp ticket_new_page(assigns) do
-    ~H"""
-    <div class="dash-page">
-      <.page_header
-        title={gettext("New discussion")}
-        description={gettext("Describe what you want to report or discuss.")}
-      />
-      <.form
-        for={@ticket_form}
-        id="ticket-form"
-        phx-submit="create_discussion"
-        phx-change="discussion_validate"
-        class="ticket-form"
-      >
-        <div class="ticket-form-field">
-          <label for="ticket_title">{gettext("Title")}</label>
-          <div class={["ticket-title-wrapper", @generating_title? && "generating"]}>
-            <input
-              type="text"
-              name="ticket[title]"
-              id="ticket_title"
-              value={@ticket_form[:title].value}
-              placeholder={
-                if @generating_title?,
-                  do: gettext("Generating..."),
-                  else: gettext("Brief summary...")
-              }
-              phx-hook=".TicketTitle"
-              required
-              disabled={@generating_title?}
-            />
-          </div>
-        </div>
-        <div class="ticket-form-field">
-          <label>{gettext("Description")}</label>
-          <.markdown_editor
-            id="ticket-body-editor"
-            name="ticket[body]"
-            value={@ticket_form[:body].value}
-            placeholder={gettext("Provide details...")}
-            rows={6}
-            required
-            upload={get_in(assigns, [:uploads, :ticket_images])}
-          />
-        </div>
-        <div class="ticket-form-actions">
-          <.link patch={"/" <> @handle <> "/-/discussions"} class="dash-btn dash-btn-secondary">
-            {gettext("Cancel")}
-          </.link>
-          <button type="submit" class="dash-btn dash-btn-primary">
-            {gettext("Submit new discussion")}
-          </button>
-        </div>
-      </.form>
-      <script :type={Phoenix.LiveView.ColocatedHook} name=".TicketTitle">
-        export default {
-          mounted() {
-            this.handleEvent("title_generated", ({title}) => {
-              this.el.value = title;
-            });
-          }
-        }
-      </script>
-    </div>
-    """
-  end
 
   defp ticket_show_page(assigns) do
     ~H"""
@@ -10061,13 +9663,13 @@ defmodule GlossiaWeb.DashboardLive do
             <%= if @ticket.status == "open" do %>
               <%= if @can_write do %>
                 <button phx-click="close_discussion" class="dash-btn dash-btn-secondary">
-                  {gettext("Close discussion")}
+                  {ticket_close_label(@ticket)}
                 </button>
               <% end %>
             <% else %>
               <%= if @can_write do %>
                 <button phx-click="reopen_discussion" class="dash-btn dash-btn-secondary">
-                  {gettext("Reopen discussion")}
+                  {ticket_reopen_label(@ticket)}
                 </button>
               <% end %>
             <% end %>
@@ -10146,7 +9748,7 @@ defmodule GlossiaWeb.DashboardLive do
             upload={get_in(assigns, [:uploads, :comment_images])}
           />
           <div class="ticket-reply-actions">
-            <.link patch={"/" <> @handle <> "/-/discussions"} class="dash-btn dash-btn-secondary">
+            <.link patch={ticket_back_path(@handle, @ticket)} class="dash-btn dash-btn-secondary">
               {gettext("Cancel")}
             </.link>
             <button type="submit" class="dash-btn dash-btn-primary">
@@ -10175,6 +9777,23 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_kind_label("glossary_suggestion"), do: gettext("Terminology suggestion")
   defp ticket_kind_label("general"), do: gettext("General")
   defp ticket_kind_label(other), do: other
+
+  defp ticket_close_label(%{kind: kind}) when kind in ["voice_suggestion", "glossary_suggestion"],
+    do: gettext("Close suggestion")
+
+  defp ticket_close_label(_ticket), do: gettext("Close")
+
+  defp ticket_reopen_label(%{kind: kind})
+       when kind in ["voice_suggestion", "glossary_suggestion"],
+       do: gettext("Reopen suggestion")
+
+  defp ticket_reopen_label(_ticket), do: gettext("Reopen")
+
+  defp ticket_back_path(handle, %{kind: "voice_suggestion"}), do: "/#{handle}/-/voice"
+  defp ticket_back_path(handle, %{kind: "glossary_suggestion"}), do: "/#{handle}/-/terminology"
+  defp ticket_back_path(handle, _ticket), do: "/#{handle}"
+
+  defp suggestion_path(handle, ticket), do: "/#{handle}/-/suggestions/#{ticket.number}"
 
   defp can_apply_suggestion?(ticket, can_voice_write, can_glossary_write) do
     ticket.status == "open" and

@@ -402,6 +402,11 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through [:browser, :platform]
 
+    get "/:handle/-/discussions", RedirectController, :account
+    get "/:handle/-/discussions/new", RedirectController, :account
+    get "/:handle/-/tickets", RedirectController, :account
+    get "/:handle/-/tickets/new", RedirectController, :account
+
     live_session :platform,
       layout: {GlossiaWeb.Layouts, :platform},
       on_mount: [
@@ -422,11 +427,8 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/glossary/suggestion/new", DashboardLive, :glossary_suggestion_new
       live "/:handle/-/glossary/request/new", DashboardLive, :glossary_suggestion_new
       live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
-      live "/:handle/-/discussions", DashboardLive, :discussions
-      live "/:handle/-/discussions/new", DashboardLive, :discussion_new
+      live "/:handle/-/suggestions/:suggestion_number", DashboardLive, :discussion_show
       live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show
-      live "/:handle/-/tickets", DashboardLive, :discussions
-      live "/:handle/-/tickets/new", DashboardLive, :discussion_new
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show
       live "/:handle/-/members", DashboardLive, :members
       live "/:handle/-/settings/tokens", DashboardLive, :api_tokens

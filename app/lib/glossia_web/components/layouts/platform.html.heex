@@ -144,13 +144,6 @@
             navigate={assigns[:glossary_back_path] || "/#{@handle}/-/terminology"}
             selected={@live_action in [:glossary, :glossary_suggestion_new, :glossary_version]}
           />
-          <.sidebar_item
-            label={gettext("Discussions")}
-            icon="message_circle"
-            navigate={"/#{@handle}/-/discussions"}
-            selected={@live_action in [:discussions, :discussion_new, :discussion_show]}
-          />
-
           <% account_sections =
             [
               %{
