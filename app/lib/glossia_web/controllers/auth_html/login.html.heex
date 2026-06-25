@@ -11,7 +11,7 @@
       <div data-part="header">
         <h1 data-part="title">{gettext("Log in to Glossia")}</h1>
         <span data-part="subtitle">
-          {gettext("Welcome back. Choose a provider to continue.")}
+          {gettext("Welcome back. Choose a sign-in method to continue.")}
         </span>
       </div>
 
@@ -34,6 +34,7 @@
 
       <div data-part="providers">
         <Noora.Button.button
+          :if={:github in @providers}
           href={~p"/auth/github"}
           variant="secondary"
           size="large"
@@ -44,6 +45,7 @@
         </Noora.Button.button>
 
         <Noora.Button.button
+          :if={:gitlab in @providers}
           href={~p"/auth/gitlab"}
           variant="secondary"
           size="large"
@@ -62,7 +64,7 @@
           <Noora.Button.button
             variant="secondary"
             size="large"
-            label={gettext("Continue as development user")}
+            label={gettext("Sign in as test user")}
             id="dev-login-btn"
           >
             <:icon_left><Noora.Icon.device_desktop /></:icon_left>

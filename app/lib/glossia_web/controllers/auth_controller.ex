@@ -31,22 +31,32 @@ defmodule GlossiaWeb.AuthController do
   def login(conn, _params) do
     conn
     |> put_layout(false)
-    |> render(:login, dev_routes: @dev_routes, page_title: gettext("Log in"))
+    |> render(:login,
+      dev_routes: @dev_routes,
+      page_title: gettext("Log in"),
+      providers: supported_login_providers()
+    )
   end
 
   def request(conn, %{"provider" => provider}) do
     provider = parse_provider!(provider)
 
-    case Auth.authorize_url(provider) do
-      {:ok, %{url: url, session_params: session_params}} ->
-        conn
-        |> put_session(:oauth_session_params, session_params)
-        |> redirect(external: url)
+    if provider in supported_login_providers() do
+      case Auth.authorize_url(provider) do
+        {:ok, %{url: url, session_params: session_params}} ->
+          conn
+          |> put_session(:oauth_session_params, session_params)
+          |> redirect(external: url)
 
-      {:error, _error} ->
-        conn
-        |> put_flash(:error, gettext("Failed to start authentication. Please try again."))
-        |> redirect(to: ~p"/auth/login")
+        {:error, _error} ->
+          conn
+          |> put_flash(:error, gettext("Failed to start authentication. Please try again."))
+          |> redirect(to: ~p"/auth/login")
+      end
+    else
+      conn
+      |> put_flash(:error, gettext("That sign-in method is not available."))
+      |> redirect(to: ~p"/auth/login")
     end
   end
 
@@ -98,7 +108,7 @@ defmodule GlossiaWeb.AuthController do
          end) do
       nil ->
         conn
-        |> put_flash(:error, gettext("Dev user not found. Run: mix run priv/repo/seeds.exs"))
+        |> put_flash(:error, gettext("Test user not found. Run: mix run priv/repo/seeds.exs"))
         |> redirect(to: ~p"/auth/login")
 
       user ->
@@ -137,4 +147,11 @@ defmodule GlossiaWeb.AuthController do
 
   defp parse_provider!(_),
     do: raise(Glossia.Auth.InvalidProviderError, message: "invalid provider")
+
+  defp supported_login_providers do
+    :glossia
+    |> Application.get_env(:oauth_providers, [])
+    |> Keyword.take([:github, :gitlab])
+    |> Keyword.keys()
+  end
 end
