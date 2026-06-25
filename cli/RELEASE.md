@@ -1,25 +1,32 @@
-# CLI Release
+# Command Line Interface Release
 
-The Glossia monorepo auto-releases the CLI from `main` whenever a conventional
-commit touching `cli/**` qualifies for a semver bump (`feat:`, `fix:`, etc.).
+The Glossia monorepo auto-releases the command line interface from `main`
+whenever a conventional commit touching `cli/**` qualifies for a semver bump
+(`feat:`, `fix:`, etc.).
 
 The release workflow lives at `.github/workflows/release.yml` and uses the root
-`cliff.toml` config. CLI releases use the `cli-v*` tag line.
+`cliff.toml` config. Command line releases use the `cli-v*` tag line.
 
 ## Flow
 
 1. On every push to `main`, the `Release` workflow runs `git cliff` with
    `--include-path 'cli/**' --unreleased --bump`. If the unreleased section
-   contains CLI release notes, the workflow proceeds.
+   contains command line release notes, the workflow proceeds.
 2. `git cliff --include-path 'cli/**' --bumped-version` computes the next tag
-   (for example `cli-v0.16.0`) from the latest CLI release tag.
+   (for example `cli-v0.16.0`) from the latest command line release tag.
 3. `CHANGELOG.md` is regenerated from history, committed as
    `[Release] glossia <tag>`, and tagged.
-4. Cross-platform CLI archives + checksums are built.
-5. The release commit and tag are pushed, and a GitHub Release is created
-   with the archives + checksum files attached as assets. The release body is
-   rendered by `git-cliff` using a dedicated release-notes template and
-   GitHub PR metadata.
+4. Cross-platform command line archives + checksums are built.
+5. The release commit and tag are pushed.
+6. The release job reads the generated `glossia-releases` bucket credentials
+   from 1Password and uploads the archives + checksum files to public object
+   storage at:
+
+   - `https://releases.glossia.ai/cli/<version>/`
+   - `https://releases.glossia.ai/cli/latest/`
+
+The release notes are rendered by `git-cliff` using a dedicated release-notes
+template and GitHub pull request metadata.
 
 ## Manual override
 
@@ -45,5 +52,6 @@ Each release version publishes:
 - `glossia-windows-x64.zip`
 - `SHA256SUMS`
 - `SHA512SUMS`
+- `RELEASE_NOTES.md`
 
-These files are attached directly to the GitHub Release for `<version>`.
+These files are uploaded under `cli/<version>/` and mirrored to `cli/latest/`.
