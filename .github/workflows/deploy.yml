@@ -85,7 +85,8 @@ jobs:
               --create-namespace \
               --values infra/helm/platform/values-hetzner.yaml \
               --set rook-ceph-cluster.enabled=false \
-              --set rookObjectStorage.enabled=false
+              --set rookObjectStorage.enabled=false \
+              --set releaseObjectStorage.enabled=false
           fi
 
           mise exec -- kubectl wait --for=condition=Established \
@@ -100,6 +101,7 @@ jobs:
             --values infra/helm/platform/values-hetzner.yaml
 
           mise exec -- kubectl -n glossia wait --for=create secret/glossia-s3 --timeout=30m
+          mise exec -- kubectl -n platform wait --for=create secret/glossia-releases --timeout=30m
 
       - name: Deploy to Kubernetes
         run: |
