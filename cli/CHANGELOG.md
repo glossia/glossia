@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to the Glossia CLI will be documented in this file.
+## What's Changed in cli-v0.17.0
+<!-- RELEASE NOTES START -->
+
+### Features
+
+* publish artifacts to object storage by [@pepicrft](https://github.com/pepicrft)
+
+
+
+**Full Changelog**: https://github.com/glossia/glossia/compare/cli-v0.16.0...cli-v0.17.0
+
 ## What's Changed in cli-v0.16.0
 <!-- RELEASE NOTES START -->
 
