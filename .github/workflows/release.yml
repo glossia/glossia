@@ -128,11 +128,16 @@ jobs:
     name: Publish CLI release
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: production
     needs: [prepare, build-artifacts]
     if: needs.prepare.outputs.should_release == 'true'
     env:
       RELEASE_TAG: ${{ needs.prepare.outputs.tag_name }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      RELEASE_ENDPOINT: https://releases.glossia.ai
+      RELEASE_BUCKET: releases.glossia.ai
+      RELEASE_PREFIX: cli
+      RELEASE_REGION: eu-central-1
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -142,7 +147,9 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           cache: true
-          install_args: git-cliff
+
+      - name: Install tools
+        run: mise install
 
       - name: Download built binaries
         uses: actions/download-artifact@v4
@@ -184,6 +191,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p release
+          cp release-notes.md release/RELEASE_NOTES.md
 
           tar -C dist/artifacts/binary-linux-x64 -czf release/glossia-linux-x64.tar.gz glossia
           tar -C dist/artifacts/binary-linux-arm64 -czf release/glossia-linux-arm64.tar.gz glossia
@@ -201,10 +209,63 @@ jobs:
       - name: Push release commit and tag
         run: git push origin main --follow-tags
 
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: ${{ env.RELEASE_TAG }}
-          body_path: release-notes.md
-          files: release/*
+      - name: Load release bucket credentials
+        shell: bash
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          read_1password_field() {
+            local field="$1"
+            mise exec -- op read "op://glossia-production/glossia-releases/${field}" 2>/dev/null || true
+          }
+
+          access_key="$(read_1password_field AWS_ACCESS_KEY_ID)"
+          secret_key="$(read_1password_field AWS_SECRET_ACCESS_KEY)"
+
+          if [ -z "${access_key}" ]; then
+            access_key="$(read_1password_field username)"
+          fi
+
+          if [ -z "${secret_key}" ]; then
+            secret_key="$(read_1password_field password)"
+          fi
+
+          if [ -z "${access_key}" ] || [ -z "${secret_key}" ]; then
+            echo "Missing release bucket credentials in 1Password item glossia-releases" >&2
+            exit 1
+          fi
+
+          echo "::add-mask::${access_key}"
+          echo "::add-mask::${secret_key}"
+
+          {
+            echo "AWS_ACCESS_KEY_ID=${access_key}"
+            echo "AWS_SECRET_ACCESS_KEY=${secret_key}"
+            echo "AWS_DEFAULT_REGION=${RELEASE_REGION}"
+          } >> "$GITHUB_ENV"
+
+      - name: Upload release artifacts to object storage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          upload_prefix() {
+            local prefix="$1"
+
+            for artifact in release/*; do
+              local name
+              name="$(basename "$artifact")"
+              curl --fail --show-error --silent --retry 3 \
+                --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
+                --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+                --upload-file "$artifact" \
+                "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${prefix}/${name}"
+            done
+          }
+
+          upload_prefix "${RELEASE_VERSION}"
+          upload_prefix "latest"
+
+          printf 'Published %s to %s/%s/%s/\n' "${RELEASE_TAG}" "${RELEASE_ENDPOINT}" "${RELEASE_PREFIX}" "${RELEASE_VERSION}"
