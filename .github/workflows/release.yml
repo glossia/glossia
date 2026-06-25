@@ -198,6 +198,30 @@ jobs:
           sha256sum *.tar.gz *.zip > SHA256SUMS
           sha512sum *.tar.gz *.zip > SHA512SUMS
 
+          {
+            printf '<!doctype html>\n'
+            printf '<html lang="en">\n'
+            printf '<head>\n'
+            printf '  <meta charset="utf-8">\n'
+            printf '  <meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            printf '  <title>Glossia command line %s</title>\n' "${RELEASE_TAG}"
+            printf '</head>\n'
+            printf '<body>\n'
+            printf '  <h1>Glossia command line %s</h1>\n' "${RELEASE_TAG}"
+            printf '  <ul>\n'
+
+            for file in RELEASE_NOTES.md SHA256SUMS SHA512SUMS *.tar.gz *.zip; do
+              if [ -f "$file" ]; then
+                size="$(wc -c < "$file" | tr -d ' ')"
+                printf '    <li><a href="%s">%s</a> <span>%s bytes</span></li>\n' "$file" "$file" "$size"
+              fi
+            done
+
+            printf '  </ul>\n'
+            printf '</body>\n'
+            printf '</html>\n'
+          } > index.html
+
       - name: Push release tag
         run: git push origin "${RELEASE_TAG}"
 
@@ -243,18 +267,40 @@ jobs:
         run: |
           set -euo pipefail
 
+          upload_file() {
+            local artifact="$1"
+            local key="$2"
+            local content_type="${3:-binary/octet-stream}"
+
+            curl --fail --show-error --silent --retry 3 \
+              --header "Content-Type: ${content_type}" \
+              --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
+              --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+              --request PUT \
+              --data-binary "@${artifact}" \
+              "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}"
+          }
+
           upload_prefix() {
             local prefix="$1"
 
             for artifact in release/*; do
               local name
+              local content_type
               name="$(basename "$artifact")"
-              curl --fail --show-error --silent --retry 3 \
-                --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
-                --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
-                --upload-file "$artifact" \
-                "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${prefix}/${name}"
+              content_type="binary/octet-stream"
+
+              if [ "$name" = "index.html" ]; then
+                content_type="text/html; charset=utf-8"
+              fi
+
+              upload_file "$artifact" "${prefix}/${name}" "$content_type"
             done
+
+            upload_file \
+              release/index.html \
+              "${prefix}/" \
+              "text/html; charset=utf-8"
           }
 
           upload_prefix "${RELEASE_VERSION}"
