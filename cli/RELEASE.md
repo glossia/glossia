@@ -18,8 +18,8 @@ The release workflow lives at `.github/workflows/release.yml` and uses the root
 3. Cross-platform command line archives + checksums are built.
 4. The release tag is pushed.
 5. The release job reads the generated `glossia-releases` bucket credentials
-   from 1Password and uploads the archives + checksum files to public object
-   storage at:
+   from 1Password and uploads the archives, checksum files, release notes, and
+   browser index page to public object storage at:
 
    - `https://releases.glossia.ai/cli/<version>/`
    - `https://releases.glossia.ai/cli/latest/`
@@ -55,5 +55,9 @@ Each release version publishes:
 - `SHA256SUMS`
 - `SHA512SUMS`
 - `RELEASE_NOTES.md`
+- `index.html`
 
 These files are uploaded under `cli/<version>/` and mirrored to `cli/latest/`.
+The generated `index.html` file is also uploaded as the trailing-slash object
+for each prefix, so opening `https://releases.glossia.ai/cli/latest/` in a
+browser shows the file list instead of the object storage error page.
