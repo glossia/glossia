@@ -79,7 +79,7 @@ backwards compatibility; `glossia.toml` takes precedence at runtime.
 - A change that ignores `glossia.toml`'s `provider` when both files
   set one (the runtime file must win).
 - A new public CLI flag that overlaps with `glossia.toml` settings
-  without a precedence rule documented in `cli/README.md`.
+  without a clear precedence rule in the public docs.
 
 ---
 
@@ -170,7 +170,7 @@ timeouts, and provider quirks live in one place.
 
 ---
 
-## 9. Release automation — `RELEASE.md`, conventional commits, `cliff.toml`
+## 9. Release automation — conventional commits, `cliff.toml`
 
 The CLI ships via git-cliff release notes and conventional commits.
 
@@ -180,7 +180,7 @@ The CLI ships via git-cliff release notes and conventional commits.
   change) without a `feat:` / `fix:` / `BREAKING CHANGE:` conventional
   commit prefix — release notes group on these.
 - A `Cargo.toml` version bump that doesn't go through the release flow
-  documented in `cli/RELEASE.md`.
+  implemented in `.github/workflows/release.yml`.
 
 ### Do not flag
 
@@ -194,7 +194,7 @@ The CLI ships via git-cliff release notes and conventional commits.
 ### Flag (Severity: medium)
 
 - A workflow that builds the CLI without a release-artifact step
-  matching the platforms documented in `cli/RELEASE.md`.
+  matching the platforms published by `.github/workflows/release.yml`.
 - Hard-coded secrets, tokens, or registry URLs in workflow YAML.
 
 ---
