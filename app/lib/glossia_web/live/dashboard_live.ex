@@ -3537,44 +3537,64 @@ defmodule GlossiaWeb.DashboardLive do
           <div class="voice-section-divider"></div>
 
           <div class="voice-section" id="voice-overrides">
-            <div class="voice-section-info">
-              <h2>{gettext("Language overrides")}</h2>
-              <p>
-                {gettext(
-                  "Customize the voice for specific languages. Fields left empty will fall back to the base voice above."
-                )}
-              </p>
-            </div>
-            <Noora.Card.card_section class="voice-card">
-              <div class={[@overrides != [] && "voice-card-fields"]} id="override-list">
-                <%= for {override, idx} <- Enum.with_index(@overrides) do %>
-                  <Noora.Card.card_section
-                    class={
-                      "voice-override-block" <>
-                        if(voice_override_changed?(override, @original_overrides),
-                          do: " voice-override-block-changed",
-                          else: ""
-                        )
-                    }
-                    data-override-index={idx}
+            <div class="voice-section-info voice-section-info-with-action">
+              <div data-part="copy">
+                <h2>{gettext("Language overrides")}</h2>
+                <p>
+                  {gettext(
+                    "Customize the voice for specific languages. Fields left empty will fall back to the base voice above."
+                  )}
+                </p>
+              </div>
+              <%= if @can_voice_submit? do %>
+                <div data-part="actions">
+                  <Noora.Button.button
+                    type="button"
+                    label={gettext("Add language override")}
+                    variant="secondary"
+                    size="medium"
+                    phx-click="add_override"
                   >
-                    <div class="voice-override-header">
-                      <span class="voice-override-locale">
-                        {if voice_override_value(override, :locale) != "",
-                          do: voice_override_value(override, :locale),
-                          else: gettext("New override")}
+                    <:icon_left><Noora.Icon.plus /></:icon_left>
+                  </Noora.Button.button>
+                </div>
+              <% end %>
+            </div>
+            <div class="voice-overrides-list" id="override-list">
+              <%= for {override, idx} <- Enum.with_index(@overrides) do %>
+                <% override_changed? = voice_override_changed?(override, @original_overrides) %>
+                <% override_locale = voice_override_value(override, :locale) %>
+                <Noora.Card.card_section
+                  class="voice-override-panel"
+                  data-override-index={idx}
+                  data-changed={override_changed?}
+                >
+                  <div data-part="header">
+                    <div data-part="title-group">
+                      <span data-part="title">
+                        {if override_locale != "", do: override_locale, else: gettext("New override")}
                       </span>
-                      <%= if @can_voice_submit? do %>
+                      <Noora.Badge.badge
+                        :if={override_changed?}
+                        label={gettext("Changed")}
+                        color="primary"
+                        style="light-fill"
+                      />
+                    </div>
+                    <%= if @can_voice_submit? do %>
+                      <div data-part="actions">
                         <Noora.Button.button
                           type="button"
                           label={gettext("Remove")}
-                          variant="destructive"
+                          variant="secondary"
                           size="small"
                           phx-click="remove_override"
                           phx-value-index={idx}
                         />
-                      <% end %>
-                    </div>
+                      </div>
+                    <% end %>
+                  </div>
+                  <div data-part="content">
                     <div class="voice-override-fields">
                       <div class="voice-field">
                         <Noora.Label.label label={gettext("Language")} />
@@ -3658,22 +3678,10 @@ defmodule GlossiaWeb.DashboardLive do
                         />
                       </div>
                     </div>
-                  </Noora.Card.card_section>
-                <% end %>
-              </div>
-              <%= if @can_voice_submit? do %>
-                <div class="voice-card-footer">
-                  <Noora.Button.button
-                    type="button"
-                    label={gettext("Add language override")}
-                    variant="secondary"
-                    phx-click="add_override"
-                  >
-                    <:icon_left><Noora.Icon.plus /></:icon_left>
-                  </Noora.Button.button>
-                </div>
+                  </div>
+                </Noora.Card.card_section>
               <% end %>
-            </Noora.Card.card_section>
+            </div>
           </div>
 
           <%= if @versions != [] do %>
