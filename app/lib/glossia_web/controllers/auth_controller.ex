@@ -29,7 +29,9 @@ defmodule GlossiaWeb.AuthController do
        @oauth_rate_limit when action in [:request, :callback, :dev_login]
 
   def login(conn, _params) do
-    render(conn, :login, dev_routes: @dev_routes, page_title: gettext("Log in"))
+    conn
+    |> put_layout(false)
+    |> render(:login, dev_routes: @dev_routes, page_title: gettext("Log in"))
   end
 
   def request(conn, %{"provider" => provider}) do
