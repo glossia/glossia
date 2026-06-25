@@ -176,9 +176,13 @@ jobs:
           ' "${item_template}" > "${updated_template}"
 
           if mise exec -- op item get glossia-releases --vault glossia-production >/dev/null 2>&1; then
-            mise exec -- op item edit glossia-releases --vault glossia-production --template "${updated_template}" < /dev/null >/dev/null
+            if ! mise exec -- op item edit glossia-releases --vault glossia-production --template "${updated_template}" < /dev/null >/dev/null; then
+              echo "::warning::Unable to update op://glossia-production/glossia-releases. Grant the 1Password service account item edit access or update the item manually before publishing command line interface releases."
+            fi
           else
-            mise exec -- op item create --vault glossia-production --template "${updated_template}" < /dev/null >/dev/null
+            if ! mise exec -- op item create --vault glossia-production --template "${updated_template}" < /dev/null >/dev/null; then
+              echo "::warning::Unable to create op://glossia-production/glossia-releases. Grant the 1Password service account item create access or create the item manually before publishing command line interface releases."
+            fi
           fi
 
       - name: Deploy to Kubernetes
