@@ -411,10 +411,33 @@ kubectl -n platform wait --for=condition=Ready cephcluster/rook-ceph --timeout=3
 kubectl -n platform get cephobjectstore glossia-s3
 kubectl -n "${APP_NS}" get objectbucketclaim glossia-s3
 kubectl -n platform get networkpolicy glossia-s3-rgw-ingress
+kubectl -n platform get cephobjectstore glossia-releases-s3
+kubectl -n platform get objectbucketclaim glossia-releases
+kubectl -n platform get ingress glossia-releases
+kubectl -n platform get networkpolicy glossia-releases-s3-rgw-ingress
 
 # The app bucket is intentionally cluster-internal. The app points at the
 # in-cluster Rook Ceph Object Gateway service, and the Kubernetes
 # NetworkPolicy is enforced by Cilium.
+#
+# Release artifacts use a separate public object gateway at
+# https://releases.glossia.ai. The bucket name is also `releases.glossia.ai`,
+# so public artifact paths are rooted at the host:
+# https://releases.glossia.ai/cli/<version>/glossia-linux-x64.tar.gz.
+# A Helm hook job applies anonymous download access to that bucket; write
+# access stays scoped to the generated `glossia-releases` bucket credentials.
+#
+# After the first bucket claim reconciliation, copy the generated write
+# credentials into the `glossia-releases` 1Password item in the
+# `glossia-production` vault. The release workflow reads these fields directly
+# and masks them before signing uploads:
+kubectl -n platform get secret glossia-releases \
+  -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 --decode
+kubectl -n platform get secret glossia-releases \
+  -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 --decode
+op item edit glossia-releases --vault glossia-production \
+  AWS_ACCESS_KEY_ID[text]="<generated access key>" \
+  AWS_SECRET_ACCESS_KEY[password]="<generated secret key>"
 
 # 5. ESO ClusterSecretStore (1Password). Use a DEDICATED 1Password
 #    Service Account with READ on only the glossia-production vault, so

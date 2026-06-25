@@ -163,6 +163,46 @@ rook-ceph-cluster:
         enabled: false
       route:
         enabled: false
+    - name: glossia-releases-s3
+      spec:
+        metadataPool:
+          failureDomain: host
+          replicated:
+            size: 3
+        dataPool:
+          failureDomain: host
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          parameters:
+            bulk: "true"
+        preservePoolsOnDelete: true
+        gateway:
+          port: 80
+          instances: 2
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          priorityClassName: system-cluster-critical
+        hosting:
+          dnsNames:
+            - releases.glossia.ai
+      storageClass:
+        enabled: true
+        name: glossia-releases-s3-bucket
+        reclaimPolicy: Retain
+        volumeBindingMode: Immediate
+        annotations: {}
+        labels: {}
+        parameters:
+          region: eu-central-1
+      ingress:
+        enabled: false
+      route:
+        enabled: false
 
 rookObjectStorage:
   enabled: true
@@ -186,5 +226,21 @@ rookObjectStorage:
       minReplicas: 2
       maxReplicas: 8
       cpuAverageUtilization: 65
+  networkPolicy:
+    enabled: true
+
+releaseObjectStorage:
+  enabled: true
+  clusterNamespace: platform
+  objectStoreName: glossia-releases-s3
+  bucketClaim:
+    enabled: true
+    namespace: platform
+    name: glossia-releases
+    bucketName: releases.glossia.ai
+    storageClassName: glossia-releases-s3-bucket
+  ingress:
+    enabled: true
+    host: releases.glossia.ai
   networkPolicy:
     enabled: true

@@ -307,6 +307,42 @@ rookObjectStorage:
       app.kubernetes.io/name: glossia
       app.kubernetes.io/instance: glossia
 
+# Public release artifact storage. This intentionally uses a separate Rook
+# Object Gateway from the app bucket so release downloads can be public without
+# exposing the app object storage endpoint.
+releaseObjectStorage:
+  enabled: false
+  clusterNamespace: platform
+  objectStoreName: glossia-releases-s3
+  bucketClaim:
+    enabled: true
+    namespace: platform
+    name: glossia-releases
+    bucketName: releases.glossia.ai
+    storageClassName: glossia-releases-s3-bucket
+    additionalConfig: {}
+  publicAccess:
+    enabled: true
+    image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+    backoffLimit: 30
+    activeDeadlineSeconds: 1800
+    ttlSecondsAfterFinished: 86400
+  ingress:
+    enabled: false
+    className: nginx
+    host: releases.glossia.ai
+    clusterIssuer: letsencrypt-cloudflare
+    tlsSecretName: glossia-releases-tls
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  networkPolicy:
+    enabled: false
+    servicePort: 80
+    podPort: 8080
+    allowedNamespaceNames:
+      - platform
+
 # Whether to emit the ClusterIssuer template below. Turn off if you manage
 # cert-manager issuers with a separate GitOps process.
 clusterIssuer:
