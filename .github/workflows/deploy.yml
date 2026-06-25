@@ -121,9 +121,10 @@ jobs:
               "AWS_SECRET_ACCESS_KEY[concealed]=${secret_key}" \
               >/dev/null
           else
-            mise exec -- op item create --category=password --title glossia-releases --vault glossia-production \
-              "AWS_ACCESS_KEY_ID[text]=${access_key}" \
-              "AWS_SECRET_ACCESS_KEY[concealed]=${secret_key}" \
+            mise exec -- op item create --category=login --title glossia-releases --vault glossia-production \
+              --url https://releases.glossia.ai \
+              "username=${access_key}" \
+              "password=${secret_key}" \
               >/dev/null
           fi
 
