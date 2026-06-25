@@ -4119,6 +4119,14 @@ defmodule GlossiaWeb.DashboardLive do
                         </div>
 
                         <div class="terminology-translations-list">
+                          <div
+                            :if={(entry.translations || []) != []}
+                            class="terminology-translations-columns"
+                          >
+                            <span>{gettext("Language")}</span>
+                            <span>{gettext("Translation")}</span>
+                            <span aria-hidden="true"></span>
+                          </div>
                           <%= for {translation, tidx} <- Enum.with_index(entry.translations || []) do %>
                             <% translation_changed? =
                               glossary_translation_changed?(
@@ -4134,7 +4142,6 @@ defmodule GlossiaWeb.DashboardLive do
                               data-changed={translation_changed?}
                             >
                               <div class="voice-field terminology-translation-locale">
-                                <Noora.Label.label label={gettext("Language")} />
                                 <Noora.Select.select
                                   id={"glossary-entry-#{idx}-translation-#{tidx}-locale"}
                                   name={"entries[#{idx}][translations][#{tidx}][locale]"}
@@ -4162,9 +4169,9 @@ defmodule GlossiaWeb.DashboardLive do
                                   id={"glossary-entry-#{idx}-translation-#{tidx}-value"}
                                   name={"entries[#{idx}][translations][#{tidx}][translation]"}
                                   value={glossary_translation_value(translation, :translation)}
-                                  label={gettext("Translation")}
                                   placeholder={gettext("Approved translation")}
                                   disabled={!@can_glossary_submit?}
+                                  aria-label={gettext("Translation")}
                                   phx-debounce="300"
                                 />
                               </div>
@@ -7102,13 +7109,13 @@ defmodule GlossiaWeb.DashboardLive do
           )}
         </p>
       </div>
-      <div class="voice-card">
+      <Noora.Card.card_section class="voice-card">
         <div class="voice-card-fields">
           <%= if @change_details == [] do %>
             <p class="muted">{gettext("No proposed terminology changes detected.")}</p>
           <% else %>
-            <div class="glossary-suggestion-list">
-              <%= for change <- @change_details do %>
+            <div class="terminology-entries-list terminology-suggestion-list">
+              <%= for {change, idx} <- Enum.with_index(@change_details) do %>
                 <% entry = glossary_change_display_entry(change) %>
                 <% term_class = glossary_change_field_class(change, @original_glossary_entries, :term) %>
                 <% case_sensitive_class =
@@ -7117,72 +7124,132 @@ defmodule GlossiaWeb.DashboardLive do
                   glossary_change_field_class(change, @original_glossary_entries, :definition) %>
                 <% translation_rows =
                   glossary_change_translation_rows(change, @original_glossary_entries) %>
+                <% show_header_fields? = not is_nil(term_class) or not is_nil(case_sensitive_class) %>
                 <% single_header_field? =
                   (not is_nil(term_class) and is_nil(case_sensitive_class)) or
                     (is_nil(term_class) and not is_nil(case_sensitive_class)) %>
-                <div class={[
-                  "glossary-entry-block",
-                  glossary_suggestion_change_block_class(change.kind)
-                ]}>
-                  <div class="voice-override-header">
-                    <span class="voice-override-locale">{change.term}</span>
-                    <span class={glossary_change_badge_class(change.kind)}>
-                      {glossary_change_kind_label(change.kind)}
-                    </span>
+                <Noora.Card.card_section
+                  class="terminology-entry-panel terminology-suggestion-panel"
+                  data-change-kind={glossary_change_kind_data(change.kind)}
+                >
+                  <div data-part="header">
+                    <div data-part="title-group">
+                      <span data-part="title">{change.term}</span>
+                      <Noora.Badge.badge
+                        label={glossary_change_kind_label(change.kind)}
+                        color={glossary_change_badge_color(change.kind)}
+                        style="light-fill"
+                      />
+                    </div>
                   </div>
-                  <div class="voice-override-fields">
-                    <div class={["voice-field-row", single_header_field? && "voice-field-row-single"]}>
-                      <div :if={term_class} class={["voice-field", term_class]}>
-                        <label>{gettext("Term")}</label>
-                        <div class="glossary-readonly-value">
-                          {glossary_readonly_text(map_get(entry, :term, ""))}
+                  <div data-part="content">
+                    <div class="voice-override-fields">
+                      <div
+                        :if={show_header_fields?}
+                        class={[
+                          "voice-field-row",
+                          single_header_field? && "voice-field-row-single"
+                        ]}
+                      >
+                        <div :if={term_class} class={["voice-field", term_class]}>
+                          <Noora.TextInput.text_input
+                            id={"glossary-suggestion-entry-#{idx}-term"}
+                            name={"readonly_glossary_suggestion[#{idx}][term]"}
+                            value={glossary_readonly_text(map_get(entry, :term, ""))}
+                            label={gettext("Term")}
+                            disabled
+                          />
+                        </div>
+                        <div :if={case_sensitive_class} class={["voice-field", case_sensitive_class]}>
+                          <Noora.Label.label label={gettext("Case sensitive")} />
+                          <Noora.Select.select
+                            id={"glossary-suggestion-entry-#{idx}-case-sensitive"}
+                            name={"readonly_glossary_suggestion[#{idx}][case_sensitive]"}
+                            value={glossary_case_sensitive_value(entry)}
+                            label={gettext("No")}
+                            disabled
+                          >
+                            <:item value="false" label={gettext("No")} icon="settings" />
+                            <:item value="true" label={gettext("Yes")} icon="check" />
+                          </Noora.Select.select>
                         </div>
                       </div>
-                      <div :if={case_sensitive_class} class={["voice-field", case_sensitive_class]}>
-                        <label>{gettext("Case sensitive")}</label>
-                        <div class="glossary-readonly-value">
-                          <%= if map_get(entry, :case_sensitive, false) do %>
-                            {gettext("Yes")}
-                          <% else %>
-                            {gettext("No")}
+                      <div :if={definition_class} class={["voice-field", definition_class]}>
+                        <Noora.TextInput.text_input
+                          id={"glossary-suggestion-entry-#{idx}-definition"}
+                          name={"readonly_glossary_suggestion[#{idx}][definition]"}
+                          value={glossary_readonly_text(map_get(entry, :definition, ""))}
+                          label={gettext("Definition")}
+                          disabled
+                        />
+                      </div>
+
+                      <div :if={translation_rows != []} class="terminology-translations-section">
+                        <div class="terminology-translations-header">
+                          <Noora.Label.label label={gettext("Translations")} />
+                        </div>
+                        <div class="terminology-translations-columns">
+                          <span>{gettext("Language")}</span>
+                          <span>{gettext("Translation")}</span>
+                          <span>{gettext("Status")}</span>
+                        </div>
+
+                        <div class="terminology-translations-list">
+                          <%= for {row, row_idx} <- Enum.with_index(translation_rows) do %>
+                            <div
+                              class="terminology-translation-row terminology-suggestion-translation-row"
+                              data-change-kind={glossary_change_kind_data(row.kind)}
+                            >
+                              <div class="voice-field terminology-translation-locale">
+                                <Noora.Select.select
+                                  id={"glossary-suggestion-entry-#{idx}-translation-#{row_idx}-locale"}
+                                  name={
+                                    "readonly_glossary_suggestion[#{idx}][translations][#{row_idx}][locale]"
+                                  }
+                                  value={glossary_translation_value(row.translation, :locale)}
+                                  label={gettext("Select language")}
+                                  disabled
+                                >
+                                  <:item
+                                    :for={{code, name} <- locale_options()}
+                                    value={code}
+                                    label={"#{code} - #{name}"}
+                                    icon="language"
+                                  />
+                                </Noora.Select.select>
+                              </div>
+                              <div class="voice-field terminology-translation-value">
+                                <Noora.TextInput.text_input
+                                  id={"glossary-suggestion-entry-#{idx}-translation-#{row_idx}-value"}
+                                  name={
+                                    "readonly_glossary_suggestion[#{idx}][translations][#{row_idx}][translation]"
+                                  }
+                                  value={
+                                    glossary_readonly_text(map_get(row.translation, :translation, ""))
+                                  }
+                                  disabled
+                                  aria-label={gettext("Translation")}
+                                />
+                              </div>
+                              <div class="terminology-translation-actions">
+                                <Noora.Badge.badge
+                                  label={glossary_change_kind_label(row.kind)}
+                                  color={glossary_change_badge_color(row.kind)}
+                                  style="light-fill"
+                                />
+                              </div>
+                            </div>
                           <% end %>
                         </div>
                       </div>
                     </div>
-                    <div :if={definition_class} class={["voice-field", definition_class]}>
-                      <label>{gettext("Definition")}</label>
-                      <div class="glossary-readonly-value multiline">
-                        {glossary_readonly_text(map_get(entry, :definition, ""))}
-                      </div>
-                    </div>
-
-                    <div :if={translation_rows != []} class="glossary-translations-section">
-                      <div class="glossary-translations-header">
-                        <span class="voice-diff-label">{gettext("Translations")}</span>
-                      </div>
-
-                      <%= for row <- translation_rows do %>
-                        <div class={["glossary-translation-row", row.class]}>
-                          <div class="voice-field">
-                            <div class="glossary-readonly-value">
-                              {glossary_readonly_text(map_get(row.translation, :locale, ""))}
-                            </div>
-                          </div>
-                          <div class="voice-field" style="flex: 1;">
-                            <div class="glossary-readonly-value">
-                              {glossary_readonly_text(map_get(row.translation, :translation, ""))}
-                            </div>
-                          </div>
-                        </div>
-                      <% end %>
-                    </div>
                   </div>
-                </div>
+                </Noora.Card.card_section>
               <% end %>
             </div>
           <% end %>
         </div>
-      </div>
+      </Noora.Card.card_section>
     </div>
     """
   end
@@ -7217,15 +7284,15 @@ defmodule GlossiaWeb.DashboardLive do
   defp glossary_change_display_entry(%{kind: :removed, previous: previous}), do: previous || %{}
   defp glossary_change_display_entry(%{current: current}), do: current || %{}
 
-  defp glossary_suggestion_change_block_class(:added), do: "glossary-entry-block-added"
-  defp glossary_suggestion_change_block_class(:removed), do: "glossary-entry-block-removed"
-  defp glossary_suggestion_change_block_class(:updated), do: "glossary-entry-block-changed"
-  defp glossary_suggestion_change_block_class(_), do: "glossary-entry-block-changed"
+  defp glossary_change_kind_data(:added), do: "added"
+  defp glossary_change_kind_data(:removed), do: "removed"
+  defp glossary_change_kind_data(:updated), do: "updated"
+  defp glossary_change_kind_data(_), do: "changed"
 
-  defp glossary_change_badge_class(:added), do: "voice-diff-badge voice-diff-badge-added"
-  defp glossary_change_badge_class(:removed), do: "voice-diff-badge voice-diff-badge-removed"
-  defp glossary_change_badge_class(:updated), do: "voice-diff-badge voice-diff-badge-updated"
-  defp glossary_change_badge_class(_), do: "voice-diff-badge"
+  defp glossary_change_badge_color(:added), do: "success"
+  defp glossary_change_badge_color(:removed), do: "destructive"
+  defp glossary_change_badge_color(:updated), do: "primary"
+  defp glossary_change_badge_color(_), do: "neutral"
 
   defp glossary_change_field_class(%{kind: :added}, _original_entries, _field),
     do: "voice-field-added"
@@ -7252,7 +7319,7 @@ defmodule GlossiaWeb.DashboardLive do
     |> Enum.map(fn pair ->
       %{
         translation: glossary_translation_from_pair(pair),
-        class: "glossary-translation-row-added"
+        kind: :added
       }
     end)
   end
@@ -7264,7 +7331,7 @@ defmodule GlossiaWeb.DashboardLive do
     |> Enum.map(fn pair ->
       %{
         translation: glossary_translation_from_pair(pair),
-        class: "glossary-translation-row-removed"
+        kind: :removed
       }
     end)
   end
@@ -7289,7 +7356,7 @@ defmodule GlossiaWeb.DashboardLive do
       |> Enum.map(fn pair ->
         %{
           translation: glossary_translation_from_pair(pair),
-          class: "glossary-translation-row-added"
+          kind: :added
         }
       end)
 
@@ -7299,7 +7366,7 @@ defmodule GlossiaWeb.DashboardLive do
       |> Enum.map(fn pair ->
         %{
           translation: glossary_translation_from_pair(pair),
-          class: "glossary-translation-row-removed"
+          kind: :removed
         }
       end)
 

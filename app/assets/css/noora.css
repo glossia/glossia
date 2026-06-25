@@ -82,10 +82,13 @@
   --noora-button-border-secondary-active: 0 0 0 var(--space-px) var(--color-border-strong);
   --noora-button-border-secondary-disabled: 0 0 0 var(--space-px) var(--color-border);
   --noora-badge-fill-primary: var(--color-primary);
+  --noora-badge-fill-destructive: var(--color-error);
   --noora-badge-fill-success: var(--color-success);
   --noora-badge-fill-warning: var(--color-warning);
   --noora-badge-light-fill-primary-background: var(--color-primary-soft);
   --noora-badge-light-fill-primary-label: var(--color-primary);
+  --noora-badge-light-fill-destructive-background: var(--color-error-soft);
+  --noora-badge-light-fill-destructive-label: var(--color-error);
   --noora-badge-light-fill-success-background: var(--color-success-soft);
   --noora-badge-light-fill-success-label: var(--color-success);
   --noora-badge-light-fill-warning-background: var(--color-warning-soft);
@@ -477,8 +480,16 @@
 }
 
 .noora-shell .noora-table table:has(td)::after {
-  box-shadow: 0 0 0 var(--space-px) var(--color-border);
-  border-radius: var(--radius-sm);
+  box-shadow: none;
+  border-radius: var(--space-0);
+}
+
+.noora-shell .noora-table table tbody tr:first-child td:first-child {
+  border-top-left-radius: var(--space-0);
+}
+
+.noora-shell .noora-table table tbody tr:first-child td:last-child {
+  border-top-right-radius: var(--space-0);
 }
 
 .noora-shell .noora-table th {
@@ -765,10 +776,24 @@
   gap: var(--space-2);
 }
 
+.noora-shell .voice-form .terminology-translations-columns {
+  display: grid;
+  grid-template-columns: minmax(var(--space-0), 14rem) minmax(var(--space-0), 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
+}
+
+.noora-shell .voice-form .terminology-translations-columns span:last-child {
+  min-width: var(--space-20);
+  text-align: right;
+}
+
 .noora-shell .voice-form .terminology-translation-row {
   display: grid;
   grid-template-columns: minmax(var(--space-0), 14rem) minmax(var(--space-0), 1fr) auto;
-  align-items: end;
+  align-items: center;
   gap: var(--space-3);
 }
 
@@ -780,8 +805,49 @@
 
 .noora-shell .voice-form .terminology-translation-actions {
   display: flex;
-  align-items: flex-end;
-  padding-bottom: var(--space-1);
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: var(--space-0);
+  min-width: var(--space-20);
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] {
+  box-shadow: 0 0 0 var(--space-px) var(--color-success-mid);
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] > [data-part="header"] {
+  background: var(--color-success-soft);
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] {
+  box-shadow: 0 0 0 var(--space-px) var(--color-error-mid);
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] > [data-part="header"] {
+  background: var(--color-error-soft);
+}
+
+.noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="added"] {
+  border-radius: var(--radius-default);
+  background: var(--color-success-soft);
+  padding: var(--space-2);
+}
+
+.noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="removed"] {
+  border-radius: var(--radius-default);
+  background: var(--color-error-soft);
+  padding: var(--space-2);
+}
+
+.noora-shell .voice-save-bar {
+  left: var(--noora-shell-sidebar-width);
+  padding-right: var(--noora-spacing-8);
+  padding-left: var(--noora-spacing-8);
+}
+
+.noora-shell .voice-save-bar-inner {
+  width: 100%;
+  max-width: none;
 }
 
 @media (max-width: 768px) {
@@ -808,12 +874,22 @@
     grid-template-columns: minmax(var(--space-0), 1fr);
   }
 
+  .noora-shell .voice-form .terminology-translations-columns {
+    display: none;
+  }
+
   .noora-shell .voice-form .terminology-translation-actions {
     padding-bottom: var(--space-0);
   }
 
   .noora-shell .voice-form .terminology-translation-actions .noora-button {
     width: 100%;
+  }
+
+  .noora-shell .voice-save-bar {
+    left: var(--space-0);
+    padding-right: var(--space-4);
+    padding-left: var(--space-4);
   }
 }
 
