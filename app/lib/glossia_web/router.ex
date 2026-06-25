@@ -414,6 +414,10 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/voice/suggestion/new", DashboardLive, :voice_suggestion_new
       live "/:handle/-/voice/request/new", DashboardLive, :voice_suggestion_new
       live "/:handle/-/voice/:version", DashboardLive, :voice_version
+      live "/:handle/-/terminology", DashboardLive, :glossary
+      live "/:handle/-/terminology/suggestion/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/terminology/request/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/terminology/:version", DashboardLive, :glossary_version
       live "/:handle/-/glossary", DashboardLive, :glossary
       live "/:handle/-/glossary/suggestion/new", DashboardLive, :glossary_suggestion_new
       live "/:handle/-/glossary/request/new", DashboardLive, :glossary_suggestion_new

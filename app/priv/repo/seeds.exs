@@ -241,7 +241,7 @@ defmodule Glossia.Seeds do
       ]
     )
 
-    # Glossary: seed terminology entries with per-language translations.
+    # Terminology: seed entries with per-language translations.
     ensure_glossary_versions!(
       dev.account,
       dev,
@@ -269,13 +269,13 @@ defmodule Glossia.Seeds do
               ]
             },
             %{
-              term: "glossary",
+              term: "terminology",
               definition: "A curated list of terms with approved translations per language.",
               case_sensitive: false,
               translations: [
-                %{locale: "es", translation: "glosario"},
-                %{locale: "ja", translation: "\u7528\u8A9E\u96C6"},
-                %{locale: "de", translation: "Glossar"}
+                %{locale: "es", translation: "terminologia"},
+                %{locale: "ja", translation: "\u7528\u8A9E"},
+                %{locale: "de", translation: "Terminologie"}
               ]
             },
             %{
@@ -289,7 +289,7 @@ defmodule Glossia.Seeds do
               ]
             }
           ],
-          change_note: "Initial glossary"
+          change_note: "Initial terminology"
         },
         %{
           entries: [
@@ -316,14 +316,14 @@ defmodule Glossia.Seeds do
               ]
             },
             %{
-              term: "glossary",
+              term: "terminology",
               definition: "A curated list of terms with approved translations per language.",
               case_sensitive: false,
               translations: [
-                %{locale: "es", translation: "glosario"},
-                %{locale: "ja", translation: "\u7528\u8A9E\u96C6"},
-                %{locale: "de", translation: "Glossar"},
-                %{locale: "fr", translation: "glossaire"}
+                %{locale: "es", translation: "terminologia"},
+                %{locale: "ja", translation: "\u7528\u8A9E"},
+                %{locale: "de", translation: "Terminologie"},
+                %{locale: "fr", translation: "terminologie"}
               ]
             },
             %{
@@ -379,7 +379,7 @@ defmodule Glossia.Seeds do
               ]
             }
           ],
-          change_note: "Initial org glossary"
+          change_note: "Initial org terminology"
         }
       ]
     )
@@ -413,9 +413,9 @@ defmodule Glossia.Seeds do
 
     _ticket2 =
       ensure_discussion!(alex.account, alex,
-        title: "Add support for Portuguese (Brazil) glossary",
+        title: "Add support for Portuguese (Brazil) terminology",
         body:
-          "We need pt-BR as a supported language in the glossary section. Right now only pt-PT is available.",
+          "We need pt-BR as a supported language in the terminology section. Right now only pt-PT is available.",
         status: "open"
       )
 
@@ -454,9 +454,9 @@ defmodule Glossia.Seeds do
 
     _glossary_request =
       ensure_discussion!(acme.account, maria,
-        title: "Glossary suggestion: Add billing terms",
+        title: "Terminology suggestion: Add billing terms",
         body:
-          "Proposed glossary update with billing terminology for support and onboarding content.",
+          "Proposed terminology update with billing terminology for support and onboarding content.",
         status: "open",
         kind: "glossary_suggestion",
         metadata: %{
@@ -942,7 +942,7 @@ defmodule Glossia.Seeds do
         source_language: "en",
         target_languages: ["es", "fr"],
         summary:
-          "Translated 3 files into Spanish and French. All translations verified against glossary.",
+          "Translated 3 files into Spanish and French. All translations verified against terminology.",
         started_at: two_hours_ago,
         completed_at: DateTime.add(two_hours_ago, 342, :second)
       })
@@ -958,7 +958,7 @@ defmodule Glossia.Seeds do
        "Source language: en\nTarget languages: es, fr\nStale files: 3\n  - content/blog/getting-started.md (es, fr)\n  - content/blog/getting-started-meta.json (es, fr)",
        ~s({"tool_name":"glossia-cli"})},
       {4, "plan", "Translation plan for 3 files",
-       ~s({"entries":[{"label":"Read voice and glossary configuration","status":"completed"},{"label":"Translate getting-started.md to Spanish","status":"completed"},{"label":"Translate getting-started.md to French","status":"completed"},{"label":"Translate getting-started-meta.json to Spanish","status":"completed"},{"label":"Translate getting-started-meta.json to French","status":"completed"},{"label":"Run glossary validation","status":"completed"}]})},
+       ~s({"entries":[{"label":"Read voice and terminology configuration","status":"completed"},{"label":"Translate getting-started.md to Spanish","status":"completed"},{"label":"Translate getting-started.md to French","status":"completed"},{"label":"Translate getting-started-meta.json to Spanish","status":"completed"},{"label":"Translate getting-started-meta.json to French","status":"completed"},{"label":"Run terminology validation","status":"completed"}]})},
       {5, "tool_call", "glossia voice show",
        ~s({"tool_name":"glossia-cli","command":"glossia voice show"})},
       {6, "tool_result",
@@ -979,7 +979,7 @@ defmodule Glossia.Seeds do
        "Translated content/blog/getting-started.md -> content/fr/blog/getting-started.md",
        ~s({"tool_name":"glossia-cli"})},
       {13, "thought",
-       "Both language translations for the main blog post are done. Now I need to handle the meta JSON file and run glossary validation.",
+       "Both language translations for the main blog post are done. Now I need to handle the meta JSON file and run terminology validation.",
        "{}"},
       {14, "tool_call", "glossia translate content/blog/getting-started-meta.json --lang es,fr",
        ~s({"tool_name":"glossia-cli","command":"glossia translate content/blog/getting-started-meta.json --lang es,fr"})},
@@ -988,10 +988,11 @@ defmodule Glossia.Seeds do
        ~s({"tool_name":"glossia-cli"})},
       {16, "tool_call", "glossia validate --glossary",
        ~s({"tool_name":"glossia-cli","command":"glossia validate --glossary"})},
-      {17, "tool_result", "Glossary validation passed. All terms consistent across translations.",
+      {17, "tool_result",
+       "Terminology validation passed. All terms consistent across translations.",
        ~s({"tool_name":"glossia-cli"})},
       {18, "message",
-       "All translations completed and validated. 3 files translated into Spanish and French. Glossary terms are consistent.",
+       "All translations completed and validated. 3 files translated into Spanish and French. Terminology terms are consistent.",
        "{}"}
     ]
 
@@ -1027,7 +1028,7 @@ defmodule Glossia.Seeds do
        "Source language: en\nTarget languages: ja, de\nStale files: 2\n  - content/blog/advanced-localization.md (ja, de)\n  - content/blog/advanced-localization-meta.json (ja, de)",
        ~s({"tool_name":"glossia-cli"})},
       {4, "plan", "Translation plan for 2 files",
-       ~s({"entries":[{"label":"Read voice and glossary configuration","status":"completed"},{"label":"Translate advanced-localization.md to Japanese","status":"in_progress"},{"label":"Translate advanced-localization.md to German","status":"pending"},{"label":"Translate advanced-localization-meta.json to Japanese and German","status":"pending"},{"label":"Run glossary validation","status":"pending"}]})},
+       ~s({"entries":[{"label":"Read voice and terminology configuration","status":"completed"},{"label":"Translate advanced-localization.md to Japanese","status":"in_progress"},{"label":"Translate advanced-localization.md to German","status":"pending"},{"label":"Translate advanced-localization-meta.json to Japanese and German","status":"pending"},{"label":"Run terminology validation","status":"pending"}]})},
       {5, "tool_call", "glossia voice show",
        ~s({"tool_name":"glossia-cli","command":"glossia voice show"})},
       {6, "tool_result",

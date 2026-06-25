@@ -681,27 +681,32 @@
   justify-content: flex-end;
 }
 
-.noora-shell .voice-form .voice-overrides-list {
+.noora-shell .voice-form .voice-overrides-list,
+.noora-shell .voice-form .terminology-entries-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.noora-shell .voice-form .voice-overrides-list:empty {
+.noora-shell .voice-form .voice-overrides-list:empty,
+.noora-shell .voice-form .terminology-entries-list:empty {
   display: none;
 }
 
-.noora-shell .voice-form .voice-override-panel {
+.noora-shell .voice-form .voice-override-panel,
+.noora-shell .voice-form .terminology-entry-panel {
   gap: var(--space-0);
   overflow: hidden;
   padding: var(--space-0);
 }
 
-.noora-shell .voice-form .voice-override-panel[data-changed="true"] {
+.noora-shell .voice-form .voice-override-panel[data-changed="true"],
+.noora-shell .voice-form .terminology-entry-panel[data-changed="true"] {
   box-shadow: 0 0 0 var(--space-px) var(--color-primary-mid);
 }
 
-.noora-shell .voice-form .voice-override-panel > [data-part="header"] {
+.noora-shell .voice-form .voice-override-panel > [data-part="header"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -711,29 +716,72 @@
   padding: var(--space-3) var(--space-4);
 }
 
-.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title-group"] {
+.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title-group"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title-group"] {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   min-width: var(--space-0);
 }
 
-.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title"] {
+.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title"] {
   color: var(--color-text);
   font: var(--weight-semibold) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
 }
 
-.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="actions"] {
+.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="actions"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="actions"] {
   display: flex;
   flex-shrink: 0;
 }
 
-.noora-shell .voice-form .voice-override-panel > [data-part="content"] {
+.noora-shell .voice-form .voice-override-panel > [data-part="content"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="content"] {
   padding: var(--space-4);
 }
 
-.noora-shell .voice-form .voice-override-panel .voice-override-fields {
+.noora-shell .voice-form .voice-override-panel .voice-override-fields,
+.noora-shell .voice-form .terminology-entry-panel .voice-override-fields {
   padding: var(--space-0);
+}
+
+.noora-shell .voice-form .terminology-translations-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.noora-shell .voice-form .terminology-translations-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.noora-shell .voice-form .terminology-translations-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.noora-shell .voice-form .terminology-translation-row {
+  display: grid;
+  grid-template-columns: minmax(var(--space-0), 14rem) minmax(var(--space-0), 1fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.noora-shell .voice-form .terminology-translation-row[data-changed="true"] {
+  border-radius: var(--radius-default);
+  background: var(--color-primary-soft);
+  padding: var(--space-2);
+}
+
+.noora-shell .voice-form .terminology-translation-actions {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: var(--space-1);
 }
 
 @media (max-width: 768px) {
@@ -748,6 +796,23 @@
   }
 
   .noora-shell .voice-form .voice-section-info-with-action [data-part="actions"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .voice-form .terminology-translations-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .noora-shell .voice-form .terminology-translation-row {
+    grid-template-columns: minmax(var(--space-0), 1fr);
+  }
+
+  .noora-shell .voice-form .terminology-translation-actions {
+    padding-bottom: var(--space-0);
+  }
+
+  .noora-shell .voice-form .terminology-translation-actions .noora-button {
     width: 100%;
   }
 }

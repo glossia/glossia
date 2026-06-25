@@ -261,7 +261,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     socket
     |> assign(
-      page_title: gettext("Glossary"),
+      page_title: gettext("Terminology"),
       glossary: glossary,
       glossary_versions: versions,
       glossary_suggestions: glossary_suggestions,
@@ -278,13 +278,13 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_draft_token: existing_token,
       pending_glossary_suggestion_redirect:
         socket.assigns[:pending_glossary_suggestion_redirect] || false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", existing_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", existing_token),
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
       summary_timer_ref: nil,
       summary_task_ref: nil,
-      breadcrumb_items: [{gettext("Glossary"), "/" <> handle <> "/-/glossary"}]
+      breadcrumb_items: [{gettext("Terminology"), "/" <> handle <> "/-/terminology"}]
     )
   end
 
@@ -331,7 +331,7 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     assign(socket,
-      page_title: gettext("Suggest glossary changes"),
+      page_title: gettext("Suggest terminology changes"),
       glossary: glossary,
       glossary_versions: [],
       glossary_suggestions: [],
@@ -346,15 +346,15 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_form_params: glossary_form_params,
       glossary_draft_token: draft_token,
       pending_glossary_suggestion_redirect: false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", draft_token),
       change_summary: change_summary,
       generating_summary?: false,
       summary_generation: 0,
       summary_timer_ref: nil,
       summary_task_ref: nil,
       breadcrumb_items: [
-        {gettext("Glossary"),
-         maybe_with_draft_param("/" <> handle <> "/-/glossary", draft_token)},
+        {gettext("Terminology"),
+         maybe_with_draft_param("/" <> handle <> "/-/terminology", draft_token)},
         {gettext("Suggest changes"), nil}
       ]
     )
@@ -374,12 +374,12 @@ defmodule GlossiaWeb.DashboardLive do
     previous = Glossaries.get_previous_glossary_version(account, version)
 
     assign(socket,
-      page_title: gettext("Glossary #%{version}", version: version),
+      page_title: gettext("Terminology #%{version}", version: version),
       glossary: glossary,
       previous_glossary: previous,
       can_glossary_write: socket.assigns[:can_glossary_write] || false,
       breadcrumb_items: [
-        {gettext("Glossary"), "/" <> handle <> "/-/glossary"},
+        {gettext("Terminology"), "/" <> handle <> "/-/terminology"},
         {"##{version}", nil}
       ]
     )
@@ -1105,7 +1105,7 @@ defmodule GlossiaWeb.DashboardLive do
        "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0", -1200},
       {"fix: resolve encoding issue with Japanese characters",
        "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1", -3600},
-      {"chore: update translation glossary for Spanish locale",
+      {"chore: update translation terminology for Spanish locale",
        "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2", -7200},
       {"feat: implement automatic language detection on upload",
        "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3", -14400},
@@ -1609,6 +1609,20 @@ defmodule GlossiaWeb.DashboardLive do
         |> schedule_summary_generation(:glossary)
 
       {:noreply, socket}
+    end
+  end
+
+  def handle_event("select_glossary_case_sensitive:" <> idx, params, socket) do
+    handle_glossary_entry_select(idx, :case_sensitive, params, socket)
+  end
+
+  def handle_event("select_glossary_translation_locale:" <> indexes, params, socket) do
+    case String.split(indexes, ":", parts: 2) do
+      [entry_idx, translation_idx] ->
+        handle_glossary_translation_select(entry_idx, translation_idx, :locale, params, socket)
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
@@ -2614,7 +2628,7 @@ defmodule GlossiaWeb.DashboardLive do
             )
         end
 
-      context_label = if context == :voice, do: "voice configuration", else: "glossary"
+      context_label = if context == :voice, do: "voice configuration", else: "terminology"
 
       task = Task.async(fn -> ChangeSummary.generate(diff, context_label) end)
       bar_id = save_bar_id(socket)
@@ -4037,35 +4051,42 @@ defmodule GlossiaWeb.DashboardLive do
     assigns = assign_new(assigns, :suggestion_mode?, fn -> false end)
 
     ~H"""
-    <div class="dash-page">
-      <.page_header
-        title={
-          if @suggestion_mode?, do: gettext("Suggest glossary changes"), else: gettext("Glossary")
-        }
-        description={
-          if @suggestion_mode?,
-            do:
-              gettext("Create a suggestion with title, description, and proposed glossary updates."),
-            else: gettext("Approved terms and translations to keep your content consistent.")
-        }
-      >
-        <:actions>
+    <div class="dash-page noora-terminology-page">
+      <div class="noora-page-header">
+        <div data-part="copy">
+          <h1 data-part="page-title">
+            {if @suggestion_mode?,
+              do: gettext("Suggest terminology changes"),
+              else: gettext("Terminology")}
+          </h1>
+          <p data-part="page-subtitle">
+            <%= if @suggestion_mode? do %>
+              {gettext(
+                "Create a suggestion with title, description, and proposed terminology updates."
+              )}
+            <% else %>
+              {gettext("Approved terms and translations to keep your content consistent.")}
+            <% end %>
+          </p>
+        </div>
+        <div data-part="actions">
           <%= if (not @suggestion_mode?) and @can_glossary_suggest? do %>
-            <.link
-              patch={"/" <> @handle <> "/-/glossary/suggestion/new"}
-              class="dash-btn dash-btn-secondary"
+            <Noora.Button.button
+              patch={"/" <> @handle <> "/-/terminology/suggestion/new"}
+              label={gettext("Suggest changes")}
+              variant="secondary"
+              size="large"
             >
-              {gettext("Suggest changes")}
-            </.link>
+            </Noora.Button.button>
           <% end %>
-        </:actions>
-      </.page_header>
+        </div>
+      </div>
 
       <%= if not @suggestion_mode? do %>
         <.suggestion_mode_banner
           can_write={@can_glossary_write}
           can_propose={@can_glossary_propose}
-          resource_name={gettext("glossary")}
+          resource_name={gettext("terminology")}
           handle={@handle}
         />
       <% end %>
@@ -4084,21 +4105,19 @@ defmodule GlossiaWeb.DashboardLive do
                 {gettext("Provide a clear title, full context, and a concise summary of intent.")}
               </p>
             </div>
-            <div class="voice-card">
+            <Noora.Card.card_section class="voice-card">
               <div class="voice-card-fields">
+                <Noora.TextInput.text_input
+                  id="glossary_suggestion_title"
+                  name="suggestion_title"
+                  value={@glossary_form_params["suggestion_title"] || ""}
+                  label={gettext("Title")}
+                  placeholder={gettext("Short summary of the suggested change")}
+                  required
+                  show_required
+                />
                 <div class="ticket-form-field">
-                  <label for="glossary_suggestion_title">{gettext("Title")}</label>
-                  <input
-                    type="text"
-                    id="glossary_suggestion_title"
-                    name="suggestion_title"
-                    value={@glossary_form_params["suggestion_title"] || ""}
-                    placeholder={gettext("Short summary of the suggested change")}
-                    required
-                  />
-                </div>
-                <div class="ticket-form-field">
-                  <label>{gettext("Description")}</label>
+                  <Noora.Label.label label={gettext("Description")} />
                   <.markdown_editor
                     id="glossary-suggestion-body-editor"
                     name="suggestion_body"
@@ -4109,7 +4128,7 @@ defmodule GlossiaWeb.DashboardLive do
                   />
                 </div>
               </div>
-            </div>
+            </Noora.Card.card_section>
           </div>
 
           <div class="voice-section-divider"></div>
@@ -4125,40 +4144,66 @@ defmodule GlossiaWeb.DashboardLive do
 
         <%= if not @suggestion_mode? do %>
           <div class="voice-section" id="glossary-entries">
-            <div class="voice-section-info">
-              <h2>{gettext("Terms")}</h2>
-              <p>
-                {gettext(
-                  "Define canonical terms and their approved translations per language. Terms are matched during content processing to ensure consistent terminology."
-                )}
-              </p>
-            </div>
-            <div class="voice-card">
-              <div class={[@glossary_entries != [] && "voice-card-fields"]} id="glossary-entry-list">
-                <%= for {entry, idx} <- Enum.with_index(@glossary_entries) do %>
-                  <div
-                    class={[
-                      "glossary-entry-block",
-                      glossary_entry_changed?(entry, @original_glossary_entries) &&
-                        "glossary-entry-block-changed"
-                    ]}
-                    data-entry-index={idx}
+            <div class="voice-section-info voice-section-info-with-action">
+              <div data-part="copy">
+                <h2>{gettext("Terms")}</h2>
+                <p>
+                  {gettext(
+                    "Define canonical terms and their approved translations per language. Terms are matched during content processing to ensure consistent terminology."
+                  )}
+                </p>
+              </div>
+              <%= if @can_glossary_submit? do %>
+                <div data-part="actions">
+                  <Noora.Button.button
+                    type="button"
+                    label={gettext("Add term")}
+                    variant="secondary"
+                    size="medium"
+                    phx-click="add_glossary_entry"
                   >
-                    <div class="voice-override-header">
-                      <span class="voice-override-locale">
-                        {if(entry.term != "" && entry.term, do: entry.term, else: gettext("New term"))}
-                      </span>
-                      <%= if @can_glossary_submit? do %>
-                        <button
+                    <:icon_left><Noora.Icon.plus /></:icon_left>
+                  </Noora.Button.button>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="terminology-entries-list" id="glossary-entry-list">
+              <%= for {entry, idx} <- Enum.with_index(@glossary_entries) do %>
+                <% entry_changed? = glossary_entry_changed?(entry, @original_glossary_entries) %>
+                <% entry_title =
+                  if glossary_entry_value(entry, :term) != "",
+                    do: glossary_entry_value(entry, :term),
+                    else: gettext("New term") %>
+                <Noora.Card.card_section
+                  class="terminology-entry-panel"
+                  data-entry-index={idx}
+                  data-changed={entry_changed?}
+                >
+                  <div data-part="header">
+                    <div data-part="title-group">
+                      <span data-part="title">{entry_title}</span>
+                      <Noora.Badge.badge
+                        :if={entry_changed?}
+                        label={gettext("Changed")}
+                        color="primary"
+                        style="light-fill"
+                      />
+                    </div>
+                    <%= if @can_glossary_submit? do %>
+                      <div data-part="actions">
+                        <Noora.Button.button
                           type="button"
-                          class="voice-link-btn voice-link-btn-danger"
+                          label={gettext("Remove")}
+                          variant="secondary"
+                          size="small"
                           phx-click="remove_glossary_entry"
                           phx-value-index={idx}
-                        >
-                          {gettext("Remove")}
-                        </button>
-                      <% end %>
-                    </div>
+                        />
+                      </div>
+                    <% end %>
+                  </div>
+                  <div data-part="content">
                     <div class="voice-override-fields">
                       <div class="voice-field-row">
                         <div class={[
@@ -4166,13 +4211,14 @@ defmodule GlossiaWeb.DashboardLive do
                           glossary_entry_field_changed?(entry, @original_glossary_entries, :term) &&
                             "voice-field-changed"
                         ]}>
-                          <label>{gettext("Term")}</label>
-                          <input
-                            type="text"
+                          <Noora.TextInput.text_input
+                            id={"glossary-entry-#{idx}-term"}
                             name={"entries[#{idx}][term]"}
-                            value={entry.term || ""}
-                            placeholder={gettext("e.g. API, workspace, deploy")}
+                            value={glossary_entry_value(entry, :term)}
+                            label={gettext("Term")}
+                            placeholder={gettext("for example, workspace, deploy")}
                             required
+                            show_required
                             disabled={!@can_glossary_submit?}
                             phx-debounce="300"
                           />
@@ -4185,19 +4231,18 @@ defmodule GlossiaWeb.DashboardLive do
                             :case_sensitive
                           ) && "voice-field-changed"
                         ]}>
-                          <label>{gettext("Case sensitive")}</label>
-                          <select
+                          <Noora.Label.label label={gettext("Case sensitive")} />
+                          <Noora.Select.select
+                            id={"glossary-entry-#{idx}-case-sensitive"}
                             name={"entries[#{idx}][case_sensitive]"}
+                            value={glossary_case_sensitive_value(entry)}
+                            label={gettext("No")}
                             disabled={!@can_glossary_submit?}
-                            phx-debounce="300"
+                            on_value_change={"select_glossary_case_sensitive:#{idx}"}
                           >
-                            <option value="false" selected={!entry.case_sensitive}>
-                              {gettext("No")}
-                            </option>
-                            <option value="true" selected={entry.case_sensitive}>
-                              {gettext("Yes")}
-                            </option>
-                          </select>
+                            <:item value="false" label={gettext("No")} icon="settings" />
+                            <:item value="true" label={gettext("Yes")} icon="check" />
+                          </Noora.Select.select>
                         </div>
                       </div>
                       <div class={[
@@ -4208,120 +4253,104 @@ defmodule GlossiaWeb.DashboardLive do
                           :definition
                         ) && "voice-field-changed"
                       ]}>
-                        <label>{gettext("Definition")}</label>
-                        <input
-                          type="text"
+                        <Noora.TextInput.text_input
+                          id={"glossary-entry-#{idx}-definition"}
                           name={"entries[#{idx}][definition]"}
-                          value={entry.definition || ""}
-                          placeholder={gettext("Context or description (optional)")}
+                          value={glossary_entry_value(entry, :definition)}
+                          label={gettext("Definition")}
+                          placeholder={gettext("Context or description")}
                           disabled={!@can_glossary_submit?}
                           phx-debounce="300"
                         />
                       </div>
-                      <div class="glossary-translations-section">
-                        <div class="glossary-translations-header">
-                          <span class="voice-diff-label">{gettext("Translations")}</span>
+
+                      <div class="terminology-translations-section">
+                        <div class="terminology-translations-header">
+                          <Noora.Label.label label={gettext("Translations")} />
                           <%= if @can_glossary_submit? do %>
-                            <button
+                            <Noora.Button.button
                               type="button"
-                              class="voice-link-btn"
+                              label={gettext("Add translation")}
+                              variant="secondary"
+                              size="small"
                               phx-click="add_glossary_translation"
                               phx-value-entry-index={idx}
                             >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                aria-hidden="true"
-                              >
-                                <line x1="10" y1="4" x2="10" y2="16" /><line
-                                  x1="4"
-                                  y1="10"
-                                  x2="16"
-                                  y2="10"
-                                />
-                              </svg>
-                              {gettext("Add")}
-                            </button>
+                              <:icon_left><Noora.Icon.plus /></:icon_left>
+                            </Noora.Button.button>
                           <% end %>
                         </div>
-                        <%= for {translation, tidx} <- Enum.with_index(entry.translations || []) do %>
-                          <div class={[
-                            "glossary-translation-row",
-                            glossary_translation_changed?(
-                              entry,
-                              translation,
-                              @original_glossary_entries
-                            ) && "glossary-translation-row-changed"
-                          ]}>
-                            <div class="voice-field">
-                              <.locale_picker
-                                id={"locale-picker-#{idx}-#{tidx}"}
-                                name={"entries[#{idx}][translations][#{tidx}][locale]"}
-                                value={translation.locale || ""}
-                                disabled={!@can_glossary_submit?}
-                              />
-                            </div>
+
+                        <div class="terminology-translations-list">
+                          <%= for {translation, tidx} <- Enum.with_index(entry.translations || []) do %>
+                            <% translation_changed? =
+                              glossary_translation_changed?(
+                                entry,
+                                translation,
+                                @original_glossary_entries
+                              ) %>
                             <div
                               class={[
-                                "voice-field",
-                                glossary_translation_changed?(
-                                  entry,
-                                  translation,
-                                  @original_glossary_entries
-                                ) && "voice-field-changed"
+                                "terminology-translation-row",
+                                translation_changed? && "terminology-translation-row-changed"
                               ]}
-                              style="flex: 1;"
+                              data-changed={translation_changed?}
                             >
-                              <input
-                                type="text"
-                                name={"entries[#{idx}][translations][#{tidx}][translation]"}
-                                value={translation.translation || ""}
-                                placeholder={gettext("Translation")}
-                                disabled={!@can_glossary_submit?}
-                                phx-debounce="300"
-                              />
+                              <div class="voice-field terminology-translation-locale">
+                                <Noora.Label.label label={gettext("Language")} />
+                                <Noora.Select.select
+                                  id={"glossary-entry-#{idx}-translation-#{tidx}-locale"}
+                                  name={"entries[#{idx}][translations][#{tidx}][locale]"}
+                                  value={glossary_translation_value(translation, :locale)}
+                                  label={gettext("Select language")}
+                                  disabled={!@can_glossary_submit?}
+                                  on_value_change={
+                                    "select_glossary_translation_locale:#{idx}:#{tidx}"
+                                  }
+                                >
+                                  <:item
+                                    :for={{code, name} <- locale_options()}
+                                    value={code}
+                                    label={"#{code} - #{name}"}
+                                    icon="language"
+                                  />
+                                </Noora.Select.select>
+                              </div>
+                              <div class={[
+                                "voice-field",
+                                "terminology-translation-value",
+                                translation_changed? && "voice-field-changed"
+                              ]}>
+                                <Noora.TextInput.text_input
+                                  id={"glossary-entry-#{idx}-translation-#{tidx}-value"}
+                                  name={"entries[#{idx}][translations][#{tidx}][translation]"}
+                                  value={glossary_translation_value(translation, :translation)}
+                                  label={gettext("Translation")}
+                                  placeholder={gettext("Approved translation")}
+                                  disabled={!@can_glossary_submit?}
+                                  phx-debounce="300"
+                                />
+                              </div>
+                              <%= if @can_glossary_submit? do %>
+                                <div class="terminology-translation-actions">
+                                  <Noora.Button.button
+                                    type="button"
+                                    label={gettext("Remove")}
+                                    variant="secondary"
+                                    size="small"
+                                    phx-click="remove_glossary_translation"
+                                    phx-value-entry-index={idx}
+                                    phx-value-translation-index={tidx}
+                                  />
+                                </div>
+                              <% end %>
                             </div>
-                            <%= if @can_glossary_submit? do %>
-                              <button
-                                type="button"
-                                class="voice-link-btn voice-link-btn-danger"
-                                phx-click="remove_glossary_translation"
-                                phx-value-entry-index={idx}
-                                phx-value-translation-index={tidx}
-                              >
-                                {gettext("Remove")}
-                              </button>
-                            <% end %>
-                          </div>
-                        <% end %>
+                          <% end %>
+                        </div>
                       </div>
                     </div>
                   </div>
-                <% end %>
-              </div>
-              <%= if @can_glossary_submit? do %>
-                <div class="voice-card-footer" style="justify-content: flex-start;">
-                  <button type="button" class="voice-link-btn" phx-click="add_glossary_entry">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      aria-hidden="true"
-                    >
-                      <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
-                    </svg>
-                    {gettext("Add term")}
-                  </button>
-                </div>
+                </Noora.Card.card_section>
               <% end %>
             </div>
           </div>
@@ -4332,43 +4361,53 @@ defmodule GlossiaWeb.DashboardLive do
             <div class="voice-section">
               <div class="voice-section-info">
                 <h2>{gettext("Version history")}</h2>
-                <p>{gettext("Previous versions of your glossary.")}</p>
+                <p>{gettext("Previous versions of your terminology.")}</p>
               </div>
-              <.resource_table id="glossary-versions" rows={@glossary_versions}>
-                <:col :let={v} label={gettext("Version")} class="resource-col-nowrap">
-                  <.link
-                    patch={"/" <> @handle <> "/-/glossary/" <> to_string(v.version)}
-                    class="voice-history-link"
-                  >
-                    {"##{v.version}"}
-                  </.link>
+              <Noora.Table.table
+                id="glossary-versions"
+                rows={@glossary_versions}
+                row_key={fn version -> "glossary-version-#{version.id}" end}
+                row_navigate={
+                  fn version ->
+                    "/" <> @handle <> "/-/terminology/" <> to_string(version.version)
+                  end
+                }
+              >
+                <:col :let={version} label={gettext("Version")}>
+                  <Noora.Table.text_cell label={"##{version.version}"} />
                 </:col>
-                <:col :let={v} label={gettext("Note")}>{v.change_note || "-"}</:col>
-                <:col :let={v} label={gettext("Date")} class="resource-col-nowrap">
-                  <time datetime={DateTime.to_iso8601(v.inserted_at)}>
-                    {Calendar.strftime(v.inserted_at, "%b %d, %Y %H:%M")}
-                  </time>
+                <:col :let={version} label={gettext("Note")}>
+                  <Noora.Table.text_cell label={version.change_note || "-"} />
                 </:col>
-                <:col :let={v} label={gettext("By")} class="resource-col-nowrap">
-                  <%= if v.created_by do %>
-                    <span class="voice-author-chip">
-                      <img
-                        src={gravatar_url(v.created_by.email)}
-                        alt=""
-                        width="20"
-                        height="20"
-                        class="voice-author-avatar"
-                      />
-                      <span>
-                        {(v.created_by.account && v.created_by.account.handle) ||
-                          v.created_by.email}
-                      </span>
-                    </span>
+                <:col :let={version} label={gettext("Date")}>
+                  <Noora.Table.time_cell time={version.inserted_at} show_time />
+                </:col>
+                <:col :let={version} label={gettext("By")}>
+                  <%= if version.created_by do %>
+                    <Noora.Table.text_and_description_cell
+                      label={
+                        (version.created_by.account && version.created_by.account.handle) ||
+                          version.created_by.email
+                      }
+                      description={version.created_by.email}
+                    >
+                      <:image>
+                        <Noora.Avatar.avatar
+                          id={"glossary-version-#{version.id}-author"}
+                          name={
+                            (version.created_by.account && version.created_by.account.handle) ||
+                              version.created_by.email
+                          }
+                          image_href={gravatar_url(version.created_by.email)}
+                          size="small"
+                        />
+                      </:image>
+                    </Noora.Table.text_and_description_cell>
                   <% else %>
-                    -
+                    <Noora.Table.text_cell label="-" />
                   <% end %>
                 </:col>
-              </.resource_table>
+              </Noora.Table.table>
             </div>
           <% end %>
 
@@ -4378,57 +4417,62 @@ defmodule GlossiaWeb.DashboardLive do
             <div class="voice-section">
               <div class="voice-section-info">
                 <h2>{gettext("Open suggestions")}</h2>
-                <p>{gettext("Pending glossary proposals from contributors.")}</p>
+                <p>{gettext("Pending terminology proposals from contributors.")}</p>
               </div>
-              <.resource_table id="glossary-suggestions" rows={@glossary_suggestions}>
-                <:col :let={ticket} label={gettext("Suggestion")} class="resource-col-nowrap">
-                  <.link
-                    patch={"/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)}
-                    class="voice-history-link"
-                  >
-                    {"##{ticket.number}"}
-                  </.link>
+              <Noora.Table.table
+                id="glossary-suggestions"
+                rows={@glossary_suggestions}
+                row_key={fn ticket -> "glossary-suggestion-#{ticket.id}" end}
+                row_navigate={
+                  fn ticket ->
+                    "/" <> @handle <> "/-/discussions/" <> Integer.to_string(ticket.number)
+                  end
+                }
+              >
+                <:col :let={ticket} label={gettext("Suggestion")}>
+                  <Noora.Table.text_cell label={"##{ticket.number}"} />
                 </:col>
-                <:col :let={ticket} label={gettext("Title")}>{ticket.title}</:col>
-                <:col :let={ticket} label={gettext("By")} class="resource-col-nowrap">
+                <:col :let={ticket} label={gettext("Title")}>
+                  <Noora.Table.text_cell label={ticket.title} />
+                </:col>
+                <:col :let={ticket} label={gettext("By")}>
                   <%= if ticket.user do %>
-                    <span class="voice-author-chip">
-                      <img
-                        src={gravatar_url(ticket.user.email)}
-                        alt=""
-                        width="20"
-                        height="20"
-                        class="voice-author-avatar"
-                      />
-                      <span>
-                        {(ticket.user.account && ticket.user.account.handle) || ticket.user.email}
-                      </span>
-                    </span>
+                    <Noora.Table.text_and_description_cell
+                      label={(ticket.user.account && ticket.user.account.handle) || ticket.user.email}
+                      description={ticket.user.email}
+                    >
+                      <:image>
+                        <Noora.Avatar.avatar
+                          id={"glossary-suggestion-#{ticket.id}-author"}
+                          name={
+                            (ticket.user.account && ticket.user.account.handle) || ticket.user.email
+                          }
+                          image_href={gravatar_url(ticket.user.email)}
+                          size="small"
+                        />
+                      </:image>
+                    </Noora.Table.text_and_description_cell>
                   <% else %>
-                    -
+                    <Noora.Table.text_cell label="-" />
                   <% end %>
                 </:col>
-                <:col :let={ticket} label={gettext("Date")} class="resource-col-nowrap">
-                  <time datetime={DateTime.to_iso8601(ticket.inserted_at)}>
-                    {Calendar.strftime(ticket.inserted_at, "%b %d, %Y %H:%M")}
-                  </time>
+                <:col :let={ticket} label={gettext("Date")}>
+                  <Noora.Table.time_cell time={ticket.inserted_at} show_time />
                 </:col>
-              </.resource_table>
+              </Noora.Table.table>
             </div>
           <% end %>
         <% end %>
 
         <%= if @suggestion_mode? do %>
           <div class="ticket-form-actions">
-            <.link
-              patch={@glossary_back_path || "/" <> @handle <> "/-/glossary"}
-              class="dash-btn dash-btn-secondary"
+            <Noora.Button.button
+              patch={@glossary_back_path || "/" <> @handle <> "/-/terminology"}
+              label={gettext("Cancel")}
+              variant="secondary"
             >
-              {gettext("Cancel")}
-            </.link>
-            <button type="submit" class="dash-btn dash-btn-primary">
-              {gettext("Submit suggestion")}
-            </button>
+            </Noora.Button.button>
+            <Noora.Button.button label={gettext("Submit suggestion")} />
           </div>
         <% else %>
           <%= if @can_glossary_submit? do %>
@@ -4492,7 +4536,7 @@ defmodule GlossiaWeb.DashboardLive do
       <div class="voice-section">
         <div class="voice-section-info">
           <h2>{gettext("Terms")}</h2>
-          <p>{gettext("Glossary entries in this version.")}</p>
+          <p>{gettext("Terminology entries in this version.")}</p>
         </div>
         <div class="voice-card">
           <div class="voice-card-fields">
@@ -7217,14 +7261,14 @@ defmodule GlossiaWeb.DashboardLive do
         <h2>{gettext("Proposed changes")}</h2>
         <p>
           {gettext(
-            "This review is read-only and mirrors the glossary editor layout. Go back to continue editing your draft."
+            "This review is read-only and mirrors the terminology editor layout. Go back to continue editing your draft."
           )}
         </p>
       </div>
       <div class="voice-card">
         <div class="voice-card-fields">
           <%= if @change_details == [] do %>
-            <p class="muted">{gettext("No proposed glossary changes detected.")}</p>
+            <p class="muted">{gettext("No proposed terminology changes detected.")}</p>
           <% else %>
             <div class="glossary-suggestion-list">
               <%= for change <- @change_details do %>
@@ -7905,7 +7949,9 @@ defmodule GlossiaWeb.DashboardLive do
         if is_binary(token) and token != "" do
           socket
           |> assign(pending_glossary_suggestion_redirect: false)
-          |> push_patch(to: maybe_with_draft_param("/#{handle}/-/glossary/suggestion/new", token))
+          |> push_patch(
+            to: maybe_with_draft_param("/#{handle}/-/terminology/suggestion/new", token)
+          )
         else
           assign(socket, pending_glossary_suggestion_redirect: false)
         end
@@ -8093,7 +8139,7 @@ defmodule GlossiaWeb.DashboardLive do
         })
 
       handle = socket.assigns.handle
-      glossary_draft_path = maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
+      glossary_draft_path = maybe_with_draft_param("/#{handle}/-/terminology", draft_token)
 
       {:noreply,
        socket
@@ -8110,7 +8156,7 @@ defmodule GlossiaWeb.DashboardLive do
          },
          glossary_draft_token: draft_token,
          pending_glossary_suggestion_redirect: true,
-         glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
+         glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", draft_token)
        )
        |> push_patch(to: glossary_draft_path)}
     end
@@ -8216,6 +8262,91 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp handle_glossary_entry_select(idx, :case_sensitive, params, socket) do
+    if not (socket.assigns[:can_glossary_submit?] || false) do
+      {:noreply, socket}
+    else
+      case noora_select_value(params) do
+        nil ->
+          {:noreply, socket}
+
+        value ->
+          idx_int = String.to_integer(idx)
+          selected? = value == "true"
+
+          entries =
+            List.update_at(socket.assigns.glossary_entries || [], idx_int, fn entry ->
+              Map.put(entry, :case_sensitive, selected?)
+            end)
+
+          form_params =
+            socket
+            |> glossary_form_params_with_current_values()
+            |> put_glossary_entry_form_param(idx, "case_sensitive", value)
+
+          glossary_select_response(entries, form_params, socket)
+      end
+    end
+  end
+
+  defp handle_glossary_translation_select(entry_idx, translation_idx, :locale, params, socket) do
+    if not (socket.assigns[:can_glossary_submit?] || false) do
+      {:noreply, socket}
+    else
+      case noora_select_value(params) do
+        nil ->
+          {:noreply, socket}
+
+        value ->
+          entry_idx_int = String.to_integer(entry_idx)
+          translation_idx_int = String.to_integer(translation_idx)
+
+          entries =
+            List.update_at(socket.assigns.glossary_entries || [], entry_idx_int, fn entry ->
+              translations =
+                entry
+                |> map_get(:translations, [])
+                |> List.wrap()
+                |> List.update_at(translation_idx_int, fn translation ->
+                  Map.put(translation, :locale, value)
+                end)
+
+              Map.put(entry, :translations, translations)
+            end)
+
+          form_params =
+            socket
+            |> glossary_form_params_with_current_values()
+            |> put_glossary_translation_form_param(entry_idx, translation_idx, "locale", value)
+
+          glossary_select_response(entries, form_params, socket)
+      end
+    end
+  end
+
+  defp glossary_select_response(entries, form_params, socket) do
+    changed? =
+      glossary_entries_index(entries) !=
+        glossary_entries_index(socket.assigns.original_glossary_entries)
+
+    socket =
+      socket
+      |> assign(
+        glossary_entries: entries,
+        glossary_changed?: changed?,
+        glossary_form_params: form_params
+      )
+      |> then(fn socket ->
+        if changed? do
+          schedule_summary_generation(socket, :glossary)
+        else
+          cancel_summary_generation(socket)
+        end
+      end)
+
+    {:noreply, socket}
+  end
+
   defp form_changed?(_params, nil, _original_overrides), do: true
 
   defp form_changed?(params, original_voice, original_overrides) do
@@ -8303,6 +8434,76 @@ defmodule GlossiaWeb.DashboardLive do
       "overrides",
       Map.put(overrides, idx, Map.put(override, field, value || ""))
     )
+  end
+
+  defp glossary_form_params_with_current_values(socket) do
+    defaults = %{
+      "entries" => glossary_entries_form_params(socket.assigns[:glossary_entries] || [])
+    }
+
+    Map.merge(defaults, socket.assigns[:glossary_form_params] || %{})
+  end
+
+  defp glossary_entries_form_params(entries) do
+    entries
+    |> Enum.with_index()
+    |> Map.new(fn {entry, idx} ->
+      {to_string(idx),
+       %{
+         "term" => glossary_entry_value(entry, :term),
+         "definition" => glossary_entry_value(entry, :definition),
+         "case_sensitive" => glossary_case_sensitive_value(entry),
+         "translations" => glossary_translations_form_params(map_get(entry, :translations, []))
+       }}
+    end)
+  end
+
+  defp glossary_translations_form_params(translations) do
+    translations
+    |> List.wrap()
+    |> Enum.with_index()
+    |> Map.new(fn {translation, idx} ->
+      {to_string(idx),
+       %{
+         "locale" => glossary_translation_value(translation, :locale),
+         "translation" => glossary_translation_value(translation, :translation)
+       }}
+    end)
+  end
+
+  defp glossary_entry_value(entry, field), do: map_get(entry, field, "") || ""
+
+  defp glossary_case_sensitive_value(entry) do
+    if map_get(entry, :case_sensitive, false), do: "true", else: "false"
+  end
+
+  defp glossary_translation_value(translation, field), do: map_get(translation, field, "") || ""
+
+  defp put_glossary_entry_form_param(form_params, idx, field, value) do
+    entries = Map.get(form_params, "entries", %{})
+    entry = Map.get(entries, idx, %{})
+
+    Map.put(
+      form_params,
+      "entries",
+      Map.put(entries, idx, Map.put(entry, field, value || ""))
+    )
+  end
+
+  defp put_glossary_translation_form_param(form_params, entry_idx, translation_idx, field, value) do
+    entries = Map.get(form_params, "entries", %{})
+    entry = Map.get(entries, entry_idx, %{})
+    translations = Map.get(entry, "translations", %{})
+    translation = Map.get(translations, translation_idx, %{})
+
+    entry =
+      Map.put(
+        entry,
+        "translations",
+        Map.put(translations, translation_idx, Map.put(translation, field, value || ""))
+      )
+
+    Map.put(form_params, "entries", Map.put(entries, entry_idx, entry))
   end
 
   defp noora_select_value(%{"value" => [value | _]}), do: value
@@ -8531,12 +8732,12 @@ defmodule GlossiaWeb.DashboardLive do
       title:
         if(suggestion_title_text != "",
           do: suggestion_title_text,
-          else: suggestion_title(gettext("Glossary"), change_note)
+          else: suggestion_title(gettext("Terminology"), change_note)
         ),
       body:
         if(suggestion_body_text != "",
           do: suggestion_body_text,
-          else: suggestion_body(gettext("glossary"), change_note)
+          else: suggestion_body(gettext("terminology"), change_note)
         ),
       kind: "glossary_suggestion",
       metadata: %{
@@ -8555,18 +8756,18 @@ defmodule GlossiaWeb.DashboardLive do
            glossary_suggestion_draft: nil,
            glossary_draft_token: nil,
            pending_glossary_suggestion_redirect: false,
-           glossary_back_path: "/#{handle}/-/glossary"
+           glossary_back_path: "/#{handle}/-/terminology"
          )
          |> put_flash(
            :info,
-           gettext("Glossary suggestion submitted as discussion #%{number}.",
+           gettext("Terminology suggestion submitted as discussion #%{number}.",
              number: ticket.number
            )
          )
          |> push_patch(to: "/#{handle}/-/discussions/#{ticket.number}")}
 
       {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to submit glossary suggestion."))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to submit terminology suggestion."))}
     end
   end
 
@@ -8579,7 +8780,7 @@ defmodule GlossiaWeb.DashboardLive do
       suggestion_title_text != "" -> suggestion_title_text
       summary != "" -> summary
       draft_note != "" -> draft_note
-      true -> gettext("Glossary suggestion")
+      true -> gettext("Terminology suggestion")
     end
   end
 
@@ -8721,7 +8922,7 @@ defmodule GlossiaWeb.DashboardLive do
               )
 
             {:ok,
-             gettext("Applied glossary suggestion as version #%{version}.",
+             gettext("Applied terminology suggestion as version #%{version}.",
                version: glossary.version
              )}
 
@@ -9444,7 +9645,7 @@ defmodule GlossiaWeb.DashboardLive do
           glossary_changed?: changed?,
           change_summary: to_string(decoded["change_summary"] || ""),
           glossary_draft_token: token,
-          glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", token)
+          glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", token)
         )
 
       _ ->
@@ -9467,13 +9668,14 @@ defmodule GlossiaWeb.DashboardLive do
               glossary_changed?: changed?,
               change_summary: draft[:change_summary] || "",
               glossary_draft_token: fallback_token,
-              glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", fallback_token)
+              glossary_back_path:
+                maybe_with_draft_param("/#{handle}/-/terminology", fallback_token)
             )
 
           _ ->
             assign(socket,
               glossary_draft_token: nil,
-              glossary_back_path: "/#{handle}/-/glossary"
+              glossary_back_path: "/#{handle}/-/terminology"
             )
         end
     end
@@ -9661,7 +9863,7 @@ defmodule GlossiaWeb.DashboardLive do
             options: [
               %{value: "general", label: gettext("General")},
               %{value: "voice_suggestion", label: gettext("Voice suggestion")},
-              %{value: "glossary_suggestion", label: gettext("Glossary suggestion")}
+              %{value: "glossary_suggestion", label: gettext("Terminology suggestion")}
             ]
           },
           %{key: "inserted_at", label: gettext("Created"), type: "date_range"}
@@ -9970,7 +10172,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_kind_variant(_), do: "neutral"
 
   defp ticket_kind_label("voice_suggestion"), do: gettext("Voice suggestion")
-  defp ticket_kind_label("glossary_suggestion"), do: gettext("Glossary suggestion")
+  defp ticket_kind_label("glossary_suggestion"), do: gettext("Terminology suggestion")
   defp ticket_kind_label("general"), do: gettext("General")
   defp ticket_kind_label(other), do: other
 
