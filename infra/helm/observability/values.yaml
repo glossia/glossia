@@ -98,6 +98,17 @@ externalSecrets:
     itemKey: push-endpoints-auth
     htpasswdField: htpasswd
 
+  # GlitchTip application secret and PostgreSQL password. This chart renders
+  # one Kubernetes Secret from these fields, containing:
+  #   - SECRET_KEY for Django signing
+  #   - username/password for CloudNativePG bootstrap
+  #   - DATABASE_URL for GlitchTip
+  glitchtip:
+    secretName: glitchtip-app
+    itemKey: glitchtip
+    secretKeyField: SECRET_KEY
+    postgresPasswordField: POSTGRES_PASSWORD
+
 # Public ingress hosts. Created with `ingressClassName: nginx` and the
 # `letsencrypt-cloudflare` ClusterIssuer that the platform chart already
 # installs. cert-manager handles TLS via Cloudflare DNS-01.
@@ -117,6 +128,8 @@ ingress:
     host: loki.glossia.ai
   tempo:
     host: tempo.glossia.ai
+  glitchtip:
+    host: errors.glossia.ai
 
 # Node placement shared by every workload this chart owns. The
 # observability cluster only has the `stateful` pool (see
@@ -676,3 +689,101 @@ grafana:
       searchNamespace: ALL
     datasources:
       enabled: false   # datasources hardcoded above
+
+# GlitchTip — Sentry-compatible error tracking. The upstream chart owns the
+# web Deployment, Service, and Valkey cache. This parent chart owns the
+# PostgreSQL Cluster and migration Job because the upstream chart does not
+# expose placement for those resources, and every workload in this cluster
+# must tolerate the stateful node taint.
+glitchtip:
+  enabled: true
+  fullnameOverride: glitchtip
+  image:
+    repository: glitchtip/glitchtip
+    tag: "6.2.0"
+    pullPolicy: IfNotPresent
+  glitchtip:
+    domain: https://errors.glossia.ai
+    existingSecret: glitchtip-app
+    existingSecretKey: SECRET_KEY
+    database:
+      existingSecret: glitchtip-app
+      existingSecretKey: DATABASE_URL
+  # Parent-owned resources below replace the upstream chart's built-in
+  # PostgreSQL and migration Job so they can use stateful node placement.
+  postgresql:
+    enabled: false
+  migrationJob:
+    enabled: false
+  replicaCount: 2
+  nodeSelector: *statefulNodeSelector
+  tolerations: *statefulTolerations
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  extraEnvVars:
+    # GlitchTip still allows the first user to register when registration is
+    # false. After that, sign-ups stay closed unless an admin invites users.
+    - name: ENABLE_USER_REGISTRATION
+      value: "false"
+    - name: ENABLE_SOCIAL_APPS_USER_REGISTRATION
+      value: "false"
+    - name: ENABLE_ORGANIZATION_CREATION
+      value: "false"
+  ingress:
+    enabled: false
+  valkey:
+    enabled: true
+    fullnameOverride: glitchtip-valkey
+    replicaCount: 1
+    nodeSelector: *statefulNodeSelector
+    tolerations: *statefulTolerations
+    dataStorage:
+      enabled: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+
+glitchtipPostgres:
+  enabled: true
+  clusterName: glitchtip-postgres
+  database: glitchtip
+  user: glitchtip
+  appSecretName: glitchtip-app
+  instances: 2
+  storage:
+    storageClass: ceph-block
+    size: 50Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+  enablePodAntiAffinity: true
+  topologyKey: kubernetes.io/hostname
+  nodeSelector: *statefulNodeSelector
+  tolerations: *statefulTolerations
+
+glitchtipMigrationJob:
+  enabled: true
+  backoffLimit: 2
+  activeDeadlineSeconds: 900
+  ttlSecondsAfterFinished: 300
+  command: ["bin/run-migrate.sh"]
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi

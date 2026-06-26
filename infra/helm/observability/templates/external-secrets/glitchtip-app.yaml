@@ -1,0 +1,26 @@
+{{- if and .Values.externalSecrets.enabled .Values.glitchtip.enabled .Values.glitchtipPostgres.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.externalSecrets.glitchtip.secretName }}
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.externalSecrets.glitchtip.secretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: kubernetes.io/basic-auth
+      data:
+        SECRET_KEY: {{ printf "{{ .%s }}" .Values.externalSecrets.glitchtip.secretKeyField | quote }}
+        username: {{ .Values.glitchtipPostgres.user | quote }}
+        password: {{ printf "{{ .%s }}" .Values.externalSecrets.glitchtip.postgresPasswordField | quote }}
+        DATABASE_URL: {{ printf "postgres://%s:{{ .%s | urlquery }}@%s-rw.%s.svc:5432/%s" .Values.glitchtipPostgres.user .Values.externalSecrets.glitchtip.postgresPasswordField .Values.glitchtipPostgres.clusterName .Release.Namespace .Values.glitchtipPostgres.database | quote }}
+  dataFrom:
+    - extract:
+        key: {{ .Values.externalSecrets.glitchtip.itemKey | quote }}
+{{- end }}
