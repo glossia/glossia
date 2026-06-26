@@ -3087,17 +3087,6 @@ defmodule GlossiaWeb.DashboardLive do
             <% end %>
           </p>
         </div>
-        <div data-part="actions">
-          <%= if (not @suggestion_mode?) and @can_voice_suggest? do %>
-            <Noora.Button.button
-              patch={"/" <> @handle <> "/-/voice/suggestion/new"}
-              label={gettext("Suggest changes")}
-              variant="secondary"
-              size="large"
-            >
-            </Noora.Button.button>
-          <% end %>
-        </div>
       </div>
 
       <%= if not @suggestion_mode? do %>
@@ -3906,17 +3895,6 @@ defmodule GlossiaWeb.DashboardLive do
             <% end %>
           </p>
         </div>
-        <div data-part="actions">
-          <%= if (not @suggestion_mode?) and @can_glossary_suggest? do %>
-            <Noora.Button.button
-              patch={"/" <> @handle <> "/-/terminology/suggestion/new"}
-              label={gettext("Suggest changes")}
-              variant="secondary"
-              size="large"
-            >
-            </Noora.Button.button>
-          <% end %>
-        </div>
       </div>
 
       <%= if not @suggestion_mode? do %>
@@ -4344,28 +4322,28 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp glossary_version_page(assigns) do
     ~H"""
-    <div class="dash-page">
-      <div class="dash-page-header">
-        <div class="voice-version-header">
-          <h1>
+    <div class="dash-page noora-terminology-page noora-version-page">
+      <div class="noora-page-header">
+        <div data-part="copy">
+          <h1 data-part="page-title">
             <span>{"##{@glossary.version}"}</span>
-            <%= if @glossary.change_note do %>
-              <span class="voice-version-title-note">{@glossary.change_note}</span>
-            <% end %>
+            <span :if={@glossary.change_note} class="voice-version-title-note">
+              {@glossary.change_note}
+            </span>
           </h1>
-          <p class="voice-version-meta">
-            <time datetime={DateTime.to_iso8601(@glossary.inserted_at)}>
-              {Calendar.strftime(@glossary.inserted_at, "%b %d, %Y at %H:%M")}
-            </time>
+          <div data-part="page-subtitle" class="voice-version-meta">
+            <Noora.Time.time time={@glossary.inserted_at} show_time />
             <%= if @glossary.created_by do %>
               <span class="voice-version-meta-sep">&middot;</span>
               <span class="voice-author-chip">
-                <img
-                  src={gravatar_url(@glossary.created_by.email)}
-                  alt=""
-                  width="20"
-                  height="20"
-                  class="voice-author-avatar"
+                <Noora.Avatar.avatar
+                  id={"glossary-version-#{@glossary.id}-author-avatar"}
+                  name={
+                    (@glossary.created_by.account && @glossary.created_by.account.handle) ||
+                      @glossary.created_by.email
+                  }
+                  image_href={gravatar_url(@glossary.created_by.email)}
+                  size="2xsmall"
                 />
                 <span>
                   {(@glossary.created_by.account && @glossary.created_by.account.handle) ||
@@ -4373,17 +4351,17 @@ defmodule GlossiaWeb.DashboardLive do
                 </span>
               </span>
             <% end %>
-          </p>
+          </div>
         </div>
       </div>
 
-      <div class="voice-section">
-        <div class="voice-section-info">
-          <h2>{gettext("Terms")}</h2>
-          <p>{gettext("Terminology entries in this version.")}</p>
-        </div>
-        <div class="voice-card">
-          <div class="voice-card-fields">
+      <div class="voice-form">
+        <div class="voice-section">
+          <div class="voice-section-info">
+            <h2>{gettext("Terms")}</h2>
+            <p>{gettext("Terminology entries in this version.")}</p>
+          </div>
+          <div class="terminology-entries-list">
             <% current_terms = MapSet.new(Enum.map(@glossary.entries, & &1.term))
 
             prev_terms =
@@ -4394,59 +4372,159 @@ defmodule GlossiaWeb.DashboardLive do
             all_terms =
               MapSet.union(current_terms, prev_terms)
               |> Enum.sort() %>
-            <%= for term <- all_terms do %>
+            <%= for {term, term_idx} <- Enum.with_index(all_terms) do %>
               <% cur = Enum.find(@glossary.entries, &(&1.term == term))
 
               prev =
                 if @previous_glossary, do: Enum.find(@previous_glossary.entries, &(&1.term == term))
 
               status =
-                cond do
-                  cur && !prev -> :added
-                  !cur && prev -> :removed
-                  true -> :existing
-                end %>
-              <div class={"voice-override-diff-block voice-override-diff-#{status}"}>
-                <div class="voice-override-diff-header">
-                  <span class="voice-override-locale">{term}</span>
-                  <%= case status do %>
-                    <% :added -> %>
-                      <span class="voice-diff-badge voice-diff-badge-added">{gettext("Added")}</span>
-                    <% :removed -> %>
-                      <span class="voice-diff-badge voice-diff-badge-removed">
-                        {gettext("Removed")}
-                      </span>
-                    <% _ -> %>
-                  <% end %>
-                </div>
-                <div class="voice-override-diff-fields">
-                  <.diff_field
-                    label={gettext("Definition")}
-                    current={cur && cur.definition}
-                    previous={prev && prev.definition}
-                  />
-                  <div class="glossary-translations-diff">
-                    <span class="voice-diff-label">{gettext("Translations")}</span>
-                    <% cur_translations = if(cur, do: cur.translations || [], else: [])
-                    prev_translations = if(prev, do: prev.translations || [], else: [])
-                    cur_locales = MapSet.new(Enum.map(cur_translations, & &1.locale))
-                    prev_locales = MapSet.new(Enum.map(prev_translations, & &1.locale))
-                    all_locales = MapSet.union(cur_locales, prev_locales) |> Enum.sort() %>
-                    <%= for locale <- all_locales do %>
-                      <% cur_t = Enum.find(cur_translations, &(&1.locale == locale))
-                      prev_t = Enum.find(prev_translations, &(&1.locale == locale)) %>
-                      <div class="glossary-translation-diff-row">
-                        <span class="glossary-translation-diff-locale">{locale}</span>
-                        <.diff_field
-                          label=""
-                          current={cur_t && cur_t.translation}
-                          previous={prev_t && prev_t.translation}
-                        />
-                      </div>
-                    <% end %>
+                glossary_version_entry_status(cur, prev)
+
+              display_entry = cur || prev || %{} %>
+              <Noora.Card.card_section
+                class="terminology-entry-panel terminology-suggestion-panel terminology-version-panel"
+                data-changed={status != :existing}
+                data-change-kind={
+                  if status == :existing, do: nil, else: glossary_change_kind_data(status)
+                }
+              >
+                <div data-part="header">
+                  <div data-part="title-group">
+                    <span data-part="title">{term}</span>
+                    <Noora.Badge.badge
+                      :if={status != :existing}
+                      label={glossary_change_kind_label(status)}
+                      color={glossary_change_badge_color(status)}
+                      style="light-fill"
+                    />
                   </div>
                 </div>
-              </div>
+                <div data-part="content">
+                  <div class="voice-override-fields">
+                    <div class="voice-field-row">
+                      <div class="voice-field">
+                        <Noora.TextInput.text_input
+                          id={"glossary-version-#{@glossary.version}-term-#{term_idx}-term"}
+                          name={"readonly_glossary_version[#{term_idx}][term]"}
+                          value={glossary_entry_value(display_entry, :term)}
+                          label={gettext("Term")}
+                          disabled
+                        />
+                      </div>
+                      <div class="voice-field">
+                        <Noora.Label.label label={gettext("Case sensitive")} />
+                        <Noora.Select.select
+                          id={"glossary-version-#{@glossary.version}-term-#{term_idx}-case-sensitive"}
+                          name={"readonly_glossary_version[#{term_idx}][case_sensitive]"}
+                          value={glossary_case_sensitive_value(display_entry)}
+                          label={gettext("No")}
+                          disabled
+                        >
+                          <:item value="false" label={gettext("No")} icon="settings" />
+                          <:item value="true" label={gettext("Yes")} icon="check" />
+                        </Noora.Select.select>
+                      </div>
+                    </div>
+                    <div class="voice-field">
+                      <Noora.TextInput.text_input
+                        id={"glossary-version-#{@glossary.version}-term-#{term_idx}-definition"}
+                        name={"readonly_glossary_version[#{term_idx}][definition]"}
+                        value={glossary_entry_value(display_entry, :definition)}
+                        label={gettext("Definition")}
+                        disabled
+                      />
+                    </div>
+
+                    <div class="terminology-translations-section">
+                      <div class="terminology-translations-header">
+                        <Noora.Label.label label={gettext("Translations")} />
+                      </div>
+                      <div class="terminology-translations-list">
+                        <% cur_translations = glossary_translations_map(cur)
+                        prev_translations = glossary_translations_map(prev)
+
+                        all_locales =
+                          cur_translations
+                          |> Map.keys()
+                          |> Kernel.++(Map.keys(prev_translations))
+                          |> Enum.uniq()
+                          |> Enum.sort() %>
+
+                        <div
+                          :if={all_locales != []}
+                          class="terminology-translations-columns"
+                        >
+                          <span>{gettext("Language")}</span>
+                          <span>{gettext("Translation")}</span>
+                          <span aria-hidden="true"></span>
+                        </div>
+
+                        <%= for locale <- all_locales do %>
+                          <% current_translation = Map.get(cur_translations, locale)
+                          previous_translation = Map.get(prev_translations, locale)
+
+                          translation_status =
+                            glossary_version_translation_status(
+                              current_translation,
+                              previous_translation
+                            )
+
+                          translation_value = current_translation || previous_translation || "" %>
+                          <div
+                            class={[
+                              "terminology-translation-row",
+                              translation_status != :existing &&
+                                "terminology-suggestion-translation-row"
+                            ]}
+                            data-changed={translation_status != :existing}
+                            data-change-kind={
+                              if translation_status == :existing,
+                                do: nil,
+                                else: glossary_change_kind_data(translation_status)
+                            }
+                          >
+                            <div class="voice-field terminology-translation-locale">
+                              <Noora.Select.select
+                                id={"glossary-version-#{@glossary.version}-term-#{term_idx}-translation-#{locale}-locale"}
+                                name={"readonly_glossary_version[#{term_idx}][translations][#{locale}][locale]"}
+                                value={locale}
+                                label={gettext("Select language")}
+                                disabled
+                              >
+                                <:item
+                                  :for={{code, name} <- locale_options()}
+                                  value={code}
+                                  label={"#{code} - #{name}"}
+                                  icon="language"
+                                />
+                              </Noora.Select.select>
+                            </div>
+                            <div class="voice-field terminology-translation-value">
+                              <Noora.TextInput.text_input
+                                id={"glossary-version-#{@glossary.version}-term-#{term_idx}-translation-#{locale}-value"}
+                                name={"readonly_glossary_version[#{term_idx}][translations][#{locale}][translation]"}
+                                value={translation_value}
+                                placeholder={gettext("Approved translation")}
+                                aria-label={gettext("Translation")}
+                                disabled
+                              />
+                            </div>
+                            <div class="terminology-translation-actions">
+                              <Noora.Badge.badge
+                                :if={translation_status != :existing}
+                                label={glossary_change_kind_label(translation_status)}
+                                color={glossary_change_badge_color(translation_status)}
+                                style="light-fill"
+                              />
+                            </div>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Noora.Card.card_section>
             <% end %>
           </div>
         </div>
@@ -7287,6 +7365,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp glossary_change_kind_data(:added), do: "added"
   defp glossary_change_kind_data(:removed), do: "removed"
   defp glossary_change_kind_data(:updated), do: "updated"
+  defp glossary_change_kind_data(:existing), do: nil
   defp glossary_change_kind_data(_), do: "changed"
 
   defp glossary_change_badge_color(:added), do: "success"
@@ -7392,6 +7471,39 @@ defmodule GlossiaWeb.DashboardLive do
   defp glossary_readonly_text(nil), do: "-"
   defp glossary_readonly_text(""), do: "-"
   defp glossary_readonly_text(value), do: to_string(value)
+
+  defp glossary_version_entry_status(nil, nil), do: :existing
+  defp glossary_version_entry_status(_current, nil), do: :added
+  defp glossary_version_entry_status(nil, _previous), do: :removed
+
+  defp glossary_version_entry_status(current, previous) do
+    if glossary_entry_signature(current) == glossary_entry_signature(previous),
+      do: :existing,
+      else: :updated
+  end
+
+  defp glossary_version_translation_status(nil, nil), do: :existing
+  defp glossary_version_translation_status(_current, nil), do: :added
+  defp glossary_version_translation_status(nil, _previous), do: :removed
+
+  defp glossary_version_translation_status(current, previous) do
+    if current == previous, do: :existing, else: :updated
+  end
+
+  defp glossary_translations_map(entry) do
+    entry
+    |> map_get(:translations, [])
+    |> List.wrap()
+    |> Enum.reduce(%{}, fn translation, acc ->
+      locale = glossary_translation_value(translation, :locale)
+
+      if locale == "" do
+        acc
+      else
+        Map.put(acc, locale, glossary_translation_value(translation, :translation))
+      end
+    end)
+  end
 
   # ---------------------------------------------------------------------------
   # Shared: Diff field component

@@ -665,6 +665,12 @@
   box-shadow: var(--noora-border-light-focus);
 }
 
+.noora-shell .voice-form #voice-country-select .noora-dropdown-content {
+  max-height: min(calc(100vh - var(--space-20)), calc(var(--space-20) * 3));
+  overscroll-behavior: contain;
+  overflow-y: auto;
+}
+
 .noora-shell .voice-form .voice-country-tags .noora-tag {
   border-radius: var(--radius-full);
   background: var(--color-bg-subtle);
