@@ -142,7 +142,15 @@
             label={gettext("Terminology")}
             icon="book_2"
             navigate={assigns[:glossary_back_path] || "/#{@handle}/-/terminology"}
-            selected={@live_action in [:glossary, :glossary_suggestion_new, :glossary_version]}
+            selected={
+              @live_action in [
+                :glossary,
+                :glossary_entry,
+                :glossary_entry_new,
+                :glossary_suggestion_new,
+                :glossary_version
+              ]
+            }
           />
           <% account_sections =
             [
@@ -244,7 +252,7 @@
             }
           >
             <.sidebar_item
-              label={gettext("Organization tokens")}
+              label={gettext("Tokens")}
               icon="lock_password"
               navigate={"/#{@handle}/-/settings/tokens"}
               selected={@live_action in [:api_tokens, :api_tokens_new, :api_token_edit]}
@@ -256,7 +264,7 @@
               selected={@live_action in [:api_apps, :api_apps_new, :api_app_edit]}
             />
             <.sidebar_item
-              label={gettext("LLM models")}
+              label={gettext("LLMs")}
               icon="api"
               navigate={~p"/#{@handle}/-/settings/models"}
               selected={@live_action in [:llm_models, :llm_model_new, :llm_model_edit]}

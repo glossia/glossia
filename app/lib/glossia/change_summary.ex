@@ -93,7 +93,7 @@ defmodule Glossia.ChangeSummary do
   end
 
   @doc """
-  Builds a human-readable diff description for glossary changes.
+  Builds a human-readable diff description for terminology changes.
   """
   def describe_glossary_changes(original_entries, current_entries) do
     orig_by_term = Map.new(original_entries, &{term_key(&1), &1})

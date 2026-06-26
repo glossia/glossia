@@ -452,7 +452,7 @@ defmodule Glossia.Seeds do
         }
       )
 
-    _glossary_request =
+    _terminology_request =
       ensure_discussion!(acme.account, maria,
         title: "Terminology suggestion: Add billing terms",
         body:
@@ -711,7 +711,7 @@ defmodule Glossia.Seeds do
   end
 
   # ----------------------------------------------------------------------------
-  # Glossary
+  # Terminology
   # ----------------------------------------------------------------------------
 
   defp ensure_glossary_versions!(%Account{} = account, %User{} = user, versions)
@@ -986,8 +986,8 @@ defmodule Glossia.Seeds do
       {15, "tool_result",
        "Translated content/blog/getting-started-meta.json -> content/es/blog/getting-started-meta.json\nTranslated content/blog/getting-started-meta.json -> content/fr/blog/getting-started-meta.json",
        ~s({"tool_name":"glossia-cli"})},
-      {16, "tool_call", "glossia validate --glossary",
-       ~s({"tool_name":"glossia-cli","command":"glossia validate --glossary"})},
+      {16, "tool_call", "glossia validate --terminology",
+       ~s({"tool_name":"glossia-cli","command":"glossia validate --terminology"})},
       {17, "tool_result",
        "Terminology validation passed. All terms consistent across translations.",
        ~s({"tool_name":"glossia-cli"})},

@@ -422,11 +422,9 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/terminology", DashboardLive, :glossary
       live "/:handle/-/terminology/suggestion/new", DashboardLive, :glossary_suggestion_new
       live "/:handle/-/terminology/request/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/terminology/terms/new", DashboardLive, :glossary_entry_new
+      live "/:handle/-/terminology/terms/:entry_index", DashboardLive, :glossary_entry
       live "/:handle/-/terminology/:version", DashboardLive, :glossary_version
-      live "/:handle/-/glossary", DashboardLive, :glossary
-      live "/:handle/-/glossary/suggestion/new", DashboardLive, :glossary_suggestion_new
-      live "/:handle/-/glossary/request/new", DashboardLive, :glossary_suggestion_new
-      live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
       live "/:handle/-/suggestions/:suggestion_number", DashboardLive, :discussion_show
       live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show

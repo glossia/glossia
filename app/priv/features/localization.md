@@ -15,11 +15,11 @@
 
 ## How localization works
 
-Glossia reads the content from your repository along with lockfiles that track what has already been processed. It then merges your local context (`L10N.md` files at the root or in subdirectories) with global context (voice, glossary, and account-level settings) to build a complete picture of how your content should sound in each target language. With that context assembled, an agentic workflow localizes the changed content while preserving structure, code blocks, and formatting. Once the run completes, results are sent back to your repository as a pull request ready for review.
+Glossia reads the content from your repository along with lockfiles that track what has already been processed. It then merges your local context (`L10N.md` files at the root or in subdirectories) with global context (voice, terminology, and account-level settings) to build a complete picture of how your content should sound in each target language. With that context assembled, an agentic workflow localizes the changed content while preserving structure, code blocks, and formatting. Once the run completes, results are sent back to your repository as a pull request ready for review.
 
 ## Context-driven quality
 
-Every localization benefits from the context you provide. Glossary terms, style notes, and domain-specific instructions all flow into the prompt so the agent produces output that matches your product's voice.
+Every localization benefits from the context you provide. Terminology, style notes, and domain-specific instructions all flow into the prompt so the agent produces output that matches your product's voice.
 
 ## Review with confidence
 

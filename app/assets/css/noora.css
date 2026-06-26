@@ -465,7 +465,7 @@
 
 .noora-shell .noora-sidebar [data-part="collapsible-group"] [data-part="root"] [data-part="content"] {
   gap: var(--noora-spacing-4);
-  padding-top: var(--noora-spacing-7);
+  padding-top: var(--noora-spacing-0);
   padding-left: var(--noora-spacing-5);
 }
 
@@ -669,6 +669,16 @@
   max-height: min(calc(100vh - var(--space-20)), calc(var(--space-20) * 3));
   overscroll-behavior: contain;
   overflow-y: auto;
+}
+
+.noora-shell .voice-form .terminology-translation-locale .noora-dropdown-content {
+  max-height: min(calc(100vh - var(--space-20)), calc(var(--space-20) * 3));
+  overscroll-behavior: contain;
+  overflow-y: auto;
+}
+
+.noora-shell .terminology-revision-actions .noora-dropdown {
+  min-width: calc(var(--space-20) * 2);
 }
 
 .noora-shell .voice-form .voice-country-tags .noora-tag {

@@ -776,7 +776,7 @@ defmodule GlossiaWeb.DashboardComponents do
 
   ## Examples
 
-      <.page_header title="Glossary" description="Define approved terms and translations.">
+      <.page_header title="Terminology" description="Define approved terms and translations.">
         <:actions>
           <button class="dash-btn dash-btn-primary">Save</button>
         </:actions>
@@ -945,16 +945,13 @@ defmodule GlossiaWeb.DashboardComponents do
               />
             </div>
           <% end %>
-          <button
+          <Noora.Button.button
             type="button"
-            class="dash-btn dash-btn-secondary"
+            label={gettext("Discard")}
+            variant="secondary"
             phx-click={@discard_event}
-          >
-            {gettext("Discard")}
-          </button>
-          <button type="submit" class="dash-btn dash-btn-primary" form={@form}>
-            {@submit_label}
-          </button>
+          />
+          <Noora.Button.button type="submit" label={@submit_label} form={@form} />
         </div>
       </div>
     </div>
