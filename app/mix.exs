@@ -61,7 +61,7 @@ defmodule Glossia.MixProject do
       {:swoosh, "~> 1.16"},
       {:gen_smtp, "~> 1.0"},
       {:req, "~> 0.5"},
-      {:sentry, "~> 11.0"},
+      {:sentry, "~> 13.2"},
       {:hackney, "~> 1.20"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},

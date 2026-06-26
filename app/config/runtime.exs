@@ -209,16 +209,18 @@ if config_env() == :prod do
     config :sentry,
       dsn: sentry_dsn,
       environment_name: otel_deployment_environment,
-      release: to_string(Application.spec(:glossia, :vsn))
+      release: to_string(Application.spec(:glossia, :vsn)),
+      oban: [
+        capture_errors: true,
+        should_report_error_callback: &Glossia.SentryOban.report_error?/2
+      ]
 
     config :glossia, :logger, [
       {:handler, :glossia_sentry, Sentry.LoggerHandler,
        %{
          config: %{
            metadata: [:file, :line],
-           rate_limiting: [max_events: 10, interval: 1_000],
-           capture_log_messages: true,
-           level: :error
+           rate_limiting: [max_events: 10, interval: 1_000]
          }
        }}
     ]
