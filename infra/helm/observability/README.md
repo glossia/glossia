@@ -10,11 +10,18 @@ Hetzner cluster. Bundles:
 | Loki | `loki` (SimpleScalable) | Log store, S3-backed |
 | Tempo | `tempo-distributed` | OTLP-native traces store, S3-backed |
 | Grafana | `grafana` | UI + datasources pre-pointed at the three above |
+| GlitchTip | `glitchtip` | Open source error tracking compatible with Sentry client libraries |
 
 Receives metrics/logs/traces pushed from other Glossia workload clusters
 via Grafana Alloy (`deploy/helm/glossia-alloy`). Lives in a separate
 failure domain from production so dashboards survive a production
 outage.
+
+GlitchTip is exposed at `https://errors.glossia.ai`. The Glossia
+application already reads `GLOSSIA_SENTRY_DSN` and
+`GLOSSIA_SENTRY_DSN_JS` from the production `kubernetes` 1Password item,
+so after creating a GlitchTip project, point those fields at the
+project's server and browser Sentry data source names.
 
 ## Pre-install (one-time, in this order)
 
@@ -22,8 +29,10 @@ outage.
    `infra/k8s/clusters/cluster-observability.yaml`, fetch its
    kubeconfig, install Cilium / HCCM / hcloud-csi, install the platform
    chart with `infra/helm/platform/values-observability.yaml`, install the
-   `onepassword` ClusterSecretStore with
-   `VAULT_NAME=glossia-observability`.
+   `onepassword` ClusterSecretStore with `VAULT_NAME=glossia-observability`.
+   The observability platform overlay enables CloudNativePG because
+   GlitchTip stores its events in a PostgreSQL cluster managed by that
+   operator.
 2. **Install the Rook-Ceph operator** as a separate Helm release. The
    operator owns the CRDs (`CephCluster`, `CephObjectStore`, etc.) that
    this chart's CRs depend on; bundling it as a subchart would race the
@@ -42,6 +51,9 @@ outage.
 3. **Populate 1Password** vault `glossia-observability` with:
    - Item `kubernetes` — fields `GF_SECURITY_ADMIN_USER`,
      `GF_SECURITY_ADMIN_PASSWORD` (Grafana root login).
+   - Item `glitchtip` — fields `SECRET_KEY`, `POSTGRES_PASSWORD`.
+     Generate `SECRET_KEY` with `openssl rand -base64 48` and use a
+     separate random database password for `POSTGRES_PASSWORD`.
    - Item `push-endpoints-auth` — single field `htpasswd` holding the
      full htpasswd content for every workload cluster shipping to
      this observability cluster. One line per token, e.g.:
@@ -93,14 +105,29 @@ kubectl -n observability get pods,hpa
 # Grafana
 curl -fsS https://grafana.glossia.ai/api/health
 
+# GlitchTip
+curl -fsS https://errors.glossia.ai/_health/
+
 # Push path (basic-auth round-trip)
 curl -fsS -u glossia-production:<plain-token> \
   https://mimir.glossia.ai/ready
 ```
 
-End-to-end test: install `deploy/helm/glossia-alloy` on the
-`glossia-production` cluster, wait 5 minutes, then run
-`up{job="glossia"}` in Grafana. Series should appear.
+End-to-end telemetry test: install `deploy/helm/glossia-alloy` on the
+`glossia-production` cluster, wait 5 minutes, then run `up{job="glossia"}`
+in Grafana. Series should appear.
+
+End-to-end error tracking test:
+
+1. Open `https://errors.glossia.ai`, register the first admin user, create
+   a Glossia project, and copy the server and browser Sentry data source
+   names.
+2. Add the server and browser
+   [data source name](https://docs.sentry.io/concepts/key-terms/dsn-explainer/)
+   values to the production vault item `kubernetes` as
+   `GLOSSIA_SENTRY_DSN` and `GLOSSIA_SENTRY_DSN_JS`.
+3. Upgrade the production Glossia release so the application pods pick up
+   the refreshed `glossia-app-env` Secret.
 
 ## Storage scaling
 

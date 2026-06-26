@@ -52,6 +52,10 @@ external-secrets:
   certController:
     tolerations: *statefulTolerations
 
+cloudnative-pg:
+  enabled: true
+  tolerations: *statefulTolerations
+
 rook-ceph:
   enabled: false
 

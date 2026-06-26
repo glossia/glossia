@@ -21,3 +21,16 @@ nginx.ingress.kubernetes.io/auth-type: basic
 nginx.ingress.kubernetes.io/auth-secret: {{ .Values.externalSecrets.pushAuth.secretName }}
 nginx.ingress.kubernetes.io/auth-realm: "glossia observability push"
 {{- end -}}
+
+{{/*
+Name used by the GlitchTip subchart. The value mirrors the upstream chart's
+default naming well enough for this parent chart, while keeping the production
+name stable through `glitchtip.fullnameOverride`.
+*/}}
+{{- define "observability.glitchtipFullname" -}}
+{{- if .Values.glitchtip.fullnameOverride -}}
+{{- .Values.glitchtip.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-glitchtip" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
