@@ -90,6 +90,102 @@ external-secrets:
   webhook:
     port: 9443
 
+# --- Cluster mail relay -----------------------------------------------------
+# Optional in-cluster mail relay. Applications submit mail to this ClusterIP
+# service without carrying provider credentials. The relay authenticates to the
+# upstream provider and keeps those credentials in the platform namespace.
+mailRelay:
+  enabled: false
+  fullnameOverride: mail-relay
+  replicaCount: 1
+  image:
+    repository: boky/postfix
+    tag: "5.1.0-debian"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 587
+    targetPort: 587
+  # Relay host can be set directly for non-sensitive environments, but
+  # production should use externalSecret or existingSecret instead.
+  relayHost: ""
+  existingSecret:
+    name: ""
+    keys:
+      relayHost: RELAYHOST
+      username: RELAYHOST_USERNAME
+      password: RELAYHOST_PASSWORD
+      saslUsers: SMTPD_SASL_USERS
+  externalSecret:
+    enabled: false
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: onepassword
+    secretName: mail-relay
+    itemKey: kubernetes
+    fields:
+      host: SMTP_HOST
+      port: SMTP_PORT
+      username: SMTP_USERNAME
+      password: SMTP_PASSWORD
+      clientUsername: MAIL_RELAY_USERNAME
+      clientPassword: MAIL_RELAY_PASSWORD
+  config:
+    allowedSenderDomains: glossia.ai
+    allowEmptySenderDomains: "false"
+    myHostname: mail-relay.glossia.ai
+    # Keep the base chart closed by default. Production overlays should set
+    # this to the pod network because this image trusts clients by source
+    # address.
+    myNetworks: "127.0.0.0/8"
+    outboundTlsSecurityLevel: encrypt
+    messageSizeLimit: ""
+  clientAuth:
+    enabled: false
+    # Comma-separated user:password pairs for local development without an
+    # external Secret. Production should set this through externalSecret.
+    saslUsers: ""
+    senderRestrictions: "reject_non_fqdn_sender,reject_unknown_sender_domain,check_sender_access lmdb:/etc/postfix/allowed_senders,reject"
+    recipientRestrictions: "reject_non_fqdn_recipient,reject_unknown_recipient_domain,permit_sasl_authenticated,reject"
+    relayRestrictions: "permit_sasl_authenticated,reject_unauth_destination"
+  networkPolicy:
+    enabled: false
+    allowedClients:
+      - namespace: glossia
+        podSelector:
+          app.kubernetes.io/name: glossia
+          app.kubernetes.io/instance: glossia
+      - namespace: observability
+        podSelector:
+          app.kubernetes.io/name: glitchtip
+          app.kubernetes.io/instance: observability
+  ciliumEgressPolicy:
+    enabled: false
+    dns:
+      namespace: kube-system
+      podSelector:
+        k8s-app: kube-dns
+      port: "53"
+    allowedFQDNs: []
+    allowedPorts: []
+  persistence:
+    enabled: false
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # --- Rook and Ceph object storage ------------------------------------------
 # Optional in-cluster object storage compatible with Amazon Simple Storage
 # Service. This follows the same operator/instance split as the database

@@ -46,6 +46,13 @@ secrets:
 env:
   GLOSSIA_PHX_SERVER: "true"
 
+mailRelay:
+  enabled: false
+  host: ""
+  port: 587
+  tls: never
+  auth: never
+
 # App object storage. By default the app expects the storage environment
 # variables to come from secrets.envSecretName. Set objectStorage.rook.enabled
 # when the platform chart creates a Rook and Ceph ObjectBucketClaim and exposes

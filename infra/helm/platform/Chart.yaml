@@ -5,11 +5,12 @@ description: >
   Bundles cert-manager, ingress-nginx, external-dns (Cloudflare),
   external-secrets-operator, the CloudNativePG and ClickHouse operators, and
   the CNPG Barman Cloud backup plugin as dependencies, plus optional Rook and
-  Ceph object storage compatible with Amazon Simple Storage Service. The chart
-  also ships the ClusterIssuer and shared resources that wire these
-  capabilities together. These operators are the cluster-level capabilities the
-  Glossia application chart consumes (it ships the Postgres/ClickHouse
-  instances; this chart ships the controllers and shared storage plane).
+  Ceph object storage compatible with Amazon Simple Storage Service and an
+  in-cluster mail relay. The chart also ships the ClusterIssuer and shared
+  resources that wire these capabilities together. These operators are the
+  cluster-level capabilities the Glossia application chart consumes (it ships
+  the Postgres/ClickHouse instances; this chart ships the controllers and shared
+  storage and mail planes).
 type: application
 version: 0.4.0
 appVersion: "0.4.0"

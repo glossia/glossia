@@ -37,6 +37,10 @@ ipMasqAgent:
 hostFirewall:
   enabled: true
 policyEnforcementMode: default
+encryption:
+  enabled: true
+  type: wireguard
+  nodeEncryption: true
 authentication:
   mutual:
     spire:

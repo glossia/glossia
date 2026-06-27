@@ -23,6 +23,13 @@ env:
 imagePullSecrets:
   - name: ghcr-pull-secret
 
+mailRelay:
+  enabled: true
+  host: mail-relay.platform.svc.cluster.local
+  port: 587
+  tls: never
+  auth: always
+
 ingress:
   enabled: true
   className: nginx
@@ -122,10 +129,10 @@ externalSecrets:
       GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
       GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
       GLOSSIA_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
-      GLOSSIA_SMTP_HOST: SMTP_HOST
-      GLOSSIA_SMTP_PORT: SMTP_PORT
-      GLOSSIA_SMTP_USERNAME: SMTP_USERNAME
-      GLOSSIA_SMTP_PASSWORD: SMTP_PASSWORD
+      GLOSSIA_SMTP_HOST:
+      GLOSSIA_SMTP_PORT:
+      GLOSSIA_SMTP_USERNAME: MAIL_RELAY_USERNAME
+      GLOSSIA_SMTP_PASSWORD: MAIL_RELAY_PASSWORD
       GLOSSIA_ENCRYPTION_KEY: ENCRYPTION_KEY
       GLOSSIA_SENTRY_DSN: SENTRY_DSN
       GLOSSIA_SENTRY_DSN_JS: SENTRY_DSN_JS

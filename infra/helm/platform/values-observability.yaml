@@ -56,6 +56,11 @@ cloudnative-pg:
   enabled: true
   tolerations: *statefulTolerations
 
+mailRelay:
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations: *statefulTolerations
+
 rook-ceph:
   enabled: false
 
