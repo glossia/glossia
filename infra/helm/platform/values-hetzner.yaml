@@ -28,6 +28,19 @@ ingress-nginx:
 
 mailRelay:
   enabled: true
+  config:
+    myNetworks: "127.0.0.0/8,192.168.0.0/16"
+  clientAuth:
+    enabled: true
+  networkPolicy:
+    enabled: true
+  ciliumEgressPolicy:
+    enabled: true
+    allowedFQDNs:
+      - matchName: next-smtp.useplunk.com
+    allowedPorts:
+      - port: "2587"
+        protocol: TCP
   externalSecret:
     enabled: true
     secretStoreRef:

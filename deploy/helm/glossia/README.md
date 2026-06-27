@@ -95,13 +95,25 @@ mailRelay:
   host: mail-relay.platform.svc.cluster.local
   port: 587
   tls: never
-  auth: never
+  auth: always
 ```
 
 In this mode, remove `GLOSSIA_SMTP_HOST`, `GLOSSIA_SMTP_PORT`,
-`GLOSSIA_SMTP_USERNAME`, and `GLOSSIA_SMTP_PASSWORD` from
-`externalSecrets.appEnv.fields`. The relay owns those upstream provider
-credentials in the platform namespace.
+and the provider-backed `GLOSSIA_SMTP_USERNAME` and
+`GLOSSIA_SMTP_PASSWORD` mappings from `externalSecrets.appEnv.fields`. The
+relay owns the upstream provider credentials in the platform namespace; the
+app should only receive the separate `MAIL_RELAY_USERNAME` and
+`MAIL_RELAY_PASSWORD` credentials used to authenticate to the in-cluster relay.
+
+On Hetzner clusters, the platform chart also installs a Kubernetes
+[NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+that only lets the Glossia app pods and GlitchTip pods connect to the relay.
+It also installs a Cilium
+[fully qualified domain name policy](https://docs.cilium.io/en/stable/security/dns/)
+that limits the relay to Domain Name System lookups and outbound submission to
+the configured provider host and port. Workload clusters also enable Cilium
+[WireGuard transparent encryption](https://docs.cilium.io/en/stable/security/network/encryption-wireguard/)
+for node-to-node pod traffic.
 
 ## Object Storage
 

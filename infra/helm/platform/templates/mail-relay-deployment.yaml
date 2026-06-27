@@ -49,9 +49,20 @@ spec:
                 secretKeyRef:
                   name: {{ $secretName | quote }}
                   key: {{ .Values.mailRelay.existingSecret.keys.password | quote }}
+            {{- if .Values.mailRelay.clientAuth.enabled }}
+            - name: SMTPD_SASL_USERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: {{ .Values.mailRelay.existingSecret.keys.saslUsers | quote }}
+            {{- end }}
             {{- else }}
             - name: RELAYHOST
               value: {{ required "mailRelay.relayHost or a relay secret is required when mailRelay.enabled=true" .Values.mailRelay.relayHost | quote }}
+            {{- if .Values.mailRelay.clientAuth.enabled }}
+            - name: SMTPD_SASL_USERS
+              value: {{ required "mailRelay.clientAuth.saslUsers is required when mailRelay.clientAuth.enabled=true without a relay secret" .Values.mailRelay.clientAuth.saslUsers | quote }}
+            {{- end }}
             {{- end }}
             - name: ALLOWED_SENDER_DOMAINS
               value: {{ .Values.mailRelay.config.allowedSenderDomains | quote }}
@@ -63,6 +74,14 @@ spec:
               value: {{ .Values.mailRelay.config.myNetworks | quote }}
             - name: POSTFIX_smtp_tls_security_level
               value: {{ .Values.mailRelay.config.outboundTlsSecurityLevel | quote }}
+            {{- if .Values.mailRelay.clientAuth.enabled }}
+            - name: POSTFIX_smtpd_sender_restrictions
+              value: {{ .Values.mailRelay.clientAuth.senderRestrictions | quote }}
+            - name: POSTFIX_smtpd_recipient_restrictions
+              value: {{ .Values.mailRelay.clientAuth.recipientRestrictions | quote }}
+            - name: POSTFIX_smtpd_relay_restrictions
+              value: {{ .Values.mailRelay.clientAuth.relayRestrictions | quote }}
+            {{- end }}
             {{- if .Values.mailRelay.config.messageSizeLimit }}
             - name: POSTFIX_message_size_limit
               value: {{ .Values.mailRelay.config.messageSizeLimit | quote }}

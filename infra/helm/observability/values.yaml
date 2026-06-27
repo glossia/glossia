@@ -108,6 +108,12 @@ externalSecrets:
     itemKey: glitchtip
     secretKeyField: SECRET_KEY
     postgresPasswordField: POSTGRES_PASSWORD
+  mailRelay:
+    itemKey: kubernetes
+    usernameField: MAIL_RELAY_USERNAME
+    passwordField: MAIL_RELAY_PASSWORD
+    host: mail-relay.platform.svc.cluster.local
+    port: 587
 
 # Public ingress hosts. Created with `ingressClassName: nginx` and the
 # `letsencrypt-cloudflare` ClusterIssuer that the platform chart already
@@ -735,7 +741,10 @@ glitchtip:
     - name: ENABLE_ORGANIZATION_CREATION
       value: "false"
     - name: EMAIL_URL
-      value: smtp://mail-relay.platform.svc.cluster.local:587
+      valueFrom:
+        secretKeyRef:
+          name: glitchtip-app
+          key: EMAIL_URL
     - name: DEFAULT_FROM_EMAIL
       value: errors@glossia.ai
   ingress:

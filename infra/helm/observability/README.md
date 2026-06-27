@@ -52,7 +52,13 @@ project's server and browser Sentry data source names.
    - Item `kubernetes` — fields `GF_SECURITY_ADMIN_USER`,
      `GF_SECURITY_ADMIN_PASSWORD` (Grafana root login), plus
      `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, and `SMTP_PASSWORD` for
-     the cluster mail relay.
+     the upstream mail provider, and `MAIL_RELAY_USERNAME` and
+     `MAIL_RELAY_PASSWORD` for GlitchTip-to-relay authentication.
+     Keep `SMTP_HOST` and `SMTP_PORT` aligned with
+     `mailRelay.ciliumEgressPolicy.allowedFQDNs` and
+     `mailRelay.ciliumEgressPolicy.allowedPorts` in the platform values. The
+     relay egress policy only permits the configured upstream provider
+     hostname and port.
    - Item `glitchtip` — fields `SECRET_KEY`, `POSTGRES_PASSWORD`.
      Generate `SECRET_KEY` with `openssl rand -base64 48` and use a
      separate random database password for `POSTGRES_PASSWORD`.
