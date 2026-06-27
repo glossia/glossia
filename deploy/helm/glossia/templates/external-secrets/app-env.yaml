@@ -18,7 +18,9 @@ spec:
         GLOSSIA_DATABASE_URL: {{ printf "ecto://%s:{{ .%s | urlquery }}@%s/%s" .Values.postgres.user .Values.externalSecrets.postgres.passwordField (include "glossia.postgresHost" .) .Values.postgres.database | quote }}
         GLOSSIA_CLICKHOUSE_URL: {{ printf "http://%s:%d/%s" (include "glossia.clickhouseHost" .) (int .Values.clickhouse.port) .Values.clickhouse.database | quote }}
         {{- range $key, $remoteKey := .Values.externalSecrets.appEnv.fields }}
+        {{- if $remoteKey }}
         {{ $key }}: {{ printf "{{ .%s }}" $remoteKey | quote }}
+        {{- end }}
         {{- end }}
   dataFrom:
     - extract:

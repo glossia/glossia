@@ -33,6 +33,16 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
+            {{- if .Values.mailRelay.enabled }}
+            - name: GLOSSIA_SMTP_HOST
+              value: {{ required "mailRelay.host is required when mailRelay.enabled=true" .Values.mailRelay.host | quote }}
+            - name: GLOSSIA_SMTP_PORT
+              value: {{ .Values.mailRelay.port | quote }}
+            - name: GLOSSIA_SMTP_TLS
+              value: {{ .Values.mailRelay.tls | quote }}
+            - name: GLOSSIA_SMTP_AUTH
+              value: {{ .Values.mailRelay.auth | quote }}
+            {{- end }}
             {{- if .Values.objectStorage.rook.enabled }}
             - name: GLOSSIA_S3_ACCESS_KEY_ID
               valueFrom:

@@ -39,7 +39,7 @@ with at minimum:
 | `GLOSSIA_SECRET_KEY_BASE` | Phoenix session signing key |
 | `GLOSSIA_METRICS_BEARER_TOKEN` | Bearer token guarding `/metrics` |
 | `GLOSSIA_OPS_AUTH_PASSWORD` | Basic-auth for `/ops` dashboards |
-| `GLOSSIA_SMTP_*` | Outbound email |
+| `GLOSSIA_SMTP_*` | Outbound email, unless `mailRelay.enabled=true` supplies the relay settings |
 
 …and (when `postgres.enabled`) a basic-auth Secret named `glossia-postgres-app`
 with `username` + `password` keys for the application Postgres user.
@@ -81,6 +81,27 @@ externalSecrets:
 `GLOSSIA_DATABASE_URL` and `GLOSSIA_CLICKHOUSE_URL` are computed from
 `postgres.*` / `clickhouse.*` and the password fetched from the postgres
 item — you do not list them in `appEnv.fields`.
+
+## Cluster Mail Relay
+
+Set `mailRelay.enabled=true` when the cluster platform chart provides a
+shared [Simple Mail Transfer Protocol](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol)
+relay. The app pods submit mail to that in-cluster service without provider
+credentials:
+
+```yaml
+mailRelay:
+  enabled: true
+  host: mail-relay.platform.svc.cluster.local
+  port: 587
+  tls: never
+  auth: never
+```
+
+In this mode, remove `GLOSSIA_SMTP_HOST`, `GLOSSIA_SMTP_PORT`,
+`GLOSSIA_SMTP_USERNAME`, and `GLOSSIA_SMTP_PASSWORD` from
+`externalSecrets.appEnv.fields`. The relay owns those upstream provider
+credentials in the platform namespace.
 
 ## Object Storage
 

@@ -734,6 +734,10 @@ glitchtip:
       value: "false"
     - name: ENABLE_ORGANIZATION_CREATION
       value: "false"
+    - name: EMAIL_URL
+      value: smtp://mail-relay.platform.svc.cluster.local:587
+    - name: DEFAULT_FROM_EMAIL
+      value: errors@glossia.ai
   ingress:
     enabled: false
   valkey:

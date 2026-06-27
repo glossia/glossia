@@ -342,32 +342,71 @@ if config_env() == :prod do
 
   smtp_port = String.to_integer(System.get_env("GLOSSIA_SMTP_PORT") || "587")
 
-  smtp_username =
-    System.get_env("GLOSSIA_SMTP_USERNAME") ||
-      raise """
-      environment variable GLOSSIA_SMTP_USERNAME is missing.
-      """
+  smtp_tls =
+    case String.downcase(System.get_env("GLOSSIA_SMTP_TLS") || "always") do
+      "always" -> :always
+      "if_available" -> :if_available
+      "never" -> :never
+      value -> raise "unsupported GLOSSIA_SMTP_TLS=#{inspect(value)}"
+    end
 
-  smtp_password =
-    System.get_env("GLOSSIA_SMTP_PASSWORD") ||
-      raise """
-      environment variable GLOSSIA_SMTP_PASSWORD is missing.
-      """
+  smtp_auth =
+    case String.downcase(System.get_env("GLOSSIA_SMTP_AUTH") || "always") do
+      "always" -> :always
+      "never" -> :never
+      value -> raise "unsupported GLOSSIA_SMTP_AUTH=#{inspect(value)}"
+    end
 
-  config :glossia, Glossia.Mailer,
-    adapter: Swoosh.Adapters.SMTP,
-    relay: smtp_host,
-    port: smtp_port,
-    username: smtp_username,
-    password: smtp_password,
-    tls: :always,
-    ssl: false,
-    auth: :always,
-    no_mx_lookups: true,
-    tls_options: [
-      verify: :verify_peer,
-      cacerts: :public_key.cacerts_get(),
-      depth: 3,
-      server_name_indication: String.to_charlist(smtp_host)
-    ]
+  smtp_auth_options =
+    case smtp_auth do
+      :always ->
+        smtp_username =
+          System.get_env("GLOSSIA_SMTP_USERNAME") ||
+            raise """
+            environment variable GLOSSIA_SMTP_USERNAME is missing.
+            """
+
+        smtp_password =
+          System.get_env("GLOSSIA_SMTP_PASSWORD") ||
+            raise """
+            environment variable GLOSSIA_SMTP_PASSWORD is missing.
+            """
+
+        [
+          username: smtp_username,
+          password: smtp_password,
+          auth: :always
+        ]
+
+      :never ->
+        [auth: :never]
+    end
+
+  smtp_tls_options =
+    case smtp_tls do
+      :never ->
+        []
+
+      _ ->
+        [
+          tls_options: [
+            verify: :verify_peer,
+            cacerts: :public_key.cacerts_get(),
+            depth: 3,
+            server_name_indication: String.to_charlist(smtp_host)
+          ]
+        ]
+    end
+
+  smtp_options =
+    [
+      adapter: Swoosh.Adapters.SMTP,
+      relay: smtp_host,
+      port: smtp_port,
+      tls: smtp_tls,
+      ssl: false,
+      no_mx_lookups: true
+    ] ++ smtp_auth_options ++ smtp_tls_options
+
+  config :glossia, Glossia.Mailer, smtp_options
 end

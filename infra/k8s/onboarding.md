@@ -41,6 +41,10 @@ is closed.
   (Hetzner tokens, Talos / kubeconfigs, SSH keys, S3 keys, Cloudflare
   token, etc.) live here. A Service Account scoped to this vault
   is needed by ESO on workload clusters (see Part B).
+  The `kubernetes` item must include `SMTP_HOST`, `SMTP_PORT`,
+  `SMTP_USERNAME`, and `SMTP_PASSWORD`; the platform chart uses them to
+  configure the cluster [Simple Mail Transfer Protocol](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol)
+  relay.
 - CLI tools installed via mise:
   ```bash
   mise use -g kubectl helm clusterctl talosctl jq
@@ -456,6 +460,11 @@ kubectl -n onepassword create secret generic onepassword-sa-token \
 
 kubectl get clustersecretstore onepassword
 # Expect READY=True (re-check after a few seconds; ESO revalidates).
+
+kubectl -n platform get externalsecret mail-relay
+kubectl -n platform rollout status deployment/mail-relay --timeout=5m
+# The relay Deployment stays pending until the `onepassword` store projects
+# the upstream mail provider credentials into the platform namespace.
 
 # 6. Database operators — managed standalone (NOT via the platform
 #    chart, so each has exactly one owner). The CNPG Barman plugin is

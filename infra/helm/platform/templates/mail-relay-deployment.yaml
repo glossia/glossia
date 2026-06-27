@@ -1,0 +1,104 @@
+{{- if .Values.mailRelay.enabled }}
+{{- $secretName := .Values.mailRelay.existingSecret.name -}}
+{{- if .Values.mailRelay.externalSecret.enabled -}}
+{{- $secretName = .Values.mailRelay.externalSecret.secretName -}}
+{{- end -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mailRelay.fullnameOverride }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: mail-relay
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.mailRelay.replicaCount }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mail-relay
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mail-relay
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: mail-relay
+          image: "{{ .Values.mailRelay.image.repository }}:{{ .Values.mailRelay.image.tag }}"
+          imagePullPolicy: {{ .Values.mailRelay.image.pullPolicy }}
+          ports:
+            - name: submission
+              containerPort: {{ .Values.mailRelay.service.targetPort }}
+          env:
+            {{- if $secretName }}
+            - name: RELAYHOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: {{ .Values.mailRelay.existingSecret.keys.relayHost | quote }}
+            - name: RELAYHOST_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: {{ .Values.mailRelay.existingSecret.keys.username | quote }}
+            - name: RELAYHOST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: {{ .Values.mailRelay.existingSecret.keys.password | quote }}
+            {{- else }}
+            - name: RELAYHOST
+              value: {{ required "mailRelay.relayHost or a relay secret is required when mailRelay.enabled=true" .Values.mailRelay.relayHost | quote }}
+            {{- end }}
+            - name: ALLOWED_SENDER_DOMAINS
+              value: {{ .Values.mailRelay.config.allowedSenderDomains | quote }}
+            - name: ALLOW_EMPTY_SENDER_DOMAINS
+              value: {{ .Values.mailRelay.config.allowEmptySenderDomains | quote }}
+            - name: POSTFIX_myhostname
+              value: {{ .Values.mailRelay.config.myHostname | quote }}
+            - name: POSTFIX_mynetworks
+              value: {{ .Values.mailRelay.config.myNetworks | quote }}
+            - name: POSTFIX_smtp_tls_security_level
+              value: {{ .Values.mailRelay.config.outboundTlsSecurityLevel | quote }}
+            {{- if .Values.mailRelay.config.messageSizeLimit }}
+            - name: POSTFIX_message_size_limit
+              value: {{ .Values.mailRelay.config.messageSizeLimit | quote }}
+            {{- end }}
+          readinessProbe:
+            tcpSocket:
+              port: submission
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: submission
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          {{- if .Values.mailRelay.persistence.enabled }}
+          volumeMounts:
+            - name: queue
+              mountPath: /var/spool/postfix
+          {{- end }}
+          resources:
+            {{- toYaml .Values.mailRelay.resources | nindent 12 }}
+      {{- if .Values.mailRelay.persistence.enabled }}
+      volumes:
+        - name: queue
+          persistentVolumeClaim:
+            claimName: {{ .Values.mailRelay.fullnameOverride }}
+      {{- end }}
+      {{- with .Values.mailRelay.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mailRelay.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mailRelay.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

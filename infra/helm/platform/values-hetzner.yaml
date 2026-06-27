@@ -26,6 +26,24 @@ ingress-nginx:
         # HCCM send proxyprotocol=false and the chart converges.
         load-balancer.hetzner.cloud/uses-proxyprotocol: "false"
 
+mailRelay:
+  enabled: true
+  externalSecret:
+    enabled: true
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: onepassword
+    itemKey: kubernetes
+    fields:
+      host: SMTP_HOST
+      port: SMTP_PORT
+      username: SMTP_USERNAME
+      password: SMTP_PASSWORD
+  persistence:
+    enabled: true
+    storageClassName: hcloud-volumes
+    size: 1Gi
+
 # Rook and Ceph object storage for the app. This runs in the platform
 # namespace because the platform chart is installed there; keep
 # operatorNamespace and rookObjectStorage.clusterNamespace aligned with the

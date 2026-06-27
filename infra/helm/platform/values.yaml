@@ -90,6 +90,68 @@ external-secrets:
   webhook:
     port: 9443
 
+# --- Cluster mail relay -----------------------------------------------------
+# Optional in-cluster mail relay. Applications submit mail to this ClusterIP
+# service without carrying provider credentials. The relay authenticates to the
+# upstream provider and keeps those credentials in the platform namespace.
+mailRelay:
+  enabled: false
+  fullnameOverride: mail-relay
+  replicaCount: 1
+  image:
+    repository: boky/postfix
+    tag: "5.1.0-debian"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 587
+    targetPort: 587
+  # Relay host can be set directly for non-sensitive environments, but
+  # production should use externalSecret or existingSecret instead.
+  relayHost: ""
+  existingSecret:
+    name: ""
+    keys:
+      relayHost: RELAYHOST
+      username: RELAYHOST_USERNAME
+      password: RELAYHOST_PASSWORD
+  externalSecret:
+    enabled: false
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: onepassword
+    secretName: mail-relay
+    itemKey: kubernetes
+    fields:
+      host: SMTP_HOST
+      port: SMTP_PORT
+      username: SMTP_USERNAME
+      password: SMTP_PASSWORD
+  config:
+    allowedSenderDomains: glossia.ai
+    allowEmptySenderDomains: "false"
+    myHostname: mail-relay.glossia.ai
+    myNetworks: "127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    outboundTlsSecurityLevel: encrypt
+    messageSizeLimit: ""
+  persistence:
+    enabled: false
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # --- Rook and Ceph object storage ------------------------------------------
 # Optional in-cluster object storage compatible with Amazon Simple Storage
 # Service. This follows the same operator/instance split as the database
