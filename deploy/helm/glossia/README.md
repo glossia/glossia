@@ -39,7 +39,7 @@ with at minimum:
 | `GLOSSIA_SECRET_KEY_BASE` | Phoenix session signing key |
 | `GLOSSIA_METRICS_BEARER_TOKEN` | Bearer token guarding `/metrics` |
 | `GLOSSIA_OPS_AUTH_PASSWORD` | Basic-auth for `/ops` dashboards |
-| `GLOSSIA_SMTP_*` | Outbound email |
+| `GLOSSIA_SMTP_*` | Outbound email, unless `mailRelay.enabled=true` supplies the relay settings |
 
 …and (when `postgres.enabled`) a basic-auth Secret named `glossia-postgres-app`
 with `username` + `password` keys for the application Postgres user.
@@ -81,6 +81,39 @@ externalSecrets:
 `GLOSSIA_DATABASE_URL` and `GLOSSIA_CLICKHOUSE_URL` are computed from
 `postgres.*` / `clickhouse.*` and the password fetched from the postgres
 item — you do not list them in `appEnv.fields`.
+
+## Cluster Mail Relay
+
+Set `mailRelay.enabled=true` when the cluster platform chart provides a
+shared [Simple Mail Transfer Protocol](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol)
+relay. The app pods submit mail to that in-cluster service without provider
+credentials:
+
+```yaml
+mailRelay:
+  enabled: true
+  host: mail-relay.platform.svc.cluster.local
+  port: 587
+  tls: never
+  auth: always
+```
+
+In this mode, remove `GLOSSIA_SMTP_HOST`, `GLOSSIA_SMTP_PORT`,
+and the provider-backed `GLOSSIA_SMTP_USERNAME` and
+`GLOSSIA_SMTP_PASSWORD` mappings from `externalSecrets.appEnv.fields`. The
+relay owns the upstream provider credentials in the platform namespace; the
+app should only receive the separate `MAIL_RELAY_USERNAME` and
+`MAIL_RELAY_PASSWORD` credentials used to authenticate to the in-cluster relay.
+
+On Hetzner clusters, the platform chart also installs a Kubernetes
+[NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+that only lets the Glossia app pods and GlitchTip pods connect to the relay.
+It also installs a Cilium
+[fully qualified domain name policy](https://docs.cilium.io/en/stable/security/dns/)
+that limits the relay to Domain Name System lookups and outbound submission to
+the configured provider host and port. Workload clusters also enable Cilium
+[WireGuard transparent encryption](https://docs.cilium.io/en/stable/security/network/encryption-wireguard/)
+for node-to-node pod traffic.
 
 ## Object Storage
 
