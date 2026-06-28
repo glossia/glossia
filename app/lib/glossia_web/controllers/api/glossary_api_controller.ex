@@ -38,7 +38,7 @@ defmodule GlossiaWeb.Api.GlossaryApiController do
                 conn |> put_status(:bad_request) |> json(%{error: "invalid_version"})
 
               {:ok, nil} ->
-                conn |> put_status(:not_found) |> json(%{error: "no glossary configured"})
+                conn |> put_status(:not_found) |> json(%{error: "no terminology configured"})
 
               {:ok, %Accounts.Glossary{} = g} ->
                 conn |> json(serialize_glossary(g))

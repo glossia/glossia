@@ -95,9 +95,9 @@ Scopes control what actions a token can perform. They follow the `object:action`
 | `voice:read` | Read voice configuration |
 | `voice:write` | Create or update voice configuration |
 | `voice:admin` | Administrative voice actions |
-| `glossary:read` | Read glossary entries |
-| `glossary:write` | Create or update glossary entries |
-| `glossary:admin` | Manage glossary settings |
+| `glossary:read` | Read terminology entries |
+| `glossary:write` | Create or update terminology entries |
+| `glossary:admin` | Manage terminology settings |
 
 ## Authorization model
 

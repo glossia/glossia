@@ -21,7 +21,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
       Glossaries.create_glossary(
         owner.account,
         %{
-          change_note: "Initial glossary",
+          change_note: "Initial terminology",
           entries: [
             %{
               term: "project",

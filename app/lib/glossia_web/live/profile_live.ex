@@ -124,19 +124,14 @@ defmodule GlossiaWeb.ProfileLive do
   defp overview_page(assigns) do
     ~H"""
     <div class="profile-page">
-      <div class="profile-page-header">
-        <h1 class="profile-page-title">{gettext("Profile")}</h1>
-        <p class="profile-page-description">
-          {gettext("Manage your personal profile and account information.")}
-        </p>
-      </div>
+      <.page_header
+        title={gettext("Profile")}
+        description={gettext("Manage your personal profile and account information.")}
+      />
 
-      <div class="voice-section">
-        <div class="voice-section-info">
-          <h2>{gettext("Avatar")}</h2>
-        </div>
-        <div class="voice-card">
-          <div class="voice-card-fields">
+      <div class="noora-resource-list">
+        <Noora.Card.card class="noora-resource-card" title={gettext("Avatar")} icon="user">
+          <Noora.Card.card_section class="profile-avatar-card">
             <.form
               for={%{}}
               id="profile-avatar-form"
@@ -152,10 +147,11 @@ defmodule GlossiaWeb.ProfileLive do
                 data-input-id="profile-avatar-input"
                 data-fallback={@gravatar_url}
               >
-                <img
-                  src={@user_avatar_url}
-                  alt={@current_user.name || @current_user.email}
-                  class="user-avatar-img"
+                <Noora.Avatar.avatar
+                  id="profile-avatar"
+                  image_href={@user_avatar_url}
+                  name={@current_user.name || @current_user.email}
+                  size="2xlarge"
                 />
               </label>
               <input
@@ -166,118 +162,108 @@ defmodule GlossiaWeb.ProfileLive do
                 class="user-avatar-file-input-hidden"
               />
             </.form>
-          </div>
-        </div>
-      </div>
+          </Noora.Card.card_section>
+        </Noora.Card.card>
 
-      <div class="voice-section-divider"></div>
-
-      <.form
-        for={@profile_form}
-        id="profile-form"
-        phx-submit="save_profile"
-        phx-change="validate_profile"
-      >
-        <div class="voice-section">
-          <div class="voice-section-info">
-            <h2>{gettext("Personal information")}</h2>
-          </div>
-          <div class="voice-card">
-            <div class="voice-card-fields">
-              <div class="voice-field">
-                <label>{gettext("Email")}</label>
-                <input
-                  type="email"
+        <.form
+          for={@profile_form}
+          id="profile-form"
+          class="voice-form profile-form"
+          phx-submit="save_profile"
+          phx-change="validate_profile"
+        >
+          <Noora.Card.card
+            class="noora-resource-card"
+            title={gettext("Personal information")}
+            icon="user"
+          >
+            <Noora.Card.card_section class="voice-card">
+              <div class="voice-card-fields">
+                <Noora.TextInput.text_input
+                  id="profile-email"
+                  name="profile[email]"
                   value={@current_user.email}
+                  type="email"
+                  label={gettext("Email")}
+                  hint={gettext("Email cannot be changed here.")}
                   disabled
-                  style="opacity: 0.6; cursor: not-allowed;"
                 />
-                <span class="voice-field-help">
-                  {gettext("Email cannot be changed here.")}
-                </span>
-              </div>
-              <div class="voice-field">
-                <label for="profile-name">{gettext("Name")}</label>
-                <input
-                  type="text"
+
+                <Noora.TextInput.text_input
                   id="profile-name"
                   name="profile[name]"
                   value={@profile_form[:name].value}
+                  label={gettext("Name")}
                   placeholder={gettext("Your display name")}
                 />
-              </div>
-              <div class="voice-field">
-                <label for="profile-bio">{gettext("Bio")}</label>
-                <textarea
+
+                <Noora.TextArea.text_area
                   id="profile-bio"
                   name="profile[bio]"
-                  rows="3"
+                  value={@profile_form[:bio].value}
+                  label={gettext("Bio")}
+                  rows={4}
+                  max_length={500}
+                  show_character_count={false}
                   placeholder={gettext("A short description about yourself")}
-                >{@profile_form[:bio].value}</textarea>
+                />
               </div>
-            </div>
-          </div>
-        </div>
+            </Noora.Card.card_section>
+          </Noora.Card.card>
 
-        <div class="voice-section-divider"></div>
-
-        <div class="voice-section">
-          <div class="voice-section-info">
-            <h2>{gettext("Social links")}</h2>
-            <p>{gettext("Add links to your social profiles.")}</p>
-          </div>
-          <div class="voice-card">
-            <div class="voice-card-fields">
-              <div class="voice-field">
-                <label for="profile-github-url">{gettext("GitHub")}</label>
-                <input
-                  type="url"
+          <Noora.Card.card
+            class="noora-resource-card"
+            title={gettext("Social links")}
+            icon="link_icon"
+          >
+            <Noora.Card.card_section class="voice-card">
+              <div class="voice-card-fields">
+                <Noora.TextInput.text_input
                   id="profile-github-url"
                   name="profile[github_url]"
                   value={@profile_form[:github_url].value}
+                  label={gettext("GitHub")}
+                  input_type="url"
                   placeholder="https://github.com/username"
                 />
-              </div>
-              <div class="voice-field">
-                <label for="profile-x-url">{gettext("X (Twitter)")}</label>
-                <input
-                  type="url"
+
+                <Noora.TextInput.text_input
                   id="profile-x-url"
                   name="profile[x_url]"
                   value={@profile_form[:x_url].value}
+                  label={gettext("X (Twitter)")}
+                  input_type="url"
                   placeholder="https://x.com/username"
                 />
-              </div>
-              <div class="voice-field">
-                <label for="profile-linkedin-url">{gettext("LinkedIn")}</label>
-                <input
-                  type="url"
+
+                <Noora.TextInput.text_input
                   id="profile-linkedin-url"
                   name="profile[linkedin_url]"
                   value={@profile_form[:linkedin_url].value}
+                  label={gettext("LinkedIn")}
+                  input_type="url"
                   placeholder="https://linkedin.com/in/username"
                 />
-              </div>
-              <div class="voice-field">
-                <label for="profile-mastodon-url">{gettext("Mastodon")}</label>
-                <input
-                  type="url"
+
+                <Noora.TextInput.text_input
                   id="profile-mastodon-url"
                   name="profile[mastodon_url]"
                   value={@profile_form[:mastodon_url].value}
+                  label={gettext("Mastodon")}
+                  input_type="url"
                   placeholder="https://mastodon.social/@username"
                 />
               </div>
-            </div>
-          </div>
-        </div>
+            </Noora.Card.card_section>
+          </Noora.Card.card>
 
-        <.form_save_bar
-          id="profile-save-bar"
-          visible={@profile_changed?}
-          cancel_path={~p"/-/settings/profile"}
-        />
-      </.form>
+          <.form_save_bar
+            id="profile-save-bar"
+            visible={@profile_changed?}
+            cancel_path={~p"/-/settings/profile"}
+          />
+        </.form>
+      </div>
       <script :type={Phoenix.LiveView.ColocatedHook} name=".AvatarPicker">
         export default {
           mounted() {
@@ -339,26 +325,34 @@ defmodule GlossiaWeb.ProfileLive do
   defp connected_accounts_page(assigns) do
     ~H"""
     <div class="profile-page">
-      <div class="profile-page-header">
-        <h1 class="profile-page-title">{gettext("Connections")}</h1>
-        <p class="profile-page-description">
-          {gettext("Manage third-party services connected to your Glossia account.")}
-        </p>
-      </div>
+      <.page_header
+        title={gettext("Connections")}
+        description={gettext("Manage third-party services connected to your Glossia account.")}
+      />
 
-      <.resource_table id="connections" rows={@identities}>
-        <:col :let={identity} label={gettext("Provider")}>
-          {String.capitalize(identity.provider)}
-        </:col>
-        <:col :let={identity} label={gettext("Account")}>
-          {identity.provider_uid}
-        </:col>
-        <:empty>
-          <p>
-            {gettext("No connections yet. Connect a third-party service by signing in through it.")}
-          </p>
-        </:empty>
-      </.resource_table>
+      <Noora.Card.card_section class="noora-settings-list-card">
+        <Noora.Table.table
+          id="connections"
+          rows={@identities}
+          row_key={fn identity -> "connection-#{identity.provider}-#{identity.provider_uid}" end}
+        >
+          <:col :let={identity} label={gettext("Provider")}>
+            <Noora.Table.text_cell icon="link_icon" label={String.capitalize(identity.provider)} />
+          </:col>
+          <:col :let={identity} label={gettext("Account")}>
+            <Noora.Table.tag_cell label={identity.provider_uid} />
+          </:col>
+          <:empty_state>
+            <Noora.Table.table_empty_state>
+              <.noora_empty_state
+                icon="link_icon"
+                title={gettext("No connections yet")}
+                subtitle={gettext("Connections will show up here after you sign in with a provider.")}
+              />
+            </Noora.Table.table_empty_state>
+          </:empty_state>
+        </Noora.Table.table>
+      </Noora.Card.card_section>
     </div>
     """
   end

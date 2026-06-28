@@ -313,7 +313,7 @@ defmodule Glossia.Discussions do
     do:
       Gettext.gettext(
         GlossiaWeb.Gettext,
-        "Applied this suggestion as glossary version #%{version}.",
+        "Applied this suggestion as terminology version #%{version}.",
         version: version
       )
 

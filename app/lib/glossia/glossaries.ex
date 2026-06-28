@@ -99,8 +99,8 @@ defmodule Glossia.Glossaries do
             Events.emit("glossary.created", account, user,
               resource_type: "glossary",
               resource_id: to_string(glossary.version),
-              resource_path: "/#{account.handle}/-/glossary/#{glossary.version}",
-              summary: glossary.change_note || "Updated glossary.",
+              resource_path: "/#{account.handle}/-/terminology/#{glossary.version}",
+              summary: glossary.change_note || "Updated terminology.",
               via: Keyword.get(opts, :via)
             )
           end

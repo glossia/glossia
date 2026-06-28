@@ -14,6 +14,7 @@ defmodule Glossia.Accounts do
   import Ecto.Query
 
   @dev_env Mix.env() == :dev
+  @personal_organization_name "Personal"
 
   # ----------------------------------------------------------------------------
   # Accounts
@@ -43,6 +44,40 @@ defmodule Glossia.Accounts do
 
       Flop.validate_and_run(query, params, for: Account)
     end
+  end
+
+  def personal_organization_name, do: @personal_organization_name
+
+  def personal_account?(%Account{type: "user"}), do: true
+  def personal_account?(_), do: false
+
+  def ensure_personal_organization!(%User{} = user) do
+    organization =
+      Organization
+      |> where(account_id: ^user.account_id)
+      |> Repo.one()
+      |> case do
+        nil ->
+          %Organization{account_id: user.account_id}
+          |> Organization.changeset(%{name: @personal_organization_name})
+          |> Repo.insert!()
+
+        organization ->
+          organization
+      end
+
+    membership_exists? =
+      OrganizationMembership
+      |> where(user_id: ^user.id, organization_id: ^organization.id)
+      |> Repo.exists?()
+
+    unless membership_exists? do
+      %OrganizationMembership{user_id: user.id, organization_id: organization.id}
+      |> OrganizationMembership.changeset(%{role: "admin"})
+      |> Repo.insert!()
+    end
+
+    organization
   end
 
   # ----------------------------------------------------------------------------
@@ -114,6 +149,14 @@ defmodule Glossia.Accounts do
         name: user_info["name"],
         avatar_url: user_info["picture"]
       })
+    end)
+    |> Ecto.Multi.insert(:organization, fn %{account: account} ->
+      %Organization{account_id: account.id}
+      |> Organization.changeset(%{name: @personal_organization_name})
+    end)
+    |> Ecto.Multi.insert(:membership, fn %{user: user, organization: organization} ->
+      %OrganizationMembership{user_id: user.id, organization_id: organization.id}
+      |> OrganizationMembership.changeset(%{role: "admin"})
     end)
     |> Ecto.Multi.insert(:identity, fn %{user: user} ->
       %Identity{user_id: user.id}

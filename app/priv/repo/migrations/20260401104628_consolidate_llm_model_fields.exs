@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.ConsolidateLlmModelFields do
+defmodule Glossia.Repo.Migrations.ConsolidateLLMModelFields do
   use Ecto.Migration
 
   def change do

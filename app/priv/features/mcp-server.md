@@ -1,12 +1,12 @@
 %{
   title: "MCP server",
-  summary: "Connect AI agents and coding assistants to Glossia through the Model Context Protocol. Manage voices, glossaries, organizations, and more using natural language from any MCP-compatible client.",
+  summary: "Connect AI agents and coding assistants to Glossia through the Model Context Protocol. Manage voices, terminology, organizations, and more using natural language from any MCP-compatible client.",
   order: 3,
   icon: "cpu",
   hero_cta_text: "Get started",
   hero_cta_url: "/interest",
   highlights: [
-    %{title: "Natural language interface", description: "Interact with Glossia's linguistic engine through plain text. AI agents call MCP tools to manage voices, glossaries, and organizations without writing code.", icon: "message-square-text"},
+    %{title: "Natural language interface", description: "Interact with Glossia's linguistic engine through plain text. AI agents call MCP tools to manage voices, terminology, and organizations without writing code.", icon: "message-square-text"},
     %{title: "Plug into any agent", description: "Works with Claude, Cursor, Windsurf, and any MCP-compatible client. Drop the Glossia server into your existing agentic workflow and start using it immediately.", icon: "puzzle"},
     %{title: "Secure by default", description: "Every MCP request is authenticated with OAuth 2.1 bearer tokens and authorized against fine-grained scopes. The same security model as the REST API.", icon: "shield-check"}
   ]
@@ -17,7 +17,7 @@
 
 The [Model Context Protocol](https://modelcontextprotocol.io) is an open standard for connecting AI assistants to external tools and data sources. Instead of building custom integrations for every coding assistant, you expose a single MCP server and any compatible client can use it.
 
-Glossia's MCP server gives agents direct access to the platform's linguistic core: voice configuration, glossary management, organization administration, and project listing.
+Glossia's MCP server gives agents direct access to the platform's linguistic core: voice configuration, terminology management, organization administration, and project listing.
 
 ## Available tools
 
@@ -27,7 +27,7 @@ The MCP server exposes 16 tools organized around the resources you work with dai
 
 **Voice configuration** -- Read and update voice settings that control how Glossia generates and revises content. Adjust tone, formality, target audience, and per-locale overrides without leaving your editor.
 
-**Glossary management** -- Maintain terminology consistency across all your content. Add, update, and version glossary entries so agents always use the right terms.
+**Terminology management** -- Maintain terminology consistency across all your content. Add, update, and version terminology entries so agents always use the right terms.
 
 **Projects** -- List and inspect projects across personal and organization accounts.
 
@@ -39,6 +39,6 @@ From there, your AI assistant can call any of the 16 tools. Ask it to "create an
 
 ## Built for agentic workflows
 
-MCP is not just a convenience layer. It is the foundation for composing Glossia into larger agentic pipelines. A coding assistant can read your codebase, detect unlocalized content, update your glossary with new terms, adjust voice settings for a specific locale, and trigger a localization run, all in a single conversation.
+MCP is not just a convenience layer. It is the foundation for composing Glossia into larger agentic pipelines. A coding assistant can read your codebase, detect unlocalized content, update terminology with new terms, adjust voice settings for a specific locale, and trigger a localization run, all in a single conversation.
 
 Because the protocol is standardized, you are not locked into any single client. Switch between Claude, Cursor, or your own custom agent without changing a line of configuration.

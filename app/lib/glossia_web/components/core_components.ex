@@ -57,27 +57,17 @@ defmodule GlossiaWeb.CoreComponents do
       phx-hook=".FlashAutoDismiss"
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class={[
-        "flash-bar",
-        @kind == :info && "flash-bar-info",
-        @kind == :error && "flash-bar-error"
-      ]}
+      class="flash-alert"
       {@rest}
     >
-      <div class="flash-bar-inner">
-        <div class="flash-bar-content">
-          <p :if={@title} class="flash-bar-title">{@title}</p>
-          <p>{msg}</p>
-        </div>
-        <button
-          type="button"
-          class="flash-bar-close"
-          aria-label={gettext("close")}
-          phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
-        >
-          <.icon name="hero-x-mark" class="flash-bar-close-icon" />
-        </button>
-      </div>
+      <Noora.Alert.alert
+        id={"#{@id}-alert"}
+        status={flash_status(@kind)}
+        type="secondary"
+        size="small"
+        title={@title || msg}
+        show_icon
+      />
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".FlashAutoDismiss">
       export default {
@@ -103,6 +93,9 @@ defmodule GlossiaWeb.CoreComponents do
     </script>
     """
   end
+
+  defp flash_status(:error), do: "error"
+  defp flash_status(:info), do: "information"
 
   @doc """
   Renders a button with navigation support.

@@ -10,6 +10,24 @@ defmodule GlossiaWeb.DashboardComponents do
   use Gettext, backend: GlossiaWeb.Gettext
 
   # ---------------------------------------------------------------------------
+  # Noora Empty State
+  # ---------------------------------------------------------------------------
+
+  attr :icon, :string, required: true
+  attr :title, :string, required: true
+  attr :subtitle, :string, default: nil
+
+  def noora_empty_state(assigns) do
+    ~H"""
+    <div class="dashboard-empty-state">
+      <div data-part="icon"><Noora.Icon.icon name={@icon} /></div>
+      <div data-part="title">{@title}</div>
+      <div :if={@subtitle} data-part="subtitle">{@subtitle}</div>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
   # Resource Table
   # ---------------------------------------------------------------------------
 
@@ -776,7 +794,7 @@ defmodule GlossiaWeb.DashboardComponents do
 
   ## Examples
 
-      <.page_header title="Glossary" description="Define approved terms and translations.">
+      <.page_header title="Terminology" description="Define approved terms and translations.">
         <:actions>
           <button class="dash-btn dash-btn-primary">Save</button>
         </:actions>
@@ -811,7 +829,7 @@ defmodule GlossiaWeb.DashboardComponents do
   ## Examples
 
       <.breadcrumb items={[
-        {gettext("Account tokens"), "/" <> @handle <> "/-/settings/tokens"},
+        {gettext("Organization tokens"), "/" <> @handle <> "/-/settings/tokens"},
         {gettext("New token"), "/" <> @handle <> "/-/settings/tokens/new"}
       ]} />
   """
@@ -869,12 +887,13 @@ defmodule GlossiaWeb.DashboardComponents do
       <div class="voice-save-bar-inner">
         <span class="voice-save-bar-label">{gettext("Ready to save")}</span>
         <div class="voice-save-bar-actions">
-          <.link patch={@cancel_path} class="dash-btn dash-btn-secondary">
-            {gettext("Cancel")}
-          </.link>
-          <button type="submit" class="dash-btn dash-btn-primary">
-            {gettext("Save")}
-          </button>
+          <Noora.Button.button
+            patch={@cancel_path}
+            label={gettext("Cancel")}
+            variant="secondary"
+            size="medium"
+          />
+          <Noora.Button.button type="submit" label={gettext("Save")} size="medium" />
         </div>
       </div>
     </div>
@@ -945,16 +964,13 @@ defmodule GlossiaWeb.DashboardComponents do
               />
             </div>
           <% end %>
-          <button
+          <Noora.Button.button
             type="button"
-            class="dash-btn dash-btn-secondary"
+            label={gettext("Discard")}
+            variant="secondary"
             phx-click={@discard_event}
-          >
-            {gettext("Discard")}
-          </button>
-          <button type="submit" class="dash-btn dash-btn-primary" form={@form}>
-            {@submit_label}
-          </button>
+          />
+          <Noora.Button.button type="submit" label={@submit_label} form={@form} />
         </div>
       </div>
     </div>
@@ -1001,6 +1017,44 @@ defmodule GlossiaWeb.DashboardComponents do
   # ---------------------------------------------------------------------------
   # Locale Picker (searchable combobox)
   # ---------------------------------------------------------------------------
+
+  @locale_options [
+    {"ar", "Arabic"},
+    {"bn", "Bengali"},
+    {"zh", "Chinese"},
+    {"zh-TW", "Chinese (Traditional)"},
+    {"cs", "Czech"},
+    {"da", "Danish"},
+    {"nl", "Dutch"},
+    {"en", "English"},
+    {"fi", "Finnish"},
+    {"fr", "French"},
+    {"de", "German"},
+    {"el", "Greek"},
+    {"he", "Hebrew"},
+    {"hi", "Hindi"},
+    {"hu", "Hungarian"},
+    {"id", "Indonesian"},
+    {"it", "Italian"},
+    {"ja", "Japanese"},
+    {"ko", "Korean"},
+    {"ms", "Malay"},
+    {"nb", "Norwegian"},
+    {"pl", "Polish"},
+    {"pt", "Portuguese"},
+    {"pt-BR", "Portuguese (Brazil)"},
+    {"ro", "Romanian"},
+    {"ru", "Russian"},
+    {"es", "Spanish"},
+    {"es-MX", "Spanish (Mexico)"},
+    {"sv", "Swedish"},
+    {"th", "Thai"},
+    {"tr", "Turkish"},
+    {"uk", "Ukrainian"},
+    {"vi", "Vietnamese"}
+  ]
+
+  def locale_options, do: @locale_options
 
   @doc """
   Renders a searchable locale picker combobox.
@@ -1408,6 +1462,14 @@ defmodule GlossiaWeb.DashboardComponents do
 
   def country_flag(code), do: elem(Map.get(@country_map, code, {"", code}), 0)
   def country_name(code), do: elem(Map.get(@country_map, code, {"", code}), 1)
+
+  def country_options(exclude \\ []) do
+    exclude = MapSet.new(exclude)
+
+    @country_map
+    |> Enum.reject(fn {code, _country} -> MapSet.member?(exclude, code) end)
+    |> Enum.sort_by(fn {_code, {_flag, name}} -> name end)
+  end
 
   # ---------------------------------------------------------------------------
   # Badge

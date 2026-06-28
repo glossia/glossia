@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.CreateLlmModels do
+defmodule Glossia.Repo.Migrations.CreateLLMModels do
   use Ecto.Migration
 
   def change do

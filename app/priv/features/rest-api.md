@@ -33,7 +33,7 @@ Glossia uses OAuth 2.1 with PKCE for all API authentication. The flow supports b
 
 Access control uses two layers. The [authentication docs](/docs/reference/apis/authentication) cover scopes, roles, and the full permission matrix in detail.
 
-**Scopes** define what categories of resources a token can access. A token with `voice:read` can read voice configurations but cannot modify them. Scopes follow the `resource:action` pattern: `account:read`, `organization:write`, `glossary:admin`, and so on.
+**Scopes** define what categories of resources a token can access. A token with `voice:read` can read voice configurations but cannot modify them. Scopes follow the `resource:action` pattern: `account:read`, `organization:write`, `glossary:admin` for terminology administration, and so on.
 
 **Policies** verify the relationship between the user and the specific resource. A valid token with the right scope still cannot access an organization the user does not belong to. Every request is checked against both layers.
 
