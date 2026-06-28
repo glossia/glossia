@@ -103,12 +103,6 @@
             selected={@live_action == :project}
           />
           <.sidebar_item
-            label={gettext("Activity")}
-            icon="timeline_event"
-            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/activity"}
-            selected={@live_action == :project_activity}
-          />
-          <.sidebar_item
             label={gettext("Translations")}
             icon="language"
             navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
@@ -140,7 +134,7 @@
           <.sidebar_item
             :if={@can_glossary_read or @can_glossary_write or @can_glossary_propose}
             label={gettext("Terminology")}
-            icon="book_2"
+            icon="file_text"
             navigate={assigns[:glossary_back_path] || "/#{@handle}/-/terminology"}
             selected={
               @live_action in [

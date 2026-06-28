@@ -406,6 +406,7 @@ defmodule GlossiaWeb.Router do
     get "/:handle/-/discussions/new", RedirectController, :account
     get "/:handle/-/tickets", RedirectController, :account
     get "/:handle/-/tickets/new", RedirectController, :account
+    get "/:handle/:project/-/activity", RedirectController, :project_overview
 
     live_session :platform,
       layout: {GlossiaWeb.Layouts, :platform},
@@ -444,7 +445,6 @@ defmodule GlossiaWeb.Router do
       # Content routes (no /-/, MUST come last)
       live "/:handle", DashboardLive, :account
       live "/:handle/:project/-/settings", DashboardLive, :project_settings
-      live "/:handle/:project/-/activity", DashboardLive, :project_activity
       live "/:handle/:project/-/translations", DashboardLive, :project_translations
       live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
       live "/:handle/:project", DashboardLive, :project
