@@ -53,3 +53,16 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- default "default" .Values.flame.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "glossia.mailRelayEnv" -}}
+{{- if .Values.mailRelay.enabled -}}
+- name: GLOSSIA_SMTP_HOST
+  value: {{ required "mailRelay.host is required when mailRelay.enabled=true" .Values.mailRelay.host | quote }}
+- name: GLOSSIA_SMTP_PORT
+  value: {{ .Values.mailRelay.port | quote }}
+- name: GLOSSIA_SMTP_TLS
+  value: {{ .Values.mailRelay.tls | quote }}
+- name: GLOSSIA_SMTP_AUTH
+  value: {{ .Values.mailRelay.auth | quote }}
+{{- end -}}
+{{- end -}}
