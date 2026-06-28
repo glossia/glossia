@@ -10,6 +10,24 @@ defmodule GlossiaWeb.DashboardComponents do
   use Gettext, backend: GlossiaWeb.Gettext
 
   # ---------------------------------------------------------------------------
+  # Noora Empty State
+  # ---------------------------------------------------------------------------
+
+  attr :icon, :string, required: true
+  attr :title, :string, required: true
+  attr :subtitle, :string, default: nil
+
+  def noora_empty_state(assigns) do
+    ~H"""
+    <div class="dashboard-empty-state">
+      <div data-part="icon"><Noora.Icon.icon name={@icon} /></div>
+      <div data-part="title">{@title}</div>
+      <div :if={@subtitle} data-part="subtitle">{@subtitle}</div>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
   # Resource Table
   # ---------------------------------------------------------------------------
 
@@ -869,12 +887,13 @@ defmodule GlossiaWeb.DashboardComponents do
       <div class="voice-save-bar-inner">
         <span class="voice-save-bar-label">{gettext("Ready to save")}</span>
         <div class="voice-save-bar-actions">
-          <.link patch={@cancel_path} class="dash-btn dash-btn-secondary">
-            {gettext("Cancel")}
-          </.link>
-          <button type="submit" class="dash-btn dash-btn-primary">
-            {gettext("Save")}
-          </button>
+          <Noora.Button.button
+            patch={@cancel_path}
+            label={gettext("Cancel")}
+            variant="secondary"
+            size="medium"
+          />
+          <Noora.Button.button type="submit" label={gettext("Save")} size="medium" />
         </div>
       </div>
     </div>

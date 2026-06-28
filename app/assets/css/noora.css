@@ -272,7 +272,7 @@
 .noora-shell {
   --noora-shell-header-height: calc(var(--noora-spacing-9) + var(--noora-spacing-5));
   --noora-shell-sidebar-width: calc(
-    var(--noora-spacing-16) * 2 + var(--noora-spacing-9) + var(--space-1)
+    var(--noora-spacing-16) * 2 + var(--noora-spacing-9) + var(--noora-spacing-1)
   );
   --font-body: var(--font-family-sans);
   --font-heading: var(--font-family-sans);
@@ -406,6 +406,12 @@
 
 .noora-shell .dash-page,
 .noora-shell .profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: var(--noora-spacing-0);
   max-width: calc(var(--noora-spacing-16) * 15);
 }
 
@@ -420,7 +426,7 @@
 }
 
 .noora-shell .noora-voice-page {
-  gap: var(--noora-spacing-8);
+  gap: var(--noora-spacing-9);
 }
 
 .noora-shell .noora-page-header {
@@ -454,9 +460,365 @@
   flex-shrink: 0;
 }
 
+.noora-shell .dash-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-6);
+  margin: var(--noora-spacing-0);
+}
+
+.noora-shell .dash-page-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .dash-page-header h1 {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+  letter-spacing: 0;
+}
+
+.noora-shell .dash-page-header-desc {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .dash-page-header-actions {
+  flex-shrink: 0;
+  padding-top: var(--noora-spacing-0);
+}
+
 .noora-shell .noora-projects-toolbar,
 .noora-shell .noora-projects-toolbar form {
   width: 100%;
+}
+
+.noora-shell .noora-resource-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-4);
+  width: 100%;
+}
+
+.noora-shell .noora-resource-toolbar form {
+  width: 100%;
+}
+
+.noora-shell .noora-resource-toolbar > [data-part="filters"],
+.noora-shell .noora-resource-toolbar > [data-part="active-filters"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+}
+
+.noora-shell .noora-settings-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-7);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-list-page > [data-part="page-header"] {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-5);
+}
+
+.noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="heading"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-1);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-list-page [data-part="title"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+  letter-spacing: 0;
+}
+
+.noora-shell .noora-settings-list-page [data-part="subtitle"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="actions"] {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.noora-shell .noora-resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-resource-list > .noora-card,
+.noora-shell .noora-resource-list > .noora-card__section,
+.noora-shell .noora-settings-list-page > .noora-card,
+.noora-shell .noora-settings-list-page > .noora-card__section {
+  width: 100%;
+}
+
+.noora-shell .noora-resource-card {
+  min-width: var(--noora-spacing-0);
+  overflow: hidden;
+}
+
+.noora-shell .noora-card > [data-part="header"] [data-part="icon-with-title"] > [data-part="icon"] {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  width: var(--noora-icon-size-large);
+  height: var(--noora-icon-size-large);
+  color: var(--noora-surface-label-secondary);
+}
+
+.noora-shell .noora-card > [data-part="header"] [data-part="icon-with-title"] > [data-part="icon"] > svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
+}
+
+.noora-shell .noora-settings-list-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+  box-sizing: border-box;
+  min-width: var(--noora-spacing-0);
+  overflow: hidden;
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+}
+
+.noora-shell .noora-settings-list-card > [data-part="toolbar"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-4);
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-list-card > [data-part="toolbar"] [data-part="filters"],
+.noora-shell .noora-settings-list-card > [data-part="toolbar"] [data-part="active-filters"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+}
+
+.noora-shell .noora-settings-list-card > .noora-table {
+  box-sizing: border-box;
+  margin: var(--noora-spacing-0);
+  width: 100%;
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-0);
+  box-sizing: border-box;
+  min-width: var(--noora-spacing-0);
+  overflow: visible;
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form-card > [data-part="section"] {
+  display: grid;
+  grid-template-columns:
+    minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 3))
+    minmax(var(--noora-spacing-0), 1fr);
+  gap: var(--noora-spacing-7);
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+  box-shadow: var(--noora-border-section);
+}
+
+.noora-shell .noora-settings-form-card > [data-part="section"]:last-child {
+  box-shadow: none;
+}
+
+.noora-shell .noora-settings-form-card [data-part="label"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+}
+
+.noora-shell .noora-settings-form-card [data-part="title"] {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-form-card [data-part="description"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-form-card [data-part="field"] {
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form-card [data-part="field"] .noora-text-input,
+.noora-shell .noora-settings-form-card [data-part="field"] .noora-text-area {
+  width: 100%;
+}
+
+.noora-shell .noora-settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-0);
+  overflow: hidden;
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-actions > [data-part="action"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--noora-spacing-6);
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+  box-shadow: var(--noora-border-section);
+}
+
+.noora-shell .noora-settings-actions > [data-part="action"]:last-child {
+  box-shadow: none;
+}
+
+.noora-shell .noora-settings-actions [data-part="copy"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-actions [data-part="title"] {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-actions [data-part="description"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-actions [data-part="button"] {
+  flex-shrink: 0;
+}
+
+.noora-shell .api-token-reveal-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+}
+
+.noora-shell .api-token-reveal-value code {
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-2) var(--noora-spacing-3);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-code-medium);
+}
+
+.noora-shell .api-token-reveal-credentials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(var(--noora-spacing-0), 1fr));
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .api-token-reveal-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .api-token-reveal-field strong {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+}
+
+.noora-shell .api-token-reveal-field code {
+  overflow-x: auto;
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-2) var(--noora-spacing-3);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-code-medium);
+}
+
+.noora-shell .noora-resource-table-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+  box-sizing: border-box;
+  min-width: var(--noora-spacing-0);
+  overflow: hidden;
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="resource-description"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-5);
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="title-group"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] h2 {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-medium);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] p {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="actions"] {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.noora-shell .noora-resource-table-card > .noora-table {
+  box-sizing: border-box;
+  margin: var(--noora-spacing-0);
+  width: 100%;
+  min-width: var(--noora-spacing-0);
 }
 
 .noora-shell .noora-sidebar > [data-part="viewport"] {
@@ -465,160 +827,185 @@
 
 .noora-shell .noora-sidebar [data-part="collapsible-group"] [data-part="root"] [data-part="content"] {
   gap: var(--noora-spacing-4);
-  padding-top: var(--noora-spacing-0);
+  padding-top: var(--noora-spacing-2);
   padding-left: var(--noora-spacing-5);
+  animation: none;
 }
 
 .noora-shell .noora-table {
-  box-shadow: 0 0 0 var(--space-px) var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-subtle);
+  width: 100%;
+  min-width: var(--noora-spacing-0);
 }
 
 .noora-shell .noora-table [data-part="scroll-container"] {
-  border-radius: var(--radius-sm);
+  max-width: 100%;
 }
 
-.noora-shell .noora-table table:has(td)::after {
-  box-shadow: none;
-  border-radius: var(--space-0);
+.noora-shell .noora-table [data-part="cell"][data-type="text"] > [data-part="icon"],
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] > [data-part="icon"]:not(:has(img)),
+.noora-shell .noora-table-empty-state > [data-part="icon"] {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
 }
 
-.noora-shell .noora-table table tbody tr:first-child td:first-child {
-  border-top-left-radius: var(--space-0);
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] > [data-part="icon"]:not(:has(img)) {
+  padding: var(--noora-spacing-3);
+  width: var(--noora-icon-size-large);
+  height: var(--noora-icon-size-large);
 }
 
-.noora-shell .noora-table table tbody tr:first-child td:last-child {
-  border-top-right-radius: var(--space-0);
+.noora-shell .noora-table [data-part="cell"][data-type="text"] > [data-part="icon"] > svg,
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] > [data-part="icon"]:not(:has(img)) > svg,
+.noora-shell .noora-table-empty-state > [data-part="icon"] > svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
 }
 
-.noora-shell .noora-table th {
-  padding: var(--space-3) var(--space-4);
-  color: var(--color-text-muted);
-  font: var(--weight-semibold) var(--text-xs) / var(--leading-snug) var(--font-family-sans);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.noora-shell .dashboard-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+  text-align: center;
 }
 
-.noora-shell .noora-table th [data-part="icon"] {
-  color: var(--color-text-muted);
+.noora-shell .dashboard-empty-state > [data-part="icon"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-3);
+  width: var(--noora-spacing-10);
+  height: var(--noora-spacing-10);
+  color: var(--noora-surface-label-secondary);
 }
 
-.noora-shell .noora-table table tbody tr:not(:first-child):not([data-part="expanded-row"]) td {
-  box-shadow: 0 var(--space-px) 0 0 var(--color-border) inset;
+.noora-shell .dashboard-empty-state > [data-part="icon"] svg {
+  width: var(--noora-icon-size-large);
+  height: var(--noora-icon-size-large);
 }
 
-.noora-shell .noora-table table tbody tr:not(:last-child):not([data-part="expanded-row"]) td,
-.noora-shell .noora-table table tbody tr:not(:first-child):not([data-part="expanded-row"]) td {
-  padding-top: var(--space-0);
-  padding-bottom: var(--space-0);
+.noora-shell .dashboard-empty-state > [data-part="title"] {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-large);
 }
 
-.noora-shell .noora-table table tbody tr:hover td[data-selectable] {
-  background: var(--color-bg-subtle);
-}
-
-.noora-shell .noora-table [data-part="cell"][data-type="text"] {
-  padding: var(--space-3) var(--space-4);
-  font: var(--text-sm) / var(--leading-snug) var(--font-family-sans);
-}
-
-.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] {
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-}
-
-.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] [data-part="icon"] {
-  border-radius: var(--radius-sm);
-}
-
-.noora-shell
-  .noora-table
-  [data-part="cell"][data-type="text_and_description"]
-  [data-part="icon"]:not(:has(img)) {
-  padding: var(--space-2);
-}
-
-.noora-shell
-  .noora-table
-  [data-part="cell"][data-type="text_and_description"]
-  [data-part="icon"]
-  svg {
-  width: var(--noora-icon-size-medium);
-  height: var(--noora-icon-size-medium);
-}
-
-.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] [data-part="column"] {
-  gap: var(--space-0-5);
-}
-
-.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] [data-part="label"] {
-  font: var(--weight-semibold) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
-}
-
-.noora-shell
-  .noora-table
-  [data-part="cell"][data-type="text_and_description"]
-  [data-part="description"] {
-  font: var(--text-xs) / var(--leading-snug) var(--font-family-sans);
-}
-
-.noora-shell .noora-table [data-part="cell"][data-type="badge"],
-.noora-shell .noora-table [data-part="cell"][data-type="status_badge"],
-.noora-shell .noora-table [data-part="cell"][data-type="button"],
-.noora-shell .noora-table [data-part="cell"][data-type="link_button"],
-.noora-shell .noora-table [data-part="cell"][data-type="tag"] {
-  padding: var(--space-3) var(--space-4);
+.noora-shell .dashboard-empty-state > [data-part="subtitle"] {
+  max-width: calc(var(--noora-spacing-16) * 5);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
 }
 
 .noora-shell .voice-form {
-  gap: var(--noora-spacing-0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+}
+
+.noora-shell .voice-form .voice-section-divider {
+  display: none;
+}
+
+.noora-shell .voice-form .voice-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-5);
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .voice-form .voice-section-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-1);
+}
+
+.noora-shell .voice-form .voice-section-info h2 {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-large);
+}
+
+.noora-shell .voice-form .voice-section-info p {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .voice-form .voice-card {
+  overflow: visible;
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-7);
+}
+
+.noora-shell .voice-form .voice-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+}
+
+.noora-shell .voice-form .voice-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(var(--noora-spacing-0), 1fr));
+  align-items: start;
+  gap: var(--noora-spacing-5);
 }
 
 .noora-shell .noora-voice-page #voice-mode-alert {
-  margin: var(--space-0);
-  box-shadow: 0 0 0 var(--space-px) var(--color-warning-mid);
-  border-radius: var(--radius-default);
-  background: var(--color-warning-soft);
+  margin: var(--noora-spacing-0);
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-secondary);
 }
 
 .noora-shell .noora-voice-page #voice-mode-alert[data-size="large"] {
-  padding: var(--space-3);
+  padding: var(--noora-spacing-4);
 }
 
 .noora-shell .noora-voice-page #voice-mode-alert [data-part="description"] {
-  font: var(--text-sm) / var(--leading-normal) var(--font-family-sans);
+  font: var(--noora-font-body-medium);
 }
 
 .noora-shell .voice-form .voice-field {
-  gap: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
 }
 
 .noora-shell .voice-form .voice-field .noora-label label,
 .noora-shell .voice-form .noora-text-input [data-part="label"] label,
 .noora-shell .voice-form .noora-text-area [data-part="label"] label {
-  color: var(--color-text);
-  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
 }
 
 .noora-shell .voice-form .noora-text-input,
 .noora-shell .voice-form .noora-text-area {
-  gap: var(--space-1);
+  gap: var(--noora-spacing-2);
 }
 
 .noora-shell .voice-form .noora-text-input [data-part="wrapper"],
 .noora-shell .voice-form .noora-text-area [data-part="wrapper"] {
-  box-shadow: 0 0 0 var(--space-px) var(--color-border);
-  border-radius: var(--radius-default);
-  background: var(--color-bg);
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
 }
 
 .noora-shell .voice-form .noora-text-input [data-part="wrapper"] {
-  padding: var(--space-1-5) var(--space-2-5);
+  padding: var(--noora-spacing-3) var(--noora-spacing-4);
 }
 
 .noora-shell .voice-form .noora-text-area [data-part="wrapper"] {
-  padding: var(--space-2) var(--space-2-5);
+  padding: var(--noora-spacing-3) var(--noora-spacing-4);
 }
 
 .noora-shell .voice-form .noora-text-input [data-part="wrapper"]:has(> input:focus),
@@ -632,22 +1019,18 @@
 .noora-shell .voice-form .voice-field .noora-text-area textarea:focus {
   box-shadow: none;
   border: 0;
-  border-radius: var(--space-0);
+  border-radius: var(--noora-spacing-0);
   background: transparent;
-  padding: var(--space-0);
-  color: var(--color-text);
-  font: var(--text-sm) / var(--leading-normal) var(--font-family-sans);
-}
-
-.noora-shell .voice-form .voice-field .noora-text-area textarea {
-  line-height: var(--leading-relaxed);
+  padding: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-body-medium);
 }
 
 .noora-shell .voice-form .noora-text-input .noora-hint-text,
 .noora-shell .voice-form .noora-text-area .noora-hint-text,
 .noora-shell .voice-form .noora-dropdown > [data-part="hint"] {
-  color: var(--color-text-muted);
-  font: var(--text-xs) / var(--leading-snug) var(--font-family-sans);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-small);
 }
 
 .noora-shell .voice-form .voice-field .noora-dropdown {
@@ -656,9 +1039,9 @@
 
 .noora-shell .voice-form .voice-field .noora-dropdown > [data-part="trigger"] {
   width: 100%;
-  box-shadow: 0 0 0 var(--space-px) var(--color-border);
-  border-radius: var(--radius-default);
-  background: var(--color-bg);
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
 }
 
 .noora-shell .voice-form .voice-field .noora-dropdown > [data-part="trigger"]:focus-visible {
@@ -666,24 +1049,70 @@
 }
 
 .noora-shell .voice-form #voice-country-select .noora-dropdown-content {
-  max-height: min(calc(100vh - var(--space-20)), calc(var(--space-20) * 3));
+  max-height: min(calc(100vh - var(--noora-spacing-16)), calc(var(--noora-spacing-16) * 3));
   overscroll-behavior: contain;
   overflow-y: auto;
 }
 
 .noora-shell .voice-form .terminology-translation-locale .noora-dropdown-content {
-  max-height: min(calc(100vh - var(--space-20)), calc(var(--space-20) * 3));
+  max-height: min(calc(100vh - var(--noora-spacing-16)), calc(var(--noora-spacing-16) * 3));
   overscroll-behavior: contain;
   overflow-y: auto;
 }
 
+.noora-shell .voice-form .model-select .noora-dropdown-content {
+  max-height: min(calc(100vh - var(--noora-spacing-16)), calc(var(--noora-spacing-16) * 3));
+  overscroll-behavior: contain;
+  overflow-y: auto;
+}
+
+.noora-shell .terminology-revision-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--noora-spacing-4);
+}
+
 .noora-shell .terminology-revision-actions .noora-dropdown {
-  min-width: calc(var(--space-20) * 2);
+  min-width: calc(var(--noora-spacing-16) * 2);
+}
+
+.noora-shell .terminology-revision-actions .noora-button,
+.noora-shell .terminology-revision-actions .noora-dropdown > [data-part="trigger"] {
+  min-height: var(--noora-spacing-10);
 }
 
 .noora-shell .voice-form .voice-country-tags .noora-tag {
-  border-radius: var(--radius-full);
-  background: var(--color-bg-subtle);
+  border-radius: var(--noora-radius-99);
+  background: var(--noora-surface-background-secondary);
+}
+
+.noora-shell .profile-form {
+  gap: var(--noora-spacing-8);
+}
+
+.noora-shell .profile-avatar-card {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+}
+
+.noora-shell .user-avatar-picker {
+  display: inline-flex;
+  border-radius: var(--noora-radius-99);
+  cursor: pointer;
+}
+
+.noora-shell .user-avatar-picker:focus-visible {
+  outline: none;
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .user-avatar-picker[data-dragging] .noora-avatar {
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .user-avatar-file-input-hidden {
+  display: none;
 }
 
 .noora-shell .voice-form #voice-overrides {
@@ -694,11 +1123,11 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--noora-spacing-6);
 }
 
 .noora-shell .voice-form .voice-section-info-with-action [data-part="copy"] {
-  min-width: var(--space-0);
+  min-width: var(--noora-spacing-0);
 }
 
 .noora-shell .voice-form .voice-section-info-with-action [data-part="actions"] {
@@ -712,7 +1141,7 @@
 .noora-shell .voice-form .terminology-entries-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--noora-spacing-4);
 }
 
 .noora-shell .voice-form .voice-overrides-list:empty,
@@ -722,14 +1151,14 @@
 
 .noora-shell .voice-form .voice-override-panel,
 .noora-shell .voice-form .terminology-entry-panel {
-  gap: var(--space-0);
+  gap: var(--noora-spacing-0);
   overflow: hidden;
-  padding: var(--space-0);
+  padding: var(--noora-spacing-0);
 }
 
 .noora-shell .voice-form .voice-override-panel[data-changed="true"],
 .noora-shell .voice-form .terminology-entry-panel[data-changed="true"] {
-  box-shadow: 0 0 0 var(--space-px) var(--color-primary-mid);
+  box-shadow: var(--noora-border-light-focus);
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"],
@@ -737,24 +1166,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  border-bottom: var(--space-px) solid var(--color-border);
-  background: var(--color-bg-subtle);
-  padding: var(--space-3) var(--space-4);
+  gap: var(--noora-spacing-4);
+  border-bottom: var(--noora-border-section);
+  background: var(--noora-surface-background-secondary);
+  padding: var(--noora-spacing-4) var(--noora-spacing-5);
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title-group"],
 .noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title-group"] {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  min-width: var(--space-0);
+  gap: var(--noora-spacing-3);
+  min-width: var(--noora-spacing-0);
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title"],
 .noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title"] {
-  color: var(--color-text);
-  font: var(--weight-semibold) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="actions"],
@@ -765,94 +1194,100 @@
 
 .noora-shell .voice-form .voice-override-panel > [data-part="content"],
 .noora-shell .voice-form .terminology-entry-panel > [data-part="content"] {
-  padding: var(--space-4);
+  padding: var(--noora-spacing-5);
 }
 
 .noora-shell .voice-form .voice-override-panel .voice-override-fields,
 .noora-shell .voice-form .terminology-entry-panel .voice-override-fields {
-  padding: var(--space-0);
+  padding: var(--noora-spacing-0);
 }
 
 .noora-shell .voice-form .terminology-translations-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--noora-spacing-4);
 }
 
 .noora-shell .voice-form .terminology-translations-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--noora-spacing-4);
 }
 
 .noora-shell .voice-form .terminology-translations-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--noora-spacing-3);
 }
 
 .noora-shell .voice-form .terminology-translations-columns {
   display: grid;
-  grid-template-columns: minmax(var(--space-0), 14rem) minmax(var(--space-0), 1fr) auto;
+  grid-template-columns:
+    minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 2 + var(--noora-spacing-8)))
+    minmax(var(--noora-spacing-0), 1fr)
+    auto;
   align-items: center;
-  gap: var(--space-3);
-  color: var(--color-text);
-  font: var(--weight-medium) var(--text-sm) / var(--leading-snug) var(--font-family-sans);
+  gap: var(--noora-spacing-4);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
 }
 
 .noora-shell .voice-form .terminology-translations-columns span:last-child {
-  min-width: var(--space-20);
+  min-width: calc(var(--noora-spacing-16) + var(--noora-spacing-4));
   text-align: right;
 }
 
 .noora-shell .voice-form .terminology-translation-row {
   display: grid;
-  grid-template-columns: minmax(var(--space-0), 14rem) minmax(var(--space-0), 1fr) auto;
+  grid-template-columns:
+    minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 2 + var(--noora-spacing-8)))
+    minmax(var(--noora-spacing-0), 1fr)
+    auto;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--noora-spacing-4);
 }
 
 .noora-shell .voice-form .terminology-translation-row[data-changed="true"] {
-  border-radius: var(--radius-default);
-  background: var(--color-primary-soft);
-  padding: var(--space-2);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-icon-primary-background);
+  padding: var(--noora-spacing-3);
 }
 
 .noora-shell .voice-form .terminology-translation-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: var(--space-0);
-  min-width: var(--space-20);
+  padding-bottom: var(--noora-spacing-0);
+  min-width: calc(var(--noora-spacing-16) + var(--noora-spacing-4));
 }
 
 .noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] {
-  box-shadow: 0 0 0 var(--space-px) var(--color-success-mid);
+  box-shadow: var(--noora-border-light-default);
 }
 
 .noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] > [data-part="header"] {
-  background: var(--color-success-soft);
+  background: var(--noora-badge-light-fill-success-background);
 }
 
 .noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] {
-  box-shadow: 0 0 0 var(--space-px) var(--color-error-mid);
+  box-shadow: var(--noora-border-light-default);
 }
 
 .noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] > [data-part="header"] {
-  background: var(--color-error-soft);
+  background: var(--noora-badge-light-fill-destructive-background);
 }
 
 .noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="added"] {
-  border-radius: var(--radius-default);
-  background: var(--color-success-soft);
-  padding: var(--space-2);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-badge-light-fill-success-background);
+  padding: var(--noora-spacing-3);
 }
 
 .noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="removed"] {
-  border-radius: var(--radius-default);
-  background: var(--color-error-soft);
-  padding: var(--space-2);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-badge-light-fill-destructive-background);
+  padding: var(--noora-spacing-3);
 }
 
 .noora-shell .voice-save-bar {
@@ -867,9 +1302,77 @@
 }
 
 @media (max-width: 768px) {
+  .noora-shell .noora-settings-list-page > [data-part="page-header"] {
+    flex-direction: column;
+  }
+
+  .noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="actions"],
+  .noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="actions"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .noora-settings-list-card > [data-part="toolbar"] {
+    padding: var(--noora-spacing-0);
+  }
+
+  .noora-shell .noora-settings-list-card,
+  .noora-shell .noora-resource-table-card {
+    padding: var(--noora-spacing-5);
+  }
+
+  .noora-shell .noora-settings-list-card > .noora-table {
+    margin: var(--noora-spacing-0);
+    width: 100%;
+  }
+
+  .noora-shell .noora-resource-table-card > [data-part="header"] {
+    flex-direction: column;
+    padding: var(--noora-spacing-0);
+  }
+
+  .noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="actions"],
+  .noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="actions"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .noora-resource-table-card > .noora-table {
+    margin: var(--noora-spacing-0);
+    width: 100%;
+  }
+
+  .noora-shell .noora-settings-form-card > [data-part="section"],
+  .noora-shell .noora-settings-actions > [data-part="action"] {
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--noora-spacing-4);
+    padding: var(--noora-spacing-5);
+  }
+
+  .noora-shell .noora-settings-actions [data-part="button"],
+  .noora-shell .noora-settings-actions [data-part="button"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .api-token-reveal-credentials {
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
+  }
+
+  .noora-shell .voice-form .voice-section {
+    gap: var(--noora-spacing-4);
+  }
+
+  .noora-shell .voice-form .voice-field-row {
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
+  }
+
+  .noora-shell .voice-form .voice-card {
+    padding: var(--noora-spacing-5);
+  }
+
   .noora-shell .voice-form .voice-section-info-with-action {
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--noora-spacing-4);
   }
 
   .noora-shell .voice-form .voice-section-info-with-action [data-part="actions"] {
@@ -887,7 +1390,7 @@
   }
 
   .noora-shell .voice-form .terminology-translation-row {
-    grid-template-columns: minmax(var(--space-0), 1fr);
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
   }
 
   .noora-shell .voice-form .terminology-translations-columns {
@@ -895,7 +1398,7 @@
   }
 
   .noora-shell .voice-form .terminology-translation-actions {
-    padding-bottom: var(--space-0);
+    padding-bottom: var(--noora-spacing-0);
   }
 
   .noora-shell .voice-form .terminology-translation-actions .noora-button {
@@ -903,9 +1406,9 @@
   }
 
   .noora-shell .voice-save-bar {
-    left: var(--space-0);
-    padding-right: var(--space-4);
-    padding-left: var(--space-4);
+    left: var(--noora-spacing-0);
+    padding-right: var(--noora-spacing-5);
+    padding-left: var(--noora-spacing-5);
   }
 }
 
@@ -920,8 +1423,22 @@
   padding: var(--noora-spacing-3);
 }
 
-.noora-shell__flash #flash-group .flash-bar {
-  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+.noora-shell #flash-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-3);
+  padding: var(--noora-spacing-4) var(--noora-spacing-8) var(--noora-spacing-0);
+}
+
+.noora-shell #flash-group .flash-alert {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+.noora-shell #flash-group .noora-alert {
+  justify-content: center;
+  width: 100%;
 }
 
 .noora-shell .noora-breadcrumbs {
