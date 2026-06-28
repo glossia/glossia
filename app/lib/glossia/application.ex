@@ -5,6 +5,8 @@ defmodule Glossia.Application do
 
   use Application
 
+  require Logger
+
   @compile {:no_warn_undefined, [LLMDB]}
 
   @impl true
@@ -13,23 +15,26 @@ defmodule Glossia.Application do
     Logger.add_handlers(:glossia)
     {:ok, _} = LLMDB.load()
 
+    flame_child? = Glossia.Flame.child?()
+    Logger.info("Starting Glossia as #{if(flame_child?, do: "FLAME child", else: "parent")}")
+
+    children =
+      if flame_child? do
+        flame_child_children()
+      else
+        parent_children()
+      end
+
+    # See https://hexdocs.pm/elixir/Supervisor.html
+    # for other strategies and supported options
+    opts = [strategy: :one_for_one, name: Glossia.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
+
+  defp parent_children do
     children = [
       Glossia.Vault,
-      {Finch,
-       name: Glossia.Finch,
-       pools: %{
-         "https://api.minimax.io" => [
-           size: 5,
-           count: 1,
-           conn_opts: [transport_opts: [timeout: 60_000]]
-         ],
-         "https://app.daytona.io" => [
-           size: 5,
-           count: 1,
-           conn_opts: [transport_opts: [timeout: 30_000]]
-         ],
-         :default => [size: 10, count: 1]
-       }},
+      {Finch, name: Glossia.Finch},
       Glossia.PromEx,
       GlossiaWeb.Telemetry,
       Glossia.Repo,
@@ -75,6 +80,7 @@ defmodule Glossia.Application do
             |> Map.to_list())},
         id: Glossia.Ingestion.TranslationSessionEventBuffer
       ),
+      Glossia.Flame.pool_child_spec(),
       # Start to serve requests, typically the last entry
       GlossiaWeb.Endpoint
     ]
@@ -91,10 +97,18 @@ defmodule Glossia.Application do
         children
       end
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Glossia.Supervisor]
-    Supervisor.start_link(children, opts)
+    children
+  end
+
+  defp flame_child_children do
+    [
+      Glossia.Vault,
+      {Finch, name: Glossia.Finch},
+      Glossia.Repo,
+      Glossia.ClickHouseRepo,
+      Glossia.IngestRepo,
+      {Phoenix.PubSub, name: Glossia.PubSub}
+    ]
   end
 
   # Tell Phoenix to update the endpoint configuration

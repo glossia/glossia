@@ -137,3 +137,22 @@ jobs:
 
           validate_chart tailscale-apiserver-proxy-observability infra/helm/tailscale-apiserver-proxy tailscale \
             --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml
+
+  glossia-e2e:
+    if: github.event.pull_request.draft != true
+    name: Glossia End-to-End
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: helm
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+
+      - name: Install tools
+        run: mise install
+
+      - name: Run Glossia end-to-end tests
+        run: mise exec kind@0.32.0 shellspec@0.28.1 -- bash deploy/helm/glossia/e2e/kind.sh

@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+cd -P -- "$(dirname -- "$0")"
+
+export PHX_SERVER="${PHX_SERVER:-true}"
+export GLOSSIA_PHX_SERVER="${GLOSSIA_PHX_SERVER:-$PHX_SERVER}"
+exec ./glossia start
