@@ -450,6 +450,9 @@ op item edit glossia-releases --vault glossia-production \
   AWS_ACCESS_KEY_ID[text]="<generated access key>" \
   AWS_SECRET_ACCESS_KEY[password]="<generated secret key>"
 
+# The release workflow reads this 1Password item when publishing command line
+# interface artifacts. Deploy Production does not read or write it.
+
 # 5. ESO ClusterSecretStore (1Password). Use a DEDICATED 1Password
 #    Service Account with READ on only the glossia-production vault, so
 #    a leak in the workload cluster can't reach the rest of the org's
