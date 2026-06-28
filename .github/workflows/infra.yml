@@ -155,4 +155,4 @@ jobs:
         run: mise install
 
       - name: Run Glossia end-to-end tests
-        run: mise exec -- bash deploy/helm/glossia/e2e/kind.sh
+        run: mise exec kind@0.32.0 shellspec@0.28.1 -- bash deploy/helm/glossia/e2e/kind.sh

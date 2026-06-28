@@ -94,7 +94,7 @@ chart test with [ShellSpec](https://shellspec.info/) before changing
 runner-related templates:
 
 ```bash
-bash deploy/helm/glossia/e2e/kind.sh
+mise exec kind@0.32.0 shellspec@0.28.1 -- bash deploy/helm/glossia/e2e/kind.sh
 ```
 
 The runner creates one shared local cluster, runs the ShellSpec files under
