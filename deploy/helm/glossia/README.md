@@ -87,6 +87,19 @@ installed in the cluster for [Kata Containers](https://katacontainers.io/). Set
 provide an equivalent service account with pod management permissions in the
 release namespace.
 
+### Local chart test
+
+Run the lightweight [kind, Kubernetes in Docker](https://kind.sigs.k8s.io/)
+chart test before changing runner-related templates:
+
+```bash
+deploy/helm/glossia/tests/kind-end-to-end.sh
+```
+
+The test installs the chart into a local cluster with
+`values-kind-test.yaml`, verifies the FLAME runner permissions and service
+selectors, and then deletes the cluster.
+
 ## External Secrets Operator
 
 When `externalSecrets.enabled=true` the chart emits `ExternalSecret` CRs

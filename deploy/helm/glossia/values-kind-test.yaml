@@ -1,0 +1,22 @@
+# Lightweight values for the kind end-to-end chart test.
+# The test exercises Kubernetes object creation without requiring database
+# operators, external secret controllers, or a runnable application image.
+
+replicaCount: 0
+
+postgres:
+  enabled: false
+
+clickhouse:
+  enabled: false
+
+migrationJob:
+  enabled: false
+
+pdb:
+  enabled: false
+
+flame:
+  max: 2
+  k8s:
+    runtimeClassName: kata-qemu
