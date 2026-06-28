@@ -46,6 +46,39 @@ secrets:
 env:
   GLOSSIA_PHX_SERVER: "true"
 
+flame:
+  backend: k8s
+  min: 0
+  max: 10
+  maxConcurrency: 1
+  idleShutdownAfterMs: 30000
+  timeoutMs: 300000
+  bootTimeoutMs: 120000
+  log: false
+  serviceAccount:
+    create: true
+    name: ""
+  rbac:
+    create: true
+  k8s:
+    appContainerName: web
+    runtimeClassName: ""
+    log: false
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    env: {}
+  child:
+    repoPoolSize: 1
+    clickhousePoolSize: 1
+
 mailRelay:
   enabled: false
   host: ""

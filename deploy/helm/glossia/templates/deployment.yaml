@@ -4,6 +4,7 @@ metadata:
   name: {{ include "glossia.fullname" . }}
   labels:
     {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: 3
@@ -16,7 +17,9 @@ spec:
     metadata:
       labels:
         {{- include "glossia.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: agent
     spec:
+      serviceAccountName: {{ include "glossia.flameServiceAccountName" . }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -29,7 +32,59 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
           env:
-            {{- range $key, $value := .Values.env }}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: RELEASE_DISTRIBUTION
+              value: "name"
+            - name: RELEASE_NODE
+              value: "glossia@$(POD_IP)"
+            - name: GLOSSIA_FLAME_BACKEND
+              value: {{ .Values.flame.backend | quote }}
+            - name: GLOSSIA_FLAME_MIN
+              value: {{ .Values.flame.min | quote }}
+            - name: GLOSSIA_FLAME_MAX
+              value: {{ .Values.flame.max | quote }}
+            - name: GLOSSIA_FLAME_MAX_CONCURRENCY
+              value: {{ .Values.flame.maxConcurrency | quote }}
+            - name: GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS
+              value: {{ .Values.flame.idleShutdownAfterMs | quote }}
+            - name: GLOSSIA_FLAME_TIMEOUT_MS
+              value: {{ .Values.flame.timeoutMs | quote }}
+            - name: GLOSSIA_FLAME_BOOT_TIMEOUT_MS
+              value: {{ .Values.flame.bootTimeoutMs | quote }}
+            - name: GLOSSIA_FLAME_LOG
+              value: {{ .Values.flame.log | quote }}
+            - name: GLOSSIA_FLAME_APP_CONTAINER_NAME
+              value: {{ .Values.flame.k8s.appContainerName | quote }}
+            - name: GLOSSIA_FLAME_RUNTIME_CLASS_NAME
+              value: {{ .Values.flame.k8s.runtimeClassName | quote }}
+            - name: GLOSSIA_FLAME_RESOURCES_JSON
+              value: {{ .Values.flame.k8s.resources | toJson | quote }}
+            - name: GLOSSIA_FLAME_NODE_SELECTOR_JSON
+              value: {{ .Values.flame.k8s.nodeSelector | toJson | quote }}
+            - name: GLOSSIA_FLAME_TOLERATIONS_JSON
+              value: {{ .Values.flame.k8s.tolerations | toJson | quote }}
+            - name: GLOSSIA_FLAME_AFFINITY_JSON
+              value: {{ .Values.flame.k8s.affinity | toJson | quote }}
+            - name: GLOSSIA_FLAME_ENV_JSON
+              value: {{ .Values.flame.k8s.env | toJson | quote }}
+            - name: GLOSSIA_FLAME_K8S_LOG
+              value: {{ .Values.flame.k8s.log | quote }}
+            - name: GLOSSIA_FLAME_REPO_POOL_SIZE
+              value: {{ .Values.flame.child.repoPoolSize | quote }}
+            - name: GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE
+              value: {{ .Values.flame.child.clickhousePoolSize | quote }}
+            {{- range $key, $value := omit .Values.env "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_FLAME_BACKEND" "GLOSSIA_FLAME_MIN" "GLOSSIA_FLAME_MAX" "GLOSSIA_FLAME_MAX_CONCURRENCY" "GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS" "GLOSSIA_FLAME_TIMEOUT_MS" "GLOSSIA_FLAME_BOOT_TIMEOUT_MS" "GLOSSIA_FLAME_LOG" "GLOSSIA_FLAME_APP_CONTAINER_NAME" "GLOSSIA_FLAME_RUNTIME_CLASS_NAME" "GLOSSIA_FLAME_RESOURCES_JSON" "GLOSSIA_FLAME_NODE_SELECTOR_JSON" "GLOSSIA_FLAME_TOLERATIONS_JSON" "GLOSSIA_FLAME_AFFINITY_JSON" "GLOSSIA_FLAME_ENV_JSON" "GLOSSIA_FLAME_K8S_LOG" "GLOSSIA_FLAME_REPO_POOL_SIZE" "GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE" }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}

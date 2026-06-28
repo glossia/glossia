@@ -39,6 +39,7 @@ with at minimum:
 | `GLOSSIA_SECRET_KEY_BASE` | Phoenix session signing key |
 | `GLOSSIA_METRICS_BEARER_TOKEN` | Bearer token guarding `/metrics` |
 | `GLOSSIA_OPS_AUTH_PASSWORD` | Basic-auth for `/ops` dashboards |
+| `RELEASE_COOKIE` | Erlang distribution cookie shared by the parent pod and FLAME runners |
 | `GLOSSIA_SMTP_*` | Outbound email, unless `mailRelay.enabled=true` supplies the relay settings |
 
 …and (when `postgres.enabled`) a basic-auth Secret named `glossia-postgres-app`
@@ -47,6 +48,44 @@ with `username` + `password` keys for the application Postgres user.
 Provision both manually, with sealed-secrets, sops, or any other tooling —
 or let the chart create them from your secret backend by enabling the
 External Secrets integration below.
+
+## FLAME runners
+
+Glossia uses [FLAME, Fleeting Lambda Application for Modular Execution](https://hexdocs.pm/flame/FLAME.html),
+to start short-lived runner pods from the same release image as the parent
+deployment. The parent pod starts a `FLAME.Pool`; when a runner boots, the
+application detects it with `FLAME.Parent.get/0` and starts only the process
+tree needed by runner work. There is no separate image or explicit mode flag.
+
+The chart configures the parent pod with the service account, pod metadata, and
+distributed Erlang settings that the [FLAME Kubernetes backend](https://hexdocs.pm/flame_k8s_backend/FLAMEK8sBackend.html)
+requires. Runner pods inherit the parent image, pull secrets, environment, and
+application Secret, but they use distinct labels so Glossia services only route
+traffic to the parent pods.
+
+Configure runner capacity and isolation under `flame`:
+
+```yaml
+flame:
+  min: 0
+  max: 10
+  maxConcurrency: 1
+  k8s:
+    runtimeClassName: kata-qemu
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+```
+
+`flame.k8s.runtimeClassName` is optional and should match the runtime class
+installed in the cluster for [Kata Containers](https://katacontainers.io/). Set
+`flame.serviceAccount.create=false` and `flame.rbac.create=false` only when you
+provide an equivalent service account with pod management permissions in the
+release namespace.
 
 ## External Secrets Operator
 
