@@ -34,7 +34,7 @@ defmodule Glossia.Application do
   defp parent_children do
     children = [
       Glossia.Vault,
-      {Finch, name: Glossia.Finch, pools: finch_pools()},
+      {Finch, name: Glossia.Finch},
       Glossia.PromEx,
       GlossiaWeb.Telemetry,
       Glossia.Repo,
@@ -103,28 +103,12 @@ defmodule Glossia.Application do
   defp flame_child_children do
     [
       Glossia.Vault,
-      {Finch, name: Glossia.Finch, pools: finch_pools()},
+      {Finch, name: Glossia.Finch},
       Glossia.Repo,
       Glossia.ClickHouseRepo,
       Glossia.IngestRepo,
       {Phoenix.PubSub, name: Glossia.PubSub}
     ]
-  end
-
-  defp finch_pools do
-    %{
-      "https://api.minimax.io" => [
-        size: 5,
-        count: 1,
-        conn_opts: [transport_opts: [timeout: 60_000]]
-      ],
-      "https://app.daytona.io" => [
-        size: 5,
-        count: 1,
-        conn_opts: [transport_opts: [timeout: 30_000]]
-      ],
-      :default => [size: 10, count: 1]
-    }
   end
 
   # Tell Phoenix to update the endpoint configuration
