@@ -1,5 +1,56 @@
 import Config
 
+flame_child? = not is_nil(FLAME.Parent.get())
+
+truthy? = fn value -> value in ["true", "1"] end
+
+json_env = fn name, default ->
+  case System.get_env(name) do
+    nil -> default
+    "" -> default
+    value -> JSON.decode!(value)
+  end
+end
+
+flame_backend =
+  case System.get_env("GLOSSIA_FLAME_BACKEND") do
+    nil ->
+      if System.get_env("KUBERNETES_SERVICE_HOST"), do: :k8s, else: :local
+
+    "" ->
+      if System.get_env("KUBERNETES_SERVICE_HOST"), do: :k8s, else: :local
+
+    "local" ->
+      :local
+
+    "k8s" ->
+      :k8s
+
+    value ->
+      raise "unsupported GLOSSIA_FLAME_BACKEND=#{inspect(value)}"
+  end
+
+config :glossia, :flame,
+  backend: flame_backend,
+  min: String.to_integer(System.get_env("GLOSSIA_FLAME_MIN") || "0"),
+  max: String.to_integer(System.get_env("GLOSSIA_FLAME_MAX") || "10"),
+  max_concurrency: String.to_integer(System.get_env("GLOSSIA_FLAME_MAX_CONCURRENCY") || "1"),
+  idle_shutdown_after:
+    String.to_integer(System.get_env("GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS") || "30000"),
+  timeout: String.to_integer(System.get_env("GLOSSIA_FLAME_TIMEOUT_MS") || "300000"),
+  boot_timeout: String.to_integer(System.get_env("GLOSSIA_FLAME_BOOT_TIMEOUT_MS") || "120000"),
+  log: truthy?.(System.get_env("GLOSSIA_FLAME_LOG")),
+  k8s: [
+    app_container_name: System.get_env("GLOSSIA_FLAME_APP_CONTAINER_NAME") || "web",
+    runtime_class_name: System.get_env("GLOSSIA_FLAME_RUNTIME_CLASS_NAME"),
+    resources: json_env.("GLOSSIA_FLAME_RESOURCES_JSON", %{}),
+    node_selector: json_env.("GLOSSIA_FLAME_NODE_SELECTOR_JSON", %{}),
+    tolerations: json_env.("GLOSSIA_FLAME_TOLERATIONS_JSON", []),
+    affinity: json_env.("GLOSSIA_FLAME_AFFINITY_JSON", %{}),
+    env: json_env.("GLOSSIA_FLAME_ENV_JSON", %{}),
+    log: truthy?.(System.get_env("GLOSSIA_FLAME_K8S_LOG"))
+  ]
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -16,7 +67,7 @@ import Config
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
-if System.get_env("GLOSSIA_PHX_SERVER") || System.get_env("PHX_SERVER") do
+if not flame_child? and (System.get_env("GLOSSIA_PHX_SERVER") || System.get_env("PHX_SERVER")) do
   config :glossia, GlossiaWeb.Endpoint, server: true
 end
 
@@ -178,26 +229,29 @@ if config_env() == :prod do
   otel_exporter_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT")
   enable_otel_exporter = is_binary(otel_exporter_endpoint) and otel_exporter_endpoint != ""
 
-  metrics_bearer_token =
-    System.get_env("GLOSSIA_METRICS_BEARER_TOKEN") ||
-      raise """
-      environment variable GLOSSIA_METRICS_BEARER_TOKEN is missing.
-      Generate one with: mix phx.gen.secret 32
-      """
+  if not flame_child? do
+    metrics_bearer_token =
+      System.get_env("GLOSSIA_METRICS_BEARER_TOKEN") ||
+        raise """
+        environment variable GLOSSIA_METRICS_BEARER_TOKEN is missing.
+        Generate one with: mix phx.gen.secret 32
+        """
 
-  config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: metrics_bearer_token
+    config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: metrics_bearer_token
 
-  ops_auth_password = System.get_env("GLOSSIA_OPS_AUTH_PASSWORD")
+    ops_auth_password = System.get_env("GLOSSIA_OPS_AUTH_PASSWORD")
 
-  if is_nil(ops_auth_password) or ops_auth_password == "" do
-    raise "environment variable GLOSSIA_OPS_AUTH_PASSWORD is missing or empty."
+    if is_nil(ops_auth_password) or ops_auth_password == "" do
+      raise "environment variable GLOSSIA_OPS_AUTH_PASSWORD is missing or empty."
+    end
+
+    config :glossia, GlossiaWeb.Plugs.OpsAuth,
+      username: "ops",
+      password: ops_auth_password
   end
 
-  config :glossia, GlossiaWeb.Plugs.OpsAuth,
-    username: "ops",
-    password: ops_auth_password
-
-  otel_service_name = System.get_env("OTEL_SERVICE_NAME", "glossia-web")
+  default_otel_service_name = if flame_child?, do: "glossia-runner", else: "glossia-web"
+  otel_service_name = System.get_env("OTEL_SERVICE_NAME", default_otel_service_name)
   otel_deployment_environment = System.get_env("OTEL_DEPLOYMENT_ENVIRONMENT", "production")
   loki_url = System.get_env("GLOSSIA_LOKI_URL")
   enable_loki_logging = is_binary(loki_url) and loki_url != ""
@@ -230,9 +284,16 @@ if config_env() == :prod do
     config :glossia, :sentry_dsn_js, sentry_dsn_js
   end
 
+  repo_pool_size =
+    if flame_child? do
+      String.to_integer(System.get_env("GLOSSIA_FLAME_REPO_POOL_SIZE") || "1")
+    else
+      String.to_integer(System.get_env("GLOSSIA_POOL_SIZE") || "10")
+    end
+
   config :glossia, Glossia.Repo,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("GLOSSIA_POOL_SIZE") || "10"),
+    pool_size: repo_pool_size,
     socket_options: maybe_ipv6
 
   clickhouse_url =
@@ -243,7 +304,11 @@ if config_env() == :prod do
       """
 
   clickhouse_pool_size =
-    String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_POOL_SIZE") || "5")
+    if flame_child? do
+      String.to_integer(System.get_env("GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE") || "1")
+    else
+      String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_POOL_SIZE") || "5")
+    end
 
   config :glossia, Glossia.ClickHouseRepo,
     url: clickhouse_url,
