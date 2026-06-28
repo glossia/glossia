@@ -1,5 +1,5 @@
 defmodule Glossia.MCP.SaveGlossaryTool do
-  @moduledoc "Create a new glossary version for an account."
+  @moduledoc "Create a new terminology version for an account."
 
   use Hermes.Server.Component, type: :tool
   use GlossiaWeb, :verified_routes
@@ -10,14 +10,14 @@ defmodule Glossia.MCP.SaveGlossaryTool do
   alias Hermes.Server.Response
 
   schema do
-    field :handle, {:required, :string}, description: "Account handle to save glossary for."
+    field :handle, {:required, :string}, description: "Account handle to save terminology for."
 
     field :change_note, :string,
       description: "Optional note describing what changed in this version."
 
     field :entries, {:required, {:array, :map}},
       description:
-        "List of glossary entries. Each entry is an object with: term (required), definition (optional), case_sensitive (boolean, default false), translations (array of {locale, translation} objects)."
+        "List of terminology entries. Each entry is an object with: term (required), definition (optional), case_sensitive (boolean, default false), translations (array of {locale, translation} objects)."
   end
 
   @impl true

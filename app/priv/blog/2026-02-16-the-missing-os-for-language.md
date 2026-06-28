@@ -32,7 +32,7 @@ Between you (the person or company that has content) and the linguist (the perso
 
 ## A sign that something is missing
 
-Here is something that tells you the current tools are not enough: companies are creating a role called ["Language Manager"](https://slator.com/10-language-jobs-big-tech-is-hiring-for-right-now/). These are people whose entire job is to maintain glossaries, oversee translation workflows, enforce terminology consistency, and coordinate between linguists, product teams, and marketing departments.
+Here is something that tells you the current tools are not enough: companies are creating a role called ["Language Manager"](https://slator.com/10-language-jobs-big-tech-is-hiring-for-right-now/). These are people whose entire job is to maintain terminology, oversee translation workflows, enforce terminology consistency, and coordinate between linguists, product teams, and marketing departments.
 
 The fact that this role exists is a signal. It means organizations need linguistic consistency across all their surfaces and the tools they have don't provide it. So they hire a human to be the glue.
 
@@ -50,7 +50,7 @@ We want to do the same thing for language.
 
 Glossia is the OS where organizations capture their linguistic preferences, their voice, their terminology, their tone, their audience expectations, and where linguists are at the center of iterating on those preferences. Not at the end of a chain. Not behind three layers of intermediaries. At the center.
 
-We talked about this in our post on [the context graph](https://glossia.ai/blog/2026-02-15-context-graph): we are building a structured map of connected knowledge that captures everything an organization knows about its language over time. Voice definitions, glossary entries, audience profiles, formality rules. Each piece is versioned (so you can see what changed and when) and connected to everything it relates to. When something changes, the system knows exactly what content is affected and what needs to be revisited.
+We talked about this in our post on [the context graph](https://glossia.ai/blog/2026-02-15-context-graph): we are building a structured map of connected knowledge that captures everything an organization knows about its language over time. Voice definitions, terminology entries, audience profiles, formality rules. Each piece is versioned (so you can see what changed and when) and connected to everything it relates to. When something changes, the system knows exactly what content is affected and what needs to be revisited.
 
 This is your account on Glossia, and the many projects you can contribute to. A linguist can work across multiple organizations, bring their expertise to different contexts, and see the impact of their decisions propagate through the system. Like a developer who contributes to multiple projects on GitHub, a linguist on Glossia can shape how dozens of products speak.
 
@@ -60,7 +60,7 @@ The dominant narrative around AI and language is about replacement. Faster, chea
 
 Our take is different. AI is a tool that runs on a system shaped by linguistic input. It does not replace the linguist. It amplifies what linguists make possible.
 
-When a linguist refines a voice definition on Glossia, that refinement flows into every piece of content the system touches. When a terminologist updates a glossary entry, that update is reflected the next time any agent generates or transforms content for that organization. The human decision gets multiplied across hundreds or thousands of outputs. That is leverage that was never available before.
+When a linguist refines a voice definition on Glossia, that refinement flows into every piece of content the system touches. When a terminologist updates a terminology entry, that update is reflected the next time any agent generates or transforms content for that organization. The human decision gets multiplied across hundreds or thousands of outputs. That is leverage that was never available before.
 
 Translation is the most obvious use case, and it is where we started. But it is not the only one. Once an organization has built up a rich context graph, full of the linguistic memory that their team of linguists has developed over months and years, the possibilities expand:
 

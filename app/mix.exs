@@ -71,7 +71,7 @@ defmodule Glossia.MixProject do
       {:opentelemetry_bandit, "~> 0.3.0"},
       {:opentelemetry_ecto, "~> 1.2"},
       {:opentelemetry_logger_metadata, "~> 0.2.0"},
-      {:gettext, "~> 1.0"},
+      {:gettext, "~> 1.0", override: true},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
@@ -96,6 +96,7 @@ defmodule Glossia.MixProject do
       {:mimic, "~> 1.10", only: :test},
       {:muontrap, "~> 1.5"},
       {:req_llm, "~> 1.9"},
+      {:noora, "~> 0.81"},
       {:cloak_ecto, "~> 1.3"},
       {:cloak, "~> 1.1"}
     ]
@@ -114,8 +115,9 @@ defmodule Glossia.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["compile", "esbuild glossia"],
+      "assets.build": ["compile", "esbuild glossia", "esbuild noora"],
       "assets.deploy": [
+        "esbuild noora --minify",
         "esbuild glossia --minify",
         "phx.digest"
       ],

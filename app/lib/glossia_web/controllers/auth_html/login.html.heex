@@ -1,56 +1,95 @@
-<section class="auth-page">
-  <div class="auth-card">
-    <div class="auth-header">
-      <img src={~p"/images/logo-rounded.png"} alt="" class="auth-logo" />
-      <h1>{gettext("Sign in to Glossia")}</h1>
-      <p class="auth-subtitle">{gettext("Choose your preferred sign-in method")}</p>
-    </div>
+<section id="login">
+  <div data-part="background" aria-hidden="true">
+    <div data-part="grid"></div>
+  </div>
 
-    <div class="auth-buttons">
-      <a href={~p"/auth/github"} class="auth-button auth-button-github" id="github-login-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-        </svg>
-        {gettext("Sign in with GitHub")}
-      </a>
+  <div data-part="frame">
+    <div data-part="content">
+      <img src={~p"/images/logo-rounded.png"} alt={gettext("Glossia logo")} data-part="logo" />
+      <div data-part="dots" aria-hidden="true"></div>
 
-      <a href={~p"/auth/gitlab"} class="auth-button auth-button-gitlab" id="gitlab-login-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.452.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.92.92 0 00.33-1.024" />
-        </svg>
-        {gettext("Sign in with GitLab")}
-      </a>
-    </div>
-
-    <%= if assigns[:dev_routes] do %>
-      <div class="auth-dev-separator">
-        <span>or</span>
+      <div data-part="header">
+        <h1 data-part="title">{gettext("Log in to Glossia")}</h1>
+        <span data-part="subtitle">
+          {gettext("Welcome back. Choose a sign-in method to continue.")}
+        </span>
       </div>
-      <form action={~p"/auth/dev-login"} method="post">
-        <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
-        <button type="submit" class="auth-button auth-button-dev" id="dev-login-btn">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
-          </svg>
-          {gettext("Sign in as Dev User")}
-        </button>
-      </form>
-    <% end %>
 
-    <p class="auth-terms">
-      {gettext("By signing in, you agree to our")}
+      <Noora.Alert.alert
+        :if={Phoenix.Flash.get(@flash, :info)}
+        id="login-info"
+        type="secondary"
+        status="information"
+        size="small"
+        title={Phoenix.Flash.get(@flash, :info)}
+      />
+      <Noora.Alert.alert
+        :if={Phoenix.Flash.get(@flash, :error)}
+        id="login-error"
+        type="secondary"
+        status="error"
+        size="small"
+        title={Phoenix.Flash.get(@flash, :error)}
+      />
+
+      <div data-part="providers">
+        <Noora.Button.button
+          :if={:github in @providers}
+          href={~p"/auth/github"}
+          variant="secondary"
+          size="large"
+          label={gettext("Continue with GitHub")}
+          id="github-login-btn"
+        >
+          <:icon_left><Noora.Icon.brand_github /></:icon_left>
+        </Noora.Button.button>
+
+        <Noora.Button.button
+          :if={:gitlab in @providers}
+          href={~p"/auth/gitlab"}
+          variant="secondary"
+          size="large"
+          label={gettext("Continue with GitLab")}
+          id="gitlab-login-btn"
+        >
+          <:icon_left>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.452.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.92.92 0 00.33-1.024" />
+            </svg>
+          </:icon_left>
+        </Noora.Button.button>
+
+        <form :if={assigns[:dev_routes]} action={~p"/auth/dev-login"} method="post">
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+          <Noora.Button.button
+            variant="secondary"
+            size="large"
+            label={gettext("Sign in as test user")}
+            id="dev-login-btn"
+          >
+            <:icon_left><Noora.Icon.device_desktop /></:icon_left>
+          </Noora.Button.button>
+        </form>
+      </div>
+    </div>
+
+    <div data-part="bottom-link">
+      <span>{gettext("Need access for your team?")}</span>
+      <Noora.Button.link_button
+        href={~p"/interest"}
+        variant="primary"
+        size="large"
+        label={gettext("Join the waitlist")}
+      />
+    </div>
+  </div>
+
+  <div data-part="terms-notice">
+    <span>
+      {gettext("By continuing, you agree to Glossia's")}
       <a href={~p"/terms"}>{gettext("Terms of Service")}</a>
-      {gettext("and")} <a href={~p"/privacy"}><%= gettext("Privacy Policy") %></a>.
-    </p>
+      {gettext("and")}
+      <a href={~p"/privacy"}>{gettext("Privacy Policy")}</a>.
+    </span>
   </div>
 </section>

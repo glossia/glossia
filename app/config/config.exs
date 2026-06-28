@@ -37,11 +37,25 @@ config :glossia, GlossiaWeb.Endpoint,
 config :glossia, Glossia.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
+noora_static_path = Path.expand("../deps/noora/priv/static", __DIR__)
+
 config :esbuild,
   version: "0.25.4",
   glossia: [
     args:
-      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.) ++
+        [
+          "--alias:noora=#{noora_static_path}/noora.js"
+        ],
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+  ],
+  noora: [
+    args:
+      ~w(css/noora.css --bundle --target=es2022 --outfile=../priv/static/assets/noora.css --external:/fonts/* --external:/images/*) ++
+        [
+          "--alias:noora/noora.css=#{noora_static_path}/noora.css"
+        ],
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]

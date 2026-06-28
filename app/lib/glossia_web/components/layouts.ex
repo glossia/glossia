@@ -5,6 +5,12 @@ defmodule GlossiaWeb.Layouts do
   """
   use GlossiaWeb, :html
 
+  import Noora.Breadcrumbs, only: [breadcrumb: 1, breadcrumb_item: 1, breadcrumbs: 1]
+  import Noora.Dropdown, only: [dropdown: 1, dropdown_item: 1]
+  import Noora.Sidebar, only: [sidebar: 1, sidebar_group: 1, sidebar_item: 1]
+
+  alias Noora.Icon
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -81,98 +87,114 @@ defmodule GlossiaWeb.Layouts do
 
   def app_shell(assigns) do
     ~H"""
-    <div class="gl-shell" id="gl-shell" data-sidebar={@data_sidebar}>
-      <header class="gl-topbar" id="gl-topbar">
-        <div class="gl-topbar-left">
+    <div class="noora-shell" id="noora-shell" data-sidebar={@data_sidebar}>
+      <header class="noora-shell__headerbar" id="noora-shell-headerbar">
+        <div class="noora-shell__headerbar-left">
           {render_slot(@topbar_prepend)}
-          <a class="gl-topbar-logo" href={if @current_user, do: ~p"/dashboard", else: ~p"/"}>
-            <img src={~p"/images/logo-rounded.png"} alt="Glossia" width="20" height="20" />
+          <a class="noora-shell__brand" href={if @current_user, do: ~p"/dashboard", else: ~p"/"}>
+            <img
+              src={~p"/images/logo-rounded.png"}
+              alt="Glossia"
+              class="noora-shell__brand-logo"
+            />
           </a>
-          <nav class="gl-topbar-context" aria-label={gettext("Context")}>
+          <nav class="noora-shell__context" aria-label={gettext("Context")}>
             {render_slot(@topbar_context)}
           </nav>
         </div>
-        <div class="gl-topbar-right">
+        <div class="noora-shell__headerbar-right">
+          <Noora.Button.button
+            href={~p"/docs"}
+            variant="secondary"
+            size="medium"
+            icon_only
+            aria-label={gettext("Docs")}
+          >
+            <Icon.book />
+          </Noora.Button.button>
           <%= if @current_user do %>
-            <div class="gl-avatar-dropdown">
+            <div class="noora-shell__user-menu">
               <% avatar = user_avatar_url(@current_user) %>
-              <button class="gl-avatar-toggle" aria-expanded="false" aria-haspopup="true">
-                <img
-                  src={avatar.src}
-                  alt={@current_user.name || @current_user.email}
-                  width="24"
-                  height="24"
-                  data-fallback={avatar.fallback}
-                  onload="if(this.naturalWidth===0){this.src=this.dataset.fallback}"
-                  onerror="this.src=this.dataset.fallback"
-                />
-              </button>
-              <ul class="gl-avatar-menu" role="menu">
+              <.dropdown id="noora-user-menu" icon_only size="medium">
+                <:icon>
+                  <img
+                    src={avatar.src}
+                    alt={@current_user.name || @current_user.email}
+                    class="noora-shell__avatar"
+                    data-fallback={avatar.fallback}
+                    onload="if(this.naturalWidth===0){this.src=this.dataset.fallback}"
+                    onerror="this.src=this.dataset.fallback"
+                  />
+                </:icon>
                 {render_slot(@avatar_menu_extra)}
-                <li role="none">
-                  <a role="menuitem" href={~p"/auth/logout"} data-method="delete">
-                    {gettext("Log out")}
-                  </a>
-                </li>
-              </ul>
+                <.dropdown_item
+                  value="logout"
+                  label={gettext("Log out")}
+                  href={~p"/auth/logout"}
+                  data-method="delete"
+                >
+                  <:left_icon><Icon.logout /></:left_icon>
+                </.dropdown_item>
+              </.dropdown>
             </div>
           <% else %>
-            <a href={~p"/auth/login"} class="gl-btn gl-btn-primary">{gettext("Sign in")}</a>
+            <Noora.Button.button
+              href={~p"/auth/login"}
+              variant="primary"
+              size="medium"
+              label={gettext("Sign in")}
+            />
           <% end %>
         </div>
       </header>
       {render_slot(@extra_banner)}
-      <div class="gl-body">
-        <.gl_sidebar :if={@show_sidebar}>
-          <:header>{render_slot(@sidebar_header)}</:header>
+      <div class="noora-shell__main">
+        <div :if={@show_sidebar} class="noora-shell__sidebar" id="noora-shell-sidebar">
+          {render_slot(@sidebar_header)}
           {render_slot(@sidebar)}
-        </.gl_sidebar>
-        <div :if={@show_sidebar} class="gl-sidebar-backdrop" id="gl-sidebar-backdrop"></div>
-        <div class="gl-content">
+        </div>
+        <div
+          :if={@show_sidebar}
+          class="noora-shell__backdrop"
+          id="noora-shell-sidebar-backdrop"
+        >
+        </div>
+        <div class="noora-shell__content">
           {render_slot(@inner_block)}
         </div>
       </div>
     </div>
     <script>
       (function() {
-        document.addEventListener('click', function(e) {
-          var avatarToggle = e.target.closest('.gl-avatar-toggle');
-          var avatarDd = document.querySelector('.gl-avatar-dropdown');
-          if (avatarToggle && avatarDd) {
-            e.stopPropagation();
-            avatarDd.classList.toggle('open');
-            avatarToggle.setAttribute('aria-expanded', avatarDd.classList.contains('open'));
-            return;
-          }
-          if (avatarDd) {
-            avatarDd.classList.remove('open');
-            var avatarBtn = avatarDd.querySelector('.gl-avatar-toggle');
-            if (avatarBtn) avatarBtn.setAttribute('aria-expanded', 'false');
-          }
-        });
+        var sidebarToggle = document.getElementById('noora-shell-sidebar-toggle');
+        var sidebar = document.getElementById('noora-shell-sidebar');
+        var backdrop = document.getElementById('noora-shell-sidebar-backdrop');
 
-        document.querySelectorAll('a[data-method="delete"]').forEach(function(link) {
-          link.addEventListener('click', function(e) {
-            e.preventDefault();
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = link.getAttribute('href');
-            var csrf = document.querySelector('meta[name="csrf-token"]');
-            if (csrf) {
-              var csrfInput = document.createElement('input');
-              csrfInput.type = 'hidden';
-              csrfInput.name = '_csrf_token';
-              csrfInput.value = csrf.getAttribute('content');
-              form.appendChild(csrfInput);
-            }
-            var methodInput = document.createElement('input');
-            methodInput.type = 'hidden';
-            methodInput.name = '_method';
-            methodInput.value = 'delete';
-            form.appendChild(methodInput);
-            document.body.appendChild(form);
-            form.submit();
+        function closeSidebar() {
+          if (sidebar) sidebar.classList.remove('open');
+          if (backdrop) backdrop.classList.remove('open');
+          if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
+        }
+
+        if (sidebarToggle) {
+          sidebarToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var open = sidebar && sidebar.classList.toggle('open');
+            if (backdrop) backdrop.classList.toggle('open', !!open);
+            sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
           });
+        }
+
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+        if (sidebar) {
+          sidebar.addEventListener('click', function(e) {
+            if (e.target.closest('a')) closeSidebar();
+          });
+        }
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') closeSidebar();
         });
       })();
     </script>
@@ -198,6 +220,26 @@ defmodule GlossiaWeb.Layouts do
       end
 
     %{src: primary || fallback, fallback: fallback}
+  end
+
+  defp account_avatar_color(account) do
+    if Glossia.Accounts.personal_account?(account), do: "purple", else: "blue"
+  end
+
+  defp account_badge_label(account) do
+    if Glossia.Accounts.personal_account?(account),
+      do: gettext("Personal"),
+      else: gettext("Organization")
+  end
+
+  defp account_badge_color(account) do
+    if Glossia.Accounts.personal_account?(account), do: "neutral", else: "information"
+  end
+
+  defp account_management_label(account) do
+    if Glossia.Accounts.personal_account?(account),
+      do: gettext("Personal"),
+      else: gettext("Organization")
   end
 
   defp gravatar_url(email) do

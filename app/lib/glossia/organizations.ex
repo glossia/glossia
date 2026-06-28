@@ -65,6 +65,7 @@ defmodule Glossia.Organizations do
     |> preload(organization: :account)
     |> Repo.all()
     |> Enum.map(& &1.organization)
+    |> Enum.filter(&(&1.account.type == "organization"))
   end
 
   def get_organization_for_account(%Account{id: account_id, type: "organization"}) do

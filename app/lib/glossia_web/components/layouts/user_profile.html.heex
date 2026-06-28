@@ -4,76 +4,69 @@
   data_sidebar="visible"
   show_sidebar={true}
 >
-  <%!-- "Settings" breadcrumb in the topbar --%>
+  <:topbar_prepend>
+    <button
+      class="noora-shell__sidebar-toggle"
+      id="noora-shell-sidebar-toggle"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-controls="noora-shell-sidebar"
+      aria-label={gettext("Toggle sidebar")}
+    >
+      <Icon.menu />
+    </button>
+  </:topbar_prepend>
+
   <:topbar_context>
-    <span class="gl-topbar-sep">/</span>
-    <span class="gl-topbar-crumb">{gettext("Settings")}</span>
-    <%= if assigns[:breadcrumb_label] do %>
-      <span class="gl-topbar-sep">/</span>
-      <span class="gl-topbar-crumb">{@breadcrumb_label}</span>
-    <% end %>
+    <.breadcrumbs>
+      <.breadcrumb
+        id="settings-breadcrumb"
+        label={gettext("Settings")}
+        href={~p"/-/settings/profile"}
+      />
+      <.breadcrumb
+        :if={assigns[:breadcrumb_label]}
+        id="settings-section-breadcrumb"
+        label={@breadcrumb_label}
+      />
+    </.breadcrumbs>
   </:topbar_context>
 
-  <%!-- Avatar menu --%>
   <:avatar_menu_extra>
-    <%= if @current_user && @current_user.super_admin do %>
-      <li role="none">
-        <a role="menuitem" href={~p"/admin"}>{gettext("Admin")}</a>
-      </li>
-    <% end %>
-    <li role="none">
-      <a role="menuitem" href={~p"/-/settings/profile"}>{gettext("Settings")}</a>
-    </li>
+    <.dropdown_item
+      :if={@current_user && @current_user.super_admin}
+      value="admin"
+      label={gettext("Admin")}
+      href={~p"/admin"}
+    >
+      <:left_icon><Icon.settings /></:left_icon>
+    </.dropdown_item>
+    <.dropdown_item
+      value="profile-settings"
+      label={gettext("Settings")}
+      href={~p"/-/settings/profile"}
+    >
+      <:left_icon><Icon.user /></:left_icon>
+    </.dropdown_item>
   </:avatar_menu_extra>
 
-  <%!-- Settings sidebar nav --%>
   <:sidebar>
-    <nav class="gl-nav" aria-label={gettext("Settings navigation")}>
-      <div class="gl-nav-section">
-        <span class="gl-nav-section-label">{gettext("Settings")}</span>
-        <.link
-          navigate={~p"/-/settings/profile"}
-          class={["gl-nav-item", @live_action == :overview && "active"]}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span>{gettext("Profile")}</span>
-        </.link>
-        <.link
-          navigate={~p"/-/settings/connected-accounts"}
-          class={["gl-nav-item", @live_action == :connected_accounts && "active"]}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </svg>
-          <span>{gettext("Connections")}</span>
-        </.link>
-      </div>
-    </nav>
+    <.sidebar id="profile-sidebar">
+      <.sidebar_item
+        label={gettext("Profile")}
+        icon="user"
+        navigate={~p"/-/settings/profile"}
+        selected={@live_action == :overview}
+      />
+      <.sidebar_item
+        label={gettext("Connections")}
+        icon="link_icon"
+        navigate={~p"/-/settings/connected-accounts"}
+        selected={@live_action == :connected_accounts}
+      />
+    </.sidebar>
   </:sidebar>
 
-  <%!-- Main content --%>
   <.flash_group :if={assigns[:flash]} flash={@flash} />
   <main class="profile-main">
     {@inner_content}

@@ -402,6 +402,12 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through [:browser, :platform]
 
+    get "/:handle/-/discussions", RedirectController, :account
+    get "/:handle/-/discussions/new", RedirectController, :account
+    get "/:handle/-/tickets", RedirectController, :account
+    get "/:handle/-/tickets/new", RedirectController, :account
+    get "/:handle/:project/-/activity", RedirectController, :project_overview
+
     live_session :platform,
       layout: {GlossiaWeb.Layouts, :platform},
       on_mount: [
@@ -414,15 +420,14 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/voice/suggestion/new", DashboardLive, :voice_suggestion_new
       live "/:handle/-/voice/request/new", DashboardLive, :voice_suggestion_new
       live "/:handle/-/voice/:version", DashboardLive, :voice_version
-      live "/:handle/-/glossary", DashboardLive, :glossary
-      live "/:handle/-/glossary/suggestion/new", DashboardLive, :glossary_suggestion_new
-      live "/:handle/-/glossary/request/new", DashboardLive, :glossary_suggestion_new
-      live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
-      live "/:handle/-/discussions", DashboardLive, :discussions
-      live "/:handle/-/discussions/new", DashboardLive, :discussion_new
+      live "/:handle/-/terminology", DashboardLive, :glossary
+      live "/:handle/-/terminology/suggestion/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/terminology/request/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/terminology/terms/new", DashboardLive, :glossary_entry_new
+      live "/:handle/-/terminology/terms/:entry_index", DashboardLive, :glossary_entry
+      live "/:handle/-/terminology/:version", DashboardLive, :glossary_version
+      live "/:handle/-/suggestions/:suggestion_number", DashboardLive, :discussion_show
       live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show
-      live "/:handle/-/tickets", DashboardLive, :discussions
-      live "/:handle/-/tickets/new", DashboardLive, :discussion_new
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show
       live "/:handle/-/members", DashboardLive, :members
       live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
@@ -440,7 +445,6 @@ defmodule GlossiaWeb.Router do
       # Content routes (no /-/, MUST come last)
       live "/:handle", DashboardLive, :account
       live "/:handle/:project/-/settings", DashboardLive, :project_settings
-      live "/:handle/:project/-/activity", DashboardLive, :project_activity
       live "/:handle/:project/-/translations", DashboardLive, :project_translations
       live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
       live "/:handle/:project", DashboardLive, :project

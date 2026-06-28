@@ -3428,6 +3428,16 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
 }
 .resource-table-empty { padding: 0 !important; border-bottom: none !important; }
 .resource-action-cell { text-align: right; white-space: nowrap; }
+
+@media (max-width: 768px) {
+  .resource-table {
+    min-width: calc(var(--space-16) * 10);
+  }
+
+  .resource-table tbody td {
+    white-space: nowrap;
+  }
+}
 .repo-cell-name { display: flex; flex-direction: column; gap: var(--space-0-5); }
 .repo-full-name { font-weight: var(--weight-medium); }
 .repo-description { font-size: var(--text-xs); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }

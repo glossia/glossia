@@ -1,5 +1,5 @@
 defmodule Glossia.MCP.ListAccountsTool do
-  @moduledoc "List accounts the authenticated user has access to (personal account and organizations)."
+  @moduledoc "List organization handles the authenticated user has access to, including the personal organization."
 
   use Hermes.Server.Component, type: :tool
 

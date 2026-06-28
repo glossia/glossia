@@ -1,0 +1,1524 @@
+@import "noora/noora.css";
+
+@font-face {
+  font-family: "Inter Variable";
+  src: url("/fonts/inter.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/jetbrains-mono.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  --noora-font-heading: var(--font-heading);
+  --noora-font-body: var(--font-body);
+  --noora-font-code: var(--font-code);
+  --noora-surface-background-primary: var(--color-surface);
+  --noora-surface-background-secondary: var(--color-bg-subtle);
+  --noora-surface-background-tertiary: var(--color-bg);
+  --noora-surface-label-primary: var(--color-text);
+  --noora-surface-label-secondary: var(--color-text-muted);
+  --noora-surface-label-tertiary: var(--color-stone-500);
+  --noora-surface-label-disabled: var(--color-stone-400);
+  --noora-surface-border-primary: var(--color-border-strong);
+  --noora-surface-table-header: var(--color-bg-subtle);
+  --noora-content-divider-line: var(--color-border);
+  --noora-border-light-default: 0 0 0 var(--space-px) var(--color-border);
+  --noora-border-light-focus:
+    0 0 0 var(--space-px) var(--color-primary),
+    0 0 0 var(--space-1) var(--color-primary-soft);
+  --noora-border-medium:
+    0 0 0 var(--space-px) var(--color-border),
+    var(--shadow-xs);
+  --noora-border-section: 0 0 0 var(--space-px) var(--color-border);
+  --noora-border-heavy:
+    0 0 0 var(--space-px) var(--color-border-strong),
+    var(--shadow-sm);
+  --noora-radius-2: var(--radius-xs);
+  --noora-radius-3: var(--radius-xs);
+  --noora-radius-4: var(--radius-sm);
+  --noora-radius-5: var(--radius-sm);
+  --noora-radius-6: var(--radius-md);
+  --noora-radius-7: var(--radius-lg);
+  --noora-radius-8: var(--radius-lg);
+  --noora-radius-99: var(--radius-full);
+  --noora-button-primary-background: var(--color-primary);
+  --noora-button-primary-label: var(--color-text-on-accent);
+  --noora-button-primary-disabled-background: var(--color-primary-mid);
+  --noora-button-primary-disabled-label: var(--color-stone-300);
+  --noora-button-secondary-background: var(--color-surface);
+  --noora-button-secondary-label: var(--color-text);
+  --noora-button-secondary-disabled-background: var(--color-bg-subtle);
+  --noora-button-secondary-disabled-label: var(--color-stone-400);
+  --noora-button-background-primary: var(--color-primary);
+  --noora-button-background-primary-hover: var(--color-primary-hover);
+  --noora-button-background-primary-active: var(--color-primary-hover);
+  --noora-button-background-primary-disabled: var(--color-primary-mid);
+  --noora-button-border-primary:
+    0 0 0 var(--space-px) var(--color-primary),
+    var(--shadow-accent);
+  --noora-button-border-primary-hover:
+    0 0 0 var(--space-px) var(--color-primary-hover),
+    var(--shadow-accent);
+  --noora-button-border-primary-focus:
+    0 0 0 var(--space-px) var(--color-surface),
+    0 0 0 var(--space-1) var(--color-primary-mid);
+  --noora-button-border-primary-active: 0 0 0 var(--space-px) var(--color-primary-hover);
+  --noora-button-border-primary-disabled: 0 0 0 var(--space-px) var(--color-primary-mid);
+  --noora-button-background-secondary: var(--color-surface);
+  --noora-button-background-secondary-hover: var(--color-bg-subtle);
+  --noora-button-background-secondary-active: var(--color-bg-subtle);
+  --noora-button-background-secondary-disabled: var(--color-bg-subtle);
+  --noora-button-border-secondary: 0 0 0 var(--space-px) var(--color-border);
+  --noora-button-border-secondary-hover: 0 0 0 var(--space-px) var(--color-border-strong);
+  --noora-button-border-secondary-focus:
+    0 0 0 var(--space-px) var(--color-primary),
+    0 0 0 var(--space-1) var(--color-primary-soft);
+  --noora-button-border-secondary-active: 0 0 0 var(--space-px) var(--color-border-strong);
+  --noora-button-border-secondary-disabled: 0 0 0 var(--space-px) var(--color-border);
+  --noora-badge-fill-primary: var(--color-primary);
+  --noora-badge-fill-destructive: var(--color-error);
+  --noora-badge-fill-success: var(--color-success);
+  --noora-badge-fill-warning: var(--color-warning);
+  --noora-badge-light-fill-primary-background: var(--color-primary-soft);
+  --noora-badge-light-fill-primary-label: var(--color-primary);
+  --noora-badge-light-fill-destructive-background: var(--color-error-soft);
+  --noora-badge-light-fill-destructive-label: var(--color-error);
+  --noora-badge-light-fill-success-background: var(--color-success-soft);
+  --noora-badge-light-fill-success-label: var(--color-success);
+  --noora-badge-light-fill-warning-background: var(--color-warning-soft);
+  --noora-badge-light-fill-warning-label: var(--color-warning);
+  --noora-badge-disabled-background: var(--color-bg-subtle);
+  --noora-badge-disabled-label: var(--color-stone-400);
+  --noora-badge-status-success: var(--color-success);
+  --noora-badge-status-warning: var(--color-warning);
+  --noora-badge-status-attention: var(--color-warning);
+  --noora-icon-primary-label: var(--color-primary);
+  --noora-icon-primary-background: var(--color-primary-soft);
+  --noora-icon-neutral-label: var(--color-text-muted);
+  --noora-icon-neutral-background: var(--color-bg-subtle);
+}
+
+#login {
+  --font-body: var(--font-family-sans);
+  --font-heading: var(--font-family-sans);
+  --noora-font-body: var(--font-family-sans);
+  --noora-font-heading: var(--font-family-sans);
+  --noora-font-code: var(--font-family-mono);
+
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-10) var(--noora-spacing-6);
+  color: var(--noora-surface-label-primary);
+  font-family: var(--noora-font-body);
+}
+
+#login * {
+  box-sizing: border-box;
+}
+
+#login [data-part="background"] {
+  position: absolute;
+  inset: var(--noora-spacing-0);
+  z-index: var(--noora-z-index-0);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#login [data-part="grid"] {
+  position: absolute;
+  inset: var(--noora-spacing-0);
+  opacity: 0.45;
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--noora-surface-label-secondary) 26%, transparent) var(--space-px),
+    transparent var(--space-px)
+  );
+  background-size: var(--noora-spacing-8) var(--noora-spacing-8);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-black) var(--noora-spacing-13),
+    var(--color-black) calc(100% - var(--noora-spacing-13)),
+    transparent
+  );
+}
+
+#login [data-part="frame"] {
+  display: flex;
+  position: relative;
+  z-index: var(--noora-z-index-1);
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--noora-spacing-6);
+  box-shadow: var(--noora-border-heavy);
+  border-radius: var(--noora-radius-8);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-4);
+  width: 100%;
+  max-width: calc(var(--noora-spacing-16) * 4 + var(--noora-spacing-10));
+  overflow: hidden;
+}
+
+#login [data-part="content"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--noora-spacing-8);
+  padding: var(--noora-spacing-10) var(--noora-spacing-10) var(--noora-spacing-3);
+}
+
+#login [data-part="logo"] {
+  z-index: var(--noora-z-index-1);
+  border-radius: var(--noora-radius-4);
+  width: var(--noora-spacing-11);
+  height: var(--noora-spacing-11);
+}
+
+#login [data-part="dots"] {
+  margin-top: calc(var(--noora-spacing-12) * -1);
+  width: 100%;
+  height: var(--noora-spacing-10);
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--noora-surface-label-secondary) 42%, transparent) var(--space-px),
+    transparent var(--space-px)
+  );
+  background-size: var(--noora-spacing-5) var(--noora-spacing-5);
+  mask-image: radial-gradient(ellipse at center, var(--color-black), transparent 68%);
+}
+
+#login [data-part="header"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+  text-align: center;
+}
+
+#login [data-part="title"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-medium);
+}
+
+#login [data-part="subtitle"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-small);
+}
+
+#login [data-part="providers"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-4);
+  width: 100%;
+}
+
+#login [data-part="providers"] .noora-button {
+  width: 100%;
+}
+
+#login .noora-alert {
+  width: 100%;
+}
+
+#login [data-part="bottom-link"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--noora-spacing-2);
+  box-shadow: var(--noora-border-section);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-tertiary);
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+  text-align: center;
+}
+
+#login [data-part="bottom-link"] span {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-small);
+}
+
+#login [data-part="terms-notice"] {
+  position: absolute;
+  right: var(--noora-spacing-6);
+  bottom: var(--noora-spacing-5);
+  left: var(--noora-spacing-6);
+  z-index: var(--noora-z-index-1);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-small);
+  text-align: center;
+}
+
+#login [data-part="terms-notice"] a {
+  color: var(--noora-surface-label-primary);
+  text-decoration: none;
+}
+
+#login [data-part="terms-notice"] a:hover {
+  text-decoration: underline;
+}
+
+.noora-shell {
+  --noora-shell-header-height: calc(var(--noora-spacing-9) + var(--noora-spacing-5));
+  --noora-shell-sidebar-width: calc(
+    var(--noora-spacing-16) * 2 + var(--noora-spacing-9) + var(--noora-spacing-1)
+  );
+  --font-body: var(--font-family-sans);
+  --font-heading: var(--font-family-sans);
+  --noora-font-body: var(--font-family-sans);
+  --noora-font-heading: var(--font-family-sans);
+  --noora-font-code: var(--font-family-mono);
+
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--noora-surface-background-primary);
+  color: var(--noora-surface-label-primary);
+  font-family: var(--noora-font-body);
+}
+
+.noora-shell__headerbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--noora-spacing-6);
+  min-height: var(--noora-shell-header-height);
+  border-bottom: var(--space-px) solid var(--noora-content-divider-line);
+  background: var(--noora-surface-background-tertiary);
+  padding: var(--noora-spacing-4) var(--noora-spacing-6);
+}
+
+.noora-shell__headerbar-left,
+.noora-shell__headerbar-right,
+.noora-shell__context {
+  display: flex;
+  align-items: center;
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell__headerbar-left {
+  flex: 1;
+  gap: var(--noora-spacing-5);
+}
+
+.noora-shell__headerbar-right {
+  flex-shrink: 0;
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell__context {
+  flex: 1;
+  overflow: visible;
+}
+
+.noora-shell__brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  text-decoration: none;
+}
+
+.noora-shell__brand-logo {
+  display: block;
+  border-radius: var(--noora-radius-3);
+  width: var(--noora-spacing-9);
+  height: var(--noora-spacing-9);
+  object-fit: cover;
+}
+
+.noora-shell__sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--noora-border-light-default);
+  border: none;
+  border-radius: var(--noora-radius-3);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-3);
+  color: var(--noora-surface-label-primary);
+  cursor: pointer;
+}
+
+.noora-shell__sidebar-toggle svg {
+  width: var(--noora-icon-size-large);
+  height: var(--noora-icon-size-large);
+}
+
+.noora-shell__main {
+  display: flex;
+  flex: 1;
+  min-height: var(--noora-spacing-0);
+  background: var(--noora-surface-background-primary);
+}
+
+.noora-shell__sidebar {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  border-right: var(--space-px) solid var(--noora-content-divider-line);
+  width: var(--noora-shell-sidebar-width);
+  min-height: var(--noora-spacing-0);
+  overflow: hidden;
+}
+
+.noora-shell__sidebar > .noora-sidebar {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.noora-shell__backdrop {
+  display: none;
+}
+
+.noora-shell__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: var(--noora-spacing-0);
+  min-height: var(--noora-spacing-0);
+  overflow: hidden;
+}
+
+.noora-shell .dash-main,
+.noora-shell .profile-main,
+.noora-shell .admin-main {
+  flex: 1;
+  height: 100%;
+  min-width: var(--noora-spacing-0);
+  overflow-y: auto;
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-9) var(--noora-spacing-8);
+}
+
+.noora-shell .dash-page,
+.noora-shell .profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: var(--noora-spacing-0);
+  max-width: calc(var(--noora-spacing-16) * 15);
+}
+
+.noora-shell .admin-main {
+  margin: var(--noora-spacing-0);
+  max-width: none;
+  width: auto;
+}
+
+.noora-shell .noora-projects-page {
+  gap: var(--noora-spacing-8);
+}
+
+.noora-shell .noora-voice-page {
+  gap: var(--noora-spacing-9);
+}
+
+.noora-shell .noora-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-6);
+}
+
+.noora-shell .noora-page-header [data-part="copy"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-page-header [data-part="page-title"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+  letter-spacing: 0;
+}
+
+.noora-shell .noora-page-header [data-part="page-subtitle"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-page-header [data-part="actions"] {
+  flex-shrink: 0;
+}
+
+.noora-shell .dash-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-6);
+  margin: var(--noora-spacing-0);
+}
+
+.noora-shell .dash-page-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .dash-page-header h1 {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+  letter-spacing: 0;
+}
+
+.noora-shell .dash-page-header-desc {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .dash-page-header-actions {
+  flex-shrink: 0;
+  padding-top: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-projects-toolbar,
+.noora-shell .noora-projects-toolbar form {
+  width: 100%;
+}
+
+.noora-shell .noora-resource-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-4);
+  width: 100%;
+}
+
+.noora-shell .noora-resource-toolbar form {
+  width: 100%;
+}
+
+.noora-shell .noora-resource-toolbar > [data-part="filters"],
+.noora-shell .noora-resource-toolbar > [data-part="active-filters"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+}
+
+.noora-shell .noora-settings-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-7);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-list-page > [data-part="page-header"] {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-5);
+}
+
+.noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="heading"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-1);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-list-page [data-part="title"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+  letter-spacing: 0;
+}
+
+.noora-shell .noora-settings-list-page [data-part="subtitle"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="actions"] {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.noora-shell .noora-resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-resource-list > .noora-card,
+.noora-shell .noora-resource-list > .noora-card__section,
+.noora-shell .noora-settings-list-page > .noora-card,
+.noora-shell .noora-settings-list-page > .noora-card__section {
+  width: 100%;
+}
+
+.noora-shell .noora-resource-card {
+  min-width: var(--noora-spacing-0);
+  overflow: hidden;
+}
+
+.noora-shell .noora-card > [data-part="header"] [data-part="icon-with-title"] > [data-part="icon"] {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  width: var(--noora-icon-size-large);
+  height: var(--noora-icon-size-large);
+  color: var(--noora-surface-label-secondary);
+}
+
+.noora-shell .noora-card > [data-part="header"] [data-part="icon-with-title"] > [data-part="icon"] > svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
+}
+
+.noora-shell .noora-settings-list-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+  box-sizing: border-box;
+  min-width: var(--noora-spacing-0);
+  overflow: hidden;
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+}
+
+.noora-shell .noora-settings-list-card > [data-part="toolbar"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-4);
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-list-card > [data-part="toolbar"] [data-part="filters"],
+.noora-shell .noora-settings-list-card > [data-part="toolbar"] [data-part="active-filters"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+}
+
+.noora-shell .noora-settings-list-card > .noora-table {
+  box-sizing: border-box;
+  margin: var(--noora-spacing-0);
+  width: 100%;
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-0);
+  box-sizing: border-box;
+  min-width: var(--noora-spacing-0);
+  overflow: visible;
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form-card > [data-part="section"] {
+  display: grid;
+  grid-template-columns:
+    minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 3))
+    minmax(var(--noora-spacing-0), 1fr);
+  gap: var(--noora-spacing-7);
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+  box-shadow: var(--noora-border-section);
+}
+
+.noora-shell .noora-settings-form-card > [data-part="section"]:last-child {
+  box-shadow: none;
+}
+
+.noora-shell .noora-settings-form-card [data-part="label"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+}
+
+.noora-shell .noora-settings-form-card [data-part="title"] {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-form-card [data-part="description"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-form-card [data-part="field"] {
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-form-card [data-part="field"] .noora-text-input,
+.noora-shell .noora-settings-form-card [data-part="field"] .noora-text-area {
+  width: 100%;
+}
+
+.noora-shell .noora-settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-0);
+  overflow: hidden;
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-actions > [data-part="action"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--noora-spacing-6);
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+  box-shadow: var(--noora-border-section);
+}
+
+.noora-shell .noora-settings-actions > [data-part="action"]:last-child {
+  box-shadow: none;
+}
+
+.noora-shell .noora-settings-actions [data-part="copy"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-settings-actions [data-part="title"] {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-actions [data-part="description"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-settings-actions [data-part="button"] {
+  flex-shrink: 0;
+}
+
+.noora-shell .api-token-reveal-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+}
+
+.noora-shell .api-token-reveal-value code {
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-2) var(--noora-spacing-3);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-code-medium);
+}
+
+.noora-shell .api-token-reveal-credentials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(var(--noora-spacing-0), 1fr));
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .api-token-reveal-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .api-token-reveal-field strong {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+}
+
+.noora-shell .api-token-reveal-field code {
+  overflow-x: auto;
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-2) var(--noora-spacing-3);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-code-medium);
+}
+
+.noora-shell .noora-resource-table-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+  box-sizing: border-box;
+  min-width: var(--noora-spacing-0);
+  overflow: hidden;
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="resource-description"] {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-5);
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="title-group"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] h2 {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-heading-medium);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] p {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="actions"] {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.noora-shell .noora-resource-table-card > .noora-table {
+  box-sizing: border-box;
+  margin: var(--noora-spacing-0);
+  width: 100%;
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-sidebar > [data-part="viewport"] {
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .noora-sidebar [data-part="collapsible-group"] [data-part="root"] [data-part="content"] {
+  gap: var(--noora-spacing-4);
+  padding-top: var(--noora-spacing-2);
+  padding-left: var(--noora-spacing-5);
+  animation: none;
+}
+
+.noora-shell .noora-table {
+  width: 100%;
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .noora-table [data-part="scroll-container"] {
+  max-width: 100%;
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text"] > [data-part="icon"],
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] > [data-part="icon"]:not(:has(img)),
+.noora-shell .noora-table-empty-state > [data-part="icon"] {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] > [data-part="icon"]:not(:has(img)) {
+  padding: var(--noora-spacing-3);
+  width: var(--noora-icon-size-large);
+  height: var(--noora-icon-size-large);
+}
+
+.noora-shell .noora-table [data-part="cell"][data-type="text"] > [data-part="icon"] > svg,
+.noora-shell .noora-table [data-part="cell"][data-type="text_and_description"] > [data-part="icon"]:not(:has(img)) > svg,
+.noora-shell .noora-table-empty-state > [data-part="icon"] > svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
+}
+
+.noora-shell .dashboard-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+  text-align: center;
+}
+
+.noora-shell .dashboard-empty-state > [data-part="icon"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-3);
+  width: var(--noora-spacing-10);
+  height: var(--noora-spacing-10);
+  color: var(--noora-surface-label-secondary);
+}
+
+.noora-shell .dashboard-empty-state > [data-part="icon"] svg {
+  width: var(--noora-icon-size-large);
+  height: var(--noora-icon-size-large);
+}
+
+.noora-shell .dashboard-empty-state > [data-part="title"] {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-large);
+}
+
+.noora-shell .dashboard-empty-state > [data-part="subtitle"] {
+  max-width: calc(var(--noora-spacing-16) * 5);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .voice-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+}
+
+.noora-shell .voice-form .voice-section-divider {
+  display: none;
+}
+
+.noora-shell .voice-form .voice-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-5);
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .voice-form .voice-section-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-1);
+}
+
+.noora-shell .voice-form .voice-section-info h2 {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-large);
+}
+
+.noora-shell .voice-form .voice-section-info p {
+  margin: var(--noora-spacing-0);
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .voice-form .voice-card {
+  overflow: visible;
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+  padding: var(--noora-spacing-7);
+}
+
+.noora-shell .voice-form .voice-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+}
+
+.noora-shell .voice-form .voice-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(var(--noora-spacing-0), 1fr));
+  align-items: start;
+  gap: var(--noora-spacing-5);
+}
+
+.noora-shell .noora-voice-page #voice-mode-alert {
+  margin: var(--noora-spacing-0);
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-secondary);
+}
+
+.noora-shell .noora-voice-page #voice-mode-alert[data-size="large"] {
+  padding: var(--noora-spacing-4);
+}
+
+.noora-shell .noora-voice-page #voice-mode-alert [data-part="description"] {
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .voice-form .voice-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-2);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .voice-form .voice-field .noora-label label,
+.noora-shell .voice-form .noora-text-input [data-part="label"] label,
+.noora-shell .voice-form .noora-text-area [data-part="label"] label {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+}
+
+.noora-shell .voice-form .noora-text-input,
+.noora-shell .voice-form .noora-text-area {
+  gap: var(--noora-spacing-2);
+}
+
+.noora-shell .voice-form .noora-text-input [data-part="wrapper"],
+.noora-shell .voice-form .noora-text-area [data-part="wrapper"] {
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+}
+
+.noora-shell .voice-form .noora-text-input [data-part="wrapper"] {
+  padding: var(--noora-spacing-3) var(--noora-spacing-4);
+}
+
+.noora-shell .voice-form .noora-text-area [data-part="wrapper"] {
+  padding: var(--noora-spacing-3) var(--noora-spacing-4);
+}
+
+.noora-shell .voice-form .noora-text-input [data-part="wrapper"]:has(> input:focus),
+.noora-shell .voice-form .noora-text-area [data-part="wrapper"]:has(> textarea:focus) {
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .voice-form .voice-field .noora-text-input input,
+.noora-shell .voice-form .voice-field .noora-text-input input:focus,
+.noora-shell .voice-form .voice-field .noora-text-area textarea,
+.noora-shell .voice-form .voice-field .noora-text-area textarea:focus {
+  box-shadow: none;
+  border: 0;
+  border-radius: var(--noora-spacing-0);
+  background: transparent;
+  padding: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-body-medium);
+}
+
+.noora-shell .voice-form .noora-text-input .noora-hint-text,
+.noora-shell .voice-form .noora-text-area .noora-hint-text,
+.noora-shell .voice-form .noora-dropdown > [data-part="hint"] {
+  color: var(--noora-surface-label-secondary);
+  font: var(--noora-font-body-small);
+}
+
+.noora-shell .voice-form .voice-field .noora-dropdown {
+  width: 100%;
+}
+
+.noora-shell .voice-form .voice-field .noora-dropdown > [data-part="trigger"] {
+  width: 100%;
+  box-shadow: var(--noora-border-light-default);
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-surface-background-primary);
+}
+
+.noora-shell .voice-form .voice-field .noora-dropdown > [data-part="trigger"]:focus-visible {
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .voice-form #voice-country-select .noora-dropdown-content {
+  max-height: min(calc(100vh - var(--noora-spacing-16)), calc(var(--noora-spacing-16) * 3));
+  overscroll-behavior: contain;
+  overflow-y: auto;
+}
+
+.noora-shell .voice-form .terminology-translation-locale .noora-dropdown-content {
+  max-height: min(calc(100vh - var(--noora-spacing-16)), calc(var(--noora-spacing-16) * 3));
+  overscroll-behavior: contain;
+  overflow-y: auto;
+}
+
+.noora-shell .voice-form .model-select .noora-dropdown-content {
+  max-height: min(calc(100vh - var(--noora-spacing-16)), calc(var(--noora-spacing-16) * 3));
+  overscroll-behavior: contain;
+  overflow-y: auto;
+}
+
+.noora-shell .terminology-revision-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .terminology-revision-actions .noora-dropdown {
+  min-width: calc(var(--noora-spacing-16) * 2);
+}
+
+.noora-shell .terminology-revision-actions .noora-button,
+.noora-shell .terminology-revision-actions .noora-dropdown > [data-part="trigger"] {
+  min-height: var(--noora-spacing-10);
+}
+
+.noora-shell .voice-form .voice-country-tags .noora-tag {
+  border-radius: var(--noora-radius-99);
+  background: var(--noora-surface-background-secondary);
+}
+
+.noora-shell .profile-form {
+  gap: var(--noora-spacing-8);
+}
+
+.noora-shell .profile-avatar-card {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--noora-spacing-7) var(--noora-spacing-8);
+}
+
+.noora-shell .user-avatar-picker {
+  display: inline-flex;
+  border-radius: var(--noora-radius-99);
+  cursor: pointer;
+}
+
+.noora-shell .user-avatar-picker:focus-visible {
+  outline: none;
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .user-avatar-picker[data-dragging] .noora-avatar {
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .user-avatar-file-input-hidden {
+  display: none;
+}
+
+.noora-shell .voice-form #voice-overrides {
+  align-items: stretch;
+}
+
+.noora-shell .voice-form .voice-section-info-with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--noora-spacing-6);
+}
+
+.noora-shell .voice-form .voice-section-info-with-action [data-part="copy"] {
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .voice-form .voice-section-info-with-action [data-part="actions"] {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.noora-shell .voice-form .voice-overrides-list,
+.noora-shell .voice-form .terminology-entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .voice-form .voice-overrides-list:empty,
+.noora-shell .voice-form .terminology-entries-list:empty {
+  display: none;
+}
+
+.noora-shell .voice-form .voice-override-panel,
+.noora-shell .voice-form .terminology-entry-panel {
+  gap: var(--noora-spacing-0);
+  overflow: hidden;
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .voice-form .voice-override-panel[data-changed="true"],
+.noora-shell .voice-form .terminology-entry-panel[data-changed="true"] {
+  box-shadow: var(--noora-border-light-focus);
+}
+
+.noora-shell .voice-form .voice-override-panel > [data-part="header"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--noora-spacing-4);
+  border-bottom: var(--noora-border-section);
+  background: var(--noora-surface-background-secondary);
+  padding: var(--noora-spacing-4) var(--noora-spacing-5);
+}
+
+.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title-group"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title-group"] {
+  display: flex;
+  align-items: center;
+  gap: var(--noora-spacing-3);
+  min-width: var(--noora-spacing-0);
+}
+
+.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title"] {
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+}
+
+.noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="actions"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="actions"] {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.noora-shell .voice-form .voice-override-panel > [data-part="content"],
+.noora-shell .voice-form .terminology-entry-panel > [data-part="content"] {
+  padding: var(--noora-spacing-5);
+}
+
+.noora-shell .voice-form .voice-override-panel .voice-override-fields,
+.noora-shell .voice-form .terminology-entry-panel .voice-override-fields {
+  padding: var(--noora-spacing-0);
+}
+
+.noora-shell .voice-form .terminology-translations-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .voice-form .terminology-translations-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .voice-form .terminology-translations-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-3);
+}
+
+.noora-shell .voice-form .terminology-translations-columns {
+  display: grid;
+  grid-template-columns:
+    minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 2 + var(--noora-spacing-8)))
+    minmax(var(--noora-spacing-0), 1fr)
+    auto;
+  align-items: center;
+  gap: var(--noora-spacing-4);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+}
+
+.noora-shell .voice-form .terminology-translations-columns span:last-child {
+  min-width: calc(var(--noora-spacing-16) + var(--noora-spacing-4));
+  text-align: right;
+}
+
+.noora-shell .voice-form .terminology-translation-row {
+  display: grid;
+  grid-template-columns:
+    minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 2 + var(--noora-spacing-8)))
+    minmax(var(--noora-spacing-0), 1fr)
+    auto;
+  align-items: center;
+  gap: var(--noora-spacing-4);
+}
+
+.noora-shell .voice-form .terminology-translation-row[data-changed="true"] {
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-icon-primary-background);
+  padding: var(--noora-spacing-3);
+}
+
+.noora-shell .voice-form .terminology-translation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: var(--noora-spacing-0);
+  min-width: calc(var(--noora-spacing-16) + var(--noora-spacing-4));
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] {
+  box-shadow: var(--noora-border-light-default);
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] > [data-part="header"] {
+  background: var(--noora-badge-light-fill-success-background);
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] {
+  box-shadow: var(--noora-border-light-default);
+}
+
+.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] > [data-part="header"] {
+  background: var(--noora-badge-light-fill-destructive-background);
+}
+
+.noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="added"] {
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-badge-light-fill-success-background);
+  padding: var(--noora-spacing-3);
+}
+
+.noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="removed"] {
+  border-radius: var(--noora-radius-4);
+  background: var(--noora-badge-light-fill-destructive-background);
+  padding: var(--noora-spacing-3);
+}
+
+.noora-shell .voice-save-bar {
+  left: var(--noora-shell-sidebar-width);
+  padding-right: var(--noora-spacing-8);
+  padding-left: var(--noora-spacing-8);
+}
+
+.noora-shell .voice-save-bar-inner {
+  width: 100%;
+  max-width: none;
+}
+
+@media (max-width: 768px) {
+  .noora-shell .noora-settings-list-page > [data-part="page-header"] {
+    flex-direction: column;
+  }
+
+  .noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="actions"],
+  .noora-shell .noora-settings-list-page > [data-part="page-header"] > [data-part="actions"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .noora-settings-list-card > [data-part="toolbar"] {
+    padding: var(--noora-spacing-0);
+  }
+
+  .noora-shell .noora-settings-list-card,
+  .noora-shell .noora-resource-table-card {
+    padding: var(--noora-spacing-5);
+  }
+
+  .noora-shell .noora-settings-list-card > .noora-table {
+    margin: var(--noora-spacing-0);
+    width: 100%;
+  }
+
+  .noora-shell .noora-resource-table-card > [data-part="header"] {
+    flex-direction: column;
+    padding: var(--noora-spacing-0);
+  }
+
+  .noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="actions"],
+  .noora-shell .noora-resource-table-card > [data-part="header"] > [data-part="actions"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .noora-resource-table-card > .noora-table {
+    margin: var(--noora-spacing-0);
+    width: 100%;
+  }
+
+  .noora-shell .noora-settings-form-card > [data-part="section"],
+  .noora-shell .noora-settings-actions > [data-part="action"] {
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--noora-spacing-4);
+    padding: var(--noora-spacing-5);
+  }
+
+  .noora-shell .noora-settings-actions [data-part="button"],
+  .noora-shell .noora-settings-actions [data-part="button"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .api-token-reveal-credentials {
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
+  }
+
+  .noora-shell .voice-form .voice-section {
+    gap: var(--noora-spacing-4);
+  }
+
+  .noora-shell .voice-form .voice-field-row {
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
+  }
+
+  .noora-shell .voice-form .voice-card {
+    padding: var(--noora-spacing-5);
+  }
+
+  .noora-shell .voice-form .voice-section-info-with-action {
+    flex-direction: column;
+    gap: var(--noora-spacing-4);
+  }
+
+  .noora-shell .voice-form .voice-section-info-with-action [data-part="actions"] {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .noora-shell .voice-form .voice-section-info-with-action [data-part="actions"] .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .voice-form .terminology-translations-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .noora-shell .voice-form .terminology-translation-row {
+    grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
+  }
+
+  .noora-shell .voice-form .terminology-translations-columns {
+    display: none;
+  }
+
+  .noora-shell .voice-form .terminology-translation-actions {
+    padding-bottom: var(--noora-spacing-0);
+  }
+
+  .noora-shell .voice-form .terminology-translation-actions .noora-button {
+    width: 100%;
+  }
+
+  .noora-shell .voice-save-bar {
+    left: var(--noora-spacing-0);
+    padding-right: var(--noora-spacing-5);
+    padding-left: var(--noora-spacing-5);
+  }
+}
+
+.noora-shell__avatar {
+  display: block;
+  border-radius: var(--noora-radius-99);
+  width: var(--noora-spacing-6);
+  height: var(--noora-spacing-6);
+}
+
+.noora-shell__user-menu .noora-dropdown > [data-part="trigger"][data-icon-only] {
+  padding: var(--noora-spacing-3);
+}
+
+.noora-shell #flash-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-3);
+  padding: var(--noora-spacing-4) var(--noora-spacing-8) var(--noora-spacing-0);
+}
+
+.noora-shell #flash-group .flash-alert {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+.noora-shell #flash-group .noora-alert {
+  justify-content: center;
+  width: 100%;
+}
+
+.noora-shell .noora-breadcrumbs {
+  min-width: var(--noora-spacing-0);
+  overflow: visible;
+}
+
+@media (max-width: 768px) {
+  #login {
+    padding: var(--noora-spacing-6);
+  }
+
+  #login [data-part="content"] {
+    padding-inline: var(--noora-spacing-5);
+  }
+
+  #login [data-part="bottom-link"] {
+    flex-direction: column;
+  }
+
+  #login [data-part="terms-notice"] {
+    position: static;
+    margin-top: var(--noora-spacing-5);
+  }
+
+  .noora-shell__headerbar {
+    padding: var(--noora-spacing-3) var(--noora-spacing-5);
+  }
+
+  .noora-shell__sidebar-toggle {
+    display: inline-flex;
+  }
+
+  .noora-shell__main {
+    flex-direction: column;
+  }
+
+  .noora-shell__sidebar {
+    display: none;
+    position: fixed;
+    top: var(--noora-shell-header-height);
+    bottom: var(--noora-spacing-0);
+    left: var(--noora-spacing-0);
+    z-index: var(--noora-z-index-11);
+    box-shadow: var(--noora-border-heavy);
+    background: var(--noora-surface-background-primary);
+    width: min(88vw, var(--noora-shell-sidebar-width));
+  }
+
+  .noora-shell__sidebar.open {
+    display: flex;
+  }
+
+  .noora-shell__backdrop {
+    display: none;
+    position: fixed;
+    top: var(--noora-shell-header-height);
+    right: var(--noora-spacing-0);
+    bottom: var(--noora-spacing-0);
+    left: var(--noora-spacing-0);
+    z-index: var(--noora-z-index-10);
+    background: color-mix(in oklch, var(--noora-surface-background-primary) 55%, transparent);
+  }
+
+  .noora-shell__backdrop.open {
+    display: block;
+  }
+
+  .noora-shell .dash-main,
+  .noora-shell .profile-main,
+  .noora-shell .admin-main {
+    padding: var(--noora-spacing-6);
+  }
+
+  .noora-shell .noora-page-header {
+    flex-direction: column;
+  }
+
+  .noora-shell .noora-page-header [data-part="actions"],
+  .noora-shell .noora-page-header [data-part="actions"] .noora-button {
+    width: 100%;
+  }
+}
