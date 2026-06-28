@@ -39,7 +39,8 @@ config :glossia, GlossiaWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "65pP1xr3jmj+N1BsGXNwwYPPpS7aG7F6dj38YdnvijVD204/u7fKbSWRZ9rY6Jv0",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:glossia, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:glossia, ~w(--sourcemap=inline --watch)]},
+    esbuild_noora: {Esbuild, :install_and_run, [:noora, ~w(--sourcemap=inline --watch)]}
   ]
 
 # ## SSL Support
