@@ -32,6 +32,7 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
+            {{- include "glossia.mailRelayEnv" . | nindent 12 }}
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.envSecretName }}
