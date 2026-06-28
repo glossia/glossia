@@ -67,6 +67,10 @@ defmodule Glossia.Flame do
       Application.get_env(:glossia, :flame, [])
       |> Keyword.get(:k8s, [])
 
+    runner_manifest(parent_pod_manifest, app_container, k8s_config)
+  end
+
+  def runner_manifest(parent_pod_manifest, app_container, k8s_config) do
     parent_spec = parent_pod_manifest["spec"] || %{}
 
     spec =

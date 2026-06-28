@@ -1,30 +1,14 @@
 defmodule Glossia.FlameTest do
-  use ExUnit.Case, async: false
-
-  setup do
-    original_config = Application.get_env(:glossia, :flame)
-
-    on_exit(fn ->
-      if is_nil(original_config) do
-        Application.delete_env(:glossia, :flame)
-      else
-        Application.put_env(:glossia, :flame, original_config)
-      end
-    end)
-
-    :ok
-  end
+  use ExUnit.Case, async: true
 
   test "runner manifest copies parent pod fields without inheriting selector labels" do
-    Application.put_env(:glossia, :flame,
-      k8s: [
-        runtime_class_name: "kata-qemu",
-        resources: %{"requests" => %{"cpu" => "500m"}},
-        node_selector: %{"pool" => "runners"},
-        tolerations: [%{"key" => "runners", "operator" => "Exists"}],
-        affinity: %{"podAntiAffinity" => %{}}
-      ]
-    )
+    k8s_config = [
+      runtime_class_name: "kata-qemu",
+      resources: %{"requests" => %{"cpu" => "500m"}},
+      node_selector: %{"pool" => "runners"},
+      tolerations: [%{"key" => "runners", "operator" => "Exists"}],
+      affinity: %{"podAntiAffinity" => %{}}
+    ]
 
     manifest =
       Glossia.Flame.runner_manifest(
@@ -51,7 +35,8 @@ defmodule Glossia.FlameTest do
             %{"name" => "CUSTOM_ENV", "value" => "kept"}
           ],
           "envFrom" => [%{"secretRef" => %{"name" => "glossia-app-env"}}]
-        }
+        },
+        k8s_config
       )
 
     assert manifest["metadata"]["labels"] == %{"app.kubernetes.io/component" => "runner"}
