@@ -138,14 +138,12 @@ jobs:
           validate_chart tailscale-apiserver-proxy-observability infra/helm/tailscale-apiserver-proxy tailscale \
             --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml
 
-  glossia-kind:
+  glossia-e2e:
     if: github.event.pull_request.draft != true
-    name: Glossia Kind End-to-End
+    name: Glossia End-to-End
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: helm
-    env:
-      KIND_VERSION: v0.32.0
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
@@ -156,23 +154,5 @@ jobs:
       - name: Install tools
         run: mise install
 
-      - name: Install kind
-        run: |
-          set -euo pipefail
-
-          case "$(uname -m)" in
-            x86_64) architecture=amd64 ;;
-            aarch64 | arm64) architecture=arm64 ;;
-            *)
-              echo "::error::Unsupported runner architecture: $(uname -m)"
-              exit 1
-              ;;
-          esac
-
-          curl -fsSLo kind "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-${architecture}"
-          chmod +x kind
-          sudo mv kind /usr/local/bin/kind
-          kind version
-
-      - name: Run Glossia kind end-to-end test
-        run: mise exec -- bash deploy/helm/glossia/tests/kind-end-to-end.sh
+      - name: Run Glossia end-to-end tests
+        run: mise exec -- bash deploy/helm/glossia/e2e/kind.sh

@@ -87,18 +87,21 @@ installed in the cluster for [Kata Containers](https://katacontainers.io/). Set
 provide an equivalent service account with pod management permissions in the
 release namespace.
 
-### Local chart test
+### Local end-to-end test
 
 Run the lightweight [kind, Kubernetes in Docker](https://kind.sigs.k8s.io/)
-chart test before changing runner-related templates:
+chart test with [ShellSpec](https://shellspec.info/) before changing
+runner-related templates:
 
 ```bash
-deploy/helm/glossia/tests/kind-end-to-end.sh
+bash deploy/helm/glossia/e2e/kind.sh
 ```
 
-The test installs the chart into a local cluster with
-`values-kind-test.yaml`, verifies the FLAME runner permissions and service
-selectors, and then deletes the cluster.
+The runner creates one shared local cluster, runs the ShellSpec files under
+`deploy/helm/glossia/e2e` in parallel, and gives each spec file its own
+namespace and Helm release. The tests install the chart with `values-e2e.yaml`,
+verify the FLAME runner permissions and service selectors, and then delete the
+cluster.
 
 ## External Secrets Operator
 

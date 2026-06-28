@@ -1,4 +1,4 @@
-# Lightweight values for the kind end-to-end chart test.
+# Lightweight values for the ShellSpec end-to-end chart test.
 # The test exercises Kubernetes object creation without requiring database
 # operators, external secret controllers, or a runnable application image.
 
