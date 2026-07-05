@@ -13,6 +13,7 @@ defmodule Glossia.Flame do
     RELEASE_DISTRIBUTION
     RELEASE_NODE
   )
+  @runner_allowed_env_names ~w(GLOSSIA_SANDBOX_ADAPTER)
 
   def pool_name, do: @pool_name
 
@@ -77,12 +78,12 @@ defmodule Glossia.Flame do
       %{
         "containers" => [
           %{
-            "env" => runner_env(app_container),
-            "envFrom" => app_container["envFrom"] || []
+            "env" => runner_env(app_container)
           }
           |> maybe_put_map("resources", Keyword.get(k8s_config, :resources, %{}))
         ]
       }
+      |> Map.put("automountServiceAccountToken", false)
       |> maybe_put_string("serviceAccountName", parent_spec["serviceAccountName"])
       |> maybe_put_list("imagePullSecrets", parent_spec["imagePullSecrets"] || [])
       |> maybe_put_string("runtimeClassName", Keyword.get(k8s_config, :runtime_class_name))
@@ -103,8 +104,14 @@ defmodule Glossia.Flame do
   defp runner_env(app_container) do
     app_container
     |> Map.get("env", [])
-    |> Enum.reject(&(&1["name"] in @runner_managed_env_names))
+    |> Enum.filter(&runner_allowed_env?/1)
   end
+
+  defp runner_allowed_env?(%{"name" => name, "value" => _value}) do
+    name in @runner_allowed_env_names and name not in @runner_managed_env_names
+  end
+
+  defp runner_allowed_env?(_env), do: false
 
   defp maybe_put_string(map, _key, nil), do: map
   defp maybe_put_string(map, _key, ""), do: map

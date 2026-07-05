@@ -45,6 +45,7 @@ secrets:
 
 env:
   GLOSSIA_PHX_SERVER: "true"
+  GLOSSIA_SANDBOX_ADAPTER: "cluster"
 
 flame:
   backend: k8s

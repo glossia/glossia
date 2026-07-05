@@ -34,6 +34,7 @@ defmodule Glossia.Seeds do
   alias Glossia.Discussions.{Discussion, DiscussionComment}
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
+  alias Glossia.Sandboxes.{Sandbox, SandboxSession}
   alias Glossia.Voices
 
   import Ecto.Query
@@ -153,6 +154,9 @@ defmodule Glossia.Seeds do
 
     # Translation sessions for the "blog" project to exercise the activity timeline
     if blog_project, do: ensure_translation_sessions!(blog_project, dev)
+
+    # Historical sandbox lifecycle records for workflow execution APIs.
+    if blog_project, do: ensure_sandbox_history!(blog_project)
 
     # Voice configs: create a couple of versions to exercise history and diff UX.
     ensure_voice_versions!(
@@ -1053,6 +1057,50 @@ defmodule Glossia.Seeds do
 
     # Wait for buffer flush
     Process.sleep(2_000)
+  end
+
+  # ----------------------------------------------------------------------------
+  # Sandboxes
+  # ----------------------------------------------------------------------------
+
+  defp ensure_sandbox_history!(%Project{} = project) do
+    case Repo.get_by(Sandbox, project_id: project.id, backend_ref: "seed-project-setup") do
+      %Sandbox{} ->
+        :ok
+
+      nil ->
+        now = DateTime.utc_now()
+        ready_at = DateTime.add(now, -5400, :second)
+        terminated_at = DateTime.add(now, -4800, :second)
+
+        {:ok, sandbox} =
+          %Sandbox{account_id: project.account_id, project_id: project.id}
+          |> Sandbox.changeset(%{
+            status: "terminated",
+            purpose: "project_setup",
+            backend: "flame",
+            backend_ref: "seed-project-setup",
+            labels: %{"workflow" => "setup", "project_id" => to_string(project.id)},
+            ready_at: ready_at,
+            deadline_at: DateTime.add(ready_at, 3600, :second),
+            terminated_at: terminated_at
+          })
+          |> Repo.insert()
+
+        %SandboxSession{}
+        |> SandboxSession.changeset(%{
+          sandbox_id: sandbox.id,
+          account_id: sandbox.account_id,
+          project_id: sandbox.project_id,
+          status: "closed",
+          opened_at: ready_at,
+          closed_at: terminated_at,
+          close_reason: "setup_completed"
+        })
+        |> Repo.insert!()
+
+        :ok
+    end
   end
 
   defp ensure_discussion_comment!(ticket, user, opts) do
