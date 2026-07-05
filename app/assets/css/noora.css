@@ -104,6 +104,11 @@
   --noora-icon-neutral-background: var(--color-bg-subtle);
 }
 
+.noora-button:hover,
+.noora-neutral-button:hover {
+  text-decoration: none;
+}
+
 #login {
   --font-body: var(--font-family-sans);
   --font-heading: var(--font-family-sans);
