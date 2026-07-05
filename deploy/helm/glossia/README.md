@@ -59,9 +59,10 @@ tree needed by runner work. There is no separate image or explicit mode flag.
 
 The chart configures the parent pod with the service account, pod metadata, and
 distributed Erlang settings that the [FLAME Kubernetes backend](https://hexdocs.pm/flame_k8s_backend/FLAMEK8sBackend.html)
-requires. Runner pods inherit the parent image, pull secrets, environment, and
-application Secret, but they use distinct labels so Glossia services only route
-traffic to the parent pods.
+requires. Runner pods inherit the parent image and pull secrets, but Glossia
+does not mount the service account token in runner pods, scrubs application
+secrets from the runner environment, and uses distinct labels so Glossia
+services only route traffic to the parent pods.
 
 Configure runner capacity and isolation under `flame`:
 
@@ -94,7 +95,7 @@ chart test with [ShellSpec](https://shellspec.info/) before changing
 runner-related templates:
 
 ```bash
-mise exec kind@0.32.0 shellspec@0.28.1 -- bash deploy/helm/glossia/e2e/kind.sh
+bash deploy/helm/glossia/e2e/kind.sh
 ```
 
 The runner creates one shared local cluster, runs the ShellSpec files under

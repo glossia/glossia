@@ -118,6 +118,24 @@ config :flop, repo: Glossia.Repo
 
 config :glossia, Glossia.OgImage, enabled: true
 
+config :glossia, Glossia.Sandbox,
+  adapter: Glossia.Sandbox.ClusterAdapter,
+  enabled: true,
+  max_active_per_account: 3,
+  default_ttl_seconds: 3600,
+  command_timeout_ms: 120_000,
+  output_limit_bytes: 256_000,
+  reaper_enabled: true,
+  reaper_interval_ms: 60_000,
+  delete_retry_after_ms: 60_000,
+  microsandbox_image: "node:22-bookworm",
+  microsandbox_repo_path: "/home/user/repo",
+  microsandbox_deno_command: "deno"
+
+config :glossia, Glossia.Projects.Setup,
+  minimax_api_key: nil,
+  model: "MiniMax-M2.5"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

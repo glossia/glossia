@@ -43,6 +43,8 @@ defmodule Glossia.Application do
       {Oban, Application.fetch_env!(:glossia, Oban)},
       {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Glossia.PubSub},
+      Glossia.Sandbox.ProcessRegistry,
+      Glossia.Sandbox.Reaper,
       # Start a worker by calling: Glossia.Worker.start_link(arg)
       # {Glossia.Worker, arg},
       Glossia.RateLimiter,
@@ -101,14 +103,7 @@ defmodule Glossia.Application do
   end
 
   defp flame_child_children do
-    [
-      Glossia.Vault,
-      {Finch, name: Glossia.Finch},
-      Glossia.Repo,
-      Glossia.ClickHouseRepo,
-      Glossia.IngestRepo,
-      {Phoenix.PubSub, name: Glossia.PubSub}
-    ]
+    []
   end
 
   # Tell Phoenix to update the endpoint configuration
