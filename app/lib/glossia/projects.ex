@@ -77,6 +77,27 @@ defmodule Glossia.Projects do
     |> Repo.update()
   end
 
+  def update_project_setup_status_if_sandbox_id(
+        %Project{id: project_id},
+        expected_sandbox_id,
+        status,
+        error \\ nil
+      ) do
+    now = DateTime.utc_now()
+
+    query =
+      Project
+      |> where(id: ^project_id)
+      |> where_expected_setup_sandbox_id(expected_sandbox_id)
+
+    case Repo.update_all(query,
+           set: [setup_status: status, setup_error: error, updated_at: now]
+         ) do
+      {1, _} -> {:ok, Repo.get!(Project, project_id)}
+      {0, _} -> {:error, :setup_sandbox_id_changed}
+    end
+  end
+
   def get_project(%Account{id: account_id}, handle) do
     Tracer.with_span "glossia.projects.get_project" do
       Tracer.set_attributes([
@@ -150,14 +171,39 @@ defmodule Glossia.Projects do
 
   def update_project_sandbox_id(project, sandbox_id) do
     project
-    |> Ecto.Changeset.change(setup_sandbox_id: sandbox_id)
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.force_change(:setup_sandbox_id, sandbox_id)
     |> Repo.update()
+  end
+
+  def replace_project_sandbox_id(%Project{id: project_id}, expected_id, sandbox_id) do
+    now = DateTime.utc_now()
+
+    query =
+      Project
+      |> where(id: ^project_id)
+      |> where_expected_setup_sandbox_id(expected_id)
+
+    case Repo.update_all(query,
+           set: [setup_sandbox_id: sandbox_id, updated_at: now]
+         ) do
+      {1, _} -> {:ok, Repo.get!(Project, project_id)}
+      {0, _} -> {:error, :setup_sandbox_id_changed}
+    end
   end
 
   def list_projects_with_active_setup do
     Project
     |> where([p], p.setup_status in ["pending", "running"])
     |> Repo.all()
+  end
+
+  defp where_expected_setup_sandbox_id(query, nil) do
+    where(query, [p], is_nil(p.setup_sandbox_id))
+  end
+
+  defp where_expected_setup_sandbox_id(query, expected_id) do
+    where(query, [p], p.setup_sandbox_id == ^expected_id)
   end
 
   def subscribe_setup_events(%Project{id: project_id}) do

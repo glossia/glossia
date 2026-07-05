@@ -58,6 +58,8 @@ config :glossia, Oban, testing: :inline
 
 config :glossia, Glossia.OgImage, enabled: false
 
+config :glossia, Glossia.Sandbox, reaper_enabled: false
+
 # Cloak encryption vault (deterministic test key)
 config :glossia, Glossia.Vault,
   ciphers: [

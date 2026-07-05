@@ -182,6 +182,7 @@ glossia_e2e_assert_service_selectors() {
 }
 
 glossia_e2e_assert_runner_configuration() {
+  glossia_e2e_assert_equals "cluster" "$(glossia_e2e_deployment_env_value GLOSSIA_SANDBOX_ADAPTER)" "sandbox adapter" || return 1
   glossia_e2e_assert_equals "k8s" "$(glossia_e2e_deployment_env_value GLOSSIA_FLAME_BACKEND)" "runner backend" || return 1
   glossia_e2e_assert_equals "2" "$(glossia_e2e_deployment_env_value GLOSSIA_FLAME_MAX)" "maximum runners" || return 1
   glossia_e2e_assert_equals "kata-qemu" \

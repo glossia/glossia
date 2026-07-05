@@ -51,6 +51,42 @@ config :glossia, :flame,
     log: truthy?.(System.get_env("GLOSSIA_FLAME_K8S_LOG"))
   ]
 
+sandbox_adapter =
+  case System.get_env("GLOSSIA_SANDBOX_ADAPTER") || "cluster" do
+    "cluster" -> Glossia.Sandbox.ClusterAdapter
+    "microsandbox" -> Glossia.Sandbox.MicrosandboxAdapter
+    value -> raise "unsupported GLOSSIA_SANDBOX_ADAPTER=#{inspect(value)}"
+  end
+
+config :glossia, Glossia.Sandbox,
+  adapter: sandbox_adapter,
+  enabled: System.get_env("GLOSSIA_SANDBOX_ENABLED", "true") not in ["false", "0"],
+  max_active_per_account:
+    String.to_integer(System.get_env("GLOSSIA_SANDBOX_MAX_ACTIVE_PER_ACCOUNT") || "3"),
+  default_ttl_seconds:
+    String.to_integer(System.get_env("GLOSSIA_SANDBOX_DEFAULT_TTL_SECONDS") || "3600"),
+  command_timeout_ms:
+    String.to_integer(System.get_env("GLOSSIA_SANDBOX_COMMAND_TIMEOUT_MS") || "120000"),
+  output_limit_bytes:
+    String.to_integer(System.get_env("GLOSSIA_SANDBOX_OUTPUT_LIMIT_BYTES") || "256000"),
+  reaper_enabled:
+    System.get_env(
+      "GLOSSIA_SANDBOX_REAPER_ENABLED",
+      if(config_env() == :test, do: "false", else: "true")
+    ) not in ["false", "0"],
+  reaper_interval_ms:
+    String.to_integer(System.get_env("GLOSSIA_SANDBOX_REAPER_INTERVAL_MS") || "60000"),
+  delete_retry_after_ms:
+    String.to_integer(System.get_env("GLOSSIA_SANDBOX_DELETE_RETRY_AFTER_MS") || "60000"),
+  microsandbox_image: System.get_env("GLOSSIA_MICROSANDBOX_IMAGE") || "node:22-bookworm",
+  microsandbox_repo_path: System.get_env("GLOSSIA_MICROSANDBOX_REPO_PATH") || "/home/user/repo",
+  microsandbox_deno_command: System.get_env("GLOSSIA_MICROSANDBOX_DENO") || "deno"
+
+config :glossia, Glossia.Projects.Setup,
+  minimax_api_key:
+    System.get_env("GLOSSIA_SETUP_MINIMAX_API_KEY") || System.get_env("MINIMAX_API_KEY"),
+  model: System.get_env("GLOSSIA_SETUP_MODEL") || "MiniMax-M2.5"
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -208,7 +244,7 @@ if is_binary(encryption_key) and encryption_key != "" do
     ]
 end
 
-if config_env() == :prod do
+if config_env() == :prod and not flame_child? do
   database_url =
     System.get_env("GLOSSIA_DATABASE_URL") ||
       raise """

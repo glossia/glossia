@@ -32,7 +32,13 @@ defmodule Glossia.FlameTest do
               "name" => "POD_NAME",
               "valueFrom" => %{"fieldRef" => %{"fieldPath" => "metadata.name"}}
             },
-            %{"name" => "CUSTOM_ENV", "value" => "kept"}
+            %{"name" => "CUSTOM_ENV", "value" => "kept"},
+            %{"name" => "GLOSSIA_SANDBOX_ADAPTER", "value" => "cluster"},
+            %{"name" => "API_TOKEN", "value" => "secret"},
+            %{
+              "name" => "GLOSSIA_S3_ACCESS_KEY_ID",
+              "valueFrom" => %{"secretKeyRef" => %{"name" => "glossia-s3", "key" => "key"}}
+            }
           ],
           "envFrom" => [%{"secretRef" => %{"name" => "glossia-app-env"}}]
         },
@@ -41,6 +47,7 @@ defmodule Glossia.FlameTest do
 
     assert manifest["metadata"]["labels"] == %{"app.kubernetes.io/component" => "runner"}
     assert manifest["spec"]["serviceAccountName"] == "glossia"
+    assert manifest["spec"]["automountServiceAccountToken"] == false
     assert manifest["spec"]["imagePullSecrets"] == [%{"name" => "registry-pull-secret"}]
     assert manifest["spec"]["runtimeClassName"] == "kata-qemu"
     assert manifest["spec"]["nodeSelector"] == %{"pool" => "runners"}
@@ -48,8 +55,8 @@ defmodule Glossia.FlameTest do
     assert manifest["spec"]["affinity"] == %{"podAntiAffinity" => %{}}
 
     [container] = manifest["spec"]["containers"]
-    assert container["env"] == [%{"name" => "CUSTOM_ENV", "value" => "kept"}]
-    assert container["envFrom"] == [%{"secretRef" => %{"name" => "glossia-app-env"}}]
+    assert container["env"] == [%{"name" => "GLOSSIA_SANDBOX_ADAPTER", "value" => "cluster"}]
+    refute Map.has_key?(container, "envFrom")
     assert container["resources"] == %{"requests" => %{"cpu" => "500m"}}
   end
 end
