@@ -469,4 +469,3 @@ fn parse_string_flag(argv: &[String], index: &mut usize, flag: &str) -> Result<S
     *index += 2;
     Ok(value)
 }
-

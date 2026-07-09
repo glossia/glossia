@@ -152,7 +152,10 @@ mod tests {
             resolve_model_identifier("accounts/fireworks/models/deepseek-v3p1", Some("fireworks"))
                 .unwrap();
         assert_eq!(resolved.provider, "fireworks");
-        assert_eq!(resolved.request_model, "accounts/fireworks/models/deepseek-v3p1");
+        assert_eq!(
+            resolved.request_model,
+            "accounts/fireworks/models/deepseek-v3p1"
+        );
     }
 
     #[test]

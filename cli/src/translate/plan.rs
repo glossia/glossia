@@ -19,7 +19,11 @@ pub struct TranslationPlan {
     pub items: Vec<WorkItem>,
 }
 
+// The translate command moved server-side; the remaining commands (status,
+// check, clean) read a subset of these fields, and the context accessors below
+// are exercised by the planner tests, so keep the full planning model.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct WorkItem {
     pub source_abs: PathBuf,
     pub source_path: String,
@@ -50,10 +54,12 @@ impl WorkItem {
         )
     }
 
+    #[allow(dead_code)]
     pub fn context_body(&self) -> String {
         scope_content(&self.context_snapshots, "project_context")
     }
 
+    #[allow(dead_code)]
     pub fn locale_override_body(&self) -> String {
         scope_content(&self.context_snapshots, "locale_override")
     }
@@ -242,6 +248,7 @@ fn llm_for_locale(
     LlmConfig::from_frontmatter(&frontmatter, &runtime.llm)
 }
 
+#[allow(dead_code)]
 fn scope_content(snapshots: &[ContextSnapshot], scope: &str) -> String {
     snapshots
         .iter()

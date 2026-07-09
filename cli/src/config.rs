@@ -352,13 +352,6 @@ pub struct LocaleOverrideContext {
 }
 
 #[derive(Debug, Clone)]
-pub struct MarkdownSplit {
-    pub frontmatter: String,
-    pub body: String,
-    pub ok: bool,
-}
-
-#[derive(Debug, Clone)]
 pub struct ParsedContent {
     pub frontmatter: Frontmatter,
     pub body: String,
@@ -415,47 +408,6 @@ pub fn parse_content(content: &str) -> Result<ParsedContent> {
     };
 
     Ok(ParsedContent { frontmatter, body })
-}
-
-pub fn split_markdown_frontmatter(content: &str) -> MarkdownSplit {
-    let lines: Vec<&str> = content.lines().collect();
-    let Some(first) = lines.first().copied() else {
-        return MarkdownSplit {
-            frontmatter: String::new(),
-            body: String::new(),
-            ok: false,
-        };
-    };
-
-    let marker = first.trim();
-    if marker != "---" && marker != "+++" {
-        return MarkdownSplit {
-            frontmatter: String::new(),
-            body: content.to_string(),
-            ok: false,
-        };
-    }
-
-    let mut end = None;
-    for (index, line) in lines.iter().enumerate().skip(1) {
-        if line.trim() == marker {
-            end = Some(index);
-            break;
-        }
-    }
-    let Some(end) = end else {
-        return MarkdownSplit {
-            frontmatter: String::new(),
-            body: content.to_string(),
-            ok: false,
-        };
-    };
-
-    MarkdownSplit {
-        frontmatter: lines[..=end].join("\n"),
-        body: lines[end + 1..].join("\n"),
-        ok: true,
-    }
 }
 
 pub fn resolve_chain(start_dir: &Path, repo_root: &Path) -> Result<ResolvedContext> {
@@ -615,8 +567,7 @@ fn validate_command_argv(command: Option<Vec<String>>) -> Result<Option<Vec<Stri
 #[cfg(test)]
 mod tests {
     use super::{
-        find_translation_roots, parse_content, resolve_chain, split_markdown_frontmatter,
-        FrontmatterMode, SourceSpec,
+        find_translation_roots, parse_content, resolve_chain, FrontmatterMode, SourceSpec,
     };
     use pretty_assertions::assert_eq;
     use std::fs;
@@ -669,14 +620,6 @@ Hello
             rules[0].output.as_deref(),
             Some("docs/i18n/{locale}/{relpath}")
         );
-    }
-
-    #[test]
-    fn split_markdown_frontmatter_preserves_marker() {
-        let split = split_markdown_frontmatter("---\ntitle: Hello\n---\nBody");
-        assert!(split.ok);
-        assert_eq!(split.frontmatter, "---\ntitle: Hello\n---");
-        assert_eq!(split.body, "Body");
     }
 
     #[test]

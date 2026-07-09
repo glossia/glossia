@@ -33,7 +33,7 @@ pub fn load_runtime_config(root: &Path) -> Result<RuntimeConfig> {
         RuntimeConfig::default()
     };
 
-    Ok(with_env_overrides(config)?)
+    with_env_overrides(config)
 }
 
 pub fn path(root: &Path) -> PathBuf {

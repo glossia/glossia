@@ -91,7 +91,6 @@ pub fn stale(
     lock.hash != current_hash || lock.output_path != output_path || lock.output_hash != output_hash
 }
 
-
 pub fn build_hash_state(
     format: Format,
     source_path: &str,
