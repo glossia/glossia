@@ -305,9 +305,8 @@ defmodule Glossia.Projects.SetupHarness do
       {:ok, %{"exitCode" => 0, "stdout" => stdout}} ->
         files =
           stdout
-          |> String.split("\n", trim: true)
-          |> Enum.map(&parse_status_line/1)
-          |> Enum.reject(&is_nil/1)
+          |> Glossia.Git.PorcelainStatus.parse()
+          |> Enum.reject(&internal_path?(&1.path))
           |> Map.new(fn %{path: path, status: status} -> {path, status} end)
           |> Enum.map(fn {path, status} -> %{path: path, status: status} end)
           |> Enum.sort_by(& &1.path)
@@ -321,36 +320,6 @@ defmodule Glossia.Projects.SetupHarness do
         {:error, {:status_failed, reason}}
     end
   end
-
-  defp parse_status_line(line) when byte_size(line) >= 4 do
-    code = String.slice(line, 0, 2)
-    path = line |> String.slice(3..-1//1) |> rename_target_path(code)
-
-    cond do
-      path == "" or internal_path?(path) ->
-        nil
-
-      String.contains?(code, "D") ->
-        %{path: path, status: "deleted"}
-
-      String.contains?(code, "A") or code == "??" ->
-        %{path: path, status: "added"}
-
-      true ->
-        %{path: path, status: "modified"}
-    end
-  end
-
-  defp parse_status_line(_line), do: nil
-
-  defp rename_target_path(path, <<code, _rest::binary>>) when code in [?R, ?C] do
-    case path |> String.split(" -> ") |> List.last() do
-      nil -> ""
-      target -> target
-    end
-  end
-
-  defp rename_target_path(path, _code), do: path
 
   defp internal_path?(path) do
     MapSet.member?(@internal_paths, path) or

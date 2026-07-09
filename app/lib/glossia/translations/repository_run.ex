@@ -61,21 +61,18 @@ defmodule Glossia.Translations.RepositoryRun do
     collect_changes(repo_path)
   end
 
-  defp build_items(repo_path, []) do
+  # Plan the whole repository once (walking the filesystem and parsing the
+  # GLOSSIA.md chains a single time) and filter to the requested locales in
+  # memory, rather than re-planning per locale on the hot runner path.
+  defp build_items(repo_path, locales) do
     case Planner.build_plan(repo_path) do
-      {:ok, items} -> items
+      {:ok, items} -> filter_locales(items, locales)
       {:error, _reason} -> []
     end
   end
 
-  defp build_items(repo_path, locales) do
-    Enum.flat_map(locales, fn locale ->
-      case Planner.build_plan(repo_path, locale) do
-        {:ok, items} -> items
-        {:error, _reason} -> []
-      end
-    end)
-  end
+  defp filter_locales(items, []), do: items
+  defp filter_locales(items, locales), do: Enum.filter(items, &(&1.locale in locales))
 
   defp apply_one(session, account, repo_path, item, index, total) do
     source_content = File.read!(item.source_abs)
@@ -189,35 +186,8 @@ defmodule Glossia.Translations.RepositoryRun do
   @doc false
   def parse_git_status(output) do
     output
-    |> String.split("\n")
-    |> Enum.reject(&(String.trim(&1) == ""))
-    |> Enum.map(fn line ->
-      %{path: parse_path(String.slice(line, 3..-1//1) || ""), status: status_of(String.slice(line, 0, 2))}
-    end)
+    |> Glossia.Git.PorcelainStatus.parse()
     |> Enum.uniq_by(& &1.path)
-  end
-
-  defp status_of(xy) do
-    cond do
-      String.contains?(xy, "D") -> "deleted"
-      String.contains?(xy, "?") -> "added"
-      String.contains?(xy, "A") -> "added"
-      true -> "modified"
-    end
-  end
-
-  defp parse_path(raw) do
-    raw = if String.contains?(raw, " -> "), do: raw |> String.split(" -> ") |> List.last(), else: raw
-    raw = String.trim(raw)
-
-    if String.starts_with?(raw, "\"") and String.ends_with?(raw, "\"") do
-      case Jason.decode(raw) do
-        {:ok, unquoted} when is_binary(unquoted) -> unquoted
-        _ -> raw
-      end
-    else
-      raw
-    end
   end
 
   defp attach_content(changes, repo_path) do

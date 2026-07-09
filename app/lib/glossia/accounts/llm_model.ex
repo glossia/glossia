@@ -43,6 +43,10 @@ defmodule Glossia.Accounts.LLMModel do
       error_key: :handle,
       message: "has already been taken"
     )
+    |> unique_constraint(:default,
+      name: :llm_models_one_default_per_account,
+      message: "another model is already the default for this account"
+    )
   end
 
   @doc """

@@ -2623,7 +2623,7 @@ defmodule GlossiaWeb.DashboardLive do
         "commit_message" => first_line(message),
         "status" => "pending",
         "source_language" => "en",
-        "target_languages" => project.setup_target_languages || []
+        "target_languages" => translation_target_languages(project)
       })
 
     %{session_id: session.id}
@@ -2636,6 +2636,15 @@ defmodule GlossiaWeb.DashboardLive do
      push_navigate(socket,
        to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
      )}
+  end
+
+  # A project's configured locales, falling back to a default so triggering a
+  # translation never silently produces an empty locale list (and thus no PR).
+  defp translation_target_languages(project) do
+    case project.setup_target_languages do
+      languages when is_list(languages) and languages != [] -> languages
+      _ -> ["es", "fr"]
+    end
   end
 
   defp selected_wizard_repo(socket) do

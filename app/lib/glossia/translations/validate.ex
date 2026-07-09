@@ -173,9 +173,15 @@ defmodule Glossia.Translations.Validate do
     File.write!(tmp, content)
     command = String.replace(command_template, "{path}", tmp)
 
-    case System.cmd("sh", ["-c", command], cd: root, stderr_to_stdout: true) do
-      {_out, 0} -> :ok
-      {out, code} -> {:error, "external check failed: exit #{code}\n#{String.trim(out)}"}
+    try do
+      case System.cmd("sh", ["-c", command], cd: root, stderr_to_stdout: true) do
+        {_out, 0} -> :ok
+        {out, code} -> {:error, "external check failed: exit #{code}\n#{String.trim(out)}"}
+      end
+    after
+      # Remove the ephemeral check file so it never lands in the translation PR
+      # (collect_changes/1 gathers the .glossia tree as untracked).
+      File.rm(tmp)
     end
   end
 

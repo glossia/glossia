@@ -79,6 +79,12 @@ pub(super) fn run_validation_command(
         .env("GLOSSIA_TARGET_PATH", target_abs)
         .env("GLOSSIA_LOCALE", locale)
         .env("GLOSSIA_DOC_PATH", doc_abs)
+        // Backward-compatible aliases for validation scripts written against the
+        // pre-rename L10N_* variables.
+        .env("L10N_SOURCE_PATH", source_abs)
+        .env("L10N_TARGET_PATH", target_abs)
+        .env("L10N_LOCALE", locale)
+        .env("L10N_DOC_PATH", doc_abs)
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()?;

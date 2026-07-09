@@ -336,12 +336,19 @@ fn clean_orphans(
         missing: 0,
         lock_removed: 0,
     };
-    let lock_root = root.join(".glossia");
-    if !lock_root.exists() {
+    // Scan both the current lock directory and the legacy .l10n one so orphans
+    // left over from before the .l10n -> .glossia rename are still cleaned.
+    let mut entries = Vec::new();
+    for lock_root in [root.join(".glossia"), root.join(".l10n")] {
+        if lock_root.exists() {
+            entries.extend(walk_locks(&lock_root)?);
+        }
+    }
+    if entries.is_empty() {
         return Ok(result);
     }
 
-    for entry in walk_locks(&lock_root)? {
+    for entry in entries {
         let raw = fs::read_to_string(&entry)?;
         let Ok(lock) = serde_json::from_str::<LockFile>(&raw) else {
             continue;

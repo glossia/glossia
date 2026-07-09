@@ -38,15 +38,33 @@ defmodule Glossia.Sandbox.HarnessEventPoller do
   defp emit_new_events(fetch_fun, caller, path, offset, mapper) do
     case fetch_fun.(path) do
       {:ok, content} when is_binary(content) and byte_size(content) > offset ->
-        content
-        |> binary_part(offset, byte_size(content) - offset)
-        |> String.split("\n", trim: true)
-        |> Enum.each(&send_event(caller, &1, mapper))
+        new = binary_part(content, offset, byte_size(content) - offset)
 
-        byte_size(content)
+        # Only process through the last complete line; keep any trailing partial
+        # line buffered (offset does not advance past it) so a JSONL record split
+        # across two polls is not lost or garbled.
+        case last_newline_index(new) do
+          nil ->
+            offset
+
+          index ->
+            new
+            |> binary_part(0, index + 1)
+            |> String.split("\n", trim: true)
+            |> Enum.each(&send_event(caller, &1, mapper))
+
+            offset + index + 1
+        end
 
       _ ->
         offset
+    end
+  end
+
+  defp last_newline_index(binary) do
+    case :binary.matches(binary, "\n") do
+      [] -> nil
+      matches -> matches |> List.last() |> elem(0)
     end
   end
 

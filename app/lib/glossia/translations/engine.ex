@@ -40,7 +40,7 @@ defmodule Glossia.Translations.Engine do
           on_event: on_event,
           validate: validate,
           attempt: 0,
-          max_attempt: max(work_item.retries || 0, 1),
+          max_attempt: work_item.retries || 0,
           last_error: nil
         })
 

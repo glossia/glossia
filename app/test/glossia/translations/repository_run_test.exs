@@ -19,9 +19,16 @@ defmodule Glossia.Translations.RepositoryRunTest do
     assert %{path: ".glossia/docs/guide.md/es.lock", status: "added"} in changes
   end
 
-  test "unquotes renamed and quoted paths, keeping the destination" do
+  test "expands a rename into a deletion of the old path and an addition of the new" do
     changes = RepositoryRun.parse_git_status(~s(R  old.md -> new.md\n M "with space.md"\n))
-    assert %{path: "new.md", status: "modified"} in changes
+    assert %{path: "old.md", status: "deleted"} in changes
+    assert %{path: "new.md", status: "added"} in changes
     assert %{path: "with space.md", status: "modified"} in changes
+  end
+
+  test "a copy adds only the new path" do
+    changes = RepositoryRun.parse_git_status("C  base.md -> copy.md\n")
+    assert %{path: "copy.md", status: "added"} in changes
+    refute Enum.any?(changes, &(&1.path == "base.md"))
   end
 end
