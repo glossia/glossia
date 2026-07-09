@@ -1,5 +1,5 @@
 defmodule Glossia.TranslationSessions.TranslateTest do
-  use Glossia.DataCase, async: false
+  use Glossia.DataCase, async: true
   use Mimic
 
   alias Glossia.Github.Installations

@@ -5,7 +5,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   collection — with only the Condukt LLM call stubbed. This is the closest check
   to a live run without a real model or a FLAME clone.
   """
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
   use Mimic
 
   alias Glossia.Accounts.Account
