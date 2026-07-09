@@ -5,6 +5,12 @@
 - Use Conventional Commits for both commit messages and PR titles (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, etc.).
 - This keeps git-cliff release notes accurate and grouped correctly.
 
+## Running shell processes from Elixir
+
+- Always run external commands with `MuonTrap.cmd/3` (the `:muontrap` dependency), not `System.cmd/3`.
+- MuonTrap supervises the OS process and kills it if the BEAM dies, so we never leak child processes (git clones, validation scripts, sandbox tooling).
+- It is a drop-in replacement returning `{output, exit_status}`; pass `into: ""` for string output and a `timeout:` for anything that runs untrusted or long-running commands, matching the existing calls in `Glossia.Sandbox.Runner`.
+
 ## Documentation
 
 Documentation lives in `app/priv/docs/` and is served at `/docs` using NimblePublisher (same pattern as the blog). It follows the [Diataxis framework](https://diataxis.fr/) to organize content into four categories:

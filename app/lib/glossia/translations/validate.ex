@@ -13,6 +13,9 @@ defmodule Glossia.Translations.Validate do
   alias Glossia.Translations.Frontmatter
   alias Glossia.Translations.Validate.Po
 
+  # Cap untrusted repository check/validation commands (matches the CLI).
+  @command_timeout_ms 600_000
+
   @default_preserve ~w(code_blocks inline_code urls placeholders)
   @inline_code_regex ~r/`[^`\n]+`/
   @url_regex ~r/https?:\/\/[^\s\)"'<>]+/
@@ -174,7 +177,12 @@ defmodule Glossia.Translations.Validate do
     command = String.replace(command_template, "{path}", tmp)
 
     try do
-      case System.cmd("sh", ["-c", command], cd: root, stderr_to_stdout: true) do
+      case MuonTrap.cmd("sh", ["-c", command],
+             cd: root,
+             stderr_to_stdout: true,
+             into: "",
+             timeout: @command_timeout_ms
+           ) do
         {_out, 0} -> :ok
         {out, code} -> {:error, "external check failed: exit #{code}\n#{String.trim(out)}"}
       end
@@ -198,7 +206,13 @@ defmodule Glossia.Translations.Validate do
         {"GLOSSIA_DOC_PATH", to_string(doc)}
       ]
 
-      case System.cmd(cmd, args, cd: options[:validation_cwd] || root, env: env, stderr_to_stdout: true) do
+      case MuonTrap.cmd(cmd, args,
+             cd: options[:validation_cwd] || root,
+             env: env,
+             stderr_to_stdout: true,
+             into: "",
+             timeout: @command_timeout_ms
+           ) do
         {_out, 0} -> :ok
         {out, code} -> {:error, "validation failed: exit #{code}\n#{String.trim(out)}"}
       end

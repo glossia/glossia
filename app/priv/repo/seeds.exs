@@ -709,7 +709,9 @@ defmodule Glossia.Seeds do
         File.rm_rf!(path)
         File.mkdir_p!(path)
 
-        git = fn args -> {_out, 0} = System.cmd("git", ["-C", path | args], stderr_to_stdout: true) end
+        git = fn args ->
+          {_out, 0} = MuonTrap.cmd("git", ["-C", path | args], stderr_to_stdout: true, into: "")
+        end
         git.(["init", "-q", "-b", Keyword.get(opts, :branch, "main")])
         git.(["config", "user.email", "seeds@glossia.dev"])
         git.(["config", "user.name", "Glossia Seeds"])

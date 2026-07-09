@@ -98,8 +98,9 @@ defmodule Glossia.Translations.Credentials do
   defp read_claude_oauth do
     with {:unix, :darwin} <- :os.type(),
          {json, 0} <-
-           System.cmd("security", ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
-             stderr_to_stdout: true
+           MuonTrap.cmd("security", ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
+             stderr_to_stdout: true,
+             into: ""
            ),
          {:ok, %{"claudeAiOauth" => oauth}} <- Jason.decode(String.trim(json)) do
       {:ok, oauth}

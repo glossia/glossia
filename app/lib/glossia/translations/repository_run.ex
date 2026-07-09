@@ -173,10 +173,11 @@ defmodule Glossia.Translations.RepositoryRun do
   def collect_changes(repo_path) do
     # `--untracked-files=all` lists new files individually instead of collapsing
     # untracked directories (e.g. `docs/i18n/`, `.glossia/`) into a single entry.
-    case System.cmd(
+    case MuonTrap.cmd(
            "git",
            ["-C", repo_path, "status", "--porcelain", "--untracked-files=all"],
-           stderr_to_stdout: true
+           stderr_to_stdout: true,
+           into: ""
          ) do
       {output, 0} -> {:ok, output |> parse_git_status() |> attach_content(repo_path)}
       {output, code} -> {:error, {:git_status_failed, code, String.trim(output)}}
@@ -203,7 +204,11 @@ defmodule Glossia.Translations.RepositoryRun do
     dir = Path.join(System.tmp_dir!(), "glossia-translate-#{System.unique_integer([:positive])}")
     source = clone_source(full_name, repository[:token])
 
-    case System.cmd("git", ["clone", "--branch", branch, source, dir], stderr_to_stdout: true) do
+    case MuonTrap.cmd("git", ["clone", "--branch", branch, source, dir],
+           stderr_to_stdout: true,
+           into: "",
+           timeout: @clone_timeout_ms
+         ) do
       {_output, 0} ->
         checkout_commit(dir, repository[:commit_sha])
         {:ok, dir}
@@ -237,7 +242,7 @@ defmodule Glossia.Translations.RepositoryRun do
   defp checkout_commit(_dir, sha) when sha in [nil, ""], do: :ok
 
   defp checkout_commit(dir, sha) do
-    System.cmd("git", ["-C", dir, "checkout", sha], stderr_to_stdout: true)
+    MuonTrap.cmd("git", ["-C", dir, "checkout", sha], stderr_to_stdout: true, into: "")
     :ok
   end
 
