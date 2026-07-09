@@ -73,35 +73,52 @@ defmodule Glossia.Translations.Credentials do
 
   @doc false
   def claude_session do
-    with {:ok, token} <- claude_access_token() do
-      %{model: local_model(), auth: {:oauth, token}, source: :claude_session}
-    else
-      _ -> nil
+    case read_claude_oauth() do
+      {:ok, oauth} -> claude_credential(oauth)
+      :error -> nil
     end
   end
 
+  @doc """
+  Builds a Claude credential from a decoded `claudeAiOauth` map, or nil when the
+  token is missing or expired. Split from the keychain read so it can be tested
+  without touching the keychain.
+  """
+  def claude_credential(oauth) when is_map(oauth) do
+    token = oauth["accessToken"]
+
+    if present?(token) and not_expired?(oauth["expiresAt"]) do
+      %{model: local_model(), auth: {:oauth, token}, source: :claude_session}
+    end
+  end
+
+  def claude_credential(_oauth), do: nil
+
   # Claude Code stores its OAuth credentials in the macOS keychain.
-  defp claude_access_token do
+  defp read_claude_oauth do
     with {:unix, :darwin} <- :os.type(),
          {json, 0} <-
            System.cmd("security", ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
              stderr_to_stdout: true
            ),
-         {:ok, %{"claudeAiOauth" => oauth}} <- Jason.decode(String.trim(json)),
-         token when is_binary(token) and token != "" <- oauth["accessToken"],
-         true <- not_expired?(oauth["expiresAt"]) do
-      {:ok, token}
+         {:ok, %{"claudeAiOauth" => oauth}} <- Jason.decode(String.trim(json)) do
+      {:ok, oauth}
     else
       _ -> :error
     end
   end
 
   @doc false
-  def codex_session do
-    with path <- Path.expand(codex_auth_path()),
-         {:ok, raw} <- File.read(path),
+  def codex_session, do: codex_session(codex_auth_path())
+
+  @doc """
+  Builds a Codex credential from an `auth.json` at `path`, or nil when absent or
+  malformed. Takes an explicit path so it can be tested against a fixture.
+  """
+  def codex_session(path) when is_binary(path) do
+    with {:ok, raw} <- File.read(Path.expand(path)),
          {:ok, %{"tokens" => %{"access_token" => token}}} <- Jason.decode(raw),
-         true <- is_binary(token) and token != "" do
+         true <- present?(token) do
       %{model: local_model("openai:gpt-5"), auth: {:oauth, token}, source: :codex_session}
     else
       _ -> nil
