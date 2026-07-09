@@ -1,8 +1,8 @@
 defmodule Glossia.Projects.Setup do
   @moduledoc """
-  Runs the project setup process: creates a sandbox, starts the agent,
+  Runs the project setup process: creates a sandbox, starts the setup harness,
   waits for completion, and optionally opens a PR with the generated
-  L10N.md file.
+  localization setup changes.
 
   Called by `Glossia.Projects.SetupWorker` (Oban) for retry semantics
   and lifecycle management.
@@ -11,6 +11,11 @@ defmodule Glossia.Projects.Setup do
   require Logger
 
   alias Glossia.{Events, Ingestion, Projects, Sandboxes}
+
+  @change_manifest_filename "glossia-setup-changes.json"
+  @context_file_names ["GLOSSIA.md"]
+  @setup_branch_name "glossia/setup-localization"
+  @max_changed_files_in_body 20
 
   @doc """
   Runs setup for the given project ID. Broadcasts status updates via PubSub
@@ -73,9 +78,15 @@ defmodule Glossia.Projects.Setup do
     sandbox_id = to_string(sandbox_record.id)
 
     with {:ok, repo_path} <- sandbox.repo_path(sandbox_id),
-         {:ok, model_config} <- setup_model_config(),
+         {:ok, harness_config} <- setup_harness_config(),
          {:ok, _status} <-
-           start_agent_and_wait(sandbox, sandbox_id, project, token, repo_path, model_config) do
+           start_agent_and_wait(
+             sandbox,
+             sandbox_id,
+             project,
+             token,
+             harness_config
+           ) do
       result = maybe_create_pr(project, sandbox, sandbox_id, repo_path)
       outcome = handle_setup_result(project, account, result, sandbox_id)
 
@@ -129,8 +140,8 @@ defmodule Glossia.Projects.Setup do
     :ok
   end
 
-  defp handle_setup_result(project, account, :no_l10n_md, sandbox_id) do
-    error_msg = "Setup finished without generating L10N.md, so no pull request was created."
+  defp handle_setup_result(project, account, {:error, :setup_context_missing}, sandbox_id) do
+    error_msg = "Setup finished without generating GLOSSIA.md, so no pull request was created."
 
     Logger.error("Setup failed for project #{project.id}: #{error_msg}")
 
@@ -151,12 +162,12 @@ defmodule Glossia.Projects.Setup do
       )
     end
 
-    {:error, :l10n_md_missing}
+    {:error, :setup_context_missing}
   end
 
   defp handle_setup_result(project, _account, {:error, reason}, sandbox_id) do
     error_msg = humanize_error(reason)
-    Logger.error("PR creation failed for project #{project.id}: #{inspect(reason)}")
+    Logger.error("Setup publication failed for project #{project.id}: #{inspect(reason)}")
 
     with {:ok, _project} <-
            Projects.update_project_setup_status_if_sandbox_id(
@@ -168,7 +179,7 @@ defmodule Glossia.Projects.Setup do
       Projects.broadcast_setup_status(project, "failed")
     end
 
-    {:error, {:pr_creation_failed, reason}}
+    {:error, {:setup_publication_failed, reason}}
   end
 
   defp fail_setup(project, account, reason) do
@@ -327,33 +338,23 @@ defmodule Glossia.Projects.Setup do
     _ -> false
   end
 
-  defp start_agent_and_wait(sandbox, sandbox_id, project, github_token, repo_path, model_config) do
-    session_token =
-      Phoenix.Token.sign(
-        GlossiaWeb.Endpoint,
-        "agent_session",
-        project.id
-      )
-
-    server_url = GlossiaWeb.Endpoint.url()
-
-    config_json =
-      JSON.encode!(%{
-        github_repo_full_name: project.github_repo_full_name,
-        github_repo_default_branch: project.github_repo_default_branch || "main",
-        github_token: github_token,
-        repo_path: repo_path,
-        target_languages: project.setup_target_languages || [],
-        minimax_api_key: model_config.minimax_api_key,
-        model: model_config.model
-      })
-
+  defp start_agent_and_wait(
+         sandbox,
+         sandbox_id,
+         project,
+         github_token,
+         harness_config
+       ) do
     with {:ok, _pid} <-
            Glossia.Sandbox.start_agent_session(sandbox, sandbox_id, self(),
-             server_url: server_url,
-             session_token: session_token,
              project_id: project.id,
-             config_json: config_json
+             repository: %{
+               full_name: project.github_repo_full_name,
+               default_branch: project.github_repo_default_branch || "main",
+               token: github_token
+             },
+             target_languages: project.setup_target_languages || [],
+             harness: harness_config
            ) do
       wait_for_completion(project)
     end
@@ -361,44 +362,57 @@ defmodule Glossia.Projects.Setup do
 
   defp wait_for_completion(project) do
     receive do
+      {:agent_event, event} ->
+        record_agent_event(project, event)
+        wait_for_completion(project)
+
       {:agent_done, :completed} ->
-        Logger.info("Agent session completed for project #{project.id}")
+        Logger.info("Setup harness completed for project #{project.id}")
         {:ok, :completed}
 
       {:agent_done, :failed} ->
-        Logger.warning("Agent session failed for project #{project.id}")
-        {:error, :agent_session_failed}
+        Logger.warning("Setup harness failed for project #{project.id}")
+        {:error, :setup_harness_failed}
     after
       660_000 ->
-        Logger.warning("Agent session timed out for project #{project.id}")
-        {:error, :agent_timeout}
+        Logger.warning("Setup harness timed out for project #{project.id}")
+        {:error, :setup_harness_timeout}
     end
   end
+
+  defp record_agent_event(project, %{"event_type" => event_type} = event)
+       when is_binary(event_type) do
+    content = Map.get(event, "content", "")
+    metadata = Map.get(event, "metadata", %{})
+    record_setup_event(project, event_type, content, metadata)
+  end
+
+  defp record_agent_event(_project, _event), do: :ok
 
   defp maybe_create_pr(project, sandbox, sandbox_id, repo_path) do
-    case sandbox.download_file(sandbox_id, Path.join(repo_path, "L10N.md")) do
-      {:ok, l10n_md} when is_binary(l10n_md) and l10n_md != "" ->
-        create_pr(project, l10n_md)
-
-      _ ->
-        :no_l10n_md
+    with {:ok, changes} <- download_setup_changes(sandbox, sandbox_id, repo_path) do
+      create_pr(project, changes)
     end
   end
 
-  defp create_pr(project, l10n_md) do
+  defp create_pr(project, changes) do
     installation = project.github_installation
 
     if is_nil(installation) do
-      Logger.info("No GitHub installation linked, skipping PR creation for project #{project.id}")
+      Logger.info(
+        "No GitHub installation linked, skipping pull request creation for project #{project.id}"
+      )
 
       :skipped_pr
     else
       case Glossia.Github.App.installation_token(installation.github_installation_id) do
         {:ok, token} ->
-          do_create_pr(project, token, l10n_md)
+          do_create_pr(project, token, changes)
 
         {:error, :not_configured} ->
-          Logger.info("GitHub App not configured, skipping PR creation for project #{project.id}")
+          Logger.info(
+            "GitHub App not configured, skipping pull request creation for project #{project.id}"
+          )
 
           :skipped_pr
 
@@ -408,47 +422,282 @@ defmodule Glossia.Projects.Setup do
     end
   end
 
-  defp do_create_pr(project, token, l10n_md) do
+  defp do_create_pr(project, token, changes) do
     full_name = project.github_repo_full_name
     default_branch = project.github_repo_default_branch || "main"
-    branch_name = "glossia/setup-localization"
+    branch_name = @setup_branch_name
 
     with {:ok, ref_data} <-
            Glossia.Github.Client.get_ref(full_name, "heads/#{default_branch}", token),
-         sha = ref_data["object"]["sha"],
-         {:ok, _} <-
-           Glossia.Github.Client.create_branch(full_name, branch_name, sha, token),
-         encoded_content = Base.encode64(l10n_md),
-         {:ok, _} <-
-           Glossia.Github.Client.create_or_update_file(
+         base_commit_sha when is_binary(base_commit_sha) <- get_in(ref_data, ["object", "sha"]),
+         {:ok, base_commit} <-
+           Glossia.Github.Client.get_commit(full_name, base_commit_sha, token),
+         base_tree_sha when is_binary(base_tree_sha) <- get_in(base_commit, ["tree", "sha"]),
+         {:ok, tree_entries} <- create_tree_entries(full_name, token, changes),
+         {:ok, tree} <-
+           Glossia.Github.Client.create_tree(
              full_name,
-             "L10N.md",
+             %{base_tree: base_tree_sha, tree: tree_entries},
+             token
+           ),
+         tree_sha when is_binary(tree_sha) <- tree["sha"],
+         {:ok, commit} <-
+           Glossia.Github.Client.create_commit(
+             full_name,
              %{
-               message: "Add L10N.md for Glossia localization",
-               content: encoded_content,
-               branch: branch_name
+               message: "feat: set up Glossia localization",
+               tree: tree_sha,
+               parents: [base_commit_sha]
              },
              token
            ),
+         commit_sha when is_binary(commit_sha) <- commit["sha"],
+         :ok <- create_or_update_branch(full_name, branch_name, commit_sha, token),
          {:ok, pr} <-
            Glossia.Github.Client.create_pull_request(
              full_name,
              %{
-               title: "Add L10N.md for Glossia localization",
-               body:
-                 "This PR was automatically created by [Glossia](https://glossia.ai) to set up localization for this repository.\n\nThe `L10N.md` file configures how Glossia processes and translates content in your project. Review the configuration and merge when ready.",
+               title: "feat: set up Glossia localization",
+               body: pull_request_body(project, changes),
                head: branch_name,
                base: default_branch
              },
              token
            ) do
       {:ok, pr["html_url"]}
+    else
+      nil -> {:error, :invalid_github_response}
+      other -> other
     end
   end
 
+  defp download_setup_changes(sandbox, sandbox_id, repo_path) do
+    manifest_path = Path.join(Path.dirname(repo_path), @change_manifest_filename)
+
+    with {:ok, manifest} <- download_manifest(sandbox, sandbox_id, manifest_path),
+         {:ok, decoded} <- decode_manifest(manifest),
+         {:ok, files} <- parse_changed_files(decoded),
+         :ok <- validate_changed_files(files),
+         {:ok, changes} <- download_changed_file_contents(sandbox, sandbox_id, repo_path, files) do
+      {:ok, changes}
+    end
+  end
+
+  defp download_manifest(sandbox, sandbox_id, manifest_path) do
+    case sandbox.download_file(sandbox_id, manifest_path) do
+      {:ok, manifest} when is_binary(manifest) and manifest != "" ->
+        {:ok, manifest}
+
+      {:ok, _empty} ->
+        {:error, :setup_change_manifest_empty}
+
+      {:error, _reason} ->
+        {:error, :setup_change_manifest_missing}
+    end
+  end
+
+  defp decode_manifest(manifest) do
+    case JSON.decode(manifest) do
+      {:ok, decoded} -> {:ok, decoded}
+      {:error, _reason} -> {:error, :setup_change_manifest_invalid}
+    end
+  end
+
+  defp parse_changed_files(%{"version" => 1, "files" => files}) when is_list(files) do
+    files
+    |> Enum.reduce_while({:ok, []}, fn file, {:ok, acc} ->
+      case parse_changed_file(file) do
+        {:ok, parsed} -> {:cont, {:ok, [parsed | acc]}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+    |> case do
+      {:ok, parsed} ->
+        parsed =
+          parsed
+          |> Enum.reverse()
+          |> Enum.uniq_by(& &1.path)
+
+        {:ok, parsed}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp parse_changed_files(_decoded), do: {:error, :setup_change_manifest_invalid}
+
+  defp parse_changed_file(%{"path" => path, "status" => status})
+       when status in ["added", "modified", "deleted"] do
+    with :ok <- validate_changed_file_path(path) do
+      {:ok, %{path: path, status: status}}
+    end
+  end
+
+  defp parse_changed_file(_file), do: {:error, :setup_change_manifest_invalid}
+
+  defp validate_changed_file_path(path) when is_binary(path) do
+    cond do
+      String.trim(path) == "" ->
+        {:error, :setup_change_manifest_invalid}
+
+      Path.type(path) != :relative ->
+        {:error, :setup_change_manifest_invalid}
+
+      path in ["opencode.json", @change_manifest_filename] ->
+        {:error, :setup_change_manifest_invalid}
+
+      String.starts_with?(path, "../") or String.contains?(path, "/../") ->
+        {:error, :setup_change_manifest_invalid}
+
+      String.starts_with?(path, ".git/") or String.starts_with?(path, ".opencode/") or
+          String.starts_with?(path, ".glossia/") ->
+        {:error, :setup_change_manifest_invalid}
+
+      String.starts_with?(path, "node_modules/") ->
+        {:error, :setup_change_manifest_invalid}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_changed_file_path(_path), do: {:error, :setup_change_manifest_invalid}
+
+  defp validate_changed_files([]), do: {:error, :setup_changes_empty}
+
+  defp validate_changed_files(files) do
+    if Enum.any?(files, &context_file_path?/1) do
+      :ok
+    else
+      {:error, :setup_context_missing}
+    end
+  end
+
+  defp context_file_path?(%{path: path}) do
+    Enum.any?(@context_file_names, fn name ->
+      path == name or String.ends_with?(path, "/" <> name)
+    end)
+  end
+
+  defp download_changed_file_contents(sandbox, sandbox_id, repo_path, files) do
+    files
+    |> Enum.reduce_while({:ok, []}, fn
+      %{status: "deleted"} = file, {:ok, acc} ->
+        {:cont, {:ok, [Map.put(file, :content, nil) | acc]}}
+
+      file, {:ok, acc} ->
+        path = Path.join(repo_path, file.path)
+
+        case sandbox.download_file(sandbox_id, path) do
+          {:ok, content} when is_binary(content) ->
+            {:cont, {:ok, [Map.put(file, :content, content) | acc]}}
+
+          {:error, _reason} ->
+            {:halt, {:error, {:setup_changed_file_missing, file.path}}}
+        end
+    end)
+    |> case do
+      {:ok, changes} -> {:ok, Enum.reverse(changes)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp create_tree_entries(full_name, token, changes) do
+    changes
+    |> Enum.reduce_while({:ok, []}, fn
+      %{path: path, status: "deleted"}, {:ok, entries} ->
+        entry = %{path: path, mode: "100644", type: "blob", sha: nil}
+        {:cont, {:ok, [entry | entries]}}
+
+      %{path: path, content: content}, {:ok, entries} ->
+        params = %{content: Base.encode64(content), encoding: "base64"}
+
+        case Glossia.Github.Client.create_blob(full_name, params, token) do
+          {:ok, %{"sha" => sha}} ->
+            entry = %{path: path, mode: "100644", type: "blob", sha: sha}
+            {:cont, {:ok, [entry | entries]}}
+
+          {:ok, _response} ->
+            {:halt, {:error, :invalid_github_response}}
+
+          {:error, reason} ->
+            {:halt, {:error, reason}}
+        end
+    end)
+    |> case do
+      {:ok, entries} -> {:ok, Enum.reverse(entries)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp create_or_update_branch(full_name, branch_name, sha, token) do
+    case Glossia.Github.Client.create_branch(full_name, branch_name, sha, token) do
+      {:ok, _} ->
+        :ok
+
+      {:error, {:api_error, 422, _body}} ->
+        case Glossia.Github.Client.update_ref(full_name, "heads/#{branch_name}", sha, token,
+               force: true
+             ) do
+          {:ok, _} -> :ok
+          {:error, _reason} = error -> error
+        end
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp pull_request_body(project, changes) do
+    language_list =
+      case project.setup_target_languages || [] do
+        [] -> "The setup harness inferred target languages from repository context."
+        languages -> "Target languages: " <> Enum.join(languages, ", ") <> "."
+      end
+
+    changed_files =
+      changes
+      |> Enum.take(@max_changed_files_in_body)
+      |> Enum.map_join("\n", fn change -> "- `#{change.path}` (#{change.status})" end)
+
+    remaining_count = length(changes) - @max_changed_files_in_body
+
+    changed_files =
+      if remaining_count > 0 do
+        changed_files <> "\n- #{remaining_count} more file(s)."
+      else
+        changed_files
+      end
+
+    """
+    ## What changed
+
+    Glossia ran a setup harness in a sandbox and produced a localization baseline for this repository.
+
+    #{changed_files}
+
+    ## Why
+
+    This prepares the repository for Glossia-managed translation. #{language_list}
+
+    ## Approach
+
+    The harness inspected the project, extracted or organized user-facing content for localization, configured the project to load localized files, and updated Glossia context files for future translation runs.
+
+    ## Impact
+
+    Reviewers should check that the selected localized file layout matches the project conventions before merging.
+
+    ## Validation
+
+    The setup harness completed successfully inside a sandbox.
+    """
+  end
+
   defp record_setup_event(project, event_type, content, metadata) do
-    sequence = Ingestion.max_setup_event_sequence(project.id) + 1
-    metadata_json = JSON.encode!(metadata)
+    sequence = next_setup_event_sequence(project)
+    metadata_json = encode_event_metadata(metadata)
 
     Ingestion.record_setup_event(project.id, sequence, event_type, content || "", metadata_json)
 
@@ -460,17 +709,28 @@ defmodule Glossia.Projects.Setup do
     })
   end
 
-  defp humanize_error(:agent_session_failed),
-    do: "The setup agent encountered an error and could not complete."
+  defp encode_event_metadata(metadata) when is_binary(metadata), do: metadata
+  defp encode_event_metadata(metadata), do: JSON.encode!(metadata || %{})
 
-  defp humanize_error(:agent_timeout),
-    do: "The setup agent timed out before completing."
+  defp next_setup_event_sequence(project) do
+    key = {__MODULE__, :setup_event_sequence, project.id}
+    sequence = (Process.get(key) || Ingestion.max_setup_event_sequence(project.id)) + 1
+    Process.put(key, sequence)
+    sequence
+  end
+
+  defp humanize_error(:setup_model_not_configured),
+    do:
+      "The setup model is not configured. Set GLOSSIA_SETUP_MINIMAX_API_KEY, GLOSSIA_SETUP_HARNESS_MODEL, or GLOSSIA_SETUP_OPENCODE_CONFIG_JSON."
+
+  defp humanize_error(:setup_harness_failed),
+    do: "The setup harness encountered an error and could not complete."
+
+  defp humanize_error(:setup_harness_timeout),
+    do: "The setup harness timed out before completing."
 
   defp humanize_error({:github_token_failed, _}),
     do: "Could not authenticate with GitHub. Check the app installation."
-
-  defp humanize_error(:setup_model_not_configured),
-    do: "The setup model is not configured. Set GLOSSIA_SETUP_MINIMAX_API_KEY."
 
   defp humanize_error(:sandboxes_disabled),
     do: "Sandbox workflow execution is disabled."
@@ -484,23 +744,149 @@ defmodule Glossia.Projects.Setup do
   defp humanize_error(:setup_sandbox_id_changed),
     do: "Project setup changed while this run was starting."
 
-  defp humanize_error({:deno_install_failed, _, _}),
-    do: "The setup environment could not be initialized."
+  defp humanize_error(:setup_change_manifest_missing),
+    do: "The setup harness did not report the files it changed."
+
+  defp humanize_error(:setup_change_manifest_empty),
+    do: "The setup harness reported an empty changed-file manifest."
+
+  defp humanize_error(:setup_change_manifest_invalid),
+    do: "The setup harness reported an invalid changed-file manifest."
+
+  defp humanize_error(:setup_changes_empty),
+    do: "The setup harness completed without changing repository files."
+
+  defp humanize_error(:setup_context_missing),
+    do: "The setup harness completed without creating or updating a Glossia context file."
+
+  defp humanize_error({:setup_changed_file_missing, path}),
+    do: "The setup harness reported #{path}, but that file could not be read from the sandbox."
+
+  defp humanize_error(:invalid_github_response),
+    do: "GitHub returned an unexpected response while creating the setup pull request."
+
+  defp humanize_error({:setup_publication_failed, reason}), do: humanize_error(reason)
 
   defp humanize_error(reason) when is_binary(reason), do: reason
   defp humanize_error(reason), do: inspect(reason)
 
-  defp setup_model_config do
+  defp setup_harness_config do
     config = Application.get_env(:glossia, __MODULE__, [])
     minimax_api_key = Keyword.get(config, :minimax_api_key)
-    model = Keyword.get(config, :model, "MiniMax-M2.5")
+    configured_model = Keyword.get(config, :harness_model) || Keyword.get(config, :model)
 
-    if is_binary(minimax_api_key) and minimax_api_key != "" do
-      {:ok, %{minimax_api_key: minimax_api_key, model: model}}
+    model =
+      cond do
+        is_binary(configured_model) and configured_model != "" and
+          is_binary(minimax_api_key) and minimax_api_key != "" and
+            not String.contains?(configured_model, "/") ->
+          "minimax/#{configured_model}"
+
+        is_binary(configured_model) and configured_model != "" ->
+          configured_model
+
+        is_binary(minimax_api_key) and minimax_api_key != "" ->
+          "minimax/MiniMax-M2.5"
+
+        true ->
+          nil
+      end
+
+    opencode_config = setup_opencode_config(config, minimax_api_key, model)
+
+    if harness_model_configured?(model, opencode_config) do
+      {:ok,
+       %{
+         name: to_string(Keyword.get(config, :harness, "opencode")),
+         command: Keyword.get(config, :harness_command, "opencode"),
+         model: model,
+         agent: Keyword.get(config, :harness_agent),
+         pure: Keyword.get(config, :harness_pure, true),
+         env: normalize_harness_env(Keyword.get(config, :harness_env, %{})),
+         opencode_config: opencode_config,
+         context: setup_harness_context(config)
+       }}
     else
       {:error, :setup_model_not_configured}
     end
   end
+
+  defp harness_model_configured?(model, opencode_config) do
+    has_model?(model) or has_model?(is_map(opencode_config) && opencode_config["model"])
+  end
+
+  defp has_model?(value), do: is_binary(value) and value != ""
+
+  defp setup_opencode_config(config, minimax_api_key, model) do
+    configured = Keyword.get(config, :opencode_config)
+
+    cond do
+      is_map(configured) and map_size(configured) > 0 ->
+        configured
+
+      is_binary(configured) and configured != "" ->
+        case JSON.decode(configured) do
+          {:ok, decoded} when is_map(decoded) -> decoded
+          _ -> %{}
+        end
+
+      is_binary(minimax_api_key) and minimax_api_key != "" ->
+        %{
+          "model" => model || "minimax/MiniMax-M2.5",
+          "provider" => %{
+            "minimax" => %{
+              "npm" => "@ai-sdk/anthropic",
+              "name" => "MiniMax",
+              "options" => %{
+                "baseURL" => "https://api.minimax.io/anthropic/v1",
+                "apiKey" => minimax_api_key
+              },
+              "models" => %{
+                "MiniMax-M2.5" => %{
+                  "name" => "MiniMax-M2.5",
+                  "limit" => %{
+                    "context" => 200_000,
+                    "output" => 131_072
+                  }
+                }
+              }
+            }
+          }
+        }
+
+      is_binary(model) and model != "" ->
+        %{"model" => model}
+
+      true ->
+        %{}
+    end
+  end
+
+  defp setup_harness_context(config) do
+    context_path = Keyword.get(config, :harness_context_path)
+
+    cond do
+      not is_binary(context_path) or context_path == "" ->
+        nil
+
+      not File.exists?(context_path) ->
+        nil
+
+      true ->
+        content = File.read!(context_path)
+        binary_part(content, 0, min(byte_size(content), 128_000))
+    end
+  end
+
+  defp normalize_harness_env(env) when is_map(env) do
+    Map.new(env, fn {key, value} -> {to_string(key), to_string(value)} end)
+  end
+
+  defp normalize_harness_env(env) when is_list(env) do
+    Map.new(env, fn {key, value} -> {to_string(key), to_string(value)} end)
+  end
+
+  defp normalize_harness_env(_env), do: %{}
 
   defp cleanup_project_sandbox(project, sandbox, reason, sandbox_id) when is_binary(sandbox_id) do
     cleanup_result =

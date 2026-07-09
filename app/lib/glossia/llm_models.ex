@@ -38,6 +38,24 @@ defmodule Glossia.LLMModels do
     )
   end
 
+  @doc """
+  Returns the account's default translation model.
+
+  Prefers the model explicitly flagged as `default`; otherwise falls back to the
+  first model by handle so translation still resolves when exactly one model is
+  configured. Returns `nil` when the account has no models.
+  """
+  def default_model(%Account{} = account), do: default_model(account.id)
+
+  def default_model(account_id) do
+    Repo.one(
+      from m in LLMModel,
+        where: m.account_id == ^account_id,
+        order_by: [desc: m.default, asc: m.handle],
+        limit: 1
+    )
+  end
+
   def create_model(%Account{} = account, %User{} = user, attrs) do
     result =
       %LLMModel{}

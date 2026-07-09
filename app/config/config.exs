@@ -129,12 +129,20 @@ config :glossia, Glossia.Sandbox,
   reaper_interval_ms: 60_000,
   delete_retry_after_ms: 60_000,
   microsandbox_image: "node:22-bookworm",
-  microsandbox_repo_path: "/home/user/repo",
-  microsandbox_deno_command: "deno"
+  microsandbox_repo_path: "/home/user/repo"
 
 config :glossia, Glossia.Projects.Setup,
   minimax_api_key: nil,
-  model: "MiniMax-M2.5"
+  harness: "opencode",
+  harness_command: "opencode",
+  harness_model: nil,
+  harness_agent: nil,
+  harness_pure: true,
+  harness_env: %{},
+  harness_context_path: nil,
+  opencode_config: %{}
+
+config :glossia, Glossia.Projects.SetupRecovery, enabled: true
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

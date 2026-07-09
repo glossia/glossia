@@ -30,7 +30,7 @@ fn validate_global_document(frontmatter: &Frontmatter) -> Result<()> {
     let source_language = frontmatter
         .source_language
         .as_deref()
-        .ok_or_else(|| anyhow!("L10N.md must declare source_language"))?;
+        .ok_or_else(|| anyhow!("GLOSSIA.md must declare source_language"))?;
     validate_locale_identifier("source_language", source_language)?;
     validate_shared_fields(frontmatter)
 }
@@ -151,33 +151,33 @@ fn validate_locale_identifier(field: &str, locale: &str) -> Result<()> {
 }
 
 fn classify_document(relative_path: &str) -> Result<DocumentKind> {
-    if relative_path == "L10N.md" {
+    if relative_path == "GLOSSIA.md" {
         return Ok(DocumentKind::Global);
     }
 
-    if let Some(filename) = relative_path.strip_prefix("L10N/") {
+    if let Some(filename) = relative_path.strip_prefix("GLOSSIA/") {
         return classify_locale_overlay(filename);
     }
-    if let Some(filename) = relative_path.strip_prefix("./L10N/") {
+    if let Some(filename) = relative_path.strip_prefix("./GLOSSIA/") {
         return classify_locale_overlay(filename);
     }
-    if let Some((dir, filename)) = relative_path.rsplit_once("/L10N/") {
+    if let Some((dir, filename)) = relative_path.rsplit_once("/GLOSSIA/") {
         if !dir.is_empty() {
             return classify_locale_overlay(filename);
         }
     }
 
-    if relative_path.ends_with("/L10N.md") {
+    if relative_path.ends_with("/GLOSSIA.md") {
         return Ok(DocumentKind::Scoped);
     }
 
-    Err(anyhow!("unsupported L10N document path {relative_path}"))
+    Err(anyhow!("unsupported Glossia document path {relative_path}"))
 }
 
 fn classify_locale_overlay(filename: &str) -> Result<DocumentKind> {
     let locale = filename
         .strip_suffix(".md")
-        .ok_or_else(|| anyhow!("unsupported locale overlay path L10N/{filename}"))?;
+        .ok_or_else(|| anyhow!("unsupported locale overlay path GLOSSIA/{filename}"))?;
     if locale.is_empty() {
         return Err(anyhow!("locale overlay file name must not be empty"));
     }
@@ -203,14 +203,14 @@ mod tests {
 
     #[test]
     fn rejects_root_document_without_source_language() {
-        let error = validate_document("L10N.md", &Frontmatter::default()).unwrap_err();
-        assert_eq!(error.to_string(), "L10N.md must declare source_language");
+        let error = validate_document("GLOSSIA.md", &Frontmatter::default()).unwrap_err();
+        assert_eq!(error.to_string(), "GLOSSIA.md must declare source_language");
     }
 
     #[test]
     fn rejects_top_level_sources_list_for_spec_documents() {
         let error = validate_document(
-            "docs/L10N.md",
+            "docs/GLOSSIA.md",
             &Frontmatter {
                 sources: Some(SourceSpec::List(vec!["docs/*.md".into()])),
                 ..Frontmatter::default()
@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn rejects_duplicate_targets_in_spec_documents() {
         let error = validate_document(
-            "docs/L10N.md",
+            "docs/GLOSSIA.md",
             &Frontmatter {
                 targets: Some(TargetSpec::List(vec!["es".into(), "es".into()])),
                 ..Frontmatter::default()
@@ -245,7 +245,7 @@ mod tests {
         sources.insert("docs/*.md".into(), "docs/i18n/{locale}/*.md".into());
 
         validate_document(
-            "docs/L10N.md",
+            "docs/GLOSSIA.md",
             &Frontmatter {
                 sources: Some(SourceSpec::Map(sources)),
                 targets: Some(TargetSpec::List(vec!["es".into(), "ja".into()])),
@@ -258,7 +258,7 @@ mod tests {
     #[test]
     fn accepts_locale_overlay_when_locale_matches_filename() {
         validate_document(
-            "docs/L10N/es.md",
+            "docs/GLOSSIA/es.md",
             &Frontmatter {
                 locale: Some("es".into()),
                 model: Some("openai/gpt-5".into()),
@@ -271,7 +271,7 @@ mod tests {
     #[test]
     fn rejects_empty_model_identifier() {
         let error = validate_document(
-            "docs/L10N.md",
+            "docs/GLOSSIA.md",
             &Frontmatter {
                 model: Some("   ".into()),
                 ..Frontmatter::default()

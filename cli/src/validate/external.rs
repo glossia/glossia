@@ -5,7 +5,7 @@ use wait_timeout::ChildExt;
 use super::CheckOptions;
 
 pub(super) fn run_shell_check(root: &Path, command_template: &str, content: &str) -> Result<()> {
-    let tmp_dir = root.join(".l10n").join("tmp");
+    let tmp_dir = root.join(".glossia").join("tmp");
     std::fs::create_dir_all(&tmp_dir)?;
 
     let mut tmp = tempfile::Builder::new()
@@ -75,10 +75,10 @@ pub(super) fn run_validation_command(
     let mut child = std::process::Command::new(&argv[0])
         .args(&argv[1..])
         .current_dir(cwd)
-        .env("L10N_SOURCE_PATH", source_abs)
-        .env("L10N_TARGET_PATH", target_abs)
-        .env("L10N_LOCALE", locale)
-        .env("L10N_DOC_PATH", doc_abs)
+        .env("GLOSSIA_SOURCE_PATH", source_abs)
+        .env("GLOSSIA_TARGET_PATH", target_abs)
+        .env("GLOSSIA_LOCALE", locale)
+        .env("GLOSSIA_DOC_PATH", doc_abs)
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()?;

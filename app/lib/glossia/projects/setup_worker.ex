@@ -6,7 +6,10 @@ defmodule Glossia.Projects.SetupWorker do
   retry semantics, persistence, and lifecycle management for free.
   """
 
-  use Oban.Worker, queue: :default, max_attempts: 3, unique: [keys: [:project_id]]
+  use Oban.Worker,
+    queue: :default,
+    max_attempts: 3,
+    unique: [keys: [:project_id], states: [:available, :scheduled, :executing, :retryable]]
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"project_id" => project_id}}) do

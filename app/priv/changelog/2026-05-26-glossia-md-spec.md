@@ -1,14 +1,14 @@
 %{
-  title: "We created the L10N.md specification",
+  title: "We created the GLOSSIA.md specification",
   summary: "Glossia now ships a public spec, schema set, and reference site for translation-context files."
 }
 ---
 
-We created **L10N.md**, a human-first specification for describing translation context in a way that works for people, repositories, and agents.
+We created **GLOSSIA.md**, a human-first specification for describing translation context in a way that works for people, repositories, and agents.
 
 This release includes three pieces:
 
-- A public **L10N.md spec** that explains the format and its design goals.
+- A public **GLOSSIA.md spec** that explains the format and its design goals.
 - **Versioned JSON Schemas** so tooling can validate files automatically.
 - A dedicated **reference website** published with examples and guidance for implementers.
 

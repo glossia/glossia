@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # Find eligible builder and runner images on Docker Hub. We use Ubuntu/Debian
 # instead of Alpine to avoid DNS resolution issues in production.
 #
@@ -18,6 +19,13 @@ ARG DEBIAN_VERSION=bookworm-20260202-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+
+FROM rust:1-bookworm AS cli_builder
+
+WORKDIR /cli
+COPY --from=cli Cargo.toml Cargo.lock ./
+COPY --from=cli src src
+RUN cargo build --release --bin glossia
 
 FROM ${BUILDER_IMAGE} AS builder
 
@@ -69,7 +77,9 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium \
+  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium git nodejs npm \
+  && npm install -g opencode-ai@1.17.15 \
+  && npm cache clean --force \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 ENV CHROMIC_PDF_CHROME_EXECUTABLE=/usr/bin/chromium
@@ -91,6 +101,7 @@ ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/glossia ./
+COPY --from=cli_builder /cli/target/release/glossia /usr/local/bin/glossia
 
 USER nobody
 

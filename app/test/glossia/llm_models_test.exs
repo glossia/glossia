@@ -191,4 +191,28 @@ defmodule Glossia.LLMModelsTest do
       assert LLMModels.get_model_by_handle("nonexistent", account.id) == nil
     end
   end
+
+  describe "default_model/1" do
+    test "returns nil when the account has no models", %{account: account} do
+      assert LLMModels.default_model(account) == nil
+    end
+
+    test "prefers the model flagged as default", %{user: user, account: account} do
+      {:ok, _alpha} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "alpha"}))
+
+      {:ok, zeta} =
+        LLMModels.create_model(account, user, valid_attrs(%{"handle" => "zeta", "default" => true}))
+
+      assert LLMModels.default_model(account).id == zeta.id
+    end
+
+    test "falls back to the first model by handle when none is flagged", %{
+      user: user,
+      account: account
+    } do
+      {:ok, alpha} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "alpha"}))
+      {:ok, _zeta} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "zeta"}))
+      assert LLMModels.default_model(account).id == alpha.id
+    end
+  end
 end

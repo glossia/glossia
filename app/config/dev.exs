@@ -123,3 +123,12 @@ config :glossia, Glossia.Vault,
       iv_length: 12
     }
   ]
+
+# In development, translation may reuse your local Claude Code or Codex CLI
+# session (whichever is valid) as the LLM credential, so you can run real
+# translations without configuring an account model API key. `local_remotes_dir`
+# holds seeded git repositories (see priv/repo/seeds.exs) that stand in for
+# GitHub remotes, so the whole clone → translate → PR flow can run locally.
+config :glossia, Glossia.Translations,
+  allow_local_session: true,
+  local_remotes_dir: Path.expand("tmp/dev-remotes")

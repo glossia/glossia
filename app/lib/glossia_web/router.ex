@@ -6,7 +6,6 @@ defmodule GlossiaWeb.Router do
 
   @compile {:no_warn_undefined,
             [
-              GlossiaWeb.AgentScriptController,
               GlossiaWeb.AvatarController,
               GlossiaWeb.GithubInstallCallbackController,
               GlossiaWeb.Plugs.ApiRateLimit,
@@ -75,13 +74,6 @@ defmodule GlossiaWeb.Router do
   end
 
   get "/up", GlossiaWeb.HealthController, :index
-
-  # Agent script serving (Deno fetches TS modules from here)
-  scope "/agent/scripts", GlossiaWeb do
-    pipe_through :api
-
-    get "/*path", AgentScriptController, :show
-  end
 
   # Webhooks (no session, no CSRF)
   scope "/webhooks", GlossiaWeb do
@@ -291,6 +283,8 @@ defmodule GlossiaWeb.Router do
 
     post "/:handle/v1/chat/completions", LLMProxyController, :chat_completions
     post "/:handle/v1/completions", LLMProxyController, :completions
+
+    post "/:handle/translate", TranslationController, :create
   end
 
   # MCP server (StreamableHTTP transport)

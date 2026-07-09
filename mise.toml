@@ -15,6 +15,9 @@ shellspec = "0.28.1"
 op = "latest"
 ruby = "3.4.7"
 git-cliff = "2.10.0"
+# Local microVM sandbox (`msb`) — used by the microsandbox Sandbox adapter to run
+# untrusted repo commands in isolation locally, matching production's runners.
+"ubi:microsandbox/microsandbox" = "latest"
 
 [env]
 _.file = ".env"

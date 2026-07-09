@@ -15,6 +15,7 @@ defmodule Glossia.Accounts.LLMModel do
     field :handle, :string
     field :model, :string
     field :api_key, Glossia.Encrypted.Binary
+    field :default, :boolean, default: false
 
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :created_by, Glossia.Accounts.User
@@ -29,7 +30,7 @@ defmodule Glossia.Accounts.LLMModel do
         else: [:handle, :model]
 
     model_struct
-    |> cast(attrs, [:handle, :model, :api_key])
+    |> cast(attrs, [:handle, :model, :api_key, :default])
     |> validate_required(required)
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"

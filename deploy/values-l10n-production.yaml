@@ -1,4 +1,4 @@
-# Production overrides for the L10N.md static-site Helm chart.
+# Production overrides for the GLOSSIA.md static-site Helm chart.
 
 fullnameOverride: l10n
 

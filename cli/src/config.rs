@@ -364,7 +364,7 @@ pub struct ParsedContent {
     pub body: String,
 }
 
-pub fn parse_l10n_document(path: &Path, repo_root: &Path) -> Result<ContextFile> {
+pub fn parse_glossia_document(path: &Path, repo_root: &Path) -> Result<ContextFile> {
     let raw = fs::read_to_string(path)?;
     let parsed = parse_content(&raw)?;
     let relative_path = relative_to_root(repo_root, path);
@@ -461,11 +461,11 @@ pub fn split_markdown_frontmatter(content: &str) -> MarkdownSplit {
 pub fn resolve_chain(start_dir: &Path, repo_root: &Path) -> Result<ResolvedContext> {
     let mut files = Vec::new();
     for dir in directories_up_to(start_dir, repo_root)? {
-        let path = dir.join("L10N.md");
+        let path = dir.join("GLOSSIA.md");
         if !path.exists() {
             continue;
         }
-        files.push(parse_l10n_document(&path, repo_root)?);
+        files.push(parse_glossia_document(&path, repo_root)?);
     }
 
     let mut merged_frontmatter = Frontmatter::default();
@@ -506,11 +506,11 @@ pub fn load_locale_override(
     let mut model = None;
     let mut validation = None;
     for dir in directories_up_to(start_dir, repo_root)? {
-        let path = dir.join("L10N").join(format!("{locale}.md"));
+        let path = dir.join("GLOSSIA").join(format!("{locale}.md"));
         if !path.exists() {
             continue;
         }
-        let file = parse_l10n_document(&path, repo_root)?;
+        let file = parse_glossia_document(&path, repo_root)?;
         if let Some(declared_locale) = file.frontmatter.locale.as_deref() {
             if declared_locale != locale {
                 return Err(anyhow!(
@@ -555,11 +555,11 @@ pub fn find_translation_roots(repo_root: &Path) -> Result<Vec<PathBuf>> {
         .filter_entry(|entry| entry.file_name() != ".git")
     {
         let entry = entry?;
-        if !entry.file_type().is_file() || entry.file_name() != "L10N.md" {
+        if !entry.file_type().is_file() || entry.file_name() != "GLOSSIA.md" {
             continue;
         }
 
-        let parsed = parse_l10n_document(entry.path(), repo_root)?;
+        let parsed = parse_glossia_document(entry.path(), repo_root)?;
         if parsed.frontmatter.has_sources() || parsed.frontmatter.has_translation_rules() {
             roots.push(entry.path().parent().unwrap_or(repo_root).to_path_buf());
         }
@@ -683,7 +683,7 @@ Hello
     fn resolves_inherited_model_identifier() {
         let root = tempfile::tempdir().unwrap();
         fs::write(
-            root.path().join("L10N.md"),
+            root.path().join("GLOSSIA.md"),
             r#"---
 source_language: en
 model: openai/gpt-5
@@ -695,7 +695,7 @@ Global context
         .unwrap();
         fs::create_dir_all(root.path().join("docs")).unwrap();
         fs::write(
-            root.path().join("docs").join("L10N.md"),
+            root.path().join("docs").join("GLOSSIA.md"),
             r#"---
 model: openai/gpt-5-mini
 sources:
@@ -722,13 +722,13 @@ Docs context
     fn finds_only_files_with_local_sources() {
         let root = tempfile::tempdir().unwrap();
         fs::write(
-            root.path().join("L10N.md"),
+            root.path().join("GLOSSIA.md"),
             "---\nsource_language: en\nmodel: openai/gpt-5\n---\nroot",
         )
         .unwrap();
         fs::create_dir_all(root.path().join("server")).unwrap();
         fs::write(
-            root.path().join("server").join("L10N.md"),
+            root.path().join("server").join("GLOSSIA.md"),
             "---\nsources:\n  \"priv/gettext/*.pot\": \"priv/gettext/{locale}/LC_MESSAGES\"\n---\nserver",
         )
         .unwrap();
@@ -741,13 +741,13 @@ Docs context
     fn resolves_effective_validation_from_deepest_scope() {
         let root = tempfile::tempdir().unwrap();
         fs::write(
-            root.path().join("L10N.md"),
+            root.path().join("GLOSSIA.md"),
             "---\nsource_language: en\nvalidation:\n  - ./root-check.sh\n---\nroot",
         )
         .unwrap();
         fs::create_dir_all(root.path().join("docs")).unwrap();
         fs::write(
-            root.path().join("docs").join("L10N.md"),
+            root.path().join("docs").join("GLOSSIA.md"),
             "---\nvalidation:\n  - ./docs-check.sh\n---\ndocs",
         )
         .unwrap();
@@ -758,7 +758,7 @@ Docs context
                 .validation
                 .as_ref()
                 .map(|value| value.relative_path.as_str()),
-            Some("docs/L10N.md")
+            Some("docs/GLOSSIA.md")
         );
         assert_eq!(
             resolved.validation.as_ref().map(|value| value.argv.clone()),

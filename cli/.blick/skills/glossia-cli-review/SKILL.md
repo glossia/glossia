@@ -1,6 +1,6 @@
 ---
 name: glossia-cli-review
-description: Project-specific PR-review rules for the Glossia CLI (Rust) under `cli/`. Focuses on what only this repo knows — the `L10N.md` context tree, provider-agnostic context hashing, headless translation flow, locks/runtime-config separation, and release automation.
+description: Project-specific PR-review rules for the Glossia CLI (Rust) under `cli/`. Focuses on what only this repo knows — the `GLOSSIA.md` context tree, provider-agnostic context hashing, headless translation flow, locks/runtime-config separation, and release automation.
 ---
 
 # Glossia CLI Review
@@ -15,12 +15,12 @@ the relevant snippet.
 
 ---
 
-## 1. `L10N.md` context tree — inheritance and overrides
+## 1. `GLOSSIA.md` context tree — inheritance and overrides
 
-`L10N.md` is the public contract: frontmatter inherits from root → leaf,
+`GLOSSIA.md` is the public contract: frontmatter inherits from root → leaf,
 deeper files override parent keys, markdown bodies concatenate as
 translation context, and locale-specific context lives in
-`L10N/<locale>.md`.
+`GLOSSIA/<locale>.md`.
 
 ### Flag (Severity: high)
 
@@ -65,16 +65,16 @@ entry on disk.
 
 ---
 
-## 3. Runtime config vs L10N.md split
+## 3. Runtime config vs GLOSSIA.md split
 
-`L10N.md` carries content/translation policy. `glossia.toml`
+`GLOSSIA.md` carries content/translation policy. `glossia.toml`
 (handled by `cli/src/runtime_config/`) carries provider, auth, and
-endpoint settings. `provider` in `L10N.md` is accepted only for
+endpoint settings. `provider` in `GLOSSIA.md` is accepted only for
 backwards compatibility; `glossia.toml` takes precedence at runtime.
 
 ### Flag (Severity: medium)
 
-- A change that starts reading endpoint/auth values out of `L10N.md`
+- A change that starts reading endpoint/auth values out of `GLOSSIA.md`
   at runtime instead of `glossia.toml`.
 - A change that ignores `glossia.toml`'s `provider` when both files
   set one (the runtime file must win).
@@ -157,7 +157,7 @@ timeouts, and provider quirks live in one place.
 ### Flag (Severity: medium)
 
 - A new behavior added to a command without an integration test in
-  `cli/tests/` exercising it (parsing args, reading L10N.md, writing
+  `cli/tests/` exercising it (parsing args, reading GLOSSIA.md, writing
   outputs).
 - A new snapshot test (`insta`, `expect-test`) that captures a value
   including absolute paths, timestamps, or env-dependent strings

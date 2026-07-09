@@ -1,16 +1,16 @@
 %{
-  title: "L10N.md",
-  summary: "Complete reference for the L10N.md configuration file.",
+  title: "GLOSSIA.md",
+  summary: "Complete reference for the GLOSSIA.md configuration file.",
   category: "reference",
   order: 1
 }
 ---
 
-`L10N.md` is the configuration file that tells Glossia what to translate, which target locales to generate, and which context should guide the translation. It lives at the root of your repository or in subdirectories when you need scoped context.
+`GLOSSIA.md` is the configuration file that tells Glossia what to translate, which target locales to generate, and which context should guide the translation. It lives at the root of your repository or in subdirectories when you need scoped context.
 
 ## Structure
 
-An `L10N.md` file has two parts:
+A `GLOSSIA.md` file has two parts:
 
 1. **YAML frontmatter** between `---` markers for machine-readable settings.
 2. **Markdown context** below the frontmatter for translators and agents.
@@ -39,7 +39,7 @@ preserve:
 Project context for translators goes here.
 ```
 
-Provider, endpoint, and API key settings live in local `glossia.toml` instead of `L10N.md`:
+Provider, endpoint, and API key settings live in local `glossia.toml` instead of `GLOSSIA.md`:
 
 ```toml
 [llm]
@@ -83,9 +83,9 @@ When `sources` is a list, Glossia uses `target_path` or rule-level output settin
 
 ## Scoped Context
 
-`L10N.md` files can exist at any depth. Glossia merges context from root to leaf:
+`GLOSSIA.md` files can exist at any depth. Glossia merges context from root to leaf:
 
 - Parent frontmatter provides defaults.
 - Deeper frontmatter overrides parent values.
 - Markdown bodies are concatenated as translation context.
-- Locale-specific context can live in `L10N/<locale>.md`.
+- Locale-specific context can live in `GLOSSIA/<locale>.md`.

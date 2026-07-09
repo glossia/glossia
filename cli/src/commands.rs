@@ -5,23 +5,12 @@ use std::path::{Path, PathBuf};
 
 use crate::args::{help_text, parse_args, Command};
 use crate::hash::hash_string;
-use crate::locks::{
-    build_hash_state, build_lock, lock_path, read_lock, stale, write_lock, HashState, LockFile,
-};
+use crate::locks::{build_hash_state, lock_path, read_lock, stale, LockFile};
 use crate::reporter::{ConsoleReporter, Reporter, Verb};
 use crate::root::{find_root, resolve_base_dir};
 use crate::runtime_config::{load_runtime_config, path as runtime_config_path, RuntimeConfig};
-use crate::translate::{build_plan, translate_item, TranslationResult, WorkItem};
+use crate::translate::build_plan;
 use crate::validate::{validate_output, CheckOptions};
-
-#[derive(Debug, Clone, Default)]
-struct TranslateOptions {
-    force: bool,
-    dry_run: bool,
-    retries: Option<usize>,
-    check_cmd: Option<String>,
-    locale: Option<String>,
-}
 
 #[derive(Debug, Clone, Default)]
 struct CheckCommandOptions {
@@ -91,12 +80,6 @@ pub fn main_entry() -> i32 {
         ConsoleReporter::new(parsed.global.no_color || std::env::var("NO_COLOR").is_ok());
     let result = match parsed.command.expect("command required") {
         Command::Init => init_command(&root, &mut reporter),
-        Command::Translate => translate_command(
-            &root,
-            &runtime,
-            parse_translate_options(&parsed.command_args),
-            &mut reporter,
-        ),
         Command::Revisit => revisit_command(),
         Command::Check => check_command(
             &root,
@@ -128,11 +111,11 @@ pub fn main_entry() -> i32 {
 }
 
 fn init_command(root: &Path, reporter: &mut dyn Reporter) -> Result<()> {
-    let content_path = root.join("L10N.md");
+    let content_path = root.join("GLOSSIA.md");
     let runtime_path = runtime_config_path(root);
     if content_path.exists() {
         return Err(anyhow!(
-            "L10N.md already exists at {}",
+            "GLOSSIA.md already exists at {}",
             content_path.display()
         ));
     }
@@ -159,113 +142,7 @@ api_key_env = "OPENAI_API_KEY"
         fs::write(&runtime_path, runtime)?;
         reporter.log(Verb::Created, "glossia.toml");
     }
-    reporter.log(Verb::Created, "L10N.md");
-    Ok(())
-}
-
-fn translate_command(
-    root: &Path,
-    runtime: &RuntimeConfig,
-    options: Result<TranslateOptions>,
-    reporter: &mut dyn Reporter,
-) -> Result<()> {
-    let options = options?;
-    let plan = build_plan(root, options.locale.as_deref(), runtime)?;
-    if plan.items.is_empty() {
-        return Err(anyhow!("no translate sources found"));
-    }
-
-    let mut jobs = Vec::new();
-    for item in plan.items {
-        let source_text = fs::read_to_string(&item.source_abs)?;
-        let hash_state = build_hash_state(
-            item.format,
-            &item.source_path,
-            &source_text,
-            &item.llm.provider,
-            &item.llm.model,
-            &item.context_snapshots,
-        );
-        let output_text = fs::read_to_string(&item.output_abs).ok();
-        let output_hash = output_text.as_deref().map(hash_string).unwrap_or_default();
-        let lock = read_lock(root, &item.source_path, &item.locale)?;
-
-        if options.force
-            || output_text.is_none()
-            || stale(
-                lock.as_ref(),
-                &hash_state.hash,
-                &item.output_path,
-                &output_hash,
-            )
-        {
-            jobs.push((item, source_text, hash_state));
-        }
-    }
-
-    if jobs.is_empty() {
-        reporter.log(Verb::Info, "no translations needed");
-        return Ok(());
-    }
-
-    let total = jobs.len();
-    let mut usage = crate::llm::TokenUsage::default();
-
-    for (index, (item, source_text, hash_state)) in jobs.into_iter().enumerate() {
-        let step = index + 1;
-        reporter.step(Verb::Translating, step, total, &item.label());
-
-        if options.dry_run {
-            reporter.log(Verb::DryRun, &item.label());
-            continue;
-        }
-
-        let mut item = item;
-        if let Some(retries) = options.retries {
-            item.retries = retries;
-        }
-        if let Some(check_cmd) = &options.check_cmd {
-            item.check_cmd = Some(check_cmd.clone());
-        }
-
-        let result = translate_item(root, &item, &source_text)?;
-        usage = usage.add(result.usage);
-        write_translation(root, &item, &hash_state, result)?;
-    }
-
-    if usage.total_tokens > 0 {
-        reporter.log(
-            Verb::Summary,
-            &format!(
-                "{} prompt + {} completion = {} total tokens",
-                usage.prompt_tokens, usage.completion_tokens, usage.total_tokens
-            ),
-        );
-    }
-
-    Ok(())
-}
-
-fn write_translation(
-    root: &Path,
-    item: &WorkItem,
-    hash_state: &HashState,
-    result: TranslationResult,
-) -> Result<()> {
-    if let Some(parent) = item.output_abs.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    fs::write(&item.output_abs, &result.text)?;
-
-    let lock = build_lock(
-        &item.llm.provider,
-        &item.llm.model,
-        &item.source_path,
-        &item.output_path,
-        &result.text,
-        hash_state,
-    );
-    write_lock(root, &item.source_path, &item.locale, &lock)?;
+    reporter.log(Verb::Created, "GLOSSIA.md");
     Ok(())
 }
 
@@ -459,7 +336,7 @@ fn clean_orphans(
         missing: 0,
         lock_removed: 0,
     };
-    let lock_root = root.join(".l10n");
+    let lock_root = root.join(".glossia");
     if !lock_root.exists() {
         return Ok(result);
     }
@@ -538,34 +415,6 @@ fn remove_file(path: &Path, dry_run: bool) -> Result<RemoveResult> {
     Ok(RemoveResult::Removed)
 }
 
-fn parse_translate_options(argv: &[String]) -> Result<TranslateOptions> {
-    let mut options = TranslateOptions::default();
-    let mut i = 0;
-    while i < argv.len() {
-        match argv[i].as_str() {
-            "--force" => {
-                options.force = true;
-                i += 1;
-            }
-            "--dry-run" => {
-                options.dry_run = true;
-                i += 1;
-            }
-            "--retries" => {
-                options.retries = Some(parse_usize_flag(argv, &mut i, "--retries")?);
-            }
-            "--check-cmd" => {
-                options.check_cmd = Some(parse_string_flag(argv, &mut i, "--check-cmd")?);
-            }
-            "--locale" => {
-                options.locale = Some(parse_string_flag(argv, &mut i, "--locale")?);
-            }
-            value => return Err(anyhow!("unknown translate flag: {value}")),
-        }
-    }
-    Ok(options)
-}
-
 fn parse_check_options(argv: &[String]) -> Result<CheckCommandOptions> {
     let mut options = CheckCommandOptions::default();
     let mut i = 0;
@@ -614,9 +463,3 @@ fn parse_string_flag(argv: &[String], index: &mut usize, flag: &str) -> Result<S
     Ok(value)
 }
 
-fn parse_usize_flag(argv: &[String], index: &mut usize, flag: &str) -> Result<usize> {
-    let value = parse_string_flag(argv, index, flag)?;
-    value
-        .parse::<usize>()
-        .map_err(|_| anyhow!("{flag} must be a number"))
-}
