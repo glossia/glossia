@@ -23,17 +23,17 @@ document ([Section 4.3](#schema-scoped)), or the locale overlay
 ([Section 4.4](#schema-locale)). The entry-point schema expresses this as a
 <code>oneOf</code> over those three.
 
-<p class="schema-source">Canonical schema: <a href="/schemas/v1/l10n-document.schema.json"><code>schemas/v1/l10n-document.schema.json</code></a></p>
+<p class="schema-source">Canonical schema: <a href="/schemas/v1/glossia-document.schema.json"><code>schemas/v1/glossia-document.schema.json</code></a></p>
 
 ### 4.2 Global Document Schema {:#schema-global:}
 
-The repository root <code>L10N.md</code>. Workflow fields are optional; including them lets a single-file repository describe its language and its translation workflow in one place.
+The repository root <code>GLOSSIA.md</code>. Workflow fields are optional; including them lets a single-file repository describe its language and its translation workflow in one place.
 
 <div class="table-wrap">
 <table class="fieldtable">
 <thead><tr><th>Property</th><th>Required</th><th>Type</th><th>Rule</th></tr></thead>
 <tbody>
-<tr><td><code>path</code></td><td>yes</td><td>string</td><td>exactly <code>L10N.md</code></td></tr>
+<tr><td><code>path</code></td><td>yes</td><td>string</td><td>exactly <code>GLOSSIA.md</code></td></tr>
 <tr><td><code>source_language</code></td><td>yes</td><td>string</td><td>a locale identifier (<a href="#schema-shared">Section 4.5</a>)</td></tr>
 <tr><td><code>validation</code></td><td>no</td><td>array of string</td><td>the command and its arguments; each element non-empty. See <a href="#terminology">Section 2.2</a>.</td></tr>
 <tr><td><code>sources</code></td><td>no</td><td>object</td><td>one or more entries; keys are non-empty source path patterns, values are non-empty target path templates (typically containing <code>{locale}</code>)</td></tr>
@@ -47,13 +47,13 @@ The repository root <code>L10N.md</code>. Workflow fields are optional; includin
 
 ### 4.3 Scoped Document Schema {:#schema-scoped:}
 
-A non-root <code>L10N.md</code>. Workflow fields are optional; when omitted, the document acts as a context override for its subtree.
+A non-root <code>GLOSSIA.md</code>. Workflow fields are optional; when omitted, the document acts as a context override for its subtree.
 
 <div class="table-wrap">
 <table class="fieldtable">
 <thead><tr><th>Property</th><th>Required</th><th>Type</th><th>Rule</th></tr></thead>
 <tbody>
-<tr><td><code>path</code></td><td>yes</td><td>string</td><td>matches <code>^(?!L10N\.md$).+/L10N\.md$</code></td></tr>
+<tr><td><code>path</code></td><td>yes</td><td>string</td><td>matches <code>^(?!GLOSSIA\.md$).+/GLOSSIA\.md$</code></td></tr>
 <tr><td><code>validation</code></td><td>no</td><td>array of string</td><td>the command and its arguments; each element non-empty. See <a href="#terminology">Section 2.2</a>.</td></tr>
 <tr><td><code>sources</code></td><td>no</td><td>object</td><td>one or more entries; keys are non-empty source path patterns, values are non-empty target path templates (typically containing <code>{locale}</code>)</td></tr>
 <tr><td><code>targets</code></td><td>no</td><td>array of string</td><td>one or more locale identifiers; duplicates are not permitted</td></tr>
@@ -66,13 +66,13 @@ A non-root <code>L10N.md</code>. Workflow fields are optional; when omitted, the
 
 ### 4.4 Locale Overlay Schema {:#schema-locale:}
 
-A per-language file under an <code>L10N/</code> directory.
+A per-language file under an <code>GLOSSIA/</code> directory.
 
 <div class="table-wrap">
 <table class="fieldtable">
 <thead><tr><th>Property</th><th>Required</th><th>Type</th><th>Rule</th></tr></thead>
 <tbody>
-<tr><td><code>path</code></td><td>yes</td><td>string</td><td>matches <code>^(?:.+/)?L10N/[A-Za-z0-9_-]+\.md$</code></td></tr>
+<tr><td><code>path</code></td><td>yes</td><td>string</td><td>matches <code>^(?:.+/)?GLOSSIA/[A-Za-z0-9_-]+\.md$</code></td></tr>
 <tr><td><code>locale</code></td><td>no</td><td>string</td><td>a locale identifier; when present, equals the file name</td></tr>
 <tr><td><code>validation</code></td><td>no</td><td>array of string</td><td>same as above</td></tr>
 <tr><td><code>body</code></td><td>yes</td><td>string</td><td>Markdown prose; may be empty</td></tr>

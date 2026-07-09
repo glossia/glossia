@@ -7,7 +7,7 @@ title: Introduction
 
 AI-based translation systems produce better results when they are given context before
 they begin: the source language, the intended tone, brand terminology, and any constraints
-that do not fit neatly into key and value pairs. L10N.md is the convention by which
+that do not fit neatly into key and value pairs. GLOSSIA.md is the convention by which
 translators record that context as files that live next to the code they describe, so the
 systems that translate the strings can read it.
 

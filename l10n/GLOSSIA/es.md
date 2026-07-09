@@ -1,6 +1,6 @@
 # Spanish Translation Context
 
-This overlay refines the global guidance in `L10N.md` for Spanish translations of the L10N.md specification.
+This overlay refines the global guidance in `GLOSSIA.md` for Spanish translations of the GLOSSIA.md specification.
 
 ## Audience
 - Primary audience: software engineers and technical writers who read formal specifications. They are comfortable with English technical terms.

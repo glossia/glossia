@@ -7,7 +7,7 @@ description = "Install dependencies with aube"
 run = "aube install"
 
 [tasks.validate]
-description = "Validate L10N markdown files against the versioned JSON Schema"
+description = "Validate Glossia markdown files against the versioned JSON Schema"
 run = "aube run validate"
 
 [tasks.dev]

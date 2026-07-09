@@ -1,5 +1,6 @@
 ---
 source_language: "en"
+model: "openai/gpt-5"
 sources:
   "site/_content/v1/en/*.md": "site/_content/v1/{locale}/*.md"
 targets:
@@ -10,21 +11,21 @@ targets:
 # Global Translation Context
 
 ## Purpose
-- This repository defines a lightweight `L10N.md` convention by which translators provide the context that AI-based translation systems need before they translate strings.
+- This repository defines a lightweight `GLOSSIA.md` convention by which translators provide the context that AI-based translation systems need before they translate strings.
 - The format is intentionally simple: YAML frontmatter for machine-readable settings, followed by Markdown prose for nuance that does not fit neatly into key-value pairs.
-- This repository dog-foods the convention: the L10N.md specification text itself is split into per-section Markdown files under `site/_content/v1/en/`, and is translated into Spanish and Japanese using the same workflow.
+- This repository dog-foods the convention: the GLOSSIA.md specification text itself is split into per-section Markdown files under `site/_content/v1/en/`, and is translated into Spanish and Japanese using the same workflow.
 
 ## Structure
-- Use a root `L10N.md` for repository-wide guidance.
-- Add scoped `L10N.md` files inside product or package directories when a subset of strings needs extra instructions.
-- Add locale overlays in `L10N/<locale>.md` when one language needs special terminology, grammar, or cultural notes.
+- Use a root `GLOSSIA.md` for repository-wide guidance.
+- Add scoped `GLOSSIA.md` files inside product or package directories when a subset of strings needs extra instructions.
+- Add locale overlays in `GLOSSIA/<locale>.md` when one language needs special terminology, grammar, or cultural notes.
 
 ## Brand & Terminology
 - "Glossia" is a proper noun and should never be translated.
 - Keep product names, command names, file names, and API identifiers exactly as written unless a scoped document says otherwise.
-- Treat `L10N.md` as the canonical name of the convention in prose, code comments, and documentation.
+- Treat `GLOSSIA.md` as the canonical name of the convention in prose, code comments, and documentation.
 - Keep all-caps BCP 14 keywords (`MUST`, `MUST NOT`, `SHOULD`, `MAY`, etc.) in English. They are normative tokens and must remain recognizable across locales.
-- Keep field names (`source_language`, `sources`, `targets`, `validation`, `locale`, `path`, `body`), file names (`L10N.md`), and JSON Schema identifiers untranslated.
+- Keep field names (`source_language`, `model`, `sources`, `targets`, `validation`, `locale`, `path`, `body`), file names (`GLOSSIA.md`), and JSON Schema identifiers untranslated.
 
 ## Formatting Rules
 - Preserve Markdown structure unless the target format requires a documented transformation.

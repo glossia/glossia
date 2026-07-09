@@ -26,9 +26,9 @@ async function walk(directory) {
 }
 
 function classify(relativePath) {
-  if (relativePath === "L10N.md") return "global";
-  if (/^(?:.+\/)?L10N\/[^/]+\.md$/.test(relativePath)) return "locale";
-  if (/^.+\/L10N\.md$/.test(relativePath)) return "scoped";
+  if (relativePath === "GLOSSIA.md") return "global";
+  if (/^(?:.+\/)?GLOSSIA\/[^/]+\.md$/.test(relativePath)) return "locale";
+  if (/^.+\/GLOSSIA\.md$/.test(relativePath)) return "scoped";
   return null;
 }
 
@@ -64,7 +64,7 @@ async function loadSchemas(ajv) {
   const schemaDir = path.join(schemasRoot, `v${version}`);
   const schemaFiles = [
     "shared.schema.json",
-    "l10n-document.schema.json",
+    "glossia-document.schema.json",
     "global-document.schema.json",
     "scoped-document.schema.json",
     "locale-overlay.schema.json",
@@ -79,9 +79,9 @@ async function loadSchemas(ajv) {
   return {
     version,
     schemaByKind: {
-      global: `https://glossia.dev/schemas/l10n/v${version}/global-document.schema.json`,
-      scoped: `https://glossia.dev/schemas/l10n/v${version}/scoped-document.schema.json`,
-      locale: `https://glossia.dev/schemas/l10n/v${version}/locale-overlay.schema.json`,
+      global: `https://glossia.dev/schemas/glossia/v${version}/global-document.schema.json`,
+      scoped: `https://glossia.dev/schemas/glossia/v${version}/scoped-document.schema.json`,
+      locale: `https://glossia.dev/schemas/glossia/v${version}/locale-overlay.schema.json`,
     },
   };
 }
@@ -91,7 +91,7 @@ async function main() {
   const { version, schemaByKind } = await loadSchemas(ajv);
 
   const allFiles = await walk(rootDir);
-  const l10nFiles = allFiles
+  const glossiaFiles = allFiles
     .map((absolutePath) => path.relative(rootDir, absolutePath))
     .filter((relativePath) => relativePath.endsWith(".md"))
     .map((relativePath) => ({ relativePath, kind: classify(relativePath) }))
@@ -99,7 +99,7 @@ async function main() {
 
   const failures = [];
 
-  for (const { relativePath, kind } of l10nFiles) {
+  for (const { relativePath, kind } of glossiaFiles) {
     const absolutePath = path.join(rootDir, relativePath);
     const raw = await fs.readFile(absolutePath, "utf8");
     const parsed = matter(raw);
@@ -130,7 +130,7 @@ async function main() {
   }
 
   if (failures.length > 0) {
-    console.error("L10N schema validation failed.\n");
+    console.error("Glossia schema validation failed.\n");
     for (const failure of failures) {
       console.error(`${failure.relativePath}`);
       for (const problem of failure.problems) {
@@ -142,7 +142,7 @@ async function main() {
     return;
   }
 
-  console.log(`Validated ${l10nFiles.length} L10N document(s) against schema v${version}.`);
+  console.log(`Validated ${glossiaFiles.length} Glossia document(s) against schema v${version}.`);
 }
 
 await main();

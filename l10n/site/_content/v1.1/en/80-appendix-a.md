@@ -10,7 +10,7 @@ title: Examples
 ### A.1 Minimal Root Document {:#example-root:}
 
 <figure class="listing">
-<figcaption>Listing 2. Canonical root <code>L10N.md</code></figcaption>
+<figcaption>Listing 2. Canonical root <code>GLOSSIA.md</code></figcaption>
 
 ```
 {{ referenceVersion.standard }}
@@ -23,7 +23,7 @@ title: Examples
 A root document that also carries workflow frontmatter, so the repository needs no nested scopes.
 
 <figure class="listing">
-<figcaption>Listing 3. <code>examples/single-repo/L10N.md</code></figcaption>
+<figcaption>Listing 3. <code>examples/single-repo/GLOSSIA.md</code></figcaption>
 
 ```
 {{ referenceVersion.examples.singleRepo }}
@@ -34,7 +34,7 @@ A root document that also carries workflow frontmatter, so the repository needs 
 ### A.3 Scoped Document {:#example-scoped:}
 
 <figure class="listing">
-<figcaption>Listing 4. <code>examples/app/L10N.md</code></figcaption>
+<figcaption>Listing 4. <code>examples/app/GLOSSIA.md</code></figcaption>
 
 ```
 {{ referenceVersion.examples.scoped }}
@@ -45,7 +45,7 @@ A root document that also carries workflow frontmatter, so the repository needs 
 ### A.4 Spanish Locale Overlay {:#example-es:}
 
 <figure class="listing">
-<figcaption>Listing 5. <code>examples/app/L10N/es.md</code></figcaption>
+<figcaption>Listing 5. <code>examples/app/GLOSSIA/es.md</code></figcaption>
 
 ```
 {{ referenceVersion.examples.es }}
@@ -56,7 +56,7 @@ A root document that also carries workflow frontmatter, so the repository needs 
 ### A.5 Japanese Locale Overlay {:#example-ja:}
 
 <figure class="listing">
-<figcaption>Listing 6. <code>examples/app/L10N/ja.md</code></figcaption>
+<figcaption>Listing 6. <code>examples/app/GLOSSIA/ja.md</code></figcaption>
 
 ```
 {{ referenceVersion.examples.ja }}

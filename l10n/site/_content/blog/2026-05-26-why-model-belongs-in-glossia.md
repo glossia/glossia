@@ -1,5 +1,5 @@
 ---
-title: "Why model belongs in L10N.md"
+title: "Why model belongs in GLOSSIA.md"
 date: "2026-05-26"
 description: "Why the next version of the spec needs to make model choice explicit instead of hiding it inside translation tooling."
 author: "Pedro Piñera"
@@ -13,7 +13,7 @@ convenient until it stops being convenient.
 The model is not an implementation detail anymore. It shapes the output too
 much.
 
-Two repositories can carry the same `L10N.md` guidance and still produce very
+Two repositories can carry the same `GLOSSIA.md` guidance and still produce very
 different translations because one run went through a fast model and the other
 through a more capable one. The wording changes. The discipline around
 formatting changes. The ability to respect subtle instructions changes. If that
@@ -28,7 +28,7 @@ Most repositories are not one task.
 A marketing page, an error catalog, release notes, and a legal document do not
 need the same trade-off. Some scopes need raw speed. Some need lower cost. Some
 need a model that is better at following structure and tone without drifting.
-We already introduced scoped `L10N.md` files because translation context is not
+We already introduced scoped `GLOSSIA.md` files because translation context is not
 uniform across a repository. Model selection follows the same logic.
 
 If the spec can describe that `docs/` and `website/` need different rules, it
@@ -36,7 +36,7 @@ should also be able to describe that they need different models.
 
 ## This is really about reproducibility
 
-What I want from L10N.md is not just a place to write helpful notes for a tool.
+What I want from GLOSSIA.md is not just a place to write helpful notes for a tool.
 I want a repository to describe the translation system it expects with enough
 precision that another person, or another tool, can reproduce the intent.
 
@@ -56,7 +56,7 @@ to the rest of the translation context.
 The obvious risk here is turning the spec into a parade of provider-specific
 model names that age badly. I do not want that.
 
-The point is not to make L10N.md chase every model release. The point is to let
+The point is not to make GLOSSIA.md chase every model release. The point is to let
 repositories express a stable decision about the class of model they expect for
 a scope, and let tooling resolve that decision sensibly. Some tools might map it
 to an exact provider and model identifier. Others might map it to an internal
@@ -76,6 +76,6 @@ substantially changes the outcome, and if teams are already reaching for that
 knob in practice, leaving it out of the spec does not keep the system simple. It
 just moves complexity into undocumented tool configuration.
 
-That is why I want the next version of L10N.md to grow a `model` field. Not
+That is why I want the next version of GLOSSIA.md to grow a `model` field. Not
 because more configuration is inherently better, but because this particular
 piece of configuration has become part of translation context itself.

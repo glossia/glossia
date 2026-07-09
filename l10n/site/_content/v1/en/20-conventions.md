@@ -20,7 +20,7 @@ here.
 
 <dl class="terms">
 <dt>Repository</dt>
-<dd>The version-controlled project in which L10N documents reside.</dd>
+<dd>The version-controlled project in which Glossia documents reside.</dd>
 <dt>Document</dt>
 <dd>A Markdown file that participates in this standard, classified by its repository path.</dd>
 <dt>Frontmatter</dt>
@@ -28,11 +28,11 @@ here.
 <dt>Body</dt>
 <dd>The Markdown content following the frontmatter; the prose that carries guidance.</dd>
 <dt>Root document</dt>
-<dd>The repository-wide <code>L10N.md</code>, also called the global document.</dd>
+<dd>The repository-wide <code>GLOSSIA.md</code>, also called the global document.</dd>
 <dt>Scoped document</dt>
-<dd>A non-root <code>L10N.md</code> that adds workflow settings to a subtree.</dd>
+<dd>A non-root <code>GLOSSIA.md</code> that adds workflow settings to a subtree.</dd>
 <dt>Locale overlay</dt>
-<dd>A per-language file stored under an <code>L10N/</code> directory.</dd>
+<dd>A per-language file stored under an <code>GLOSSIA/</code> directory.</dd>
 <dt>Source language</dt>
 <dd>The language strings are authored in, declared by the root document.</dd>
 <dt>Locale identifier</dt>
@@ -45,10 +45,10 @@ against translated output, treating exit code 0 as pass and any non-zero exit as
 failure. Before execution the tool <span class="kw">MUST</span> set these environment
 variables:
 <ul>
-  <li><code>L10N_SOURCE_PATH</code> — absolute path to the source file</li>
-  <li><code>L10N_TARGET_PATH</code> — absolute path to the translated output file</li>
-  <li><code>L10N_LOCALE</code> — the target locale identifier (e.g. <code>es</code>, <code>ja</code>)</li>
-  <li><code>L10N_DOC_PATH</code> — absolute path to the L10N.md document controlling the scope</li>
+  <li><code>GLOSSIA_SOURCE_PATH</code> — absolute path to the source file</li>
+  <li><code>GLOSSIA_TARGET_PATH</code> — absolute path to the translated output file</li>
+  <li><code>GLOSSIA_LOCALE</code> — the target locale identifier (e.g. <code>es</code>, <code>ja</code>)</li>
+  <li><code>GLOSSIA_DOC_PATH</code> — absolute path to the GLOSSIA.md document controlling the scope</li>
 </ul>
 Implementations <span class="kw">MAY</span> provide additional env vars. Validation
 commands <span class="kw">SHOULD</span> write diagnostics to stderr; stdout

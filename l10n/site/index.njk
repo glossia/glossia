@@ -1,7 +1,7 @@
 ---
 layout: base.njk
-title: L10N.md Standard
-description: The L10N.md specification, a monochrome standards document for repository-resident translation context and its versioned JSON Schemas.
+title: GLOSSIA.md Standard
+description: The GLOSSIA.md specification, a monochrome standards document for repository-resident translation context and its versioned JSON Schemas.
 specFormat: html
 pagination:
   data: specPages
@@ -9,7 +9,7 @@ pagination:
   alias: specPage
 permalink: "/v{{ specPage.spec.version }}/{% if specPage.locale.code != 'en' %}{{ specPage.locale.code }}/{% endif %}index.html"
 eleventyComputed:
-  title: "L10N.md Standard v{{ specPage.spec.version }} ({{ specPage.locale.label }})"
+  title: "GLOSSIA.md Standard v{{ specPage.spec.version }} ({{ specPage.locale.label }})"
 ---
 
 {% set spec = specPage.spec %}

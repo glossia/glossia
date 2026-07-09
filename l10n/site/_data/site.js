@@ -7,13 +7,13 @@ export default async function () {
   const latest = versions[0] || "1";
 
   return {
-    title: "L10N.md Standard",
+    title: "GLOSSIA.md Standard",
     description:
       "A small, versioned standard for translation-context documents and their JSON Schemas.",
     url: process.env.SITE_URL || "https://l10n.md",
     repo: "https://github.com/glossia/l10n",
     spec: {
-      name: "L10N.md",
+      name: "GLOSSIA.md",
       subtitle: "A convention for repository-resident translation context",
       status: "Stable",
       latest,
