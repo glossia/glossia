@@ -9,7 +9,10 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
 
   setup do
     owner = TestHelpers.create_user("translate-api-owner@test.com", "translate-api-owner")
-    outsider = TestHelpers.create_user("translate-api-outsider@test.com", "translate-api-outsider")
+
+    outsider =
+      TestHelpers.create_user("translate-api-outsider@test.com", "translate-api-outsider")
+
     %{owner: owner, outsider: outsider}
   end
 
@@ -62,7 +65,13 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
         assert account.id == owner.account.id
         assert params["locale"] == "es"
 
-        {:ok, %{text: "Hola", model: "anthropic:claude", model_handle: "translator", provider: "anthropic"}}
+        {:ok,
+         %{
+           text: "Hola",
+           model: "anthropic:claude",
+           model_handle: "translator",
+           provider: "anthropic"
+         }}
       end)
 
       conn =
@@ -79,18 +88,23 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
     end
 
     test "422 for a missing field", %{conn: conn, owner: owner} do
-      Mimic.stub(Translations, :translate, fn _account, _params -> {:error, {:missing_field, "locale"}} end)
+      Mimic.stub(Translations, :translate, fn _account, _params ->
+        {:error, {:missing_field, "locale"}}
+      end)
 
       conn =
         conn
         |> TestHelpers.authenticate(owner, @scopes)
         |> post(translate_path(owner), payload())
 
-      assert %{"error" => %{"message" => "missing required field: locale"}} = json_response(conn, 422)
+      assert %{"error" => %{"message" => "missing required field: locale"}} =
+               json_response(conn, 422)
     end
 
     test "404 when the model is not configured", %{conn: conn, owner: owner} do
-      Mimic.stub(Translations, :translate, fn _account, _params -> {:error, {:model_not_found, "translator"}} end)
+      Mimic.stub(Translations, :translate, fn _account, _params ->
+        {:error, {:model_not_found, "translator"}}
+      end)
 
       conn =
         conn
@@ -102,7 +116,9 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
     end
 
     test "502 when the model call fails", %{conn: conn, owner: owner} do
-      Mimic.stub(Translations, :translate, fn _account, _params -> {:error, {:llm_failed, "boom"}} end)
+      Mimic.stub(Translations, :translate, fn _account, _params ->
+        {:error, {:llm_failed, "boom"}}
+      end)
 
       conn =
         conn

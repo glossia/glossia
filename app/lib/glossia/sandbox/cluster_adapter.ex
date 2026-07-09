@@ -119,7 +119,6 @@ defmodule Glossia.Sandbox.ClusterAdapter do
     end
   end
 
-
   defp call_runner(sandbox_id, message) do
     with {:ok, pid, _owner_node} <- fetch_runner(sandbox_id) do
       GenServer.call(pid, message, 30_000)

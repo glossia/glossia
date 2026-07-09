@@ -201,7 +201,11 @@ defmodule Glossia.LLMModelsTest do
       {:ok, _alpha} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "alpha"}))
 
       {:ok, zeta} =
-        LLMModels.create_model(account, user, valid_attrs(%{"handle" => "zeta", "default" => true}))
+        LLMModels.create_model(
+          account,
+          user,
+          valid_attrs(%{"handle" => "zeta", "default" => true})
+        )
 
       assert LLMModels.default_model(account).id == zeta.id
     end

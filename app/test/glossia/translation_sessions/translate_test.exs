@@ -50,7 +50,10 @@ defmodule Glossia.TranslationSessions.TranslateTest do
   end
 
   defp stub_run(changes) do
-    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session, _account, _repository, _locales ->
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales ->
       {:ok, changes}
     end)
   end
@@ -67,29 +70,51 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
 
-    Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo", "abc1234567890", "github-token" ->
+    Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
+                                                        "abc1234567890",
+                                                        "github-token" ->
       {:ok, %{"tree" => %{"sha" => "base-tree-sha"}}}
     end)
 
-    Mimic.expect(Glossia.Github.Client, :create_blob, 2, fn "glossia/demo", %{content: content, encoding: "base64"}, "github-token" ->
+    Mimic.expect(Glossia.Github.Client, :create_blob, 2, fn "glossia/demo",
+                                                            %{
+                                                              content: content,
+                                                              encoding: "base64"
+                                                            },
+                                                            "github-token" ->
       {:ok, decoded} = Base.decode64(content)
       {:ok, %{"sha" => :crypto.hash(:sha, decoded) |> Base.encode16(case: :lower)}}
     end)
 
-    Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo", %{base_tree: "base-tree-sha", tree: entries}, "github-token" ->
+    Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo",
+                                                         %{
+                                                           base_tree: "base-tree-sha",
+                                                           tree: entries
+                                                         },
+                                                         "github-token" ->
       send(test_pid, {:tree_entries, entries})
       {:ok, %{"sha" => "new-tree-sha"}}
     end)
 
-    Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo", %{tree: "new-tree-sha", parents: ["abc1234567890"]} = _params, "github-token" ->
+    Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
+                                                           %{
+                                                             tree: "new-tree-sha",
+                                                             parents: ["abc1234567890"]
+                                                           } = _params,
+                                                           "github-token" ->
       {:ok, %{"sha" => "new-commit-sha"}}
     end)
 
-    Mimic.expect(Glossia.Github.Client, :create_branch, fn "glossia/demo", "glossia/translate-abc123456789", "new-commit-sha", "github-token" ->
+    Mimic.expect(Glossia.Github.Client, :create_branch, fn "glossia/demo",
+                                                           "glossia/translate-abc123456789",
+                                                           "new-commit-sha",
+                                                           "github-token" ->
       {:ok, %{}}
     end)
 
-    Mimic.expect(Glossia.Github.Client, :create_pull_request, fn "glossia/demo", params, "github-token" ->
+    Mimic.expect(Glossia.Github.Client, :create_pull_request, fn "glossia/demo",
+                                                                 params,
+                                                                 "github-token" ->
       send(test_pid, {:pull_request_params, params})
       {:ok, %{"html_url" => "https://github.com/glossia/demo/pull/2"}}
     end)
@@ -131,7 +156,10 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
 
-    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session, _account, _repository, _locales ->
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales ->
       {:error, {:clone_failed, "boom"}}
     end)
 

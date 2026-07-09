@@ -52,7 +52,9 @@ defmodule Glossia.Translations.ValidateTest do
 
   describe "PO validation" do
     test "accepts a valid PO file" do
-      po = ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n"Plural-Forms: nplurals=2; plural=n != 1;\\n"\n\nmsgid "Hello"\nmsgstr "Hola"\n)
+      po =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n"Plural-Forms: nplurals=2; plural=n != 1;\\n"\n\nmsgid "Hello"\nmsgstr "Hola"\n)
+
       assert :ok = Validate.validate_syntax("po", po, po)
     end
 

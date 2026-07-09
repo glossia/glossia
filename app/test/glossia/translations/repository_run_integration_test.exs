@@ -56,7 +56,14 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
       on_event.(:turn_start)
       on_event.({:text, "# Guía"})
       on_event.(:done)
-      {:ok, %{text: "# Guía\n\nHola, mundo.", model: "anthropic:x", provider: "anthropic", model_handle: "m"}}
+
+      {:ok,
+       %{
+         text: "# Guía\n\nHola, mundo.",
+         model: "anthropic:x",
+         provider: "anthropic",
+         model_handle: "m"
+       }}
     end)
 
     assert {:ok, changes} =
@@ -81,7 +88,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
     # Live progress was broadcast.
     assert_receive {:translation_session_event, %{type: "plan", total: 1}}
-    assert_receive {:translation_session_event, %{type: "item_completed", output_path: "docs/i18n/es/guide.md"}}
+
+    assert_receive {:translation_session_event,
+                    %{type: "item_completed", output_path: "docs/i18n/es/guide.md"}}
   end
 
   @tag :tmp_dir
@@ -91,12 +100,21 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
     stub = fn ->
       Mimic.stub(Translations, :translate_stream, fn _account, _payload, _on_event ->
-        {:ok, %{text: "# Guía\n\nHola.", model: "anthropic:x", provider: "anthropic", model_handle: "m"}}
+        {:ok,
+         %{
+           text: "# Guía\n\nHola.",
+           model: "anthropic:x",
+           provider: "anthropic",
+           model_handle: "m"
+         }}
       end)
     end
 
     stub.()
-    assert {:ok, first} = RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
+
+    assert {:ok, first} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
+
     assert first != []
 
     # Commit the produced output + lockfile so the tree is clean, then re-run.

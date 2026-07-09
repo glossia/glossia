@@ -60,7 +60,11 @@ defmodule Glossia.Translations.Credentials do
     model = config[:inference_model]
 
     if present?(key) and present?(model) do
-      %{model: model, auth: {:api_key, key, config[:inference_base_url]}, source: :inference_config}
+      %{
+        model: model,
+        auth: {:api_key, key, config[:inference_base_url]},
+        source: :inference_config
+      }
     end
   end
 
@@ -98,7 +102,9 @@ defmodule Glossia.Translations.Credentials do
   defp read_claude_oauth do
     with {:unix, :darwin} <- :os.type(),
          {json, 0} <-
-           MuonTrap.cmd("security", ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
+           MuonTrap.cmd(
+             "security",
+             ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
              stderr_to_stdout: true,
              into: ""
            ),
@@ -135,7 +141,10 @@ defmodule Glossia.Translations.Credentials do
 
   # `expiresAt` is epoch milliseconds; missing means treat as valid.
   defp not_expired?(nil), do: true
-  defp not_expired?(expires_at) when is_integer(expires_at), do: expires_at > System.system_time(:millisecond)
+
+  defp not_expired?(expires_at) when is_integer(expires_at),
+    do: expires_at > System.system_time(:millisecond)
+
   defp not_expired?(_), do: false
 
   defp local_model(default \\ @default_local_model), do: config()[:local_session_model] || default

@@ -6505,7 +6505,12 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_progress_panel(assigns) do
     alias Glossia.TranslationSessions.Progress
-    assigns = assign(assigns, items: Progress.items(assigns.progress), summary: Progress.summary(assigns.progress))
+
+    assigns =
+      assign(assigns,
+        items: Progress.items(assigns.progress),
+        summary: Progress.summary(assigns.progress)
+      )
 
     ~H"""
     <%= if @items != [] do %>

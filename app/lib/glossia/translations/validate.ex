@@ -195,7 +195,12 @@ defmodule Glossia.Translations.Validate do
 
   @doc false
   def run_validation_command(root, [cmd | args], options) do
-    with {:ok, doc} <- require_opt(options, :validation_doc_abs, "validation requires declaring document path"),
+    with {:ok, doc} <-
+           require_opt(
+             options,
+             :validation_doc_abs,
+             "validation requires declaring document path"
+           ),
          {:ok, source} <- require_opt(options, :source_abs, "validation requires source path"),
          {:ok, target} <- require_opt(options, :target_abs, "validation requires target path"),
          {:ok, locale} <- require_opt(options, :locale, "validation requires locale") do

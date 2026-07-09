@@ -74,7 +74,8 @@ defmodule Glossia.Translations.Chain do
       files: acc.files ++ [file],
       merged: Frontmatter.merge(acc.merged, file.frontmatter),
       bodies: append_body(acc.bodies, file.body),
-      validation: declared_validation(file.frontmatter.validation, file.relative_path, acc.validation)
+      validation:
+        declared_validation(file.frontmatter.validation, file.relative_path, acc.validation)
     }
   end
 
@@ -111,7 +112,13 @@ defmodule Glossia.Translations.Chain do
           |> Enum.reject(&(&1 == ""))
           |> Enum.join("\n\n")
 
-        {:ok, %{merged_body: merged_body, files: acc.files, model: acc.model, validation: acc.validation}}
+        {:ok,
+         %{
+           merged_body: merged_body,
+           files: acc.files,
+           model: acc.model,
+           validation: acc.validation
+         }}
       end
     end
   end
@@ -132,7 +139,11 @@ defmodule Glossia.Translations.Chain do
               files: acc.files ++ [file],
               model: file.frontmatter.model || acc.model,
               validation:
-                declared_validation(file.frontmatter.validation, file.relative_path, acc.validation)
+                declared_validation(
+                  file.frontmatter.validation,
+                  file.relative_path,
+                  acc.validation
+                )
             }}}
         end
 
@@ -204,7 +215,10 @@ defmodule Glossia.Translations.Chain do
   end
 
   defp relative_to_root(repo_root, path) do
-    repo_root |> Path.expand() |> then(&Path.relative_to(Path.expand(path), &1)) |> normalize_slashes()
+    repo_root
+    |> Path.expand()
+    |> then(&Path.relative_to(Path.expand(path), &1))
+    |> normalize_slashes()
   end
 
   defp normalize_slashes(input), do: String.replace(input, "\\", "/")

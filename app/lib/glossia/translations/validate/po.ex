@@ -27,7 +27,8 @@ defmodule Glossia.Translations.Validate.Po do
   defp validate_structure(content) do
     content
     |> lines()
-    |> Enum.reduce_while({:ok, %{has_msgid: false, has_msgstr: false, state: ""}}, fn raw, {:ok, s} ->
+    |> Enum.reduce_while({:ok, %{has_msgid: false, has_msgstr: false, state: ""}}, fn raw,
+                                                                                      {:ok, s} ->
       line = String.trim(raw)
 
       cond do
@@ -97,7 +98,10 @@ defmodule Glossia.Translations.Validate.Po do
       if not entry.has_plural or entry.msgid == "" do
         {:cont, :ok}
       else
-        forms = if map_size(entry.plural_msgstr) == 0, do: 0, else: Enum.max(Map.keys(entry.plural_msgstr)) + 1
+        forms =
+          if map_size(entry.plural_msgstr) == 0,
+            do: 0,
+            else: Enum.max(Map.keys(entry.plural_msgstr)) + 1
 
         if forms == plural_count do
           {:cont, :ok}
@@ -159,7 +163,10 @@ defmodule Glossia.Translations.Validate.Po do
   defp parse_entries(content) do
     content
     |> lines()
-    |> Enum.reduce(%{entries: [], current: new_entry(), state: "", plural_index: nil, in_entry: false}, &parse_line/2)
+    |> Enum.reduce(
+      %{entries: [], current: new_entry(), state: "", plural_index: nil, in_entry: false},
+      &parse_line/2
+    )
     |> push_current()
     |> Map.fetch!(:entries)
     |> Enum.reverse()
@@ -174,7 +181,13 @@ defmodule Glossia.Translations.Validate.Po do
 
       String.starts_with?(line, "msgid ") ->
         acc = push_current(acc)
-        %{acc | in_entry: true, state: "msgid", current: %{new_entry() | msgid: extract_quoted(line)}}
+
+        %{
+          acc
+          | in_entry: true,
+            state: "msgid",
+            current: %{new_entry() | msgid: extract_quoted(line)}
+        }
 
       String.starts_with?(line, "msgid_plural ") ->
         %{acc | state: "msgid_plural", current: %{acc.current | has_plural: true}}
@@ -186,7 +199,10 @@ defmodule Glossia.Translations.Validate.Po do
           acc
           | state: "msgstr_plural",
             plural_index: index,
-            current: %{acc.current | plural_msgstr: Map.put(acc.current.plural_msgstr, index, extract_quoted(line))}
+            current: %{
+              acc.current
+              | plural_msgstr: Map.put(acc.current.plural_msgstr, index, extract_quoted(line))
+            }
         }
 
       String.starts_with?(line, "msgstr ") ->
@@ -210,7 +226,13 @@ defmodule Glossia.Translations.Validate.Po do
        when not is_nil(index) do
     case Map.fetch(acc.current.plural_msgstr, index) do
       {:ok, existing} ->
-        %{acc | current: %{acc.current | plural_msgstr: Map.put(acc.current.plural_msgstr, index, existing <> text)}}
+        %{
+          acc
+          | current: %{
+              acc.current
+              | plural_msgstr: Map.put(acc.current.plural_msgstr, index, existing <> text)
+            }
+        }
 
       :error ->
         acc
@@ -222,7 +244,14 @@ defmodule Glossia.Translations.Validate.Po do
   defp push_current(%{in_entry: false} = acc), do: acc
 
   defp push_current(acc) do
-    %{acc | entries: [acc.current | acc.entries], current: new_entry(), state: "", plural_index: nil, in_entry: false}
+    %{
+      acc
+      | entries: [acc.current | acc.entries],
+        current: new_entry(),
+        state: "",
+        plural_index: nil,
+        in_entry: false
+    }
   end
 
   defp new_entry, do: %{msgid: "", msgstr: "", has_plural: false, plural_msgstr: %{}}

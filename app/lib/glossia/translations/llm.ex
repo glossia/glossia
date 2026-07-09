@@ -60,7 +60,12 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
-  defp stream_via_condukt(%{auth: {:api_key, key, base_url}, model: model}, system, user, on_event) do
+  defp stream_via_condukt(
+         %{auth: {:api_key, key, base_url}, model: model},
+         system,
+         user,
+         on_event
+       ) do
     opts = maybe_base_url([model: model, api_key: key, system_prompt: system], base_url)
 
     case Agent.start_link(opts) do
@@ -93,7 +98,9 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
-  defp reduce_event(acc, {:text, chunk}) when is_binary(chunk), do: %{acc | text: acc.text <> chunk}
+  defp reduce_event(acc, {:text, chunk}) when is_binary(chunk),
+    do: %{acc | text: acc.text <> chunk}
+
   defp reduce_event(acc, {:error, reason}), do: %{acc | error: acc.error || reason}
   defp reduce_event(acc, _event), do: acc
 
@@ -101,6 +108,8 @@ defmodule Glossia.Translations.LLM do
     [%{role: "system", content: system}, %{role: "user", content: user}]
   end
 
-  defp maybe_base_url(opts, url) when is_binary(url) and url != "", do: Keyword.put(opts, :base_url, url)
+  defp maybe_base_url(opts, url) when is_binary(url) and url != "",
+    do: Keyword.put(opts, :base_url, url)
+
   defp maybe_base_url(opts, _url), do: opts
 end

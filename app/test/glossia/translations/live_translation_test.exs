@@ -56,12 +56,16 @@ defmodule Glossia.Translations.LiveTranslationTest do
     user = TestHelpers.create_user("live-translate@test.com", "live-translate")
     session = %TranslationSession{id: Ecto.UUID.generate()}
 
-    assert {:ok, changes} = RepositoryRun.translate_repository(session, user.account, root, ["es"])
+    assert {:ok, changes} =
+             RepositoryRun.translate_repository(session, user.account, root, ["es"])
 
     output = Path.join([root, "docs", "i18n", "es", "guide.md"])
     assert File.exists?(output)
     translated = File.read!(output)
-    IO.puts("\n--- Translated docs/i18n/es/guide.md ---\n#{translated}\n----------------------------------------")
+
+    IO.puts(
+      "\n--- Translated docs/i18n/es/guide.md ---\n#{translated}\n----------------------------------------"
+    )
 
     # Real Spanish output + a change list with the file and its lockfile.
     assert translated =~ ~r/hola/i
@@ -118,7 +122,11 @@ defmodule Glossia.Translations.LiveTranslationTest do
 
     output = Enum.find(changes, &(&1.path == "docs/i18n/es/guide.md"))
     assert output
-    IO.puts("\n--- FLAME.call e2e: docs/i18n/es/guide.md ---\n#{output.content}\n---------------------------------------------")
+
+    IO.puts(
+      "\n--- FLAME.call e2e: docs/i18n/es/guide.md ---\n#{output.content}\n---------------------------------------------"
+    )
+
     assert output.content =~ ~r/hola/i
   end
 end

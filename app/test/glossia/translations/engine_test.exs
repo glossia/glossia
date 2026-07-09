@@ -34,7 +34,9 @@ defmodule Glossia.Translations.EngineTest do
   defp stub_stream(fun), do: Mimic.stub(Translations, :translate_stream, fun)
 
   defp translated(text),
-    do: {:ok, %{text: text, model: "anthropic:claude", provider: "anthropic", model_handle: "translator"}}
+    do:
+      {:ok,
+       %{text: text, model: "anthropic:claude", provider: "anthropic", model_handle: "translator"}}
 
   describe "strip_structured_code_fence/2" do
     test "strips a fence around structured output" do
@@ -48,7 +50,9 @@ defmodule Glossia.Translations.EngineTest do
 
     test "leaves partially/unfenced structured output untouched" do
       assert Engine.strip_structured_code_fence("json", "{\"a\":1}") == "{\"a\":1}"
-      assert Engine.strip_structured_code_fence("json", "```json\n{\"a\":1}") == "```json\n{\"a\":1}"
+
+      assert Engine.strip_structured_code_fence("json", "```json\n{\"a\":1}") ==
+               "```json\n{\"a\":1}"
     end
   end
 
@@ -86,7 +90,9 @@ defmodule Glossia.Translations.EngineTest do
       end)
 
       assert {:ok, result} =
-               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ -> :ok end)
+               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
+                 :ok
+               end)
 
       assert result.text == "---\ntitle: Hi\n---\nHola, mundo."
       assert result.output_path == "docs/i18n/es/guide.md"
@@ -127,10 +133,13 @@ defmodule Glossia.Translations.EngineTest do
 
       stub_stream(fn _account, _payload, _on_event -> translated("still bad") end)
 
-      item = work_item(%{source_abs: source, format: "text", frontmatter_mode: :translate, retries: 1})
+      item =
+        work_item(%{source_abs: source, format: "text", frontmatter_mode: :translate, retries: 1})
 
       assert {:error, {:validation_failed, "nope"}} =
-               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, fn _, _ -> {:error, "nope"} end)
+               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, fn _, _ ->
+                 {:error, "nope"}
+               end)
     end
   end
 end

@@ -56,7 +56,9 @@ defmodule Glossia.Translations.RepositoryRun do
 
     items
     |> Enum.with_index()
-    |> Enum.each(fn {item, index} -> apply_one(session, account, repo_path, item, index, total) end)
+    |> Enum.each(fn {item, index} ->
+      apply_one(session, account, repo_path, item, index, total)
+    end)
 
     collect_changes(repo_path)
   end
@@ -121,7 +123,13 @@ defmodule Glossia.Translations.RepositoryRun do
     end
 
     validate = fn output, source ->
-      Validate.validate_output(repo_path, item.format, output, source, validate_opts(repo_path, item))
+      Validate.validate_output(
+        repo_path,
+        item.format,
+        output,
+        source,
+        validate_opts(repo_path, item)
+      )
     end
 
     case Engine.apply_item(item, account, on_event, validate) do
@@ -146,7 +154,9 @@ defmodule Glossia.Translations.RepositoryRun do
   end
 
   defp write_lock(repo_path, item, provider, hash, text) do
-    lock = Locks.build_lock(provider, item.model || "", item.source_path, item.output_path, text, hash)
+    lock =
+      Locks.build_lock(provider, item.model || "", item.source_path, item.output_path, text, hash)
+
     Locks.write_lock(repo_path, item.source_path, item.locale, lock)
   end
 
@@ -157,7 +167,8 @@ defmodule Glossia.Translations.RepositoryRun do
       check_cmds: item.check_cmds,
       validation: item.validation,
       validation_cwd: validation_cwd(repo_path, item.validation_relative_path),
-      validation_doc_abs: item.validation_relative_path && Path.join(repo_path, item.validation_relative_path),
+      validation_doc_abs:
+        item.validation_relative_path && Path.join(repo_path, item.validation_relative_path),
       source_abs: item.source_abs,
       target_abs: item.output_abs,
       locale: item.locale
@@ -165,7 +176,9 @@ defmodule Glossia.Translations.RepositoryRun do
   end
 
   defp validation_cwd(_repo_path, nil), do: nil
-  defp validation_cwd(repo_path, relative_path), do: Path.dirname(Path.join(repo_path, relative_path))
+
+  defp validation_cwd(repo_path, relative_path),
+    do: Path.dirname(Path.join(repo_path, relative_path))
 
   # ── change collection (git status) ────────────────────────────────────────
 

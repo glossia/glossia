@@ -30,7 +30,9 @@ defmodule Glossia.Translations.CredentialsTest do
     assert cred.auth == {:api_key, "sk-account-key", nil}
   end
 
-  test "falls back to the globally configured inference provider (token + URL)", %{account: account} do
+  test "falls back to the globally configured inference provider (token + URL)", %{
+    account: account
+  } do
     put_config(
       inference_model: "openai:gpt-5",
       inference_api_key: "sk-inference",

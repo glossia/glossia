@@ -19,7 +19,11 @@ defmodule Glossia.TranslationSessions.Progress do
           reason: String.t() | nil
         }
 
-  @type t :: %{total: non_neg_integer(), skipped: non_neg_integer(), items: %{optional(non_neg_integer()) => item()}}
+  @type t :: %{
+          total: non_neg_integer(),
+          skipped: non_neg_integer(),
+          items: %{optional(non_neg_integer()) => item()}
+        }
 
   @doc "An empty progress state."
   def new, do: %{total: 0, skipped: 0, items: %{}}
@@ -82,7 +86,9 @@ defmodule Glossia.TranslationSessions.Progress do
     }
   end
 
-  defp apply_turn(item, %{type: "text", text: text}), do: %{item | text: item.text <> to_string(text)}
+  defp apply_turn(item, %{type: "text", text: text}),
+    do: %{item | text: item.text <> to_string(text)}
+
   defp apply_turn(item, %{type: "turn_start"}), do: %{item | turns: item.turns + 1}
   defp apply_turn(item, _turn), do: item
 

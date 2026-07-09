@@ -12,7 +12,11 @@ defmodule Glossia.Translations.CredentialsSessionTest do
     test "builds an OAuth credential from a valid, unexpired token" do
       future = System.system_time(:millisecond) + 60_000
 
-      assert %{model: "anthropic:claude-haiku-4-5", auth: {:oauth, "tok-abc"}, source: :claude_session} =
+      assert %{
+               model: "anthropic:claude-haiku-4-5",
+               auth: {:oauth, "tok-abc"},
+               source: :claude_session
+             } =
                Credentials.claude_credential(%{"accessToken" => "tok-abc", "expiresAt" => future})
     end
 

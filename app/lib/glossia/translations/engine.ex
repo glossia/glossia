@@ -55,7 +55,8 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp run_attempt(state) do
-    payload = payload(state.work_item, state.content, not is_nil(state.frontmatter), state.last_error)
+    payload =
+      payload(state.work_item, state.content, not is_nil(state.frontmatter), state.last_error)
 
     case Translations.translate_stream(state.account, payload, state.on_event) do
       {:ok, result} ->

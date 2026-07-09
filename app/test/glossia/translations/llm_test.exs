@@ -24,7 +24,12 @@ defmodule Glossia.Translations.LLMTest do
         {:ok, "Hola"}
       end)
 
-      cred = %{model: "anthropic:claude", auth: {:api_key, "sk-test", "https://proxy.test/v1"}, source: :account_model}
+      cred = %{
+        model: "anthropic:claude",
+        auth: {:api_key, "sk-test", "https://proxy.test/v1"},
+        source: :account_model
+      }
+
       assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
     end
 
@@ -34,7 +39,12 @@ defmodule Glossia.Translations.LLMTest do
         {:error, :boom}
       end)
 
-      cred = %{model: "anthropic:claude", auth: {:api_key, "sk-test", nil}, source: :account_model}
+      cred = %{
+        model: "anthropic:claude",
+        auth: {:api_key, "sk-test", nil},
+        source: :account_model
+      }
+
       assert {:error, :boom} = LLM.run(cred, @system, @user)
     end
   end
@@ -51,7 +61,12 @@ defmodule Glossia.Translations.LLMTest do
 
       Mimic.stub(ReqLLM.Response, :text, fn :fake_response -> "Hola, mundo." end)
 
-      cred = %{model: "anthropic:claude-haiku-4-5", auth: {:oauth, "oauth-tok"}, source: :claude_session}
+      cred = %{
+        model: "anthropic:claude-haiku-4-5",
+        auth: {:oauth, "oauth-tok"},
+        source: :claude_session
+      }
+
       assert {:ok, "Hola, mundo."} = LLM.run(cred, @system, @user)
     end
   end
