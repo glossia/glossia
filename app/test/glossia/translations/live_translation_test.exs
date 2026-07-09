@@ -22,7 +22,8 @@ defmodule Glossia.Translations.LiveTranslationTest do
     :ok
   end
 
-  defp git!(root, args), do: {_out, 0} = System.cmd("git", ["-C", root | args], stderr_to_stdout: true)
+  defp git!(root, args),
+    do: {_out, 0} = MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
 
   @tag :tmp_dir
   test "translates a repo end-to-end using the local Claude session", %{tmp_dir: root} do

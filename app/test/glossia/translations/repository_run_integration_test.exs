@@ -15,7 +15,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   alias Glossia.TranslationSessions.TranslationSession
 
   defp git!(root, args) do
-    {_out, 0} = System.cmd("git", ["-C", root | args], stderr_to_stdout: true)
+    {_out, 0} = MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
   end
 
   defp init_repo(root) do
