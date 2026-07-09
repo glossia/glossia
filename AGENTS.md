@@ -130,10 +130,18 @@ We borrow from Atomic Design to keep the stylesheet composable:
 7. **Consistency across surfaces.** A card on the homepage must look and behave the same as a card on the docs page or blog index. If they differ, it should be through an intentional variant, not accidental divergence.
 8. **Responsive design uses the same breakpoints everywhere.** Currently: mobile (< 768px), tablet (768px-960px), desktop (> 960px). Do not introduce new breakpoints without good reason.
 
+### CSS file structure
+
+- `app/assets/css/noora.css` is a thin manifest: it imports tokens plus one file per route and shared component. It must not accumulate component styles inline.
+- Every route and shared component owns its own `#id` and a matching CSS file, and the directory hierarchy mirrors routes and components: shared components under `components/` (e.g. `components/translation-progress.css` for `#translation-progress`), route-specific styles under `routes/`.
+- Scope each file to its `#id` and use native nested CSS (`& [data-part="..."]`, `&[data-status="..."]`) rather than repeating the id selector. esbuild bundles the `@import`s and preserves nesting.
+- Because each block is scoped to a unique `#id`, import order does not affect the cascade.
+
 ### Current state and migration
 
 The current CSS defines a token system in `:root` and shared UI molecules (like `.card`). Some gaps remain:
 
+- `noora.css` still holds most existing styles inline; migrate them into per-route/component files under `components/`/`routes/` incrementally as you touch each surface.
 - Some dashboard/utility "card" surfaces still use bespoke classes instead of `.card` + variants. Migrate incrementally.
 - Some hardcoded pixel values remain for icons and decorative elements. Prefer tokens when possible.
 
