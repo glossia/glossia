@@ -17,7 +17,7 @@
 # Kamal
 /.kamal/secrets
 
-# Dev instance scoping
-.glossia-dev-instance
+# Dev instance scoping (fallback path; normally lives in the git dir)
+/.glossia-dev-instance
 
 /tmp

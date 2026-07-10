@@ -20,8 +20,6 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     environment: production
-    env:
-      GLOSSIA_DEV_INSTANCE: "1"
     permissions:
       contents: read
       packages: write
