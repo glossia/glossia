@@ -8,9 +8,9 @@
 
 If you already have Glossia configured and want to add another target language, follow these steps.
 
-## 1. Update L10N.md
+## 1. Update GLOSSIA.md
 
-Open your `L10N.md` and add the new language code to the `targets` array:
+Open your `GLOSSIA.md` and add the new language code to the `targets` array:
 
 ```yaml
 targets:
@@ -25,7 +25,7 @@ targets:
 If the new language needs special instructions, such as formality level or character set considerations, create a context override file:
 
 ```
-L10N/
+GLOSSIA/
   ja.md
 ```
 

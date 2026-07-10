@@ -9,29 +9,32 @@
 
 ## `glossia init`
 
-Create a starter `L10N.md` configuration file and local `glossia.toml` runtime config in the current repository.
+Create a starter `GLOSSIA.md` configuration file and local `glossia.toml` runtime config in the current repository.
 
 ```bash
 glossia init
 ```
 
-Fails if `L10N.md` already exists.
+Fails if `GLOSSIA.md` already exists.
 
-## `glossia translate`
+## Translation is server-side
 
-Run translation for all configured source mappings.
+Translation runs on the Glossia server, not in the CLI. When a commit lands,
+Glossia plans the work from your `GLOSSIA.md` files, translates each file with
+your account's configured model, and opens a pull request with the results — you
+can watch each file and the model's turns live on the translation session page.
 
-```bash
-glossia translate [OPTIONS]
-```
+The model is chosen per document: a `GLOSSIA.md` `model:` naming one of your
+account model handles selects it; otherwise your account's default model is used.
 
-| Flag | Description |
-|---|---|
-| `--force` | Re-translate all files, ignoring hashes |
-| `--retries <N>` | Override retry count |
-| `--dry-run` | Show what would be translated without doing it |
-| `--check-cmd <CMD>` | Override the validation command |
-| `--locale <LOCALE>` | Translate one target locale |
+The translation credential resolves in this order: the account model's own API
+key, then a globally configured inference provider (`GLOSSIA_TRANSLATION_API_KEY`
++ `GLOSSIA_TRANSLATION_BASE_URL` + `GLOSSIA_TRANSLATION_MODEL`), and — in
+development only — your local Claude Code or Codex CLI session (whichever is
+valid), so you can run real translations locally without configuring a key.
+
+The CLI's `init`, `check`, `status`, and `clean` commands remain for local
+inspection.
 
 ## `glossia revisit`
 

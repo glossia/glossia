@@ -12,7 +12,7 @@ normative contract for each shape is the corresponding JSON Schema in
 
 ### 3.1 General Requirements {:#general:}
 
-An L10N document <span class="kw">MUST</span> be a Markdown file. It
+A Glossia document <span class="kw">MUST</span> be a Markdown file. It
 <span class="kw">MAY</span> begin with a frontmatter block; the content after the
 frontmatter is the body. Either side <span class="kw">MAY</span> be empty: the body
 <span class="kw">MAY</span> be empty when the frontmatter is sufficient on its own, and
@@ -31,7 +31,7 @@ keys are present.
 ### 3.2 Root Document {:#root:}
 
 A repository <span class="kw">MAY</span> contain a root document. When present, its path
-<span class="kw">MUST</span> be exactly <code>L10N.md</code> at the repository root. It
+<span class="kw">MUST</span> be exactly <code>GLOSSIA.md</code> at the repository root. It
 <span class="kw">MUST</span> declare <code>source_language</code> as a locale identifier,
 and <span class="kw">MAY</span> provide a body giving repository-wide guidance such as
 tone, brand terminology, and formatting rules. A root document
@@ -45,9 +45,9 @@ appears in [Appendix A.1](#example-root) and a single-file repository example in
 
 ### 3.3 Scoped Document {:#doc-scoped:}
 
-A scoped document is an <code>L10N.md</code> located in a directory other than the
+A scoped document is an <code>GLOSSIA.md</code> located in a directory other than the
 repository root. Its path <span class="kw">MUST</span> match
-<code>^(?!L10N\.md$).+/L10N\.md$</code>. A scoped document <span class="kw">MAY</span>
+<code>^(?!GLOSSIA\.md$).+/GLOSSIA\.md$</code>. A scoped document <span class="kw">MAY</span>
 declare workflow frontmatter: <code>validation</code> (an array of non-empty strings),
 <code>sources</code> (a mapping of one or more source patterns to target path
 templates), and <code>targets</code> (an array of one or more locale identifiers).
@@ -63,7 +63,7 @@ appears in [Appendix A.3](#example-scoped).
 ### 3.4 Locale Overlay {:#doc-locale:}
 
 A locale overlay is a Markdown file whose path <span class="kw">MUST</span> match
-<code>^(?:.+/)?L10N/[A-Za-z0-9_-]+\.md$</code>. It <span class="kw">MAY</span> provide
+<code>^(?:.+/)?GLOSSIA/[A-Za-z0-9_-]+\.md$</code>. It <span class="kw">MAY</span> provide
 a body and <span class="kw">MAY</span> declare <code>locale</code> as a locale
 identifier; when <code>locale</code> is omitted, the locale
 <span class="kw">SHOULD</span> be inferred from the file name. An overlay refines

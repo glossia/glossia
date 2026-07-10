@@ -19,7 +19,11 @@ pub struct TranslationPlan {
     pub items: Vec<WorkItem>,
 }
 
+// The translate command moved server-side; the remaining commands (status,
+// check, clean) read a subset of these fields, and the context accessors below
+// are exercised by the planner tests, so keep the full planning model.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct WorkItem {
     pub source_abs: PathBuf,
     pub source_path: String,
@@ -50,10 +54,12 @@ impl WorkItem {
         )
     }
 
+    #[allow(dead_code)]
     pub fn context_body(&self) -> String {
         scope_content(&self.context_snapshots, "project_context")
     }
 
+    #[allow(dead_code)]
     pub fn locale_override_body(&self) -> String {
         scope_content(&self.context_snapshots, "locale_override")
     }
@@ -84,7 +90,7 @@ pub fn build_plan(
                 let pattern_base = glob_base(&source.pattern);
                 let matches = glob_files(&source.pattern, &file_list)?;
                 for matched in matches {
-                    if is_l10n_document(&matched) || excludes.contains(&matched) {
+                    if is_glossia_document(&matched) || excludes.contains(&matched) {
                         continue;
                     }
 
@@ -203,11 +209,11 @@ fn collect_excludes(patterns: &[String], file_list: &[String]) -> Result<Vec<Str
     Ok(excluded)
 }
 
-fn is_l10n_document(relative_path: &str) -> bool {
-    relative_path == "L10N.md"
-        || relative_path.ends_with("/L10N.md")
-        || relative_path.starts_with("L10N/")
-        || relative_path.contains("/L10N/")
+fn is_glossia_document(relative_path: &str) -> bool {
+    relative_path == "GLOSSIA.md"
+        || relative_path.ends_with("/GLOSSIA.md")
+        || relative_path.starts_with("GLOSSIA/")
+        || relative_path.contains("/GLOSSIA/")
 }
 
 fn relative_to_glob_base(
@@ -242,6 +248,7 @@ fn llm_for_locale(
     LlmConfig::from_frontmatter(&frontmatter, &runtime.llm)
 }
 
+#[allow(dead_code)]
 fn scope_content(snapshots: &[ContextSnapshot], scope: &str) -> String {
     snapshots
         .iter()
@@ -268,7 +275,7 @@ mod tests {
     fn target_path_uses_path_relative_to_glob_base() {
         let root = tempfile::tempdir().unwrap();
         fs::write(
-            root.path().join("L10N.md"),
+            root.path().join("GLOSSIA.md"),
             r#"---
 source_language: en
 model: openai/gpt-5
@@ -294,7 +301,7 @@ Global context
     fn resolves_context_per_matched_source_directory() {
         let root = tempfile::tempdir().unwrap();
         fs::write(
-            root.path().join("L10N.md"),
+            root.path().join("GLOSSIA.md"),
             r#"---
 source_language: en
 model: gpt-5
@@ -307,10 +314,14 @@ Root context
 "#,
         )
         .unwrap();
-        fs::create_dir_all(root.path().join("docs").join("admin").join("L10N")).unwrap();
-        fs::write(root.path().join("docs").join("L10N.md"), "Docs context\n").unwrap();
+        fs::create_dir_all(root.path().join("docs").join("admin").join("GLOSSIA")).unwrap();
         fs::write(
-            root.path().join("docs").join("admin").join("L10N.md"),
+            root.path().join("docs").join("GLOSSIA.md"),
+            "Docs context\n",
+        )
+        .unwrap();
+        fs::write(
+            root.path().join("docs").join("admin").join("GLOSSIA.md"),
             "Admin context\n",
         )
         .unwrap();
@@ -318,7 +329,7 @@ Root context
             root.path()
                 .join("docs")
                 .join("admin")
-                .join("L10N")
+                .join("GLOSSIA")
                 .join("es.md"),
             "---\nmodel: gpt-5-mini\n---\nAdmin Spanish\n",
         )
@@ -357,7 +368,7 @@ Root context
     fn scope_content_joins_matching_snapshots_only() {
         let snapshots = vec![
             ContextSnapshot {
-                provider: "local_l10n".into(),
+                provider: "local_glossia".into(),
                 scope: "project_context".into(),
                 request_fingerprint: "a".into(),
                 snapshot_id: None,
@@ -366,7 +377,7 @@ Root context
                 entries: Vec::new(),
             },
             ContextSnapshot {
-                provider: "local_l10n".into(),
+                provider: "local_glossia".into(),
                 scope: "locale_override".into(),
                 request_fingerprint: "b".into(),
                 snapshot_id: None,
@@ -426,7 +437,7 @@ Root context
             llm,
             context_snapshots: vec![
                 ContextSnapshot {
-                    provider: "local_l10n".into(),
+                    provider: "local_glossia".into(),
                     scope: "project_context".into(),
                     request_fingerprint: "a".into(),
                     snapshot_id: None,
@@ -435,7 +446,7 @@ Root context
                     entries: Vec::new(),
                 },
                 ContextSnapshot {
-                    provider: "local_l10n".into(),
+                    provider: "local_glossia".into(),
                     scope: "locale_override".into(),
                     request_fingerprint: "b".into(),
                     snapshot_id: None,

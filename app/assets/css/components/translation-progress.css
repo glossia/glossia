@@ -1,0 +1,115 @@
+/* Translation session live progress panel.
+ * Rendered by GlossiaWeb dashboard_live's translation_progress_panel/1. */
+#translation-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  & [data-part="summary"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  & [data-part="running"] {
+    color: var(--color-primary);
+  }
+
+  & [data-part="failed"] {
+    color: var(--color-error);
+  }
+
+  & [data-part="skipped"] {
+    color: var(--color-text-muted);
+  }
+
+  & [data-part="items"] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  & [data-part="item"] {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    padding: 12px 14px;
+
+    &[data-status="running"] {
+      border-color: var(--color-primary);
+    }
+
+    &[data-status="failed"] {
+      border-color: var(--color-error);
+    }
+
+    &[data-status="done"] [data-part="status"] {
+      color: var(--color-success);
+    }
+
+    &[data-status="failed"] [data-part="status"] {
+      color: var(--color-error);
+    }
+  }
+
+  & [data-part="item-header"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 13px;
+  }
+
+  & [data-part="status"] {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  & [data-part="path"] {
+    font-family: var(--font-family-mono);
+    color: var(--color-text);
+  }
+
+  & [data-part="locale"] {
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  & [data-part="turns"] {
+    margin-left: auto;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+
+  & [data-part="reason"] {
+    margin: 8px 0 0;
+    color: var(--color-error);
+    font-size: 13px;
+  }
+
+  & [data-part="stream"] {
+    margin: 8px 0 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+}

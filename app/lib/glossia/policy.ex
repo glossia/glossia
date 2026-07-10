@@ -206,6 +206,15 @@ defmodule Glossia.Policy do
     end
   end
 
+  object :translation do
+    action :write do
+      deny(:no_access)
+      allow(:account_owner)
+      allow(:organization_admin)
+      allow(:organization_member)
+    end
+  end
+
   object :api_credentials do
     action :read do
       allow(:super_admin)

@@ -9,7 +9,7 @@ title: Flujo de validación
 
 <p class="note">This section is informative.</p>
 
-An L10N document <span class="kw">MAY</span> declare <code>validation</code> in its
+A Glossia document <span class="kw">MAY</span> declare <code>validation</code> in its
 frontmatter to specify a command the translation tool runs after translation is
 complete. The typical use is for developers to provide a script that checks the
 LLM-generated translation against project-specific rules (length limits, glossary
@@ -19,7 +19,7 @@ The <code>validation</code> value <span class="kw">MUST</span> be an array of no
 strings. The first element is the command; subsequent elements are its arguments. The
 shell is not involved — the array elements map directly to OS-level
 <code>exec</code> arguments. The translation tool <span class="kw">MUST</span> execute
-the command with the directory containing the L10N.md document that declared the
+the command with the directory containing the GLOSSIA.md document that declared the
 <code>validation</code> as the working directory, or document a different
 default.
 
@@ -27,10 +27,10 @@ Before execution, the tool <span class="kw">MUST</span> set the following enviro
 variables:
 
 <ul>
-  <li><code>L10N_SOURCE_PATH</code> — absolute path to the source file</li>
-  <li><code>L10N_TARGET_PATH</code> — absolute path to the translated output file</li>
-  <li><code>L10N_LOCALE</code> — the target locale identifier (e.g. <code>es</code>, <code>ja</code>)</li>
-  <li><code>L10N_DOC_PATH</code> — absolute path to the L10N.md document whose
+  <li><code>GLOSSIA_SOURCE_PATH</code> — absolute path to the source file</li>
+  <li><code>GLOSSIA_TARGET_PATH</code> — absolute path to the translated output file</li>
+  <li><code>GLOSSIA_LOCALE</code> — the target locale identifier (e.g. <code>es</code>, <code>ja</code>)</li>
+  <li><code>GLOSSIA_DOC_PATH</code> — absolute path to the GLOSSIA.md document whose
   <code>validation</code> triggered the command</li>
 </ul>
 

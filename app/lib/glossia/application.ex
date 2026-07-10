@@ -32,60 +32,64 @@ defmodule Glossia.Application do
   end
 
   defp parent_children do
-    children = [
-      Glossia.Vault,
-      {Finch, name: Glossia.Finch},
-      Glossia.PromEx,
-      GlossiaWeb.Telemetry,
-      Glossia.Repo,
-      Glossia.ClickHouseRepo,
-      Glossia.IngestRepo,
-      {Oban, Application.fetch_env!(:glossia, Oban)},
-      {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Glossia.PubSub},
-      Glossia.Sandbox.ProcessRegistry,
-      Glossia.Sandbox.Reaper,
-      # Start a worker by calling: Glossia.Worker.start_link(arg)
-      # {Glossia.Worker, arg},
-      Glossia.RateLimiter,
-      Hermes.Server.Registry,
-      %{
-        id: Glossia.MCP.Server,
-        start:
-          {Hermes.Server.Supervisor, :start_link,
-           [Glossia.MCP.Server, [transport: :streamable_http]]}
-      },
-      %{
-        id: Glossia.Admin.MCP.Server,
-        start:
-          {Hermes.Server.Supervisor, :start_link,
-           [Glossia.Admin.MCP.Server, [transport: :streamable_http]]}
-      },
-      {Glossia.Ingestion.Buffer,
-       [name: Glossia.Ingestion.EventBuffer] ++
-         (Glossia.Ingestion.Event.buffer_opts()
-          |> Map.take([:insert_sql, :insert_opts, :header])
-          |> Map.to_list())},
-      Supervisor.child_spec(
+    children =
+      [
+        Glossia.Vault,
+        {Finch, name: Glossia.Finch},
+        Glossia.PromEx,
+        GlossiaWeb.Telemetry,
+        Glossia.Repo,
+        Glossia.ClickHouseRepo,
+        Glossia.IngestRepo,
+        {Oban, Application.fetch_env!(:glossia, Oban)},
+        {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
+        {Phoenix.PubSub, name: Glossia.PubSub},
+        Glossia.Sandbox.ProcessRegistry,
+        Glossia.Sandbox.Reaper,
+        # Start a worker by calling: Glossia.Worker.start_link(arg)
+        # {Glossia.Worker, arg},
+        Glossia.RateLimiter,
+        Hermes.Server.Registry,
+        %{
+          id: Glossia.MCP.Server,
+          start:
+            {Hermes.Server.Supervisor, :start_link,
+             [Glossia.MCP.Server, [transport: :streamable_http]]}
+        },
+        %{
+          id: Glossia.Admin.MCP.Server,
+          start:
+            {Hermes.Server.Supervisor, :start_link,
+             [Glossia.Admin.MCP.Server, [transport: :streamable_http]]}
+        },
         {Glossia.Ingestion.Buffer,
-         [name: Glossia.Ingestion.SetupEventBuffer, flush_interval_ms: 1_000] ++
-           (Glossia.Ingestion.SetupEvent.buffer_opts()
+         [name: Glossia.Ingestion.EventBuffer] ++
+           (Glossia.Ingestion.Event.buffer_opts()
             |> Map.take([:insert_sql, :insert_opts, :header])
             |> Map.to_list())},
-        id: Glossia.Ingestion.SetupEventBuffer
-      ),
-      Supervisor.child_spec(
-        {Glossia.Ingestion.Buffer,
-         [name: Glossia.Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
-           (Glossia.Ingestion.TranslationSessionEvent.buffer_opts()
-            |> Map.take([:insert_sql, :insert_opts, :header])
-            |> Map.to_list())},
-        id: Glossia.Ingestion.TranslationSessionEventBuffer
-      ),
-      Glossia.Flame.pool_child_spec(),
-      # Start to serve requests, typically the last entry
-      GlossiaWeb.Endpoint
-    ]
+        Supervisor.child_spec(
+          {Glossia.Ingestion.Buffer,
+           [name: Glossia.Ingestion.SetupEventBuffer, flush_interval_ms: 1_000] ++
+             (Glossia.Ingestion.SetupEvent.buffer_opts()
+              |> Map.take([:insert_sql, :insert_opts, :header])
+              |> Map.to_list())},
+          id: Glossia.Ingestion.SetupEventBuffer
+        ),
+        Supervisor.child_spec(
+          {Glossia.Ingestion.Buffer,
+           [name: Glossia.Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
+             (Glossia.Ingestion.TranslationSessionEvent.buffer_opts()
+              |> Map.take([:insert_sql, :insert_opts, :header])
+              |> Map.to_list())},
+          id: Glossia.Ingestion.TranslationSessionEventBuffer
+        )
+      ] ++
+        setup_recovery_children() ++
+        [
+          Glossia.Flame.pool_child_spec(),
+          # Start to serve requests, typically the last entry
+          GlossiaWeb.Endpoint
+        ]
 
     children =
       if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
@@ -100,6 +104,14 @@ defmodule Glossia.Application do
       end
 
     children
+  end
+
+  defp setup_recovery_children do
+    if Application.get_env(:glossia, Glossia.Projects.SetupRecovery, [])[:enabled] == false do
+      []
+    else
+      [Glossia.Projects.SetupRecovery]
+    end
   end
 
   defp flame_child_children do

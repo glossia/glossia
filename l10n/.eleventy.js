@@ -26,7 +26,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "site/assets/apple-touch-icon.png": "apple-touch-icon.png" });
   eleventyConfig.addPassthroughCopy({ schemas: "schemas" });
   eleventyConfig.addPassthroughCopy({ examples: "examples" });
-  eleventyConfig.addPassthroughCopy({ "L10N.md": "L10N.md" });
+  eleventyConfig.addPassthroughCopy({ "GLOSSIA.md": "GLOSSIA.md" });
 
   eleventyConfig.addFilter("prettyJson", (value) => JSON.stringify(value, null, 2));
   eleventyConfig.addFilter("markdownify", (value) => md.render(value || ""));

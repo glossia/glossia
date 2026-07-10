@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "app/**"
+      - "cli/**"
       - "deploy/helm/glossia/**"
       - "deploy/values-production.yaml"
       - "infra/helm/platform/**"
@@ -64,6 +65,8 @@ jobs:
         with:
           context: app
           file: app/Dockerfile
+          build-contexts: |
+            cli=./cli
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.sha }}

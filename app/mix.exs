@@ -98,6 +98,9 @@ defmodule Glossia.MixProject do
       {:mimic, "~> 1.10", only: :test},
       {:muontrap, "~> 1.5"},
       {:req_llm, "~> 1.9"},
+      {:condukt, "~> 1.5"},
+      {:yaml_elixir, "~> 2.12"},
+      {:toml, "~> 0.7"},
       {:noora, "~> 0.81"},
       {:cloak_ecto, "~> 1.3"},
       {:cloak, "~> 1.1"}

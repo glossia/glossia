@@ -82,6 +82,14 @@ defmodule Glossia.TranslationSessions do
     session
     |> Ecto.Changeset.change(changes)
     |> Repo.update()
+    |> case do
+      {:ok, updated_session} ->
+        broadcast_session_status(updated_session, status)
+        {:ok, updated_session}
+
+      error ->
+        error
+    end
   end
 
   def subscribe_session_events(%TranslationSession{id: id}) do
@@ -93,6 +101,14 @@ defmodule Glossia.TranslationSessions do
       Glossia.PubSub,
       "translation_session:#{id}",
       {:translation_session_event, event}
+    )
+  end
+
+  def broadcast_session_status(%TranslationSession{id: id}, status) do
+    Phoenix.PubSub.broadcast(
+      Glossia.PubSub,
+      "translation_session:#{id}",
+      {:translation_session_status, status}
     )
   end
 end

@@ -7,7 +7,7 @@ label: 本書のステータス
 
 <p class="note">[翻訳作業中。] 翻訳が完了するまで、英語版が正本となります。</p>
 
-This is version {{ spec.version }} of the L10N.md standard and is considered
+This is version {{ spec.version }} of the GLOSSIA.md standard and is considered
 {{ site.spec.status | lower }}. Sections are normative unless explicitly marked
 Informative. A future version may add fields or tighten rules; such changes require a
 version increment and a new schema directory and will not silently change the editing

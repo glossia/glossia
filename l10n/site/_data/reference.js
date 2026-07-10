@@ -7,22 +7,22 @@ const referenceRoot = path.join(rootDir, "site", "_reference");
 
 async function readReferenceSet(versionRoot) {
   return {
-    standard: await fs.readFile(path.join(versionRoot, "L10N.md"), "utf8"),
+    standard: await fs.readFile(path.join(versionRoot, "GLOSSIA.md"), "utf8"),
     examples: {
       singleRepo: await fs.readFile(
-        path.join(versionRoot, "examples", "single-repo", "L10N.md"),
+        path.join(versionRoot, "examples", "single-repo", "GLOSSIA.md"),
         "utf8",
       ),
       scoped: await fs.readFile(
-        path.join(versionRoot, "examples", "app", "L10N.md"),
+        path.join(versionRoot, "examples", "app", "GLOSSIA.md"),
         "utf8",
       ),
       es: await fs.readFile(
-        path.join(versionRoot, "examples", "app", "L10N", "es.md"),
+        path.join(versionRoot, "examples", "app", "GLOSSIA", "es.md"),
         "utf8",
       ),
       ja: await fs.readFile(
-        path.join(versionRoot, "examples", "app", "L10N", "ja.md"),
+        path.join(versionRoot, "examples", "app", "GLOSSIA", "ja.md"),
         "utf8",
       ),
     },

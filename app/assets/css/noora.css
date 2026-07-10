@@ -1,5 +1,11 @@
 @import "noora/noora.css";
 
+/* Route and shared-component styles. Each route/shared component owns its own
+ * #id and CSS file (nested CSS) under routes/ or components/, imported here so
+ * this file stays a thin manifest rather than a monolith. Because each block is
+ * scoped to a unique #id, import order does not affect the cascade. */
+@import "./components/translation-progress.css";
+
 @font-face {
   font-family: "Inter Variable";
   src: url("/fonts/inter.woff2") format("woff2");

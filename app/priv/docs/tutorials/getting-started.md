@@ -39,17 +39,17 @@ mise install
 
 ## Initialize your project
 
-Run the init command to set up an `L10N.md` configuration file:
+Run the init command to set up a `GLOSSIA.md` configuration file:
 
 ```bash
 mise exec -- glossia init
 ```
 
-This writes a starter `L10N.md` at the project root and creates `glossia.toml` for local provider settings when it does not already exist.
+This writes a starter `GLOSSIA.md` at the project root and creates `glossia.toml` for local provider settings when it does not already exist.
 
 ## Run your first translation
 
-Once `L10N.md` is in place, translate your content:
+Once `GLOSSIA.md` is in place, translate your content:
 
 ```bash
 mise exec -- glossia translate

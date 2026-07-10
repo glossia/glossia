@@ -133,17 +133,21 @@ defmodule Glossia.Sandbox.MicrosandboxAdapter do
   end
 
   defp run_agent_session(sandbox_id, caller, opts) do
-    with {:ok, repo_path} <- repo_path(sandbox_id),
-         config_json <- Keyword.fetch!(opts, :config_json),
-         config_path <- Path.join(Path.dirname(repo_path), "glossia-setup.json"),
-         :ok <- upload_file(sandbox_id, config_path, config_json),
-         command <- agent_command(opts, config_path),
-         {:ok, result} <-
-           execute_shell(sandbox_id, command, timeout_ms: Keyword.get(opts, :timeout_ms, 660_000)) do
-      status = if result["exitCode"] == 0, do: :completed, else: :failed
-      send(caller, {:agent_done, status})
-    else
-      _error -> send(caller, {:agent_done, :failed})
+    {:ok, repo_path} = repo_path(sandbox_id)
+
+    callbacks = %{
+      execute_shell: fn command, command_opts ->
+        execute_shell(sandbox_id, command, command_opts)
+      end,
+      upload_file: fn path, content -> upload_file(sandbox_id, path, content) end,
+      download_file: fn path -> download_file(sandbox_id, path) end
+    }
+
+    opts = Keyword.put(opts, :repo_path, repo_path)
+
+    case Glossia.Projects.SetupHarness.run(callbacks, caller, opts) do
+      :ok -> send(caller, {:agent_done, :completed})
+      {:error, _reason} -> send(caller, {:agent_done, :failed})
     end
   end
 
@@ -155,27 +159,6 @@ defmodule Glossia.Sandbox.MicrosandboxAdapter do
     else
       {:ok, result} -> {:error, {:repo_path_failed, result}}
     end
-  end
-
-  defp agent_command(opts, config_path) do
-    server_url = Keyword.fetch!(opts, :server_url)
-    project_id = Keyword.fetch!(opts, :project_id)
-    session_token = Keyword.fetch!(opts, :session_token)
-    script_url = URI.merge(server_url, "/agent/scripts/mod.ts") |> to_string()
-    deno = configured(:microsandbox_deno_command, "deno")
-
-    [
-      deno,
-      "run",
-      "--allow-all",
-      script_url,
-      "--server-url=#{server_url}",
-      "--token=#{session_token}",
-      "--project-id=#{project_id}",
-      "--config-path=#{config_path}"
-    ]
-    |> Enum.map(&shell_quote/1)
-    |> Enum.join(" ")
   end
 
   defp exec_opts(opts) do

@@ -27,10 +27,6 @@ impl Format {
             _ => Self::Text,
         }
     }
-
-    pub fn is_structured(self) -> bool {
-        matches!(self, Self::JSON | Self::YAML | Self::PO)
-    }
 }
 
 impl std::fmt::Display for Format {

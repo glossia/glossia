@@ -3,7 +3,6 @@ use anyhow::{anyhow, Result};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Command {
     Init,
-    Translate,
     Revisit,
     Check,
     Status,
@@ -94,7 +93,6 @@ fn contains_help(argv: &[String]) -> bool {
 fn parse_command(value: &str) -> Result<Command> {
     match value {
         "init" => Ok(Command::Init),
-        "translate" => Ok(Command::Translate),
         "revisit" => Ok(Command::Revisit),
         "check" => Ok(Command::Check),
         "status" => Ok(Command::Status),

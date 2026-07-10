@@ -15,11 +15,11 @@
 
 ## How revisioning works
 
-The agent reads your source files and the context graph, merging local instructions (`L10N.md` files at the root or in subdirectories) with remote context (your account-level voice, terminology, and style settings). With the full picture assembled, it rewrites content for clarity, accuracy, and tone, then outputs the revised version ready for review.
+The agent reads your source files and the context graph, merging local instructions (`GLOSSIA.md` files at the root or in subdirectories) with remote context (your account-level voice, terminology, and style settings). With the full picture assembled, it rewrites content for clarity, accuracy, and tone, then outputs the revised version ready for review.
 
 ## Context graph
 
-Context in Glossia is a graph that spans your account and your repository. Account-level settings like voice and terminology provide a global baseline, while `L10N.md` files placed alongside your content add local overrides. The agent resolves this graph on every run, so your instructions stay consistent across files without repeating yourself. Reviews are incremental thanks to lockfiles that track what has already been processed, so only changed or new content gets revisited.
+Context in Glossia is a graph that spans your account and your repository. Account-level settings like voice and terminology provide a global baseline, while `GLOSSIA.md` files placed alongside your content add local overrides. The agent resolves this graph on every run, so your instructions stay consistent across files without repeating yourself. Reviews are incremental thanks to lockfiles that track what has already been processed, so only changed or new content gets revisited.
 
 ## Progressive refinement
 

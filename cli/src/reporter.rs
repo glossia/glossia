@@ -3,7 +3,6 @@ use std::io::{self, IsTerminal, Write};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verb {
-    Translating,
     Validating,
     Ok,
     Stale,
@@ -13,14 +12,11 @@ pub enum Verb {
     Cleaned,
     Created,
     Summary,
-    Info,
-    DryRun,
 }
 
 impl fmt::Display for Verb {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = match self {
-            Self::Translating => "Translating",
             Self::Validating => "Validating",
             Self::Ok => "Ok",
             Self::Stale => "Stale",
@@ -30,8 +26,6 @@ impl fmt::Display for Verb {
             Self::Cleaned => "Cleaned",
             Self::Created => "Created",
             Self::Summary => "Summary",
-            Self::Info => "Info",
-            Self::DryRun => "Dry run",
         };
         write!(f, "{label}")
     }
@@ -63,10 +57,10 @@ impl ConsoleReporter {
 
         match verb {
             Verb::Ok | Verb::Removed | Verb::Cleaned | Verb::Created => "\u{001b}[1m\u{001b}[32m",
-            Verb::Translating | Verb::Validating => "\u{001b}[1m\u{001b}[36m",
-            Verb::Stale | Verb::Skipped | Verb::DryRun => "\u{001b}[1m\u{001b}[33m",
+            Verb::Validating => "\u{001b}[1m\u{001b}[36m",
+            Verb::Stale | Verb::Skipped => "\u{001b}[1m\u{001b}[33m",
             Verb::Missing => "\u{001b}[1m\u{001b}[31m",
-            Verb::Summary | Verb::Info => "\u{001b}[1m\u{001b}[37m",
+            Verb::Summary => "\u{001b}[1m\u{001b}[37m",
         }
     }
 

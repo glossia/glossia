@@ -1,10 +1,10 @@
 defmodule Glossia.Github.Client do
   @moduledoc false
 
-  @github_api_url "https://api.github.com"
+  @default_github_api_url "https://api.github.com"
 
   def list_installation_repos(access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
     per_page = Keyword.get(opts, :per_page, 100)
     page = Keyword.get(opts, :page, 1)
 
@@ -21,7 +21,7 @@ defmodule Glossia.Github.Client do
   end
 
   def list_user_repos(access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
     per_page = Keyword.get(opts, :per_page, 100)
     page = Keyword.get(opts, :page, 1)
     sort = Keyword.get(opts, :sort, "pushed")
@@ -39,7 +39,7 @@ defmodule Glossia.Github.Client do
   end
 
   def get_repo(full_name, access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
 
     case api_get("#{api_url}/repos/#{full_name}", access_token) do
       {:ok, repo} -> {:ok, repo}
@@ -48,27 +48,62 @@ defmodule Glossia.Github.Client do
   end
 
   def create_pull_request(full_name, params, access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
     url = "#{api_url}/repos/#{full_name}/pulls"
 
     api_post(url, params, access_token)
   end
 
   def create_branch(full_name, branch_name, sha, access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
     url = "#{api_url}/repos/#{full_name}/git/refs"
 
     api_post(url, %{ref: "refs/heads/#{branch_name}", sha: sha}, access_token)
   end
 
   def get_ref(full_name, ref, access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
 
     api_get("#{api_url}/repos/#{full_name}/git/ref/#{ref}", access_token)
   end
 
+  def update_ref(full_name, ref, sha, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    force = Keyword.get(opts, :force, false)
+    url = "#{api_url}/repos/#{full_name}/git/refs/#{ref}"
+
+    api_patch(url, %{sha: sha, force: force}, access_token)
+  end
+
+  def get_commit(full_name, sha, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+
+    api_get("#{api_url}/repos/#{full_name}/git/commits/#{sha}", access_token)
+  end
+
+  def create_blob(full_name, params, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    url = "#{api_url}/repos/#{full_name}/git/blobs"
+
+    api_post(url, params, access_token)
+  end
+
+  def create_tree(full_name, params, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    url = "#{api_url}/repos/#{full_name}/git/trees"
+
+    api_post(url, params, access_token)
+  end
+
+  def create_commit(full_name, params, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    url = "#{api_url}/repos/#{full_name}/git/commits"
+
+    api_post(url, params, access_token)
+  end
+
   def list_commits(full_name, access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
     per_page = Keyword.get(opts, :per_page, 30)
     page = Keyword.get(opts, :page, 1)
     sha = Keyword.get(opts, :sha, nil)
@@ -80,7 +115,7 @@ defmodule Glossia.Github.Client do
   end
 
   def create_or_update_file(full_name, path, params, access_token, opts \\ []) do
-    api_url = Keyword.get(opts, :api_url, @github_api_url)
+    api_url = github_api_url(opts)
     url = "#{api_url}/repos/#{full_name}/contents/#{path}"
 
     api_put(url, params, access_token)
@@ -128,11 +163,33 @@ defmodule Glossia.Github.Client do
     end
   end
 
+  defp api_patch(url, body, access_token) do
+    case Glossia.HTTP.new()
+         |> Req.patch(url: url, json: body, headers: headers(access_token)) do
+      {:ok, %Req.Response{status: status, body: resp_body}} when status in 200..299 ->
+        {:ok, resp_body}
+
+      {:ok, %Req.Response{status: status, body: resp_body}} ->
+        {:error, {:api_error, status, resp_body}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   defp headers(access_token) do
     [
       {"authorization", "token #{access_token}"},
       {"accept", "application/vnd.github+json"},
       {"x-github-api-version", "2022-11-28"}
     ]
+  end
+
+  defp github_api_url(opts) do
+    config = Application.get_env(:glossia, __MODULE__, [])
+
+    opts
+    |> Keyword.get(:api_url, config[:api_url] || @default_github_api_url)
+    |> String.trim_trailing("/")
   end
 end

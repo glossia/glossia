@@ -103,4 +103,12 @@ defmodule Glossia.Ingestion do
     )
     |> ClickHouseRepo.all()
   end
+
+  def max_translation_session_event_sequence(session_id) do
+    from(e in "translation_session_events",
+      where: e.session_id == ^to_string(session_id),
+      select: max(e.sequence)
+    )
+    |> ClickHouseRepo.one() || 0
+  end
 end
