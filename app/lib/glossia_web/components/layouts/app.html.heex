@@ -31,7 +31,7 @@
           </ul>
         </div>
       <% else %>
-        <a href={~p"/interest"}>{gettext("Get started")}</a>
+        <a href={~p"/signup"}>{gettext("Get started")}</a>
         <a href={~p"/auth/login"}>{gettext("Log in")}</a>
       <% end %>
     </nav>
@@ -81,7 +81,7 @@
     <a href={~p"/dashboard"}>{gettext("Your profile")}</a>
     <a href={~p"/auth/logout"} data-method="delete">{gettext("Log out")}</a>
   <% else %>
-    <a href={~p"/interest"}>{gettext("Get started")}</a>
+    <a href={~p"/signup"}>{gettext("Get started")}</a>
     <a href={~p"/auth/login"}>{gettext("Log in")}</a>
   <% end %>
 </nav>

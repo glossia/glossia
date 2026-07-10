@@ -100,6 +100,12 @@ defmodule GlossiaWeb.Router do
     get "/:provider/callback", AuthController, :callback
   end
 
+  scope "/", GlossiaWeb do
+    pipe_through :browser
+
+    get "/signup", AuthController, :signup
+  end
+
   if Application.compile_env(:glossia, :dev_routes) do
     scope "/auth", GlossiaWeb do
       pipe_through :browser
@@ -347,7 +353,7 @@ defmodule GlossiaWeb.Router do
 
   # Authenticated dashboard redirect
   scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_auth, :require_access]
+    pipe_through [:browser, :require_auth]
 
     get "/dashboard", DashboardController, :index
   end

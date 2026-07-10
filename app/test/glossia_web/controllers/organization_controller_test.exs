@@ -66,7 +66,7 @@ defmodule GlossiaWeb.OrganizationControllerTest do
           "account" => %{"handle" => "blocked-org", "name" => "Blocked Org"}
         })
 
-      assert redirected_to(conn) == "/interest"
+      assert redirected_to(conn) == "/dashboard"
       refute Repo.get_by(Accounts.Account, handle: "blocked-org")
     end
   end

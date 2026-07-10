@@ -13,7 +13,6 @@ defmodule Glossia.Accounts do
 
   import Ecto.Query
 
-  @dev_env Mix.env() == :dev
   @personal_organization_name "Personal"
 
   # ----------------------------------------------------------------------------
@@ -138,7 +137,7 @@ defmodule Glossia.Accounts do
         user_info["preferred_username"] || user_info["nickname"] || user_info["name"]
       )
 
-    account_attrs = %{handle: handle, type: "user", has_access: @dev_env}
+    account_attrs = %{handle: handle, type: "user", has_access: true}
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, account_attrs))
@@ -147,7 +146,8 @@ defmodule Glossia.Accounts do
       |> User.changeset(%{
         email: user_info["email"],
         name: user_info["name"],
-        avatar_url: user_info["picture"]
+        avatar_url: user_info["picture"],
+        has_access: true
       })
     end)
     |> Ecto.Multi.insert(:organization, fn %{account: account} ->

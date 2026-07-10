@@ -19,7 +19,7 @@ defmodule GlossiaWeb.PageControllerTest do
     assert redirected_to(conn) == "/#{user.account.handle}"
   end
 
-  test "GET / redirects users without access to the waitlist", %{conn: conn} do
+  test "GET / redirects users without access to their account", %{conn: conn} do
     user = TestHelpers.create_user("page-root-waitlist@test.com", "pagewait", has_access: false)
 
     conn =
@@ -27,7 +27,12 @@ defmodule GlossiaWeb.PageControllerTest do
       |> init_test_session(%{user_id: user.id})
       |> get(~p"/")
 
-    assert redirected_to(conn) == "/interest"
+    assert redirected_to(conn) == "/#{user.account.handle}"
+  end
+
+  test "GET /interest redirects to sign up", %{conn: conn} do
+    conn = get(conn, ~p"/interest")
+    assert redirected_to(conn) == ~p"/signup"
   end
 
   for path <- ["/blog", "/features", "/changelog", "/docs"] do
