@@ -155,6 +155,27 @@ defmodule Glossia.Seeds do
     # Translation sessions for the "blog" project to exercise the activity timeline
     if blog_project, do: ensure_translation_sessions!(blog_project, dev)
 
+    # A local git remote that stands in for the blog project's GitHub repo, so the
+    # full clone → translate → PR flow can run end-to-end locally (dev only).
+    seed_local_remote!("dev-user/blog",
+      files: [
+        {"GLOSSIA.md",
+         """
+         ---
+         source_language: en
+         targets:
+           es: Spanish
+           fr: French
+         sources:
+           "docs/*.md": "docs/i18n/{locale}/*.md"
+         ---
+         Blog project context: keep a friendly, concise tone.
+         """},
+        {"docs/getting-started.md",
+         "# Getting started\n\nWelcome to the blog. This short guide helps you publish your first post.\n"}
+      ]
+    )
+
     # Historical sandbox lifecycle records for workflow execution APIs.
     if blog_project, do: ensure_sandbox_history!(blog_project)
 
@@ -678,6 +699,39 @@ defmodule Glossia.Seeds do
   # Projects
   # ----------------------------------------------------------------------------
 
+  # Seeds a local git repository under the configured `local_remotes_dir` to stand
+  # in for a GitHub remote, so `Glossia.Translations.RepositoryRun` clones it
+  # locally. No-op when `local_remotes_dir` is not configured (e.g. production).
+  defp seed_local_remote!(full_name, opts) do
+    case Application.get_env(:glossia, Glossia.Translations, [])[:local_remotes_dir] do
+      dir when is_binary(dir) and dir != "" ->
+        path = Path.join(Path.expand(dir), full_name)
+        File.rm_rf!(path)
+        File.mkdir_p!(path)
+
+        git = fn args ->
+          {_out, 0} = MuonTrap.cmd("git", ["-C", path | args], stderr_to_stdout: true, into: "")
+        end
+
+        git.(["init", "-q", "-b", Keyword.get(opts, :branch, "main")])
+        git.(["config", "user.email", "seeds@glossia.dev"])
+        git.(["config", "user.name", "Glossia Seeds"])
+
+        for {relative, content} <- Keyword.fetch!(opts, :files) do
+          target = Path.join(path, relative)
+          File.mkdir_p!(Path.dirname(target))
+          File.write!(target, content)
+        end
+
+        git.(["add", "."])
+        git.(["commit", "-q", "-m", "Seed content"])
+        IO.puts("  Seeded local remote #{full_name} at #{path}")
+
+      _ ->
+        :ok
+    end
+  end
+
   defp ensure_project!(%Account{} = account, handle, name) do
     case Projects.get_project(account, handle) do
       nil ->
@@ -896,13 +950,13 @@ defmodule Glossia.Seeds do
          "export default defineConfig({ integrations: [mdx()], i18n: { defaultLocale: 'en', locales: ['en', 'es', 'fr'] } })",
          ~s({"tool_name":"shell"})},
         {11, "message_start",
-         "The Astro config confirms i18n support with English as the default locale and Spanish and French as additional locales. Now let me create the L10N.md file.",
+         "The Astro config confirms i18n support with English as the default locale and Spanish and French as additional locales. Now let me create the GLOSSIA.md file.",
          "{}"},
         {12, "message_end", "", "{}"},
-        {13, "tool_execution_start", "Writing L10N.md", ~s({"tool_name":"file_write"})},
+        {13, "tool_execution_start", "Writing GLOSSIA.md", ~s({"tool_name":"file_write"})},
         {14, "tool_execution_end", "File written successfully", ~s({"tool_name":"file_write"})},
         {15, "message_start",
-         "I have created L10N.md with the localization configuration for this Astro blog. The file describes the content structure, supported languages, and recommended translation workflow.",
+         "I have created GLOSSIA.md with the localization configuration for this Astro blog. The file describes the content structure, supported languages, and recommended translation workflow.",
          "{}"},
         {16, "message_end", "", "{}"},
         {17, "turn_end", "", "{}"},

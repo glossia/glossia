@@ -1,5 +1,4 @@
 use anyhow::Result;
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs;
@@ -8,7 +7,6 @@ use std::path::{Path, PathBuf};
 use crate::context::{ContextEntry, ContextSnapshot};
 use crate::format::Format;
 use crate::hash::{hash_json, hash_string};
-use crate::pathing::normalize_slashes;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HashNode {
@@ -54,6 +52,14 @@ struct NodeDescriptor<'a> {
 }
 
 pub fn lock_path(root: &Path, source_path: &str, locale: &str) -> PathBuf {
+    root.join(".glossia")
+        .join(source_path)
+        .join(format!("{locale}.lock"))
+}
+
+// Legacy location used before the .l10n -> .glossia rename. Read as a fallback so
+// repositories translated before the rename are not treated as fully stale.
+fn legacy_lock_path(root: &Path, source_path: &str, locale: &str) -> PathBuf {
     root.join(".l10n")
         .join(source_path)
         .join(format!("{locale}.lock"))
@@ -61,21 +67,16 @@ pub fn lock_path(root: &Path, source_path: &str, locale: &str) -> PathBuf {
 
 pub fn read_lock(root: &Path, source_path: &str, locale: &str) -> Result<Option<LockFile>> {
     let path = lock_path(root, source_path, locale);
+    let path = if path.exists() {
+        path
+    } else {
+        legacy_lock_path(root, source_path, locale)
+    };
     if !path.exists() {
         return Ok(None);
     }
     let raw = fs::read_to_string(path)?;
     Ok(serde_json::from_str(&raw).ok())
-}
-
-pub fn write_lock(root: &Path, source_path: &str, locale: &str, lock: &LockFile) -> Result<()> {
-    let path = lock_path(root, source_path, locale);
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    let encoded = serde_json::to_string_pretty(lock)?;
-    fs::write(path, encoded + "\n")?;
-    Ok(())
 }
 
 pub fn stale(
@@ -88,26 +89,6 @@ pub fn stale(
         return true;
     };
     lock.hash != current_hash || lock.output_path != output_path || lock.output_hash != output_hash
-}
-
-pub fn build_lock(
-    provider: &str,
-    model: &str,
-    source_path: &str,
-    output_path: &str,
-    output_text: &str,
-    hash_state: &HashState,
-) -> LockFile {
-    LockFile {
-        hash: hash_state.hash.clone(),
-        provider: provider.to_string(),
-        model: model.to_string(),
-        source_path: normalize_slashes(source_path),
-        output_path: normalize_slashes(output_path),
-        output_hash: hash_string(output_text),
-        translated_at: now_iso(),
-        hash_tree: hash_state.tree.clone(),
-    }
 }
 
 pub fn build_hash_state(
@@ -282,10 +263,6 @@ fn normalize_reference(reference: &str) -> String {
     } else {
         reference.to_string()
     }
-}
-
-fn now_iso() -> String {
-    Utc::now().format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
 }
 
 #[cfg(test)]

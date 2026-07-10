@@ -2,11 +2,11 @@
 permalink: /llms.txt
 eleventyExcludeFromCollections: true
 ---
-# L10N.md Standard
+# GLOSSIA.md Standard
 
-> {{ site.description }} L10N.md keeps a small machine-readable surface in YAML frontmatter and pushes nuance into Markdown prose so AI translation systems can read the context that translators provide.
+> {{ site.description }} GLOSSIA.md keeps a small machine-readable surface in YAML frontmatter and pushes nuance into Markdown prose so AI translation systems can read the context that translators provide.
 
-This site publishes the L10N.md specification (currently version {{ site.spec.version }}, status {{ site.spec.status | lower }}) and the canonical JSON Schema files that define a conforming document. The same content is available as rendered HTML and as the source Markdown.
+This site publishes the GLOSSIA.md specification (currently version {{ site.spec.version }}, status {{ site.spec.status | lower }}) and the canonical JSON Schema files that define a conforming document. The same content is available as rendered HTML and as the source Markdown.
 
 ## Specification
 
@@ -16,19 +16,19 @@ This site publishes the L10N.md specification (currently version {{ site.spec.ve
 
 ## JSON Schemas (version {{ spec.version }})
 
-- [Entry schema]({{ site.url }}/schemas/v{{ spec.version }}/l10n-document.schema.json): `oneOf` over the three document shapes.
-- [Global document schema]({{ site.url }}/schemas/v{{ spec.version }}/global-document.schema.json): the repository root `L10N.md`.
-- [Scoped document schema]({{ site.url }}/schemas/v{{ spec.version }}/scoped-document.schema.json): a nested `L10N.md`.
-- [Locale overlay schema]({{ site.url }}/schemas/v{{ spec.version }}/locale-overlay.schema.json): a per-language file under `L10N/`.
+- [Entry schema]({{ site.url }}/schemas/v{{ spec.version }}/glossia-document.schema.json): `oneOf` over the three document shapes.
+- [Global document schema]({{ site.url }}/schemas/v{{ spec.version }}/global-document.schema.json): the repository root `GLOSSIA.md`.
+- [Scoped document schema]({{ site.url }}/schemas/v{{ spec.version }}/scoped-document.schema.json): a nested `GLOSSIA.md`.
+- [Locale overlay schema]({{ site.url }}/schemas/v{{ spec.version }}/locale-overlay.schema.json): a per-language file under `GLOSSIA/`.
 - [Shared definitions]({{ site.url }}/schemas/v{{ spec.version }}/shared.schema.json): reusable types, including the BCP 47 locale identifier.
 
 ## Examples
 
-- [Reference root `L10N.md`]({{ site.url }}/L10N.md): the canonical root document used by this repository.
-- [Single-file repository root]({{ site.url }}/examples/single-repo/L10N.md): a root document that also carries workflow frontmatter.
-- [Scoped document]({{ site.url }}/examples/app/L10N.md): a nested `L10N.md` for a product subtree.
-- [Spanish locale overlay]({{ site.url }}/examples/app/L10N/es.md)
-- [Japanese locale overlay]({{ site.url }}/examples/app/L10N/ja.md)
+- [Reference root `GLOSSIA.md`]({{ site.url }}/GLOSSIA.md): the canonical root document used by this repository.
+- [Single-file repository root]({{ site.url }}/examples/single-repo/GLOSSIA.md): a root document that also carries workflow frontmatter.
+- [Scoped document]({{ site.url }}/examples/app/GLOSSIA.md): a nested `GLOSSIA.md` for a product subtree.
+- [Spanish locale overlay]({{ site.url }}/examples/app/GLOSSIA/es.md)
+- [Japanese locale overlay]({{ site.url }}/examples/app/GLOSSIA/ja.md)
 
 ## Source
 

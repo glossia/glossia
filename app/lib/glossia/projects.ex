@@ -198,6 +198,15 @@ defmodule Glossia.Projects do
     |> Repo.all()
   end
 
+  def reset_project_setup_for_recovery(%Project{} = project) do
+    project
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.force_change(:setup_status, "pending")
+    |> Ecto.Changeset.force_change(:setup_error, nil)
+    |> Ecto.Changeset.force_change(:setup_sandbox_id, nil)
+    |> Repo.update()
+  end
+
   defp where_expected_setup_sandbox_id(query, nil) do
     where(query, [p], is_nil(p.setup_sandbox_id))
   end

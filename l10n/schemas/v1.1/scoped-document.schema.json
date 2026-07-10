@@ -1,13 +1,13 @@
 {
-  "$id": "https://glossia.dev/schemas/l10n/v1.1/scoped-document.schema.json",
+  "$id": "https://glossia.dev/schemas/glossia/v1.1/scoped-document.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "L10N Scoped Document",
-  "description": "Schema for nested L10N.md files that define scope-specific translation settings.",
+  "title": "Glossia Scoped Document",
+  "description": "Schema for nested GLOSSIA.md files that define scope-specific translation settings.",
   "type": "object",
   "properties": {
     "path": {
       "type": "string",
-      "pattern": "^(?!L10N\\.md$).+/L10N\\.md$"
+      "pattern": "^(?!GLOSSIA\\.md$).+/GLOSSIA\\.md$"
     },
     "model": {
       "$ref": "./shared.schema.json#/$defs/modelIdentifier"

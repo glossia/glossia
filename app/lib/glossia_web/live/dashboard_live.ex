@@ -1064,6 +1064,7 @@ defmodule GlossiaWeb.DashboardLive do
       project: project,
       session: session,
       session_events: events,
+      translation_progress: Glossia.TranslationSessions.Progress.new(),
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
         {gettext("Translations"), "/" <> handle <> "/" <> project.handle <> "/-/translations"},
@@ -2467,71 +2468,65 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("start_setup", _params, socket) do
-    account = socket.assigns.account
-    user = socket.assigns.current_user
-    installations = socket.assigns[:github_installations] || []
-    repo = socket.assigns.wizard_selected_repo
-    languages = socket.assigns.wizard_selected_languages
+    with {:ok, repo} <- selected_wizard_repo(socket),
+         {:ok, languages} <- selected_wizard_languages(socket) do
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      installations = socket.assigns[:github_installations] || []
+      installation = matching_repo_installation(repo, installations)
+      installation_id = if installation, do: installation.id, else: nil
 
-    # Find the matching installation for this repo by matching the repo owner
-    repo_owner_login = get_in(repo, ["owner", "login"])
+      attrs = %{
+        handle: repository_project_handle(repo),
+        name: repo["name"] || repo["full_name"],
+        github_repo_id: repo["id"],
+        github_repo_full_name: repo["full_name"],
+        github_repo_default_branch: repo["default_branch"],
+        setup_status: "pending",
+        setup_target_languages: languages
+      }
 
-    installation =
-      Enum.find(installations, fn inst ->
-        inst.github_account_login == repo_owner_login
-      end)
-
-    repo_name = repo["full_name"] |> String.split("/") |> List.last()
-    handle = repo_name |> String.downcase() |> String.replace(~r/[^a-z0-9-]/, "-")
-
-    attrs = %{
-      handle: handle,
-      name: repo["name"],
-      github_repo_id: repo["id"],
-      github_repo_full_name: repo["full_name"],
-      github_repo_default_branch: repo["default_branch"],
-      setup_status: "pending",
-      setup_target_languages: languages
-    }
-
-    installation_id = if installation, do: installation.id, else: nil
-
-    result =
-      if installation_id do
-        Glossia.Projects.create_project_from_github(account, installation_id, attrs,
-          actor: user,
-          via: :dashboard
-        )
-      else
-        Glossia.Projects.create_project(account, attrs, actor: user, via: :dashboard)
-      end
-
-    case result do
-      {:ok, project} ->
+      result =
         if installation_id do
+          Glossia.Projects.create_project_from_github(account, installation_id, attrs,
+            actor: user,
+            via: :dashboard
+          )
+        else
+          Glossia.Projects.create_project(account, attrs, actor: user, via: :dashboard)
+        end
+
+      case result do
+        {:ok, project} ->
           %{project_id: project.id}
           |> Glossia.Projects.SetupWorker.new()
           |> Oban.insert()
-        end
 
-        {:noreply,
-         socket
-         |> assign(wizard_project: project)
-         |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
+          {:noreply,
+           socket
+           |> assign(wizard_project: project)
+           |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
 
-      {:error, changeset} ->
-        Logger.warning("Failed to create project from wizard",
-          errors: inspect(changeset.errors)
-        )
+        {:error, changeset} ->
+          Logger.warning("Failed to create project from wizard",
+            errors: inspect(changeset.errors)
+          )
 
-        message =
-          case changeset.errors do
-            [{:handle, {msg, _}} | _] -> msg
-            [{field, {msg, _}} | _] -> "#{field}: #{msg}"
-            _ -> gettext("Could not import repository.")
-          end
+          message =
+            case changeset.errors do
+              [{:handle, {msg, _}} | _] -> msg
+              [{field, {msg, _}} | _] -> "#{field}: #{msg}"
+              _ -> gettext("Could not import repository.")
+            end
 
-        {:noreply, put_flash(socket, :error, message)}
+          {:noreply, put_flash(socket, :error, message)}
+      end
+    else
+      {:error, :repo_required} ->
+        {:noreply, put_flash(socket, :error, gettext("Select a repository first."))}
+
+      {:error, :languages_required} ->
+        {:noreply, put_flash(socket, :error, gettext("Select at least one target language."))}
     end
   end
 
@@ -2628,8 +2623,12 @@ defmodule GlossiaWeb.DashboardLive do
         "commit_message" => first_line(message),
         "status" => "pending",
         "source_language" => "en",
-        "target_languages" => ["es", "fr"]
+        "target_languages" => translation_target_languages(project)
       })
+
+    %{session_id: session.id}
+    |> Glossia.TranslationSessions.TranslateWorker.new()
+    |> Oban.insert()
 
     handle = socket.assigns.handle
 
@@ -2637,6 +2636,73 @@ defmodule GlossiaWeb.DashboardLive do
      push_navigate(socket,
        to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
      )}
+  end
+
+  # A project's configured locales, falling back to a default so triggering a
+  # translation never silently produces an empty locale list (and thus no PR).
+  defp translation_target_languages(project) do
+    case project.setup_target_languages do
+      languages when is_list(languages) and languages != [] -> languages
+      _ -> ["es", "fr"]
+    end
+  end
+
+  defp selected_wizard_repo(socket) do
+    case socket.assigns[:wizard_selected_repo] do
+      %{"full_name" => full_name} = repo when is_binary(full_name) and full_name != "" ->
+        {:ok, repo}
+
+      _ ->
+        {:error, :repo_required}
+    end
+  end
+
+  defp selected_wizard_languages(socket) do
+    supported_codes = MapSet.new(Enum.map(@wizard_languages, & &1.code))
+
+    languages =
+      socket.assigns[:wizard_selected_languages]
+      |> List.wrap()
+      |> Enum.filter(&MapSet.member?(supported_codes, &1))
+      |> Enum.uniq()
+
+    if languages == [] do
+      {:error, :languages_required}
+    else
+      {:ok, languages}
+    end
+  end
+
+  defp matching_repo_installation(repo, installations) do
+    repo_owner_login = get_in(repo, ["owner", "login"])
+
+    Enum.find(installations, fn installation ->
+      installation.github_account_login == repo_owner_login
+    end)
+  end
+
+  defp repository_project_handle(repo) do
+    repo_name =
+      repo["name"] ||
+        (repo["full_name"] && repo["full_name"] |> String.split("/") |> List.last()) ||
+        "repository"
+
+    handle =
+      repo_name
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9-]/, "-")
+      |> String.trim("-")
+
+    cond do
+      String.length(handle) >= 2 ->
+        handle
+
+      repo["id"] ->
+        "repo-#{repo["id"]}"
+
+      true ->
+        "repository"
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -2789,8 +2855,30 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_info({:translation_session_event, event}, socket) do
-    session_events = socket.assigns[:session_events] || []
-    {:noreply, assign(socket, session_events: session_events ++ [event])}
+    if Glossia.TranslationSessions.Progress.progress_event?(event) do
+      progress =
+        socket.assigns[:translation_progress]
+        |> Kernel.||(Glossia.TranslationSessions.Progress.new())
+        |> Glossia.TranslationSessions.Progress.apply_event(event)
+
+      {:noreply, assign(socket, translation_progress: progress)}
+    else
+      session_events = socket.assigns[:session_events] || []
+      {:noreply, assign(socket, session_events: session_events ++ [event])}
+    end
+  end
+
+  def handle_info({:translation_session_status, status}, socket) do
+    session = socket.assigns[:session]
+
+    socket =
+      if session do
+        assign(socket, session: refetch_translation_session(session, status))
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
   def handle_info({:setup_status, status}, socket) do
@@ -2817,6 +2905,13 @@ defmodule GlossiaWeb.DashboardLive do
   defp refetch_project(project, status) do
     case Glossia.Repo.get(Glossia.Accounts.Project, project.id) do
       nil -> %{project | setup_status: status}
+      fresh -> fresh
+    end
+  end
+
+  defp refetch_translation_session(session, status) do
+    case Glossia.Repo.get(Glossia.TranslationSessions.TranslationSession, session.id) do
+      nil -> %{session | status: status}
       fresh -> fresh
     end
   end
@@ -3080,6 +3175,9 @@ defmodule GlossiaWeb.DashboardLive do
           project={@project}
           session={@session}
           session_events={assigns[:session_events] || []}
+          translation_progress={
+            assigns[:translation_progress] || Glossia.TranslationSessions.Progress.new()
+          }
         />
       <% :project -> %>
         <.project_page
@@ -6386,6 +6484,8 @@ defmodule GlossiaWeb.DashboardLive do
         </div>
       </div>
 
+      <.translation_progress_panel progress={@translation_progress} />
+
       <%= if @session_events == [] do %>
         <div class="dash-empty-state">
           <p>{gettext("No events recorded yet.")}</p>
@@ -6400,6 +6500,59 @@ defmodule GlossiaWeb.DashboardLive do
     </div>
     """
   end
+
+  attr :progress, :map, required: true
+
+  defp translation_progress_panel(assigns) do
+    alias Glossia.TranslationSessions.Progress
+
+    assigns =
+      assign(assigns,
+        items: Progress.items(assigns.progress),
+        summary: Progress.summary(assigns.progress)
+      )
+
+    ~H"""
+    <%= if @items != [] do %>
+      <div id="translation-progress" class="translation-progress">
+        <div id="translation-progress-summary" data-part="summary">
+          {gettext("%{done}/%{total} translated", done: @summary.done, total: @summary.total)}
+          <%= if @summary.running > 0 do %>
+            <span data-part="running">{gettext("%{n} in progress", n: @summary.running)}</span>
+          <% end %>
+          <%= if @summary.failed > 0 do %>
+            <span data-part="failed">{gettext("%{n} failed", n: @summary.failed)}</span>
+          <% end %>
+          <%= if @summary.skipped > 0 do %>
+            <span data-part="skipped">{gettext("%{n} up to date", n: @summary.skipped)}</span>
+          <% end %>
+        </div>
+        <ul data-part="items">
+          <%= for item <- @items do %>
+            <li data-part="item" data-status={item.status}>
+              <div data-part="item-header">
+                <span data-part="status">{translation_item_status_label(item.status)}</span>
+                <span data-part="path">{item.output_path}</span>
+                <span data-part="locale">{item.locale}</span>
+                <span data-part="turns">{gettext("%{n} turns", n: item.turns)}</span>
+              </div>
+              <%= if item.status == :failed and item.reason do %>
+                <p data-part="reason">{item.reason}</p>
+              <% end %>
+              <%= if item.text != "" do %>
+                <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    """
+  end
+
+  defp translation_item_status_label(:running), do: gettext("Translating")
+  defp translation_item_status_label(:done), do: gettext("Done")
+  defp translation_item_status_label(:failed), do: gettext("Failed")
 
   defp session_event_item(%{event: event} = assigns) do
     event_type = event[:event_type] || Map.get(event, :event_type, "")
@@ -6802,12 +6955,7 @@ defmodule GlossiaWeb.DashboardLive do
       "message_start",
       "message_update",
       "thought",
-      "text",
       "update",
-      "tool_call",
-      "tool_result",
-      "tool_execution_start",
-      "tool_execution_end",
       "plan"
     ] or
       (content == "" and event_type == "status") or
@@ -6873,10 +7021,9 @@ defmodule GlossiaWeb.DashboardLive do
       "Connected to agent:",
       "Preparing repository",
       "Cloning repository",
-      "Installing OpenCode",
+      "Starting opencode in headless mode",
       "Session created",
-      "Setup agent started",
-      "Starting OpenCode agent",
+      "Setup harness started",
       "Sending prompt to agent",
       "Agent finished (reason:"
     ]) or
@@ -7324,7 +7471,7 @@ defmodule GlossiaWeb.DashboardLive do
               <div class="setup-feed-header-copy">
                 <h3>{gettext("Setting up localization...")}</h3>
                 <p>
-                  {gettext("Building a minimal L10N.md baseline that your team can reuse.")}
+                  {gettext("Building a minimal GLOSSIA.md baseline that your team can reuse.")}
                 </p>
               </div>
             </div>

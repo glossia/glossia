@@ -6,7 +6,7 @@ use crate::config::{ContextFile, LocaleOverrideContext, ResolvedContext};
 use crate::hash::{hash_json, hash_string};
 use crate::pathing::relative_to_root;
 
-const LOCAL_PROVIDER: &str = "local_l10n";
+const LOCAL_PROVIDER: &str = "local_glossia";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContextEntry {
@@ -179,7 +179,7 @@ mod tests {
     #[test]
     fn local_snapshot_uses_request_fingerprint_for_scope() {
         let file = ContextFile {
-            relative_path: "docs/L10N.md".into(),
+            relative_path: "docs/GLOSSIA.md".into(),
             raw_content: "---\nmodel: gpt-4.1\n---\nDocs".into(),
             body: "Docs".into(),
             frontmatter: Frontmatter::default(),

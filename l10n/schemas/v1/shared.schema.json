@@ -1,5 +1,5 @@
 {
-  "$id": "https://glossia.dev/schemas/l10n/v1/shared.schema.json",
+  "$id": "https://glossia.dev/schemas/glossia/v1/shared.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
     "localeIdentifier": {

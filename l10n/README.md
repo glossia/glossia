@@ -1,8 +1,8 @@
-# L10N Standard
+# Glossia Standard
 
 This repository packages three things:
 
-- A human-first `L10N.md` standard for translation context files.
+- A human-first `GLOSSIA.md` standard for translation context files.
 - Versioned JSON Schemas for the supported document shapes.
 - An Eleventy site that explains the convention and shows working examples.
 
@@ -30,7 +30,7 @@ helm template l10n ../deploy/helm/l10n \
 ## Layout
 
 ```text
-L10N.md
+GLOSSIA.md
 examples/
 schemas/
 scripts/

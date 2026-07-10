@@ -12,6 +12,30 @@ json_env = fn name, default ->
   end
 end
 
+integer_env = fn name, default ->
+  case System.get_env(name) do
+    nil -> default
+    "" -> default
+    value -> String.to_integer(value)
+  end
+end
+
+float_env = fn name, default ->
+  case System.get_env(name) do
+    nil ->
+      default
+
+    "" ->
+      default
+
+    value ->
+      case Float.parse(value) do
+        {parsed, ""} -> parsed
+        _ -> raise "unsupported #{name}=#{inspect(value)}, expected a float"
+      end
+  end
+end
+
 flame_backend =
   case System.get_env("GLOSSIA_FLAME_BACKEND") do
     nil ->
@@ -79,13 +103,34 @@ config :glossia, Glossia.Sandbox,
   delete_retry_after_ms:
     String.to_integer(System.get_env("GLOSSIA_SANDBOX_DELETE_RETRY_AFTER_MS") || "60000"),
   microsandbox_image: System.get_env("GLOSSIA_MICROSANDBOX_IMAGE") || "node:22-bookworm",
-  microsandbox_repo_path: System.get_env("GLOSSIA_MICROSANDBOX_REPO_PATH") || "/home/user/repo",
-  microsandbox_deno_command: System.get_env("GLOSSIA_MICROSANDBOX_DENO") || "deno"
+  microsandbox_repo_path: System.get_env("GLOSSIA_MICROSANDBOX_REPO_PATH") || "/home/user/repo"
 
 config :glossia, Glossia.Projects.Setup,
+  harness: System.get_env("GLOSSIA_SETUP_HARNESS") || "opencode",
+  harness_command: System.get_env("GLOSSIA_SETUP_HARNESS_COMMAND") || "opencode",
+  harness_model: System.get_env("GLOSSIA_SETUP_HARNESS_MODEL"),
+  harness_agent: System.get_env("GLOSSIA_SETUP_HARNESS_AGENT"),
+  harness_pure: System.get_env("GLOSSIA_SETUP_HARNESS_PURE", "true") not in ["false", "0"],
+  harness_env: json_env.("GLOSSIA_SETUP_HARNESS_ENV_JSON", %{}),
+  harness_context_path: System.get_env("GLOSSIA_SETUP_HARNESS_CONTEXT_PATH"),
+  opencode_config: json_env.("GLOSSIA_SETUP_OPENCODE_CONFIG_JSON", %{}),
   minimax_api_key:
     System.get_env("GLOSSIA_SETUP_MINIMAX_API_KEY") || System.get_env("MINIMAX_API_KEY"),
-  model: System.get_env("GLOSSIA_SETUP_MODEL") || "MiniMax-M2.5"
+  model: System.get_env("GLOSSIA_SETUP_MODEL")
+
+# Translation LLM credential. Precedence at resolve time: the account's own model
+# key, then this globally configured inference provider (token + URL), then — in
+# dev only — the local Claude/Codex session.
+config :glossia, Glossia.Translations,
+  inference_model: System.get_env("GLOSSIA_TRANSLATION_MODEL"),
+  inference_api_key: System.get_env("GLOSSIA_TRANSLATION_API_KEY"),
+  inference_base_url: System.get_env("GLOSSIA_TRANSLATION_BASE_URL"),
+  local_session_model: System.get_env("GLOSSIA_TRANSLATION_LOCAL_MODEL"),
+  allow_local_session:
+    System.get_env("GLOSSIA_TRANSLATION_ALLOW_LOCAL_SESSION", to_string(config_env() == :dev)) not in [
+      "false",
+      "0"
+    ]
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -154,12 +199,20 @@ end
 github_app_id = System.get_env("GLOSSIA_GITHUB_APP_ID")
 github_app_private_key = System.get_env("GLOSSIA_GITHUB_APP_PRIVATE_KEY")
 github_app_slug = System.get_env("GLOSSIA_GITHUB_APP_SLUG")
+github_api_url = System.get_env("GLOSSIA_GITHUB_API_URL")
+github_app_url = System.get_env("GLOSSIA_GITHUB_APP_URL")
 
 if is_binary(github_app_id) and github_app_id != "" do
   config :glossia, Glossia.Github.App,
     app_id: github_app_id,
     private_key: github_app_private_key,
-    app_slug: github_app_slug
+    app_slug: github_app_slug,
+    api_url: github_api_url,
+    app_url: github_app_url
+end
+
+if is_binary(github_api_url) and github_api_url != "" do
+  config :glossia, Glossia.Github.Client, api_url: github_api_url
 end
 
 if is_binary(gitlab_webhook_secret) and gitlab_webhook_secret != "" do

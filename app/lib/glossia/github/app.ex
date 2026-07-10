@@ -3,15 +3,15 @@ defmodule Glossia.Github.App do
 
   require Logger
 
-  @github_api_url "https://api.github.com"
-  @github_app_url "https://github.com/apps"
+  @default_github_api_url "https://api.github.com"
+  @default_github_app_url "https://github.com/apps"
 
   def install_url(opts \\ []) do
     config = Application.get_env(:glossia, __MODULE__, [])
     app_slug = Keyword.get(opts, :app_slug, config[:app_slug])
 
     if configured?() and present?(app_slug) do
-      {:ok, "#{@github_app_url}/#{String.trim(app_slug)}/installations/new"}
+      {:ok, "#{github_app_url(opts)}/#{String.trim(app_slug)}/installations/new"}
     else
       {:error, :not_configured}
     end
@@ -42,7 +42,7 @@ defmodule Glossia.Github.App do
 
   def installation_token(installation_id, opts \\ []) do
     with {:ok, jwt_token} <- jwt(opts) do
-      api_url = Keyword.get(opts, :api_url, @github_api_url)
+      api_url = github_api_url(opts)
       url = "#{api_url}/app/installations/#{installation_id}/access_tokens"
 
       case Glossia.HTTP.new()
@@ -74,6 +74,22 @@ defmodule Glossia.Github.App do
   def configured? do
     config = Application.get_env(:glossia, __MODULE__, [])
     present?(config[:app_id]) and present?(config[:private_key])
+  end
+
+  defp github_api_url(opts) do
+    config = Application.get_env(:glossia, __MODULE__, [])
+
+    opts
+    |> Keyword.get(:api_url, config[:api_url] || @default_github_api_url)
+    |> String.trim_trailing("/")
+  end
+
+  defp github_app_url(opts) do
+    config = Application.get_env(:glossia, __MODULE__, [])
+
+    opts
+    |> Keyword.get(:app_url, config[:app_url] || @default_github_app_url)
+    |> String.trim_trailing("/")
   end
 
   defp present?(value) when is_binary(value), do: String.trim(value) != ""

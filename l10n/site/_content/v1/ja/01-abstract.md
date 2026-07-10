@@ -7,7 +7,7 @@ label: 概要
 
 <p class="note">[翻訳作業中。] 翻訳が完了するまで、英語版が正本となります。</p>
 
-L10N.md is a convention by which translators provide the context that AI-based translation
+GLOSSIA.md is a convention by which translators provide the context that AI-based translation
 systems need before they translate strings. It keeps the machine-readable surface small in
 YAML frontmatter and pushes the subtle guidance into ordinary Markdown prose. Documents
 live in the repository, are reviewed in pull requests, and are validated against versioned

@@ -15,6 +15,10 @@ shellspec = "0.28.1"
 op = "latest"
 ruby = "3.4.7"
 git-cliff = "2.10.0"
+# microsandbox (`msb`) — used by the microsandbox Sandbox adapter for local
+# sandbox isolation — is not distributed as a mise-installable binary (no GitHub
+# release assets). Install it locally via its own installer when needed:
+# https://github.com/microsandbox/microsandbox
 
 [env]
 _.file = ".env"

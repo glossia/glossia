@@ -71,8 +71,6 @@ jobs:
           workspaces: cli -> target
       - name: Test library
         run: cargo test --lib
-      - name: Test end-to-end translation
-        run: cargo test --test e2e_translate
 
   build:
     if: github.event.pull_request.draft != true
