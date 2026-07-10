@@ -46,9 +46,36 @@ validate_suffix() {
 persist_suffix() {
   local suffix="$1"
   local target="$2"
+  local tmp="${target}.tmp.$$"
 
   mkdir -p "$(dirname "${target}")" 2>/dev/null || return 1
-  printf '%s' "${suffix}" | tee "${target}" >/dev/null 2>&1
+
+  # Write through a temporary file and rename. mise re-runs this script for every
+  # `mise exec`, and a shell pipeline such as
+  #   mise exec -- kubectl ... | mise exec -- kubectl apply -f -
+  # runs two of them concurrently. A truncating write leaves a window in which a
+  # sibling sees the file as non-empty and then reads nothing out of it; rename
+  # is atomic, so a reader observes either the old suffix or the new one.
+  printf '%s' "${suffix}" > "${tmp}" 2>/dev/null || {
+    rm -f "${tmp}" 2>/dev/null
+    return 1
+  }
+  mv -f "${tmp}" "${target}" 2>/dev/null || {
+    rm -f "${tmp}" 2>/dev/null
+    return 1
+  }
+}
+
+read_suffix_file() {
+  # Treat an unreadable or empty file as absent rather than as the empty suffix,
+  # so a torn read degrades into regeneration instead of a hard failure.
+  local file="$1" value=""
+
+  [[ -s "${file}" ]] || return 1
+  value="$(tr -d '[:space:]' < "${file}" 2>/dev/null)" || return 1
+  [[ -n "${value}" ]] || return 1
+
+  printf '%s' "${value}"
 }
 
 collect_used_suffixes() {
@@ -97,8 +124,8 @@ ensure_suffix() {
   # GLOSSIA_DEV_INSTANCE, which would otherwise leak into the worktree. Reading
   # our own file first keeps each worktree on its distinct suffix regardless of
   # what a parent (or stale env) provides.
-  if [[ -s "${INSTANCE_FILE}" ]]; then
-    suffix="$(tr -d '[:space:]' < "${INSTANCE_FILE}")"
+  if suffix="$(read_suffix_file "${INSTANCE_FILE}")"; then
+    :
   # No file yet: trust GLOSSIA_DEV_INSTANCE only when it belongs to THIS project
   # root, or when it was set externally with no provenance marker (an explicit
   # override such as CI's GLOSSIA_DEV_INSTANCE=1). A value carrying a different
@@ -106,8 +133,8 @@ ensure_suffix() {
   elif [[ -n "${GLOSSIA_DEV_INSTANCE:-}" ]] &&
     { [[ "${GLOSSIA_DEV_INSTANCE_ROOT:-}" == "${PROJECT_ROOT}" ]] || [[ -z "${GLOSSIA_DEV_INSTANCE_ROOT:-}" ]]; }; then
     suffix="${GLOSSIA_DEV_INSTANCE}"
-  elif [[ -s "${ROOT_INSTANCE_FILE}" ]]; then
-    suffix="$(tr -d '[:space:]' < "${ROOT_INSTANCE_FILE}")"
+  elif suffix="$(read_suffix_file "${ROOT_INSTANCE_FILE}")"; then
+    :
   else
     suffix="$(generate_suffix)"
   fi
