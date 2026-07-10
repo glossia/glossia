@@ -23,18 +23,45 @@ defmodule GlossiaWeb.AuthController do
     format: :text
   ]
 
-  plug GlossiaWeb.Plugs.RateLimit, @login_rate_limit when action in [:login]
+  plug GlossiaWeb.Plugs.RateLimit, @login_rate_limit when action in [:login, :signup]
 
   plug GlossiaWeb.Plugs.RateLimit,
        @oauth_rate_limit when action in [:request, :callback, :dev_login]
 
   def login(conn, _params) do
+    render_auth_entry(conn,
+      page_title: gettext("Log in"),
+      title: gettext("Log in to Glossia"),
+      subtitle: gettext("Welcome back. Choose a sign-in method to continue."),
+      switch_prompt: gettext("New to Glossia?"),
+      switch_href: ~p"/signup",
+      switch_label: gettext("Sign up")
+    )
+  end
+
+  def signup(conn, _params) do
+    render_auth_entry(conn,
+      page_title: gettext("Sign up"),
+      title: gettext("Sign up for Glossia"),
+      subtitle: gettext("Choose a provider to create your account and start using Glossia."),
+      switch_prompt: gettext("Already have an account?"),
+      switch_href: ~p"/auth/login",
+      switch_label: gettext("Log in")
+    )
+  end
+
+  defp render_auth_entry(conn, assigns) do
     conn
     |> put_layout(false)
     |> render(:login,
       dev_routes: @dev_routes,
-      page_title: gettext("Log in"),
-      providers: supported_login_providers()
+      providers: supported_login_providers(),
+      page_title: assigns[:page_title],
+      title: assigns[:title],
+      subtitle: assigns[:subtitle],
+      switch_prompt: assigns[:switch_prompt],
+      switch_href: assigns[:switch_href],
+      switch_label: assigns[:switch_label]
     )
   end
 

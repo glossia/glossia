@@ -9,9 +9,9 @@
       <div data-part="dots" aria-hidden="true"></div>
 
       <div data-part="header">
-        <h1 data-part="title">{gettext("Log in to Glossia")}</h1>
+        <h1 data-part="title">{@title}</h1>
         <span data-part="subtitle">
-          {gettext("Welcome back. Choose a sign-in method to continue.")}
+          {@subtitle}
         </span>
       </div>
 
@@ -74,12 +74,12 @@
     </div>
 
     <div data-part="bottom-link">
-      <span>{gettext("Need access for your team?")}</span>
+      <span>{@switch_prompt}</span>
       <Noora.Button.link_button
-        href={~p"/interest"}
+        href={@switch_href}
         variant="primary"
         size="large"
-        label={gettext("Join the waitlist")}
+        label={@switch_label}
       />
     </div>
   </div>

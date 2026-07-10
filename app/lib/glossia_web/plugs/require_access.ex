@@ -13,7 +13,7 @@ defmodule GlossiaWeb.Plugs.RequireAccess do
       conn
     else
       conn
-      |> redirect(to: ~p"/interest")
+      |> redirect(to: ~p"/dashboard")
       |> halt()
     end
   end
