@@ -11,10 +11,11 @@ mise exec -- flux bootstrap github \
   --path=infra/k8s/mgmt/flux
 ```
 
-Flux creates and maintains its own generated manifests in the nested
-`flux-system/` directory. The sibling YAML files in this directory
-declare the management-cluster resources that Flux should also keep in
-sync.
+Flux's generated controller and sync manifests are checked in under the
+nested `flux-system/` directory before bootstrap. This lets the bootstrap
+command install the reviewed version without adding a direct commit to
+`main`. The sibling YAML files in this directory declare the
+management-cluster resources that Flux should also keep in sync.
 
 Do not add a root `kustomization.yaml` here unless it includes both the
 generated `flux-system/` directory and every sibling manifest. With no
