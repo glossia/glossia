@@ -7,6 +7,7 @@ on:
       - "deploy/helm/**"
       - "deploy/values-*.yaml"
       - "infra/helm/**"
+      - "infra/k8s/**"
       - "infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise/**"
@@ -18,6 +19,7 @@ on:
       - "deploy/helm/**"
       - "deploy/values-*.yaml"
       - "infra/helm/**"
+      - "infra/k8s/**"
       - "infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise/**"
@@ -83,6 +85,31 @@ jobs:
 
           JSON.parse(output.gsub(/,\s*([}\]])/, '\1'))
           RUBY
+
+      - name: Validate Kubernetes manifests
+        run: |
+          set -euo pipefail
+
+          mise exec -- kubectl kustomize infra/k8s/clusters/workloads/production >/tmp/glossia-production-cluster.yaml
+          mise exec -- kubectl kustomize infra/k8s/clusters/workloads/observability >/tmp/glossia-observability-cluster.yaml
+
+          ruby <<'RUBY'
+          require "yaml"
+
+          Dir["infra/k8s/mgmt/flux/*.yaml"].sort.each do |file|
+            YAML.parse_stream(File.read(file))
+          end
+          RUBY
+
+          mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-production \
+            --path ./infra/k8s/clusters/workloads/production \
+            --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
+            --dry-run >/tmp/flux-production-build.yaml
+
+          mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-observability \
+            --path ./infra/k8s/clusters/workloads/observability \
+            --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
+            --dry-run >/tmp/flux-observability-build.yaml
 
       - name: Add Helm repositories
         run: |

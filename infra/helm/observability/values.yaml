@@ -139,7 +139,7 @@ ingress:
 
 # Node placement shared by every workload this chart owns. The
 # observability cluster only has the `stateful` pool (see
-# infra/k8s/clusters/cluster-observability.yaml), so everything needs
+# infra/k8s/clusters/workloads/observability/cluster.yaml), so everything needs
 # the toleration. Subcharts get the same applied via their respective
 # nodeSelector / tolerations keys below.
 nodePlacement:
