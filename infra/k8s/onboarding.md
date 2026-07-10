@@ -53,7 +53,7 @@ is closed.
   everywhere else.
 - CLI tools installed via mise:
   ```bash
-  mise use -g kubectl helm clusterctl talosctl jq
+  mise use -g kubectl helm clusterctl talosctl jq flux2
   ```
 - The 1Password CLI (`op`) authenticated to the desktop app
   (Settings → Developer → Connect with 1Password CLI + biometric unlock).
@@ -308,8 +308,46 @@ curl -sX POST "https://api.hetzner.cloud/v1/firewalls/$FW_ID/actions/set_rules" 
 ```
 
 Operators reach `talosctl` only via `--endpoints glossia-mgmt` from
-this point on; CI hits `:6443` over the public IP using
+this point on; GitHub Actions hits `:6443` over the public IP using
 `kubeconfig: glossia-mgmt`.
+
+### A.7 Bootstrap Flux for workload Cluster resources
+
+[Flux](https://fluxcd.io/) gives the management cluster a pull-based
+[GitOps](https://opengitops.dev/) path for workload `Cluster`
+resources. The management kubeconfig is still used once here to install
+Flux. After that, routine edits to
+`infra/k8s/clusters/workloads/*/cluster.yaml` are merged to `main` and
+reconciled from git. The `ClusterClass` stays on the explicit apply
+path in §A.4 because its templates contain immutable fields.
+
+Bootstrap Flux against the dedicated management-cluster sync path:
+
+```bash
+export KUBECONFIG=~/.kube/glossia-mgmt.yaml
+export GITHUB_TOKEN=<token that can write repository contents and create a deploy key>
+
+mise exec -- flux bootstrap github \
+  --owner=glossia \
+  --repository=glossia \
+  --branch=main \
+  --path=infra/k8s/mgmt/flux
+```
+
+The bootstrap command installs the Flux controllers and commits their
+own generated manifests under `infra/k8s/mgmt/flux/flux-system`.
+The sibling manifests in `infra/k8s/mgmt/flux/` declare the narrow
+`workload-cluster-reconciler` service account and one Flux
+`Kustomization` per workload cluster. Each workload `Kustomization`
+uses `prune: false`, so deleting a `Cluster` file from git does not
+delete live infrastructure.
+
+Check reconciliation:
+
+```bash
+mise exec -- flux get sources git -n flux-system
+mise exec -- flux get kustomizations -n flux-system
+```
 
 ---
 
@@ -318,22 +356,33 @@ this point on; CI hits `:6443` over the public IP using
 For each new cluster (e.g. `glossia-production`, or per-tenant
 clusters added later).
 
-### B.1 Author the Cluster CR
+### B.1 Author the Cluster resource
 
-Each workload cluster is a `Cluster` CR in topology mode referencing
-the `glossia-hcloud` ClusterClass. The production CR is at
-[`clusters/cluster-production.yaml`](clusters/cluster-production.yaml);
-copy it for new clusters and adjust `metadata.name`, replica counts,
-machine types, and any per-pool labels.
+Each workload cluster is a `Cluster` resource in topology mode referencing
+the `glossia-hcloud` ClusterClass. The production resource is at
+[`clusters/workloads/production/cluster.yaml`](clusters/workloads/production/cluster.yaml).
+For new clusters, copy a workload directory, adjust `metadata.name`,
+replica counts, machine types, and any per-pool labels, then add a
+matching entry to `infra/k8s/mgmt/flux/workload-clusters.yaml`.
 
-### B.2 Apply the Cluster CR
+### B.2 Reconcile the Cluster resource
 
 ```bash
 export KUBECONFIG=~/.kube/glossia-mgmt.yaml
 
-kubectl apply -f infra/k8s/clusters/cluster-production.yaml
+mise exec -- flux reconcile kustomization workload-cluster-production \
+  --namespace flux-system \
+  --with-source
+
 kubectl -n org-glossia get cluster glossia-production -w
 # Ready=True once control plane is up. ~5–10 min cold start.
+```
+
+If Flux is unavailable and this is an emergency, use the management
+kubeconfig as a break-glass path:
+
+```bash
+kubectl apply -k infra/k8s/clusters/workloads/production
 ```
 
 Fetch the workload cluster kubeconfig:
@@ -370,7 +419,7 @@ helm upgrade --install cilium cilium/cilium \
 kubectl -n kube-system rollout status ds/cilium
 # Cilium enables WireGuard transparent encryption for node-to-node pod traffic.
 
-# 2. HCCM. Region is the Cluster CR's region variable.
+# 2. HCCM. Region is the `Cluster` resource's region variable.
 REGION=$(KUBECONFIG=~/.kube/glossia-mgmt.yaml kubectl -n org-glossia \
   get cluster glossia-production -o jsonpath='{.spec.topology.variables[?(@.name=="region")].value}' | tr -d '"')
 helm repo add hcloud https://charts.hetzner.cloud
@@ -730,7 +779,7 @@ Hetzner project).
 
 **`HCloudMachine` stuck with `ServerCreateFailedIrrecoverableError` / "unsupported location"**
 Hetzner per-DC capacity or server-type stock. Pick a different machine
-type (patch the Cluster CR's relevant variable) and `kubectl delete
+type (patch the `Cluster` resource's relevant variable) and `kubectl delete
 machine` the stuck ones so caph reconciles. For account-level limits,
 check `https://console.hetzner.cloud/your-account/limits`.
 

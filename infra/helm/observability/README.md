@@ -25,8 +25,8 @@ project's server and browser Sentry data source names.
 
 ## Pre-install (one-time, in this order)
 
-1. **Provision the cluster** per `infra/k8s/onboarding.md` §B.8 — apply
-   `infra/k8s/clusters/cluster-observability.yaml`, fetch its
+1. **Provision the cluster** per `infra/k8s/onboarding.md` §B.8 — reconcile
+   `infra/k8s/clusters/workloads/observability/cluster.yaml`, fetch its
    kubeconfig, install Cilium / HCCM / hcloud-csi, install the platform
    chart with `infra/helm/platform/values-observability.yaml`, install the
    `onepassword` ClusterSecretStore with `VAULT_NAME=glossia-observability`.
@@ -150,7 +150,7 @@ PVCs (Hetzner volumes resize online up to 10 TiB) or by adding OSDs.
 - **Add more OSDs** (one per Ceph node): bump `count`. Requires
   enough headroom on existing nodes; if not, add a new
   MachineDeployment replica to
-  `infra/k8s/clusters/cluster-observability.yaml` first.
+  `infra/k8s/clusters/workloads/observability/cluster.yaml` first.
 
 Retention bounds (Mimir 30d / Loki 14d / Tempo 7d) cap accumulation.
 Tune them in `values.yaml` if you need longer.

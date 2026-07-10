@@ -1,29 +1,53 @@
-# Glossia ClusterClass + Cluster CRs
+# Glossia ClusterClass and workload Cluster resources
 
 Self-hosted Kubernetes manifests for the Glossia workload clusters,
-reconciled by our own management cluster running CAPI + caph
-(`cluster-api-provider-hetzner`).
+reconciled by our own management cluster running
+[Cluster Application Programming Interface](https://cluster-api.sigs.k8s.io/)
+and
+[Cluster Application Programming Interface Provider Hetzner](https://github.com/syself/cluster-api-provider-hetzner).
 
 ## Why a ClusterClass
 
-ClusterClass is CAPI's native templating layer. We author one
-`ClusterClass` (`glossia-hcloud`) that defines the reusable shape — HA
-control plane, worker-pool variables, network config,
-`KubeadmControlPlaneTemplate`, `HCloudMachineTemplate` — and per-cluster
-`Cluster` CRs reference it via `topology.classRef.name`, only specifying
-what differs (replica counts, machine types per pool, labels). Adding
-a new (e.g. per-tenant) cluster is a `cp cluster-<env>.yaml
-cluster-<tenant>.yaml` plus a name change. Kubernetes minor bumps are a
-`topology.version:` edit on each Cluster CR.
+ClusterClass is the native templating layer from
+[Cluster Application Programming Interface](https://cluster-api.sigs.k8s.io/).
+We author one `ClusterClass` (`glossia-hcloud`) that defines the
+reusable shape: highly available control plane, worker-pool variables,
+network config, `KubeadmControlPlaneTemplate`, and
+`HCloudMachineTemplate`. Per-cluster `Cluster` resources reference it
+via `topology.classRef.name`, only specifying what differs, such as
+replica counts, machine types per pool, and labels. Adding a new
+cluster means copying one workload directory, changing
+`metadata.name`, and adding a matching Flux `Kustomization`.
+Kubernetes minor bumps are a `topology.version:` edit on each
+`Cluster` resource.
 
 ## Layout
 
 ```
 clusters/
-├── README.md                   this file
-├── clusterclass-glossia.yaml   the glossia-hcloud ClusterClass
-└── cluster-production.yaml     per-cluster Cluster CRs in topology mode
+├── README.md                         this file
+├── clusterclass-glossia.yaml         the glossia-hcloud ClusterClass
+└── workloads/
+    ├── observability/
+    │   ├── cluster.yaml              glossia-observability Cluster resource
+    │   └── kustomization.yaml
+    └── production/
+        ├── cluster.yaml              glossia-production Cluster resource
+        └── kustomization.yaml
 ```
+
+## Reconciliation
+
+[Flux](https://fluxcd.io/) reconciles each workload directory through
+the resources in [`../mgmt/flux`](../mgmt/flux). The
+`ClusterClass` remains outside Flux because template fields are often
+immutable and still need the explicit management-cluster apply path in
+the onboarding runbook.
+
+The Flux `Kustomization` objects use `prune: false` and
+`deletionPolicy: Orphan`, so removing a file from git cannot tear down
+live infrastructure by accident. Intentional cluster removal stays a
+separate break-glass operation.
 
 ## Variables exposed by the ClusterClass
 
@@ -41,7 +65,7 @@ clusters/
 For per-pool overrides (e.g. a stateful pool that wants a different
 machine type from `md-0`), set `variables.overrides` on the
 `MachineDeployment` entry — see the inline comments on
-`cluster-production.yaml`.
+`workloads/production/cluster.yaml`.
 
 ## Image strategy
 
@@ -64,7 +88,7 @@ gh release download <tag> --repo syself/cluster-api-provider-hetzner \
 Adaptations to be aware of when porting upstream changes:
 
 - Bare-metal `MachineDeployment` class + bare-metal templates dropped (we only run cloud servers).
-- All five resources scoped to the `org-glossia` namespace (otherwise `topology.classRef` lookup fails because Cluster CRs live in `org-glossia`).
+- All five resources scoped to the `org-glossia` namespace (otherwise `topology.classRef` lookup fails because `Cluster` resources live in `org-glossia`).
 - `initConfiguration.skipPhases: [addon/kube-proxy]` on the KCP because Cilium replaces kube-proxy.
 - `hcloudPlacementGroups` variable defaults to `[]` (otherwise the patch errors at render time).
 - `hcloudControlPlanePlacementGroupName` / `hcloudWorkerMachinePlacementGroupName` patches split into separate `enabledIf` definitions: caph rejects empty-string `placementGroupName` with "Placement group does not exist", so we only emit the patch when the variable is non-empty.
