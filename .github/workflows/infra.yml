@@ -101,12 +101,12 @@ jobs:
           end
           RUBY
 
-          mise exec -- flux build kustomization workload-cluster-production \
+          mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-production \
             --path ./infra/k8s/clusters/workloads/production \
             --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
             --dry-run >/tmp/flux-production-build.yaml
 
-          mise exec -- flux build kustomization workload-cluster-observability \
+          mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-observability \
             --path ./infra/k8s/clusters/workloads/observability \
             --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
             --dry-run >/tmp/flux-observability-build.yaml
