@@ -334,13 +334,13 @@ mise exec -- flux bootstrap github \
   --path=infra/k8s/mgmt/flux
 ```
 
-The bootstrap command installs the Flux controllers and commits their
-own generated manifests under `infra/k8s/mgmt/flux/flux-system`.
-The sibling manifests in `infra/k8s/mgmt/flux/` declare the narrow
-`workload-cluster-reconciler` service account and one Flux
-`Kustomization` per workload cluster. Each workload `Kustomization`
-uses `prune: false`, so deleting a `Cluster` file from git does not
-delete live infrastructure.
+The generated controller and sync manifests are already reviewed under
+`infra/k8s/mgmt/flux/flux-system`, so bootstrap installs that version
+without adding a direct commit to `main`. The sibling manifests in
+`infra/k8s/mgmt/flux/` declare the narrow `workload-cluster-reconciler`
+service account and one Flux `Kustomization` per workload cluster. Each
+workload `Kustomization` uses `prune: false`, so deleting a `Cluster`
+file from git does not delete live infrastructure.
 
 Check reconciliation:
 

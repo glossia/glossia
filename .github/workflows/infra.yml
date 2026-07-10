@@ -92,14 +92,20 @@ jobs:
 
           mise exec -- kubectl kustomize infra/k8s/clusters/workloads/production >/tmp/glossia-production-cluster.yaml
           mise exec -- kubectl kustomize infra/k8s/clusters/workloads/observability >/tmp/glossia-observability-cluster.yaml
+          mise exec -- kubectl kustomize infra/k8s/mgmt/flux/flux-system >/tmp/glossia-flux-system.yaml
 
           ruby <<'RUBY'
           require "yaml"
 
-          Dir["infra/k8s/mgmt/flux/*.yaml"].sort.each do |file|
+          Dir["infra/k8s/mgmt/flux/**/*.yaml"].sort.each do |file|
             YAML.parse_stream(File.read(file))
           end
           RUBY
+
+          mise exec flux2@2.9.1 -- flux build kustomization flux-system \
+            --path ./infra/k8s/mgmt/flux \
+            --kustomization-file ./infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
+            --dry-run >/tmp/flux-system-build.yaml
 
           mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-production \
             --path ./infra/k8s/clusters/workloads/production \
