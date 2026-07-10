@@ -20,6 +20,8 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     environment: production
+    env:
+      GLOSSIA_DEV_INSTANCE: "1"
     permissions:
       contents: read
       packages: write
@@ -48,10 +50,36 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          mise exec -- op read 'op://glossia-production/kubernetes/K8S_KUBECONFIG_B64' \
-            | base64 --decode > "$RUNNER_TEMP/kubeconfig"
-          chmod 600 "$RUNNER_TEMP/kubeconfig"
-          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+          set -euo pipefail
+          umask 077
+
+          kubeconfig="$RUNNER_TEMP/kubeconfig"
+          kubeconfig_base64=""
+
+          for attempt in 1 2 3 4 5; do
+            if kubeconfig_base64="$(timeout 30s mise exec -- op read 'op://glossia-production/kubernetes/K8S_KUBECONFIG_B64')" \
+              && [[ -n "$kubeconfig_base64" ]]; then
+              break
+            fi
+
+            if [[ "$attempt" == "5" ]]; then
+              echo "Failed to read the production kubeconfig after $attempt attempts." >&2
+              exit 1
+            fi
+
+            retry_delay=$((attempt * 10))
+            echo "Could not read the production kubeconfig. Retrying in ${retry_delay}s." >&2
+            sleep "$retry_delay"
+          done
+
+          printf '%s' "$kubeconfig_base64" | base64 --decode > "$kubeconfig"
+          unset kubeconfig_base64
+
+          test -s "$kubeconfig"
+          chmod 600 "$kubeconfig"
+          mise exec -- kubectl --kubeconfig "$kubeconfig" --request-timeout=30s \
+            get --raw=/readyz >/dev/null
+          echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
