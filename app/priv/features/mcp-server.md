@@ -4,7 +4,7 @@
   order: 3,
   icon: "cpu",
   hero_cta_text: "Get started",
-  hero_cta_url: "/interest",
+  hero_cta_url: "/signup",
   highlights: [
     %{title: "Natural language interface", description: "Interact with Glossia's linguistic engine through plain text. AI agents call MCP tools to manage voices, terminology, and organizations without writing code.", icon: "message-square-text"},
     %{title: "Plug into any agent", description: "Works with Claude, Cursor, Windsurf, and any MCP-compatible client. Drop the Glossia server into your existing agentic workflow and start using it immediately.", icon: "puzzle"},

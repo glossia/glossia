@@ -3,10 +3,6 @@ defmodule GlossiaWeb.PageController do
 
   alias Glossia.Blog
 
-  def interest(conn, _params) do
-    redirect(conn, to: ~p"/signup")
-  end
-
   def home(conn, _params) do
     case conn.assigns[:current_user] do
       %{account: %{handle: handle}} ->

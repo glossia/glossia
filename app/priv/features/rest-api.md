@@ -4,7 +4,7 @@
   order: 4,
   icon: "terminal",
   hero_cta_text: "Get started",
-  hero_cta_url: "/interest",
+  hero_cta_url: "/signup",
   highlights: [
     %{title: "OpenAPI documented", description: "A full OpenAPI 3.1 spec powers interactive documentation via Scalar. Explore endpoints, try requests, and generate client code from a single spec file.", icon: "book-open"},
     %{title: "OAuth 2.1 with PKCE", description: "Dynamic client registration, authorization code flow with PKCE, token introspection, and revocation. Third-party clients authenticate securely without sharing secrets.", icon: "key-round"},
