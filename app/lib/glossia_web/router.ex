@@ -199,7 +199,6 @@ defmodule GlossiaWeb.Router do
     pipe_through :public
 
     get "/", PageController, :home
-    get "/interest", PageController, :interest
     get "/blog", BlogController, :index
     get "/blog/feed.xml", BlogController, :feed
     get "/blog/:slug", BlogController, :show
