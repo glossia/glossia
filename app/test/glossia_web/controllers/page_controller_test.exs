@@ -30,11 +30,6 @@ defmodule GlossiaWeb.PageControllerTest do
     assert redirected_to(conn) == "/#{user.account.handle}"
   end
 
-  test "GET /interest redirects to sign up", %{conn: conn} do
-    conn = get(conn, ~p"/interest")
-    assert redirected_to(conn) == ~p"/signup"
-  end
-
   for path <- ["/blog", "/features", "/changelog", "/docs"] do
     test "GET #{path} is exposed as a public page", %{conn: conn} do
       conn = get(conn, unquote(path))

@@ -4,7 +4,7 @@
   order: 5,
   icon: "brain",
   hero_cta_text: "Get started",
-  hero_cta_url: "/interest",
+  hero_cta_url: "/signup",
   highlights: [
     %{title: "Versioned and auditable", description: "Every change to your voice or terminology creates a new immutable version. You can review the history, compare iterations, and roll back if something drifts.", icon: "git-branch"},
     %{title: "Beyond localization", description: "Language memory is not just for localization. Use it to generate marketing copy, draft documentation, review pull requests, or craft social posts, all in your organization's voice.", icon: "megaphone"},

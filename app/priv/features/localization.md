@@ -4,7 +4,7 @@
   order: 1,
   icon: "languages",
   hero_cta_text: "Get started",
-  hero_cta_url: "/interest",
+  hero_cta_url: "/signup",
   highlights: [
     %{title: "Structure-aware", description: "Code blocks, frontmatter, and formatting survive localization intact. No manual cleanup required.", icon: "code"},
     %{title: "Any language pair", description: "Localize between any combination of languages. Add new targets by editing a single line in your config.", icon: "globe"},

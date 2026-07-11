@@ -4,7 +4,7 @@
   order: 2,
   icon: "pencil",
   hero_cta_text: "Get started",
-  hero_cta_url: "/interest",
+  hero_cta_url: "/signup",
   highlights: [
     %{title: "Tone and clarity", description: "Agents review your prose for readability, jargon, and consistency with your brand voice.", icon: "message-circle"},
     %{title: "Non-destructive", description: "Revised content can overwrite the original or write to a separate path. You always control the output destination.", icon: "shield-check"},
