@@ -189,3 +189,205 @@ jobs:
 
       - name: Run Glossia end-to-end tests
         run: mise exec kind@0.32.0 shellspec@0.28.1 -- bash deploy/helm/glossia/e2e/kind.sh
+
+  reconcile-management:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Reconcile management cluster
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    needs: [helm, glossia-e2e]
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: reconcile-management-cluster
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+          install_args: kubectl
+
+      - name: Load management kubeconfig from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /kubeconfig-glossia-mgmt
+          domain: https://eu.infisical.com
+
+      - name: Write management kubeconfig
+        run: |
+          set -euo pipefail
+          umask 077
+
+          kubeconfig="$RUNNER_TEMP/management-kubeconfig"
+          test -n "${CONTENT:-}"
+          printf '%s' "$CONTENT" > "$kubeconfig"
+          test -s "$kubeconfig"
+
+          echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
+          echo "CONTENT=" >> "$GITHUB_ENV"
+
+      - name: Verify management cluster reachability
+        run: mise exec -- kubectl --request-timeout=10s get --raw /version >/dev/null
+
+      - name: Load Flux source credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /flux-system
+          domain: https://eu.infisical.com
+
+      - name: Restore Flux source credentials
+        run: |
+          set -euo pipefail
+          umask 077
+
+          auth_dir="$RUNNER_TEMP/flux-auth"
+          mkdir -p "$auth_dir"
+
+          test -n "${GITHUB_APP_ID:-}"
+          test -n "${GITHUB_APP_INSTALLATION_OWNER:-}"
+          test -n "${GITHUB_APP_PRIVATE_KEY:-}"
+          printf '%s\n' "$GITHUB_APP_PRIVATE_KEY" > "$auth_dir/github-app-private-key"
+
+          mise exec -- kubectl -n flux-system create secret generic flux-system \
+            --from-literal=githubAppID="$GITHUB_APP_ID" \
+            --from-literal=githubAppInstallationOwner="$GITHUB_APP_INSTALLATION_OWNER" \
+            --from-file=githubAppPrivateKey="$auth_dir/github-app-private-key" \
+            --dry-run=client -o yaml \
+            | mise exec -- kubectl apply -f -
+
+          rm -rf "$auth_dir"
+          echo "GITHUB_APP_ID=" >> "$GITHUB_ENV"
+          echo "GITHUB_APP_INSTALLATION_OWNER=" >> "$GITHUB_ENV"
+          echo "GITHUB_APP_PRIVATE_KEY=" >> "$GITHUB_ENV"
+
+      - name: Reconcile Flux configuration
+        run: |
+          set -euo pipefail
+
+          mise exec -- kubectl apply \
+            -f infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
+            -f infra/k8s/mgmt/flux/workload-cluster-rbac.yaml \
+            -f infra/k8s/mgmt/flux/workload-clusters.yaml
+
+          requested_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          mise exec -- kubectl -n flux-system annotate --overwrite \
+            gitrepository.source.toolkit.fluxcd.io/flux-system \
+            "reconcile.fluxcd.io/requestedAt=$requested_at"
+          mise exec -- kubectl -n flux-system wait \
+            --for=condition=Ready gitrepository.source.toolkit.fluxcd.io/flux-system \
+            --timeout=2m
+
+          mise exec -- kubectl -n flux-system annotate --overwrite \
+            kustomization.kustomize.toolkit.fluxcd.io/flux-system \
+            "reconcile.fluxcd.io/requestedAt=$requested_at"
+          mise exec -- kubectl -n flux-system wait \
+            --for=condition=Ready kustomization.kustomize.toolkit.fluxcd.io/flux-system \
+            --timeout=5m
+
+  reconcile-observability:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Reconcile observability cluster
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    needs: [helm, glossia-e2e]
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: reconcile-observability-cluster
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+          install_args: helm kubectl
+
+      - name: Load Tailscale credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /tailscale-github-actions-authkey
+          domain: https://eu.infisical.com
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ env.AUTHKEY }}
+          ping: glossia-observability-kube.tail96f99b.ts.net
+
+      - name: Load management kubeconfig from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /kubeconfig-glossia-mgmt
+          domain: https://eu.infisical.com
+
+      - name: Write workload kubeconfig
+        run: |
+          set -euo pipefail
+          umask 077
+
+          management_kubeconfig="$RUNNER_TEMP/management-kubeconfig"
+          workload_kubeconfig="$RUNNER_TEMP/observability-kubeconfig"
+
+          test -n "${CONTENT:-}"
+          printf '%s' "$CONTENT" > "$management_kubeconfig"
+          test -s "$management_kubeconfig"
+
+          KUBECONFIG="$management_kubeconfig" mise exec -- kubectl \
+            -n org-glossia get secret glossia-observability-kubeconfig \
+            -o jsonpath='{.data.value}' \
+            | base64 --decode > "$workload_kubeconfig"
+          test -s "$workload_kubeconfig"
+
+          cluster_name="$(KUBECONFIG="$workload_kubeconfig" mise exec -- kubectl \
+            config view --minify -o jsonpath='{.clusters[0].name}')"
+          KUBECONFIG="$workload_kubeconfig" mise exec -- kubectl config set-cluster "$cluster_name" \
+            --server=https://glossia-observability-kube.tail96f99b.ts.net \
+            --tls-server-name=kubernetes
+
+          echo "KUBECONFIG=$workload_kubeconfig" >> "$GITHUB_ENV"
+          echo "CONTENT=" >> "$GITHUB_ENV"
+
+      - name: Verify observability cluster reachability
+        run: mise exec -- kubectl --request-timeout=10s get --raw /version >/dev/null
+
+      - name: Deploy observability services
+        run: |
+          set -euo pipefail
+
+          mise exec -- helm dependency update infra/helm/observability
+          mise exec -- helm upgrade --install observability infra/helm/observability \
+            --namespace observability \
+            --create-namespace \
+            --values infra/helm/observability/values-hetzner.yaml \
+            --timeout 30m
+
+          osd_deployments="$(mise exec -- kubectl -n observability get deployment \
+            -l app=rook-ceph-osd -o name)"
+          test -n "$osd_deployments"
+
+          while read -r deployment; do
+            mise exec -- kubectl -n observability rollout status "$deployment" --timeout=20m
+          done <<< "$osd_deployments"
