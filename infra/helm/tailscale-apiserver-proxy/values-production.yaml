@@ -1,7 +1,7 @@
 # Production workload cluster overlay.
 
 externalSecrets:
-  item: tailscale-apiserver-proxy-production
+  item: /tailscale-apiserver-proxy-production
 
 proxy:
   hostname: glossia-production-kube

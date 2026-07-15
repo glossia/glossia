@@ -14,7 +14,7 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{/*
 Standard nginx basic-auth annotations for the push-endpoint ingresses
 (mimir/loki/tempo). The `auth` Secret is the htpasswd file projected
-from 1Password via the push-endpoints-auth ExternalSecret.
+from Infisical via the push-endpoints-auth ExternalSecret.
 */}}
 {{- define "observability.pushAuthAnnotations" -}}
 nginx.ingress.kubernetes.io/auth-type: basic

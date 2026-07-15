@@ -25,6 +25,11 @@ metadata:
   name: glossia-production
   namespace: org-glossia
 spec:
+  # Keep cluster bootstrap and discovery data on the firewalled
+  # control-plane server after the public load balancer is retired.
+  controlPlaneEndpoint:
+    host: 178.105.114.211
+    port: 6443
   clusterNetwork:
     services:
       cidrBlocks:

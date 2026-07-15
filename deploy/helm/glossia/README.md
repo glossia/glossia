@@ -106,37 +106,37 @@ cluster.
 
 ## External Secrets Operator
 
-When `externalSecrets.enabled=true` the chart emits `ExternalSecret` CRs
-that pull from the configured store. For example, against a 1Password
-`ClusterSecretStore` named `onepassword`:
+When `externalSecrets.enabled=true` the chart emits `ExternalSecret` resources
+that pull from the configured store. For example, against the Infisical
+`ClusterSecretStore`:
 
 ```yaml
 externalSecrets:
   enabled: true
   secretStoreRef:
     kind: ClusterSecretStore
-    name: onepassword
+    name: infisical
   appEnv:
-    itemKey: glossia                # 1Password item title
+    itemKey: /kubernetes            # Infisical folder path
     fields:
       GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
       GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
       # … one entry per field you want surfaced in glossia-app-env
   postgres:
-    itemKey: glossia
+    itemKey: /kubernetes
     passwordField: POSTGRES_PASSWORD
   imagePullSecret:
     enabled: true                   # only needed for private registries
     name: ghcr-pull-secret
     registry: ghcr.io
-    itemKey: glossia
+    itemKey: /kubernetes
     usernameField: GHCR_PULL_USERNAME
     passwordField: GHCR_PULL_TOKEN
 ```
 
 `GLOSSIA_DATABASE_URL` and `GLOSSIA_CLICKHOUSE_URL` are computed from
 `postgres.*` / `clickhouse.*` and the password fetched from the postgres
-item — you do not list them in `appEnv.fields`.
+folder. You do not list them in `appEnv.fields`.
 
 ## Cluster Mail Relay
 
@@ -253,17 +253,17 @@ backups:
 Provide `backups.secretName` yourself (keys `ACCESS_KEY_ID`,
 `SECRET_ACCESS_KEY`, and `REGION` when `s3.region` is set — the CNPG
 plugin only takes the region via a secret ref), or let the External
-Secrets integration create it from a dedicated backend item (it injects
-`REGION` from `s3.region` for you; the backend item only needs the two
+Secrets integration create it from a dedicated backend folder (it injects
+`REGION` from `s3.region` for you; the backend folder only needs the two
 keys):
 
 ```yaml
 externalSecrets:
   enabled: true
   backup:
-    itemKey: glossia-db-backups-keys   # a SEPARATE item from appEnv
-    accessKeyIdField: access_key_id
-    secretAccessKeyField: secret_access_key
+    itemKey: /glossia-db-backups-keys
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
 ```
 
 ## Upgrades

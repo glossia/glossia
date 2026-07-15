@@ -27,10 +27,8 @@ dependencies:
     version: 1.15.0
     repository: https://kubernetes-sigs.github.io/external-dns
     condition: external-dns.enabled
-  # Bumped 0.10.4 → 2.5.0: 0.10.4 predates both the external-secrets.io/v1
-  # API and the onepasswordSDK provider (Service-Account token, no Connect
-  # server). 2.5.0 serves v1 only — all ExternalSecret/SecretStore manifests
-  # must be external-secrets.io/v1 (v1beta1 dropped at ESO 0.17).
+  # Version 2.5.0 serves external-secrets.io/v1 and includes the Infisical
+  # provider used by every Glossia workload cluster.
   - name: external-secrets
     version: 2.5.0
     repository: https://charts.external-secrets.io

@@ -45,8 +45,8 @@ mailRelay:
     enabled: true
     secretStoreRef:
       kind: ClusterSecretStore
-      name: onepassword
-    itemKey: kubernetes
+      name: infisical
+    itemKey: /kubernetes
     fields:
       host: SMTP_HOST
       port: SMTP_PORT

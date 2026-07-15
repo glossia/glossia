@@ -1,5 +1,5 @@
 {{- if and .Values.externalSecrets.enabled .Values.postgres.enabled }}
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: {{ .Values.postgres.appSecretName }}
@@ -18,7 +18,8 @@ spec:
       data:
         username: {{ .Values.postgres.user | quote }}
         password: {{ printf "{{ .%s }}" .Values.externalSecrets.postgres.passwordField | quote }}
-  dataFrom:
-    - extract:
-        key: {{ .Values.externalSecrets.postgres.itemKey | quote }}
+  data:
+    - secretKey: {{ .Values.externalSecrets.postgres.passwordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.postgres.itemKey .Values.externalSecrets.postgres.passwordField | quote }}
 {{- end }}

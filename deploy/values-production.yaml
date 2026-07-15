@@ -98,7 +98,7 @@ clickhouse:
 # Dedicated DB-backup bucket on Cloudflare R2 — SEPARATE provider and
 # credentials from the app's GLOSSIA_S3_* store (DR isolation). The
 # bucket + the scoped R2 token live behind the `glossia-db-backups-keys`
-# 1Password item (infra/k8s/onboarding.md §B.6). endpointURL is the
+# Infisical folder (infra/k8s/onboarding.md §B.6). endpointURL is the
 # account's EU-jurisdiction R2 S3 endpoint; R2's region is always "auto".
 backups:
   enabled: true
@@ -116,15 +116,15 @@ backups:
     # R2 needs path-style addressing for clickhouse-backup.
     forcePathStyle: true
 
-# Pull every secret from the per-environment 1Password vault via the
-# `onepassword` ClusterSecretStore (provisioned by infra/k8s/onboarding.md).
+# Pull every secret from the Glossia Infisical project via the `infisical`
+# ClusterSecretStore provisioned by infra/k8s/onboarding.md.
 externalSecrets:
   enabled: true
   secretStoreRef:
     kind: ClusterSecretStore
-    name: onepassword
+    name: infisical
   appEnv:
-    itemKey: kubernetes
+    itemKey: /kubernetes
     fields:
       GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
       GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
@@ -147,16 +147,16 @@ externalSecrets:
       GLOSSIA_GITLAB_WEBHOOK_SECRET: GITLAB_WEBHOOK_SECRET
       OTEL_EXPORTER_OTLP_HEADERS: OTEL_EXPORTER_OTLP_HEADERS
   postgres:
-    itemKey: kubernetes
+    itemKey: /kubernetes
     passwordField: POSTGRES_PASSWORD
   backup:
-    itemKey: glossia-db-backups-keys
-    accessKeyIdField: access_key_id
-    secretAccessKeyField: secret_access_key
+    itemKey: /glossia-db-backups-keys
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
   imagePullSecret:
     enabled: true
     name: ghcr-pull-secret
     registry: ghcr.io
-    itemKey: kubernetes
+    itemKey: /kubernetes
     usernameField: GHCR_PULL_USERNAME
     passwordField: GHCR_PULL_TOKEN

@@ -3,7 +3,7 @@
 # the platform and observability releases.
 
 externalSecrets:
-  item: tailscale-apiserver-proxy-observability
+  item: /observability/tailscale-apiserver-proxy-observability
 
 proxy:
   hostname: glossia-observability-kube

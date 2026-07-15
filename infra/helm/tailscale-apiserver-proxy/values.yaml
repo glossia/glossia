@@ -18,9 +18,9 @@ externalSecrets:
   refreshInterval: "1h"
   storeRef:
     kind: ClusterSecretStore
-    name: onepassword
-  item: tailscale-apiserver-proxy-production
-  field: authkey
+    name: infisical
+  item: /tailscale-apiserver-proxy-production
+  field: AUTHKEY
 
 proxy:
   hostname: glossia-production-kube

@@ -19,7 +19,7 @@ outage.
 
 GlitchTip is exposed at `https://errors.glossia.ai`. The Glossia
 application already reads `GLOSSIA_SENTRY_DSN` and
-`GLOSSIA_SENTRY_DSN_JS` from the production `kubernetes` 1Password item,
+`GLOSSIA_SENTRY_DSN_JS` from the production `/kubernetes` Infisical folder,
 so after creating a GlitchTip project, point those fields at the
 project's server and browser Sentry data source names.
 
@@ -29,7 +29,8 @@ project's server and browser Sentry data source names.
    `infra/k8s/clusters/workloads/observability/cluster.yaml`, fetch its
    kubeconfig, install Cilium / HCCM / hcloud-csi, install the platform
    chart with `infra/helm/platform/values-observability.yaml`, install the
-   `onepassword` ClusterSecretStore with `VAULT_NAME=glossia-observability`.
+   `infisical` ClusterSecretStore from
+   `infra/k8s/mgmt/bootstrap/infisical-secretstore-observability.yaml`.
    The observability platform overlay enables CloudNativePG because
    GlitchTip stores its events in a PostgreSQL cluster managed by that
    operator.
@@ -48,8 +49,8 @@ project's server and browser Sentry data source names.
    ```bash
    kubectl -n rook-ceph rollout status deploy/rook-ceph-operator --timeout=5m
    ```
-3. **Populate 1Password** vault `glossia-observability` with:
-   - Item `kubernetes` — fields `GF_SECURITY_ADMIN_USER`,
+3. **Populate Infisical** under `/observability` with:
+   - Folder `kubernetes` — secrets `GF_SECURITY_ADMIN_USER`,
      `GF_SECURITY_ADMIN_PASSWORD` (Grafana root login), plus
      `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, and `SMTP_PASSWORD` for
      the upstream mail provider, and `MAIL_RELAY_USERNAME` and
@@ -59,10 +60,10 @@ project's server and browser Sentry data source names.
      `mailRelay.ciliumEgressPolicy.allowedPorts` in the platform values. The
      relay egress policy only permits the configured upstream provider
      hostname and port.
-   - Item `glitchtip` — fields `SECRET_KEY`, `POSTGRES_PASSWORD`.
+   - Folder `glitchtip` — secrets `SECRET_KEY`, `POSTGRES_PASSWORD`.
      Generate `SECRET_KEY` with `openssl rand -base64 48` and use a
      separate random database password for `POSTGRES_PASSWORD`.
-   - Item `push-endpoints-auth` — single field `htpasswd` holding the
+   - Folder `push-endpoints-auth` — secret `HTPASSWD` holding the
      full htpasswd content for every workload cluster shipping to
      this observability cluster. One line per token, e.g.:
      ```
@@ -71,8 +72,7 @@ project's server and browser Sentry data source names.
      ```
      Generate each line with `htpasswd -B -n <cluster-name>` locally
      (B = bcrypt). Store the matching **plain** tokens in each
-     workload cluster's own vault (item
-     `push-token-<cluster-name>`, field `token`) so its Alloy install
+     workload cluster folder (`push-token-<cluster-name>/TOKEN`) so its Alloy install
      can consume them.
 
 ## Install

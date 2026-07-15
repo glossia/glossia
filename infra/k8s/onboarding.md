@@ -23,25 +23,25 @@ is closed.
 - A Hetzner Cloud account. Recommended layout is **two projects**:
   - `glossia-mgmt` — hosts the management VM only.
   - `glossia-workloads` — hosts every workload cluster's nodes + LBs.
-  Two API tokens (read/write) saved to 1Password as
-  `hetzner-glossia-mgmt` and `hetzner-glossia-workloads`.
+  Two read/write tokens saved in Infisical under
+  `/hetzner-glossia-mgmt/CREDENTIAL` and
+  `/hetzner-glossia-workloads/CREDENTIAL`.
 
   The split is so a leaked workload-project token can't reach the
   mgmt VM. A single-project setup (one token reused for both) works
   too — the runbook calls out where it differs. Splitting later is
   a Secret rotation, not a re-bootstrap.
 - A Cloudflare account with an API token scoped to `Zone.DNS:Edit` on
-  `glossia.ai` and `l10n.md`, saved to 1Password as
-  `cloudflare-glossia-dns`.
+  `glossia.ai` and `l10n.md`, saved in Infisical as
+  `/cloudflare-glossia-dns/CREDENTIAL`.
 - A Tailscale tenant with admin access (one-time bootstrap below).
 - An S3-compatible bucket for hourly etcd snapshots
   (`glossia-mgmt-etcd-snapshots`) with bucket-scoped access keys saved
-  to 1Password as `glossia-mgmt-etcd-snapshots-keys`.
-- 1Password vault `glossia-production`. All k8s-related items
-  (Hetzner tokens, Talos / kubeconfigs, SSH keys, S3 keys, Cloudflare
-  token, etc.) live here. A Service Account scoped to this vault
-  is needed by ESO on workload clusters (see Part B).
-  The `kubernetes` item must include `SMTP_HOST`, `SMTP_PORT`,
+  below `/glossia-mgmt-etcd-snapshots-keys` in Infisical.
+- Infisical organization `Glossia`, project `Glossia`, and production
+  environment. All cluster-related values live in this project. A read-only
+  machine identity authenticates External Secrets Operator in every workload
+  cluster. The `/kubernetes` folder must include `SMTP_HOST`, `SMTP_PORT`,
   `SMTP_USERNAME`, and `SMTP_PASSWORD`; the platform chart uses them to
   configure the cluster [Simple Mail Transfer Protocol](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol)
   relay. It must also include `MAIL_RELAY_USERNAME` and
@@ -55,8 +55,8 @@ is closed.
   ```bash
   mise use -g kubectl helm clusterctl talosctl jq flux2
   ```
-- The 1Password CLI (`op`) authenticated to the desktop app
-  (Settings → Developer → Connect with 1Password CLI + biometric unlock).
+- The Infisical command-line tool authenticated to the European service. This
+  repository's `.infisical.json` links commands to the Glossia project.
 - `hcloud-upload-image` for the Talos snapshot upload step:
   ```bash
   curl -sL https://github.com/apricote/hcloud-upload-image/releases/latest/download/hcloud-upload-image_$(uname -s)_$(uname -m | sed 's/x86_64/amd64/').tar.gz | tar -xz -C /tmp
@@ -71,16 +71,18 @@ One-time. Skip to Part B once the mgmt cluster is up.
 ### A.1 SSH key + Talos snapshot + VM
 
 ```bash
-export HCLOUD_TOKEN=$(op read 'op://glossia-production/hetzner-glossia-mgmt/credential')
+export HCLOUD_TOKEN=$(infisical secrets get CREDENTIAL --path /hetzner-glossia-mgmt --env prod --plain --silent)
 
-# 1. SSH keypair (ed25519). The private half is stashed in 1Password,
+# 1. SSH keypair (ed25519). Both halves are stored in Infisical,
 #    the public half is uploaded to Hetzner so cloud-init embeds it
 #    on every VM.
 ssh-keygen -t ed25519 -f ~/.ssh/glossia-ops -N '' -C 'glossia-ops'
-op document create ~/.ssh/glossia-ops --vault glossia-production \
-  --title 'ssh-glossia-ops (private key)'
-op document create ~/.ssh/glossia-ops.pub --vault glossia-production \
-  --title 'ssh-glossia-ops (public key)'
+infisical secrets folders create --name ssh-glossia-ops-private-key --path / --env prod
+infisical secrets folders create --name ssh-glossia-ops-public-key --path / --env prod
+infisical secrets set "CONTENT=@$HOME/.ssh/glossia-ops" \
+  --path /ssh-glossia-ops-private-key --env prod
+infisical secrets set "CONTENT=@$HOME/.ssh/glossia-ops.pub" \
+  --path /ssh-glossia-ops-public-key --env prod
 
 curl -sX POST https://api.hetzner.cloud/v1/ssh_keys \
   -H "Authorization: Bearer $HCLOUD_TOKEN" -H "Content-Type: application/json" \
@@ -169,16 +171,17 @@ talosctl --talosconfig "$WORK/talosconfig" patch mc \
   --patch @/tmp/allow-cp-scheduling.yaml
 rm /tmp/allow-cp-scheduling.yaml
 
-# Stash configs in 1Password — these are the cluster's keys to the
-# kingdom. controlplane.yaml carries the cluster CA + secrets; needed
-# to rebuild the VM if it dies. Each `op document create` triggers a
-# Touch ID prompt; approve them as they pop up.
-op document create "$WORK/talosconfig" --vault glossia-production \
-  --title 'talosconfig: glossia-mgmt'
-op document create "$WORK/kubeconfig" --vault glossia-production \
-  --title 'kubeconfig: glossia-mgmt'
-op document create "$WORK/controlplane.yaml" --vault glossia-production \
-  --title 'talos-controlplane: glossia-mgmt'
+# Store the configs in Infisical. controlplane.yaml carries the cluster
+# certificate authority and secrets needed to rebuild the virtual machine.
+infisical secrets folders create --name talosconfig-glossia-mgmt --path / --env prod
+infisical secrets folders create --name kubeconfig-glossia-mgmt --path / --env prod
+infisical secrets folders create --name talos-controlplane-glossia-mgmt --path / --env prod
+infisical secrets set CONTENT=@"$WORK/talosconfig" \
+  --path /talosconfig-glossia-mgmt --env prod
+infisical secrets set CONTENT=@"$WORK/kubeconfig" \
+  --path /kubeconfig-glossia-mgmt --env prod
+infisical secrets set CONTENT=@"$WORK/controlplane.yaml" \
+  --path /talos-controlplane-glossia-mgmt --env prod
 
 rm -rf "$WORK"
 ```
@@ -186,10 +189,10 @@ rm -rf "$WORK"
 ### A.3 Install CAPI + caph
 
 ```bash
-op document get "kubeconfig: glossia-mgmt" --vault glossia-production --out-file ~/.kube/glossia-mgmt.yaml
+infisical secrets get CONTENT --path /kubeconfig-glossia-mgmt --env prod --plain --silent > ~/.kube/glossia-mgmt.yaml
 chmod 600 ~/.kube/glossia-mgmt.yaml
 export KUBECONFIG=~/.kube/glossia-mgmt.yaml
-export HCLOUD_TOKEN=$(op read 'op://glossia-production/hetzner-glossia-mgmt/credential')
+export HCLOUD_TOKEN=$(infisical secrets get CREDENTIAL --path /hetzner-glossia-mgmt --env prod --plain --silent)
 
 # CLUSTER_TOPOLOGY=true enables the ClusterTopology feature gate on
 # capi-controller-manager + capi-kubeadm-control-plane-controller-manager.
@@ -225,8 +228,8 @@ kubectl get pods -A
 # Token: if you've split into a `glossia-workloads` Hetzner project,
 # read its token here so a leak in a workload cluster can't reach the
 # mgmt VM. Single-project setup uses the mgmt token for both.
-HCLOUD_TOKEN_WORKLOADS=$(op read 'op://glossia-production/hetzner-glossia-workloads/credential' 2>/dev/null \
-  || op read 'op://glossia-production/hetzner-glossia-mgmt/credential')
+HCLOUD_TOKEN_WORKLOADS=$(infisical secrets get CREDENTIAL --path /hetzner-glossia-workloads --env prod --plain --silent 2>/dev/null \
+  || infisical secrets get CREDENTIAL --path /hetzner-glossia-mgmt --env prod --plain --silent)
 
 kubectl create namespace org-glossia
 kubectl -n org-glossia create secret generic hetzner \
@@ -255,8 +258,8 @@ kubectl apply -f infra/k8s/mgmt/etcd-snapshot.yaml
 # 1. talos-snapshotter-config — a tightly-scoped talosconfig with the
 #    os:etcd:backup role only (so a leak from inside the cluster can't
 #    drive talosd beyond etcd snapshots).
-op document get 'talosconfig: glossia-mgmt' --vault glossia-production \
-  --out-file /tmp/admin-talosconfig.yaml
+infisical secrets get CONTENT --path /talosconfig-glossia-mgmt --env prod --plain --silent \
+  > /tmp/admin-talosconfig.yaml
 talosctl --talosconfig /tmp/admin-talosconfig.yaml config new \
   --roles os:etcd:backup /tmp/snapshotter-talosconfig.yaml
 
@@ -275,13 +278,13 @@ kubectl -n mgmt-system create secret generic talos-snapshotter-config \
   --from-file=talosconfig=/tmp/snapshotter-talosconfig.yaml
 shred -u /tmp/admin-talosconfig.yaml /tmp/snapshotter-talosconfig.yaml
 
-# 2. s3-credentials — bucket-scoped keys for an S3-compatible store
-#    (Tigris, Cloudflare R2, Backblaze B2, etc.). The 1Password item
-#    must carry access_key_id, secret_access_key, and endpoint_url.
+# 2. s3-credentials — bucket-scoped keys for an S3-compatible store.
+#    The Infisical folder must carry ACCESS_KEY_ID, SECRET_ACCESS_KEY,
+#    and ENDPOINT_URL.
 kubectl -n mgmt-system create secret generic s3-credentials \
-  --from-literal=access_key_id="$(op read 'op://glossia-production/glossia-mgmt-etcd-snapshots-keys/access_key_id')" \
-  --from-literal=secret_access_key="$(op read 'op://glossia-production/glossia-mgmt-etcd-snapshots-keys/secret_access_key')" \
-  --from-literal=endpoint_url="$(op read 'op://glossia-production/glossia-mgmt-etcd-snapshots-keys/endpoint_url')"
+  --from-literal=access_key_id="$(infisical secrets get ACCESS_KEY_ID --path /glossia-mgmt-etcd-snapshots-keys --env prod --plain --silent)" \
+  --from-literal=secret_access_key="$(infisical secrets get SECRET_ACCESS_KEY --path /glossia-mgmt-etcd-snapshots-keys --env prod --plain --silent)" \
+  --from-literal=endpoint_url="$(infisical secrets get ENDPOINT_URL --path /glossia-mgmt-etcd-snapshots-keys --env prod --plain --silent)"
 
 # Smoke-test the CronJob without waiting for the next hour:
 kubectl -n mgmt-system create job --from=cronjob/etcd-snapshot etcd-snapshot-manual
@@ -296,7 +299,7 @@ shows up as `glossia-mgmt`, tighten the Hetzner firewall to drop
 `:50000` from public access:
 
 ```bash
-export HCLOUD_TOKEN=$(op read 'op://glossia-production/hetzner-glossia-mgmt/credential')
+export HCLOUD_TOKEN=$(infisical secrets get CREDENTIAL --path /hetzner-glossia-mgmt --env prod --plain --silent)
 FW_ID=$(curl -sH "Authorization: Bearer $HCLOUD_TOKEN" \
   "https://api.hetzner.cloud/v1/firewalls?name=glossia-mgmt" | jq -r '.firewalls[0].id')
 curl -sX POST "https://api.hetzner.cloud/v1/firewalls/$FW_ID/actions/set_rules" \
@@ -450,10 +453,6 @@ kubectl label --overwrite ns platform \
   pod-security.kubernetes.io/audit=privileged \
   pod-security.kubernetes.io/warn=privileged
 
-kubectl -n platform create secret generic cloudflare-api-token \
-  --from-literal=api-token="$(op read 'op://glossia-production/cloudflare-glossia-dns/credential')" \
-  --dry-run=client -o yaml | kubectl apply -f -
-
 # charts/ and Chart.lock are gitignored — deps resolve at install time.
 helm repo add rook-release https://charts.rook.io/release
 helm dependency update infra/helm/platform
@@ -488,43 +487,44 @@ kubectl -n platform get networkpolicy glossia-releases-s3-rgw-ingress
 # access stays scoped to the generated `glossia-releases` bucket credentials.
 #
 # After the first bucket claim reconciliation, copy the generated write
-# credentials into the `glossia-releases` 1Password item in the
-# `glossia-production` vault. The release workflow reads these fields directly
-# and masks them before signing uploads:
+# credentials into `/glossia-releases` in Infisical. The release workflow
+# reads these secrets directly:
 kubectl -n platform get secret glossia-releases \
   -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 --decode
 kubectl -n platform get secret glossia-releases \
   -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 --decode
-op item edit glossia-releases --vault glossia-production \
-  AWS_ACCESS_KEY_ID[text]="<generated access key>" \
-  AWS_SECRET_ACCESS_KEY[password]="<generated secret key>"
+infisical secrets set \
+  AWS_ACCESS_KEY_ID="<generated access key>" \
+  AWS_SECRET_ACCESS_KEY="<generated secret key>" \
+  --path /glossia-releases --env prod
 
-# The release workflow reads this 1Password item when publishing command line
-# interface artifacts. Deploy Production does not read or write it.
+# The release workflow reads this Infisical folder when publishing command-line
+# artifacts. Deploy Production does not read or write it.
 
-# 5. ESO ClusterSecretStore (1Password). Use a DEDICATED 1Password
-#    Service Account with READ on only the glossia-production vault, so
-#    a leak in the workload cluster can't reach the rest of the org's
-#    1Password. Store its token as item `onepassword-sa-glossia-production`
-#    (field `credential`) in that vault.
+# 5. External Secrets Operator ClusterSecretStore for Infisical. Create a
+#    dedicated machine identity with the Viewer project role and Universal
+#    Auth enabled. Keep its client secret outside Git.
 #
-#    Apply the manifest FIRST — it creates the `onepassword` namespace
-#    and the ClusterSecretStore. The store reports NotReady until the
-#    token Secret below exists; that is expected, not an error.
-VAULT_NAME=glossia-production envsubst < infra/k8s/mgmt/bootstrap/onepassword-secretstore.yaml | kubectl apply -f -
+#    Apply the manifest first. The store reports NotReady until the credential
+#    Secret exists; that is expected.
+kubectl apply -f infra/k8s/mgmt/bootstrap/infisical-secretstore.yaml
 
-kubectl -n onepassword create secret generic onepassword-sa-token \
-  --from-literal=token="$(op read 'op://glossia-production/onepassword-sa-glossia-production/credential')" \
+kubectl -n infisical create secret generic infisical-universal-auth \
+  --from-literal=clientId="$INFISICAL_CLIENT_ID" \
+  --from-literal=clientSecret="$INFISICAL_CLIENT_SECRET" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-kubectl get clustersecretstore onepassword
+kubectl get clustersecretstore infisical
 # Expect READY=True (re-check after a few seconds; ESO revalidates).
+
+# On the observability cluster, use its isolated project and credentials:
+# kubectl apply -f infra/k8s/mgmt/bootstrap/infisical-secretstore-observability.yaml
 
 kubectl -n platform get externalsecret mail-relay
 kubectl -n platform get networkpolicy mail-relay-ingress
 kubectl -n platform get ciliumnetworkpolicy mail-relay-egress
 kubectl -n platform rollout status deployment/mail-relay --timeout=5m
-# The relay Deployment stays pending until the `onepassword` store projects
+# The relay Deployment stays pending until the `infisical` store projects
 # the upstream mail provider credentials into the platform namespace.
 
 # 6. Database operators — managed standalone (NOT via the platform
@@ -563,15 +563,14 @@ port 443.
 Create tagged, pre-approved auth keys:
 
 - Production proxy: one-off is enough, tagged
-  `tag:glossia-k8s-production`, stored in 1Password item
-  `tailscale-apiserver-proxy-production`, field `authkey`.
+  `tag:glossia-k8s-production`, stored at
+  `/tailscale-apiserver-proxy-production/AUTHKEY` in Infisical.
 - Observability proxy: one-off is enough, tagged
-  `tag:glossia-k8s-observability`, stored in the
-  `glossia-observability` vault as item
-  `tailscale-apiserver-proxy-observability`, field `authkey`.
+  `tag:glossia-k8s-observability`, stored at
+  `/observability/tailscale-apiserver-proxy-observability/AUTHKEY`.
 - GitHub Actions: reusable and ephemeral, tagged
-  `tag:glossia-github-actions`, stored as the production environment
-  secret `TAILSCALE_AUTHKEY`.
+  `tag:glossia-github-actions`, stored at
+  `/tailscale-github-actions-authkey/AUTHKEY`.
 
 The long-running proxy key is only needed for the first join. The proxy
 writes its Tailscale node identity into `tailscale-apiserver-state`, and
@@ -613,6 +612,39 @@ kubectl -n tailscale rollout status deployment/tailscale-apiserver-proxy \
   --timeout=5m
 tailscale ping glossia-observability-kube
 ```
+
+Before retiring the public control-plane route, move worker bootstrap
+and discovery to the firewalled control-plane server as well. Set both
+`spec.controlPlaneEndpoint` and the `clusterEndpointHost` /
+`clusterEndpointPort` topology variables in the workload `Cluster`
+manifest. The checked-in production and observability manifests contain
+the current addresses.
+
+The in-cluster `cluster-info` ConfigMap is not rewritten automatically
+when an existing cluster's endpoint changes. Update it while the original
+operator kubeconfig still works:
+
+```bash
+# Production example. Use 46.224.2.77 for observability.
+export DIRECT_CONTROL_PLANE=178.105.114.211
+
+kubectl -n kube-public get configmap cluster-info -o json \
+  | jq --arg server "https://${DIRECT_CONTROL_PLANE}:6443" \
+      '.data.kubeconfig |= sub("server: https://[^\\n]+"; "server: \($server)")' \
+  | kubectl replace -f -
+
+kubectl -n kube-public get configmap cluster-info \
+  -o jsonpath='{.data.kubeconfig}' | grep 'server:'
+kubectl -n kube-system get configmap kubeadm-config \
+  -o jsonpath='{.data.ClusterConfiguration}' | grep controlPlaneEndpoint
+```
+
+The control-plane firewall must allow every current worker address before
+that worker runs its one-time join command. When replacing a node, add the
+new address as soon as Hetzner creates the server, wait for the node to
+become Ready, and then remove the deleted node's address. A stale static
+allowlist causes the health controller to create and delete workers in a
+loop.
 
 After the proxy is reachable, rewrite each operator and automation
 kubeconfig so `clusters[].cluster.server` points at the Tailscale name.
@@ -708,11 +740,11 @@ Provision once per workload cluster:
    S3-compatible store, with a versioning/object-lock + lifecycle
    policy matching your retention target.
 2. Mint **bucket-scoped** access keys (no broader account access) and
-   save them to 1Password as item `glossia-db-backups-keys` in the
-   `glossia-production` vault, with fields: `access_key_id`,
-   `secret_access_key`, `endpoint_url`, `region`, `bucket`.
+   save them below `/glossia-db-backups-keys` in Infisical as
+   `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`, `ENDPOINT_URL`, `REGION`, and
+   `BUCKET`.
 
-That is all the infra side needs — the bucket + the 1Password item.
+That is all the infrastructure side needs: the bucket and Infisical folder.
 The Glossia application chart consumes them: an ESO `ExternalSecret`
 projects the keys into the app namespace, and the chart's
 `ObjectStore` + `ScheduledBackup` (Postgres) and `clickhouse-backup`
@@ -729,17 +761,16 @@ provisions. Values:
 ```bash
 export KUBECONFIG=~/.kube/glossia-production.yaml
 
-# Admin login. existingSecret keys must be admin-user / admin-password
-# (see grafana-values.yaml). Password lives in the per-env vault.
+# Admin login. existingSecret keys must be admin-user / admin-password.
 kubectl -n platform create secret generic grafana-admin \
   --from-literal=admin-user=admin \
-  --from-literal=admin-password="$(op read 'op://glossia-production/kubernetes/GF_SECURITY_ADMIN_PASSWORD')" \
+  --from-literal=admin-password="$(infisical secrets get GF_SECURITY_ADMIN_PASSWORD --path /kubernetes --env prod --plain --silent)" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # Datasource password injected into datasources.yaml via envFromSecret
 # as ${GRAFANA_POSTGRES_PASSWORD}; it is the app's Postgres password.
 kubectl -n platform create secret generic grafana-datasource-env \
-  --from-literal=GRAFANA_POSTGRES_PASSWORD="$(op read 'op://glossia-production/kubernetes/POSTGRES_PASSWORD')" \
+  --from-literal=GRAFANA_POSTGRES_PASSWORD="$(infisical secrets get POSTGRES_PASSWORD --path /kubernetes --env prod --plain --silent)" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 helm repo add grafana https://grafana.github.io/helm-charts

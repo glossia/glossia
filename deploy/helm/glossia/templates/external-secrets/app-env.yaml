@@ -1,5 +1,5 @@
 {{- if .Values.externalSecrets.enabled }}
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: {{ .Values.secrets.envSecretName }}
@@ -22,7 +22,15 @@ spec:
         {{ $key }}: {{ printf "{{ .%s }}" $remoteKey | quote }}
         {{- end }}
         {{- end }}
-  dataFrom:
-    - extract:
-        key: {{ .Values.externalSecrets.appEnv.itemKey | quote }}
+  data:
+    {{- range $remoteKey := values .Values.externalSecrets.appEnv.fields | uniq | sortAlpha }}
+    {{- if $remoteKey }}
+    - secretKey: {{ $remoteKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" $.Values.externalSecrets.appEnv.itemKey $remoteKey | quote }}
+    {{- end }}
+    {{- end }}
+    - secretKey: {{ .Values.externalSecrets.postgres.passwordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.postgres.itemKey .Values.externalSecrets.postgres.passwordField | quote }}
 {{- end }}

@@ -2,10 +2,10 @@
 # Basic-auth credentials for the central observability cluster's push endpoints
 # (mimir.glossia.ai / loki.glossia.ai / tempo.glossia.ai). The plain
 # token here is THIS cluster's identity — the matching bcrypt'd entry
-# lives in the observability cluster's `push-endpoints-auth` 1Password item htpasswd
+# lives in the observability cluster's `push-endpoints-auth` Infisical folder
 # file. See infra/helm/observability/templates/external-secrets/push-endpoints-auth.yaml.
 #
-# To rotate: generate a new token, update both 1Password items (this
+# To rotate: generate a new token, update both Infisical entries (this
 # cluster's plain entry and the observability cluster's bcrypt entry), then let
 # ESO's refreshInterval pick up both within the hour.
 apiVersion: external-secrets.io/v1
@@ -28,7 +28,11 @@ spec:
       data:
         USERNAME: {{ printf "{{ .%s }}" .Values.externalSecrets.pushCreds.usernameField | quote }}
         TOKEN: {{ printf "{{ .%s }}" .Values.externalSecrets.pushCreds.passwordField | quote }}
-  dataFrom:
-    - extract:
-        key: {{ .Values.externalSecrets.pushCreds.itemKey | quote }}
+  data:
+    - secretKey: {{ .Values.externalSecrets.pushCreds.usernameField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.pushCreds.itemKey .Values.externalSecrets.pushCreds.usernameField | quote }}
+    - secretKey: {{ .Values.externalSecrets.pushCreds.passwordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.pushCreds.itemKey .Values.externalSecrets.pushCreds.passwordField | quote }}
 {{- end }}

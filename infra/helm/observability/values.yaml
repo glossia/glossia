@@ -66,37 +66,32 @@ cephObjectStore:
       displayName: Glossia Tempo
       bucket: glossia-tempo
 
-# ExternalSecret CRs against the per-cluster 1Password vault. The
-# `onepassword` ClusterSecretStore is provisioned by the bootstrap step
-# (infra/k8s/mgmt/bootstrap/onepassword-secretstore.yaml) with
-# VAULT_NAME=glossia-observability.
+# ExternalSecret resources backed by the Glossia Infisical project. The
+# `infisical` ClusterSecretStore is provisioned by the bootstrap step.
 externalSecrets:
   enabled: true
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: onepassword
+    name: infisical
 
   # → grafana-admin Secret (keys: admin-user, admin-password). Consumed
   # by the grafana subchart via `grafana.admin.existingSecret`.
   grafana:
     secretName: grafana-admin
-    itemKey: kubernetes
+    itemKey: /observability/kubernetes
     userField: GF_SECURITY_ADMIN_USER
     passwordField: GF_SECURITY_ADMIN_PASSWORD
 
   # → push-endpoints-auth Secret (single key `auth`, htpasswd-formatted).
   # Mounted by the Mimir/Loki/Tempo Ingresses for basic auth on the public
   # push endpoints. We ask the user to maintain the htpasswd content in
-  # 1Password directly (one line per workload-cluster token) because ESO
-  # has no bcrypt template function. Plain tokens per workload cluster
-  # live in their OWN 1Password items in their OWN vaults (e.g.,
-  # glossia-production:push-token-glossia-production with the matching
-  # bcrypt'd entry in the htpasswd here).
+  # Infisical directly, one line per workload-cluster token, because External
+  # Secrets Operator has no bcrypt template function.
   pushAuth:
     secretName: push-endpoints-auth
-    itemKey: push-endpoints-auth
-    htpasswdField: htpasswd
+    itemKey: /observability/push-endpoints-auth
+    htpasswdField: HTPASSWD
 
   # GlitchTip application secret and PostgreSQL password. This chart renders
   # one Kubernetes Secret from these fields, containing:
@@ -105,11 +100,11 @@ externalSecrets:
   #   - DATABASE_URL for GlitchTip
   glitchtip:
     secretName: glitchtip-app
-    itemKey: glitchtip
+    itemKey: /observability/glitchtip
     secretKeyField: SECRET_KEY
     postgresPasswordField: POSTGRES_PASSWORD
   mailRelay:
-    itemKey: kubernetes
+    itemKey: /observability/kubernetes
     usernameField: MAIL_RELAY_USERNAME
     passwordField: MAIL_RELAY_PASSWORD
     host: mail-relay.platform.svc.cluster.local

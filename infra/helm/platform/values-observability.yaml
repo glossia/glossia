@@ -43,6 +43,10 @@ external-dns:
   txtOwnerId: glossia-observability-platform
   policy: upsert-only
 
+cloudflare:
+  externalSecret:
+    itemKey: /observability/cloudflare-glossia-dns
+
 external-secrets:
   global:
     tolerations: *statefulTolerations
@@ -57,6 +61,8 @@ cloudnative-pg:
   tolerations: *statefulTolerations
 
 mailRelay:
+  externalSecret:
+    itemKey: /observability/kubernetes
   nodeSelector:
     node.cluster.x-k8s.io/pool: stateful
   tolerations: *statefulTolerations

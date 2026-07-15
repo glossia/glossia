@@ -8,33 +8,32 @@
 # Per-cluster overlay (cluster_label, push hostnames if multi-tenant later)
 # lives next to deploy/values-production.yaml.
 
-# ExternalSecret config — same pattern as deploy/helm/glossia. The
-# `onepassword` ClusterSecretStore is provisioned per workload cluster
-# by infra/k8s/mgmt/bootstrap/onepassword-secretstore.yaml.
+# ExternalSecret config shared with deploy/helm/glossia. The `infisical`
+# ClusterSecretStore is provisioned per workload cluster by the bootstrap
+# procedure.
 externalSecrets:
   enabled: true
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: onepassword
+    name: infisical
 
   # Glossia /metrics requires a bearer token (see
   # app/lib/glossia_web/plugs/metrics.ex). The token lives in the same
-  # 1Password item as the app's own env Secret — already provisioned
+  # Infisical folder as the app's own environment Secret
   # for the app (key METRICS_BEARER_TOKEN). We pull it here too into
   # a separate Secret so Alloy doesn't depend on the app's namespace.
   metricsToken:
     secretName: glossia-metrics-token
-    itemKey: kubernetes
+    itemKey: /kubernetes
     field: METRICS_BEARER_TOKEN
 
   # Basic-auth credentials for the central observability cluster's push endpoints.
-  # The plain token is workload-cluster-specific (1Password item
-  # `push-token-<cluster-name>`); the matching bcrypt'd entry lives in
-  # the observability cluster's `push-endpoints-auth` 1Password item htpasswd file.
+  # The plain token is workload-cluster-specific; the matching bcrypt entry
+  # lives under the observability folder.
   pushCreds:
     secretName: glossia-push-creds
-    itemKey: push-token-glossia-production   # per-cluster override
+    itemKey: /push-token-glossia-production   # per-cluster override
     usernameField: USERNAME                  # e.g. "glossia-production"
     passwordField: TOKEN                     # plain token matched against htpasswd
 

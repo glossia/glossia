@@ -136,6 +136,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
+    permissions:
+      contents: write
+      id-token: write
     needs: [prepare, build-artifacts]
     if: needs.prepare.outputs.should_release == 'true'
     env:
@@ -229,42 +232,23 @@ jobs:
       - name: Push release tag
         run: git push origin "${RELEASE_TAG}"
 
-      - name: Load release bucket credentials
+      - name: Load release bucket credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /glossia-releases
+          domain: https://eu.infisical.com
+
+      - name: Validate release bucket credentials
         shell: bash
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           set -euo pipefail
-
-          read_1password_field() {
-            local field="$1"
-            mise exec -- op read "op://glossia-production/glossia-releases/${field}" 2>/dev/null || true
-          }
-
-          access_key="$(read_1password_field AWS_ACCESS_KEY_ID)"
-          secret_key="$(read_1password_field AWS_SECRET_ACCESS_KEY)"
-
-          if [ -z "${access_key}" ]; then
-            access_key="$(read_1password_field username)"
-          fi
-
-          if [ -z "${secret_key}" ]; then
-            secret_key="$(read_1password_field password)"
-          fi
-
-          if [ -z "${access_key}" ] || [ -z "${secret_key}" ]; then
-            echo "Missing release bucket credentials in 1Password item glossia-releases" >&2
-            exit 1
-          fi
-
-          echo "::add-mask::${access_key}"
-          echo "::add-mask::${secret_key}"
-
-          {
-            echo "AWS_ACCESS_KEY_ID=${access_key}"
-            echo "AWS_SECRET_ACCESS_KEY=${secret_key}"
-            echo "AWS_DEFAULT_REGION=${RELEASE_REGION}"
-          } >> "$GITHUB_ENV"
+          test -n "${AWS_ACCESS_KEY_ID:-}"
+          test -n "${AWS_SECRET_ACCESS_KEY:-}"
+          echo "AWS_DEFAULT_REGION=${RELEASE_REGION}" >> "$GITHUB_ENV"
 
       - name: Upload release artifacts to object storage
         shell: bash
