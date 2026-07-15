@@ -55,6 +55,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      id-token: write
       packages: write
     concurrency:
       group: deploy-l10n-production
@@ -69,18 +70,38 @@ jobs:
       - name: Install tools
         run: mise install
 
+      - name: Load Tailscale credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /tailscale-github-actions-authkey
+          domain: https://eu.infisical.com
+
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          authkey: ${{ env.AUTHKEY }}
           ping: glossia-production-kube.tail96f99b.ts.net
 
-      - name: Read kubeconfig from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      - name: Load deployment credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /kubernetes
+          domain: https://eu.infisical.com
+
+      - name: Write kubeconfig
         run: |
-          mise exec -- op read 'op://glossia-production/kubernetes/K8S_KUBECONFIG_B64' \
-            | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          set -euo pipefail
+          test -n "${K8S_KUBECONFIG_B64:-}"
+          printf '%s' "$K8S_KUBECONFIG_B64" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          unset K8S_KUBECONFIG_B64
           chmod 600 "$RUNNER_TEMP/kubeconfig"
           echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
 

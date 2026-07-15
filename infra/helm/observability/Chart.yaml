@@ -6,8 +6,8 @@ description: >
   + RGW S3 object store), Grafana Mimir, Loki, Tempo, Grafana, and
   GlitchTip as subcharts, plus the CephObjectStore + per-tenant
   CephObjectStoreUsers, ExternalSecret CRs (pulling Grafana admin
-  password, GlitchTip secrets, and push-endpoint basic-auth from the
-  per-cluster 1Password vault), and ingress manifests for the public
+  password, GlitchTip secrets, and push-endpoint basic authentication from
+  Infisical), and ingress manifests for the public
   hostnames.
 
   PRE-INSTALL REQUIREMENT: install the Rook-Ceph OPERATOR (rook-release/

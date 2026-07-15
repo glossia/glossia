@@ -5,7 +5,7 @@
 
 externalSecrets:
   pushCreds:
-    itemKey: push-token-glossia-production
+    itemKey: /push-token-glossia-production
     usernameField: USERNAME
     passwordField: TOKEN
 

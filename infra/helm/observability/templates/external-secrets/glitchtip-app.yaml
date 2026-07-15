@@ -21,9 +21,17 @@ spec:
         password: {{ printf "{{ .%s }}" .Values.externalSecrets.glitchtip.postgresPasswordField | quote }}
         DATABASE_URL: {{ printf "postgres://%s:{{ .%s | urlquery }}@%s-rw.%s.svc:5432/%s" .Values.glitchtipPostgres.user .Values.externalSecrets.glitchtip.postgresPasswordField .Values.glitchtipPostgres.clusterName .Release.Namespace .Values.glitchtipPostgres.database | quote }}
         EMAIL_URL: {{ printf "smtp://{{ .%s | urlquery }}:{{ .%s | urlquery }}@%s:%d" .Values.externalSecrets.mailRelay.usernameField .Values.externalSecrets.mailRelay.passwordField .Values.externalSecrets.mailRelay.host (int .Values.externalSecrets.mailRelay.port) | quote }}
-  dataFrom:
-    - extract:
-        key: {{ .Values.externalSecrets.glitchtip.itemKey | quote }}
-    - extract:
-        key: {{ .Values.externalSecrets.mailRelay.itemKey | quote }}
+  data:
+    - secretKey: {{ .Values.externalSecrets.glitchtip.secretKeyField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.glitchtip.itemKey .Values.externalSecrets.glitchtip.secretKeyField | quote }}
+    - secretKey: {{ .Values.externalSecrets.glitchtip.postgresPasswordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.glitchtip.itemKey .Values.externalSecrets.glitchtip.postgresPasswordField | quote }}
+    - secretKey: {{ .Values.externalSecrets.mailRelay.usernameField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.mailRelay.itemKey .Values.externalSecrets.mailRelay.usernameField | quote }}
+    - secretKey: {{ .Values.externalSecrets.mailRelay.passwordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.mailRelay.itemKey .Values.externalSecrets.mailRelay.passwordField | quote }}
 {{- end }}

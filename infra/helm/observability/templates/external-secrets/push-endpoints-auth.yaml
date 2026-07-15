@@ -6,15 +6,14 @@
 #     glossia-production:$2y$10$<bcrypt-hash>
 #     glossia-staging:$2y$10$<bcrypt-hash>
 #
-# Maintain the htpasswd content in 1Password directly — ESO has no
+# Maintain the htpasswd content in Infisical directly. External Secrets Operator has no
 # bcrypt template function, so we cannot derive it at render time from
 # plain tokens. The plain tokens themselves live in the workload
-# clusters' own 1Password vaults (e.g. `push-token-glossia-production`
-# under the glossia-production vault), shipped to that cluster's Alloy
+# production folder (for example, `push-token-glossia-production`), shipped to that cluster's Alloy
 # install via its own ExternalSecret.
 #
 # To rotate a token: `htpasswd -B -n <user>` locally, replace the
-# matching line in the 1Password item, update the matching plain token
+# matching line in Infisical, update the matching plain token
 # in the workload-cluster's vault, and let ESO's refreshInterval pick
 # up both within the hour.
 apiVersion: external-secrets.io/v1
@@ -36,7 +35,8 @@ spec:
         # nginx ingress basic-auth expects the htpasswd file in the
         # `auth` key.
         auth: {{ printf "{{ .%s }}" .Values.externalSecrets.pushAuth.htpasswdField | quote }}
-  dataFrom:
-    - extract:
-        key: {{ .Values.externalSecrets.pushAuth.itemKey | quote }}
+  data:
+    - secretKey: {{ .Values.externalSecrets.pushAuth.htpasswdField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.pushAuth.itemKey .Values.externalSecrets.pushAuth.htpasswdField | quote }}
 {{- end }}

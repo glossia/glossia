@@ -1,7 +1,7 @@
 {{- if .Values.externalSecrets.enabled }}
 # Bearer token for the Glossia app's /metrics endpoint (see
 # app/lib/glossia_web/plugs/metrics.ex). Same item the app pulls from
-# (defaults to the per-cluster `kubernetes` 1Password item), surfaced
+# (defaults to the per-cluster `/kubernetes` Infisical folder), surfaced
 # into a separate Secret so Alloy doesn't depend on the app's namespace
 # secret resolution.
 apiVersion: external-secrets.io/v1
@@ -23,7 +23,8 @@ spec:
       engineVersion: v2
       data:
         METRICS_BEARER_TOKEN: {{ printf "{{ .%s }}" .Values.externalSecrets.metricsToken.field | quote }}
-  dataFrom:
-    - extract:
-        key: {{ .Values.externalSecrets.metricsToken.itemKey | quote }}
+  data:
+    - secretKey: {{ .Values.externalSecrets.metricsToken.field }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.metricsToken.itemKey .Values.externalSecrets.metricsToken.field | quote }}
 {{- end }}

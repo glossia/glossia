@@ -22,6 +22,7 @@ jobs:
     environment: production
     permissions:
       contents: read
+      id-token: write
       packages: write
     concurrency:
       group: deploy-production
@@ -38,71 +39,48 @@ jobs:
       - name: Install tools
         run: mise install
 
+      - name: Load Tailscale credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /tailscale-github-actions-authkey
+          domain: https://eu.infisical.com
+
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          authkey: ${{ env.AUTHKEY }}
           ping: glossia-production-kube.tail96f99b.ts.net
 
-      - name: Read kubeconfig from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      - name: Load deployment credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /kubernetes
+          domain: https://eu.infisical.com
+
+      - name: Write kubeconfig
         run: |
           set -euo pipefail
           umask 077
 
           kubeconfig="$RUNNER_TEMP/kubeconfig"
-          kubeconfig_base64=""
-          secret_ref='op://glossia-production/kubernetes/K8S_KUBECONFIG_B64'
-          max_attempts=5
-
-          # A healthy `op read` answers in well under a second, so this bound
-          # exists to turn a hung read into a retry rather than to police a slow
-          # one — hence the generous headroom. `timeout` sends TERM to the whole
-          # process group (so `op` dies with `mise exec`, and nothing is left
-          # holding the command substitution's pipe open); `-k` escalates to KILL
-          # for the case where `op` ignores that TERM. Do not add --foreground:
-          # it exempts children from the timeout, which is the hang this avoids.
-          read_timeout=60s
-          kill_grace=5s
-
-          for (( attempt = 1; attempt <= max_attempts; attempt++ )); do
-            reason=""
-
-            if kubeconfig_base64="$(timeout -k "$kill_grace" "$read_timeout" \
-              mise exec -- op read "$secret_ref")"; then
-              if [[ -n "$kubeconfig_base64" ]]; then
-                break
-              fi
-              reason="1Password returned an empty value"
-            else
-              rc=$?
-              case "$rc" in
-                124) reason="the read timed out after $read_timeout" ;;
-                137) reason="the read ignored SIGTERM and was killed after $read_timeout" ;;
-                *) reason="op exited with status $rc" ;;
-              esac
-            fi
-
-            if (( attempt == max_attempts )); then
-              echo "Failed to read the production kubeconfig after $attempt attempts: $reason." >&2
-              exit 1
-            fi
-
-            retry_delay=$((attempt * 10))
-            echo "Could not read the production kubeconfig ($reason). Retrying in ${retry_delay}s." >&2
-            sleep "$retry_delay"
-          done
-
-          printf '%s' "$kubeconfig_base64" | base64 --decode > "$kubeconfig"
-          unset kubeconfig_base64
+          test -n "${K8S_KUBECONFIG_B64:-}"
+          printf '%s' "$K8S_KUBECONFIG_B64" | base64 --decode > "$kubeconfig"
+          unset K8S_KUBECONFIG_B64
 
           test -s "$kubeconfig"
           chmod 600 "$kubeconfig"
           echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
 
       - name: Verify cluster reachability
-        # Fail fast if the 1P-stored kubeconfig points at an unreachable
+        # Fail fast if the Infisical-stored kubeconfig points at an unreachable
         # apiserver. Without this, the helm steps below would hang for their
         # full --timeout on a phantom kubeconfig and we'd find out only after a
         # partial rollout.
