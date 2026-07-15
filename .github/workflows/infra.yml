@@ -162,9 +162,6 @@ jobs:
           validate_chart alloy deploy/helm/glossia-alloy observability \
             --values deploy/values-alloy-production.yaml
 
-          validate_chart l10n deploy/helm/l10n glossia \
-            --values deploy/values-l10n-production.yaml
-
           validate_chart tailscale-apiserver-proxy-production infra/helm/tailscale-apiserver-proxy tailscale \
             --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
 

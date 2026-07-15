@@ -32,7 +32,7 @@ is closed.
   too — the runbook calls out where it differs. Splitting later is
   a Secret rotation, not a re-bootstrap.
 - A Cloudflare account with an API token scoped to `Zone.DNS:Edit` on
-  `glossia.ai` and `l10n.md`, saved in Infisical as
+  `glossia.ai`, saved in Infisical as
   `/cloudflare-glossia-dns/CREDENTIAL`.
 - A Tailscale tenant with admin access (one-time bootstrap below).
 - An S3-compatible bucket for hourly etcd snapshots

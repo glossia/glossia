@@ -72,8 +72,10 @@ external-dns:
     - service
     - ingress
   txtOwnerId: glossia-platform
-  # Limit which records external-dns will touch; be explicit for prod safety.
-  domainFilters: []
+  # Limit which records external-dns will touch. The token projected below
+  # must be able to list and edit this zone.
+  domainFilters:
+    - glossia.ai
   policy: sync
   cloudflare:
     # Reference the Cloudflare API token Secret created out-of-band. The

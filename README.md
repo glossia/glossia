@@ -16,10 +16,10 @@ Glossia is now a single multi-tenant Phoenix application. The public website,
 blog, docs, changelog, product app, OAuth server, API, MCP surface, and account
 workflows live in `app/`.
 
-The previous standalone website, CLI, infra, and L10N repositories have been
-folded into this monorepo. The separate cloud control-plane repository is
-retired for this direction and was not imported because tenancy belongs in the
-main Phoenix application.
+The previous standalone website, command-line tool, and infrastructure
+repositories have been folded into this monorepo. The separate cloud
+control-plane repository is retired for this direction and was not imported
+because tenancy belongs in the main Phoenix application.
 
 ## Project Structure
 
@@ -29,9 +29,6 @@ main Phoenix application.
   `cli/**`.
 - `infra/`: infrastructure sources imported from the infra repository, including
   Helm platform charts, Kubernetes cluster assets, and Terraform.
-- `l10n/`: L10N standard package, including the specification, schemas,
-  examples, and Eleventy reference site. This package keeps its own MIT license
-  notice in `l10n/LICENSE`.
 - `deploy/`: application deployment chart and production values.
 - `mobile/`: mobile app prototype.
 
@@ -73,15 +70,6 @@ mix phx.server
 cd cli
 mise exec -- cargo test --lib
 mise exec -- cargo test --test e2e_translate
-```
-
-### L10N Standard
-
-```bash
-cd l10n
-mise run install
-mise run validate
-mise run build
 ```
 
 ## Community
