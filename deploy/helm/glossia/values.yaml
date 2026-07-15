@@ -289,20 +289,20 @@ backups:
 #
 # Defaults assume the External Secrets Operator is installed cluster-wide
 # and a ClusterSecretStore named "default" exists. Override secretStoreRef
-# to point at your own SecretStore (e.g. 1Password, Vault, AWS SM).
+# to point at your own SecretStore, such as Infisical or Vault.
 externalSecrets:
   enabled: false
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
     name: default
-  # ExternalSecret for the app env Secret. The provider item at `itemKey`
-  # is expected to expose every field listed in `fields` (chart key →
-  # remote field). The chart adds GLOSSIA_DATABASE_URL and
+  # ExternalSecret for the app environment Secret. `itemKey` is the remote
+  # folder path containing every secret listed in `fields`. The chart adds
+  # GLOSSIA_DATABASE_URL and
   # GLOSSIA_CLICKHOUSE_URL automatically, computed from postgres/clickhouse
   # values + the password fetched from the postgres item.
   appEnv:
-    itemKey: glossia
+    itemKey: /glossia
     fields:
       GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
       GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
@@ -315,16 +315,16 @@ externalSecrets:
   # postgres.user (literal, set at chart-render time); password is fetched
   # from `passwordField` of the item at `itemKey`.
   postgres:
-    itemKey: glossia
+    itemKey: /glossia
     passwordField: POSTGRES_PASSWORD
   # ExternalSecret for the dedicated DB-backup bucket credentials. Pulls
   # from a SEPARATE backend item (not appEnv.itemKey) so backup creds are
   # not entangled with the app's secrets. Maps remote fields →
   # ACCESS_KEY_ID / SECRET_ACCESS_KEY in backups.secretName.
   backup:
-    itemKey: glossia-db-backups-keys
-    accessKeyIdField: access_key_id
-    secretAccessKeyField: secret_access_key
+    itemKey: /glossia-db-backups-keys
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
   # ExternalSecret for the image pull Secret (kubernetes.io/dockerconfigjson).
   # Disable if your registry doesn't need auth or you create the pull secret
   # by other means.
@@ -332,6 +332,6 @@ externalSecrets:
     enabled: false
     name: ghcr-pull-secret
     registry: ghcr.io
-    itemKey: glossia
+    itemKey: /glossia
     usernameField: GHCR_PULL_USERNAME
     passwordField: GHCR_PULL_TOKEN
