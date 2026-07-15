@@ -25,13 +25,12 @@ the same push endpoint credentials via `OTEL_EXPORTER_OTLP_HEADERS`.
 
 ## Pre-install (one-time, per workload cluster)
 
-1. **1Password** (in this workload cluster's vault, e.g.
-   `glossia-production`): add item `push-token-glossia-production` with
-   fields `USERNAME` (e.g. `glossia-production`) and `TOKEN` (a random
+1. **Infisical**: add `USERNAME` (for example, `glossia-production`) and
+   `TOKEN` (a random
    high-entropy string). Generate the matching bcrypt'd htpasswd line
    with `htpasswd -B -n <USERNAME>` and append it to the observability cluster's
-   `push-endpoints-auth` 1Password item htpasswd field.
-2. The app's `kubernetes` 1Password item must already have
+   `/observability/push-endpoints-auth/HTPASSWD` value.
+2. The app's `/kubernetes` Infisical folder must already have
    `METRICS_BEARER_TOKEN` (it does — used by the app chart's appEnv
    ExternalSecret).
 3. Domain Name System (https://www.cloudflare.com/learning/dns/what-is-dns/)
@@ -78,5 +77,5 @@ You should see one series per Glossia pod, value 1.
 After Alloy is running, the app should export traces directly to Tempo.
 `deploy/values-production.yaml` sets `OTEL_EXPORTER_OTLP_ENDPOINT` and
 pulls `OTEL_EXPORTER_OTLP_HEADERS` from the app environment
-ExternalSecret. Store the header value in 1Password as
+ExternalSecret. Store the header value in Infisical as
 `authorization=Basic <base64-of-user:pass>`.

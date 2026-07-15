@@ -37,8 +37,8 @@
 #      - Scopes: `auth_keys` write (Devices → Auth Keys → Write)
 #      - Tags: `tag:glossia-mgmt` (limits what the client can mint)
 #      Copy the secret (starts with `tskey-client-`); shown once.
-#   4. Store the secret in 1Password as
-#      `tailscale-mgmt-oauth-client-secret`.
+#   4. Store the secret in Infisical as
+#      `/tailscale-mgmt-oauth/CREDENTIAL`.
 #   5. On the mgmt cluster:
 #        kubectl -n mgmt-system create secret generic tailscale-oauth \
 #          --from-literal=TS_AUTHKEY="tskey-client-PASTE?ephemeral=false&preauthorized=true"
