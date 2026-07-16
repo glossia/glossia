@@ -174,8 +174,10 @@ rook-ceph-cluster:
           erasureCoded:
             dataChunks: 2
             codingChunks: 1
+          # Let the autoscaler grow placement groups with actual usage. A bulk
+          # pool reserves a full complement before the object data needs it.
           parameters:
-            bulk: "true"
+            bulk: "false"
         preservePoolsOnDelete: true
         gateway:
           port: 80
@@ -229,8 +231,10 @@ rook-ceph-cluster:
           erasureCoded:
             dataChunks: 2
             codingChunks: 1
+          # Let the autoscaler grow placement groups with actual usage. A bulk
+          # pool reserves a full complement before the object data needs it.
           parameters:
-            bulk: "true"
+            bulk: "false"
         preservePoolsOnDelete: true
         gateway:
           port: 80
