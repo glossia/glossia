@@ -353,6 +353,7 @@ jobs:
           test -s "$management_kubeconfig"
 
           KUBECONFIG="$management_kubeconfig" mise exec -- kubectl \
+            --request-timeout=10s \
             -n org-glossia get secret glossia-observability-kubeconfig \
             -o jsonpath='{.data.value}' \
             | base64 --decode > "$workload_kubeconfig"
@@ -373,6 +374,14 @@ jobs:
       - name: Deploy observability services
         run: |
           set -euo pipefail
+
+          mise exec -- helm dependency update infra/helm/platform
+          mise exec -- helm upgrade --install platform infra/helm/platform \
+            --namespace platform \
+            --create-namespace \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --values infra/helm/platform/values-observability.yaml \
+            --timeout 30m
 
           mise exec -- helm dependency update infra/helm/observability
           mise exec -- helm upgrade --install observability infra/helm/observability \
