@@ -82,7 +82,7 @@ We are building Glossia so that your expertise becomes the foundation that every
 
 ## What comes next
 
-We are still early. The [CLI agent](https://glossia.ai/docs) (a command-line tool, meaning you interact with it by typing commands in a terminal rather than clicking buttons in a visual interface) is where we started because that is where the hardest infrastructure problems live: reading source files, generating outputs, validating with your own tools, and closing the feedback loop. But as we described in our [first post](https://glossia.ai/blog/2026-02-03-why-l10n), the terminal is the first interface, not the only one.
+We are still early. The [CLI agent](https://glossia.ai/docs) (a command-line tool, meaning you interact with it by typing commands in a terminal rather than clicking buttons in a visual interface) is where we started because that is where the hardest infrastructure problems live: reading source files, generating outputs, validating with your own tools, and closing the feedback loop. But as we described in our [first post](https://glossia.ai/blog/2026-02-03-why-glossia), the terminal is the first interface, not the only one.
 
 We are designing experiences where linguists can see content and context side by side, refine voice definitions through collaborative sessions, and watch their decisions flow through the system in real time. We want the experience of contributing linguistic expertise to feel as natural and rewarding as contributing code on GitHub.
 
