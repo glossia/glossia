@@ -8,21 +8,18 @@ defmodule Glossia.TestHelpers do
   alias Glossia.Accounts.{Account, User}
   alias Glossia.Repo
 
-  def create_user(email, handle_prefix, opts \\ []) do
-    has_access = Keyword.get(opts, :has_access, true)
-
+  def create_user(email, handle_prefix) do
     {:ok, account} =
       %Account{}
       |> Account.changeset(%{
         handle: "#{handle_prefix}-#{System.unique_integer([:positive])}",
-        type: "user",
-        has_access: has_access
+        type: "user"
       })
       |> Repo.insert()
 
     {:ok, user} =
       %User{account_id: account.id}
-      |> User.changeset(%{email: email, has_access: has_access})
+      |> User.changeset(%{email: email})
       |> Repo.insert()
 
     user = %{user | account: account}

@@ -46,7 +46,6 @@ defmodule Glossia.Admin.MCP.ListAccountsTool do
                 handle: a.handle,
                 type: a.type,
                 visibility: a.visibility,
-                has_access: a.has_access,
                 inserted_at: a.inserted_at
               }
             end)

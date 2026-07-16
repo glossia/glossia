@@ -24,24 +24,6 @@ defmodule Glossia.Policy.Checks do
   def collection(_subject, _object), do: false
 
   @doc """
-  Subject's account does not have access (used as a deny check for write actions).
-  """
-  def no_access(nil, _object), do: false
-
-  def no_access(%User{account: %Account{has_access: has_access}}, _object)
-      when is_boolean(has_access),
-      do: not has_access
-
-  def no_access(%User{account_id: account_id}, _object) do
-    Account
-    |> where(id: ^account_id)
-    |> select([a], a.has_access)
-    |> Repo.one() != true
-  end
-
-  def no_access(_, _object), do: false
-
-  @doc """
   User is accessing their own user-account resources.
   The object must have an `account_id` or be an Account struct
   whose associated user matches the subject.

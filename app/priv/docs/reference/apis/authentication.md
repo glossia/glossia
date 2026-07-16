@@ -108,8 +108,6 @@ Glossia enforces **two layers** for the REST API and MCP server:
 
 Scopes represent the *maximum* capability of a token. The policy system enforces the *actual* permission for a specific resource.
 
-Write actions (like `*:write`, `*:delete`, and `*:admin`) are also denied when the user's account does not have access (`accounts.has_access == false`).
-
 ### Roles
 
 | Role | Description |
@@ -119,33 +117,30 @@ Write actions (like `*:write`, `*:delete`, and `*:admin`) are also denied when t
 | `organization_admin` | An administrator of the organization that owns the resource |
 | `account_owner` | The owner of the account that owns the resource |
 | `public_account` | The account is public (read-only) |
-| `no_access` | Denies write actions when the user account has no access |
 
 ### Role permissions
 
-| Scope | self | organization_member | organization_admin | account_owner | public_account | no_access* |
-|-------|------|----------------------|--------------------|--------------|----------------|------------|
-| `user:read` | Yes | Yes | | | | |
-| `user:write` | Yes | | | | | |
-| `account:read` | | Yes | Yes | Yes | Yes | |
-| `organization:read` | | Yes | Yes | | | |
-| `organization:write` | | | Yes | | | Yes |
-| `organization:delete` | | | Yes | | | Yes |
-| `organization:admin` | | | Yes | | | Yes |
-| `members:read` | | Yes | Yes | | | |
-| `members:write` | | | Yes | | | Yes |
-| `project:read` | | Yes | Yes | Yes | Yes | |
-| `project:write` | | Yes | Yes | Yes | | Yes |
-| `project:admin` | | | Yes | Yes | | Yes |
-| `project:delete` | | | Yes | Yes | | Yes |
-| `voice:read` | | Yes | Yes | Yes | Yes | |
-| `voice:write` | | Yes | Yes | Yes | | Yes |
-| `voice:admin` | | | Yes | Yes | | Yes |
-| `glossary:read` | | Yes | Yes | Yes | | |
-| `glossary:write` | | | Yes | Yes | | Yes |
-| `glossary:admin` | | | | Yes | | Yes |
-
-`no_access*` indicates that the rule is **denied** for write/admin/delete actions when `accounts.has_access == false`, even if the relationship check would otherwise allow it.
+| Scope | self | organization_member | organization_admin | account_owner | public_account |
+|-------|------|----------------------|--------------------|---------------|----------------|
+| `user:read` | Yes | Yes | | | |
+| `user:write` | Yes | | | | |
+| `account:read` | | Yes | Yes | Yes | Yes |
+| `organization:read` | | Yes | Yes | | |
+| `organization:write` | | | Yes | | |
+| `organization:delete` | | | Yes | | |
+| `organization:admin` | | | Yes | | |
+| `members:read` | | Yes | Yes | | |
+| `members:write` | | | Yes | | |
+| `project:read` | | Yes | Yes | Yes | Yes |
+| `project:write` | | Yes | Yes | Yes | |
+| `project:admin` | | | Yes | Yes | |
+| `project:delete` | | | Yes | Yes | |
+| `voice:read` | | Yes | Yes | Yes | Yes |
+| `voice:write` | | Yes | Yes | Yes | |
+| `voice:admin` | | | Yes | Yes | |
+| `glossary:read` | | Yes | Yes | Yes | |
+| `glossary:write` | | | Yes | Yes | |
+| `glossary:admin` | | | | Yes | |
 
 ## Discovery endpoints
 

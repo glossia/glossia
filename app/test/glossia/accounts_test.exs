@@ -26,8 +26,6 @@ defmodule Glossia.AccountsTest do
 
       assert organization.name == Accounts.personal_organization_name()
       assert membership.role == "admin"
-      assert user.has_access
-      assert user.account.has_access
     end
 
     test "ensure_personal_organization!/1 is idempotent" do

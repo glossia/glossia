@@ -137,7 +137,7 @@ defmodule Glossia.Accounts do
         user_info["preferred_username"] || user_info["nickname"] || user_info["name"]
       )
 
-    account_attrs = %{handle: handle, type: "user", has_access: true}
+    account_attrs = %{handle: handle, type: "user"}
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, account_attrs))
@@ -146,8 +146,7 @@ defmodule Glossia.Accounts do
       |> User.changeset(%{
         email: user_info["email"],
         name: user_info["name"],
-        avatar_url: user_info["picture"],
-        has_access: true
+        avatar_url: user_info["picture"]
       })
     end)
     |> Ecto.Multi.insert(:organization, fn %{account: account} ->
@@ -235,62 +234,6 @@ defmodule Glossia.Accounts do
       :crypto.strong_rand_bytes(6) |> Base.url_encode64(padding: false) |> String.downcase()
 
     "user-#{suffix}"
-  end
-
-  # ----------------------------------------------------------------------------
-  # Access management
-  # ----------------------------------------------------------------------------
-
-  def grant_access(email) when is_binary(email) do
-    Tracer.with_span "glossia.accounts.grant_access" do
-      user = User |> where(email: ^email) |> preload(:account) |> Repo.one()
-
-      case user do
-        nil ->
-          {:error, :not_found}
-
-        user ->
-          Tracer.set_attributes([
-            {"glossia.user.id", to_string(user.id)},
-            {"glossia.account.id", to_string(user.account_id)}
-          ])
-
-          Ecto.Multi.new()
-          |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: true}))
-          |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: true}))
-          |> Repo.transaction()
-          |> case do
-            {:ok, %{user: user}} -> {:ok, user}
-            {:error, _step, changeset, _changes} -> {:error, changeset}
-          end
-      end
-    end
-  end
-
-  def revoke_access(email) when is_binary(email) do
-    Tracer.with_span "glossia.accounts.revoke_access" do
-      user = User |> where(email: ^email) |> preload(:account) |> Repo.one()
-
-      case user do
-        nil ->
-          {:error, :not_found}
-
-        user ->
-          Tracer.set_attributes([
-            {"glossia.user.id", to_string(user.id)},
-            {"glossia.account.id", to_string(user.account_id)}
-          ])
-
-          Ecto.Multi.new()
-          |> Ecto.Multi.update(:user, User.changeset(user, %{has_access: false}))
-          |> Ecto.Multi.update(:account, Account.changeset(user.account, %{has_access: false}))
-          |> Repo.transaction()
-          |> case do
-            {:ok, %{user: user}} -> {:ok, user}
-            {:error, _step, changeset, _changes} -> {:error, changeset}
-          end
-      end
-    end
   end
 
   # ----------------------------------------------------------------------------

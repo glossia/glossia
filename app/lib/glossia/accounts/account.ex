@@ -12,7 +12,6 @@ defmodule Glossia.Accounts.Account do
   schema "accounts" do
     field :handle, :string
     field :type, :string, default: "user"
-    field :has_access, :boolean, default: false
     field :stripe_customer_id, :string
     field :stripe_subscription_id, :string
     field :stripe_subscription_status, :string
@@ -32,7 +31,6 @@ defmodule Glossia.Accounts.Account do
     |> cast(attrs, [
       :handle,
       :type,
-      :has_access,
       :stripe_customer_id,
       :stripe_subscription_id,
       :stripe_subscription_status,

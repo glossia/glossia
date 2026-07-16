@@ -8,19 +8,8 @@ defmodule GlossiaWeb.PageControllerTest do
     assert html_response(conn, 200) =~ "The language OS for your organization"
   end
 
-  test "GET / redirects users with access to their account", %{conn: conn} do
+  test "GET / redirects authenticated users to their account", %{conn: conn} do
     user = TestHelpers.create_user("page-root-access@test.com", "pageroot")
-
-    conn =
-      conn
-      |> init_test_session(%{user_id: user.id})
-      |> get(~p"/")
-
-    assert redirected_to(conn) == "/#{user.account.handle}"
-  end
-
-  test "GET / redirects users without access to their account", %{conn: conn} do
-    user = TestHelpers.create_user("page-root-waitlist@test.com", "pagewait", has_access: false)
 
     conn =
       conn

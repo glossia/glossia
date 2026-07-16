@@ -39,7 +39,6 @@ defmodule Glossia.Admin.MCP.ListUsersTool do
                 email: u.email,
                 name: u.name,
                 handle: u.account.handle,
-                has_access: u.has_access,
                 super_admin: u.super_admin,
                 inserted_at: u.inserted_at
               }
