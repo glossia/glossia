@@ -336,14 +336,12 @@ fn clean_orphans(
         missing: 0,
         lock_removed: 0,
     };
-    // Scan both the current lock directory and the legacy .l10n one so orphans
-    // left over from before the .l10n -> .glossia rename are still cleaned.
-    let mut entries = Vec::new();
-    for lock_root in [root.join(".glossia"), root.join(".l10n")] {
-        if lock_root.exists() {
-            entries.extend(walk_locks(&lock_root)?);
-        }
-    }
+    let lock_root = root.join(".glossia");
+    let entries = if lock_root.exists() {
+        walk_locks(&lock_root)?
+    } else {
+        Vec::new()
+    };
     if entries.is_empty() {
         return Ok(result);
     }

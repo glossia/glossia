@@ -23,7 +23,7 @@ rook-ceph-cluster:
       storageClassDeviceSets:
         - name: glossia-osds
           count: 4
-          portable: false
+          portable: true
           encrypted: false
           tuneDeviceClass: true
           tuneFastDeviceClass: false

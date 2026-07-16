@@ -190,7 +190,11 @@ rook-ceph-cluster:
       storageClassDeviceSets:
         - name: glossia-osds
           count: 4
-          portable: false
+          # Hetzner replaces worker nodes without preserving their hostnames.
+          # Keep the storage daemons portable so Rook can reattach an existing
+          # volume to a replacement stateful node instead of pinning the
+          # Deployment to a hostname that no longer exists.
+          portable: true
           encrypted: false
           tuneDeviceClass: true
           tuneFastDeviceClass: false

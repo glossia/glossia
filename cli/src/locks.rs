@@ -57,21 +57,8 @@ pub fn lock_path(root: &Path, source_path: &str, locale: &str) -> PathBuf {
         .join(format!("{locale}.lock"))
 }
 
-// Legacy location used before the .l10n -> .glossia rename. Read as a fallback so
-// repositories translated before the rename are not treated as fully stale.
-fn legacy_lock_path(root: &Path, source_path: &str, locale: &str) -> PathBuf {
-    root.join(".l10n")
-        .join(source_path)
-        .join(format!("{locale}.lock"))
-}
-
 pub fn read_lock(root: &Path, source_path: &str, locale: &str) -> Result<Option<LockFile>> {
     let path = lock_path(root, source_path, locale);
-    let path = if path.exists() {
-        path
-    } else {
-        legacy_lock_path(root, source_path, locale)
-    };
     if !path.exists() {
         return Ok(None);
     }

@@ -2,7 +2,7 @@
   title: "Localization was stuck in the past. We built Glossia to move it forward.",
   summary: "Traditional localization tools add overhead, break CI, and lock you into vendor ecosystems. We're exploring what an agentic localization workflow can look like.",
   date: ~D[2026-02-03],
-  slug: "2026-02-03-why-l10n",
+  slug: "2026-02-03-why-glossia",
   author: "pedro"
 }
 ---

@@ -82,8 +82,17 @@ jobs:
     name: Build CLI artifact (${{ matrix.label }})
     runs-on: ${{ matrix.runs_on }}
     timeout-minutes: 30
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
     needs: [prepare]
     if: needs.prepare.outputs.should_release == 'true'
+    env:
+      RELEASE_ENDPOINT: https://releases.glossia.ai
+      RELEASE_BUCKET: releases.glossia.ai
+      RELEASE_PREFIX: cli
+      RELEASE_REGION: eu-central-1
     strategy:
       fail-fast: false
       matrix:
@@ -124,12 +133,36 @@ jobs:
         run: |
           mkdir -p "../dist/${{ matrix.artifact_name }}"
           cp "target/release/${{ matrix.binary_name }}" "../dist/${{ matrix.artifact_name }}/${{ matrix.binary_name }}"
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+
+      - name: Load release bucket credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
         with:
-          name: ${{ matrix.artifact_name }}
-          path: dist/${{ matrix.artifact_name }}
-          if-no-files-found: error
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /glossia-releases
+          domain: https://eu.infisical.com
+
+      - name: Upload staged binary to object storage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -n "${AWS_ACCESS_KEY_ID:-}"
+          test -n "${AWS_SECRET_ACCESS_KEY:-}"
+
+          artifact="../dist/${{ matrix.artifact_name }}/${{ matrix.binary_name }}"
+          key=".staging/${GITHUB_RUN_ID}/${{ matrix.artifact_name }}/${{ matrix.binary_name }}"
+          test -s "$artifact"
+
+          curl --fail --show-error --silent --retry 3 \
+            --header "Content-Type: binary/octet-stream" \
+            --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
+            --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+            --request PUT \
+            --data-binary "@${artifact}" \
+            "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}"
 
   publish:
     name: Publish CLI release
@@ -157,14 +190,51 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           cache: true
+          install_args: git-cliff
 
-      - name: Install tools
-        run: mise install
-
-      - name: Download built binaries
-        uses: actions/download-artifact@v4
+      - name: Load release bucket credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
         with:
-          path: dist/artifacts
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /glossia-releases
+          domain: https://eu.infisical.com
+
+      - name: Validate release bucket credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AWS_ACCESS_KEY_ID:-}"
+          test -n "${AWS_SECRET_ACCESS_KEY:-}"
+          echo "AWS_DEFAULT_REGION=${RELEASE_REGION}" >> "$GITHUB_ENV"
+
+      - name: Download staged binaries from object storage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          download_file() {
+            local artifact_name="$1"
+            local binary_name="$2"
+            local destination="dist/artifacts/${artifact_name}/${binary_name}"
+            local key=".staging/${GITHUB_RUN_ID}/${artifact_name}/${binary_name}"
+
+            mkdir -p "$(dirname "$destination")"
+            curl --fail --show-error --silent --retry 3 \
+              --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
+              --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+              "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}" \
+              --output "$destination"
+            test -s "$destination"
+          }
+
+          download_file binary-linux-x64 glossia
+          download_file binary-linux-arm64 glossia
+          download_file binary-darwin-x64 glossia
+          download_file binary-darwin-arm64 glossia
+          download_file binary-windows-x64 glossia.exe
 
       - name: Generate release notes
         run: |
@@ -231,24 +301,6 @@ jobs:
 
       - name: Push release tag
         run: git push origin "${RELEASE_TAG}"
-
-      - name: Load release bucket credentials from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
-        with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /glossia-releases
-          domain: https://eu.infisical.com
-
-      - name: Validate release bucket credentials
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${AWS_ACCESS_KEY_ID:-}"
-          test -n "${AWS_SECRET_ACCESS_KEY:-}"
-          echo "AWS_DEFAULT_REGION=${RELEASE_REGION}" >> "$GITHUB_ENV"
 
       - name: Upload release artifacts to object storage
         shell: bash
@@ -331,3 +383,55 @@ jobs:
               --notes-file release-notes.md \
               --latest
           fi
+
+  cleanup-staging:
+    name: Clean release staging files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    needs: [prepare, build-artifacts, publish]
+    if: ${{ always() && needs.prepare.outputs.should_release == 'true' }}
+    env:
+      RELEASE_ENDPOINT: https://releases.glossia.ai
+      RELEASE_BUCKET: releases.glossia.ai
+      RELEASE_PREFIX: cli
+      RELEASE_REGION: eu-central-1
+    steps:
+      - name: Load release bucket credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /glossia-releases
+          domain: https://eu.infisical.com
+
+      - name: Delete staged binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -n "${AWS_ACCESS_KEY_ID:-}"
+          test -n "${AWS_SECRET_ACCESS_KEY:-}"
+
+          delete_file() {
+            local artifact_name="$1"
+            local binary_name="$2"
+            local key=".staging/${GITHUB_RUN_ID}/${artifact_name}/${binary_name}"
+
+            curl --fail --show-error --silent --retry 3 \
+              --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
+              --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+              --request DELETE \
+              "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}"
+          }
+
+          delete_file binary-linux-x64 glossia
+          delete_file binary-linux-arm64 glossia
+          delete_file binary-darwin-x64 glossia
+          delete_file binary-darwin-arm64 glossia
+          delete_file binary-windows-x64 glossia.exe
