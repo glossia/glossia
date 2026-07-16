@@ -12,8 +12,8 @@ description: >
   the Postgres/ClickHouse instances; this chart ships the controllers and shared
   storage and mail planes).
 type: application
-version: 0.4.1
-appVersion: "0.4.1"
+version: 0.4.2
+appVersion: "0.4.2"
 dependencies:
   # Kubernetes does not automatically approve kubelet serving Certificate
   # Signing Requests. This controller validates and approves them so log and
