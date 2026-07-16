@@ -12,9 +12,17 @@ description: >
   the Postgres/ClickHouse instances; this chart ships the controllers and shared
   storage and mail planes).
 type: application
-version: 0.4.0
-appVersion: "0.4.0"
+version: 0.4.1
+appVersion: "0.4.1"
 dependencies:
+  # Kubernetes does not automatically approve kubelet serving Certificate
+  # Signing Requests. This controller validates and approves them so log and
+  # command streaming continue to work after a node is replaced.
+  # https://kubernetes.io/docs/reference/access-authn-authz/kubelet-tls-bootstrapping/
+  - name: kubelet-csr-approver
+    version: 1.2.14
+    repository: oci://ghcr.io/postfinance/charts
+    condition: kubelet-csr-approver.enabled
   - name: cert-manager
     version: v1.16.2
     repository: https://charts.jetstack.io

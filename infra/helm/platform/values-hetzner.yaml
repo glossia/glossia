@@ -116,6 +116,12 @@ rook-ceph-cluster:
         requests:
           cpu: 500m
           memory: 2Gi
+      exporter:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 50Mi
     storage:
       useAllNodes: false
       useAllDevices: false
@@ -174,6 +180,24 @@ rook-ceph-cluster:
         gateway:
           port: 80
           instances: 2
+          placement:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node.cluster.x-k8s.io/pool
+                        operator: In
+                        values:
+                          - app
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: rook_object_store
+                        operator: In
+                        values:
+                          - glossia-s3
+                  topologyKey: kubernetes.io/hostname
           resources:
             limits:
               memory: 2Gi

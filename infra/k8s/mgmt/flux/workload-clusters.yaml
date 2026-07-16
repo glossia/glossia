@@ -14,15 +14,19 @@ spec:
   prune: false
   deletionPolicy: Orphan
   serviceAccountName: workload-cluster-reconciler
-  wait: true
+  healthChecks:
+    - apiVersion: cluster.x-k8s.io/v1beta2
+      kind: Cluster
+      name: glossia-production
+      namespace: org-glossia
   buildMetadata:
     - originAnnotations
   healthCheckExprs:
     - apiVersion: cluster.x-k8s.io/v1beta2
       kind: Cluster
-      inProgress: status.conditions.exists(condition, condition.type == 'Ready' && condition.status == 'Unknown')
-      failed: status.conditions.exists(condition, condition.type == 'Ready' && condition.status == 'False')
-      current: status.conditions.exists(condition, condition.type == 'Ready' && condition.status == 'True')
+      inProgress: status.conditions.filter(condition, condition.type == 'Available').all(condition, condition.status == 'Unknown')
+      failed: status.conditions.filter(condition, condition.type == 'Available').all(condition, condition.status == 'False')
+      current: status.conditions.filter(condition, condition.type == 'Available').all(condition, condition.status == 'True')
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -40,12 +44,16 @@ spec:
   prune: false
   deletionPolicy: Orphan
   serviceAccountName: workload-cluster-reconciler
-  wait: true
+  healthChecks:
+    - apiVersion: cluster.x-k8s.io/v1beta2
+      kind: Cluster
+      name: glossia-observability
+      namespace: org-glossia
   buildMetadata:
     - originAnnotations
   healthCheckExprs:
     - apiVersion: cluster.x-k8s.io/v1beta2
       kind: Cluster
-      inProgress: status.conditions.exists(condition, condition.type == 'Ready' && condition.status == 'Unknown')
-      failed: status.conditions.exists(condition, condition.type == 'Ready' && condition.status == 'False')
-      current: status.conditions.exists(condition, condition.type == 'Ready' && condition.status == 'True')
+      inProgress: status.conditions.filter(condition, condition.type == 'Available').all(condition, condition.status == 'Unknown')
+      failed: status.conditions.filter(condition, condition.type == 'Available').all(condition, condition.status == 'False')
+      current: status.conditions.filter(condition, condition.type == 'Available').all(condition, condition.status == 'True')
