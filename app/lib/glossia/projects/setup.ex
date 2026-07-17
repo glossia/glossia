@@ -62,9 +62,10 @@ defmodule Glossia.Projects.Setup do
 
     sandbox = Glossia.Sandbox.adapter()
 
-    with {:ok, token} <- get_clone_token(project),
+    with {:ok, harness_config} <- setup_harness_config(),
+         {:ok, token} <- get_clone_token(project),
          {:ok, sandbox_record} <- ensure_sandbox(project, account, sandbox) do
-      run_in_sandbox(project, account, sandbox, sandbox_record, token)
+      run_in_sandbox(project, account, sandbox, sandbox_record, token, harness_config)
     else
       {:error, :setup_already_running} = error ->
         error
@@ -74,11 +75,10 @@ defmodule Glossia.Projects.Setup do
     end
   end
 
-  defp run_in_sandbox(project, account, sandbox, sandbox_record, token) do
+  defp run_in_sandbox(project, account, sandbox, sandbox_record, token, harness_config) do
     sandbox_id = to_string(sandbox_record.id)
 
     with {:ok, repo_path} <- sandbox.repo_path(sandbox_id),
-         {:ok, harness_config} <- setup_harness_config(),
          {:ok, _status} <-
            start_agent_and_wait(
              sandbox,
@@ -96,8 +96,9 @@ defmodule Glossia.Projects.Setup do
       outcome
     else
       {:error, reason} ->
+        result = fail_setup(project, account, reason, sandbox_id)
         cleanup_project_sandbox(project, sandbox, "setup_failed", sandbox_id)
-        fail_setup(project, account, reason, sandbox_id)
+        result
     end
   end
 
