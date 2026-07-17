@@ -11,8 +11,7 @@ defmodule Glossia.Github.InstallationsTest do
       %Account{}
       |> Account.changeset(%{
         handle: attrs[:handle] || "org-#{System.unique_integer([:positive])}",
-        type: "organization",
-        has_access: true
+        type: "organization"
       })
       |> Repo.insert()
 

@@ -6,8 +6,6 @@ defmodule Glossia.Admin.MCP.Server do
 
   component(Glossia.Admin.MCP.ListUsersTool, name: "list_users")
   component(Glossia.Admin.MCP.GetUserTool, name: "get_user")
-  component(Glossia.Admin.MCP.GrantAccessTool, name: "grant_access")
-  component(Glossia.Admin.MCP.RevokeAccessTool, name: "revoke_access")
   component(Glossia.Admin.MCP.ListAccountsTool, name: "list_accounts")
   component(Glossia.Admin.MCP.SetSuperAdminTool, name: "set_super_admin")
   component(Glossia.Admin.MCP.ListDiscussionsTool, name: "list_discussions")

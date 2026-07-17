@@ -172,28 +172,6 @@ defmodule GlossiaWeb.Admin.AdminLive do
   # Mutation events
   # ---------------------------------------------------------------------------
 
-  def handle_event("grant_access", %{"email" => email}, socket) do
-    case Accounts.grant_access(email) do
-      {:ok, _user} ->
-        {users, total} = reload_users(socket)
-        {:noreply, assign(socket, users: users, users_total: total)}
-
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to grant access."))}
-    end
-  end
-
-  def handle_event("revoke_access", %{"email" => email}, socket) do
-    case Accounts.revoke_access(email) do
-      {:ok, _user} ->
-        {users, total} = reload_users(socket)
-        {:noreply, assign(socket, users: users, users_total: total)}
-
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to revoke access."))}
-    end
-  end
-
   def handle_event("toggle_super_admin", %{"user-id" => user_id, "value" => value}, socket) do
     new_value = value == "true"
 
@@ -356,11 +334,6 @@ defmodule GlossiaWeb.Admin.AdminLive do
       <:col :let={user} label={gettext("Name")} key="name" sortable>
         {user.name || "-"}
       </:col>
-      <:col :let={user} label={gettext("Access")}>
-        <.badge variant={if(user.has_access, do: "success", else: "neutral")}>
-          {if user.has_access, do: gettext("Yes"), else: gettext("No")}
-        </.badge>
-      </:col>
       <:col :let={user} label={gettext("Super Admin")}>
         <.badge variant={if(user.super_admin, do: "warning", else: "neutral")}>
           {if user.super_admin, do: gettext("Yes"), else: gettext("No")}
@@ -371,23 +344,6 @@ defmodule GlossiaWeb.Admin.AdminLive do
       </:col>
       <:action :let={user}>
         <div class="admin-action-group">
-          <%= if user.has_access do %>
-            <button
-              phx-click="revoke_access"
-              phx-value-email={user.email}
-              class="dash-btn dash-btn-secondary admin-action-btn"
-            >
-              {gettext("Revoke")}
-            </button>
-          <% else %>
-            <button
-              phx-click="grant_access"
-              phx-value-email={user.email}
-              class="dash-btn dash-btn-primary admin-action-btn"
-            >
-              {gettext("Grant")}
-            </button>
-          <% end %>
           <button
             phx-click="toggle_super_admin"
             phx-value-user-id={user.id}
@@ -481,11 +437,6 @@ defmodule GlossiaWeb.Admin.AdminLive do
       </:col>
       <:col :let={account} label={gettext("Visibility")}>
         {account.visibility || "private"}
-      </:col>
-      <:col :let={account} label={gettext("Access")}>
-        <.badge variant={if(account.has_access, do: "success", else: "neutral")}>
-          {if account.has_access, do: gettext("Yes"), else: gettext("No")}
-        </.badge>
       </:col>
       <:col
         :let={account}
