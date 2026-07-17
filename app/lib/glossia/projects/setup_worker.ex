@@ -15,6 +15,7 @@ defmodule Glossia.Projects.SetupWorker do
   def perform(%Oban.Job{args: %{"project_id" => project_id}}) do
     case Glossia.Projects.Setup.run(project_id) do
       :ok -> :ok
+      {:error, :setup_model_not_configured} -> {:cancel, :setup_model_not_configured}
       {:error, reason} -> {:error, reason}
     end
   end
