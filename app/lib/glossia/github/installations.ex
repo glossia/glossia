@@ -3,6 +3,7 @@ defmodule Glossia.Github.Installations do
 
   alias Glossia.Accounts.GithubInstallation
   alias Glossia.Events
+  alias Glossia.Github.{App, Client, UserToken}
   alias Glossia.Repo
 
   import Ecto.Query
@@ -52,8 +53,80 @@ defmodule Glossia.Github.Installations do
     |> Repo.all()
   end
 
+  @doc """
+  Links a pre-existing GitHub App installation to the current account.
+
+  GitHub only calls the installation setup callback when an installation is
+  created or updated. Users who installed the app before creating their
+  Glossia account can still discover that installation through the GitHub App
+  user access token issued during sign in.
+  """
+  def reconcile_for_user_account(user, account) do
+    case matching_installation_for_user(user, account.handle) do
+      %GithubInstallation{} = installation ->
+        {:ok, installation}
+
+      nil ->
+        discover_and_create_installation(user, account)
+    end
+  end
+
   def get_installation_by_github_id(github_installation_id) do
     Repo.get_by(GithubInstallation, github_installation_id: github_installation_id)
+  end
+
+  defp matching_installation_for_user(user, account_handle) do
+    account_handle = String.downcase(account_handle)
+
+    user
+    |> list_installations_for_user()
+    |> Enum.find(fn installation ->
+      String.downcase(installation.github_account_login) == account_handle
+    end)
+  end
+
+  defp discover_and_create_installation(user, account) do
+    with app_id when is_integer(app_id) <- App.app_id(),
+         {:ok, %{installations: installations}} <-
+           UserToken.with_valid_token(user.id, &Client.list_user_installations/1),
+         %{} = installation <- find_account_installation(installations, account.handle, app_id) do
+      create_or_get_installation(account, installation)
+    else
+      nil -> {:error, :installation_not_found}
+      {:error, _} = error -> error
+    end
+  end
+
+  defp find_account_installation(installations, account_handle, app_id) do
+    account_handle = String.downcase(account_handle)
+
+    Enum.find(installations, fn installation ->
+      installation["app_id"] == app_id and
+        is_nil(installation["suspended_at"]) and
+        String.downcase(get_in(installation, ["account", "login"]) || "") == account_handle
+    end)
+  end
+
+  defp create_or_get_installation(account, installation) do
+    github_installation_id = installation["id"]
+
+    attrs = %{
+      github_installation_id: github_installation_id,
+      github_account_login: get_in(installation, ["account", "login"]),
+      github_account_type: get_in(installation, ["account", "type"]),
+      github_account_id: get_in(installation, ["account", "id"])
+    }
+
+    case create_installation(account, attrs) do
+      {:ok, installation} ->
+        {:ok, installation}
+
+      {:error, _changeset} = error ->
+        case get_installation_by_github_id(github_installation_id) do
+          %GithubInstallation{} = installation -> {:ok, installation}
+          nil -> error
+        end
+    end
   end
 
   def delete_installation(%GithubInstallation{} = installation, opts \\ []) do

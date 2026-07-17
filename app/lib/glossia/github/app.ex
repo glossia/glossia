@@ -76,6 +76,16 @@ defmodule Glossia.Github.App do
     present?(config[:app_id]) and present?(config[:private_key])
   end
 
+  def app_id do
+    config = Application.get_env(:glossia, __MODULE__, [])
+
+    case config[:app_id] do
+      value when is_integer(value) -> value
+      value when is_binary(value) -> parse_app_id(value)
+      _ -> nil
+    end
+  end
+
   defp github_api_url(opts) do
     config = Application.get_env(:glossia, __MODULE__, [])
 
@@ -94,4 +104,11 @@ defmodule Glossia.Github.App do
 
   defp present?(value) when is_binary(value), do: String.trim(value) != ""
   defp present?(_), do: false
+
+  defp parse_app_id(value) do
+    case Integer.parse(String.trim(value)) do
+      {app_id, ""} -> app_id
+      _ -> nil
+    end
+  end
 end

@@ -826,6 +826,30 @@ defmodule GlossiaWeb.DashboardLive do
       else
         user = socket.assigns.current_user
 
+        if Glossia.Github.App.configured?() do
+          case Glossia.Github.Installations.reconcile_for_user_account(
+                 user,
+                 socket.assigns.account
+               ) do
+            {:ok, _installation} ->
+              :ok
+
+            {:error, reason}
+            when reason in [
+                   :installation_not_found,
+                   :github_identity_not_found,
+                   :github_access_token_not_found
+                 ] ->
+              :ok
+
+            {:error, reason} ->
+              Logger.warning("Could not reconcile GitHub installation",
+                account_id: socket.assigns.account.id,
+                reason: inspect(reason)
+              )
+          end
+        end
+
         installations = Glossia.Github.Installations.list_installations_for_user(user)
 
         imported_repositories =
