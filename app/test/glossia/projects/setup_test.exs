@@ -5,7 +5,7 @@ defmodule Glossia.Projects.SetupTest do
   alias Glossia.Accounts.Project
   alias Glossia.Github.Installations
   alias Glossia.Projects
-  alias Glossia.Projects.Setup
+  alias Glossia.Projects.{Setup, SetupWorker}
   alias Glossia.Repo
   alias Glossia.Sandboxes.Sandbox
   alias Glossia.TestHelpers
@@ -49,8 +49,12 @@ defmodule Glossia.Projects.SetupTest do
     def delete_file(_sandbox_id, _path), do: :ok
     def repo_path(_sandbox_id), do: {:ok, "/workspace/repo"}
 
-    def start_agent_session(_sandbox_id, caller, _opts) do
-      Task.start(fn -> send(caller, {:agent_done, :completed}) end)
+    def start_agent_session(_sandbox_id, caller, opts) do
+      if get_in(opts, [:repository, :full_name]) == "glossia/failing-setup" do
+        {:error, :agent_start_failed}
+      else
+        Task.start(fn -> send(caller, {:agent_done, :completed}) end)
+      end
     end
   end
 
@@ -153,6 +157,66 @@ defmodule Glossia.Projects.SetupTest do
 
     assert %Sandbox{status: "terminated"} =
              Repo.one!(from s in Sandbox, where: s.project_id == ^project.id)
+  end
+
+  test "fails without creating a sandbox when the setup model is not configured" do
+    config = Application.fetch_env!(:glossia, Glossia.Projects.Setup)
+
+    Application.put_env(
+      :glossia,
+      Glossia.Projects.Setup,
+      config
+      |> Keyword.put(:minimax_api_key, nil)
+      |> Keyword.put(:harness_model, nil)
+      |> Keyword.put(:model, nil)
+      |> Keyword.put(:opencode_config, %{})
+    )
+
+    user = TestHelpers.create_user("setup-no-model@test.com", "setup-no-model")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "setup-no-model",
+        name: "Setup Without Model",
+        github_repo_full_name: "glossia/no-model",
+        setup_status: "pending",
+        setup_target_languages: ["es"]
+      })
+
+    assert {:cancel, :setup_model_not_configured} =
+             SetupWorker.perform(%Oban.Job{args: %{"project_id" => project.id}})
+
+    updated = Repo.get!(Project, project.id)
+    assert updated.setup_status == "failed"
+    assert updated.setup_sandbox_id == nil
+
+    assert updated.setup_error ==
+             "The setup model is not configured. Set GLOSSIA_SETUP_MINIMAX_API_KEY, GLOSSIA_SETUP_HARNESS_MODEL, or GLOSSIA_SETUP_OPENCODE_CONFIG_JSON."
+
+    refute Repo.exists?(from sandbox in Sandbox, where: sandbox.project_id == ^project.id)
+  end
+
+  test "records a failed status before cleaning up its sandbox" do
+    user = TestHelpers.create_user("setup-failure-state@test.com", "setup-failure-state")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "setup-failure-state",
+        name: "Setup Failure State",
+        github_repo_full_name: "glossia/failing-setup",
+        setup_status: "pending",
+        setup_target_languages: ["es"]
+      })
+
+    assert {:error, :agent_start_failed} = Setup.run(project.id)
+
+    updated = Repo.get!(Project, project.id)
+    assert updated.setup_status == "failed"
+    assert updated.setup_error == ":agent_start_failed"
+    assert updated.setup_sandbox_id == nil
+
+    assert %Sandbox{status: "terminated"} =
+             Repo.one!(from sandbox in Sandbox, where: sandbox.project_id == ^project.id)
   end
 
   test "creates a pull request from every setup change" do
