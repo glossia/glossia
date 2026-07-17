@@ -12,11 +12,6 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
     owner = TestHelpers.create_user("glossary-owner@test.com", "glossary-owner")
     outsider = TestHelpers.create_user("glossary-outsider@test.com", "glossary-outsider")
 
-    no_access =
-      TestHelpers.create_user("glossary-noaccess@test.com", "glossary-noaccess",
-        has_access: false
-      )
-
     {:ok, %{glossary: glossary}} =
       Glossaries.create_glossary(
         owner.account,
@@ -45,7 +40,7 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
         owner
       )
 
-    %{owner: owner, outsider: outsider, no_access: no_access, glossary: glossary}
+    %{owner: owner, outsider: outsider, glossary: glossary}
   end
 
   describe "GET /api/:handle/glossary" do
@@ -124,17 +119,6 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
       assert %{"version" => 2, "entries" => [entry]} = json_response(conn, 201)
       assert entry["term"] == "workspace"
       assert length(entry["translations"]) == 1
-    end
-
-    test "returns 403 for users without access", %{conn: conn, no_access: no_access} do
-      conn =
-        conn
-        |> TestHelpers.authenticate(no_access, @write_scopes)
-        |> post("/api/#{no_access.account.handle}/glossary", %{
-          entries: [%{term: "test"}]
-        })
-
-      assert %{"error" => "not_authorized"} = json_response(conn, 403)
     end
   end
 

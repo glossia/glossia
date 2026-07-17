@@ -45,7 +45,6 @@ defmodule Glossia.Seeds do
         handle: "dev",
         email: "dev@glossia.ai",
         name: "Dev User",
-        has_access: true,
         super_admin: true,
         identity: %{provider: "dev", provider_uid: "dev-001"}
       )
@@ -54,16 +53,14 @@ defmodule Glossia.Seeds do
       ensure_user!(
         handle: "alex",
         email: "alex.chen@glossia.test",
-        name: "Alex Chen",
-        has_access: true
+        name: "Alex Chen"
       )
 
     maria =
       ensure_user!(
         handle: "maria",
         email: "maria.rossi@glossia.test",
-        name: "Maria Rossi",
-        has_access: false
+        name: "Maria Rossi"
       )
 
     ensure_visibility!(dev.account, "public")
@@ -556,7 +553,6 @@ defmodule Glossia.Seeds do
     handle = Keyword.fetch!(opts, :handle)
     email = Keyword.fetch!(opts, :email)
     name = Keyword.get(opts, :name)
-    has_access = Keyword.get(opts, :has_access, false)
     super_admin = Keyword.get(opts, :super_admin, false)
 
     account =
@@ -564,8 +560,7 @@ defmodule Glossia.Seeds do
         nil ->
           Repo.insert!(%Account{
             handle: handle,
-            type: "user",
-            has_access: has_access
+            type: "user"
           })
 
         %Account{type: "user"} = account ->
@@ -582,7 +577,6 @@ defmodule Glossia.Seeds do
             account_id: account.id,
             email: email,
             name: name,
-            has_access: has_access,
             super_admin: super_admin
           })
 
@@ -590,24 +584,11 @@ defmodule Glossia.Seeds do
           user
       end
 
-    account =
-      if account.has_access != has_access do
-        {:ok, account} =
-          account
-          |> Account.changeset(%{has_access: has_access})
-          |> Repo.update()
-
-        account
-      else
-        account
-      end
-
     user =
-      if user.email != email or user.name != name or user.has_access != has_access or
-           user.super_admin != super_admin do
+      if user.email != email or user.name != name or user.super_admin != super_admin do
         {:ok, user} =
           user
-          |> User.changeset(%{email: email, name: name, has_access: has_access})
+          |> User.changeset(%{email: email, name: name})
           |> Ecto.Changeset.change(super_admin: super_admin)
           |> Repo.update()
 

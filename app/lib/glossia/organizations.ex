@@ -30,7 +30,7 @@ defmodule Glossia.Organizations do
       Ecto.Multi.new()
       |> Ecto.Multi.insert(
         :account,
-        Account.changeset(%Account{}, %{handle: handle, type: "organization", has_access: true})
+        Account.changeset(%Account{}, %{handle: handle, type: "organization"})
       )
       |> Ecto.Multi.insert(:organization, fn %{account: account} ->
         %Organization{account_id: account.id}

@@ -8,7 +8,7 @@
       <a href={~p"/features"}>{gettext("Features")}</a>
       <a href={~p"/docs"}>{gettext("Docs")}</a>
       <a href={~p"/changelog"}>{gettext("Changelog")}</a>
-      <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
+      <%= if assigns[:current_user] && @current_user do %>
         <div class="avatar-dropdown">
           <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
             <img
@@ -77,7 +77,7 @@
   <a href={~p"/features"}>{gettext("Features")}</a>
   <a href={~p"/docs"}>{gettext("Docs")}</a>
   <a href={~p"/changelog"}>{gettext("Changelog")}</a>
-  <%= if assigns[:current_user] && @current_user && @current_user.account && @current_user.account.has_access do %>
+  <%= if assigns[:current_user] && @current_user do %>
     <a href={~p"/dashboard"}>{gettext("Your profile")}</a>
     <a href={~p"/auth/logout"} data-method="delete">{gettext("Log out")}</a>
   <% else %>

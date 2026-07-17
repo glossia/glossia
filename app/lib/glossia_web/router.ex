@@ -42,10 +42,6 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.RequireAuth
   end
 
-  pipeline :require_access do
-    plug GlossiaWeb.Plugs.RequireAccess
-  end
-
   pipeline :platform do
     plug :put_layout, html: {GlossiaWeb.Layouts, :platform}
   end
@@ -221,10 +217,6 @@ defmodule GlossiaWeb.Router do
 
   scope "/", GlossiaWeb do
     pipe_through [:browser, :require_auth]
-  end
-
-  scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_auth, :require_access]
 
     get "/organizations/new", OrganizationController, :new
     post "/organizations", OrganizationController, :create
@@ -451,7 +443,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/", GlossiaWeb do
-    pipe_through [:browser, :require_auth, :require_access, :platform]
+    pipe_through [:browser, :require_auth, :platform]
 
     get "/:handle/-/*path", AccountRouterController, :show
   end

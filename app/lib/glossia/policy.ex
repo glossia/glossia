@@ -43,18 +43,15 @@ defmodule Glossia.Policy do
     end
 
     action :write do
-      deny(:no_access)
       allow([:authenticated, :collection])
       allow(:organization_admin)
     end
 
     action :delete do
-      deny(:no_access)
       allow(:organization_admin)
     end
 
     action :admin do
-      deny(:no_access)
       allow(:organization_admin)
     end
   end
@@ -69,19 +66,16 @@ defmodule Glossia.Policy do
     end
 
     action :write do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :admin do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :delete do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end
@@ -97,13 +91,11 @@ defmodule Glossia.Policy do
     end
 
     action :write do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :admin do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end
@@ -117,7 +109,6 @@ defmodule Glossia.Policy do
     end
 
     action :write do
-      deny(:no_access)
       allow(:organization_admin)
     end
   end
@@ -131,13 +122,11 @@ defmodule Glossia.Policy do
     end
 
     action :write do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :admin do
-      deny(:no_access)
       allow(:account_owner)
     end
   end
@@ -160,7 +149,6 @@ defmodule Glossia.Policy do
     end
 
     action :admin do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
@@ -185,7 +173,6 @@ defmodule Glossia.Policy do
     end
 
     action :admin do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
@@ -200,7 +187,6 @@ defmodule Glossia.Policy do
     end
 
     action :write do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end
@@ -208,7 +194,6 @@ defmodule Glossia.Policy do
 
   object :translation do
     action :write do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
@@ -223,7 +208,6 @@ defmodule Glossia.Policy do
     end
 
     action :write do
-      deny(:no_access)
       allow(:account_owner)
       allow(:organization_admin)
     end

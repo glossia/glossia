@@ -12,13 +12,10 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
     owner = TestHelpers.create_user("voice-owner@test.com", "voice-owner")
     outsider = TestHelpers.create_user("voice-outsider@test.com", "voice-outsider")
 
-    no_access =
-      TestHelpers.create_user("voice-noaccess@test.com", "voice-noaccess", has_access: false)
-
     {:ok, %{voice: voice}} =
       Voices.create_voice(owner.account, %{tone: "formal", formality: "neutral"}, owner)
 
-    %{owner: owner, outsider: outsider, no_access: no_access, voice: voice}
+    %{owner: owner, outsider: outsider, voice: voice}
   end
 
   describe "GET /api/:handle/voice" do
@@ -74,18 +71,6 @@ defmodule GlossiaWeb.Api.VoiceApiControllerTest do
 
       assert %{"version" => 2, "tone" => "casual", "formality" => "informal"} =
                json_response(conn, 201)
-    end
-
-    test "returns 403 for users without access", %{conn: conn, no_access: no_access} do
-      conn =
-        conn
-        |> TestHelpers.authenticate(no_access, @write_scopes)
-        |> post("/api/#{no_access.account.handle}/voice", %{
-          tone: "casual",
-          formality: "informal"
-        })
-
-      assert %{"error" => "not_authorized"} = json_response(conn, 403)
     end
   end
 

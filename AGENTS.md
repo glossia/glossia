@@ -150,4 +150,4 @@ When touching styles, incrementally fix these gaps. Do not attempt a full rewrit
 ## Seeds
 
 - `app/priv/repo/seeds.exs` must stay **realistic and up to date**. When adding a new domain feature (schema/context/API surface), extend seeds with representative data so developers and agents can exercise it end-to-end.
-- Keep seeds idempotent (safe to run multiple times) and include data that covers: public accounts, access-gated accounts (`has_access: false`), organization memberships, invitations, projects, and voice/version history.
+- Keep seeds idempotent (safe to run multiple times) and include data that covers: public accounts, organization memberships, invitations, projects, and voice/version history.

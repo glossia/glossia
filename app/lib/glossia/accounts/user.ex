@@ -11,7 +11,6 @@ defmodule Glossia.Accounts.User do
     field :x_url, :string
     field :linkedin_url, :string
     field :mastodon_url, :string
-    field :has_access, :boolean, default: false
     field :super_admin, :boolean, default: false
 
     belongs_to :account, Glossia.Accounts.Account
@@ -23,7 +22,7 @@ defmodule Glossia.Accounts.User do
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :name, :avatar_url, :has_access])
+    |> cast(attrs, [:email, :name, :avatar_url])
     |> validate_required([:email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)

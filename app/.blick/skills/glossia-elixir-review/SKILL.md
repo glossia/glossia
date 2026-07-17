@@ -96,8 +96,7 @@ context and authorization on each action are a regression.
 The policy DSL is `LetMe.Policy`, declared in `app/lib/glossia/policy.ex`.
 Categories are declared via `object :foo do ... end` blocks and each
 action allows a list of checks (`allow(:authenticated)`,
-`allow(:super_admin)`, `allow(:organization_admin)`, etc.). Some
-actions are gated by `deny(:no_access)` before allows.
+`allow(:super_admin)`, `allow(:organization_admin)`, etc.).
 
 ### Flag
 
