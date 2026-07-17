@@ -1,10 +1,26 @@
 defmodule Glossia.Github.InstallationsTest do
-  use Glossia.DataCase, async: true
+  use Glossia.DataCase, async: false
 
-  alias Glossia.Accounts.{Account, Organization, OrganizationMembership}
+  alias Glossia.Accounts.{Account, Identity, Organization, OrganizationMembership}
   alias Glossia.Github.Installations
   alias Glossia.Repo
   alias Glossia.TestHelpers
+
+  setup do
+    previous_providers = Application.get_env(:glossia, :oauth_providers, [])
+
+    Application.put_env(:glossia, :oauth_providers,
+      github: [
+        client_id: "github-client-id",
+        client_secret: "github-client-secret",
+        strategy: Assent.Strategy.Github
+      ]
+    )
+
+    on_exit(fn ->
+      Application.put_env(:glossia, :oauth_providers, previous_providers)
+    end)
+  end
 
   defp create_organization_account!(attrs) do
     {:ok, account} =
@@ -44,6 +60,20 @@ defmodule Glossia.Github.InstallationsTest do
       github_account_type: "Organization",
       github_account_id: id + 1000
     }
+  end
+
+  defp add_github_identity!(user, token, refresh_token \\ nil) do
+    {:ok, identity} =
+      %Identity{user_id: user.id}
+      |> Identity.changeset(%{
+        provider: "github",
+        provider_uid: "github-#{user.id}",
+        provider_token: token,
+        provider_refresh_token: refresh_token
+      })
+      |> Repo.insert()
+
+    identity
   end
 
   test "create_installation/2 persists a GitHub installation" do
@@ -137,6 +167,151 @@ defmodule Glossia.Github.InstallationsTest do
       Installations.create_installation(user.account, installation_attrs(501, "external"))
 
     assert Installations.get_installation_by_github_id(501).id == installation.id
+  end
+
+  test "reconcile_for_user_account/2 links a pre-existing installation for the account" do
+    user = TestHelpers.create_user("gh-install-reconcile@test.com", "gh-install-reconcile")
+
+    organization =
+      create_organization_account!(
+        name: "Existing GitHub Org",
+        handle: "existing-github-org"
+      )
+
+    add_member!(organization, user, "admin")
+    add_github_identity!(user, "github-user-token")
+
+    Mimic.expect(Glossia.Github.App, :app_id, fn -> 2_867_038 end)
+
+    Mimic.expect(Glossia.Github.Client, :list_user_installations, fn "github-user-token" ->
+      {:ok,
+       %{
+         total_count: 1,
+         installations: [
+           %{
+             "id" => 113_532_098,
+             "app_id" => 2_867_038,
+             "suspended_at" => nil,
+             "account" => %{
+               "id" => 239_325_821,
+               "login" => "existing-github-org",
+               "type" => "Organization"
+             }
+           }
+         ]
+       }}
+    end)
+
+    assert {:ok, installation} =
+             Installations.reconcile_for_user_account(user, organization.account)
+
+    assert installation.account_id == organization.account.id
+    assert installation.github_installation_id == 113_532_098
+    assert installation.github_account_login == "existing-github-org"
+
+    assert {:ok, same_installation} =
+             Installations.reconcile_for_user_account(user, organization.account)
+
+    assert same_installation.id == installation.id
+  end
+
+  test "reconcile_for_user_account/2 refreshes an expired user token before discovery" do
+    user = TestHelpers.create_user("gh-install-refresh@test.com", "gh-install-refresh")
+
+    organization =
+      create_organization_account!(
+        name: "Refresh GitHub Org",
+        handle: "refresh-github-org"
+      )
+
+    add_member!(organization, user, "admin")
+    identity = add_github_identity!(user, "expired-token", "github-refresh-token")
+
+    Mimic.expect(Glossia.Github.App, :app_id, fn -> 2_867_038 end)
+
+    Mimic.expect(Glossia.Github.Client, :list_user_installations, fn "expired-token" ->
+      {:error, {:api_error, 401, %{"message" => "Bad credentials"}}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :refresh_user_access_token, fn
+      "github-refresh-token", "github-client-id", "github-client-secret" ->
+        {:ok,
+         %{
+           access_token: "refreshed-token",
+           refresh_token: "rotated-refresh-token"
+         }}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :list_user_installations, fn "refreshed-token" ->
+      {:ok,
+       %{
+         total_count: 1,
+         installations: [
+           %{
+             "id" => 113_532_098,
+             "app_id" => 2_867_038,
+             "suspended_at" => nil,
+             "account" => %{
+               "id" => 239_325_821,
+               "login" => "refresh-github-org",
+               "type" => "Organization"
+             }
+           }
+         ]
+       }}
+    end)
+
+    assert {:ok, installation} =
+             Installations.reconcile_for_user_account(user, organization.account)
+
+    assert installation.github_installation_id == 113_532_098
+
+    refreshed_identity = Repo.get!(Identity, identity.id)
+    assert refreshed_identity.provider_token == "refreshed-token"
+    assert refreshed_identity.provider_refresh_token == "rotated-refresh-token"
+  end
+
+  test "reconcile_for_user_account/2 ignores installations for another account or app" do
+    user =
+      TestHelpers.create_user("gh-install-no-match@test.com", "gh-install-no-match")
+
+    add_github_identity!(user, "github-user-token")
+
+    Mimic.expect(Glossia.Github.App, :app_id, fn -> 2_867_038 end)
+
+    Mimic.expect(Glossia.Github.Client, :list_user_installations, fn "github-user-token" ->
+      {:ok,
+       %{
+         total_count: 2,
+         installations: [
+           %{
+             "id" => 1,
+             "app_id" => 999,
+             "suspended_at" => nil,
+             "account" => %{
+               "id" => 1,
+               "login" => user.account.handle,
+               "type" => "User"
+             }
+           },
+           %{
+             "id" => 2,
+             "app_id" => 2_867_038,
+             "suspended_at" => nil,
+             "account" => %{
+               "id" => 2,
+               "login" => "another-account",
+               "type" => "Organization"
+             }
+           }
+         ]
+       }}
+    end)
+
+    assert {:error, :installation_not_found} =
+             Installations.reconcile_for_user_account(user, user.account)
+
+    assert Installations.list_installations_for_account(user.account.id) == []
   end
 
   test "delete_installation/2 deletes and emits an event when actor is provided" do

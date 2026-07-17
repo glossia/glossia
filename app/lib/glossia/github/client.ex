@@ -2,6 +2,7 @@ defmodule Glossia.Github.Client do
   @moduledoc false
 
   @default_github_api_url "https://api.github.com"
+  @default_github_oauth_url "https://github.com/login/oauth/access_token"
 
   def list_installation_repos(access_token, opts \\ []) do
     api_url = github_api_url(opts)
@@ -17,6 +18,57 @@ defmodule Glossia.Github.Client do
 
       {:error, _} = err ->
         err
+    end
+  end
+
+  def list_user_installations(access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    per_page = Keyword.get(opts, :per_page, 100)
+    page = Keyword.get(opts, :page, 1)
+
+    case api_get(
+           "#{api_url}/user/installations?per_page=#{per_page}&page=#{page}",
+           access_token
+         ) do
+      {:ok, %{"installations" => installations, "total_count" => total}} ->
+        {:ok, %{installations: installations, total_count: total}}
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  def refresh_user_access_token(refresh_token, client_id, client_secret, opts \\ []) do
+    oauth_url = Keyword.get(opts, :oauth_url, @default_github_oauth_url)
+
+    case Glossia.HTTP.new()
+         |> Req.post(
+           url: oauth_url,
+           form: [
+             client_id: client_id,
+             client_secret: client_secret,
+             grant_type: "refresh_token",
+             refresh_token: refresh_token
+           ],
+           headers: [{"accept", "application/json"}]
+         ) do
+      {:ok,
+       %Req.Response{
+         status: status,
+         body: %{"access_token" => access_token} = body
+       }}
+      when status in 200..299 and is_binary(access_token) ->
+        {:ok,
+         %{
+           access_token: access_token,
+           refresh_token: body["refresh_token"]
+         }}
+
+      {:ok, %Req.Response{status: status, body: body}} ->
+        {:error, {:oauth_error, status, body}}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
