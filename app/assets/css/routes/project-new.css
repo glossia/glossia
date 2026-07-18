@@ -1,0 +1,20 @@
+#project-new {
+  & [data-part="wizard-progress"] {
+    width: 100%;
+  }
+
+  & .project-setup-picker-section,
+  & .wizard-setup-container {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  & .project-setup-search-form {
+    width: 100%;
+  }
+
+  & .wizard-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}

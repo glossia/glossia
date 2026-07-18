@@ -1,0 +1,11 @@
+#setup-progress-card {
+  & .setup-progress-section {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  & [data-part="events"] {
+    display: grid;
+    gap: var(--space-2);
+  }
+}
