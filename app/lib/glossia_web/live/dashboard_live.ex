@@ -1356,23 +1356,39 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("validate_model", %{"model" => params}, socket) do
-    valid? =
-      String.trim(params["handle"] || "") != "" and
-        String.trim(params["model"] || "") != "" and
-        String.trim(params["api_key"] || "") != ""
+    {:noreply,
+     assign(socket,
+       model_form: to_form(params, as: :model),
+       model_form_valid?: valid_model_form?(params)
+     )}
+  end
 
-    {:noreply, assign(socket, model_form_valid?: valid?)}
+  def handle_event("select_model", %{"value" => value}, socket) do
+    params = put_model_form_value(socket.assigns.model_form, value)
+
+    {:noreply,
+     assign(socket,
+       model_form: to_form(params, as: :model),
+       model_form_valid?: valid_model_form?(params)
+     )}
   end
 
   def handle_event("validate_model_edit", %{"model" => params}, socket) do
-    original = socket.assigns.model_edit_original
+    {:noreply,
+     assign(socket,
+       model_edit_form: to_form(params, as: :model),
+       model_edit_changed?: changed_model_form?(params, socket.assigns.model_edit_original)
+     )}
+  end
 
-    changed? =
-      String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
-        String.trim(params["model"] || "") != String.trim(original["model"] || "") or
-        String.trim(params["api_key"] || "") != ""
+  def handle_event("select_model_edit", %{"value" => value}, socket) do
+    params = put_model_form_value(socket.assigns.model_edit_form, value)
 
-    {:noreply, assign(socket, model_edit_changed?: changed?)}
+    {:noreply,
+     assign(socket,
+       model_edit_form: to_form(params, as: :model),
+       model_edit_changed?: changed_model_form?(params, socket.assigns.model_edit_original)
+     )}
   end
 
   def handle_event("create_model", %{"model" => params}, socket) do
@@ -2660,6 +2676,24 @@ defmodule GlossiaWeb.DashboardLive do
      push_navigate(socket,
        to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
      )}
+  end
+
+  defp put_model_form_value(form, value) do
+    form.params
+    |> Map.new(fn {key, field_value} -> {to_string(key), field_value} end)
+    |> Map.put("model", value)
+  end
+
+  defp valid_model_form?(params) do
+    String.trim(params["handle"] || "") != "" and
+      String.trim(params["model"] || "") != "" and
+      String.trim(params["api_key"] || "") != ""
+  end
+
+  defp changed_model_form?(params, original) do
+    String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
+      String.trim(params["model"] || "") != String.trim(original["model"] || "") or
+      String.trim(params["api_key"] || "") != ""
   end
 
   # A project's configured locales, falling back to a default so triggering a
@@ -10611,6 +10645,54 @@ defmodule GlossiaWeb.DashboardLive do
   # LLM models page component
   # ---------------------------------------------------------------------------
 
+  attr(:id, :string, required: true)
+  attr(:name, :string, required: true)
+  attr(:value, :string, default: "")
+  attr(:options, :list, required: true)
+  attr(:on_select, :string, required: true)
+  attr(:hint, :string, default: nil)
+
+  defp model_picker(assigns) do
+    selected_option = Enum.find(assigns.options, &(&1.value == assigns.value))
+
+    assigns =
+      assign(
+        assigns,
+        :selected_label,
+        selected_option && selected_option.label
+      )
+
+    ~H"""
+    <input type="hidden" name={@name} value={@value || ""} />
+    <Noora.Dropdown.dropdown
+      id={@id}
+      label={@selected_label || gettext("Select a model...")}
+      hint={@hint}
+      on_select={@on_select}
+    >
+      <:search>
+        <Noora.TextInput.text_input
+          id={@id <> "-search"}
+          name=""
+          type="search"
+          show_suffix={false}
+          placeholder={gettext("Search models...")}
+          aria-label={gettext("Search models")}
+          data-part="search-input"
+        />
+      </:search>
+      <Noora.Dropdown.dropdown_item
+        :for={model_option <- @options}
+        value={model_option.value}
+        label={model_option.label}
+      >
+        <:left_icon><Noora.Icon.schema /></:left_icon>
+        <:right_icon :if={model_option.value == @value}><Noora.Icon.check /></:right_icon>
+      </Noora.Dropdown.dropdown_item>
+    </Noora.Dropdown.dropdown>
+    """
+  end
+
   attr(:live_action, :atom, required: true)
   attr(:handle, :string, required: true)
   attr(:llm_models, :list, default: [])
@@ -10682,20 +10764,14 @@ defmodule GlossiaWeb.DashboardLive do
                   />
                   <div class="voice-field model-select">
                     <Noora.Label.label label={gettext("Model")} required />
-                    <Noora.Select.select
+                    <.model_picker
                       id="model-model"
                       name="model[model]"
                       value={@model_form[:model].value}
-                      label={gettext("Select a model...")}
+                      options={@available_model_options}
+                      on_select="select_model"
                       hint={gettext("The LLM model to use, sourced from models.dev.")}
-                    >
-                      <:item
-                        :for={model_option <- @available_model_options}
-                        value={model_option.value}
-                        label={model_option.label}
-                        icon="schema"
-                      />
-                    </Noora.Select.select>
+                    />
                   </div>
                   <Noora.TextInput.text_input
                     id="model-api-key"
@@ -10744,19 +10820,13 @@ defmodule GlossiaWeb.DashboardLive do
                   />
                   <div class="voice-field model-select">
                     <Noora.Label.label label={gettext("Model")} required />
-                    <Noora.Select.select
+                    <.model_picker
                       id="edit-model-model"
                       name="model[model]"
                       value={@model_edit_form[:model].value}
-                      label={gettext("Select a model...")}
-                    >
-                      <:item
-                        :for={model_option <- @available_model_options}
-                        value={model_option.value}
-                        label={model_option.label}
-                        icon="schema"
-                      />
-                    </Noora.Select.select>
+                      options={@available_model_options}
+                      on_select="select_model_edit"
+                    />
                   </div>
                   <Noora.TextInput.text_input
                     id="edit-model-api-key"
