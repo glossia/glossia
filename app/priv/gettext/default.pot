@@ -3705,3 +3705,13 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Used by the internal content dashboard."
 msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10680
+#, elixir-autogen, elixir-format
+msgid "Search models"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10679
+#, elixir-autogen, elixir-format
+msgid "Search models..."
+msgstr ""
