@@ -203,8 +203,31 @@ defmodule Glossia.Projects do
     |> Ecto.Changeset.change()
     |> Ecto.Changeset.force_change(:setup_status, "pending")
     |> Ecto.Changeset.force_change(:setup_error, nil)
-    |> Ecto.Changeset.force_change(:setup_sandbox_id, nil)
     |> Repo.update()
+  end
+
+  def retry_project_setup(%Project{id: project_id, setup_status: "failed"}) do
+    now = DateTime.utc_now()
+
+    case Project
+         |> where(id: ^project_id, setup_status: "failed")
+         |> Repo.update_all(set: [setup_status: "pending", setup_error: nil, updated_at: now]) do
+      {1, _} -> {:ok, Repo.get!(Project, project_id)}
+      {0, _} -> {:error, :setup_not_failed}
+    end
+  end
+
+  def retry_project_setup(%Project{}), do: {:error, :setup_not_failed}
+
+  def fail_pending_project_setup(%Project{id: project_id}, error) do
+    now = DateTime.utc_now()
+
+    case Project
+         |> where(id: ^project_id, setup_status: "pending")
+         |> Repo.update_all(set: [setup_status: "failed", setup_error: error, updated_at: now]) do
+      {1, _} -> {:ok, Repo.get!(Project, project_id)}
+      {0, _} -> {:error, :setup_not_pending}
+    end
   end
 
   defp where_expected_setup_sandbox_id(query, nil) do

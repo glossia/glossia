@@ -174,6 +174,141 @@ defmodule Glossia.SandboxesTest do
              Glossia.Sandbox.MicrosandboxAdapter.download_file("sandbox-id", "/etc/passwd")
   end
 
+  @tag :tmp_dir
+  test "microsandbox adapter uses native lifecycle limits and never puts file content in argv", %{
+    tmp_dir: tmp_dir
+  } do
+    log_path = Path.join(tmp_dir, "msb-arguments.log")
+    command_path = Path.join(tmp_dir, "msb")
+
+    File.write!(
+      command_path,
+      "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"#{log_path}\"\ncase \"$*\" in\n  *\" realpath -m -z -- \"*) for last; do :; done; printf '%s\\000' \"$last\" ;;\nesac\nexit 0\n"
+    )
+
+    File.chmod!(command_path, 0o700)
+    previous = Application.get_env(:glossia, Glossia.Sandbox, [])
+
+    Application.put_env(
+      :glossia,
+      Glossia.Sandbox,
+      Keyword.put(previous, :microsandbox_command, command_path)
+    )
+
+    on_exit(fn -> Application.put_env(:glossia, Glossia.Sandbox, previous) end)
+
+    deadline = DateTime.add(DateTime.utc_now(), 90, :second)
+
+    assert {:ok, "native-lifecycle"} =
+             Glossia.Sandbox.MicrosandboxAdapter.create(%{
+               id: "native-lifecycle",
+               deadline_at: deadline
+             })
+
+    secret = "credential-that-must-not-appear-in-arguments"
+
+    assert :ok =
+             Glossia.Sandbox.MicrosandboxAdapter.upload_file(
+               "native-lifecycle",
+               "/tmp/glossia/job.json",
+               secret
+             )
+
+    arguments = File.read!(log_path)
+    assert arguments =~ "create"
+    assert arguments =~ "--max-duration"
+    assert arguments =~ "copy --quiet"
+    refute arguments =~ secret
+  end
+
+  @tag :tmp_dir
+  test "microsandbox downloads files without truncating valid content", %{tmp_dir: tmp_dir} do
+    command_path = Path.join(tmp_dir, "msb")
+    fixture_path = Path.join(tmp_dir, "fixture")
+    content = :binary.copy("large-content-", 25_000)
+    File.write!(fixture_path, content)
+
+    File.write!(
+      command_path,
+      "#!/bin/sh\ncase \"$*\" in\n  *\" realpath -m -z -- \"*) for last; do :; done; printf '%s\\000' \"$last\" ;;\nesac\nif [ \"$1\" = \"copy\" ]; then cp \"#{fixture_path}\" \"$4\"; fi\nexit 0\n"
+    )
+
+    File.chmod!(command_path, 0o700)
+    previous = Application.get_env(:glossia, Glossia.Sandbox, [])
+
+    Application.put_env(
+      :glossia,
+      Glossia.Sandbox,
+      Keyword.merge(previous,
+        microsandbox_command: command_path,
+        file_transfer_limit_bytes: byte_size(content) + 1
+      )
+    )
+
+    on_exit(fn -> Application.put_env(:glossia, Glossia.Sandbox, previous) end)
+
+    assert {:ok, ^content} =
+             Glossia.Sandbox.MicrosandboxAdapter.download_file(
+               "large-download",
+               "/tmp/glossia/repo/content.bin"
+             )
+  end
+
+  @tag :tmp_dir
+  test "microsandbox rejects repository symlinks that resolve to harness credentials", %{
+    tmp_dir: tmp_dir
+  } do
+    command_path = Path.join(tmp_dir, "msb")
+
+    File.write!(
+      command_path,
+      "#!/bin/sh\ncase \"$*\" in\n  *\" realpath -m -z -- \"*) printf '/tmp/glossia/.glossia-harness/.codex/auth.json\\000' ;;\nesac\nexit 0\n"
+    )
+
+    File.chmod!(command_path, 0o700)
+    previous = Application.get_env(:glossia, Glossia.Sandbox, [])
+
+    Application.put_env(
+      :glossia,
+      Glossia.Sandbox,
+      Keyword.put(previous, :microsandbox_command, command_path)
+    )
+
+    on_exit(fn -> Application.put_env(:glossia, Glossia.Sandbox, previous) end)
+
+    assert {:error, :path_outside_sandbox} =
+             Glossia.Sandbox.MicrosandboxAdapter.download_file(
+               "credential-leak",
+               "/tmp/glossia/repo/leak"
+             )
+  end
+
+  @tag :tmp_dir
+  test "microsandbox deletion treats an already missing virtual machine as idempotent", %{
+    tmp_dir: tmp_dir
+  } do
+    command_path = Path.join(tmp_dir, "msb")
+
+    File.write!(
+      command_path,
+      "#!/bin/sh\necho 'error: sandbox not found: missing'\nexit 1\n"
+    )
+
+    File.chmod!(command_path, 0o700)
+    previous = Application.get_env(:glossia, Glossia.Sandbox, [])
+
+    Application.put_env(
+      :glossia,
+      Glossia.Sandbox,
+      Keyword.put(previous, :microsandbox_command, command_path)
+    )
+
+    on_exit(fn -> Application.put_env(:glossia, Glossia.Sandbox, previous) end)
+
+    assert {:error, :not_found} =
+             Glossia.Sandbox.MicrosandboxAdapter.delete("already-missing")
+  end
+
   test "keeps delete failures retryable and reaps them later" do
     user = TestHelpers.create_user("sandbox-delete-retry@test.com", "sandbox-delete-retry")
 

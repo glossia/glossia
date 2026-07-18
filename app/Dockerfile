@@ -27,6 +27,8 @@ COPY --from=cli Cargo.toml Cargo.lock ./
 COPY --from=cli src src
 RUN cargo build --release --bin glossia
 
+FROM node:22-bookworm-slim AS node_runtime
+
 FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
@@ -76,9 +78,11 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE}
 
+COPY --from=node_runtime /usr/local/ /usr/local/
+
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium git nodejs npm \
-  && npm install -g opencode-ai@1.17.15 \
+  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium git \
+  && npm install -g opencode-ai@1.17.15 @openai/codex@0.144.5 @anthropic-ai/claude-code@2.1.214 \
   && npm cache clean --force \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 

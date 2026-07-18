@@ -187,17 +187,12 @@ defmodule Glossia.Translations.RepositoryRun do
     # `--untracked-files=all` lists new files individually instead of collapsing
     # untracked directories (e.g. `docs/i18n/`, `.glossia/`) into a single entry.
     #
-    # `System.cmd/3` rather than `MuonTrap.cmd/3`: MuonTrap acknowledges every
-    # chunk it receives by writing back to the port. `git status` prints its
-    # output and exits immediately, so on Linux that write lands on a pipe whose
-    # read end is already gone. The port then terminates with `:epipe` and takes
-    # the linked caller with it. MuonTrap earns its keep when a command needs a
-    # timeout or process-group containment; this one needs neither.
-    case System.cmd(
+    case MuonTrap.cmd(
            "git",
            ["-C", repo_path, "status", "--porcelain", "--untracked-files=all"],
            stderr_to_stdout: true,
-           into: ""
+           into: "",
+           timeout: 30_000
          ) do
       {output, 0} -> {:ok, output |> parse_git_status() |> attach_content(repo_path)}
       {output, code} -> {:error, {:git_status_failed, code, String.trim(output)}}
@@ -262,8 +257,12 @@ defmodule Glossia.Translations.RepositoryRun do
   defp checkout_commit(_dir, sha) when sha in [nil, ""], do: :ok
 
   defp checkout_commit(dir, sha) do
-    # Same reasoning as `collect_changes/1`: short-lived, chatty, no timeout.
-    System.cmd("git", ["-C", dir, "checkout", sha], stderr_to_stdout: true, into: "")
+    MuonTrap.cmd("git", ["-C", dir, "checkout", sha],
+      stderr_to_stdout: true,
+      into: "",
+      timeout: 30_000
+    )
+
     :ok
   end
 

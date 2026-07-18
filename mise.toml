@@ -15,11 +15,17 @@ shellspec = "0.28.1"
 infisical = "latest"
 ruby = "3.4.7"
 git-cliff = "2.10.0"
-# microsandbox (`msb`) — used by the microsandbox Sandbox adapter for local
-# sandbox isolation — is not distributed as a mise-installable binary (no GitHub
-# release assets). Install it locally via its own installer when needed:
-# https://github.com/microsandbox/microsandbox
+"github:superradcompany/microsandbox" = "0.6.6"
 
 [env]
 _.file = ".env"
 _.source = "{{config_root}}/mise/utilities/dev_instance_env.sh"
+
+[tasks."sandbox:image"]
+description = "Build the local Glossia release image and load it into Microsandbox"
+run = """
+set -eu
+image="glossia-local:${GLOSSIA_DEV_INSTANCE:-dev}"
+docker build --build-context cli=./cli -f app/Dockerfile -t "$image" app
+docker save "$image" | msb image load --tag "$image"
+"""
