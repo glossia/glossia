@@ -81,6 +81,27 @@ Commit the change and wait for the three `md-combined` machines and nodes to
 become ready. The transition profile only adds workers. It does not replace or
 remove either existing pool.
 
+The existing control-plane firewall uses a static worker allowlist. Start the
+firewall reconciler in a second terminal before Flux creates or replaces a
+worker. It finds production worker servers from their Hetzner labels and adds
+only the missing [Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293)
+(TCP) port 6443 rules. It never removes a firewall rule:
+
+```bash
+export HCLOUD_TOKEN="$(
+  kubectl -n org-glossia get secret hetzner \
+    -o jsonpath='{.data.hcloud}' | base64 --decode
+)"
+
+mise exec -- \
+  infra/k8s/allow-production-worker-control-plane.sh watch
+```
+
+Stop the reconciler after every new node is Ready, then unset the token. Remove
+the deleted workers' firewall rules only after confirming their exact addresses
+in Hetzner. Without this reconciler, a replacement server can be created but
+cannot run its one-time Kubernetes join command.
+
 On the management cluster:
 
 ```bash
