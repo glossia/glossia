@@ -90,6 +90,8 @@ defmodule Glossia.Projects.SetupHarness do
       "- The repository has concrete changed files, not just an explanation.",
       "- At least one Glossia context file is created or updated.",
       "- User-facing content has been extracted for localization where practical.",
+      "- Extract representative user-facing strings from the application or documentation into locale files, rather than only creating empty locale scaffolding.",
+      "- Wire the application or content loader to use the extracted translations and retain the source language as the fallback.",
       "- Project configuration or application code loads the selected localized files.",
       "- Run a lightweight verification command if the repository makes one obvious.",
       "- Do not modify files outside the cloned repository.",
