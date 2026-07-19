@@ -115,6 +115,7 @@ bucket_owner_id() {
 
   "${aws_command[@]}" s3api get-bucket-acl \
     --bucket "$bucket_name" \
+    --output json \
     | jq -r '.Owner.ID'
 }
 
