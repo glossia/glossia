@@ -59,7 +59,6 @@ defmodule GlossiaWeb.DashboardLiveProjectSetupTest do
     {:ok, view, _html} = live(conn, "/#{user.account.handle}/#{project.handle}")
 
     assert has_element?(view, "#setup-progress-card.noora-card")
-    assert has_element?(view, "#setup-progress-card .noora-progress-bar")
 
     assert has_element?(
              view,

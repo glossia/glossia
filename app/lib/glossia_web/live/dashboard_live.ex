@@ -6812,6 +6812,7 @@ defmodule GlossiaWeb.DashboardLive do
       ~H"""
       <div class="setup-event-row" data-status={@status}>
         <Noora.Badge.status_badge
+          :if={@status != "information"}
           status={setup_event_badge_status(@status)}
           label={setup_event_status_label(@status)}
           type="dot"
@@ -6844,10 +6845,6 @@ defmodule GlossiaWeb.DashboardLive do
   attr(:pr_url, :string, default: nil)
 
   defp setup_progress_panel(assigns) do
-    assigns =
-      assigns
-      |> assign(:progress, setup_progress(assigns.status, assigns.events))
-
     ~H"""
     <Noora.Card.card id="setup-progress-card" icon="settings" title={gettext("Localization setup")}>
       <:actions>
@@ -6857,11 +6854,6 @@ defmodule GlossiaWeb.DashboardLive do
         />
       </:actions>
       <Noora.Card.card_section class="setup-progress-section">
-        <Noora.ProgressBar.progress_bar
-          value={@progress}
-          max={100}
-        />
-
         <Noora.Alert.alert
           :if={@status == "failed"}
           type="secondary"
