@@ -36,10 +36,10 @@ undersized observability deployment into production. Together, the storage
 and cluster changes reduce the expected steady-state bill to €167.68 per
 month.
 
-## 1. Create buckets and keys
+## 1. Create keys
 
-Create these buckets in Falkenstein through the
-[Hetzner Console](https://console.hetzner.com/):
+The migration helper creates these buckets in Falkenstein after the keys are
+projected into Kubernetes:
 
 | Bucket | Visibility | Credential set |
 |---|---|---|
@@ -52,17 +52,19 @@ Create these buckets in Falkenstein through the
 Bucket names are globally unique in Hetzner. If one is unavailable, update the
 matching values overlay and this runbook before copying data.
 
-Create three key pairs and restrict each one with bucket policies:
+Create three key pairs through the
+[Hetzner Console](https://console.hetzner.com/):
 
 - The application key can access only `glossia-ai-production`.
 - The release key can write only `glossia-ai-releases`. Public access grants
   anonymous object downloads but not object listing.
 - The observability key can access only the three observability buckets.
 
-Hetzner keys are project-wide unless bucket policies restrict them. Follow
-[Hetzner's key restriction guide](https://docs.hetzner.com/storage/object-storage/faq/s3-credentials/)
-and store the generated values immediately because the secret key cannot be
-viewed again.
+Hetzner keys are project-wide until the preparation helper applies the
+policies from Hetzner's
+[key restriction guide](https://docs.hetzner.com/storage/object-storage/faq/s3-credentials/).
+Store the generated values immediately because the secret key cannot be viewed
+again.
 
 Store the key pairs in Infisical:
 
@@ -140,7 +142,28 @@ kubectl -n observability wait \
   --timeout=2m
 ```
 
-## 3. Install the migration tool
+## 3. Create and restrict the buckets
+
+The preparation helper uses the
+[Amazon Web Services Command Line Interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
+with Hetzner's compatible storage endpoint. It creates private buckets by
+default, creates the empty release bucket with public downloads enabled, and
+then restricts every bucket to its intended key. It is safe to rerun.
+
+With `KUBECONFIG` pointing at production:
+
+```bash
+mise exec -- infra/k8s/prepare-hetzner-object-storage.sh production-app
+mise exec -- infra/k8s/prepare-hetzner-object-storage.sh production-releases
+```
+
+With `KUBECONFIG` pointing at observability:
+
+```bash
+mise exec -- infra/k8s/prepare-hetzner-object-storage.sh observability
+```
+
+## 4. Install the migration tool
 
 The repository pins [rclone](https://rclone.org/) through mise:
 
@@ -152,7 +175,7 @@ The migration script reads both credential sets from Kubernetes without
 printing either. It opens a temporary port forward to the current cluster's
 Ceph gateway.
 
-## 4. Make initial copies
+## 5. Make initial copies
 
 Point `KUBECONFIG` at the production cluster and copy its two buckets:
 
@@ -173,7 +196,7 @@ Each copy ends with a one-way comparison of every source object by path and
 size. Content hashes are not used because multipart object hashes are not
 portable between Ceph and Hetzner.
 
-## 5. Cut over production
+## 6. Cut over production
 
 Schedule a short maintenance window. Stop the application so no object changes
 can occur during the final synchronization:
@@ -234,7 +257,7 @@ commit it. The production workflow then applies
 overlays. Remove only the three 100-gibibyte Ceph volumes after confirming the
 Ceph resources are gone.
 
-## 6. Cut over observability
+## 7. Cut over observability
 
 The final synchronization needs a maintenance window because compactors can
 replace objects while data is being copied. Record replica counts, pause the
@@ -265,7 +288,7 @@ runbook restores Grafana and GlitchTip PostgreSQL onto direct Hetzner volumes
 in the production cluster before it enables `observability_ceph_removed` and
 `observability_on_production`.
 
-## 7. Roll back
+## 8. Roll back
 
 Do not write new data to both destinations during rollback. Stop the affected
 writers, copy the Hetzner bucket back to Ceph with the source and destination
