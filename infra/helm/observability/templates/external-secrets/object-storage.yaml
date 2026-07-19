@@ -3,6 +3,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: {{ .Values.externalSecrets.objectStorage.secretName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "observability.labels" . | nindent 4 }}
 spec:
