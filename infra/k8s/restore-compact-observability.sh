@@ -24,12 +24,10 @@ if [[ -z "$glitchtip_object_key" || -z "$grafana_object_key" ]]; then
   exit 1
 fi
 
-for command_name in aws base64 gzip jq kubectl pg_restore psql; do
-  if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "Missing required command: $command_name" >&2
-    exit 1
-  fi
-done
+# shellcheck source=./lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+require_commands aws base64 jq kubectl pg_restore psql
 
 namespace=observability
 backup_secret_namespace=glossia
