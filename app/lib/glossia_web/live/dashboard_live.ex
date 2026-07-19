@@ -6978,7 +6978,9 @@ defmodule GlossiaWeb.DashboardLive do
       "thought",
       "update",
       "plan",
-      "harness_output"
+      "harness_output",
+      "tool_result",
+      "tool_execution_end"
     ] or
       (content == "" and event_type == "status") or
       (event_type == "status" and setup_internal_status?(content))
@@ -7211,7 +7213,6 @@ defmodule GlossiaWeb.DashboardLive do
         <Noora.ProgressBar.progress_bar
           value={wizard_step_progress(@step, @wizard_project, @setup_events)}
           max={100}
-          title={wizard_step_title(@step)}
         />
       </div>
 
@@ -7525,11 +7526,6 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp project_setup_status_value(%{setup_status: status}), do: status
   defp project_setup_status_value(_), do: "pending"
-
-  defp wizard_step_title("repo"), do: gettext("Step 1 of 3: Repository")
-  defp wizard_step_title("languages"), do: gettext("Step 2 of 3: Languages")
-  defp wizard_step_title("setup"), do: gettext("Step 3 of 3: Setup")
-  defp wizard_step_title(_), do: gettext("Project setup")
 
   defp wizard_setup_step(assigns) do
     project = assigns.wizard_project
