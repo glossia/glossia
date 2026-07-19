@@ -158,8 +158,16 @@ helm upgrade --install observability infra/helm/observability \
   --values infra/helm/observability/values-hetzner.yaml \
   --values infra/helm/observability/values-object-storage-hetzner.yaml \
   --values infra/helm/observability/values-compact-hetzner.yaml \
+  --set glitchtip.replicaCount=0 \
   --set ingress.enabled=false \
   --timeout 30m
+
+kubectl -n observability scale \
+  deployment/observability-grafana --replicas=0
+kubectl -n observability wait \
+  --for=delete pod \
+  --selector=app.kubernetes.io/name=grafana \
+  --timeout=5m
 ```
 
 The compact profile starts one replica of each observability component, keeps
@@ -172,8 +180,40 @@ state uses direct Hetzner block volumes:
 - Grafana: 5 gibibytes.
 - GlitchTip PostgreSQL: 20 gibibytes.
 
-Restore the database and Grafana data, then verify recent and historical
-queries directly through local port forwards before exposing the ingresses.
+Keep both consumers stopped while restoring the verified off-cluster archives:
+
+```bash
+mise exec -- infra/k8s/restore-compact-observability.sh \
+  glossia-production/observability-migration/glitchtip-20260719T082042Z.dump \
+  glossia-production/observability-migration/grafana-20260719T084833Z.tar.gz
+```
+
+The helper refuses to run unless both deployments have zero replicas. It
+streams the archives directly from Cloudflare R2, restores the database through
+a temporary local port forward, mounts the new Grafana volume in a temporary
+pod, and verifies that both destinations contain data. No credential or archive
+is written to the local filesystem.
+
+Start the consumers with a second upgrade. Its pre-upgrade hook applies any
+GlitchTip schema migrations to the restored database before the application
+starts:
+
+```bash
+helm upgrade observability infra/helm/observability \
+  --namespace observability \
+  --values infra/helm/observability/values-hetzner.yaml \
+  --values infra/helm/observability/values-object-storage-hetzner.yaml \
+  --values infra/helm/observability/values-compact-hetzner.yaml \
+  --set ingress.enabled=false \
+  --timeout 30m
+
+kubectl -n observability rollout status deployment/glitchtip-web --timeout=10m
+kubectl -n observability rollout status \
+  deployment/observability-grafana --timeout=10m
+```
+
+Then verify recent and historical queries directly through local port forwards
+before exposing the ingresses.
 
 ## 5. Cut traffic over
 
