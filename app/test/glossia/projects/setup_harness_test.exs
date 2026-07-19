@@ -71,6 +71,8 @@ defmodule Glossia.Projects.SetupHarnessTest do
     assert prompt =~ ~s("docs/**/*.md": "docs/i18n/{locale}/{relpath}")
     assert prompt =~ "Locale-specific context belongs in GLOSSIA/<locale>.md."
     assert prompt =~ "Do not create translation lockfiles during setup."
+    assert prompt =~ "source-language locale files"
+    assert prompt =~ "Do not translate target locales during setup."
     assert_received {:agent_event, %{"event_type" => "completed"}}
 
     assert_received {:shell_command, clone_command, _opts}
