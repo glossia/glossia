@@ -13,6 +13,7 @@ kind = "latest"
 helm = "3"
 shellspec = "0.28.1"
 infisical = "latest"
+rclone = "1.74.4"
 ruby = "3.4.7"
 git-cliff = "2.10.0"
 # microsandbox (`msb`) — used by the microsandbox Sandbox adapter for local
