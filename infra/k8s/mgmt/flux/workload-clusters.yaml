@@ -10,7 +10,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./infra/k8s/clusters/workloads/production
+  path: ./infra/k8s/clusters/profiles/consolidation-production
   prune: false
   deletionPolicy: Orphan
   serviceAccountName: workload-cluster-reconciler
