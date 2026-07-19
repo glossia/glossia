@@ -6840,7 +6840,6 @@ defmodule GlossiaWeb.DashboardLive do
     assigns =
       assigns
       |> assign(:progress, setup_progress(assigns.status, assigns.events))
-      |> assign(:progress_title, setup_progress_title(assigns.status, assigns.events))
 
     ~H"""
     <Noora.Card.card id="setup-progress-card" icon="settings" title={gettext("Localization setup")}>
@@ -6854,7 +6853,6 @@ defmodule GlossiaWeb.DashboardLive do
         <Noora.ProgressBar.progress_bar
           value={@progress}
           max={100}
-          title={@progress_title}
         />
 
         <Noora.Alert.alert
@@ -7022,6 +7020,9 @@ defmodule GlossiaWeb.DashboardLive do
           do: gettext("The setup assistant is applying the next repository change."),
           else: first_line(content)
 
+      "status" ->
+        gettext("The setup assistant is continuing with the repository setup.")
+
       _ ->
         first_line(content)
     end
@@ -7052,6 +7053,8 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp setup_event_body(_event_type, ""), do: ""
+
+  defp setup_event_body(event_type, _content) when event_type in ["prompt", "status"], do: ""
 
   defp setup_event_body(_event_type, content) do
     case JSON.decode(content) do
@@ -7088,14 +7091,6 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp setup_progress(_status, _events), do: 0
-
-  defp setup_progress_title("pending", _events), do: gettext("Waiting to start")
-  defp setup_progress_title("completed", _events), do: gettext("Setup complete")
-  defp setup_progress_title("failed", _events), do: gettext("Setup stopped")
-
-  defp setup_progress_title("running", _events), do: gettext("Working through setup")
-
-  defp setup_progress_title(_status, _events), do: gettext("Preparing setup")
 
   defp first_present_string(values) do
     Enum.find_value(values, "", fn
