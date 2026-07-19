@@ -25,6 +25,10 @@ defmodule Glossia.Translations.LLM do
     error -> {:error, Exception.message(error)}
   end
 
+  def run(%{source: :codex_session}, system, user) do
+    run_via_codex_cli(system, user)
+  end
+
   def run(%{auth: {:oauth, token}, model: model}, system, user) do
     case ReqLLM.generate_text(model, messages(system, user),
            auth_mode: :oauth,
@@ -37,9 +41,70 @@ defmodule Glossia.Translations.LLM do
     error -> {:error, Exception.message(error)}
   end
 
+  defp run_via_codex_cli(system, user) do
+    prompt = system <> "\n\n" <> user
+
+    case MuonTrap.cmd(
+           "sh",
+           [
+             "-c",
+             ~s(exec "$@" </dev/null),
+             "sh",
+             "codex",
+             "exec",
+             "--dangerously-bypass-approvals-and-sandbox",
+             "--json",
+             prompt
+           ],
+           stderr_to_stdout: true,
+           into: "",
+           timeout: 600_000
+         ) do
+      {output, 0} ->
+        text =
+          output
+          |> String.split("\n", trim: true)
+          |> Enum.flat_map(fn line ->
+            case Jason.decode(line) do
+              {:ok,
+               %{
+                 "type" => "item.completed",
+                 "item" => %{"type" => "agent_message", "text" => text}
+               }} ->
+                [text]
+
+              _ ->
+                []
+            end
+          end)
+          |> Enum.join("\n")
+
+        if text == "", do: {:error, :empty_codex_response}, else: {:ok, text}
+
+      {output, code} ->
+        {:error, {:codex_cli_failed, code, String.slice(output, 0, 2_000)}}
+    end
+  end
+
   @doc "Streamed generation, forwarding turn events to `on_event`."
   def stream(%{auth: {:api_key, _key, _base_url}} = cred, system, user, on_event) do
     stream_via_condukt(cred, system, user, on_event)
+  end
+
+  def stream(%{source: :codex_session}, system, user, on_event) do
+    on_event.(:turn_start)
+
+    case run_via_codex_cli(system, user) do
+      {:ok, text} = ok ->
+        on_event.({:text, text})
+        on_event.(:turn_end)
+        on_event.(:done)
+        ok
+
+      {:error, reason} = error ->
+        on_event.({:error, reason})
+        error
+    end
   end
 
   def stream(%{auth: {:oauth, _token}} = cred, system, user, on_event) do
