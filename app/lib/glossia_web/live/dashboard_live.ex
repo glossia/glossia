@@ -3007,7 +3007,14 @@ defmodule GlossiaWeb.DashboardLive do
 
         wizard_project ->
           updated = refetch_project(wizard_project, status)
-          assign(socket, wizard_project: updated)
+
+          socket = assign(socket, wizard_project: updated)
+
+          if status == "completed" do
+            push_navigate(socket, to: "/#{socket.assigns.handle}/#{updated.handle}")
+          else
+            socket
+          end
 
         true ->
           socket
@@ -6797,7 +6804,7 @@ defmodule GlossiaWeb.DashboardLive do
         |> assign(:content, content)
         |> assign(:event_type, event_type)
         |> assign(:tool_name, tool_name)
-        |> assign(:status, setup_event_status(event_type))
+        |> assign(:status, setup_event_status(event_type, content))
         |> assign(:title, setup_event_title(event_type, tool_name))
         |> assign(:description, setup_event_description(event_type, content, tool_name))
         |> assign(:body_html, setup_event_body_html(event_type, content))
@@ -7027,19 +7034,45 @@ defmodule GlossiaWeb.DashboardLive do
       event_kind when event_kind in ["harness_output", "warning"] ->
         gettext("The setup assistant is continuing with the repository setup.")
 
+      event_kind when event_kind in ["text", "message_start", "message_update"] ->
+        ""
+
+      event_kind when event_kind in ["tool_result", "tool_execution_end"] ->
+        if setup_event_failed?(content),
+          do: gettext("The setup assistant could not complete this step."),
+          else: first_line(content)
+
       _ ->
         first_line(content)
     end
   end
 
-  defp setup_event_status(event_type) do
+  defp setup_event_status(event_type, content) do
     case event_type do
-      "error" -> "error"
-      "pr_created" -> "success"
-      event_kind when event_kind in ["tool_result", "tool_execution_end"] -> "success"
-      "warning" -> "warning"
-      _ -> "information"
+      "error" ->
+        "error"
+
+      "pr_created" ->
+        "success"
+
+      event_kind when event_kind in ["tool_result", "tool_execution_end"] ->
+        if setup_event_failed?(content), do: "error", else: "success"
+
+      "warning" ->
+        "warning"
+
+      _ ->
+        "information"
     end
+  end
+
+  defp setup_event_failed?(content) do
+    downcased = String.downcase(content || "")
+
+    Enum.any?(
+      ["permission denied", "command failed", "exit status", "error:"],
+      &String.contains?(downcased, &1)
+    )
   end
 
   defp setup_event_status_label("success"), do: gettext("Done")
