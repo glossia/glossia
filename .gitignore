@@ -1,5 +1,8 @@
 /.glossia/tmp
 .env
+.pitchfork/
+access/
+preprocessed_configs/
 .DS_Store
 .claude/worktrees
 **/.blick/runs/

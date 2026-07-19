@@ -151,6 +151,38 @@ defmodule Glossia.ProjectsTest do
     assert Repo.get!(Glossia.Accounts.Project, project.id).setup_status == "failed"
   end
 
+  test "retry_project_setup/1 only claims the persisted failed state once" do
+    user = TestHelpers.create_user("project-retry@test.com", "project-retry")
+    {:ok, project} = Projects.create_project(user.account, valid_attrs())
+    {:ok, failed} = Projects.update_project_setup_status(project, "failed", "boom")
+    stale = failed
+
+    assert {:ok, pending} = Projects.retry_project_setup(failed)
+    assert pending.setup_status == "pending"
+
+    sandbox_id = Ecto.UUID.generate()
+    assert {:ok, claimed} = Projects.replace_project_sandbox_id(pending, nil, sandbox_id)
+    assert {:ok, _running} = Projects.update_project_setup_status(claimed, "running")
+
+    assert {:error, :setup_not_failed} = Projects.retry_project_setup(stale)
+
+    persisted = Repo.get!(Glossia.Accounts.Project, project.id)
+    assert persisted.setup_status == "running"
+    assert persisted.setup_sandbox_id == sandbox_id
+  end
+
+  test "reset_project_setup_for_recovery preserves a resumable sandbox" do
+    user = TestHelpers.create_user("project-recovery@test.com", "project-recovery")
+    {:ok, project} = Projects.create_project(user.account, valid_attrs())
+    {:ok, running} = Projects.update_project_setup_status(project, "running")
+    sandbox_id = Ecto.UUID.generate()
+    {:ok, running} = Projects.replace_project_sandbox_id(running, nil, sandbox_id)
+
+    assert {:ok, recovered} = Projects.reset_project_setup_for_recovery(running)
+    assert recovered.setup_status == "pending"
+    assert recovered.setup_sandbox_id == sandbox_id
+  end
+
   test "list_imported_github_repositories/1 returns only imported repos for the account" do
     %{account: account} = TestHelpers.create_user("projects-owner@test.com", "projects-owner")
 

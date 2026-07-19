@@ -739,7 +739,7 @@ defmodule GlossiaWeb.DashboardLive do
     {:ok, {models, _meta}} = LLMModels.list_models(account, flop_params)
 
     assign(socket,
-      page_title: gettext("LLMs"),
+      page_title: gettext("Models"),
       llm_models: models,
       models_search: search,
       models_sort_key: sort_key,
@@ -750,7 +750,7 @@ defmodule GlossiaWeb.DashboardLive do
       settings_filter_path: "/" <> handle <> "/-/settings/models",
       breadcrumb_items: [
         {gettext("Settings"), nil},
-        {gettext("LLMs"), "/" <> handle <> "/-/settings/models"}
+        {gettext("Models"), "/" <> handle <> "/-/settings/models"}
       ]
     )
   end
@@ -760,7 +760,7 @@ defmodule GlossiaWeb.DashboardLive do
     handle = socket.assigns.handle
 
     assign(socket,
-      page_title: gettext("New LLM"),
+      page_title: gettext("New model"),
       model_form:
         to_form(
           %{"handle" => "", "model" => "", "api_key" => ""},
@@ -769,7 +769,7 @@ defmodule GlossiaWeb.DashboardLive do
       model_form_valid?: false,
       breadcrumb_items: [
         {gettext("Settings"), nil},
-        {gettext("LLMs"), "/" <> handle <> "/-/settings/models"},
+        {gettext("Models"), "/" <> handle <> "/-/settings/models"},
         {gettext("New model"), nil}
       ]
     )
@@ -800,7 +800,7 @@ defmodule GlossiaWeb.DashboardLive do
       model_edit_changed?: false,
       breadcrumb_items: [
         {gettext("Settings"), nil},
-        {gettext("LLMs"), "/" <> handle <> "/-/settings/models"},
+        {gettext("Models"), "/" <> handle <> "/-/settings/models"},
         {model.handle, nil}
       ]
     )
@@ -855,27 +855,30 @@ defmodule GlossiaWeb.DashboardLive do
         imported_repositories =
           Glossia.Projects.list_imported_github_repositories(socket.assigns.account)
 
+        development_repositories = Glossia.Github.DevelopmentRepositories.list()
+
         repos =
-          if installations != [] && Glossia.Github.App.configured?() do
-            installations
-            |> Enum.flat_map(fn installation ->
-              case fetch_github_repos_via_installation(installation) do
-                {:ok, repos} -> repos
-                {:error, _} -> []
-              end
-            end)
-            |> Enum.uniq_by(& &1["id"])
-            |> Enum.sort_by(& &1["full_name"])
-          else
-            case fetch_github_repos_via_oauth(user) do
-              {:ok, repos} -> repos
-              {:error, _} -> []
-            end
-          end
+          (if installations != [] && Glossia.Github.App.configured?() do
+             installations
+             |> Enum.flat_map(fn installation ->
+               case fetch_github_repos_via_installation(installation) do
+                 {:ok, repos} -> repos
+                 {:error, _} -> []
+               end
+             end)
+           else
+             case fetch_github_repos_via_oauth(user) do
+               {:ok, repos} -> repos
+               {:error, _} -> []
+             end
+           end ++ development_repositories)
+          |> Enum.uniq_by(& &1["id"])
+          |> Enum.sort_by(& &1["full_name"])
           |> filter_imported_repositories(imported_repositories)
 
         github_connected? =
-          installations != [] || Glossia.Accounts.get_github_token_for_user(user.id) != nil
+          installations != [] || Glossia.Accounts.get_github_token_for_user(user.id) != nil ||
+            development_repositories != []
 
         assign(socket,
           page_title: gettext("New project"),
@@ -2483,6 +2486,7 @@ defmodule GlossiaWeb.DashboardLive do
       "name" => params["name"],
       "default_branch" => params["default-branch"],
       "description" => params["description"],
+      "development" => params["development"] == "true",
       "owner" => %{"login" => params["owner-login"]}
     }
 
@@ -2538,14 +2542,25 @@ defmodule GlossiaWeb.DashboardLive do
 
       case result do
         {:ok, project} ->
-          %{project_id: project.id}
-          |> Glossia.Projects.SetupWorker.new()
-          |> Oban.insert()
+          case %{project_id: project.id}
+               |> Glossia.Projects.SetupWorker.new()
+               |> Oban.insert() do
+            {:ok, _job} ->
+              {:noreply,
+               socket
+               |> assign(wizard_project: project)
+               |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
 
-          {:noreply,
-           socket
-           |> assign(wizard_project: project)
-           |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
+            {:error, reason} ->
+              error = gettext("Project setup could not be queued.")
+              {:ok, failed_project} = Glossia.Projects.fail_pending_project_setup(project, error)
+              Logger.warning("Failed to enqueue project setup", reason: inspect(reason))
+
+              {:noreply,
+               socket
+               |> assign(wizard_project: failed_project)
+               |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
+          end
 
         {:error, changeset} ->
           Logger.warning("Failed to create project from wizard",
@@ -2567,6 +2582,43 @@ defmodule GlossiaWeb.DashboardLive do
 
       {:error, :languages_required} ->
         {:noreply, put_flash(socket, :error, gettext("Select at least one target language."))}
+    end
+  end
+
+  def handle_event("retry_setup", _params, socket) do
+    project = socket.assigns[:project] || socket.assigns[:wizard_project]
+
+    if socket.assigns.can_write and project do
+      case Glossia.Projects.retry_project_setup(project) do
+        {:ok, pending_project} ->
+          case Glossia.Projects.SetupWorker.retry_now(pending_project.id) do
+            {:ok, _job} ->
+              Glossia.Projects.subscribe_setup_events(pending_project)
+
+              socket =
+                if socket.assigns[:project] do
+                  assign(socket, project: pending_project)
+                else
+                  assign(socket, wizard_project: pending_project)
+                end
+
+              {:noreply, socket}
+
+            _error ->
+              _ =
+                Glossia.Projects.fail_pending_project_setup(
+                  pending_project,
+                  project.setup_error || gettext("Project setup could not be queued.")
+                )
+
+              {:noreply, put_flash(socket, :error, gettext("Could not retry project setup."))}
+          end
+
+        _error ->
+          {:noreply, put_flash(socket, :error, gettext("Could not retry project setup."))}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("You cannot retry this project setup."))}
     end
   end
 
@@ -2732,11 +2784,15 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp matching_repo_installation(repo, installations) do
-    repo_owner_login = get_in(repo, ["owner", "login"])
+    if repo["development"] do
+      nil
+    else
+      repo_owner_login = get_in(repo, ["owner", "login"])
 
-    Enum.find(installations, fn installation ->
-      installation.github_account_login == repo_owner_login
-    end)
+      Enum.find(installations, fn installation ->
+        installation.github_account_login == repo_owner_login
+      end)
+    end
   end
 
   defp repository_project_handle(repo) do
@@ -2951,7 +3007,14 @@ defmodule GlossiaWeb.DashboardLive do
 
         wizard_project ->
           updated = refetch_project(wizard_project, status)
-          assign(socket, wizard_project: updated)
+
+          socket = assign(socket, wizard_project: updated)
+
+          if status == "completed" do
+            push_navigate(socket, to: "/#{socket.assigns.handle}/#{updated.handle}")
+          else
+            socket
+          end
 
         true ->
           socket
@@ -3343,16 +3406,6 @@ defmodule GlossiaWeb.DashboardLive do
             <Noora.Table.text_cell icon="git_branch" label={project.github_repo_full_name} />
           <% else %>
             <Noora.Table.text_cell label={gettext("Not connected")} />
-          <% end %>
-        </:col>
-        <:col :let={project} label={gettext("Status")}>
-          <%= if project.setup_status do %>
-            <Noora.Table.status_badge_cell
-              status={project_setup_status(project.setup_status)}
-              label={project_setup_status_label(project.setup_status)}
-            />
-          <% else %>
-            <Noora.Table.status_badge_cell status="disabled" label={gettext("Not started")} />
           <% end %>
         </:col>
         <:col
@@ -5923,70 +5976,20 @@ defmodule GlossiaWeb.DashboardLive do
       <.page_header title={@project_name} />
 
       <%= if @project && @project.setup_status in ["pending", "running"] do %>
-        <div class="setup-feed">
-          <div class="setup-feed-header">
-            <span class="setup-feed-pulse"></span>
-            <h3>{gettext("Setting up localization...")}</h3>
-          </div>
-          <div class="setup-feed-events" id="setup-events" phx-hook=".SetupFeedScroll">
-            <%= for event <- @setup_events do %>
-              <.setup_event_item event={event} />
-            <% end %>
-          </div>
-        </div>
-        <script :type={Phoenix.LiveView.ColocatedHook} name=".SetupFeedScroll">
-          export default {
-            mounted() {
-              this.scrollToBottom()
-            },
-            updated() {
-              this.scrollToBottom()
-            },
-            scrollToBottom() {
-              this.el.scrollTop = this.el.scrollHeight
-            }
-          }
-        </script>
+        <.setup_progress_panel
+          status={@project.setup_status}
+          events={@setup_events}
+          error={@project.setup_error}
+          can_retry={@can_write}
+        />
       <% else %>
         <%= if @project && @project.setup_status == "failed" do %>
-          <div class="setup-feed">
-            <div class="setup-feed-header setup-feed-header-error">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line
-                  x1="9"
-                  y1="9"
-                  x2="15"
-                  y2="15"
-                />
-              </svg>
-              <div class="setup-feed-header-copy">
-                <h3>{gettext("Setup failed")}</h3>
-                <p class="setup-feed-error-msg">
-                  {@project.setup_error || gettext("An error occurred during setup.")}
-                </p>
-              </div>
-            </div>
-            <%= if @setup_events != [] do %>
-              <details class="setup-feed-details">
-                <summary>{gettext("View agent session")}</summary>
-                <div class="setup-feed-events" id="setup-events">
-                  <%= for event <- @setup_events do %>
-                    <.setup_event_item event={event} />
-                  <% end %>
-                </div>
-              </details>
-            <% end %>
-          </div>
+          <.setup_progress_panel
+            status={@project.setup_status}
+            events={@setup_events}
+            error={@project.setup_error}
+            can_retry={@can_write}
+          />
         <% else %>
           <.project_activity_card
             handle={@handle}
@@ -6801,148 +6804,103 @@ defmodule GlossiaWeb.DashboardLive do
         |> assign(:content, content)
         |> assign(:event_type, event_type)
         |> assign(:tool_name, tool_name)
-        |> assign(:variant, setup_event_variant(event_type))
-        |> assign(:badge, setup_event_badge(event_type))
+        |> assign(:status, setup_event_status(event_type, content))
+        |> assign(:title, setup_event_title(event_type, tool_name))
+        |> assign(:description, setup_event_description(event_type, content, tool_name))
+        |> assign(:body_html, setup_event_body_html(event_type, content))
 
       ~H"""
-      <div class={[
-        "setup-event",
-        "setup-event-#{@event_type}",
-        "setup-event-variant-#{@variant}"
-      ]}>
-        <div class={["setup-event-icon", @variant == "error" && "setup-event-icon-error"]}>
-          <%= case @event_type do %>
-            <% "error" -> %>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="15" y1="9" x2="9" y2="15" />
-                <line x1="9" y1="9" x2="15" y2="15" />
-              </svg>
-            <% "prompt" -> %>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z" />
-                <line x1="10" y1="8" x2="10" y2="14" />
-                <line x1="7" y1="11" x2="13" y2="11" />
-              </svg>
-            <% "pr_created" -> %>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07L12 4" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07L12 20" />
-              </svg>
-            <% event_kind when event_kind in ["tool_call", "tool_execution_start"] -> %>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" />
-              </svg>
-            <% event_kind when event_kind in ["tool_result", "tool_execution_end"] -> %>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            <% _ -> %>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-          <% end %>
-        </div>
-
-        <div class={["setup-event-content", @variant == "error" && "setup-event-content-error"]}>
-          <div class="setup-event-meta">
-            <span class={["setup-event-badge", "setup-event-badge-#{@variant}"]}>{@badge}</span>
-            <%= if @tool_name != "" do %>
-              <span class="setup-event-tool-name">{@tool_name}</span>
-            <% end %>
+      <div
+        class={"setup-event-row #{if @status == "information", do: "setup-event-row-no-badge", else: ""}"}
+        data-status={@status}
+      >
+        <Noora.Badge.status_badge
+          :if={@status != "information"}
+          status={setup_event_badge_status(@status)}
+          label={setup_event_status_label(@status)}
+          type="dot"
+        />
+        <div class="setup-event-row-content">
+          <div class="setup-event-row-header">
+            <span class="setup-event-row-title">{@title}</span>
+            <Noora.Button.button
+              :if={@event_type == "pr_created"}
+              href={@content}
+              label={gettext("Open pull request")}
+              variant="secondary"
+              size="small"
+              target="_blank"
+              rel="noopener noreferrer"
+            />
           </div>
-
-          <%= case @event_type do %>
-            <% "pr_created" -> %>
-              <p>{gettext("Pull request ready for review and merge.")}</p>
-              <a href={@content} target="_blank" rel="noopener noreferrer" class="setup-pr-link">
-                {gettext("Open pull request")}
-              </a>
-            <% "prompt" -> %>
-              <p>{gettext("Setup brief sent to the agent.")}</p>
-              <%= if @content != "" do %>
-                <details class="setup-feed-details">
-                  <summary>{gettext("View prompt")}</summary>
-                  <pre class="setup-event-code setup-event-code-prompt">{@content}</pre>
-                </details>
-              <% end %>
-            <% event_kind when event_kind in ["tool_call", "tool_execution_start"] -> %>
-              <%= if @content != "" and @content != @tool_name do %>
-                <p>{@content}</p>
-              <% end %>
-            <% event_kind when event_kind in ["tool_result", "tool_execution_end"] -> %>
-              <%= if @content != "" do %>
-                <pre class="setup-event-code">{@content}</pre>
-              <% end %>
-            <% _ -> %>
-              <%= if @content != "" do %>
-                <p>{@content}</p>
-              <% end %>
-          <% end %>
+          <p :if={@description != ""} class="setup-event-row-description">{@description}</p>
+          <div :if={@body_html != ""} class="setup-event-row-body prose">{raw(@body_html)}</div>
         </div>
       </div>
       """
     end
+  end
+
+  attr(:status, :string, required: true)
+  attr(:events, :list, default: [])
+  attr(:error, :string, default: nil)
+  attr(:can_retry, :boolean, default: false)
+  attr(:pr_url, :string, default: nil)
+
+  defp setup_progress_panel(assigns) do
+    ~H"""
+    <Noora.Card.card id="setup-progress-card" icon="settings" title={gettext("Localization setup")}>
+      <:actions>
+        <Noora.Badge.status_badge
+          status={project_setup_status(@status)}
+          label={project_setup_status_label(@status)}
+        />
+      </:actions>
+      <Noora.Card.card_section class="setup-progress-section">
+        <Noora.Alert.alert
+          :if={@status == "failed"}
+          type="secondary"
+          status="error"
+          size="large"
+          title={gettext("Setup failed")}
+          description={@error || gettext("An error occurred during setup.")}
+        >
+          <:action :if={@can_retry}>
+            <Noora.Button.button
+              type="button"
+              label={gettext("Retry setup")}
+              size="small"
+              phx-click="retry_setup"
+            />
+          </:action>
+        </Noora.Alert.alert>
+
+        <Noora.Alert.alert
+          :if={@status == "completed"}
+          type="secondary"
+          status="success"
+          size="large"
+          title={gettext("Setup complete")}
+          description={gettext("Your localization baseline is ready for review.")}
+        >
+          <:action :if={@pr_url}>
+            <Noora.Button.button
+              href={@pr_url}
+              label={gettext("Open pull request")}
+              variant="secondary"
+              size="small"
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          </:action>
+        </Noora.Alert.alert>
+
+        <div :if={@events != []} data-part="events" id="setup-events">
+          <.setup_event_item :for={event <- @events} event={event} />
+        </div>
+      </Noora.Card.card_section>
+    </Noora.Card.card>
+    """
   end
 
   defp setup_event_has_visible_content?(event_type, content, tool_name) do
@@ -7014,53 +6972,174 @@ defmodule GlossiaWeb.DashboardLive do
       "message_update",
       "thought",
       "update",
-      "plan"
+      "plan",
+      "harness_output",
+      "tool_result",
+      "tool_execution_end"
     ] or
       (content == "" and event_type == "status") or
       (event_type == "status" and setup_internal_status?(content))
   end
 
-  defp setup_event_badge(event_type) do
-    case event_type do
-      "error" ->
-        gettext("Error")
+  defp setup_event_title(event_type, tool_name) do
+    label =
+      case event_type do
+        "error" ->
+          gettext("Setup error")
 
+        "prompt" ->
+          gettext("Setup instructions prepared")
+
+        "pr_created" ->
+          gettext("Pull request created")
+
+        event_kind when event_kind in ["tool_call", "tool_execution_start"] ->
+          gettext("Working on %{step}", step: tool_name_or_fallback(tool_name))
+
+        event_kind when event_kind in ["tool_result", "tool_execution_end"] ->
+          gettext("Finished %{step}", step: tool_name_or_fallback(tool_name))
+
+        "status" ->
+          gettext("Setup update")
+
+        event_kind when event_kind in ["text", "message_start", "message_update"] ->
+          gettext("Setup assistant update")
+
+        _ ->
+          gettext("Setup update")
+      end
+
+    label
+  end
+
+  defp setup_event_description(event_type, content, tool_name) do
+    case event_type do
       "prompt" ->
-        gettext("Prompt")
+        gettext("The repository and language choices are ready for the setup assistant.")
 
       "pr_created" ->
-        gettext("Pull request")
+        gettext("The localization baseline is ready for review and merge.")
 
       event_kind when event_kind in ["tool_call", "tool_execution_start"] ->
-        gettext("Tool")
-
-      event_kind when event_kind in ["tool_result", "tool_execution_end"] ->
-        gettext("Tool output")
+        if content == tool_name,
+          do: gettext("The setup assistant is applying the next repository change."),
+          else: first_line(content)
 
       "status" ->
-        gettext("Status")
+        gettext("The setup assistant is continuing with the repository setup.")
 
-      "plan" ->
-        gettext("Plan")
+      event_kind when event_kind in ["harness_output", "warning"] ->
+        gettext("The setup assistant is continuing with the repository setup.")
 
       event_kind when event_kind in ["text", "message_start", "message_update"] ->
-        gettext("Agent")
+        ""
+
+      event_kind when event_kind in ["tool_result", "tool_execution_end"] ->
+        if setup_event_failed?(content),
+          do: gettext("The setup assistant could not complete this step."),
+          else: gettext("The setup assistant completed this step.")
 
       _ ->
-        gettext("Update")
+        first_line(content)
     end
   end
 
-  defp setup_event_variant(event_type) do
+  defp setup_event_status(event_type, content) do
     case event_type do
-      "error" -> "error"
-      "pr_created" -> "success"
-      "prompt" -> "info"
-      event_kind when event_kind in ["tool_call", "tool_execution_start"] -> "tool"
-      "status" -> "info"
-      _ -> "neutral"
+      "error" ->
+        "error"
+
+      "pr_created" ->
+        "success"
+
+      event_kind when event_kind in ["tool_result", "tool_execution_end"] ->
+        if setup_event_failed?(content), do: "error", else: "success"
+
+      "warning" ->
+        "warning"
+
+      _ ->
+        "information"
     end
   end
+
+  defp setup_event_failed?(content) do
+    downcased = String.downcase(content || "")
+
+    Enum.any?(
+      ["permission denied", "command failed", "exit status", "error:"],
+      &String.contains?(downcased, &1)
+    )
+  end
+
+  defp setup_event_status_label("success"), do: gettext("Done")
+  defp setup_event_status_label("error"), do: gettext("Error")
+  defp setup_event_status_label("warning"), do: gettext("Warning")
+  defp setup_event_status_label(_), do: gettext("Update")
+
+  defp setup_event_badge_status("information"), do: "in_progress"
+  defp setup_event_badge_status(status), do: status
+
+  defp setup_event_body_html(event_type, content) do
+    body = setup_event_body(event_type, content)
+
+    if body == "", do: "", else: Glossia.Markdown.to_html!(body)
+  end
+
+  defp setup_event_body(_event_type, ""), do: ""
+
+  defp setup_event_body(event_type, _content)
+       when event_type in [
+              "prompt",
+              "status",
+              "harness_output",
+              "warning",
+              "tool_result",
+              "tool_execution_end"
+            ],
+       do: ""
+
+  defp setup_event_body(_event_type, content) do
+    case JSON.decode(content) do
+      {:ok, %{"type" => "item.started", "item" => %{"type" => "todo_list", "items" => items}}}
+      when is_list(items) ->
+        Enum.map_join(items, "\n", fn item ->
+          checked = if item["completed"], do: "x", else: " "
+          "- [#{checked}] #{item["text"]}"
+        end)
+
+      _ ->
+        content
+    end
+  end
+
+  defp tool_name_or_fallback(""), do: gettext("repository setup")
+
+  defp tool_name_or_fallback(tool_name) do
+    tool_name
+    |> String.replace("command_execution", "command")
+    |> String.replace("file_change", "file change")
+    |> String.replace("_", " ")
+  end
+
+  defp setup_progress("completed", _events), do: 100
+
+  defp setup_progress(status, events) when status in ["pending", "running", "failed"] do
+    visible_count =
+      Enum.count(events, fn event ->
+        event_type = Map.get(event, :event_type, "")
+        content = (Map.get(event, :content, "") || "") |> to_string()
+        metadata = setup_event_metadata(event)
+        tool_name = setup_event_tool_name(event_type, content, metadata)
+
+        not skip_setup_event?(event_type, content) and
+          setup_event_has_visible_content?(event_type, content, tool_name)
+      end)
+
+    min(10 + visible_count * 8, 90)
+  end
+
+  defp setup_progress(_status, _events), do: 0
 
   defp first_present_string(values) do
     Enum.find_value(values, "", fn
@@ -7119,35 +7198,18 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp project_new_wizard(assigns) do
     ~H"""
-    <div class="dash-page">
+    <div class="dash-page" id="project-new">
       <.page_header
         title={gettext("New project")}
         description={gettext("Import a GitHub repository and set up localization.")}
       />
 
-      <div class="wizard-step-nav">
-        <div class={[
-          "wizard-step-dot",
-          @step == "repo" && "wizard-step-active",
-          @step in ["languages", "setup"] && "wizard-step-completed"
-        ]}>
-          <span class="wizard-step-number">1</span>
-          <span class="wizard-step-label">{gettext("Repository")}</span>
-        </div>
-        <div class="wizard-step-connector"></div>
-        <div class={[
-          "wizard-step-dot",
-          @step == "languages" && "wizard-step-active",
-          @step == "setup" && "wizard-step-completed"
-        ]}>
-          <span class="wizard-step-number">2</span>
-          <span class="wizard-step-label">{gettext("Languages")}</span>
-        </div>
-        <div class="wizard-step-connector"></div>
-        <div class={["wizard-step-dot", @step == "setup" && "wizard-step-active"]}>
-          <span class="wizard-step-number">3</span>
-          <span class="wizard-step-label">{gettext("Setup")}</span>
-        </div>
+      <div data-part="wizard-progress">
+        <Noora.ProgressBar.progress_bar
+          value={wizard_step_progress(@step, @wizard_project, @setup_events)}
+          max={100}
+          data-running={wizard_running?(@step, @wizard_project)}
+        />
       </div>
 
       <%= case @step do %>
@@ -7195,152 +7257,133 @@ defmodule GlossiaWeb.DashboardLive do
     ~H"""
     <%= cond do %>
       <% @github_configured? and @github_repos != [] -> %>
-        <div class="resource-index" id="repo-picker">
-          <div class="resource-toolbar">
-            <form phx-change="search_repos" class="resource-search-form">
-              <div class="resource-search-wrap">
-                <svg
-                  class="resource-search-icon"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <input
-                  type="search"
-                  name="value"
-                  value={@github_repos_search}
-                  placeholder={gettext("Search repositories...")}
-                  phx-debounce="300"
-                  class="resource-search"
-                />
-              </div>
+        <Noora.Card.card id="repository-picker" icon="folder" title={gettext("Repository")}>
+          <:actions>
+            <Noora.Badge.badge
+              color="neutral"
+              style="light-fill"
+              label={
+                ngettext("%{count} repository", "%{count} repositories", length(@filtered_repos),
+                  count: length(@filtered_repos)
+                )
+              }
+            />
+          </:actions>
+          <Noora.Card.card_section class="project-setup-picker-section">
+            <form phx-change="search_repos" class="project-setup-search-form">
+              <Noora.TextInput.text_input
+                id="repository-search"
+                type="search"
+                name="value"
+                value={@github_repos_search}
+                placeholder={gettext("Search repositories...")}
+                phx-debounce="300"
+                show_suffix={false}
+                aria-label={gettext("Search repositories")}
+              />
             </form>
-          </div>
 
-          <div class="resource-table-wrap">
-            <table class="resource-table">
-              <thead>
-                <tr>
-                  <th>{gettext("Repository")}</th>
-                  <th>{gettext("Language")}</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <%= if @filtered_repos == [] do %>
-                  <tr>
-                    <td colspan="3" class="resource-table-empty">
-                      <div class="dash-empty-state">
-                        <h2>{gettext("No matching repositories")}</h2>
-                        <p>{gettext("Try adjusting your search query.")}</p>
-                      </div>
-                    </td>
-                  </tr>
-                <% else %>
-                  <%= for repo <- @filtered_repos do %>
-                    <tr>
-                      <td>
-                        <div class="repo-cell-name">
-                          <span class="repo-full-name">{repo["full_name"]}</span>
-                          <%= if repo["description"] do %>
-                            <span class="repo-description muted">{repo["description"]}</span>
-                          <% end %>
-                        </div>
-                      </td>
-                      <td>
-                        <%= if repo["language"] do %>
-                          <span class="mono muted">{repo["language"]}</span>
-                        <% end %>
-                      </td>
-                      <td class="resource-action-cell">
-                        <button
-                          class="dash-btn dash-btn-primary dash-btn-sm"
-                          phx-click="select_repo"
-                          phx-value-repo-id={repo["id"]}
-                          phx-value-full-name={repo["full_name"]}
-                          phx-value-name={repo["name"]}
-                          phx-value-default-branch={repo["default_branch"]}
-                          phx-value-description={repo["description"]}
-                          phx-value-owner-login={get_in(repo, ["owner", "login"])}
-                        >
-                          {gettext("Select")}
-                        </button>
-                      </td>
-                    </tr>
-                  <% end %>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-
-          <p class="wizard-repo-hint muted">
-            {gettext("Don't see your repository?")}
-            <a
-              href={"/" <> @handle <> "/-/projects/install-github"}
-              class="wizard-repo-hint-link"
+            <Noora.Table.table
+              id="repositories"
+              rows={@filtered_repos}
+              row_key={fn repo -> "repository-" <> to_string(repo["id"]) end}
             >
-              {gettext("Configure repository access")}
-            </a>
-          </p>
-        </div>
+              <:col :let={repo} label={gettext("Repository")}>
+                <Noora.Table.text_and_description_cell
+                  icon="folder"
+                  label={repo["full_name"]}
+                  description={repo["description"]}
+                />
+              </:col>
+              <:col :let={repo} label={gettext("Language")}>
+                <Noora.Table.text_cell label={repo["language"] || gettext("Not detected")} />
+              </:col>
+              <:col :let={repo}>
+                <Noora.Table.button_cell>
+                  <:button>
+                    <Noora.Button.button
+                      type="button"
+                      label={gettext("Select")}
+                      size="small"
+                      phx-click="select_repo"
+                      phx-value-repo-id={repo["id"]}
+                      phx-value-full-name={repo["full_name"]}
+                      phx-value-name={repo["name"]}
+                      phx-value-default-branch={repo["default_branch"]}
+                      phx-value-description={repo["description"]}
+                      phx-value-development={if(repo["development"], do: "true", else: "false")}
+                      phx-value-owner-login={get_in(repo, ["owner", "login"])}
+                    />
+                  </:button>
+                </Noora.Table.button_cell>
+              </:col>
+              <:empty_state>
+                <Noora.Table.table_empty_state>
+                  <.noora_empty_state
+                    icon="search"
+                    title={gettext("No matching repositories")}
+                    subtitle={gettext("Try adjusting your search query.")}
+                  />
+                </Noora.Table.table_empty_state>
+              </:empty_state>
+            </Noora.Table.table>
+
+            <Noora.Alert.alert
+              type="secondary"
+              status="information"
+              size="large"
+              title={gettext("Don't see your repository?")}
+              description={gettext("Update the GitHub App installation to change repository access.")}
+            >
+              <:action>
+                <Noora.Button.button
+                  href={"/" <> @handle <> "/-/projects/install-github"}
+                  label={gettext("Configure repository access")}
+                  variant="secondary"
+                  size="small"
+                />
+              </:action>
+            </Noora.Alert.alert>
+          </Noora.Card.card_section>
+        </Noora.Card.card>
       <% @github_configured? -> %>
-        <div class="dash-empty-state">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-          </svg>
-          <h2>{gettext("No repositories accessible")}</h2>
-          <p>
-            {gettext(
+        <Noora.Alert.alert
+          type="secondary"
+          status="warning"
+          size="large"
+          title={gettext("No repositories accessible")}
+          description={
+            gettext(
               "The GitHub App is installed but has no accessible repositories. Configure the installation to grant access to the repositories you want to import."
-            )}
-          </p>
-          <a
-            href={"/" <> @handle <> "/-/projects/install-github"}
-            class="dash-btn dash-btn-primary"
-          >
-            {gettext("Configure repository access")}
-          </a>
-        </div>
+            )
+          }
+        >
+          <:action>
+            <Noora.Button.button
+              href={"/" <> @handle <> "/-/projects/install-github"}
+              label={gettext("Configure repository access")}
+              size="small"
+            />
+          </:action>
+        </Noora.Alert.alert>
       <% true -> %>
-        <div class="dash-empty-state">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-          </svg>
-          <h2>{gettext("Connect a Git provider")}</h2>
-          <p>
-            {gettext("Install the Glossia GitHub App to import repositories and set up localization.")}
-          </p>
-          <a
-            href={"/" <> @handle <> "/-/projects/install-github"}
-            class="dash-btn dash-btn-primary"
-          >
-            {gettext("Install GitHub App")}
-          </a>
-        </div>
+        <Noora.Alert.alert
+          type="secondary"
+          status="information"
+          size="large"
+          title={gettext("Connect a Git provider")}
+          description={
+            gettext("Install the Glossia GitHub App to import repositories and set up localization.")
+          }
+        >
+          <:action>
+            <Noora.Button.button
+              href={"/" <> @handle <> "/-/projects/install-github"}
+              label={gettext("Install GitHub App")}
+              size="small"
+            />
+          </:action>
+        </Noora.Alert.alert>
     <% end %>
     """
   end
@@ -7361,150 +7404,131 @@ defmodule GlossiaWeb.DashboardLive do
 
     assigns = assign(assigns, :filtered_languages, filtered)
     selected_count = length(assigns.selected_languages)
-    assigns = assign(assigns, :selected_count, selected_count)
+
+    selected_summary =
+      ngettext("%{count} language selected", "%{count} languages selected", selected_count,
+        count: selected_count
+      )
+
+    assigns = assign(assigns, selected_count: selected_count, selected_summary: selected_summary)
 
     ~H"""
-    <div class="wizard-lang-header">
-      <div class="wizard-lang-header-left">
-        <div class="wizard-selected-repo">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-          </svg>
-          <span>{@selected_repo["full_name"]}</span>
-        </div>
-        <%= if @selected_count > 0 do %>
-          <span class="wizard-lang-count">
-            {ngettext("%{count} language selected", "%{count} languages selected", @selected_count,
-              count: @selected_count
-            )}
-          </span>
-        <% end %>
-      </div>
-      <div class="wizard-lang-header-right">
-        <button
-          class="dash-btn dash-btn-secondary"
+    <Noora.Card.card id="language-picker" icon="language" title={gettext("Target languages")}>
+      <:actions>
+        <Noora.Button.button
+          type="button"
+          label={gettext("Back")}
+          variant="secondary"
+          size="small"
           phx-click="wizard_back"
           phx-value-step="repo"
+        />
+        <Noora.Button.button
           type="button"
-        >
-          {gettext("Back")}
-        </button>
-        <button
-          class="dash-btn dash-btn-primary"
+          label={gettext("Set up project")}
+          size="small"
           phx-click="start_setup"
           disabled={@selected_count == 0}
-          type="button"
-        >
-          {gettext("Set up project")}
-        </button>
-      </div>
-    </div>
+        />
+      </:actions>
+      <Noora.Card.card_section class="project-setup-picker-section">
+        <Noora.Alert.alert
+          type="secondary"
+          status="information"
+          size="large"
+          title={@selected_repo["full_name"]}
+          description={@selected_summary}
+        />
 
-    <div class="resource-index" id="language-picker">
-      <div class="resource-toolbar">
-        <form phx-change="search_languages" class="resource-search-form">
-          <div class="resource-search-wrap">
-            <svg
-              class="resource-search-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="search"
-              name="value"
-              value={@language_search}
-              placeholder={gettext("Search languages...")}
-              phx-debounce="200"
-              class="resource-search"
-            />
-          </div>
+        <form phx-change="search_languages" class="project-setup-search-form">
+          <Noora.TextInput.text_input
+            id="language-search"
+            type="search"
+            name="value"
+            value={@language_search}
+            placeholder={gettext("Search languages...")}
+            phx-debounce="200"
+            show_suffix={false}
+            aria-label={gettext("Search languages")}
+          />
         </form>
-      </div>
 
-      <div class="resource-table-wrap">
-        <table class="resource-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>{gettext("Language")}</th>
-              <th>{gettext("Native name")}</th>
-              <th>{gettext("Code")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <%= if @filtered_languages == [] do %>
-              <tr>
-                <td colspan="4" class="resource-table-empty">
-                  <div class="dash-empty-state">
-                    <h2>{gettext("No matching languages")}</h2>
-                    <p>{gettext("Try adjusting your search query.")}</p>
-                  </div>
-                </td>
-              </tr>
-            <% else %>
-              <%= for lang <- @filtered_languages do %>
-                <tr
-                  class={[
-                    "wizard-lang-row",
-                    lang.code in @selected_languages && "wizard-lang-row-selected"
-                  ]}
+        <Noora.Table.table
+          id="languages"
+          rows={@filtered_languages}
+          row_key={fn language -> "language-" <> language.code end}
+        >
+          <:col :let={language} label={gettext("Language")}>
+            <Noora.Table.text_and_description_cell
+              icon="language"
+              label={language.name}
+              description={language.native}
+            />
+          </:col>
+          <:col :let={language} label={gettext("Code")}>
+            <Noora.Table.tag_cell label={language.code} />
+          </:col>
+          <:col :let={language} label={gettext("Selection")}>
+            <Noora.Table.status_badge_cell
+              status={if language.code in @selected_languages, do: "success", else: "disabled"}
+              label={
+                if language.code in @selected_languages,
+                  do: gettext("Selected"),
+                  else: gettext("Not selected")
+              }
+            />
+          </:col>
+          <:col :let={language}>
+            <Noora.Table.button_cell>
+              <:button>
+                <Noora.Button.button
+                  type="button"
+                  label={
+                    if language.code in @selected_languages,
+                      do: gettext("Remove"),
+                      else: gettext("Select")
+                  }
+                  variant={if language.code in @selected_languages, do: "secondary", else: "primary"}
+                  size="small"
                   phx-click="toggle_language"
-                  phx-value-code={lang.code}
-                  style="cursor: pointer;"
-                >
-                  <td style="width: 40px;">
-                    <span class={[
-                      "wizard-lang-check",
-                      lang.code in @selected_languages && "wizard-lang-check-active"
-                    ]}>
-                      <%= if lang.code in @selected_languages do %>
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="3"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      <% end %>
-                    </span>
-                  </td>
-                  <td>{lang.name}</td>
-                  <td><span class="muted">{lang.native}</span></td>
-                  <td><span class="mono muted">{lang.code}</span></td>
-                </tr>
-              <% end %>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    </div>
+                  phx-value-code={language.code}
+                />
+              </:button>
+            </Noora.Table.button_cell>
+          </:col>
+          <:empty_state>
+            <Noora.Table.table_empty_state>
+              <.noora_empty_state
+                icon="search"
+                title={gettext("No matching languages")}
+                subtitle={gettext("Try adjusting your search query.")}
+              />
+            </Noora.Table.table_empty_state>
+          </:empty_state>
+        </Noora.Table.table>
+      </Noora.Card.card_section>
+    </Noora.Card.card>
     """
   end
+
+  defp wizard_step_progress("repo", _project, _events), do: 33
+  defp wizard_step_progress("languages", _project, _events), do: 66
+
+  defp wizard_step_progress("setup", project, events) do
+    setup_progress(project_setup_status_value(project), events)
+  end
+
+  defp wizard_step_progress(_, _project, _events), do: 0
+
+  defp project_setup_status_value(%{setup_status: status}), do: status
+  defp project_setup_status_value(_), do: "pending"
+
+  # Drives the animated shimmer on the wizard progress bar: only while the setup
+  # step is actively working (nil otherwise, so the attribute is omitted).
+  defp wizard_running?("setup", %{setup_status: status}) when status in ["pending", "running"],
+    do: "true"
+
+  defp wizard_running?(_step, _project), do: nil
 
   defp wizard_setup_step(assigns) do
     project = assigns.wizard_project
@@ -7521,146 +7545,22 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <div class="wizard-setup-container">
-      <%= cond do %>
-        <% @status in ["pending", "running"] -> %>
-          <div class="setup-feed">
-            <div class="setup-feed-header">
-              <span class="setup-feed-pulse"></span>
-              <div class="setup-feed-header-copy">
-                <h3>{gettext("Setting up localization...")}</h3>
-                <p>
-                  {gettext("Building a minimal GLOSSIA.md baseline that your team can reuse.")}
-                </p>
-              </div>
-            </div>
-            <div class="setup-feed-events" id="wizard-setup-events" phx-hook=".SetupFeedScroll">
-              <%= for event <- @setup_events do %>
-                <.setup_event_item event={event} />
-              <% end %>
-            </div>
-          </div>
-          <script :type={Phoenix.LiveView.ColocatedHook} name=".SetupFeedScroll">
-            export default {
-              mounted() {
-                this.scrollToBottom()
-              },
-              updated() {
-                this.scrollToBottom()
-              },
-              scrollToBottom() {
-                this.el.scrollTop = this.el.scrollHeight
-              }
-            }
-          </script>
-        <% @status == "completed" -> %>
-          <div class="setup-feed">
-            <div class="setup-feed-header setup-feed-header-success">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-              <div class="setup-feed-header-copy">
-                <h3>{gettext("Setup complete")}</h3>
-                <p>{gettext("Your localization baseline is ready for review.")}</p>
-              </div>
-            </div>
-            <%= if @pr_url do %>
-              <div class="setup-pr-card">
-                <span class="setup-pr-card-label">{gettext("Pull request ready")}</span>
-                <a href={@pr_url} target="_blank" rel="noopener noreferrer" class="setup-pr-link">
-                  {gettext("Open pull request")}
-                </a>
-              </div>
-            <% else %>
-              <div class="setup-pr-card">
-                <span class="setup-pr-card-label">{gettext("Pull request unavailable")}</span>
-                <p>
-                  {gettext(
-                    "Setup finished without a pull request link. Check setup events for details."
-                  )}
-                </p>
-              </div>
-            <% end %>
-            <%= if @setup_events != [] do %>
-              <div class="setup-feed-events" id="wizard-setup-events">
-                <%= for event <- @setup_events do %>
-                  <.setup_event_item event={event} />
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-          <div class="wizard-footer">
-            <button
-              class="dash-btn dash-btn-primary"
-              phx-click="finish_setup"
-              type="button"
-            >
-              {gettext("Go to project")}
-            </button>
-          </div>
-        <% @status == "failed" -> %>
-          <div class="setup-feed">
-            <div class="setup-feed-header setup-feed-header-error">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line
-                  x1="9"
-                  y1="9"
-                  x2="15"
-                  y2="15"
-                />
-              </svg>
-              <div class="setup-feed-header-copy">
-                <h3>{gettext("Setup failed")}</h3>
-                <p class="setup-feed-error-msg">
-                  {(@wizard_project && @wizard_project.setup_error) ||
-                    gettext("An error occurred during setup.")}
-                </p>
-              </div>
-            </div>
-            <%= if @setup_events != [] do %>
-              <details class="setup-feed-details">
-                <summary>{gettext("View agent session")}</summary>
-                <div class="setup-feed-events" id="wizard-setup-events">
-                  <%= for event <- @setup_events do %>
-                    <.setup_event_item event={event} />
-                  <% end %>
-                </div>
-              </details>
-            <% end %>
-          </div>
-          <div class="wizard-footer">
-            <button
-              class="dash-btn dash-btn-primary"
-              phx-click="finish_setup"
-              type="button"
-            >
-              {gettext("Go to project")}
-            </button>
-          </div>
-        <% true -> %>
-          <div class="dash-empty-state">
-            <h2>{gettext("Preparing...")}</h2>
-          </div>
-      <% end %>
+      <.setup_progress_panel
+        status={@status || "pending"}
+        events={@setup_events}
+        error={@wizard_project && @wizard_project.setup_error}
+        can_retry={@status == "failed"}
+        pr_url={@pr_url}
+      />
+
+      <div :if={@status in ["completed", "failed"]} class="wizard-footer">
+        <Noora.Button.button
+          type="button"
+          label={gettext("Go to project")}
+          size="medium"
+          phx-click="finish_setup"
+        />
+      </div>
     </div>
     """
   end
@@ -10728,7 +10628,7 @@ defmodule GlossiaWeb.DashboardLive do
     <div class="dash-page">
       <%= cond do %>
         <% @live_action == :llm_model_new -> %>
-          <.page_header title={gettext("New LLM")} />
+          <.page_header title={gettext("New model")} />
 
           <.form
             for={@model_form}
@@ -10742,7 +10642,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <h2>{gettext("Model configuration")}</h2>
                 <p>
                   {gettext(
-                    "Configure an LLM model that can be referenced from your repository context files."
+                    "Configure a large language model that can be referenced from your repository context files."
                   )}
                 </p>
               </div>
@@ -10770,7 +10670,7 @@ defmodule GlossiaWeb.DashboardLive do
                       value={@model_form[:model].value}
                       options={@available_model_options}
                       on_select="select_model"
-                      hint={gettext("The LLM model to use, sourced from models.dev.")}
+                      hint={gettext("The model to use, sourced from models.dev.")}
                     />
                   </div>
                   <Noora.TextInput.text_input
@@ -10870,7 +10770,7 @@ defmodule GlossiaWeb.DashboardLive do
           <div class="noora-settings-list-page">
             <div data-part="page-header">
               <div data-part="heading">
-                <h1 data-part="title">{gettext("LLMs")}</h1>
+                <h1 data-part="title">{gettext("Models")}</h1>
                 <span data-part="subtitle">
                   {gettext(
                     "Configure providers and keys that can be referenced from any repository's operations. Glossia routes requests to the right provider with your credentials."
@@ -10880,7 +10780,7 @@ defmodule GlossiaWeb.DashboardLive do
               <div data-part="actions">
                 <Noora.Button.button
                   navigate={~p"/#{@handle}/-/settings/models/new"}
-                  label={gettext("New LLM")}
+                  label={gettext("New model")}
                   variant="secondary"
                   size="medium"
                 >
@@ -10946,8 +10846,8 @@ defmodule GlossiaWeb.DashboardLive do
                   <Noora.Table.table_empty_state>
                     <.noora_empty_state
                       icon="schema"
-                      title={gettext("No LLMs yet")}
-                      subtitle={gettext("LLMs will show up here once you configure one.")}
+                      title={gettext("No models yet")}
+                      subtitle={gettext("Models will show up here once you configure one.")}
                     />
                   </Noora.Table.table_empty_state>
                 </:empty_state>

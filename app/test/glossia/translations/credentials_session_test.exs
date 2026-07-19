@@ -60,5 +60,93 @@ defmodule Glossia.Translations.CredentialsSessionTest do
       File.write!(tokenless, Jason.encode!(%{"tokens" => %{}}))
       assert Credentials.codex_session(tokenless) == nil
     end
+
+    @tag :tmp_dir
+    test "returns nil for an expired token", %{tmp_dir: dir} do
+      path = Path.join(dir, "auth.json")
+      File.write!(path, Jason.encode!(%{"tokens" => %{"access_token" => expired_jwt()}}))
+
+      assert Credentials.codex_session(path) == nil
+    end
+  end
+
+  # A JWT whose `exp` claim is in the past. The signature is irrelevant here;
+  # only the base64url payload is decoded to read the expiry.
+  defp expired_jwt do
+    payload =
+      %{"exp" => System.system_time(:second) - 3_600}
+      |> JSON.encode!()
+      |> Base.url_encode64(padding: false)
+
+    "header.#{payload}.signature"
+  end
+
+  describe "claude_cli_session/2" do
+    test "preserves the refreshable Claude session for the isolated command" do
+      future = System.system_time(:millisecond) + 60_000
+
+      oauth = %{
+        "accessToken" => "access",
+        "refreshToken" => "refresh",
+        "expiresAt" => future
+      }
+
+      assert {:ok, credential} =
+               Credentials.claude_cli_session(oauth, "anthropic:claude-sonnet-4-6")
+
+      assert credential.harness == "claude"
+      assert credential.command == "claude"
+      assert credential.model == "claude-sonnet-4-6"
+      assert credential.claude_auth == %{"claudeAiOauth" => oauth}
+    end
+
+    test "rejects an expired Claude session" do
+      oauth = %{"accessToken" => "access", "expiresAt" => 0}
+
+      assert {:error, :claude_session_not_available} =
+               Credentials.claude_cli_session(oauth, "anthropic:claude-sonnet-4-6")
+    end
+  end
+
+  describe "codex_opencode_session/2" do
+    @tag :tmp_dir
+    test "converts the Codex session into OpenCode authentication", %{tmp_dir: dir} do
+      path = Path.join(dir, "auth.json")
+
+      expires = System.system_time(:second) + 3_600
+
+      payload =
+        %{"exp" => expires}
+        |> JSON.encode!()
+        |> Base.url_encode64(padding: false)
+
+      access = "header.#{payload}.signature"
+
+      File.write!(
+        path,
+        JSON.encode!(%{
+          "tokens" => %{
+            "access_token" => access,
+            "refresh_token" => "refresh-token",
+            "account_id" => "account-id"
+          }
+        })
+      )
+
+      assert {:ok, credential} =
+               Credentials.codex_opencode_session(path, "openai:gpt-5.4")
+
+      assert credential.model == "openai/gpt-5.4"
+      assert credential.opencode_config == %{"model" => "openai/gpt-5.4"}
+
+      assert credential.opencode_auth == %{
+               "openai" => %{
+                 "type" => "oauth",
+                 "access" => access,
+                 "accountId" => "account-id",
+                 "expires" => expires * 1_000
+               }
+             }
+    end
   end
 end

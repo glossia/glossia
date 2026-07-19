@@ -128,8 +128,11 @@ config :glossia, Glossia.Sandbox,
   reaper_enabled: true,
   reaper_interval_ms: 60_000,
   delete_retry_after_ms: 60_000,
-  microsandbox_image: "node:22-bookworm",
-  microsandbox_repo_path: "/home/user/repo"
+  microsandbox_command: "msb",
+  microsandbox_image: "glossia-local:dev",
+  microsandbox_cpus: 2,
+  microsandbox_memory: "2G",
+  microsandbox_repo_path: "/tmp/glossia/repo"
 
 config :glossia, Glossia.Projects.Setup,
   minimax_api_key: nil,

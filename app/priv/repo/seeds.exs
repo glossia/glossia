@@ -19,6 +19,7 @@ defmodule Glossia.Seeds do
     Identity,
     AccountToken,
     Project,
+    LLMModel,
     User,
     Voice
   }
@@ -132,7 +133,7 @@ defmodule Glossia.Seeds do
       github_repo_id: 100_002,
       github_repo_full_name: "dev-user/landing-page",
       github_repo_default_branch: "main",
-      setup_status: "pending",
+      setup_status: "completed",
       setup_target_languages: ["de", "ja", "pt-BR"]
     )
 
@@ -170,6 +171,23 @@ defmodule Glossia.Seeds do
          """},
         {"docs/getting-started.md",
          "# Getting started\n\nWelcome to the blog. This short guide helps you publish your first post.\n"}
+      ]
+    )
+
+    seed_local_remote!("dev-user/localization-demo",
+      files: [
+        {"README.md",
+         "# Localization demo\n\nA small repository for exercising project setup.\n"},
+        {"content/welcome.md",
+         "# Welcome\n\nGlossia helps product teams publish consistent content in every language.\n"}
+      ]
+    )
+
+    seed_local_remote!("dev-user/sandbox-smoke",
+      files: [
+        {"README.md",
+         "# Sandbox smoke test\n\nA disposable repository for automated setup checks.\n"},
+        {"docs/guide.md", "# Guide\n\nUse this guide to verify isolated localization setup.\n"}
       ]
     )
 
@@ -534,6 +552,20 @@ defmodule Glossia.Seeds do
       handle: "gpt-4o",
       model: "openai:gpt-4o",
       api_key: "sk-dev-placeholder-key"
+    )
+
+    ensure_llm_model!(dev.account, dev,
+      handle: "local-codex",
+      model: "openai:gpt-5.4",
+      api_key: Glossia.Translations.Credentials.development_session_api_key(:codex),
+      default: true
+    )
+
+    ensure_llm_model!(dev.account, dev,
+      handle: "local-claude",
+      model: "anthropic:claude-sonnet-4-20250514",
+      api_key: Glossia.Translations.Credentials.development_session_api_key(:claude),
+      default: false
     )
 
     ensure_llm_model!(acme.account, dev,
@@ -1159,20 +1191,38 @@ defmodule Glossia.Seeds do
 
   defp ensure_llm_model!(account, user, opts) do
     handle = Keyword.fetch!(opts, :handle)
+    requested_default = Keyword.get(opts, :default, false)
+
+    if requested_default do
+      Repo.update_all(
+        from(model in LLMModel,
+          where:
+            model.account_id == ^account.id and model.handle != ^handle and model.default == true
+        ),
+        set: [default: false]
+      )
+    end
+
+    attrs = %{
+      "handle" => handle,
+      "model" => Keyword.fetch!(opts, :model),
+      "api_key" => Keyword.fetch!(opts, :api_key),
+      "default" => requested_default
+    }
 
     case LLMModels.get_model_by_handle(handle, account.id) do
       nil ->
-        attrs = %{
-          "handle" => handle,
-          "model" => Keyword.fetch!(opts, :model),
-          "api_key" => Keyword.fetch!(opts, :api_key)
-        }
-
         {:ok, model} = LLMModels.create_model(account, user, attrs)
         model
 
       existing ->
-        existing
+        if existing.model != attrs["model"] or existing.api_key != attrs["api_key"] or
+             existing.default != attrs["default"] do
+          {:ok, model} = LLMModels.update_model(account, user, existing, attrs)
+          model
+        else
+          existing
+        end
     end
   end
 end

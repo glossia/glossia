@@ -15,11 +15,11 @@ defmodule Glossia.Application do
     Logger.add_handlers(:glossia)
     {:ok, _} = LLMDB.load()
 
-    flame_child? = Glossia.Flame.child?()
-    Logger.info("Starting Glossia as #{if(flame_child?, do: "FLAME child", else: "parent")}")
+    runner_child? = Glossia.Flame.child?()
+    Logger.info("Starting Glossia as #{if(runner_child?, do: "isolated child", else: "parent")}")
 
     children =
-      if flame_child? do
+      if runner_child? do
         flame_child_children()
       else
         parent_children()
