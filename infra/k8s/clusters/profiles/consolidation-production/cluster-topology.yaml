@@ -17,4 +17,4 @@
     variables:
       overrides:
         - name: hcloudWorkerMachineType
-          value: cpx42
+          value: cx53
