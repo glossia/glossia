@@ -1,8 +1,9 @@
-# Transition profile. It adds three CX53 servers without changing or removing
-# any existing worker. The shared `stateful` label lets stateful workloads move
-# onto the new pool, while the absence of a taint also allows application pods.
-# Keep this profile active until every production and observability workload is
-# healthy on the new workers.
+# Transition profile. It adds three CPX42 servers without changing or removing
+# any existing worker. CX53 is the cheaper final type, but it is temporarily
+# unavailable in Falkenstein. The shared `stateful` label lets stateful
+# workloads move onto the new pool, while the absence of a taint also allows
+# application pods. Return this transition pool to CX53 and verify its rolling
+# replacement before applying the compact profile or removing an old worker.
 - op: add
   path: /spec/topology/workers/machineDeployments/-
   value:
@@ -16,4 +17,4 @@
     variables:
       overrides:
         - name: hcloudWorkerMachineType
-          value: cx53
+          value: cpx42

@@ -32,10 +32,14 @@ Before the management server is rebuilt on CX23, the expected total is
 €181.68. Rebuilding that server is intentionally last because the existing
 management cluster controls every worker transition.
 
-The transition temporarily adds three CX53 workers while retaining the old
-workers. The full-month equivalent peaks near €552, but Hetzner bills servers
-hourly when they are removed before the monthly cap. Keep the overlap short,
-but never remove the old pools before validation passes.
+The transition normally adds three CX53 workers while retaining the old
+workers, for a full-month equivalent near €552. If CX53 is temporarily
+unavailable in Falkenstein, the transition profile can use three CPX42 workers
+at €0.3342 per hour together. That fallback raises the temporary full-month
+equivalent to approximately €664, but Hetzner bills servers hourly when they
+are removed before the monthly cap. Return the transition profile to CX53 and
+verify the rolling replacement before removing an old pool. Keep the overlap
+short, but never remove the old pools before validation passes.
 
 ## Safety conditions
 
@@ -91,9 +95,9 @@ kubectl get nodes -o wide
 kubectl get nodes -o custom-columns=NAME:.metadata.name,CPU:.status.allocatable.cpu,MEMORY:.status.allocatable.memory
 ```
 
-Confirm that all three CX53 nodes are ready and that total allocatable memory
-is sufficient with one of them excluded. If the Kubernetes Metrics Server is
-available, also inspect current use with `kubectl top nodes`.
+Confirm that all three transition nodes are ready and that total allocatable
+memory is sufficient with one of them excluded. If the Kubernetes Metrics
+Server is available, also inspect current use with `kubectl top nodes`.
 
 ## 3. Add the observability secret store to production
 
