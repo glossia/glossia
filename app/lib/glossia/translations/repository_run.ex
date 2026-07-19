@@ -196,12 +196,17 @@ defmodule Glossia.Translations.RepositoryRun do
     # `--untracked-files=all` lists new files individually instead of collapsing
     # untracked directories (e.g. `docs/i18n/`, `.glossia/`) into a single entry.
     #
-    case MuonTrap.cmd(
+    # `System.cmd/3` rather than `MuonTrap.cmd/3`: MuonTrap acknowledges every
+    # chunk it receives by writing back to the port. `git status` prints its
+    # output and exits immediately, so on Linux that write lands on a pipe whose
+    # read end is already gone. The port then terminates with `:epipe` and takes
+    # the linked caller with it. MuonTrap earns its keep when a command needs a
+    # timeout or process-group containment; this one needs neither.
+    case System.cmd(
            "git",
            ["-C", repo_path, "status", "--porcelain", "--untracked-files=all"],
            stderr_to_stdout: true,
-           into: "",
-           timeout: 30_000
+           into: ""
          ) do
       {output, 0} -> {:ok, output |> parse_git_status() |> attach_content(repo_path)}
       {output, code} -> {:error, {:git_status_failed, code, String.trim(output)}}
@@ -234,8 +239,14 @@ defmodule Glossia.Translations.RepositoryRun do
            timeout: @clone_timeout_ms
          ) do
       {_output, 0} ->
-        checkout_commit(dir, repository[:commit_sha])
-        {:ok, dir}
+        case checkout_commit(dir, repository[:commit_sha]) do
+          :ok ->
+            {:ok, dir}
+
+          {:error, _reason} = error ->
+            File.rm_rf(dir)
+            error
+        end
 
       {output, _code} ->
         {:error, {:clone_failed, String.trim(output)}}
@@ -266,13 +277,11 @@ defmodule Glossia.Translations.RepositoryRun do
   defp checkout_commit(_dir, sha) when sha in [nil, ""], do: :ok
 
   defp checkout_commit(dir, sha) do
-    MuonTrap.cmd("git", ["-C", dir, "checkout", sha],
-      stderr_to_stdout: true,
-      into: "",
-      timeout: 30_000
-    )
-
-    :ok
+    # Same reasoning as `collect_changes/1`: short-lived, chatty, no timeout.
+    case System.cmd("git", ["-C", dir, "checkout", sha], stderr_to_stdout: true, into: "") do
+      {_output, 0} -> :ok
+      {output, code} -> {:error, {:checkout_failed, sha, code, String.trim(output)}}
+    end
   end
 
   # ── helpers ─────────────────────────────────────────────────────────────
