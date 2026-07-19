@@ -24,12 +24,10 @@ if [[ -z "$glitchtip_object_key" || -z "$grafana_object_key" ]]; then
   exit 1
 fi
 
-for command_name in aws base64 gzip jq kubectl pg_restore psql; do
-  if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "Missing required command: $command_name" >&2
-    exit 1
-  fi
-done
+# shellcheck source=./lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+require_commands aws base64 jq kubectl pg_restore psql
 
 namespace=observability
 backup_secret_namespace=glossia
@@ -77,18 +75,16 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-read_kubernetes_secret() {
-  local secret_namespace="$1"
-  local secret_name="$2"
-  local field="$3"
-
-  kubectl -n "$secret_namespace" get secret "$secret_name" \
-    -o "jsonpath={.data.${field}}" | base64 --decode
-}
-
 assert_scaled_to_zero() {
   local deployment_name="$1"
   local replicas
+
+  if ! kubectl -n "$namespace" get deployment "$deployment_name" \
+    >/dev/null 2>&1; then
+    echo "Refusing restore: deployment/$deployment_name was not found." >&2
+    echo "Install the compact release with its replica counts set to zero first." >&2
+    exit 1
+  fi
 
   replicas="$(
     kubectl -n "$namespace" get deployment "$deployment_name" \
@@ -204,11 +200,6 @@ kill "$port_forward_pid" 2>/dev/null || true
 wait "$port_forward_pid" 2>/dev/null || true
 port_forward_pid=""
 
-echo "Verifying Grafana archive"
-"${aws_command[@]}" s3 cp \
-  "s3://$backup_bucket/$grafana_object_key" - \
-  --no-progress | gzip -t
-
 grafana_restore_pod="grafana-restore-$(date -u +%Y%m%d%H%M%S)"
 jq -n \
   --arg namespace "$namespace" \
@@ -266,6 +257,10 @@ jq -n \
 kubectl -n "$namespace" wait \
   --for=condition=Ready "pod/$grafana_restore_pod" --timeout=5m
 
+echo "Clearing existing Grafana data"
+kubectl -n "$namespace" exec "$grafana_restore_pod" -- \
+  find /data -mindepth 1 -maxdepth 1 -name lost+found -prune -o -exec rm -rf {} +
+
 echo "Restoring Grafana data"
 "${aws_command[@]}" s3 cp \
   "s3://$backup_bucket/$grafana_object_key" - \
@@ -278,7 +273,7 @@ kubectl -n "$namespace" exec "$grafana_restore_pod" -- \
 
 grafana_entry_count="$(
   kubectl -n "$namespace" exec "$grafana_restore_pod" -- \
-    find /data -mindepth 1 -maxdepth 2 -print | wc -l | tr -d ' '
+    find /data -mindepth 1 -maxdepth 2 -name lost+found -prune -o -print | wc -l | tr -d ' '
 )"
 if [[ "$grafana_entry_count" -eq 0 ]]; then
   echo "Grafana restore produced no files." >&2

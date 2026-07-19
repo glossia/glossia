@@ -121,12 +121,10 @@ case "$mode" in
     ;;
 esac
 
-for command_name in kubectl rclone base64; do
-  if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "Missing required command: $command_name" >&2
-    exit 1
-  fi
-done
+# shellcheck source=./lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+require_commands kubectl rclone base64
 
 temporary_directory="$(mktemp -d)"
 port_forward_pid=""
@@ -145,15 +143,6 @@ cleanup() {
 }
 
 trap cleanup EXIT INT TERM
-
-read_kubernetes_secret() {
-  local namespace="$1"
-  local secret_name="$2"
-  local field="$3"
-
-  kubectl -n "$namespace" get secret "$secret_name" \
-    -o "jsonpath={.data.${field}}" | base64 --decode
-}
 
 export RCLONE_CONFIG_SOURCE_TYPE=s3
 export RCLONE_CONFIG_SOURCE_PROVIDER=Ceph

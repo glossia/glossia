@@ -51,21 +51,10 @@ case "$target" in
     ;;
 esac
 
-for command_name in aws kubectl jq base64; do
-  if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "Missing required command: $command_name" >&2
-    exit 1
-  fi
-done
+# shellcheck source=./lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
-read_kubernetes_secret() {
-  local namespace="$1"
-  local secret_name="$2"
-  local field="$3"
-
-  kubectl -n "$namespace" get secret "$secret_name" \
-    -o "jsonpath={.data.${field}}" | base64 --decode
-}
+require_commands aws kubectl jq base64
 
 access_key_id="$(
   read_kubernetes_secret \
@@ -126,8 +115,8 @@ bucket_owner_id() {
 
   "${aws_command[@]}" s3api get-bucket-acl \
     --bucket "$bucket_name" \
-    --query Owner.ID \
-    --output text
+    --output json \
+    | jq -r '.Owner.ID'
 }
 
 private_policy() {

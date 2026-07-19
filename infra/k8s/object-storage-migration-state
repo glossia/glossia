@@ -1,9 +1,9 @@
 # The deployment workflows read exact `name=true` lines from this file.
 # Change a flag only during the corresponding maintenance-window step in
 # object-storage-migration.md or cluster-consolidation.md.
-production_object_storage=false
+production_object_storage=true
 production_ceph_removed=false
-observability_object_storage=false
+observability_object_storage=true
 observability_ceph_removed=false
 # Switch the observability deployment workflow to glossia-production only
 # after the compact release has been restored and verified there.

@@ -67,9 +67,7 @@ mimir-distributed:
     zoneAwareReplication:
       enabled: false
     persistentVolume:
-      enabled: true
-      size: 5Gi
-      storageClass: hcloud-volumes
+      enabled: false
     resources:
       requests: { cpu: 50m, memory: 128Mi }
       limits: { cpu: 500m, memory: 512Mi }
