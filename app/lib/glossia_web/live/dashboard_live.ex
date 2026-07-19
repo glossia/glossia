@@ -6810,7 +6810,10 @@ defmodule GlossiaWeb.DashboardLive do
         |> assign(:body_html, setup_event_body_html(event_type, content))
 
       ~H"""
-      <div class="setup-event-row" data-status={@status}>
+      <div
+        class={"setup-event-row #{if @status == "information", do: "setup-event-row-no-badge", else: ""}"}
+        data-status={@status}
+      >
         <Noora.Badge.status_badge
           :if={@status != "information"}
           status={setup_event_badge_status(@status)}

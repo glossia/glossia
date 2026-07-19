@@ -27,6 +27,10 @@
     min-width: 0;
   }
 
+  & .setup-event-row-no-badge {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   & .setup-event-row-header {
     display: flex;
     align-items: center;
