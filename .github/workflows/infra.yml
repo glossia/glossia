@@ -114,11 +114,6 @@ jobs:
             --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
             --dry-run >/tmp/flux-production-build.yaml
 
-          mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-observability \
-            --path ./infra/k8s/clusters/workloads/observability \
-            --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
-            --dry-run >/tmp/flux-observability-build.yaml
-
       - name: Add Helm repositories
         run: |
           mise exec -- helm repo add jetstack https://charts.jetstack.io
