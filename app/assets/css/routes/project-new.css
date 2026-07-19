@@ -3,6 +3,29 @@
     width: 100%;
   }
 
+  /* While setup is running, sweep a highlight across the filled portion of the
+     bar so a long-running, same-percentage step still reads as active. */
+  & [data-part="wizard-progress"] .noora-progress-bar[data-running] [data-part="value-bar"] {
+    position: relative;
+    overflow: hidden;
+  }
+
+  & [data-part="wizard-progress"]
+    .noora-progress-bar[data-running]
+    [data-part="value-bar"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: wizard-progress-shimmer 1.6s ease-in-out infinite;
+  }
+
   & .project-setup-picker-section,
   & .wizard-setup-container {
     display: grid;
@@ -33,5 +56,24 @@
   & .wizard-footer {
     display: flex;
     justify-content: flex-end;
+  }
+}
+
+@keyframes wizard-progress-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #project-new
+    [data-part="wizard-progress"]
+    .noora-progress-bar[data-running]
+    [data-part="value-bar"]::after {
+    animation: none;
   }
 }

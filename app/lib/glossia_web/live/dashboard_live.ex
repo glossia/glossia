@@ -7208,6 +7208,7 @@ defmodule GlossiaWeb.DashboardLive do
         <Noora.ProgressBar.progress_bar
           value={wizard_step_progress(@step, @wizard_project, @setup_events)}
           max={100}
+          data-running={wizard_running?(@step, @wizard_project)}
         />
       </div>
 
@@ -7521,6 +7522,13 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp project_setup_status_value(%{setup_status: status}), do: status
   defp project_setup_status_value(_), do: "pending"
+
+  # Drives the animated shimmer on the wizard progress bar: only while the setup
+  # step is actively working (nil otherwise, so the attribute is omitted).
+  defp wizard_running?("setup", %{setup_status: status}) when status in ["pending", "running"],
+    do: "true"
+
+  defp wizard_running?(_step, _project), do: nil
 
   defp wizard_setup_step(assigns) do
     project = assigns.wizard_project

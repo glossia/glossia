@@ -1,4 +1,11 @@
 #setup-progress-card {
+  /* Spin the dashed-circle icon while setup is running so the "Running" badge
+     reads as active rather than static. */
+  & .noora-status-badge[data-status="in_progress"] [data-part="icon"] svg {
+    transform-origin: center;
+    animation: setup-progress-spin 1s linear infinite;
+  }
+
   & .setup-progress-section {
     display: grid;
     gap: var(--space-4);
@@ -68,5 +75,20 @@
   & .setup-event-row-body ul,
   & .setup-event-row-body ol {
     padding-inline-start: var(--space-4);
+  }
+}
+
+@keyframes setup-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #setup-progress-card
+    .noora-status-badge[data-status="in_progress"]
+    [data-part="icon"]
+    svg {
+    animation: none;
   }
 }
