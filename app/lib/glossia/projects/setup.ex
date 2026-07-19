@@ -1,16 +1,17 @@
 defmodule Glossia.Projects.Setup do
   @moduledoc """
   Runs the project setup process: creates a sandbox, starts the setup harness,
-  waits for completion, and optionally opens a PR with the generated
+  waits for completion, and optionally opens a pull request with the generated
   localization setup changes.
 
-  Called by `Glossia.Projects.SetupWorker` (Oban) for retry semantics
-  and lifecycle management.
+  Called by `Glossia.Projects.SetupWorker` for durable lifecycle management.
+  A failed setup remains visible until the user explicitly retries it.
   """
 
   require Logger
 
   alias Glossia.{Events, Ingestion, Projects, Sandboxes}
+  alias Glossia.Translations.Credentials
 
   @change_manifest_filename "glossia-setup-changes.json"
   @context_file_names ["GLOSSIA.md"]
@@ -62,7 +63,7 @@ defmodule Glossia.Projects.Setup do
 
     sandbox = Glossia.Sandbox.adapter()
 
-    with {:ok, harness_config} <- setup_harness_config(),
+    with {:ok, harness_config} <- setup_harness_config(account, project),
          {:ok, token} <- get_clone_token(project),
          {:ok, sandbox_record} <- ensure_sandbox(project, account, sandbox) do
       run_in_sandbox(project, account, sandbox, sandbox_record, token, harness_config)
@@ -226,7 +227,7 @@ defmodule Glossia.Projects.Setup do
   defp get_clone_token(project) do
     installation = project.github_installation
 
-    if is_nil(installation) do
+    if local_clone_url(project) || is_nil(installation) do
       {:ok, nil}
     else
       case Glossia.Github.App.installation_token(installation.github_installation_id) do
@@ -346,26 +347,30 @@ defmodule Glossia.Projects.Setup do
          github_token,
          harness_config
        ) do
+    timeout_ms = setup_harness_timeout_ms()
+
     with {:ok, _pid} <-
            Glossia.Sandbox.start_agent_session(sandbox, sandbox_id, self(),
              project_id: project.id,
              repository: %{
                full_name: project.github_repo_full_name,
                default_branch: project.github_repo_default_branch || "main",
-               token: github_token
+               token: github_token,
+               clone_url: local_clone_url(project)
              },
              target_languages: project.setup_target_languages || [],
-             harness: harness_config
+             harness: harness_config,
+             timeout_ms: timeout_ms
            ) do
-      wait_for_completion(project)
+      wait_for_completion(project, timeout_ms + 60_000)
     end
   end
 
-  defp wait_for_completion(project) do
+  defp wait_for_completion(project, timeout_ms) do
     receive do
       {:agent_event, event} ->
         record_agent_event(project, event)
-        wait_for_completion(project)
+        wait_for_completion(project, timeout_ms)
 
       {:agent_done, :completed} ->
         Logger.info("Setup harness completed for project #{project.id}")
@@ -375,10 +380,16 @@ defmodule Glossia.Projects.Setup do
         Logger.warning("Setup harness failed for project #{project.id}")
         {:error, :setup_harness_failed}
     after
-      660_000 ->
+      timeout_ms ->
         Logger.warning("Setup harness timed out for project #{project.id}")
         {:error, :setup_harness_timeout}
     end
+  end
+
+  defp setup_harness_timeout_ms do
+    :glossia
+    |> Application.get_env(__MODULE__, [])
+    |> Keyword.get(:harness_timeout_ms, 660_000)
   end
 
   defp record_agent_event(project, %{"event_type" => event_type} = event)
@@ -399,9 +410,9 @@ defmodule Glossia.Projects.Setup do
   defp create_pr(project, changes) do
     installation = project.github_installation
 
-    if is_nil(installation) do
+    if local_clone_url(project) || is_nil(installation) do
       Logger.info(
-        "No GitHub installation linked, skipping pull request creation for project #{project.id}"
+        "No publishable GitHub installation linked, skipping pull request creation for project #{project.id}"
       )
 
       :skipped_pr
@@ -722,7 +733,19 @@ defmodule Glossia.Projects.Setup do
 
   defp humanize_error(:setup_model_not_configured),
     do:
-      "The setup model is not configured. Set GLOSSIA_SETUP_MINIMAX_API_KEY, GLOSSIA_SETUP_HARNESS_MODEL, or GLOSSIA_SETUP_OPENCODE_CONFIG_JSON."
+      "The localization setup model is not configured. Configure a default model for this account before retrying setup."
+
+  defp humanize_error(:setup_session_not_supported),
+    do: "The selected development model session cannot run the setup harness."
+
+  defp humanize_error(:codex_session_not_available),
+    do: "The local Codex session is unavailable or expired. Sign in again before retrying setup."
+
+  defp humanize_error(:claude_session_not_available),
+    do: "The local Claude session is unavailable or expired. Sign in again before retrying setup."
+
+  defp humanize_error(:setup_session_requires_local_repository),
+    do: "Local development sessions can only set up repositories seeded on this machine."
 
   defp humanize_error(:setup_harness_failed),
     do: "The setup harness encountered an error and could not complete."
@@ -771,13 +794,24 @@ defmodule Glossia.Projects.Setup do
   defp humanize_error(reason) when is_binary(reason), do: reason
   defp humanize_error(reason), do: inspect(reason)
 
-  defp setup_harness_config do
+  defp setup_harness_config(account, project) do
     config = Application.get_env(:glossia, __MODULE__, [])
+
+    {account_credential, credential_error} =
+      case Credentials.setup_harness_credential(account) do
+        {:ok, credential} -> {credential, nil}
+        {:error, {:model_not_found, _handle}} -> {nil, :setup_model_not_configured}
+        {:error, reason} -> {nil, reason}
+      end
+
     minimax_api_key = Keyword.get(config, :minimax_api_key)
     configured_model = Keyword.get(config, :harness_model) || Keyword.get(config, :model)
 
     model =
       cond do
+        account_credential ->
+          account_credential.model
+
         is_binary(configured_model) and configured_model != "" and
           is_binary(minimax_api_key) and minimax_api_key != "" and
             not String.contains?(configured_model, "/") ->
@@ -793,22 +827,60 @@ defmodule Glossia.Projects.Setup do
           nil
       end
 
-    opencode_config = setup_opencode_config(config, minimax_api_key, model)
+    opencode_config =
+      if account_credential,
+        do: account_credential.opencode_config,
+        else: setup_opencode_config(config, minimax_api_key, model)
 
-    if harness_model_configured?(model, opencode_config) do
-      {:ok,
-       %{
-         name: to_string(Keyword.get(config, :harness, "opencode")),
-         command: Keyword.get(config, :harness_command, "opencode"),
-         model: model,
-         agent: Keyword.get(config, :harness_agent),
-         pure: Keyword.get(config, :harness_pure, true),
-         env: normalize_harness_env(Keyword.get(config, :harness_env, %{})),
-         opencode_config: opencode_config,
-         context: setup_harness_context(config)
-       }}
-    else
-      {:error, :setup_model_not_configured}
+    cond do
+      not harness_model_configured?(model, opencode_config) ->
+        {:error, credential_error || :setup_model_not_configured}
+
+      account_credential && account_credential.source in [:codex_session, :claude_session] &&
+          is_nil(local_clone_url(project)) ->
+        {:error, :setup_session_requires_local_repository}
+
+      true ->
+        harness_name =
+          if(account_credential,
+            do: Map.get(account_credential, :harness),
+            else: nil
+          ) || to_string(Keyword.get(config, :harness, "opencode"))
+
+        harness_command =
+          if(account_credential,
+            do: Map.get(account_credential, :command),
+            else: nil
+          ) || Keyword.get(config, :harness_command, "opencode")
+
+        {:ok,
+         %{
+           name: harness_name,
+           command: harness_command,
+           model: model,
+           agent: Keyword.get(config, :harness_agent),
+           pure: Keyword.get(config, :harness_pure, true),
+           env: normalize_harness_env(Keyword.get(config, :harness_env, %{})),
+           opencode_config: opencode_config,
+           opencode_auth: if(account_credential, do: account_credential.opencode_auth, else: %{}),
+           codex_auth:
+             if(account_credential, do: Map.get(account_credential, :codex_auth, %{}), else: %{}),
+           claude_auth:
+             if(account_credential, do: Map.get(account_credential, :claude_auth, %{}), else: %{}),
+           context: setup_harness_context(config)
+         }}
+    end
+  end
+
+  defp local_clone_url(project) do
+    config = Application.get_env(:glossia, __MODULE__, [])
+    host_dir = Keyword.get(config, :local_remotes_dir)
+    guest_dir = Keyword.get(config, :local_remotes_guest_dir)
+    full_name = project.github_repo_full_name
+
+    if is_binary(host_dir) and is_binary(guest_dir) and is_binary(full_name) and
+         File.dir?(Path.join(host_dir, full_name)) do
+      "file://" <> Path.join(guest_dir, full_name)
     end
   end
 

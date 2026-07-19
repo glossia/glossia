@@ -80,9 +80,10 @@ defmodule Glossia.Translations.RepositoryRun do
     source_content = File.read!(item.source_abs)
     provider = provider_of(item.model)
 
-    hash =
-      Locks.build_hash(
+    hash_state =
+      Locks.build_hash_state(
         item.format,
+        item.source_path,
         source_content,
         provider,
         item.model || "",
@@ -97,14 +98,14 @@ defmodule Glossia.Translations.RepositoryRun do
 
     lock = Locks.read_lock(repo_path, item.source_path, item.locale)
 
-    if Locks.stale?(lock, hash, item.output_path, current_output_hash) do
-      translate_item(session, account, repo_path, item, index, total, provider, hash)
+    if Locks.stale?(lock, hash_state.hash, item.output_path, current_output_hash) do
+      translate_item(session, account, repo_path, item, index, total, provider, hash_state)
     else
       broadcast(session, %{type: "item_skipped", index: index, output_path: item.output_path})
     end
   end
 
-  defp translate_item(session, account, repo_path, item, index, total, provider, hash) do
+  defp translate_item(session, account, repo_path, item, index, total, provider, hash_state) do
     broadcast(session, %{
       type: "item_started",
       index: index,
@@ -135,7 +136,7 @@ defmodule Glossia.Translations.RepositoryRun do
     case Engine.apply_item(item, account, on_event, validate) do
       {:ok, result} ->
         write_output(item, result.text)
-        write_lock(repo_path, item, provider, hash, result.text)
+        write_lock(repo_path, item, provider, hash_state, result.text)
         broadcast(session, %{type: "item_completed", index: index, output_path: item.output_path})
 
       {:error, reason} ->
@@ -153,9 +154,17 @@ defmodule Glossia.Translations.RepositoryRun do
     File.write!(item.output_abs, text)
   end
 
-  defp write_lock(repo_path, item, provider, hash, text) do
+  defp write_lock(repo_path, item, provider, hash_state, text) do
     lock =
-      Locks.build_lock(provider, item.model || "", item.source_path, item.output_path, text, hash)
+      Locks.build_lock(
+        provider,
+        item.model || "",
+        item.source_path,
+        item.output_path,
+        text,
+        hash_state.hash,
+        hash_state.tree
+      )
 
     Locks.write_lock(repo_path, item.source_path, item.locale, lock)
   end
@@ -230,8 +239,14 @@ defmodule Glossia.Translations.RepositoryRun do
            timeout: @clone_timeout_ms
          ) do
       {_output, 0} ->
-        checkout_commit(dir, repository[:commit_sha])
-        {:ok, dir}
+        case checkout_commit(dir, repository[:commit_sha]) do
+          :ok ->
+            {:ok, dir}
+
+          {:error, _reason} = error ->
+            File.rm_rf(dir)
+            error
+        end
 
       {output, _code} ->
         {:error, {:clone_failed, String.trim(output)}}
@@ -263,8 +278,10 @@ defmodule Glossia.Translations.RepositoryRun do
 
   defp checkout_commit(dir, sha) do
     # Same reasoning as `collect_changes/1`: short-lived, chatty, no timeout.
-    System.cmd("git", ["-C", dir, "checkout", sha], stderr_to_stdout: true, into: "")
-    :ok
+    case System.cmd("git", ["-C", dir, "checkout", sha], stderr_to_stdout: true, into: "") do
+      {_output, 0} -> :ok
+      {output, code} -> {:error, {:checkout_failed, sha, code, String.trim(output)}}
+    end
   end
 
   # ── helpers ─────────────────────────────────────────────────────────────

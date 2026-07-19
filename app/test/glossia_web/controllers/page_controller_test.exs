@@ -39,7 +39,7 @@ defmodule GlossiaWeb.PageControllerTest do
 
   test "GET /docs/:category/:slug.md exposes raw markdown", %{conn: conn} do
     conn = get(conn, "/docs/tutorials/getting-started.md")
-    assert response(conn, 200) =~ "This tutorial walks you through installing Glossia"
+    assert response(conn, 200) =~ "This tutorial connects a GitHub repository to Glossia"
   end
 
   test "GET /sitemap.xml exposes the sitemap", %{conn: conn} do

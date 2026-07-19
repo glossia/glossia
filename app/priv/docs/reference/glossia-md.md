@@ -1,91 +1,138 @@
 %{
   title: "GLOSSIA.md",
-  summary: "Complete reference for the GLOSSIA.md configuration file.",
+  summary: "Reference for repository translation settings and context.",
   category: "reference",
   order: 1
 }
 ---
 
-`GLOSSIA.md` is the configuration file that tells Glossia what to translate, which target locales to generate, and which context should guide the translation. It lives at the root of your repository or in subdirectories when you need scoped context.
+`GLOSSIA.md` tells Glossia which files to translate, where translated files belong, which languages to target, and what context should guide the result. A repository can have a root file and additional scoped files in subdirectories.
 
 ## Structure
 
-A `GLOSSIA.md` file has two parts:
+Each file has two parts:
 
-1. **YAML frontmatter** between `---` markers for machine-readable settings.
-2. **Markdown context** below the frontmatter for translators and agents.
+1. [YAML Ain't Markup Language](https://yaml.org/) frontmatter between `---` markers.
+2. Markdown below the frontmatter with product, audience, voice, or domain context.
 
 ```yaml
 ---
 source_language: en
-model: gpt-5
-validation:
-  - ./scripts/validate-docs.sh
-  - --strict
-
+model: translation-default
 sources:
-  "docs/**/*.md": "docs/i18n/{locale}/**"
-  "locales/**/*.json": "locales/{locale}/**"
+  "docs/**/*.md": "docs/i18n/{locale}/{relpath}"
 targets:
   - es
   - ja
-  - de
+validation:
+  - ./scripts/validate-docs.sh
+  - --strict
 frontmatter: preserve
 preserve:
   - placeholders
   - urls
 ---
 
-Project context for translators goes here.
+Write for software developers. Keep product names and code samples unchanged.
 ```
 
-Provider, endpoint, and API key settings live in local `glossia.toml` instead of `GLOSSIA.md`:
+Provider credentials belong in account settings, never in `GLOSSIA.md`. The optional `model` value is an account model handle.
 
-```toml
-[llm]
-provider = "openai"
-api_key_env = "OPENAI_API_KEY"
-```
-
-## Frontmatter Fields
+## Frontmatter fields
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `source_language` | string | yes | Source locale for the files in this scope. |
-| `model` | string | yes | Model identifier, optionally qualified as `provider/model`. |
-| `sources` | map or list | yes | Source globs, optionally mapped to output path templates. |
-| `targets` | list or map | yes | Target locale codes. |
-| `validation` | list | no | Command argv used to validate generated output. |
+| `source_language` | string | no | Source locale for this scope. Defaults to `en`. |
+| `model` | string | no | Account model handle. Glossia uses the account default when omitted. |
+| `sources` | map or list | for a top-level rule | Source file patterns. Map values can define output templates. |
+| `targets` | map or list | when sources are configured | Target locale codes. A map can associate a locale code with a language name. |
+| `output` | string | when no source mapping or `target_path` supplies a destination | Output file template. |
+| `target_path` | string | when no source mapping or `output` supplies a destination | Base directory template for translated files. |
+| `translate` | list | no | Multiple translation rules, each with its own sources and optional overrides. |
+| `exclude` | list | no | File patterns to skip. |
+| `preserve` | list | no | Content kinds that must remain unchanged, such as placeholders or uniform resource locators. |
 | `frontmatter` | string | no | `preserve` by default, or `translate`. |
-| `preserve` | list | no | Elements to preserve, such as placeholders or URLs. |
-| `exclude` | list | no | Glob patterns to skip. |
-| `retries` | integer | no | Retry count for validation failures. |
+| `prompt` | string | no | Additional guidance for this scope or rule. |
+| `validation` | list | no | A validation command followed by its arguments. |
+| `check_cmd` | string | no | A check command available to the translation workflow. |
+| `check_cmds` | map | no | Named check commands available to the translation workflow. |
+| `retries` | integer | no | Number of retry attempts after a failed check. Defaults to `2`. |
+| `locale` | string | no | Locale attached to a locale-specific context file. |
 
-## Source Mappings
+Unknown frontmatter fields are ignored.
 
-When `sources` is a map, each key is a source glob and each value is an output path template:
+## Source mappings
+
+The clearest form maps every source pattern to an output template:
 
 ```yaml
 sources:
-  "docs/**/*.md": "docs/i18n/{locale}/**"
+  "docs/**/*.md": "docs/i18n/{locale}/{relpath}"
+  "content/*.json": "content/{locale}/{basename}.{ext}"
 ```
 
-When `sources` is a list, Glossia uses `target_path` or rule-level output settings to resolve generated files.
+A source list is also valid, but it needs `output` or `target_path` to define the destination:
 
-## Output Path Variables
+```yaml
+sources:
+  - "docs/**/*.md"
+target_path: "docs/i18n/{locale}"
+```
 
-| Variable | Description |
+## Target languages
+
+A list uses each locale code as its language identifier:
+
+```yaml
+targets:
+  - es
+  - ja
+```
+
+A map can add a readable language name:
+
+```yaml
+targets:
+  es: Spanish
+  ja: Japanese
+```
+
+## Output variables
+
+| Variable | Value |
 |---|---|
 | `{locale}` or `{lang}` | Target locale code. |
-| `{relpath}` | Relative path of the source file. |
-| `{basename}` | Filename without extension. |
-| `{ext}` | File extension. |
+| `{relpath}` | Source path relative to the matched pattern. |
+| `{basename}` | Source filename without its extension. |
+| `{ext}` | Source file extension without the leading dot. |
 
-## Scoped Context
+## Multiple rules
 
-`GLOSSIA.md` files can exist at any depth. Glossia merges context from root to leaf:
+Use `translate` when different content groups need different destinations or checks:
 
-- Parent frontmatter provides defaults.
-- Deeper frontmatter overrides parent values.
-- Markdown bodies are concatenated as translation context.
-- Locale-specific context can live in `GLOSSIA/<locale>.md`.
+```yaml
+---
+source_language: en
+targets:
+  - es
+translate:
+  - sources:
+      - "docs/**/*.md"
+    output: "docs/i18n/{locale}/{relpath}"
+  - source: "messages/*.json"
+    output: "messages/{locale}/{basename}.{ext}"
+---
+```
+
+Rule values override values inherited from the surrounding file.
+
+## Scoped context
+
+Glossia reads `GLOSSIA.md` files from the repository root toward the source file:
+
+- Parent settings provide defaults.
+- A deeper file overrides fields for its directory.
+- Markdown context is accumulated from parent to child.
+- Locale-specific guidance can live in `GLOSSIA/<locale>.md`.
+
+This lets a repository keep broad voice guidance at the root while placing product-area or language-specific guidance close to the content it affects.
