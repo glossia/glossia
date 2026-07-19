@@ -7040,7 +7040,7 @@ defmodule GlossiaWeb.DashboardLive do
       event_kind when event_kind in ["tool_result", "tool_execution_end"] ->
         if setup_event_failed?(content),
           do: gettext("The setup assistant could not complete this step."),
-          else: first_line(content)
+          else: gettext("The setup assistant completed this step.")
 
       _ ->
         first_line(content)
@@ -7209,7 +7209,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       <div data-part="wizard-progress">
         <Noora.ProgressBar.progress_bar
-          value={wizard_step_progress(@step)}
+          value={wizard_step_progress(@step, @wizard_project, @setup_events)}
           max={100}
           title={wizard_step_title(@step)}
         />
@@ -7514,10 +7514,17 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  defp wizard_step_progress("repo"), do: 33
-  defp wizard_step_progress("languages"), do: 66
-  defp wizard_step_progress("setup"), do: 100
-  defp wizard_step_progress(_), do: 0
+  defp wizard_step_progress("repo", _project, _events), do: 33
+  defp wizard_step_progress("languages", _project, _events), do: 66
+
+  defp wizard_step_progress("setup", project, events) do
+    setup_progress(project_setup_status_value(project), events)
+  end
+
+  defp wizard_step_progress(_, _project, _events), do: 0
+
+  defp project_setup_status_value(%{setup_status: status}), do: status
+  defp project_setup_status_value(_), do: "pending"
 
   defp wizard_step_title("repo"), do: gettext("Step 1 of 3: Repository")
   defp wizard_step_title("languages"), do: gettext("Step 2 of 3: Languages")

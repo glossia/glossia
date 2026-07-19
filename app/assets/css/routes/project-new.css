@@ -13,6 +13,23 @@
     width: 100%;
   }
 
+  & #languages table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  & #languages th:nth-child(1),
+  & #languages td:nth-child(1) { width: 44%; }
+
+  & #languages th:nth-child(2),
+  & #languages td:nth-child(2) { width: 16%; }
+
+  & #languages th:nth-child(3),
+  & #languages td:nth-child(3) { width: 24%; }
+
+  & #languages th:nth-child(4),
+  & #languages td:nth-child(4) { width: 16%; }
+
   & .wizard-footer {
     display: flex;
     justify-content: flex-end;
