@@ -4,6 +4,9 @@ kind: ExternalSecret
 metadata:
   name: {{ .Values.externalSecrets.objectStorage.secretName }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   labels:
     {{- include "observability.labels" . | nindent 4 }}
 spec:
