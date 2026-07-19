@@ -6970,7 +6970,8 @@ defmodule GlossiaWeb.DashboardLive do
       "message_update",
       "thought",
       "update",
-      "plan"
+      "plan",
+      "harness_output"
     ] or
       (content == "" and event_type == "status") or
       (event_type == "status" and setup_internal_status?(content))
@@ -7023,6 +7024,9 @@ defmodule GlossiaWeb.DashboardLive do
       "status" ->
         gettext("The setup assistant is continuing with the repository setup.")
 
+      event_kind when event_kind in ["harness_output", "warning"] ->
+        gettext("The setup assistant is continuing with the repository setup.")
+
       _ ->
         first_line(content)
     end
@@ -7054,7 +7058,16 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp setup_event_body(_event_type, ""), do: ""
 
-  defp setup_event_body(event_type, _content) when event_type in ["prompt", "status"], do: ""
+  defp setup_event_body(event_type, _content)
+       when event_type in [
+              "prompt",
+              "status",
+              "harness_output",
+              "warning",
+              "tool_result",
+              "tool_execution_end"
+            ],
+       do: ""
 
   defp setup_event_body(_event_type, content) do
     case JSON.decode(content) do
@@ -7071,7 +7084,13 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp tool_name_or_fallback(""), do: gettext("repository setup")
-  defp tool_name_or_fallback(tool_name), do: tool_name
+
+  defp tool_name_or_fallback(tool_name) do
+    tool_name
+    |> String.replace("command_execution", "command")
+    |> String.replace("file_change", "file change")
+    |> String.replace("_", " ")
+  end
 
   defp setup_progress("completed", _events), do: 100
 

@@ -11,11 +11,12 @@
 
   & .setup-event-row {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: var(--space-3);
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--space-2);
     align-items: start;
     padding: var(--space-3) 0;
     border-bottom: var(--border);
+    font: var(--noora-font-body-small);
   }
 
   & .setup-event-row:last-child {
@@ -34,11 +35,13 @@
   }
 
   & .setup-event-row-title {
-    font-weight: 600;
+    font: var(--noora-font-body-small);
+    font-weight: var(--noora-font-weight-semibold);
   }
 
   & .setup-event-row-description {
     margin: var(--space-1) 0 0;
+    font: var(--noora-font-body-small);
     color: var(--color-muted);
   }
 
