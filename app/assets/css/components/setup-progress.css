@@ -44,5 +44,22 @@
 
   & .setup-event-row-body {
     margin-top: var(--space-2);
+    font: var(--noora-font-body-small);
+    color: var(--noora-font-color-secondary);
+  }
+
+  & .setup-event-row-body :is(h1, h2, h3, h4) {
+    margin: var(--space-2) 0 var(--space-1);
+    font: var(--noora-font-body-medium);
+    font-weight: var(--noora-font-weight-semibold);
+  }
+
+  & .setup-event-row-body :is(p, ul, ol) {
+    margin: var(--space-1) 0;
+  }
+
+  & .setup-event-row-body ul,
+  & .setup-event-row-body ol {
+    padding-inline-start: var(--space-4);
   }
 }

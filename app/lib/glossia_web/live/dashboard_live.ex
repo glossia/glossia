@@ -7093,18 +7093,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp setup_progress_title("completed", _events), do: gettext("Setup complete")
   defp setup_progress_title("failed", _events), do: gettext("Setup stopped")
 
-  defp setup_progress_title("running", events) do
-    Enum.find_value(Enum.reverse(events), gettext("Preparing the repository"), fn event ->
-      event_type = Map.get(event, :event_type, "")
-      content = (Map.get(event, :content, "") || "") |> to_string()
-
-      if skip_setup_event?(event_type, content) or content == "" do
-        nil
-      else
-        setup_event_description(event_type, content, "")
-      end
-    end)
-  end
+  defp setup_progress_title("running", _events), do: gettext("Working through setup")
 
   defp setup_progress_title(_status, _events), do: gettext("Preparing setup")
 
