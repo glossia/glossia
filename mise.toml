@@ -16,6 +16,8 @@ infisical = "latest"
 ruby = "3.4.7"
 git-cliff = "2.10.0"
 "github:superradcompany/microsandbox" = "0.6.6"
+clickhouse = "26.3.9.8-lts"
+pitchfork = "2.6.0"
 
 [env]
 _.file = ".env"
@@ -29,3 +31,15 @@ image="glossia-local:${GLOSSIA_DEV_INSTANCE:-dev}"
 docker build --build-context cli=./cli -f app/Dockerfile -t "$image" app
 docker save "$image" | msb image load --tag "$image"
 """
+
+[tasks."clickhouse:start"]
+description = "Start the local ClickHouse server used by Glossia"
+run = "./mise/tasks/clickhouse/start.sh"
+
+[tasks."clickhouse:stop"]
+description = "Stop the local ClickHouse server used by Glossia"
+run = "./mise/tasks/clickhouse/stop.sh"
+
+[tasks.install]
+description = "Install dependencies and initialize PostgreSQL, ClickHouse, and seeds"
+run = "./mise/tasks/install.sh"

@@ -60,9 +60,22 @@ mise exec -- glossia translate
 
 ```bash
 cd app
-mix setup
+mise run install
 mix phx.server
 ```
+
+The install task starts the local PostgreSQL and ClickHouse services, creates
+and migrates both repositories, and seeds representative development data.
+ClickHouse is managed by [Pitchfork](https://pitchfork.jdx.dev/) and keeps its
+runtime state under `.pitchfork/` for this checkout. To have it start when you
+enter the repository and stop when you leave, add the Pitchfork shell hook:
+
+```bash
+eval "$(pitchfork activate zsh)"
+```
+
+You can also manage it explicitly with `mise run clickhouse:start` and
+`mise run clickhouse:stop`.
 
 ### Command Line Interface Development
 
