@@ -60,6 +60,25 @@ defmodule Glossia.Translations.CredentialsSessionTest do
       File.write!(tokenless, Jason.encode!(%{"tokens" => %{}}))
       assert Credentials.codex_session(tokenless) == nil
     end
+
+    @tag :tmp_dir
+    test "returns nil for an expired token", %{tmp_dir: dir} do
+      path = Path.join(dir, "auth.json")
+      File.write!(path, Jason.encode!(%{"tokens" => %{"access_token" => expired_jwt()}}))
+
+      assert Credentials.codex_session(path) == nil
+    end
+  end
+
+  # A JWT whose `exp` claim is in the past. The signature is irrelevant here;
+  # only the base64url payload is decoded to read the expiry.
+  defp expired_jwt do
+    payload =
+      %{"exp" => System.system_time(:second) - 3_600}
+      |> JSON.encode!()
+      |> Base.url_encode64(padding: false)
+
+    "header.#{payload}.signature"
   end
 
   describe "claude_cli_session/2" do

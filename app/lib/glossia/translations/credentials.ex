@@ -162,7 +162,8 @@ defmodule Glossia.Translations.Credentials do
   """
   def codex_session(path) when is_binary(path) do
     with {:ok, %{"tokens" => %{"access_token" => token}}} <- read_codex_auth(path),
-         true <- present?(token) do
+         true <- present?(token),
+         true <- not_expired?(token_expiry_ms(token)) do
       %{model: local_model("openai:gpt-5"), auth: {:oauth, token}, source: :codex_session}
     else
       _ -> nil
