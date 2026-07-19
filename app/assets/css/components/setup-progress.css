@@ -8,4 +8,41 @@
     display: grid;
     gap: var(--space-2);
   }
+
+  & .setup-event-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: start;
+    padding: var(--space-3) 0;
+    border-bottom: var(--border);
+  }
+
+  & .setup-event-row:last-child {
+    border-bottom: 0;
+  }
+
+  & .setup-event-row-content {
+    min-width: 0;
+  }
+
+  & .setup-event-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  & .setup-event-row-title {
+    font-weight: 600;
+  }
+
+  & .setup-event-row-description {
+    margin: var(--space-1) 0 0;
+    color: var(--color-muted);
+  }
+
+  & .setup-event-row-body {
+    margin-top: var(--space-2);
+  }
 }

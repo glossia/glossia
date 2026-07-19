@@ -3401,16 +3401,6 @@ defmodule GlossiaWeb.DashboardLive do
             <Noora.Table.text_cell label={gettext("Not connected")} />
           <% end %>
         </:col>
-        <:col :let={project} label={gettext("Status")}>
-          <%= if project.setup_status do %>
-            <Noora.Table.status_badge_cell
-              status={project_setup_status(project.setup_status)}
-              label={project_setup_status_label(project.setup_status)}
-            />
-          <% else %>
-            <Noora.Table.status_badge_cell status="disabled" label={gettext("Not started")} />
-          <% end %>
-        </:col>
         <:col
           :let={project}
           label={gettext("Created")}
@@ -6810,26 +6800,32 @@ defmodule GlossiaWeb.DashboardLive do
         |> assign(:status, setup_event_status(event_type))
         |> assign(:title, setup_event_title(event_type, tool_name))
         |> assign(:description, setup_event_description(event_type, content, tool_name))
+        |> assign(:body_html, setup_event_body_html(event_type, content))
 
       ~H"""
-      <Noora.Alert.alert
-        type="secondary"
-        status={@status}
-        size="large"
-        title={@title}
-        description={@description}
-      >
-        <:action :if={@event_type == "pr_created"}>
-          <Noora.Button.button
-            href={@content}
-            label={gettext("Open pull request")}
-            variant="secondary"
-            size="small"
-            target="_blank"
-            rel="noopener noreferrer"
-          />
-        </:action>
-      </Noora.Alert.alert>
+      <div class="setup-event-row" data-status={@status}>
+        <Noora.Badge.status_badge
+          status={setup_event_badge_status(@status)}
+          label={setup_event_status_label(@status)}
+          type="dot"
+        />
+        <div class="setup-event-row-content">
+          <div class="setup-event-row-header">
+            <span class="setup-event-row-title">{@title}</span>
+            <Noora.Button.button
+              :if={@event_type == "pr_created"}
+              href={@content}
+              label={gettext("Open pull request")}
+              variant="secondary"
+              size="small"
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          </div>
+          <p :if={@description != ""} class="setup-event-row-description">{@description}</p>
+          <div :if={@body_html != ""} class="setup-event-row-body prose">{raw(@body_html)}</div>
+        </div>
+      </div>
       """
     end
   end
@@ -7036,7 +7032,38 @@ defmodule GlossiaWeb.DashboardLive do
       "error" -> "error"
       "pr_created" -> "success"
       event_kind when event_kind in ["tool_result", "tool_execution_end"] -> "success"
+      "warning" -> "warning"
       _ -> "information"
+    end
+  end
+
+  defp setup_event_status_label("success"), do: gettext("Done")
+  defp setup_event_status_label("error"), do: gettext("Error")
+  defp setup_event_status_label("warning"), do: gettext("Warning")
+  defp setup_event_status_label(_), do: gettext("Update")
+
+  defp setup_event_badge_status("information"), do: "in_progress"
+  defp setup_event_badge_status(status), do: status
+
+  defp setup_event_body_html(event_type, content) do
+    body = setup_event_body(event_type, content)
+
+    if body == "", do: "", else: Glossia.Markdown.to_html!(body)
+  end
+
+  defp setup_event_body(_event_type, ""), do: ""
+
+  defp setup_event_body(_event_type, content) do
+    case JSON.decode(content) do
+      {:ok, %{"type" => "item.started", "item" => %{"type" => "todo_list", "items" => items}}}
+      when is_list(items) ->
+        Enum.map_join(items, "\n", fn item ->
+          checked = if item["completed"], do: "x", else: " "
+          "- [#{checked}] #{item["text"]}"
+        end)
+
+      _ ->
+        content
     end
   end
 
