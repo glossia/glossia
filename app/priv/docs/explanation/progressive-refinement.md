@@ -6,7 +6,7 @@
 }
 ---
 
-First drafts from LLMs are structurally correct but may miss nuance, tone, or domain-specific phrasing. That is by design. Glossia treats content generation the same way software teams treat code: ship a working version, review it, and improve iteratively.
+First drafts from [large language models](https://en.wikipedia.org/wiki/Large_language_model) are structurally correct but may miss nuance, tone, or domain-specific phrasing. That is by design. Glossia treats content generation the same way software teams treat code: ship a working version, review it, and improve iteratively.
 
 ## The refinement loop
 

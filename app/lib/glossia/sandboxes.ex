@@ -48,6 +48,9 @@ defmodule Glossia.Sandboxes do
   def get_sandbox_by_id(_), do: nil
 
   def create_sandbox(%Account{} = account, project \\ nil, attrs \\ %{}, opts \\ []) do
+    adapter = Keyword.get(opts, :adapter, Glossia.Sandbox.adapter())
+    attrs = put_backend(attrs, adapter)
+
     with :ok <- ensure_enabled(),
          :ok <- ensure_project_owner(account, project),
          {:ok, sandbox} <- reserve_sandbox(account, project, attrs) do
@@ -56,7 +59,7 @@ defmodule Glossia.Sandboxes do
   end
 
   def destroy_sandbox(%Sandbox{} = sandbox, opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, Glossia.Sandbox.adapter())
+    adapter = Keyword.get(opts, :adapter, adapter_for_backend(sandbox.backend))
     reason = Keyword.get(opts, :reason, "destroyed")
 
     cond do
@@ -92,7 +95,7 @@ defmodule Glossia.Sandboxes do
 
   def execute_sandbox(%Sandbox{status: "ready"} = sandbox, command, opts)
       when is_binary(command) do
-    adapter = Keyword.get(opts, :adapter, Glossia.Sandbox.adapter())
+    adapter = Keyword.get(opts, :adapter, adapter_for_backend(sandbox.backend))
 
     with {:ok, opts} <- normalize_execute_opts(Keyword.drop(opts, [:adapter])) do
       adapter.execute(to_string(sandbox.id), command, opts)
@@ -108,7 +111,7 @@ defmodule Glossia.Sandboxes do
   end
 
   def read_file(%Sandbox{status: "ready"} = sandbox, path, opts) when is_binary(path) do
-    adapter = Keyword.get(opts, :adapter, Glossia.Sandbox.adapter())
+    adapter = Keyword.get(opts, :adapter, adapter_for_backend(sandbox.backend))
     adapter.download_file(to_string(sandbox.id), path)
   end
 
@@ -122,7 +125,7 @@ defmodule Glossia.Sandboxes do
 
   def write_file(%Sandbox{status: "ready"} = sandbox, path, content, opts)
       when is_binary(path) and is_binary(content) do
-    adapter = Keyword.get(opts, :adapter, Glossia.Sandbox.adapter())
+    adapter = Keyword.get(opts, :adapter, adapter_for_backend(sandbox.backend))
     adapter.upload_file(to_string(sandbox.id), path, content)
   end
 
@@ -135,7 +138,7 @@ defmodule Glossia.Sandboxes do
   end
 
   def delete_file(%Sandbox{status: "ready"} = sandbox, path, opts) when is_binary(path) do
-    adapter = Keyword.get(opts, :adapter, Glossia.Sandbox.adapter())
+    adapter = Keyword.get(opts, :adapter, adapter_for_backend(sandbox.backend))
     adapter.delete_file(to_string(sandbox.id), path)
   end
 
@@ -352,6 +355,22 @@ defmodule Glossia.Sandboxes do
       "project_id" => project && project.id
     }
   end
+
+  defp put_backend(attrs, adapter) do
+    if Map.has_key?(attrs, :backend) or Map.has_key?(attrs, "backend") do
+      attrs
+    else
+      backend =
+        if adapter == Glossia.Sandbox.MicrosandboxAdapter,
+          do: "microsandbox",
+          else: "flame"
+
+      Map.put(attrs, :backend, backend)
+    end
+  end
+
+  defp adapter_for_backend("microsandbox"), do: Glossia.Sandbox.MicrosandboxAdapter
+  defp adapter_for_backend(_backend), do: Glossia.Sandbox.ClusterAdapter
 
   defp ensure_enabled do
     if configured(:enabled, true), do: :ok, else: {:error, :sandboxes_disabled}

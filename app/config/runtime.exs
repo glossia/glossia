@@ -1,8 +1,10 @@
 import Config
 
-flame_child? = not is_nil(FLAME.Parent.get())
-
 truthy? = fn value -> value in ["true", "1"] end
+
+flame_child? = not is_nil(FLAME.Parent.get())
+isolated_child? = truthy?.(System.get_env("GLOSSIA_ISOLATED_CHILD"))
+runner_child? = flame_child? or isolated_child?
 
 json_env = fn name, default ->
   case System.get_env(name) do
@@ -76,10 +78,17 @@ config :glossia, :flame,
   ]
 
 sandbox_adapter =
-  case System.get_env("GLOSSIA_SANDBOX_ADAPTER") || "cluster" do
+  case System.get_env("GLOSSIA_SANDBOX_ADAPTER") ||
+         if(config_env() == :dev, do: "microsandbox", else: "cluster") do
     "cluster" -> Glossia.Sandbox.ClusterAdapter
     "microsandbox" -> Glossia.Sandbox.MicrosandboxAdapter
     value -> raise "unsupported GLOSSIA_SANDBOX_ADAPTER=#{inspect(value)}"
+  end
+
+microsandbox_image_default =
+  case {config_env(), System.get_env("GLOSSIA_DEV_INSTANCE")} do
+    {:dev, instance} when is_binary(instance) and instance != "" -> "glossia-local:#{instance}"
+    _ -> "glossia-local:dev"
   end
 
 config :glossia, Glossia.Sandbox,
@@ -93,6 +102,8 @@ config :glossia, Glossia.Sandbox,
     String.to_integer(System.get_env("GLOSSIA_SANDBOX_COMMAND_TIMEOUT_MS") || "120000"),
   output_limit_bytes:
     String.to_integer(System.get_env("GLOSSIA_SANDBOX_OUTPUT_LIMIT_BYTES") || "256000"),
+  file_transfer_limit_bytes:
+    String.to_integer(System.get_env("GLOSSIA_SANDBOX_FILE_TRANSFER_LIMIT_BYTES") || "16777216"),
   reaper_enabled:
     System.get_env(
       "GLOSSIA_SANDBOX_REAPER_ENABLED",
@@ -102,10 +113,26 @@ config :glossia, Glossia.Sandbox,
     String.to_integer(System.get_env("GLOSSIA_SANDBOX_REAPER_INTERVAL_MS") || "60000"),
   delete_retry_after_ms:
     String.to_integer(System.get_env("GLOSSIA_SANDBOX_DELETE_RETRY_AFTER_MS") || "60000"),
-  microsandbox_image: System.get_env("GLOSSIA_MICROSANDBOX_IMAGE") || "node:22-bookworm",
-  microsandbox_repo_path: System.get_env("GLOSSIA_MICROSANDBOX_REPO_PATH") || "/home/user/repo"
+  microsandbox_command: System.get_env("GLOSSIA_MICROSANDBOX_COMMAND") || "msb",
+  microsandbox_image: System.get_env("GLOSSIA_MICROSANDBOX_IMAGE") || microsandbox_image_default,
+  microsandbox_cpus: String.to_integer(System.get_env("GLOSSIA_MICROSANDBOX_CPUS") || "2"),
+  microsandbox_memory: System.get_env("GLOSSIA_MICROSANDBOX_MEMORY") || "2G",
+  microsandbox_repo_path: System.get_env("GLOSSIA_MICROSANDBOX_REPO_PATH") || "/tmp/glossia/repo",
+  microsandbox_mounts:
+    if(config_env() == :dev,
+      do: [
+        %{
+          source: Path.expand("../tmp/dev-remotes", __DIR__),
+          destination: "/mnt/glossia-remotes",
+          read_only: true
+        }
+      ],
+      else: []
+    )
 
 config :glossia, Glossia.Projects.Setup,
+  harness_timeout_ms:
+    String.to_integer(System.get_env("GLOSSIA_SETUP_HARNESS_TIMEOUT_MS") || "660000"),
   harness: System.get_env("GLOSSIA_SETUP_HARNESS") || "opencode",
   harness_command: System.get_env("GLOSSIA_SETUP_HARNESS_COMMAND") || "opencode",
   harness_model: System.get_env("GLOSSIA_SETUP_HARNESS_MODEL"),
@@ -116,7 +143,9 @@ config :glossia, Glossia.Projects.Setup,
   opencode_config: json_env.("GLOSSIA_SETUP_OPENCODE_CONFIG_JSON", %{}),
   minimax_api_key:
     System.get_env("GLOSSIA_SETUP_MINIMAX_API_KEY") || System.get_env("MINIMAX_API_KEY"),
-  model: System.get_env("GLOSSIA_SETUP_MODEL")
+  model: System.get_env("GLOSSIA_SETUP_MODEL"),
+  local_remotes_dir: if(config_env() == :dev, do: Path.expand("../tmp/dev-remotes", __DIR__)),
+  local_remotes_guest_dir: if(config_env() == :dev, do: "/mnt/glossia-remotes")
 
 # Translation LLM credential. Precedence at resolve time: the account's own model
 # key, then this globally configured inference provider (token + URL), then — in
@@ -148,7 +177,7 @@ config :glossia, Glossia.Translations,
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
-if not flame_child? and (System.get_env("GLOSSIA_PHX_SERVER") || System.get_env("PHX_SERVER")) do
+if not runner_child? and (System.get_env("GLOSSIA_PHX_SERVER") || System.get_env("PHX_SERVER")) do
   config :glossia, GlossiaWeb.Endpoint, server: true
 end
 
@@ -297,7 +326,7 @@ if is_binary(encryption_key) and encryption_key != "" do
     ]
 end
 
-if config_env() == :prod and not flame_child? do
+if config_env() == :prod and not runner_child? do
   database_url =
     System.get_env("GLOSSIA_DATABASE_URL") ||
       raise """
@@ -318,7 +347,7 @@ if config_env() == :prod and not flame_child? do
   otel_exporter_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT")
   enable_otel_exporter = is_binary(otel_exporter_endpoint) and otel_exporter_endpoint != ""
 
-  if not flame_child? do
+  if not runner_child? do
     metrics_bearer_token =
       System.get_env("GLOSSIA_METRICS_BEARER_TOKEN") ||
         raise """
@@ -339,7 +368,7 @@ if config_env() == :prod and not flame_child? do
       password: ops_auth_password
   end
 
-  default_otel_service_name = if flame_child?, do: "glossia-runner", else: "glossia-web"
+  default_otel_service_name = if runner_child?, do: "glossia-runner", else: "glossia-web"
   otel_service_name = System.get_env("OTEL_SERVICE_NAME", default_otel_service_name)
   otel_deployment_environment = System.get_env("OTEL_DEPLOYMENT_ENVIRONMENT", "production")
   loki_url = System.get_env("GLOSSIA_LOKI_URL")
@@ -374,7 +403,7 @@ if config_env() == :prod and not flame_child? do
   end
 
   repo_pool_size =
-    if flame_child? do
+    if runner_child? do
       String.to_integer(System.get_env("GLOSSIA_FLAME_REPO_POOL_SIZE") || "1")
     else
       String.to_integer(System.get_env("GLOSSIA_POOL_SIZE") || "10")
@@ -393,7 +422,7 @@ if config_env() == :prod and not flame_child? do
       """
 
   clickhouse_pool_size =
-    if flame_child? do
+    if runner_child? do
       String.to_integer(System.get_env("GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE") || "1")
     else
       String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_POOL_SIZE") || "5")

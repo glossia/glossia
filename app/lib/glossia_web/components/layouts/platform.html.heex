@@ -258,7 +258,7 @@
               selected={@live_action in [:api_apps, :api_apps_new, :api_app_edit]}
             />
             <.sidebar_item
-              label={gettext("LLMs")}
+              label={gettext("Models")}
               icon="api"
               navigate={~p"/#{@handle}/-/settings/models"}
               selected={@live_action in [:llm_models, :llm_model_new, :llm_model_edit]}

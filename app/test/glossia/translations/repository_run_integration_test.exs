@@ -79,6 +79,11 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert {:ok, lock} = Jason.decode(File.read!(lock_path))
     assert lock["output_path"] == "docs/i18n/es/guide.md"
 
+    assert %{"root" => %{"kind" => "translation_input", "children" => children}} =
+             lock["hash_tree"]
+
+    assert Enum.map(children, & &1["kind"]) == ["source", "translation_config", "context_bundle"]
+
     # Change list ready for the PR builder.
     paths = changes |> Enum.map(& &1.path) |> Enum.sort()
     assert "docs/i18n/es/guide.md" in paths

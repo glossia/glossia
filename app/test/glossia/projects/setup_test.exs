@@ -191,7 +191,7 @@ defmodule Glossia.Projects.SetupTest do
     assert updated.setup_sandbox_id == nil
 
     assert updated.setup_error ==
-             "The setup model is not configured. Set GLOSSIA_SETUP_MINIMAX_API_KEY, GLOSSIA_SETUP_HARNESS_MODEL, or GLOSSIA_SETUP_OPENCODE_CONFIG_JSON."
+             "The localization setup model is not configured. Configure a default model for this account before retrying setup."
 
     refute Repo.exists?(from sandbox in Sandbox, where: sandbox.project_id == ^project.id)
   end

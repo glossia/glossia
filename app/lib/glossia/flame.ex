@@ -18,7 +18,7 @@ defmodule Glossia.Flame do
   def pool_name, do: @pool_name
 
   def child? do
-    not is_nil(parent())
+    not is_nil(parent()) or System.get_env("GLOSSIA_ISOLATED_CHILD") in ["true", "1"]
   end
 
   def parent do

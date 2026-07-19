@@ -1,68 +1,66 @@
 %{
   title: "Getting started",
-  summary: "Set up Glossia in your project and run your first translation.",
+  summary: "Connect a repository and prepare its first localization setup.",
   category: "tutorials",
   order: 1
 }
 ---
 
-This tutorial walks you through installing Glossia, creating a configuration file, and running your first content translation.
+This tutorial connects a GitHub repository to Glossia, chooses its first target languages, and prepares a localization baseline for your team to review.
 
-## Prerequisites
+## Before you begin
 
-- A project with content files (Markdown,
-  [JavaScript Object Notation (JSON)](https://www.json.org/json-en.html),
-  [YAML Ain't Markup Language (YAML)](https://yaml.org/), or
-  [Portable Object (PO)](https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html))
-- An [application programming interface](https://developer.mozilla.org/en-US/docs/Glossary/API)
-  key for at least one
-  [large language model](https://en.wikipedia.org/wiki/Large_language_model)
-  provider (OpenAI, Anthropic, or Vertex AI)
+You need:
 
-## Install Glossia
+- A Glossia account where you can manage settings and projects.
+- A GitHub repository you can grant the Glossia GitHub App permission to read and update.
+- A provider key for a supported [large language model](https://en.wikipedia.org/wiki/Large_language_model).
 
-Add Glossia to `mise.toml`:
+## 1. Configure an account model
 
-```toml
-[tools."http:glossia"]
-version = "latest"
-url = 'https://releases.glossia.ai/cli/{{ version }}/glossia-{{ os(macos="darwin") }}-{{ arch() }}.{{ os(windows="zip", macos="tar.gz", linux="tar.gz") }}'
-version_list_url = "https://releases.glossia.ai/cli/versions.txt"
-checksum_url = 'https://releases.glossia.ai/cli/{{ version }}/SHA256SUMS'
-```
+Open **Settings**, then **Models**, and select **New model**.
 
-Then install it:
+1. Give the model a short handle, such as `translation-default`.
+2. Open the model picker and type part of a provider or model name to filter the list.
+3. Select the model you want Glossia to use.
+4. Enter the provider key and save the model.
 
-```bash
-mise install
-```
+The handle lets repositories refer to this account model without placing provider credentials in source control. See [Configure a model provider](/docs/how-to/configure-a-model-provider) for more detail.
 
-## Initialize your project
+## 2. Start a project
 
-Run the init command to set up a `GLOSSIA.md` configuration file:
+Return to **Projects** and select **New project**.
 
-```bash
-mise exec -- glossia init
-```
+If Glossia asks for repository access, follow the link to GitHub and grant the Glossia GitHub App access to the repository. After returning to Glossia, reopen **New project** if necessary.
 
-This writes a starter `GLOSSIA.md` at the project root and creates `glossia.toml` for local provider settings when it does not already exist.
+## 3. Choose a repository
 
-## Run your first translation
+Select the repository you want to localize. Glossia only lists repositories available through the current account's GitHub App installation.
 
-Once `GLOSSIA.md` is in place, translate your content:
+Continue to the language step.
 
-```bash
-mise exec -- glossia translate
-```
+## 4. Choose target languages
 
-Glossia reads your source files, sends them to the configured model, validates the output, and writes the translated files to the paths defined in your configuration.
+Select one or more languages that should be produced from the repository's source content, then start setup.
 
-## Check the results
+## 5. Follow setup progress
 
-Review what Glossia produced:
+Keep the setup page open while Glossia prepares the project. The progress card shows the current state and recent activity, including repository preparation, file inspection, changes, checks, and completion.
 
-```bash
-mise exec -- glossia status
-```
+You can leave the page and return to the project overview without losing the setup state. If setup fails, the same card explains what needs attention and offers **Retry setup**.
 
-This shows which files are up to date, which are stale, and which are missing.
+## 6. Review the result
+
+When setup completes, open the project overview and review the pull request created for the repository. The proposed baseline normally includes:
+
+- A root `GLOSSIA.md` file with source language, source paths, and target languages.
+- The smallest application or content changes needed to load localized files.
+- Any lightweight validation that was already available in the repository.
+
+Review and merge the pull request through your normal GitHub workflow. Future translation runs use the merged `GLOSSIA.md` context.
+
+## Next steps
+
+- [Add a new language](/docs/how-to/add-a-new-language)
+- [Understand project setup states](/docs/reference/project-setup)
+- [Learn how account models work](/docs/explanation/account-models)

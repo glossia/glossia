@@ -81,10 +81,18 @@ defmodule Glossia.Projects.SetupHarness do
       "- Prefer the repository's existing localization library, framework conventions, and file layout.",
       "- If the project has no localization setup, add a minimal one that matches its stack.",
       "",
+      "Progress updates",
+      "- Share brief, user-facing updates as you work.",
+      "- Explain what you changed or are checking in plain language.",
+      "- Never include runtime paths, environment variables, command traces, tool diagnostics, or credential details in progress updates.",
+      "",
       "Definition of done",
       "- The repository has concrete changed files, not just an explanation.",
       "- At least one Glossia context file is created or updated.",
       "- User-facing content has been extracted for localization where practical.",
+      "- Extract representative user-facing strings from the application or documentation into source-language locale files, rather than only creating empty locale scaffolding.",
+      "- Wire the application or content loader to use the source-language locale files and retain the original source behavior as the fallback.",
+      "- Do not translate target locales during setup. Translation is a separate follow-up workflow that creates target files and .glossia state.",
       "- Project configuration or application code loads the selected localized files.",
       "- Run a lightweight verification command if the repository makes one obvious.",
       "- Do not modify files outside the cloned repository.",
@@ -93,7 +101,7 @@ defmodule Glossia.Projects.SetupHarness do
     |> Enum.join("\n")
   end
 
-  def open_code_event(line) when is_binary(line) do
+  def harness_event(line) when is_binary(line) do
     trimmed = String.trim(line)
 
     if trimmed == "" do
@@ -104,7 +112,7 @@ defmodule Glossia.Projects.SetupHarness do
           event
 
         {:ok, event} when is_map(event) ->
-          map_open_code_event(event, trimmed)
+          map_harness_event(event, trimmed)
 
         _ ->
           %{
@@ -115,6 +123,9 @@ defmodule Glossia.Projects.SetupHarness do
       end
     end
   end
+
+  @doc false
+  def open_code_event(line), do: harness_event(line)
 
   defp do_run(callbacks, caller, opts) do
     repo_path = Keyword.fetch!(opts, :repo_path)
@@ -128,11 +139,11 @@ defmodule Glossia.Projects.SetupHarness do
 
     with :ok <- put_file(callbacks, output_path, ""),
          :ok <- clone_repository(callbacks, caller, repository, repo_path),
-         {:ok, env} <- configure_open_code(callbacks, repo_path, harness),
+         {:ok, env} <- configure_harness(callbacks, repo_path, harness),
          {:ok, context_path} <- write_context(callbacks, repo_path, harness),
          {:ok, poller} <- start_poller(callbacks, caller, output_path),
          :ok <-
-           run_open_code(
+           run_harness(
              callbacks,
              caller,
              repo_path,
@@ -157,7 +168,7 @@ defmodule Glossia.Projects.SetupHarness do
     full_name = get_value(repository, :full_name)
     default_branch = get_value(repository, :default_branch) || "main"
     token = get_value(repository, :token)
-    clone_url = clone_url(full_name, token)
+    clone_url = get_value(repository, :clone_url) || clone_url(full_name, token)
 
     command =
       [
@@ -185,6 +196,7 @@ defmodule Glossia.Projects.SetupHarness do
     harness_env = normalize_env(get_value(harness, :env) || %{})
     model = get_value(harness, :model)
     opencode_config = normalize_map(get_value(harness, :opencode_config) || %{})
+    opencode_auth = normalize_map(get_value(harness, :opencode_auth) || %{})
 
     opencode_config =
       if is_binary(model) and model != "" and not Map.has_key?(opencode_config, "model") do
@@ -199,17 +211,82 @@ defmodule Glossia.Projects.SetupHarness do
       harness_home = Path.join(Path.dirname(repo_path), ".glossia-harness")
       config_home = Path.join(harness_home, ".config")
       cache_home = Path.join(harness_home, ".cache")
+      data_home = Path.join(harness_home, ".local/share")
       config_path = Path.join([config_home, "opencode", "opencode.json"])
+      auth_path = Path.join([data_home, "opencode", "auth.json"])
 
       opencode_config = Map.put_new(opencode_config, "$schema", "https://opencode.ai/config.json")
 
-      with :ok <- mkdir(callbacks, [Path.dirname(config_path), cache_home]),
-           :ok <- put_file(callbacks, config_path, JSON.encode!(opencode_config)) do
+      with :ok <-
+             mkdir(callbacks, [Path.dirname(config_path), Path.dirname(auth_path), cache_home]),
+           :ok <- put_file(callbacks, config_path, JSON.encode!(opencode_config)),
+           :ok <- secure_file(callbacks, config_path),
+           :ok <- maybe_put_auth_file(callbacks, auth_path, opencode_auth) do
         {:ok,
          Map.merge(harness_env, %{
+           "HOME" => harness_home,
            "XDG_CONFIG_HOME" => config_home,
-           "XDG_CACHE_HOME" => cache_home
+           "XDG_CACHE_HOME" => cache_home,
+           "XDG_DATA_HOME" => data_home
          })}
+      end
+    end
+  end
+
+  defp maybe_put_auth_file(_callbacks, _path, auth) when auth == %{}, do: :ok
+
+  defp maybe_put_auth_file(callbacks, path, auth) do
+    with :ok <- put_file(callbacks, path, JSON.encode!(auth)) do
+      secure_file(callbacks, path)
+    end
+  end
+
+  defp configure_harness(callbacks, repo_path, harness) do
+    cond do
+      codex_harness?(harness) -> configure_codex(callbacks, repo_path, harness)
+      claude_harness?(harness) -> configure_claude(callbacks, repo_path, harness)
+      true -> configure_open_code(callbacks, repo_path, harness)
+    end
+  end
+
+  defp configure_codex(callbacks, repo_path, harness) do
+    harness_env = normalize_env(get_value(harness, :env) || %{})
+    codex_auth = normalize_map(get_value(harness, :codex_auth) || %{})
+
+    if map_size(codex_auth) == 0 do
+      {:error, :codex_session_not_available}
+    else
+      harness_home = Path.join(Path.dirname(repo_path), ".glossia-harness")
+      codex_home = Path.join(harness_home, ".codex")
+      auth_path = Path.join(codex_home, "auth.json")
+
+      with :ok <- mkdir(callbacks, [codex_home]),
+           :ok <- put_file(callbacks, auth_path, JSON.encode!(codex_auth)),
+           :ok <- secure_file(callbacks, auth_path) do
+        {:ok,
+         Map.merge(harness_env, %{
+           "HOME" => harness_home,
+           "CODEX_HOME" => codex_home
+         })}
+      end
+    end
+  end
+
+  defp configure_claude(callbacks, repo_path, harness) do
+    harness_env = normalize_env(get_value(harness, :env) || %{})
+    claude_auth = normalize_map(get_value(harness, :claude_auth) || %{})
+
+    if map_size(claude_auth) == 0 do
+      {:error, :claude_session_not_available}
+    else
+      harness_home = Path.join(Path.dirname(repo_path), ".glossia-harness")
+      claude_home = Path.join(harness_home, ".claude")
+      auth_path = Path.join(claude_home, ".credentials.json")
+
+      with :ok <- mkdir(callbacks, [claude_home]),
+           :ok <- put_file(callbacks, auth_path, JSON.encode!(claude_auth)),
+           :ok <- secure_file(callbacks, auth_path) do
+        {:ok, Map.put(harness_env, "HOME", harness_home)}
       end
     end
   end
@@ -233,11 +310,11 @@ defmodule Glossia.Projects.SetupHarness do
     download = fetch_callback!(callbacks, :download_file)
 
     HarnessEventPoller.start(fn path -> download.(path) end, caller, output_path,
-      mapper: &__MODULE__.open_code_event/1
+      mapper: &__MODULE__.harness_event/1
     )
   end
 
-  defp run_open_code(
+  defp run_harness(
          callbacks,
          caller,
          repo_path,
@@ -257,7 +334,7 @@ defmodule Glossia.Projects.SetupHarness do
     emit(
       caller,
       "status",
-      "Starting #{get_value(harness, :command) || "opencode"} in headless mode..."
+      "Starting the setup assistant..."
     )
 
     result =
@@ -280,14 +357,55 @@ defmodule Glossia.Projects.SetupHarness do
   defp harness_command(repo_path, prompt, harness, context_path) do
     command = get_value(harness, :command) || "opencode"
 
+    direct_prompt =
+      if (codex_harness?(harness) or claude_harness?(harness)) and is_binary(context_path) do
+        prompt <>
+          "\n\nAdditional account context\n- Read and follow the instructions in #{context_path}."
+      else
+        prompt
+      end
+
     args =
-      [command]
-      |> maybe_append_open_code_pure(harness)
-      |> Kernel.++(["run", "--dir", repo_path, "--format", "json", "--auto"])
-      |> maybe_append("--model", get_value(harness, :model))
-      |> maybe_append("--agent", get_value(harness, :agent))
-      |> append_prompt(prompt)
-      |> maybe_append_file(context_path)
+      cond do
+        codex_harness?(harness) ->
+          [
+            command,
+            "exec",
+            "--json",
+            "--ephemeral",
+            "--ignore-user-config",
+            "--ignore-rules",
+            "--dangerously-bypass-approvals-and-sandbox",
+            "-C",
+            repo_path
+          ]
+          |> maybe_append("--model", get_value(harness, :model))
+          |> append_prompt(direct_prompt)
+
+        claude_harness?(harness) ->
+          [
+            command,
+            "--print",
+            "--verbose",
+            "--output-format",
+            "stream-json",
+            "--no-session-persistence",
+            "--safe-mode",
+            "--no-chrome",
+            "--dangerously-skip-permissions"
+          ]
+          |> maybe_append("--model", get_value(harness, :model))
+          |> append_prompt(direct_prompt)
+
+        true ->
+          [command]
+          |> maybe_append_open_code_pure(harness)
+          |> Kernel.++(["run", "--dir", repo_path, "--format", "json", "--auto"])
+          |> maybe_append("--model", get_value(harness, :model))
+          |> maybe_append("--agent", get_value(harness, :agent))
+          |> append_prompt(prompt)
+          |> maybe_append_file(context_path)
+      end
 
     args
     |> Enum.map(&shell_quote/1)
@@ -330,7 +448,7 @@ defmodule Glossia.Projects.SetupHarness do
     put_file(callbacks, manifest_path, JSON.encode!(%{version: 1, files: files}))
   end
 
-  defp map_open_code_event(%{"type" => "text", "part" => %{"text" => text}}, _raw)
+  defp map_harness_event(%{"type" => "text", "part" => %{"text" => text}}, _raw)
        when is_binary(text) do
     if String.trim(text) == "" do
       nil
@@ -339,7 +457,7 @@ defmodule Glossia.Projects.SetupHarness do
     end
   end
 
-  defp map_open_code_event(%{"type" => "tool_use", "part" => part}, _raw) when is_map(part) do
+  defp map_harness_event(%{"type" => "tool_use", "part" => part}, _raw) when is_map(part) do
     state = Map.get(part, "state", %{}) || %{}
     tool_name = Map.get(part, "tool") || Map.get(state, "title") || "tool"
 
@@ -373,10 +491,102 @@ defmodule Glossia.Projects.SetupHarness do
     end
   end
 
-  defp map_open_code_event(%{"type" => type}, _raw) when type in ["step_start", "step_finish"],
-    do: nil
+  defp map_harness_event(
+         %{"type" => "item.completed", "item" => %{"type" => "agent_message", "text" => text}},
+         _raw
+       )
+       when is_binary(text) do
+    %{"event_type" => "text", "content" => text, "metadata" => %{"source" => "codex"}}
+  end
 
-  defp map_open_code_event(_event, raw) do
+  defp map_harness_event(%{"type" => "assistant", "message" => %{"content" => content}}, _raw)
+       when is_list(content) do
+    content
+    |> Enum.flat_map(fn
+      %{"type" => "text", "text" => text} when is_binary(text) ->
+        [%{"event_type" => "text", "content" => text, "metadata" => %{"source" => "claude"}}]
+
+      %{"type" => "tool_use", "name" => name} = item when is_binary(name) ->
+        summary = item |> Map.get("input", %{}) |> claude_tool_summary(name)
+
+        [
+          %{
+            "event_type" => "tool_call",
+            "content" => summary,
+            "metadata" => %{"source" => "claude", "tool_name" => name}
+          }
+        ]
+
+      _item ->
+        []
+    end)
+  end
+
+  defp map_harness_event(%{"type" => "user", "message" => %{"content" => content}}, _raw)
+       when is_list(content) do
+    Enum.flat_map(content, fn
+      %{"type" => "tool_result"} = item ->
+        text = claude_tool_result_text(Map.get(item, "content"))
+
+        [
+          %{
+            "event_type" => "tool_result",
+            "content" => String.slice(text, 0, 1200),
+            "metadata" => %{
+              "source" => "claude",
+              "status" => if(Map.get(item, "is_error"), do: "error", else: "completed")
+            }
+          }
+        ]
+
+      _item ->
+        []
+    end)
+  end
+
+  defp map_harness_event(%{"type" => "result", "subtype" => subtype} = event, _raw) do
+    %{
+      "event_type" => "status",
+      "content" =>
+        if(subtype == "success",
+          do: "Setup assistant finished.",
+          else: "Setup assistant stopped."
+        ),
+      "metadata" => %{"source" => "claude", "status" => subtype, "result" => event["result"]}
+    }
+  end
+
+  defp map_harness_event(%{"type" => "system", "subtype" => "init"}, _raw), do: nil
+
+  defp map_harness_event(
+         %{"type" => type, "item" => %{"type" => item_type} = item},
+         _raw
+       )
+       when type in ["item.started", "item.completed"] and
+              item_type in ["command_execution", "file_change", "mcp_tool_call"] do
+    event_type = if type == "item.completed", do: "tool_result", else: "tool_call"
+
+    content =
+      item["aggregated_output"] || item["command"] || item["path"] || item["server"] || item_type
+
+    %{
+      "event_type" => event_type,
+      "content" => content |> to_string() |> String.slice(0, 1200),
+      "metadata" => %{"source" => "codex", "tool_name" => item_type}
+    }
+  end
+
+  defp map_harness_event(%{"type" => type}, _raw)
+       when type in [
+              "step_start",
+              "step_finish",
+              "thread.started",
+              "turn.started",
+              "turn.completed"
+            ],
+       do: nil
+
+  defp map_harness_event(_event, raw) do
     %{
       "event_type" => "harness_output",
       "content" => String.slice(raw, 0, 700),
@@ -406,6 +616,45 @@ defmodule Glossia.Projects.SetupHarness do
     name in ["", "opencode"] or String.ends_with?(command, "/opencode") or command == "opencode"
   end
 
+  defp codex_harness?(harness) do
+    name = harness |> get_value(:name) || ""
+    command = harness |> get_value(:command) || ""
+
+    name = name |> to_string() |> String.downcase()
+    command = command |> to_string() |> String.downcase()
+
+    name == "codex" or command == "codex" or String.ends_with?(command, "/codex")
+  end
+
+  defp claude_harness?(harness) do
+    name = harness |> get_value(:name) || ""
+    command = harness |> get_value(:command) || ""
+
+    name = name |> to_string() |> String.downcase()
+    command = command |> to_string() |> String.downcase()
+
+    name == "claude" or command == "claude" or String.ends_with?(command, "/claude")
+  end
+
+  defp claude_tool_summary(input, fallback) when is_map(input) do
+    input["description"] || input["command"] || input["file_path"] || input["path"] || fallback
+  end
+
+  defp claude_tool_summary(_input, fallback), do: fallback
+
+  defp claude_tool_result_text(content) when is_binary(content), do: content
+
+  defp claude_tool_result_text(content) when is_list(content) do
+    content
+    |> Enum.flat_map(fn
+      %{"type" => "text", "text" => text} when is_binary(text) -> [text]
+      _item -> []
+    end)
+    |> Enum.join("\n")
+  end
+
+  defp claude_tool_result_text(_content), do: "Tool finished."
+
   defp append_prompt(args, prompt), do: args ++ [prompt]
 
   defp maybe_append_file(args, nil), do: args
@@ -418,6 +667,14 @@ defmodule Glossia.Projects.SetupHarness do
       {:ok, %{"exitCode" => 0}} -> :ok
       {:ok, result} -> {:error, {:mkdir_failed, command_result_summary(result)}}
       {:error, reason} -> {:error, {:mkdir_failed, reason}}
+    end
+  end
+
+  defp secure_file(callbacks, path) do
+    case exec(callbacks, "chmod 600 #{shell_quote(path)}") do
+      {:ok, %{"exitCode" => 0}} -> :ok
+      {:ok, result} -> {:error, {:chmod_failed, command_result_summary(result)}}
+      {:error, reason} -> {:error, {:chmod_failed, reason}}
     end
   end
 
