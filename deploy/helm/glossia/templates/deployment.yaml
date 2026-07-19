@@ -89,7 +89,27 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             {{- include "glossia.mailRelayEnv" . | nindent 12 }}
-            {{- if .Values.objectStorage.rook.enabled }}
+            {{- if and .Values.objectStorage.enabled .Values.objectStorage.rook.enabled }}
+            {{- fail "objectStorage.enabled and objectStorage.rook.enabled cannot both be true" }}
+            {{- end }}
+            {{- if .Values.objectStorage.enabled }}
+            - name: GLOSSIA_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.secretName | quote }}
+                  key: {{ .Values.objectStorage.accessKeyIdKey | quote }}
+            - name: GLOSSIA_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.secretName | quote }}
+                  key: {{ .Values.objectStorage.secretAccessKeyKey | quote }}
+            - name: GLOSSIA_S3_ENDPOINT
+              value: {{ required "objectStorage.endpointURL is required when objectStorage.enabled=true" .Values.objectStorage.endpointURL | quote }}
+            - name: GLOSSIA_S3_REGION
+              value: {{ required "objectStorage.region is required when objectStorage.enabled=true" .Values.objectStorage.region | quote }}
+            - name: GLOSSIA_S3_BUCKET
+              value: {{ required "objectStorage.bucketName is required when objectStorage.enabled=true" .Values.objectStorage.bucketName | quote }}
+            {{- else if .Values.objectStorage.rook.enabled }}
             - name: GLOSSIA_S3_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:

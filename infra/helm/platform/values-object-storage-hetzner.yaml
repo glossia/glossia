@@ -1,0 +1,26 @@
+# Cutover overlay for public command-line release downloads. This keeps Ceph
+# running but moves releases.glossia.ai to a public Hetzner Object Storage
+# bucket through the existing ingress controller. See
+# infra/k8s/object-storage-migration.md.
+
+releaseObjectStorage:
+  ingress:
+    enabled: false
+
+externalObjectStorage:
+  releaseProxy:
+    enabled: true
+    namespace: platform
+    serviceName: glossia-releases-object-storage
+    bucketHost: glossia-ai-releases.fsn1.your-objectstorage.com
+    servicePort: 443
+    credentials:
+      secretName: glossia-releases-object-storage
+      itemKey: /glossia-releases-object-storage
+      accessKeyIdField: AWS_ACCESS_KEY_ID
+      secretAccessKeyField: AWS_SECRET_ACCESS_KEY
+    ingress:
+      className: nginx
+      host: releases.glossia.ai
+      clusterIssuer: letsencrypt-cloudflare
+      tlsSecretName: glossia-releases-tls

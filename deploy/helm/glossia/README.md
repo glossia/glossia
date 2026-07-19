@@ -18,7 +18,8 @@ needs whichever of these match the components you enable:
 | `ingress.tls` with cert-manager annotation | [cert-manager](https://cert-manager.io/) + a `ClusterIssuer` you reference |
 | `externalSecrets.enabled` | [External Secrets Operator](https://external-secrets.io/) + a `SecretStore` / `ClusterSecretStore` you reference |
 | `backups.enabled` + `backups.postgres.enabled` | [CNPG Barman Cloud plugin](https://cloudnative-pg.io/plugin-barman-cloud/) installed cluster-wide |
-| `backups.enabled` (either DB) | A reachable, **dedicated** S3-compatible bucket + credentials |
+| `backups.enabled` (either database) | A reachable, **dedicated** [Amazon Simple Storage Service](https://aws.amazon.com/s3/)-compatible bucket and credentials |
+| `objectStorage.enabled` | A reachable [Amazon Simple Storage Service](https://aws.amazon.com/s3/)-compatible bucket and a Secret containing its credentials |
 | `objectStorage.rook.enabled` | A Rook and Ceph `ObjectBucketClaim` Secret with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` |
 
 ## Install
@@ -176,6 +177,29 @@ for node-to-node pod traffic.
 By default, provide `GLOSSIA_S3_ACCESS_KEY_ID`,
 `GLOSSIA_S3_SECRET_ACCESS_KEY`, `GLOSSIA_S3_ENDPOINT`,
 `GLOSSIA_S3_REGION`, and `GLOSSIA_S3_BUCKET` in `secrets.envSecretName`.
+
+For a provider-managed bucket, enable the provider-neutral mode. The following
+example uses [Hetzner Object Storage](https://docs.hetzner.com/storage/object-storage/overview/):
+
+```yaml
+objectStorage:
+  enabled: true
+  endpointURL: https://fsn1.your-objectstorage.com
+  region: fsn1
+  bucketName: glossia-ai-production
+  secretName: glossia-object-storage
+
+externalSecrets:
+  objectStorage:
+    enabled: true
+    itemKey: /glossia-object-storage
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+```
+
+The destination Secret contains `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY` by
+default. Set `objectStorage.accessKeyIdKey` and
+`objectStorage.secretAccessKeyKey` when an existing Secret uses other names.
 
 When the platform chart provisions an in-cluster Rook and Ceph
 [Amazon Simple Storage Service](https://aws.amazon.com/s3/)-compatible

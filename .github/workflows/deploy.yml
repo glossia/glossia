@@ -9,7 +9,9 @@ on:
       - "cli/**"
       - "deploy/helm/glossia/**"
       - "deploy/values-production.yaml"
+      - "deploy/values-object-storage-hetzner.yaml"
       - "infra/helm/platform/**"
+      - "infra/k8s/object-storage-migration-state"
       - "mise/**"
       - "mise.toml"
       - ".github/workflows/deploy.yml"
@@ -118,6 +120,20 @@ jobs:
 
       - name: Deploy platform
         run: |
+          set -euo pipefail
+
+          migration_state=infra/k8s/object-storage-migration-state
+          platform_values=(--values infra/helm/platform/values-hetzner.yaml)
+
+          if grep -qx 'production_object_storage=true' "$migration_state"; then
+            platform_values+=(--values infra/helm/platform/values-object-storage-hetzner.yaml)
+          fi
+
+          if grep -qx 'production_ceph_removed=true' "$migration_state"; then
+            grep -qx 'production_object_storage=true' "$migration_state"
+            platform_values+=(--values infra/helm/platform/values-remove-ceph.yaml)
+          fi
+
           mise exec -- kubectl create namespace glossia --dry-run=client -o yaml | mise exec -- kubectl apply -f -
           mise exec -- kubectl create namespace platform --dry-run=client -o yaml | mise exec -- kubectl apply -f -
           mise exec -- kubectl label --overwrite namespace platform \
@@ -136,26 +152,39 @@ jobs:
               --set releaseObjectStorage.enabled=false
           fi
 
-          mise exec -- kubectl wait --for=condition=Established \
-            crd/cephclusters.ceph.rook.io \
-            crd/cephobjectstores.ceph.rook.io \
-            crd/objectbucketclaims.objectbucket.io \
-            --timeout=5m
+          if ! grep -qx 'production_ceph_removed=true' "$migration_state"; then
+            mise exec -- kubectl wait --for=condition=Established \
+              crd/cephclusters.ceph.rook.io \
+              crd/cephobjectstores.ceph.rook.io \
+              crd/objectbucketclaims.objectbucket.io \
+              --timeout=5m
+          fi
 
           mise exec -- helm upgrade --install platform infra/helm/platform \
             --namespace platform \
             --create-namespace \
-            --values infra/helm/platform/values-hetzner.yaml
+            "${platform_values[@]}"
 
-          mise exec -- kubectl -n glossia wait --for=create secret/glossia-s3 --timeout=30m
-          mise exec -- kubectl -n platform wait --for=create secret/glossia-releases --timeout=30m
+          if ! grep -qx 'production_ceph_removed=true' "$migration_state"; then
+            mise exec -- kubectl -n glossia wait --for=create secret/glossia-s3 --timeout=30m
+            mise exec -- kubectl -n platform wait --for=create secret/glossia-releases --timeout=30m
+          fi
 
       - name: Deploy to Kubernetes
         run: |
+          set -euo pipefail
+
+          migration_state=infra/k8s/object-storage-migration-state
+          glossia_values=(--values deploy/values-production.yaml)
+
+          if grep -qx 'production_object_storage=true' "$migration_state"; then
+            glossia_values+=(--values deploy/values-object-storage-hetzner.yaml)
+          fi
+
           mise exec -- helm upgrade --install glossia deploy/helm/glossia \
             --namespace glossia \
             --create-namespace \
-            --values deploy/values-production.yaml \
+            "${glossia_values[@]}" \
             --set image.repository="ghcr.io/${GITHUB_REPOSITORY}" \
             --set image.tag="${GITHUB_SHA}"
 

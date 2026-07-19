@@ -49,6 +49,13 @@ The Flux `Kustomization` objects use `prune: false` and
 live infrastructure by accident. Intentional cluster removal stays a
 separate break-glass operation.
 
+The `profiles/` directory contains staged production topology changes. The
+consolidation profile adds three combined CX53 workers without removing the
+current pools. The compact profile retains those workers and removes the old
+pools after observability has moved. Follow
+[`../cluster-consolidation.md`](../cluster-consolidation.md); never switch
+directly from the base topology to the compact profile.
+
 ## Variables exposed by the ClusterClass
 
 - `region` (required) — Hetzner location (`fsn1`, `nbg1`, `hel1`, `ash`, `hil`).

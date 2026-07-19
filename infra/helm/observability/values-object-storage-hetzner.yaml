@@ -1,0 +1,89 @@
+# Cutover overlay for Mimir, Loki, and Tempo data in Hetzner Object Storage.
+# It removes only the Ceph Object Gateway. The Ceph cluster stays enabled until
+# the remaining block volumes have been migrated. See
+# infra/k8s/object-storage-migration.md.
+
+cephObjectStore:
+  enabled: false
+
+externalSecrets:
+  objectStorage:
+    enabled: true
+    secretName: glossia-observability-object-storage
+    itemKey: /observability/object-storage
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+    accessKeyIdKey: AccessKey
+    secretAccessKeyKey: SecretKey
+
+mimir-distributed:
+  global:
+    extraEnvFrom:
+      - secretRef:
+          name: glossia-observability-object-storage
+  mimir:
+    structuredConfig:
+      common:
+        storage:
+          backend: s3
+          s3:
+            endpoint: fsn1.your-objectstorage.com
+            region: fsn1
+            bucket_name: glossia-ai-mimir
+            insecure: false
+            bucket_lookup_type: path
+            access_key_id: ${AccessKey}
+            secret_access_key: ${SecretKey}
+      blocks_storage:
+        backend: s3
+        s3:
+          bucket_name: glossia-ai-mimir
+
+loki:
+  loki:
+    storage:
+      type: s3
+      bucketNames:
+        chunks: glossia-ai-loki
+        ruler: glossia-ai-loki
+        admin: glossia-ai-loki
+      s3:
+        endpoint: fsn1.your-objectstorage.com
+        region: fsn1
+        s3ForcePathStyle: true
+        insecure: false
+        accessKeyId: ${AccessKey}
+        secretAccessKey: ${SecretKey}
+  read:
+    extraEnvFrom: &objectStorageCredentials
+      - secretRef:
+          name: glossia-observability-object-storage
+  write:
+    extraEnvFrom: *objectStorageCredentials
+  backend:
+    extraEnvFrom: *objectStorageCredentials
+
+tempo-distributed:
+  storage:
+    trace:
+      backend: s3
+      s3:
+        endpoint: fsn1.your-objectstorage.com
+        region: fsn1
+        bucket: glossia-ai-tempo
+        access_key: ${AccessKey}
+        secret_key: ${SecretKey}
+        insecure: false
+        forcepathstyle: true
+  distributor:
+    extraEnvFrom: &tempoObjectStorageCredentials
+      - secretRef:
+          name: glossia-observability-object-storage
+  ingester:
+    extraEnvFrom: *tempoObjectStorageCredentials
+  querier:
+    extraEnvFrom: *tempoObjectStorageCredentials
+  queryFrontend:
+    extraEnvFrom: *tempoObjectStorageCredentials
+  compactor:
+    extraEnvFrom: *tempoObjectStorageCredentials

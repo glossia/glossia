@@ -93,6 +93,18 @@ externalSecrets:
     itemKey: /observability/push-endpoints-auth
     htpasswdField: HTPASSWD
 
+  # Shared project credentials for the three private Hetzner Object Storage
+  # buckets. Bucket policies restrict the key to the Mimir, Loki, and Tempo
+  # buckets. This remains off until the migration overlay is applied.
+  objectStorage:
+    enabled: false
+    secretName: glossia-observability-object-storage
+    itemKey: /observability/object-storage
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+    accessKeyIdKey: AccessKey
+    secretAccessKeyKey: SecretKey
+
   # GlitchTip application secret and PostgreSQL password. This chart renders
   # one Kubernetes Secret from these fields, containing:
   #   - SECRET_KEY for Django signing

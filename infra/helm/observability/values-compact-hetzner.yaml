@@ -1,0 +1,228 @@
+# Compact observability profile for the shared production cluster.
+#
+# Apply after values-hetzner.yaml and values-object-storage-hetzner.yaml only
+# after the object data has been copied and verified. This profile removes
+# Ceph, uses direct Hetzner block volumes for the small amount of local state,
+# and starts every observability component at one replica. Scale individual
+# components from this file when measured load requires it.
+
+cephObjectStore:
+  enabled: false
+
+rook-ceph-cluster:
+  enabled: false
+
+externalSecrets:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical-observability
+
+mimir-distributed:
+  mimir:
+    structuredConfig:
+      ingester:
+        ring:
+          replication_factor: 1
+      limits:
+        compactor_blocks_retention_period: 7d
+  distributor:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  querier:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: "1", memory: 1Gi }
+  query_frontend:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  query_scheduler:
+    replicas: 1
+    resources:
+      requests: { cpu: 25m, memory: 64Mi }
+      limits: { cpu: 250m, memory: 256Mi }
+  ingester:
+    replicas: 1
+    zoneAwareReplication:
+      enabled: false
+    persistentVolume:
+      enabled: true
+      size: 10Gi
+      storageClass: hcloud-volumes
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: "1", memory: 1Gi }
+  store_gateway:
+    replicas: 1
+    zoneAwareReplication:
+      enabled: false
+    persistentVolume:
+      enabled: true
+      size: 5Gi
+      storageClass: hcloud-volumes
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  compactor:
+    replicas: 1
+    persistentVolume:
+      enabled: true
+      size: 5Gi
+      storageClass: hcloud-volumes
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  nginx:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 25m, memory: 64Mi }
+      limits: { cpu: 250m, memory: 256Mi }
+  chunks-cache:
+    enabled: false
+  index-cache:
+    enabled: false
+  metadata-cache:
+    enabled: false
+  results-cache:
+    enabled: false
+  rollout_operator:
+    enabled: false
+
+loki:
+  loki:
+    commonConfig:
+      replication_factor: 1
+    limits_config:
+      retention_period: 72h
+  read:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  write:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    persistence:
+      size: 10Gi
+      storageClass: hcloud-volumes
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: "1", memory: 1Gi }
+  backend:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    persistence:
+      size: 5Gi
+      storageClass: hcloud-volumes
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  gateway:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 25m, memory: 64Mi }
+      limits: { cpu: 250m, memory: 256Mi }
+  chunksCache:
+    enabled: false
+  resultsCache:
+    enabled: false
+
+tempo-distributed:
+  storage:
+    compaction:
+      block_retention: 48h
+  distributor:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  ingester:
+    replicas: 1
+    config:
+      replication_factor: 1
+      flush_all_on_shutdown: true
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: hcloud-volumes
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: "1", memory: 1Gi }
+  querier:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  queryFrontend:
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  compactor:
+    replicas: 1
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  gateway:
+    enabled: true
+    replicas: 1
+    autoscaling:
+      enabled: false
+    resources:
+      requests: { cpu: 25m, memory: 64Mi }
+      limits: { cpu: 250m, memory: 256Mi }
+  memcached:
+    replicas: 1
+    resources:
+      requests: { cpu: 25m, memory: 64Mi }
+      limits: { cpu: 250m, memory: 256Mi }
+
+grafana:
+  replicas: 1
+  persistence:
+    enabled: true
+    storageClassName: hcloud-volumes
+    size: 5Gi
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+
+glitchtip:
+  replicaCount: 1
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: "1", memory: 1Gi }
+
+glitchtipPostgres:
+  instances: 1
+  storage:
+    storageClass: hcloud-volumes
+    size: 20Gi
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  enablePodAntiAffinity: false
