@@ -1,0 +1,22 @@
+{{- if and .Values.externalSecrets.enabled .Values.externalSecrets.objectStorage.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.objectStorage.secretName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.objectStorage.secretName }}
+    creationPolicy: Owner
+  data:
+    - secretKey: {{ .Values.objectStorage.accessKeyIdKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.objectStorage.itemKey .Values.externalSecrets.objectStorage.accessKeyIdField | quote }}
+    - secretKey: {{ .Values.objectStorage.secretAccessKeyKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.objectStorage.itemKey .Values.externalSecrets.objectStorage.secretAccessKeyField | quote }}
+{{- end }}

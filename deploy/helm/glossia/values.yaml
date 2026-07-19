@@ -88,10 +88,18 @@ mailRelay:
   auth: never
 
 # App object storage. By default the app expects the storage environment
-# variables to come from secrets.envSecretName. Set objectStorage.rook.enabled
-# when the platform chart creates a Rook and Ceph ObjectBucketClaim and exposes
-# its generated credentials as a Kubernetes Secret in this namespace.
+# variables to come from secrets.envSecretName. Enable the provider-neutral
+# configuration below to read credentials from a dedicated Kubernetes Secret.
+# The nested Rook configuration remains available for clusters that provision
+# an ObjectBucketClaim in-cluster.
 objectStorage:
+  enabled: false
+  endpointURL: ""
+  region: ""
+  bucketName: ""
+  secretName: glossia-object-storage
+  accessKeyIdKey: ACCESS_KEY_ID
+  secretAccessKeyKey: SECRET_ACCESS_KEY
   rook:
     enabled: false
     # Endpoint used by the app for object storage requests. For in-cluster
@@ -221,7 +229,8 @@ clickhouse:
   tolerations: []
 
 # Off-cluster backups for the bundled Postgres + ClickHouse. Targets a
-# DEDICATED S3-compatible bucket with its OWN credentials — keep this
+# DEDICATED Amazon Simple Storage Service-compatible bucket with its OWN
+# credentials — keep this
 # separate from the app's object storage so a compromise or fat-fingered
 # policy on one can't take out the other. Postgres backups go through the
 # CNPG Barman Cloud plugin, which is installed by the infra platform
@@ -234,12 +243,14 @@ backups:
     # ClickHouse CronJob writes under <prefix>/clickhouse.
     bucket: ""
     prefix: glossia
-    # Blank → AWS S3 default endpoint. Set for R2 / B2 / Hetzner / MinIO.
+    # Blank → Amazon Simple Storage Service default endpoint. Set for R2 / B2 /
+    # Hetzner / MinIO.
     endpointURL: ""
     # S3 region. Feeds the ClickHouse job (S3_REGION) directly and the
     # Postgres ObjectStore via a REGION key in backups.secretName (the
     # CNPG plugin only accepts region as a secret ref). "auto" is the
-    # right value for Cloudflare R2 and harmless for most S3-compatible
+    # right value for Cloudflare R2 and harmless for most Amazon Simple Storage
+    # Service-compatible
     # stores; set "" to omit it entirely.
     region: auto
   # Secret holding the bucket credentials. Created from the backend by
@@ -317,6 +328,14 @@ externalSecrets:
   postgres:
     itemKey: /glossia
     passwordField: POSTGRES_PASSWORD
+  # ExternalSecret for provider-neutral app object storage credentials. Enable
+  # this together with objectStorage.enabled. The destination key names come
+  # from objectStorage.accessKeyIdKey and objectStorage.secretAccessKeyKey.
+  objectStorage:
+    enabled: false
+    itemKey: /glossia-object-storage
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
   # ExternalSecret for the dedicated DB-backup bucket credentials. Pulls
   # from a SEPARATE backend item (not appEnv.itemKey) so backup creds are
   # not entangled with the app's secrets. Maps remote fields →

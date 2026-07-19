@@ -1,0 +1,22 @@
+# Cutover overlay for the private application bucket in Hetzner Object Storage.
+# Apply only after the bucket exists, credentials have been stored in Infisical,
+# and the Ceph bucket has been copied and verified. See
+# infra/k8s/object-storage-migration.md.
+
+objectStorage:
+  enabled: true
+  endpointURL: https://fsn1.your-objectstorage.com
+  region: fsn1
+  bucketName: glossia-ai-production
+  secretName: glossia-object-storage
+  accessKeyIdKey: ACCESS_KEY_ID
+  secretAccessKeyKey: SECRET_ACCESS_KEY
+  rook:
+    enabled: false
+
+externalSecrets:
+  objectStorage:
+    enabled: true
+    itemKey: /glossia-object-storage
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY

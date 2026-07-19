@@ -1,0 +1,19 @@
+# Transition profile. It adds three CX53 servers without changing or removing
+# any existing worker. The shared `stateful` label lets stateful workloads move
+# onto the new pool, while the absence of a taint also allows application pods.
+# Keep this profile active until every production and observability workload is
+# healthy on the new workers.
+- op: add
+  path: /spec/topology/workers/machineDeployments/-
+  value:
+    class: hcloud-worker
+    name: md-combined
+    replicas: 3
+    failureDomain: fsn1
+    metadata:
+      labels:
+        node.cluster.x-k8s.io/pool: stateful
+    variables:
+      overrides:
+        - name: hcloudWorkerMachineType
+          value: cx53

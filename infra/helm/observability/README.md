@@ -155,6 +155,29 @@ PVCs (Hetzner volumes resize online up to 10 TiB) or by adding OSDs.
 Retention bounds (Mimir 30d / Loki 14d / Tempo 7d) cap accumulation.
 Tune them in `values.yaml` if you need longer.
 
+## Provider-managed object storage
+
+`values-object-storage-hetzner.yaml` moves the Mimir, Loki, and Tempo buckets
+to [Hetzner Object Storage](https://docs.hetzner.com/storage/object-storage/overview/)
+and disables the Ceph Object Gateway. It intentionally keeps the Ceph cluster
+because Grafana, GlitchTip PostgreSQL, and several write-ahead log volumes
+still use Ceph block storage.
+
+Follow `infra/k8s/object-storage-migration.md` for the copy, comparison,
+maintenance window, cutover, and rollback sequence. Do not apply the overlay
+to an empty destination.
+
+## Compact shared-cluster profile
+
+`values-compact-hetzner.yaml` starts every observability component at one
+replica, shortens retention, disables the memory caches, moves the remaining
+local state to direct Hetzner block volumes, and disables Ceph. It must be
+layered after `values-object-storage-hetzner.yaml` and must not be applied to
+the existing observability cluster in place.
+
+Follow `infra/k8s/cluster-consolidation.md` to restore a new compact release in
+the production cluster while keeping the old cluster available for rollback.
+
 ## Teardown
 
 ```bash

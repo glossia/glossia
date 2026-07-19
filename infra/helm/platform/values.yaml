@@ -478,6 +478,33 @@ releaseObjectStorage:
     allowedNamespaceNames:
       - platform
 
+# Public release downloads backed by a provider-managed object storage bucket.
+# The ExternalName Service and Ingress preserve releases.glossia.ai while the
+# upstream bucket uses its provider hostname. Keep this disabled until the
+# release bucket has been copied and made public.
+externalObjectStorage:
+  releaseProxy:
+    enabled: false
+    namespace: platform
+    serviceName: glossia-releases-object-storage
+    bucketHost: ""
+    servicePort: 443
+    credentials:
+      secretName: glossia-releases-object-storage
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: infisical
+      itemKey: /glossia-releases-object-storage
+      accessKeyIdField: AWS_ACCESS_KEY_ID
+      secretAccessKeyField: AWS_SECRET_ACCESS_KEY
+    ingress:
+      className: nginx
+      host: releases.glossia.ai
+      clusterIssuer: letsencrypt-cloudflare
+      tlsSecretName: glossia-releases-tls
+      annotations: {}
+
 # Whether to emit the ClusterIssuer template below. Turn off if you manage
 # cert-manager issuers with a separate GitOps process.
 clusterIssuer:

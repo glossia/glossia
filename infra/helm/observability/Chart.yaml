@@ -2,8 +2,8 @@ apiVersion: v2
 name: glossia-observability
 description: >
   Self-hosted observability stack for Glossia, installed once on the
-  glossia-observability workload cluster. Bundles Rook-Ceph (CephCluster
-  + RGW S3 object store), Grafana Mimir, Loki, Tempo, Grafana, and
+  dedicated observability cluster or a shared workload cluster. Bundles
+  optional Rook-Ceph storage, Grafana Mimir, Loki, Tempo, Grafana, and
   GlitchTip as subcharts, plus the CephObjectStore + per-tenant
   CephObjectStoreUsers, ExternalSecret CRs (pulling Grafana admin
   password, GlitchTip secrets, and push-endpoint basic authentication from

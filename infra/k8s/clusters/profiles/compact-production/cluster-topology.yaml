@@ -1,0 +1,19 @@
+# Final profile. Apply only after the consolidation profile, the object-storage
+# migration, and the observability cutover have all been verified. It retains
+# the three combined workers and removes both old worker pools. The existing
+# control-plane server is deliberately left unchanged because the cluster's
+# bootstrap endpoint currently points at that server's address.
+- op: replace
+  path: /spec/topology/workers/machineDeployments
+  value:
+    - class: hcloud-worker
+      name: md-combined
+      replicas: 3
+      failureDomain: fsn1
+      metadata:
+        labels:
+          node.cluster.x-k8s.io/pool: stateful
+      variables:
+        overrides:
+          - name: hcloudWorkerMachineType
+            value: cx53
