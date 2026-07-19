@@ -119,8 +119,20 @@ defmodule Glossia.Sandbox.MicrosandboxAdapter do
     end
   end
 
+  # msb has phrased "missing sandbox" more than one way across versions, so match
+  # the common variants rather than a single exact string. Erring toward
+  # `:not_found` is safe here: every caller treats it as "already gone" and
+  # proceeds to recreate, which is exactly the recovery we want.
+  @sandbox_not_found_markers [
+    "sandbox not found",
+    "no such sandbox",
+    "does not exist",
+    "not found"
+  ]
+
   defp sandbox_not_found?(output) when is_binary(output) do
-    String.contains?(String.downcase(output), "sandbox not found")
+    downcased = String.downcase(output)
+    Enum.any?(@sandbox_not_found_markers, &String.contains?(downcased, &1))
   end
 
   defp sandbox_not_found?(_output), do: false

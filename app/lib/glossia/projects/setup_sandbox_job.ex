@@ -52,14 +52,30 @@ defmodule Glossia.Projects.SetupSandboxJob do
           into: ""
         )
 
-      {:ok,
-       %{
-         "exitCode" => if(is_integer(exit_status), do: exit_status),
-         "stdout" => truncate(output, output_limit),
-         "stderr" => "",
-         "timedOut" => exit_status == :timeout
-       }}
+      {:ok, shell_result(output, exit_status, output_limit, timeout)}
     end
+  end
+
+  # On timeout MuonTrap returns `:timeout` as the status. Surface it as a
+  # non-zero exit code (124, the conventional timeout code) with a descriptive
+  # message so callers that key off `exitCode`/`stderr` get a legible failure
+  # instead of a `nil` exit code and an empty error string.
+  defp shell_result(output, :timeout, output_limit, timeout) do
+    %{
+      "exitCode" => 124,
+      "stdout" => truncate(output, output_limit),
+      "stderr" => "command timed out after #{timeout}ms",
+      "timedOut" => true
+    }
+  end
+
+  defp shell_result(output, exit_status, output_limit, _timeout) do
+    %{
+      "exitCode" => if(is_integer(exit_status), do: exit_status),
+      "stdout" => truncate(output, output_limit),
+      "stderr" => "",
+      "timedOut" => false
+    }
   end
 
   defp write_file(root_path, path, content) do
