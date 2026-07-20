@@ -1,7 +1,8 @@
 # Production workload-cluster overlay for deploy/helm/glossia-alloy.
 # Installs the node-local Alloy collector plus the singleton Kubernetes
-# event collector into the production cluster and ships telemetry to
-# the dedicated glossia-observability cluster.
+# event collector into the production cluster. Observability now runs on
+# this same cluster (the dedicated glossia-observability cluster was
+# retired), so telemetry is shipped over in-cluster Services.
 
 externalSecrets:
   pushCreds:
@@ -9,11 +10,16 @@ externalSecrets:
     usernameField: USERNAME
     passwordField: TOKEN
 
+# In-cluster Service endpoints. Pushing to the public hostnames now means
+# egressing to this cluster's own load balancer and hairpinning back in,
+# which Hetzner load balancers do not support: every write timed out after
+# observability was consolidated onto this cluster. The internal gateways
+# answer in single-digit milliseconds and skip the public path entirely.
 remoteEndpoints:
   mimir:
-    url: https://mimir.glossia.ai/api/v1/push
+    url: http://observability-mimir-nginx.observability.svc.cluster.local/api/v1/push
   loki:
-    url: https://loki.glossia.ai/loki/api/v1/push
+    url: http://observability-loki-gateway.observability.svc.cluster.local/loki/api/v1/push
 
 externalLabels:
   cluster: glossia-production
