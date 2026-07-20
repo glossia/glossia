@@ -4,7 +4,9 @@
 production_object_storage=true
 production_ceph_removed=true
 observability_object_storage=true
-observability_ceph_removed=false
-# Switch the observability deployment workflow to glossia-production only
-# after the compact release has been restored and verified there.
-observability_on_production=false
+observability_ceph_removed=true
+# The compact observability release has been restored and verified on
+# glossia-production (33 pods running, no Ceph, object storage on Hetzner),
+# and the standalone glossia-observability cluster has been deleted, so the
+# deployment workflow now targets glossia-production.
+observability_on_production=true
