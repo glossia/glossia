@@ -1,0 +1,95 @@
+{{/*
+Replacement RBAC for the alloy and alloy-events subcharts.
+
+The upstream Alloy chart's ClusterRole grants cluster-wide get/list/watch on
+"secrets". Alloy runs as a DaemonSet on every node, so that role would let a
+compromise of any Alloy container read every Secret in the cluster, including
+the Infisical bootstrap credentials, the registry pull secret, the Postgres
+application credentials, the DB-backup R2 keys (which are deliberately
+isolated from the app's object storage) and the GitHub App private key.
+
+None of the configured pipelines (metrics scrape, Kubernetes events, pod logs)
+read Secrets through the API server; the credentials they need are injected as
+environment variables from secretKeyRef. So both subcharts set
+`rbac.create: false` and bind these roles instead: identical to upstream minus
+the "secrets" resource.
+*/}}
+{{- range $component := list "alloy" "alloy-events" }}
+{{- $name := ternary $.Release.Name (printf "%s-alloy-events" $.Release.Name) (eq $component "alloy") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $name }}
+  labels:
+    app.kubernetes.io/name: {{ $component }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/component: rbac
+rules:
+  # discovery.kubernetes
+  - apiGroups:
+      - ""
+      - "discovery.k8s.io"
+      - "networking.k8s.io"
+    resources:
+      - endpoints
+      - endpointslices
+      - ingresses
+      - nodes
+      - nodes/proxy
+      - nodes/metrics
+      - pods
+      - services
+    verbs: ["get", "list", "watch"]
+  # loki.source.kubernetes / loki.source.podlogs
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - namespaces
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["monitoring.grafana.com"]
+    resources: ["podlogs"]
+    verbs: ["get", "list", "watch"]
+  # mimir.rules.kubernetes
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["prometheusrules"]
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+  # prometheus.kubernetes.*
+  - apiGroups: ["monitoring.coreos.com"]
+    resources:
+      - podmonitors
+      - servicemonitors
+      - probes
+    verbs: ["get", "list", "watch"]
+  # eventhandler
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  # remote.kubernetes.configmap. Deliberately omits "secrets"; use
+  # secretKeyRef environment variables instead.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $name }}
+  labels:
+    app.kubernetes.io/name: {{ $component }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ $.Release.Namespace }}
+{{- end }}
