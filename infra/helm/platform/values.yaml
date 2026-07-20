@@ -85,6 +85,24 @@ ingress-nginx:
   enabled: true
   controller:
     replicaCount: 2
+    # Spread the two controllers across nodes. Without this both can land on
+    # one node, so losing that node is a full public-ingress outage despite
+    # the minAvailable:1 PDB. On a small cluster co-scheduling is likely.
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: ingress-nginx
+            app.kubernetes.io/instance: platform
+            app.kubernetes.io/component: controller
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
     publishService:
       enabled: true
     service:
