@@ -126,15 +126,18 @@ nodeSelector: {}
 
 tolerations: []
 
+# Hard anti-affinity: the two replicas must land on different nodes. The
+# whole point of running two is drain survivability and PDB satisfiability; a
+# soft preference lets both share a node, at which point draining it must
+# evict both and a node loss is still a full outage. Safe at two replicas
+# across three workers, and the maxSurge:0 rollout never needs a third slot.
 affinity:
   podAntiAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: glossia
-          topologyKey: kubernetes.io/hostname
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: glossia
+        topologyKey: kubernetes.io/hostname
 
 pdb:
   enabled: true
