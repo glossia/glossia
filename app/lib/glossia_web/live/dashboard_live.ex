@@ -758,6 +758,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp apply_action(socket, :llm_model_new, _params) do
     require_admin!(socket)
     handle = socket.assigns.handle
+    model_picker_options = model_picker_options()
 
     assign(socket,
       page_title: gettext("New model"),
@@ -767,6 +768,9 @@ defmodule GlossiaWeb.DashboardLive do
           as: :model
         ),
       model_form_valid?: false,
+      model_picker_options_json: JSON.encode!(model_picker_options),
+      model_picker_option_count: length(model_picker_options),
+      model_picker_selected_label: nil,
       breadcrumb_items: [
         {gettext("Settings"), nil},
         {gettext("Models"), "/" <> handle <> "/-/settings/models"},
@@ -780,6 +784,7 @@ defmodule GlossiaWeb.DashboardLive do
     account = socket.assigns.account
     handle = socket.assigns.handle
     model = LLMModels.get_model!(model_id, account.id)
+    model_picker_options = model_picker_options()
 
     assign(socket,
       page_title: model.handle,
@@ -798,6 +803,12 @@ defmodule GlossiaWeb.DashboardLive do
         "model" => model.model
       },
       model_edit_changed?: false,
+      model_picker_options_json: JSON.encode!(model_picker_options),
+      model_picker_option_count: length(model_picker_options),
+      model_picker_selected_label:
+        Enum.find_value(model_picker_options, fn [label, value] ->
+          value == model.model && label
+        end),
       breadcrumb_items: [
         {gettext("Settings"), nil},
         {gettext("Models"), "/" <> handle <> "/-/settings/models"},
@@ -3240,6 +3251,9 @@ defmodule GlossiaWeb.DashboardLive do
           editing_model={assigns[:editing_model]}
           model_edit_form={assigns[:model_edit_form]}
           model_edit_changed?={assigns[:model_edit_changed?] || false}
+          model_picker_options_json={assigns[:model_picker_options_json] || "[]"}
+          model_picker_option_count={assigns[:model_picker_option_count] || 0}
+          model_picker_selected_label={assigns[:model_picker_selected_label]}
           available_filters={assigns[:available_filters] || []}
           active_filters={assigns[:active_filters] || []}
         />
@@ -10545,51 +10559,99 @@ defmodule GlossiaWeb.DashboardLive do
   # LLM models page component
   # ---------------------------------------------------------------------------
 
+  @model_picker_result_limit 50
+
+  defp model_picker_options do
+    Glossia.Accounts.LLMModel.available_models()
+    |> Enum.flat_map(fn {provider_name, models} ->
+      Enum.map(models, fn {label, value} ->
+        ["#{provider_name} - #{label}", value]
+      end)
+    end)
+    |> Enum.sort_by(fn [label, _value] -> String.downcase(label) end)
+  end
+
   attr(:id, :string, required: true)
   attr(:name, :string, required: true)
   attr(:value, :string, default: "")
-  attr(:options, :list, required: true)
-  attr(:on_select, :string, required: true)
+  attr(:options_json, :string, required: true)
+  attr(:option_count, :integer, required: true)
+  attr(:selected_label, :string, default: nil)
   attr(:hint, :string, default: nil)
 
   defp model_picker(assigns) do
-    selected_option = Enum.find(assigns.options, &(&1.value == assigns.value))
-
-    assigns =
-      assign(
-        assigns,
-        :selected_label,
-        selected_option && selected_option.label
-      )
+    assigns = assign(assigns, :result_limit, @model_picker_result_limit)
 
     ~H"""
-    <input type="hidden" name={@name} value={@value || ""} />
-    <Noora.Dropdown.dropdown
+    <div
       id={@id}
-      label={@selected_label || gettext("Select a model...")}
-      hint={@hint}
-      on_select={@on_select}
+      class="noora-dropdown model-picker"
+      data-size="large"
+      data-value={@value || ""}
+      data-name={@name}
+      data-options={@options_json}
+      data-option-count={@option_count}
+      data-placeholder={gettext("Select a model...")}
+      data-search-placeholder={gettext("Search models...")}
+      data-empty-label={gettext("No models found.")}
+      data-result-summary={
+        gettext("Showing the first %{limit} matches. Keep typing to narrow the results.",
+          limit: @result_limit
+        )
+      }
+      data-result-limit={@result_limit}
+      phx-hook="ModelPicker"
+      phx-update="ignore"
     >
-      <:search>
-        <Noora.TextInput.text_input
-          id={@id <> "-search"}
-          name=""
-          type="search"
-          show_suffix={false}
-          placeholder={gettext("Search models...")}
-          aria-label={gettext("Search models")}
-          data-part="search-input"
-        />
-      </:search>
-      <Noora.Dropdown.dropdown_item
-        :for={model_option <- @options}
-        value={model_option.value}
-        label={model_option.label}
+      <input data-part="value" type="hidden" name={@name} value={@value || ""} />
+      <button
+        id={@id <> "-trigger"}
+        type="button"
+        data-part="trigger"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        aria-controls={@id <> "-items"}
       >
-        <:left_icon><Noora.Icon.schema /></:left_icon>
-        <:right_icon :if={model_option.value == @value}><Noora.Icon.check /></:right_icon>
-      </Noora.Dropdown.dropdown_item>
-    </Noora.Dropdown.dropdown>
+        <div data-part="label-wrapper">
+          <span data-part="label">{@selected_label || gettext("Select a model...")}</span>
+        </div>
+        <div data-part="indicator">
+          <div data-part="indicator-down"><Noora.Icon.chevron_down /></div>
+          <div data-part="indicator-up"><Noora.Icon.chevron_up /></div>
+        </div>
+      </button>
+      <div data-part="positioner">
+        <div class="noora-dropdown-content" data-part="content">
+          <div data-part="search">
+            <Noora.TextInput.text_input
+              id={@id <> "-search"}
+              name=""
+              type="search"
+              show_suffix={false}
+              placeholder={gettext("Search models...")}
+              aria-label={gettext("Search models")}
+              aria-autocomplete="list"
+              aria-controls={@id <> "-items"}
+              aria-expanded="false"
+              data-part="search-input"
+            />
+          </div>
+          <div
+            id={@id <> "-items"}
+            data-part="items"
+            role="listbox"
+            aria-labelledby={@id <> "-trigger"}
+          >
+          </div>
+        </div>
+      </div>
+      <span :if={@hint} data-part="hint">
+        <Noora.Icon.info_circle />
+        <span>{@hint}</span>
+      </span>
+      <template data-part="option-icon-template"><Noora.Icon.schema /></template>
+      <template data-part="selected-icon-template"><Noora.Icon.check /></template>
+    </div>
     """
   end
 
@@ -10604,26 +10666,13 @@ defmodule GlossiaWeb.DashboardLive do
   attr(:editing_model, :any, default: nil)
   attr(:model_edit_form, :any, default: nil)
   attr(:model_edit_changed?, :boolean, default: false)
+  attr(:model_picker_options_json, :string, default: "[]")
+  attr(:model_picker_option_count, :integer, default: 0)
+  attr(:model_picker_selected_label, :string, default: nil)
   attr(:available_filters, :list, default: [])
   attr(:active_filters, :list, default: [])
 
   defp llm_models_page(assigns) do
-    available_models = Glossia.Accounts.LLMModel.available_models()
-
-    available_model_options =
-      available_models
-      |> Enum.flat_map(fn {provider_name, models} ->
-        Enum.map(models, fn {label, value} ->
-          %{label: "#{provider_name} - #{label}", value: value}
-        end)
-      end)
-      |> Enum.sort_by(&String.downcase(&1.label))
-
-    assigns =
-      assigns
-      |> assign(:available_models, available_models)
-      |> assign(:available_model_options, available_model_options)
-
     ~H"""
     <div class="dash-page">
       <%= cond do %>
@@ -10668,8 +10717,8 @@ defmodule GlossiaWeb.DashboardLive do
                       id="model-model"
                       name="model[model]"
                       value={@model_form[:model].value}
-                      options={@available_model_options}
-                      on_select="select_model"
+                      options_json={@model_picker_options_json}
+                      option_count={@model_picker_option_count}
                       hint={gettext("The model to use, sourced from models.dev.")}
                     />
                   </div>
@@ -10724,8 +10773,9 @@ defmodule GlossiaWeb.DashboardLive do
                       id="edit-model-model"
                       name="model[model]"
                       value={@model_edit_form[:model].value}
-                      options={@available_model_options}
-                      on_select="select_model_edit"
+                      options_json={@model_picker_options_json}
+                      option_count={@model_picker_option_count}
+                      selected_label={@model_picker_selected_label}
                     />
                   </div>
                   <Noora.TextInput.text_input
