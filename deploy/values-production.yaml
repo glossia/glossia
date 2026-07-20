@@ -3,9 +3,11 @@
 
 fullnameOverride: glossia
 
-# Bootstrap-shape replica count. Bump to 2+ once the cluster has the
-# headroom for a real RollingUpdate (maxSurge>0).
-replicaCount: 1
+# Two replicas so the PodDisruptionBudget (minAvailable: 1) can ever be
+# satisfied during a node drain. At one replica the only pod is unevictable,
+# which deadlocks CAPI node rollouts, and it leaves the app a single point of
+# failure. The compact cx53 pool has the headroom for this.
+replicaCount: 2
 
 strategy:
   type: RollingUpdate
