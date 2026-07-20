@@ -1,0 +1,15 @@
+#noora-shell {
+  & .noora-shell__avatar {
+    display: block;
+    border-radius: var(--noora-radius-99);
+    width: var(--noora-spacing-6);
+    height: var(--noora-spacing-6);
+    object-fit: cover;
+  }
+
+  & .noora-shell__user-menu .noora-dropdown > [data-part="trigger"][data-icon-only] {
+    padding: var(--noora-spacing-3);
+    width: var(--noora-spacing-6);
+    height: var(--noora-spacing-6);
+  }
+}
