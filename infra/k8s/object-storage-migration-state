@@ -2,7 +2,7 @@
 # Change a flag only during the corresponding maintenance-window step in
 # object-storage-migration.md or cluster-consolidation.md.
 production_object_storage=true
-production_ceph_removed=false
+production_ceph_removed=true
 observability_object_storage=true
 observability_ceph_removed=false
 # Switch the observability deployment workflow to glossia-production only
