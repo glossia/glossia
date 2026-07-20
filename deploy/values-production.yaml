@@ -20,7 +20,12 @@ env:
   OTEL_SERVICE_NAME: glossia-web
   OTEL_DEPLOYMENT_ENVIRONMENT: production
   OTEL_EXPORTER_OTLP_PROTOCOL: http_protobuf
-  OTEL_EXPORTER_OTLP_ENDPOINT: https://tempo.glossia.ai
+  # In-cluster Tempo gateway. The public https://tempo.glossia.ai hostname
+  # resolves to this cluster's own load balancer now that observability is
+  # co-located, and Hetzner load balancers do not hairpin, so trace export
+  # timed out after the consolidation. Tempo runs auth_enabled: false, so the
+  # OTEL_EXPORTER_OTLP_HEADERS secret below is simply ignored internally.
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://observability-tempo-gateway.observability.svc.cluster.local
 
 imagePullSecrets:
   - name: ghcr-pull-secret

@@ -132,6 +132,17 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.envSecretName }}
+          # Guard the boot separately from liveness. A cold BEAM start behind
+          # an image pull, DB connect and migration wait can exceed the
+          # liveness initialDelay, and without a startupProbe liveness then
+          # restarts the pod mid-boot into a crash loop - worst during a node
+          # rollout when both replicas are cold. 30 x 5s = 150s of boot budget.
+          startupProbe:
+            httpGet:
+              path: /up
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /up

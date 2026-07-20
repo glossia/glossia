@@ -15,6 +15,12 @@ metadata:
 spec:
   replicas: {{ .Values.mailRelay.replicaCount }}
   revisionHistoryLimit: 3
+  # Single replica on an RWO hcloud volume. A RollingUpdate starts the new
+  # pod before terminating the old one; if the scheduler picks a different
+  # node the volume cannot multi-attach and the rollout hangs in
+  # ContainerCreating. Recreate terminates first, then reschedules.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: mail-relay
