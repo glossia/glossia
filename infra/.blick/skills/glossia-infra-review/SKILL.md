@@ -1,6 +1,6 @@
 ---
 name: glossia-infra-review
-description: Project-specific PR-review rules for Glossia infrastructure under `infra/`, `deploy/`, `.kamal/`, and `.github/workflows/`. Focuses on what only this repo knows — the lean Hetzner k8s shape, Helm values/templates split, Terraform's kube-hetzner module, ClickHouse backup posture, and the Postgres autoscaling baseline.
+description: Project-specific PR-review rules for Glossia infrastructure under `infra/`, `deploy/`, and `.github/workflows/`. Focuses on what only this repo knows — the lean Hetzner k8s shape, Helm values/templates split, Terraform's kube-hetzner module, ClickHouse backup posture, and the Postgres autoscaling baseline.
 ---
 
 # Glossia Infra Review
@@ -31,8 +31,7 @@ the templates themselves.
   added to `values-hetzner.yaml` without the corresponding key in
   `values.yaml` (drift between defaults and the env override).
 - A `values-*.yaml` file that sets secrets in plaintext. Secrets must
-  flow through external-secrets / sealed-secrets / Kamal secrets, not
-  the chart values.
+  flow through external-secrets / sealed-secrets, not the chart values.
 
 ### Do not flag
 
@@ -125,7 +124,7 @@ plan/apply non-reproducible.
 
 - A plaintext credential (API key, password, private key, OAuth secret,
   DB connection string with embedded password) added to any file under
-  `infra/`, `deploy/`, `.kamal/`, or `.github/workflows/`. Even
+  `infra/`, `deploy/`, or `.github/workflows/`. Even
   base64-encoded `Secret` manifests must come from
   external-secrets / sealed-secrets, not committed plaintext.
 
@@ -155,18 +154,6 @@ plan/apply non-reproducible.
 
 ---
 
-## 8. Kamal — `.kamal/` deploy config
-
-### Flag (Severity: high)
-
-- A `.kamal/deploy.yml` change that points a production role at a
-  different registry/image without updating the corresponding
-  `secrets` reference.
-- A new role added without health-check configuration matching
-  sibling roles.
-
----
-
 ## Out of scope (handled elsewhere — do not flag)
 
 - YAML / HCL indentation and quoting style → `yamllint` /
@@ -182,7 +169,7 @@ plan/apply non-reproducible.
 For each finding, confirm:
 
 1. The `path:line` is real and the snippet appears in the diff.
-2. The category above is one of 1–8; if it isn't, downgrade to
+2. The category above is one of 1–7; if it isn't, downgrade to
    `uncertain: ...`.
 3. Severity is set: **critical** (committed secrets), **high** (likely
    production regression), **medium** (convention gap), **low**
