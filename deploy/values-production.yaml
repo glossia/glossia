@@ -99,6 +99,17 @@ clickhouse:
   # The operator reports ScaleAllowed, so it expands the standalone node into
   # a quorum online while preserving the existing node's data.
   keeperReplicas: 3
+  # Spread the three Keeper pods across nodes. Without this the operator can
+  # co-schedule two on one node, so losing that node loses quorum - defeating
+  # the point of a three-node quorum. ScheduleAnyway keeps the pods
+  # schedulable if a node is briefly unavailable during a rollout.
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          clickhouse.com/role: clickhouse-keeper
   storage:
     storageClass: hcloud-volumes
   nodeSelector:
