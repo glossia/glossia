@@ -76,6 +76,10 @@ alloy:
         effect: NoSchedule
     volumes:
       extra:
+        # Alloy runs with --storage.path=/tmp/alloy and the container has a
+        # read-only root filesystem, so /tmp must be a writable volume.
+        - name: alloy-storage
+          emptyDir: {}
         # No host-root ("/") mount. /proc and /sys cover node-exporter style
         # metrics; mounting the whole host filesystem into a DaemonSet gives
         # any container compromise a full read of every node.
@@ -93,6 +97,8 @@ alloy:
   alloy:
     mounts:
       extra:
+        - name: alloy-storage
+          mountPath: /tmp
         - name: host-proc
           mountPath: /host/proc
           readOnly: true
@@ -162,7 +168,16 @@ alloy-events:
   controller:
     type: deployment
     replicas: 1
+    volumes:
+      extra:
+        # Writable /tmp for --storage.path under a read-only root filesystem.
+        - name: alloy-storage
+          emptyDir: {}
   alloy:
+    mounts:
+      extra:
+        - name: alloy-storage
+          mountPath: /tmp
     extraEnv:
       - name: PUSH_USERNAME
         valueFrom:
