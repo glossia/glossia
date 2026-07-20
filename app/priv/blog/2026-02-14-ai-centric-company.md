@@ -76,7 +76,7 @@ We are very intentional about our stack because it directly affects how fast we 
 
 **For the server:** We chose [Elixir](https://elixir-lang.org) and the [Erlang](https://www.erlang.org) runtime. Elixir's functional nature makes it a great fit for agentic workloads. The Erlang VM is battle-tested for concurrency and fault tolerance. And here is a bonus: an AI agent can introspect the running Erlang system to understand what is happening, gather insights, and even fix issues in production.
 
-**For infrastructure:** Everything runs on a single VPS. Not just the Glossia production server, but all the peripheral services too: [PostgreSQL](https://www.postgresql.org/) for the database, [Plausible](https://plausible.io) for privacy-friendly analytics, [Grafana](https://grafana.com) for telemetry and observability. It is all deployed with [Kamal](https://kamal-deploy.org), which gives us a simple DSL to describe what goes where.
+**For infrastructure:** Everything runs on a single VPS. Not just the Glossia production server, but all the peripheral services too: [PostgreSQL](https://www.postgresql.org/) for the database, [Plausible](https://plausible.io) for privacy-friendly analytics, [Grafana](https://grafana.com) for telemetry and observability. It is all deployed from version-controlled infrastructure definitions that describe what goes where.
 
 This keeps costs extremely low. We do not depend on third-party cloud services, managed databases, or platform-as-a-service providers. We have a few external dependencies, but only for things that would take us a long time to replicate and where the cost makes sense.
 
