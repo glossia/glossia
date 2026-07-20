@@ -7,6 +7,7 @@
 @import "./components/translation-progress.css";
 @import "./components/setup-progress.css";
 @import "./components/app-shell.css";
+@import "./components/model-picker.css";
 @import "./routes/project-new.css";
 
 @font-face {
