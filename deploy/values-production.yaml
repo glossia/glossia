@@ -92,6 +92,13 @@ postgres:
       effect: NoSchedule
 
 clickhouse:
+  # Three-node Keeper quorum. At one replica the operator's PDB is
+  # maxUnavailable: 0, so the sole pod is unevictable and deadlocks node
+  # drains, and a single Keeper is a coordination SPOF for ClickHouse
+  # (access control, user-defined objects, encrypted named collections).
+  # The operator reports ScaleAllowed, so it expands the standalone node into
+  # a quorum online while preserving the existing node's data.
+  keeperReplicas: 3
   storage:
     storageClass: hcloud-volumes
   nodeSelector:
