@@ -23,6 +23,10 @@ spec:
     tolerations:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.clickhouse.topologySpreadConstraints }}
+    topologySpreadConstraints:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   containerTemplate:
     resources:
       {{- toYaml .Values.clickhouse.keeperResources | nindent 6 }}
@@ -51,6 +55,10 @@ spec:
     {{- end }}
     {{- with .Values.clickhouse.tolerations }}
     tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.topologySpreadConstraints }}
+    topologySpreadConstraints:
       {{- toYaml . | nindent 6 }}
     {{- end }}
   containerTemplate:
