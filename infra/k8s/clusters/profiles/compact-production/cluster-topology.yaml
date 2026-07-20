@@ -8,7 +8,7 @@
   value:
     - class: hcloud-worker
       name: md-combined
-      replicas: 2
+      replicas: 3
       failureDomain: fsn1
       metadata:
         labels:
@@ -16,4 +16,4 @@
       variables:
         overrides:
           - name: hcloudWorkerMachineType
-            value: cx53
+            value: cpx32
