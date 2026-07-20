@@ -76,9 +76,9 @@ alloy:
         effect: NoSchedule
     volumes:
       extra:
-        - name: host-root
-          hostPath:
-            path: /
+        # No host-root ("/") mount. /proc and /sys cover node-exporter style
+        # metrics; mounting the whole host filesystem into a DaemonSet gives
+        # any container compromise a full read of every node.
         - name: host-proc
           hostPath:
             path: /proc
@@ -93,10 +93,6 @@ alloy:
   alloy:
     mounts:
       extra:
-        - name: host-root
-          mountPath: /host/root
-          readOnly: true
-          mountPropagation: HostToContainer
         - name: host-proc
           mountPath: /host/proc
           readOnly: true
@@ -134,11 +130,28 @@ alloy:
       create: false
       name: glossia-alloy-config
       key: config.alloy
+    # Without requests Alloy is BestEffort, so the kubelet evicts it first
+    # under node memory pressure - losing telemetry exactly when it is needed
+    # - and the scheduler cannot account for it when sizing the pool.
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
   serviceAccount:
     create: true
-  # Cluster-wide RBAC so Alloy can discover pods/services/nodes everywhere.
+  # Bound by templates/alloy-rbac.yaml instead, which is the upstream role
+  # minus cluster-wide read on Secrets. See that file for the rationale.
   rbac:
-    create: true
+    create: false
 
 alloy-events:
   enabled: true
@@ -165,11 +178,25 @@ alloy-events:
       create: false
       name: glossia-alloy-events-config
       key: config.alloy
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
   serviceAccount:
     create: true
-  # Cluster-wide permissions are required to watch Kubernetes events.
+  # Cluster-wide permissions are required to watch Kubernetes events, but not
+  # to read Secrets. Bound by templates/alloy-rbac.yaml instead.
   rbac:
-    create: true
+    create: false
 
 # kube-state-metrics defaults are fine; chart names its Service
 # `<release>-kube-state-metrics` which the River discovery.relabel above
@@ -177,3 +204,35 @@ alloy-events:
 kube-state-metrics:
   enabled: true
   fullnameOverride: alloy-kube-state-metrics
+  # Upstream defaults include the "secrets" collector, and the chart grants
+  # cluster-wide list/watch on Secrets whenever it is present. Nothing here
+  # consumes kube_secret_* metrics, so drop the collector and the permission
+  # with it. This is the upstream default list minus "secrets".
+  collectors:
+    - certificatesigningrequests
+    - configmaps
+    - cronjobs
+    - daemonsets
+    - deployments
+    - endpoints
+    - horizontalpodautoscalers
+    - ingresses
+    - jobs
+    - leases
+    - limitranges
+    - mutatingwebhookconfigurations
+    - namespaces
+    - networkpolicies
+    - nodes
+    - persistentvolumeclaims
+    - persistentvolumes
+    - poddisruptionbudgets
+    - pods
+    - replicasets
+    - replicationcontrollers
+    - resourcequotas
+    - services
+    - statefulsets
+    - storageclasses
+    - validatingwebhookconfigurations
+    - volumeattachments
