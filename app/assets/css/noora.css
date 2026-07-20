@@ -6,6 +6,7 @@
  * scoped to a unique #id, import order does not affect the cascade. */
 @import "./components/translation-progress.css";
 @import "./components/setup-progress.css";
+@import "./components/app-shell.css";
 @import "./routes/project-new.css";
 
 @font-face {
@@ -1423,17 +1424,6 @@
     padding-right: var(--noora-spacing-5);
     padding-left: var(--noora-spacing-5);
   }
-}
-
-.noora-shell__avatar {
-  display: block;
-  border-radius: var(--noora-radius-99);
-  width: var(--noora-spacing-6);
-  height: var(--noora-spacing-6);
-}
-
-.noora-shell__user-menu .noora-dropdown > [data-part="trigger"][data-icon-only] {
-  padding: var(--noora-spacing-3);
 }
 
 .noora-shell #flash-group {
