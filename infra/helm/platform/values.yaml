@@ -57,6 +57,29 @@ cert-manager:
   installCRDs: true
   prometheus:
     enabled: true
+  # Resource requests so these are not BestEffort. cert-manager-webhook in
+  # particular gates every Certificate/Issuer API write cluster-wide, so it
+  # must not be first-evicted under node memory pressure.
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  webhook:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  cainjector:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
 
 ingress-nginx:
   enabled: true
@@ -115,8 +138,29 @@ external-secrets:
     # Keep serving the deprecated version temporarily for third-party or older
     # releases while Glossia's own resources use external-secrets.io/v1.
     unsafeServeV1Beta1: true
+  # Resource requests so these controllers are not BestEffort. The webhook
+  # gates every ExternalSecret API write, so it must not be first-evicted.
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      memory: 192Mi
   webhook:
     port: 9443
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  certController:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
 
 # --- Cluster mail relay -----------------------------------------------------
 # Optional in-cluster mail relay. Applications submit mail to this ClusterIP
