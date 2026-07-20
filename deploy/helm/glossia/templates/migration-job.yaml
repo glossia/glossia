@@ -12,6 +12,10 @@ metadata:
 spec:
   backoffLimit: {{ .Values.migrationJob.backoffLimit }}
   ttlSecondsAfterFinished: {{ .Values.migrationJob.ttlSecondsAfterFinished }}
+  # Bound the migration. As a pre-upgrade hook a migration blocked on a lock
+  # would otherwise stall the whole deploy against the CI --timeout with no
+  # job-level limit. Fail it at 15 min so the deploy surfaces the error.
+  activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
   template:
     metadata:
       labels:
@@ -27,6 +31,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/app/bin/migrate"]
+          resources:
+            {{- toYaml .Values.migrationJob.resources | nindent 12 }}
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}

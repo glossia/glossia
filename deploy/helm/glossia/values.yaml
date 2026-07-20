@@ -144,6 +144,15 @@ migrationJob:
   enabled: true
   backoffLimit: 2
   ttlSecondsAfterFinished: 300
+  # Fail the pre-upgrade migration hook rather than hang the whole deploy if
+  # it blocks on a lock. Mirrors the GlitchTip migration job's bounds.
+  activeDeadlineSeconds: 900
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
   clickhouseInitImage: curlimages/curl:8.12.1
 
 # Postgres (CloudNativePG Cluster CR). Disable to BYO Postgres — set
