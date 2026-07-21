@@ -19,7 +19,6 @@ defmodule Glossia.Seeds do
     Identity,
     AccountToken,
     Project,
-    LLMModel,
     User,
     Voice
   }
@@ -161,6 +160,7 @@ defmodule Glossia.Seeds do
          """
          ---
          source_language: en
+         model: local-codex
          targets:
            es: Spanish
            fr: French
@@ -168,6 +168,14 @@ defmodule Glossia.Seeds do
            "docs/*.md": "docs/i18n/{locale}/*.md"
          ---
          Blog project context: keep a friendly, concise tone.
+         """},
+        {"GLOSSIA/fr.md",
+         """
+         ---
+         locale: fr
+         model: local-claude
+         ---
+         French translations should feel natural and editorial, rather than literal.
          """},
         {"docs/getting-started.md",
          "# Getting started\n\nWelcome to the blog. This short guide helps you publish your first post.\n"}
@@ -568,10 +576,32 @@ defmodule Glossia.Seeds do
       default: false
     )
 
+    ensure_llm_model!(dev.account, dev,
+      handle: "fast-drafts",
+      model: "fireworks_ai:accounts/fireworks/models/glm-4p5-air",
+      api_key: "fw-dev-placeholder-key",
+      default: false
+    )
+
+    ensure_llm_model!(dev.account, dev,
+      handle: "long-form-guides",
+      model: "fireworks_ai:accounts/fireworks/models/kimi-k2p5",
+      api_key: "fw-dev-placeholder-key",
+      default: false
+    )
+
     ensure_llm_model!(acme.account, dev,
       handle: "acme-claude",
       model: "anthropic:claude-sonnet-4-20250514",
-      api_key: "sk-ant-acme-placeholder-key"
+      api_key: "sk-ant-acme-placeholder-key",
+      default: true
+    )
+
+    ensure_llm_model!(acme.account, dev,
+      handle: "acme-fast-drafts",
+      model: "fireworks_ai:accounts/fireworks/models/glm-4p5-air",
+      api_key: "fw-acme-placeholder-key",
+      default: false
     )
 
     :ok
@@ -1191,24 +1221,19 @@ defmodule Glossia.Seeds do
 
   defp ensure_llm_model!(account, user, opts) do
     handle = Keyword.fetch!(opts, :handle)
-    requested_default = Keyword.get(opts, :default, false)
+    requested_default = Keyword.get(opts, :default, :unspecified)
 
-    if requested_default do
-      Repo.update_all(
-        from(model in LLMModel,
-          where:
-            model.account_id == ^account.id and model.handle != ^handle and model.default == true
-        ),
-        set: [default: false]
-      )
-    end
-
-    attrs = %{
-      "handle" => handle,
-      "model" => Keyword.fetch!(opts, :model),
-      "api_key" => Keyword.fetch!(opts, :api_key),
-      "default" => requested_default
-    }
+    attrs =
+      %{
+        "handle" => handle,
+        "model" => Keyword.fetch!(opts, :model),
+        "api_key" => Keyword.fetch!(opts, :api_key)
+      }
+      |> then(fn attrs ->
+        if requested_default == :unspecified,
+          do: attrs,
+          else: Map.put(attrs, "default", requested_default)
+      end)
 
     case LLMModels.get_model_by_handle(handle, account.id) do
       nil ->
@@ -1217,7 +1242,7 @@ defmodule Glossia.Seeds do
 
       existing ->
         if existing.model != attrs["model"] or existing.api_key != attrs["api_key"] or
-             existing.default != attrs["default"] do
+             (requested_default != :unspecified and existing.default != requested_default) do
           {:ok, model} = LLMModels.update_model(account, user, existing, attrs)
           model
         else

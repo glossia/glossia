@@ -77,4 +77,20 @@ defmodule GlossiaWeb.AuthControllerTest do
       refute response =~ "Join the waitlist"
     end
   end
+
+  describe "POST /auth/dev-login" do
+    test "returns to the protected page requested before sign-in", %{conn: conn} do
+      user = Glossia.TestHelpers.create_user("dev@glossia.ai", "dev")
+      return_to = "/dev/-/settings/models"
+
+      conn =
+        conn
+        |> init_test_session(%{return_to: return_to})
+        |> GlossiaWeb.AuthController.dev_login(%{})
+
+      assert redirected_to(conn) == return_to
+      assert get_session(conn, :user_id) == user.id
+      assert get_session(conn, :return_to) == nil
+    end
+  end
 end

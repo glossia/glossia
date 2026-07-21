@@ -1,6 +1,12 @@
 defmodule Glossia.Translations.Credentials do
   @moduledoc """
-  Resolves the effective model and authorization for a translation, in precedence order:
+  Resolves the effective model and authorization for a translation.
+
+  When the repository names a model handle, that exact account model must
+  resolve. An unknown explicit handle is an error and never falls back to
+  another credential.
+
+  When the repository omits a model handle, resolution follows this precedence:
 
     1. The account's `LLMModel` and provider key, which is the normal production path.
     2. A globally configured inference provider token and endpoint, which is the
@@ -10,7 +16,7 @@ defmodule Glossia.Translations.Credentials do
 
   Returns a credential map:
 
-      %{model: "provider:model", auth: auth, source: atom}
+      %{model: "provider:model", handle: "account-handle", auth: auth, source: atom}
 
   where `auth` is `{:api_key, key, base_url_or_nil}` (used via Condukt) or
   `{:oauth, access_token}` (used via ReqLLM directly, since Condukt cannot carry
@@ -28,16 +34,19 @@ defmodule Glossia.Translations.Credentials do
   }
 
   @type auth :: {:api_key, String.t(), String.t() | nil} | {:oauth, String.t()}
-  @type credential :: %{model: String.t(), auth: auth(), source: atom()}
+  @type credential :: %{
+          model: String.t(),
+          handle: String.t() | nil,
+          auth: auth(),
+          source: atom()
+        }
 
   @spec resolve(Account.t(), String.t() | nil) ::
           {:ok, credential()} | {:error, {:model_not_found, String.t() | nil}}
   def resolve(%Account{} = account, model_handle) do
-    cond do
-      cred = account_model_credential(account, model_handle) -> {:ok, cred}
-      cred = inference_config_credential() -> {:ok, cred}
-      cred = local_session_credential() -> {:ok, cred}
-      true -> {:error, {:model_not_found, model_handle}}
+    case normalized_handle(model_handle) do
+      nil -> resolve_default(account, model_handle)
+      handle -> resolve_explicit(account, handle)
     end
   end
 
@@ -70,26 +79,63 @@ defmodule Glossia.Translations.Credentials do
     end
   end
 
-  # 1. Per-account model with its own provider key.
-  defp account_model_credential(account, model_handle) do
-    case find_model(account, model_handle) do
-      %{model: model, api_key: key}
-      when key in ["development-session:claude", "development-session:codex"] ->
-        development_account_session(key, model)
+  defp resolve_explicit(account, handle) do
+    case LLMModels.get_model_by_handle(handle, account.id) do
+      nil ->
+        {:error, {:model_not_found, handle}}
 
-      %{model: model, api_key: key} when is_binary(key) and key != "" ->
-        %{model: model, auth: {:api_key, key, nil}, source: :account_model}
-
-      _ ->
-        nil
+      model ->
+        case account_model_credential(model) do
+          nil -> {:error, {:model_not_found, handle}}
+          credential -> {:ok, credential}
+        end
     end
   end
 
-  defp find_model(account, handle) when is_binary(handle) and handle != "" do
-    LLMModels.get_model_by_handle(handle, account.id) || LLMModels.default_model(account)
+  defp resolve_default(account, requested_handle) do
+    cond do
+      credential = account |> LLMModels.default_model() |> account_model_credential() ->
+        {:ok, credential}
+
+      credential = inference_config_credential() ->
+        {:ok, credential}
+
+      credential = local_session_credential() ->
+        {:ok, credential}
+
+      true ->
+        {:error, {:model_not_found, requested_handle}}
+    end
   end
 
-  defp find_model(account, _handle), do: LLMModels.default_model(account)
+  # 1. Per-account model with its own provider key.
+  defp account_model_credential(nil), do: nil
+
+  defp account_model_credential(configured_model) do
+    credential =
+      case configured_model do
+        %{model: model, api_key: key}
+        when key in ["development-session:claude", "development-session:codex"] ->
+          development_account_session(key, model)
+
+        %{model: model, api_key: key} when is_binary(key) and key != "" ->
+          %{model: model, auth: {:api_key, key, nil}, source: :account_model}
+
+        _ ->
+          nil
+      end
+
+    if credential, do: Map.put(credential, :handle, configured_model.handle)
+  end
+
+  defp normalized_handle(handle) when is_binary(handle) do
+    case String.trim(handle) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp normalized_handle(_handle), do: nil
 
   # 2. Globally configured inference provider.
   defp inference_config_credential do
@@ -100,6 +146,7 @@ defmodule Glossia.Translations.Credentials do
     if present?(key) and present?(model) do
       %{
         model: model,
+        handle: nil,
         auth: {:api_key, key, config[:inference_base_url]},
         source: :inference_config
       }
@@ -130,7 +177,7 @@ defmodule Glossia.Translations.Credentials do
     token = oauth["accessToken"]
 
     if present?(token) and not_expired?(oauth["expiresAt"]) do
-      %{model: local_model(), auth: {:oauth, token}, source: :claude_session}
+      %{model: local_model(), handle: nil, auth: {:oauth, token}, source: :claude_session}
     end
   end
 
@@ -164,7 +211,12 @@ defmodule Glossia.Translations.Credentials do
     with {:ok, %{"tokens" => %{"access_token" => token}}} <- read_codex_auth(path),
          true <- present?(token),
          true <- not_expired?(token_expiry_ms(token)) do
-      %{model: local_model("openai:gpt-5"), auth: {:oauth, token}, source: :codex_session}
+      %{
+        model: local_model("openai:gpt-5"),
+        handle: nil,
+        auth: {:oauth, token},
+        source: :codex_session
+      }
     else
       _ -> nil
     end

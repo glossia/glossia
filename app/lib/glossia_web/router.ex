@@ -389,7 +389,33 @@ defmodule GlossiaWeb.Router do
     end
   end
 
-  # Platform routes (access controlled by on_mount hooks)
+  # Authenticated platform routes. The plug preserves the requested path so a
+  # stale or missing session returns here after sign-in.
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :require_auth, :platform]
+
+    live_session :authenticated_platform,
+      layout: {GlossiaWeb.Layouts, :platform},
+      on_mount: [
+        {GlossiaWeb.PlatformHooks, :load_user},
+        {GlossiaWeb.PlatformHooks, :load_account},
+        {GlossiaWeb.PlatformHooks, :check_write}
+      ] do
+      live "/:handle/-/members", DashboardLive, :members
+      live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
+      live "/:handle/-/settings/tokens/new", DashboardLive, :api_tokens_new
+      live "/:handle/-/settings/tokens/:token_id", DashboardLive, :api_token_edit
+      live "/:handle/-/settings/apps", DashboardLive, :api_apps
+      live "/:handle/-/settings/apps/new", DashboardLive, :api_apps_new
+      live "/:handle/-/settings/apps/:app_id", DashboardLive, :api_app_edit
+      live "/:handle/-/settings/models", DashboardLive, :llm_models
+      live "/:handle/-/settings/models/new", DashboardLive, :llm_model_new
+      live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
+      live "/:handle/:project/-/settings", DashboardLive, :project_settings
+    end
+  end
+
+  # Public platform routes (access controlled by on_mount hooks)
   scope "/", GlossiaWeb do
     pipe_through [:browser, :platform]
 
@@ -420,22 +446,11 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/suggestions/:suggestion_number", DashboardLive, :discussion_show
       live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show
-      live "/:handle/-/members", DashboardLive, :members
-      live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
-      live "/:handle/-/settings/tokens/new", DashboardLive, :api_tokens_new
-      live "/:handle/-/settings/tokens/:token_id", DashboardLive, :api_token_edit
-      live "/:handle/-/settings/apps", DashboardLive, :api_apps
-      live "/:handle/-/settings/apps/new", DashboardLive, :api_apps_new
-      live "/:handle/-/settings/apps/:app_id", DashboardLive, :api_app_edit
-      live "/:handle/-/settings/models", DashboardLive, :llm_models
-      live "/:handle/-/settings/models/new", DashboardLive, :llm_model_new
-      live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
       live "/:handle/-/account", DashboardLive, :account
       live "/:handle/-/projects/new", DashboardLive, :project_new
 
       # Content routes (no /-/, MUST come last)
       live "/:handle", DashboardLive, :account
-      live "/:handle/:project/-/settings", DashboardLive, :project_settings
       live "/:handle/:project/-/translations", DashboardLive, :project_translations
       live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
       live "/:handle/:project", DashboardLive, :project

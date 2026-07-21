@@ -1,3 +1,75 @@
+const normalizeSearchText = value =>
+  value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+
+const editDistance = (left, right) => {
+  const rows = Array.from({length: left.length + 1}, (_, index) => index)
+
+  for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+    let previousDiagonal = rows[0]
+    rows[0] = rightIndex
+
+    for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+      const previousRow = rows[leftIndex]
+      const substitution = previousDiagonal + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1)
+      rows[leftIndex] = Math.min(rows[leftIndex] + 1, rows[leftIndex - 1] + 1, substitution)
+      previousDiagonal = previousRow
+    }
+  }
+
+  return rows[left.length]
+}
+
+const scoreTerm = (term, words) => {
+  if (words.includes(term)) return 100
+  if (words.some(word => word.startsWith(term))) return 80
+  if (words.some(word => word.includes(term))) return 60
+
+  const allowedDistance = term.length >= 8 ? 2 : term.length >= 4 ? 1 : 0
+  if (allowedDistance === 0) return null
+
+  const closestDistance = words.reduce(
+    (closest, word) => Math.min(closest, editDistance(term, word)),
+    Number.POSITIVE_INFINITY
+  )
+
+  return closestDistance <= allowedDistance ? 30 - closestDistance : null
+}
+
+export const modelSearchScore = ([label, value], filter) => {
+  const query = normalizeSearchText(filter || "")
+  if (query === "") return 0
+
+  const labelText = normalizeSearchText(label)
+  const searchable = normalizeSearchText(`${label} ${value}`)
+  const words = searchable.split(" ")
+  const terms = query.split(" ")
+  let score = 0
+  let matchedTerms = 0
+
+  for (const term of terms) {
+    const termScore = scoreTerm(term, words)
+    if (termScore !== null) {
+      score += termScore
+      matchedTerms += 1
+    }
+  }
+
+  if (matchedTerms === 0) return null
+
+  score += matchedTerms * 200
+  if (matchedTerms === terms.length) score += 500
+  if (searchable.includes(query)) score += 300
+  if (labelText.includes(query)) score += 200
+  if (labelText.startsWith(query)) score += 100
+
+  return score
+}
+
 export default {
   mounted() {
     this.options = JSON.parse(this.el.dataset.options || "[]")
@@ -88,10 +160,16 @@ export default {
   },
 
   renderOptions(filter) {
-    const query = (filter || "").trim().toLowerCase()
-    const matches = this.options.filter(([label, value]) =>
-      label.toLowerCase().includes(query) || value.toLowerCase().includes(query)
-    )
+    const query = normalizeSearchText(filter || "")
+    const matches = query === ""
+      ? this.options
+      : this.options
+          .map(option => [option, modelSearchScore(option, query)])
+          .filter(([_option, score]) => score !== null)
+          .sort(([leftOption, leftScore], [rightOption, rightScore]) =>
+            rightScore - leftScore || leftOption[0].localeCompare(rightOption[0])
+          )
+          .map(([option]) => option)
     const visible = matches.slice(0, this.resultLimit)
 
     this.items.replaceChildren()

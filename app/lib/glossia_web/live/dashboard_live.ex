@@ -1370,38 +1370,46 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("validate_model", %{"model" => params}, socket) do
+    changeset = model_form_changeset(params)
+
     {:noreply,
      assign(socket,
-       model_form: to_form(params, as: :model),
-       model_form_valid?: valid_model_form?(params)
+       model_form: to_form(changeset, as: :model),
+       model_form_valid?: changeset.valid?
      )}
   end
 
   def handle_event("select_model", %{"value" => value}, socket) do
     params = put_model_form_value(socket.assigns.model_form, value)
+    changeset = model_form_changeset(params)
 
     {:noreply,
      assign(socket,
-       model_form: to_form(params, as: :model),
-       model_form_valid?: valid_model_form?(params)
+       model_form: to_form(changeset, as: :model),
+       model_form_valid?: changeset.valid?
      )}
   end
 
   def handle_event("validate_model_edit", %{"model" => params}, socket) do
+    changeset = model_edit_form_changeset(socket.assigns.editing_model, params)
+
     {:noreply,
      assign(socket,
-       model_edit_form: to_form(params, as: :model),
-       model_edit_changed?: changed_model_form?(params, socket.assigns.model_edit_original)
+       model_edit_form: to_form(changeset, as: :model),
+       model_edit_changed?:
+         changeset.valid? and changed_model_form?(params, socket.assigns.model_edit_original)
      )}
   end
 
   def handle_event("select_model_edit", %{"value" => value}, socket) do
     params = put_model_form_value(socket.assigns.model_edit_form, value)
+    changeset = model_edit_form_changeset(socket.assigns.editing_model, params)
 
     {:noreply,
      assign(socket,
-       model_edit_form: to_form(params, as: :model),
-       model_edit_changed?: changed_model_form?(params, socket.assigns.model_edit_original)
+       model_edit_form: to_form(changeset, as: :model),
+       model_edit_changed?:
+         changeset.valid? and changed_model_form?(params, socket.assigns.model_edit_original)
      )}
   end
 
@@ -1422,7 +1430,7 @@ defmodule GlossiaWeb.DashboardLive do
         {:error, changeset} ->
           {:noreply,
            socket
-           |> assign(model_form: to_form(changeset, as: :model))
+           |> assign(model_form: to_form(changeset, as: :model), model_form_valid?: false)
            |> put_flash(:error, gettext("Could not create model."))}
       end
     end
@@ -1454,8 +1462,38 @@ defmodule GlossiaWeb.DashboardLive do
         {:error, changeset} ->
           {:noreply,
            socket
-           |> assign(model_edit_form: to_form(changeset, as: :model))
+           |> assign(
+             model_edit_form: to_form(changeset, as: :model),
+             model_edit_changed?: false
+           )
            |> put_flash(:error, gettext("Could not update model."))}
+      end
+    end
+  end
+
+  def handle_event("set_default_model", %{"id" => model_id}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case LLMModels.get_model(model_id, account.id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Model not found."))}
+
+        model ->
+          case LLMModels.update_model(account, user, model, %{"default" => true}) do
+            {:ok, updated} ->
+              {:noreply,
+               socket
+               |> assign(editing_model: updated)
+               |> put_flash(:info, gettext("Default model updated."))}
+
+            {:error, _changeset} ->
+              {:noreply,
+               put_flash(socket, :error, gettext("Could not update the default model."))}
+          end
       end
     end
   end
@@ -2747,10 +2785,23 @@ defmodule GlossiaWeb.DashboardLive do
     |> Map.put("model", value)
   end
 
-  defp valid_model_form?(params) do
-    String.trim(params["handle"] || "") != "" and
-      String.trim(params["model"] || "") != "" and
-      String.trim(params["api_key"] || "") != ""
+  defp model_form_changeset(params) do
+    %Glossia.Accounts.LLMModel{}
+    |> LLMModels.change_model(params)
+    |> Map.put(:action, :validate)
+  end
+
+  defp model_edit_form_changeset(model, params) do
+    model
+    |> LLMModels.change_model(params, require_api_key: false)
+    |> Map.put(:action, :validate)
+  end
+
+  defp model_field_error(field) do
+    case List.first(field.errors) do
+      nil -> nil
+      error -> translate_error(error)
+    end
   end
 
   defp changed_model_form?(params, original) do
@@ -10691,7 +10742,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <h2>{gettext("Model configuration")}</h2>
                 <p>
                   {gettext(
-                    "Configure a large language model that can be referenced from your repository context files."
+                    "Add a named model configuration. Each translation uses one model handle from the nearest applicable GLOSSIA.md file, or the account default when no handle is set."
                   )}
                 </p>
               </div>
@@ -10699,15 +10750,17 @@ defmodule GlossiaWeb.DashboardLive do
                 <div class="voice-card-fields">
                   <Noora.TextInput.text_input
                     id="model-handle"
-                    name="model[handle]"
-                    value={@model_form[:handle].value}
+                    field={@model_form[:handle]}
+                    error={model_field_error(@model_form[:handle])}
                     label={gettext("Handle")}
                     placeholder={gettext("e.g. my-claude-model")}
                     hint={
                       gettext(
-                        "A unique identifier for this model within your account. Used to reference the model from context files."
+                        "Use lowercase letters, numbers, and hyphens. Reference this handle from GLOSSIA.md to choose the model for a content scope."
                       )
                     }
+                    autocapitalize="none"
+                    spellcheck="false"
                     required
                     show_required
                   />
@@ -10724,8 +10777,8 @@ defmodule GlossiaWeb.DashboardLive do
                   </div>
                   <Noora.TextInput.text_input
                     id="model-api-key"
-                    name="model[api_key]"
-                    value={@model_form[:api_key].value}
+                    field={@model_form[:api_key]}
+                    error={model_field_error(@model_form[:api_key])}
                     type="password"
                     label={gettext("API key")}
                     placeholder={gettext("sk-...")}
@@ -10761,9 +10814,12 @@ defmodule GlossiaWeb.DashboardLive do
                 <div class="voice-card-fields">
                   <Noora.TextInput.text_input
                     id="edit-model-handle"
-                    name="model[handle]"
-                    value={@model_edit_form[:handle].value}
+                    field={@model_edit_form[:handle]}
+                    error={model_field_error(@model_edit_form[:handle])}
                     label={gettext("Handle")}
+                    hint={gettext("Use lowercase letters, numbers, and hyphens.")}
+                    autocapitalize="none"
+                    spellcheck="false"
                     required
                     show_required
                   />
@@ -10780,14 +10836,48 @@ defmodule GlossiaWeb.DashboardLive do
                   </div>
                   <Noora.TextInput.text_input
                     id="edit-model-api-key"
-                    name="model[api_key]"
-                    value={@model_edit_form[:api_key].value}
+                    field={@model_edit_form[:api_key]}
+                    error={model_field_error(@model_edit_form[:api_key])}
                     type="password"
                     label={gettext("API key")}
                     placeholder={gettext("Leave blank to keep current key")}
                   />
                 </div>
               </Noora.Card.card_section>
+            </div>
+
+            <div class="voice-section-divider"></div>
+
+            <div class="api-action-section">
+              <div class="api-action-info">
+                <h2>{gettext("Account default")}</h2>
+                <p>
+                  <%= if @editing_model.default do %>
+                    {gettext(
+                      "This model is used for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+                    )}
+                  <% else %>
+                    {gettext(
+                      "Make this the fallback for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+                    )}
+                  <% end %>
+                </p>
+              </div>
+              <Noora.Badge.badge
+                :if={@editing_model.default}
+                label={gettext("Default")}
+                color="primary"
+                style="light-fill"
+              />
+              <Noora.Button.button
+                :if={not @editing_model.default}
+                type="button"
+                label={gettext("Make default")}
+                variant="secondary"
+                size="medium"
+                phx-click="set_default_model"
+                phx-value-id={@editing_model.id}
+              />
             </div>
 
             <div class="voice-section-divider"></div>
@@ -10823,7 +10913,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <h1 data-part="title">{gettext("Models")}</h1>
                 <span data-part="subtitle">
                   {gettext(
-                    "Configure providers and keys that can be referenced from any repository's operations. Glossia routes requests to the right provider with your credentials."
+                    "Each translation uses one configured model. GLOSSIA.md can select a handle for a content scope; work without a handle uses the account default."
                   )}
                 </span>
               </div>
@@ -10891,6 +10981,14 @@ defmodule GlossiaWeb.DashboardLive do
                   sort_order={if(@models_sort_key == "model", do: @models_sort_dir)}
                 >
                   <Noora.Table.text_cell label={model.model} />
+                </:col>
+                <:col :let={model} label={gettext("Default")}>
+                  <Noora.Badge.badge
+                    :if={model.default}
+                    label={gettext("Default")}
+                    color="primary"
+                    style="light-fill"
+                  />
                 </:col>
                 <:empty_state>
                   <Noora.Table.table_empty_state>

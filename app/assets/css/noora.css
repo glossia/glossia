@@ -8,6 +8,7 @@
 @import "./components/setup-progress.css";
 @import "./components/app-shell.css";
 @import "./components/model-picker.css";
+@import "./routes/login.css";
 @import "./routes/project-new.css";
 
 @font-face {
@@ -117,171 +118,6 @@
 .noora-button:hover,
 .noora-neutral-button:hover {
   text-decoration: none;
-}
-
-#login {
-  --font-body: var(--font-family-sans);
-  --font-heading: var(--font-family-sans);
-  --noora-font-body: var(--font-family-sans);
-  --noora-font-heading: var(--font-family-sans);
-  --noora-font-code: var(--font-family-mono);
-
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow: hidden;
-  background: var(--noora-surface-background-primary);
-  padding: var(--noora-spacing-10) var(--noora-spacing-6);
-  color: var(--noora-surface-label-primary);
-  font-family: var(--noora-font-body);
-}
-
-#login * {
-  box-sizing: border-box;
-}
-
-#login [data-part="background"] {
-  position: absolute;
-  inset: var(--noora-spacing-0);
-  z-index: var(--noora-z-index-0);
-  overflow: hidden;
-  pointer-events: none;
-}
-
-#login [data-part="grid"] {
-  position: absolute;
-  inset: var(--noora-spacing-0);
-  opacity: 0.45;
-  background-image: radial-gradient(
-    color-mix(in oklch, var(--noora-surface-label-secondary) 26%, transparent) var(--space-px),
-    transparent var(--space-px)
-  );
-  background-size: var(--noora-spacing-8) var(--noora-spacing-8);
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    var(--color-black) var(--noora-spacing-13),
-    var(--color-black) calc(100% - var(--noora-spacing-13)),
-    transparent
-  );
-}
-
-#login [data-part="frame"] {
-  display: flex;
-  position: relative;
-  z-index: var(--noora-z-index-1);
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--noora-spacing-6);
-  box-shadow: var(--noora-border-heavy);
-  border-radius: var(--noora-radius-8);
-  background: var(--noora-surface-background-primary);
-  padding: var(--noora-spacing-4);
-  width: 100%;
-  max-width: calc(var(--noora-spacing-16) * 4 + var(--noora-spacing-10));
-  overflow: hidden;
-}
-
-#login [data-part="content"] {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--noora-spacing-8);
-  padding: var(--noora-spacing-10) var(--noora-spacing-10) var(--noora-spacing-3);
-}
-
-#login [data-part="logo"] {
-  z-index: var(--noora-z-index-1);
-  border-radius: var(--noora-radius-4);
-  width: var(--noora-spacing-11);
-  height: var(--noora-spacing-11);
-}
-
-#login [data-part="dots"] {
-  margin-top: calc(var(--noora-spacing-12) * -1);
-  width: 100%;
-  height: var(--noora-spacing-10);
-  background-image: radial-gradient(
-    color-mix(in oklch, var(--noora-surface-label-secondary) 42%, transparent) var(--space-px),
-    transparent var(--space-px)
-  );
-  background-size: var(--noora-spacing-5) var(--noora-spacing-5);
-  mask-image: radial-gradient(ellipse at center, var(--color-black), transparent 68%);
-}
-
-#login [data-part="header"] {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--noora-spacing-3);
-  text-align: center;
-}
-
-#login [data-part="title"] {
-  margin: var(--noora-spacing-0);
-  color: var(--noora-surface-label-primary);
-  font: var(--noora-font-weight-medium) var(--noora-font-heading-medium);
-}
-
-#login [data-part="subtitle"] {
-  color: var(--noora-surface-label-secondary);
-  font: var(--noora-font-body-small);
-}
-
-#login [data-part="providers"] {
-  display: flex;
-  flex-direction: column;
-  gap: var(--noora-spacing-4);
-  width: 100%;
-}
-
-#login [data-part="providers"] .noora-button {
-  width: 100%;
-}
-
-#login .noora-alert {
-  width: 100%;
-}
-
-#login [data-part="bottom-link"] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--noora-spacing-2);
-  box-shadow: var(--noora-border-section);
-  border-radius: var(--noora-radius-4);
-  background: var(--noora-surface-background-tertiary);
-  padding: var(--noora-spacing-7) var(--noora-spacing-8);
-  text-align: center;
-}
-
-#login [data-part="bottom-link"] span {
-  color: var(--noora-surface-label-secondary);
-  font: var(--noora-font-body-small);
-}
-
-#login [data-part="terms-notice"] {
-  position: absolute;
-  right: var(--noora-spacing-6);
-  bottom: var(--noora-spacing-5);
-  left: var(--noora-spacing-6);
-  z-index: var(--noora-z-index-1);
-  color: var(--noora-surface-label-secondary);
-  font: var(--noora-font-body-small);
-  text-align: center;
-}
-
-#login [data-part="terms-notice"] a {
-  color: var(--noora-surface-label-primary);
-  text-decoration: none;
-}
-
-#login [data-part="terms-notice"] a:hover {
-  text-decoration: underline;
 }
 
 .noora-shell {
@@ -1451,23 +1287,6 @@
 }
 
 @media (max-width: 768px) {
-  #login {
-    padding: var(--noora-spacing-6);
-  }
-
-  #login [data-part="content"] {
-    padding-inline: var(--noora-spacing-5);
-  }
-
-  #login [data-part="bottom-link"] {
-    flex-direction: column;
-  }
-
-  #login [data-part="terms-notice"] {
-    position: static;
-    margin-top: var(--noora-spacing-5);
-  }
-
   .noora-shell__headerbar {
     padding: var(--noora-spacing-3) var(--noora-spacing-5);
   }
