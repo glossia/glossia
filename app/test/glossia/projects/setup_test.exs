@@ -186,17 +186,12 @@ defmodule Glossia.Projects.SetupTest do
     assert {:cancel, :setup_model_not_configured} =
              SetupWorker.perform(%Oban.Job{args: %{"project_id" => project.id}})
 
-    updated = Repo.get!(Project, project.id)
-    assert updated.setup_status == "failed"
-    assert updated.setup_sandbox_id == nil
-
-    assert updated.setup_error ==
-             "The localization setup model is not configured. Configure a default model for this account before retrying setup."
+    refute Repo.get(Project, project.id)
 
     refute Repo.exists?(from sandbox in Sandbox, where: sandbox.project_id == ^project.id)
   end
 
-  test "records a failed status before cleaning up its sandbox" do
+  test "discards a failed project after cleaning up its sandbox" do
     user = TestHelpers.create_user("setup-failure-state@test.com", "setup-failure-state")
 
     {:ok, project} =
@@ -210,13 +205,15 @@ defmodule Glossia.Projects.SetupTest do
 
     assert {:error, :agent_start_failed} = Setup.run(project.id)
 
-    updated = Repo.get!(Project, project.id)
-    assert updated.setup_status == "failed"
-    assert updated.setup_error == ":agent_start_failed"
-    assert updated.setup_sandbox_id == nil
+    refute Repo.get(Project, project.id)
 
-    assert %Sandbox{status: "terminated"} =
-             Repo.one!(from sandbox in Sandbox, where: sandbox.project_id == ^project.id)
+    assert %Sandbox{status: "terminated", project_id: nil} =
+             Repo.one!(
+               from sandbox in Sandbox,
+                 where:
+                   sandbox.account_id == ^user.account.id and
+                     sandbox.purpose == "project_setup"
+             )
   end
 
   test "creates a pull request from every setup change" do

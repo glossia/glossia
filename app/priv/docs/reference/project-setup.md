@@ -22,9 +22,8 @@ Project setup prepares a connected repository for Glossia. It begins after a use
 | **Pending** | The project has been accepted and is waiting to start. | Follow progress or leave the page and return later. |
 | **Running** | Glossia is inspecting and updating the repository. | Follow the live activity. |
 | **Completed** | The localization baseline was prepared and published for review. | Open and review the pull request. |
-| **Failed** | Setup could not finish or publish a usable change. | Fix the reported problem and select **Retry setup**. |
 
-Only a failed setup can be retried. A retry moves the project back to **Pending** and starts a new attempt.
+Projects are provisional while setup is **Pending** or **Running**. If setup cannot finish or publish a usable change, Glossia cleans up the setup environment and deletes the provisional project. The repository then becomes available in the **New project** flow so setup can be attempted again.
 
 ## Visible progress
 
@@ -33,9 +32,9 @@ The setup card remains available in the new-project flow and on the project over
 - A state badge and progress bar.
 - A short explanation of the current state.
 - Recent repository preparation, inspection, file-change, check, and completion activity.
-- A clear failure message and retry action when recovery is possible.
+- A clear failure message when setup cannot complete.
 
-Progress is stored with the project, so navigating away does not discard it.
+Progress is stored while the provisional project exists. A terminal failure discards both the project and its visible setup progress.
 
 ## Completed result
 

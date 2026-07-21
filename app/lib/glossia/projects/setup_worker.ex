@@ -3,8 +3,8 @@ defmodule Glossia.Projects.SetupWorker do
   Oban worker that runs the project setup process.
 
   Delegates the actual work to `Glossia.Projects.Setup.run/1`, using Oban for
-  persistence and lifecycle management. Failed setup jobs are cancelled so a
-  user can inspect the failure before explicitly retrying them.
+  persistence and lifecycle management. Failed setup jobs are cancelled after
+  the provisional project has been discarded.
   """
 
   use Oban.Worker,
