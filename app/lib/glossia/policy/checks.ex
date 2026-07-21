@@ -24,31 +24,10 @@ defmodule Glossia.Policy.Checks do
   def collection(_subject, _object), do: false
 
   @doc """
-  User is accessing their own user-account resources.
-  The object must have an `account_id` or be an Account struct
-  whose associated user matches the subject.
+  User is accessing their own user resource.
   """
   def self(%User{id: user_id}, %User{id: user_id}), do: true
-  def self(%User{account_id: account_id}, %{account_id: account_id}), do: true
-  def self(%User{account_id: account_id}, %Account{id: account_id}), do: true
   def self(_, _), do: false
-
-  @doc """
-  User owns the account that owns the resource.
-  Works for resources that have an `account_id` field or are Account structs.
-  The account must be a user-type account owned by the subject.
-  """
-  def account_owner(%User{account_id: account_id}, %Account{id: account_id, type: "user"}),
-    do: true
-
-  def account_owner(%User{account_id: account_id}, %{account_id: account_id}) do
-    case get_account_type(account_id) do
-      "user" -> true
-      _ -> false
-    end
-  end
-
-  def account_owner(_, _), do: false
 
   @doc """
   User has "admin" role in the org that owns the resource.
@@ -78,19 +57,11 @@ defmodule Glossia.Policy.Checks do
     get_organization_id_for_account(account_id)
   end
 
-  defp resolve_organization_id(%Account{id: account_id, type: "organization"}) do
+  defp resolve_organization_id(%Account{id: account_id}) do
     get_organization_id_for_account(account_id)
   end
 
-  defp resolve_organization_id(%Account{}), do: nil
   defp resolve_organization_id(_), do: nil
-
-  defp get_account_type(account_id) do
-    Account
-    |> where(id: ^account_id)
-    |> select([a], a.type)
-    |> Repo.one()
-  end
 
   defp get_organization_id_for_account(account_id) do
     Glossia.Accounts.Organization

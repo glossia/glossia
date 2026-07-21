@@ -30,7 +30,7 @@ defmodule Glossia.Organizations do
       Ecto.Multi.new()
       |> Ecto.Multi.insert(
         :account,
-        Account.changeset(%Account{}, %{handle: handle, type: "organization"})
+        Account.changeset(%Account{}, %{handle: handle})
       )
       |> Ecto.Multi.insert(:organization, fn %{account: account} ->
         %Organization{account_id: account.id}
@@ -65,22 +65,23 @@ defmodule Glossia.Organizations do
     |> preload(organization: :account)
     |> Repo.all()
     |> Enum.map(& &1.organization)
-    |> Enum.filter(&(&1.account.type == "organization"))
   end
 
-  def get_organization_for_account(%Account{id: account_id, type: "organization"}) do
+  def get_organization_for_account(%Account{id: account_id}) do
     Organization
     |> where(account_id: ^account_id)
     |> preload(:account)
     |> Repo.one()
   end
 
-  def get_organization_for_account(_), do: nil
-
   def get_organization(id) do
     Organization
     |> preload(:account)
     |> Repo.get(id)
+  end
+
+  def personal_organization?(%Organization{account_id: account_id}) do
+    Repo.exists?(from user in User, where: user.account_id == ^account_id)
   end
 
   def update_organization(%Organization{} = org, attrs, opts \\ []) do
@@ -145,24 +146,28 @@ defmodule Glossia.Organizations do
         {"glossia.account.id", to_string(org.account_id)}
       ])
 
-      org = Repo.preload(org, :account)
+      if personal_organization?(org) do
+        {:error, :personal_organization}
+      else
+        org = Repo.preload(org, :account)
 
-      Repo.delete(org.account)
-      |> case do
-        {:ok, deleted_account} ->
-          if actor = Keyword.get(opts, :actor) do
-            Events.emit("organization.deleted", org.account, actor,
-              resource_type: "organization",
-              resource_id: to_string(org.id),
-              resource_path: "/#{org.account.handle}",
-              summary: "Deleted organization \"#{org.account.handle}\""
-            )
-          end
+        Repo.delete(org.account)
+        |> case do
+          {:ok, deleted_account} ->
+            if actor = Keyword.get(opts, :actor) do
+              Events.emit("organization.deleted", org.account, actor,
+                resource_type: "organization",
+                resource_id: to_string(org.id),
+                resource_path: "/#{org.account.handle}",
+                summary: "Deleted organization \"#{org.account.handle}\""
+              )
+            end
 
-          {:ok, deleted_account}
+            {:ok, deleted_account}
 
-        other ->
-          other
+          other ->
+            other
+        end
       end
     end
   end

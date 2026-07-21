@@ -31,14 +31,12 @@ defmodule Glossia.Github.Installations do
 
   @doc """
   Returns all GitHub installations accessible to a user across all their accounts
-  (personal account + organization memberships). This enables Vercel-like repo
-  discovery where users see repos from all their GitHub orgs regardless of which
-  Glossia account they are creating a project in.
+  through organization memberships. This enables repository discovery where users
+  see repositories from all their GitHub organizations regardless of which Glossia
+  organization they are creating a project in.
   """
   def list_installations_for_user(user) do
-    user_account_id = user.account_id
-
-    org_account_ids =
+    account_ids =
       from(m in Glossia.Accounts.OrganizationMembership,
         where: m.user_id == ^user.id,
         join: o in Glossia.Accounts.Organization,
@@ -47,21 +45,21 @@ defmodule Glossia.Github.Installations do
       )
 
     from(i in GithubInstallation,
-      where: i.account_id == ^user_account_id or i.account_id in subquery(org_account_ids),
+      where: i.account_id in subquery(account_ids),
       where: is_nil(i.suspended_at)
     )
     |> Repo.all()
   end
 
   @doc """
-  Links a pre-existing GitHub App installation to the current account.
+  Links a pre-existing GitHub App installation to the current organization.
 
   GitHub only calls the installation setup callback when an installation is
   created or updated. Users who installed the app before creating their
-  Glossia account can still discover that installation through the GitHub App
+  Glossia organization can still discover that installation through the GitHub App
   user access token issued during sign in.
   """
-  def reconcile_for_user_account(user, account) do
+  def reconcile_for_organization(user, account) do
     case matching_installation_for_user(user, account.handle) do
       %GithubInstallation{} = installation ->
         {:ok, installation}

@@ -2,7 +2,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
   use GlossiaWeb, :live_view
 
   alias Glossia.Accounts
-  alias Glossia.Accounts.{Account, User}
+  alias Glossia.Accounts.{Account, Organization, User}
   alias Glossia.Events
   alias Glossia.Discussions
   alias Glossia.Repo
@@ -54,10 +54,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
     user_count = Repo.aggregate(User, :count)
     account_count = Repo.aggregate(Account, :count)
 
-    org_count =
-      Account
-      |> where(type: "organization")
-      |> Repo.aggregate(:count)
+    org_count = Repo.aggregate(Organization, :count)
 
     assign(socket,
       page_title: gettext("Admin Overview"),
@@ -430,11 +427,6 @@ defmodule GlossiaWeb.Admin.AdminLive do
       <:col :let={account} label={gettext("Handle")} key="handle" sortable>
         <a href={~p"/#{account.handle}"} class="admin-link">{account.handle}</a>
       </:col>
-      <:col :let={account} label={gettext("Type")} key="type" sortable>
-        <.badge variant={if(account.type == "organization", do: "info", else: "neutral")}>
-          {account.type}
-        </.badge>
-      </:col>
       <:col :let={account} label={gettext("Visibility")}>
         {account.visibility || "private"}
       </:col>
@@ -596,8 +588,6 @@ defmodule GlossiaWeb.Admin.AdminLive do
 
   defp apply_account_sort(query, "handle", "asc"), do: order_by(query, asc: :handle)
   defp apply_account_sort(query, "handle", _), do: order_by(query, desc: :handle)
-  defp apply_account_sort(query, "type", "asc"), do: order_by(query, asc: :type)
-  defp apply_account_sort(query, "type", _), do: order_by(query, desc: :type)
   defp apply_account_sort(query, _key, "asc"), do: order_by(query, asc: :inserted_at)
   defp apply_account_sort(query, _key, _), do: order_by(query, desc: :inserted_at)
 

@@ -620,16 +620,13 @@ defmodule Glossia.Seeds do
     account =
       case Repo.get_by(Account, handle: handle) do
         nil ->
-          Repo.insert!(%Account{
-            handle: handle,
-            type: "user"
-          })
+          Repo.insert!(%Account{handle: handle})
 
-        %Account{type: "user"} = account ->
-          account
-
-        %Account{} ->
-          raise "Account handle '#{handle}' is already taken by an organization"
+        %Account{} = account ->
+          case Repo.get_by(User, account_id: account.id) do
+            %User{} -> account
+            nil -> raise "Organization handle '#{handle}' is already taken"
+          end
       end
 
     user =
@@ -696,9 +693,6 @@ defmodule Glossia.Seeds do
 
     org =
       case account do
-        %Account{type: "organization"} = account ->
-          Organizations.get_organization_for_account(account)
-
         nil ->
           {:ok, %{organization: org}} =
             Organizations.create_organization(admin, %{
@@ -708,8 +702,11 @@ defmodule Glossia.Seeds do
 
           org
 
-        %Account{} ->
-          raise "Account handle '#{handle}' is already taken by a user account"
+        %Account{} = account ->
+          case Repo.get_by(User, account_id: account.id) do
+            nil -> Organizations.get_organization_for_account(account)
+            %User{} -> raise "Organization handle '#{handle}' is already taken"
+          end
       end
 
     {:ok, org} = Organizations.update_organization(org, %{visibility: visibility, name: name})

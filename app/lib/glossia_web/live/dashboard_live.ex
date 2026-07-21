@@ -488,7 +488,7 @@ defmodule GlossiaWeb.DashboardLive do
       else
         account = socket.assigns.account
 
-        unless account.type == "organization" and socket.assigns.is_admin do
+        unless socket.assigns.is_admin do
           raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
         end
 
@@ -838,7 +838,7 @@ defmodule GlossiaWeb.DashboardLive do
         user = socket.assigns.current_user
 
         if Glossia.Github.App.configured?() do
-          case Glossia.Github.Installations.reconcile_for_user_account(
+          case Glossia.Github.Installations.reconcile_for_organization(
                  user,
                  socket.assigns.account
                ) do

@@ -1,6 +1,7 @@
 defmodule Glossia.Organizations.InvitationsTest do
   use Glossia.DataCase, async: true
 
+  alias Glossia.Accounts
   alias Glossia.Organizations
   alias Glossia.Accounts.{Account, OrganizationInvitation, User}
 
@@ -254,8 +255,7 @@ defmodule Glossia.Organizations.InvitationsTest do
     {:ok, account} =
       %Account{}
       |> Account.changeset(%{
-        handle: "#{handle}-#{System.unique_integer([:positive])}",
-        type: "user"
+        handle: "#{handle}-#{System.unique_integer([:positive])}"
       })
       |> Repo.insert()
 
@@ -264,6 +264,8 @@ defmodule Glossia.Organizations.InvitationsTest do
       |> User.changeset(%{email: email})
       |> Repo.insert()
 
-    %{user | account: account}
+    user = %{user | account: account}
+    Accounts.ensure_personal_organization!(user)
+    user
   end
 end

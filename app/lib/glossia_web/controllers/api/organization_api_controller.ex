@@ -103,6 +103,11 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
         {:ok, _} ->
           send_resp(conn, :no_content, "")
 
+        {:error, :personal_organization} ->
+          conn
+          |> put_status(:conflict)
+          |> json(%{error: "A personal organization cannot be deleted."})
+
         {:error, changeset} ->
           conn
           |> put_status(:unprocessable_entity)
@@ -232,7 +237,7 @@ defmodule GlossiaWeb.Api.OrganizationApiController do
 
   defp with_authorized_org(conn, handle, permission, fun) do
     case Accounts.get_account_by_handle(handle) do
-      %Account{type: "organization"} = account ->
+      %Account{} = account ->
         case ApiAuthorization.authorize(conn, permission, account) do
           {:ok, conn} ->
             org = Organizations.get_organization_for_account(account)

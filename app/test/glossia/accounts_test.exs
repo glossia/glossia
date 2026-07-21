@@ -3,6 +3,7 @@ defmodule Glossia.AccountsTest do
 
   alias Glossia.Accounts
   alias Glossia.Accounts.{Organization, OrganizationMembership}
+  alias Glossia.Organizations
   alias Glossia.TestHelpers
 
   describe "personal organizations" do
@@ -26,6 +27,13 @@ defmodule Glossia.AccountsTest do
 
       assert organization.name == Accounts.personal_organization_name()
       assert membership.role == "admin"
+
+      assert {:ok, {[account], _meta}} = Accounts.list_user_accounts(user)
+      assert account.id == user.account_id
+
+      assert [listed_organization] = Organizations.list_user_organizations(user)
+      assert listed_organization.id == organization.id
+      refute Map.has_key?(account, :type)
     end
 
     test "ensure_personal_organization!/1 is idempotent" do
