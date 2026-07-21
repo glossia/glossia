@@ -4,14 +4,13 @@ defmodule Glossia.Accounts.Account do
 
   @derive {
     Flop.Schema,
-    filterable: [:handle, :type, :visibility],
-    sortable: [:handle, :type, :visibility, :inserted_at],
+    filterable: [:handle, :visibility],
+    sortable: [:handle, :visibility, :inserted_at],
     default_order: %{order_by: [:handle], order_directions: [:asc]}
   }
 
   schema "accounts" do
     field :handle, :string
-    field :type, :string, default: "user"
     field :stripe_customer_id, :string
     field :stripe_subscription_id, :string
     field :stripe_subscription_status, :string
@@ -30,7 +29,6 @@ defmodule Glossia.Accounts.Account do
     account
     |> cast(attrs, [
       :handle,
-      :type,
       :stripe_customer_id,
       :stripe_subscription_id,
       :stripe_subscription_status,
@@ -38,7 +36,6 @@ defmodule Glossia.Accounts.Account do
       :visibility
     ])
     |> validate_required([:handle])
-    |> validate_inclusion(:type, ["user", "organization"])
     |> validate_inclusion(:visibility, ["private", "public"])
     |> validate_format(:handle, ~r/^[a-z]([a-z0-9-]*[a-z0-9])?$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"

@@ -26,8 +26,7 @@ defmodule Glossia.Github.InstallationsTest do
     {:ok, account} =
       %Account{}
       |> Account.changeset(%{
-        handle: attrs[:handle] || "org-#{System.unique_integer([:positive])}",
-        type: "organization"
+        handle: attrs[:handle] || "org-#{System.unique_integer([:positive])}"
       })
       |> Repo.insert()
 
@@ -122,7 +121,7 @@ defmodule Glossia.Github.InstallationsTest do
     assert Enum.sort(ids) == Enum.sort([first.id, second.id])
   end
 
-  test "list_installations_for_user/1 returns personal and organization installations, excluding suspended ones" do
+  test "list_installations_for_user/1 returns installations from every organization membership" do
     user = TestHelpers.create_user("gh-install-user@test.com", "gh-install-user")
 
     organization =
@@ -133,8 +132,11 @@ defmodule Glossia.Github.InstallationsTest do
 
     add_member!(organization, user)
 
-    {:ok, personal} =
-      Installations.create_installation(user.account, installation_attrs(401, "personal"))
+    {:ok, personal_organization} =
+      Installations.create_installation(
+        user.account,
+        installation_attrs(401, "personal-organization")
+      )
 
     {:ok, active_org} =
       Installations.create_installation(
@@ -155,7 +157,7 @@ defmodule Glossia.Github.InstallationsTest do
       |> Installations.list_installations_for_user()
       |> Enum.map(& &1.id)
 
-    assert personal.id in returned_ids
+    assert personal_organization.id in returned_ids
     assert active_org.id in returned_ids
     refute suspended_org.id in returned_ids
   end
@@ -169,7 +171,7 @@ defmodule Glossia.Github.InstallationsTest do
     assert Installations.get_installation_by_github_id(501).id == installation.id
   end
 
-  test "reconcile_for_user_account/2 links a pre-existing installation for the account" do
+  test "reconcile_for_organization/2 links a pre-existing installation for the organization" do
     user = TestHelpers.create_user("gh-install-reconcile@test.com", "gh-install-reconcile")
 
     organization =
@@ -203,19 +205,19 @@ defmodule Glossia.Github.InstallationsTest do
     end)
 
     assert {:ok, installation} =
-             Installations.reconcile_for_user_account(user, organization.account)
+             Installations.reconcile_for_organization(user, organization.account)
 
     assert installation.account_id == organization.account.id
     assert installation.github_installation_id == 113_532_098
     assert installation.github_account_login == "existing-github-org"
 
     assert {:ok, same_installation} =
-             Installations.reconcile_for_user_account(user, organization.account)
+             Installations.reconcile_for_organization(user, organization.account)
 
     assert same_installation.id == installation.id
   end
 
-  test "reconcile_for_user_account/2 refreshes an expired user token before discovery" do
+  test "reconcile_for_organization/2 refreshes an expired user token before discovery" do
     user = TestHelpers.create_user("gh-install-refresh@test.com", "gh-install-refresh")
 
     organization =
@@ -262,7 +264,7 @@ defmodule Glossia.Github.InstallationsTest do
     end)
 
     assert {:ok, installation} =
-             Installations.reconcile_for_user_account(user, organization.account)
+             Installations.reconcile_for_organization(user, organization.account)
 
     assert installation.github_installation_id == 113_532_098
 
@@ -271,7 +273,7 @@ defmodule Glossia.Github.InstallationsTest do
     assert refreshed_identity.provider_refresh_token == "rotated-refresh-token"
   end
 
-  test "reconcile_for_user_account/2 ignores installations for another account or app" do
+  test "reconcile_for_organization/2 ignores installations for another organization or app" do
     user =
       TestHelpers.create_user("gh-install-no-match@test.com", "gh-install-no-match")
 
@@ -309,7 +311,7 @@ defmodule Glossia.Github.InstallationsTest do
     end)
 
     assert {:error, :installation_not_found} =
-             Installations.reconcile_for_user_account(user, user.account)
+             Installations.reconcile_for_organization(user, user.account)
 
     assert Installations.list_installations_for_account(user.account.id) == []
   end

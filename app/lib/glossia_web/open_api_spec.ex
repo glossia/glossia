@@ -432,7 +432,7 @@ defmodule GlossiaWeb.OpenApiSpec do
         "get" => %{
           "summary" => "List accounts",
           "description" =>
-            "Returns all accounts accessible by the current user (personal and organization accounts). " <>
+            "Returns all organization accounts accessible by the current user. " <>
               "Supports pagination, filtering, and sorting via query parameters.",
           "operationId" => "listAccounts",
           "tags" => ["Accounts"],
@@ -441,13 +441,12 @@ defmodule GlossiaWeb.OpenApiSpec do
             pagination_parameters() ++
               [
                 filter_parameter("handle", "string", "Filter by handle"),
-                filter_parameter("type", "string", "Filter by type (user or organization)"),
                 filter_parameter(
                   "visibility",
                   "string",
                   "Filter by visibility (private or public)"
                 ),
-                sort_parameter("handle, type, visibility, inserted_at")
+                sort_parameter("handle, visibility, inserted_at")
               ],
           "responses" => %{
             "200" => %{

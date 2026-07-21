@@ -23,7 +23,6 @@ defmodule Glossia.MCP.ListAccountsTool do
             Enum.map(accounts, fn account ->
               %{
                 handle: account.handle,
-                type: account.type,
                 visibility: account.visibility
               }
             end)

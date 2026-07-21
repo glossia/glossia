@@ -12,8 +12,7 @@ defmodule Glossia.TestHelpers do
     {:ok, account} =
       %Account{}
       |> Account.changeset(%{
-        handle: "#{handle_prefix}-#{System.unique_integer([:positive])}",
-        type: "user"
+        handle: "#{handle_prefix}-#{System.unique_integer([:positive])}"
       })
       |> Repo.insert()
 

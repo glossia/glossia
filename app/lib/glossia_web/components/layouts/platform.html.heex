@@ -156,7 +156,7 @@
                 open: @live_action in [:members],
                 items:
                   [
-                    (assigns[:is_admin] and @account.type == "organization") &&
+                    assigns[:is_admin] &&
                       %{
                         label: gettext("Members"),
                         navigate: "/#{@handle}/-/members",
