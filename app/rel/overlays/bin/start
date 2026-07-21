@@ -3,6 +3,13 @@ set -eu
 
 cd -P -- "$(dirname -- "$0")"
 
+# The Kubernetes runner backend currently declares RELEASE_NODE before POD_IP,
+# so Kubernetes leaves the reference as a literal string. Resolve it here before
+# the release boots to give every runner a unique, reachable distributed node.
+if [ "${RELEASE_NODE:-}" = 'flame_runner@$(POD_IP)' ] && [ -n "${POD_IP:-}" ]; then
+  export RELEASE_NODE="flame_runner@${POD_IP}"
+fi
+
 export PHX_SERVER="${PHX_SERVER:-true}"
 export GLOSSIA_PHX_SERVER="${GLOSSIA_PHX_SERVER:-$PHX_SERVER}"
 exec ./glossia start

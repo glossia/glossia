@@ -15,13 +15,18 @@ defmodule Glossia.Sandbox.ClusterAdapter do
 
   @impl true
   def create(params) when is_map(params) do
+    create(params, &FLAME.place_child/3)
+  end
+
+  @doc false
+  def create(params, place_child) when is_map(params) and is_function(place_child, 3) do
     sandbox_id = to_string(params[:id] || params["id"] || Ecto.UUID.generate())
 
     child_spec =
       {Glossia.Sandbox.Runner,
        sandbox_id: sandbox_id, root_path: params[:root_path] || params["root_path"]}
 
-    case FLAME.place_child(Glossia.Flame.pool_name(), child_spec,
+    case place_child.(Glossia.Flame.pool_name(), child_spec,
            timeout: boot_timeout(),
            link: false
          ) do
@@ -30,10 +35,10 @@ defmodule Glossia.Sandbox.ClusterAdapter do
         {:ok, owner_ref()}
 
       {:error, reason} ->
-        {:error, reason}
+        {:error, normalize_start_error(reason)}
     end
   catch
-    :exit, reason -> {:error, reason}
+    :exit, reason -> {:error, normalize_start_error(reason)}
   end
 
   @impl true
@@ -143,6 +148,11 @@ defmodule Glossia.Sandbox.ClusterAdapter do
     |> Application.get_env(:flame, [])
     |> Keyword.get(:boot_timeout, 120_000)
   end
+
+  defp normalize_start_error({:timeout, {FLAME.Pool, :place_child, _arguments}} = reason),
+    do: {:sandbox_start_timeout, reason}
+
+  defp normalize_start_error(reason), do: reason
 
   defp fetch_runner(sandbox_id) do
     case ProcessRegistry.fetch(sandbox_id) do

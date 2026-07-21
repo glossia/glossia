@@ -214,8 +214,8 @@ defmodule Glossia.Sandboxes do
         end
 
       {:error, reason} ->
-        {:ok, failed} = mark_failed(sandbox, inspect(reason))
-        {:error, failed.error}
+        {:ok, _failed} = mark_failed(sandbox, inspect(reason))
+        {:error, reason}
     end
   end
 
