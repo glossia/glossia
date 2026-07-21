@@ -3769,3 +3769,60 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "repository setup"
 msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:1480
+#, elixir-autogen, elixir-format
+msgid "Default model updated."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:1484
+#, elixir-autogen, elixir-format
+msgid "Could not update the default model."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10721
+#, elixir-autogen, elixir-format
+msgid "Add a named model configuration. Each translation uses one model handle from the nearest applicable GLOSSIA.md file, or the account default when no handle is set."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10759
+#, elixir-autogen, elixir-format
+msgid "Use lowercase letters, numbers, and hyphens. Reference this handle from GLOSSIA.md to choose the model for a content scope."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10820
+#, elixir-autogen, elixir-format
+msgid "Use lowercase letters, numbers, and hyphens."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10824
+#, elixir-autogen, elixir-format
+msgid "Account default"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10828
+#, elixir-autogen, elixir-format
+msgid "This model is used for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10832
+#, elixir-autogen, elixir-format
+msgid "Make this the fallback for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10839
+#: lib/glossia_web/live/dashboard_live.ex:10956
+#: lib/glossia_web/live/dashboard_live.ex:10959
+#, elixir-autogen, elixir-format
+msgid "Default"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10846
+#, elixir-autogen, elixir-format
+msgid "Make default"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:10887
+#, elixir-autogen, elixir-format
+msgid "Each translation uses one configured model. GLOSSIA.md can select a handle for a content scope; work without a handle uses the account default."
+msgstr ""

@@ -26,6 +26,7 @@ defmodule Glossia.MCP.ListLLMModelsTool do
                 id: m.id,
                 handle: m.handle,
                 model: m.model,
+                default: m.default,
                 inserted_at: m.inserted_at,
                 updated_at: m.updated_at
               }

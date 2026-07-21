@@ -18,6 +18,9 @@ defmodule Glossia.MCP.CreateLLMModelTool do
         "Model ID in provider:model format (e.g. anthropic:claude-sonnet-4-20250514). Browse available models at https://models.dev"
 
     field :api_key, {:required, :string}, description: "Provider API key"
+
+    field :default, :boolean,
+      description: "Whether this model should be used when no model handle is configured"
   end
 
   @impl true
@@ -27,7 +30,7 @@ defmodule Glossia.MCP.CreateLLMModelTool do
           "model_handle" => model_handle,
           "model" => model,
           "api_key" => api_key
-        },
+        } = params,
         frame
       ) do
     with {:ok, user, account} <- Auth.fetch_context(frame, handle),
@@ -35,7 +38,8 @@ defmodule Glossia.MCP.CreateLLMModelTool do
       attrs = %{
         "handle" => model_handle,
         "model" => model,
-        "api_key" => api_key
+        "api_key" => api_key,
+        "default" => params["default"]
       }
 
       case LLMModels.create_model(account, user, attrs) do
@@ -46,7 +50,8 @@ defmodule Glossia.MCP.CreateLLMModelTool do
               JSON.encode!(%{
                 id: created.id,
                 handle: created.handle,
-                model: created.model
+                model: created.model,
+                default: created.default
               })
             )
 

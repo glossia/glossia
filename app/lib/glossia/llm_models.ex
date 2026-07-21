@@ -42,8 +42,8 @@ defmodule Glossia.LLMModels do
   Returns the account's default translation model.
 
   Prefers the model explicitly flagged as `default`; otherwise falls back to the
-  first model by handle so translation still resolves when exactly one model is
-  configured. Returns `nil` when the account has no models.
+  first model by handle for legacy data that has not been backfilled. Returns
+  `nil` when the account has no models.
   """
   def default_model(%Account{} = account), do: default_model(account.id)
 
@@ -58,11 +58,23 @@ defmodule Glossia.LLMModels do
 
   def create_model(%Account{} = account, %User{} = user, attrs) do
     result =
-      %LLMModel{}
-      |> LLMModel.changeset(attrs)
-      |> Ecto.Changeset.put_change(:account_id, account.id)
-      |> Ecto.Changeset.put_change(:created_by_id, user.id)
-      |> Repo.insert()
+      Repo.transaction(fn ->
+        make_default? = requested_default?(attrs) or not account_has_models?(account.id)
+
+        if make_default?, do: clear_default(account.id)
+
+        changeset =
+          %LLMModel{}
+          |> LLMModel.changeset(attrs)
+          |> Ecto.Changeset.put_change(:account_id, account.id)
+          |> Ecto.Changeset.put_change(:created_by_id, user.id)
+          |> Ecto.Changeset.put_change(:default, make_default?)
+
+        case Repo.insert(changeset) do
+          {:ok, model} -> model
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
 
     with {:ok, model} <- result do
       Events.emit("llm_model.created", account, user,
@@ -78,9 +90,20 @@ defmodule Glossia.LLMModels do
 
   def update_model(%Account{} = account, %User{} = user, %LLMModel{} = model, attrs) do
     result =
-      model
-      |> LLMModel.changeset(attrs, require_api_key: false)
-      |> Repo.update()
+      Repo.transaction(fn ->
+        if requested_default?(attrs), do: clear_default(account.id)
+
+        case model
+             |> LLMModel.changeset(attrs, require_api_key: false)
+             |> Repo.update() do
+          {:ok, updated} ->
+            ensure_default(account.id)
+            Repo.get!(LLMModel, updated.id)
+
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
 
     with {:ok, updated} <- result do
       Events.emit("llm_model.updated", account, user,
@@ -95,7 +118,17 @@ defmodule Glossia.LLMModels do
   end
 
   def delete_model(%Account{} = account, %User{} = user, %LLMModel{} = model) do
-    result = Repo.delete(model)
+    result =
+      Repo.transaction(fn ->
+        case Repo.delete(model) do
+          {:ok, deleted} ->
+            ensure_default(account.id)
+            deleted
+
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
 
     with {:ok, deleted} <- result do
       Events.emit("llm_model.deleted", account, user,
@@ -111,5 +144,50 @@ defmodule Glossia.LLMModels do
 
   def change_model(%LLMModel{} = model, attrs \\ %{}) do
     LLMModel.changeset(model, attrs)
+  end
+
+  def change_model(%LLMModel{} = model, attrs, opts) do
+    LLMModel.changeset(model, attrs, opts)
+  end
+
+  defp account_has_models?(account_id) do
+    Repo.exists?(from m in LLMModel, where: m.account_id == ^account_id)
+  end
+
+  defp clear_default(account_id) do
+    Repo.update_all(
+      from(m in LLMModel, where: m.account_id == ^account_id and m.default == true),
+      set: [default: false]
+    )
+  end
+
+  defp ensure_default(account_id) do
+    if account_has_models?(account_id) and not explicitly_defaulted?(account_id) do
+      account_id
+      |> first_model()
+      |> Ecto.Changeset.change(default: true)
+      |> Repo.update!()
+    end
+  end
+
+  defp explicitly_defaulted?(account_id) do
+    Repo.exists?(
+      from m in LLMModel,
+        where: m.account_id == ^account_id and m.default == true
+    )
+  end
+
+  defp first_model(account_id) do
+    Repo.one!(
+      from m in LLMModel,
+        where: m.account_id == ^account_id,
+        order_by: [asc: m.handle],
+        limit: 1
+    )
+  end
+
+  defp requested_default?(attrs) do
+    Map.get(attrs, "default") in [true, "true", 1, "1"] or
+      Map.get(attrs, :default) in [true, "true", 1, "1"]
   end
 end

@@ -39,6 +39,7 @@ defmodule Glossia.LLMModelsTest do
       assert model.model == "anthropic:claude-sonnet-4-20250514"
       assert model.account_id == account.id
       assert model.created_by_id == user.id
+      assert model.default
     end
 
     test "encrypts the api_key", %{user: user, account: account} do
@@ -134,6 +135,20 @@ defmodule Glossia.LLMModelsTest do
 
       assert LLMModels.get_model(model.id, account.id) == nil
     end
+
+    test "promotes another model when the default is deleted", %{user: user, account: account} do
+      {:ok, default} =
+        LLMModels.create_model(account, user, valid_attrs(%{"handle" => "default-model"}))
+
+      {:ok, replacement} =
+        LLMModels.create_model(account, user, valid_attrs(%{"handle" => "replacement"}))
+
+      assert default.default
+      refute replacement.default
+      assert {:ok, _deleted} = LLMModels.delete_model(account, user, default)
+      assert LLMModels.default_model(account).id == replacement.id
+      assert LLMModels.get_model(replacement.id, account.id).default
+    end
   end
 
   describe "list_models/2" do
@@ -198,7 +213,7 @@ defmodule Glossia.LLMModelsTest do
     end
 
     test "prefers the model flagged as default", %{user: user, account: account} do
-      {:ok, _alpha} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "alpha"}))
+      {:ok, alpha} = LLMModels.create_model(account, user, valid_attrs(%{"handle" => "alpha"}))
 
       {:ok, zeta} =
         LLMModels.create_model(
@@ -208,6 +223,8 @@ defmodule Glossia.LLMModelsTest do
         )
 
       assert LLMModels.default_model(account).id == zeta.id
+      refute LLMModels.get_model(alpha.id, account.id).default
+      assert LLMModels.get_model(zeta.id, account.id).default
     end
 
     test "falls back to the first model by handle when none is flagged", %{

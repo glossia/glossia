@@ -43,7 +43,7 @@ Provider credentials belong in account settings, never in `GLOSSIA.md`. The opti
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `source_language` | string | no | Source locale for this scope. Defaults to `en`. |
-| `model` | string | no | Account model handle. Glossia uses the account default when omitted. |
+| `model` | string | no | Account model handle. Glossia uses the account default when omitted and reports an error when an explicit handle does not exist. |
 | `sources` | map or list | for a top-level rule | Source file patterns. Map values can define output templates. |
 | `targets` | map or list | when sources are configured | Target locale codes. A map can associate a locale code with a language name. |
 | `output` | string | when no source mapping or `target_path` supplies a destination | Output file template. |
@@ -133,6 +133,6 @@ Glossia reads `GLOSSIA.md` files from the repository root toward the source file
 - Parent settings provide defaults.
 - A deeper file overrides fields for its directory.
 - Markdown context is accumulated from parent to child.
-- Locale-specific guidance can live in `GLOSSIA/<locale>.md`.
+- Locale-specific guidance and a locale-specific model handle can live in `GLOSSIA/<locale>.md`.
 
 This lets a repository keep broad voice guidance at the root while placing product-area or language-specific guidance close to the content it affects.
