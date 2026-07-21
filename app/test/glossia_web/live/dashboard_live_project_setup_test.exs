@@ -51,7 +51,7 @@ defmodule GlossiaWeb.DashboardLiveProjectSetupTest do
         github_repo_full_name: "example/failed-setup",
         github_repo_default_branch: "main",
         setup_status: "failed",
-        setup_error: "The provider key is not valid.",
+        setup_error: "The setup environment took too long to start. Please retry setup.",
         setup_target_languages: ["es"]
       })
 
@@ -63,7 +63,7 @@ defmodule GlossiaWeb.DashboardLiveProjectSetupTest do
     assert has_element?(
              view,
              "#setup-progress-card .noora-alert",
-             "The provider key is not valid."
+             "The setup environment took too long to start. Please retry setup."
            )
 
     assert has_element?(view, "#setup-progress-card .noora-button", "Retry setup")

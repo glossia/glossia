@@ -24,13 +24,13 @@ defmodule Glossia.Projects.Setup do
 
   Returns `:ok` on success or `{:error, reason}` on failure.
   """
-  def run(project_id) do
+  def run(project_id, opts \\ []) do
     project =
       Glossia.Repo.get!(Glossia.Accounts.Project, project_id)
       |> Glossia.Repo.preload([:account, :github_installation])
 
     account = project.account
-    do_run(project, account)
+    do_run(project, account, opts)
   rescue
     exception ->
       error_msg = Exception.message(exception)
@@ -50,7 +50,7 @@ defmodule Glossia.Projects.Setup do
       {:error, error_msg}
   end
 
-  defp do_run(project, account) do
+  defp do_run(project, account, opts) do
     Projects.update_project_setup_status(project, "running")
     Projects.broadcast_setup_status(project, "running")
 
@@ -61,7 +61,7 @@ defmodule Glossia.Projects.Setup do
       summary: "Setup started for #{project.handle}"
     )
 
-    sandbox = Glossia.Sandbox.adapter()
+    sandbox = Keyword.get(opts, :sandbox_adapter, Glossia.Sandbox.adapter())
 
     with {:ok, harness_config} <- setup_harness_config(account, project),
          {:ok, token} <- get_clone_token(project),
@@ -761,6 +761,12 @@ defmodule Glossia.Projects.Setup do
 
   defp humanize_error(:sandbox_quota_exceeded),
     do: "The account has reached its active sandbox limit."
+
+  defp humanize_error(:sandbox_start_timeout),
+    do: "The setup environment took too long to start. Please retry setup."
+
+  defp humanize_error({:sandbox_start_timeout, _reason}),
+    do: "The setup environment took too long to start. Please retry setup."
 
   defp humanize_error(:setup_already_running),
     do: "Project setup is already running."
