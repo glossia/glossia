@@ -6,7 +6,7 @@ defmodule Glossia.AccountTokensTest do
   alias Glossia.Repo
   alias Glossia.TestHelpers
 
-  test "get_account_token_by_value/1 preloads user account" do
+  test "get_account_token_by_value/1 preloads the user's organization account" do
     user = TestHelpers.create_user("token-user@test.com", "token-user")
 
     {:ok, %{plain_token: plain_token}} =

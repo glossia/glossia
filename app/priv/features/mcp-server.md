@@ -29,7 +29,7 @@ The MCP server exposes 16 tools organized around the resources you work with dai
 
 **Terminology management** -- Maintain terminology consistency across all your content. Add, update, and version terminology entries so agents always use the right terms.
 
-**Projects** -- List and inspect projects across personal and organization accounts.
+**Projects** -- List and inspect projects across organizations.
 
 ## How it works
 

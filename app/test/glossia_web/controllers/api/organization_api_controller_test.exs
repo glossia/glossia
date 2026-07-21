@@ -136,6 +136,18 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
       assert response(conn, 204)
     end
 
+    test "personal organization cannot be deleted", %{conn: conn, admin: admin} do
+      conn =
+        conn
+        |> TestHelpers.authenticate(admin, @scopes)
+        |> delete("/api/organizations/#{admin.account.handle}")
+
+      assert %{"error" => "A personal organization cannot be deleted."} =
+               json_response(conn, 409)
+
+      assert Organizations.get_organization_for_account(admin.account)
+    end
+
     test "non-admin cannot delete", %{conn: conn, member: member, org_account: org_account} do
       conn =
         conn

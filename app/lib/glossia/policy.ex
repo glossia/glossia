@@ -27,7 +27,6 @@ defmodule Glossia.Policy do
     action :read do
       allow(:super_admin)
       allow([:authenticated, :collection])
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
       allow(:public_account)
@@ -59,24 +58,20 @@ defmodule Glossia.Policy do
   object :project do
     action :read do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
       allow(:public_account)
     end
 
     action :write do
-      allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :admin do
-      allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :delete do
-      allow(:account_owner)
       allow(:organization_admin)
     end
   end
@@ -84,19 +79,16 @@ defmodule Glossia.Policy do
   object :voice do
     action :read do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
       allow(:public_account)
     end
 
     action :write do
-      allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :admin do
-      allow(:account_owner)
       allow(:organization_admin)
     end
   end
@@ -116,25 +108,22 @@ defmodule Glossia.Policy do
   object :glossary do
     action :read do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
     end
 
     action :write do
-      allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :admin do
-      allow(:account_owner)
+      allow(:organization_admin)
     end
   end
 
   object :discussion do
     action :read do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
       allow(:public_account)
@@ -142,14 +131,12 @@ defmodule Glossia.Policy do
 
     action :write do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
       allow([:authenticated, :public_account])
     end
 
     action :admin do
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
     end
@@ -158,7 +145,6 @@ defmodule Glossia.Policy do
   object :ticket do
     action :read do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
       allow(:public_account)
@@ -166,14 +152,12 @@ defmodule Glossia.Policy do
 
     action :write do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
       allow([:authenticated, :public_account])
     end
 
     action :admin do
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
     end
@@ -182,19 +166,16 @@ defmodule Glossia.Policy do
   object :llm_model do
     action :read do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :write do
-      allow(:account_owner)
       allow(:organization_admin)
     end
   end
 
   object :translation do
     action :write do
-      allow(:account_owner)
       allow(:organization_admin)
       allow(:organization_member)
     end
@@ -203,12 +184,10 @@ defmodule Glossia.Policy do
   object :api_credentials do
     action :read do
       allow(:super_admin)
-      allow(:account_owner)
       allow(:organization_admin)
     end
 
     action :write do
-      allow(:account_owner)
       allow(:organization_admin)
     end
   end

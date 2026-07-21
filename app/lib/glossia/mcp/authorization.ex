@@ -69,7 +69,7 @@ defmodule Glossia.MCP.Authorization do
   @spec fetch_organization_account(String.t()) :: {:ok, %Account{}} | {:error, Error.t()}
   def fetch_organization_account(handle) when is_binary(handle) do
     case Accounts.get_account_by_handle(handle) do
-      %Account{type: "organization"} = account -> {:ok, account}
+      %Account{} = account -> {:ok, account}
       _ -> {:error, Error.execution("Organization '#{handle}' not found")}
     end
   end

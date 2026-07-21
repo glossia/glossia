@@ -81,7 +81,7 @@ Scopes control what actions a token can perform. They follow the `object:action`
 |-------|-------------|
 | `user:read` | Read user profile information |
 | `user:write` | Update user profile |
-| `account:read` | List accounts you can access (personal and organization accounts) |
+| `account:read` | List organization accounts you can access |
 | `organization:read` | Read organization details (and list your organizations) |
 | `organization:write` | Create or update organizations |
 | `organization:delete` | Delete organizations |
@@ -115,32 +115,31 @@ Scopes represent the *maximum* capability of a token. The policy system enforces
 | `self` | The user accessing their own resources |
 | `organization_member` | A member of the organization that owns the resource |
 | `organization_admin` | An administrator of the organization that owns the resource |
-| `account_owner` | The owner of the account that owns the resource |
 | `public_account` | The account is public (read-only) |
 
 ### Role permissions
 
-| Scope | self | organization_member | organization_admin | account_owner | public_account |
-|-------|------|----------------------|--------------------|---------------|----------------|
-| `user:read` | Yes | Yes | | | |
-| `user:write` | Yes | | | | |
-| `account:read` | | Yes | Yes | Yes | Yes |
-| `organization:read` | | Yes | Yes | | |
-| `organization:write` | | | Yes | | |
-| `organization:delete` | | | Yes | | |
-| `organization:admin` | | | Yes | | |
-| `members:read` | | Yes | Yes | | |
-| `members:write` | | | Yes | | |
-| `project:read` | | Yes | Yes | Yes | Yes |
-| `project:write` | | Yes | Yes | Yes | |
-| `project:admin` | | | Yes | Yes | |
-| `project:delete` | | | Yes | Yes | |
-| `voice:read` | | Yes | Yes | Yes | Yes |
-| `voice:write` | | Yes | Yes | Yes | |
-| `voice:admin` | | | Yes | Yes | |
-| `glossary:read` | | Yes | Yes | Yes | |
-| `glossary:write` | | | Yes | Yes | |
-| `glossary:admin` | | | | Yes | |
+| Scope | self | organization_member | organization_admin | public_account |
+|-------|------|----------------------|--------------------|----------------|
+| `user:read` | Yes | Yes | | |
+| `user:write` | Yes | | | |
+| `account:read` | | Yes | Yes | Yes |
+| `organization:read` | | Yes | Yes | |
+| `organization:write` | | | Yes | |
+| `organization:delete` | | | Yes | |
+| `organization:admin` | | | Yes | |
+| `members:read` | | Yes | Yes | |
+| `members:write` | | | Yes | |
+| `project:read` | | Yes | Yes | Yes |
+| `project:write` | | | Yes | |
+| `project:admin` | | | Yes | |
+| `project:delete` | | | Yes | |
+| `voice:read` | | Yes | Yes | Yes |
+| `voice:write` | | | Yes | |
+| `voice:admin` | | | Yes | |
+| `glossary:read` | | Yes | Yes | |
+| `glossary:write` | | | Yes | |
+| `glossary:admin` | | | Yes | |
 
 ## Discovery endpoints
 

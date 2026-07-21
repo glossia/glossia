@@ -36,6 +36,10 @@ defmodule Glossia.MCP.DeleteOrganizationTool do
 
           {:reply, response, frame}
 
+        {:error, :personal_organization} ->
+          {:error, Hermes.MCP.Error.execution("A personal organization cannot be deleted."),
+           frame}
+
         {:error, _changeset} ->
           {:error, Hermes.MCP.Error.execution("Failed to delete organization '#{handle}'"), frame}
       end

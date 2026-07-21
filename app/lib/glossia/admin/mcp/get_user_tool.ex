@@ -13,7 +13,7 @@ defmodule Glossia.Admin.MCP.GetUserTool do
 
   schema do
     field :email, :string, description: "User email address."
-    field :handle, :string, description: "User account handle."
+    field :handle, :string, description: "User's personal organization handle."
   end
 
   @impl true

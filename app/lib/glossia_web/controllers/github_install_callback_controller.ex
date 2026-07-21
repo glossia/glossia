@@ -54,9 +54,8 @@ defmodule GlossiaWeb.GithubInstallCallbackController do
   end
 
   defp link_installation(conn, user, installation_id) do
-    # Use the account from session (set during wizard flow) if available,
-    # falling back to the user's personal account. This enables Vercel-like
-    # behavior where installations link to the account the user was on.
+    # Use the organization from the session when the setup flow provides one,
+    # otherwise fall back to the user's personal organization.
     account =
       case get_session(conn, :install_account_handle) do
         nil ->

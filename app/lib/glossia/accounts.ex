@@ -29,9 +29,7 @@ defmodule Glossia.Accounts do
     Tracer.with_span "glossia.accounts.list_user_accounts" do
       Tracer.set_attributes([{"glossia.user.id", to_string(user.id)}])
 
-      user_account_id = user.account_id
-
-      org_account_ids =
+      account_ids =
         OrganizationMembership
         |> where(user_id: ^user.id)
         |> join(:inner, [m], o in Organization, on: o.id == m.organization_id)
@@ -39,16 +37,13 @@ defmodule Glossia.Accounts do
 
       query =
         Account
-        |> where([a], a.id == ^user_account_id or a.id in subquery(org_account_ids))
+        |> where([a], a.id in subquery(account_ids))
 
       Flop.validate_and_run(query, params, for: Account)
     end
   end
 
   def personal_organization_name, do: @personal_organization_name
-
-  def personal_account?(%Account{type: "user"}), do: true
-  def personal_account?(_), do: false
 
   def ensure_personal_organization!(%User{} = user) do
     organization =
@@ -90,13 +85,11 @@ defmodule Glossia.Accounts do
   end
 
   def get_user_by_handle(handle) when is_binary(handle) do
-    Account
-    |> where(handle: ^handle, type: "user")
+    User
+    |> join(:inner, [user], account in assoc(user, :account))
+    |> where([_user, account], account.handle == ^handle)
+    |> preload(:account)
     |> Repo.one()
-    |> case do
-      nil -> nil
-      account -> User |> where(account_id: ^account.id) |> Repo.one()
-    end
   end
 
   def find_or_create_user_from_oauth(provider, %{user: user_info, token: token_info}) do
@@ -137,7 +130,7 @@ defmodule Glossia.Accounts do
         user_info["preferred_username"] || user_info["nickname"] || user_info["name"]
       )
 
-    account_attrs = %{handle: handle, type: "user"}
+    account_attrs = %{handle: handle}
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, account_attrs))

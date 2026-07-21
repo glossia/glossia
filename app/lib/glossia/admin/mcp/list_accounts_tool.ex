@@ -13,7 +13,6 @@ defmodule Glossia.Admin.MCP.ListAccountsTool do
   schema do
     field :page, :integer, description: "Page number (1-based). Defaults to 1."
     field :page_size, :integer, description: "Items per page (max 100). Defaults to 50."
-    field :type, :string, description: "Filter by account type: 'user' or 'organization'."
   end
 
   @impl true
@@ -23,12 +22,6 @@ defmodule Glossia.Admin.MCP.ListAccountsTool do
       page_size = min(Map.get(params, "page_size", 50), 100)
 
       query = Account |> order_by(desc: :inserted_at)
-
-      query =
-        case params["type"] do
-          type when type in ["user", "organization"] -> where(query, type: ^type)
-          _ -> query
-        end
 
       accounts =
         query
@@ -44,7 +37,6 @@ defmodule Glossia.Admin.MCP.ListAccountsTool do
               %{
                 id: a.id,
                 handle: a.handle,
-                type: a.type,
                 visibility: a.visibility,
                 inserted_at: a.inserted_at
               }
