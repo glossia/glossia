@@ -43,10 +43,6 @@ defmodule Glossia.Projects.SetupStartTimeoutTest do
     assert {:error, {:sandbox_start_timeout, :runner_connection_timeout}} =
              Setup.run(project.id, sandbox_adapter: SandboxStartTimeoutAdapter)
 
-    updated = Repo.get!(Project, project.id)
-    assert updated.setup_status == "failed"
-
-    assert updated.setup_error ==
-             "The setup environment took too long to start. Please retry setup."
+    refute Repo.get(Project, project.id)
   end
 end

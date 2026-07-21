@@ -18,8 +18,22 @@ defmodule Glossia.Projects.SetupRecovery do
 
   @impl true
   def handle_continue(:recover, state) do
+    discard_failed_setups()
     recover_active_setups()
     {:noreply, state}
+  end
+
+  defp discard_failed_setups do
+    Projects.list_projects_with_failed_setup()
+    |> Enum.each(fn project ->
+      case Projects.discard_failed_project_setup(project) do
+        {:ok, _project} ->
+          Logger.info("Discarded failed setup project #{project.id} during recovery")
+
+        {:error, :setup_not_failed} ->
+          :ok
+      end
+    end)
   end
 
   defp recover_active_setups do

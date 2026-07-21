@@ -171,6 +171,32 @@ defmodule Glossia.ProjectsTest do
     assert persisted.setup_sandbox_id == sandbox_id
   end
 
+  test "discard_failed_project_setup/1 deletes only a failed provisional project" do
+    user = TestHelpers.create_user("project-discard@test.com", "project-discard")
+    {:ok, project} = Projects.create_project(user.account, valid_attrs())
+
+    assert {:error, :setup_not_failed} = Projects.discard_failed_project_setup(project)
+    assert Repo.get!(Glossia.Accounts.Project, project.id)
+
+    {:ok, failed} = Projects.update_project_setup_status(project, "failed", "boom")
+
+    assert {:ok, discarded} = Projects.discard_failed_project_setup(failed)
+    assert discarded.id == project.id
+    refute Repo.get(Glossia.Accounts.Project, project.id)
+  end
+
+  test "discard_pending_project_setup/1 does not delete an active setup" do
+    user = TestHelpers.create_user("project-discard-pending@test.com", "project-discard-pending")
+
+    {:ok, project} =
+      Projects.create_project(user.account, valid_attrs(%{setup_status: "pending"}))
+
+    {:ok, running} = Projects.update_project_setup_status(project, "running")
+
+    assert {:error, :setup_not_pending} = Projects.discard_pending_project_setup(running)
+    assert Repo.get!(Glossia.Accounts.Project, project.id).setup_status == "running"
+  end
+
   test "reset_project_setup_for_recovery preserves a resumable sandbox" do
     user = TestHelpers.create_user("project-recovery@test.com", "project-recovery")
     {:ok, project} = Projects.create_project(user.account, valid_attrs())

@@ -2591,6 +2591,8 @@ defmodule GlossiaWeb.DashboardLive do
 
       case result do
         {:ok, project} ->
+          Glossia.Projects.subscribe_setup_events(project)
+
           case %{project_id: project.id}
                |> Glossia.Projects.SetupWorker.new()
                |> Oban.insert() do
@@ -2602,13 +2604,12 @@ defmodule GlossiaWeb.DashboardLive do
 
             {:error, reason} ->
               error = gettext("Project setup could not be queued.")
-              {:ok, failed_project} = Glossia.Projects.fail_pending_project_setup(project, error)
+              _ = Glossia.Projects.discard_pending_project_setup(project)
               Logger.warning("Failed to enqueue project setup", reason: inspect(reason))
 
               {:noreply,
                socket
-               |> assign(wizard_project: failed_project)
-               |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
+               |> put_flash(:error, error)}
           end
 
         {:error, changeset} ->
@@ -2654,13 +2655,20 @@ defmodule GlossiaWeb.DashboardLive do
               {:noreply, socket}
 
             _error ->
-              _ =
-                Glossia.Projects.fail_pending_project_setup(
-                  pending_project,
-                  project.setup_error || gettext("Project setup could not be queued.")
-                )
+              _ = Glossia.Projects.discard_pending_project_setup(pending_project)
 
-              {:noreply, put_flash(socket, :error, gettext("Could not retry project setup."))}
+              socket =
+                socket
+                |> put_flash(:error, gettext("Could not retry project setup."))
+
+              if socket.assigns[:project] do
+                {:noreply, push_navigate(socket, to: "/#{socket.assigns.handle}")}
+              else
+                {:noreply,
+                 socket
+                 |> assign(wizard_project: nil, setup_events: [])
+                 |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=languages")}
+              end
           end
 
         _error ->
@@ -3083,6 +3091,32 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     {:noreply, socket}
+  end
+
+  def handle_info({:setup_failed, project_id, error}, socket) do
+    project = socket.assigns[:project]
+    wizard_project = socket.assigns[:wizard_project]
+
+    message =
+      gettext("Project setup failed, so the project was not created. %{reason}", reason: error)
+
+    cond do
+      wizard_project && to_string(wizard_project.id) == to_string(project_id) ->
+        {:noreply,
+         socket
+         |> assign(wizard_project: nil, setup_events: [])
+         |> put_flash(:error, message)
+         |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=languages")}
+
+      project && to_string(project.id) == to_string(project_id) ->
+        {:noreply,
+         socket
+         |> put_flash(:error, message)
+         |> push_navigate(to: "/#{socket.assigns.handle}")}
+
+      true ->
+        {:noreply, socket}
+    end
   end
 
   defp refetch_project(project, status) do

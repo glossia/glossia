@@ -198,6 +198,12 @@ defmodule Glossia.Projects do
     |> Repo.all()
   end
 
+  def list_projects_with_failed_setup do
+    Project
+    |> where(setup_status: "failed")
+    |> Repo.all()
+  end
+
   def reset_project_setup_for_recovery(%Project{} = project) do
     project
     |> Ecto.Changeset.change()
@@ -230,6 +236,30 @@ defmodule Glossia.Projects do
     end
   end
 
+  def discard_pending_project_setup(%Project{} = project) do
+    discard_project_setup(project, "pending", :setup_not_pending)
+  end
+
+  def discard_failed_project_setup(%Project{} = project) do
+    discard_project_setup(project, "failed", :setup_not_failed)
+  end
+
+  defp discard_project_setup(%Project{id: project_id}, status, mismatch_error) do
+    Repo.transaction(fn ->
+      case Project
+           |> where(id: ^project_id, setup_status: ^status)
+           |> lock("FOR UPDATE")
+           |> Repo.one() do
+        nil ->
+          Repo.rollback(mismatch_error)
+
+        project ->
+          Repo.delete!(project)
+          project
+      end
+    end)
+  end
+
   defp where_expected_setup_sandbox_id(query, nil) do
     where(query, [p], is_nil(p.setup_sandbox_id))
   end
@@ -255,6 +285,14 @@ defmodule Glossia.Projects do
       Glossia.PubSub,
       "project_setup:#{project_id}",
       {:setup_status, status}
+    )
+  end
+
+  def broadcast_setup_failure(%Project{id: project_id}, error) do
+    Phoenix.PubSub.broadcast(
+      Glossia.PubSub,
+      "project_setup:#{project_id}",
+      {:setup_failed, project_id, error}
     )
   end
 end

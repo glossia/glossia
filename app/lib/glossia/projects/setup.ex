@@ -5,7 +5,8 @@ defmodule Glossia.Projects.Setup do
   localization setup changes.
 
   Called by `Glossia.Projects.SetupWorker` for durable lifecycle management.
-  A failed setup remains visible until the user explicitly retries it.
+  Projects remain provisional until setup completes and are discarded after a
+  terminal setup failure.
   """
 
   require Logger
@@ -30,7 +31,10 @@ defmodule Glossia.Projects.Setup do
       |> Glossia.Repo.preload([:account, :github_installation])
 
     account = project.account
-    do_run(project, account, opts)
+
+    project
+    |> do_run(account, opts)
+    |> discard_failed_project(project)
   rescue
     exception ->
       error_msg = Exception.message(exception)
@@ -43,8 +47,13 @@ defmodule Glossia.Projects.Setup do
         end
 
       if project do
-        Projects.update_project_setup_status(project, "failed", error_msg)
-        Projects.broadcast_setup_status(project, "failed")
+        case Projects.update_project_setup_status(project, "failed", error_msg) do
+          {:ok, failed_project} ->
+            discard_failed_project({:error, error_msg}, failed_project)
+
+          {:error, _reason} ->
+            :ok
+        end
       end
 
       {:error, error_msg}
@@ -154,8 +163,6 @@ defmodule Glossia.Projects.Setup do
              "failed",
              error_msg
            ) do
-      Projects.broadcast_setup_status(project, "failed")
-
       Events.emit("project.setup_failed", account, nil,
         resource_type: "project",
         resource_id: to_string(project.id),
@@ -171,15 +178,13 @@ defmodule Glossia.Projects.Setup do
     error_msg = humanize_error(reason)
     Logger.error("Setup publication failed for project #{project.id}: #{inspect(reason)}")
 
-    with {:ok, _project} <-
-           Projects.update_project_setup_status_if_sandbox_id(
-             project,
-             sandbox_id,
-             "failed",
-             error_msg
-           ) do
-      Projects.broadcast_setup_status(project, "failed")
-    end
+    _ =
+      Projects.update_project_setup_status_if_sandbox_id(
+        project,
+        sandbox_id,
+        "failed",
+        error_msg
+      )
 
     {:error, {:setup_publication_failed, reason}}
   end
@@ -188,7 +193,6 @@ defmodule Glossia.Projects.Setup do
     error_msg = humanize_error(reason)
     Logger.error("Setup failed for project #{project.id}: #{inspect(reason)}")
     Projects.update_project_setup_status(project, "failed", error_msg)
-    Projects.broadcast_setup_status(project, "failed")
 
     Events.emit("project.setup_failed", account, nil,
       resource_type: "project",
@@ -211,8 +215,6 @@ defmodule Glossia.Projects.Setup do
              "failed",
              error_msg
            ) do
-      Projects.broadcast_setup_status(project, "failed")
-
       Events.emit("project.setup_failed", account, nil,
         resource_type: "project",
         resource_id: to_string(project.id),
@@ -223,6 +225,23 @@ defmodule Glossia.Projects.Setup do
 
     {:error, reason}
   end
+
+  defp discard_failed_project({:error, :setup_already_running} = error, _project), do: error
+
+  defp discard_failed_project({:error, reason} = error, project) do
+    case Projects.discard_failed_project_setup(project) do
+      {:ok, discarded_project} ->
+        setup_error = discarded_project.setup_error || humanize_error(reason)
+        Projects.broadcast_setup_failure(discarded_project, setup_error)
+
+      {:error, :setup_not_failed} ->
+        :ok
+    end
+
+    error
+  end
+
+  defp discard_failed_project(result, _project), do: result
 
   defp get_clone_token(project) do
     installation = project.github_installation
