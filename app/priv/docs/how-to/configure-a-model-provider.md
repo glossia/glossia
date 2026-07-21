@@ -17,7 +17,7 @@ Project setup and translation runs use models configured for the current Glossia
 5. Select a model and enter its provider key.
 6. Save the model.
 
-The handle is stable even when you later change the provider model behind it.
+The handle is stable even when you later change the provider model behind it. The first model added to an account becomes its default.
 
 ## Reference the model from a repository
 
@@ -33,9 +33,13 @@ The repository stores only the handle. The provider key remains in account setti
 
 ## Choose which model is used by default
 
-When `GLOSSIA.md` omits `model`, Glossia uses the account's default model. If the account does not have an explicitly marked default, it uses the first configured handle in alphabetical order.
+When `GLOSSIA.md` omits `model`, Glossia uses the account's default model. To change it, open the model that should become the default and select **Make default**.
 
 For predictable behavior across several models, reference a handle explicitly in `GLOSSIA.md`.
+
+You can place a different `model` handle in a nested `GLOSSIA.md` for one content area, or in `GLOSSIA/<locale>.md` for one target locale. Glossia uses the closest applicable setting for each document and locale. It does not automatically split work among configured models.
+
+If an explicit handle does not exist in the account, the translation stops with an error. It does not fall back to another model.
 
 ## Change or rotate a provider key
 

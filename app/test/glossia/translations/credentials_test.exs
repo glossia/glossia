@@ -27,7 +27,29 @@ defmodule Glossia.Translations.CredentialsTest do
     assert {:ok, cred} = Credentials.resolve(account, "translator")
     assert cred.source == :account_model
     assert cred.model == "anthropic:claude-sonnet-4-20250514"
+    assert cred.handle == "translator"
     assert cred.auth == {:api_key, "sk-account-key", nil}
+  end
+
+  test "does not replace an unknown explicit handle with the account default", %{
+    user: user,
+    account: account
+  } do
+    {:ok, _default} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "translation-default",
+        "model" => "anthropic:claude-sonnet-4-20250514",
+        "api_key" => "sk-account-key"
+      })
+
+    put_config(
+      inference_model: "openai:gpt-5",
+      inference_api_key: "sk-inference",
+      allow_local_session: false
+    )
+
+    assert {:error, {:model_not_found, "misspelled-handle"}} =
+             Credentials.resolve(account, "misspelled-handle")
   end
 
   test "falls back to the globally configured inference provider (token + URL)", %{
@@ -43,6 +65,7 @@ defmodule Glossia.Translations.CredentialsTest do
     assert {:ok, cred} = Credentials.resolve(account, nil)
     assert cred.source == :inference_config
     assert cred.model == "openai:gpt-5"
+    assert cred.handle == nil
     assert cred.auth == {:api_key, "sk-inference", "https://inference.example/v1"}
   end
 

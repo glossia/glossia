@@ -29,7 +29,7 @@ defmodule Glossia.Translations do
   @type result :: %{
           text: String.t(),
           model: String.t(),
-          model_handle: String.t(),
+          model_handle: String.t() | nil,
           provider: String.t()
         }
 
@@ -44,7 +44,7 @@ defmodule Glossia.Translations do
 
   `payload` is the (string-keyed) request body:
 
-    * `"model"` - the account model handle to translate with (required)
+    * `"model"` - the account model handle to translate with (account default when omitted)
     * `"format"` - `"markdown" | "json" | "yaml" | "po" | "text"` (default `"markdown"`)
     * `"source_language"`, `"language"`, `"locale"` - required display strings
     * `"source_content"` - the content to translate (required)
@@ -107,7 +107,7 @@ defmodule Glossia.Translations do
     %{
       text: text,
       model: credential.model,
-      model_handle: credential.model,
+      model_handle: credential.handle,
       provider: provider_of(credential.model),
       source: credential.source
     }
