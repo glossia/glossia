@@ -15,7 +15,7 @@ defmodule Glossia.MCP.CreateLLMModelTool do
 
     field :model, {:required, :string},
       description:
-        "Model ID in provider:model format (e.g. anthropic:claude-sonnet-4-20250514). Browse available models at https://models.dev"
+        "Model identifier in provider/model format (e.g. anthropic/claude-sonnet-4-20250514). Browse available models at https://models.dev"
 
     field :api_key, {:required, :string}, description: "Provider API key"
 

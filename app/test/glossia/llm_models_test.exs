@@ -13,7 +13,7 @@ defmodule Glossia.LLMModelsTest do
     Map.merge(
       %{
         "handle" => "model-#{System.unique_integer([:positive])}",
-        "model" => "anthropic:claude-sonnet-4-20250514",
+        "model" => "anthropic/claude-sonnet-4-20250514",
         "api_key" => "sk-test-key-123"
       },
       overrides
@@ -36,7 +36,7 @@ defmodule Glossia.LLMModelsTest do
                )
 
       assert model.handle
-      assert model.model == "anthropic:claude-sonnet-4-20250514"
+      assert model.model == "anthropic/claude-sonnet-4-20250514"
       assert model.account_id == account.id
       assert model.created_by_id == user.id
       assert model.default
@@ -82,7 +82,7 @@ defmodule Glossia.LLMModelsTest do
                  fn ->
                    LLMModels.update_model(account, user, model, %{
                      "handle" => "updated-handle",
-                     "model" => "openai:gpt-4o"
+                     "model" => "openai/gpt-4o"
                    })
                  end,
                  %{
@@ -93,7 +93,7 @@ defmodule Glossia.LLMModelsTest do
                )
 
       assert updated.handle == "updated-handle"
-      assert updated.model == "openai:gpt-4o"
+      assert updated.model == "openai/gpt-4o"
     end
 
     test "does not require api_key on update", %{user: user, account: account} do

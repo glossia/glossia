@@ -552,54 +552,54 @@ defmodule Glossia.Seeds do
     # LLM model configurations
     ensure_llm_model!(dev.account, dev,
       handle: "claude-sonnet",
-      model: "anthropic:claude-sonnet-4-20250514",
+      model: "anthropic/claude-sonnet-4-20250514",
       api_key: "sk-ant-dev-placeholder-key"
     )
 
     ensure_llm_model!(dev.account, dev,
       handle: "gpt-4o",
-      model: "openai:gpt-4o",
+      model: "openai/gpt-4o",
       api_key: "sk-dev-placeholder-key"
     )
 
     ensure_llm_model!(dev.account, dev,
       handle: "local-codex",
-      model: "openai:gpt-5.4",
+      model: "openai/gpt-5.4",
       api_key: Glossia.Translations.Credentials.development_session_api_key(:codex),
       default: true
     )
 
     ensure_llm_model!(dev.account, dev,
       handle: "local-claude",
-      model: "anthropic:claude-sonnet-4-20250514",
+      model: "anthropic/claude-sonnet-4-20250514",
       api_key: Glossia.Translations.Credentials.development_session_api_key(:claude),
       default: false
     )
 
     ensure_llm_model!(dev.account, dev,
       handle: "fast-drafts",
-      model: "fireworks_ai:accounts/fireworks/models/glm-4p5-air",
+      model: "fireworks_ai/accounts/fireworks/models/glm-4p5-air",
       api_key: "fw-dev-placeholder-key",
       default: false
     )
 
     ensure_llm_model!(dev.account, dev,
       handle: "long-form-guides",
-      model: "fireworks_ai:accounts/fireworks/models/kimi-k2p5",
+      model: "fireworks_ai/accounts/fireworks/models/kimi-k2p5",
       api_key: "fw-dev-placeholder-key",
       default: false
     )
 
     ensure_llm_model!(acme.account, dev,
       handle: "acme-claude",
-      model: "anthropic:claude-sonnet-4-20250514",
+      model: "anthropic/claude-sonnet-4-20250514",
       api_key: "sk-ant-acme-placeholder-key",
       default: true
     )
 
     ensure_llm_model!(acme.account, dev,
       handle: "acme-fast-drafts",
-      model: "fireworks_ai:accounts/fireworks/models/glm-4p5-air",
+      model: "fireworks_ai/accounts/fireworks/models/glm-4p5-air",
       api_key: "fw-acme-placeholder-key",
       default: false
     )

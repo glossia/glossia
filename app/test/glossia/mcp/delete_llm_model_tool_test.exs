@@ -16,7 +16,7 @@ defmodule Glossia.MCP.DeleteLLMModelToolTest do
     {:ok, model} =
       LLMModels.create_model(user.account, user, %{
         "handle" => "to-delete-#{System.unique_integer([:positive])}",
-        "model" => "openai:gpt-4o",
+        "model" => "openai/gpt-4o",
         "api_key" => "sk-delete-test"
       })
 

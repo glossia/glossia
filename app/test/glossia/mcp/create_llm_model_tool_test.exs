@@ -23,7 +23,7 @@ defmodule Glossia.MCP.CreateLLMModelToolTest do
     %{
       "handle" => account.handle,
       "model_handle" => "new-model-#{System.unique_integer([:positive])}",
-      "model" => "anthropic:claude-sonnet-4-20250514",
+      "model" => "anthropic/claude-sonnet-4-20250514",
       "api_key" => "sk-test-key"
     }
   end
@@ -48,7 +48,7 @@ defmodule Glossia.MCP.CreateLLMModelToolTest do
       [content] = response.content
       result = JSON.decode!(content["text"])
       assert result["handle"] == params["model_handle"]
-      assert result["model"] == "anthropic:claude-sonnet-4-20250514"
+      assert result["model"] == "anthropic/claude-sonnet-4-20250514"
       assert result["id"]
     end
 
@@ -57,7 +57,7 @@ defmodule Glossia.MCP.CreateLLMModelToolTest do
       assert {:reply, _response, _frame} = CreateLLMModelTool.execute(params, frame_for(user))
 
       assert model = LLMModels.get_model_by_handle(params["model_handle"], account.id)
-      assert model.model == "anthropic:claude-sonnet-4-20250514"
+      assert model.model == "anthropic/claude-sonnet-4-20250514"
     end
 
     test "returns error for duplicate handle", %{user: user, account: account} do

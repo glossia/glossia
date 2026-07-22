@@ -22,6 +22,7 @@ defmodule Glossia.Translations do
   @supported_formats ~w(markdown json yaml po text)
 
   alias Glossia.Accounts.Account
+  alias Glossia.Models.ModelIdentifier
   alias Glossia.Translations.Credentials
   alias Glossia.Translations.LLM
   alias Glossia.Translations.Prompt
@@ -108,7 +109,7 @@ defmodule Glossia.Translations do
       text: text,
       model: credential.model,
       model_handle: credential.handle,
-      provider: provider_of(credential.model),
+      provider: ModelIdentifier.provider(credential.model),
       source: credential.source
     }
   end
@@ -140,13 +141,6 @@ defmodule Glossia.Translations do
       last_error: payload["last_error"],
       model: to_string(payload["model"])
     }
-  end
-
-  defp provider_of(model_id) do
-    case String.split(model_id, ":", parts: 2) do
-      [provider, _model] -> provider
-      _ -> ""
-    end
   end
 
   defp blank?(nil), do: true

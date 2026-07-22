@@ -2,7 +2,7 @@ defmodule Glossia.Accounts.LLMModel do
   use Glossia.Schema
   import Ecto.Changeset
 
-  @compile {:no_warn_undefined, [LLMDB]}
+  alias Glossia.Models.ModelIdentifier
 
   @derive {
     Flop.Schema,
@@ -31,13 +31,14 @@ defmodule Glossia.Accounts.LLMModel do
 
     model_struct
     |> cast(attrs, [:handle, :model, :api_key, :default])
+    |> update_change(:model, &ModelIdentifier.normalize/1)
     |> validate_required(required)
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
     )
     |> validate_length(:handle, min: 2, max: 64)
-    |> validate_format(:model, ~r/^[a-z0-9_-]+:.+$/,
-      message: "must be in provider:model format (e.g. anthropic:claude-sonnet-4-20250514)"
+    |> validate_format(:model, ~r/^[a-z0-9_-]+\/.+$/,
+      message: "must be in provider/model format (e.g. anthropic/claude-sonnet-4-20250514)"
     )
     |> unique_constraint([:account_id, :handle],
       error_key: :handle,
@@ -59,15 +60,25 @@ defmodule Glossia.Accounts.LLMModel do
     |> Enum.map(fn provider ->
       models =
         LLMDB.models(provider.id)
-        |> Enum.reject(& &1.deprecated)
+        |> Enum.reject(&unavailable?/1)
         |> Enum.sort_by(& &1.id)
         |> Enum.map(fn m ->
-          id = "#{provider.id}:#{m.id}"
+          id = ModelIdentifier.join(provider.id, m.id)
           {m.name || m.id, id}
         end)
 
       {provider.name || to_string(provider.id), models}
     end)
     |> Enum.reject(fn {_name, models} -> models == [] end)
+  end
+
+  defp unavailable?(model) do
+    status =
+      case model.extra do
+        extra when is_map(extra) -> Map.get(extra, :status) || Map.get(extra, "status")
+        _ -> nil
+      end
+
+    model.deprecated or model.retired or status in ["deprecated", "retired"]
   end
 end

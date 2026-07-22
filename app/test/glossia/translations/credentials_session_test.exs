@@ -13,7 +13,7 @@ defmodule Glossia.Translations.CredentialsSessionTest do
       future = System.system_time(:millisecond) + 60_000
 
       assert %{
-               model: "anthropic:claude-haiku-4-5",
+               model: "anthropic/claude-haiku-4-5",
                auth: {:oauth, "tok-abc"},
                source: :claude_session
              } =
@@ -42,7 +42,7 @@ defmodule Glossia.Translations.CredentialsSessionTest do
       path = Path.join(dir, "auth.json")
       File.write!(path, Jason.encode!(%{"tokens" => %{"access_token" => "codex-tok"}}))
 
-      assert %{model: "openai:gpt-5", auth: {:oauth, "codex-tok"}, source: :codex_session} =
+      assert %{model: "openai/gpt-5", auth: {:oauth, "codex-tok"}, source: :codex_session} =
                Credentials.codex_session(path)
     end
 
@@ -92,7 +92,7 @@ defmodule Glossia.Translations.CredentialsSessionTest do
       }
 
       assert {:ok, credential} =
-               Credentials.claude_cli_session(oauth, "anthropic:claude-sonnet-4-6")
+               Credentials.claude_cli_session(oauth, "anthropic/claude-sonnet-4-6")
 
       assert credential.harness == "claude"
       assert credential.command == "claude"
@@ -104,7 +104,7 @@ defmodule Glossia.Translations.CredentialsSessionTest do
       oauth = %{"accessToken" => "access", "expiresAt" => 0}
 
       assert {:error, :claude_session_not_available} =
-               Credentials.claude_cli_session(oauth, "anthropic:claude-sonnet-4-6")
+               Credentials.claude_cli_session(oauth, "anthropic/claude-sonnet-4-6")
     end
   end
 
@@ -134,7 +134,7 @@ defmodule Glossia.Translations.CredentialsSessionTest do
       )
 
       assert {:ok, credential} =
-               Credentials.codex_opencode_session(path, "openai:gpt-5.4")
+               Credentials.codex_opencode_session(path, "openai/gpt-5.4")
 
       assert credential.model == "openai/gpt-5.4"
       assert credential.opencode_config == %{"model" => "openai/gpt-5.4"}

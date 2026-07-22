@@ -12,6 +12,7 @@ defmodule Glossia.Projects.Setup do
   require Logger
 
   alias Glossia.{Events, Ingestion, Projects, Sandboxes}
+  alias Glossia.Models.ModelIdentifier
   alias Glossia.Translations.Credentials
 
   @change_manifest_filename "glossia-setup-changes.json"
@@ -835,15 +836,15 @@ defmodule Glossia.Projects.Setup do
     model =
       cond do
         account_credential ->
-          account_credential.model
+          ModelIdentifier.normalize(account_credential.model)
 
         is_binary(configured_model) and configured_model != "" and
           is_binary(minimax_api_key) and minimax_api_key != "" and
-            not String.contains?(configured_model, "/") ->
+            not String.contains?(configured_model, ["/", ":"]) ->
           "minimax/#{configured_model}"
 
         is_binary(configured_model) and configured_model != "" ->
-          configured_model
+          ModelIdentifier.normalize(configured_model)
 
         is_binary(minimax_api_key) and minimax_api_key != "" ->
           "minimax/MiniMax-M2.5"

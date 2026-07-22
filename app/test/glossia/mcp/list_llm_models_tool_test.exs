@@ -23,7 +23,7 @@ defmodule Glossia.MCP.ListLLMModelsToolTest do
     {:ok, model} =
       LLMModels.create_model(account, user, %{
         "handle" => handle,
-        "model" => "anthropic:claude-sonnet-4-20250514",
+        "model" => "anthropic/claude-sonnet-4-20250514",
         "api_key" => "sk-test"
       })
 
