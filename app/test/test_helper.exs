@@ -1,4 +1,4 @@
-ExUnit.start(exclude: [:live])
+ExUnit.start(exclude: [:live], capture_log: true)
 Ecto.Adapters.SQL.Sandbox.mode(Glossia.Repo, :manual)
 
 Mimic.copy(ExAws)

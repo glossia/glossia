@@ -23,7 +23,7 @@ permissions:
 jobs:
   prepare:
     name: Prepare CLI release
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     timeout-minutes: 10
     if: "!startsWith(github.event.head_commit.message, '[Release]')"
     outputs:
@@ -98,7 +98,7 @@ jobs:
       matrix:
         include:
           - label: linux-x64
-            runs_on: ubuntu-latest
+            runs_on: hetzner-docker
             artifact_name: binary-linux-x64
             binary_name: glossia
           - label: linux-arm64
@@ -166,7 +166,7 @@ jobs:
 
   publish:
     name: Publish CLI release
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     timeout-minutes: 30
     environment: production
     permissions:
@@ -386,7 +386,7 @@ jobs:
 
   cleanup-staging:
     name: Clean release staging files
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     timeout-minutes: 10
     environment: production
     permissions:

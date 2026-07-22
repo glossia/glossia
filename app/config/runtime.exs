@@ -38,13 +38,20 @@ float_env = fn name, default ->
   end
 end
 
+default_flame_backend =
+  cond do
+    config_env() == :test -> :local
+    System.get_env("KUBERNETES_SERVICE_HOST") -> :k8s
+    true -> :local
+  end
+
 flame_backend =
   case System.get_env("GLOSSIA_FLAME_BACKEND") do
     nil ->
-      if System.get_env("KUBERNETES_SERVICE_HOST"), do: :k8s, else: :local
+      default_flame_backend
 
     "" ->
-      if System.get_env("KUBERNETES_SERVICE_HOST"), do: :k8s, else: :local
+      default_flame_backend
 
     "local" ->
       :local
