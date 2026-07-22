@@ -96,7 +96,7 @@ defmodule Glossia.MixProject do
       {:flame_k8s_backend, "~> 0.6.0"},
       {:chromic_pdf, "~> 1.17"},
       {:mimic, "~> 1.10", only: :test},
-      {:muontrap, "~> 1.5"},
+      {:muontrap, "~> 2.0.0-rc.1", override: true},
       {:req_llm, "~> 1.17"},
       {:condukt, "~> 1.5"},
       {:yaml_elixir, "~> 2.12"},
