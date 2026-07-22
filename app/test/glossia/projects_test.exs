@@ -151,6 +151,85 @@ defmodule Glossia.ProjectsTest do
     assert Repo.get!(Glossia.Accounts.Project, project.id).setup_status == "failed"
   end
 
+  test "complete_project_setup/3 persists the pull request with the completed status" do
+    user = TestHelpers.create_user("project-setup-pr@test.com", "project-setup-pr")
+
+    {:ok, project} =
+      Projects.create_project(
+        user.account,
+        valid_attrs(%{setup_status: "running", github_repo_id: 7_001})
+      )
+
+    assert {:ok, completed} =
+             Projects.complete_project_setup(project, nil, %{
+               number: 42,
+               url: "https://github.com/example/product/pull/42",
+               state: "open"
+             })
+
+    assert completed.setup_status == "completed"
+    assert completed.setup_pull_request_number == 42
+    assert completed.setup_pull_request_url == "https://github.com/example/product/pull/42"
+    assert completed.setup_pull_request_state == "open"
+    assert is_nil(completed.setup_pull_request_merged_at)
+  end
+
+  test "update_setup_pull_request_state/4 matches the repository and pull request number" do
+    user = TestHelpers.create_user("project-pr-state@test.com", "project-pr-state")
+
+    {:ok, project} =
+      Projects.create_project(
+        user.account,
+        valid_attrs(%{
+          github_repo_id: 7_002,
+          setup_status: "completed",
+          setup_pull_request_number: 17,
+          setup_pull_request_url: "https://github.com/example/product/pull/17",
+          setup_pull_request_state: "open"
+        })
+      )
+
+    merged_at = ~U[2026-07-22 16:30:00.000000Z]
+
+    assert {:ok, merged} =
+             Projects.update_setup_pull_request_state(7_002, 17, "merged", merged_at)
+
+    assert merged.id == project.id
+    assert merged.setup_pull_request_state == "merged"
+    assert merged.setup_pull_request_merged_at == merged_at
+
+    assert {:error, :setup_pull_request_not_found} =
+             Projects.update_setup_pull_request_state(7_002, 18, "closed")
+  end
+
+  test "backfill_setup_pull_request/2 records a historical setup pull request once" do
+    user = TestHelpers.create_user("project-pr-backfill@test.com", "project-pr-backfill")
+
+    {:ok, project} =
+      Projects.create_project(
+        user.account,
+        valid_attrs(%{github_repo_id: 7_003, setup_status: "completed"})
+      )
+
+    assert {:ok, backfilled} =
+             Projects.backfill_setup_pull_request(project, %{
+               number: 92,
+               url: "https://github.com/glossia/glossia/pull/92"
+             })
+
+    assert backfilled.setup_pull_request_number == 92
+    assert backfilled.setup_pull_request_state == "open"
+
+    assert {:ok, unchanged} =
+             Projects.backfill_setup_pull_request(backfilled, %{
+               number: 93,
+               url: "https://github.com/glossia/glossia/pull/93"
+             })
+
+    assert unchanged.setup_pull_request_number == 92
+    assert unchanged.setup_pull_request_url == "https://github.com/glossia/glossia/pull/92"
+  end
+
   test "retry_project_setup/1 only claims the persisted failed state once" do
     user = TestHelpers.create_user("project-retry@test.com", "project-retry")
     {:ok, project} = Projects.create_project(user.account, valid_attrs())

@@ -98,6 +98,101 @@ defmodule Glossia.Projects do
     end
   end
 
+  def complete_project_setup(
+        %Project{id: project_id},
+        expected_sandbox_id,
+        %{number: number, url: url} = pull_request
+      )
+      when is_integer(number) and is_binary(url) and url != "" do
+    now = DateTime.utc_now()
+    state = Map.get(pull_request, :state, "open")
+    merged_at = Map.get(pull_request, :merged_at)
+
+    if state in ~w(open merged closed) do
+      query =
+        Project
+        |> where(id: ^project_id)
+        |> where_expected_setup_sandbox_id(expected_sandbox_id)
+
+      case Repo.update_all(query,
+             set: [
+               setup_status: "completed",
+               setup_error: nil,
+               setup_pull_request_number: number,
+               setup_pull_request_url: url,
+               setup_pull_request_state: state,
+               setup_pull_request_merged_at: merged_at,
+               updated_at: now
+             ]
+           ) do
+        {1, _} -> {:ok, Repo.get!(Project, project_id)}
+        {0, _} -> {:error, :setup_sandbox_id_changed}
+      end
+    else
+      {:error, :invalid_setup_pull_request_state}
+    end
+  end
+
+  def complete_project_setup(%Project{}, _expected_sandbox_id, _pull_request),
+    do: {:error, :invalid_setup_pull_request}
+
+  def backfill_setup_pull_request(
+        %Project{id: project_id},
+        %{number: number, url: url}
+      )
+      when is_integer(number) and is_binary(url) and url != "" do
+    now = DateTime.utc_now()
+
+    query =
+      Project
+      |> where(id: ^project_id)
+      |> where([p], is_nil(p.setup_pull_request_number))
+
+    case Repo.update_all(query,
+           set: [
+             setup_pull_request_number: number,
+             setup_pull_request_url: url,
+             setup_pull_request_state: "open",
+             setup_pull_request_merged_at: nil,
+             updated_at: now
+           ]
+         ) do
+      {1, _} -> {:ok, Repo.get!(Project, project_id)}
+      {0, _} -> {:ok, Repo.get!(Project, project_id)}
+    end
+  end
+
+  def backfill_setup_pull_request(%Project{}, _pull_request),
+    do: {:error, :invalid_setup_pull_request}
+
+  def update_setup_pull_request_state(repo_id, number, state, merged_at \\ nil)
+
+  def update_setup_pull_request_state(repo_id, number, state, merged_at)
+      when is_integer(repo_id) and is_integer(number) and state in ~w(open merged closed) do
+    now = DateTime.utc_now()
+
+    query =
+      Project
+      |> where(github_repo_id: ^repo_id, setup_pull_request_number: ^number)
+
+    case Repo.update_all(query,
+           set: [
+             setup_pull_request_state: state,
+             setup_pull_request_merged_at: merged_at,
+             updated_at: now
+           ]
+         ) do
+      {1, _} ->
+        {:ok, Repo.one!(query)}
+
+      {0, _} ->
+        {:error, :setup_pull_request_not_found}
+    end
+  end
+
+  def update_setup_pull_request_state(_repo_id, _number, _state, _merged_at),
+    do: {:error, :invalid_setup_pull_request}
+
   def get_project(%Account{id: account_id}, handle) do
     Tracer.with_span "glossia.projects.get_project" do
       Tracer.set_attributes([
@@ -204,6 +299,17 @@ defmodule Glossia.Projects do
     |> Repo.all()
   end
 
+  def list_projects_with_unmerged_setup_pull_requests do
+    Project
+    |> where([p], p.setup_pull_request_state in ["open", "closed"])
+    |> where([p], not is_nil(p.setup_pull_request_number))
+    |> where([p], not is_nil(p.github_repo_id))
+    |> where([p], not is_nil(p.github_repo_full_name))
+    |> where([p], not is_nil(p.github_installation_id))
+    |> preload(:github_installation)
+    |> Repo.all()
+  end
+
   def reset_project_setup_for_recovery(%Project{} = project) do
     project
     |> Ecto.Changeset.change()
@@ -293,6 +399,14 @@ defmodule Glossia.Projects do
       Glossia.PubSub,
       "project_setup:#{project_id}",
       {:setup_failed, project_id, error}
+    )
+  end
+
+  def broadcast_setup_pull_request(%Project{id: project_id} = project) do
+    Phoenix.PubSub.broadcast(
+      Glossia.PubSub,
+      "project_setup:#{project_id}",
+      {:setup_pull_request, project}
     )
   end
 end
