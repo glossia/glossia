@@ -95,6 +95,8 @@ jobs:
           mise exec -- kubectl kustomize infra/k8s/clusters/profiles/consolidation-production >/tmp/glossia-consolidation-cluster.yaml
           mise exec -- kubectl kustomize infra/k8s/clusters/profiles/compact-production >/tmp/glossia-compact-cluster.yaml
           mise exec -- kubectl kustomize infra/k8s/mgmt/flux/flux-system >/tmp/glossia-flux-system.yaml
+          mise exec -- kubectl kustomize infra/k8s/workload-platforms >/tmp/glossia-workload-platforms.yaml
+          mise exec -- kubectl kustomize infra/k8s/workload-apps >/tmp/glossia-workload-apps.yaml
 
           ruby <<'RUBY'
           require "yaml"
@@ -113,6 +115,16 @@ jobs:
             --path ./infra/k8s/clusters/workloads/production \
             --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
             --dry-run >/tmp/flux-production-build.yaml
+
+          mise exec flux2@2.9.1 -- flux build kustomization workload-platforms \
+            --path ./infra/k8s/workload-platforms \
+            --kustomization-file ./infra/k8s/mgmt/flux/workload-platforms-kustomization.yaml \
+            --dry-run >/tmp/flux-workload-platforms-build.yaml
+
+          mise exec flux2@2.9.1 -- flux build kustomization workload-apps \
+            --path ./infra/k8s/workload-apps \
+            --kustomization-file ./infra/k8s/mgmt/flux/workload-apps-kustomization.yaml \
+            --dry-run >/tmp/flux-workload-apps-build.yaml
 
       - name: Add Helm repositories
         run: |
@@ -223,6 +235,13 @@ jobs:
             --values deploy/values-production.yaml \
             --values deploy/values-object-storage-hetzner.yaml \
             >/tmp/glossia-object-storage-rendered.yaml
+
+          digest="sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          mise exec -- helm template glossia-digest deploy/helm/glossia \
+            --namespace glossia \
+            --set image.digest="$digest" \
+            >/tmp/glossia-digest-rendered.yaml
+          grep -Fq "ghcr.io/glossia/glossia@$digest" /tmp/glossia-digest-rendered.yaml
 
           validate_chart alloy deploy/helm/glossia-alloy observability \
             --values deploy/values-alloy-production.yaml
@@ -357,153 +376,3 @@ jobs:
           mise exec -- kubectl -n flux-system wait \
             --for=condition=Ready kustomization.kustomize.toolkit.fluxcd.io/flux-system \
             --timeout=5m
-
-  reconcile-observability:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: Reconcile observability services
-    runs-on: hetzner-docker
-    timeout-minutes: 45
-    environment: production
-    needs: [helm, glossia-e2e]
-    permissions:
-      contents: read
-      id-token: write
-    concurrency:
-      group: reconcile-observability-cluster
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-
-      - uses: jdx/mise-action@v2
-        with:
-          cache: true
-          install_args: helm kubectl
-
-      - name: Select observability target cluster
-        id: target
-        run: |
-          set -euo pipefail
-
-          if grep -qx 'observability_on_production=true' \
-            infra/k8s/object-storage-migration-state; then
-            echo 'name=production' >> "$GITHUB_OUTPUT"
-          else
-            echo 'name=observability' >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Load Tailscale credentials from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
-        with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /tailscale-github-actions-authkey
-          domain: https://eu.infisical.com
-
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v4
-        with:
-          authkey: ${{ env.AUTHKEY }}
-          ping: glossia-${{ steps.target.outputs.name }}-kube.tail96f99b.ts.net
-
-      - name: Load management kubeconfig from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
-        with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /kubeconfig-glossia-mgmt
-          domain: https://eu.infisical.com
-
-      - name: Write workload kubeconfig
-        run: |
-          set -euo pipefail
-          umask 077
-
-          management_kubeconfig="$RUNNER_TEMP/management-kubeconfig"
-          workload_kubeconfig="$RUNNER_TEMP/observability-kubeconfig"
-          target="${{ steps.target.outputs.name }}"
-
-          test -n "${CONTENT:-}"
-          printf '%s' "$CONTENT" > "$management_kubeconfig"
-          test -s "$management_kubeconfig"
-
-          KUBECONFIG="$management_kubeconfig" mise exec -- kubectl \
-            --request-timeout=10s \
-            -n org-glossia get secret "glossia-${target}-kubeconfig" \
-            -o jsonpath='{.data.value}' \
-            | base64 --decode > "$workload_kubeconfig"
-          test -s "$workload_kubeconfig"
-
-          cluster_name="$(KUBECONFIG="$workload_kubeconfig" mise exec -- kubectl \
-            config view --minify -o jsonpath='{.clusters[0].name}')"
-          KUBECONFIG="$workload_kubeconfig" mise exec -- kubectl config set-cluster "$cluster_name" \
-            --server="https://glossia-${target}-kube.tail96f99b.ts.net" \
-            --tls-server-name=kubernetes
-
-          echo "KUBECONFIG=$workload_kubeconfig" >> "$GITHUB_ENV"
-          echo "CONTENT=" >> "$GITHUB_ENV"
-
-      - name: Verify target cluster reachability
-        run: mise exec -- kubectl --request-timeout=10s get --raw /version >/dev/null
-
-      - name: Deploy observability services
-        run: |
-          set -euo pipefail
-
-          migration_state=infra/k8s/object-storage-migration-state
-          on_production=false
-
-          if grep -qx 'observability_on_production=true' "$migration_state"; then
-            on_production=true
-            grep -qx 'observability_object_storage=true' "$migration_state"
-            grep -qx 'observability_ceph_removed=true' "$migration_state"
-
-            mise exec -- kubectl wait \
-              --for=condition=Ready clustersecretstore/infisical-observability \
-              --timeout=2m
-          else
-            mise exec -- helm dependency update infra/helm/platform
-            mise exec -- helm upgrade --install platform infra/helm/platform \
-              --namespace platform \
-              --create-namespace \
-              --values infra/helm/platform/values-hetzner.yaml \
-              --values infra/helm/platform/values-observability.yaml \
-              --timeout 30m
-          fi
-
-          mise exec -- helm dependency update infra/helm/observability
-
-          observability_values=(
-            --values infra/helm/observability/values-hetzner.yaml
-          )
-
-          if grep -qx 'observability_object_storage=true' "$migration_state"; then
-            observability_values+=(
-              --values infra/helm/observability/values-object-storage-hetzner.yaml
-            )
-          fi
-
-          if [[ "$on_production" == true ]]; then
-            observability_values+=(
-              --values infra/helm/observability/values-compact-hetzner.yaml
-            )
-          fi
-
-          mise exec -- helm upgrade --install observability infra/helm/observability \
-            --namespace observability \
-            --create-namespace \
-            "${observability_values[@]}" \
-            --timeout 30m
-
-          if [[ "$on_production" == false ]]; then
-            osd_deployments="$(mise exec -- kubectl -n observability get deployment \
-              -l app=rook-ceph-osd -o name)"
-            test -n "$osd_deployments"
-
-            while read -r deployment; do
-              mise exec -- kubectl -n observability rollout status "$deployment" --timeout=20m
-            done <<< "$osd_deployments"
-          fi
