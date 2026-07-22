@@ -988,11 +988,14 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     setup_events = Glossia.Ingestion.list_setup_events(project.id)
+    project = maybe_backfill_setup_pull_request(project, setup_events)
     {all_commits, commits_error} = fetch_or_reuse_project_commits(socket, project)
     sessions_by_sha = Glossia.TranslationSessions.sessions_by_commit_sha(project)
 
     socket =
-      if connected?(socket) and project.setup_status in ["pending", "running"] do
+      if connected?(socket) and
+           (project.setup_status in ["pending", "running"] or
+              project.setup_pull_request_state == "open") do
         subscribe_to_setup_events(socket, project)
       else
         socket
@@ -3092,6 +3095,20 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     {:noreply, socket}
+  end
+
+  def handle_info({:setup_pull_request, updated_project}, socket) do
+    project = socket.assigns[:project]
+
+    if project && project.id == updated_project.id do
+      {:noreply,
+       assign(socket,
+         project: updated_project,
+         sidebar_project: updated_project
+       )}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info({:setup_failed, project_id, error}, socket) do
@@ -6091,6 +6108,10 @@ defmodule GlossiaWeb.DashboardLive do
             can_retry={@can_write}
           />
         <% else %>
+          <.setup_pull_request_notice
+            :if={@project && @project.setup_pull_request_state in ["open", "closed"]}
+            project={@project}
+          />
           <.project_activity_card
             handle={@handle}
             project={@project}
@@ -6270,6 +6291,63 @@ defmodule GlossiaWeb.DashboardLive do
       [_, handle, project_handle] -> "/avatars/#{handle}/projects/#{project_handle}"
       _ -> nil
     end
+  end
+
+  attr(:project, :map, required: true)
+
+  defp setup_pull_request_notice(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :notice,
+        case assigns.project.setup_pull_request_state do
+          "closed" ->
+            %{
+              status: "warning",
+              title: gettext("Setup pull request was closed"),
+              description:
+                gettext(
+                  "Pull request #%{number} was closed without being merged. Reopen it to finish setting up localization.",
+                  number: assigns.project.setup_pull_request_number
+                ),
+              action: gettext("View pull request")
+            }
+
+          _open ->
+            %{
+              status: "warning",
+              title: gettext("Finish setting up Glossia"),
+              description:
+                gettext(
+                  "Merge pull request #%{number} to activate this project's localization baseline.",
+                  number: assigns.project.setup_pull_request_number
+                ),
+              action: gettext("Open pull request")
+            }
+        end
+      )
+
+    ~H"""
+    <Noora.Alert.alert
+      id="setup-pull-request-notice"
+      type="secondary"
+      status={@notice.status}
+      size="large"
+      title={@notice.title}
+      description={@notice.description}
+    >
+      <:action :if={@project.setup_pull_request_url}>
+        <Noora.Button.button
+          href={@project.setup_pull_request_url}
+          label={@notice.action}
+          variant="secondary"
+          size="small"
+          target="_blank"
+          rel="noopener noreferrer"
+        />
+      </:action>
+    </Noora.Alert.alert>
+    """
   end
 
   defp upload_error_to_string(:too_large), do: gettext("File is too large (max 5 MB)")
@@ -7289,6 +7367,23 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp setup_pr_url(_events), do: nil
+
+  defp maybe_backfill_setup_pull_request(
+         %{setup_status: "completed", setup_pull_request_number: nil} = project,
+         events
+       ) do
+    with url when is_binary(url) <- setup_pr_url(events),
+         [_, number_string] <- Regex.run(~r{/pull/(\d+)}, url),
+         {number, ""} <- Integer.parse(number_string),
+         {:ok, updated_project} <-
+           Glossia.Projects.backfill_setup_pull_request(project, %{number: number, url: url}) do
+      updated_project
+    else
+      _missing_reference -> project
+    end
+  end
+
+  defp maybe_backfill_setup_pull_request(project, _events), do: project
 
   defp setup_pr_url_from_audit(_account, _project), do: nil
 

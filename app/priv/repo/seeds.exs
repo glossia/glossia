@@ -136,6 +136,21 @@ defmodule Glossia.Seeds do
       setup_target_languages: ["de", "ja", "pt-BR"]
     )
 
+    # Setup automation has finished, but the repository change still needs to
+    # be merged. This uses a real pull request so the development notice has a
+    # useful destination when its action is opened.
+    ensure_github_project!(dev.account, dev_gh, "glossia",
+      name: "Glossia",
+      github_repo_id: 1_124_240_014,
+      github_repo_full_name: "glossia/glossia",
+      github_repo_default_branch: "main",
+      setup_status: "completed",
+      setup_target_languages: ["es", "fr", "de", "ja", "zh-Hans", "ko", "pt-BR"],
+      setup_pull_request_number: 92,
+      setup_pull_request_url: "https://github.com/glossia/glossia/pull/92",
+      setup_pull_request_state: "open"
+    )
+
     ensure_github_project!(acme.account, acme_gh, "acme-docs",
       name: "Acme docs",
       github_repo_id: 200_001,
@@ -947,22 +962,23 @@ defmodule Glossia.Seeds do
          handle,
          opts
        ) do
+    attrs =
+      opts
+      |> Map.new()
+      |> Map.put(:handle, handle)
+
     case Projects.get_project(account, handle) do
       nil ->
-        {:ok, _project} =
-          Projects.create_project_from_github(account, installation.id, %{
-            handle: handle,
-            name: Keyword.fetch!(opts, :name),
-            github_repo_id: Keyword.fetch!(opts, :github_repo_id),
-            github_repo_full_name: Keyword.fetch!(opts, :github_repo_full_name),
-            github_repo_default_branch: Keyword.fetch!(opts, :github_repo_default_branch),
-            setup_status: Keyword.get(opts, :setup_status, "pending"),
-            setup_target_languages: Keyword.get(opts, :setup_target_languages, [])
-          })
+        {:ok, _project} = Projects.create_project_from_github(account, installation.id, attrs)
 
         :ok
 
-      %Project{} ->
+      %Project{} = project ->
+        {:ok, _project} =
+          project
+          |> Project.changeset(attrs)
+          |> Repo.update()
+
         :ok
     end
   end

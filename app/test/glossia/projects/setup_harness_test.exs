@@ -72,7 +72,10 @@ defmodule Glossia.Projects.SetupHarnessTest do
     assert prompt =~ "Locale-specific context belongs in GLOSSIA/<locale>.md."
     assert prompt =~ "Do not create translation lockfiles during setup."
     assert prompt =~ "source-language locale files"
-    assert prompt =~ "Do not translate target locales during setup."
+    assert prompt =~ "canonical extraction and catalog merge commands"
+    assert prompt =~ "include the extracted source message entries in every target catalog"
+    assert prompt =~ "Never create header-only target catalogs."
+    assert prompt =~ "Do not translate target values during setup."
     assert_received {:agent_event, %{"event_type" => "completed"}}
 
     assert_received {:shell_command, clone_command, _opts}

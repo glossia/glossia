@@ -86,6 +86,82 @@ defmodule Glossia.Projects.SetupTest do
     def start_agent_session(_sandbox_id, _caller, _opts), do: {:error, :not_reached}
   end
 
+  defmodule HeaderOnlyCatalogAdapter do
+    @behaviour Glossia.Sandbox
+
+    def create(params), do: {:ok, to_string(params[:id] || params["id"])}
+
+    def execute(_sandbox_id, _command, _opts) do
+      {:ok, %{"exitCode" => 0, "stdout" => "ok", "stderr" => "", "timedOut" => false}}
+    end
+
+    def delete(_sandbox_id), do: :ok
+
+    def download_file(_sandbox_id, "/workspace/glossia-setup-changes.json") do
+      {:ok,
+       JSON.encode!(%{
+         version: 1,
+         files: [
+           %{path: "GLOSSIA.md", status: "added"},
+           %{path: "priv/gettext/es/LC_MESSAGES/default.po", status: "added"}
+         ]
+       })}
+    end
+
+    def download_file(_sandbox_id, "/workspace/repo/GLOSSIA.md") do
+      {:ok, "---\nsource_language: en\ntargets:\n  - es\n---\n"}
+    end
+
+    def download_file(
+          _sandbox_id,
+          "/workspace/repo/priv/gettext/es/LC_MESSAGES/default.po"
+        ) do
+      {:ok, "msgid \"\"\nmsgstr \"\"\n\"Language: es\\n\"\n"}
+    end
+
+    def download_file(_sandbox_id, _path), do: {:error, :enoent}
+    def upload_file(_sandbox_id, _path, _content), do: :ok
+    def delete_file(_sandbox_id, _path), do: :ok
+    def repo_path(_sandbox_id), do: {:ok, "/workspace/repo"}
+
+    def start_agent_session(_sandbox_id, caller, _opts) do
+      Task.start(fn -> send(caller, {:agent_done, :completed}) end)
+    end
+  end
+
+  defmodule PopulatedCatalogAdapter do
+    @behaviour Glossia.Sandbox
+
+    defdelegate create(params), to: HeaderOnlyCatalogAdapter
+    defdelegate execute(sandbox_id, command, opts), to: HeaderOnlyCatalogAdapter
+    defdelegate delete(sandbox_id), to: HeaderOnlyCatalogAdapter
+    defdelegate upload_file(sandbox_id, path, content), to: HeaderOnlyCatalogAdapter
+    defdelegate delete_file(sandbox_id, path), to: HeaderOnlyCatalogAdapter
+    defdelegate repo_path(sandbox_id), to: HeaderOnlyCatalogAdapter
+    defdelegate start_agent_session(sandbox_id, caller, opts), to: HeaderOnlyCatalogAdapter
+
+    def download_file(
+          _sandbox_id,
+          "/workspace/repo/priv/gettext/es/LC_MESSAGES/default.po"
+        ) do
+      {:ok,
+       """
+       msgid ""
+       msgstr ""
+       "Language: es\\n"
+
+       msgid ""
+       "Welcome to "
+       "Glossia"
+       msgstr ""
+       """}
+    end
+
+    def download_file(sandbox_id, path) do
+      HeaderOnlyCatalogAdapter.download_file(sandbox_id, path)
+    end
+  end
+
   defmodule SupersedingAdapter do
     @behaviour Glossia.Sandbox
 
@@ -297,7 +373,13 @@ defmodule Glossia.Projects.SetupTest do
                                                                  params,
                                                                  "github-token" ->
       send(test_pid, {:pull_request_params, params})
-      {:ok, %{"html_url" => "https://github.com/glossia/demo/pull/1"}}
+
+      {:ok,
+       %{
+         "number" => 1,
+         "html_url" => "https://github.com/glossia/demo/pull/1",
+         "state" => "open"
+       }}
     end)
 
     assert :ok = Setup.run(project.id)
@@ -310,9 +392,70 @@ defmodule Glossia.Projects.SetupTest do
     assert params.title == "feat: set up Glossia localization"
     assert params.head == "glossia/setup-localization"
     assert params.base == "main"
-    assert params.body =~ "Target languages: es, fr."
-    assert params.body =~ "`GLOSSIA.md`"
-    assert params.body =~ "`src/i18n/en.json`"
+    assert params.body =~ "Adds the initial Glossia localization configuration"
+    assert params.body =~ "Target languages: `es`, `fr`."
+    assert params.body =~ "Translated content remains a separate reviewable change."
+    refute params.body =~ "harness"
+    refute params.body =~ "sandbox"
+    refute params.body =~ "`src/i18n/en.json`"
+
+    project = Repo.get!(Project, project.id)
+    assert project.setup_status == "completed"
+    assert project.setup_pull_request_number == 1
+    assert project.setup_pull_request_url == "https://github.com/glossia/demo/pull/1"
+    assert project.setup_pull_request_state == "open"
+  end
+
+  test "rejects target Portable Object catalogs without source messages" do
+    sandbox_config = Application.fetch_env!(:glossia, Glossia.Sandbox)
+
+    Application.put_env(
+      :glossia,
+      Glossia.Sandbox,
+      Keyword.put(sandbox_config, :adapter, HeaderOnlyCatalogAdapter)
+    )
+
+    user = TestHelpers.create_user("setup-empty-catalog@test.com", "setup-empty-catalog")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "setup-empty-catalog",
+        name: "Setup Empty Catalog",
+        github_repo_full_name: "glossia/empty-catalog",
+        github_repo_default_branch: "main",
+        setup_target_languages: ["es"]
+      })
+
+    path = "priv/gettext/es/LC_MESSAGES/default.po"
+
+    assert {:error, {:setup_publication_failed, {:setup_target_catalog_empty, ^path}}} =
+             Setup.run(project.id)
+
+    refute Repo.get(Project, project.id)
+  end
+
+  test "accepts target Portable Object catalogs with multiline source messages" do
+    sandbox_config = Application.fetch_env!(:glossia, Glossia.Sandbox)
+
+    Application.put_env(
+      :glossia,
+      Glossia.Sandbox,
+      Keyword.put(sandbox_config, :adapter, PopulatedCatalogAdapter)
+    )
+
+    user = TestHelpers.create_user("setup-populated-catalog@test.com", "setup-populated-catalog")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "setup-populated-catalog",
+        name: "Setup Populated Catalog",
+        github_repo_full_name: "glossia/populated-catalog",
+        github_repo_default_branch: "main",
+        setup_target_languages: ["es"]
+      })
+
+    assert :ok = Setup.run(project.id)
+    assert Repo.get!(Project, project.id).setup_status == "completed"
   end
 
   test "best-effort deletes a missing persisted sandbox id before creating a new one" do
