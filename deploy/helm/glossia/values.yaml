@@ -15,6 +15,7 @@ strategy:
 image:
   repository: ghcr.io/glossia/glossia
   tag: main
+  digest: ""
   pullPolicy: IfNotPresent
 
 # Pod-level imagePullSecrets. When externalSecrets.imagePullSecret.enabled is

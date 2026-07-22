@@ -1,0 +1,78 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: ghcr-glossia
+  namespace: flux-system
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: ghcr-glossia
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: |
+          {"auths":{"ghcr.io":{"username":"{{ .username }}","password":"{{ .token }}","auth":"{{ printf "%s:%s" .username .token | b64enc }}"}}}
+  data:
+    - secretKey: username
+      remoteRef:
+        key: /kubernetes/GHCR_PULL_USERNAME
+    - secretKey: token
+      remoteRef:
+        key: /kubernetes/GHCR_PULL_TOKEN
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: glossia
+  namespace: flux-system
+spec:
+  image: ghcr.io/glossia/glossia
+  interval: 1m0s
+  secretRef:
+    name: ghcr-glossia
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: glossia
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: glossia
+  filterTags:
+    pattern: "^main$"
+  policy:
+    alphabetical:
+      order: asc
+  digestReflectionPolicy: Always
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: glossia
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: fluxcdbot@users.noreply.github.com
+        name: fluxcdbot
+      messageTemplate: "chore(deploy): update production image"
+    push:
+      branch: main
+  update:
+    path: ./infra/k8s/workload-apps/glossia-production
+    strategy: Setters
