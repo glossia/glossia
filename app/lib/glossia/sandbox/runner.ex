@@ -131,7 +131,7 @@ defmodule Glossia.Sandbox.Runner do
       env = command_env(opts)
 
       {output, exit_status} =
-        MuonTrap.cmd("sh", ["-lc", command],
+        MuonTrap.cmd("sh", ["-c", ~s(exec "$@" </dev/null), "sh", "sh", "-lc", command],
           cd: cwd,
           env: env,
           timeout: timeout,
