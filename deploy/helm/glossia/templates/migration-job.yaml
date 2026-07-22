@@ -28,7 +28,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: migrate
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: {{ include "glossia.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/app/bin/migrate"]
           resources:
