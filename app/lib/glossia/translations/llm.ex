@@ -11,10 +11,13 @@ defmodule Glossia.Translations.LLM do
   """
 
   alias Glossia.Translations.Agent
+  alias Glossia.Models.ModelIdentifier
+
+  @together_base_url "https://api.together.ai/v1"
 
   @doc "One-shot generation."
   def run(%{auth: {:api_key, key, base_url}, model: model}, system, user) do
-    opts = maybe_base_url([model: model, system_prompt: system, api_key: key], base_url)
+    opts = request_options(model, key, base_url, system)
 
     case Condukt.run(user, opts) do
       {:ok, text} when is_binary(text) -> {:ok, text}
@@ -30,7 +33,7 @@ defmodule Glossia.Translations.LLM do
   end
 
   def run(%{auth: {:oauth, token}, model: model}, system, user) do
-    case ReqLLM.generate_text(model, messages(system, user),
+    case ReqLLM.generate_text(ModelIdentifier.to_req_llm(model), messages(system, user),
            auth_mode: :oauth,
            access_token: token
          ) do
@@ -131,7 +134,7 @@ defmodule Glossia.Translations.LLM do
          user,
          on_event
        ) do
-    opts = maybe_base_url([model: model, api_key: key, system_prompt: system], base_url)
+    opts = request_options(model, key, base_url, system)
 
     case Agent.start_link(opts) do
       {:ok, pid} ->
@@ -177,4 +180,24 @@ defmodule Glossia.Translations.LLM do
     do: Keyword.put(opts, :base_url, url)
 
   defp maybe_base_url(opts, _url), do: opts
+
+  defp request_options(model, key, base_url, system) do
+    {request_model, request_base_url} = request_model(model, base_url)
+
+    [model: request_model, api_key: key, system_prompt: system]
+    |> maybe_base_url(request_base_url)
+  end
+
+  defp request_model(model, base_url) do
+    case ModelIdentifier.split(model) do
+      {:ok, {"togetherai", provider_model}} ->
+        {%{provider: :openai, id: provider_model}, base_url || @together_base_url}
+
+      {:ok, _parts} ->
+        {ModelIdentifier.to_req_llm(model), base_url}
+
+      :error ->
+        {model, base_url}
+    end
+  end
 end

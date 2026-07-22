@@ -68,7 +68,7 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
         {:ok,
          %{
            text: "Hola",
-           model: "anthropic:claude",
+           model: "anthropic/claude",
            model_handle: "translator",
            provider: "anthropic"
          }}
@@ -81,7 +81,7 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
 
       assert %{
                "text" => "Hola",
-               "model" => "anthropic:claude",
+               "model" => "anthropic/claude",
                "model_handle" => "translator",
                "provider" => "anthropic"
              } = json_response(conn, 200)

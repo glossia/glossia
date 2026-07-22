@@ -27,7 +27,7 @@ defmodule Glossia.Projects.SetupStartTimeoutTest do
     assert {:ok, _model} =
              LLMModels.create_model(user.account, user, %{
                handle: "setup-model",
-               model: "openai:gpt-4o-mini",
+               model: "openai/gpt-4o-mini",
                api_key: "test-api-key"
              })
 

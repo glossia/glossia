@@ -36,7 +36,7 @@ defmodule Glossia.Translations.EngineTest do
   defp translated(text),
     do:
       {:ok,
-       %{text: text, model: "anthropic:claude", provider: "anthropic", model_handle: "translator"}}
+       %{text: text, model: "anthropic/claude", provider: "anthropic", model_handle: "translator"}}
 
   describe "strip_structured_code_fence/2" do
     test "strips a fence around structured output" do

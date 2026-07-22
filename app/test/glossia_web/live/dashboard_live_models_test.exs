@@ -115,14 +115,14 @@ defmodule GlossiaWeb.DashboardLiveModelsTest do
     {:ok, first} =
       Glossia.LLMModels.create_model(user.account, user, %{
         "handle" => "translation-default",
-        "model" => "anthropic:claude-sonnet-4-20250514",
+        "model" => "anthropic/claude-sonnet-4-20250514",
         "api_key" => "secret"
       })
 
     {:ok, second} =
       Glossia.LLMModels.create_model(user.account, user, %{
         "handle" => "long-form",
-        "model" => "openai:gpt-5",
+        "model" => "openai/gpt-5",
         "api_key" => "secret"
       })
 

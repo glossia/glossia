@@ -18,7 +18,7 @@ defmodule Glossia.Translations.CredentialsTest do
     {:ok, _model} =
       LLMModels.create_model(account, user, %{
         "handle" => "translator",
-        "model" => "anthropic:claude-sonnet-4-20250514",
+        "model" => "anthropic/claude-sonnet-4-20250514",
         "api_key" => "sk-account-key"
       })
 
@@ -26,7 +26,7 @@ defmodule Glossia.Translations.CredentialsTest do
 
     assert {:ok, cred} = Credentials.resolve(account, "translator")
     assert cred.source == :account_model
-    assert cred.model == "anthropic:claude-sonnet-4-20250514"
+    assert cred.model == "anthropic/claude-sonnet-4-20250514"
     assert cred.handle == "translator"
     assert cred.auth == {:api_key, "sk-account-key", nil}
   end
@@ -38,12 +38,12 @@ defmodule Glossia.Translations.CredentialsTest do
     {:ok, _default} =
       LLMModels.create_model(account, user, %{
         "handle" => "translation-default",
-        "model" => "anthropic:claude-sonnet-4-20250514",
+        "model" => "anthropic/claude-sonnet-4-20250514",
         "api_key" => "sk-account-key"
       })
 
     put_config(
-      inference_model: "openai:gpt-5",
+      inference_model: "openai/gpt-5",
       inference_api_key: "sk-inference",
       allow_local_session: false
     )
@@ -56,7 +56,7 @@ defmodule Glossia.Translations.CredentialsTest do
     account: account
   } do
     put_config(
-      inference_model: "openai:gpt-5",
+      inference_model: "openai/gpt-5",
       inference_api_key: "sk-inference",
       inference_base_url: "https://inference.example/v1",
       allow_local_session: false
@@ -64,7 +64,7 @@ defmodule Glossia.Translations.CredentialsTest do
 
     assert {:ok, cred} = Credentials.resolve(account, nil)
     assert cred.source == :inference_config
-    assert cred.model == "openai:gpt-5"
+    assert cred.model == "openai/gpt-5"
     assert cred.handle == nil
     assert cred.auth == {:api_key, "sk-inference", "https://inference.example/v1"}
   end
@@ -81,7 +81,7 @@ defmodule Glossia.Translations.CredentialsTest do
     {:ok, _model} =
       LLMModels.create_model(account, user, %{
         "handle" => "forged-local-session",
-        "model" => "openai:gpt-5.4",
+        "model" => "openai/gpt-5.4",
         "api_key" => Credentials.development_session_api_key(:codex),
         "default" => true
       })
@@ -111,7 +111,7 @@ defmodule Glossia.Translations.CredentialsTest do
     File.write!(path, JSON.encode!(auth))
     on_exit(fn -> File.rm(path) end)
 
-    assert {:ok, credential} = Credentials.codex_cli_session(path, "openai:gpt-5.4")
+    assert {:ok, credential} = Credentials.codex_cli_session(path, "openai/gpt-5.4")
     assert credential.harness == "codex"
     assert credential.command == "codex"
     assert credential.model == "gpt-5.4"

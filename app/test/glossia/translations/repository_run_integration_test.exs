@@ -60,7 +60,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
       {:ok,
        %{
          text: "# Guía\n\nHola, mundo.",
-         model: "anthropic:x",
+         model: "anthropic/x",
          provider: "anthropic",
          model_handle: "m"
        }}
@@ -108,7 +108,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
         {:ok,
          %{
            text: "# Guía\n\nHola.",
-           model: "anthropic:x",
+           model: "anthropic/x",
            provider: "anthropic",
            model_handle: "m"
          }}

@@ -8,7 +8,7 @@ defmodule Glossia.Accounts.LLMModelTest do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => "my-model",
-          "model" => "anthropic:claude-sonnet-4-20250514",
+          "model" => "anthropic/claude-sonnet-4-20250514",
           "api_key" => "sk-test"
         })
 
@@ -17,7 +17,7 @@ defmodule Glossia.Accounts.LLMModelTest do
 
     test "invalid without handle" do
       changeset =
-        LLMModel.changeset(%LLMModel{}, %{"model" => "anthropic:test", "api_key" => "sk"})
+        LLMModel.changeset(%LLMModel{}, %{"model" => "anthropic/test", "api_key" => "sk"})
 
       assert errors_on(changeset) |> Map.has_key?(:handle)
     end
@@ -29,7 +29,7 @@ defmodule Glossia.Accounts.LLMModelTest do
 
     test "invalid without api_key when require_api_key is true" do
       changeset =
-        LLMModel.changeset(%LLMModel{}, %{"handle" => "test", "model" => "anthropic:test"})
+        LLMModel.changeset(%LLMModel{}, %{"handle" => "test", "model" => "anthropic/test"})
 
       assert errors_on(changeset) |> Map.has_key?(:api_key)
     end
@@ -38,7 +38,7 @@ defmodule Glossia.Accounts.LLMModelTest do
       changeset =
         LLMModel.changeset(
           %LLMModel{},
-          %{"handle" => "test", "model" => "anthropic:test"},
+          %{"handle" => "test", "model" => "anthropic/test"},
           require_api_key: false
         )
 
@@ -49,7 +49,7 @@ defmodule Glossia.Accounts.LLMModelTest do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => "1bad",
-          "model" => "anthropic:test",
+          "model" => "anthropic/test",
           "api_key" => "sk"
         })
 
@@ -60,7 +60,7 @@ defmodule Glossia.Accounts.LLMModelTest do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => "BadHandle",
-          "model" => "anthropic:test",
+          "model" => "anthropic/test",
           "api_key" => "sk"
         })
 
@@ -71,7 +71,7 @@ defmodule Glossia.Accounts.LLMModelTest do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => "my-great-model",
-          "model" => "anthropic:test",
+          "model" => "anthropic/test",
           "api_key" => "sk"
         })
 
@@ -82,7 +82,7 @@ defmodule Glossia.Accounts.LLMModelTest do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => "a",
-          "model" => "anthropic:test",
+          "model" => "anthropic/test",
           "api_key" => "sk"
         })
 
@@ -93,14 +93,14 @@ defmodule Glossia.Accounts.LLMModelTest do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => String.duplicate("a", 65),
-          "model" => "anthropic:test",
+          "model" => "anthropic/test",
           "api_key" => "sk"
         })
 
       assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
-    test "model must be in provider:model format" do
+    test "model must be in provider/model format" do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => "test",
@@ -111,15 +111,26 @@ defmodule Glossia.Accounts.LLMModelTest do
       assert errors_on(changeset) |> Map.has_key?(:model)
     end
 
-    test "model accepts valid provider:model format" do
+    test "model accepts valid provider/model format" do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{
           "handle" => "test",
-          "model" => "openai:gpt-4o",
+          "model" => "openai/gpt-4o",
           "api_key" => "sk"
         })
 
       assert changeset.valid?
+    end
+  end
+
+  describe "available_models/0" do
+    test "uses canonical identifiers and excludes deprecated Together AI models" do
+      identifiers =
+        LLMModel.available_models()
+        |> Enum.flat_map(fn {_provider, models} -> Enum.map(models, &elem(&1, 1)) end)
+
+      assert "togetherai/moonshotai/Kimi-K2.7-Code" in identifiers
+      refute "togetherai/moonshotai/Kimi-K2.5" in identifiers
     end
   end
 end

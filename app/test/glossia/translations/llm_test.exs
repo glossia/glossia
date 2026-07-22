@@ -25,7 +25,7 @@ defmodule Glossia.Translations.LLMTest do
       end)
 
       cred = %{
-        model: "anthropic:claude",
+        model: "anthropic/claude",
         auth: {:api_key, "sk-test", "https://proxy.test/v1"},
         source: :account_model
       }
@@ -40,12 +40,28 @@ defmodule Glossia.Translations.LLMTest do
       end)
 
       cred = %{
-        model: "anthropic:claude",
+        model: "anthropic/claude",
         auth: {:api_key, "sk-test", nil},
         source: :account_model
       }
 
       assert {:error, :boom} = LLM.run(cred, @system, @user)
+    end
+
+    test "routes Together AI through its OpenAI-compatible endpoint" do
+      Mimic.expect(Condukt, :run, fn _prompt, opts ->
+        assert opts[:model] == %{provider: :openai, id: "moonshotai/Kimi-K2.7-Code"}
+        assert opts[:base_url] == "https://api.together.ai/v1"
+        {:ok, "Hola"}
+      end)
+
+      cred = %{
+        model: "togetherai/moonshotai/Kimi-K2.7-Code",
+        auth: {:api_key, "together-key", nil},
+        source: :account_model
+      }
+
+      assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
     end
   end
 
@@ -62,7 +78,7 @@ defmodule Glossia.Translations.LLMTest do
       Mimic.stub(ReqLLM.Response, :text, fn :fake_response -> "Hola, mundo." end)
 
       cred = %{
-        model: "anthropic:claude-haiku-4-5",
+        model: "anthropic/claude-haiku-4-5",
         auth: {:oauth, "oauth-tok"},
         source: :claude_session
       }
@@ -79,7 +95,7 @@ defmodule Glossia.Translations.LLMTest do
       {:ok, collector} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
 
-      cred = %{model: "anthropic:x", auth: {:oauth, "tok"}, source: :claude_session}
+      cred = %{model: "anthropic/x", auth: {:oauth, "tok"}, source: :claude_session}
       assert {:ok, "Hola"} = LLM.stream(cred, @system, @user, on_event)
 
       assert Elixir.Agent.get(collector, &Enum.reverse/1) ==
@@ -97,7 +113,7 @@ defmodule Glossia.Translations.LLMTest do
       {:ok, collector} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
 
-      cred = %{model: "anthropic:x", auth: {:api_key, "sk", nil}, source: :account_model}
+      cred = %{model: "anthropic/x", auth: {:api_key, "sk", nil}, source: :account_model}
       assert {:ok, "Hola, mundo"} = LLM.stream(cred, @system, @user, on_event)
 
       events = Elixir.Agent.get(collector, &Enum.reverse/1)
@@ -109,7 +125,7 @@ defmodule Glossia.Translations.LLMTest do
       Mimic.stub(Agent, :start_link, fn _opts -> Elixir.Agent.start_link(fn -> nil end) end)
       Mimic.stub(Condukt, :stream, fn _pid, _prompt -> [:turn_start, {:error, :rate_limited}] end)
 
-      cred = %{model: "anthropic:x", auth: {:api_key, "sk", nil}, source: :account_model}
+      cred = %{model: "anthropic/x", auth: {:api_key, "sk", nil}, source: :account_model}
       assert {:error, :rate_limited} = LLM.stream(cred, @system, @user, fn _ -> :ok end)
     end
   end

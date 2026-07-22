@@ -16,7 +16,7 @@ defmodule Glossia.Translations.Credentials do
 
   Returns a credential map:
 
-      %{model: "provider:model", handle: "account-handle", auth: auth, source: atom}
+      %{model: "provider/model", handle: "account-handle", auth: auth, source: atom}
 
   where `auth` is `{:api_key, key, base_url_or_nil}` (used via Condukt) or
   `{:oauth, access_token}` (used via ReqLLM directly, since Condukt cannot carry
@@ -26,8 +26,9 @@ defmodule Glossia.Translations.Credentials do
 
   alias Glossia.Accounts.Account
   alias Glossia.LLMModels
+  alias Glossia.Models.ModelIdentifier
 
-  @default_local_model "anthropic:claude-haiku-4-5"
+  @default_local_model "anthropic/claude-haiku-4-5"
   @development_session_keys %{
     claude: "development-session:claude",
     codex: "development-session:codex"
@@ -119,7 +120,11 @@ defmodule Glossia.Translations.Credentials do
           development_account_session(key, model)
 
         %{model: model, api_key: key} when is_binary(key) and key != "" ->
-          %{model: model, auth: {:api_key, key, nil}, source: :account_model}
+          %{
+            model: ModelIdentifier.normalize(model),
+            auth: {:api_key, key, nil},
+            source: :account_model
+          }
 
         _ ->
           nil
@@ -145,7 +150,7 @@ defmodule Glossia.Translations.Credentials do
 
     if present?(key) and present?(model) do
       %{
-        model: model,
+        model: ModelIdentifier.normalize(model),
         handle: nil,
         auth: {:api_key, key, config[:inference_base_url]},
         source: :inference_config
@@ -212,7 +217,7 @@ defmodule Glossia.Translations.Credentials do
          true <- present?(token),
          true <- not_expired?(token_expiry_ms(token)) do
       %{
-        model: local_model("openai:gpt-5"),
+        model: local_model("openai/gpt-5"),
         handle: nil,
         auth: {:oauth, token},
         source: :codex_session
@@ -320,28 +325,11 @@ defmodule Glossia.Translations.Credentials do
     }
   end
 
-  defp open_code_model(model) do
-    case String.split(model, ":", parts: 2) do
-      [provider, model_id] -> "#{provider}/#{model_id}"
-      [_model] -> model
-    end
-  end
+  defp open_code_model(model), do: ModelIdentifier.normalize(model)
 
-  defp codex_model(model) do
-    case String.split(model, ":", parts: 2) do
-      ["openai", model_id] -> model_id
-      [_provider, model_id] -> model_id
-      [model_id] -> model_id
-    end
-  end
+  defp codex_model(model), do: ModelIdentifier.provider_model(model)
 
-  defp claude_model(model) do
-    case String.split(model, ":", parts: 2) do
-      ["anthropic", model_id] -> model_id
-      [_provider, model_id] -> model_id
-      [model_id] -> model_id
-    end
-  end
+  defp claude_model(model), do: ModelIdentifier.provider_model(model)
 
   defp token_expiry_ms(token) do
     with [_header, payload, _signature] <- String.split(token, "."),
@@ -354,7 +342,9 @@ defmodule Glossia.Translations.Credentials do
   end
 
   defp with_model(nil, _model), do: nil
-  defp with_model(credential, model), do: %{credential | model: model}
+
+  defp with_model(credential, model),
+    do: %{credential | model: ModelIdentifier.normalize(model)}
 
   defp development_account_session(key, model) do
     if config()[:allow_local_session] do
@@ -379,7 +369,10 @@ defmodule Glossia.Translations.Credentials do
 
   defp not_expired?(_), do: false
 
-  defp local_model(default \\ @default_local_model), do: config()[:local_session_model] || default
+  defp local_model(default \\ @default_local_model) do
+    (config()[:local_session_model] || default)
+    |> ModelIdentifier.normalize()
+  end
 
   defp config, do: Application.get_env(:glossia, Glossia.Translations, [])
 

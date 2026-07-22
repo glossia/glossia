@@ -14,6 +14,7 @@ defmodule Glossia.Translations.RepositoryRun do
   clone, so it can be driven directly against a working directory in tests.
   """
 
+  alias Glossia.Models.ModelIdentifier
   alias Glossia.Translations.Engine
   alias Glossia.Translations.Locks
   alias Glossia.Translations.Planner
@@ -78,7 +79,7 @@ defmodule Glossia.Translations.RepositoryRun do
 
   defp apply_one(session, account, repo_path, item, index, total) do
     source_content = File.read!(item.source_abs)
-    provider = provider_of(item.model)
+    provider = ModelIdentifier.provider(item.model)
 
     hash_state =
       Locks.build_hash_state(
@@ -196,17 +197,12 @@ defmodule Glossia.Translations.RepositoryRun do
     # `--untracked-files=all` lists new files individually instead of collapsing
     # untracked directories (e.g. `docs/i18n/`, `.glossia/`) into a single entry.
     #
-    # `System.cmd/3` rather than `MuonTrap.cmd/3`: MuonTrap acknowledges every
-    # chunk it receives by writing back to the port. `git status` prints its
-    # output and exits immediately, so on Linux that write lands on a pipe whose
-    # read end is already gone. The port then terminates with `:epipe` and takes
-    # the linked caller with it. MuonTrap earns its keep when a command needs a
-    # timeout or process-group containment; this one needs neither.
-    case System.cmd(
+    case MuonTrap.cmd(
            "git",
            ["-C", repo_path, "status", "--porcelain", "--untracked-files=all"],
            stderr_to_stdout: true,
-           into: ""
+           into: "",
+           timeout: :timer.minutes(1)
          ) do
       {output, 0} -> {:ok, output |> parse_git_status() |> attach_content(repo_path)}
       {output, code} -> {:error, {:git_status_failed, code, String.trim(output)}}
@@ -277,23 +273,17 @@ defmodule Glossia.Translations.RepositoryRun do
   defp checkout_commit(_dir, sha) when sha in [nil, ""], do: :ok
 
   defp checkout_commit(dir, sha) do
-    # Same reasoning as `collect_changes/1`: short-lived, chatty, no timeout.
-    case System.cmd("git", ["-C", dir, "checkout", sha], stderr_to_stdout: true, into: "") do
+    case MuonTrap.cmd("git", ["-C", dir, "checkout", sha],
+           stderr_to_stdout: true,
+           into: "",
+           timeout: :timer.minutes(1)
+         ) do
       {_output, 0} -> :ok
       {output, code} -> {:error, {:checkout_failed, sha, code, String.trim(output)}}
     end
   end
 
   # ── helpers ─────────────────────────────────────────────────────────────
-
-  defp provider_of(nil), do: ""
-
-  defp provider_of(model) do
-    case String.split(model, ":", parts: 2) do
-      [provider, _model] -> provider
-      _ -> ""
-    end
-  end
 
   defp broadcast(session, event), do: TranslationSessions.broadcast_session_event(session, event)
 
