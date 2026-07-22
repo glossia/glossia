@@ -1,9 +1,20 @@
 ---
-source_language: "en"
+source_language: en
 sources:
-  "priv/gettext/*.pot": "priv/gettext/{locale}/LC_MESSAGES"
+  "priv/docs/**/*.md": "priv/i18n/{locale}/docs/{relpath}"
+  "priv/blog/*.md": "priv/i18n/{locale}/blog/{relpath}"
+  "priv/features/*.md": "priv/i18n/{locale}/features/{relpath}"
+  "priv/legal/*.md": "priv/i18n/{locale}/legal/{relpath}"
+  "priv/gettext/default.pot": "priv/gettext/{locale}/LC_MESSAGES"
+  "priv/gettext/errors.pot": "priv/gettext/{locale}/LC_MESSAGES"
 targets:
-  es: "Spanish"
+  - es
+  - fr
+  - de
+  - ja
+  - zh-Hans
+  - ko
+  - pt-BR
 ---
 
 # Web Application Translation Context

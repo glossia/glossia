@@ -1,13 +1,30 @@
 ---
-source_language: "en"
+source_language: en
+sources:
+  "app/priv/docs/**/*.md": "app/priv/i18n/{locale}/docs/{relpath}"
+  "app/priv/blog/*.md": "app/priv/i18n/{locale}/blog/{relpath}"
+  "app/priv/features/*.md": "app/priv/i18n/{locale}/features/{relpath}"
+  "app/priv/legal/*.md": "app/priv/i18n/{locale}/legal/{relpath}"
+  "app/priv/gettext/default.pot": "app/priv/gettext/{locale}/LC_MESSAGES"
+  "app/priv/gettext/errors.pot": "app/priv/gettext/{locale}/LC_MESSAGES"
 targets:
-  es: "Spanish"
+  - es
+  - fr
+  - de
+  - ja
+  - zh-Hans
+  - ko
+  - pt-BR
 ---
 
 # Glossia Repository Translation Context
 
 This repository contains the Glossia web application, the command-line translator, the
 `GLOSSIA.md` reference site, deployment manifests, and supporting product documentation.
+
+The source language is English. Translated outputs go next to their English sources
+according to the `sources` templates above. Target locale overrides and extra guidance
+for a specific language belong in `GLOSSIA/<locale>.md`.
 
 ## Product Language
 
