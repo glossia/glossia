@@ -97,7 +97,6 @@ defmodule Glossia.MixProject do
       {:chromic_pdf, "~> 1.17"},
       {:mimic, "~> 1.10", only: :test},
       {:muontrap, "~> 1.5"},
-      {:llm_db, "~> 2026.7"},
       {:req_llm, "~> 1.17"},
       {:condukt, "~> 1.5"},
       {:yaml_elixir, "~> 2.12"},
