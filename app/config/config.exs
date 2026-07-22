@@ -105,7 +105,13 @@ config :glossia, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,
   repo: Glossia.Repo,
-  queues: [default: 10]
+  queues: [default: 10],
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker}
+     ]}
+  ]
 
 config :glossia, GlossiaWeb.Plugs.OpsAuth, username: "ops", password: nil
 

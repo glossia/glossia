@@ -19,6 +19,10 @@ defmodule Glossia.Accounts.Project do
     field :setup_error, :string
     field :setup_sandbox_id, :string
     field :setup_target_languages, {:array, :string}, default: []
+    field :setup_pull_request_number, :integer
+    field :setup_pull_request_url, :string
+    field :setup_pull_request_state, :string
+    field :setup_pull_request_merged_at, :utc_datetime_usec
     field :description, :string
     field :url, :string
     field :avatar_url, :string
@@ -39,7 +43,11 @@ defmodule Glossia.Accounts.Project do
       :github_repo_default_branch,
       :setup_status,
       :setup_error,
-      :setup_target_languages
+      :setup_target_languages,
+      :setup_pull_request_number,
+      :setup_pull_request_url,
+      :setup_pull_request_state,
+      :setup_pull_request_merged_at
     ])
     |> validate_required([:handle, :name])
     |> validate_format(:handle, ~r/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/,
@@ -47,6 +55,9 @@ defmodule Glossia.Accounts.Project do
     )
     |> validate_length(:handle, min: 2, max: 39)
     |> validate_inclusion(:setup_status, ~w(pending running completed failed),
+      message: "is invalid"
+    )
+    |> validate_inclusion(:setup_pull_request_state, ~w(open merged closed),
       message: "is invalid"
     )
     |> unique_constraint([:account_id, :handle])
