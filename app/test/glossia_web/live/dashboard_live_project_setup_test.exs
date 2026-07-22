@@ -99,4 +99,37 @@ defmodule GlossiaWeb.DashboardLiveProjectSetupTest do
     assert_redirect(view, "/#{user.account.handle}")
     refute Repo.get(Glossia.Accounts.Project, project.id)
   end
+
+  test "reapplying setup page parameters does not duplicate setup events", %{conn: conn} do
+    user = TestHelpers.create_user("project-events@test.com", "project-events")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "active-setup",
+        name: "Active setup",
+        setup_status: "running",
+        setup_target_languages: ["es"]
+      })
+
+    path = "/#{user.account.handle}/#{project.handle}"
+    conn = init_test_session(conn, %{user_id: user.id})
+    {:ok, view, _html} = live(conn, path)
+
+    render_patch(view, path)
+
+    Projects.broadcast_setup_event(project, %{
+      sequence: 1,
+      event_type: "status",
+      content: "Inspecting the localization files.",
+      metadata: "{}"
+    })
+
+    event_rows =
+      view
+      |> render()
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query("#setup-events .setup-event-row")
+
+    assert Enum.count(event_rows) == 1
+  end
 end

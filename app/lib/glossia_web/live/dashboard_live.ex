@@ -993,8 +993,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     socket =
       if connected?(socket) and project.setup_status in ["pending", "running"] do
-        Glossia.Projects.subscribe_setup_events(project)
-        socket
+        subscribe_to_setup_events(socket, project)
       else
         socket
       end
@@ -2591,7 +2590,7 @@ defmodule GlossiaWeb.DashboardLive do
 
       case result do
         {:ok, project} ->
-          Glossia.Projects.subscribe_setup_events(project)
+          socket = subscribe_to_setup_events(socket, project)
 
           case %{project_id: project.id}
                |> Glossia.Projects.SetupWorker.new()
@@ -2643,14 +2642,16 @@ defmodule GlossiaWeb.DashboardLive do
         {:ok, pending_project} ->
           case Glossia.Projects.SetupWorker.retry_now(pending_project.id) do
             {:ok, _job} ->
-              Glossia.Projects.subscribe_setup_events(pending_project)
-
               socket =
-                if socket.assigns[:project] do
-                  assign(socket, project: pending_project)
-                else
-                  assign(socket, wizard_project: pending_project)
-                end
+                socket
+                |> subscribe_to_setup_events(pending_project)
+                |> then(fn socket ->
+                  if socket.assigns[:project] do
+                    assign(socket, project: pending_project)
+                  else
+                    assign(socket, wizard_project: pending_project)
+                  end
+                end)
 
               {:noreply, socket}
 
@@ -9989,8 +9990,7 @@ defmodule GlossiaWeb.DashboardLive do
 
           socket =
             if connected?(socket) and project.setup_status in ["pending", "running"] do
-              Glossia.Projects.subscribe_setup_events(project)
-              socket
+              subscribe_to_setup_events(socket, project)
             else
               socket
             end
@@ -10004,6 +10004,17 @@ defmodule GlossiaWeb.DashboardLive do
 
       _ ->
         assign(socket, wizard_step: "repo")
+    end
+  end
+
+  defp subscribe_to_setup_events(socket, project) do
+    project_id = to_string(project.id)
+
+    if socket.assigns[:setup_events_project_id] == project_id do
+      socket
+    else
+      Glossia.Projects.subscribe_setup_events(project)
+      assign(socket, setup_events_project_id: project_id)
     end
   end
 
