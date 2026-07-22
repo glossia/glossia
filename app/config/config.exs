@@ -11,6 +11,9 @@ config :glossia,
   ecto_repos: [Glossia.Repo, Glossia.IngestRepo],
   generators: [timestamp_type: :utc_datetime]
 
+# Keep English as the source-language fallback and default Gettext locale.
+config :glossia, GlossiaWeb.Gettext, default_locale: "en"
+
 config :ecto_ch,
   default_table_engine: "MergeTree"
 

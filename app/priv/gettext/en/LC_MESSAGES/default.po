@@ -1,0 +1,442 @@
+## `msgid`s in this file come from POT (.pot) files.
+##
+## Do not add, change, or remove `msgid`s manually here as
+## they're tied to the ones in the corresponding POT file
+## (with the same domain).
+##
+## Use `mix gettext.extract --merge` or `mix gettext.merge`
+## to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+
+#: lib/glossia_web/components/layouts.ex:101
+#, elixir-autogen, elixir-format
+msgid "Context"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:111
+#: lib/glossia_web/components/layouts/app.html.heex:9
+#: lib/glossia_web/components/layouts/app.html.heex:78
+#, elixir-autogen, elixir-format
+msgid "Docs"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:99
+#, elixir-autogen, elixir-format
+msgid "Blog"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:106
+#, elixir-autogen, elixir-format
+msgid "Documentation"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:111
+#, elixir-autogen, elixir-format
+msgid "Legal"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:132
+#: lib/glossia_web/components/layouts/app.html.heex:28
+#: lib/glossia_web/components/layouts/app.html.heex:82
+#: lib/glossia_web/controllers/auth_html/login.html.heex:92
+#, elixir-autogen, elixir-format
+msgid "Privacy Policy"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:113
+#: lib/glossia_web/controllers/auth_html/login.html.heex:90
+#, elixir-autogen, elixir-format
+msgid "Terms of Service"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:115
+#, elixir-autogen, elixir-format
+msgid "Cookie Policy"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:132
+#: lib/glossia_web/components/layouts/app.html.heex:28
+#: lib/glossia_web/components/layouts/app.html.heex:82
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:145
+#, elixir-autogen, elixir-format
+msgid "Sign in"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:35
+#: lib/glossia_web/controllers/auth_controller.ex:33
+#: lib/glossia_web/controllers/auth_controller.ex:49
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:38
+#, elixir-autogen, elixir-format
+msgid "Menu"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:99
+#, elixir-autogen, elixir-format
+msgid "Built with love from Berlin."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:124
+#, elixir-autogen, elixir-format
+msgid "Authentication failed. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:80
+#, elixir-autogen, elixir-format
+msgid "Failed to start authentication. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:117
+#, elixir-autogen, elixir-format
+msgid "There was a problem creating your account. Please try again."
+msgstr ""
+
+#: lib/glossia_web/components/core_components.ex:489
+#, elixir-autogen, elixir-format
+msgid "Get in touch"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:12
+#, elixir-autogen, elixir-format
+msgid "Check out the docs"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:540
+#, elixir-autogen, elixir-format
+msgid "FAQ"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:551
+#, elixir-autogen, elixir-format
+msgid "Do I need to bring my own models?"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:543
+#, elixir-autogen, elixir-format
+msgid "Why build this now?"
+msgstr ""
+
+#: lib/glossia_web/components/core_components.ex:484
+#, elixir-autogen, elixir-format
+msgid "Ready to get started?"
+msgstr ""
+
+#: lib/glossia_web/components/core_components.ex:487
+#, elixir-autogen, elixir-format
+msgid "Join teams that ship content with the same confidence they ship code."
+msgstr ""
+
+#: lib/glossia_web/controllers/organization_html/new.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Create an organization"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/platform.html.heex:44
+#: lib/glossia_web/controllers/organization_html/new.html.heex:56
+#, elixir-autogen, elixir-format
+msgid "Create organization"
+msgstr ""
+
+#: lib/glossia_web/controllers/organization_html/new.html.heex:51
+#, elixir-autogen, elixir-format
+msgid "By creating an organization, you agree to our"
+msgstr ""
+
+#: lib/glossia_web/controllers/organization_html/new.html.heex:38
+#, elixir-autogen, elixir-format
+msgid "My Organization"
+msgstr ""
+
+#: lib/glossia_web/controllers/organization_html/new.html.heex:32
+#, elixir-autogen, elixir-format
+msgid "Name (optional)"
+msgstr ""
+
+#: lib/glossia_web/controllers/organization_html/new.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "Organizations let you collaborate with your team on content projects."
+msgstr ""
+
+#: lib/glossia_web/controllers/organization_controller.ex:20
+#: lib/glossia_web/controllers/organization_controller.ex:39
+#: lib/glossia_web/controllers/organization_controller.ex:46
+#, elixir-autogen, elixir-format
+msgid "New organization"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:226
+#: lib/glossia_web/components/layouts.ex:228
+#, elixir-autogen, elixir-format
+msgid "Organization"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:3858
+#: lib/glossia_web/live/dashboard_live.ex:4693
+#: lib/glossia_web/live/dashboard_live.ex:7213
+#: lib/glossia_web/live/dashboard_live.ex:7375
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/platform.html.heex:122
+#, elixir-autogen, elixir-format
+msgid "Projects"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:820
+#: lib/glossia_web/live/dashboard_live.ex:823
+#: lib/glossia_web/live/dashboard_live.ex:884
+#: lib/glossia_web/live/dashboard_live.ex:895
+#: lib/glossia_web/live/dashboard_live.ex:3305
+#: lib/glossia_web/live/dashboard_live.ex:7118
+#, elixir-autogen, elixir-format
+msgid "New project"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:3411
+#, elixir-autogen, elixir-format
+msgid "No projects yet"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:3412
+#, elixir-autogen, elixir-format
+msgid "Projects will show up here once you create one."
+msgstr ""
+
+#: lib/glossia_web/components/layouts/platform.html.heex:129
+#: lib/glossia_web/live/dashboard_live.ex:112
+#: lib/glossia_web/live/dashboard_live.ex:141
+#: lib/glossia_web/live/dashboard_live.ex:228
+#: lib/glossia_web/live/dashboard_live.ex:253
+#: lib/glossia_web/live/dashboard_live.ex:3490
+#, elixir-autogen, elixir-format
+msgid "Voice"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:3699
+#: lib/glossia_web/live/dashboard_live.ex:3877
+#: lib/glossia_web/live/dashboard_live.ex:4167
+#: lib/glossia_web/live/dashboard_live.ex:4272
+#: lib/glossia_web/live/dashboard_live.ex:7556
+#, elixir-autogen, elixir-format
+msgid "Tone"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:896
+#: lib/glossia_web/components/dashboard_components.ex:937
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:969
+#, elixir-autogen, elixir-format
+msgid "Discard"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:217
+#, elixir-autogen, elixir-format
+msgid "Clear all"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:173
+#, elixir-autogen, elixir-format
+msgid "Filter"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:101
+#: lib/glossia_web/components/dashboard_components.ex:306
+#, elixir-autogen, elixir-format
+msgid "No results found."
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:127
+#, elixir-autogen, elixir-format
+msgid "Search..."
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:1089
+#, elixir-autogen, elixir-format
+msgid "Search language..."
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:1254
+#, elixir-autogen, elixir-format
+msgid "Search country..."
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:194
+#, elixir-autogen, elixir-format
+msgid "Remove filter"
+msgstr ""
+
+#: lib/glossia_web/components/core_components.ex:386
+#: lib/glossia_web/components/dashboard_components.ex:291
+#: lib/glossia_web/live/dashboard_live.ex:6264
+#: lib/glossia_web/live/dashboard_live.ex:6406
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:349
+#, elixir-autogen, elixir-format
+msgid "Previous page"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:375
+#, elixir-autogen, elixir-format
+msgid "Next page"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:366
+#, elixir-autogen, elixir-format
+msgid "Page %{page} of %{total}"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:335
+#, elixir-autogen, elixir-format
+msgid "Showing %{first}-%{last} of %{total}"
+msgstr ""
+
+#: lib/glossia_web/live/admin_live.ex:331
+#: lib/glossia_web/live/dashboard_live.ex:4987
+#: lib/glossia_web/live/dashboard_live.ex:5033
+#: lib/glossia_web/live/profile_live.ex:187
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:21
+#: lib/glossia_web/live/dashboard_live.ex:3966
+#: lib/glossia_web/live/dashboard_live.ex:4045
+#: lib/glossia_web/live/dashboard_live.ex:4495
+#: lib/glossia_web/live/dashboard_live.ex:4574
+#: lib/glossia_web/live/dashboard_live.ex:6245
+#, elixir-autogen, elixir-format
+msgid "Date"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:3963
+#: lib/glossia_web/live/dashboard_live.ex:4489
+#, elixir-autogen, elixir-format
+msgid "Version"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:22
+#: lib/glossia_web/live/dashboard_live.ex:4209
+#, elixir-autogen, elixir-format
+msgid "Current"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:4201
+#, elixir-autogen, elixir-format
+msgid "Previous"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/show.html.heex:59
+#, elixir-autogen, elixir-format
+msgid "Markdown"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/show.html.heex:30
+#, elixir-autogen, elixir-format
+msgid "All documentation"
+msgstr ""
+
+#: lib/glossia_web/controllers/docs_html/show.html.heex:20
+#: lib/glossia_web/controllers/docs_html/show.html.heex:37
+#, elixir-autogen, elixir-format
+msgid "On this page"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Effective:"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "You are viewing a previous version."
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Changes"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "View current version"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "Version History"
+msgstr ""
+
+#: lib/glossia_web/controllers/legal_html/show.html.heex:33
+#: lib/glossia_web/live/dashboard_live.ex:6411
+#, elixir-autogen, elixir-format
+msgid "View"
+msgstr ""
+
+#: lib/glossia_web/controllers/blog_html/index.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "RSS Feed"
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:15
+#: lib/glossia_web/controllers/oauth/device_html/verify.html.heex:39
+#, elixir-autogen, elixir-format
+msgid "Requested permissions:"
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:5
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "Authorize %{client_name}"
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "%{client_name} wants to access your Glossia account."
+msgstr ""
+
+#: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:49
+#, elixir-autogen, elixir-format
+msgid "By authorizing, you allow this application to access your account."
+msgstr ""
+
+#: lib/glossia_web/controllers/invitation_html/show.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Accept invitation"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_html/login.html.heex:91
+#: lib/glossia_web/controllers/page_html/home.html.heex:262
+#, elixir-autogen, elixir-format
+msgid "and"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:1529
+#, elixir-autogen, elixir-format
+msgid "Write"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:1532
+#, elixir-autogen, elixir-format
+msgid "Preview"
+msgstr ""
+
+#: lib/glossia_web/components/dashboard_components.ex:1543
+#, elixir-autogen, elixir-format
+msgid "Drop image to upload"
+msgstr ""
