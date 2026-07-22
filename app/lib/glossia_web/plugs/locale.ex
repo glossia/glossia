@@ -28,9 +28,6 @@ defmodule GlossiaWeb.Plugs.Locale do
 
   def call(conn, _opts) do
     case accepted_locale(conn) do
-      nil ->
-        conn
-
       locale when locale != @default_locale ->
         Gettext.put_locale(GlossiaWeb.Gettext, locale)
         conn
@@ -49,7 +46,7 @@ defmodule GlossiaWeb.Plugs.Locale do
         languages
         |> String.split(",")
         |> Enum.map(&normalize_language/1)
-        |> Enum.find(&(Map.has_key?(@locales, &1)))
+        |> Enum.find(&Map.has_key?(@locales, &1))
         |> then(&Map.get(@locales, &1, @default_locale))
     end
   end
