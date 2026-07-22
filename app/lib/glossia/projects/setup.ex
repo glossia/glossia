@@ -18,7 +18,6 @@ defmodule Glossia.Projects.Setup do
   @change_manifest_filename "glossia-setup-changes.json"
   @context_file_names ["GLOSSIA.md"]
   @setup_branch_name "glossia/setup-localization"
-  @max_changed_files_in_body 20
 
   @doc """
   Runs setup for the given project ID. Broadcasts status updates via PubSub
@@ -113,12 +112,13 @@ defmodule Glossia.Projects.Setup do
     end
   end
 
-  defp handle_setup_result(project, account, {:ok, pr_url}, sandbox_id) do
+  defp handle_setup_result(project, account, {:ok, pull_request}, sandbox_id) do
     with {:ok, _project} <-
-           Projects.update_project_setup_status_if_sandbox_id(project, sandbox_id, "completed") do
-      record_setup_event(project, "pr_created", pr_url, %{
+           Projects.complete_project_setup(project, sandbox_id, pull_request) do
+      record_setup_event(project, "pr_created", pull_request.url, %{
         "label" => "pull_request",
-        "repo" => project.github_repo_full_name || ""
+        "repo" => project.github_repo_full_name || "",
+        "number" => pull_request.number
       })
 
       Projects.broadcast_setup_status(project, "completed")
@@ -127,7 +127,7 @@ defmodule Glossia.Projects.Setup do
         resource_type: "project",
         resource_id: to_string(project.id),
         resource_path: "/#{account.handle}/#{project.handle}",
-        summary: "Setup completed for #{project.handle}, PR: #{pr_url}"
+        summary: "Setup completed for #{project.handle}, pull request: #{pull_request.url}"
       )
     end
 
@@ -422,7 +422,13 @@ defmodule Glossia.Projects.Setup do
   defp record_agent_event(_project, _event), do: :ok
 
   defp maybe_create_pr(project, sandbox, sandbox_id, repo_path) do
-    with {:ok, changes} <- download_setup_changes(sandbox, sandbox_id, repo_path) do
+    with {:ok, changes} <-
+           download_setup_changes(
+             sandbox,
+             sandbox_id,
+             repo_path,
+             project.setup_target_languages || []
+           ) do
       create_pr(project, changes)
     end
   end
@@ -485,32 +491,40 @@ defmodule Glossia.Projects.Setup do
            ),
          commit_sha when is_binary(commit_sha) <- commit["sha"],
          :ok <- create_or_update_branch(full_name, branch_name, commit_sha, token),
-         {:ok, pr} <-
+         {:ok, %{"number" => pr_number, "html_url" => pr_url} = pr}
+         when is_integer(pr_number) and is_binary(pr_url) and pr_url != "" <-
            Glossia.Github.Client.create_pull_request(
              full_name,
              %{
                title: "feat: set up Glossia localization",
-               body: pull_request_body(project, changes),
+               body: pull_request_body(project),
                head: branch_name,
                base: default_branch
              },
              token
            ) do
-      {:ok, pr["html_url"]}
+      {:ok,
+       %{
+         number: pr_number,
+         url: pr_url,
+         state: pr["state"] || "open",
+         merged_at: nil
+       }}
     else
-      nil -> {:error, :invalid_github_response}
-      other -> other
+      {:error, _reason} = error -> error
+      _invalid_response -> {:error, :invalid_github_response}
     end
   end
 
-  defp download_setup_changes(sandbox, sandbox_id, repo_path) do
+  defp download_setup_changes(sandbox, sandbox_id, repo_path, target_languages) do
     manifest_path = Path.join(Path.dirname(repo_path), @change_manifest_filename)
 
     with {:ok, manifest} <- download_manifest(sandbox, sandbox_id, manifest_path),
          {:ok, decoded} <- decode_manifest(manifest),
          {:ok, files} <- parse_changed_files(decoded),
          :ok <- validate_changed_files(files),
-         {:ok, changes} <- download_changed_file_contents(sandbox, sandbox_id, repo_path, files) do
+         {:ok, changes} <- download_changed_file_contents(sandbox, sandbox_id, repo_path, files),
+         :ok <- validate_target_catalogs(changes, target_languages) do
       {:ok, changes}
     end
   end
@@ -635,6 +649,66 @@ defmodule Glossia.Projects.Setup do
     end
   end
 
+  defp validate_target_catalogs(changes, target_languages) do
+    empty_catalog =
+      Enum.find(changes, fn change ->
+        published_target_portable_object_catalog?(change, target_languages) and
+          not portable_object_catalog_has_messages?(change.content)
+      end)
+
+    case empty_catalog do
+      nil -> :ok
+      %{path: path} -> {:error, {:setup_target_catalog_empty, path}}
+    end
+  end
+
+  defp published_target_portable_object_catalog?(
+         %{path: path, status: status, content: content},
+         target_languages
+       )
+       when status in ["added", "modified"] and is_binary(content) do
+    path_parts = Path.split(path)
+    basename = Path.basename(path, ".po")
+
+    Path.extname(path) == ".po" and
+      Enum.any?(target_languages, fn language ->
+        language in path_parts or language == basename
+      end)
+  end
+
+  defp published_target_portable_object_catalog?(_change, _target_languages), do: false
+
+  defp portable_object_catalog_has_messages?(content) do
+    content
+    |> String.split(~r/\R{2,}/)
+    |> Enum.any?(&portable_object_entry_has_message?/1)
+  end
+
+  defp portable_object_entry_has_message?(entry) do
+    lines = String.split(entry, ~r/\R/)
+    message_index = Enum.find_index(lines, &String.starts_with?(&1, "msgid "))
+
+    if is_integer(message_index) do
+      message_lines =
+        lines
+        |> Enum.drop(message_index)
+        |> Enum.take_while(&(not String.starts_with?(&1, "msgstr")))
+
+      Enum.any?(message_lines, &portable_object_message_line_has_content?/1)
+    else
+      false
+    end
+  end
+
+  defp portable_object_message_line_has_content?(line) do
+    line = String.trim_leading(line)
+
+    case Regex.run(~r/^(?:msgid\s+)?"(.*)"$/, line, capture: :all_but_first) do
+      [value] -> value != ""
+      _no_message -> false
+    end
+  end
+
   defp create_tree_entries(full_name, token, changes) do
     changes
     |> Enum.reduce_while({:ok, []}, fn
@@ -681,49 +755,31 @@ defmodule Glossia.Projects.Setup do
     end
   end
 
-  defp pull_request_body(project, changes) do
+  defp pull_request_body(project) do
     language_list =
       case project.setup_target_languages || [] do
-        [] -> "The setup harness inferred target languages from repository context."
-        languages -> "Target languages: " <> Enum.join(languages, ", ") <> "."
-      end
-
-    changed_files =
-      changes
-      |> Enum.take(@max_changed_files_in_body)
-      |> Enum.map_join("\n", fn change -> "- `#{change.path}` (#{change.status})" end)
-
-    remaining_count = length(changes) - @max_changed_files_in_body
-
-    changed_files =
-      if remaining_count > 0 do
-        changed_files <> "\n- #{remaining_count} more file(s)."
-      else
-        changed_files
+        [] -> "Target languages follow the repository's existing localization conventions."
+        languages -> "Target languages: `" <> Enum.join(languages, "`, `") <> "`."
       end
 
     """
     ## What changed
 
-    Glossia ran a setup harness in a sandbox and produced a localization baseline for this repository.
+    Adds the initial Glossia localization configuration and repository context.
 
-    #{changed_files}
+    #{language_list}
 
     ## Why
 
-    This prepares the repository for Glossia-managed translation. #{language_list}
+    Glossia needs repository-specific language settings, source paths, and translation context before it can prepare localized content.
 
     ## Approach
 
-    The harness inspected the project, extracted or organized user-facing content for localization, configured the project to load localized files, and updated Glossia context files for future translation runs.
+    The proposed setup follows the repository's existing localization conventions and preserves source-language behavior as the fallback.
 
     ## Impact
 
-    Reviewers should check that the selected localized file layout matches the project conventions before merging.
-
-    ## Validation
-
-    The setup harness completed successfully inside a sandbox.
+    After this pull request is merged, Glossia can use the configuration as the baseline for future translation runs. Translated content remains a separate reviewable change.
     """
   end
 
@@ -808,6 +864,10 @@ defmodule Glossia.Projects.Setup do
 
   defp humanize_error(:setup_context_missing),
     do: "The setup harness completed without creating or updating a Glossia context file."
+
+  defp humanize_error({:setup_target_catalog_empty, path}),
+    do:
+      "The setup assistant created #{path} without source messages. Target catalogs must include extracted source messages or be omitted until translation."
 
   defp humanize_error({:setup_changed_file_missing, path}),
     do: "The setup harness reported #{path}, but that file could not be read from the sandbox."

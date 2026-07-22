@@ -21,7 +21,7 @@ Project setup prepares a connected repository for Glossia. It begins after a use
 |---|---|---|
 | **Pending** | The project has been accepted and is waiting to start. | Follow progress or leave the page and return later. |
 | **Running** | Glossia is inspecting and updating the repository. | Follow the live activity. |
-| **Completed** | The localization baseline was prepared and published for review. | Open and review the pull request. |
+| **Completed** | The localization baseline was prepared and published for review. | Open, review, and merge the pull request. |
 
 Projects are provisional while setup is **Pending** or **Running**. If setup cannot finish or publish a usable change, Glossia cleans up the setup environment and deletes the provisional project. The repository then becomes available in the **New project** flow so setup can be attempted again.
 
@@ -40,4 +40,8 @@ Progress is stored while the provisional project exists. A terminal failure disc
 
 A successful connected setup creates a dedicated branch and a pull request against the repository's default branch. The pull request contains the generated localization baseline, including `GLOSSIA.md` context and the smallest practical changes needed to load localized content.
 
+Setup does not publish header-only target catalogs. When a localization framework requires target catalogs before translation, the catalogs contain the extracted source message entries with empty translation values. When target catalogs are not required yet, setup leaves them for the first translation run.
+
 Glossia does not merge the pull request. Repository maintainers review and merge it through their normal GitHub process.
+
+The project overview shows a setup notice while this pull request is open. The notice is removed after the pull request is merged. If the pull request is closed without being merged, the overview explains that it must be reopened before setup can be considered finished.

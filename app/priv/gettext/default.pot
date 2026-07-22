@@ -2833,6 +2833,7 @@ msgstr ""
 msgid "Connections"
 msgstr ""
 
+#: lib/glossia_web/live/dashboard_live.ex:6324
 #: lib/glossia_web/live/dashboard_live.ex:6800
 #: lib/glossia_web/live/dashboard_live.ex:6868
 #, elixir-autogen, elixir-format
@@ -3825,4 +3826,29 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex:10887
 #, elixir-autogen, elixir-format
 msgid "Each translation uses one configured model. GLOSSIA.md can select a handle for a content scope; work without a handle uses the account default."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6306
+#, elixir-autogen, elixir-format
+msgid "Setup pull request was closed"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6308
+#, elixir-autogen, elixir-format
+msgid "Pull request #%{number} was closed without being merged. Reopen it to finish setting up localization."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6312
+#, elixir-autogen, elixir-format
+msgid "View pull request"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6318
+#, elixir-autogen, elixir-format
+msgid "Finish setting up Glossia"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6320
+#, elixir-autogen, elixir-format
+msgid "Merge pull request #%{number} to activate this project's localization baseline."
 msgstr ""

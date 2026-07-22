@@ -6,7 +6,7 @@ defmodule Glossia.Projects.SetupHarness do
   @change_manifest_filename "glossia-setup-changes.json"
   @context_filename "glossia-harness-context.md"
   @output_filename "glossia-setup-harness-output.jsonl"
-  @prompt_version "setup-harness-v2"
+  @prompt_version "setup-harness-v3"
   @internal_path_prefixes [".git/", ".opencode/", ".glossia/", "node_modules/"]
   @internal_paths MapSet.new(["opencode.json", @change_manifest_filename, @output_filename])
 
@@ -80,6 +80,9 @@ defmodule Glossia.Projects.SetupHarness do
       "- Keep source language behavior unchanged.",
       "- Prefer the repository's existing localization library, framework conventions, and file layout.",
       "- If the project has no localization setup, add a minimal one that matches its stack.",
+      "- Use the framework's canonical extraction and catalog merge commands when available so generated catalogs contain the source entries.",
+      "- For catalog formats that store source messages alongside translations, such as Gettext Portable Object (.po) files, include the extracted source message entries in every target catalog created during setup and leave only the translation values empty.",
+      "- Never create header-only target catalogs. If the framework does not need target catalogs until translation, omit them from setup.",
       "",
       "Progress updates",
       "- Share brief, user-facing updates as you work.",
@@ -92,7 +95,7 @@ defmodule Glossia.Projects.SetupHarness do
       "- User-facing content has been extracted for localization where practical.",
       "- Extract representative user-facing strings from the application or documentation into source-language locale files, rather than only creating empty locale scaffolding.",
       "- Wire the application or content loader to use the source-language locale files and retain the original source behavior as the fallback.",
-      "- Do not translate target locales during setup. Translation is a separate follow-up workflow that creates target files and .glossia state.",
+      "- Do not translate target values during setup. Translation is a separate follow-up workflow that fills target files and creates .glossia state.",
       "- Project configuration or application code loads the selected localized files.",
       "- Run a lightweight verification command if the repository makes one obvious.",
       "- Do not modify files outside the cloned repository.",

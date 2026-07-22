@@ -59,6 +59,8 @@ When setup completes, open the project overview and review the pull request crea
 
 Review and merge the pull request through your normal GitHub workflow. Future translation runs use the merged `GLOSSIA.md` context.
 
+The project overview keeps the setup pull request visible until it is merged. If it is closed without being merged, reopen it from the link in the setup notice.
+
 ## Next steps
 
 - [Add a new language](/docs/how-to/add-a-new-language)

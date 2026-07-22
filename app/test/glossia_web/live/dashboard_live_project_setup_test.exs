@@ -132,4 +132,65 @@ defmodule GlossiaWeb.DashboardLiveProjectSetupTest do
 
     assert Enum.count(event_rows) == 1
   end
+
+  test "project overview shows an open setup pull request until it is merged", %{conn: conn} do
+    user = TestHelpers.create_user("project-merge-notice@test.com", "project-merge-notice")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "awaiting-merge",
+        name: "Awaiting merge",
+        github_repo_id: 9_001,
+        setup_status: "completed",
+        setup_pull_request_number: 92,
+        setup_pull_request_url: "https://github.com/glossia/glossia/pull/92",
+        setup_pull_request_state: "open"
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+    {:ok, view, _html} = live(conn, "/#{user.account.handle}/#{project.handle}")
+
+    assert has_element?(view, "#setup-pull-request-notice", "Finish setting up Glossia")
+
+    assert has_element?(
+             view,
+             "#setup-pull-request-notice a[href='https://github.com/glossia/glossia/pull/92']",
+             "Open pull request"
+           )
+
+    assert {:ok, merged} =
+             Projects.update_setup_pull_request_state(
+               9_001,
+               92,
+               "merged",
+               ~U[2026-07-22 16:30:00.000000Z]
+             )
+
+    Projects.broadcast_setup_pull_request(merged)
+
+    refute has_element?(view, "#setup-pull-request-notice")
+    assert has_element?(view, "#commits-table")
+  end
+
+  test "project overview explains when the setup pull request was closed", %{conn: conn} do
+    user = TestHelpers.create_user("project-closed-notice@test.com", "project-closed-notice")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "closed-setup",
+        name: "Closed setup",
+        github_repo_id: 9_002,
+        setup_status: "completed",
+        setup_pull_request_number: 12,
+        setup_pull_request_url: "https://github.com/example/product/pull/12",
+        setup_pull_request_state: "closed"
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+    {:ok, view, _html} = live(conn, "/#{user.account.handle}/#{project.handle}")
+
+    assert has_element?(view, "#setup-pull-request-notice", "Setup pull request was closed")
+    assert render(view) =~ "closed without being merged"
+    assert has_element?(view, "#setup-pull-request-notice", "View pull request")
+  end
 end
