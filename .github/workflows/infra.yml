@@ -32,7 +32,7 @@ jobs:
   helm:
     if: github.event.pull_request.draft != true
     name: Helm Charts
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -236,7 +236,7 @@ jobs:
   glossia-e2e:
     if: github.event.pull_request.draft != true
     name: Glossia End-to-End
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     timeout-minutes: 20
     needs: helm
     steps:
@@ -255,7 +255,7 @@ jobs:
   reconcile-management:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Reconcile management cluster
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     timeout-minutes: 10
     environment: production
     needs: [helm, glossia-e2e]
@@ -361,7 +361,7 @@ jobs:
   reconcile-observability:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Reconcile observability services
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     timeout-minutes: 45
     environment: production
     needs: [helm, glossia-e2e]

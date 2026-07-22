@@ -20,7 +20,7 @@ on:
 jobs:
   deploy:
     name: Deploy to Production
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     environment: production
     permissions:
       contents: read
