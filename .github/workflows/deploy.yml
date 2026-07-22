@@ -1,110 +1,37 @@
-name: Deploy Production
+name: Publish Production Image
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - App
     branches:
       - main
-    paths:
-      - "app/**"
-      - "cli/**"
-      - "deploy/helm/glossia/**"
-      - "deploy/values-production.yaml"
-      - "deploy/values-object-storage-hetzner.yaml"
-      - "infra/helm/platform/**"
-      - "infra/k8s/object-storage-migration-state"
-      - "mise/**"
-      - "mise.toml"
-      - ".github/workflows/deploy.yml"
-  workflow_dispatch:
+    types:
+      - completed
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  publish:
+    name: Publish Image
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: hetzner-docker
-    environment: production
     permissions:
       contents: read
-      id-token: write
       packages: write
     concurrency:
-      group: deploy-production
+      group: publish-production-image
       cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-
-      - name: Set up mise
-        uses: jdx/mise-action@v2
         with:
-          cache: true
+          ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Install tools
-        run: mise install
-
-      - name: Load Tailscale credentials from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
-        with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /tailscale-github-actions-authkey
-          domain: https://eu.infisical.com
-
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v4
-        with:
-          authkey: ${{ env.AUTHKEY }}
-          ping: glossia-production-kube.tail96f99b.ts.net
-
-      - name: Load deployment credentials from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
-        with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /kubernetes
-          domain: https://eu.infisical.com
-
-      - name: Write kubeconfig
-        run: |
-          set -euo pipefail
-          umask 077
-
-          kubeconfig="$RUNNER_TEMP/kubeconfig"
-          test -n "${K8S_KUBECONFIG_B64:-}"
-          printf '%s' "$K8S_KUBECONFIG_B64" | base64 --decode > "$kubeconfig"
-          unset K8S_KUBECONFIG_B64
-
-          test -s "$kubeconfig"
-          chmod 600 "$kubeconfig"
-          echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
-
-      - name: Verify cluster reachability
-        # Fail fast if the Infisical-stored kubeconfig points at an unreachable
-        # apiserver. Without this, the helm steps below would hang for their
-        # full --timeout on a phantom kubeconfig and we'd find out only after a
-        # partial rollout.
-        #
-        # `/version` is a static reachability probe. `/readyz` also reports
-        # control-plane readiness, which returns non-200 while any single
-        # readiness gate is unsatisfied — an etcd hiccup, an informer still
-        # syncing, a shutdown grace period during an apiserver rollout — and
-        # would abort a deploy the cluster is perfectly able to serve.
-        run: |
-          set -euo pipefail
-          api="$(mise exec -- kubectl config view --minify --raw \
-            -o jsonpath='{.clusters[0].cluster.server}')"
-          echo "Reaching apiserver at $api"
-          mise exec -- kubectl --request-timeout=10s get --raw /version >/dev/null
-
-      - name: Log in to GHCR
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
@@ -115,77 +42,6 @@ jobs:
             cli=./cli
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
             ghcr.io/${{ github.repository }}:main
-
-      - name: Deploy platform
-        run: |
-          set -euo pipefail
-
-          migration_state=infra/k8s/object-storage-migration-state
-          platform_values=(--values infra/helm/platform/values-hetzner.yaml)
-
-          if grep -qx 'production_object_storage=true' "$migration_state"; then
-            platform_values+=(--values infra/helm/platform/values-object-storage-hetzner.yaml)
-          fi
-
-          if grep -qx 'production_ceph_removed=true' "$migration_state"; then
-            grep -qx 'production_object_storage=true' "$migration_state"
-            platform_values+=(--values infra/helm/platform/values-remove-ceph.yaml)
-          fi
-
-          mise exec -- kubectl create namespace glossia --dry-run=client -o yaml | mise exec -- kubectl apply -f -
-          mise exec -- kubectl create namespace platform --dry-run=client -o yaml | mise exec -- kubectl apply -f -
-          mise exec -- kubectl label --overwrite namespace platform \
-            pod-security.kubernetes.io/enforce=privileged \
-            pod-security.kubernetes.io/audit=privileged \
-            pod-security.kubernetes.io/warn=privileged
-
-          mise exec -- helm dependency update infra/helm/platform
-          if ! mise exec -- helm status platform --namespace platform >/dev/null 2>&1; then
-            mise exec -- helm upgrade --install platform infra/helm/platform \
-              --namespace platform \
-              --create-namespace \
-              --values infra/helm/platform/values-hetzner.yaml \
-              --set rook-ceph-cluster.enabled=false \
-              --set rookObjectStorage.enabled=false \
-              --set releaseObjectStorage.enabled=false
-          fi
-
-          if ! grep -qx 'production_ceph_removed=true' "$migration_state"; then
-            mise exec -- kubectl wait --for=condition=Established \
-              crd/cephclusters.ceph.rook.io \
-              crd/cephobjectstores.ceph.rook.io \
-              crd/objectbucketclaims.objectbucket.io \
-              --timeout=5m
-          fi
-
-          mise exec -- helm upgrade --install platform infra/helm/platform \
-            --namespace platform \
-            --create-namespace \
-            "${platform_values[@]}"
-
-          if ! grep -qx 'production_ceph_removed=true' "$migration_state"; then
-            mise exec -- kubectl -n glossia wait --for=create secret/glossia-s3 --timeout=30m
-            mise exec -- kubectl -n platform wait --for=create secret/glossia-releases --timeout=30m
-          fi
-
-      - name: Deploy to Kubernetes
-        run: |
-          set -euo pipefail
-
-          migration_state=infra/k8s/object-storage-migration-state
-          glossia_values=(--values deploy/values-production.yaml)
-
-          if grep -qx 'production_object_storage=true' "$migration_state"; then
-            glossia_values+=(--values deploy/values-object-storage-hetzner.yaml)
-          fi
-
-          mise exec -- helm upgrade --install glossia deploy/helm/glossia \
-            --namespace glossia \
-            --create-namespace \
-            "${glossia_values[@]}" \
-            --set image.repository="ghcr.io/${GITHUB_REPOSITORY}" \
-            --set image.tag="${GITHUB_SHA}"
-
-          mise exec -- kubectl rollout status deployment/glossia -n glossia --timeout=10m
+            ghcr.io/${{ github.repository }}:main-${{ github.run_number }}-${{ github.event.workflow_run.head_sha }}
