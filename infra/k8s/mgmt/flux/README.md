@@ -44,12 +44,14 @@ the immutable revision tag, the mutable `main` tag, and a traceable run tag to
 the [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 The publishing runner does not connect to a workload cluster.
 
-Flux reads the private image repository with the `ghcr-glossia` Secret. An
-`ExternalSecret` builds that Secret from `GHCR_PULL_USERNAME` and
+Flux reads the private image repository with the `ghcr-glossia` Secret. The
+Infra workflow restores that Secret from `GHCR_PULL_USERNAME` and
 `GHCR_PULL_TOKEN` in the production Infisical project under `/kubernetes`.
-The image policy watches the `main` tag, and image automation commits its new
-digest into `infra/k8s/workload-apps/glossia-production`. The workload platform
-and application Kustomizations then reconcile remote `HelmRelease` resources
+This keeps the credential out of Git without requiring the management cluster
+to run the External Secrets Operator. The image policy watches the `main` tag,
+and image automation commits its new digest into
+`infra/k8s/workload-apps/glossia-production`. The workload platform and
+application Kustomizations then reconcile remote `HelmRelease` resources
 through `glossia-production-kubeconfig` in the `org-glossia` namespace.
 
 The GitHub App behind the `flux-system` source must have permission to read and

@@ -318,6 +318,33 @@ jobs:
       - name: Verify management cluster reachability
         run: mise exec -- kubectl --request-timeout=10s get --raw /version >/dev/null
 
+      - name: Load registry credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /kubernetes
+          domain: https://eu.infisical.com
+
+      - name: Restore Flux registry credentials
+        run: |
+          set -euo pipefail
+
+          test -n "${GHCR_PULL_USERNAME:-}"
+          test -n "${GHCR_PULL_TOKEN:-}"
+
+          mise exec -- kubectl -n flux-system create secret docker-registry ghcr-glossia \
+            --docker-server=ghcr.io \
+            --docker-username="$GHCR_PULL_USERNAME" \
+            --docker-password="$GHCR_PULL_TOKEN" \
+            --dry-run=client -o yaml \
+            | mise exec -- kubectl apply -f -
+
+          echo "GHCR_PULL_USERNAME=" >> "$GITHUB_ENV"
+          echo "GHCR_PULL_TOKEN=" >> "$GITHUB_ENV"
+
       - name: Load Flux source credentials from Infisical
         uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
         with:
