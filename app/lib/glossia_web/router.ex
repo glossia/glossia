@@ -24,6 +24,7 @@ defmodule GlossiaWeb.Router do
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.Auth
     plug GlossiaWeb.Plugs.OtelAttributes
   end
@@ -34,6 +35,7 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.Layouts, :root}
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
     plug :put_secure_browser_headers
+    plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.Auth
     plug GlossiaWeb.Plugs.OtelAttributes
   end
