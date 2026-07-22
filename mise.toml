@@ -20,6 +20,9 @@ git-cliff = "2.10.0"
 clickhouse = "26.3.9.8-lts"
 pitchfork = "2.6.0"
 
+[settings]
+ruby.compile = false
+
 [env]
 _.file = ".env"
 _.source = "{{config_root}}/mise/utilities/dev_instance_env.sh"
