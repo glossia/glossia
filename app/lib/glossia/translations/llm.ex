@@ -184,7 +184,7 @@ defmodule Glossia.Translations.LLM do
   defp request_options(model, key, base_url, system) do
     {request_model, request_base_url} = request_model(model, base_url)
 
-    [model: request_model, api_key: key, system_prompt: system]
+    [model: request_model, api_key: key, system_prompt: system, thinking_level: :off]
     |> maybe_base_url(request_base_url)
   end
 

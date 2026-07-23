@@ -83,7 +83,9 @@ defmodule Glossia.Translations.Frontmatter do
   Splits leading frontmatter from a document, preserving the fence markers.
 
   Returns `%{frontmatter: binary, body: binary, ok: boolean}`. Used when
-  translating with `frontmatter: preserve` so the fence is re-attached verbatim.
+  translating Markdown so the frontmatter can be preserved or translated as an
+  isolated segment. In addition to YAML/TOML fences, this recognizes the
+  Elixir-map frontmatter used by NimblePublisher (`%{...}` followed by `---`).
   """
   def split_markdown_frontmatter(content) do
     case lines(content) do
@@ -94,18 +96,54 @@ defmodule Glossia.Translations.Frontmatter do
         marker = String.trim(first)
 
         cond do
-          marker not in ["---", "+++"] ->
-            %{frontmatter: "", body: content, ok: false}
-
-          is_nil(find_closing(ls, marker)) ->
-            %{frontmatter: "", body: content, ok: false}
-
-          true ->
-            end_idx = find_closing(ls, marker)
-            fm = ls |> Enum.slice(0, end_idx + 1) |> Enum.join("\n")
-            body = ls |> Enum.drop(end_idx + 1) |> Enum.join("\n")
-            %{frontmatter: fm, body: body, ok: true}
+          marker in ["---", "+++"] -> split_fenced_frontmatter(ls, marker, content)
+          nimble_publisher_frontmatter?(ls) -> split_nimble_publisher_frontmatter(ls)
+          true -> %{frontmatter: "", body: content, ok: false}
         end
+    end
+  end
+
+  defp split_fenced_frontmatter(ls, marker, content) do
+    case find_closing(ls, marker) do
+      nil ->
+        %{frontmatter: "", body: content, ok: false}
+
+      end_idx ->
+        fm = ls |> Enum.slice(0, end_idx + 1) |> Enum.join("\n")
+        body = ls |> Enum.drop(end_idx + 1) |> Enum.join("\n")
+        %{frontmatter: fm, body: body, ok: true}
+    end
+  end
+
+  defp nimble_publisher_frontmatter?([first | _] = ls) do
+    String.starts_with?(String.trim(first), "%{") and
+      case nimble_publisher_delimiter(ls) do
+        nil ->
+          false
+
+        delimiter ->
+          ls
+          |> Enum.slice(0, delimiter)
+          |> Enum.join("\n")
+          |> String.trim()
+          |> String.ends_with?("}")
+      end
+  end
+
+  defp split_nimble_publisher_frontmatter(ls) do
+    delimiter = nimble_publisher_delimiter(ls)
+    fm = ls |> Enum.slice(0, delimiter + 1) |> Enum.join("\n")
+    body = ls |> Enum.drop(delimiter + 1) |> Enum.join("\n")
+    %{frontmatter: fm, body: body, ok: true}
+  end
+
+  defp nimble_publisher_delimiter(ls) do
+    ls
+    |> Enum.drop(1)
+    |> Enum.find_index(&(String.trim(&1) == "---"))
+    |> case do
+      nil -> nil
+      index -> index + 1
     end
   end
 

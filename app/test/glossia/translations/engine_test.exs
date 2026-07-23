@@ -99,6 +99,91 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "preserves NimblePublisher frontmatter and translates a long body in segments", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+
+      first = String.duplicate("First paragraph remains together. ", 90)
+      second = String.duplicate("Second paragraph remains together. ", 90)
+
+      File.write!(
+        source,
+        "%{\n  title: \"Hello\",\n  date: ~D[2026-02-03]\n}\n---\n\n# Guide\n\n#{first}\n\n## Next\n\n#{second}"
+      )
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        translated("translated segment #{payload["segment_index"]}")
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
+                 :ok
+               end)
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert length(calls) == 2
+      assert Enum.all?(calls, &(&1["segment_count"] == 2))
+      assert Enum.all?(calls, &(&1["segment_kind"] == "content"))
+      refute Enum.any?(calls, &String.contains?(&1["source_content"], ~s(title: "Hello")))
+
+      assert result.text ==
+               "%{\n  title: \"Hello\",\n  date: ~D[2026-02-03]\n}\n---\ntranslated segment 1\n\ntranslated segment 2"
+    end
+
+    @tag :tmp_dir
+    test "translates frontmatter as an isolated segment when requested", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "%{\n  title: \"Hello\"\n}\n---\n\nBody")
+
+      stub_stream(fn _account, payload, _on_event ->
+        case payload["segment_kind"] do
+          "frontmatter" ->
+            assert payload["segment_index"] == 1
+            translated("%{\n  title: \"Hola\"\n}\n---")
+
+          "content" ->
+            assert payload["segment_index"] == 2
+            translated("Cuerpo")
+        end
+      end)
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text == "%{\n  title: \"Hola\"\n}\n---\nCuerpo"
+    end
+
+    @tag :tmp_dir
+    test "segments long plain text without relying on a document format", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.txt")
+
+      File.write!(
+        source,
+        String.duplicate("First paragraph. ", 220) <>
+          "\n\n" <> String.duplicate("Second paragraph. ", 220)
+      )
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        translated("translated segment #{payload["segment_index"]}")
+      end)
+
+      item = work_item(%{source_abs: source, format: "text"})
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert length(calls) == 2
+      assert Enum.all?(calls, &(&1["segment_kind"] == "content"))
+      assert Enum.all?(calls, &(&1["segment_count"] == 2))
+      assert result.text == "translated segment 1\n\ntranslated segment 2"
+    end
+
+    @tag :tmp_dir
     test "retries with the previous validation error until it passes", %{tmp_dir: dir} do
       source = Path.join(dir, "data.txt")
       File.write!(source, "raw content")
