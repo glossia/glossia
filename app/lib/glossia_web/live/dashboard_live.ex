@@ -6770,7 +6770,14 @@ defmodule GlossiaWeb.DashboardLive do
           <%= for item <- @items do %>
             <li data-part="item" data-status={item.status}>
               <div data-part="item-header">
-                <span data-part="status">{translation_item_status_label(item.status)}</span>
+                <span data-part="status">
+                  <%= if item.status == :running do %>
+                    <span data-part="indicator" aria-hidden="true">
+                      <Noora.Icon.circle_dashed />
+                    </span>
+                  <% end %>
+                  {translation_item_status_label(item.status)}
+                </span>
                 <span data-part="path">{item.output_path}</span>
                 <span data-part="locale">{item.locale}</span>
                 <span data-part="turns">{gettext("%{n} turns", n: item.turns)}</span>

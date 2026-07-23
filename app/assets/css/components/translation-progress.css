@@ -1,6 +1,8 @@
 /* Translation session live progress panel.
  * Rendered by GlossiaWeb dashboard_live's translation_progress_panel/1. */
 #translation-progress {
+  --translation-progress-spinner-duration: 1s;
+
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -70,8 +72,22 @@
   }
 
   & [data-part="status"] {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
     font-weight: 600;
     color: var(--color-text);
+  }
+
+  & [data-part="indicator"] {
+    display: inline-flex;
+    color: var(--color-primary);
+    animation: translation-progress-spin var(--translation-progress-spinner-duration) linear infinite;
+
+    & svg {
+      width: var(--space-4);
+      height: var(--space-4);
+    }
   }
 
   & [data-part="path"] {
@@ -111,5 +127,17 @@
     word-break: break-word;
     max-height: 240px;
     overflow-y: auto;
+  }
+}
+
+@keyframes translation-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #translation-progress [data-part="indicator"] {
+    animation: none;
   }
 }
