@@ -25,8 +25,14 @@ defmodule Glossia.Translations.Engine do
   `{:error, reason}`. `validate` receives the assembled output and returns `:ok`
   or `{:error, message}` to trigger a self-correcting retry.
   """
-  def apply_item(work_item, account, on_event, validate \\ &default_validate/2)
-      when is_function(on_event, 1) and is_function(validate, 2) do
+  def apply_item(
+        work_item,
+        account,
+        on_event,
+        validate \\ &default_validate/2,
+        opts \\ []
+      )
+      when is_function(on_event, 1) and is_function(validate, 2) and is_list(opts) do
     case File.read(work_item.source_abs) do
       {:ok, source_text} ->
         {frontmatter, content} = prepare(work_item, source_text)
@@ -41,7 +47,8 @@ defmodule Glossia.Translations.Engine do
           validate: validate,
           attempt: 0,
           max_attempt: work_item.retries || 0,
-          last_error: nil
+          last_error: nil,
+          translation_opts: opts
         })
 
       {:error, reason} ->
@@ -58,7 +65,7 @@ defmodule Glossia.Translations.Engine do
     payload =
       payload(state.work_item, state.content, not is_nil(state.frontmatter), state.last_error)
 
-    case Translations.translate_stream(state.account, payload, state.on_event) do
+    case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
       {:ok, result} ->
         final =
           result.text
@@ -85,6 +92,14 @@ defmodule Glossia.Translations.Engine do
       {:error, reason} ->
         {:error, {:llm_failed, reason}}
     end
+  end
+
+  defp translate_stream(account, payload, on_event, []) do
+    Translations.translate_stream(account, payload, on_event)
+  end
+
+  defp translate_stream(account, payload, on_event, opts) do
+    Translations.translate_stream(account, payload, on_event, opts)
   end
 
   @doc false

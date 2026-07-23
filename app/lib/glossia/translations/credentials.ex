@@ -51,6 +51,30 @@ defmodule Glossia.Translations.Credentials do
     end
   end
 
+  @doc """
+  Resolves a credential on the node that owns the account database connection.
+
+  Isolated translation runners deliberately do not start the repository or
+  inherit database secrets. They use this function to ask the parent node for
+  the credential required by a planned work item.
+  """
+  @spec resolve_on(node(), Account.t(), String.t() | nil) ::
+          {:ok, credential()}
+          | {:error, {:model_not_found, String.t() | nil}}
+          | {:error, {:credential_relay_failed, term()}}
+  def resolve_on(target_node, %Account{} = account, model_handle)
+      when target_node == node() do
+    resolve(account, model_handle)
+  end
+
+  def resolve_on(target_node, %Account{} = account, model_handle)
+      when is_atom(target_node) do
+    case :rpc.call(target_node, __MODULE__, :resolve, [account, model_handle], 5_000) do
+      {:badrpc, reason} -> {:error, {:credential_relay_failed, reason}}
+      result -> result
+    end
+  end
+
   @doc false
   def development_session_api_key(source) when source in [:claude, :codex],
     do: Map.fetch!(@development_session_keys, source)

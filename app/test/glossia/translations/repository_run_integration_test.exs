@@ -50,9 +50,12 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     session = %TranslationSession{id: Ecto.UUID.generate()}
     :ok = TranslationSessions.subscribe_session_events(session)
 
-    Mimic.stub(Translations, :translate_stream, fn _account, payload, on_event ->
+    parent_node = :parent@translation
+
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, on_event, opts ->
       assert payload["source_content"] == "# Guide\n\nHello, world."
       assert payload["locale"] == "es"
+      assert opts[:credential_node] == parent_node
       on_event.(:turn_start)
       on_event.({:text, "# Guía"})
       on_event.(:done)
@@ -68,7 +71,8 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
     assert {:ok, changes} =
              RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
-               progress_node: Node.self()
+               progress_node: Node.self(),
+               credential_node: parent_node
              )
 
     # Output written to disk.

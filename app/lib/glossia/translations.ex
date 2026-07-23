@@ -78,7 +78,20 @@ defmodule Glossia.Translations do
           {:ok, result()} | {:error, error()}
   def translate_stream(%Account{} = account, payload, on_event)
       when is_function(on_event, 1) do
-    with {:ok, credential, system_prompt, user_prompt} <- prepare(account, payload) do
+    translate_stream(account, payload, on_event, [])
+  end
+
+  @doc """
+  Streams a translation while resolving credentials on a designated node.
+
+  The `:credential_node` option is used by isolated repository runners, which
+  cannot access the account database directly.
+  """
+  @spec translate_stream(Account.t(), map(), (term() -> any()), keyword()) ::
+          {:ok, result()} | {:error, error() | {:credential_relay_failed, term()}}
+  def translate_stream(%Account{} = account, payload, on_event, opts)
+      when is_function(on_event, 1) and is_list(opts) do
+    with {:ok, credential, system_prompt, user_prompt} <- prepare(account, payload, opts) do
       case LLM.stream(credential, system_prompt, user_prompt, on_event) do
         {:ok, text} -> {:ok, build_result(credential, text)}
         {:error, reason} -> {:error, {:llm_failed, reason}}
@@ -86,9 +99,9 @@ defmodule Glossia.Translations do
     end
   end
 
-  defp prepare(account, payload) do
+  defp prepare(account, payload, opts \\ []) do
     with {:ok, input} <- normalize(payload),
-         {:ok, credential} <- Credentials.resolve(account, input.model) do
+         {:ok, credential} <- resolve_credential(account, input.model, opts) do
       system_prompt = Prompt.build_system_prompt(input)
 
       user_prompt =
@@ -101,6 +114,13 @@ defmodule Glossia.Translations do
         )
 
       {:ok, credential, system_prompt, user_prompt}
+    end
+  end
+
+  defp resolve_credential(account, model_handle, opts) do
+    case Keyword.fetch(opts, :credential_node) do
+      {:ok, credential_node} -> Credentials.resolve_on(credential_node, account, model_handle)
+      :error -> Credentials.resolve(account, model_handle)
     end
   end
 
