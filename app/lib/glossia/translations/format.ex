@@ -10,6 +10,7 @@ defmodule Glossia.Translations.Format do
 
   @formats ~w(markdown json yaml po text)
   @structured ~w(json yaml po)
+  @supported_extensions ~w(md markdown json yaml yml po pot txt text)
 
   @doc "All supported format strings."
   def formats, do: @formats
@@ -23,6 +24,15 @@ defmodule Glossia.Translations.Format do
       ext when ext in ~w(po pot) -> "po"
       _ -> "text"
     end
+  end
+
+  @doc "Whether a path has a built-in format adapter."
+  def supported_path?(path) do
+    path
+    |> Path.extname()
+    |> String.trim_leading(".")
+    |> String.downcase()
+    |> then(&(&1 in @supported_extensions))
   end
 
   @doc "Whether a format has machine-parseable structure (json/yaml/po)."

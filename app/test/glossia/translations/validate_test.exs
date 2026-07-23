@@ -48,6 +48,83 @@ defmodule Glossia.Translations.ValidateTest do
       assert :ok = Validate.validate_preserve(source, source, ["code_blocks", "placeholders"])
       assert {:error, _} = Validate.validate_preserve("Sin bloque", source, ["code_blocks"])
     end
+
+    test "rejects added or duplicated protected tokens" do
+      assert {:error, message} =
+               Validate.validate_preserve(
+                 "Visit https://example.com twice: https://example.com",
+                 "Visit https://example.com",
+                 ["urls"]
+               )
+
+      assert message =~ "unexpected preserved tokens"
+
+      assert {:error, message} =
+               Validate.validate_preserve(
+                 "Hello {name}",
+                 "Hello {name} and {name}",
+                 ["placeholders"]
+               )
+
+      assert message =~ "preserved tokens missing"
+    end
+  end
+
+  describe "declared validation command" do
+    @tag :tmp_dir
+    test "reads the candidate from the target path and restores the previous file", %{
+      tmp_dir: root
+    } do
+      source = Path.join(root, "source.md")
+      target = Path.join(root, "ja/target.md")
+      doc = Path.join(root, "GLOSSIA.md")
+      File.write!(source, "source")
+      File.mkdir_p!(Path.dirname(target))
+      File.write!(target, "previous")
+      File.write!(doc, "configuration")
+
+      options = validation_options(source, target, doc)
+
+      assert :ok =
+               Validate.validate_output(root, "text", "candidate", "source", options)
+
+      assert File.read!(target) == "previous"
+    end
+
+    @tag :tmp_dir
+    test "removes a staged candidate when the target did not exist", %{tmp_dir: root} do
+      source = Path.join(root, "source.md")
+      target = Path.join(root, "ja/target.md")
+      doc = Path.join(root, "GLOSSIA.md")
+      File.write!(source, "source")
+      File.write!(doc, "configuration")
+
+      options = validation_options(source, target, doc)
+
+      assert :ok =
+               Validate.validate_output(root, "text", "candidate", "source", options)
+
+      refute File.exists?(target)
+    end
+
+    @tag :tmp_dir
+    test "restores the previous file when validation fails", %{tmp_dir: root} do
+      source = Path.join(root, "source.md")
+      target = Path.join(root, "ja/target.md")
+      doc = Path.join(root, "GLOSSIA.md")
+      File.write!(source, "source")
+      File.mkdir_p!(Path.dirname(target))
+      File.write!(target, "previous")
+      File.write!(doc, "configuration")
+
+      options = validation_options(source, target, doc)
+
+      assert {:error, message} =
+               Validate.validate_output(root, "text", "invalid candidate", "source", options)
+
+      assert message =~ "validation failed"
+      assert File.read!(target) == "previous"
+    end
   end
 
   describe "PO validation" do
@@ -93,5 +170,19 @@ defmodule Glossia.Translations.ValidateTest do
       assert Locks.stale?(read, "hash-2", "docs/es/g.md", Locks.output_hash("salida"))
       assert Locks.stale?(nil, "hash-1", "docs/es/g.md", "x")
     end
+  end
+
+  defp validation_options(source, target, doc) do
+    %{
+      validation: [
+        "sh",
+        "-c",
+        ~S|test "$(cat "$GLOSSIA_TARGET_PATH")" = "candidate"|
+      ],
+      validation_doc_abs: doc,
+      source_abs: source,
+      target_abs: target,
+      locale: "ja"
+    }
   end
 end

@@ -53,13 +53,19 @@ Provider credentials belong in account settings, never in `GLOSSIA.md`. The opti
 | `preserve` | list | no | Content kinds that must remain unchanged, such as placeholders or uniform resource locators. |
 | `frontmatter` | string | no | `preserve` by default, or `translate`. |
 | `prompt` | string | no | Additional guidance for this scope or rule. |
-| `validation` | list | no | A validation command followed by its arguments. |
+| `validation` | list | for file extensions without a built-in adapter | A validation command followed by its arguments. The command receives the candidate at its real target path and must return a nonzero status when the file is invalid. |
 | `check_cmd` | string | no | A check command available to the translation workflow. |
 | `check_cmds` | map | no | Named check commands available to the translation workflow. |
 | `retries` | integer | no | Number of retry attempts after a failed check. Defaults to `2`. |
 | `locale` | string | no | Locale attached to a locale-specific context file. |
 
 Unknown frontmatter fields are ignored.
+
+## File formats
+
+Glossia has built-in handling for Markdown, JavaScript Object Notation, YAML Ain't Markup Language, portable object, and plain text files. Other file extensions fail planning unless the applicable `GLOSSIA.md` declares a `validation` command. This avoids silently treating a proprietary structured format as unconstrained text.
+
+The validation command runs after the candidate has been written temporarily to its real target path. It can invoke the repository's native parser, compiler, or build command. Glossia restores the previous target after each validation attempt and only writes the accepted candidate afterward.
 
 ## Source mappings
 

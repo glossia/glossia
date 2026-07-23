@@ -135,4 +135,29 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     stub.()
     assert {:ok, []} = RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
   end
+
+  @tag :tmp_dir
+  test "fails the repository run when a custom format has no validation command", %{
+    tmp_dir: root
+  } do
+    File.write!(Path.join(root, "GLOSSIA.md"), """
+    ---
+    source_language: en
+    model: openai/gpt-5
+    sources:
+      "docs/*.custom": "docs/i18n/{locale}/{relpath}"
+    targets:
+      es: Spanish
+    ---
+    """)
+
+    File.mkdir_p!(Path.join(root, "docs"))
+    File.write!(Path.join([root, "docs", "guide.custom"]), "title(value)")
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+
+    assert {:error, {:planning_failed, message}} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
+
+    assert message =~ "no built-in format adapter for .custom files"
+  end
 end
