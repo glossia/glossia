@@ -2,19 +2,20 @@
  * Rendered by GlossiaWeb dashboard_live's translation_progress_panel/1. */
 #translation-progress {
   --translation-progress-spinner-duration: 1s;
+  --translation-progress-status-width: calc(var(--space-16) + var(--space-8));
 
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
 
   & [data-part="summary"] {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--space-3);
     align-items: center;
     font-family: var(--font-family-sans);
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-weight: 600;
     color: var(--color-text);
   }
@@ -34,17 +35,17 @@
   & [data-part="items"] {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
     list-style: none;
-    margin: 0;
-    padding: 0;
+    margin: var(--space-0);
+    padding: var(--space-0);
   }
 
   & [data-part="item"] {
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
+    border: var(--space-px) solid var(--color-border);
+    border-radius: var(--radius-lg);
     background: var(--color-surface);
-    padding: 12px 14px;
+    padding: var(--space-3) var(--space-4);
 
     &[data-status="running"] {
       border-color: var(--color-primary);
@@ -64,11 +65,15 @@
   }
 
   & [data-part="item-header"] {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: baseline;
-    font-size: 13px;
+    display: grid;
+    grid-template-columns:
+      var(--translation-progress-status-width)
+      minmax(var(--space-0), 1fr)
+      max-content
+      max-content;
+    gap: var(--space-3);
+    align-items: center;
+    font-size: var(--text-sm);
   }
 
   & [data-part="status"] {
@@ -80,52 +85,56 @@
   }
 
   & [data-part="indicator"] {
-    display: inline-flex;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: var(--space-4);
+    height: var(--space-4);
+    border: var(--space-0-5) solid currentColor;
+    border-right-color: transparent;
+    border-radius: var(--radius-full);
     color: var(--color-primary);
+    transform-origin: center;
     animation: translation-progress-spin var(--translation-progress-spinner-duration) linear infinite;
-
-    & svg {
-      width: var(--space-4);
-      height: var(--space-4);
-    }
   }
 
   & [data-part="path"] {
+    min-width: var(--space-0);
     font-family: var(--font-family-mono);
     color: var(--color-text);
+    overflow-wrap: anywhere;
   }
 
   & [data-part="locale"] {
     color: var(--color-text-muted);
     text-transform: uppercase;
-    font-size: 11px;
+    font-size: var(--text-xs);
     letter-spacing: 0.04em;
   }
 
   & [data-part="turns"] {
-    margin-left: auto;
     color: var(--color-text-muted);
-    font-size: 12px;
+    font-size: var(--text-xs);
+    text-align: end;
   }
 
   & [data-part="reason"] {
-    margin: 8px 0 0;
+    margin: var(--space-2) var(--space-0) var(--space-0);
     color: var(--color-error);
-    font-size: 13px;
+    font-size: var(--text-sm);
   }
 
   & [data-part="stream"] {
-    margin: 8px 0 0;
-    padding: 10px;
-    border-radius: 8px;
+    margin: var(--space-2) var(--space-0) var(--space-0);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
     background: var(--color-bg-subtle);
     color: var(--color-text);
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-xs);
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
-    max-height: 240px;
+    max-height: calc(var(--space-16) * 4);
     overflow-y: auto;
   }
 }
@@ -139,5 +148,30 @@
 @media (prefers-reduced-motion: reduce) {
   #translation-progress [data-part="indicator"] {
     animation: none;
+  }
+}
+
+@media (width < 768px) {
+  #translation-progress {
+    --translation-progress-status-width: auto;
+
+    & [data-part="item-header"] {
+      grid-template-columns: minmax(var(--space-0), 1fr) max-content;
+    }
+
+    & [data-part="path"] {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    & [data-part="locale"] {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    & [data-part="turns"] {
+      grid-column: 2;
+      grid-row: 3;
+    }
   }
 }

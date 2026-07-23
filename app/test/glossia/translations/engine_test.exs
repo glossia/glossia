@@ -200,6 +200,34 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "masks preserved tokens before translation and reconstructs the exact values", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+
+      File.write!(
+        source,
+        "Visit [Glossia](https://glossia.ai/{locale}) and run `mix test`."
+      )
+
+      stub_stream(fn _account, payload, _on_event ->
+        refute payload["source_content"] =~ "https://glossia.ai/{locale}"
+        refute payload["source_content"] =~ "`mix test`"
+        translated(String.replace(payload["source_content"], "Visit", "Visita"))
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text ==
+               "Visita [Glossia](https://glossia.ai/{locale}) and run `mix test`."
+    end
+
+    @tag :tmp_dir
     test "strips a structured code fence from the model output", %{tmp_dir: dir} do
       source = Path.join(dir, "data.json")
       File.write!(source, "{}")

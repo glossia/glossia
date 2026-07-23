@@ -16,6 +16,12 @@ defmodule Glossia.Translations.OutputPathTest do
       assert Format.detect("file.YML") == "yaml"
     end
 
+    test "distinguishes built-in paths from custom extensions" do
+      assert Format.supported_path?("notes.txt")
+      assert Format.supported_path?("guide.MARKDOWN")
+      refute Format.supported_path?("guide.custom")
+    end
+
     test "structured?/1 classifies json/yaml/po as structured" do
       for f <- ~w(json yaml po), do: assert(Format.structured?(f))
       for f <- ~w(markdown text), do: refute(Format.structured?(f))

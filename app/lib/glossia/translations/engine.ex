@@ -18,6 +18,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations
   alias Glossia.Translations.Format
   alias Glossia.Translations.Frontmatter
+  alias Glossia.Translations.PreservedTokens
 
   @doc """
   Translates `work_item` for `account`, forwarding turn events to `on_event`.
@@ -46,6 +47,7 @@ defmodule Glossia.Translations.Engine do
           source_text: source_text,
           on_event: on_event,
           validate: validate,
+          preserve_kinds: PreservedTokens.resolve(work_item.preserve || []),
           attempt: 0,
           max_attempt: work_item.retries || 0,
           last_error: nil,
@@ -63,12 +65,16 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp run_attempt(state) do
+    state.on_event.({:attempt_start, state.attempt + 1})
+
     case translate_segments(state) do
       {:ok, translated} ->
         final = assemble_segments(state, translated.segments)
 
         case state.validate.(final, state.source_text) do
           :ok ->
+            state.on_event.({:translation_output, final})
+
             {:ok,
              %{
                text: final,
@@ -80,8 +86,13 @@ defmodule Glossia.Translations.Engine do
              }}
 
           {:error, message} ->
+            state.on_event.({:validation_error, to_string(message)})
             run_attempt(%{state | attempt: state.attempt + 1, last_error: to_string(message)})
         end
+
+      {:validation_error, message} ->
+        state.on_event.({:validation_error, message})
+        run_attempt(%{state | attempt: state.attempt + 1, last_error: message})
 
       {:error, reason} ->
         {:error, {:llm_failed, reason}}
@@ -95,10 +106,13 @@ defmodule Glossia.Translations.Engine do
     |> Enum.with_index(1)
     |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
       {segment, segment_index}, {:ok, acc} ->
+        state.on_event.({:segment_start, segment_index, segment_count})
+        protection = PreservedTokens.protect(segment.content, state.preserve_kinds)
+
         payload =
           payload(
             state.work_item,
-            segment.content,
+            protection.text,
             not is_nil(state.preserved_frontmatter),
             state.last_error,
             segment.kind,
@@ -108,18 +122,24 @@ defmodule Glossia.Translations.Engine do
 
         case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
           {:ok, result} ->
-            translated_segment = %{
-              kind: segment.kind,
-              text: strip_structured_code_fence(state.work_item.format, result.text)
-            }
+            case PreservedTokens.restore(result.text, protection) do
+              {:ok, restored} ->
+                text = strip_structured_code_fence(state.work_item.format, restored)
+                state.on_event.({:segment_output, text})
 
-            {:cont,
-             {:ok,
-              %{
-                segments: acc.segments ++ [translated_segment],
-                model: result.model,
-                provider: result.provider
-              }}}
+                translated_segment = %{kind: segment.kind, text: text}
+
+                {:cont,
+                 {:ok,
+                  %{
+                    segments: acc.segments ++ [translated_segment],
+                    model: result.model,
+                    provider: result.provider
+                  }}}
+
+              {:error, message} ->
+                {:halt, {:validation_error, message}}
+            end
 
           {:error, reason} ->
             {:halt, {:error, reason}}
