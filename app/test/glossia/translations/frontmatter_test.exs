@@ -60,6 +60,30 @@ defmodule Glossia.Translations.FrontmatterTest do
       refute split.ok
       assert split.body == "no frontmatter here"
     end
+
+    test "splits NimblePublisher Elixir-map frontmatter" do
+      split =
+        Frontmatter.split_markdown_frontmatter("""
+        %{
+          title: "Hello",
+          date: ~D[2026-02-03]
+        }
+        ---
+
+        Body
+        """)
+
+      assert split.ok
+      assert split.frontmatter =~ ~s(title: "Hello")
+      assert String.ends_with?(split.frontmatter, "---")
+      assert split.body == "\nBody"
+    end
+
+    test "does not treat a prose horizontal rule as frontmatter" do
+      split = Frontmatter.split_markdown_frontmatter("Introduction\n\n---\n\nBody")
+      refute split.ok
+      assert split.body == "Introduction\n\n---\n\nBody"
+    end
   end
 
   describe "translation_rules/1" do

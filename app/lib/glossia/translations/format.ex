@@ -27,4 +27,15 @@ defmodule Glossia.Translations.Format do
 
   @doc "Whether a format has machine-parseable structure (json/yaml/po)."
   def structured?(format), do: format in @structured
+
+  @doc """
+  Returns the content segmentation policy for a format.
+
+  Prose formats can share the format-neutral content segmenter while supplying
+  only the boundaries that must remain intact. Structured formats remain atomic
+  so their document-level syntax is preserved.
+  """
+  def segmentation("markdown"), do: {:segmented, protected_delimiters: ["```", "~~~"]}
+  def segmentation("text"), do: {:segmented, []}
+  def segmentation(_format), do: :atomic
 end

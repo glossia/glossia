@@ -53,6 +53,7 @@ defmodule Glossia.Translations do
     * `"custom_prompt"` - optional per-document instructions
     * `"frontmatter_preserved"` - boolean, whether the client re-attaches frontmatter
     * `"last_error"` - optional prior validation error, for self-correcting retries
+    * `"segment_kind"`, `"segment_index"`, `"segment_count"` - optional segment metadata
   """
   @spec translate(Account.t(), map()) :: {:ok, result()} | {:error, error()}
   def translate(%Account{} = account, payload) do
@@ -110,7 +111,12 @@ defmodule Glossia.Translations do
           input.locale,
           input.language,
           input.source_content,
-          input.last_error
+          input.last_error,
+          %{
+            kind: input.segment_kind,
+            index: input.segment_index,
+            count: input.segment_count
+          }
         )
 
       {:ok, credential, system_prompt, user_prompt}
@@ -159,9 +165,15 @@ defmodule Glossia.Translations do
       frontmatter_preserved: payload["frontmatter_preserved"] == true,
       custom_prompt: payload["custom_prompt"],
       last_error: payload["last_error"],
+      segment_kind: to_string(payload["segment_kind"] || "content"),
+      segment_index: positive_integer(payload["segment_index"], 1),
+      segment_count: positive_integer(payload["segment_count"], 1),
       model: to_string(payload["model"])
     }
   end
+
+  defp positive_integer(value, _default) when is_integer(value) and value > 0, do: value
+  defp positive_integer(_value, default), do: default
 
   defp blank?(nil), do: true
   defp blank?(value) when is_binary(value), do: String.trim(value) == ""

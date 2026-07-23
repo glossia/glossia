@@ -119,13 +119,45 @@ defmodule Glossia.Translations.PromptTest do
       prompt =
         Prompt.build_user_prompt("English", "es", "Spanish", "Hello.", "invalid YAML at line 2")
 
-      assert prompt =~ "\n\nPrevious output failed validation: invalid YAML at line 2"
-      assert prompt =~ "Return a corrected full translation."
+      assert prompt =~
+               "\n\nThe reassembled document previously failed validation: invalid YAML at line 2"
+
+      assert prompt =~ "Return a corrected translation of only this supplied segment."
     end
 
     test "ignores a blank previous error" do
       refute Prompt.build_user_prompt("English", "es", "Spanish", "Hello.", "  ") =~
-               "Previous output failed validation"
+               "reassembled document previously failed validation"
+    end
+
+    test "identifies bounded document segments" do
+      prompt =
+        Prompt.build_user_prompt(
+          "English",
+          "es",
+          "Spanish",
+          "Hello.",
+          nil,
+          %{kind: "content", index: 2, count: 3}
+        )
+
+      assert prompt =~ "Translate segment 2 of 3"
+      assert prompt =~ "Return only this segment."
+    end
+
+    test "limits frontmatter translation to human-readable values" do
+      prompt =
+        Prompt.build_user_prompt(
+          "English",
+          "es",
+          "Spanish",
+          ~s(%{title: "Hello"}),
+          nil,
+          %{kind: "frontmatter", index: 1, count: 2}
+        )
+
+      assert prompt =~ "Translate only the human-readable string values"
+      assert prompt =~ "Preserve its syntax, keys, identifiers, dates, and delimiters exactly."
     end
   end
 end

@@ -21,6 +21,7 @@ defmodule Glossia.Translations.LLMTest do
         assert opts[:system_prompt] == @system
         assert opts[:api_key] == "sk-test"
         assert opts[:base_url] == "https://proxy.test/v1"
+        assert opts[:thinking_level] == :off
         {:ok, "Hola"}
       end)
 
