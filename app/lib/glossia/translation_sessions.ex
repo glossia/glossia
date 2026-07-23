@@ -5,6 +5,8 @@ defmodule Glossia.TranslationSessions do
 
   import Ecto.Query
 
+  require Logger
+
   alias Glossia.Repo
   alias Glossia.Accounts.{Account, Project}
   alias Glossia.TranslationSessions.TranslationSession
@@ -102,6 +104,28 @@ defmodule Glossia.TranslationSessions do
       "translation_session:#{id}",
       {:translation_session_event, event}
     )
+  end
+
+  def broadcast_session_event(%TranslationSession{} = session, event, target_node)
+      when is_atom(target_node) do
+    case :rpc.call(
+           target_node,
+           __MODULE__,
+           :broadcast_session_event,
+           [session, event],
+           5_000
+         ) do
+      :ok ->
+        :ok
+
+      {:badrpc, reason} ->
+        Logger.warning("Could not relay translation progress to the parent node",
+          translation_session_id: session.id,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
   end
 
   def broadcast_session_status(%TranslationSession{id: id}, status) do

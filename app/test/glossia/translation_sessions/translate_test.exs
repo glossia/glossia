@@ -168,4 +168,28 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "failed"
   end
+
+  test "fails the session when the isolated repository run returns an exit" do
+    {user, project} = project_with_installation("translate-exit@test.com", "translate-exit")
+    session = session_for(user, project)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales ->
+      {:error, {:runner_exit, %ArgumentError{message: "runner event broadcaster is unavailable"}}}
+    end)
+
+    assert {:error, {:runner_exit, %ArgumentError{}}} = Translate.run(session.id)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "failed"
+
+    assert updated.error ==
+             "Translation stopped unexpectedly in the isolated runner. Please retry."
+
+    assert updated.completed_at
+  end
 end

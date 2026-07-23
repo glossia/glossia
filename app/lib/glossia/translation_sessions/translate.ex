@@ -20,16 +20,6 @@ defmodule Glossia.TranslationSessions.Translate do
     account = project.account
 
     do_run(session, project, account)
-  rescue
-    exception ->
-      error_msg = Exception.message(exception)
-      Logger.error("Translation session crashed for #{session_id}: #{error_msg}")
-
-      if session = TranslationSessions.get_session(to_string(session_id)) do
-        TranslationSessions.update_session_status(session, "failed", error: error_msg)
-      end
-
-      {:error, error_msg}
   end
 
   defp do_run(%TranslationSession{} = session, project, account) do
@@ -461,6 +451,12 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp humanize_error(:translation_harness_timeout),
     do: "The translation harness timed out before completing."
+
+  defp humanize_error(:runner_timeout),
+    do: "Translation stopped because the isolated runner timed out. Please retry."
+
+  defp humanize_error({:runner_exit, _reason}),
+    do: "Translation stopped unexpectedly in the isolated runner. Please retry."
 
   defp humanize_error({:github_token_failed, _}),
     do: "Could not authenticate with GitHub. Check the app installation."
