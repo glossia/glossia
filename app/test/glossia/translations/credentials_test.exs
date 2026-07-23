@@ -31,6 +31,27 @@ defmodule Glossia.Translations.CredentialsTest do
     assert cred.auth == {:api_key, "sk-account-key", nil}
   end
 
+  test "resolves credentials on the designated database node", %{
+    user: user,
+    account: account
+  } do
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "isolated-translator",
+        "model" => "anthropic/claude-sonnet-4-20250514",
+        "api_key" => "sk-account-key"
+      })
+
+    assert {:ok, cred} = Credentials.resolve_on(Node.self(), account, "isolated-translator")
+    assert cred.handle == "isolated-translator"
+    assert cred.auth == {:api_key, "sk-account-key", nil}
+  end
+
+  test "returns a typed error when the database node is unavailable", %{account: account} do
+    assert {:error, {:credential_relay_failed, _reason}} =
+             Credentials.resolve_on(:"missing@127.0.0.1", account, "translator")
+  end
+
   test "does not replace an unknown explicit handle with the account default", %{
     user: user,
     account: account

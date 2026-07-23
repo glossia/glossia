@@ -45,7 +45,8 @@ defmodule Glossia.Translations.RepositoryRun do
                 {:ok, repo_path} ->
                   try do
                     translate_repository(session, account, repo_path, locales,
-                      progress_node: progress_node
+                      progress_node: progress_node,
+                      credential_node: progress_node
                     )
                   after
                     File.rm_rf(repo_path)
@@ -79,6 +80,7 @@ defmodule Glossia.Translations.RepositoryRun do
   @doc "Plans, translates, and collects changes for a checked-out repo at `repo_path`."
   def translate_repository(session, account, repo_path, locales, opts \\ []) do
     progress_node = Keyword.get(opts, :progress_node, Node.self())
+    credential_node = Keyword.get(opts, :credential_node)
     items = build_items(repo_path, locales)
     total = length(items)
     broadcast(session, %{type: "plan", total: total}, progress_node)
@@ -86,7 +88,16 @@ defmodule Glossia.Translations.RepositoryRun do
     items
     |> Enum.with_index()
     |> Enum.each(fn {item, index} ->
-      apply_one(session, account, repo_path, item, index, total, progress_node)
+      apply_one(
+        session,
+        account,
+        repo_path,
+        item,
+        index,
+        total,
+        progress_node,
+        credential_node
+      )
     end)
 
     collect_changes(repo_path)
@@ -105,7 +116,16 @@ defmodule Glossia.Translations.RepositoryRun do
   defp filter_locales(items, []), do: items
   defp filter_locales(items, locales), do: Enum.filter(items, &(&1.locale in locales))
 
-  defp apply_one(session, account, repo_path, item, index, total, progress_node) do
+  defp apply_one(
+         session,
+         account,
+         repo_path,
+         item,
+         index,
+         total,
+         progress_node,
+         credential_node
+       ) do
     source_content = File.read!(item.source_abs)
     provider = ModelIdentifier.provider(item.model)
 
@@ -137,7 +157,8 @@ defmodule Glossia.Translations.RepositoryRun do
         total,
         provider,
         hash_state,
-        progress_node
+        progress_node,
+        credential_node
       )
     else
       broadcast(
@@ -157,7 +178,8 @@ defmodule Glossia.Translations.RepositoryRun do
          total,
          provider,
          hash_state,
-         progress_node
+         progress_node,
+         credential_node
        ) do
     broadcast(
       session,
@@ -194,7 +216,10 @@ defmodule Glossia.Translations.RepositoryRun do
       )
     end
 
-    case Engine.apply_item(item, account, on_event, validate) do
+    engine_opts =
+      if is_nil(credential_node), do: [], else: [credential_node: credential_node]
+
+    case Engine.apply_item(item, account, on_event, validate, engine_opts) do
       {:ok, result} ->
         write_output(item, result.text)
         write_lock(repo_path, item, provider, hash_state, result.text)
