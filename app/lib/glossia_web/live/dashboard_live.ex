@@ -6725,16 +6725,18 @@ defmodule GlossiaWeb.DashboardLive do
 
       <.translation_progress_panel progress={@translation_progress} />
 
-      <%= if @session_events == [] do %>
-        <div class="dash-empty-state">
-          <p>{gettext("No events recorded yet.")}</p>
-        </div>
-      <% else %>
+      <%= if @session_events != [] do %>
         <div class="session-event-feed">
           <%= for event <- @session_events do %>
             <.session_event_item event={event} project={@project} />
           <% end %>
         </div>
+      <% else %>
+        <%= if translation_progress_empty?(@translation_progress) do %>
+          <div class="dash-empty-state">
+            <p>{gettext("No events recorded yet.")}</p>
+          </div>
+        <% end %>
       <% end %>
     </div>
     """
@@ -6797,6 +6799,10 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
+
+  defp translation_progress_empty?(progress) do
+    Glossia.TranslationSessions.Progress.items(progress) == []
+  end
 
   defp session_event_item(%{event: event} = assigns) do
     event_type = event[:event_type] || Map.get(event, :event_type, "")
