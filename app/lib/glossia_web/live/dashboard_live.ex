@@ -6772,9 +6772,7 @@ defmodule GlossiaWeb.DashboardLive do
               <div data-part="item-header">
                 <span data-part="status">
                   <%= if item.status == :running do %>
-                    <span data-part="indicator" aria-hidden="true">
-                      <Noora.Icon.circle_dashed />
-                    </span>
+                    <span data-part="indicator" aria-hidden="true"></span>
                   <% end %>
                   {translation_item_status_label(item.status)}
                 </span>
