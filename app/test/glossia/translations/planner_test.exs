@@ -86,4 +86,38 @@ defmodule Glossia.Translations.PlannerTest do
     paths = Enum.map(items, & &1.source_path)
     assert paths == ["docs/guide.md"]
   end
+
+  @tag :tmp_dir
+  test "prefers a nested source declaration when roots plan the same output", %{tmp_dir: root} do
+    File.write!(Path.join(root, "GLOSSIA.md"), """
+    ---
+    source_language: en
+    model: openai/gpt-5
+    sources:
+      "app/docs/*.md": "app/i18n/{locale}/{relpath}"
+    targets:
+      es: Spanish
+    prompt: Root prompt
+    ---
+    Root context
+    """)
+
+    File.mkdir_p!(Path.join([root, "app", "docs"]))
+
+    File.write!(Path.join([root, "app", "GLOSSIA.md"]), """
+    ---
+    sources:
+      "docs/*.md": "i18n/{locale}/{relpath}"
+    prompt: Nested prompt
+    ---
+    App context
+    """)
+
+    File.write!(Path.join([root, "app", "docs", "guide.md"]), "# Guide\n")
+
+    assert {:ok, [item]} = Planner.build_plan(root, "es")
+    assert item.source_path == "app/docs/guide.md"
+    assert item.output_path == "app/i18n/es/guide.md"
+    assert item.prompt == "Nested prompt"
+  end
 end
