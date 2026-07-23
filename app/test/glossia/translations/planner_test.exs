@@ -120,4 +120,44 @@ defmodule Glossia.Translations.PlannerTest do
     assert item.output_path == "app/i18n/es/guide.md"
     assert item.prompt == "Nested prompt"
   end
+
+  @tag :tmp_dir
+  test "requires deterministic validation for a custom file extension", %{tmp_dir: root} do
+    File.write!(Path.join(root, "GLOSSIA.md"), """
+    ---
+    source_language: en
+    model: openai/gpt-5
+    sources:
+      "docs/*.custom": "docs/i18n/{locale}/{relpath}"
+    targets:
+      es: Spanish
+    ---
+    """)
+
+    File.mkdir_p!(Path.join(root, "docs"))
+    File.write!(Path.join([root, "docs", "guide.custom"]), "title(value)")
+
+    assert {:error, message} = Planner.build_plan(root, "es")
+    assert message =~ "no built-in format adapter for .custom files"
+    assert message =~ "declare a validation command"
+
+    File.write!(Path.join(root, "GLOSSIA.md"), """
+    ---
+    source_language: en
+    model: openai/gpt-5
+    sources:
+      "docs/*.custom": "docs/i18n/{locale}/{relpath}"
+    targets:
+      es: Spanish
+    validation:
+      - sh
+      - -c
+      - test -f "$GLOSSIA_TARGET_PATH"
+    ---
+    """)
+
+    assert {:ok, [item]} = Planner.build_plan(root, "es")
+    assert item.format == "text"
+    assert item.validation == ["sh", "-c", ~S|test -f "$GLOSSIA_TARGET_PATH"|]
+  end
 end

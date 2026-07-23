@@ -132,6 +132,8 @@ defmodule Glossia.Translations.Planner do
       )
 
     output_abs = Path.join(ctx.translation_root, output_rel)
+    format = Format.detect(output_rel)
+    ensure_safe_format(output_rel, declared_validation)
 
     %{
       source_abs: ctx.source_abs,
@@ -141,7 +143,7 @@ defmodule Glossia.Translations.Planner do
       locale: ctx.locale,
       language: ctx.language,
       source_language: Frontmatter.source_language(ctx.resolved.merged_frontmatter),
-      format: Format.detect(output_rel),
+      format: format,
       frontmatter_mode: ctx.rule.frontmatter,
       preserve: ctx.rule.preserve,
       prompt: ctx.rule.prompt,
@@ -155,6 +157,19 @@ defmodule Glossia.Translations.Planner do
       locale_override_body: override.merged_body
     }
   end
+
+  defp ensure_safe_format(path, nil) do
+    unless Format.supported_path?(path) do
+      extension = Path.extname(path)
+
+      throw(
+        {:plan_error,
+         "no built-in format adapter for #{extension} files; declare a validation command before translating #{path}"}
+      )
+    end
+  end
+
+  defp ensure_safe_format(_path, _declared_validation), do: :ok
 
   defp effective_targets(merged_frontmatter, rule_targets) do
     case Frontmatter.targets(merged_frontmatter) do

@@ -81,26 +81,28 @@ defmodule Glossia.Translations.RepositoryRun do
   def translate_repository(session, account, repo_path, locales, opts \\ []) do
     progress_node = Keyword.get(opts, :progress_node, Node.self())
     credential_node = Keyword.get(opts, :credential_node)
-    items = build_items(repo_path, locales)
-    total = length(items)
-    broadcast(session, %{type: "plan", total: total}, progress_node)
 
-    items
-    |> Enum.with_index()
-    |> Enum.each(fn {item, index} ->
-      apply_one(
-        session,
-        account,
-        repo_path,
-        item,
-        index,
-        total,
-        progress_node,
-        credential_node
-      )
-    end)
+    with {:ok, items} <- build_items(repo_path, locales) do
+      total = length(items)
+      broadcast(session, %{type: "plan", total: total}, progress_node)
 
-    collect_changes(repo_path)
+      items
+      |> Enum.with_index()
+      |> Enum.each(fn {item, index} ->
+        apply_one(
+          session,
+          account,
+          repo_path,
+          item,
+          index,
+          total,
+          progress_node,
+          credential_node
+        )
+      end)
+
+      collect_changes(repo_path)
+    end
   end
 
   # Plan the whole repository once (walking the filesystem and parsing the
@@ -108,8 +110,8 @@ defmodule Glossia.Translations.RepositoryRun do
   # memory, rather than re-planning per locale on the hot runner path.
   defp build_items(repo_path, locales) do
     case Planner.build_plan(repo_path) do
-      {:ok, items} -> filter_locales(items, locales)
-      {:error, _reason} -> []
+      {:ok, items} -> {:ok, filter_locales(items, locales)}
+      {:error, reason} -> {:error, {:planning_failed, reason}}
     end
   end
 
@@ -388,6 +390,17 @@ defmodule Glossia.Translations.RepositoryRun do
   defp normalize_event(:turn_start), do: %{type: "turn_start"}
   defp normalize_event(:turn_end), do: %{type: "turn_end"}
   defp normalize_event(:done), do: %{type: "done"}
+  defp normalize_event({:attempt_start, attempt}), do: %{type: "attempt_start", attempt: attempt}
+
+  defp normalize_event({:segment_start, index, count}),
+    do: %{type: "segment_start", index: index, count: count}
+
+  defp normalize_event({:segment_output, text}), do: %{type: "segment_output", text: text}
+  defp normalize_event({:translation_output, text}), do: %{type: "translation_output", text: text}
+
+  defp normalize_event({:validation_error, reason}),
+    do: %{type: "validation_error", reason: reason}
+
   defp normalize_event({:text, chunk}), do: %{type: "text", text: chunk}
   defp normalize_event({:thinking, chunk}), do: %{type: "thinking", text: chunk}
 

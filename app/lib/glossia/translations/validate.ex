@@ -11,15 +11,11 @@ defmodule Glossia.Translations.Validate do
   """
 
   alias Glossia.Translations.Frontmatter
+  alias Glossia.Translations.PreservedTokens
   alias Glossia.Translations.Validate.Po
 
   # Cap untrusted repository check/validation commands (matches the CLI).
   @command_timeout_ms 600_000
-
-  @default_preserve ~w(code_blocks inline_code urls placeholders)
-  @inline_code_regex ~r/`[^`\n]+`/
-  @url_regex ~r/https?:\/\/[^\s\)"'<>]+/
-  @placeholder_regex ~r/\{[^\s{}]+\}/
 
   @doc """
   Runs syntax, preserve, and external checks for `output` against `source`.
@@ -76,73 +72,39 @@ defmodule Glossia.Translations.Validate do
   # ── preserve ────────────────────────────────────────────────────────────
 
   @doc "Resolves the preserve kinds: default set, `\"none\"` to disable, or the given list."
-  def resolve_preserve([]), do: @default_preserve
-
-  def resolve_preserve(kinds) do
-    if Enum.any?(kinds, &(String.downcase(String.trim(&1)) == "none")) do
-      []
-    else
-      kinds |> Enum.map(&String.downcase(String.trim(&1))) |> Enum.reject(&(&1 == ""))
-    end
-  end
+  defdelegate resolve_preserve(kinds), to: PreservedTokens, as: :resolve
 
   defp validate_preserve_step(_output, _source, []), do: :ok
   defp validate_preserve_step(output, source, kinds), do: validate_preserve(output, source, kinds)
 
-  @doc "Fails if placeholders/URLs/code present in `source` are missing from `output`."
+  @doc "Fails unless placeholders, links, and code occur equally in source and output."
   def validate_preserve(output, source, kinds) do
-    missing =
-      source
-      |> extract_preservables(kinds)
-      |> Enum.reject(&String.contains?(output, &1))
-      |> Enum.take(5)
+    source_values = PreservedTokens.values(source, kinds)
+    output_values = PreservedTokens.values(output, kinds)
+    missing = frequency_difference(source_values, output_values)
+    unexpected = frequency_difference(output_values, source_values)
 
-    if missing == [] do
-      :ok
-    else
-      {:error, "preserved tokens missing from output: #{Jason.encode!(missing)}"}
+    cond do
+      missing != [] ->
+        {:error, "preserved tokens missing from output: #{Jason.encode!(missing)}"}
+
+      unexpected != [] ->
+        {:error, "unexpected preserved tokens in output: #{Jason.encode!(unexpected)}"}
+
+      true ->
+        :ok
     end
   end
 
-  defp extract_preservables(source, kinds) do
-    {working, blocks} =
-      if "code_blocks" in kinds, do: extract_code_blocks(source), else: {source, []}
+  defp frequency_difference(expected, actual) do
+    actual_counts = Enum.frequencies(actual)
 
-    blocks
-    |> maybe_add("inline_code" in kinds, working, @inline_code_regex)
-    |> maybe_add("urls" in kinds, working, @url_regex)
-    |> maybe_add("placeholders" in kinds, working, @placeholder_regex)
-    |> Enum.uniq()
-  end
-
-  defp maybe_add(tokens, false, _text, _regex), do: tokens
-
-  defp maybe_add(tokens, true, text, regex),
-    do: tokens ++ (regex |> Regex.scan(text) |> Enum.map(&hd/1))
-
-  defp extract_code_blocks(source), do: extract_code_blocks(source, [], [])
-
-  defp extract_code_blocks(rest, stripped, blocks) do
-    case :binary.match(rest, "```") do
-      :nomatch ->
-        {Enum.join(Enum.reverse([rest | stripped])), Enum.reverse(blocks)}
-
-      {start, _len} ->
-        before = binary_part(rest, 0, start)
-        after_open = binary_part(rest, start + 3, byte_size(rest) - start - 3)
-
-        case :binary.match(after_open, "```") do
-          :nomatch ->
-            tail = binary_part(rest, start, byte_size(rest) - start)
-            {Enum.join(Enum.reverse([tail, before | stripped])), Enum.reverse(blocks)}
-
-          {end_rel, _len} ->
-            block_len = 3 + end_rel + 3
-            block = binary_part(rest, start, block_len)
-            new_rest = binary_part(rest, start + block_len, byte_size(rest) - start - block_len)
-            extract_code_blocks(new_rest, [before | stripped], [block | blocks])
-        end
-    end
+    expected
+    |> Enum.frequencies()
+    |> Enum.flat_map(fn {value, count} ->
+      List.duplicate(value, max(count - Map.get(actual_counts, value, 0), 0))
+    end)
+    |> Enum.take(5)
   end
 
   # ── external ────────────────────────────────────────────────────────────
@@ -150,7 +112,7 @@ defmodule Glossia.Translations.Validate do
   defp validate_external(root, format, output, options) do
     cond do
       is_list(options[:validation]) and options[:validation] != [] ->
-        run_validation_command(root, options[:validation], options)
+        run_validation_command(root, options[:validation], output, options)
 
       true ->
         case select_check_command(format, options) do
@@ -194,7 +156,7 @@ defmodule Glossia.Translations.Validate do
   end
 
   @doc false
-  def run_validation_command(root, [cmd | args], options) do
+  def run_validation_command(root, [cmd | args], output, options) do
     with {:ok, doc} <-
            require_opt(
              options,
@@ -211,16 +173,46 @@ defmodule Glossia.Translations.Validate do
         {"GLOSSIA_DOC_PATH", to_string(doc)}
       ]
 
-      case MuonTrap.cmd(cmd, args,
-             cd: options[:validation_cwd] || root,
-             env: env,
-             stderr_to_stdout: true,
-             into: "",
-             timeout: @command_timeout_ms
-           ) do
-        {_out, 0} -> :ok
-        {out, code} -> {:error, "validation failed: exit #{code}\n#{String.trim(out)}"}
+      with_candidate_at_target(target, output, fn ->
+        case MuonTrap.cmd(cmd, args,
+               cd: options[:validation_cwd] || root,
+               env: env,
+               stderr_to_stdout: true,
+               into: "",
+               timeout: @command_timeout_ms
+             ) do
+          {_out, 0} -> :ok
+          {out, code} -> {:error, "validation failed: exit #{code}\n#{String.trim(out)}"}
+        end
+      end)
+    end
+  end
+
+  defp with_candidate_at_target(target, output, validation) do
+    previous =
+      case File.read(target) do
+        {:ok, content} -> {:present, content}
+        {:error, :enoent} -> :absent
+        {:error, reason} -> raise File.Error, reason: reason, action: "read", path: target
       end
+
+    File.mkdir_p!(Path.dirname(target))
+    File.write!(target, output)
+
+    try do
+      validation.()
+    after
+      restore_target!(target, previous)
+    end
+  end
+
+  defp restore_target!(target, {:present, content}), do: File.write!(target, content)
+
+  defp restore_target!(target, :absent) do
+    case File.rm(target) do
+      :ok -> :ok
+      {:error, :enoent} -> :ok
+      {:error, reason} -> raise File.Error, reason: reason, action: "remove", path: target
     end
   end
 
