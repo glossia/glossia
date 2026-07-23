@@ -67,7 +67,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     end)
 
     assert {:ok, changes} =
-             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               progress_node: Node.self()
+             )
 
     # Output written to disk.
     output = Path.join([root, "docs", "i18n", "es", "guide.md"])

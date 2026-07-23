@@ -22,6 +22,7 @@ defmodule Glossia.Translations.RepositoryRun do
   alias Glossia.TranslationSessions
 
   @clone_timeout_ms 600_000
+  @runner_result_timeout_ms @clone_timeout_ms + 5_000
 
   @doc """
   Clones `repository`, translates `locales`, and returns `{:ok, changes}`.
@@ -30,35 +31,62 @@ defmodule Glossia.Translations.RepositoryRun do
   `"added" | "modified" | "deleted"`, ready for the PR builder.
   """
   def run(session, account, repository, locales) do
-    FLAME.call(
-      Glossia.Flame.pool_name(),
-      fn ->
-        case clone(repository) do
-          {:ok, repo_path} ->
-            try do
-              translate_repository(session, account, repo_path, locales)
-            after
-              File.rm_rf(repo_path)
-            end
+    progress_node = Node.self()
+    caller = self()
+    result_ref = make_ref()
 
-          {:error, _reason} = error ->
-            error
-        end
-      end,
-      timeout: @clone_timeout_ms
-    )
+    {runner_pid, monitor_ref} =
+      spawn_monitor(fn ->
+        result =
+          FLAME.call(
+            Glossia.Flame.pool_name(),
+            fn ->
+              case clone(repository) do
+                {:ok, repo_path} ->
+                  try do
+                    translate_repository(session, account, repo_path, locales,
+                      progress_node: progress_node
+                    )
+                  after
+                    File.rm_rf(repo_path)
+                  end
+
+                {:error, _reason} = error ->
+                  error
+              end
+            end,
+            timeout: @clone_timeout_ms
+          )
+
+        send(caller, {result_ref, result})
+      end)
+
+    receive do
+      {^result_ref, result} ->
+        Process.demonitor(monitor_ref, [:flush])
+        result
+
+      {:DOWN, ^monitor_ref, :process, ^runner_pid, reason} ->
+        {:error, {:runner_exit, reason}}
+    after
+      @runner_result_timeout_ms ->
+        Process.exit(runner_pid, :kill)
+        Process.demonitor(monitor_ref, [:flush])
+        {:error, :runner_timeout}
+    end
   end
 
   @doc "Plans, translates, and collects changes for a checked-out repo at `repo_path`."
-  def translate_repository(session, account, repo_path, locales) do
+  def translate_repository(session, account, repo_path, locales, opts \\ []) do
+    progress_node = Keyword.get(opts, :progress_node, Node.self())
     items = build_items(repo_path, locales)
     total = length(items)
-    broadcast(session, %{type: "plan", total: total})
+    broadcast(session, %{type: "plan", total: total}, progress_node)
 
     items
     |> Enum.with_index()
     |> Enum.each(fn {item, index} ->
-      apply_one(session, account, repo_path, item, index, total)
+      apply_one(session, account, repo_path, item, index, total, progress_node)
     end)
 
     collect_changes(repo_path)
@@ -77,7 +105,7 @@ defmodule Glossia.Translations.RepositoryRun do
   defp filter_locales(items, []), do: items
   defp filter_locales(items, locales), do: Enum.filter(items, &(&1.locale in locales))
 
-  defp apply_one(session, account, repo_path, item, index, total) do
+  defp apply_one(session, account, repo_path, item, index, total, progress_node) do
     source_content = File.read!(item.source_abs)
     provider = ModelIdentifier.provider(item.model)
 
@@ -100,28 +128,60 @@ defmodule Glossia.Translations.RepositoryRun do
     lock = Locks.read_lock(repo_path, item.source_path, item.locale)
 
     if Locks.stale?(lock, hash_state.hash, item.output_path, current_output_hash) do
-      translate_item(session, account, repo_path, item, index, total, provider, hash_state)
+      translate_item(
+        session,
+        account,
+        repo_path,
+        item,
+        index,
+        total,
+        provider,
+        hash_state,
+        progress_node
+      )
     else
-      broadcast(session, %{type: "item_skipped", index: index, output_path: item.output_path})
+      broadcast(
+        session,
+        %{type: "item_skipped", index: index, output_path: item.output_path},
+        progress_node
+      )
     end
   end
 
-  defp translate_item(session, account, repo_path, item, index, total, provider, hash_state) do
-    broadcast(session, %{
-      type: "item_started",
-      index: index,
-      total: total,
-      output_path: item.output_path,
-      locale: item.locale
-    })
+  defp translate_item(
+         session,
+         account,
+         repo_path,
+         item,
+         index,
+         total,
+         provider,
+         hash_state,
+         progress_node
+       ) do
+    broadcast(
+      session,
+      %{
+        type: "item_started",
+        index: index,
+        total: total,
+        output_path: item.output_path,
+        locale: item.locale
+      },
+      progress_node
+    )
 
     on_event = fn event ->
-      broadcast(session, %{
-        type: "item_event",
-        index: index,
-        output_path: item.output_path,
-        event: normalize_event(event)
-      })
+      broadcast(
+        session,
+        %{
+          type: "item_event",
+          index: index,
+          output_path: item.output_path,
+          event: normalize_event(event)
+        },
+        progress_node
+      )
     end
 
     validate = fn output, source ->
@@ -138,15 +198,24 @@ defmodule Glossia.Translations.RepositoryRun do
       {:ok, result} ->
         write_output(item, result.text)
         write_lock(repo_path, item, provider, hash_state, result.text)
-        broadcast(session, %{type: "item_completed", index: index, output_path: item.output_path})
+
+        broadcast(
+          session,
+          %{type: "item_completed", index: index, output_path: item.output_path},
+          progress_node
+        )
 
       {:error, reason} ->
-        broadcast(session, %{
-          type: "item_failed",
-          index: index,
-          output_path: item.output_path,
-          reason: inspect(reason)
-        })
+        broadcast(
+          session,
+          %{
+            type: "item_failed",
+            index: index,
+            output_path: item.output_path,
+            reason: inspect(reason)
+          },
+          progress_node
+        )
     end
   end
 
@@ -285,7 +354,9 @@ defmodule Glossia.Translations.RepositoryRun do
 
   # ── helpers ─────────────────────────────────────────────────────────────
 
-  defp broadcast(session, event), do: TranslationSessions.broadcast_session_event(session, event)
+  defp broadcast(session, event, progress_node) do
+    TranslationSessions.broadcast_session_event(session, event, progress_node)
+  end
 
   defp normalize_event(:agent_start), do: %{type: "agent_start"}
   defp normalize_event(:agent_end), do: %{type: "agent_end"}
