@@ -1,5 +1,6 @@
 ---
 source_language: en
+frontmatter: translate
 sources:
   "priv/docs/**/*.md": "priv/i18n/{locale}/docs/{relpath}"
   "priv/blog/*.md": "priv/i18n/{locale}/blog/{relpath}"

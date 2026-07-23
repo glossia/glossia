@@ -51,6 +51,16 @@ defmodule Glossia.Translations.Prompt do
       end
 
     lines =
+      if Map.get(input, :segment_count, 1) > 1 do
+        lines ++
+          [
+            "The document is translated in segments. Return only the complete translation of the supplied segment."
+          ]
+      else
+        lines
+      end
+
+    lines =
       case trimmed(Map.get(input, :custom_prompt)) do
         "" -> lines
         value -> lines ++ [value]
@@ -69,9 +79,32 @@ defmodule Glossia.Translations.Prompt do
   Builds the user prompt carrying the source content, optionally appending the
   previous validation error so the model can self-correct on a retry.
   """
-  def build_user_prompt(source_language, locale, language, source_content, last_error \\ nil) do
+  def build_user_prompt(
+        source_language,
+        locale,
+        language,
+        source_content,
+        last_error \\ nil,
+        segment \\ %{}
+      ) do
+    segment_kind = Map.get(segment, :kind, "content")
+    segment_index = Map.get(segment, :index, 1)
+    segment_count = Map.get(segment, :count, 1)
+
+    instruction =
+      cond do
+        segment_kind == "frontmatter" ->
+          "Translate only the human-readable string values in this frontmatter from #{source_language} to #{language} (#{locale}). Preserve its syntax, keys, identifiers, dates, and delimiters exactly."
+
+        segment_count > 1 ->
+          "Translate segment #{segment_index} of #{segment_count} from #{source_language} to #{language} (#{locale}). Return only this segment."
+
+        true ->
+          "Translate the following content from #{source_language} to #{language} (#{locale})."
+      end
+
     parts = [
-      "Translate the following content from #{source_language} to #{language} (#{locale}).",
+      instruction,
       "",
       source_content
     ]
@@ -81,7 +114,7 @@ defmodule Glossia.Translations.Prompt do
         parts ++
           [
             "",
-            "Previous output failed validation: #{last_error}\nReturn a corrected full translation."
+            "The reassembled document previously failed validation: #{last_error}\nReturn a corrected translation of only this supplied segment. Preserve every required token present in this segment."
           ]
       else
         parts

@@ -2,11 +2,11 @@ defmodule Glossia.Translations.Engine do
   @moduledoc """
   Turns a planned work item into translated output content.
 
-  Ported from the CLI (`cli/src/translate/engine.rs`). For a work item it reads
-  the source, splits frontmatter when the format is markdown and the mode is
-  `:preserve`, streams the translation (retrying with the previous validation
-  error on failure, up to `retries + 1` attempts), strips a structured code fence
-  from the model output, and reattaches the preserved frontmatter.
+  For a work item it reads the source, extracts frontmatter when present, and
+  translates prose in bounded, format-neutral content segments. A format only
+  supplies its segmentation policy, such as protected code-fence delimiters or
+  an atomic structured document. Validation runs against the reassembled output
+  and retries carry the previous error back to each segment.
 
   The actual model call goes through `Glossia.Translations.translate_stream/3`, so
   every attempt's turns are forwarded to `on_event` for live progress. Validation
@@ -14,6 +14,7 @@ defmodule Glossia.Translations.Engine do
   `validate/` port lands).
   """
 
+  alias Glossia.Translations.ContentSegments
   alias Glossia.Translations
   alias Glossia.Translations.Format
   alias Glossia.Translations.Frontmatter
@@ -35,13 +36,13 @@ defmodule Glossia.Translations.Engine do
       when is_function(on_event, 1) and is_function(validate, 2) and is_list(opts) do
     case File.read(work_item.source_abs) do
       {:ok, source_text} ->
-        {frontmatter, content} = prepare(work_item, source_text)
+        translation = prepare_translation(work_item, source_text)
 
         run_attempt(%{
           account: account,
           work_item: work_item,
-          content: content,
-          frontmatter: frontmatter,
+          segments: translation.segments,
+          preserved_frontmatter: translation.preserved_frontmatter,
           source_text: source_text,
           on_event: on_event,
           validate: validate,
@@ -62,16 +63,9 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp run_attempt(state) do
-    payload =
-      payload(state.work_item, state.content, not is_nil(state.frontmatter), state.last_error)
-
-    case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
-      {:ok, result} ->
-        final =
-          result.text
-          |> String.trim_trailing()
-          |> then(&strip_structured_code_fence(state.work_item.format, &1))
-          |> then(&reassemble(state.frontmatter, &1))
+    case translate_segments(state) do
+      {:ok, translated} ->
+        final = assemble_segments(state, translated.segments)
 
         case state.validate.(final, state.source_text) do
           :ok ->
@@ -81,8 +75,8 @@ defmodule Glossia.Translations.Engine do
                output_path: state.work_item.output_path,
                output_abs: state.work_item.output_abs,
                locale: state.work_item.locale,
-               model: result.model,
-               provider: result.provider
+               model: translated.model,
+               provider: translated.provider
              }}
 
           {:error, message} ->
@@ -92,6 +86,67 @@ defmodule Glossia.Translations.Engine do
       {:error, reason} ->
         {:error, {:llm_failed, reason}}
     end
+  end
+
+  defp translate_segments(state) do
+    segment_count = length(state.segments)
+
+    state.segments
+    |> Enum.with_index(1)
+    |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
+      {segment, segment_index}, {:ok, acc} ->
+        payload =
+          payload(
+            state.work_item,
+            segment.content,
+            not is_nil(state.preserved_frontmatter),
+            state.last_error,
+            segment.kind,
+            segment_index,
+            segment_count
+          )
+
+        case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
+          {:ok, result} ->
+            translated_segment = %{
+              kind: segment.kind,
+              text: strip_structured_code_fence(state.work_item.format, result.text)
+            }
+
+            {:cont,
+             {:ok,
+              %{
+                segments: acc.segments ++ [translated_segment],
+                model: result.model,
+                provider: result.provider
+              }}}
+
+          {:error, reason} ->
+            {:halt, {:error, reason}}
+        end
+    end)
+  end
+
+  defp assemble_segments(state, translated_segments) do
+    {frontmatter_segments, body_segments} =
+      Enum.split_with(translated_segments, &(&1.kind == "frontmatter"))
+
+    frontmatter =
+      state.preserved_frontmatter ||
+        case frontmatter_segments do
+          [%{text: text} | _] -> String.trim(text)
+          [] -> nil
+        end
+
+    body =
+      body_segments
+      |> Enum.map(&String.trim(&1.text))
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.join("\n\n")
+
+    frontmatter
+    |> reassemble(body)
+    |> String.trim_trailing()
   end
 
   defp translate_stream(account, payload, on_event, []) do
@@ -111,6 +166,46 @@ defmodule Glossia.Translations.Engine do
   end
 
   def prepare(_work_item, source_text), do: {nil, source_text}
+
+  defp prepare_translation(%{format: "markdown"} = work_item, source_text) do
+    split = Frontmatter.split_markdown_frontmatter(source_text)
+
+    case {work_item.frontmatter_mode, split.ok} do
+      {:preserve, true} ->
+        %{
+          preserved_frontmatter: split.frontmatter,
+          segments: content_segments(split.body, work_item.format)
+        }
+
+      {:translate, true} ->
+        %{
+          preserved_frontmatter: nil,
+          segments:
+            [%{kind: "frontmatter", content: split.frontmatter}] ++
+              content_segments(split.body, work_item.format)
+        }
+
+      _ ->
+        %{preserved_frontmatter: nil, segments: content_segments(source_text, work_item.format)}
+    end
+  end
+
+  defp prepare_translation(work_item, source_text) do
+    %{preserved_frontmatter: nil, segments: content_segments(source_text, work_item.format)}
+  end
+
+  defp content_segments(content, format) do
+    case Format.segmentation(format) do
+      :atomic ->
+        [%{kind: "content", content: content}]
+
+      {:segmented, opts} ->
+        case ContentSegments.split(content, opts) do
+          [] -> [%{kind: "content", content: ""}]
+          segments -> Enum.map(segments, &%{kind: "content", content: &1})
+        end
+    end
+  end
 
   @doc false
   def reassemble(nil, stripped), do: stripped
@@ -154,7 +249,15 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
-  defp payload(work_item, content, frontmatter_preserved, last_error) do
+  defp payload(
+         work_item,
+         content,
+         frontmatter_preserved,
+         last_error,
+         segment_kind,
+         segment_index,
+         segment_count
+       ) do
     %{
       "model" => work_item.model,
       "format" => work_item.format,
@@ -166,7 +269,10 @@ defmodule Glossia.Translations.Engine do
       "locale_override_body" => work_item.locale_override_body,
       "custom_prompt" => work_item.prompt,
       "frontmatter_preserved" => frontmatter_preserved,
-      "last_error" => last_error
+      "last_error" => last_error,
+      "segment_kind" => segment_kind,
+      "segment_index" => segment_index,
+      "segment_count" => segment_count
     }
   end
 

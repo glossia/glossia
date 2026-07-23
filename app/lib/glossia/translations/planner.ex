@@ -36,12 +36,28 @@ defmodule Glossia.Translations.Planner do
 
     try do
       with {:ok, roots} <- Chain.find_translation_roots(root) do
-        items = Enum.flat_map(roots, &plan_root(&1, root, locale_filter))
-        {:ok, Enum.sort_by(items, &{&1.source_path, &1.locale})}
+        items =
+          roots
+          |> Enum.flat_map(&plan_root(&1, root, locale_filter))
+          |> deduplicate_items()
+          |> Enum.sort_by(&{&1.source_path, &1.locale})
+
+        {:ok, items}
       end
     catch
       {:plan_error, reason} -> {:error, reason}
     end
+  end
+
+  # A nested GLOSSIA.md can intentionally narrow or replace a repository-level
+  # source declaration. Both roots still see the same file, so prefer the item
+  # planned later from the more specific root instead of translating it twice.
+  defp deduplicate_items(items) do
+    items
+    |> Enum.reduce(%{}, fn item, acc ->
+      Map.put(acc, {item.source_path, item.output_path, item.locale}, item)
+    end)
+    |> Map.values()
   end
 
   defp plan_root(translation_root, root, locale_filter) do
