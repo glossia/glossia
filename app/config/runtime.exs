@@ -168,6 +168,33 @@ config :glossia, Glossia.Translations,
       "0"
     ]
 
+smolanalytics_url = System.get_env("GLOSSIA_SMOLANALYTICS_URL")
+smolanalytics_write_key = System.get_env("GLOSSIA_SMOLANALYTICS_WRITE_KEY")
+
+smolanalytics_enabled =
+  case {smolanalytics_url, smolanalytics_write_key, runner_child?} do
+    {_, _, true} ->
+      false
+
+    {url, key, false}
+    when is_binary(url) and url != "" and is_binary(key) and key != "" ->
+      true
+
+    {url, key, false} when url in [nil, ""] and key in [nil, ""] ->
+      false
+
+    _ ->
+      raise """
+      GLOSSIA_SMOLANALYTICS_URL and GLOSSIA_SMOLANALYTICS_WRITE_KEY must either both be set or both be omitted.
+      """
+  end
+
+config :glossia, Glossia.Analytics.Smolanalytics,
+  enabled: smolanalytics_enabled,
+  url: smolanalytics_url,
+  write_key: smolanalytics_write_key,
+  environment: System.get_env("OTEL_DEPLOYMENT_ENVIRONMENT") || Atom.to_string(config_env())
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
