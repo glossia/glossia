@@ -12,6 +12,15 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
+  @version 1
+
+  @doc """
+  Version of the prompt contract used in translation lockfiles.
+
+  Increment this when prompt behavior changes in a way that should make existing
+  translations stale.
+  """
+  def version, do: @version
 
   @doc """
   Builds the system prompt for a translation request.
@@ -21,6 +30,7 @@ defmodule Glossia.Translations.Prompt do
     * `:format` - `"markdown" | "json" | "yaml" | "po" | "text"`
     * `:source_language`, `:language`, `:locale` - display strings
     * `:context_body`, `:locale_override_body` - optional project/locale guidance
+    * `:server_context_body` - resolved voice and source-relevant terminology
     * `:frontmatter_preserved` - whether frontmatter is re-attached client-side
     * `:custom_prompt` - optional per-document instructions
   """
@@ -71,6 +81,10 @@ defmodule Glossia.Translations.Prompt do
     |> append_block(
       "Locale-specific instructions for #{input.language}:",
       Map.get(input, :locale_override_body)
+    )
+    |> append_block(
+      "Organization context for #{input.language}:",
+      Map.get(input, :server_context_body)
     )
     |> Enum.join("\n")
   end
@@ -149,6 +163,10 @@ defmodule Glossia.Translations.Prompt do
     |> append_block(
       "Locale-specific instructions for #{input.language}:",
       Map.get(input, :locale_override_body)
+    )
+    |> append_block(
+      "Organization context for #{input.language}:",
+      Map.get(input, :server_context_body)
     )
     |> Enum.join("\n")
   end

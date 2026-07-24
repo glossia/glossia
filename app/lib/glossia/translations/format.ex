@@ -11,9 +11,13 @@ defmodule Glossia.Translations.Format do
   @formats ~w(markdown json yaml po text)
   @structured ~w(json yaml po)
   @supported_extensions ~w(md markdown json yaml yml po pot txt text)
+  @segmentation_version 1
 
   @doc "All supported format strings."
   def formats, do: @formats
+
+  @doc "Version of the format segmentation rules used by translation locks."
+  def segmentation_version, do: @segmentation_version
 
   @doc "Detects the format from a file path's extension (case-insensitive)."
   def detect(path) do

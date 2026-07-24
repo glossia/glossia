@@ -7,6 +7,17 @@ defmodule Glossia.Voices do
 
   import Ecto.Query
 
+  def latest_voice_version(%Account{id: account_id}) do
+    Tracer.with_span "glossia.voices.latest_voice_version" do
+      Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
+
+      Voice
+      |> where(account_id: ^account_id)
+      |> select([voice], max(voice.version))
+      |> Repo.one()
+    end
+  end
+
   def get_latest_voice(%Account{id: account_id}) do
     Tracer.with_span "glossia.voices.get_latest_voice" do
       Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
@@ -130,35 +141,75 @@ defmodule Glossia.Voices do
         {"glossia.locale", to_string(locale)}
       ])
 
-      case get_latest_voice(account) do
-        nil ->
-          nil
+      account
+      |> get_latest_voice()
+      |> resolve_voice(locale)
+    end
+  end
 
-        voice ->
-          base = %{
-            version: voice.version,
-            tone: voice.tone,
-            formality: voice.formality,
-            target_audience: voice.target_audience,
-            guidelines: voice.guidelines,
-            description: voice.description,
-            target_countries: voice.target_countries,
-            cultural_notes: voice.cultural_notes
-          }
+  def get_resolved_voice_version(%Account{} = account, version, locale)
+      when is_integer(version) and is_binary(locale) do
+    Tracer.with_span "glossia.voices.get_resolved_voice_version" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account.id)},
+        {"glossia.voice.version", version},
+        {"glossia.locale", locale}
+      ])
 
-          override = Enum.find(voice.overrides, &(&1.locale == locale))
+      account
+      |> get_voice_version(version)
+      |> resolve_voice(locale)
+    end
+  end
 
-          if override do
-            base
-            |> maybe_override(:tone, override.tone)
-            |> maybe_override(:formality, override.formality)
-            |> maybe_override(:target_audience, override.target_audience)
-            |> maybe_override(:guidelines, override.guidelines)
-            |> Map.put(:locale, locale)
-          else
-            base
-          end
-      end
+  defp resolve_voice(nil, _locale), do: nil
+
+  defp resolve_voice(voice, locale) do
+    base = %{
+      version: voice.version,
+      tone: voice.tone,
+      formality: voice.formality,
+      target_audience: voice.target_audience,
+      guidelines: voice.guidelines,
+      description: voice.description,
+      target_countries: voice.target_countries,
+      cultural_notes: voice.cultural_notes
+    }
+
+    candidates = locale_candidates(locale)
+
+    case Enum.find(candidates, fn candidate ->
+           Enum.any?(voice.overrides, &(&1.locale == candidate))
+         end) do
+      nil ->
+        base
+
+      matched_locale ->
+        override = Enum.find(voice.overrides, &(&1.locale == matched_locale))
+
+        base
+        |> maybe_override(:tone, override.tone)
+        |> maybe_override(:formality, override.formality)
+        |> maybe_override(:target_audience, override.target_audience)
+        |> maybe_override(:guidelines, override.guidelines)
+        |> Map.put(:locale, locale)
+    end
+  end
+
+  defp locale_candidates(locale) do
+    parts =
+      locale
+      |> String.replace("_", "-")
+      |> String.split("-", trim: true)
+
+    case parts do
+      [] ->
+        [locale]
+
+      parts ->
+        Enum.map(length(parts)..1//-1, fn count ->
+          parts |> Enum.take(count) |> Enum.join("-")
+        end)
     end
   end
 
