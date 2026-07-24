@@ -17,10 +17,12 @@ mise run install
 mix phx.server
 ```
 
-To start translating from the command line, install Glossia with
+To initialize a repository, install Glossia with
 [mise](https://mise.jdx.dev/) and run:
 
 ```bash
 mise exec -- glossia init
-mise exec -- glossia translate
 ```
+
+The command-line interface only initializes the repository configuration.
+Translation runs on the Glossia server after the repository is connected.

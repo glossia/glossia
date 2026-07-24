@@ -65,6 +65,16 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "\n\nLocale-specific instructions for Spanish:\nPrefer vosotros."
     end
 
+    test "appends resolved organization context" do
+      prompt =
+        Prompt.build_system_prompt(
+          base(%{server_context_body: "Required terminology:\n- Account → Cuenta"})
+        )
+
+      assert prompt =~
+               "\n\nOrganization context for Spanish:\nRequired terminology:\n- Account → Cuenta"
+    end
+
     test "omits empty context blocks" do
       prompt = Prompt.build_system_prompt(base(%{context_body: "   ", locale_override_body: ""}))
       refute prompt =~ "Project context:"
@@ -100,6 +110,16 @@ defmodule Glossia.Translations.PromptTest do
         Prompt.build_system_prompt(base(%{format: "po", context_body: "Keep it concise."}))
 
       assert prompt =~ "\n\nProject context:\nKeep it concise."
+    end
+
+    test "appends resolved organization context" do
+      prompt =
+        Prompt.build_system_prompt(
+          base(%{format: "po", server_context_body: "Organization voice:\n- Formality: formal"})
+        )
+
+      assert prompt =~
+               "\n\nOrganization context for Spanish:\nOrganization voice:\n- Formality: formal"
     end
   end
 

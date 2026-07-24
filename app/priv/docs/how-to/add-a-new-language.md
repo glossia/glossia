@@ -31,18 +31,16 @@ GLOSSIA/
 
 Write any language-specific guidance in that file. Glossia merges it with the base context for Japanese translations.
 
-## 3. Run the translation
+## 3. Publish the configuration change
 
-```bash
-glossia translate
-```
+Commit and push the updated configuration. If the repository is connected to
+Glossia, the server detects the new target language and starts a translation
+session.
 
-Glossia detects the new language and generates translations for all source files. Existing translations for other languages are skipped because their hashes have not changed.
+Existing translations for other languages remain unchanged when their inputs
+and effective context have not changed.
 
-## 4. Review the output
+## 4. Review the translation pull request
 
-```bash
-glossia status
-```
-
-Check that the new language files appear at the expected output paths.
+Follow the translation session in Glossia, then review the generated language
+files in the pull request opened by the server.

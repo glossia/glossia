@@ -4,9 +4,6 @@ use anyhow::{anyhow, Result};
 pub enum Command {
     Init,
     Revisit,
-    Check,
-    Status,
-    Clean,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -73,9 +70,7 @@ pub fn parse_args(argv: &[String]) -> Result<ParsedArgs> {
     }
 
     if command.is_none() {
-        return Err(anyhow!(
-            "missing command (expected one of: init, translate, revisit, check, status, clean)"
-        ));
+        return Err(anyhow!("missing command (expected one of: init, revisit)"));
     }
 
     Ok(ParsedArgs {
@@ -94,9 +89,6 @@ fn parse_command(value: &str) -> Result<Command> {
     match value {
         "init" => Ok(Command::Init),
         "revisit" => Ok(Command::Revisit),
-        "check" => Ok(Command::Check),
-        "status" => Ok(Command::Status),
-        "clean" => Ok(Command::Clean),
         _ => Err(anyhow!("unknown command: {value}")),
     }
 }
@@ -109,11 +101,7 @@ USAGE:
 
 COMMANDS:
   init       Initialize Glossia in this repo
-  translate  Translate content to other languages
   revisit    Revisit content in the source language
-  check      Validate outputs
-  status     Report missing or stale outputs
-  clean      Remove generated outputs and lockfiles
 
 GLOBAL OPTIONS:
   --no-color        Disable color output
@@ -121,4 +109,27 @@ GLOBAL OPTIONS:
 
 Run 'glossia <command> --help' for command-specific flags.
 "
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{help_text, parse_args, Command};
+
+    #[test]
+    fn accepts_setup_and_source_revision_commands() {
+        let init = parse_args(&["init".into()]).unwrap();
+        let revisit = parse_args(&["revisit".into()]).unwrap();
+
+        assert_eq!(init.command, Some(Command::Init));
+        assert_eq!(revisit.command, Some(Command::Revisit));
+    }
+
+    #[test]
+    fn rejects_retired_translation_workflow_commands() {
+        for command in ["translate", "check", "status", "clean"] {
+            let error = parse_args(&[command.into()]).unwrap_err();
+            assert_eq!(error.to_string(), format!("unknown command: {command}"));
+            assert!(!help_text().contains(&format!("  {command}")));
+        }
+    }
 }

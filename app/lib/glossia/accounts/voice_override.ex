@@ -2,6 +2,8 @@ defmodule Glossia.Accounts.VoiceOverride do
   use Glossia.Schema
   import Ecto.Changeset
 
+  alias Glossia.Accounts.Voice
+
   schema "voice_overrides" do
     field :locale, :string
     field :tone, :string
@@ -23,6 +25,11 @@ defmodule Glossia.Accounts.VoiceOverride do
     )
     |> validate_inclusion(:tone, ~w(casual formal playful authoritative neutral))
     |> validate_inclusion(:formality, ~w(informal neutral formal very_formal))
+    |> validate_length(:target_audience,
+      max: Voice.target_audience_limit(),
+      count: :bytes
+    )
+    |> validate_length(:guidelines, max: Voice.guidelines_limit(), count: :bytes)
     |> unique_constraint([:voice_id, :locale])
   end
 end

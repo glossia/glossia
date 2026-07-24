@@ -7,6 +7,17 @@ defmodule Glossia.Glossaries do
 
   import Ecto.Query
 
+  def latest_glossary_version(%Account{id: account_id}) do
+    Tracer.with_span "glossia.glossaries.latest_glossary_version" do
+      Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
+
+      Glossary
+      |> where(account_id: ^account_id)
+      |> select([glossary], max(glossary.version))
+      |> Repo.one()
+    end
+  end
+
   def get_latest_glossary(%Account{id: account_id}) do
     Tracer.with_span "glossia.glossaries.get_latest_glossary" do
       Tracer.set_attributes([{"glossia.account.id", to_string(account_id)}])
@@ -120,31 +131,73 @@ defmodule Glossia.Glossaries do
         {"glossia.locale", to_string(locale)}
       ])
 
-      case get_latest_glossary(account) do
-        nil ->
-          nil
-
-        glossary ->
-          entries =
-            glossary.entries
-            |> Enum.map(fn entry ->
-              translation = Enum.find(entry.translations, &(&1.locale == locale))
-
-              %{
-                term: entry.term,
-                definition: entry.definition,
-                case_sensitive: entry.case_sensitive,
-                translation: if(translation, do: translation.translation)
-              }
-            end)
-            |> Enum.filter(& &1.translation)
-
-          %{
-            version: glossary.version,
-            locale: locale,
-            entries: entries
-          }
+      case latest_glossary_version(account) do
+        nil -> nil
+        version -> get_resolved_glossary_version(account, version, locale)
       end
+    end
+  end
+
+  def get_resolved_glossary_version(%Account{id: account_id}, version, locale)
+      when is_integer(version) and is_binary(locale) do
+    Tracer.with_span "glossia.glossaries.get_resolved_glossary_version" do
+      Tracer.set_attributes([
+        {"glossia.account.id", to_string(account_id)},
+        {"glossia.glossary.version", version},
+        {"glossia.locale", locale}
+      ])
+
+      locale_candidates = locale_candidates(locale)
+      locale_ranks = locale_candidates |> Enum.with_index() |> Map.new()
+
+      entries =
+        from(glossary in Glossary,
+          join: entry in GlossaryEntry,
+          on: entry.glossary_id == glossary.id,
+          join: translation in GlossaryTranslation,
+          on:
+            translation.glossary_entry_id == entry.id and
+              translation.locale in ^locale_candidates,
+          where: glossary.account_id == ^account_id and glossary.version == ^version,
+          order_by: [asc: entry.term],
+          select: %{
+            id: entry.id,
+            term: entry.term,
+            definition: entry.definition,
+            case_sensitive: entry.case_sensitive,
+            translation: translation.translation,
+            translation_locale: translation.locale
+          }
+        )
+        |> Repo.all()
+        |> Enum.sort_by(fn entry ->
+          {entry.term, Map.fetch!(locale_ranks, entry.translation_locale)}
+        end)
+        |> Enum.uniq_by(& &1.id)
+        |> Enum.map(&Map.delete(&1, :translation_locale))
+
+      %{
+        version: version,
+        locale: locale,
+        entries: entries
+      }
+    end
+  end
+
+  defp locale_candidates(locale) do
+    parts =
+      locale
+      |> String.replace("_", "-")
+      |> String.split("-", trim: true)
+
+    case parts do
+      [] ->
+        [locale]
+
+      parts ->
+        Enum.map(length(parts)..1//-1, fn count ->
+          parts |> Enum.take(count) |> Enum.join("-")
+        end)
     end
   end
 
