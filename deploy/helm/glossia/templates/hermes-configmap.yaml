@@ -11,6 +11,13 @@ metadata:
     app.kubernetes.io/component: assistant
 data:
   config.yaml: |
+    {{- with .Values.hermes.model.baseURL }}
+    custom_providers:
+      - name: {{ trimPrefix "custom:" $.Values.hermes.model.provider | quote }}
+        base_url: {{ . | quote }}
+        key_env: {{ $.Values.hermes.model.apiKeyEnvironmentVariable | quote }}
+
+    {{- end }}
     model:
       provider: {{ .Values.hermes.model.provider | quote }}
       default: {{ .Values.hermes.model.default | quote }}

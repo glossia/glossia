@@ -22,7 +22,7 @@ needs whichever of these match the components you enable:
 | `objectStorage.enabled` | A reachable [Amazon Simple Storage Service](https://aws.amazon.com/s3/)-compatible bucket and a Secret containing its credentials |
 | `objectStorage.rook.enabled` | A Rook and Ceph `ObjectBucketClaim` Secret with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` |
 | `smolanalytics.enabled` | A default storage class, or an explicit `smolanalytics.persistence.storageClass` |
-| `hermes.enabled` | `smolanalytics.enabled=true`, a [Slack Socket Mode](https://api.slack.com/apis/connections/socket) application, an [OpenRouter](https://openrouter.ai/docs/quickstart) key, and a read-only [Grafana service account](https://grafana.com/docs/grafana/latest/administration/service-accounts/) token |
+| `hermes.enabled` | `smolanalytics.enabled=true`, a [Slack Socket Mode](https://api.slack.com/apis/connections/socket) application, a [Together](https://docs.together.ai/docs/quickstart) key, and a read-only [Grafana service account](https://grafana.com/docs/grafana/latest/administration/service-accounts/) token |
 
 ## Install
 
@@ -198,11 +198,21 @@ hermes:
   persistence:
     storageClass: hcloud-volumes
   model:
-    provider: openrouter
-    default: anthropic/claude-sonnet-4.6
+    provider: custom:together
+    default: MiniMaxAI/MiniMax-M3
+    baseURL: https://api.together.ai/v1
+    apiKeyEnvironmentVariable: TOGETHER_API_KEY
   observability:
     grafanaURL: http://observability-grafana.observability.svc.cluster.local
 ```
+
+The default model is
+[MiniMax M3](https://docs.together.ai/docs/serverless-models), which Together
+recommends as a mid-size general-purpose model and supports the tool calls
+Hermes needs for analytics and observability. The endpoint is Together's
+[OpenAI-compatible chat endpoint](https://docs.together.ai/docs/inference/openai-compatibility);
+the key remains in a Kubernetes Secret and is only exposed to the Hermes
+container as `TOGETHER_API_KEY`.
 
 The integration uses the
 [Model Context Protocol](https://modelcontextprotocol.io/) to give Hermes two
@@ -243,13 +253,14 @@ Kubernetes Secrets before installing the chart:
 | Secret | Required keys |
 |---|---|
 | `glossia-smolanalytics` | `SMOLANALYTICS_WRITE_KEY`, `SMOLANALYTICS_READ_KEY`, `SMOLANALYTICS_PASSWORD` |
-| `glossia-hermes` | `OPENROUTER_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_ALLOWED_USERS`, `API_SERVER_KEY` |
+| `glossia-hermes` | `TOGETHER_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_ALLOWED_USERS`, `API_SERVER_KEY` |
 | `glossia-grafana-mcp` | `GRAFANA_SERVICE_ACCOUNT_TOKEN` |
 
 Generate independent random values for both smolanalytics keys, its dashboard
 password, and `API_SERVER_KEY`. Never reuse the ingestion key as the report
 key. `SLACK_ALLOWED_USERS` is a comma-separated list of Slack member
-identifiers; Hermes rejects everyone else.
+identifiers; Hermes rejects everyone else. Set it to `*` when every member of
+the installed Slack workspace should be allowed to talk to the bot.
 
 With the External Secrets integration enabled, map the remote fields instead:
 
@@ -262,7 +273,7 @@ externalSecrets:
     passwordField: SMOLANALYTICS_PASSWORD
   hermes:
     itemKey: /glossia
-    apiKeyField: OPENROUTER_API_KEY
+    apiKeyField: TOGETHER_API_KEY
     slackBotTokenField: SLACK_BOT_TOKEN
     slackAppTokenField: SLACK_APP_TOKEN
     slackAllowedUsersField: SLACK_ALLOWED_USERS

@@ -97,6 +97,11 @@ smolanalytics:
 
 hermes:
   enabled: true
+  model:
+    provider: custom:together
+    default: MiniMaxAI/MiniMax-M3
+    baseURL: https://api.together.ai/v1
+    apiKeyEnvironmentVariable: TOGETHER_API_KEY
   persistence:
     storageClass: hcloud-volumes
     size: 5Gi
@@ -216,7 +221,7 @@ externalSecrets:
     passwordField: SMOLANALYTICS_PASSWORD
   hermes:
     itemKey: /kubernetes
-    apiKeyField: OPENROUTER_API_KEY
+    apiKeyField: TOGETHER_API_KEY
     slackBotTokenField: SLACK_BOT_TOKEN
     slackAppTokenField: SLACK_APP_TOKEN
     slackAllowedUsersField: SLACK_ALLOWED_USERS

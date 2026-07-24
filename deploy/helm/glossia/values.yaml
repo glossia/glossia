@@ -137,10 +137,12 @@ hermes:
     digest: ""
     pullPolicy: IfNotPresent
   model:
-    provider: openrouter
-    default: anthropic/claude-sonnet-4.6
+    provider: custom:together
+    default: MiniMaxAI/MiniMax-M3
+    baseURL: https://api.together.ai/v1
+    apiKeyEnvironmentVariable: TOGETHER_API_KEY
   secretName: glossia-hermes
-  apiKeyKey: OPENROUTER_API_KEY
+  apiKeyKey: TOGETHER_API_KEY
   slackBotTokenKey: SLACK_BOT_TOKEN
   slackAppTokenKey: SLACK_APP_TOKEN
   slackAllowedUsersKey: SLACK_ALLOWED_USERS
@@ -450,7 +452,7 @@ externalSecrets:
   # Model provider and Slack Socket Mode credentials for Hermes.
   hermes:
     itemKey: /glossia
-    apiKeyField: OPENROUTER_API_KEY
+    apiKeyField: TOGETHER_API_KEY
     slackBotTokenField: SLACK_BOT_TOKEN
     slackAppTokenField: SLACK_APP_TOKEN
     slackAllowedUsersField: SLACK_ALLOWED_USERS
