@@ -10,6 +10,7 @@ defmodule Glossia.Translations.PreservedTokens do
   """
 
   @default_kinds ~w(code_blocks inline_code urls placeholders)
+  @version 1
   @inline_code_regex ~r/`[^`\n]+`/
   @url_regex ~r/https?:\/\/[^\s\)"'<>]+/
   @placeholder_regex ~r/\{\{[^{}\n]+\}\}|\{[^\s{}]+\}/
@@ -18,6 +19,9 @@ defmodule Glossia.Translations.PreservedTokens do
           text: String.t(),
           replacements: [{String.t(), String.t()}]
         }
+
+  @doc "Version of token preservation behavior used by translation locks."
+  def version, do: @version
 
   @doc "Resolves the configured preservation kinds."
   def resolve([]), do: @default_kinds

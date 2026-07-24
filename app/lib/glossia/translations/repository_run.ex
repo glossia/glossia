@@ -15,6 +15,7 @@ defmodule Glossia.Translations.RepositoryRun do
   """
 
   alias Glossia.Models.ModelIdentifier
+  alias Glossia.Translations.Context
   alias Glossia.Translations.Engine
   alias Glossia.Translations.Locks
   alias Glossia.Translations.Planner
@@ -31,6 +32,12 @@ defmodule Glossia.Translations.RepositoryRun do
   `"added" | "modified" | "deleted"`, ready for the PR builder.
   """
   def run(session, account, repository, locales) do
+    with {:ok, context_snapshot} <- Context.snapshot(account) do
+      run_with_context(session, account, repository, locales, context_snapshot)
+    end
+  end
+
+  defp run_with_context(session, account, repository, locales, context_snapshot) do
     progress_node = Node.self()
     caller = self()
     result_ref = make_ref()
@@ -46,7 +53,9 @@ defmodule Glossia.Translations.RepositoryRun do
                   try do
                     translate_repository(session, account, repo_path, locales,
                       progress_node: progress_node,
-                      credential_node: progress_node
+                      credential_node: progress_node,
+                      context_node: progress_node,
+                      context_snapshot: context_snapshot
                     )
                   after
                     File.rm_rf(repo_path)
@@ -81,8 +90,12 @@ defmodule Glossia.Translations.RepositoryRun do
   def translate_repository(session, account, repo_path, locales, opts \\ []) do
     progress_node = Keyword.get(opts, :progress_node, Node.self())
     credential_node = Keyword.get(opts, :credential_node)
+    context_node = Keyword.get(opts, :context_node, Node.self())
 
-    with {:ok, items} <- build_items(repo_path, locales) do
+    with {:ok, context_snapshot} <- context_snapshot(account, context_node, opts),
+         {:ok, items} <- build_items(repo_path, locales),
+         {:ok, locale_contexts} <-
+           resolve_locale_contexts(items, account, context_node, context_snapshot) do
       total = length(items)
       broadcast(session, %{type: "plan", total: total}, progress_node)
 
@@ -97,7 +110,9 @@ defmodule Glossia.Translations.RepositoryRun do
           index,
           total,
           progress_node,
-          credential_node
+          credential_node,
+          context_snapshot,
+          locale_contexts
         )
       end)
 
@@ -118,6 +133,15 @@ defmodule Glossia.Translations.RepositoryRun do
   defp filter_locales(items, []), do: items
   defp filter_locales(items, locales), do: Enum.filter(items, &(&1.locale in locales))
 
+  defp resolve_locale_contexts(items, account, context_node, context_snapshot) do
+    locales = items |> Enum.map(& &1.locale) |> Enum.uniq()
+
+    with {:ok, locale_contexts} <-
+           Context.resolve_locales_on(context_node, account, context_snapshot, locales) do
+      {:ok, Context.prepare_locale_contexts(locale_contexts)}
+    end
+  end
+
   defp apply_one(
          session,
          account,
@@ -126,21 +150,86 @@ defmodule Glossia.Translations.RepositoryRun do
          index,
          total,
          progress_node,
-         credential_node
+         credential_node,
+         context_snapshot,
+         locale_contexts
        ) do
     source_content = File.read!(item.source_abs)
+
+    if String.valid?(source_content) do
+      {_preserved_frontmatter, translatable_source} = Engine.prepare(item, source_content)
+
+      server_context =
+        Context.build_bundle(
+          context_snapshot,
+          locale_contexts,
+          item.locale,
+          translatable_source,
+          item.preserve || []
+        )
+
+      item = Map.put(item, :server_context, server_context)
+
+      translate_or_skip_item(
+        session,
+        account,
+        repo_path,
+        item,
+        source_content,
+        index,
+        total,
+        progress_node,
+        credential_node
+      )
+    else
+      broadcast(
+        session,
+        %{
+          type: "item_failed",
+          index: index,
+          output_path: item.output_path,
+          reason: "source file contains invalid text encoding"
+        },
+        progress_node
+      )
+    end
+  end
+
+  defp translate_or_skip_item(
+         session,
+         account,
+         repo_path,
+         item,
+         source_content,
+         index,
+         total,
+         progress_node,
+         credential_node
+       ) do
     provider = ModelIdentifier.provider(item.model)
 
     hash_state =
-      Locks.build_hash_state(
-        item.format,
-        item.source_path,
-        source_content,
-        provider,
-        item.model || "",
-        item.context_body,
-        item.locale_override_body
-      )
+      Locks.build_hash_state(%{
+        format: item.format,
+        source_path: item.source_path,
+        source_content: source_content,
+        provider: provider,
+        model: item.model || "",
+        source_language: item.source_language,
+        language: item.language,
+        locale: item.locale,
+        frontmatter_mode: item.frontmatter_mode,
+        preserve: item.preserve || [],
+        custom_prompt: item.prompt,
+        context_body: item.context_body,
+        locale_override_body: item.locale_override_body,
+        retries: item.retries,
+        check_cmd: item.check_cmd,
+        check_cmds: item.check_cmds,
+        validation: item.validation,
+        validation_relative_path: item.validation_relative_path,
+        server_context: item.server_context
+      })
 
     current_output_hash =
       if File.exists?(item.output_abs),
@@ -168,6 +257,16 @@ defmodule Glossia.Translations.RepositoryRun do
         %{type: "item_skipped", index: index, output_path: item.output_path},
         progress_node
       )
+    end
+  end
+
+  defp context_snapshot(account, context_node, opts) do
+    case Keyword.fetch(opts, :context_snapshot) do
+      {:ok, snapshot} ->
+        {:ok, snapshot}
+
+      :error ->
+        Context.snapshot_on(context_node, account)
     end
   end
 
@@ -260,7 +359,8 @@ defmodule Glossia.Translations.RepositoryRun do
         item.output_path,
         text,
         hash_state.hash,
-        hash_state.tree
+        hash_state.tree,
+        Context.provenance(item.server_context)
       )
 
     Locks.write_lock(repo_path, item.source_path, item.locale, lock)
@@ -391,6 +491,9 @@ defmodule Glossia.Translations.RepositoryRun do
   defp normalize_event(:turn_end), do: %{type: "turn_end"}
   defp normalize_event(:done), do: %{type: "done"}
   defp normalize_event({:attempt_start, attempt}), do: %{type: "attempt_start", attempt: attempt}
+
+  defp normalize_event({:context_budget, budget}),
+    do: Map.put(budget, :type, "context_budget")
 
   defp normalize_event({:segment_start, index, count}),
     do: %{type: "segment_start", index: index, count: count}

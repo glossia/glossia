@@ -458,6 +458,9 @@ defmodule Glossia.TranslationSessions.Translate do
   defp humanize_error({:runner_exit, _reason}),
     do: "Translation stopped unexpectedly in the isolated runner. Please retry."
 
+  defp humanize_error({:context_relay_failed, _reason}),
+    do: "Could not load the account's translation context. Please retry."
+
   defp humanize_error({:github_token_failed, _}),
     do: "Could not authenticate with GitHub. Check the app installation."
 

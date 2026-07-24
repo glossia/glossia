@@ -1,6 +1,7 @@
 defmodule Glossia.Translations.ValidateTest do
   use ExUnit.Case, async: true
 
+  alias Glossia.Translations.Context
   alias Glossia.Translations.Locks
   alias Glossia.Translations.Validate
 
@@ -158,6 +159,51 @@ defmodule Glossia.Translations.ValidateTest do
       assert h1 != h3
     end
 
+    test "effective server context and custom prompts participate in the dependency tree" do
+      base = hash_state_input()
+      original = Locks.build_hash_state(base)
+
+      changed_prompt =
+        base
+        |> Map.put(:custom_prompt, "Use a formal register.")
+        |> Locks.build_hash_state()
+
+      changed_terminology =
+        base
+        |> Map.put(:server_context, server_context("Cuenta"))
+        |> Locks.build_hash_state()
+
+      changed_validation =
+        base
+        |> Map.put(:validation, ["mix", "test"])
+        |> Locks.build_hash_state()
+
+      assert original.hash != changed_prompt.hash
+      assert original.hash != changed_terminology.hash
+      assert original.hash != changed_validation.hash
+
+      [_, config_node, _] = get_in(original.tree, ["root", "children"])
+      assert config_node["metadata"]["segmentation_version"] == 1
+      assert config_node["metadata"]["preservation_version"] == 1
+    end
+
+    test "unrelated server version changes do not invalidate identical effective context" do
+      first = server_context("Cuenta", 1, 2)
+      second = server_context("Cuenta", 7, 9)
+
+      first_hash =
+        hash_state_input()
+        |> Map.put(:server_context, first)
+        |> Locks.build_hash_state()
+
+      second_hash =
+        hash_state_input()
+        |> Map.put(:server_context, second)
+        |> Locks.build_hash_state()
+
+      assert first_hash.hash == second_hash.hash
+    end
+
     @tag :tmp_dir
     test "round-trips a lockfile and detects staleness", %{tmp_dir: root} do
       lock = Locks.build_lock("openai", "gpt-5", "docs/g.md", "docs/es/g.md", "salida", "hash-1")
@@ -170,6 +216,45 @@ defmodule Glossia.Translations.ValidateTest do
       assert Locks.stale?(read, "hash-2", "docs/es/g.md", Locks.output_hash("salida"))
       assert Locks.stale?(nil, "hash-1", "docs/es/g.md", "x")
     end
+  end
+
+  defp hash_state_input do
+    %{
+      format: "markdown",
+      source_path: "docs/guide.md",
+      source_content: "Create an Account.",
+      provider: "openai",
+      model: "openai/gpt-5",
+      source_language: "en",
+      language: "Spanish",
+      locale: "es",
+      frontmatter_mode: :preserve,
+      preserve: [],
+      custom_prompt: nil,
+      context_body: "Project context",
+      locale_override_body: "",
+      server_context: Context.empty_bundle("es")
+    }
+  end
+
+  defp server_context(translation, voice_version \\ 1, glossary_version \\ 1) do
+    %{
+      Context.empty_bundle("es")
+      | snapshot: %{
+          Context.empty_snapshot()
+          | voice_version: voice_version,
+            glossary_version: glossary_version
+        },
+        terminology: [
+          %{
+            id: "account",
+            term: "Account",
+            translation: translation,
+            definition: nil,
+            case_sensitive: false
+          }
+        ]
+    }
   end
 
   defp validation_options(source, target, doc) do

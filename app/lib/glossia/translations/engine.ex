@@ -15,6 +15,7 @@ defmodule Glossia.Translations.Engine do
   """
 
   alias Glossia.Translations.ContentSegments
+  alias Glossia.Translations.Context
   alias Glossia.Translations
   alias Glossia.Translations.Format
   alias Glossia.Translations.Frontmatter
@@ -35,19 +36,41 @@ defmodule Glossia.Translations.Engine do
         opts \\ []
       )
       when is_function(on_event, 1) and is_function(validate, 2) and is_list(opts) do
+    case Map.fetch(work_item, :server_context) do
+      {:ok, server_context} ->
+        apply_item_with_context(work_item, account, on_event, validate, opts, server_context)
+
+      :error ->
+        {:error, :server_context_missing}
+    end
+  end
+
+  defp apply_item_with_context(work_item, account, on_event, validate, opts, server_context) do
     case File.read(work_item.source_abs) do
       {:ok, source_text} ->
         translation = prepare_translation(work_item, source_text)
+        preserve_kinds = PreservedTokens.resolve(work_item.preserve || [])
+
+        {segments, context_budget} =
+          attach_server_context(
+            translation.segments,
+            server_context,
+            work_item.preserve || []
+          )
+
+        if context_budget_clipped?(context_budget) do
+          on_event.({:context_budget, context_budget})
+        end
 
         run_attempt(%{
           account: account,
           work_item: work_item,
-          segments: translation.segments,
+          segments: segments,
           preserved_frontmatter: translation.preserved_frontmatter,
           source_text: source_text,
           on_event: on_event,
           validate: validate,
-          preserve_kinds: PreservedTokens.resolve(work_item.preserve || []),
+          preserve_kinds: preserve_kinds,
           attempt: 0,
           max_attempt: work_item.retries || 0,
           last_error: nil,
@@ -113,6 +136,7 @@ defmodule Glossia.Translations.Engine do
           payload(
             state.work_item,
             protection.text,
+            segment.server_context_body,
             not is_nil(state.preserved_frontmatter),
             state.last_error,
             segment.kind,
@@ -227,6 +251,46 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
+  defp attach_server_context(segments, server_context, preserve) do
+    initial_budget = %{
+      segments: length(segments),
+      segments_with_terminology_omissions: 0,
+      terminology_matched: 0,
+      terminology_included: 0,
+      terminology_omitted: 0,
+      terminology_definitions_omitted: 0,
+      voice_truncated: false
+    }
+
+    Enum.map_reduce(segments, initial_budget, fn segment, budget ->
+      prompt = Context.prompt(server_context, segment.content, preserve)
+      segment = Map.put(segment, :server_context_body, prompt.body)
+      {segment, merge_context_budget(budget, prompt.budget)}
+    end)
+  end
+
+  defp merge_context_budget(total, segment) do
+    segment_has_omissions =
+      segment.terminology_omitted > 0 or segment.terminology_definitions_omitted > 0
+
+    %{
+      total
+      | segments_with_terminology_omissions:
+          total.segments_with_terminology_omissions + if(segment_has_omissions, do: 1, else: 0),
+        terminology_matched: total.terminology_matched + segment.terminology_matched,
+        terminology_included: total.terminology_included + segment.terminology_included,
+        terminology_omitted: total.terminology_omitted + segment.terminology_omitted,
+        terminology_definitions_omitted:
+          total.terminology_definitions_omitted + segment.terminology_definitions_omitted,
+        voice_truncated: total.voice_truncated or segment.voice_truncated
+    }
+  end
+
+  defp context_budget_clipped?(budget) do
+    budget.voice_truncated or budget.terminology_omitted > 0 or
+      budget.terminology_definitions_omitted > 0
+  end
+
   @doc false
   def reassemble(nil, stripped), do: stripped
 
@@ -272,6 +336,7 @@ defmodule Glossia.Translations.Engine do
   defp payload(
          work_item,
          content,
+         server_context_body,
          frontmatter_preserved,
          last_error,
          segment_kind,
@@ -287,6 +352,7 @@ defmodule Glossia.Translations.Engine do
       "source_content" => content,
       "context_body" => work_item.context_body,
       "locale_override_body" => work_item.locale_override_body,
+      "server_context_body" => server_context_body,
       "custom_prompt" => work_item.prompt,
       "frontmatter_preserved" => frontmatter_preserved,
       "last_error" => last_error,

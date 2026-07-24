@@ -4,6 +4,7 @@ defmodule Glossia.Translations.EngineTest do
 
   alias Glossia.Accounts.Account
   alias Glossia.Translations
+  alias Glossia.Translations.Context
   alias Glossia.Translations.Engine
 
   defp work_item(overrides) do
@@ -25,7 +26,8 @@ defmodule Glossia.Translations.EngineTest do
         retries: 2,
         model: "translator",
         context_body: "",
-        locale_override_body: ""
+        locale_override_body: "",
+        server_context: Context.empty_bundle("es")
       },
       overrides
     )
@@ -74,6 +76,13 @@ defmodule Glossia.Translations.EngineTest do
 
       assert {nil, "raw"} = Engine.prepare(work_item(%{format: "text"}), "raw")
     end
+  end
+
+  test "fails closed when server context was not attached" do
+    item = work_item(%{}) |> Map.delete(:server_context)
+
+    assert {:error, :server_context_missing} =
+             Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
   end
 
   describe "apply_item/4" do
@@ -132,6 +141,146 @@ defmodule Glossia.Translations.EngineTest do
 
       assert result.text ==
                "%{\n  title: \"Hello\",\n  date: ~D[2026-02-03]\n}\n---\ntranslated segment 1\n\ntranslated segment 2"
+    end
+
+    @tag :tmp_dir
+    test "passes only segment-relevant server terminology to the model", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.txt")
+
+      File.write!(
+        source,
+        String.duplicate("Configure the Account. ", 220) <>
+          "\n\n" <> String.duplicate("Open the Project. ", 220)
+      )
+
+      bundle = %{
+        Context.empty_bundle("es")
+        | voice: nil,
+          terminology: [
+            %{
+              id: "account",
+              term: "Account",
+              translation: "Cuenta",
+              definition: nil,
+              case_sensitive: true
+            },
+            %{
+              id: "project",
+              term: "Project",
+              translation: "Proyecto",
+              definition: nil,
+              case_sensitive: true
+            }
+          ]
+      }
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        translated("translated segment #{payload["segment_index"]}")
+      end)
+
+      item = work_item(%{source_abs: source, format: "text", server_context: bundle})
+      assert {:ok, _result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      [first, second] = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert first["server_context_body"] =~ ~s("Account" → "Cuenta")
+      refute first["server_context_body"] =~ ~s("Project" → "Proyecto")
+      assert second["server_context_body"] =~ ~s("Project" → "Proyecto")
+      refute second["server_context_body"] =~ ~s("Account" → "Cuenta")
+    end
+
+    @tag :tmp_dir
+    test "keeps terminology selection aligned when preservation is disabled", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.txt")
+      File.write!(source, "Use `Account` here.")
+
+      bundle = %{
+        Context.empty_bundle("es")
+        | terminology: [
+            %{
+              id: "account",
+              term: "Account",
+              translation: "Cuenta",
+              definition: nil,
+              case_sensitive: true
+            }
+          ]
+      }
+
+      stub_stream(fn _account, payload, _on_event ->
+        assert payload["source_content"] == "Use `Account` here."
+        assert payload["server_context_body"] =~ ~s("Account" → "Cuenta")
+        translated("Usa `Cuenta` aquí.")
+      end)
+
+      item =
+        work_item(%{
+          source_abs: source,
+          format: "text",
+          preserve: ["none"],
+          server_context: bundle
+        })
+
+      assert {:ok, _result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+    end
+
+    @tag :tmp_dir
+    test "reports context clipping once per item, including across retries", %{tmp_dir: dir} do
+      source = Path.join(dir, "dense.txt")
+
+      entries =
+        for index <- 1..60 do
+          %{
+            id: "term-#{index}",
+            term: "Term#{index}",
+            translation: "Target#{index}",
+            definition: nil,
+            case_sensitive: true
+          }
+        end
+
+      File.write!(source, Enum.map_join(entries, " ", & &1.term))
+      bundle = %{Context.empty_bundle("es") | terminology: entries}
+
+      stub_stream(fn _account, payload, _on_event ->
+        if payload["last_error"], do: translated("good"), else: translated("bad")
+      end)
+
+      parent = self()
+
+      on_event = fn
+        {:context_budget, budget} -> send(parent, {:context_budget, budget})
+        _event -> :ok
+      end
+
+      validate = fn text, _source ->
+        if text == "good", do: :ok, else: {:error, "try again"}
+      end
+
+      item =
+        work_item(%{
+          source_abs: source,
+          format: "text",
+          retries: 1,
+          server_context: bundle
+        })
+
+      assert {:ok, %{text: "good"}} =
+               Engine.apply_item(item, %Account{id: 1}, on_event, validate)
+
+      assert_receive {:context_budget,
+                      %{
+                        segments_with_terminology_omissions: 1,
+                        terminology_matched: 60,
+                        terminology_included: 50,
+                        terminology_omitted: 10,
+                        terminology_definitions_omitted: 0,
+                        voice_truncated: false
+                      }}
+
+      refute_receive {:context_budget, _budget}
     end
 
     @tag :tmp_dir

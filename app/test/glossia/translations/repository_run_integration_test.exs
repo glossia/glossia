@@ -10,6 +10,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
   alias Glossia.Accounts.Account
   alias Glossia.Translations
+  alias Glossia.Translations.Context
   alias Glossia.Translations.RepositoryRun
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
@@ -72,7 +73,8 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert {:ok, changes} =
              RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
                progress_node: Node.self(),
-               credential_node: parent_node
+               credential_node: parent_node,
+               context_snapshot: Context.empty_snapshot()
              )
 
     # Output written to disk.
@@ -89,6 +91,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
              lock["hash_tree"]
 
     assert Enum.map(children, & &1["kind"]) == ["source", "translation_config", "context_bundle"]
+    refute Map.has_key?(lock["server_context"]["terminology"], "term_keys")
 
     # Change list ready for the PR builder.
     paths = changes |> Enum.map(& &1.path) |> Enum.sort()
@@ -124,7 +127,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     stub.()
 
     assert {:ok, first} =
-             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
 
     assert first != []
 
@@ -133,7 +138,47 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     git!(root, ["commit", "-q", "-m", "translations"])
 
     stub.()
-    assert {:ok, []} = RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
+
+    assert {:ok, []} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
+  end
+
+  @tag :tmp_dir
+  test "reports an invalid source file and continues translating healthy files", %{tmp_dir: root} do
+    init_repo(root)
+    File.write!(Path.join([root, "docs", "broken.md"]), <<"Invalid ", 0xFF, " text">>)
+    git!(root, ["add", "."])
+    git!(root, ["commit", "-q", "-m", "add invalid source"])
+
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+    :ok = TranslationSessions.subscribe_session_events(session)
+
+    Mimic.stub(Translations, :translate_stream, fn _account, _payload, _on_event ->
+      {:ok,
+       %{
+         text: "# Guía\n\nHola, mundo.",
+         model: "openai/gpt-5",
+         provider: "openai",
+         model_handle: "translator"
+       }}
+    end)
+
+    assert {:ok, changes} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
+
+    assert Enum.any?(changes, &(&1.path == "docs/i18n/es/guide.md"))
+    refute File.exists?(Path.join([root, "docs", "i18n", "es", "broken.md"]))
+
+    assert_receive {:translation_session_event,
+                    %{
+                      type: "item_failed",
+                      output_path: "docs/i18n/es/broken.md",
+                      reason: "source file contains invalid text encoding"
+                    }}
   end
 
   @tag :tmp_dir
@@ -156,7 +201,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     session = %TranslationSession{id: Ecto.UUID.generate()}
 
     assert {:error, {:planning_failed, message}} =
-             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"])
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
 
     assert message =~ "no built-in format adapter for .custom files"
   end

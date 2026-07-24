@@ -49,7 +49,8 @@ defmodule Glossia.Translations do
     * `"format"` - `"markdown" | "json" | "yaml" | "po" | "text"` (default `"markdown"`)
     * `"source_language"`, `"language"`, `"locale"` - required display strings
     * `"source_content"` - the content to translate (required)
-    * `"context_body"`, `"locale_override_body"` - optional guidance
+    * `"context_body"`, `"locale_override_body"` - optional repository guidance
+    * `"server_context_body"` - resolved voice and source-relevant terminology
     * `"custom_prompt"` - optional per-document instructions
     * `"frontmatter_preserved"` - boolean, whether the client re-attaches frontmatter
     * `"last_error"` - optional prior validation error, for self-correcting retries
@@ -162,6 +163,7 @@ defmodule Glossia.Translations do
       source_content: to_string(payload["source_content"]),
       context_body: to_string(payload["context_body"] || ""),
       locale_override_body: to_string(payload["locale_override_body"] || ""),
+      server_context_body: to_string(payload["server_context_body"] || ""),
       frontmatter_preserved: payload["frontmatter_preserved"] == true,
       custom_prompt: payload["custom_prompt"],
       last_error: payload["last_error"],
