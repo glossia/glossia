@@ -1,0 +1,181 @@
+{{- if .Values.smolanalytics.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "glossia.smolanalyticsName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: analytics
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- with .Values.smolanalytics.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.smolanalytics.persistence.size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "glossia.smolanalyticsName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: analytics
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "glossia.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: analytics
+  template:
+    metadata:
+      labels:
+        {{- include "glossia.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: analytics
+      annotations:
+        checksum/analytics-secret: {{ printf "%s:%s:%s:%s" .Values.smolanalytics.secretName .Values.smolanalytics.writeKeyKey .Values.smolanalytics.readKeyKey .Values.smolanalytics.passwordKey | sha256sum }}
+    spec:
+      securityContext:
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: smolanalytics
+          image: {{ include "glossia.smolanalyticsImage" . | quote }}
+          imagePullPolicy: {{ .Values.smolanalytics.image.pullPolicy }}
+          args:
+            - serve
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ADDR
+              value: 0.0.0.0:8080
+            - name: SMOLANALYTICS_DB
+              value: /data/smolanalytics.data
+            - name: SMOLANALYTICS_RETAIN_DAYS
+              value: {{ .Values.smolanalytics.retentionDays | quote }}
+            - name: SMOLANALYTICS_MAX_EVENTS
+              value: {{ .Values.smolanalytics.maxEvents | quote }}
+            - name: SMOLANALYTICS_WRITE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smolanalytics.secretName | quote }}
+                  key: {{ .Values.smolanalytics.writeKeyKey | quote }}
+            - name: SMOLANALYTICS_READ_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smolanalytics.secretName | quote }}
+                  key: {{ .Values.smolanalytics.readKeyKey | quote }}
+            - name: SMOLANALYTICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smolanalytics.secretName | quote }}
+                  key: {{ .Values.smolanalytics.passwordKey | quote }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+          resources:
+            {{- toYaml .Values.smolanalytics.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "glossia.smolanalyticsName" . }}
+      {{- with .Values.smolanalytics.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smolanalytics.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smolanalytics.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "glossia.smolanalyticsName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: analytics
+spec:
+  selector:
+    {{- include "glossia.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: analytics
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+{{ if .Values.smolanalytics.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "glossia.smolanalyticsName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: analytics
+  {{- with .Values.smolanalytics.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.smolanalytics.ingress.className }}
+  rules:
+    {{- range .Values.smolanalytics.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "glossia.smolanalyticsName" $ }}
+                port:
+                  number: 8080
+          {{- end }}
+    {{- end }}
+  {{- with .Values.smolanalytics.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

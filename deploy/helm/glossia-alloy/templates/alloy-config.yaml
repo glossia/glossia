@@ -77,6 +77,30 @@ data:
     	}
     }
 
+    // ===== Hermes observability bridge metrics =====
+    discovery.relabel "hermes_observability_bridge" {
+      targets = discovery.kubernetes.pods.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_component"]
+        regex         = "assistant"
+        action        = "keep"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_port_number"]
+        regex         = "9090"
+        action        = "keep"
+      }
+    }
+
+    prometheus.scrape "hermes_observability_bridge" {
+      targets         = discovery.relabel.hermes_observability_bridge.output
+      forward_to      = [prometheus.remote_write.mimir.receiver]
+      metrics_path    = "/metrics"
+      scrape_interval = "30s"
+    }
+
     // ===== kube-state-metrics =====
     discovery.relabel "ksm" {
     	targets = discovery.kubernetes.services.targets

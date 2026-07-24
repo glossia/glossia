@@ -246,6 +246,7 @@ mailRelay:
         podSelector:
           app.kubernetes.io/name: glossia
           app.kubernetes.io/instance: glossia
+          app.kubernetes.io/component: agent
       - namespace: observability
         podSelector:
           app.kubernetes.io/name: glitchtip
@@ -494,6 +495,7 @@ rookObjectStorage:
     appPodSelector:
       app.kubernetes.io/name: glossia
       app.kubernetes.io/instance: glossia
+      app.kubernetes.io/component: agent
 
 # Public release artifact storage. This intentionally uses a separate Rook
 # Object Gateway from the app bucket so release downloads can be public without

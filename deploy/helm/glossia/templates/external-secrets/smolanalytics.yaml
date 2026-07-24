@@ -1,0 +1,26 @@
+{{- if and .Values.externalSecrets.enabled .Values.smolanalytics.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.smolanalytics.secretName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.smolanalytics.secretName }}
+    creationPolicy: Owner
+  data:
+    - secretKey: {{ .Values.smolanalytics.writeKeyKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.smolanalytics.itemKey .Values.externalSecrets.smolanalytics.writeKeyField | quote }}
+    - secretKey: {{ .Values.smolanalytics.readKeyKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.smolanalytics.itemKey .Values.externalSecrets.smolanalytics.readKeyField | quote }}
+    - secretKey: {{ .Values.smolanalytics.passwordKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.smolanalytics.itemKey .Values.externalSecrets.smolanalytics.passwordField | quote }}
+{{- end }}

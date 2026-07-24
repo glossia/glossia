@@ -1,0 +1,211 @@
+{{- if .Values.hermes.enabled }}
+{{- if not .Values.smolanalytics.enabled }}
+{{- fail "smolanalytics.enabled must be true when hermes.enabled=true" }}
+{{- end }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "glossia.hermesName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: assistant
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- with .Values.hermes.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.hermes.persistence.size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "glossia.hermesName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: assistant
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "glossia.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: assistant
+  template:
+    metadata:
+      labels:
+        {{- include "glossia.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: assistant
+      annotations:
+        checksum/hermes-config: {{ include (print $.Template.BasePath "/hermes-configmap.yaml") . | sha256sum }}
+        checksum/hermes-secrets: {{ printf "%s:%s:%s" .Values.hermes.secretName .Values.smolanalytics.secretName .Values.hermes.observability.secretName | sha256sum }}
+    spec:
+      securityContext:
+        fsGroup: 10000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: install-configuration
+          image: {{ .Values.hermes.bootstrapImage | quote }}
+          command:
+            - sh
+            - -ec
+            - |
+              cp /bootstrap/config.yaml /data/config.yaml
+              cp /bootstrap/SOUL.md /data/SOUL.md
+              chmod 0640 /data/config.yaml /data/SOUL.md
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 10000
+          volumeMounts:
+            - name: configuration
+              mountPath: /bootstrap
+              readOnly: true
+            - name: data
+              mountPath: /data
+      containers:
+        - name: hermes
+          image: {{ include "glossia.hermesImage" . | quote }}
+          imagePullPolicy: {{ .Values.hermes.image.pullPolicy }}
+          args:
+            - gateway
+          ports:
+            - name: health
+              containerPort: 8642
+          env:
+            - name: HERMES_UID
+              value: "10000"
+            - name: HERMES_GID
+              value: "10000"
+            - name: API_SERVER_ENABLED
+              value: "true"
+            - name: API_SERVER_HOST
+              value: 0.0.0.0
+            - name: API_SERVER_PORT
+              value: "8642"
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hermes.secretName | quote }}
+                  key: {{ .Values.hermes.apiKeyKey | quote }}
+            - name: SLACK_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hermes.secretName | quote }}
+                  key: {{ .Values.hermes.slackBotTokenKey | quote }}
+            - name: SLACK_APP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hermes.secretName | quote }}
+                  key: {{ .Values.hermes.slackAppTokenKey | quote }}
+            - name: SLACK_ALLOWED_USERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hermes.secretName | quote }}
+                  key: {{ .Values.hermes.slackAllowedUsersKey | quote }}
+            {{- if .Values.hermes.slackHomeChannelEnabled }}
+            - name: SLACK_HOME_CHANNEL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hermes.secretName | quote }}
+                  key: {{ .Values.hermes.slackHomeChannelKey | quote }}
+            {{- end }}
+            - name: API_SERVER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hermes.secretName | quote }}
+                  key: {{ .Values.hermes.apiServerKeyKey | quote }}
+            - name: SMOLANALYTICS_READ_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smolanalytics.secretName | quote }}
+                  key: {{ .Values.smolanalytics.readKeyKey | quote }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: health
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: health
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: health
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.hermes.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+        - name: grafana-mcp
+          image: {{ include "glossia.hermesGrafanaMCPImage" . | quote }}
+          imagePullPolicy: {{ .Values.hermes.observability.image.pullPolicy }}
+          command:
+            - /app/mcp-grafana
+          args:
+            - --transport
+            - streamable-http
+            - --address
+            - 127.0.0.1:8000
+            - --disable-write
+            - --metrics
+            - --metrics-address
+            - 0.0.0.0:9090
+          ports:
+            - name: metrics
+              containerPort: 9090
+          env:
+            - name: GRAFANA_URL
+              value: {{ required "hermes.observability.grafanaURL is required when hermes.enabled=true" .Values.hermes.observability.grafanaURL | quote }}
+            - name: GRAFANA_SERVICE_ACCOUNT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hermes.observability.secretName | quote }}
+                  key: {{ .Values.hermes.observability.serviceAccountTokenKey | quote }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+          resources:
+            {{- toYaml .Values.hermes.observability.resources | nindent 12 }}
+      volumes:
+        - name: configuration
+          configMap:
+            name: {{ include "glossia.hermesName" . }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "glossia.hermesName" . }}
+      {{- with .Values.hermes.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hermes.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hermes.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -30,6 +30,38 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "glossia.smolanalyticsName" -}}
+{{- printf "%s-smolanalytics" (include "glossia.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "glossia.smolanalyticsImage" -}}
+{{- if .Values.smolanalytics.image.digest -}}
+{{- printf "%s@%s" .Values.smolanalytics.image.repository .Values.smolanalytics.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.smolanalytics.image.repository .Values.smolanalytics.image.tag -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "glossia.hermesName" -}}
+{{- printf "%s-hermes" (include "glossia.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "glossia.hermesImage" -}}
+{{- if .Values.hermes.image.digest -}}
+{{- printf "%s@%s" .Values.hermes.image.repository .Values.hermes.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.hermes.image.repository .Values.hermes.image.tag -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "glossia.hermesGrafanaMCPImage" -}}
+{{- if .Values.hermes.observability.image.digest -}}
+{{- printf "%s@%s" .Values.hermes.observability.image.repository .Values.hermes.observability.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.hermes.observability.image.repository .Values.hermes.observability.image.tag -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "glossia.headlessServiceName" -}}
 {{ include "glossia.fullname" . }}-headless
 {{- end -}}

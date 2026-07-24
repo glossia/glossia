@@ -1,0 +1,79 @@
+{{- if .Values.hermes.enabled }}
+{{- if not .Values.smolanalytics.enabled }}
+{{- fail "smolanalytics.enabled must be true when hermes.enabled=true" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "glossia.hermesName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: assistant
+data:
+  config.yaml: |
+    model:
+      provider: {{ .Values.hermes.model.provider | quote }}
+      default: {{ .Values.hermes.model.default | quote }}
+
+    platform_toolsets:
+      slack:
+        - mcp-observability
+        - mcp-analytics
+      api_server:
+        - mcp-observability
+        - mcp-analytics
+
+    tool_loop_guardrails:
+      warnings_enabled: true
+      hard_stop_enabled: true
+
+    mcp_servers:
+      observability:
+        url: http://127.0.0.1:8000/mcp
+        supports_parallel_tool_calls: true
+        tools:
+          resources: false
+          prompts: false
+      analytics:
+        url: http://{{ include "glossia.smolanalyticsName" . }}:8080/mcp
+        headers:
+          Authorization: "Bearer ${SMOLANALYTICS_READ_KEY}"
+        supports_parallel_tool_calls: true
+        tools:
+          include:
+            - whats_notable
+            - overview
+            - list_events
+            - funnel
+            - retention
+            - trends
+            - breakdown
+            - web_overview
+            - recent_events
+            - user_activity
+            - lifecycle
+            - stickiness
+            - paths
+            - heatmap
+            - list_sessions
+            - session_timeline
+            - groups
+            - instrumentation_health
+            - deploy_impact
+            - goal_report
+          resources: false
+          prompts: false
+  SOUL.md: |
+    You are the Glossia operations and analytics assistant.
+
+    Answer questions using the analytics and observability tools available to
+    you. Correlate product events with dashboards, metrics, logs, and traces
+    when that helps explain a change. State the time window and filters behind
+    every conclusion, distinguish evidence from inference, and say when the
+    available data is insufficient.
+
+    You have read-only access. Never claim to have changed production state.
+    Do not reveal credentials, authorization headers, or personal data. Prefer
+    aggregate analytics, and only inspect a single user's activity when the
+    person asking has a legitimate operational reason.
+{{- end }}
