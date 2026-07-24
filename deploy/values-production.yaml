@@ -68,6 +68,46 @@ objectStorage:
     bucketName: glossia-production
     bucketSecretName: glossia-s3
 
+smolanalytics:
+  enabled: true
+  persistence:
+    storageClass: hcloud-volumes
+    size: 20Gi
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    hosts:
+      - host: analytics.glossia.ai
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: analytics-glossia-ai-tls
+        hosts:
+          - analytics.glossia.ai
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+hermes:
+  enabled: true
+  model:
+    provider: custom:together
+    default: MiniMaxAI/MiniMax-M3
+    baseURL: https://api.together.ai/v1
+    apiKeyEnvironmentVariable: TOGETHER_API_KEY
+  persistence:
+    storageClass: hcloud-volumes
+    size: 5Gi
+  observability:
+    grafanaURL: http://observability-grafana.observability.svc.cluster.local
+
 # CAPI/Hetzner stateful pool: hcloud-volumes for PVCs, taint+nodeSelector
 # pin Postgres + ClickHouse to the dedicated stateful nodes.
 postgres:
@@ -174,6 +214,22 @@ externalSecrets:
   postgres:
     itemKey: /kubernetes
     passwordField: POSTGRES_PASSWORD
+  smolanalytics:
+    itemKey: /kubernetes
+    writeKeyField: SMOLANALYTICS_WRITE_KEY
+    readKeyField: SMOLANALYTICS_READ_KEY
+    passwordField: SMOLANALYTICS_PASSWORD
+  hermes:
+    itemKey: /kubernetes
+    apiKeyField: TOGETHER_API_KEY
+    slackBotTokenField: SLACK_BOT_TOKEN
+    slackAppTokenField: SLACK_APP_TOKEN
+    slackAllowedUsersField: SLACK_ALLOWED_USERS
+    slackHomeChannelField: ""
+    apiServerKeyField: HERMES_API_SERVER_KEY
+  grafanaMcp:
+    itemKey: /kubernetes
+    serviceAccountTokenField: GRAFANA_SERVICE_ACCOUNT_TOKEN
   backup:
     itemKey: /glossia-db-backups-keys
     accessKeyIdField: ACCESS_KEY_ID
