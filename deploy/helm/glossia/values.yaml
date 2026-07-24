@@ -88,6 +88,96 @@ mailRelay:
   tls: never
   auth: never
 
+# Product analytics. smolanalytics is a single-writer service, so the chart
+# deliberately fixes it at one replica and uses a Recreate deployment strategy.
+smolanalytics:
+  enabled: false
+  image:
+    repository: ghcr.io/arjun0606/smolanalytics
+    tag: v0.9.11
+    digest: ""
+    pullPolicy: IfNotPresent
+  secretName: glossia-smolanalytics
+  writeKeyKey: SMOLANALYTICS_WRITE_KEY
+  readKeyKey: SMOLANALYTICS_READ_KEY
+  passwordKey: SMOLANALYTICS_PASSWORD
+  retentionDays: 365
+  maxEvents: "1000000"
+  persistence:
+    storageClass: ""
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: analytics.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Slack assistant with read-only analytics and observability tools exposed
+# through the Model Context Protocol.
+hermes:
+  enabled: false
+  image:
+    repository: nousresearch/hermes-agent
+    tag: v2026.7.20
+    digest: ""
+    pullPolicy: IfNotPresent
+  model:
+    provider: openrouter
+    default: anthropic/claude-sonnet-4.6
+  secretName: glossia-hermes
+  apiKeyKey: OPENROUTER_API_KEY
+  slackBotTokenKey: SLACK_BOT_TOKEN
+  slackAppTokenKey: SLACK_APP_TOKEN
+  slackAllowedUsersKey: SLACK_ALLOWED_USERS
+  slackHomeChannelEnabled: false
+  slackHomeChannelKey: SLACK_HOME_CHANNEL
+  apiServerKeyKey: API_SERVER_KEY
+  persistence:
+    storageClass: ""
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  observability:
+    grafanaURL: http://observability-grafana.observability.svc.cluster.local
+    secretName: glossia-grafana-mcp
+    serviceAccountTokenKey: GRAFANA_SERVICE_ACCOUNT_TOKEN
+    image:
+      repository: grafana/mcp-grafana
+      tag: 0.17.2
+      digest: ""
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  bootstrapImage: busybox:1.37.0
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # App object storage. By default the app expects the storage environment
 # variables to come from secrets.envSecretName. Enable the provider-neutral
 # configuration below to read credentials from a dedicated Kubernetes Secret.
@@ -136,8 +226,9 @@ affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:
-          matchLabels:
-            app.kubernetes.io/name: glossia
+        matchLabels:
+          app.kubernetes.io/name: glossia
+          app.kubernetes.io/component: agent
         topologyKey: kubernetes.io/hostname
 
 pdb:
@@ -349,6 +440,26 @@ externalSecrets:
     itemKey: /glossia-object-storage
     accessKeyIdField: ACCESS_KEY_ID
     secretAccessKeyField: SECRET_ACCESS_KEY
+  # Credentials for event ingestion, report queries, and the protected
+  # smolanalytics dashboard.
+  smolanalytics:
+    itemKey: /glossia
+    writeKeyField: SMOLANALYTICS_WRITE_KEY
+    readKeyField: SMOLANALYTICS_READ_KEY
+    passwordField: SMOLANALYTICS_PASSWORD
+  # Model provider and Slack Socket Mode credentials for Hermes.
+  hermes:
+    itemKey: /glossia
+    apiKeyField: OPENROUTER_API_KEY
+    slackBotTokenField: SLACK_BOT_TOKEN
+    slackAppTokenField: SLACK_APP_TOKEN
+    slackAllowedUsersField: SLACK_ALLOWED_USERS
+    slackHomeChannelField: ""
+    apiServerKeyField: HERMES_API_SERVER_KEY
+  # Read-only Grafana service account token used by the protocol sidecar.
+  grafanaMcp:
+    itemKey: /glossia
+    serviceAccountTokenField: GRAFANA_SERVICE_ACCOUNT_TOKEN
   # ExternalSecret for the dedicated DB-backup bucket credentials. Pulls
   # from a SEPARATE backend item (not appEnv.itemKey) so backup creds are
   # not entangled with the app's secrets. Maps remote fields →
