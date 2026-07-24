@@ -98,6 +98,15 @@ config :glossia, Glossia.Stripe,
 config :glossia, Glossia.Github, webhook_secret: nil
 config :glossia, Glossia.Gitlab, webhook_secret: nil
 
+config :glossia, :event_handler, Glossia.Analytics.Smolanalytics
+
+config :glossia, Glossia.Analytics.Smolanalytics,
+  enabled: false,
+  url: nil,
+  write_key: nil,
+  environment: to_string(config_env()),
+  request_options: []
+
 config :glossia, Glossia.PromEx,
   manual_metrics_start_delay: :no_delay,
   grafana: :disabled
@@ -108,7 +117,7 @@ config :glossia, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,
   repo: Glossia.Repo,
-  queues: [default: 10],
+  queues: [default: 10, analytics: 5],
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
