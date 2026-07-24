@@ -28,6 +28,8 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     {:ok, view, _html} =
       live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
+    assert has_element?(view, ".dash-empty-state", "No events recorded yet.")
+
     TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 1})
 
     TranslationSessions.broadcast_session_event(session, %{
@@ -47,6 +49,9 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "#translation-progress [data-status='running'] [data-part='status']",
              "Translating"
            )
+
+    refute has_element?(view, ".dash-empty-state")
+    refute has_element?(view, ".session-event-feed")
 
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_completed",
