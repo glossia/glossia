@@ -228,9 +228,9 @@ affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: glossia
-          app.kubernetes.io/component: agent
+          matchLabels:
+            app.kubernetes.io/name: glossia
+            app.kubernetes.io/component: agent
         topologyKey: kubernetes.io/hostname
 
 pdb:
