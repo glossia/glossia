@@ -96,7 +96,7 @@ spec:
               value: 0.0.0.0
             - name: API_SERVER_PORT
               value: "8642"
-            - name: OPENROUTER_API_KEY
+            - name: {{ .Values.hermes.model.apiKeyEnvironmentVariable }}
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.hermes.secretName | quote }}
