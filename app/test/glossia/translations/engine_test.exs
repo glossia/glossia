@@ -360,11 +360,9 @@ defmodule Glossia.Translations.EngineTest do
       )
 
       stub_stream(fn _account, payload, _on_event ->
-        refute payload["source_content"] =~ "https://glossia.ai/{locale}"
+        assert payload["source_content"] =~ "https://glossia.ai/{locale}"
         refute payload["source_content"] =~ "`mix test`"
-
-        assert payload["source_content"] =~
-                 ~r|https://glossia\.invalid/protected-token/[a-f0-9]{12}/\d+|
+        refute payload["source_content"] =~ "glossia.invalid"
 
         translated(String.replace(payload["source_content"], "Visit", "Visita"))
       end)
@@ -378,6 +376,29 @@ defmodule Glossia.Translations.EngineTest do
 
       assert result.text ==
                "Visita [Glossia](https://glossia.ai/{locale}) and run `mix test`."
+    end
+
+    @tag :tmp_dir
+    test "sends ordinary web addresses to the model unchanged", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Follow [Anthropic](https://anthropic.com) closely.")
+
+      stub_stream(fn _account, payload, _on_event ->
+        assert payload["source_content"] ==
+                 "Follow [Anthropic](https://anthropic.com) closely."
+
+        refute payload["source_content"] =~ "glossia.invalid"
+        translated("Sigue [Anthropic](https://anthropic.com) de cerca.")
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text == "Sigue [Anthropic](https://anthropic.com) de cerca."
     end
 
     @tag :tmp_dir

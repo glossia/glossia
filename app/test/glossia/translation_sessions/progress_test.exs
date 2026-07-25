@@ -39,19 +39,43 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     assert Progress.summary(state) == %{total: 2, skipped: 0, done: 1, failed: 1, running: 0}
   end
 
-  test "shows only the current segment or retry instead of concatenating model outputs" do
+  test "keeps the previous preview visible until the next segment starts streaming" do
     state =
       Progress.fold([
         %{type: "item_started", index: 0, output_path: "ja/a.md", locale: "ja"},
         %{type: "item_event", index: 0, event: %{type: "attempt_start", attempt: 1}},
         %{type: "item_event", index: 0, event: %{type: "text", text: "first attempt"}},
         %{type: "item_event", index: 0, event: %{type: "attempt_start", attempt: 2}},
-        %{type: "item_event", index: 0, event: %{type: "text", text: "second attempt"}},
-        %{type: "item_event", index: 0, event: %{type: "segment_start", index: 2, count: 3}},
-        %{type: "item_event", index: 0, event: %{type: "text", text: "current segment"}}
+        %{type: "item_event", index: 0, event: %{type: "segment_start", index: 1, count: 3}}
       ])
 
-    assert [%{text: "current segment"}] = Progress.items(state)
+    assert [%{text: "first attempt", replace_text_on_next_chunk: true}] =
+             Progress.items(state)
+
+    state =
+      Progress.apply_event(state, %{
+        type: "item_event",
+        index: 0,
+        event: %{type: "text", text: "current segment"}
+      })
+
+    assert [%{text: "current segment", replace_text_on_next_chunk: false}] =
+             Progress.items(state)
+  end
+
+  test "a new plan clears progress left by a retried run" do
+    state =
+      Progress.fold([
+        %{type: "plan", total: 2},
+        %{type: "item_started", index: 0, output_path: "de/a.md", locale: "de"},
+        %{type: "item_failed", index: 0, reason: "first attempt"},
+        %{type: "item_started", index: 1, output_path: "es/a.md", locale: "es"},
+        %{type: "plan", total: 2},
+        %{type: "item_started", index: 0, output_path: "de/a.md", locale: "de"}
+      ])
+
+    assert [%{index: 0, status: :running, turns: 0}] = Progress.items(state)
+    assert Progress.summary(state) == %{total: 2, skipped: 0, done: 0, failed: 0, running: 1}
   end
 
   test "counts skipped items" do

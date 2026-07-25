@@ -169,6 +169,54 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.status == "failed"
   end
 
+  test "keeps a failed attempt running while the worker can still retry" do
+    {user, project} =
+      project_with_installation("translate-retry@test.com", "translate-retry")
+
+    session = session_for(user, project)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales ->
+      {:error, {:translation_items_failed, [%{output_path: "docs/es/guide.md"}]}}
+    end)
+
+    assert {:error, {:translation_items_failed, [_failure]}} =
+             Translate.run(session.id, terminal_failure?: false)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "running"
+    assert is_nil(updated.error)
+    assert is_nil(updated.completed_at)
+  end
+
+  test "starting a retry clears fields from the previous failed attempt" do
+    {user, project} =
+      project_with_installation("translate-reset@test.com", "translate-reset")
+
+    session = session_for(user, project)
+
+    {:ok, failed_session} =
+      TranslationSessions.update_session_status(session, "failed",
+        error: "Previous failure",
+        summary: "Previous summary"
+      )
+
+    assert failed_session.completed_at
+
+    {:ok, running_session} =
+      TranslationSessions.update_session_status(failed_session, "running")
+
+    assert running_session.status == "running"
+    assert running_session.started_at
+    assert is_nil(running_session.completed_at)
+    assert is_nil(running_session.error)
+    assert is_nil(running_session.summary)
+  end
+
   test "fails the session when the isolated repository run returns an exit" do
     {user, project} = project_with_installation("translate-exit@test.com", "translate-exit")
     session = session_for(user, project)

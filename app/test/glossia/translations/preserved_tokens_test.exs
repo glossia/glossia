@@ -14,7 +14,7 @@ defmodule Glossia.Translations.PreservedTokensTest do
 
     protection = PreservedTokens.protect(source, PreservedTokens.resolve([]))
 
-    refute protection.text =~ "https://example.com/guide"
+    assert protection.text =~ "https://example.com/guide"
     refute protection.text =~ "IO.puts"
     refute protection.text =~ "{locale}"
 
@@ -26,7 +26,7 @@ defmodule Glossia.Translations.PreservedTokensTest do
   end
 
   test "reports a missing or duplicated marker" do
-    protection = PreservedTokens.protect("Visit https://example.com.", ["urls"])
+    protection = PreservedTokens.protect("Hello {name}.", ["placeholders"])
     [{marker, _value}] = protection.replacements
 
     assert {:error, message} =
@@ -42,25 +42,27 @@ defmodule Glossia.Translations.PreservedTokensTest do
     assert message =~ "occurred 2 times"
   end
 
-  test "masks web addresses with reserved web address markers" do
+  test "leaves web addresses visible for the model while validation keeps them exact" do
     protection =
       PreservedTokens.protect(
         "Follow [Anthropic](https://anthropic.com) closely.",
         ["urls"]
       )
 
-    [{marker, "https://anthropic.com"}] = protection.replacements
-
-    assert marker =~
-             ~r|\Ahttps://glossia\.invalid/protected-token/[a-f0-9]{12}/0\z|
-
-    assert protection.text == "Follow [Anthropic](#{marker}) closely."
+    assert protection.replacements == []
+    assert protection.text == "Follow [Anthropic](https://anthropic.com) closely."
 
     assert {:ok, "Sigue [Anthropic](https://anthropic.com) de cerca."} =
              protection.text
              |> String.replace("Follow", "Sigue")
              |> String.replace(" closely.", " de cerca.")
              |> PreservedTokens.restore(protection)
+
+    assert %{text: "https://example.com/{locale}", replacements: []} =
+             PreservedTokens.protect(
+               "https://example.com/{locale}",
+               PreservedTokens.resolve([])
+             )
   end
 
   test "none disables masking" do

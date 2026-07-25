@@ -3066,6 +3066,13 @@ defmodule GlossiaWeb.DashboardLive do
         socket
       end
 
+    socket =
+      if status == "running" do
+        assign(socket, translation_progress: Glossia.TranslationSessions.Progress.new())
+      else
+        socket
+      end
+
     {:noreply, socket}
   end
 
