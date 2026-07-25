@@ -59,25 +59,45 @@ defmodule Glossia.TranslationSessions do
   end
 
   def update_session_status(%TranslationSession{} = session, status, opts \\ []) do
-    changes = %{status: status}
+    now = DateTime.utc_now()
 
     changes =
-      if status == "running",
-        do: Map.put(changes, :started_at, DateTime.utc_now()),
-        else: changes
+      case status do
+        "pending" ->
+          %{
+            status: status,
+            started_at: nil,
+            completed_at: nil,
+            error: nil,
+            summary: nil
+          }
+
+        "running" ->
+          %{
+            status: status,
+            started_at: now,
+            completed_at: nil,
+            error: nil,
+            summary: nil
+          }
+
+        "completed" ->
+          %{status: status, completed_at: now, error: nil}
+
+        "failed" ->
+          %{status: status, completed_at: now, summary: nil}
+
+        _ ->
+          %{status: status}
+      end
 
     changes =
-      if status in ["completed", "failed"],
-        do: Map.put(changes, :completed_at, DateTime.utc_now()),
-        else: changes
-
-    changes =
-      if opts[:error],
+      if Keyword.has_key?(opts, :error),
         do: Map.put(changes, :error, opts[:error]),
         else: changes
 
     changes =
-      if opts[:summary],
+      if Keyword.has_key?(opts, :summary),
         do: Map.put(changes, :summary, opts[:summary]),
         else: changes
 

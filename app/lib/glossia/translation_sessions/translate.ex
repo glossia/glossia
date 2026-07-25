@@ -11,7 +11,7 @@ defmodule Glossia.TranslationSessions.Translate do
   @translation_branch_prefix "glossia/translate"
   @max_changed_files_in_body 30
 
-  def run(session_id) do
+  def run(session_id, opts \\ []) do
     session =
       TranslationSessions.get_session!(session_id)
       |> Glossia.Repo.preload(project: [:account, :github_installation])
@@ -19,10 +19,10 @@ defmodule Glossia.TranslationSessions.Translate do
     project = session.project
     account = project.account
 
-    do_run(session, project, account)
+    do_run(session, project, account, opts)
   end
 
-  defp do_run(%TranslationSession{} = session, project, account) do
+  defp do_run(%TranslationSession{} = session, project, account, opts) do
     TranslationSessions.update_session_status(session, "running")
 
     Events.emit("translation_session.started", account, nil,
@@ -45,14 +45,14 @@ defmodule Glossia.TranslationSessions.Translate do
       case Glossia.Translations.RepositoryRun.run(session, account, repository, locales) do
         {:ok, changes} ->
           result = create_pull_request(session, project, changes)
-          handle_translation_result(session, project, account, result)
+          handle_translation_result(session, project, account, result, opts)
 
         {:error, reason} ->
-          fail_translation(session, project, account, reason)
+          fail_translation(session, project, account, reason, opts)
       end
     else
       {:error, reason} ->
-        fail_translation(session, project, account, reason)
+        fail_translation(session, project, account, reason, opts)
     end
   end
 
@@ -220,7 +220,7 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  defp handle_translation_result(session, project, account, {:ok, pull_request_url}) do
+  defp handle_translation_result(session, project, account, {:ok, pull_request_url}, _opts) do
     summary = "Created translation pull request."
 
     with {:ok, _session} <-
@@ -242,7 +242,7 @@ defmodule Glossia.TranslationSessions.Translate do
     :ok
   end
 
-  defp handle_translation_result(session, project, account, :skipped_pull_request) do
+  defp handle_translation_result(session, project, account, :skipped_pull_request, _opts) do
     summary = "Translation completed. Pull request skipped because GitHub is not configured."
 
     with {:ok, _session} <-
@@ -258,7 +258,7 @@ defmodule Glossia.TranslationSessions.Translate do
     :ok
   end
 
-  defp handle_translation_result(session, project, account, :no_changes) do
+  defp handle_translation_result(session, project, account, :no_changes, _opts) do
     summary = "No translations needed."
 
     with {:ok, _session} <-
@@ -280,53 +280,61 @@ defmodule Glossia.TranslationSessions.Translate do
     :ok
   end
 
-  defp handle_translation_result(session, project, account, {:error, reason})
+  defp handle_translation_result(session, project, account, {:error, reason}, opts)
        when reason in [
               :translation_change_manifest_missing,
               :translation_change_manifest_empty,
               :translation_change_manifest_invalid,
               :translation_lockfile_invalid
             ] do
-    fail_translation(session, project, account, reason)
+    fail_translation(session, project, account, reason, opts)
   end
 
   defp handle_translation_result(
          session,
          project,
          account,
-         {:error, {:translation_changed_file_missing, _path} = reason}
+         {:error, {:translation_changed_file_missing, _path} = reason},
+         opts
        ) do
-    fail_translation(session, project, account, reason)
+    fail_translation(session, project, account, reason, opts)
   end
 
-  defp handle_translation_result(session, _project, _account, {:error, reason}) do
+  defp handle_translation_result(session, _project, _account, {:error, reason}, opts) do
     fail_translation(
       session,
       session.project,
       session.account,
-      {:translation_publication_failed, reason}
+      {:translation_publication_failed, reason},
+      opts
     )
   end
 
-  defp fail_translation(session, project, account, reason) do
+  defp fail_translation(session, project, account, reason, opts) do
     error_msg = humanize_error(reason)
     Logger.error("Translation failed for session #{session.id}: #{inspect(reason)}")
 
-    TranslationSessions.update_session_status(session, "failed", error: error_msg)
+    if Keyword.get(opts, :terminal_failure?, true) do
+      TranslationSessions.update_session_status(session, "failed", error: error_msg)
 
-    record_translation_event(session, %{
-      "event_type" => "error",
-      "content" => error_msg,
-      "metadata" => %{}
-    })
+      record_translation_event(session, %{
+        "event_type" => "error",
+        "content" => error_msg,
+        "metadata" => %{}
+      })
 
-    Events.emit("translation_session.failed", account, nil,
-      resource_type: "translation_session",
-      resource_id: to_string(session.id),
-      resource_path: "/#{account.handle}/#{project.handle}/-/sessions/#{session.id}",
-      summary:
-        "Translation session failed for #{project.handle}: #{String.slice(error_msg, 0, 200)}"
-    )
+      Events.emit("translation_session.failed", account, nil,
+        resource_type: "translation_session",
+        resource_id: to_string(session.id),
+        resource_path: "/#{account.handle}/#{project.handle}/-/sessions/#{session.id}",
+        summary:
+          "Translation session failed for #{project.handle}: #{String.slice(error_msg, 0, 200)}"
+      )
+    else
+      Logger.warning(
+        "Translation attempt for session #{session.id} will be retried: #{inspect(reason)}"
+      )
+    end
 
     {:error, reason}
   end
@@ -457,6 +465,12 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp humanize_error({:runner_exit, _reason}),
     do: "Translation stopped unexpectedly in the isolated runner. Please retry."
+
+  defp humanize_error({:translation_items_failed, failures}) when is_list(failures) do
+    count = length(failures)
+    suffix = if count == 1, do: "file", else: "files"
+    "Translation failed for #{count} #{suffix}. Review the file errors and retry."
+  end
 
   defp humanize_error({:context_relay_failed, _reason}),
     do: "Could not load the account's translation context. Please retry."

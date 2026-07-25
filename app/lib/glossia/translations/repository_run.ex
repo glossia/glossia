@@ -22,8 +22,8 @@ defmodule Glossia.Translations.RepositoryRun do
   alias Glossia.Translations.Validate
   alias Glossia.TranslationSessions
 
-  @clone_timeout_ms 600_000
-  @runner_result_timeout_ms @clone_timeout_ms + 5_000
+  @git_timeout_ms 600_000
+  @runner_timeout :infinity
 
   @doc """
   Clones `repository`, translates `locales`, and returns `{:ok, changes}`.
@@ -65,7 +65,7 @@ defmodule Glossia.Translations.RepositoryRun do
                   error
               end
             end,
-            timeout: @clone_timeout_ms
+            timeout: @runner_timeout
           )
 
         send(caller, {result_ref, result})
@@ -79,7 +79,7 @@ defmodule Glossia.Translations.RepositoryRun do
       {:DOWN, ^monitor_ref, :process, ^runner_pid, reason} ->
         {:error, {:runner_exit, reason}}
     after
-      @runner_result_timeout_ms ->
+      @runner_timeout ->
         Process.exit(runner_pid, :kill)
         Process.demonitor(monitor_ref, [:flush])
         {:error, :runner_timeout}
@@ -99,24 +99,31 @@ defmodule Glossia.Translations.RepositoryRun do
       total = length(items)
       broadcast(session, %{type: "plan", total: total}, progress_node)
 
-      items
-      |> Enum.with_index()
-      |> Enum.each(fn {item, index} ->
-        apply_one(
-          session,
-          account,
-          repo_path,
-          item,
-          index,
-          total,
-          progress_node,
-          credential_node,
-          context_snapshot,
-          locale_contexts
-        )
-      end)
+      failures =
+        items
+        |> Enum.with_index()
+        |> Enum.reduce([], fn {item, index}, failures ->
+          case apply_one(
+                 session,
+                 account,
+                 repo_path,
+                 item,
+                 index,
+                 total,
+                 progress_node,
+                 credential_node,
+                 context_snapshot,
+                 locale_contexts
+               ) do
+            :ok -> failures
+            {:error, failure} -> [failure | failures]
+          end
+        end)
 
-      collect_changes(repo_path)
+      case Enum.reverse(failures) do
+        [] -> collect_changes(repo_path)
+        failures -> {:error, {:translation_items_failed, failures}}
+      end
     end
   end
 
@@ -182,16 +189,20 @@ defmodule Glossia.Translations.RepositoryRun do
         credential_node
       )
     else
+      reason = "source file contains invalid text encoding"
+
       broadcast(
         session,
         %{
           type: "item_failed",
           index: index,
           output_path: item.output_path,
-          reason: "source file contains invalid text encoding"
+          reason: reason
         },
         progress_node
       )
+
+      {:error, item_failure(item, index, reason)}
     end
   end
 
@@ -257,6 +268,8 @@ defmodule Glossia.Translations.RepositoryRun do
         %{type: "item_skipped", index: index, output_path: item.output_path},
         progress_node
       )
+
+      :ok
     end
   end
 
@@ -331,19 +344,39 @@ defmodule Glossia.Translations.RepositoryRun do
           progress_node
         )
 
+        :ok
+
       {:error, reason} ->
+        reason = format_item_error(reason)
+
         broadcast(
           session,
           %{
             type: "item_failed",
             index: index,
             output_path: item.output_path,
-            reason: inspect(reason)
+            reason: reason
           },
           progress_node
         )
+
+        {:error, item_failure(item, index, reason)}
     end
   end
+
+  defp item_failure(item, index, reason) do
+    %{
+      index: index,
+      output_path: item.output_path,
+      locale: item.locale,
+      reason: reason
+    }
+  end
+
+  defp format_item_error({:validation_failed, reason}), do: to_string(reason)
+  defp format_item_error({:llm_failed, reason}), do: "Model request failed: #{inspect(reason)}"
+  defp format_item_error(reason) when is_binary(reason), do: reason
+  defp format_item_error(reason), do: inspect(reason)
 
   defp write_output(item, text) do
     File.mkdir_p!(Path.dirname(item.output_abs))
@@ -428,7 +461,7 @@ defmodule Glossia.Translations.RepositoryRun do
     case MuonTrap.cmd("git", ["clone", "--branch", branch, source, dir],
            stderr_to_stdout: true,
            into: "",
-           timeout: @clone_timeout_ms
+           timeout: @git_timeout_ms
          ) do
       {_output, 0} ->
         case checkout_commit(dir, repository[:commit_sha]) do
