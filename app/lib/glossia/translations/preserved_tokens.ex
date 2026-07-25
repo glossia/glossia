@@ -10,7 +10,7 @@ defmodule Glossia.Translations.PreservedTokens do
   """
 
   @default_kinds ~w(code_blocks inline_code urls placeholders)
-  @version 1
+  @version 2
   @inline_code_regex ~r/`[^`\n]+`/
   @url_regex ~r/https?:\/\/[^\s\)"'<>]+/
   @placeholder_regex ~r/\{\{[^{}\n]+\}\}|\{[^\s{}]+\}/
@@ -51,13 +51,13 @@ defmodule Glossia.Translations.PreservedTokens do
     if ranges == [] do
       %{text: source, replacements: []}
     else
-      marker_root = marker_root(source)
+      marker_roots = marker_roots(source)
 
       {parts, cursor, replacements} =
         ranges
         |> Enum.with_index()
         |> Enum.reduce({[], 0, []}, fn {range, index}, {parts, cursor, replacements} ->
-          marker = "#{marker_root}#{index}__"
+          marker = marker(range.kind, marker_roots, index)
           prefix = binary_part(source, cursor, range.start - cursor)
 
           {
@@ -113,7 +113,7 @@ defmodule Glossia.Translations.PreservedTokens do
     ]
     |> Enum.reduce(code_ranges, fn {kind, regex}, accepted ->
       if kind in kinds do
-        regex_ranges(source, regex)
+        regex_ranges(source, regex, kind)
         |> Enum.reduce(accepted, fn candidate, ranges ->
           if Enum.any?(ranges, &overlap?(&1, candidate)), do: ranges, else: [candidate | ranges]
         end)
@@ -124,11 +124,11 @@ defmodule Glossia.Translations.PreservedTokens do
     |> Enum.sort_by(& &1.start)
   end
 
-  defp regex_ranges(source, regex) do
+  defp regex_ranges(source, regex, kind) do
     regex
     |> Regex.scan(source, return: :index, capture: :first)
     |> Enum.map(fn [{start, length}] ->
-      %{start: start, length: length, value: binary_part(source, start, length)}
+      %{start: start, length: length, value: binary_part(source, start, length), kind: kind}
     end)
   end
 
@@ -147,7 +147,10 @@ defmodule Glossia.Translations.PreservedTokens do
           if closing_fence?(line, fence) do
             length = start + byte_size(line) - block_start
             value = binary_part(source, block_start, length)
-            {[%{start: block_start, length: length, value: value} | ranges], nil}
+
+            {[
+               %{start: block_start, length: length, value: value, kind: "code_blocks"} | ranges
+             ], nil}
           else
             {ranges, current}
           end
@@ -195,14 +198,25 @@ defmodule Glossia.Translations.PreservedTokens do
     left.start < right.start + right.length and right.start < left.start + left.length
   end
 
-  defp marker_root(source) do
+  defp marker_roots(source) do
     digest =
       :crypto.hash(:sha256, source)
       |> Base.encode16(case: :lower)
       |> binary_part(0, 12)
 
-    collision_free_root(source, "__GLOSSIA_TOKEN_#{digest}_")
+    %{
+      default: collision_free_root(source, "__GLOSSIA_TOKEN_#{digest}_"),
+      # Keep the marker in the same syntactic class that the prompt tells the model to preserve.
+      url:
+        collision_free_root(
+          source,
+          "https://glossia.invalid/protected-token/#{digest}/"
+        )
+    }
   end
+
+  defp marker("urls", %{url: root}, index), do: "#{root}#{index}"
+  defp marker(_kind, %{default: root}, index), do: "#{root}#{index}__"
 
   defp collision_free_root(source, root) do
     if String.contains?(source, root), do: collision_free_root(source, root <> "x"), else: root
