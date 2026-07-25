@@ -146,7 +146,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   end
 
   @tag :tmp_dir
-  test "reports an invalid source file and continues translating healthy files", %{tmp_dir: root} do
+  test "reports an invalid source file and rejects the partial repository result", %{
+    tmp_dir: root
+  } do
     init_repo(root)
     File.write!(Path.join([root, "docs", "broken.md"]), <<"Invalid ", 0xFF, " text">>)
     git!(root, ["add", "."])
@@ -165,12 +167,15 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
        }}
     end)
 
-    assert {:ok, changes} =
+    assert {:error, {:translation_items_failed, [failure]}} =
              RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
                context_snapshot: Context.empty_snapshot()
              )
 
-    assert Enum.any?(changes, &(&1.path == "docs/i18n/es/guide.md"))
+    assert failure.output_path == "docs/i18n/es/broken.md"
+    assert failure.locale == "es"
+    assert failure.reason == "source file contains invalid text encoding"
+    assert File.exists?(Path.join([root, "docs", "i18n", "es", "guide.md"]))
     refute File.exists?(Path.join([root, "docs", "i18n", "es", "broken.md"]))
 
     assert_receive {:translation_session_event,

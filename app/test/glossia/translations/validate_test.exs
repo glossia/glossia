@@ -184,7 +184,7 @@ defmodule Glossia.Translations.ValidateTest do
 
       [_, config_node, _] = get_in(original.tree, ["root", "children"])
       assert config_node["metadata"]["segmentation_version"] == 1
-      assert config_node["metadata"]["preservation_version"] == 2
+      assert config_node["metadata"]["preservation_version"] == 3
     end
 
     test "unrelated server version changes do not invalidate identical effective context" do

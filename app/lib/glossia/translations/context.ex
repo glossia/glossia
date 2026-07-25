@@ -401,11 +401,23 @@ defmodule Glossia.Translations.Context do
 
   defp translatable_text(source, preserve) do
     source = String.replace_invalid(source)
-    protection = PreservedTokens.protect(source, PreservedTokens.resolve(preserve))
+    kinds = PreservedTokens.resolve(preserve)
+    protection = PreservedTokens.protect(source, kinds)
 
-    Enum.reduce(protection.replacements, protection.text, fn {marker, _value}, text ->
-      String.replace(text, marker, String.duplicate(" ", byte_size(marker)))
-    end)
+    text =
+      Enum.reduce(protection.replacements, protection.text, fn {marker, _value}, text ->
+        String.replace(text, marker, String.duplicate(" ", byte_size(marker)))
+      end)
+
+    if "urls" in kinds do
+      text
+      |> PreservedTokens.values(["urls"])
+      |> Enum.reduce(text, fn url, text ->
+        String.replace(text, url, String.duplicate(" ", byte_size(url)))
+      end)
+    else
+      text
+    end
   end
 
   defp render_voice(voice), do: voice |> render_voice_with_budget() |> elem(0)

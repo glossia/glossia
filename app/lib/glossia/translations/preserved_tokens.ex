@@ -4,13 +4,14 @@ defmodule Glossia.Translations.PreservedTokens do
 
   The masker deliberately recognizes a small, format-neutral set of atomic
   values rather than attempting to parse every Markdown extension. Fenced code,
-  inline code, URLs, and placeholders are replaced with stable markers before a
-  model sees the content. The exact source values are then reconstructed in the
-  translated output.
+  inline code, and placeholders are replaced with stable markers before a model
+  sees the content. URLs remain visible because they are already atomic values,
+  while final validation still requires every source URL to remain unchanged.
+  Masked source values are reconstructed in the translated output.
   """
 
   @default_kinds ~w(code_blocks inline_code urls placeholders)
-  @version 2
+  @version 3
   @inline_code_regex ~r/`[^`\n]+`/
   @url_regex ~r/https?:\/\/[^\s\)"'<>]+/
   @placeholder_regex ~r/\{\{[^{}\n]+\}\}|\{[^\s{}]+\}/
@@ -46,18 +47,21 @@ defmodule Glossia.Translations.PreservedTokens do
   @doc "Replaces recognized source values with collision-resistant markers."
   @spec protect(String.t(), [String.t()]) :: protection()
   def protect(source, kinds) when is_binary(source) and is_list(kinds) do
-    ranges = ranges(source, kinds)
+    ranges =
+      source
+      |> ranges(kinds)
+      |> Enum.reject(&(&1.kind == "urls"))
 
     if ranges == [] do
       %{text: source, replacements: []}
     else
-      marker_roots = marker_roots(source)
+      marker_root = marker_root(source)
 
       {parts, cursor, replacements} =
         ranges
         |> Enum.with_index()
         |> Enum.reduce({[], 0, []}, fn {range, index}, {parts, cursor, replacements} ->
-          marker = marker(range.kind, marker_roots, index)
+          marker = "#{marker_root}#{index}__"
           prefix = binary_part(source, cursor, range.start - cursor)
 
           {
@@ -198,25 +202,14 @@ defmodule Glossia.Translations.PreservedTokens do
     left.start < right.start + right.length and right.start < left.start + left.length
   end
 
-  defp marker_roots(source) do
+  defp marker_root(source) do
     digest =
       :crypto.hash(:sha256, source)
       |> Base.encode16(case: :lower)
       |> binary_part(0, 12)
 
-    %{
-      default: collision_free_root(source, "__GLOSSIA_TOKEN_#{digest}_"),
-      # Keep the marker in the same syntactic class that the prompt tells the model to preserve.
-      url:
-        collision_free_root(
-          source,
-          "https://glossia.invalid/protected-token/#{digest}/"
-        )
-    }
+    collision_free_root(source, "__GLOSSIA_TOKEN_#{digest}_")
   end
-
-  defp marker("urls", %{url: root}, index), do: "#{root}#{index}"
-  defp marker(_kind, %{default: root}, index), do: "#{root}#{index}__"
 
   defp collision_free_root(source, root) do
     if String.contains?(source, root), do: collision_free_root(source, root <> "x"), else: root

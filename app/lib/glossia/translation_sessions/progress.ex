@@ -16,6 +16,7 @@ defmodule Glossia.TranslationSessions.Progress do
           status: :running | :done | :failed,
           turns: non_neg_integer(),
           text: String.t(),
+          replace_text_on_next_chunk: boolean(),
           reason: String.t() | nil
         }
 
@@ -33,7 +34,7 @@ defmodule Glossia.TranslationSessions.Progress do
   def progress_event?(_event), do: false
 
   @doc "Folds a single progress event into the state."
-  def apply_event(state, %{type: "plan", total: total}), do: %{state | total: total}
+  def apply_event(_state, %{type: "plan", total: total}), do: %{new() | total: total}
 
   def apply_event(state, %{type: "item_skipped"}), do: %{state | skipped: state.skipped + 1}
 
@@ -45,6 +46,7 @@ defmodule Glossia.TranslationSessions.Progress do
       status: :running,
       turns: 0,
       text: "",
+      replace_text_on_next_chunk: false,
       reason: nil
     }
 
@@ -86,15 +88,22 @@ defmodule Glossia.TranslationSessions.Progress do
     }
   end
 
-  defp apply_turn(item, %{type: "text", text: text}),
-    do: %{item | text: item.text <> to_string(text)}
+  defp apply_turn(item, %{type: "text", text: text}) do
+    text = to_string(text)
+
+    if item.replace_text_on_next_chunk do
+      %{item | text: text, replace_text_on_next_chunk: false}
+    else
+      %{item | text: item.text <> text}
+    end
+  end
 
   defp apply_turn(item, %{type: type}) when type in ["attempt_start", "segment_start"],
-    do: %{item | text: ""}
+    do: %{item | replace_text_on_next_chunk: true}
 
   defp apply_turn(item, %{type: type, text: text})
        when type in ["segment_output", "translation_output"],
-       do: %{item | text: to_string(text)}
+       do: %{item | text: to_string(text), replace_text_on_next_chunk: false}
 
   defp apply_turn(item, %{type: "turn_start"}), do: %{item | turns: item.turns + 1}
   defp apply_turn(item, _turn), do: item
