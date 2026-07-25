@@ -362,6 +362,10 @@ defmodule Glossia.Translations.EngineTest do
       stub_stream(fn _account, payload, _on_event ->
         refute payload["source_content"] =~ "https://glossia.ai/{locale}"
         refute payload["source_content"] =~ "`mix test`"
+
+        assert payload["source_content"] =~
+                 ~r|https://glossia\.invalid/protected-token/[a-f0-9]{12}/\d+|
+
         translated(String.replace(payload["source_content"], "Visit", "Visita"))
       end)
 
