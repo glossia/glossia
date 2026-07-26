@@ -6754,10 +6754,13 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_progress_panel(assigns) do
     alias Glossia.TranslationSessions.Progress
 
+    items = Progress.items(assigns.progress)
+
     assigns =
       assign(assigns,
-        items: Progress.items(assigns.progress),
-        summary: Progress.summary(assigns.progress)
+        items: items,
+        summary: Progress.summary(assigns.progress),
+        failures: translation_failure_groups(items)
       )
 
     ~H"""
@@ -6775,6 +6778,56 @@ defmodule GlossiaWeb.DashboardLive do
             <span data-part="skipped">{gettext("%{n} up to date", n: @summary.skipped)}</span>
           <% end %>
         </div>
+        <div :if={@failures != []} data-part="failures">
+          <section
+            :for={failure <- @failures}
+            data-part="failure-summary"
+            data-kind={failure.kind}
+            role="alert"
+          >
+            <span data-part="failure-icon" aria-hidden="true">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v4"></path>
+                <path d="M12 16h.01"></path>
+              </svg>
+            </span>
+            <div data-part="failure-content">
+              <p data-part="failure-title">{failure.title}</p>
+              <p data-part="failure-description">{failure.description}</p>
+              <p data-part="failure-count">
+                {ngettext(
+                  "%{count} file was affected.",
+                  "%{count} files were affected.",
+                  failure.count,
+                  count: failure.count
+                )}
+              </p>
+              <a
+                :if={failure.action_url}
+                data-part="failure-action"
+                href={failure.action_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {failure.action_label}
+              </a>
+              <details data-part="failure-details">
+                <summary>{gettext("Technical details")}</summary>
+                <pre>{failure.details}</pre>
+              </details>
+            </div>
+          </section>
+        </div>
         <ul data-part="items">
           <%= for item <- @items do %>
             <li data-part="item" data-status={item.status}>
@@ -6789,9 +6842,6 @@ defmodule GlossiaWeb.DashboardLive do
                 <span data-part="locale">{item.locale}</span>
                 <span data-part="turns">{gettext("%{n} turns", n: item.turns)}</span>
               </div>
-              <%= if item.status == :failed and item.reason do %>
-                <p data-part="reason">{item.reason}</p>
-              <% end %>
               <%= if item.text != "" do %>
                 <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
               <% end %>
@@ -6806,6 +6856,103 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
+
+  defp translation_failure_groups(items) do
+    items
+    |> Enum.filter(&(&1.status == :failed and is_binary(&1.reason)))
+    |> Enum.map(&translation_failure/1)
+    |> Enum.group_by(& &1.kind)
+    |> Enum.map(fn {_kind, failures} ->
+      failures
+      |> hd()
+      |> Map.put(:count, length(failures))
+    end)
+    |> Enum.sort_by(& &1.first_index)
+  end
+
+  defp translation_failure(item) do
+    reason = item.reason
+    normalized_reason = String.downcase(reason)
+
+    cond do
+      String.contains?(normalized_reason, "credit limit exceeded") ->
+        %{
+          kind: "provider-credit",
+          first_index: item.index,
+          title: gettext("Model provider credit limit reached"),
+          description:
+            gettext(
+              "Add credits to your model provider account, then retry this translation session."
+            ),
+          action_label: gettext("Review provider billing"),
+          action_url: translation_provider_billing_url(reason),
+          details: reason
+        }
+
+      String.contains?(normalized_reason, "rate limit") ->
+        %{
+          kind: "provider-rate-limit",
+          first_index: item.index,
+          title: gettext("Model provider rate limit reached"),
+          description: gettext("Wait a moment, then retry this translation session."),
+          action_label: nil,
+          action_url: nil,
+          details: reason
+        }
+
+      String.contains?(normalized_reason, "unauthorized") or
+        String.contains?(normalized_reason, "invalid api key") or
+          String.contains?(normalized_reason, "authentication") ->
+        %{
+          kind: "provider-credentials",
+          first_index: item.index,
+          title: gettext("Model provider credentials were rejected"),
+          description:
+            gettext("Check the model provider credentials, then retry this translation session."),
+          action_label: nil,
+          action_url: nil,
+          details: reason
+        }
+
+      String.contains?(normalized_reason, "timed out") or
+          String.contains?(normalized_reason, "timeout") ->
+        %{
+          kind: "provider-timeout",
+          first_index: item.index,
+          title: gettext("The model provider did not respond in time"),
+          description:
+            gettext(
+              "Retry this translation session. If the problem continues, check the provider."
+            ),
+          action_label: nil,
+          action_url: nil,
+          details: reason
+        }
+
+      true ->
+        %{
+          kind: "other:#{reason}",
+          first_index: item.index,
+          title: gettext("Translation failed"),
+          description: translation_failure_description(reason),
+          action_label: nil,
+          action_url: nil,
+          details: reason
+        }
+    end
+  end
+
+  defp translation_failure_description(reason) do
+    reason
+    |> String.replace_prefix("Model request failed: ", "")
+    |> String.replace(~r/\s+/, " ")
+    |> String.slice(0, 240)
+  end
+
+  defp translation_provider_billing_url(reason) do
+    if String.contains?(reason, "https://api.together.ai/settings/billing"),
+      do: "https://api.together.ai/settings/billing"
+  end
 
   defp translation_progress_empty?(progress) do
     Glossia.TranslationSessions.Progress.items(progress) == []
