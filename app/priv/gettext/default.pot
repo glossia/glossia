@@ -3852,3 +3852,65 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Merge pull request #%{number} to activate this project's localization baseline."
 msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6808
+#, elixir-autogen, elixir-format
+msgid "%{count} file was affected."
+msgid_plural "%{count} files were affected."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6825
+#, elixir-autogen, elixir-format
+msgid "Technical details"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6882
+#, elixir-autogen, elixir-format
+msgid "Model provider credit limit reached"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6884
+#, elixir-autogen, elixir-format
+msgid "Add credits to your model provider account, then retry this translation session."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6887
+#, elixir-autogen, elixir-format
+msgid "Review provider billing"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6896
+#, elixir-autogen, elixir-format
+msgid "Model provider rate limit reached"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6897
+#, elixir-autogen, elixir-format
+msgid "Wait a moment, then retry this translation session."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6909
+#, elixir-autogen, elixir-format
+msgid "Model provider credentials were rejected"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6911
+#, elixir-autogen, elixir-format
+msgid "Check the model provider credentials, then retry this translation session."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6922
+#, elixir-autogen, elixir-format
+msgid "The model provider did not respond in time"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6924
+#, elixir-autogen, elixir-format
+msgid "Retry this translation session. If the problem continues, check the provider."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:6936
+#, elixir-autogen, elixir-format
+msgid "Translation failed"
+msgstr ""
