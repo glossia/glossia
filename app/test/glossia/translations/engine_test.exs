@@ -360,9 +360,11 @@ defmodule Glossia.Translations.EngineTest do
       )
 
       stub_stream(fn _account, payload, _on_event ->
-        assert payload["source_content"] =~ "https://glossia.ai/{locale}"
+        refute payload["source_content"] =~ "https://glossia.ai/{locale}"
         refute payload["source_content"] =~ "`mix test`"
-        refute payload["source_content"] =~ "glossia.invalid"
+
+        assert payload["source_content"] =~
+                 ~r|https://glossia\.invalid/protected-token/[a-f0-9]{12}/\d+/value|
 
         translated(String.replace(payload["source_content"], "Visit", "Visita"))
       end)
@@ -379,16 +381,29 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "sends ordinary web addresses to the model unchanged", %{tmp_dir: dir} do
+    test "masks repeated web addresses and reconstructs every exact occurrence", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.md")
-      File.write!(source, "Follow [Anthropic](https://anthropic.com) closely.")
+
+      File.write!(
+        source,
+        "Compare [Anthropic](https://anthropic.com) with [Claude](https://anthropic.com)."
+      )
 
       stub_stream(fn _account, payload, _on_event ->
-        assert payload["source_content"] ==
-                 "Follow [Anthropic](https://anthropic.com) closely."
+        refute payload["source_content"] =~ "https://anthropic.com"
 
-        refute payload["source_content"] =~ "glossia.invalid"
-        translated("Sigue [Anthropic](https://anthropic.com) de cerca.")
+        assert length(
+                 Regex.scan(
+                   ~r|https://glossia\.invalid/protected-token/[a-f0-9]{12}/\d+/value|,
+                   payload["source_content"]
+                 )
+               ) == 2
+
+        translated(
+          payload["source_content"]
+          |> String.replace("Compare", "Compara")
+          |> String.replace(" with ", " con ")
+        )
       end)
 
       assert {:ok, result} =
@@ -398,7 +413,48 @@ defmodule Glossia.Translations.EngineTest do
                  fn _ -> :ok end
                )
 
-      assert result.text == "Sigue [Anthropic](https://anthropic.com) de cerca."
+      assert result.text ==
+               "Compara [Anthropic](https://anthropic.com) con [Claude](https://anthropic.com)."
+    end
+
+    @tag :tmp_dir
+    test "rejects a protected marker copied into another segment", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+
+      File.write!(
+        source,
+        "{name} " <>
+          String.duplicate("First paragraph remains together. ", 180) <>
+          "\n\n" <> String.duplicate("Second paragraph remains together. ", 180)
+      )
+
+      {:ok, markers} = Elixir.Agent.start_link(fn -> %{} end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        case payload["segment_index"] do
+          1 ->
+            [marker] =
+              Regex.run(
+                ~r/\{glossia_protected_[a-f0-9]{12}_\d+\}/,
+                payload["source_content"]
+              )
+
+            Elixir.Agent.update(markers, &Map.put(&1, :copied, marker))
+            translated(payload["source_content"])
+
+          2 ->
+            marker = Elixir.Agent.get(markers, & &1.copied)
+            translated(payload["source_content"] <> " " <> marker)
+        end
+      end)
+
+      item = work_item(%{source_abs: source, retries: 0})
+
+      assert {:error, {:validation_failed, message}} =
+               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      assert message =~ "protected token marker occurred 2 times"
+      assert message =~ "{name}"
     end
 
     @tag :tmp_dir

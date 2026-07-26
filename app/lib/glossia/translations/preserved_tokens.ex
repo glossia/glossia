@@ -4,22 +4,20 @@ defmodule Glossia.Translations.PreservedTokens do
 
   The masker deliberately recognizes a small, format-neutral set of atomic
   values rather than attempting to parse every Markdown extension. Fenced code,
-  inline code, and placeholders are replaced with stable markers before a model
-  sees the content. URLs remain visible because they are already atomic values,
-  while final validation still requires every source URL to remain unchanged.
-  Masked source values are reconstructed in the translated output.
+  inline code, web addresses, and placeholders are replaced with stable markers
+  before a model sees the content. The exact source values are then reconstructed
+  in the translated output.
   """
 
+  alias Glossia.Translations.ExtractionPlan
+
   @default_kinds ~w(code_blocks inline_code urls placeholders)
-  @version 3
+  @version 5
   @inline_code_regex ~r/`[^`\n]+`/
   @url_regex ~r/https?:\/\/[^\s\)"'<>]+/
   @placeholder_regex ~r/\{\{[^{}\n]+\}\}|\{[^\s{}]+\}/
 
-  @type protection :: %{
-          text: String.t(),
-          replacements: [{String.t(), String.t()}]
-        }
+  @type protection :: ExtractionPlan.t()
 
   @doc "Version of token preservation behavior used by translation locks."
   def version, do: @version
@@ -45,62 +43,15 @@ defmodule Glossia.Translations.PreservedTokens do
   end
 
   @doc "Replaces recognized source values with collision-resistant markers."
-  @spec protect(String.t(), [String.t()]) :: protection()
-  def protect(source, kinds) when is_binary(source) and is_list(kinds) do
-    ranges =
-      source
-      |> ranges(kinds)
-      |> Enum.reject(&(&1.kind == "urls"))
-
-    if ranges == [] do
-      %{text: source, replacements: []}
-    else
-      marker_root = marker_root(source)
-
-      {parts, cursor, replacements} =
-        ranges
-        |> Enum.with_index()
-        |> Enum.reduce({[], 0, []}, fn {range, index}, {parts, cursor, replacements} ->
-          marker = "#{marker_root}#{index}__"
-          prefix = binary_part(source, cursor, range.start - cursor)
-
-          {
-            [marker, prefix | parts],
-            range.start + range.length,
-            [{marker, range.value} | replacements]
-          }
-        end)
-
-      tail = binary_part(source, cursor, byte_size(source) - cursor)
-
-      %{
-        text: IO.iodata_to_binary(Enum.reverse([tail | parts])),
-        replacements: Enum.reverse(replacements)
-      }
-    end
-  end
+  @spec protect(String.t(), [String.t()], keyword()) :: protection()
+  def protect(source, kinds, opts \\ [])
+      when is_binary(source) and is_list(kinds) and is_list(opts),
+      do: ExtractionPlan.build!(source, ranges(source, kinds), opts)
 
   @doc "Restores protected values, failing when a model changed or duplicated a marker."
   @spec restore(String.t(), protection()) :: {:ok, String.t()} | {:error, String.t()}
-  def restore(output, %{replacements: replacements}) when is_binary(output) do
-    case Enum.find(replacements, fn {marker, _value} ->
-           length(:binary.matches(output, marker)) != 1
-         end) do
-      nil ->
-        restored =
-          Enum.reduce(replacements, output, fn {marker, value}, text ->
-            String.replace(text, marker, value)
-          end)
-
-        {:ok, restored}
-
-      {marker, value} ->
-        count = length(:binary.matches(output, marker))
-
-        {:error,
-         "protected token marker occurred #{count} times; preserve it exactly once for #{inspect(value)}"}
-    end
-  end
+  def restore(output, %ExtractionPlan{} = protection) when is_binary(output),
+    do: ExtractionPlan.restore(output, protection)
 
   defp ranges(source, kinds) do
     code_ranges =
@@ -200,18 +151,5 @@ defmodule Glossia.Translations.PreservedTokens do
 
   defp overlap?(left, right) do
     left.start < right.start + right.length and right.start < left.start + left.length
-  end
-
-  defp marker_root(source) do
-    digest =
-      :crypto.hash(:sha256, source)
-      |> Base.encode16(case: :lower)
-      |> binary_part(0, 12)
-
-    collision_free_root(source, "__GLOSSIA_TOKEN_#{digest}_")
-  end
-
-  defp collision_free_root(source, root) do
-    if String.contains?(source, root), do: collision_free_root(source, root <> "x"), else: root
   end
 end
