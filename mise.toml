@@ -38,12 +38,12 @@ docker save "$image" | msb image load --tag "$image"
 
 [tasks."clickhouse:start"]
 description = "Start the local ClickHouse server used by Glossia"
-run = "./mise/tasks/clickhouse/start.sh"
+run = "./mise/scripts/clickhouse/start.sh"
 
 [tasks."clickhouse:stop"]
 description = "Stop the local ClickHouse server used by Glossia"
-run = "./mise/tasks/clickhouse/stop.sh"
+run = "./mise/scripts/clickhouse/stop.sh"
 
 [tasks.install]
 description = "Install dependencies and initialize PostgreSQL, ClickHouse, and seeds"
-run = "./mise/tasks/install.sh"
+run = "./mise/scripts/install.sh"
