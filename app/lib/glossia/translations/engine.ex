@@ -48,8 +48,8 @@ defmodule Glossia.Translations.Engine do
   defp apply_item_with_context(work_item, account, on_event, validate, opts, server_context) do
     case File.read(work_item.source_abs) do
       {:ok, source_text} ->
-        translation = prepare_translation(work_item, source_text)
         preserve_kinds = PreservedTokens.resolve(work_item.preserve || [])
+        translation = prepare_translation(work_item, source_text, preserve_kinds)
 
         {segments, context_budget} =
           attach_server_context(
@@ -66,11 +66,11 @@ defmodule Glossia.Translations.Engine do
           account: account,
           work_item: work_item,
           segments: segments,
+          protections: translation.protections,
           preserved_frontmatter: translation.preserved_frontmatter,
           source_text: source_text,
           on_event: on_event,
           validate: validate,
-          preserve_kinds: preserve_kinds,
           attempt: 0,
           max_attempt: work_item.retries || 0,
           last_error: nil,
@@ -92,30 +92,34 @@ defmodule Glossia.Translations.Engine do
 
     case translate_segments(state) do
       {:ok, translated} ->
-        final = assemble_segments(state, translated.segments)
+        masked_final = assemble_segments(state, translated.segments)
 
-        case state.validate.(final, state.source_text) do
-          :ok ->
-            state.on_event.({:translation_output, final})
+        case restore_protections(masked_final, state.protections) do
+          {:ok, final} ->
+            case state.validate.(final, state.source_text) do
+              :ok ->
+                state.on_event.({:translation_output, final})
 
-            {:ok,
-             %{
-               text: final,
-               output_path: state.work_item.output_path,
-               output_abs: state.work_item.output_abs,
-               locale: state.work_item.locale,
-               model: translated.model,
-               provider: translated.provider
-             }}
+                {:ok,
+                 %{
+                   text: final,
+                   output_path: state.work_item.output_path,
+                   output_abs: state.work_item.output_abs,
+                   locale: state.work_item.locale,
+                   model: translated.model,
+                   provider: translated.provider
+                 }}
+
+              {:error, message} ->
+                retry_validation(state, message)
+            end
 
           {:error, message} ->
-            state.on_event.({:validation_error, to_string(message)})
-            run_attempt(%{state | attempt: state.attempt + 1, last_error: to_string(message)})
+            retry_validation(state, message)
         end
 
       {:validation_error, message} ->
-        state.on_event.({:validation_error, message})
-        run_attempt(%{state | attempt: state.attempt + 1, last_error: message})
+        retry_validation(state, message)
 
       {:error, reason} ->
         {:error, {:llm_failed, reason}}
@@ -130,12 +134,11 @@ defmodule Glossia.Translations.Engine do
     |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
       {segment, segment_index}, {:ok, acc} ->
         state.on_event.({:segment_start, segment_index, segment_count})
-        protection = PreservedTokens.protect(segment.content, state.preserve_kinds)
 
         payload =
           payload(
             state.work_item,
-            protection.text,
+            segment.content,
             segment.server_context_body,
             not is_nil(state.preserved_frontmatter),
             state.last_error,
@@ -146,24 +149,18 @@ defmodule Glossia.Translations.Engine do
 
         case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
           {:ok, result} ->
-            case PreservedTokens.restore(result.text, protection) do
-              {:ok, restored} ->
-                text = strip_structured_code_fence(state.work_item.format, restored)
-                state.on_event.({:segment_output, text})
+            text = strip_structured_code_fence(state.work_item.format, result.text)
+            state.on_event.({:segment_output, text})
 
-                translated_segment = %{kind: segment.kind, text: text}
+            translated_segment = %{kind: segment.kind, text: text}
 
-                {:cont,
-                 {:ok,
-                  %{
-                    segments: acc.segments ++ [translated_segment],
-                    model: result.model,
-                    provider: result.provider
-                  }}}
-
-              {:error, message} ->
-                {:halt, {:validation_error, message}}
-            end
+            {:cont,
+             {:ok,
+              %{
+                segments: acc.segments ++ [translated_segment],
+                model: result.model,
+                provider: result.provider
+              }}}
 
           {:error, reason} ->
             {:halt, {:error, reason}}
@@ -201,6 +198,21 @@ defmodule Glossia.Translations.Engine do
     Translations.translate_stream(account, payload, on_event, opts)
   end
 
+  defp retry_validation(state, message) do
+    message = to_string(message)
+    state.on_event.({:validation_error, message})
+    run_attempt(%{state | attempt: state.attempt + 1, last_error: message})
+  end
+
+  defp restore_protections(text, protections) do
+    Enum.reduce_while(protections, {:ok, text}, fn protection, {:ok, current} ->
+      case PreservedTokens.restore(current, protection) do
+        {:ok, restored} -> {:cont, {:ok, restored}}
+        {:error, _message} = error -> {:halt, error}
+      end
+    end)
+  end
+
   @doc false
   def prepare(%{format: "markdown", frontmatter_mode: :preserve}, source_text) do
     case Frontmatter.split_markdown_frontmatter(source_text) do
@@ -211,31 +223,52 @@ defmodule Glossia.Translations.Engine do
 
   def prepare(_work_item, source_text), do: {nil, source_text}
 
-  defp prepare_translation(%{format: "markdown"} = work_item, source_text) do
+  defp prepare_translation(%{format: "markdown"} = work_item, source_text, preserve_kinds) do
     split = Frontmatter.split_markdown_frontmatter(source_text)
 
     case {work_item.frontmatter_mode, split.ok} do
       {:preserve, true} ->
+        {segments, protections} =
+          planned_content_segments(split.body, work_item.format, preserve_kinds, "body")
+
         %{
           preserved_frontmatter: split.frontmatter,
-          segments: content_segments(split.body, work_item.format)
+          segments: segments,
+          protections: protections
         }
 
       {:translate, true} ->
+        frontmatter_protection =
+          PreservedTokens.protect(split.frontmatter, preserve_kinds, scope: "frontmatter")
+
+        {body_segments, body_protections} =
+          planned_content_segments(split.body, work_item.format, preserve_kinds, "body")
+
         %{
           preserved_frontmatter: nil,
           segments:
-            [%{kind: "frontmatter", content: split.frontmatter}] ++
-              content_segments(split.body, work_item.format)
+            [%{kind: "frontmatter", content: frontmatter_protection.text}] ++ body_segments,
+          protections: [frontmatter_protection | body_protections]
         }
 
       _ ->
-        %{preserved_frontmatter: nil, segments: content_segments(source_text, work_item.format)}
+        {segments, protections} =
+          planned_content_segments(source_text, work_item.format, preserve_kinds, "document")
+
+        %{preserved_frontmatter: nil, segments: segments, protections: protections}
     end
   end
 
-  defp prepare_translation(work_item, source_text) do
-    %{preserved_frontmatter: nil, segments: content_segments(source_text, work_item.format)}
+  defp prepare_translation(work_item, source_text, preserve_kinds) do
+    {segments, protections} =
+      planned_content_segments(source_text, work_item.format, preserve_kinds, "document")
+
+    %{preserved_frontmatter: nil, segments: segments, protections: protections}
+  end
+
+  defp planned_content_segments(content, format, preserve_kinds, scope) do
+    protection = PreservedTokens.protect(content, preserve_kinds, scope: scope)
+    {content_segments(protection.text, format), [protection]}
   end
 
   defp content_segments(content, format) do

@@ -567,7 +567,7 @@ defmodule Glossia.Seeds do
     # LLM model configurations
     ensure_llm_model!(dev.account, dev,
       handle: "claude-sonnet",
-      model: "anthropic/claude-sonnet-4-20250514",
+      model: "anthropic/claude-sonnet-5",
       api_key: "sk-ant-dev-placeholder-key"
     )
 
@@ -586,7 +586,7 @@ defmodule Glossia.Seeds do
 
     ensure_llm_model!(dev.account, dev,
       handle: "local-claude",
-      model: "anthropic/claude-sonnet-4-20250514",
+      model: "anthropic/claude-sonnet-5",
       api_key: Glossia.Translations.Credentials.development_session_api_key(:claude),
       default: false
     )
@@ -607,7 +607,7 @@ defmodule Glossia.Seeds do
 
     ensure_llm_model!(acme.account, dev,
       handle: "acme-claude",
-      model: "anthropic/claude-sonnet-4-20250514",
+      model: "anthropic/claude-sonnet-5",
       api_key: "sk-ant-acme-placeholder-key",
       default: true
     )
