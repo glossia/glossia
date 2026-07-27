@@ -13,6 +13,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Discussions
   alias Glossia.LLMModels
   alias Glossia.TranslationSessions.Progress
+  alias Glossia.Translations.Failure
   alias Glossia.Voices
   alias Noora.Filter
 
@@ -1089,7 +1090,7 @@ defmodule GlossiaWeb.DashboardLive do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
     end
 
-    session = Glossia.TranslationSessions.get_session!(session_id)
+    session = Glossia.TranslationSessions.get_session!(account, project, session_id)
     events = Glossia.Ingestion.list_translation_session_events(session.id)
 
     socket =
@@ -3147,7 +3148,17 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp assign_translation_progress(socket, progress) do
-    items = Progress.items(progress)
+    items =
+      progress
+      |> Progress.items()
+      |> Enum.map(fn item ->
+        failure =
+          if item.status == :failed,
+            do: translation_failure(item.reason, item.index),
+            else: nil
+
+        Map.put(item, :failure, failure)
+      end)
 
     assign(socket,
       translation_progress: progress,
@@ -6841,14 +6852,6 @@ defmodule GlossiaWeb.DashboardLive do
               >
                 {failure.action_label}
               </a>
-              <details
-                id={failure.dom_id <> "-details"}
-                data-part="failure-details"
-                phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-              >
-                <summary>{gettext("Technical details")}</summary>
-                <pre>{failure.details}</pre>
-              </details>
             </div>
           </section>
         </div>
@@ -6870,8 +6873,55 @@ defmodule GlossiaWeb.DashboardLive do
                 <span data-part="locale">{item.locale}</span>
                 <span data-part="turns">{gettext("%{n} turns", n: item.turns)}</span>
               </div>
+              <div
+                :if={item.failure}
+                data-part="item-failure"
+                data-kind={item.failure.kind}
+              >
+                <span data-part="item-failure-icon" aria-hidden="true">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 8v4"></path>
+                    <path d="M12 16h.01"></path>
+                  </svg>
+                </span>
+                <div data-part="item-failure-content">
+                  <p data-part="item-failure-title">{item.failure.title}</p>
+                  <p data-part="item-failure-description">{item.failure.item_description}</p>
+                  <details
+                    :if={item.failure.diagnostics != []}
+                    id={"translation-progress-item-#{item.index}-diagnostics"}
+                    data-part="item-diagnostics"
+                    phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
+                  >
+                    <summary>{gettext("Diagnostic details")}</summary>
+                    <dl>
+                      <div :for={{label, value} <- item.failure.diagnostics}>
+                        <dt>{label}</dt>
+                        <dd>{value}</dd>
+                      </div>
+                    </dl>
+                  </details>
+                </div>
+              </div>
               <%= if item.text != "" do %>
-                <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                <%= if item.status == :failed do %>
+                  <details data-part="partial-output">
+                    <summary>{gettext("Show incomplete output")}</summary>
+                    <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                  </details>
+                <% else %>
+                  <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                <% end %>
               <% end %>
             </li>
           <% end %>
@@ -6887,8 +6937,8 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_failure_groups(items) do
     items
-    |> Enum.filter(&(&1.status == :failed and is_binary(&1.reason)))
-    |> Enum.map(&translation_failure/1)
+    |> Enum.filter(&(&1.status == :failed and Failure.session_level?(&1.reason)))
+    |> Enum.map(& &1.failure)
     |> Enum.group_by(& &1.kind)
     |> Enum.map(fn {_kind, failures} ->
       failures
@@ -6909,89 +6959,162 @@ defmodule GlossiaWeb.DashboardLive do
     "translation-progress-failure-#{digest}"
   end
 
-  defp translation_failure(item) do
-    reason = item.reason
-    normalized_reason = String.downcase(reason)
+  defp translation_failure(reason, index) do
+    failure = Failure.normalize(reason)
+    presentation = translation_failure_presentation(failure.kind)
 
-    cond do
-      String.contains?(normalized_reason, "credit limit exceeded") ->
-        %{
-          kind: "provider-credit",
-          first_index: item.index,
-          title: gettext("Model provider credit limit reached"),
-          description:
-            gettext(
-              "Add credits to your model provider account, then retry this translation session."
-            ),
-          action_label: gettext("Review provider billing"),
-          action_url: translation_provider_billing_url(reason),
-          details: reason
-        }
-
-      String.contains?(normalized_reason, "rate limit") ->
-        %{
-          kind: "provider-rate-limit",
-          first_index: item.index,
-          title: gettext("Model provider rate limit reached"),
-          description: gettext("Wait a moment, then retry this translation session."),
-          action_label: nil,
-          action_url: nil,
-          details: reason
-        }
-
-      String.contains?(normalized_reason, "unauthorized") or
-        String.contains?(normalized_reason, "invalid api key") or
-          String.contains?(normalized_reason, "authentication") ->
-        %{
-          kind: "provider-credentials",
-          first_index: item.index,
-          title: gettext("Model provider credentials were rejected"),
-          description:
-            gettext("Check the model provider credentials, then retry this translation session."),
-          action_label: nil,
-          action_url: nil,
-          details: reason
-        }
-
-      String.contains?(normalized_reason, "timed out") or
-          String.contains?(normalized_reason, "timeout") ->
-        %{
-          kind: "provider-timeout",
-          first_index: item.index,
-          title: gettext("The model provider did not respond in time"),
-          description:
-            gettext(
-              "Retry this translation session. If the problem continues, check the provider."
-            ),
-          action_label: nil,
-          action_url: nil,
-          details: reason
-        }
-
-      true ->
-        %{
-          kind: "other:#{reason}",
-          first_index: item.index,
-          title: gettext("Translation failed"),
-          description: translation_failure_description(reason),
-          action_label: nil,
-          action_url: nil,
-          details: reason
-        }
-    end
+    failure
+    |> Map.merge(presentation)
+    |> Map.put(:first_index, index)
+    |> Map.put(:diagnostics, translation_failure_diagnostics(failure))
+    |> Map.put(:action_url, translation_failure_action_url(failure))
   end
 
-  defp translation_failure_description(reason) do
-    reason
-    |> String.replace_prefix("Model request failed: ", "")
-    |> String.replace(~r/\s+/, " ")
-    |> String.slice(0, 240)
+  defp translation_failure_presentation("provider-credit") do
+    %{
+      title: gettext("Model provider credit limit reached"),
+      description:
+        gettext(
+          "Add credits to your model provider account, then retry this translation session."
+        ),
+      item_description:
+        gettext(
+          "This file could not be translated because the model provider account has no remaining credit."
+        ),
+      action_label: gettext("Review provider billing")
+    }
   end
 
-  defp translation_provider_billing_url(reason) do
-    if String.contains?(reason, "https://api.together.ai/settings/billing"),
-      do: "https://api.together.ai/settings/billing"
+  defp translation_failure_presentation("provider-rate-limit") do
+    %{
+      title: gettext("Model provider rate limit reached"),
+      description: gettext("Wait a moment, then retry this translation session."),
+      item_description:
+        gettext(
+          "This file could not be translated because the provider is temporarily limiting requests."
+        ),
+      action_label: nil
+    }
   end
+
+  defp translation_failure_presentation("provider-credentials") do
+    %{
+      title: gettext("Model provider credentials were rejected"),
+      description:
+        gettext("Check the model provider credentials, then retry this translation session."),
+      item_description:
+        gettext(
+          "This file could not be translated because the provider rejected the configured credentials."
+        ),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("provider-timeout") do
+    %{
+      title: gettext("The model provider did not respond in time"),
+      description:
+        gettext("Retry this translation session. If the problem continues, check the provider."),
+      item_description:
+        gettext("This file could not be translated because the provider did not respond in time."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("provider-error") do
+    %{
+      title: gettext("The model provider request failed"),
+      description:
+        gettext("Retry this translation session. If the problem continues, check the provider."),
+      item_description:
+        gettext("This file could not be translated because the model provider request failed."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("validation-syntax") do
+    %{
+      title: gettext("Translated output has invalid syntax"),
+      description: nil,
+      item_description:
+        gettext("Glossia could not produce well-formed output for this file after retrying."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("validation-preserved-content") do
+    %{
+      title: gettext("Translated output changed protected content"),
+      description: nil,
+      item_description:
+        gettext("Glossia could not preserve every required token in this file after retrying."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("validation-command") do
+    %{
+      title: gettext("Translated output did not pass the project check"),
+      description: nil,
+      item_description:
+        gettext("The validation command rejected the translated output for this file."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("validation") do
+    %{
+      title: gettext("Translated output did not pass validation"),
+      description: nil,
+      item_description:
+        gettext("Glossia could not produce output that passed this file's validation rules."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("source-invalid-encoding") do
+    %{
+      title: gettext("Source file is not valid text"),
+      description: nil,
+      item_description: gettext("Glossia could not read this file as text."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("source-unreadable") do
+    %{
+      title: gettext("Source file could not be read"),
+      description: nil,
+      item_description: gettext("Glossia could not read this source file."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation(_kind) do
+    %{
+      title: gettext("Translation failed"),
+      description: nil,
+      item_description:
+        gettext("Glossia could not translate this file. Retry the translation session."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_diagnostics(failure) do
+    [
+      {gettext("Provider"), failure.provider},
+      {gettext("Provider response status"), failure.status && to_string(failure.status)},
+      {gettext("Provider error code"), failure.code},
+      {gettext("Provider request identifier"), failure.request_id}
+    ]
+    |> Enum.reject(fn {_label, value} -> is_nil(value) end)
+  end
+
+  defp translation_failure_action_url(%{kind: "provider-credit", provider: provider})
+       when provider in ["together", "togetherai"],
+       do: "https://api.together.ai/settings/billing"
+
+  defp translation_failure_action_url(_failure), do: nil
 
   defp session_event_item(%{event: event} = assigns) do
     event_type = event[:event_type] || Map.get(event, :event_type, "")

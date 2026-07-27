@@ -180,7 +180,7 @@
     }
   }
 
-  & [data-part="failure-details"] {
+  & [data-part="item-diagnostics"] {
     margin-top: var(--space-2);
     color: var(--color-text-muted);
     font-size: var(--text-xs);
@@ -191,20 +191,82 @@
       font-weight: var(--noora-font-weight-semibold);
     }
 
-    & pre {
-      max-height: calc(var(--space-16) * 3);
+    & dl {
+      display: grid;
+      gap: var(--space-2);
       margin: var(--space-2) var(--space-0) var(--space-0);
-      overflow: auto;
       padding: var(--space-3);
       border: var(--space-px) solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-surface);
+    }
+
+    & dl > div {
+      display: grid;
+      grid-template-columns: max-content minmax(var(--space-0), 1fr);
+      gap: var(--space-3);
+    }
+
+    & dt {
+      color: var(--color-text-muted);
+      font-weight: var(--noora-font-weight-semibold);
+    }
+
+    & dd {
+      min-width: var(--space-0);
+      margin: var(--space-0);
+      overflow-wrap: anywhere;
       color: var(--color-text);
       font-family: var(--font-family-mono);
-      font-size: var(--text-xs);
-      line-height: var(--leading-snug);
-      white-space: pre-wrap;
-      word-break: break-word;
+    }
+  }
+
+  & [data-part="item-failure"] {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: var(--space-px) solid var(--color-error-mid);
+  }
+
+  & [data-part="item-failure-icon"] {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--color-error);
+  }
+
+  & [data-part="item-failure-content"] {
+    min-width: var(--space-0);
+  }
+
+  & [data-part="item-failure-title"],
+  & [data-part="item-failure-description"] {
+    margin: var(--space-0);
+  }
+
+  & [data-part="item-failure-title"] {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--noora-font-weight-semibold);
+  }
+
+  & [data-part="item-failure-description"] {
+    margin-top: var(--space-1);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  & [data-part="partial-output"] {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+
+    & summary {
+      width: max-content;
+      cursor: pointer;
+      font-weight: var(--noora-font-weight-semibold);
     }
   }
 

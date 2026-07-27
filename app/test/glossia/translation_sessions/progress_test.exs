@@ -34,7 +34,8 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     assert first.text == "Hola, mundo"
 
     assert second.status == :failed
-    assert second.reason == "boom"
+    assert second.reason.kind == "translation-failed"
+    assert second.reason.scope == "item"
 
     assert Progress.summary(state) == %{total: 2, skipped: 0, done: 1, failed: 1, running: 0}
   end
