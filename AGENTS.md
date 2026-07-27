@@ -11,6 +11,10 @@
 - MuonTrap supervises the OS process and kills it if the BEAM dies, so we never leak child processes (git clones, validation scripts, sandbox tooling).
 - It is a drop-in replacement returning `{output, exit_status}`; pass `into: ""` for string output and a `timeout:` for anything that runs untrusted or long-running commands, matching the existing calls in `Glossia.Sandbox.Runner`.
 
+## Elixir module directives
+
+- Declare `alias`, `import`, and `require` only at module scope. Never place them inside function implementations.
+
 ## Documentation
 
 Documentation lives in `app/priv/docs/` and is served at `/docs` using NimblePublisher (same pattern as the blog). It follows the [Diataxis framework](https://diataxis.fr/) to organize content into four categories:

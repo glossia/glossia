@@ -12,6 +12,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Organizations
   alias Glossia.Discussions
   alias Glossia.LLMModels
+  alias Glossia.TranslationSessions.Progress
   alias Glossia.Voices
   alias Noora.Filter
 
@@ -3146,8 +3147,6 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp assign_translation_progress(socket, progress) do
-    alias Glossia.TranslationSessions.Progress
-
     items = Progress.items(progress)
 
     assign(socket,
