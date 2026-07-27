@@ -12,6 +12,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Organizations
   alias Glossia.Discussions
   alias Glossia.LLMModels
+  alias Glossia.TranslationSessions.Progress
   alias Glossia.Voices
   alias Noora.Filter
 
@@ -1099,12 +1100,12 @@ defmodule GlossiaWeb.DashboardLive do
         socket
       end
 
-    assign(socket,
+    socket
+    |> assign(
       page_title: gettext("Translation session"),
       project: project,
       session: session,
       session_events: events,
-      translation_progress: Glossia.TranslationSessions.Progress.new(),
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
         {gettext("Translations"), "/" <> handle <> "/" <> project.handle <> "/-/translations"},
@@ -1113,6 +1114,7 @@ defmodule GlossiaWeb.DashboardLive do
       sidebar_context: :project,
       sidebar_project: project
     )
+    |> assign_translation_progress(Glossia.TranslationSessions.Progress.new())
   end
 
   defp apply_action(socket, :project_translations, %{"project" => project_handle}) do
@@ -3049,7 +3051,7 @@ defmodule GlossiaWeb.DashboardLive do
         |> Kernel.||(Glossia.TranslationSessions.Progress.new())
         |> Glossia.TranslationSessions.Progress.apply_event(event)
 
-      {:noreply, assign(socket, translation_progress: progress)}
+      {:noreply, assign_translation_progress(socket, progress)}
     else
       session_events = socket.assigns[:session_events] || []
       {:noreply, assign(socket, session_events: session_events ++ [event])}
@@ -3068,7 +3070,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     socket =
       if status == "running" do
-        assign(socket, translation_progress: Glossia.TranslationSessions.Progress.new())
+        assign_translation_progress(socket, Glossia.TranslationSessions.Progress.new())
       else
         socket
       end
@@ -3142,6 +3144,17 @@ defmodule GlossiaWeb.DashboardLive do
       true ->
         {:noreply, socket}
     end
+  end
+
+  defp assign_translation_progress(socket, progress) do
+    items = Progress.items(progress)
+
+    assign(socket,
+      translation_progress: progress,
+      translation_progress_items: items,
+      translation_progress_summary: Progress.summary(progress),
+      translation_progress_failures: translation_failure_groups(items)
+    )
   end
 
   defp refetch_project(project, status) do
@@ -3420,9 +3433,12 @@ defmodule GlossiaWeb.DashboardLive do
           project={@project}
           session={@session}
           session_events={assigns[:session_events] || []}
-          translation_progress={
-            assigns[:translation_progress] || Glossia.TranslationSessions.Progress.new()
+          translation_progress_items={assigns[:translation_progress_items] || []}
+          translation_progress_summary={
+            assigns[:translation_progress_summary] ||
+              Glossia.TranslationSessions.Progress.summary(Glossia.TranslationSessions.Progress.new())
           }
+          translation_progress_failures={assigns[:translation_progress_failures] || []}
         />
       <% :project -> %>
         <.project_page
@@ -6730,7 +6746,11 @@ defmodule GlossiaWeb.DashboardLive do
         </div>
       </div>
 
-      <.translation_progress_panel progress={@translation_progress} />
+      <.translation_progress_panel
+        items={@translation_progress_items}
+        summary={@translation_progress_summary}
+        failures={@translation_progress_failures}
+      />
 
       <%= if @session_events != [] do %>
         <div class="session-event-feed">
@@ -6739,7 +6759,7 @@ defmodule GlossiaWeb.DashboardLive do
           <% end %>
         </div>
       <% else %>
-        <%= if translation_progress_empty?(@translation_progress) do %>
+        <%= if @translation_progress_items == [] do %>
           <div class="dash-empty-state">
             <p>{gettext("No events recorded yet.")}</p>
           </div>
@@ -6749,38 +6769,38 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  attr :progress, :map, required: true
+  attr :items, :list, required: true
+  attr :summary, :map, required: true
+  attr :failures, :list, required: true
 
   defp translation_progress_panel(assigns) do
-    alias Glossia.TranslationSessions.Progress
-
-    items = Progress.items(assigns.progress)
-
-    assigns =
-      assign(assigns,
-        items: items,
-        summary: Progress.summary(assigns.progress),
-        failures: translation_failure_groups(items)
-      )
-
     ~H"""
     <%= if @items != [] do %>
       <div id="translation-progress" class="translation-progress">
         <div id="translation-progress-summary" data-part="summary">
-          {gettext("%{done}/%{total} translated", done: @summary.done, total: @summary.total)}
+          <span id="translation-progress-summary-translated" data-part="translated">
+            {gettext("%{done}/%{total} translated", done: @summary.done, total: @summary.total)}
+          </span>
           <%= if @summary.running > 0 do %>
-            <span data-part="running">{gettext("%{n} in progress", n: @summary.running)}</span>
+            <span id="translation-progress-summary-running" data-part="running">
+              {gettext("%{n} in progress", n: @summary.running)}
+            </span>
           <% end %>
           <%= if @summary.failed > 0 do %>
-            <span data-part="failed">{gettext("%{n} failed", n: @summary.failed)}</span>
+            <span id="translation-progress-summary-failed" data-part="failed">
+              {gettext("%{n} failed", n: @summary.failed)}
+            </span>
           <% end %>
           <%= if @summary.skipped > 0 do %>
-            <span data-part="skipped">{gettext("%{n} up to date", n: @summary.skipped)}</span>
+            <span id="translation-progress-summary-skipped" data-part="skipped">
+              {gettext("%{n} up to date", n: @summary.skipped)}
+            </span>
           <% end %>
         </div>
-        <div :if={@failures != []} data-part="failures">
+        <div :if={@failures != []} id="translation-progress-failures" data-part="failures">
           <section
             :for={failure <- @failures}
+            id={failure.dom_id}
             data-part="failure-summary"
             data-kind={failure.kind}
             role="alert"
@@ -6821,16 +6841,24 @@ defmodule GlossiaWeb.DashboardLive do
               >
                 {failure.action_label}
               </a>
-              <details data-part="failure-details">
+              <details
+                id={failure.dom_id <> "-details"}
+                data-part="failure-details"
+                phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
+              >
                 <summary>{gettext("Technical details")}</summary>
                 <pre>{failure.details}</pre>
               </details>
             </div>
           </section>
         </div>
-        <ul data-part="items">
+        <ul id="translation-progress-items" data-part="items">
           <%= for item <- @items do %>
-            <li data-part="item" data-status={item.status}>
+            <li
+              id={"translation-progress-item-#{item.index}"}
+              data-part="item"
+              data-status={item.status}
+            >
               <div data-part="item-header">
                 <span data-part="status">
                   <%= if item.status == :running do %>
@@ -6866,8 +6894,19 @@ defmodule GlossiaWeb.DashboardLive do
       failures
       |> hd()
       |> Map.put(:count, length(failures))
+      |> then(&Map.put(&1, :dom_id, translation_failure_dom_id(&1.kind)))
     end)
     |> Enum.sort_by(& &1.first_index)
+  end
+
+  defp translation_failure_dom_id(kind) do
+    digest =
+      :sha256
+      |> :crypto.hash(kind)
+      |> Base.url_encode64(padding: false)
+      |> binary_part(0, 12)
+
+    "translation-progress-failure-#{digest}"
   end
 
   defp translation_failure(item) do
@@ -6952,10 +6991,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_provider_billing_url(reason) do
     if String.contains?(reason, "https://api.together.ai/settings/billing"),
       do: "https://api.together.ai/settings/billing"
-  end
-
-  defp translation_progress_empty?(progress) do
-    Glossia.TranslationSessions.Progress.items(progress) == []
   end
 
   defp session_event_item(%{event: event} = assigns) do

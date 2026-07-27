@@ -50,6 +50,10 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "Translating"
            )
 
+    assert has_element?(view, "#translation-progress-summary-translated", "0/1 translated")
+    assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
+    assert has_element?(view, "#translation-progress-item-0")
+
     refute has_element?(view, ".dash-empty-state")
     refute has_element?(view, ".session-event-feed")
 
@@ -172,6 +176,11 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              view,
              "#translation-progress [data-part='failure-details'] summary",
              "Technical details"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress [data-part='failure-details'][id][phx-mounted]"
            )
 
     assert has_element?(
