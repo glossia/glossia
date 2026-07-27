@@ -3,7 +3,7 @@ defmodule Glossia.TranslationSessions.Progress do
   Folds the live progress events broadcast by
   `Glossia.Translations.RepositoryRun` into a renderable state for the
   translation LiveView: overall totals plus, per file, its status, the number of
-  LLM turns taken, and the streamed output so far.
+  language model calls made, and the streamed output so far.
 
   Progress events are distinguished from persisted session events by their
   top-level `:type` key.
@@ -18,7 +18,12 @@ defmodule Glossia.TranslationSessions.Progress do
           status: :running | :done | :failed,
           turns: non_neg_integer(),
           text: String.t(),
+          completed_text: String.t(),
+          current_segment_text: String.t(),
           replace_text_on_next_chunk: boolean(),
+          segment_index: pos_integer() | nil,
+          segment_count: pos_integer() | nil,
+          segment_kind: String.t() | nil,
           reason: Failure.t() | nil
         }
 
@@ -48,7 +53,12 @@ defmodule Glossia.TranslationSessions.Progress do
       status: :running,
       turns: 0,
       text: "",
+      completed_text: "",
+      current_segment_text: "",
       replace_text_on_next_chunk: false,
+      segment_index: nil,
+      segment_count: nil,
+      segment_kind: nil,
       reason: nil
     }
 
@@ -97,22 +107,87 @@ defmodule Glossia.TranslationSessions.Progress do
   defp apply_turn(item, %{type: "text", text: text}) do
     text = to_string(text)
 
-    if item.replace_text_on_next_chunk do
-      %{item | text: text, replace_text_on_next_chunk: false}
-    else
-      %{item | text: item.text <> text}
+    cond do
+      text == "" ->
+        item
+
+      item.replace_text_on_next_chunk ->
+        %{
+          item
+          | text: text,
+            completed_text: "",
+            current_segment_text: text,
+            replace_text_on_next_chunk: false
+        }
+
+      true ->
+        current_segment_text = item.current_segment_text <> text
+
+        %{
+          item
+          | text: join_preview(item.completed_text, current_segment_text),
+            current_segment_text: current_segment_text
+        }
     end
   end
 
-  defp apply_turn(item, %{type: type}) when type in ["attempt_start", "segment_start"],
-    do: %{item | replace_text_on_next_chunk: true}
+  defp apply_turn(item, %{type: "attempt_start"}) do
+    %{
+      item
+      | completed_text: "",
+        current_segment_text: "",
+        replace_text_on_next_chunk: true,
+        segment_index: nil,
+        segment_count: nil,
+        segment_kind: nil
+    }
+  end
 
-  defp apply_turn(item, %{type: type, text: text})
-       when type in ["segment_output", "translation_output"],
-       do: %{item | text: to_string(text), replace_text_on_next_chunk: false}
+  defp apply_turn(item, %{type: "segment_start"} = event) do
+    %{
+      item
+      | current_segment_text: "",
+        segment_index: event[:index],
+        segment_count: event[:count],
+        segment_kind: event[:kind]
+    }
+  end
+
+  defp apply_turn(item, %{type: "segment_output", text: text}) do
+    completed_text =
+      if item.replace_text_on_next_chunk do
+        to_string(text)
+      else
+        join_preview(item.completed_text, to_string(text))
+      end
+
+    %{
+      item
+      | text: completed_text,
+        completed_text: completed_text,
+        current_segment_text: "",
+        replace_text_on_next_chunk: false
+    }
+  end
+
+  defp apply_turn(item, %{type: "translation_output", text: text}) do
+    text = to_string(text)
+
+    %{
+      item
+      | text: text,
+        completed_text: text,
+        current_segment_text: "",
+        replace_text_on_next_chunk: false
+    }
+  end
 
   defp apply_turn(item, %{type: "turn_start"}), do: %{item | turns: item.turns + 1}
   defp apply_turn(item, _turn), do: item
+
+  defp join_preview("", right), do: right
+  defp join_preview(left, ""), do: left
+  defp join_preview(left, right), do: left <> "\n\n" <> right
 
   defp update_item(state, index, fun) do
     case Map.get(state.items, index) do

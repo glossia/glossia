@@ -12,11 +12,27 @@ defmodule Glossia.Translations.ValidateTest do
       assert :ok = Validate.validate_syntax("yaml", "a: 1\n", "")
     end
 
-    test "validates markdown frontmatter only when a fence is present" do
+    test "validates fenced and NimblePublisher markdown frontmatter" do
       assert :ok = Validate.validate_syntax("markdown", "# Just prose", "")
       assert :ok = Validate.validate_syntax("markdown", "---\ntitle: Hi\n---\nBody", "")
       assert {:error, msg} = Validate.validate_syntax("markdown", "---\ntitle: Hi\nno close", "")
       assert msg =~ "frontmatter invalid"
+
+      assert :ok =
+               Validate.validate_syntax(
+                 "markdown",
+                 "%{\n  title: \"Hello\",\n  date: ~D[2026-02-03]\n}\n---\nBody",
+                 ""
+               )
+
+      assert {:error, message} =
+               Validate.validate_syntax(
+                 "markdown",
+                 "%{\n  title: \"Unclosed\n}\n---\nBody",
+                 ""
+               )
+
+      assert message =~ "frontmatter invalid"
     end
 
     test "text is always valid" do

@@ -53,12 +53,12 @@ defmodule Glossia.Translations.Validate do
   def validate_syntax("text", _output, _source), do: :ok
 
   defp validate_markdown(content) do
-    case content |> String.split("\n", parts: 2) |> List.first() do
-      nil ->
-        :ok
+    case content |> String.split("\n", parts: 2) |> List.first() |> String.trim() do
+      "%{" <> _rest ->
+        validate_nimble_publisher_frontmatter(content)
 
       first ->
-        if String.trim(first) in ["---", "+++"] do
+        if first in ["---", "+++"] do
           case Frontmatter.parse_content(content) do
             {:ok, _parsed} -> :ok
             {:error, error} -> {:error, "markdown frontmatter invalid: #{error}"}
@@ -66,6 +66,31 @@ defmodule Glossia.Translations.Validate do
         else
           :ok
         end
+    end
+  end
+
+  defp validate_nimble_publisher_frontmatter(content) do
+    case Frontmatter.split_markdown_frontmatter(content) do
+      %{ok: true, frontmatter: frontmatter} ->
+        frontmatter =
+          frontmatter
+          |> String.split("\n")
+          |> Enum.drop(-1)
+          |> Enum.join("\n")
+
+        case Code.string_to_quoted(frontmatter) do
+          {:ok, {:%{}, _, _}} ->
+            :ok
+
+          {:ok, _other} ->
+            {:error, "markdown frontmatter invalid: expected an Elixir map"}
+
+          {:error, error} ->
+            {:error, "markdown frontmatter invalid: #{inspect(error)}"}
+        end
+
+      _ ->
+        {:error, "markdown frontmatter invalid: expected a closing map and --- delimiter"}
     end
   end
 
