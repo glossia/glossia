@@ -13,12 +13,14 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     {:ok, project} =
       Projects.create_project(user.account, %{
         handle: "progress",
-        name: "Progress"
+        name: "Progress",
+        github_repo_full_name: "example/progress"
       })
 
     {:ok, session} =
       TranslationSessions.create_session(user.account, project, %{
         status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
         source_language: "en",
         target_languages: ["de"]
       })
@@ -35,6 +37,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_started",
       index: 0,
+      total: 1,
       output_path: "app/priv/i18n/de/example.md",
       locale: "de"
     })
@@ -53,6 +56,12 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(view, "#translation-progress-summary-translated", "0/1 translated")
     assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
     assert has_element?(view, "#translation-progress-item-0")
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 a[data-part='path'][href='https://github.com/example/progress/blob/0123456789abcdef0123456789abcdef01234567/app/priv/i18n/de/example.md'][target='_blank']",
+             "app/priv/i18n/de/example.md"
+           )
 
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_event",
