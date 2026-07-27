@@ -115,10 +115,18 @@
     letter-spacing: 0.04em;
   }
 
-  & [data-part="turns"] {
+  & [data-part="progress-meta"] {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
     color: var(--color-text-muted);
     font-size: var(--text-xs);
     text-align: end;
+
+    & > span + span::before {
+      content: "·";
+      margin-right: var(--space-2);
+    }
   }
 
   & [data-part="failures"] {
@@ -328,7 +336,7 @@
       grid-row: 3;
     }
 
-    & [data-part="turns"] {
+    & [data-part="progress-meta"] {
       grid-column: 2;
       grid-row: 3;
     }

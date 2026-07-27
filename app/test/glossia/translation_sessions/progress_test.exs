@@ -40,18 +40,47 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     assert Progress.summary(state) == %{total: 2, skipped: 0, done: 1, failed: 1, running: 0}
   end
 
-  test "keeps the previous preview visible until the next segment starts streaming" do
+  test "keeps completed segments visible while the next segment streams" do
     state =
       Progress.fold([
         %{type: "item_started", index: 0, output_path: "ja/a.md", locale: "ja"},
         %{type: "item_event", index: 0, event: %{type: "attempt_start", attempt: 1}},
-        %{type: "item_event", index: 0, event: %{type: "text", text: "first attempt"}},
-        %{type: "item_event", index: 0, event: %{type: "attempt_start", attempt: 2}},
-        %{type: "item_event", index: 0, event: %{type: "segment_start", index: 1, count: 3}}
+        %{
+          type: "item_event",
+          index: 0,
+          event: %{type: "segment_start", index: 1, count: 3, kind: "frontmatter"}
+        },
+        %{type: "item_event", index: 0, event: %{type: "text", text: "front matter"}},
+        %{
+          type: "item_event",
+          index: 0,
+          event: %{type: "segment_output", text: "front matter"}
+        },
+        %{
+          type: "item_event",
+          index: 0,
+          event: %{type: "segment_start", index: 2, count: 3, kind: "content"}
+        }
       ])
 
-    assert [%{text: "first attempt", replace_text_on_next_chunk: true}] =
+    assert [
+             %{
+               text: "front matter",
+               segment_index: 2,
+               segment_count: 3,
+               segment_kind: "content"
+             }
+           ] =
              Progress.items(state)
+
+    state =
+      Progress.apply_event(state, %{
+        type: "item_event",
+        index: 0,
+        event: %{type: "text", text: ""}
+      })
+
+    assert [%{text: "front matter"}] = Progress.items(state)
 
     state =
       Progress.apply_event(state, %{
@@ -60,7 +89,31 @@ defmodule Glossia.TranslationSessions.ProgressTest do
         event: %{type: "text", text: "current segment"}
       })
 
-    assert [%{text: "current segment", replace_text_on_next_chunk: false}] =
+    assert [%{text: "front matter\n\ncurrent segment"}] =
+             Progress.items(state)
+  end
+
+  test "a validation retry replaces the previous attempt when new output arrives" do
+    state =
+      Progress.fold([
+        %{type: "item_started", index: 0, output_path: "ja/a.md", locale: "ja"},
+        %{type: "item_event", index: 0, event: %{type: "attempt_start", attempt: 1}},
+        %{type: "item_event", index: 0, event: %{type: "segment_start", index: 1, count: 1}},
+        %{type: "item_event", index: 0, event: %{type: "text", text: "invalid output"}},
+        %{type: "item_event", index: 0, event: %{type: "attempt_start", attempt: 2}}
+      ])
+
+    assert [%{text: "invalid output", replace_text_on_next_chunk: true}] =
+             Progress.items(state)
+
+    state =
+      Progress.apply_event(state, %{
+        type: "item_event",
+        index: 0,
+        event: %{type: "text", text: "corrected output"}
+      })
+
+    assert [%{text: "corrected output", replace_text_on_next_chunk: false}] =
              Progress.items(state)
   end
 
