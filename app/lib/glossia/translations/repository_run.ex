@@ -17,6 +17,7 @@ defmodule Glossia.Translations.RepositoryRun do
   alias Glossia.Models.ModelIdentifier
   alias Glossia.Translations.Context
   alias Glossia.Translations.Engine
+  alias Glossia.Translations.Failure
   alias Glossia.Translations.Locks
   alias Glossia.Translations.Planner
   alias Glossia.Translations.Validate
@@ -189,7 +190,7 @@ defmodule Glossia.Translations.RepositoryRun do
         credential_node
       )
     else
-      reason = "source file contains invalid text encoding"
+      failure = Failure.from(:source_invalid_encoding)
 
       broadcast(
         session,
@@ -197,12 +198,12 @@ defmodule Glossia.Translations.RepositoryRun do
           type: "item_failed",
           index: index,
           output_path: item.output_path,
-          reason: reason
+          reason: failure
         },
         progress_node
       )
 
-      {:error, item_failure(item, index, reason)}
+      {:error, item_failure(item, index, failure)}
     end
   end
 
@@ -347,7 +348,7 @@ defmodule Glossia.Translations.RepositoryRun do
         :ok
 
       {:error, reason} ->
-        reason = format_item_error(reason)
+        failure = Failure.from(reason, provider)
 
         broadcast(
           session,
@@ -355,12 +356,12 @@ defmodule Glossia.Translations.RepositoryRun do
             type: "item_failed",
             index: index,
             output_path: item.output_path,
-            reason: reason
+            reason: failure
           },
           progress_node
         )
 
-        {:error, item_failure(item, index, reason)}
+        {:error, item_failure(item, index, failure)}
     end
   end
 
@@ -372,11 +373,6 @@ defmodule Glossia.Translations.RepositoryRun do
       reason: reason
     }
   end
-
-  defp format_item_error({:validation_failed, reason}), do: to_string(reason)
-  defp format_item_error({:llm_failed, reason}), do: "Model request failed: #{inspect(reason)}"
-  defp format_item_error(reason) when is_binary(reason), do: reason
-  defp format_item_error(reason), do: inspect(reason)
 
   defp write_output(item, text) do
     File.mkdir_p!(Path.dirname(item.output_abs))
@@ -535,7 +531,7 @@ defmodule Glossia.Translations.RepositoryRun do
   defp normalize_event({:translation_output, text}), do: %{type: "translation_output", text: text}
 
   defp normalize_event({:validation_error, reason}),
-    do: %{type: "validation_error", reason: reason}
+    do: %{type: "validation_error", reason: Failure.from({:validation_failed, reason})}
 
   defp normalize_event({:text, chunk}), do: %{type: "text", text: chunk}
   defp normalize_event({:thinking, chunk}), do: %{type: "thinking", text: chunk}
@@ -546,6 +542,8 @@ defmodule Glossia.Translations.RepositoryRun do
   defp normalize_event({:tool_result, id, result}),
     do: %{type: "tool_result", id: to_string(id), result: inspect(result)}
 
-  defp normalize_event({:error, reason}), do: %{type: "error", reason: inspect(reason)}
-  defp normalize_event(other), do: %{type: "unknown", raw: inspect(other)}
+  defp normalize_event({:error, reason}),
+    do: %{type: "error", reason: Failure.from({:llm_failed, reason})}
+
+  defp normalize_event(_other), do: %{type: "unknown"}
 end
