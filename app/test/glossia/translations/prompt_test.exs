@@ -24,6 +24,7 @@ defmodule Glossia.Translations.PromptTest do
                You are a professional localization engine.
                Translate the content from English to Spanish (es).
                Preserve code blocks, inline code, URLs, placeholders, lists, and headings.
+               Copy every Glossia protected token marker byte-for-byte exactly once.
                Return only the translated content. Do not add commentary or markdown fences.\
                """
     end
