@@ -1055,6 +1055,9 @@ defmodule Glossia.Seeds do
         status: "completed",
         source_language: "en",
         target_languages: ["es", "fr"],
+        publication_branch: "glossia/translate-a1b2c3d",
+        publication_commit_sha: "f6e5d4c3b2a1",
+        pull_request_url: "https://github.com/glossia/demo/pull/12",
         summary:
           "Translated 3 files into Spanish and French. All translations verified against terminology.",
         started_at: two_hours_ago,

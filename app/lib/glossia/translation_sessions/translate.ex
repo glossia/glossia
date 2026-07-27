@@ -9,7 +9,6 @@ defmodule Glossia.TranslationSessions.Translate do
   alias Glossia.TranslationSessions.TranslationSession
 
   @translation_branch_prefix "glossia/translate"
-  @max_changed_files_in_body 30
 
   def run(session_id, opts \\ []) do
     session =
@@ -41,10 +40,13 @@ defmodule Glossia.TranslationSessions.Translate do
       }
 
       locales = session.target_languages || []
+      publication_target = publication_target(session, project, token)
 
-      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales) do
+      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales,
+             publication_target: publication_target
+           ) do
         {:ok, changes} ->
-          result = create_pull_request(session, project, changes)
+          result = publication_result(session, changes, publication_target)
           handle_translation_result(session, project, account, result, opts)
 
         {:error, reason} ->
@@ -79,47 +81,60 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  defp create_pull_request(_session, _project, []) do
-    :no_changes
+  defp publication_target(session, project, token)
+       when not is_nil(project.github_installation) and is_binary(token) and token != "" do
+    %{
+      node: Node.self(),
+      module: __MODULE__,
+      context: %{session_id: session.id, token: token}
+    }
   end
 
-  defp create_pull_request(session, project, changes) do
-    installation = project.github_installation
+  defp publication_target(_session, _project, _token), do: nil
 
-    if is_nil(installation) do
-      Logger.info(
-        "No GitHub installation linked, skipping translation pull request for project #{project.id}"
-      )
+  defp publication_result(_session, changes, nil) do
+    if changes == [], do: :no_changes, else: :skipped_pull_request
+  end
 
-      :skipped_pull_request
-    else
-      case Glossia.Github.App.installation_token(installation.github_installation_id) do
-        {:ok, token} ->
-          do_create_pull_request(session, project, token, changes)
+  defp publication_result(session, changes, _publication_target) do
+    fresh = TranslationSessions.get_session!(session.id)
 
-        {:error, :not_configured} ->
-          Logger.info(
-            "GitHub App not configured, skipping translation pull request for project #{project.id}"
-          )
+    cond do
+      is_binary(fresh.pull_request_url) and fresh.pull_request_url != "" ->
+        {:published, fresh.pull_request_url}
 
-          :skipped_pull_request
+      changes == [] ->
+        :no_changes
 
-        {:error, reason} ->
-          {:error, {:github_token_failed, reason}}
-      end
+      true ->
+        {:error, :invalid_github_response}
     end
   end
 
-  defp do_create_pull_request(session, project, token, changes) do
+  @doc false
+  def publish_item(
+        %{session_id: session_id, token: token},
+        %{changes: changes, output_path: output_path, locale: locale}
+      )
+      when is_list(changes) and is_binary(token) do
+    session =
+      TranslationSessions.get_session!(session_id)
+      |> Glossia.Repo.preload(project: [:account, :github_installation])
+
+    do_publish_item(session, session.project, token, changes, output_path, locale)
+  end
+
+  defp do_publish_item(session, project, token, changes, output_path, locale) do
     full_name = project.github_repo_full_name
     default_branch = project.github_repo_default_branch || "main"
-    branch_name = translation_branch_name(session)
-    commit_message = translation_commit_message(session)
+    branch_name = session.publication_branch || translation_branch_name(session)
+    commit_message = translation_item_commit_message(output_path, locale)
 
-    with {:ok, base_commit_sha} <- base_commit_sha(full_name, default_branch, session, token),
-         {:ok, base_commit} <-
-           Glossia.Github.Client.get_commit(full_name, base_commit_sha, token),
-         base_tree_sha when is_binary(base_tree_sha) <- get_in(base_commit, ["tree", "sha"]),
+    with {:ok, parent_commit_sha} <-
+           publication_parent_sha(full_name, default_branch, session, token),
+         {:ok, parent_commit} <-
+           Glossia.Github.Client.get_commit(full_name, parent_commit_sha, token),
+         base_tree_sha when is_binary(base_tree_sha) <- get_in(parent_commit, ["tree", "sha"]),
          {:ok, tree_entries} <- create_tree_entries(full_name, token, changes),
          {:ok, tree} <-
            Glossia.Github.Client.create_tree(
@@ -134,29 +149,52 @@ defmodule Glossia.TranslationSessions.Translate do
              %{
                message: commit_message,
                tree: tree_sha,
-               parents: [base_commit_sha]
+               parents: [parent_commit_sha]
              },
              token
            ),
          commit_sha when is_binary(commit_sha) <- commit["sha"],
-         :ok <- create_or_update_branch(full_name, branch_name, commit_sha, token),
-         {:ok, pull_request} <-
-           Glossia.Github.Client.create_pull_request(
+         :ok <- publish_branch(session, full_name, branch_name, commit_sha, token),
+         {:ok, pull_request_url, pull_request_created?} <-
+           ensure_pull_request(
+             session,
              full_name,
-             %{
-               title: commit_message,
-               body: pull_request_body(session, changes),
-               head: branch_name,
-               base: default_branch
-             },
+             default_branch,
+             branch_name,
              token
-           ) do
-      {:ok, pull_request["html_url"]}
+           ),
+         {:ok, updated_session} <-
+           TranslationSessions.update_session_publication(session, %{
+             publication_branch: branch_name,
+             publication_commit_sha: commit_sha,
+             pull_request_url: pull_request_url
+           }) do
+      if pull_request_created? do
+        record_translation_event(updated_session, %{
+          "event_type" => "pr_created",
+          "content" => pull_request_url,
+          "metadata" => %{"repo" => full_name}
+        })
+      end
+
+      {:ok, %{ref: branch_name, pull_request_url: pull_request_url}}
     else
       nil -> {:error, :invalid_github_response}
       other -> other
     end
   end
+
+  defp publication_parent_sha(
+         _full_name,
+         _default_branch,
+         %TranslationSession{publication_commit_sha: sha},
+         _token
+       )
+       when is_binary(sha) and sha != "",
+       do: {:ok, sha}
+
+  defp publication_parent_sha(full_name, default_branch, session, token),
+    do: base_commit_sha(full_name, default_branch, session, token)
 
   defp base_commit_sha(_full_name, _default_branch, %TranslationSession{commit_sha: sha}, _token)
        when is_binary(sha) and sha != "" do
@@ -202,6 +240,29 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
+  defp publish_branch(
+         %TranslationSession{publication_commit_sha: sha},
+         full_name,
+         branch_name,
+         commit_sha,
+         token
+       )
+       when is_binary(sha) and sha != "" do
+    case Glossia.Github.Client.update_ref(
+           full_name,
+           "heads/#{branch_name}",
+           commit_sha,
+           token
+         ) do
+      {:ok, _} -> :ok
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp publish_branch(_session, full_name, branch_name, commit_sha, token) do
+    create_or_update_branch(full_name, branch_name, commit_sha, token)
+  end
+
   defp create_or_update_branch(full_name, branch_name, sha, token) do
     case Glossia.Github.Client.create_branch(full_name, branch_name, sha, token) do
       {:ok, _} ->
@@ -209,7 +270,7 @@ defmodule Glossia.TranslationSessions.Translate do
 
       {:error, {:api_error, 422, _body}} ->
         case Glossia.Github.Client.update_ref(full_name, "heads/#{branch_name}", sha, token,
-               force: true
+               force: false
              ) do
           {:ok, _} -> :ok
           {:error, _reason} = error -> error
@@ -220,17 +281,50 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  defp handle_translation_result(session, project, account, {:ok, pull_request_url}, _opts) do
+  defp ensure_pull_request(
+         %TranslationSession{pull_request_url: pull_request_url},
+         _full_name,
+         _default_branch,
+         _branch_name,
+         _token
+       )
+       when is_binary(pull_request_url) and pull_request_url != "" do
+    {:ok, pull_request_url, false}
+  end
+
+  defp ensure_pull_request(session, full_name, default_branch, branch_name, token) do
+    case Glossia.Github.Client.create_pull_request(
+           full_name,
+           %{
+             title: translation_commit_message(session),
+             body: pull_request_body(session),
+             head: branch_name,
+             base: default_branch
+           },
+           token
+         ) do
+      {:ok, %{"html_url" => pull_request_url}} when is_binary(pull_request_url) ->
+        {:ok, pull_request_url, true}
+
+      {:ok, _response} ->
+        {:error, :invalid_github_response}
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp handle_translation_result(
+         session,
+         project,
+         account,
+         {:published, _pull_request_url},
+         _opts
+       ) do
     summary = "Created translation pull request."
 
     with {:ok, _session} <-
            TranslationSessions.update_session_status(session, "completed", summary: summary) do
-      record_translation_event(session, %{
-        "event_type" => "pr_created",
-        "content" => pull_request_url,
-        "metadata" => %{"repo" => project.github_repo_full_name || ""}
-      })
-
       Events.emit("translation_session.completed", account, nil,
         resource_type: "translation_session",
         resource_id: to_string(session.id),
@@ -278,26 +372,6 @@ defmodule Glossia.TranslationSessions.Translate do
     end
 
     :ok
-  end
-
-  defp handle_translation_result(session, project, account, {:error, reason}, opts)
-       when reason in [
-              :translation_change_manifest_missing,
-              :translation_change_manifest_empty,
-              :translation_change_manifest_invalid,
-              :translation_lockfile_invalid
-            ] do
-    fail_translation(session, project, account, reason, opts)
-  end
-
-  defp handle_translation_result(
-         session,
-         project,
-         account,
-         {:error, {:translation_changed_file_missing, _path} = reason},
-         opts
-       ) do
-    fail_translation(session, project, account, reason, opts)
   end
 
   defp handle_translation_result(session, _project, _account, {:error, reason}, opts) do
@@ -401,7 +475,7 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  defp pull_request_body(session, changes) do
+  defp pull_request_body(session) do
     languages =
       case session.target_languages || [] do
         [] -> "The translation run used the targets declared in `GLOSSIA.md`."
@@ -414,26 +488,10 @@ defmodule Glossia.TranslationSessions.Translate do
         _ -> "Source commit was not specified."
       end
 
-    changed_files =
-      changes
-      |> Enum.take(@max_changed_files_in_body)
-      |> Enum.map_join("\n", fn change -> "- `#{change.path}` (#{change.status})" end)
-
-    remaining_count = length(changes) - @max_changed_files_in_body
-
-    changed_files =
-      if remaining_count > 0 do
-        changed_files <> "\n- #{remaining_count} more file(s)."
-      else
-        changed_files
-      end
-
     """
     ## What changed
 
     Glossia translated stale or missing localized content and updated the corresponding `.glossia/` lockfiles.
-
-    #{changed_files}
 
     ## Why
 
@@ -452,6 +510,10 @@ defmodule Glossia.TranslationSessions.Translate do
 
     The translation command completed successfully inside a sandbox.
     """
+  end
+
+  defp translation_item_commit_message(output_path, locale) do
+    "feat: translate #{Path.basename(output_path)} to #{locale}"
   end
 
   defp humanize_error(:translation_harness_failed),
@@ -500,7 +562,7 @@ defmodule Glossia.TranslationSessions.Translate do
     do: "The translation harness reported an invalid Glossia lockfile."
 
   defp humanize_error({:translation_publication_failed, reason}),
-    do: "The translation pull request could not be created: #{inspect(reason)}"
+    do: "The translation pull request could not be updated: #{inspect(reason)}"
 
   defp humanize_error(:codex_session_token_missing),
     do: "Could not read a local Codex session token for development translation."
