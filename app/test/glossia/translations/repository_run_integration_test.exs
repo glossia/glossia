@@ -174,7 +174,8 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
     assert failure.output_path == "docs/i18n/es/broken.md"
     assert failure.locale == "es"
-    assert failure.reason == "source file contains invalid text encoding"
+    assert failure.reason.kind == "source-invalid-encoding"
+    assert failure.reason.scope == "item"
     assert File.exists?(Path.join([root, "docs", "i18n", "es", "guide.md"]))
     refute File.exists?(Path.join([root, "docs", "i18n", "es", "broken.md"]))
 
@@ -182,8 +183,56 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
                     %{
                       type: "item_failed",
                       output_path: "docs/i18n/es/broken.md",
-                      reason: "source file contains invalid text encoding"
+                      reason: %{kind: "source-invalid-encoding", scope: "item"}
                     }}
+  end
+
+  @tag :tmp_dir
+  test "broadcasts a safe provider failure without request contents or credentials", %{
+    tmp_dir: root
+  } do
+    init_repo(root)
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+    :ok = TranslationSessions.subscribe_session_events(session)
+
+    Mimic.stub(Translations, :translate_stream, fn _account, _payload, on_event ->
+      reason = %{
+        reason: "Credit limit exceeded",
+        status: 402,
+        response_body: %{"type" => "credit_limit"},
+        request_body: %{"prompt" => "private source document"},
+        headers: [
+          {"authorization", "Bearer provider-secret"},
+          {"x-request-id", "request_123"}
+        ]
+      }
+
+      on_event.({:error, reason})
+      {:error, reason}
+    end)
+
+    assert {:error, {:translation_items_failed, [failure]}} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
+
+    assert failure.reason == %{
+             kind: "provider-credit",
+             scope: "session",
+             provider: "openai",
+             status: 402,
+             code: "credit_limit",
+             request_id: "request_123"
+           }
+
+    refute inspect(failure) =~ "private source document"
+    refute inspect(failure) =~ "provider-secret"
+
+    assert_receive {:translation_session_event,
+                    %{type: "item_failed", reason: %{kind: "provider-credit"} = reason}}
+
+    refute inspect(reason) =~ "private source document"
+    refute inspect(reason) =~ "provider-secret"
   end
 
   @tag :tmp_dir

@@ -35,6 +35,17 @@ defmodule Glossia.TranslationSessions do
     )
   end
 
+  def get_session!(%Account{id: account_id}, %Project{id: project_id}, id) do
+    Repo.one!(
+      from(s in TranslationSession,
+        where:
+          s.id == ^id and s.account_id == ^account_id and
+            s.project_id == ^project_id,
+        preload: [:project, :account]
+      )
+    )
+  end
+
   def get_session(id) when is_binary(id) do
     case Ecto.UUID.cast(id) do
       {:ok, cast_id} ->

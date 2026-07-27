@@ -9,6 +9,8 @@ defmodule Glossia.TranslationSessions.Progress do
   top-level `:type` key.
   """
 
+  alias Glossia.Translations.Failure
+
   @type item :: %{
           index: non_neg_integer(),
           output_path: String.t() | nil,
@@ -17,7 +19,7 @@ defmodule Glossia.TranslationSessions.Progress do
           turns: non_neg_integer(),
           text: String.t(),
           replace_text_on_next_chunk: boolean(),
-          reason: String.t() | nil
+          reason: Failure.t() | nil
         }
 
   @type t :: %{
@@ -62,7 +64,11 @@ defmodule Glossia.TranslationSessions.Progress do
   end
 
   def apply_event(state, %{type: "item_failed", index: index} = event) do
-    update_item(state, index, &%{&1 | status: :failed, reason: event[:reason]})
+    update_item(
+      state,
+      index,
+      &%{&1 | status: :failed, reason: Failure.normalize(event[:reason])}
+    )
   end
 
   def apply_event(state, _event), do: state
