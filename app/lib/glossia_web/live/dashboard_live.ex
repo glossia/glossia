@@ -6871,7 +6871,25 @@ defmodule GlossiaWeb.DashboardLive do
                 </span>
                 <span data-part="path">{item.output_path}</span>
                 <span data-part="locale">{item.locale}</span>
-                <span data-part="turns">{gettext("%{n} turns", n: item.turns)}</span>
+                <span data-part="progress-meta">
+                  <span :if={item.segment_kind == "frontmatter"}>
+                    {gettext("Front matter")}
+                  </span>
+                  <span :if={item.segment_count && item.segment_count > 1}>
+                    {gettext("Segment %{index} of %{count}",
+                      index: item.segment_index,
+                      count: item.segment_count
+                    )}
+                  </span>
+                  <span>
+                    {ngettext(
+                      "%{n} model call",
+                      "%{n} model calls",
+                      item.turns,
+                      n: item.turns
+                    )}
+                  </span>
+                </span>
               </div>
               <div
                 :if={item.failure}

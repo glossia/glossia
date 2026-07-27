@@ -524,8 +524,8 @@ defmodule Glossia.Translations.RepositoryRun do
   defp normalize_event({:context_budget, budget}),
     do: Map.put(budget, :type, "context_budget")
 
-  defp normalize_event({:segment_start, index, count}),
-    do: %{type: "segment_start", index: index, count: count}
+  defp normalize_event({:segment_start, index, count, kind}),
+    do: %{type: "segment_start", index: index, count: count, kind: to_string(kind)}
 
   defp normalize_event({:segment_output, text}), do: %{type: "segment_output", text: text}
   defp normalize_event({:translation_output, text}), do: %{type: "translation_output", text: text}

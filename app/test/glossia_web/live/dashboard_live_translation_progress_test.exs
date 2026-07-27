@@ -54,6 +54,90 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
     assert has_element?(view, "#translation-progress-item-0")
 
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "attempt_start", attempt: 1}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "segment_start", index: 1, count: 2, kind: "frontmatter"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "turn_start"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "text", text: "translated front matter"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "segment_output", text: "translated front matter"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "segment_start", index: 2, count: 2, kind: "content"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "turn_start"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "text", text: ""}
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='progress-meta']",
+             "Segment 2 of 2"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='progress-meta']",
+             "2 model calls"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='stream']",
+             "translated front matter"
+           )
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "text", text: "translated body"}
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='stream']",
+             "translated front matter"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='stream']",
+             "translated body"
+           )
+
     refute has_element?(view, ".dash-empty-state")
     refute has_element?(view, ".session-event-feed")
 
