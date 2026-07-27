@@ -3157,7 +3157,16 @@ defmodule GlossiaWeb.DashboardLive do
             do: translation_failure(item.reason, item.index),
             else: nil
 
-        Map.put(item, :failure, failure)
+        item
+        |> Map.put(:failure, failure)
+        |> Map.put(
+          :file_url,
+          translation_file_url(
+            socket.assigns[:project],
+            socket.assigns[:session],
+            item.output_path
+          )
+        )
       end)
 
     assign(socket,
@@ -6712,7 +6721,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp session_detail_page(assigns) do
     ~H"""
-    <div class="dash-page">
+    <div id="translation-session" class="dash-page">
       <.page_header
         title={gettext("Translation session")}
         description={
@@ -6722,11 +6731,11 @@ defmodule GlossiaWeb.DashboardLive do
         }
       />
 
-      <div class="session-header">
-        <div class="session-header-row">
+      <div class="card" data-part="overview">
+        <div data-part="overview-primary">
           <span class={["badge", "badge-#{@session.status}"]}>{@session.status}</span>
           <%= if @session.source_language do %>
-            <span class="session-header-languages">
+            <span data-part="languages">
               {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
             </span>
           <% end %>
@@ -6742,9 +6751,9 @@ defmodule GlossiaWeb.DashboardLive do
           <% end %>
         </div>
         <%= if @session.commit_message do %>
-          <p class="session-header-commit-message">{@session.commit_message}</p>
+          <p data-part="commit-message">{@session.commit_message}</p>
         <% end %>
-        <div class="session-header-meta">
+        <div data-part="metadata">
           <%= if @session.started_at do %>
             <span>{gettext("Started %{time}", time: relative_time(@session.started_at))}</span>
           <% end %>
@@ -6764,7 +6773,7 @@ defmodule GlossiaWeb.DashboardLive do
       />
 
       <%= if @session_events != [] do %>
-        <div class="session-event-feed">
+        <div class="session-event-feed" data-part="event-feed">
           <%= for event <- @session_events do %>
             <.session_event_item event={event} project={@project} />
           <% end %>
@@ -6859,6 +6868,7 @@ defmodule GlossiaWeb.DashboardLive do
           <%= for item <- @items do %>
             <li
               id={"translation-progress-item-#{item.index}"}
+              class="card"
               data-part="item"
               data-status={item.status}
             >
@@ -6869,7 +6879,16 @@ defmodule GlossiaWeb.DashboardLive do
                   <% end %>
                   {translation_item_status_label(item.status)}
                 </span>
-                <span data-part="path">{item.output_path}</span>
+                <a
+                  :if={item.file_url}
+                  data-part="path"
+                  href={item.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {item.output_path}
+                </a>
+                <span :if={is_nil(item.file_url)} data-part="path">{item.output_path}</span>
                 <span data-part="locale">{item.locale}</span>
                 <span data-part="turns">{gettext("%{n} turns", n: item.turns)}</span>
               </div>
@@ -6934,6 +6953,25 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
+
+  defp translation_file_url(
+         %{github_repo_full_name: repository},
+         %{commit_sha: commit_sha},
+         output_path
+       )
+       when is_binary(repository) and repository != "" and is_binary(commit_sha) and
+              commit_sha != "" and is_binary(output_path) and output_path != "" do
+    encoded_path =
+      output_path
+      |> String.split("/", trim: false)
+      |> Enum.map_join("/", fn segment ->
+        URI.encode(segment, &URI.char_unreserved?/1)
+      end)
+
+    "https://github.com/#{repository}/blob/#{commit_sha}/#{encoded_path}"
+  end
+
+  defp translation_file_url(_project, _session, _output_path), do: nil
 
   defp translation_failure_groups(items) do
     items

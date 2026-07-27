@@ -88,4 +88,17 @@ defmodule Glossia.TranslationSessions.ProgressTest do
 
     assert Progress.summary(state).skipped == 1
   end
+
+  test "recovers the plan total from a file event" do
+    state =
+      Progress.apply_event(Progress.new(), %{
+        type: "item_started",
+        index: 0,
+        total: 6,
+        output_path: "de/a.md",
+        locale: "de"
+      })
+
+    assert Progress.summary(state) == %{total: 6, skipped: 0, done: 0, failed: 0, running: 1}
+  end
 end

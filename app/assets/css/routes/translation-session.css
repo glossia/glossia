@@ -1,0 +1,86 @@
+#translation-session {
+  gap: var(--space-6);
+  max-width: var(--max-width-dash);
+
+  & [data-part="overview"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  & [data-part="overview-primary"] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  & [data-part="languages"] {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  & [data-part="commit-message"] {
+    margin: var(--space-0);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+  }
+
+  & [data-part="metadata"] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  & [data-part="event-feed"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  & .session-event-thought .setup-event-content p {
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  & .session-event-thought .setup-event-icon {
+    color: var(--color-primary);
+  }
+
+  & .session-plan {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1-5);
+  }
+
+  & .session-plan-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+
+    &[data-status="completed"] {
+      color: var(--color-success);
+    }
+
+    &[data-status="in_progress"] {
+      color: var(--color-primary);
+      font-weight: var(--weight-medium);
+    }
+
+    &[data-status="pending"] {
+      color: var(--color-text-muted);
+    }
+  }
+
+  & .session-plan-icon {
+    width: var(--space-4);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+}

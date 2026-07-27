@@ -52,7 +52,11 @@ defmodule Glossia.TranslationSessions.Progress do
       reason: nil
     }
 
-    %{state | items: Map.put(state.items, index, item)}
+    %{
+      state
+      | total: max(state.total, event[:total] || 0),
+        items: Map.put(state.items, index, item)
+    }
   end
 
   def apply_event(state, %{type: "item_event", index: index, event: turn}) do
