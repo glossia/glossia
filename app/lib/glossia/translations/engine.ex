@@ -133,7 +133,7 @@ defmodule Glossia.Translations.Engine do
     |> Enum.with_index(1)
     |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
       {segment, segment_index}, {:ok, acc} ->
-        state.on_event.({:segment_start, segment_index, segment_count})
+        state.on_event.({:segment_start, segment_index, segment_count, segment.kind})
 
         payload =
           payload(

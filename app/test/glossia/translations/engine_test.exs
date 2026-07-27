@@ -284,25 +284,43 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "translates frontmatter as an isolated segment when requested", %{tmp_dir: dir} do
+    test "translates NimblePublisher frontmatter separately from segmented body content", %{
+      tmp_dir: dir
+    } do
       source = Path.join(dir, "guide.md")
-      File.write!(source, "%{\n  title: \"Hello\"\n}\n---\n\nBody")
+
+      first = String.duplicate("First paragraph remains together. ", 90)
+      second = String.duplicate("Second paragraph remains together. ", 90)
+
+      File.write!(
+        source,
+        "%{\n  title: \"Hello\"\n}\n---\n\n#{first}\n\n#{second}"
+      )
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
 
       stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
         case payload["segment_kind"] do
           "frontmatter" ->
             assert payload["segment_index"] == 1
             translated("%{\n  title: \"Hola\"\n}\n---")
 
           "content" ->
-            assert payload["segment_index"] == 2
-            translated("Cuerpo")
+            translated("Cuerpo #{payload["segment_index"]}")
         end
       end)
 
       item = work_item(%{source_abs: source, frontmatter_mode: :translate})
       assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-      assert result.text == "%{\n  title: \"Hola\"\n}\n---\nCuerpo"
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.map(calls, & &1["segment_kind"]) == ["frontmatter", "content", "content"]
+      assert Enum.all?(calls, &(&1["segment_count"] == 3))
+
+      assert result.text ==
+               "%{\n  title: \"Hola\"\n}\n---\nCuerpo 2\n\nCuerpo 3"
     end
 
     @tag :tmp_dir
