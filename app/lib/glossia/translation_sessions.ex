@@ -125,6 +125,27 @@ defmodule Glossia.TranslationSessions do
     end
   end
 
+  def update_session_publication(%TranslationSession{} = session, attrs) do
+    session
+    |> Ecto.Changeset.change(
+      Map.take(attrs, [:publication_branch, :publication_commit_sha, :pull_request_url])
+    )
+    |> Repo.update()
+    |> case do
+      {:ok, updated_session} ->
+        Phoenix.PubSub.broadcast(
+          Glossia.PubSub,
+          "translation_session:#{updated_session.id}",
+          {:translation_session_publication, updated_session}
+        )
+
+        {:ok, updated_session}
+
+      error ->
+        error
+    end
+  end
+
   def subscribe_session_events(%TranslationSession{id: id}) do
     Phoenix.PubSub.subscribe(Glossia.PubSub, "translation_session:#{id}")
   end

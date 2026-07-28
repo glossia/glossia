@@ -32,14 +32,15 @@ defmodule Glossia.Translations.RepositoryRun do
   `changes` is a list of `%{path, status, content}` where `status` is
   `"added" | "modified" | "deleted"`, ready for the PR builder.
   """
-  def run(session, account, repository, locales) do
+  def run(session, account, repository, locales, opts \\ []) do
     with {:ok, context_snapshot} <- Context.snapshot(account) do
-      run_with_context(session, account, repository, locales, context_snapshot)
+      run_with_context(session, account, repository, locales, context_snapshot, opts)
     end
   end
 
-  defp run_with_context(session, account, repository, locales, context_snapshot) do
+  defp run_with_context(session, account, repository, locales, context_snapshot, opts) do
     progress_node = Node.self()
+    publication_target = Keyword.get(opts, :publication_target)
     caller = self()
     result_ref = make_ref()
 
@@ -56,7 +57,8 @@ defmodule Glossia.Translations.RepositoryRun do
                       progress_node: progress_node,
                       credential_node: progress_node,
                       context_node: progress_node,
-                      context_snapshot: context_snapshot
+                      context_snapshot: context_snapshot,
+                      publication_target: publication_target
                     )
                   after
                     File.rm_rf(repo_path)
@@ -92,6 +94,7 @@ defmodule Glossia.Translations.RepositoryRun do
     progress_node = Keyword.get(opts, :progress_node, Node.self())
     credential_node = Keyword.get(opts, :credential_node)
     context_node = Keyword.get(opts, :context_node, Node.self())
+    publication_target = Keyword.get(opts, :publication_target)
 
     with {:ok, context_snapshot} <- context_snapshot(account, context_node, opts),
          {:ok, items} <- build_items(repo_path, locales),
@@ -100,10 +103,10 @@ defmodule Glossia.Translations.RepositoryRun do
       total = length(items)
       broadcast(session, %{type: "plan", total: total}, progress_node)
 
-      failures =
+      result =
         items
         |> Enum.with_index()
-        |> Enum.reduce([], fn {item, index}, failures ->
+        |> Enum.reduce_while({:ok, []}, fn {item, index}, {:ok, failures} ->
           case apply_one(
                  session,
                  account,
@@ -114,16 +117,24 @@ defmodule Glossia.Translations.RepositoryRun do
                  progress_node,
                  credential_node,
                  context_snapshot,
-                 locale_contexts
+                 locale_contexts,
+                 publication_target
                ) do
-            :ok -> failures
-            {:error, failure} -> [failure | failures]
+            :ok -> {:cont, {:ok, failures}}
+            {:error, failure} -> {:cont, {:ok, [failure | failures]}}
+            {:publication_error, reason} -> {:halt, {:publication_error, reason}}
           end
         end)
 
-      case Enum.reverse(failures) do
-        [] -> collect_changes(repo_path)
-        failures -> {:error, {:translation_items_failed, failures}}
+      case result do
+        {:publication_error, reason} ->
+          {:error, {:translation_publication_failed, reason}}
+
+        {:ok, failures} ->
+          case Enum.reverse(failures) do
+            [] -> collect_changes(repo_path)
+            failures -> {:error, {:translation_items_failed, failures}}
+          end
       end
     end
   end
@@ -160,7 +171,8 @@ defmodule Glossia.Translations.RepositoryRun do
          progress_node,
          credential_node,
          context_snapshot,
-         locale_contexts
+         locale_contexts,
+         publication_target
        ) do
     source_content = File.read!(item.source_abs)
 
@@ -187,7 +199,8 @@ defmodule Glossia.Translations.RepositoryRun do
         index,
         total,
         progress_node,
-        credential_node
+        credential_node,
+        publication_target
       )
     else
       failure = Failure.from(:source_invalid_encoding)
@@ -216,7 +229,8 @@ defmodule Glossia.Translations.RepositoryRun do
          index,
          total,
          progress_node,
-         credential_node
+         credential_node,
+         publication_target
        ) do
     provider = ModelIdentifier.provider(item.model)
 
@@ -261,7 +275,8 @@ defmodule Glossia.Translations.RepositoryRun do
         provider,
         hash_state,
         progress_node,
-        credential_node
+        credential_node,
+        publication_target
       )
     else
       broadcast(
@@ -294,7 +309,8 @@ defmodule Glossia.Translations.RepositoryRun do
          provider,
          hash_state,
          progress_node,
-         credential_node
+         credential_node,
+         publication_target
        ) do
     broadcast(
       session,
@@ -339,13 +355,24 @@ defmodule Glossia.Translations.RepositoryRun do
         write_output(item, result.text)
         write_lock(repo_path, item, provider, hash_state, result.text)
 
-        broadcast(
-          session,
-          %{type: "item_completed", index: index, output_path: item.output_path},
-          progress_node
-        )
+        case publish_item(repo_path, item, publication_target) do
+          {:ok, publication} ->
+            broadcast(
+              session,
+              %{
+                type: "item_completed",
+                index: index,
+                output_path: item.output_path,
+                file_ref: publication[:ref]
+              },
+              progress_node
+            )
 
-        :ok
+            :ok
+
+          {:error, reason} ->
+            {:publication_error, reason}
+        end
 
       {:error, reason} ->
         failure = Failure.from(reason, provider)
@@ -393,6 +420,39 @@ defmodule Glossia.Translations.RepositoryRun do
       )
 
     Locks.write_lock(repo_path, item.source_path, item.locale, lock)
+  end
+
+  defp publish_item(_repo_path, _item, nil), do: {:ok, %{}}
+
+  defp publish_item(repo_path, item, publication_target) do
+    lock_path = Locks.lock_path(repo_path, item.source_path, item.locale)
+
+    payload = %{
+      output_path: item.output_path,
+      locale: item.locale,
+      changes: [
+        %{path: item.output_path, status: "modified", content: File.read!(item.output_abs)},
+        %{
+          path: Path.relative_to(lock_path, repo_path),
+          status: "modified",
+          content: File.read!(lock_path)
+        }
+      ]
+    }
+
+    target_node = Map.fetch!(publication_target, :node)
+    module = Map.fetch!(publication_target, :module)
+    context = Map.fetch!(publication_target, :context)
+
+    try do
+      if target_node == Node.self() do
+        module.publish_item(context, payload)
+      else
+        :erpc.call(target_node, module, :publish_item, [context, payload], @git_timeout_ms)
+      end
+    catch
+      kind, reason -> {:error, {:publication_relay_failed, kind, reason}}
+    end
   end
 
   defp validate_opts(repo_path, item) do

@@ -57,9 +57,11 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
     assert has_element?(view, "#translation-progress-item-0")
 
+    refute has_element?(view, "#translation-progress-item-0 a[data-part='path']")
+
     assert has_element?(
              view,
-             "#translation-progress-item-0 a[data-part='path'][href='https://github.com/example/progress/blob/0123456789abcdef0123456789abcdef01234567/app/priv/i18n/de/example.md'][target='_blank']",
+             "#translation-progress-item-0 span[data-part='path']",
              "app/priv/i18n/de/example.md"
            )
 
@@ -152,11 +154,37 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_completed",
-      index: 0
+      index: 0,
+      file_ref: "glossia/translate-0123456789ab"
     })
 
     refute has_element?(view, "#translation-progress [data-part='indicator']")
     assert has_element?(view, "#translation-progress [data-status='done']", "Done")
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 a[data-part='path'][href='https://github.com/example/progress/blob/glossia/translate-0123456789ab/app/priv/i18n/de/example.md'][target='_blank']",
+             "app/priv/i18n/de/example.md"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='completed-output'] summary",
+             "Show translated output"
+           )
+
+    {:ok, _session} =
+      TranslationSessions.update_session_publication(session, %{
+        publication_branch: "glossia/translate-0123456789ab",
+        publication_commit_sha: "translated-commit",
+        pull_request_url: "https://github.com/example/progress/pull/42"
+      })
+
+    assert has_element?(
+             view,
+             "#translation-session [data-part='metadata'] a[href='https://github.com/example/progress/pull/42']",
+             "Open pull request"
+           )
   end
 
   test "a retry clears progress from the previous attempt immediately", %{conn: conn} do

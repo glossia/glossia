@@ -3079,6 +3079,10 @@ defmodule GlossiaWeb.DashboardLive do
     {:noreply, socket}
   end
 
+  def handle_info({:translation_session_publication, session}, socket) do
+    {:noreply, assign(socket, session: session)}
+  end
+
   def handle_info({:setup_status, status}, socket) do
     project = socket.assigns[:project]
     wizard_project = socket.assigns[:wizard_project]
@@ -3163,7 +3167,8 @@ defmodule GlossiaWeb.DashboardLive do
           :file_url,
           translation_file_url(
             socket.assigns[:project],
-            socket.assigns[:session],
+            item.status,
+            item.file_ref,
             item.output_path
           )
         )
@@ -6763,6 +6768,14 @@ defmodule GlossiaWeb.DashboardLive do
           <%= if @session.summary do %>
             <span>{@session.summary}</span>
           <% end %>
+          <a
+            :if={@session.pull_request_url}
+            href={@session.pull_request_url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {gettext("Open pull request")}
+          </a>
         </div>
       </div>
 
@@ -6951,13 +6964,21 @@ defmodule GlossiaWeb.DashboardLive do
                 </div>
               </div>
               <%= if item.text != "" do %>
-                <%= if item.status == :failed do %>
-                  <details data-part="partial-output">
-                    <summary>{gettext("Show incomplete output")}</summary>
-                    <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
-                  </details>
-                <% else %>
-                  <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                <%= cond do %>
+                  <% item.status == :running -> %>
+                    <div data-part="live-output">
+                      <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                    </div>
+                  <% item.status == :failed -> %>
+                    <details data-part="partial-output">
+                      <summary>{gettext("Show incomplete output")}</summary>
+                      <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                    </details>
+                  <% true -> %>
+                    <details data-part="completed-output">
+                      <summary>{gettext("Show translated output")}</summary>
+                      <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                    </details>
                 <% end %>
               <% end %>
             </li>
@@ -6974,11 +6995,12 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_file_url(
          %{github_repo_full_name: repository},
-         %{commit_sha: commit_sha},
+         :done,
+         file_ref,
          output_path
        )
-       when is_binary(repository) and repository != "" and is_binary(commit_sha) and
-              commit_sha != "" and is_binary(output_path) and output_path != "" do
+       when is_binary(repository) and repository != "" and is_binary(file_ref) and
+              file_ref != "" and is_binary(output_path) and output_path != "" do
     encoded_path =
       output_path
       |> String.split("/", trim: false)
@@ -6986,10 +7008,10 @@ defmodule GlossiaWeb.DashboardLive do
         URI.encode(segment, &URI.char_unreserved?/1)
       end)
 
-    "https://github.com/#{repository}/blob/#{commit_sha}/#{encoded_path}"
+    "https://github.com/#{repository}/blob/#{file_ref}/#{encoded_path}"
   end
 
-  defp translation_file_url(_project, _session, _output_path), do: nil
+  defp translation_file_url(_project, _status, _file_ref, _output_path), do: nil
 
   defp translation_failure_groups(items) do
     items
