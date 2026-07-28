@@ -62,6 +62,9 @@ config :glossia, Glossia.Sandbox, reaper_enabled: false
 
 config :glossia, Glossia.Projects.SetupRecovery, enabled: false
 
+config :glossia, Glossia.Translations,
+  live_test_model: System.get_env("GLOSSIA_TRANSLATION_TEST_MODEL", "anthropic/claude-haiku-4-5")
+
 # Cloak encryption vault (deterministic test key)
 config :glossia, Glossia.Vault,
   ciphers: [
