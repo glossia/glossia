@@ -12,7 +12,7 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
-  @version 1
+  @version 2
 
   @doc """
   Version of the prompt contract used in translation lockfiles.
@@ -43,6 +43,7 @@ defmodule Glossia.Translations.Prompt do
       "You are a professional localization engine.",
       "Translate the content from #{input.source_language} to #{input.language} (#{input.locale}).",
       "Preserve code blocks, inline code, URLs, placeholders, lists, and headings.",
+      "Copy every Glossia protected token marker byte-for-byte exactly once.",
       "Return only the translated content. Do not add commentary or markdown fences."
     ]
 

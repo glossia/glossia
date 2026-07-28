@@ -162,7 +162,8 @@ defmodule Glossia.Translations.Failure do
 
       contains_any?(normalized, [
         "preserved tokens missing",
-        "unexpected preserved tokens"
+        "unexpected preserved tokens",
+        "protected token marker"
       ]) ->
         "validation-preserved-content"
 

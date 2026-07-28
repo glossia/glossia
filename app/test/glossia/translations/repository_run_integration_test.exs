@@ -15,6 +15,13 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
 
+  defmodule RecordingPublisher do
+    def publish_item(test_pid, payload) do
+      send(test_pid, {:published_translation, payload})
+      {:ok, %{ref: "glossia/translate-test"}}
+    end
+  end
+
   defp git!(root, args) do
     {_out, 0} = MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
   end
@@ -146,7 +153,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   end
 
   @tag :tmp_dir
-  test "reports an invalid source file and rejects the partial repository result", %{
+  test "publishes completed files before reporting another file's failure", %{
     tmp_dir: root
   } do
     init_repo(root)
@@ -169,7 +176,12 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
     assert {:error, {:translation_items_failed, [failure]}} =
              RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
-               context_snapshot: Context.empty_snapshot()
+               context_snapshot: Context.empty_snapshot(),
+               publication_target: %{
+                 node: Node.self(),
+                 module: RecordingPublisher,
+                 context: self()
+               }
              )
 
     assert failure.output_path == "docs/i18n/es/broken.md"
@@ -179,11 +191,30 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert File.exists?(Path.join([root, "docs", "i18n", "es", "guide.md"]))
     refute File.exists?(Path.join([root, "docs", "i18n", "es", "broken.md"]))
 
+    assert_receive {:published_translation,
+                    %{
+                      output_path: "docs/i18n/es/guide.md",
+                      locale: "es",
+                      changes: published_changes
+                    }}
+
+    assert Enum.map(published_changes, & &1.path) == [
+             "docs/i18n/es/guide.md",
+             ".glossia/docs/guide.md/es.lock"
+           ]
+
     assert_receive {:translation_session_event,
                     %{
                       type: "item_failed",
                       output_path: "docs/i18n/es/broken.md",
                       reason: %{kind: "source-invalid-encoding", scope: "item"}
+                    }}
+
+    assert_receive {:translation_session_event,
+                    %{
+                      type: "item_completed",
+                      output_path: "docs/i18n/es/guide.md",
+                      file_ref: "glossia/translate-test"
                     }}
   end
 

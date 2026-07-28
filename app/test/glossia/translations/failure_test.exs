@@ -89,6 +89,19 @@ defmodule Glossia.Translations.FailureTest do
     refute inspect(failure) =~ "full translated document"
   end
 
+  test "classifies a changed protected marker as preserved content" do
+    failure =
+      Failure.from(
+        {:validation_failed,
+         "protected token marker occurred 0 times; preserve it exactly once for a private value"},
+        "openai"
+      )
+
+    assert failure.kind == "validation-preserved-content"
+    assert failure.scope == "item"
+    refute inspect(failure) =~ "private value"
+  end
+
   test "revalidates values received through progress messaging" do
     failure =
       Failure.normalize(%{

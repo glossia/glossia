@@ -17,7 +17,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       %{type: "item_event", index: 0, event: %{type: "text", text: ", mundo"}},
       %{type: "item_event", index: 0, event: %{type: "segment_output", text: "Hola, mundo"}},
       %{type: "item_event", index: 0, event: %{type: "translation_output", text: "Hola, mundo"}},
-      %{type: "item_completed", index: 0},
+      %{type: "item_completed", index: 0, file_ref: "glossia/translate-source"},
       %{type: "item_started", index: 1, output_path: "ja/a.md", locale: "ja"},
       %{type: "item_event", index: 1, event: %{type: "turn_start"}},
       %{type: "item_failed", index: 1, reason: "boom"}
@@ -30,6 +30,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
 
     assert first.output_path == "es/a.md"
     assert first.status == :done
+    assert first.file_ref == "glossia/translate-source"
     assert first.turns == 1
     assert first.text == "Hola, mundo"
 

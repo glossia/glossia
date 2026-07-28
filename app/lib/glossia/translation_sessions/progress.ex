@@ -24,6 +24,7 @@ defmodule Glossia.TranslationSessions.Progress do
           segment_index: pos_integer() | nil,
           segment_count: pos_integer() | nil,
           segment_kind: String.t() | nil,
+          file_ref: String.t() | nil,
           reason: Failure.t() | nil
         }
 
@@ -59,6 +60,7 @@ defmodule Glossia.TranslationSessions.Progress do
       segment_index: nil,
       segment_count: nil,
       segment_kind: nil,
+      file_ref: nil,
       reason: nil
     }
 
@@ -73,8 +75,8 @@ defmodule Glossia.TranslationSessions.Progress do
     update_item(state, index, &apply_turn(&1, turn))
   end
 
-  def apply_event(state, %{type: "item_completed", index: index}) do
-    update_item(state, index, &%{&1 | status: :done})
+  def apply_event(state, %{type: "item_completed", index: index} = event) do
+    update_item(state, index, &%{&1 | status: :done, file_ref: event[:file_ref]})
   end
 
   def apply_event(state, %{type: "item_failed", index: index} = event) do
