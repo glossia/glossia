@@ -184,8 +184,23 @@ defmodule Glossia.Translations.LLM do
   defp request_options(model, key, base_url, system) do
     {request_model, request_base_url} = request_model(model, base_url)
 
-    [model: request_model, api_key: key, system_prompt: system, thinking_level: :off]
+    [
+      model: request_model,
+      api_key: key,
+      system_prompt: system,
+      thinking_level: thinking_level(model)
+    ]
     |> maybe_base_url(request_base_url)
+  end
+
+  # Together rejects the generic `reasoning_effort: "none"` value that Condukt
+  # derives from `:off`. Passing nil explicitly overrides Condukt's `:medium`
+  # default while leaving reasoning configuration out of the provider request.
+  defp thinking_level(model) do
+    case ModelIdentifier.split(model) do
+      {:ok, {"togetherai", _provider_model}} -> nil
+      _ -> :off
+    end
   end
 
   defp request_model(model, base_url) do
