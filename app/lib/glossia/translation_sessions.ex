@@ -98,6 +98,9 @@ defmodule Glossia.TranslationSessions do
         "failed" ->
           %{status: status, completed_at: now, summary: nil}
 
+        "cancelled" ->
+          %{status: status, completed_at: now, error: nil, summary: nil}
+
         _ ->
           %{status: status}
       end
@@ -124,6 +127,24 @@ defmodule Glossia.TranslationSessions do
         error
     end
   end
+
+  def cancel_session(%TranslationSession{status: status} = session)
+      when status in ["pending", "running"] do
+    session_id = to_string(session.id)
+
+    jobs =
+      from(job in Oban.Job,
+        where: job.worker == ^to_string(Glossia.TranslationSessions.TranslateWorker),
+        where: job.state in ["available", "scheduled", "executing", "retryable"],
+        where: fragment("?->>'session_id' = ?", job.args, ^session_id)
+      )
+
+    with {:ok, _count} <- Oban.cancel_all_jobs(jobs) do
+      update_session_status(session, "cancelled")
+    end
+  end
+
+  def cancel_session(%TranslationSession{}), do: {:error, :not_cancellable}
 
   def update_session_publication(%TranslationSession{} = session, attrs) do
     session

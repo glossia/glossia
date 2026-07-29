@@ -16,6 +16,14 @@
     flex-wrap: wrap;
   }
 
+  & [data-part="overview-header"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
   & [data-part="languages"] {
     color: var(--color-text);
     font-size: var(--text-sm);

@@ -18,7 +18,11 @@ defmodule Glossia.TranslationSessions.Translate do
     project = session.project
     account = project.account
 
-    do_run(session, project, account, opts)
+    if session.status == "cancelled" do
+      :ok
+    else
+      do_run(session, project, account, opts)
+    end
   end
 
   defp do_run(%TranslationSession{} = session, project, account, opts) do
