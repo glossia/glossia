@@ -49,20 +49,31 @@ defmodule Glossia.Translations.LLMTest do
       assert {:error, :boom} = LLM.run(cred, @system, @user)
     end
 
-    test "routes Together AI through its OpenAI-compatible endpoint" do
-      Mimic.expect(Condukt, :run, fn _prompt, opts ->
-        assert opts[:model] == %{provider: :openai, id: "moonshotai/Kimi-K2.7-Code"}
+    test "routes Together text models through its compatible endpoint" do
+      provider_models = [
+        "Qwen/Qwen3.5-9B",
+        "moonshotai/Kimi-K2.7-Code",
+        "openai/gpt-oss-120b"
+      ]
+
+      Mimic.expect(Condukt, :run, length(provider_models), fn _prompt, opts ->
+        assert opts[:model] in Enum.map(provider_models, &%{provider: :openai, id: &1})
+
         assert opts[:base_url] == "https://api.together.ai/v1"
+        assert Keyword.has_key?(opts, :thinking_level)
+        assert opts[:thinking_level] == nil
         {:ok, "Hola"}
       end)
 
-      cred = %{
-        model: "togetherai/moonshotai/Kimi-K2.7-Code",
-        auth: {:api_key, "together-key", nil},
-        source: :account_model
-      }
+      Enum.each(provider_models, fn provider_model ->
+        cred = %{
+          model: "togetherai/#{provider_model}",
+          auth: {:api_key, "together-key", nil},
+          source: :account_model
+        }
 
-      assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
+        assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
+      end)
     end
   end
 
