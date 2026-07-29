@@ -187,6 +187,66 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
            )
   end
 
+  test "the in-progress summary stays visible while the next file is queued", %{conn: conn} do
+    user =
+      TestHelpers.create_user(
+        "translation-progress-handoff@test.com",
+        "translation-progress-handoff"
+      )
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "progress-handoff",
+        name: "Progress handoff"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 2})
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      output_path: "app/priv/i18n/de/first.md",
+      locale: "de"
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_failed",
+      index: 0,
+      reason: "First file failed"
+    })
+
+    assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 1,
+      output_path: "app/priv/i18n/de/second.md",
+      locale: "de"
+    })
+
+    assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_failed",
+      index: 1,
+      reason: "Second file failed"
+    })
+
+    refute has_element?(view, "#translation-progress-summary-running")
+  end
+
   test "a retry clears progress from the previous attempt immediately", %{conn: conn} do
     user =
       TestHelpers.create_user("translation-retry-progress@test.com", "translation-retry-progress")
@@ -333,6 +393,83 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     html = render(view)
     refute html =~ "provider-secret"
     refute html =~ "Technical details"
+  end
+
+  test "a generic provider error joins the provider's single specific failure group", %{
+    conn: conn
+  } do
+    user =
+      TestHelpers.create_user(
+        "translation-provider-failure-group@test.com",
+        "provider-failure-group"
+      )
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "provider-failure-group",
+        name: "Provider failure group"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 2})
+
+    Enum.each(
+      [{0, "provider-credit"}, {1, "provider-error"}],
+      fn {index, kind} ->
+        TranslationSessions.broadcast_session_event(session, %{
+          type: "item_started",
+          index: index,
+          output_path: "app/priv/i18n/de/example-#{index}.md",
+          locale: "de"
+        })
+
+        TranslationSessions.broadcast_session_event(session, %{
+          type: "item_failed",
+          index: index,
+          reason: %{
+            kind: kind,
+            scope: "session",
+            provider: "togetherai"
+          }
+        })
+      end
+    )
+
+    assert has_element?(
+             view,
+             "#translation-progress [data-part='failure-summary'][data-kind='provider-credit']",
+             "Model provider credit limit reached"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress [data-part='failure-count']",
+             "2 files were affected."
+           )
+
+    refute has_element?(
+             view,
+             "#translation-progress [data-part='failure-summary'][data-kind='provider-error']"
+           )
+
+    failure_summaries =
+      view
+      |> render()
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query("#translation-progress [data-part='failure-summary']")
+
+    assert Enum.count(failure_summaries) == 1
   end
 
   test "file-specific validation failures stay with their file", %{conn: conn} do
