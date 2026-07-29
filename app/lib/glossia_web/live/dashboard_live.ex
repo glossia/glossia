@@ -6807,6 +6807,9 @@ defmodule GlossiaWeb.DashboardLive do
   attr :failures, :list, required: true
 
   defp translation_progress_panel(assigns) do
+    assigns =
+      assign(assigns, :display_running, translation_progress_display_running(assigns.summary))
+
     ~H"""
     <%= if @items != [] do %>
       <div id="translation-progress" class="translation-progress">
@@ -6814,9 +6817,9 @@ defmodule GlossiaWeb.DashboardLive do
           <span id="translation-progress-summary-translated" data-part="translated">
             {gettext("%{done}/%{total} translated", done: @summary.done, total: @summary.total)}
           </span>
-          <%= if @summary.running > 0 do %>
+          <%= if @display_running > 0 do %>
             <span id="translation-progress-summary-running" data-part="running">
-              {gettext("%{n} in progress", n: @summary.running)}
+              {gettext("%{n} in progress", n: @display_running)}
             </span>
           <% end %>
           <%= if @summary.failed > 0 do %>
@@ -6989,6 +6992,13 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
+  defp translation_progress_display_running(%{running: running}) when running > 0, do: running
+
+  defp translation_progress_display_running(summary) do
+    processed = summary.done + summary.failed + summary.skipped
+    if processed < summary.total, do: 1, else: 0
+  end
+
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
@@ -7014,18 +7024,44 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_file_url(_project, _status, _file_ref, _output_path), do: nil
 
   defp translation_failure_groups(items) do
-    items
-    |> Enum.filter(&(&1.status == :failed and Failure.session_level?(&1.reason)))
-    |> Enum.map(& &1.failure)
-    |> Enum.group_by(& &1.kind)
-    |> Enum.map(fn {_kind, failures} ->
+    failures =
+      items
+      |> Enum.filter(&(&1.status == :failed and Failure.session_level?(&1.reason)))
+      |> Enum.map(& &1.failure)
+
+    specific_kinds_by_provider =
       failures
-      |> hd()
+      |> Enum.reject(&(&1.kind == "provider-error"))
+      |> Enum.group_by(& &1.provider, & &1.kind)
+      |> Map.new(fn {provider, kinds} -> {provider, Enum.uniq(kinds)} end)
+
+    # Some providers omit the original status after repeated failures. Fold
+    # those generic errors into the provider's only known specific cause.
+    failures
+    |> Enum.group_by(&translation_failure_group_kind(&1, specific_kinds_by_provider))
+    |> Enum.map(fn {_kind, failures} ->
+      kind = translation_failure_group_kind(hd(failures), specific_kinds_by_provider)
+
+      failures
+      |> Enum.find(hd(failures), &(&1.kind == kind))
       |> Map.put(:count, length(failures))
-      |> then(&Map.put(&1, :dom_id, translation_failure_dom_id(&1.kind)))
+      |> then(&Map.put(&1, :dom_id, translation_failure_dom_id(kind)))
     end)
     |> Enum.sort_by(& &1.first_index)
   end
+
+  defp translation_failure_group_kind(
+         %{kind: "provider-error", provider: provider},
+         specific_kinds_by_provider
+       )
+       when is_binary(provider) do
+    case Map.get(specific_kinds_by_provider, provider, []) do
+      [kind] -> kind
+      _ -> "provider-error"
+    end
+  end
+
+  defp translation_failure_group_kind(failure, _specific_kinds_by_provider), do: failure.kind
 
   defp translation_failure_dom_id(kind) do
     digest =
