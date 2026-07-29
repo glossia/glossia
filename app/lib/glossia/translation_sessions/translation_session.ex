@@ -9,7 +9,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
     default_order: %{order_by: [:inserted_at], order_directions: [:desc]}
   }
 
-  @statuses ~w(pending running completed failed)
+  @statuses ~w(pending running completed failed cancelled)
 
   schema "translation_sessions" do
     field :commit_sha, :string
