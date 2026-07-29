@@ -7,6 +7,30 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
   alias Glossia.TestHelpers
   alias Glossia.TranslationSessions
 
+  test "a running translation session can be cancelled" do
+    user = TestHelpers.create_user("cancel-translation@test.com", "cancel-translation")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "cancel-progress",
+        name: "Cancel progress",
+        github_repo_full_name: "example/cancel-progress"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    assert {:ok, cancelled_session} = TranslationSessions.cancel_session(session)
+    assert cancelled_session.status == "cancelled"
+
+    assert TranslationSessions.get_session!(session.id).status == "cancelled"
+  end
+
   test "running translation items show an active progress indicator", %{conn: conn} do
     user = TestHelpers.create_user("translation-progress@test.com", "translation-progress")
 

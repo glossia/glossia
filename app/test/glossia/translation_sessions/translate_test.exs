@@ -207,6 +207,18 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.pull_request_url == "https://github.com/glossia/demo/pull/2"
   end
 
+  test "does not run a cancelled translation session" do
+    {user, project} =
+      project_with_installation("cancelled-translate@test.com", "cancelled-translate")
+
+    session = session_for(user, project)
+    {:ok, session} = TranslationSessions.update_session_status(session, "cancelled")
+
+    Mimic.reject(&Glossia.Translations.RepositoryRun.run/5)
+
+    assert :ok = Translate.run(session.id)
+  end
+
   test "completes without a PR when there are no changes" do
     {user, project} = project_with_installation("translate-empty@test.com", "translate-empty")
     session = session_for(user, project)

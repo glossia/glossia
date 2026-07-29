@@ -2768,6 +2768,25 @@ defmodule GlossiaWeb.DashboardLive do
     {:noreply, cancel_upload(socket, :project_avatar, ref)}
   end
 
+  def handle_event("cancel_translation_session", _params, socket) do
+    require_write!(socket)
+
+    case Glossia.TranslationSessions.cancel_session(socket.assigns.session) do
+      {:ok, session} ->
+        {:noreply,
+         socket
+         |> assign(session: session)
+         |> put_flash(:info, gettext("Translation cancelled."))}
+
+      {:error, :not_cancellable} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("This translation can no longer be cancelled."))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not cancel the translation."))}
+    end
+  end
+
   def handle_event("translate_commit", %{"sha" => sha, "message" => message}, socket) do
     require_write!(socket)
     account = socket.assigns.account
@@ -6716,13 +6735,17 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_session_status_badge("failed"), do: "error"
   defp translation_session_status_badge("running"), do: "in_progress"
   defp translation_session_status_badge("pending"), do: "attention"
+  defp translation_session_status_badge("cancelled"), do: "disabled"
   defp translation_session_status_badge(_), do: "disabled"
 
   defp translation_session_status_label("completed"), do: gettext("Completed")
   defp translation_session_status_label("failed"), do: gettext("Failed")
   defp translation_session_status_label("running"), do: gettext("Running")
   defp translation_session_status_label("pending"), do: gettext("Pending")
+  defp translation_session_status_label("cancelled"), do: gettext("Cancelled")
   defp translation_session_status_label(status), do: status
+
+  defp translation_session_cancellable?(%{status: status}), do: status in ["pending", "running"]
 
   defp session_detail_page(assigns) do
     ~H"""
@@ -6737,23 +6760,33 @@ defmodule GlossiaWeb.DashboardLive do
       />
 
       <div class="card" data-part="overview">
-        <div data-part="overview-primary">
-          <span class={["badge", "badge-#{@session.status}"]}>{@session.status}</span>
-          <%= if @session.source_language do %>
-            <span data-part="languages">
-              {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
-            </span>
-          <% end %>
-          <%= if @session.commit_sha && @project.github_repo_full_name do %>
-            <a
-              href={"https://github.com/#{@project.github_repo_full_name}/commit/#{@session.commit_sha}"}
-              target="_blank"
-              rel="noopener"
-              class="commit-sha"
-            >
-              {String.slice(@session.commit_sha, 0, 7)}
-            </a>
-          <% end %>
+        <div data-part="overview-header">
+          <div data-part="overview-primary">
+            <span class={["badge", "badge-#{@session.status}"]}>{@session.status}</span>
+            <%= if @session.source_language do %>
+              <span data-part="languages">
+                {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
+              </span>
+            <% end %>
+            <%= if @session.commit_sha && @project.github_repo_full_name do %>
+              <a
+                href={"https://github.com/#{@project.github_repo_full_name}/commit/#{@session.commit_sha}"}
+                target="_blank"
+                rel="noopener"
+                class="commit-sha"
+              >
+                {String.slice(@session.commit_sha, 0, 7)}
+              </a>
+            <% end %>
+          </div>
+          <Noora.Button.button
+            :if={assigns[:can_write] && translation_session_cancellable?(@session)}
+            type="button"
+            label={gettext("Cancel translation")}
+            variant="secondary"
+            size="small"
+            phx-click="cancel_translation_session"
+          />
         </div>
         <%= if @session.commit_message do %>
           <p data-part="commit-message">{@session.commit_message}</p>

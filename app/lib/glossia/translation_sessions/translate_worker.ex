@@ -6,7 +6,7 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
   use Oban.Worker,
     queue: :default,
     max_attempts: 3,
-    unique: [keys: [:session_id], states: [:available, :scheduled, :retryable]]
+    unique: [keys: [:session_id], states: [:available, :scheduled, :executing, :retryable]]
 
   @impl Oban.Worker
   def perform(%Oban.Job{
