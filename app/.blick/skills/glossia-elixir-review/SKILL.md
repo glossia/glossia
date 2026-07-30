@@ -313,6 +313,67 @@ outputs.
 
 ---
 
+## 14. Authorization predicates — no DB query per call in hot paths
+
+Permission / authorization predicates (`super_admin?/1`,
+`organization_admin?/2`, `can_*?/1`, etc.) tend to be called from plugs,
+LiveView `on_mount` hooks, layout templates, and per-row template loops
+(`:let={record}`). When such a predicate issues a database query on every
+invocation, those call sites turn into per-request (or N+1) query
+regressions. This is especially likely when a refactor replaces a free
+struct-field read (`user.is_admin`) with a function that hits the DB.
+
+### Flag (Severity: high)
+
+- An authorization predicate that calls `Repo.exists?/1`, `Repo.one/1`,
+  `Repo.get_by/1`, or any `Repo.*` query on every invocation, **and** is
+  reachable from a plug, a layout `.html.heex`, a LiveView `on_mount`
+  hook, or a `:let={record}` template loop.
+- A diff that replaces an in-memory struct-field read with a DB-backed
+  predicate without preloading the relevant association onto the struct
+  (or caching the result for the request / render).
+- A template that calls the same DB-backed predicate more than once for
+  the same record (e.g. once in a badge, again in a button label) inside
+  a `:let` loop.
+
+### Do not flag
+
+- Predicates called once per request/action where the query is
+  unavoidable and not multiplied across a loop or layout.
+- Predicates whose input struct already carries the data (preloaded
+  association or denormalized flag) and only read it in memory.
+
+---
+
+## 15. Migrations — unique indexes over nullable columns
+
+PostgreSQL treats `NULL` as distinct in a plain `UNIQUE` index, so a
+unique index that includes a nullable column does **not** enforce
+uniqueness for rows where that column is `NULL`. This silently breaks the
+invariant the index appears to provide, and the matching
+`unique_constraint/3` in the changeset won't catch the conflict either.
+The classic shape is a polymorphic `role_assignments`-style table that
+reuses one nullable FK (`organization_id`) to span two scopes.
+
+### Flag (Severity: medium)
+
+- `create unique_index(:table, [..., :nullable_col])` (or a matching
+  `unique_constraint([... , :nullable_col])`) where `:nullable_col` can
+  be `NULL`, unless a `where:` partial-index clause or
+  `nulls_not_distinct: true` covers the NULL case.
+- A check-then-insert sequence
+  (`if Repo.exists?(...) ... else Repo.insert(...)`) guarding a row that
+  is only unique under a NULL-inclusive key, which races under
+  concurrency because the unique index won't serialize the inserts.
+
+### Do not flag
+
+- Unique indexes where every indexed column is `NOT NULL`.
+- Indexes that already split NULL and non-NULL rows into separate
+  partial indexes, or that use `nulls_not_distinct: true`.
+
+---
+
 ## Out of scope (handled elsewhere — do not flag)
 
 - Module / function naming, pipe-chain start, function ordering,
@@ -328,7 +389,7 @@ outputs.
 For each finding, confirm:
 
 1. The `path:line` is real and the snippet appears in the diff.
-2. The category above is one of 1–13; if it isn't, downgrade to
+2. The category above is one of 1–15; if it isn't, downgrade to
    `uncertain: ...` rather than asserting a finding.
 3. Severity is set: **critical** (auth bypass, anonymous writes),
    **high** (likely security/correctness bug), **medium**
