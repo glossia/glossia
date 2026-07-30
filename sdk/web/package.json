@@ -1,0 +1,33 @@
+{
+  "name": "@glossia/web",
+  "version": "0.1.0",
+  "description": "Cookieless, privacy-friendly web analytics that surfaces localization opportunities for Glossia.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/glossia-web.cjs",
+  "module": "./dist/glossia-web.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/glossia-web.iife.js",
+  "jsdelivr": "./dist/glossia-web.iife.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/glossia-web.js",
+      "require": "./dist/glossia-web.cjs"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.2"
+  }
+}
