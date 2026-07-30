@@ -61,7 +61,15 @@
 
   <:avatar_menu_extra>
     <.dropdown_item
-      :if={@current_user && @current_user.super_admin}
+      :if={@current_user && Glossia.Accounts.super_admin?(@current_user)}
+      value="operations"
+      label={gettext("Operations")}
+      href={~p"/ops"}
+    >
+      <:left_icon><Icon.settings /></:left_icon>
+    </.dropdown_item>
+    <.dropdown_item
+      :if={@current_user && Glossia.Accounts.super_admin?(@current_user)}
       value="admin"
       label={gettext("Admin")}
       href={~p"/admin"}
@@ -103,6 +111,7 @@
             selected={@live_action == :project}
           />
           <.sidebar_item
+            :if={assigns[:translation_enabled]}
             label={gettext("Translations")}
             icon="language"
             navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}

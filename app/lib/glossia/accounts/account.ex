@@ -55,3 +55,7 @@ defmodule Glossia.Accounts.Account do
     end)
   end
 end
+
+defimpl FunWithFlags.Actor, for: Glossia.Accounts.Account do
+  def id(%{id: id}), do: "account:#{id}"
+end

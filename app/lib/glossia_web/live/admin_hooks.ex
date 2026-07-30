@@ -31,7 +31,7 @@ defmodule GlossiaWeb.AdminHooks do
   def on_mount(:require_super_admin, _params, _session, socket) do
     user = socket.assigns[:current_user]
 
-    if user && user.super_admin do
+    if user && Accounts.super_admin?(user) do
       {:cont, socket}
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/dashboard")}

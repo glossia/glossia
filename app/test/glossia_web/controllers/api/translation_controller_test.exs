@@ -30,6 +30,18 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
   defp translate_path(user), do: "/api/#{user.account.handle}/translate"
 
   describe "POST /api/:handle/translate authorization" do
+    test "403 when translation is not enabled for the account", %{conn: conn, owner: owner} do
+      {:ok, false} = FunWithFlags.disable(:translation, for_actor: owner.account)
+
+      conn =
+        conn
+        |> TestHelpers.authenticate(owner, @scopes)
+        |> post(translate_path(owner), payload())
+
+      assert %{"error" => %{"message" => "translation is not enabled for this account"}} =
+               json_response(conn, 403)
+    end
+
     test "403 when missing the translation:write scope", %{conn: conn, owner: owner} do
       conn =
         conn

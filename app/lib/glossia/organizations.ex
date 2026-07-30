@@ -11,6 +11,7 @@ defmodule Glossia.Organizations do
 
   alias Glossia.Events
   alias Glossia.Repo
+  alias Glossia.Roles
 
   import Ecto.Query
 
@@ -43,6 +44,8 @@ defmodule Glossia.Organizations do
       |> Repo.transaction()
       |> case do
         {:ok, %{account: account, organization: org} = result} ->
+          :ok = Roles.replace_organization_role(user, org, "admin")
+
           Events.emit("organization.created", account, user,
             resource_type: "organization",
             resource_id: to_string(org.id),
@@ -185,6 +188,16 @@ defmodule Glossia.Organizations do
       %OrganizationMembership{user_id: user_id, organization_id: org_id}
       |> OrganizationMembership.changeset(%{role: role})
       |> Repo.insert()
+      |> case do
+        {:ok, membership} ->
+          case Roles.replace_organization_role(%User{id: user_id}, org_id, role) do
+            :ok -> {:ok, membership}
+            {:error, reason} -> {:error, reason}
+          end
+
+        error ->
+          error
+      end
     end
   end
 
@@ -201,6 +214,10 @@ defmodule Glossia.Organizations do
       |> case do
         {count, _} = result ->
           actor = Keyword.get(opts, :actor)
+
+          if count > 0 do
+            :ok = Roles.remove_organization_roles(target_user, org)
+          end
 
           if count > 0 and actor do
             org = Repo.preload(org, :account)
@@ -241,6 +258,16 @@ defmodule Glossia.Organizations do
           membership
           |> OrganizationMembership.changeset(%{role: new_role})
           |> Repo.update()
+          |> case do
+            {:ok, updated_membership} ->
+              case Roles.replace_organization_role(target_user, org, new_role) do
+                :ok -> {:ok, updated_membership}
+                {:error, reason} -> {:error, reason}
+              end
+
+            error ->
+              error
+          end
       end
     end
   end
@@ -401,6 +428,7 @@ defmodule Glossia.Organizations do
             |> case do
               {:ok, %{membership: membership}} = ok ->
                 org = get_organization(invitation.organization_id)
+                :ok = Roles.replace_organization_role(user, org, membership.role)
 
                 Events.emit("member.invitation_accepted", org.account, user,
                   resource_type: "invitation",

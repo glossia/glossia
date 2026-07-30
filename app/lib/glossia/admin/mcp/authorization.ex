@@ -7,18 +7,19 @@ defmodule Glossia.Admin.MCP.Authorization do
   @spec current_user(Hermes.Server.Frame.t()) :: {:ok, %User{}} | {:error, Error.t()}
   def current_user(frame) do
     case frame.assigns[:current_user] do
-      %User{super_admin: true} = user ->
-        case rate_limit(user.id) do
-          :ok ->
-            {:ok, user}
+      %User{} = user ->
+        if Glossia.Accounts.super_admin?(user) do
+          case rate_limit(user.id) do
+            :ok ->
+              {:ok, user}
 
-          {:error, retry_after_ms} ->
-            retry_after = ceil(retry_after_ms / 1_000)
-            {:error, Error.execution("Rate limit exceeded. Retry in #{retry_after}s.")}
+            {:error, retry_after_ms} ->
+              retry_after = ceil(retry_after_ms / 1_000)
+              {:error, Error.execution("Rate limit exceeded. Retry in #{retry_after}s.")}
+          end
+        else
+          {:error, Error.execution("Super admin access required")}
         end
-
-      %User{} ->
-        {:error, Error.execution("Super admin access required")}
 
       _ ->
         {:error, Error.execution("Authentication required")}
