@@ -34,7 +34,7 @@ defmodule Glossia.Admin.MCP.GetUserTool do
                 email: u.email,
                 name: u.name,
                 handle: u.account.handle,
-                super_admin: u.super_admin,
+                super_admin: Accounts.super_admin?(u),
                 avatar_url: u.avatar_url,
                 inserted_at: u.inserted_at
               })

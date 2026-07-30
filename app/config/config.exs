@@ -125,7 +125,14 @@ config :glossia, Oban,
      ]}
   ]
 
-config :glossia, GlossiaWeb.Plugs.OpsAuth, username: "ops", password: nil
+config :fun_with_flags, :persistence,
+  adapter: FunWithFlags.Store.Persistent.Ecto,
+  repo: Glossia.Repo
+
+config :fun_with_flags, :cache_bust_notifications,
+  enabled: true,
+  adapter: FunWithFlags.Notifications.PhoenixPubSub,
+  client: Glossia.PubSub
 
 config :ex_aws,
   json_codec: JSON

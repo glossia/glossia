@@ -332,8 +332,8 @@ defmodule GlossiaWeb.Admin.AdminLive do
         {user.name || "-"}
       </:col>
       <:col :let={user} label={gettext("Super Admin")}>
-        <.badge variant={if(user.super_admin, do: "warning", else: "neutral")}>
-          {if user.super_admin, do: gettext("Yes"), else: gettext("No")}
+        <.badge variant={if(Accounts.super_admin?(user), do: "warning", else: "neutral")}>
+          {if Accounts.super_admin?(user), do: gettext("Yes"), else: gettext("No")}
         </.badge>
       </:col>
       <:col :let={user} label={gettext("Created")} key="created" sortable class="resource-col-nowrap">
@@ -344,10 +344,12 @@ defmodule GlossiaWeb.Admin.AdminLive do
           <button
             phx-click="toggle_super_admin"
             phx-value-user-id={user.id}
-            phx-value-value={if user.super_admin, do: "false", else: "true"}
+            phx-value-value={if Accounts.super_admin?(user), do: "false", else: "true"}
             class="dash-btn dash-btn-secondary admin-action-btn"
           >
-            {if user.super_admin, do: gettext("Remove admin"), else: gettext("Make admin")}
+            {if Accounts.super_admin?(user),
+              do: gettext("Remove admin"),
+              else: gettext("Make admin")}
           </button>
           <button
             :if={user.id != @current_user.id}
@@ -534,7 +536,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
   end
 
   defp list_users(page, search, sort_key, sort_dir) do
-    query = User |> preload(:account)
+    query = User |> preload([:account, role_assignments: :role])
 
     query =
       if search != "" do

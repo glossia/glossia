@@ -7,6 +7,7 @@ defmodule Glossia.Accounts.Organization do
 
     belongs_to :account, Glossia.Accounts.Account
     has_many :organization_memberships, Glossia.Accounts.OrganizationMembership
+    has_many :role_assignments, Glossia.Accounts.RoleAssignment
 
     timestamps()
   end

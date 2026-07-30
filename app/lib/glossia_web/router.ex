@@ -122,6 +122,12 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/ops" do
+    pipe_through [:public, :ops]
+
+    forward "/flags", FunWithFlags.UI.Router, namespace: "ops/flags"
+  end
+
+  scope "/ops" do
     pipe_through [:browser, :ops]
 
     get "/", GlossiaWeb.OpsRedirectController, :index

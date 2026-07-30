@@ -34,7 +34,7 @@
 
   <:avatar_menu_extra>
     <.dropdown_item
-      :if={@current_user && @current_user.super_admin}
+      :if={@current_user && Glossia.Accounts.super_admin?(@current_user)}
       value="admin"
       label={gettext("Admin")}
       href={~p"/admin"}
