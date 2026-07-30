@@ -1,8 +1,9 @@
 defmodule Glossia.Policy.Checks do
   @moduledoc false
 
-  alias Glossia.Accounts.{Account, OrganizationMembership, User}
+  alias Glossia.Accounts.{Account, User}
   alias Glossia.Repo
+  alias Glossia.Roles
   import Ecto.Query
 
   @doc """
@@ -14,7 +15,7 @@ defmodule Glossia.Policy.Checks do
   @doc """
   Subject is a super admin.
   """
-  def super_admin(%User{super_admin: true}, _object), do: true
+  def super_admin(%User{} = user, _object), do: Roles.super_admin?(user)
   def super_admin(_, _object), do: false
 
   @doc """
@@ -37,7 +38,7 @@ defmodule Glossia.Policy.Checks do
   def organization_admin(%User{id: user_id}, object) do
     case resolve_organization_id(object) do
       nil -> false
-      org_id -> has_membership?(user_id, org_id, "admin")
+      org_id -> Roles.has_organization_role?(%User{id: user_id}, org_id, "admin")
     end
   end
 
@@ -49,7 +50,7 @@ defmodule Glossia.Policy.Checks do
   def organization_member(%User{id: user_id}, object) do
     case resolve_organization_id(object) do
       nil -> false
-      org_id -> has_membership?(user_id, org_id)
+      org_id -> Roles.organization_member?(%User{id: user_id}, org_id)
     end
   end
 
@@ -68,18 +69,6 @@ defmodule Glossia.Policy.Checks do
     |> where(account_id: ^account_id)
     |> select([o], o.id)
     |> Repo.one()
-  end
-
-  defp has_membership?(user_id, organization_id, role) do
-    OrganizationMembership
-    |> where(user_id: ^user_id, organization_id: ^organization_id, role: ^role)
-    |> Repo.exists?()
-  end
-
-  defp has_membership?(user_id, organization_id) do
-    OrganizationMembership
-    |> where(user_id: ^user_id, organization_id: ^organization_id)
-    |> Repo.exists?()
   end
 
   @doc """

@@ -18,6 +18,7 @@ defmodule GlossiaWeb.PlatformHooks do
 
   alias Glossia.Accounts
   alias Glossia.Accounts.Scope
+  alias Glossia.FeatureFlags
   alias Glossia.OgImage
 
   def on_mount(:load_user, _params, session, socket) do
@@ -87,6 +88,7 @@ defmodule GlossiaWeb.PlatformHooks do
     can_glossary_read = Glossia.Authz.authorize?(:glossary_read, user, account)
     can_glossary_write = Glossia.Authz.authorize?(:glossary_write, user, account)
     can_discussion_write = Glossia.Authz.authorize?(:discussion_write, user, account)
+    translation_enabled = FeatureFlags.translation_enabled?(account)
 
     can_voice_propose = can_discussion_write
     can_glossary_propose = can_discussion_write
@@ -103,6 +105,7 @@ defmodule GlossiaWeb.PlatformHooks do
      |> assign(:can_glossary_read, can_glossary_read)
      |> assign(:can_glossary_write, can_glossary_write)
      |> assign(:can_glossary_propose, can_glossary_propose)
+     |> assign(:translation_enabled, translation_enabled)
      |> assign(:show_sidebar, show_sidebar)
      |> assign(:sidebar_context, :account)
      |> assign(:sidebar_project, nil)}

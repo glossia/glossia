@@ -390,16 +390,6 @@ if config_env() == :prod and not runner_child? do
         """
 
     config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: metrics_bearer_token
-
-    ops_auth_password = System.get_env("GLOSSIA_OPS_AUTH_PASSWORD")
-
-    if is_nil(ops_auth_password) or ops_auth_password == "" do
-      raise "environment variable GLOSSIA_OPS_AUTH_PASSWORD is missing or empty."
-    end
-
-    config :glossia, GlossiaWeb.Plugs.OpsAuth,
-      username: "ops",
-      password: ops_auth_password
   end
 
   default_otel_service_name = if runner_child?, do: "glossia-runner", else: "glossia-web"

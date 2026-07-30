@@ -64,6 +64,7 @@ defmodule Glossia.Seeds do
       )
 
     ensure_visibility!(dev.account, "public")
+    {:ok, true} = FunWithFlags.enable(:translation, for_actor: dev.account)
 
     acme =
       ensure_organization!(
@@ -675,6 +676,7 @@ defmodule Glossia.Seeds do
 
     user = %{user | account: account}
     Glossia.Accounts.ensure_personal_organization!(user)
+    {:ok, _} = Glossia.Accounts.set_super_admin(user.id, super_admin)
 
     user
   end

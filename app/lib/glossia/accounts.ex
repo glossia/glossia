@@ -2,6 +2,7 @@ defmodule Glossia.Accounts do
   require OpenTelemetry.Tracer, as: Tracer
 
   alias Glossia.Repo
+  alias Glossia.Roles
 
   alias Glossia.Accounts.{
     Account,
@@ -71,6 +72,8 @@ defmodule Glossia.Accounts do
       |> Repo.insert!()
     end
 
+    :ok = Roles.replace_organization_role(user, organization, "admin")
+
     organization
   end
 
@@ -80,7 +83,7 @@ defmodule Glossia.Accounts do
 
   def get_user(id) do
     User
-    |> preload(:account)
+    |> preload([:account, role_assignments: :role])
     |> Repo.get(id)
   end
 
@@ -161,7 +164,8 @@ defmodule Glossia.Accounts do
     end)
     |> Repo.transaction()
     |> case do
-      {:ok, %{user: user, account: account}} ->
+      {:ok, %{user: user, account: account, organization: organization}} ->
+        :ok = Roles.replace_organization_role(user, organization, "admin")
         {:ok, %{user | account: account}}
 
       {:error, _step, changeset, _changes} ->
@@ -239,12 +243,13 @@ defmodule Glossia.Accounts do
         {:error, :not_found}
 
       user ->
-        user
-        |> Ecto.Changeset.change(super_admin: value)
-        |> Repo.update()
+        case Roles.set_super_admin(user, value) do
+          :ok -> {:ok, user}
+          {:error, reason} -> {:error, reason}
+        end
     end
   end
 
-  def super_admin?(%User{super_admin: true}), do: true
+  def super_admin?(%User{} = user), do: Roles.super_admin?(user)
   def super_admin?(_), do: false
 end
