@@ -1046,6 +1046,9 @@ defmodule GlossiaWeb.DashboardLive do
         as: :project
       )
 
+    analytics_settings = Glossia.Analytics.Settings.get_for_project(project.id)
+    analytics_domain = (analytics_settings && analytics_settings.domain) || ""
+
     socket =
       cond do
         not connected?(socket) ->
@@ -1068,6 +1071,7 @@ defmodule GlossiaWeb.DashboardLive do
       project: project,
       project_settings_form: form,
       project_settings_changed?: false,
+      analytics_domain: analytics_domain,
       project_avatar_url: project_avatar_display_url(project.avatar_url),
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
@@ -2768,6 +2772,34 @@ defmodule GlossiaWeb.DashboardLive do
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not update project settings."))}
+      end
+    end
+  end
+
+  def handle_event("update_analytics_settings", %{"analytics" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      project = socket.assigns.project
+      handle = socket.assigns.handle
+
+      case Glossia.Analytics.Settings.upsert_for_project(project.id, %{
+             domain: params["domain"] || ""
+           }) do
+        {:ok, settings} ->
+          {:noreply,
+           socket
+           |> assign(analytics_domain: settings.domain)
+           |> put_flash(:info, gettext("Web analytics settings updated."))
+           |> push_patch(to: "/#{handle}/#{project.handle}/-/settings")}
+
+        {:error, _changeset} ->
+          {:noreply,
+           put_flash(
+             socket,
+             :error,
+             gettext("Could not save web analytics. Enter a valid domain like example.com.")
+           )}
       end
     end
   end
@@ -6353,8 +6385,81 @@ defmodule GlossiaWeb.DashboardLive do
           cancel_path={"/" <> @handle <> "/" <> @project.handle}
         />
       </.form>
+
+      <.form
+        for={%{}}
+        id="analytics-settings-form"
+        class="voice-form"
+        phx-submit="update_analytics_settings"
+      >
+        <div class="voice-section">
+          <div class="voice-section-info">
+            <h2>{gettext("Web analytics")}</h2>
+            <p>
+              {gettext(
+                "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
+              )}
+            </p>
+          </div>
+          <Noora.Card.card_section class="voice-card">
+            <div class="voice-card-fields">
+              <Noora.TextInput.text_input
+                id="analytics-domain"
+                name="analytics[domain]"
+                value={@analytics_domain}
+                label={gettext("Domain")}
+                placeholder="example.com"
+              />
+
+              <div class="voice-field">
+                <label>{gettext("Install snippet")}</label>
+                <div class="api-token-reveal-value">
+                  <code id="analytics-snippet">{analytics_snippet(@analytics_domain)}</code>
+                  <Noora.Button.button
+                    type="button"
+                    label={gettext("Copy")}
+                    variant="secondary"
+                    size="small"
+                    phx-hook=".CopySnippet"
+                    id="copy-analytics-snippet-btn"
+                    data-value={analytics_snippet(@analytics_domain)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Noora.Button.button
+                  type="submit"
+                  label={gettext("Save analytics settings")}
+                  variant="primary"
+                  size="medium"
+                />
+              </div>
+            </div>
+          </Noora.Card.card_section>
+        </div>
+        <script :type={Phoenix.LiveView.ColocatedHook} name=".CopySnippet">
+          export default {
+            mounted() {
+              this.el.addEventListener("click", () => {
+                var value = this.el.getAttribute("data-value");
+                var original = this.el.innerHTML;
+                navigator.clipboard.writeText(value).then(() => {
+                  this.el.textContent = "Copied!";
+                  setTimeout(() => { this.el.innerHTML = original; }, 1500);
+                });
+              });
+            }
+          }
+        </script>
+      </.form>
     </div>
     """
+  end
+
+  defp analytics_snippet(domain) do
+    domain = if domain in [nil, ""], do: "example.com", else: domain
+    ~s(<script defer data-domain="#{domain}" src="https://cdn.glossia.ai/web.js"></script>)
   end
 
   defp project_avatar_display_url(nil), do: nil
