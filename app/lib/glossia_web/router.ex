@@ -60,6 +60,11 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :analytics do
+    plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.AnalyticsCors
+  end
+
   pipeline :upload_proxy do
     plug :fetch_session
     plug :put_secure_browser_headers
@@ -72,6 +77,13 @@ defmodule GlossiaWeb.Router do
   end
 
   get "/up", GlossiaWeb.HealthController, :index
+
+  scope "/v1", GlossiaWeb do
+    pipe_through :analytics
+
+    post "/collect", AnalyticsController, :collect
+    options "/collect", AnalyticsController, :collect
+  end
 
   # Webhooks (no session, no CSRF)
   scope "/webhooks", GlossiaWeb do

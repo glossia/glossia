@@ -122,10 +122,11 @@ defmodule Glossia.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["compile", "esbuild glossia", "esbuild noora"],
+      "assets.build": ["compile", "esbuild glossia", "esbuild noora", "esbuild glossia_web"],
       "assets.deploy": [
         "esbuild noora --minify",
         "esbuild glossia --minify",
+        "esbuild glossia_web --minify",
         "phx.digest"
       ],
       precommit: [

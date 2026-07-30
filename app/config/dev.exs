@@ -24,6 +24,16 @@ config :glossia, Glossia.IngestRepo,
   max_buffer_size: 100_000,
   pool_size: 5
 
+# Dev-only secret for the daily-rotated visitor hash. Never reuse in production.
+config :glossia, Glossia.Analytics,
+  enabled: true,
+  identity_secret: "dev-only-analytics-identity-secret",
+  geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
+
+# Dogfood Glossia analytics on the dev site. This key is seeded for the "blog"
+# project in `priv/repo/seeds.exs`.
+config :glossia, :web_analytics, public_key: "pk_dev_glossia_website"
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -40,7 +50,8 @@ config :glossia, GlossiaWeb.Endpoint,
   secret_key_base: "65pP1xr3jmj+N1BsGXNwwYPPpS7aG7F6dj38YdnvijVD204/u7fKbSWRZ9rY6Jv0",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:glossia, ~w(--sourcemap=inline --watch)]},
-    esbuild_noora: {Esbuild, :install_and_run, [:noora, ~w(--sourcemap=inline --watch)]}
+    esbuild_noora: {Esbuild, :install_and_run, [:noora, ~w(--sourcemap=inline --watch)]},
+    esbuild_glossia_web: {Esbuild, :install_and_run, [:glossia_web, ~w(--watch)]}
   ]
 
 # ## SSL Support

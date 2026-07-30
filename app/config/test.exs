@@ -27,6 +27,11 @@ config :glossia, Glossia.IngestRepo,
   max_buffer_size: 100_000,
   pool_size: 5
 
+config :glossia, Glossia.Analytics,
+  enabled: true,
+  identity_secret: "test-only-analytics-identity-secret",
+  geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :glossia, GlossiaWeb.Endpoint,

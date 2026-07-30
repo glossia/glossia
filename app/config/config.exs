@@ -61,6 +61,12 @@ config :esbuild,
         ],
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+  ],
+  glossia_web: [
+    args:
+      ~w(#{Path.expand("../../sdk/web/src/index.ts", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
 # Configure Elixir's Logger
@@ -106,6 +112,16 @@ config :glossia, Glossia.Analytics.Smolanalytics,
   write_key: nil,
   environment: to_string(config_env()),
   request_options: []
+
+# Website analytics ingestion. `identity_secret` salts the daily-rotated visitor
+# hash (see `Glossia.Analytics.Identity`); it is overridden per-environment below.
+config :glossia, Glossia.Analytics,
+  enabled: true,
+  geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
+
+# Dogfooding: when `public_key` is set, the root layout renders the Glossia web
+# analytics snippet on every page so Glossia measures itself.
+config :glossia, :web_analytics, public_key: nil
 
 config :glossia, Glossia.PromEx,
   manual_metrics_start_delay: :no_delay,
