@@ -30,7 +30,7 @@ The result is analytics you can ship without a consent banner, aligned with the 
 Add one line to your site and Glossia starts measuring:
 
 ```html
-<script defer data-key="pk_..." src="https://cdn.glossia.ai/web.js"></script>
+<script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-Prefer npm? Install `@glossia/web` and call `init({ key })`. Either way, pageviews, client-side navigation, and custom events flow into the same dashboard that ranks your localization opportunities.
+Prefer npm? Install `@glossia/web` and call `init({ domain })`. Either way, pageviews, client-side navigation, and custom events flow into the same dashboard that ranks your localization opportunities.

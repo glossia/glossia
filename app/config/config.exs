@@ -119,9 +119,9 @@ config :glossia, Glossia.Analytics,
   enabled: true,
   geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
 
-# Dogfooding: when `public_key` is set, the root layout renders the Glossia web
+# Dogfooding: when `domain` is set, the root layout renders the Glossia web
 # analytics snippet on every page so Glossia measures itself.
-config :glossia, :web_analytics, public_key: nil
+config :glossia, :web_analytics, domain: nil
 
 config :glossia, Glossia.PromEx,
   manual_metrics_start_delay: :no_delay,

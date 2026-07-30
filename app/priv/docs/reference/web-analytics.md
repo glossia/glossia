@@ -10,13 +10,15 @@
 
 `POST /v1/collect`
 
-Accepts a JSON event from the `@glossia/web` SDK. Always responds `202 Accepted`, including for unknown keys or malformed payloads, so the SDK never leaks which projects collect analytics.
+Accepts a JSON event from the `@glossia/web` SDK. Always responds `202 Accepted`, including for unknown domains or malformed payloads, so the SDK never leaks which projects collect analytics.
+
+The project is resolved by the site domain the snippet declares. `d` is authoritative; when it is absent the server falls back to the host of `u` (the page URL) and then the request `Origin`/`Referer`.
 
 ### Request body
 
 | Field | Type   | Description                                                  |
 |-------|--------|--------------------------------------------------------------|
-| `k`   | string | Project public key (`pk_...`). Required.                     |
+| `d`   | string | Site domain that identifies the project (e.g. `example.com`). Required. |
 | `n`   | string | Event name. Defaults to `pageview`.                          |
 | `u`   | string | Page URL (`location.href`).                                  |
 | `r`   | string | Referrer (`document.referrer`).                              |
@@ -59,4 +61,4 @@ These are computed at ingestion and are the only values persisted to the `analyt
 | `GLOSSIA_ANALYTICS_IDENTITY_SECRET`| Salts the daily-rotated visitor hash. Required in production.    |
 | `GLOSSIA_ANALYTICS_ENABLED`        | Set to `false` or `0` to disable ingestion.                      |
 | `GLOSSIA_GEOIP_DATABASE_PATH`      | Path to a MaxMind GeoLite2-Country `.mmdb` to enable country.    |
-| `GLOSSIA_WEB_ANALYTICS_KEY`        | Public key that enables dogfooding on the Glossia site itself.   |
+| `GLOSSIA_WEB_ANALYTICS_DOMAIN`     | Site domain that enables dogfooding on the Glossia site itself.  |

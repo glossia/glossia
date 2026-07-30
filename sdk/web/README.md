@@ -10,10 +10,10 @@ Cookieless, privacy-friendly web analytics that surfaces localization opportunit
 
 ### Snippet (no build step)
 
-Add this to your site, replacing `pk_...` with your project's public key from Glossia:
+Add this to your site, setting `data-domain` to the site domain you registered in Glossia:
 
 ```html
-<script defer data-key="pk_..." src="https://cdn.glossia.ai/web.js"></script>
+<script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
 The script auto-initializes and records pageviews, including on client-side navigation (single-page apps). Point `data-endpoint` at a self-hosted collect host if you don't use the Glossia CDN.
@@ -27,7 +27,7 @@ npm install @glossia/web
 ```ts
 import glossia from "@glossia/web";
 
-glossia.init({ key: "pk_..." });
+glossia.init({ domain: "example.com" });
 
 // Record a custom event:
 glossia.track("signup");

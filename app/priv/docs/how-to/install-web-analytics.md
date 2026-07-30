@@ -6,14 +6,14 @@
 }
 ---
 
-This guide assumes you have a Glossia project and its public collection key (`pk_...`). You can find the key in your project's analytics settings.
+This guide assumes you have a Glossia project with its site domain configured in the project's analytics settings. Collection is identified by that domain, so there is no key or secret to copy: set `data-domain` to the same domain you registered.
 
 ## Option A: script tag
 
 Add this snippet to every page, ideally in the `<head>`:
 
 ```html
-<script defer data-key="pk_..." src="https://cdn.glossia.ai/web.js"></script>
+<script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
 The SDK auto-initializes, sends a pageview on load, and records subsequent pageviews on client-side navigation in single-page apps. To self-host the collect endpoint, add `data-endpoint="https://collect.your-host.com"`.
@@ -31,7 +31,7 @@ Initialize it once in your application entrypoint:
 ```ts
 import glossia from "@glossia/web";
 
-glossia.init({ key: "pk_..." });
+glossia.init({ domain: "example.com" });
 ```
 
 To record a custom event, for example a signup:

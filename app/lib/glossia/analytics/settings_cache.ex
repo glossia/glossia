@@ -1,10 +1,10 @@
 defmodule Glossia.Analytics.SettingsCache do
   @moduledoc false
 
-  # Tiny read-optimized ETS cache for analytics project lookups. Public keys
-  # rarely change, so a short TTL keeps the hot path off Postgres without
-  # serving stale data for long. Entries are written from the owning GenServer
-  # but read concurrently by request processes.
+  # Tiny read-optimized ETS cache for analytics project lookups, keyed by site
+  # domain. Domains rarely change, so a short TTL keeps the hot path off Postgres
+  # without serving stale data for long. The table is public, so reads and the
+  # occasional invalidation happen directly without a GenServer round-trip.
 
   use GenServer
 
@@ -31,6 +31,11 @@ defmodule Glossia.Analytics.SettingsCache do
   def put(key, entry) do
     :ets.insert(@table, {key, entry, System.monotonic_time(:millisecond) + @ttl})
     entry
+  end
+
+  def delete(key) do
+    :ets.delete(@table, key)
+    :ok
   end
 
   @impl true

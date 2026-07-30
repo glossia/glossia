@@ -12,8 +12,8 @@
  */
 
 export type GlossiaConfig = {
-  /** Project public key (pk_...). Required. */
-  key: string;
+  /** Site domain that identifies the project, e.g. "example.com". Required. */
+  domain: string;
   /** Collect endpoint. Defaults to the origin of the SDK script + "/v1/collect". */
   endpoint?: string;
   /** Send a pageview on init and on client-side navigation. Default: true. */
@@ -21,7 +21,7 @@ export type GlossiaConfig = {
 };
 
 type EventPayload = {
-  k: string;
+  d: string;
   n: string;
   u: string;
   r: string;
@@ -34,7 +34,7 @@ type EventPayload = {
 const SESSION_KEY = "__glossia_sid";
 
 let endpoint = "/v1/collect";
-let projectKey: string | null = null;
+let siteDomain: string | null = null;
 let sessionId: string | null = null;
 
 function detectEndpoint(): string {
@@ -106,7 +106,7 @@ function readOrCreateSessionId(): string {
 }
 
 function send(payload: EventPayload): void {
-  if (!projectKey) return;
+  if (!siteDomain) return;
   const body = JSON.stringify(payload);
 
   // Prefer sendBeacon for reliability during page unload; fall back to fetch.
@@ -135,7 +135,7 @@ function send(payload: EventPayload): void {
 
 function build(name: string): EventPayload {
   return {
-    k: projectKey || "",
+    d: siteDomain || "",
     n: name,
     u: typeof location !== "undefined" ? location.href : "",
     r: typeof document !== "undefined" ? document.referrer : "",
@@ -158,8 +158,8 @@ export function pageview(): void {
 
 /** Initialize the SDK. Safe to call once. */
 export function init(config: GlossiaConfig): void {
-  if (!config.key) return;
-  projectKey = config.key;
+  if (!config.domain) return;
+  siteDomain = config.domain;
   endpoint = config.endpoint || detectEndpoint();
   readOrCreateSessionId();
 
@@ -190,12 +190,12 @@ function hookHistory(): void {
 }
 
 // Auto-initialize from a classic script tag:
-//   <script defer src="https://cdn.glossia.ai/web.js" data-key="pk_..."></script>
+//   <script defer src="https://cdn.glossia.ai/web.js" data-domain="example.com"></script>
 if (typeof document !== "undefined") {
   const script = document.currentScript as HTMLScriptElement | null;
-  const key = script?.getAttribute("data-key");
-  if (key) {
-    init({ key, endpoint: script?.getAttribute("data-endpoint") || undefined });
+  const domain = script?.getAttribute("data-domain");
+  if (domain) {
+    init({ domain, endpoint: script?.getAttribute("data-endpoint") || undefined });
   }
 }
 

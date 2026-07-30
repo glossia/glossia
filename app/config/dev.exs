@@ -30,9 +30,9 @@ config :glossia, Glossia.Analytics,
   identity_secret: "dev-only-analytics-identity-secret",
   geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
 
-# Dogfood Glossia analytics on the dev site. This key is seeded for the "blog"
-# project in `priv/repo/seeds.exs`.
-config :glossia, :web_analytics, public_key: "pk_dev_glossia_website"
+# Dogfood Glossia analytics on the dev site. This domain is seeded for the "blog"
+# project in `priv/repo/seeds.exs` so localhost pageviews resolve to a project.
+config :glossia, :web_analytics, domain: "localhost"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

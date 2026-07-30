@@ -165,11 +165,10 @@ defmodule Glossia.Seeds do
     blog_project = Projects.get_project(dev.account, "blog")
     if blog_project, do: ensure_setup_events!(blog_project)
 
-    # Analytics collection key for the "blog" project, used to dogfood the
-    # @glossia/web SDK on the dev site (see :web_analytics in config/dev.exs).
+    # Analytics domain for the "blog" project, used to dogfood the @glossia/web
+    # SDK on the dev site (see :web_analytics in config/dev.exs).
     if blog_project,
-      do:
-        ensure_analytics_settings!(blog_project, public_key: "pk_dev_glossia_website")
+      do: ensure_analytics_settings!(blog_project, domain: "localhost")
 
     # Translation sessions for the "blog" project to exercise the activity timeline
     if blog_project, do: ensure_translation_sessions!(blog_project, dev)
@@ -818,30 +817,15 @@ defmodule Glossia.Seeds do
   # ----------------------------------------------------------------------------
 
   defp ensure_analytics_settings!(%Project{} = project, opts) do
-    public_key = Keyword.fetch!(opts, :public_key)
+    domain = Keyword.fetch!(opts, :domain)
 
-    case Repo.get_by(Glossia.Analytics.ProjectSettings, project_id: project.id) do
-      nil ->
-        {:ok, _settings} =
-          %Glossia.Analytics.ProjectSettings{}
-          |> Glossia.Analytics.ProjectSettings.changeset(%{
-            project_id: project.id,
-            public_key: public_key,
-            enabled: true
-          })
-          |> Repo.insert()
+    {:ok, _settings} =
+      Glossia.Analytics.Settings.upsert_for_project(project.id, %{
+        domain: domain,
+        enabled: true
+      })
 
-        :ok
-
-      settings ->
-        if settings.public_key != public_key do
-          settings
-          |> Glossia.Analytics.ProjectSettings.changeset(%{public_key: public_key})
-          |> Repo.update!()
-        end
-
-        :ok
-    end
+    :ok
   end
 
   # ----------------------------------------------------------------------------

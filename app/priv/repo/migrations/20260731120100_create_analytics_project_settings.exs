@@ -3,7 +3,7 @@ defmodule Glossia.Repo.Migrations.CreateAnalyticsProjectSettings do
 
   def change do
     create table(:analytics_project_settings) do
-      add :public_key, :string, null: false
+      add :domain, :string, null: false
       add :enabled, :boolean, null: false, default: true
 
       add :project_id, references(:projects, on_delete: :delete_all, type: :binary_id),
@@ -12,7 +12,7 @@ defmodule Glossia.Repo.Migrations.CreateAnalyticsProjectSettings do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create unique_index(:analytics_project_settings, [:public_key])
+    create unique_index(:analytics_project_settings, [:domain])
     create unique_index(:analytics_project_settings, [:project_id])
   end
 end

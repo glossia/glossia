@@ -1,10 +1,11 @@
 defmodule Glossia.Analytics.Settings do
   @moduledoc """
-  Reads analytics project settings for collection.
+  Reads and writes analytics project settings.
 
-  `fetch_for_collection/1` resolves a public collection key to the project id and
-  its target languages (used to compute the localization gap at ingestion time),
-  backed by `SettingsCache` so the hot path does not hit Postgres on every event.
+  `fetch_for_collection/1` resolves the site domain declared in the install
+  snippet to the project id and its target languages (used to compute the
+  localization gap at ingestion time), backed by `SettingsCache` so the hot path
+  does not hit Postgres on every event.
   """
 
   alias Glossia.Analytics.ProjectSettings
@@ -20,23 +21,29 @@ defmodule Glossia.Analytics.Settings do
         }
 
   @spec fetch_for_collection(String.t()) :: collection_target() | nil
-  def fetch_for_collection(public_key) when is_binary(public_key) do
-    case SettingsCache.get(public_key) do
-      :miss ->
-        case query(public_key) do
-          nil -> nil
-          entry -> SettingsCache.put(public_key, entry)
-        end
+  def fetch_for_collection(domain) when is_binary(domain) do
+    domain = ProjectSettings.normalize_domain(domain)
 
-      entry ->
-        entry
+    if domain == "" do
+      nil
+    else
+      case SettingsCache.get(domain) do
+        :miss ->
+          case query(domain) do
+            nil -> nil
+            entry -> SettingsCache.put(domain, entry)
+          end
+
+        entry ->
+          entry
+      end
     end
   end
 
-  defp query(public_key) do
+  defp query(domain) do
     from(s in ProjectSettings,
       join: p in assoc(s, :project),
-      where: s.public_key == ^public_key and s.enabled == true,
+      where: s.domain == ^domain and s.enabled == true,
       select: %{
         project_id: p.id,
         target_languages: p.setup_target_languages,
@@ -47,21 +54,36 @@ defmodule Glossia.Analytics.Settings do
   end
 
   @doc """
-  Creates (or returns) analytics settings for a project, generating a public key.
+  Returns the analytics settings row for a project, or `nil`.
   """
-  def ensure_for_project(project_id) do
-    case Repo.get_by(ProjectSettings, project_id: project_id) do
-      nil ->
-        %ProjectSettings{}
-        |> ProjectSettings.changeset(%{
-          project_id: project_id,
-          public_key: ProjectSettings.generate_key(),
-          enabled: true
-        })
-        |> Repo.insert()
+  @spec get_for_project(binary()) :: ProjectSettings.t() | nil
+  def get_for_project(project_id) do
+    Repo.get_by(ProjectSettings, project_id: project_id)
+  end
 
-      settings ->
-        {:ok, settings}
+  @doc """
+  Creates or updates the analytics settings for a project. Invalidates the
+  domain cache so a changed domain takes effect promptly.
+  """
+  @spec upsert_for_project(binary(), map()) ::
+          {:ok, ProjectSettings.t()} | {:error, Ecto.Changeset.t()}
+  def upsert_for_project(project_id, attrs) do
+    settings = get_for_project(project_id) || %ProjectSettings{}
+    previous_domain = Map.get(settings, :domain)
+
+    result =
+      settings
+      |> ProjectSettings.changeset(Map.put(attrs, :project_id, project_id))
+      |> Repo.insert_or_update()
+
+    case result do
+      {:ok, saved} ->
+        if previous_domain, do: SettingsCache.delete(previous_domain)
+        SettingsCache.delete(saved.domain)
+        {:ok, saved}
+
+      error ->
+        error
     end
   end
 end

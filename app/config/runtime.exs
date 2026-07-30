@@ -638,6 +638,5 @@ if config_env() == :prod and not runner_child? do
     identity_secret: analytics_secret,
     geolocation: [adapter: geo_adapter, database_path: geoip_database_path]
 
-  config :glossia, :web_analytics,
-    public_key: System.get_env("GLOSSIA_WEB_ANALYTICS_KEY")
+  config :glossia, :web_analytics, domain: System.get_env("GLOSSIA_WEB_ANALYTICS_DOMAIN")
 end

@@ -7,9 +7,11 @@ defmodule GlossiaWeb.AnalyticsController do
   raw), computes the localization gap against the project's target languages,
   and buffers a ClickHouse row.
 
-  The endpoint always responds `202 Accepted`, including for unknown keys or
-  malformed payloads. This keeps the SDK resilient and avoids leaking which
-  projects collect analytics.
+  Following Plausible's model, the project is resolved by the site domain the
+  snippet declares (`data-domain`, sent as `d`), falling back to the page URL
+  host or the request origin. The endpoint always responds `202 Accepted`,
+  including for unknown domains or malformed payloads. This keeps the SDK
+  resilient and avoids leaking which projects collect analytics.
   """
 
   use GlossiaWeb, :controller
@@ -22,7 +24,7 @@ defmodule GlossiaWeb.AnalyticsController do
 
   def collect(conn, params) do
     try do
-      with {:ok, settings} <- fetch_settings(params),
+      with {:ok, settings} <- fetch_settings(conn, params),
            {:ok, event} <- build_event(conn, params, settings) do
         Ingestion.record_event(event)
       end
@@ -35,15 +37,46 @@ defmodule GlossiaWeb.AnalyticsController do
     |> resp(202, "")
   end
 
-  defp fetch_settings(%{"k" => key})
-       when is_binary(key) and byte_size(key) > 0 do
-    case Settings.fetch_for_collection(key) do
-      nil -> {:error, :unknown_key}
-      settings -> {:ok, settings}
+  defp fetch_settings(conn, params) do
+    case resolve_domain(conn, params) do
+      "" ->
+        {:error, :missing_domain}
+
+      domain ->
+        case Settings.fetch_for_collection(domain) do
+          nil -> {:error, :unknown_domain}
+          settings -> {:ok, settings}
+        end
     end
   end
 
-  defp fetch_settings(_), do: {:error, :missing_key}
+  # The declared `data-domain` is authoritative (a site may be served on many
+  # hostnames but reports one canonical domain). Fall back to the page URL host,
+  # then the request origin, so a missing attribute still resolves in practice.
+  defp resolve_domain(conn, params) do
+    [params["d"], host_of(params["u"]), origin_host(conn)]
+    |> Enum.map(&to_string/1)
+    |> Enum.find("", fn candidate -> candidate != "" end)
+  end
+
+  defp host_of(url) when is_binary(url) do
+    case URI.parse(url) do
+      %URI{host: host} when is_binary(host) -> host
+      _ -> ""
+    end
+  end
+
+  defp host_of(_), do: ""
+
+  defp origin_host(conn) do
+    header =
+      case get_req_header(conn, "origin") do
+        [value | _] -> value
+        _ -> conn |> get_req_header("referer") |> List.first()
+      end
+
+    host_of(header)
+  end
 
   defp build_event(conn, params, settings) do
     ip = client_ip(conn)
