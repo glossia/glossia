@@ -13,6 +13,7 @@ defmodule Glossia.Accounts.RoleAssignment do
   def changeset(assignment, attrs) do
     assignment
     |> cast(attrs, [])
-    |> unique_constraint([:user_id, :role_id, :organization_id])
+    |> unique_constraint(:role_id, name: "role_assignments_instance_user_role_unique")
+    |> unique_constraint(:role_id, name: "role_assignments_org_user_role_unique")
   end
 end

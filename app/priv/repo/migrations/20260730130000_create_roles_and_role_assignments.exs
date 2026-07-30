@@ -22,7 +22,15 @@ defmodule Glossia.Repo.Migrations.CreateRolesAndRoleAssignments do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create unique_index(:role_assignments, [:user_id, :role_id, :organization_id])
+    create unique_index(:role_assignments, [:user_id, :role_id],
+             name: "role_assignments_instance_user_role_unique",
+             where: "organization_id IS NULL"
+           )
+
+    create unique_index(:role_assignments, [:user_id, :role_id, :organization_id],
+             name: "role_assignments_org_user_role_unique",
+             where: "organization_id IS NOT NULL"
+           )
     create index(:role_assignments, [:organization_id])
 
     execute """

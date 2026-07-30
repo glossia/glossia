@@ -536,7 +536,7 @@ defmodule GlossiaWeb.Admin.AdminLive do
   end
 
   defp list_users(page, search, sort_key, sort_dir) do
-    query = User |> preload(:account)
+    query = User |> preload([:account, role_assignments: :role])
 
     query =
       if search != "" do

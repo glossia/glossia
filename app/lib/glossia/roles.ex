@@ -9,7 +9,26 @@ defmodule Glossia.Roles do
   @instance_scope "instance"
   @organization_scope "organization"
 
-  def super_admin?(%User{} = user), do: has_instance_role?(user, "super_admin")
+  def super_admin?(%User{role_assignments: assignments} = user) do
+    if roles_loaded?(assignments) do
+      Enum.any?(assignments, &instance_super_admin?/1)
+    else
+      has_instance_role?(user, "super_admin")
+    end
+  end
+
+  defp roles_loaded?(%Ecto.Association.NotLoaded{}), do: false
+
+  defp roles_loaded?(assignments) when is_list(assignments),
+    do: Enum.all?(assignments, &Ecto.assoc_loaded?(&1.role))
+
+  defp instance_super_admin?(%RoleAssignment{
+         organization_id: nil,
+         role: %Role{scope: @instance_scope, name: "super_admin"}
+       }),
+       do: true
+
+  defp instance_super_admin?(_), do: false
 
   def has_instance_role?(%User{id: user_id}, role_name) do
     RoleAssignment
