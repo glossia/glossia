@@ -35,13 +35,13 @@ defmodule Glossia.Analytics.Identity do
       ])
 
     <<value::unsigned-big-integer-size(64)>> =
-      :crypto.mac(:sha256, secret, payload) |> binary_part(0, 8)
+      :crypto.mac(:hmac, :sha256, secret, payload) |> binary_part(0, 8)
 
     value
   end
 
   defp daily_salt(secret, %Date{} = date) do
-    :crypto.mac(:sha256, secret, "salt:" <> Date.to_iso8601(date))
+    :crypto.mac(:hmac, :sha256, secret, "salt:" <> Date.to_iso8601(date))
     |> Base.encode16(case: :lower)
   end
 end
