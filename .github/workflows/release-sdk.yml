@@ -91,15 +91,15 @@ jobs:
 
       - name: Set package version
         working-directory: sdk/web
-        run: npm version "${RELEASE_VERSION#v}" --no-git-tag-version --allow-same-version
+        run: aube version "${RELEASE_VERSION#v}" --no-git-tag-version --allow-same-version
 
       - name: Install dependencies
         working-directory: sdk/web
-        run: npm install
+        run: aube install
 
       - name: Build
         working-directory: sdk/web
-        run: npm run build
+        run: aube run build
 
       - name: Publish to npm
         working-directory: sdk/web
@@ -107,8 +107,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           test -n "${NODE_AUTH_TOKEN:-}"
-          npm config set //registry.npmjs.org/:_authToken "${NODE_AUTH_TOKEN}"
-          npm publish --access public
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > "${HOME}/.npmrc"
+          aube publish --access public
 
       - name: Generate release notes
         id: notes
