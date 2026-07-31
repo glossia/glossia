@@ -7,10 +7,6 @@ defmodule Glossia.Analytics.Client do
   no storage.
   """
 
-  # ---------------------------------------------------------------------------
-  # URL
-  # ---------------------------------------------------------------------------
-
   def parse_url(nil), do: %{hostname: "", pathname: "/"}
 
   def parse_url(url) when is_binary(url) do
@@ -26,10 +22,6 @@ defmodule Glossia.Analytics.Client do
   defp normalize_path(nil), do: "/"
   defp normalize_path(""), do: "/"
   defp normalize_path(path), do: path
-
-  # ---------------------------------------------------------------------------
-  # Referrer
-  # ---------------------------------------------------------------------------
 
   def parse_referrer(nil), do: %{referrer: "", referrer_source: ""}
   def parse_referrer(""), do: %{referrer: "", referrer_source: ""}
@@ -50,80 +42,71 @@ defmodule Glossia.Analytics.Client do
     |> String.trim_leading("m.")
   end
 
-  # ---------------------------------------------------------------------------
-  # User-Agent
-  # ---------------------------------------------------------------------------
-
+  @doc """
+  Classifies a User-Agent into device / browser / OS buckets using
+  `UAInspector` (Matomo's continuously-updated device database), the same
+  library Plausible relies on. The browser-name normalization and device-type
+  buckets mirror Plausible's, so mobile variants collapse onto their base
+  browser (e.g. "Chrome Mobile" -> "Chrome"). Returns `"unknown"` for any field
+  the database can't resolve so downstream aggregation never breaks on missing
+  data.
+  """
   def parse_user_agent(nil), do: %{device: "unknown", browser: "unknown", os: "unknown"}
 
   def parse_user_agent(user_agent) when is_binary(user_agent) do
-    ua = String.downcase(user_agent)
+    case UAInspector.parse(user_agent) do
+      %UAInspector.Result.Bot{} ->
+        %{device: "bot", browser: "bot", os: "unknown"}
 
-    %{
-      device: detect_device(ua),
-      browser: detect_browser(ua),
-      os: detect_os(ua)
-    }
-  end
-
-  defp detect_device(ua) do
-    cond do
-      String.contains?(ua, "bot") or String.contains?(ua, "crawl") or
-          String.contains?(ua, "spider") ->
-        "bot"
-
-      String.contains?(ua, "ipad") or String.contains?(ua, "tablet") ->
-        "tablet"
-
-      String.contains?(ua, "mobi") or String.contains?(ua, "iphone") or
-          String.contains?(ua, "android") ->
-        "mobile"
-
-      true ->
-        "desktop"
+      %UAInspector.Result{client: client, device: device, os: os} ->
+        %{
+          device: device_bucket(device),
+          browser: browser_name(client),
+          os: os_name(os)
+        }
     end
   end
 
-  # Edge/Firefox/Opera must be matched before Chrome, since their UAs also
-  # contain "chrome/".
-  defp detect_browser(ua) do
+  # Device-type buckets, following Plausible's grouping of UAInspector's
+  # fine-grained types.
+  @mobile_types ~w(smartphone feature\ phone portable\ media\ player phablet wearable camera)
+  @tablet_types ~w(car\ browser tablet)
+  @desktop_types ~w(tv console desktop)
+
+  defp device_bucket(%UAInspector.Result.Device{type: type}) do
     cond do
-      String.contains?(ua, "edg/") -> "edge"
-      String.contains?(ua, "opr/") or String.contains?(ua, "opera") -> "opera"
-      String.contains?(ua, "firefox/") -> "firefox"
-      String.contains?(ua, "chrome/") -> "chrome"
-      String.contains?(ua, "safari/") -> "safari"
+      type in @mobile_types -> "mobile"
+      type in @tablet_types -> "tablet"
+      type in @desktop_types -> "desktop"
       true -> "unknown"
     end
   end
 
-  # iOS must be matched before macOS: iPhone UAs include "Mac OS X".
-  defp detect_os(ua) do
-    cond do
-      String.contains?(ua, "windows") ->
-        "windows"
+  defp device_bucket(_), do: "unknown"
 
-      String.contains?(ua, "iphone") or String.contains?(ua, "ipad") or
-          String.contains?(ua, " ios") ->
-        "ios"
-
-      String.contains?(ua, "mac os") or String.contains?(ua, "macintosh") ->
-        "macos"
-
-      String.contains?(ua, "android") ->
-        "android"
-
-      String.contains?(ua, "linux") ->
-        "linux"
-
-      true ->
-        "unknown"
+  # Collapse mobile/branded browser variants onto their base browser name, as
+  # Plausible does, so the dashboard doesn't split "Chrome" from "Chrome Mobile".
+  defp browser_name(%UAInspector.Result.Client{name: name}) do
+    case name do
+      "Mobile Safari" -> "Safari"
+      "Chrome Mobile" -> "Chrome"
+      "Chrome Mobile iOS" -> "Chrome"
+      "Firefox Mobile" -> "Firefox"
+      "Firefox Mobile iOS" -> "Firefox"
+      "Opera Mobile" -> "Opera"
+      "Opera Mini" -> "Opera"
+      "Opera Mini iOS" -> "Opera"
+      "Yandex Browser Lite" -> "Yandex Browser"
+      "Chrome Webview" -> "Mobile App"
+      :unknown -> "unknown"
+      name when is_binary(name) -> name
     end
   end
 
-  # ---------------------------------------------------------------------------
-  # Languages & localization gap
-  # ---------------------------------------------------------------------------
+  defp browser_name(_), do: "unknown"
+
+  defp os_name(%UAInspector.Result.OS{name: name}) when is_binary(name), do: name
+  defp os_name(_), do: "unknown"
 
   @doc """
   Parses a browser-languages string such as `navigator.languages.join(",")` or

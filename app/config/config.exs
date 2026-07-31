@@ -123,6 +123,13 @@ config :glossia, Glossia.Analytics,
 # analytics snippet on every page so Glossia measures itself.
 config :glossia, :web_analytics, domain: nil
 
+# User-Agent classification (device/browser/OS). The regex database lives under
+# `priv/ua_inspector` and is downloaded via `mix ua_inspector.download`; the
+# release overrides the path to the app's priv dir in `runtime.exs`.
+config :ua_inspector,
+  database_path: "priv/ua_inspector",
+  startup_silent: true
+
 config :glossia, Glossia.PromEx,
   manual_metrics_start_delay: :no_delay,
   grafana: :disabled

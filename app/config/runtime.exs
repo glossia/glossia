@@ -639,4 +639,7 @@ if config_env() == :prod and not runner_child? do
     geolocation: [adapter: geo_adapter, database_path: geoip_database_path]
 
   config :glossia, :web_analytics, domain: System.get_env("GLOSSIA_WEB_ANALYTICS_DOMAIN")
+
+  # Load the UAInspector regex database from the release's writable priv dir.
+  config :ua_inspector, init: {Glossia.Release, :configure_ua_inspector}
 end
