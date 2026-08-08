@@ -11,6 +11,10 @@ config :glossia,
   ecto_repos: [Glossia.Repo, Glossia.IngestRepo],
   generators: [timestamp_type: :utc_datetime]
 
+# Build the MDEx NIF with Lumis so docs, blog, and other markdown content
+# render with syntax highlighting instead of plain monospace code blocks.
+config :mdex_native, syntax_highlighter: :lumis
+
 # Keep English as the source-language fallback and default Gettext locale.
 config :glossia, GlossiaWeb.Gettext, default_locale: "en"
 

@@ -79,6 +79,7 @@ defmodule Glossia.MixProject do
       {:let_me, "~> 1.2"},
       {:boruta, "~> 2.3"},
       {:mdex, "~> 0.13"},
+      {:lumis, "~> 0.1"},
       {:uniq, "~> 0.6"},
       {:hammer, "~> 7.0"},
       {:hermes_mcp, "~> 0.9"},

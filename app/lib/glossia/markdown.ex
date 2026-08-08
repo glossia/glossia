@@ -8,7 +8,14 @@ defmodule Glossia.Markdown do
       autolink: true,
       tasklist: true
     ],
-    syntax_highlight: false
+    # Lumis uses Tree-sitter to highlight fenced code blocks and writes inline
+    # color styles so the HTML stands on its own in feeds, emails, and docs.
+    # The `catppuccin_mocha` theme matches the design tokens used by the
+    # `.prose pre` block (background `#1e1e2e`).
+    syntax_highlight: [
+      engine: :lumis,
+      opts: [formatter: {:html_inline, theme: "catppuccin_mocha"}]
+    ]
   ]
 
   def to_html(markdown, opts \\ [])
