@@ -16,7 +16,7 @@ defmodule Glossia.Accounts.User do
     belongs_to :account, Glossia.Accounts.Account
     has_many :identities, Glossia.Accounts.Identity
     has_many :organization_memberships, Glossia.Accounts.OrganizationMembership
-    has_many :role_assignments, Glossia.Accounts.RoleAssignment
+    has_many :user_roles, Glossia.Accounts.UserRole
 
     timestamps()
   end

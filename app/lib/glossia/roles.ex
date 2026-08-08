@@ -3,26 +3,26 @@ defmodule Glossia.Roles do
 
   import Ecto.Query
 
-  alias Glossia.Accounts.{Organization, Role, RoleAssignment, User}
+  alias Glossia.Accounts.{Organization, Role, User, UserRole}
   alias Glossia.Repo
 
   @instance_scope "instance"
   @organization_scope "organization"
 
-  def super_admin?(%User{role_assignments: assignments} = user) do
-    if roles_loaded?(assignments) do
-      Enum.any?(assignments, &instance_super_admin?/1)
+  def super_admin?(%User{user_roles: user_roles} = user) do
+    if user_roles_loaded?(user_roles) do
+      Enum.any?(user_roles, &instance_super_admin?/1)
     else
       has_instance_role?(user, "super_admin")
     end
   end
 
-  defp roles_loaded?(%Ecto.Association.NotLoaded{}), do: false
+  defp user_roles_loaded?(%Ecto.Association.NotLoaded{}), do: false
 
-  defp roles_loaded?(assignments) when is_list(assignments),
-    do: Enum.all?(assignments, &Ecto.assoc_loaded?(&1.role))
+  defp user_roles_loaded?(user_roles) when is_list(user_roles),
+    do: Enum.all?(user_roles, &Ecto.assoc_loaded?(&1.role))
 
-  defp instance_super_admin?(%RoleAssignment{
+  defp instance_super_admin?(%UserRole{
          organization_id: nil,
          role: %Role{scope: @instance_scope, name: "super_admin"}
        }),
@@ -31,11 +31,11 @@ defmodule Glossia.Roles do
   defp instance_super_admin?(_), do: false
 
   def has_instance_role?(%User{id: user_id}, role_name) do
-    RoleAssignment
-    |> join(:inner, [assignment], role in assoc(assignment, :role))
+    UserRole
+    |> join(:inner, [user_role], role in assoc(user_role, :role))
     |> where(
-      [assignment, role],
-      assignment.user_id == ^user_id and is_nil(assignment.organization_id) and
+      [user_role, role],
+      user_role.user_id == ^user_id and is_nil(user_role.organization_id) and
         role.scope == ^@instance_scope and role.name == ^role_name
     )
     |> Repo.exists?()
@@ -44,11 +44,11 @@ defmodule Glossia.Roles do
   def has_organization_role?(%User{id: user_id}, organization, role_name) do
     organization_id = organization_id(organization)
 
-    RoleAssignment
-    |> join(:inner, [assignment], role in assoc(assignment, :role))
+    UserRole
+    |> join(:inner, [user_role], role in assoc(user_role, :role))
     |> where(
-      [assignment, role],
-      assignment.user_id == ^user_id and assignment.organization_id == ^organization_id and
+      [user_role, role],
+      user_role.user_id == ^user_id and user_role.organization_id == ^organization_id and
         role.scope == ^@organization_scope and role.name == ^role_name
     )
     |> Repo.exists?()
@@ -57,7 +57,7 @@ defmodule Glossia.Roles do
   def organization_member?(%User{id: user_id}, organization) do
     organization_id = organization_id(organization)
 
-    RoleAssignment
+    UserRole
     |> where(user_id: ^user_id, organization_id: ^organization_id)
     |> Repo.exists?()
   end
@@ -69,18 +69,18 @@ defmodule Glossia.Roles do
   def set_instance_role(%User{id: user_id}, role_name, true) do
     with %Role{} = role <- get_role(@instance_scope, role_name) do
       if Repo.exists?(
-           from assignment in RoleAssignment,
+           from user_role in UserRole,
              where:
-               assignment.user_id == ^user_id and assignment.role_id == ^role.id and
-                 is_nil(assignment.organization_id)
+               user_role.user_id == ^user_id and user_role.role_id == ^role.id and
+                 is_nil(user_role.organization_id)
          ) do
         :ok
       else
-        %RoleAssignment{user_id: user_id, role_id: role.id}
-        |> RoleAssignment.changeset(%{})
+        %UserRole{user_id: user_id, role_id: role.id}
+        |> UserRole.changeset(%{})
         |> Repo.insert()
         |> case do
-          {:ok, _assignment} -> :ok
+          {:ok, _user_role} -> :ok
           {:error, changeset} -> {:error, changeset}
         end
       end
@@ -95,11 +95,11 @@ defmodule Glossia.Roles do
         {:error, :role_not_found}
 
       role ->
-        RoleAssignment
+        UserRole
         |> where(
-          [assignment],
-          assignment.user_id == ^user_id and assignment.role_id == ^role.id and
-            is_nil(assignment.organization_id)
+          [user_role],
+          user_role.user_id == ^user_id and user_role.role_id == ^role.id and
+            is_nil(user_role.organization_id)
         )
         |> Repo.delete_all()
 
@@ -112,12 +112,12 @@ defmodule Glossia.Roles do
 
     with %Role{} = role <- get_role(@organization_scope, role_name) do
       Repo.transaction(fn ->
-        RoleAssignment
+        UserRole
         |> where(user_id: ^user_id, organization_id: ^organization_id)
         |> Repo.delete_all()
 
-        %RoleAssignment{user_id: user_id, organization_id: organization_id, role_id: role.id}
-        |> RoleAssignment.changeset(%{})
+        %UserRole{user_id: user_id, organization_id: organization_id, role_id: role.id}
+        |> UserRole.changeset(%{})
         |> Repo.insert!()
       end)
       |> case do
@@ -132,7 +132,7 @@ defmodule Glossia.Roles do
   def remove_organization_roles(%User{id: user_id}, organization) do
     organization_id = organization_id(organization)
 
-    RoleAssignment
+    UserRole
     |> where(user_id: ^user_id, organization_id: ^organization_id)
     |> Repo.delete_all()
 

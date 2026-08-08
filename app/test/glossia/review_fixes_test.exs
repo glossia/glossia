@@ -2,18 +2,18 @@ defmodule Glossia.ReviewFixesTest do
   use Glossia.DataCase, async: true
 
   alias Glossia.Accounts
-  alias Glossia.Accounts.{Role, RoleAssignment, User}
+  alias Glossia.Accounts.{Role, User, UserRole}
   alias Glossia.Organizations
   alias Glossia.Roles
   alias Glossia.Repo
   alias Glossia.TestHelpers
 
   # ===========================================================================
-  # Fix 2: super_admin?/1 must read in memory when roles are preloaded, and
-  # fall back to a single query only when they are not.
+  # Fix 2: super_admin?/1 must read in memory when user_roles are preloaded,
+  # and fall back to a single query only when they are not.
   # ===========================================================================
 
-  test "super_admin?/1 issues no query when role_assignments are preloaded" do
+  test "super_admin?/1 issues no query when user_roles are preloaded" do
     user = TestHelpers.create_user("fix-perf-preload@test.com", "fix-perf-preload")
     assert {:ok, _user} = Accounts.set_super_admin(user.id)
 
@@ -52,8 +52,8 @@ defmodule Glossia.ReviewFixesTest do
     user = TestHelpers.create_user("fix-perf-nested@test.com", "fix-perf-nested")
     assert {:ok, _user} = Accounts.set_super_admin(user.id)
 
-    # role_assignments loaded but the nested :role is not.
-    partial = Repo.get!(User, user.id) |> Repo.preload(:role_assignments)
+    # user_roles loaded but the nested :role is not.
+    partial = Repo.get!(User, user.id) |> Repo.preload(:user_roles)
 
     count = count_queries(fn -> assert Roles.super_admin?(partial) end)
 
@@ -61,21 +61,21 @@ defmodule Glossia.ReviewFixesTest do
   end
 
   # ===========================================================================
-  # Fix 3: instance-scoped role assignments must be unique at the DB level.
+  # Fix 3: instance-scoped user roles must be unique at the DB level.
   # The partial index blocks the duplicate and the changeset surfaces it.
   # ===========================================================================
 
-  test "duplicate instance-scoped assignment is rejected" do
+  test "duplicate instance-scoped user role is rejected" do
     user = TestHelpers.create_user("fix-uniq-instance@test.com", "fix-uniq-instance")
     role = Repo.get_by!(Role, scope: "instance", name: "super_admin")
 
-    assert {:ok, _} = insert_assignment(user.id, role.id, nil)
-    assert {:error, changeset} = insert_assignment(user.id, role.id, nil)
+    assert {:ok, _} = insert_user_role(user.id, role.id, nil)
+    assert {:error, changeset} = insert_user_role(user.id, role.id, nil)
 
     assert Keyword.has_key?(changeset.errors, :role_id)
   end
 
-  test "duplicate organization-scoped assignment is still rejected" do
+  test "duplicate organization-scoped user role is still rejected" do
     owner = TestHelpers.create_user("fix-uniq-org-owner@test.com", "fix-uniq-org-owner")
     member = TestHelpers.create_user("fix-uniq-org-member@test.com", "fix-uniq-org-member")
 
@@ -84,10 +84,10 @@ defmodule Glossia.ReviewFixesTest do
 
     role = Repo.get_by!(Role, scope: "organization", name: "admin")
 
-    # owner already has the admin assignment from create_organization, so use
+    # owner already has the admin role from create_organization, so use
     # a fresh member to prove the partial index blocks a real duplicate.
-    assert {:ok, _} = insert_assignment(member.id, role.id, organization.id)
-    assert {:error, changeset} = insert_assignment(member.id, role.id, organization.id)
+    assert {:ok, _} = insert_user_role(member.id, role.id, organization.id)
+    assert {:error, changeset} = insert_user_role(member.id, role.id, organization.id)
 
     assert Keyword.has_key?(changeset.errors, :role_id)
   end
@@ -100,9 +100,9 @@ defmodule Glossia.ReviewFixesTest do
     assert Roles.super_admin?(Accounts.get_user(user.id))
   end
 
-  defp insert_assignment(user_id, role_id, organization_id) do
-    %RoleAssignment{user_id: user_id, role_id: role_id, organization_id: organization_id}
-    |> RoleAssignment.changeset(%{})
+  defp insert_user_role(user_id, role_id, organization_id) do
+    %UserRole{user_id: user_id, role_id: role_id, organization_id: organization_id}
+    |> UserRole.changeset(%{})
     |> Repo.insert()
   end
 

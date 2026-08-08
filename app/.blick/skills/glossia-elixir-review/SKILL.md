@@ -352,7 +352,7 @@ unique index that includes a nullable column does **not** enforce
 uniqueness for rows where that column is `NULL`. This silently breaks the
 invariant the index appears to provide, and the matching
 `unique_constraint/3` in the changeset won't catch the conflict either.
-The classic shape is a polymorphic `role_assignments`-style table that
+The classic shape is a polymorphic `user_roles`-style table that
 reuses one nullable FK (`organization_id`) to span two scopes.
 
 ### Flag (Severity: medium)
