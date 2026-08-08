@@ -21,3 +21,10 @@ preprocessed_configs/
 /.glossia-dev-instance
 
 /tmp
+
+# ClickHouse local data (created when starting clickhouse in the worktree)
+/data
+/metadata
+/status
+/store
+/uuid

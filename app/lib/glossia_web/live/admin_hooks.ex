@@ -13,6 +13,7 @@ defmodule GlossiaWeb.AdminHooks do
 
   alias Glossia.Accounts
   alias Glossia.Accounts.Scope
+  alias Glossia.Authz
 
   def on_mount(:load_user, _params, session, socket) do
     user =
@@ -31,7 +32,7 @@ defmodule GlossiaWeb.AdminHooks do
   def on_mount(:require_super_admin, _params, _session, socket) do
     user = socket.assigns[:current_user]
 
-    if user && Accounts.super_admin?(user) do
+    if user && Authz.authorize?(:admin_read, user, nil) do
       {:cont, socket}
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/dashboard")}

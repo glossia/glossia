@@ -83,7 +83,7 @@ defmodule Glossia.Accounts do
 
   def get_user(id) do
     User
-    |> preload([:account, role_assignments: :role])
+    |> preload([:account, user_roles: :role])
     |> Repo.get(id)
   end
 

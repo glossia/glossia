@@ -61,7 +61,7 @@
 
   <:avatar_menu_extra>
     <.dropdown_item
-      :if={@current_user && Glossia.Accounts.super_admin?(@current_user)}
+      :if={@current_user && Glossia.Authz.authorize?(:ops_read, @current_user, nil)}
       value="operations"
       label={gettext("Operations")}
       href={~p"/ops"}
@@ -69,7 +69,7 @@
       <:left_icon><Icon.settings /></:left_icon>
     </.dropdown_item>
     <.dropdown_item
-      :if={@current_user && Glossia.Accounts.super_admin?(@current_user)}
+      :if={@current_user && Glossia.Authz.authorize?(:admin_read, @current_user, nil)}
       value="admin"
       label={gettext("Admin")}
       href={~p"/admin"}

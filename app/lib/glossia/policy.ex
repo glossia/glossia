@@ -11,6 +11,12 @@ defmodule Glossia.Policy do
     end
   end
 
+  object :ops do
+    action :read do
+      allow(:super_admin)
+    end
+  end
+
   object :user do
     action :read do
       allow(:super_admin)

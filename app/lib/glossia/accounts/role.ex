@@ -6,7 +6,7 @@ defmodule Glossia.Accounts.Role do
     field :name, :string
     field :scope, :string
 
-    has_many :assignments, Glossia.Accounts.RoleAssignment
+    has_many :user_roles, Glossia.Accounts.UserRole
 
     timestamps()
   end

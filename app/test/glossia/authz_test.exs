@@ -1,6 +1,7 @@
 defmodule Glossia.AuthzTest do
   use Glossia.DataCase, async: true
 
+  alias Glossia.Accounts
   alias Glossia.Authz
   alias Glossia.TestHelpers
 
@@ -81,6 +82,24 @@ defmodule Glossia.AuthzTest do
       Mimic.stub(Glossia.Extensions, :policy_extension, fn -> TestPolicyExtension end)
 
       assert :ok = Authz.authorize_scope(:custom_read, ["custom:read"])
+    end
+  end
+
+  describe "admin / ops super admin checks via the policy" do
+    test "admin_read and ops_read both allow super admins and deny non-admins" do
+      Mimic.stub(Glossia.Extensions, :policy_extension, fn -> nil end)
+
+      admin = TestHelpers.create_user("authz-admin@test.com", "authz-admin")
+      member = TestHelpers.create_user("authz-member@test.com", "authz-member")
+
+      assert {:ok, _admin} = Accounts.set_super_admin(admin.id)
+
+      assert Authz.authorize?(:admin_read, admin, nil)
+      assert Authz.authorize?(:ops_read, admin, nil)
+      refute Authz.authorize?(:admin_read, member, nil)
+      refute Authz.authorize?(:ops_read, member, nil)
+      refute Authz.authorize?(:admin_read, nil, nil)
+      refute Authz.authorize?(:ops_read, nil, nil)
     end
   end
 end

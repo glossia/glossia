@@ -8,7 +8,7 @@ defmodule Glossia.Admin.MCP.Authorization do
   def current_user(frame) do
     case frame.assigns[:current_user] do
       %User{} = user ->
-        if Glossia.Accounts.super_admin?(user) do
+        if Glossia.Authz.authorize?(:admin_read, user, nil) do
           case rate_limit(user.id) do
             :ok ->
               {:ok, user}
