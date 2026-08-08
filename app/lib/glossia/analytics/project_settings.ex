@@ -26,7 +26,7 @@ defmodule Glossia.Analytics.ProjectSettings do
   @doc """
   Normalizes a domain for storage and lookup so the install snippet and the
   registered project resolve to the same value: strips the scheme, `www.`, any
-  path/port, and lowercases. Returns `""` for blank input.
+  path/port/query/fragment, and lowercases. Returns `""` for blank input.
 
       iex> normalize_domain("https://WWW.Example.com/blog")
       "example.com"
@@ -38,13 +38,22 @@ defmodule Glossia.Analytics.ProjectSettings do
     domain
     |> String.trim()
     |> String.downcase()
-    |> String.replace(~r{^[a-z][a-z0-9+.-]*://}, "")
-    |> String.split("/", parts: 2)
-    |> List.first()
-    |> String.split(":", parts: 2)
-    |> List.first()
+    |> ensure_scheme()
+    |> URI.parse()
+    |> extract_host()
     |> String.replace_prefix("www.", "")
   end
+
+  # `URI.parse/1` only treats the input as a URI when a scheme is present, so
+  # prepend one to bare hosts like "example.com" or "www.example.com" before
+  # parsing. The caller has already downcased the input, so the prefix match
+  # is case-sensitive.
+  defp ensure_scheme("http://" <> rest), do: "http://" <> rest
+  defp ensure_scheme("https://" <> rest), do: "https://" <> rest
+  defp ensure_scheme(domain), do: "https://" <> domain
+
+  defp extract_host(%URI{host: host}) when is_binary(host) and host != "", do: host
+  defp extract_host(_), do: ""
 
   def changeset(settings, attrs) do
     settings
