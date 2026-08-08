@@ -5,6 +5,7 @@ defmodule Glossia.Ingestion do
 
   alias Glossia.Ingestion.{Buffer, SetupEvent, TranslationSessionEvent}
   alias Glossia.ClickHouseRepo
+  alias Glossia.IngestRepo
 
   import Ecto.Query
 
@@ -12,19 +13,32 @@ defmodule Glossia.Ingestion do
   @translation_session_event_buffer Glossia.Ingestion.TranslationSessionEventBuffer
 
   def record_setup_event(project_id, sequence, event_type, content, metadata \\ "") do
-    buffer_opts = SetupEvent.buffer_opts()
+    if write_through_repo?() do
+      IngestRepo.insert_all(SetupEvent, [
+        %{
+          id: Uniq.UUID.uuid7(),
+          project_id: to_string(project_id),
+          sequence: sequence,
+          event_type: event_type,
+          content: content || "",
+          metadata: metadata || ""
+        }
+      ])
+    else
+      buffer_opts = SetupEvent.buffer_opts()
 
-    row = [
-      Uniq.UUID.uuid7(:raw),
-      to_string(project_id),
-      sequence,
-      event_type,
-      content || "",
-      metadata || ""
-    ]
+      row = [
+        Uniq.UUID.uuid7(:raw),
+        to_string(project_id),
+        sequence,
+        event_type,
+        content || "",
+        metadata || ""
+      ]
 
-    row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)
-    Buffer.insert(@setup_event_buffer, row_binary)
+      row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)
+      Buffer.insert(@setup_event_buffer, row_binary)
+    end
   end
 
   def list_setup_events(project_id) do
@@ -72,19 +86,32 @@ defmodule Glossia.Ingestion do
   # --- Translation session events ---
 
   def record_translation_session_event(session_id, sequence, event_type, content, metadata \\ "") do
-    buffer_opts = TranslationSessionEvent.buffer_opts()
+    if write_through_repo?() do
+      IngestRepo.insert_all(TranslationSessionEvent, [
+        %{
+          id: Uniq.UUID.uuid7(),
+          session_id: to_string(session_id),
+          sequence: sequence,
+          event_type: event_type,
+          content: content || "",
+          metadata: metadata || ""
+        }
+      ])
+    else
+      buffer_opts = TranslationSessionEvent.buffer_opts()
 
-    row = [
-      Uniq.UUID.uuid7(:raw),
-      to_string(session_id),
-      sequence,
-      event_type,
-      content || "",
-      metadata || ""
-    ]
+      row = [
+        Uniq.UUID.uuid7(:raw),
+        to_string(session_id),
+        sequence,
+        event_type,
+        content || "",
+        metadata || ""
+      ]
 
-    row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)
-    Buffer.insert(@translation_session_event_buffer, row_binary)
+      row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)
+      Buffer.insert(@translation_session_event_buffer, row_binary)
+    end
   end
 
   def list_translation_session_events(session_id) do
@@ -110,5 +137,11 @@ defmodule Glossia.Ingestion do
       select: max(e.sequence)
     )
     |> ClickHouseRepo.one() || 0
+  end
+
+  defp write_through_repo? do
+    :glossia
+    |> Application.get_env(Glossia.Ingestion.Bufferable, [])
+    |> Keyword.get(:write_through_repo, false)
   end
 end

@@ -78,11 +78,11 @@ defmodule GlossiaWeb.Router do
 
   get "/up", GlossiaWeb.HealthController, :index
 
-  scope "/v1", GlossiaWeb do
+  scope "/api", GlossiaWeb do
     pipe_through :analytics
 
-    post "/collect", AnalyticsController, :collect
-    options "/collect", AnalyticsController, :collect
+    post "/analytics/events", AnalyticsController, :collect
+    options "/analytics/events", AnalyticsController, :collect
   end
 
   # Webhooks (no session, no CSRF)
@@ -297,9 +297,6 @@ defmodule GlossiaWeb.Router do
     get "/:handle/models/:id", LLMModelApiController, :show
     patch "/:handle/models/:id", LLMModelApiController, :update
     delete "/:handle/models/:id", LLMModelApiController, :delete
-
-    post "/:handle/v1/chat/completions", LLMProxyController, :chat_completions
-    post "/:handle/v1/completions", LLMProxyController, :completions
 
     post "/:handle/translate", TranslationController, :create
   end

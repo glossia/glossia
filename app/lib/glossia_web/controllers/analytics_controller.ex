@@ -2,7 +2,7 @@ defmodule GlossiaWeb.AnalyticsController do
   @moduledoc """
   Public, cookieless analytics collection endpoint.
 
-  Accepts a single event from the `@glossia/web` SDK at `POST /v1/collect`,
+  Accepts a single event from the `@glossia/web` SDK at `POST /api/analytics/events`,
   enriches it with server-only signals (client IP and User-Agent, never stored
   raw), computes the localization gap against the project's target languages,
   and buffers a ClickHouse row.

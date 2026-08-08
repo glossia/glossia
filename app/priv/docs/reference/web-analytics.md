@@ -1,14 +1,14 @@
 %{
-  title: "Web analytics reference",
-  summary: "The collected fields, the collect endpoint, and the privacy model behind Glossia web analytics.",
+  title: "Analytics SDK",
+  summary: "The collected fields, the events endpoint, and the privacy model behind Glossia web analytics.",
   category: "reference",
   order: 1
 }
 ---
 
-## Collect endpoint
+## Events endpoint
 
-`POST /v1/collect`
+`POST /api/analytics/events`
 
 Accepts a JSON event from the `@glossia/web` SDK. Always responds `202 Accepted`, including for unknown domains or malformed payloads, so the SDK never leaks which projects collect analytics.
 
@@ -31,7 +31,7 @@ CORS is open (`Access-Control-Allow-Origin: *`) because the endpoint accepts no 
 
 ## Server-derived fields
 
-These are computed at ingestion and are the only values persisted to the `analytics_events` table. The raw IP and User-Agent are never stored.
+These are computed at ingestion and stored server-side. The raw IP and User-Agent are never stored.
 
 | Field             | Source        | Description                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
@@ -53,12 +53,3 @@ These are computed at ingestion and are the only values persisted to the `analyt
 - **No fingerprinting.** Canvas, WebGL, font, and audio fingerprints are not collected. The daily-rotated server hash provides uniques without them.
 - **No raw identifiers persisted.** IP and User-Agent are read once, hashed with a server secret and a daily salt, then discarded.
 - **Per-project scoping.** The same browser on two projects yields unrelated visitor ids, so visitors cannot be tracked across Glossia customers.
-
-## Configuration
-
-| Environment variable               | Purpose                                                          |
-|------------------------------------|------------------------------------------------------------------|
-| `GLOSSIA_ANALYTICS_IDENTITY_SECRET`| Salts the daily-rotated visitor hash. Required in production.    |
-| `GLOSSIA_ANALYTICS_ENABLED`        | Set to `false` or `0` to disable ingestion.                      |
-| `GLOSSIA_GEOIP_DATABASE_PATH`      | Path to a MaxMind GeoLite2-Country `.mmdb` to enable country.    |
-| `GLOSSIA_WEB_ANALYTICS_DOMAIN`     | Site domain that enables dogfooding on the Glossia site itself.  |

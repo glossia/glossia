@@ -25,7 +25,12 @@ config :glossia, Glossia.IngestRepo,
   database: "glossia_test#{System.get_env("MIX_TEST_PARTITION")}",
   flush_interval_ms: 5000,
   max_buffer_size: 100_000,
-  pool_size: 5
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: System.schedulers_online() * 2,
+  sync_writes: true
+
+# Keep ClickHouse buffer writes in the calling test process so they share the sandboxed transaction.
+config :glossia, Glossia.Ingestion.Bufferable, write_through_repo: true
 
 config :glossia, Glossia.Analytics,
   enabled: true,

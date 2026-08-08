@@ -9,7 +9,7 @@ defmodule GlossiaWeb.Plugs.AnalyticsCorsTest do
   @opts AnalyticsCors.init([])
 
   test "short-circuits OPTIONS preflight with 204 and CORS headers" do
-    conn = build_conn(:options, "/v1/collect") |> AnalyticsCors.call(@opts)
+    conn = build_conn(:options, "/api/analytics/events") |> AnalyticsCors.call(@opts)
 
     assert conn.halted
     assert conn.status == 204
@@ -19,7 +19,7 @@ defmodule GlossiaWeb.Plugs.AnalyticsCorsTest do
   end
 
   test "adds a permissive origin header to non-preflight requests without halting" do
-    conn = build_conn(:post, "/v1/collect") |> AnalyticsCors.call(@opts)
+    conn = build_conn(:post, "/api/analytics/events") |> AnalyticsCors.call(@opts)
 
     refute conn.halted
     assert get_resp_header(conn, "access-control-allow-origin") == ["*"]
