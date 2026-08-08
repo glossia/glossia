@@ -3,7 +3,7 @@ defmodule GlossiaWeb.Plugs.OpsAuth do
 
   import Phoenix.Controller, only: [redirect: 2]
 
-  alias Glossia.Accounts
+  alias Glossia.Authz
 
   def init(opts), do: opts
 
@@ -15,7 +15,7 @@ defmodule GlossiaWeb.Plugs.OpsAuth do
         |> Plug.Conn.halt()
 
       user ->
-        if Accounts.super_admin?(user) do
+        if Authz.authorize?(:ops_read, user, nil) do
           conn
         else
           conn

@@ -5,14 +5,14 @@ defmodule GlossiaWeb.Plugs.RequireSuperAdmin do
   import Phoenix.Controller
   use Gettext, backend: GlossiaWeb.Gettext
 
-  alias Glossia.Accounts
+  alias Glossia.Authz
 
   def init(opts), do: opts
 
   def call(conn, _opts) do
     user = conn.assigns[:current_user]
 
-    if user && Accounts.super_admin?(user) do
+    if user && Authz.authorize?(:admin_read, user, nil) do
       conn
     else
       conn
