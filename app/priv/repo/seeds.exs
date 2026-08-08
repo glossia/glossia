@@ -812,10 +812,6 @@ defmodule Glossia.Seeds do
     end
   end
 
-  # ----------------------------------------------------------------------------
-  # Analytics
-  # ----------------------------------------------------------------------------
-
   defp ensure_analytics_settings!(%Project{} = project, opts) do
     domain = Keyword.fetch!(opts, :domain)
 
