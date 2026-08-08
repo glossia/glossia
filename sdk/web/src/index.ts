@@ -12,8 +12,11 @@
  */
 
 export type GlossiaConfig = {
-  /** Site domain that identifies the project, e.g. "example.com". Required. */
-  domain: string;
+  /**
+   * Site domain that identifies the project, e.g. "example.com".
+   * Defaults to `window.location.hostname` when omitted.
+   */
+  domain?: string;
   /** Collect endpoint. Defaults to the origin of the SDK script + "/v1/collect". */
   endpoint?: string;
   /** Send a pageview on init and on client-side navigation. Default: true. */
@@ -157,9 +160,14 @@ export function pageview(): void {
 }
 
 /** Initialize the SDK. Safe to call once. */
-export function init(config: GlossiaConfig): void {
-  if (!config.domain) return;
-  siteDomain = config.domain;
+export function init(config: GlossiaConfig = {}): void {
+  // Default the site domain to the current hostname so the common case is
+  // just `glossia.init()`. Explicit override exists for setups where the
+  // SDK runs on a different origin than the one registered in Glossia
+  // (e.g. a staging environment reporting to the same project).
+  const domain = config.domain ?? (typeof location !== "undefined" ? location.hostname : "");
+  if (!domain) return;
+  siteDomain = domain;
   endpoint = config.endpoint || detectEndpoint();
   readOrCreateSessionId();
 
@@ -191,11 +199,19 @@ function hookHistory(): void {
 
 // Auto-initialize from a classic script tag:
 //   <script defer src="https://cdn.glossia.ai/web.js" data-domain="example.com"></script>
+//
+// `data-domain` is optional; if omitted, the SDK falls back to the current
+// hostname. `data-endpoint` is also optional and only needed when self-hosting.
 if (typeof document !== "undefined") {
   const script = document.currentScript as HTMLScriptElement | null;
-  const domain = script?.getAttribute("data-domain");
-  if (domain) {
-    init({ domain, endpoint: script?.getAttribute("data-endpoint") || undefined });
+  if (script) {
+    const domain = script.getAttribute("data-domain") || undefined;
+    const endpoint = script.getAttribute("data-endpoint") || undefined;
+    if (domain || endpoint) {
+      init({ domain, endpoint });
+    } else {
+      init();
+    }
   }
 }
 

@@ -10,13 +10,13 @@ Cookieless, privacy-friendly web analytics that surfaces localization opportunit
 
 ### Snippet (no build step)
 
-Add this to your site, setting `data-domain` to the site domain you registered in Glossia:
+Add this to your site:
 
 ```html
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-The script auto-initializes and records pageviews, including on client-side navigation (single-page apps). Point `data-endpoint` at a self-hosted collect host if you don't use the Glossia CDN.
+The script auto-initializes and records pageviews, including on client-side navigation (single-page apps). `data-domain` is optional — when omitted, the SDK uses `window.location.hostname` to identify the project. Point `data-endpoint` at a self-hosted collect host if you don't use the Glossia CDN.
 
 ### npm
 
@@ -27,11 +27,13 @@ npm install @glossia/web
 ```ts
 import glossia from "@glossia/web";
 
-glossia.init({ domain: "example.com" });
+glossia.init();
 
 // Record a custom event:
 glossia.track("signup");
 ```
+
+`domain` is inferred from `window.location.hostname`. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
 
 ## What gets collected
 
