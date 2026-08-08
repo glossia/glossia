@@ -68,7 +68,7 @@ config :esbuild,
   ],
   glossia_sdk_web: [
     args:
-      ~w(#{Path.expand("../../sdk/web/src/index.ts", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js),
+      ~w(#{Path.expand("../../sdk/web/src/index.js", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]

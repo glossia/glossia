@@ -9,40 +9,41 @@
  *
  * The server derives the unique visitor (a daily-rotated hash of IP + UA) and
  * the country from GeoIP, so neither the IP nor the User-Agent is ever stored.
+ *
+ * @module @glossia/web
  */
 
-export type GlossiaConfig = {
-  /**
-   * Site domain that identifies the project, e.g. "example.com".
-   * Defaults to `window.location.hostname` when omitted.
-   */
-  domain?: string;
-  /** Collect endpoint. Defaults to the origin of the SDK script + "/v1/collect". */
-  endpoint?: string;
-  /** Send a pageview on init and on client-side navigation. Default: true. */
-  autoPageviews?: boolean;
-};
+/**
+ * @typedef {object} GlossiaConfig
+ * @property {string} [domain] - Site domain that identifies the project,
+ *   e.g. "example.com". Defaults to `window.location.hostname` when omitted.
+ * @property {string} [endpoint] - Collect endpoint. Defaults to the origin
+ *   of the SDK script + "/v1/collect".
+ * @property {boolean} [autoPageviews=true] - Send a pageview on init and on
+ *   client-side navigation.
+ */
 
-type EventPayload = {
-  d: string;
-  n: string;
-  u: string;
-  r: string;
-  l: string;
-  tz: string;
-  sw: number;
-  sid: string;
-};
+/**
+ * @typedef {object} EventPayload
+ * @property {string} d
+ * @property {string} n
+ * @property {string} u
+ * @property {string} r
+ * @property {string} l
+ * @property {string} tz
+ * @property {number} sw
+ * @property {string} sid
+ */
 
 const SESSION_KEY = "__glossia_sid";
 
 let endpoint = "/v1/collect";
-let siteDomain: string | null = null;
-let sessionId: string | null = null;
+let siteDomain = null;
+let sessionId = null;
 
-function detectEndpoint(): string {
+function detectEndpoint() {
   if (typeof document === "undefined") return "/v1/collect";
-  const script = document.currentScript as HTMLScriptElement | null;
+  const script = document.currentScript;
   if (script && script.src) {
     try {
       return new URL(script.src, document.baseURI).origin + "/v1/collect";
@@ -53,7 +54,7 @@ function detectEndpoint(): string {
   return "/v1/collect";
 }
 
-function browserLanguages(): string {
+function browserLanguages() {
   const nav = typeof navigator !== "undefined" ? navigator : undefined;
   const langs =
     (nav && nav.languages) ||
@@ -62,7 +63,7 @@ function browserLanguages(): string {
   return langs.join(",");
 }
 
-function timezone(): string {
+function timezone() {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
   } catch {
@@ -70,7 +71,7 @@ function timezone(): string {
   }
 }
 
-function screenWidth(): number {
+function screenWidth() {
   try {
     return (typeof screen !== "undefined" && screen.width) || 0;
   } catch {
@@ -78,7 +79,7 @@ function screenWidth(): number {
   }
 }
 
-function uuid(): string {
+function uuid() {
   const c = typeof crypto !== "undefined" ? crypto : undefined;
   if (c && typeof c.randomUUID === "function") return c.randomUUID();
 
@@ -89,7 +90,7 @@ function uuid(): string {
   });
 }
 
-function readOrCreateSessionId(): string {
+function readOrCreateSessionId() {
   if (sessionId) return sessionId;
 
   // sessionStorage is scoped to the tab and cleared on close: enough to group a
@@ -108,7 +109,7 @@ function readOrCreateSessionId(): string {
   }
 }
 
-function send(payload: EventPayload): void {
+function send(payload) {
   if (!siteDomain) return;
   const body = JSON.stringify(payload);
 
@@ -136,7 +137,7 @@ function send(payload: EventPayload): void {
   }
 }
 
-function build(name: string): EventPayload {
+function build(name) {
   return {
     d: siteDomain || "",
     n: name,
@@ -149,23 +150,32 @@ function build(name: string): EventPayload {
   };
 }
 
-/** Record a custom event (e.g. `glossia("track", "signup")`). */
-export function track(name: string): void {
+/**
+ * Record a custom event (e.g. `glossia("track", "signup")`).
+ * @param {string} name
+ */
+export function track(name) {
   send(build(name));
 }
 
-/** Record a pageview. Called automatically when `autoPageviews` is on. */
-export function pageview(): void {
+/**
+ * Record a pageview. Called automatically when `autoPageviews` is on.
+ */
+export function pageview() {
   send(build("pageview"));
 }
 
-/** Initialize the SDK. Safe to call once. */
-export function init(config: GlossiaConfig = {}): void {
+/**
+ * Initialize the SDK. Safe to call once.
+ * @param {GlossiaConfig} [config]
+ */
+export function init(config = {}) {
   // Default the site domain to the current hostname so the common case is
   // just `glossia.init()`. Explicit override exists for setups where the
   // SDK runs on a different origin than the one registered in Glossia
   // (e.g. a staging environment reporting to the same project).
-  const domain = config.domain ?? (typeof location !== "undefined" ? location.hostname : "");
+  const domain =
+    config.domain ?? (typeof location !== "undefined" ? location.hostname : "");
   if (!domain) return;
   siteDomain = domain;
   endpoint = config.endpoint || detectEndpoint();
@@ -177,20 +187,20 @@ export function init(config: GlossiaConfig = {}): void {
   }
 }
 
-function hookHistory(): void {
+function hookHistory() {
   if (typeof history === "undefined") return;
 
   const push = history.pushState;
   const replace = history.replaceState;
   const fire = () => setTimeout(pageview, 0);
 
-  history.pushState = function (this: History, ...args: unknown[]) {
-    const ret = push.apply(this, args as Parameters<typeof push>);
+  history.pushState = function (...args) {
+    const ret = push.apply(this, args);
     fire();
     return ret;
   };
-  history.replaceState = function (this: History, ...args: unknown[]) {
-    const ret = replace.apply(this, args as Parameters<typeof replace>);
+  history.replaceState = function (...args) {
+    const ret = replace.apply(this, args);
     fire();
     return ret;
   };
@@ -203,7 +213,7 @@ function hookHistory(): void {
 // `data-domain` is optional; if omitted, the SDK falls back to the current
 // hostname. `data-endpoint` is also optional and only needed when self-hosting.
 if (typeof document !== "undefined") {
-  const script = document.currentScript as HTMLScriptElement | null;
+  const script = document.currentScript;
   if (script) {
     const domain = script.getAttribute("data-domain") || undefined;
     const endpoint = script.getAttribute("data-endpoint") || undefined;
