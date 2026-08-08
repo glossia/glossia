@@ -31,6 +31,7 @@ defmodule Glossia.Repo.Migrations.CreateRolesAndRoleAssignments do
              name: "role_assignments_org_user_role_unique",
              where: "organization_id IS NOT NULL"
            )
+
     create index(:role_assignments, [:organization_id])
 
     execute """
