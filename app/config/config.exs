@@ -62,7 +62,7 @@ config :esbuild,
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ],
-  glossia_web: [
+  glossia_sdk_web: [
     args:
       ~w(#{Path.expand("../../sdk/web/src/index.ts", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js),
     cd: Path.expand("../assets", __DIR__),
@@ -119,9 +119,10 @@ config :glossia, Glossia.Analytics,
   enabled: true,
   geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
 
-# Dogfooding: when `domain` is set, the root layout renders the Glossia web
-# analytics snippet on every page so Glossia measures itself.
-config :glossia, :web_analytics, domain: nil
+# Dogfooding: the root layout renders the Glossia web analytics snippet on
+# every page so Glossia measures itself. Set `GLOSSIA_WEB_ANALYTICS_DOMAIN`
+# env var to override in production.
+config :glossia, :web_analytics, domain: "localhost"
 
 # User-Agent classification (device/browser/OS). The regex database lives under
 # `priv/ua_inspector` and is downloaded via `mix ua_inspector.download`; the

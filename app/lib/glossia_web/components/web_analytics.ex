@@ -4,7 +4,7 @@ defmodule GlossiaWeb.WebAnalytics do
 
   Gated on a configured `domain` (see `:glossia, :web_analytics`), so the snippet
   is a no-op until a site domain is provided. The script is bundled from the same
-  `sdk/web` source via the `glossia_web` esbuild profile.
+  `sdk/web` source via the `glossia_sdk_web` esbuild profile.
   """
 
   @doc """

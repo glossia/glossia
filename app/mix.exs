@@ -134,11 +134,11 @@ defmodule Glossia.MixProject do
         "test"
       ],
       "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["compile", "esbuild glossia", "esbuild noora", "esbuild glossia_web"],
+      "assets.build": ["compile", "esbuild glossia", "esbuild noora", "esbuild glossia_sdk_web"],
       "assets.deploy": [
         "esbuild noora --minify",
         "esbuild glossia --minify",
-        "esbuild glossia_web --minify",
+        "esbuild glossia_sdk_web --minify",
         "phx.digest"
       ],
       precommit: [
