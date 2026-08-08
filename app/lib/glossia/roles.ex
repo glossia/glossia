@@ -139,6 +139,20 @@ defmodule Glossia.Roles do
     :ok
   end
 
+  @doc """
+  Returns the organizations a user is a member of, via their org-scoped
+  user roles. A user with no org-scoped role is not a member of any
+  organization and gets an empty list.
+  """
+  @spec list_user_organizations(%User{} | %User{id: Ecto.UUID.t()}) :: [%Organization{}]
+  def list_user_organizations(%User{id: user_id}) do
+    Organization
+    |> join(:inner, [o], user_role in UserRole, on: user_role.organization_id == o.id)
+    |> where([_o, user_role], user_role.user_id == ^user_id)
+    |> order_by([o, _user_role], asc: o.name)
+    |> Repo.all()
+  end
+
   defp get_role(scope, name), do: Repo.get_by(Role, scope: scope, name: name)
   defp organization_id(%Organization{id: id}), do: id
   defp organization_id(id), do: id
