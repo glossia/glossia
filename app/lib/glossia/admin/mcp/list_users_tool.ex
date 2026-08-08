@@ -4,7 +4,6 @@ defmodule Glossia.Admin.MCP.ListUsersTool do
   use Hermes.Server.Component, type: :tool
 
   alias Glossia.Admin.MCP.Authorization, as: Auth
-  alias Glossia.Accounts
   alias Glossia.Accounts.User
   alias Glossia.Repo
   alias Hermes.Server.Response
@@ -40,7 +39,6 @@ defmodule Glossia.Admin.MCP.ListUsersTool do
                 email: u.email,
                 name: u.name,
                 handle: u.account.handle,
-                super_admin: Accounts.super_admin?(u),
                 inserted_at: u.inserted_at
               }
             end)

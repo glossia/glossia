@@ -44,12 +44,7 @@ defmodule Glossia.Admin.MCP.SetSuperAdminTool do
 
               response =
                 Response.tool()
-                |> Response.text(
-                  JSON.encode!(%{
-                    email: updated.email,
-                    super_admin: Accounts.super_admin?(updated)
-                  })
-                )
+                |> Response.text(JSON.encode!(%{email: updated.email}))
 
               {:reply, response, frame}
 
