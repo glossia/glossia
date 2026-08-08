@@ -617,7 +617,6 @@ if config_env() == :prod and not runner_child? do
 
   config :glossia, Glossia.Mailer, smtp_options
 
-  # --- Website analytics ingestion ---
   analytics_secret =
     System.get_env("GLOSSIA_ANALYTICS_IDENTITY_SECRET") ||
       raise """
