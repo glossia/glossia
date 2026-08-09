@@ -20,7 +20,16 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
       })
 
     domain = "collect-#{System.unique_integer([:positive])}.com"
-    {:ok, _settings} = Settings.upsert_for_project(project.id, %{domain: domain})
+    {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: domain})
+
+    # Collection only accepts verified domains, so stamp `verified_at` the way
+    # `Settings.verify_for_project/1` does once ownership has been proven.
+    {:ok, _verified} =
+      settings
+      |> Ecto.Changeset.change(%{
+        verified_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      })
+      |> Glossia.Repo.update()
 
     %{project: project, domain: domain}
   end
@@ -79,7 +88,10 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
            |> ClickHouseRepo.all() == []
   end
 
-  test "returns 202 without recording when no domain can be resolved", %{conn: conn, domain: domain} do
+  test "returns 202 without recording when no domain can be resolved", %{
+    conn: conn,
+    domain: domain
+  } do
     conn = post(conn, "/api/analytics/events", %{"n" => "pageview"})
 
     assert conn.status == 202
