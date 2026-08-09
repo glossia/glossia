@@ -24,6 +24,11 @@ config :glossia, Glossia.IngestRepo,
   max_buffer_size: 100_000,
   pool_size: 5
 
+# Write ClickHouse events synchronously in dev so the analytics dashboard
+# reflects seed data immediately. In production the buffer batches rows for
+# throughput; the dev latency of an immediate write is not a problem.
+config :glossia, Glossia.Ingestion.Bufferable, write_through_repo: true
+
 # Dev-only secret for the daily-rotated visitor hash. Never reuse in production.
 config :glossia, Glossia.Analytics,
   enabled: true,

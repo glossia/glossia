@@ -4,6 +4,7 @@ defmodule Glossia.Analytics.SettingsTest do
   alias Glossia.Analytics.Settings
   alias Glossia.Projects
   alias Glossia.TestHelpers
+  alias Glossia.Repo
 
   setup do
     user = TestHelpers.create_user("analytics-settings@test.com", "analytics-settings")
@@ -19,6 +20,15 @@ defmodule Glossia.Analytics.SettingsTest do
   end
 
   defp unique_domain, do: "site-#{System.unique_integer([:positive])}.com"
+
+  # Mark the project's settings row as verified so the collection path
+  # returns it. The token is real; the test never actually calls
+  # `Verification.verify/2`.
+  defp mark_verified!(settings) do
+    settings
+    |> Ecto.Changeset.change(%{verified_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)})
+    |> Repo.update!()
+  end
 
   describe "upsert_for_project/2" do
     test "creates settings, normalizing the domain", %{project: project} do
@@ -57,9 +67,11 @@ defmodule Glossia.Analytics.SettingsTest do
   end
 
   describe "fetch_for_collection/1" do
-    test "resolves an enabled domain to the project and its target languages", %{project: project} do
+    test "resolves an enabled, verified domain to the project and its target languages",
+         %{project: project} do
       domain = unique_domain()
-      {:ok, _} = Settings.upsert_for_project(project.id, %{domain: domain})
+      {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: domain})
+      mark_verified!(settings)
 
       assert %{project_id: project_id, target_languages: ["de", "fr"], enabled: true} =
                Settings.fetch_for_collection("https://#{domain}/some/page")
@@ -75,12 +87,20 @@ defmodule Glossia.Analytics.SettingsTest do
     test "returns nil when the domain is disabled", %{project: project} do
       domain = unique_domain()
       {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: domain})
+      mark_verified!(settings)
 
       settings
       |> Ecto.Changeset.change(enabled: false)
       |> Repo.update!()
 
       Glossia.Analytics.SettingsCache.delete(domain)
+
+      assert Settings.fetch_for_collection(domain) == nil
+    end
+
+    test "returns nil when the domain is not yet verified", %{project: project} do
+      domain = unique_domain()
+      {:ok, _} = Settings.upsert_for_project(project.id, %{domain: domain})
 
       assert Settings.fetch_for_collection(domain) == nil
     end

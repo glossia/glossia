@@ -13,11 +13,11 @@ defmodule Glossia.Analytics.ProjectSettings do
   use Glossia.Schema
   import Ecto.Changeset
 
-  @type t :: %__MODULE__{}
-
   schema "analytics_project_settings" do
     field :domain, :string
     field :enabled, :boolean, default: true
+    field :verification_token, :string
+    field :verified_at, :utc_datetime_usec
     belongs_to :project, Glossia.Accounts.Project
 
     timestamps(type: :utc_datetime_usec)
@@ -31,7 +31,6 @@ defmodule Glossia.Analytics.ProjectSettings do
       iex> normalize_domain("https://WWW.Example.com/blog")
       "example.com"
   """
-  @spec normalize_domain(String.t() | nil) :: String.t()
   def normalize_domain(nil), do: ""
 
   def normalize_domain(domain) when is_binary(domain) do
@@ -63,5 +62,39 @@ defmodule Glossia.Analytics.ProjectSettings do
     |> validate_length(:domain, min: 1, max: 253)
     |> unique_constraint(:domain)
     |> unique_constraint(:project_id)
+    |> put_verification_token()
+    |> reset_verification_on_domain_change()
+  end
+
+  # On insert, mint a fresh token. On update, leave the existing token alone
+  # so a re-save of the same settings doesn't invalidate the user's pending
+  # DNS / meta-tag proof.
+  defp put_verification_token(changeset) do
+    if changeset.data.__meta__.state == :built and
+         (changeset.data.verification_token in [nil, ""] or
+            get_change(changeset, :verification_token)) do
+      put_change(changeset, :verification_token, generate_token())
+    else
+      changeset
+    end
+  end
+
+  # If the domain is being changed, the existing token is meaningless for the
+  # new domain and the previously-verified status no longer applies. Clear
+  # both so the operator has to prove ownership of the new domain.
+  defp reset_verification_on_domain_change(changeset) do
+    case {get_change(changeset, :domain), changeset.data.domain} do
+      {new_domain, previous_domain} when new_domain != nil and new_domain != previous_domain ->
+        changeset
+        |> put_change(:verification_token, generate_token())
+        |> put_change(:verified_at, nil)
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp generate_token do
+    :crypto.strong_rand_bytes(32) |> Base.encode16(case: :lower)
   end
 end
