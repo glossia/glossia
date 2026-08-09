@@ -40,7 +40,9 @@ defmodule Glossia.Analytics.VerificationTest do
   describe "check_meta_tag/2" do
     test "returns :ok when the meta tag is present" do
       token = unique_token()
-      body = ~s(<html><head><meta name="glossia-site-verification" content="#{token}"></head></html>)
+
+      body =
+        ~s(<html><head><meta name="glossia-site-verification" content="#{token}"></head></html>)
 
       stub(Req, :get, fn _url, _opts ->
         {:ok, %{status: 200, body: body}}

@@ -121,7 +121,10 @@ defmodule Glossia.Ingestion.Buffer do
 
       _not_empty ->
         Logger.notice("Flushing #{buffer_size} byte(s) RowBinary from #{name}")
-        IngestRepo.with_retry(fn -> IngestRepo.query!(insert_sql, [header | buffer], insert_opts) end)
+
+        IngestRepo.with_retry(fn ->
+          IngestRepo.query!(insert_sql, [header | buffer], insert_opts)
+        end)
     end
   end
 

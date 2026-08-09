@@ -26,7 +26,9 @@ defmodule Glossia.Analytics.SettingsTest do
   # `Verification.verify/2`.
   defp mark_verified!(settings) do
     settings
-    |> Ecto.Changeset.change(%{verified_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)})
+    |> Ecto.Changeset.change(%{
+      verified_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    })
     |> Repo.update!()
   end
 

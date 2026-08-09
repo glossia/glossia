@@ -941,7 +941,15 @@ defmodule Glossia.Seeds do
     devices = ["desktop", "mobile", "tablet", "desktop", "desktop", "mobile"]
     browsers = ["chrome", "safari", "firefox", "edge", "chrome", "chrome"]
     oses = ["macos", "ios", "windows", "android", "linux", "macos"]
-    timezones = ["America/New_York", "Europe/London", "Europe/Berlin", "Asia/Tokyo", "America/Sao_Paulo"]
+
+    timezones = [
+      "America/New_York",
+      "Europe/London",
+      "Europe/Berlin",
+      "Asia/Tokyo",
+      "America/Sao_Paulo"
+    ]
+
     referrers = [
       {"https://google.com/search", "google.com"},
       {"https://twitter.com/", "twitter.com"},
@@ -951,7 +959,8 @@ defmodule Glossia.Seeds do
     ]
 
     rows =
-      for [country, browser_lang, served_locale, has_gap, count, days_ago, hour_offset] <- visitors,
+      for [country, browser_lang, served_locale, has_gap, count, days_ago, hour_offset] <-
+            visitors,
           _ <- 1..count do
         ua = "Mozilla/5.0 (SeedBrowser/1.0) #{country}-#{days_ago}"
         session_id = "seed-sess-#{country}-#{:rand.uniform(1000)}"
@@ -979,7 +988,8 @@ defmodule Glossia.Seeds do
         # by `uniqExact`. A per-country seed gives us ~50 unique visitors,
         # which is enough to make the number meaningful without being
         # unrealistic for a dev dashboard.
-        visitor_id = :erlang.phash2({project_id_str, country, browser_lang}) |> rem(0xFFFFFFFFFFFFFFFF)
+        visitor_id =
+          :erlang.phash2({project_id_str, country, browser_lang}) |> rem(0xFFFFFFFFFFFFFFFF)
 
         %{
           id: Uniq.UUID.uuid7(),
