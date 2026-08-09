@@ -23,7 +23,20 @@ defmodule Glossia.Analytics.Ingestion do
   def record_event(attrs) do
     if write_through_repo?() do
       %{fields: fields} = Event.buffer_opts()
-      row = Map.new(fields, fn field -> {field, Map.fetch!(attrs, field)} end)
+
+      # `id` is generated here rather than supplied by the caller, exactly as
+      # the buffer branch below does, and the same `to_string/1` coercions are
+      # applied so both paths write identical rows.
+      row =
+        fields
+        |> Enum.reject(&(&1 == :id))
+        |> Map.new(fn field -> {field, Map.fetch!(attrs, field)} end)
+        |> Map.merge(%{
+          id: Uniq.UUID.uuid7(),
+          project_id: to_string(attrs.project_id),
+          session_id: to_string(attrs.session_id)
+        })
+
       IngestRepo.insert_all(Event, [row])
     else
       buffer_opts = Event.buffer_opts()
