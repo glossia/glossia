@@ -28,15 +28,26 @@ function makeFakeScript({ src, domain, endpoint } = {}) {
   return script;
 }
 
+// jsdom does not implement the Beacon API, so `navigator.sendBeacon` has no
+// property for `vi.spyOn` to replace. Install an inert own property once: every
+// test spies on that, and `vi.restoreAllMocks()` restores this placeholder
+// rather than leaving a mock behind.
+if (typeof navigator.sendBeacon !== "function") {
+  Object.defineProperty(navigator, "sendBeacon", {
+    value: () => false,
+    configurable: true,
+    writable: true,
+  });
+}
+
 function stubSendBeacon(returns = true) {
   return vi.spyOn(navigator, "sendBeacon").mockReturnValue(returns);
 }
 
 function stubFetch(impl) {
-  return vi.stubGlobal(
-    "fetch",
-    impl ?? vi.fn().mockResolvedValue({ ok: true }),
-  );
+  const mock = vi.fn(impl ?? (() => Promise.resolve({ ok: true })));
+  vi.stubGlobal("fetch", mock);
+  return mock;
 }
 
 function stubLocation(url) {
@@ -92,9 +103,21 @@ function stubCrypto(value) {
   return vi.stubGlobal("crypto", value);
 }
 
+// jsdom's `Blob` implements only `slice`/`size`/`type` — no `text()` or
+// `arrayBuffer()` — so read the beacon payload through `FileReader`, which
+// jsdom does implement.
+function blobText(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
+}
+
 async function readBeaconBody(call) {
   const [, blob] = call;
-  return JSON.parse(await blob.text());
+  return JSON.parse(await blobText(blob));
 }
 
 // --- Cleanup ----------------------------------------------------------------
@@ -104,6 +127,10 @@ afterEach(() => {
   window.history.replaceState = originalReplaceState;
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  // Tests that do not stub `sessionStorage` write a real `__glossia_sid`, which
+  // would otherwise be picked up by the next test and hide the id-generation
+  // paths under assertion.
+  window.sessionStorage.clear();
 });
 
 // --- Tests ------------------------------------------------------------------
@@ -141,7 +168,9 @@ describe("init()", () => {
   });
 
   it("does not send anything when no domain is available", async () => {
-    stubLocation("https://localhost/");
+    // A `file://` page has an empty hostname, so `init()` has no domain to
+    // attribute events to and must stay silent.
+    stubLocation("file:///Users/someone/index.html");
     const sendBeacon = stubSendBeacon();
     const fetch = stubFetch();
     const { init } = await loadFresh();
@@ -165,6 +194,9 @@ describe("init()", () => {
     stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
     const sendBeacon = stubSendBeacon();
     const { init } = await loadFresh();
+    // Importing with a `<script>` tag present auto-inits and sends a pageview;
+    // this test is about the explicit `init()` that follows.
+    sendBeacon.mockClear();
 
     init({
       domain: "example.com",
@@ -180,6 +212,7 @@ describe("init()", () => {
     stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
     const sendBeacon = stubSendBeacon();
     const { init } = await loadFresh();
+    sendBeacon.mockClear();
 
     init({ domain: "example.com" });
 
@@ -223,10 +256,12 @@ describe("session id", () => {
     const { init, track } = await loadFresh();
 
     init({ domain: "example.com", autoPageviews: false });
-    const firstSid = JSON.parse(await sendBeacon.mock.calls[0][1].text()).sid;
+
+    track("view_pricing");
+    const firstSid = JSON.parse(await blobText(sendBeacon.mock.calls[0][1])).sid;
 
     track("signup");
-    const secondSid = JSON.parse(await sendBeacon.mock.calls[1][1].text()).sid;
+    const secondSid = JSON.parse(await blobText(sendBeacon.mock.calls[1][1])).sid;
 
     expect(secondSid).toBe(firstSid);
   });
@@ -251,12 +286,13 @@ describe("session id", () => {
     const { init, track } = await loadFresh();
 
     init({ domain: "example.com", autoPageviews: false });
+    track("view_pricing");
     track("signup");
 
     // Both events still fire and share a session id even without storage.
     expect(sendBeacon).toHaveBeenCalledTimes(2);
-    const first = JSON.parse(await sendBeacon.mock.calls[0][1].text());
-    const second = JSON.parse(await sendBeacon.mock.calls[1][1].text());
+    const first = JSON.parse(await blobText(sendBeacon.mock.calls[0][1]));
+    const second = JSON.parse(await blobText(sendBeacon.mock.calls[1][1]));
     expect(first.sid).toBe(second.sid);
     expect(first.sid.length).toBeGreaterThan(0);
   });
@@ -401,7 +437,7 @@ describe("auto-init from <script> tag", () => {
     expect(sendBeacon).toHaveBeenCalledTimes(1);
     const [url, blob] = sendBeacon.mock.calls[0];
     expect(url).toBe("https://api.example.com/v1/collect");
-    const body = JSON.parse(await blob.text());
+    const body = JSON.parse(await blobText(blob));
     expect(body.d).toBe("example.com");
   });
 
@@ -412,7 +448,7 @@ describe("auto-init from <script> tag", () => {
     await loadFresh();
 
     expect(sendBeacon).toHaveBeenCalledTimes(1);
-    const body = JSON.parse(await sendBeacon.mock.calls[0][1].text());
+    const body = JSON.parse(await blobText(sendBeacon.mock.calls[0][1]));
     expect(body.d).toBe("example.com");
   });
 });
@@ -434,11 +470,12 @@ describe("analytics resilience", () => {
   it("uses a uuid fallback when crypto.randomUUID is unavailable", async () => {
     stubCrypto({});
     const sendBeacon = stubSendBeacon();
-    const { init } = await loadFresh();
+    const { init, track } = await loadFresh();
 
     init({ domain: "example.com", autoPageviews: false });
+    track("signup");
 
-    const body = JSON.parse(await sendBeacon.mock.calls[0][1].text());
+    const body = JSON.parse(await blobText(sendBeacon.mock.calls[0][1]));
     // The hex fallback is 32 chars (no dashes), unlike crypto.randomUUID.
     expect(body.sid).toMatch(/^[0-9a-f]{32}$/);
   });
