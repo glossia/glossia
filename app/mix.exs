@@ -97,6 +97,7 @@ defmodule Glossia.MixProject do
       {:flame_k8s_backend, "~> 0.6.0"},
       {:chromic_pdf, "~> 1.17"},
       {:mimic, "~> 1.10", only: :test},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:muontrap, "~> 2.0.0-rc.1", override: true},
       {:req_llm, "~> 1.17"},
       {:condukt, "~> 1.5"},
@@ -134,7 +135,10 @@ defmodule Glossia.MixProject do
         "ua_inspector.download --force",
         "test"
       ],
-      "assets.setup": ["esbuild.install --if-missing"],
+      "assets.setup": [
+        "esbuild.install --if-missing",
+        "cmd aube install --prefix assets"
+      ],
       "assets.build": ["compile", "esbuild glossia", "esbuild noora", "esbuild glossia_sdk_web"],
       "assets.deploy": [
         "esbuild noora --minify",
