@@ -15,6 +15,21 @@
 
 - Declare `alias`, `import`, and `require` only at module scope. Never place them inside function implementations.
 
+## Routes and links
+
+- Always use the `~p` sigil for paths and the `~pH` variant for HTTPS URLs. It gives us compile-time verification that the route exists, the right number of path segments, and the right types of dynamic segments. Examples:
+  - `navigate={~p"/#{@handle}/-/members"}`
+  - `href={~p"/projects/new"}`
+  - `<.link patch={~p"/#{@handle}/#{@project}/-/translations?#{params}"}>`
+  - `redirect(conn, external: ~pH"https://github.com/#{@org}/#{@repo}")`
+- Never build paths with string concatenation, `String.replace`, or `Phoenix.VerifiedRoutes.unverified_url/1`. The whole point of `~p` is to fail at compile time when a route is wrong.
+
+## Type annotations
+
+- Do not write `@type` or `@spec` module attributes. Types are conveyed through `@moduledoc`, function names, the function signatures themselves, and the tests. `@type` / `@spec` add maintenance overhead (they drift, they are not enforced at runtime, and Elixir's tooling is stronger for code-as-documentation) without buying us anything the editor cannot infer.
+- A custom Credo check (`Glossia.CredoChecks.NoTypeAnnotations`, ID `GL3001`) flags `@type` and `@spec` in `app/lib` and `app/test`. Run `mix credo` locally to see violations; do not introduce new ones.
+- Typespecs on public APIs of third-party dependencies (e.g. behaviours we implement) are out of scope for this rule.
+
 ## Documentation
 
 Documentation lives in `app/priv/docs/` and is served at `/docs` using NimblePublisher (same pattern as the blog). It follows the [Diataxis framework](https://diataxis.fr/) to organize content into four categories:
@@ -69,6 +84,14 @@ The docs section uses a sidebar + content layout inspired by Micelio's documenta
 ## Design system
 
 The UI across all surfaces (homepage, blog, docs, legal pages) must be visually consistent. We follow a token-based design system inspired by the [Theme UI / System UI specification](https://theme-ui.com/theme-spec) and [Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/). All styles live in `app/priv/static/assets/styles.css`.
+
+### Noora components only
+
+The `noora` dep (pinned in `mix.exs`) is the source of truth for UI components — `<.card>`, `<.card_section>`, `<.table>`, `<.tag>`, `<.widget>`, `<.dropdown>`, `<.button>`, `<.text_input>`, `<.badge>`, `<.tooltip>`, etc. Use them. Do not introduce bespoke CSS classes, custom `<div>` widgets, or hand-rolled markup when a Noora component does the same job.
+
+Reference: the Tuist server pages under `~/.codex/worktrees/*/server/lib/tuist_web/live/*_live.ex` and the matching `*.html.heex` files are the canonical examples of how to compose Noora components into full page layouts. Before introducing a new pattern, check there for the existing convention (card with `<:actions>` slot, widget grid inside a card section, dropdowns in the card header, etc.). The `use Noora` directive at the top of a LiveView module is what brings these components into scope.
+
+If a need is not covered by Noora, add a new component to `noora` upstream rather than maintaining a parallel one in `glossia_web`. The token system (`--noora-spacing-*`, `--noora-surface-*`, `--noora-chart-*`, etc.) is consumed automatically through Noora's CSS — there is no Glossia-specific design-system layer above it.
 
 ### Three-tier token architecture
 
