@@ -79,11 +79,13 @@ defmodule Glossia.Analytics.Verification do
   defp has_meta_tag?(html, token) do
     # `Req` and the browser-facing content-type detection are good enough
     # to narrow this down, but the meta tag itself is small and well-formed;
-    # a regex over the raw body is robust to script injection and attribute
-    # reordering.
-    regex = ~r{<meta[^>]+name=["']#{@meta_tag_name}["'][^>]+content=["']#{Regex.escape(token)}["']}i
+    # a regex over the raw body is robust to script injection. HTML puts no
+    # ordering on attributes, so accept `content` on either side of `name`.
+    name = ~s{name=["']#{@meta_tag_name}["']}
+    content = ~s{content=["']#{Regex.escape(token)}["']}
 
-    html =~ regex
+    html =~ ~r{<meta[^>]+#{name}[^>]+#{content}}i or
+      html =~ ~r{<meta[^>]+#{content}[^>]+#{name}}i
   end
 
   # `dig +short TXT <name>` prints one quoted record per line, e.g.:
