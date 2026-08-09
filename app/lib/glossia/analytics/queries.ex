@@ -10,7 +10,6 @@ defmodule Glossia.Analytics.Queries do
 
   import Ecto.Query
 
-  alias Glossia.Analytics.Event
   alias Glossia.IngestRepo
 
   @doc """
@@ -43,11 +42,14 @@ defmodule Glossia.Analytics.Queries do
     base
     |> IngestRepo.one()
     |> case do
-      nil -> empty_summary()
-      row -> Map.merge(row, %{
-        top_country: top_value(project_id, :country_code, since_dt, until_dt),
-        top_browser_language: top_value(project_id, :browser_language, since_dt, until_dt)
-      })
+      nil ->
+        empty_summary()
+
+      row ->
+        Map.merge(row, %{
+          top_country: top_value(project_id, :country_code, since_dt, until_dt),
+          top_browser_language: top_value(project_id, :browser_language, since_dt, until_dt)
+        })
     end
   end
 
