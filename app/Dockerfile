@@ -60,6 +60,10 @@ COPY priv priv
 
 COPY lib lib
 
+# Credo checks are development-only and depend on Credo, which is excluded
+# from production dependencies.
+RUN rm -rf lib/glossia/credo_checks
+
 COPY assets assets
 
 # Compile the project (needed before assets for colocated hooks)
