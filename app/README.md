@@ -34,8 +34,9 @@ After the server boots, visit `http://localhost:${GLOSSIA_SERVER_PORT}`. If that
 
 ## Production
 
-Production deploys are managed from the repository root through GitHub Actions
-in `.github/workflows/` and target the Hetzner Kubernetes cluster.
+Production infrastructure is maintained separately from this source
+repository. The application image is published to the GitHub Container Registry
+after the application checks pass on `main`.
 
 ## Learn more
 

@@ -1,20 +1,17 @@
-name: Release
+name: Release CLI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "cli/**"
       - "cliff.toml"
-      - "mise/**"
-      - "mise.toml"
       - ".github/release-notes.tmpl"
       - ".github/workflows/release.yml"
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to release (e.g. 0.16.0). Leave empty to auto-bump from conventional commits."
+        description: "Version to release, for example 0.16.0. Leave empty to calculate it from commits."
         type: string
 
 permissions:
@@ -35,8 +32,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up mise
-        uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v2
         with:
           cache: true
           install_args: git-cliff
@@ -51,9 +47,8 @@ jobs:
           if [ -n "${INPUT_VERSION:-}" ]; then
             version="${INPUT_VERSION#v}"
             version="${version#cli-v}"
-            tag_name="cli-v${version}"
             echo "should_release=true" >> "$GITHUB_OUTPUT"
-            echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
+            echo "tag_name=cli-v${version}" >> "$GITHUB_OUTPUT"
             echo "version=${version}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -70,53 +65,43 @@ jobs:
 
           if printf '%s' "${notes_section}" | grep -qE '^[[:space:]]*\* [^*]'; then
             tag_name="$(git cliff --config cliff.toml "${release_filter[@]}" --bumped-version)"
-            version="${tag_name#cli-v}"
             echo "should_release=true" >> "$GITHUB_OUTPUT"
             echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
-            echo "version=${version}" >> "$GITHUB_OUTPUT"
+            echo "version=${tag_name#cli-v}" >> "$GITHUB_OUTPUT"
           else
             echo "should_release=false" >> "$GITHUB_OUTPUT"
           fi
 
-  build-artifacts:
-    name: Build CLI artifact (${{ matrix.label }})
-    runs-on: ${{ matrix.runs_on }}
-    timeout-minutes: 30
-    environment: production
-    permissions:
-      contents: read
-      id-token: write
+  build:
+    name: Build CLI (${{ matrix.label }})
     needs: [prepare]
     if: needs.prepare.outputs.should_release == 'true'
-    env:
-      RELEASE_ENDPOINT: https://releases.glossia.ai
-      RELEASE_BUCKET: releases.glossia.ai
-      RELEASE_PREFIX: cli
-      RELEASE_REGION: eu-central-1
+    runs-on: ${{ matrix.runs_on }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         include:
           - label: linux-x64
             runs_on: ubuntu-latest
-            artifact_name: binary-linux-x64
             binary_name: glossia
+            archive_name: glossia-linux-x64.tar.gz
           - label: linux-arm64
             runs_on: ubuntu-24.04-arm
-            artifact_name: binary-linux-arm64
             binary_name: glossia
+            archive_name: glossia-linux-arm64.tar.gz
           - label: darwin-x64
             runs_on: macos-15-intel
-            artifact_name: binary-darwin-x64
             binary_name: glossia
+            archive_name: glossia-darwin-x64.tar.gz
           - label: darwin-arm64
             runs_on: macos-14
-            artifact_name: binary-darwin-arm64
             binary_name: glossia
+            archive_name: glossia-darwin-arm64.tar.gz
           - label: windows-x64
             runs_on: windows-latest
-            artifact_name: binary-windows-x64
             binary_name: glossia.exe
+            archive_name: glossia-windows-x64.zip
     defaults:
       run:
         working-directory: cli
@@ -126,118 +111,57 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: cli -> target
+
       - name: Build binary
         run: cargo build --release --bin glossia
-      - name: Stage artifact
-        shell: bash
-        run: |
-          mkdir -p "../dist/${{ matrix.artifact_name }}"
-          cp "target/release/${{ matrix.binary_name }}" "../dist/${{ matrix.artifact_name }}/${{ matrix.binary_name }}"
 
-      - name: Load release bucket credentials from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
-        with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /glossia-releases
-          domain: https://eu.infisical.com
-
-      - name: Upload staged binary to object storage
+      - name: Package archive
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p ../release
+          binary="target/release/${{ matrix.binary_name }}"
+          test -s "$binary"
 
-          test -n "${AWS_ACCESS_KEY_ID:-}"
-          test -n "${AWS_SECRET_ACCESS_KEY:-}"
+          if [[ "${{ matrix.archive_name }}" == *.zip ]]; then
+            zip -j "../release/${{ matrix.archive_name }}" "$binary"
+          else
+            tar -C "$(dirname "$binary")" -czf "../release/${{ matrix.archive_name }}" "${{ matrix.binary_name }}"
+          fi
 
-          artifact="../dist/${{ matrix.artifact_name }}/${{ matrix.binary_name }}"
-          key=".staging/${GITHUB_RUN_ID}/${{ matrix.artifact_name }}/${{ matrix.binary_name }}"
-          test -s "$artifact"
-
-          curl --fail --show-error --silent --retry 3 \
-            --header "Content-Type: binary/octet-stream" \
-            --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
-            --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
-            --request PUT \
-            --data-binary "@${artifact}" \
-            "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.label }}
+          path: release/${{ matrix.archive_name }}
+          if-no-files-found: error
 
   publish:
     name: Publish CLI release
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment: production
-    permissions:
-      contents: write
-      id-token: write
-    needs: [prepare, build-artifacts]
+    needs: [prepare, build]
     if: needs.prepare.outputs.should_release == 'true'
-    env:
-      RELEASE_TAG: ${{ needs.prepare.outputs.tag_name }}
-      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
-      RELEASE_ENDPOINT: https://releases.glossia.ai
-      RELEASE_BUCKET: releases.glossia.ai
-      RELEASE_PREFIX: cli
-      RELEASE_REGION: eu-central-1
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
 
-      - name: Set up mise
-        uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v2
         with:
           cache: true
           install_args: git-cliff
 
-      - name: Load release bucket credentials from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+      - uses: actions/download-artifact@v5
         with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /glossia-releases
-          domain: https://eu.infisical.com
+          pattern: cli-*
+          path: release
+          merge-multiple: true
 
-      - name: Validate release bucket credentials
-        shell: bash
+      - name: Generate release notes and checksums
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag_name }}
         run: |
           set -euo pipefail
-          test -n "${AWS_ACCESS_KEY_ID:-}"
-          test -n "${AWS_SECRET_ACCESS_KEY:-}"
-          echo "AWS_DEFAULT_REGION=${RELEASE_REGION}" >> "$GITHUB_ENV"
-
-      - name: Download staged binaries from object storage
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          download_file() {
-            local artifact_name="$1"
-            local binary_name="$2"
-            local destination="dist/artifacts/${artifact_name}/${binary_name}"
-            local key=".staging/${GITHUB_RUN_ID}/${artifact_name}/${binary_name}"
-
-            mkdir -p "$(dirname "$destination")"
-            curl --fail --show-error --silent --retry 3 \
-              --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
-              --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
-              "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}" \
-              --output "$destination"
-            test -s "$destination"
-          }
-
-          download_file binary-linux-x64 glossia
-          download_file binary-linux-arm64 glossia
-          download_file binary-darwin-x64 glossia
-          download_file binary-darwin-arm64 glossia
-          download_file binary-windows-x64 glossia.exe
-
-      - name: Generate release notes
-        run: |
           git cliff \
             --config cliff.toml \
             --include-path 'cli/**' \
@@ -248,190 +172,31 @@ jobs:
             --tag "${RELEASE_TAG}" \
             > release-notes.md
 
-      - name: Tag release
-        run: |
-          if ! git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1; then
-            git tag "${RELEASE_TAG}"
-          fi
-
-      - name: Build archives and checksums
-        shell: bash
-        run: |
-          mkdir -p release
-          cp release-notes.md release/RELEASE_NOTES.md
-
-          find dist/artifacts -type f -name glossia -exec chmod 755 {} +
-
-          tar -C dist/artifacts/binary-linux-x64 -czf release/glossia-linux-x64.tar.gz glossia
-          tar -C dist/artifacts/binary-linux-arm64 -czf release/glossia-linux-arm64.tar.gz glossia
-          tar -C dist/artifacts/binary-darwin-x64 -czf release/glossia-darwin-x64.tar.gz glossia
-          tar -C dist/artifacts/binary-darwin-arm64 -czf release/glossia-darwin-arm64.tar.gz glossia
           (
-            cd dist/artifacts/binary-windows-x64
-            zip -q "${GITHUB_WORKSPACE}/release/glossia-windows-x64.zip" glossia.exe
+            cd release
+            sha256sum *.tar.gz *.zip > SHA256SUMS
+            sha512sum *.tar.gz *.zip > SHA512SUMS
           )
 
-          cd release
-          sha256sum *.tar.gz *.zip > SHA256SUMS
-          sha512sum *.tar.gz *.zip > SHA512SUMS
-
-          {
-            printf '<!doctype html>\n'
-            printf '<html lang="en">\n'
-            printf '<head>\n'
-            printf '  <meta charset="utf-8">\n'
-            printf '  <meta name="viewport" content="width=device-width, initial-scale=1">\n'
-            printf '  <title>Glossia command line %s</title>\n' "${RELEASE_TAG}"
-            printf '</head>\n'
-            printf '<body>\n'
-            printf '  <h1>Glossia command line %s</h1>\n' "${RELEASE_TAG}"
-            printf '  <ul>\n'
-
-            for file in RELEASE_NOTES.md SHA256SUMS SHA512SUMS *.tar.gz *.zip; do
-              if [ -f "$file" ]; then
-                size="$(wc -c < "$file" | tr -d ' ')"
-                printf '    <li><a href="%s">%s</a> <span>%s bytes</span></li>\n' "$file" "$file" "$size"
-              fi
-            done
-
-            printf '  </ul>\n'
-            printf '</body>\n'
-            printf '</html>\n'
-          } > index.html
-
       - name: Push release tag
-        run: git push origin "${RELEASE_TAG}"
-
-      - name: Upload release artifacts to object storage
-        shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag_name }}
         run: |
           set -euo pipefail
-
-          upload_file() {
-            local artifact="$1"
-            local key="$2"
-            local content_type="${3:-binary/octet-stream}"
-
-            curl --fail --show-error --silent --retry 3 \
-              --header "Content-Type: ${content_type}" \
-              --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
-              --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
-              --request PUT \
-              --data-binary "@${artifact}" \
-              "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}"
-          }
-
-          upload_prefix() {
-            local prefix="$1"
-
-            for artifact in release/*; do
-              local name
-              local content_type
-              name="$(basename "$artifact")"
-              content_type="binary/octet-stream"
-
-              if [ "$name" = "index.html" ]; then
-                content_type="text/html; charset=utf-8"
-              fi
-
-              upload_file "$artifact" "${prefix}/${name}" "$content_type"
-            done
-
-            upload_file \
-              release/index.html \
-              "${prefix}/" \
-              "text/html; charset=utf-8"
-          }
-
-          upload_prefix "${RELEASE_VERSION}"
-          upload_prefix "latest"
-
-          if ! curl --fail --show-error --silent \
-            "${RELEASE_ENDPOINT}/${RELEASE_PREFIX}/versions.txt" \
-            --output release/versions.txt; then
-            : > release/versions.txt
+          if ! git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1; then
+            git tag "${RELEASE_TAG}"
+            git push origin "${RELEASE_TAG}"
           fi
 
-          printf '%s\n' "${RELEASE_VERSION}" >> release/versions.txt
-          grep -E '^[0-9]+[.][0-9]+[.][0-9]+$' release/versions.txt \
-            | sort -V -u \
-            > release/versions.txt.tmp
-          mv release/versions.txt.tmp release/versions.txt
-
-          upload_file \
-            release/versions.txt \
-            "versions.txt" \
-            "text/plain; charset=utf-8"
-
-          printf 'Published %s to %s/%s/%s/\n' "${RELEASE_TAG}" "${RELEASE_ENDPOINT}" "${RELEASE_PREFIX}" "${RELEASE_VERSION}"
-
-      - name: Publish GitHub release
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag_name }}
         run: |
           set -euo pipefail
-
-          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
-            gh release edit "${RELEASE_TAG}" \
-              --title "${RELEASE_TAG}" \
-              --notes-file release-notes.md \
-              --latest
-          else
-            gh release create "${RELEASE_TAG}" \
-              --verify-tag \
-              --title "${RELEASE_TAG}" \
-              --notes-file release-notes.md \
-              --latest
-          fi
-
-  cleanup-staging:
-    name: Clean release staging files
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: production
-    permissions:
-      contents: read
-      id-token: write
-    needs: [prepare, build-artifacts, publish]
-    if: ${{ always() && needs.prepare.outputs.should_release == 'true' }}
-    env:
-      RELEASE_ENDPOINT: https://releases.glossia.ai
-      RELEASE_BUCKET: releases.glossia.ai
-      RELEASE_PREFIX: cli
-      RELEASE_REGION: eu-central-1
-    steps:
-      - name: Load release bucket credentials from Infisical
-        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
-        with:
-          method: oidc
-          identity-id: 5e5341af-be58-4839-a665-5d6355930102
-          project-slug: glossia
-          env-slug: prod
-          secret-path: /glossia-releases
-          domain: https://eu.infisical.com
-
-      - name: Delete staged binaries
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          test -n "${AWS_ACCESS_KEY_ID:-}"
-          test -n "${AWS_SECRET_ACCESS_KEY:-}"
-
-          delete_file() {
-            local artifact_name="$1"
-            local binary_name="$2"
-            local key=".staging/${GITHUB_RUN_ID}/${artifact_name}/${binary_name}"
-
-            curl --fail --show-error --silent --retry 3 \
-              --aws-sigv4 "aws:amz:${RELEASE_REGION}:s3" \
-              --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
-              --request DELETE \
-              "${RELEASE_ENDPOINT}/${RELEASE_BUCKET}/${RELEASE_PREFIX}/${key}"
-          }
-
-          delete_file binary-linux-x64 glossia
-          delete_file binary-linux-arm64 glossia
-          delete_file binary-darwin-x64 glossia
-          delete_file binary-darwin-arm64 glossia
-          delete_file binary-windows-x64 glossia.exe
+          gh release create "${RELEASE_TAG}" \
+            --verify-tag \
+            --title "${RELEASE_TAG}" \
+            --notes-file release-notes.md \
+            --latest \
+            release/*
