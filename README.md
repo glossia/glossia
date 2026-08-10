@@ -26,9 +26,3 @@ mise exec -- glossia init
 
 The command-line interface only initializes the repository configuration.
 Translation runs on the Glossia server after the repository is connected.
-
-## Production operations
-
-Production infrastructure and deployment configuration are maintained in the
-private `glossia/ops` repository. The generic Helm chart in
-`deploy/helm/glossia` remains here for self-hosted installations.

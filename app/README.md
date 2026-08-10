@@ -34,9 +34,8 @@ After the server boots, visit `http://localhost:${GLOSSIA_SERVER_PORT}`. If that
 
 ## Production
 
-Production deployment configuration is maintained separately from this source
-repository. The chart under `../deploy/helm/glossia` is the supported starting
-point for self-hosted installations.
+Production deploys are managed from the repository root through GitHub Actions
+in `.github/workflows/` and target the Hetzner Kubernetes cluster.
 
 ## Learn more
 
