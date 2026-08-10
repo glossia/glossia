@@ -98,7 +98,7 @@ jobs:
           identity-id: 5e5341af-be58-4839-a665-5d6355930102
           project-slug: glossia
           env-slug: prod
-          secret-path: /npm
+          secret-path: /
           domain: https://eu.infisical.com
 
       - name: Set package version
