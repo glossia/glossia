@@ -31,6 +31,8 @@ FROM node:22-bookworm-slim AS node_runtime
 
 FROM ${BUILDER_IMAGE} AS builder
 
+COPY --from=node_runtime /usr/local/ /usr/local/
+
 # install build dependencies
 RUN apt-get update -y && apt-get install -y build-essential git \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
@@ -63,6 +65,9 @@ COPY lib lib
 # Credo checks are development-only and depend on Credo, which is excluded
 # from production dependencies.
 RUN rm -rf lib/glossia/credo_checks
+
+COPY assets/package.json assets/aube-lock.yaml assets/
+RUN npm install --prefix assets --ignore-scripts
 
 COPY assets assets
 
