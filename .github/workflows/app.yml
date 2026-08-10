@@ -23,7 +23,7 @@ jobs:
   build:
     if: github.event.pull_request.draft != true
     name: Build
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
       run:
@@ -43,7 +43,7 @@ jobs:
   test:
     if: github.event.pull_request.draft != true
     name: Test
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
       postgres:
@@ -105,7 +105,7 @@ jobs:
   lint:
     if: github.event.pull_request.draft != true
     name: Lint
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
       run:

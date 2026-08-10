@@ -26,3 +26,13 @@ mise exec -- glossia init
 
 The command-line interface only initializes the repository configuration.
 Translation runs on the Glossia server after the repository is connected.
+
+## License
+
+Glossia is licensed under the [Mozilla Public License 2.0](LICENSE).
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or pull
+request. Security vulnerabilities should be reported according to
+[SECURITY.md](SECURITY.md), not through a public issue.

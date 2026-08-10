@@ -21,7 +21,7 @@ jobs:
   format:
     if: github.event.pull_request.draft != true
     name: Format
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     defaults:
       run:
@@ -38,7 +38,7 @@ jobs:
   clippy:
     if: github.event.pull_request.draft != true
     name: Clippy
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
       run:
@@ -58,7 +58,7 @@ jobs:
   test:
     if: github.event.pull_request.draft != true
     name: Test
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
       run:
@@ -78,7 +78,7 @@ jobs:
   build:
     if: github.event.pull_request.draft != true
     name: Build
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
       run:

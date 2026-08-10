@@ -1,5 +1,6 @@
 /.glossia/tmp
 .env
+.infisical.json
 .pitchfork/
 access/
 preprocessed_configs/
