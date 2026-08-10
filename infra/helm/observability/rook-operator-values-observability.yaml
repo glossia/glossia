@@ -1,0 +1,20 @@
+# Rook operator values for the dedicated observability cluster.
+#
+# The cluster only has the tainted `stateful` node pool, so the operator
+# deployment and Ceph storage driver pods must tolerate that pool.
+
+nodeSelector:
+  node.cluster.x-k8s.io/pool: stateful
+
+tolerations: &statefulTolerations
+  - key: node.cluster.x-k8s.io/pool
+    operator: Equal
+    value: stateful
+    effect: NoSchedule
+
+csi:
+  enableRbdDriver: true
+  enableCephfsDriver: false
+  provisionerTolerations: *statefulTolerations
+  provisionerNodeAffinity: node.cluster.x-k8s.io/pool=stateful
+  pluginTolerations: *statefulTolerations

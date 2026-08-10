@@ -1,0 +1,41 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: platform
+  namespace: org-glossia
+spec:
+  maxHistory: 5
+  interval: 10m0s
+  releaseName: platform
+  targetNamespace: platform
+  storageNamespace: platform
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig
+  chart:
+    spec:
+      chart: ./infra/helm/platform
+      interval: 5m0s
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+      valuesFiles:
+        - infra/helm/platform/values.yaml
+        - infra/helm/platform/values-hetzner.yaml
+        - infra/helm/platform/values-object-storage-hetzner.yaml
+        - infra/helm/platform/values-remove-ceph.yaml
+  install:
+    createNamespace: true
+    crds: Create
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  timeout: 30m0s

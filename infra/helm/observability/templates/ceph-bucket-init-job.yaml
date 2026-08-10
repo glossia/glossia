@@ -1,0 +1,50 @@
+{{- if and .Values.cephObjectStore.enabled .Values.cephObjectStore.bucketInit.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-bucket-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.cephObjectStore.bucketInit.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.cephObjectStore.bucketInit.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "observability.labels" . | nindent 8 }}
+        app.kubernetes.io/component: bucket-init
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+        {{- toYaml .Values.nodePlacement.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.nodePlacement.tolerations | nindent 8 }}
+      containers:
+        - name: bucket-init
+          image: {{ .Values.cephObjectStore.bucketInit.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              endpoint="http://rook-ceph-rgw-{{ .Values.cephObjectStore.name }}.{{ .Release.Namespace }}.svc:{{ .Values.cephObjectStore.gateway.port }}"
+              {{- range $index, $user := .Values.cephObjectStore.users }}
+              mc alias set user{{ $index }} "$endpoint" "$USER_{{ $index }}_ACCESS_KEY" "$USER_{{ $index }}_SECRET_KEY"
+              mc mb --ignore-existing user{{ $index }}/{{ $user.bucket }}
+              {{- end }}
+          env:
+            {{- range $index, $user := .Values.cephObjectStore.users }}
+            - name: USER_{{ $index }}_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-object-user-{{ $.Values.cephObjectStore.name }}-{{ $user.name }}
+                  key: AccessKey
+            - name: USER_{{ $index }}_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-object-user-{{ $.Values.cephObjectStore.name }}-{{ $user.name }}
+                  key: SecretKey
+            {{- end }}
+{{- end }}

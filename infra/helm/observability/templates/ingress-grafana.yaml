@@ -1,0 +1,35 @@
+{{- if and .Values.ingress.enabled .Values.grafana.enabled }}
+# Grafana UI — served at .Values.ingress.grafana.host. Auth is handled
+# by Grafana itself (admin user/password from the grafana-admin Secret);
+# no nginx basic-auth needed.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.grafana.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Service shipped by the grafana subchart; the chart
+                # names it `<release>-grafana` in the same namespace.
+                name: {{ .Release.Name }}-grafana
+                port:
+                  number: 80
+  tls:
+    - secretName: grafana-tls
+      hosts:
+        - {{ .Values.ingress.grafana.host | quote }}
+{{- end }}
