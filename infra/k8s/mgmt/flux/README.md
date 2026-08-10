@@ -25,6 +25,12 @@ Keep `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_OWNER`, and
 asking Flux to reconcile, so accidental Secret deletion does not permanently
 stop repository reconciliation.
 
+The management cluster also runs [Reloader](https://github.com/stakater/Reloader).
+It watches the four Cluster API webhook certificate Secrets and rolls each
+provider Deployment when cert-manager renews one. This is necessary because the
+providers otherwise keep serving the certificate that was present when their
+Pod started.
+
 Do not add a root `kustomization.yaml` here unless it includes both the
 generated `flux-system/` directory and every sibling manifest. With no
 root Kustomize file, Flux applies the plain manifests under this path
