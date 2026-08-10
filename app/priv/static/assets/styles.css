@@ -515,17 +515,6 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
   margin: var(--space-1) 0;
 }
 
-.nav-cta {
-  background: var(--color-primary);
-  color: var(--color-text-on-accent);
-  font-weight: var(--weight-semibold);
-  padding: var(--space-1-5) var(--space-4);
-  border-radius: var(--radius-default);
-  text-decoration: none;
-  transition: background var(--transition);
-}
-.nav-cta:hover { background: var(--color-primary-hover); color: var(--color-text-on-accent); text-decoration: none; }
-
 /* ====================================================================
    10. FLASH BAR
    ==================================================================== */
@@ -648,6 +637,24 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 
 .nav-links a:hover {
   color: var(--color-text);
+  text-decoration: none;
+}
+
+.nav-links .nav-cta,
+.mobile-menu .nav-cta {
+  background: var(--color-primary);
+  color: var(--color-text-on-accent);
+  font-weight: var(--weight-semibold);
+  padding: var(--space-1-5) var(--space-4);
+  border-radius: var(--radius-default);
+  text-decoration: none;
+  transition: background var(--transition);
+}
+
+.nav-links .nav-cta:hover,
+.mobile-menu .nav-cta:hover {
+  background: var(--color-primary-hover);
+  color: var(--color-text-on-accent);
   text-decoration: none;
 }
 
@@ -1182,7 +1189,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 }
 .community-banner-text h2 { margin-bottom: var(--space-1); color: var(--color-text-on-accent); }
 .community-banner-text .lead { margin: 0; font-size: var(--text-md); color: var(--color-text-on-accent); opacity: 0.85; }
-.button.primary.community-discord-button {
+.button.primary.community-forum-button {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -1195,7 +1202,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
     0px 0px 0px 1px rgba(0, 0, 0, 0.06) inset,
     0px 0.5px 0px 1.5px rgba(255, 255, 255, 0.8) inset;
 }
-.button.primary.community-discord-button:hover {
+.button.primary.community-forum-button:hover {
   background: var(--color-text-on-accent);
   color: var(--color-primary-hover);
   box-shadow:
@@ -1203,7 +1210,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
     0px 0px 0px 1px rgba(0, 0, 0, 0.08) inset,
     0px 0.5px 0px 1.5px rgba(255, 255, 255, 0.9) inset;
 }
-.button.primary.community-discord-button:active {
+.button.primary.community-forum-button:active {
   box-shadow:
     -1px 0px 1px 0px rgba(0, 0, 0, 0.1) inset,
     1px 0px 1px 0px rgba(0, 0, 0, 0.1) inset,

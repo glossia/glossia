@@ -13,7 +13,7 @@ defmodule GlossiaWeb.PageController do
           posts: Blog.recent_posts(),
           page_description:
             gettext(
-              "Glossia captures your linguistic preferences in one place so linguists and teams can shape how your organization speaks across every language and surface."
+              "Glossia is the open-source language OS where linguists and teams shape how your organization speaks across every language and surface."
             )
         )
     end

@@ -5,7 +5,12 @@ defmodule GlossiaWeb.PageControllerTest do
 
   test "GET / renders the public homepage for guests", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "The language OS for your organization"
+    response = html_response(conn, 200)
+
+    assert response =~ "The open-source language OS for your organization"
+    assert response =~ "https://community.glossia.ai"
+    assert response =~ "Visit the forum"
+    refute response =~ "discord.gg"
   end
 
   test "GET / redirects authenticated users to their account", %{conn: conn} do
