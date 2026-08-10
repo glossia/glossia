@@ -7,7 +7,6 @@ on:
       - "cli/**"
       - "cliff.toml"
       - ".github/release-notes.tmpl"
-      - ".github/workflows/release.yml"
   workflow_dispatch:
     inputs:
       version:
