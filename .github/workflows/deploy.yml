@@ -40,6 +40,7 @@ jobs:
           file: app/Dockerfile
           build-contexts: |
             cli=./cli
+            sdk=./sdk
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}

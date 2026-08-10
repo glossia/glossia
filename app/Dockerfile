@@ -71,6 +71,8 @@ RUN npm install --prefix assets --ignore-scripts
 
 COPY assets assets
 
+COPY --from=sdk web /sdk/web
+
 # Compile the project (needed before assets for colocated hooks)
 RUN mix compile
 
