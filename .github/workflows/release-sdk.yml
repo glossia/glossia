@@ -19,7 +19,7 @@ permissions:
 jobs:
   prepare:
     name: Prepare SDK release
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     if: "!startsWith(github.event.head_commit.message, '[Release]')"
     outputs:
@@ -72,7 +72,7 @@ jobs:
 
   publish:
     name: Publish SDK release
-    runs-on: hetzner-docker
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [prepare]
     if: needs.prepare.outputs.should_release == 'true'
