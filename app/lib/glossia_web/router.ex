@@ -60,6 +60,11 @@ defmodule GlossiaWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :analytics do
+    plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.AnalyticsCors
+  end
+
   pipeline :upload_proxy do
     plug :fetch_session
     plug :put_secure_browser_headers
@@ -72,6 +77,13 @@ defmodule GlossiaWeb.Router do
   end
 
   get "/up", GlossiaWeb.HealthController, :index
+
+  scope "/api", GlossiaWeb do
+    pipe_through :analytics
+
+    post "/analytics/events", AnalyticsController, :collect
+    options "/analytics/events", AnalyticsController, :collect
+  end
 
   # Webhooks (no session, no CSRF)
   scope "/webhooks", GlossiaWeb do
@@ -286,9 +298,6 @@ defmodule GlossiaWeb.Router do
     patch "/:handle/models/:id", LLMModelApiController, :update
     delete "/:handle/models/:id", LLMModelApiController, :delete
 
-    post "/:handle/v1/chat/completions", LLMProxyController, :chat_completions
-    post "/:handle/v1/completions", LLMProxyController, :completions
-
     post "/:handle/translate", TranslationController, :create
   end
 
@@ -420,6 +429,7 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/models/new", DashboardLive, :llm_model_new
       live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
       live "/:handle/:project/-/settings", DashboardLive, :project_settings
+      live "/:handle/:project/-/analytics", DashboardLive, :project_analytics
     end
   end
 

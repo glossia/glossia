@@ -165,6 +165,13 @@ defmodule Glossia.Seeds do
     blog_project = Projects.get_project(dev.account, "blog")
     if blog_project, do: ensure_setup_events!(blog_project)
 
+    # Analytics domain for the "blog" project, used to dogfood the @glossia/web
+    # SDK on the dev site (see :web_analytics in config/dev.exs). We mark it
+    # verified so the analytics page lights up in development without having
+    # to run the DNS / meta-tag dance against a fake domain.
+    if blog_project, do: ensure_analytics_settings!(blog_project, domain: "localhost")
+    if blog_project, do: ensure_analytics_events!(blog_project)
+
     # Translation sessions for the "blog" project to exercise the activity timeline
     if blog_project, do: ensure_translation_sessions!(blog_project, dev)
 
@@ -805,6 +812,225 @@ defmodule Glossia.Seeds do
 
         :ok
     end
+  end
+
+  defp ensure_analytics_settings!(%Project{} = project, opts) do
+    domain = Keyword.fetch!(opts, :domain)
+
+    {:ok, _settings} =
+      Glossia.Analytics.Settings.upsert_for_project(project.id, %{
+        domain: domain,
+        enabled: true
+      })
+
+    # Mark the row verified so the dashboard's analytics view is live in
+    # development without forcing the operator to run a real DNS / meta-tag
+    # check against `localhost`. The verification module is still available
+    # for the real flow on non-localhost domains.
+    verified_at = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    settings =
+      Glossia.Analytics.ProjectSettings
+      |> Repo.get_by!(project_id: project.id)
+      |> Ecto.Changeset.change(%{verified_at: verified_at})
+      |> Repo.update!()
+
+    Glossia.Analytics.SettingsCache.delete(settings.domain)
+    :ok
+  end
+
+  defp ensure_analytics_events!(%Project{} = project) do
+    existing =
+      from(e in "analytics_events",
+        where: e.project_id == ^to_string(project.id),
+        select: count(e.id)
+      )
+      |> Glossia.IngestRepo.one!()
+
+    if existing > 0 do
+      :ok
+    else
+      seed_analytics_events!(project)
+    end
+  end
+
+  # Builds ~14 days of plausible traffic for the dev analytics dashboard.
+  # The numbers are hand-picked to exercise every section of the page:
+  #
+  #   * several distinct countries (so the priority map lights up)
+  #   * both served and unserved browser languages (so the gap list works)
+  #   * repeat visitors (so the uniqExact aggregate is not 1:1 with events)
+  #   * a handful of custom events (so `name != "pageview"` is exercised)
+  #   * a referrer (so the referrer breakdown shows something)
+  defp seed_analytics_events!(%Project{} = project) do
+    project_id_str = to_string(project.id)
+    target_languages = project.setup_target_languages || []
+    now = DateTime.utc_now()
+
+    # [country, browser_language, served_locale (or ""), has_gap, count, days_ago, hour_offset]
+    visitors = [
+      ["US", "en", "en", 0, 42, 0, 0],
+      ["US", "en", "en", 0, 28, 1, 2],
+      ["US", "en", "en", 0, 35, 2, 1],
+      ["US", "en", "en", 0, 19, 4, 0],
+      ["US", "en", "en", 0, 31, 7, 3],
+      ["US", "en", "en", 0, 26, 10, 2],
+      ["GB", "en", "en", 0, 18, 0, 1],
+      ["GB", "en", "en", 0, 12, 3, 0],
+      ["GB", "en", "en", 0, 9, 8, 2],
+      ["DE", "de", "", 1, 22, 0, 0],
+      ["DE", "de", "", 1, 17, 1, 2],
+      ["DE", "de", "", 1, 14, 5, 1],
+      ["DE", "de", "", 1, 11, 9, 0],
+      ["FR", "fr", "", 1, 19, 0, 3],
+      ["FR", "fr", "", 1, 15, 2, 1],
+      ["FR", "fr", "", 1, 12, 6, 0],
+      ["FR", "fr", "", 1, 8, 12, 2],
+      ["ES", "es", "", 1, 14, 1, 1],
+      ["ES", "es", "", 1, 10, 4, 0],
+      ["ES", "es", "", 1, 7, 8, 3],
+      ["BR", "pt-br", "", 1, 16, 0, 0],
+      ["BR", "pt-br", "", 1, 12, 2, 2],
+      ["BR", "pt-br", "", 1, 9, 5, 1],
+      ["BR", "pt-br", "", 1, 6, 11, 0],
+      ["JP", "ja", "", 1, 13, 0, 1],
+      ["JP", "ja", "", 1, 8, 3, 0],
+      ["JP", "ja", "", 1, 5, 9, 2],
+      ["CN", "zh", "", 1, 11, 1, 1],
+      ["CN", "zh", "", 1, 7, 6, 0],
+      ["KR", "ko", "", 1, 6, 2, 2],
+      ["KR", "ko", "", 1, 4, 8, 0],
+      ["MX", "es", "", 1, 9, 0, 0],
+      ["MX", "es", "", 1, 6, 4, 1],
+      ["MX", "es", "", 1, 4, 10, 0],
+      ["AR", "es", "", 1, 5, 3, 1],
+      ["AR", "es", "", 1, 3, 9, 0],
+      ["NL", "en", "en", 0, 7, 0, 1],
+      ["NL", "nl", "en", 1, 3, 5, 0],
+      ["SE", "en", "en", 0, 5, 1, 0],
+      ["SE", "sv", "en", 1, 2, 7, 1],
+      ["PL", "pl", "", 1, 4, 2, 0],
+      ["PL", "pl", "", 1, 3, 8, 1],
+      ["TR", "tr", "", 1, 4, 1, 0],
+      ["TR", "tr", "", 1, 2, 6, 1],
+      ["IN", "hi", "", 1, 5, 0, 0],
+      ["IN", "en", "en", 0, 3, 4, 1],
+      ["ID", "id", "", 1, 3, 3, 0],
+      ["VN", "vi", "", 1, 3, 5, 1],
+      ["TH", "th", "", 1, 2, 7, 0],
+      ["RU", "ru", "", 1, 4, 1, 1],
+      ["RU", "ru", "", 1, 2, 9, 0],
+      ["ZA", "en", "en", 0, 3, 2, 0],
+      ["NG", "en", "en", 0, 2, 6, 1],
+      ["AU", "en", "en", 0, 4, 0, 0],
+      ["NZ", "en", "en", 0, 2, 4, 1]
+    ]
+
+    paths = [
+      "/",
+      "/blog/getting-started-with-glossia",
+      "/blog/getting-started-with-glossia",
+      "/docs",
+      "/docs/quickstart",
+      "/pricing",
+      "/blog/advanced-localization",
+      "/",
+      "/blog"
+    ]
+
+    devices = ["desktop", "mobile", "tablet", "desktop", "desktop", "mobile"]
+    browsers = ["chrome", "safari", "firefox", "edge", "chrome", "chrome"]
+    oses = ["macos", "ios", "windows", "android", "linux", "macos"]
+
+    timezones = [
+      "America/New_York",
+      "Europe/London",
+      "Europe/Berlin",
+      "Asia/Tokyo",
+      "America/Sao_Paulo"
+    ]
+
+    referrers = [
+      {"https://google.com/search", "google.com"},
+      {"https://twitter.com/", "twitter.com"},
+      {"", ""},
+      {"", ""},
+      {"https://github.com/glossia", "github.com"}
+    ]
+
+    rows =
+      for [country, browser_lang, served_locale, has_gap, count, days_ago, hour_offset] <-
+            visitors,
+          _ <- 1..count do
+        ua = "Mozilla/5.0 (SeedBrowser/1.0) #{country}-#{days_ago}"
+        session_id = "seed-sess-#{country}-#{:rand.uniform(1000)}"
+        screen_width = Enum.random([1280, 1440, 1920, 390, 414, 768])
+        device = Enum.random(devices)
+        browser = Enum.random(browsers)
+        os = Enum.random(oses)
+        timezone = Enum.random(timezones)
+        {ref, ref_source} = Enum.random(referrers)
+        path = Enum.random(paths)
+        name = if :rand.uniform(20) == 1, do: "signup", else: "pageview"
+
+        # Scatter timestamps across the last 14 days.
+        seconds_ago =
+          days_ago * 86_400 +
+            hour_offset * 3_600 +
+            :rand.uniform(3_500)
+
+        inserted_at =
+          now
+          |> DateTime.add(-seconds_ago, :second)
+          |> DateTime.truncate(:second)
+
+        # Use a stable visitor id per country so repeats are not double-counted
+        # by `uniqExact`. A per-country seed gives us ~50 unique visitors,
+        # which is enough to make the number meaningful without being
+        # unrealistic for a dev dashboard.
+        visitor_id =
+          :erlang.phash2({project_id_str, country, browser_lang}) |> rem(0xFFFFFFFFFFFFFFFF)
+
+        %{
+          id: Uniq.UUID.uuid7(),
+          project_id: project_id_str,
+          visitor_id: visitor_id,
+          session_id: session_id,
+          name: name,
+          hostname: "localhost",
+          pathname: path,
+          referrer: ref,
+          referrer_source: ref_source,
+          country_code: country,
+          browser_language: browser_lang,
+          served_locale: served_locale,
+          has_locale_gap: has_gap,
+          device: device,
+          browser: browser,
+          os: os,
+          screen_width: screen_width,
+          timezone: timezone,
+          inserted_at: inserted_at
+        }
+      end
+
+    # `insert_all` with `returning: false` is the cheapest way to bulk-load
+    # ClickHouse from seeds. The `inserted_at` column is populated by the
+    # table default if omitted, but we set it explicitly so the hourly
+    # buckets line up with the last 14 days of activity.
+    opts = Glossia.Analytics.Event.buffer_opts()
+
+    # The ClickHouse adapter expects a type for every column in the row, so we
+    # add `inserted_at` (which the schema does not declare — it is populated
+    # by the table default) to the type list alongside the declared fields.
+    types_kw = Enum.zip(opts.fields, opts.types) ++ [inserted_at: :datetime]
+
+    IO.puts("  Seeding #{length(rows)} analytics events for project #{project.handle}")
+    {count, _} = Glossia.IngestRepo.insert_all("analytics_events", rows, types: types_kw)
+    IO.puts("  Inserted #{count} analytics events")
+
+    _ = target_languages
+    :ok
   end
 
   # ----------------------------------------------------------------------------

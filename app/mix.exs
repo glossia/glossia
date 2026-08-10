@@ -79,6 +79,7 @@ defmodule Glossia.MixProject do
       {:let_me, "~> 1.2"},
       {:boruta, "~> 2.3"},
       {:mdex, "~> 0.13"},
+      {:lumis, "~> 0.1"},
       {:uniq, "~> 0.6"},
       {:hammer, "~> 7.0"},
       {:hermes_mcp, "~> 0.9"},
@@ -96,6 +97,7 @@ defmodule Glossia.MixProject do
       {:flame_k8s_backend, "~> 0.6.0"},
       {:chromic_pdf, "~> 1.17"},
       {:mimic, "~> 1.10", only: :test},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:muontrap, "~> 2.0.0-rc.1", override: true},
       {:req_llm, "~> 1.17"},
       {:condukt, "~> 1.5"},
@@ -105,7 +107,8 @@ defmodule Glossia.MixProject do
       {:cloak_ecto, "~> 1.3"},
       {:cloak, "~> 1.1"},
       {:fun_with_flags, "~> 1.13", app: false, override: true},
-      {:fun_with_flags_ui, "~> 1.1", app: false}
+      {:fun_with_flags_ui, "~> 1.1", app: false},
+      {:ua_inspector, "~> 3.0"}
     ]
   end
 
@@ -117,15 +120,30 @@ defmodule Glossia.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: [
+        "deps.get",
+        "ua_inspector.download --force",
+        "ecto.setup",
+        "assets.setup",
+        "assets.build"
+      ],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["compile", "esbuild glossia", "esbuild noora"],
+      test: [
+        "ecto.create --quiet",
+        "ecto.migrate --quiet",
+        "ua_inspector.download --force",
+        "test"
+      ],
+      "assets.setup": [
+        "esbuild.install --if-missing",
+        "cmd aube install --prefix assets"
+      ],
+      "assets.build": ["compile", "esbuild glossia", "esbuild noora", "esbuild glossia_sdk_web"],
       "assets.deploy": [
         "esbuild noora --minify",
         "esbuild glossia --minify",
+        "esbuild glossia_sdk_web --minify",
         "phx.digest"
       ],
       precommit: [

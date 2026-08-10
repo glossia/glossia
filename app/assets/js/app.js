@@ -26,6 +26,8 @@ import {hooks as colocatedHooks} from "phoenix-colocated/glossia"
 import topbar from "../vendor/topbar"
 import Noora from "noora"
 import ModelPicker from "./model_picker"
+import LocalizationPriorityMap from "./analytics_map"
+import AnalyticsHourlyTraffic from "./analytics_traffic"
 
 function initSentry() {
   const dsn = document.querySelector("meta[name='sentry-dsn']")?.getAttribute("content")
@@ -45,7 +47,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, ...Noora.Hooks, ModelPicker},
+  hooks: {...colocatedHooks, ...Noora.Hooks, ModelPicker, LocalizationPriorityMap, AnalyticsHourlyTraffic},
 })
 
 // Show progress bar on live navigation and form submits

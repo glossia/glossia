@@ -1,0 +1,64 @@
+name: SDK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sdk/**"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/workflows/sdk.yml"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "sdk/**"
+      - "mise/**"
+      - "mise.toml"
+      - ".github/workflows/sdk.yml"
+
+jobs:
+  test:
+    if: github.event.pull_request.draft != true
+    name: Test
+    runs-on: hetzner-docker
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: sdk/web
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: aube install
+      - name: Run test suite
+        run: aube run test
+
+  build:
+    if: github.event.pull_request.draft != true
+    name: Build
+    runs-on: hetzner-docker
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: sdk/web
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+      - name: Install tools
+        run: mise install
+      - name: Install dependencies
+        run: aube install
+      - name: Build bundles
+        run: aube run build
+      - name: Verify build output
+        run: |
+          test -f dist/glossia-web.js
+          test -f dist/glossia-web.cjs
+          test -f dist/glossia-web.iife.js

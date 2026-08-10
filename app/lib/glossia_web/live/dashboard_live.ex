@@ -1,6 +1,10 @@
 defmodule GlossiaWeb.DashboardLive do
   use GlossiaWeb, :live_view
 
+  import Noora.Card
+  import Noora.DatePicker
+  import Noora.Tooltip
+
   require Logger
 
   import GlossiaWeb.DashboardComponents
@@ -54,6 +58,9 @@ defmodule GlossiaWeb.DashboardLive do
 
         :project_translations ->
           apply_url_params_translations(socket, params)
+
+        :project_analytics ->
+          socket
 
         :project_new ->
           apply_url_params_project_new(socket, params)
@@ -1046,6 +1053,9 @@ defmodule GlossiaWeb.DashboardLive do
         as: :project
       )
 
+    analytics_settings = Glossia.Analytics.Settings.get_for_project(project.id)
+    analytics_domain = (analytics_settings && analytics_settings.domain) || ""
+
     socket =
       cond do
         not connected?(socket) ->
@@ -1068,6 +1078,7 @@ defmodule GlossiaWeb.DashboardLive do
       project: project,
       project_settings_form: form,
       project_settings_changed?: false,
+      analytics_domain: analytics_domain,
       project_avatar_url: project_avatar_display_url(project.avatar_url),
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
@@ -1137,6 +1148,86 @@ defmodule GlossiaWeb.DashboardLive do
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
         {gettext("Translations"), nil}
+      ],
+      sidebar_context: :project,
+      sidebar_project: project
+    )
+  end
+
+  defp apply_action(socket, :project_analytics, %{"project" => project_handle} = params) do
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    project = Glossia.Projects.get_project(account, project_handle)
+
+    unless project do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
+    settings = Glossia.Analytics.Settings.get_for_project(project.id)
+    target_languages = project.setup_target_languages || []
+
+    %{preset: date_preset, period: {since, until} = date_period} =
+      analytics_date_picker_params(params)
+
+    query_opts = [since: since, until: until]
+
+    summary =
+      if settings && settings.verified_at do
+        Glossia.Analytics.Queries.summary(project.id, since, until)
+      else
+        nil
+      end
+
+    top_pages =
+      if settings && settings.verified_at do
+        Glossia.Analytics.Queries.top_pages(project.id, query_opts)
+      else
+        []
+      end
+
+    top_countries =
+      if settings && settings.verified_at do
+        Glossia.Analytics.Queries.top_countries(project.id, query_opts)
+      else
+        []
+      end
+
+    languages =
+      if settings && settings.verified_at do
+        Glossia.Analytics.Queries.browser_languages(project.id, target_languages, query_opts)
+      else
+        []
+      end
+
+    hourly_traffic =
+      if settings && settings.verified_at do
+        Glossia.Analytics.Queries.hourly_traffic(project.id, query_opts)
+      else
+        []
+      end
+
+    priority =
+      if settings && settings.verified_at do
+        Glossia.Analytics.Queries.localization_priority(project.id, target_languages, query_opts)
+      else
+        []
+      end
+
+    assign(socket,
+      page_title: gettext("Analytics"),
+      project: project,
+      analytics_settings: settings,
+      analytics_date_preset: date_preset,
+      analytics_date_period: date_period,
+      analytics_summary: summary,
+      analytics_top_pages: top_pages,
+      analytics_top_countries: top_countries,
+      analytics_languages: languages,
+      analytics_hourly_traffic: hourly_traffic,
+      analytics_priority: priority,
+      breadcrumb_items: [
+        {project.handle, "/" <> handle <> "/" <> project.handle},
+        {gettext("Analytics"), nil}
       ],
       sidebar_context: :project,
       sidebar_project: project
@@ -2772,6 +2863,57 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  def handle_event("update_analytics_settings", %{"analytics" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      project = socket.assigns.project
+      handle = socket.assigns.handle
+
+      case Glossia.Analytics.Settings.upsert_for_project(project.id, %{
+             domain: params["domain"] || ""
+           }) do
+        {:ok, settings} ->
+          {:noreply,
+           socket
+           |> assign(analytics_domain: settings.domain)
+           |> put_flash(:info, gettext("Web analytics settings updated."))
+           |> push_patch(to: "/#{handle}/#{project.handle}/-/settings")}
+
+        {:error, _changeset} ->
+          {:noreply,
+           put_flash(
+             socket,
+             :error,
+             gettext("Could not save web analytics. Enter a valid domain like example.com.")
+           )}
+      end
+    end
+  end
+
+  def handle_event(
+        "analytics_period_changed",
+        %{"value" => %{"start" => start_date, "end" => end_date}, "preset" => preset},
+        socket
+      ) do
+    query_params =
+      if preset == "custom" do
+        %{
+          "analytics-date-range" => "custom",
+          "analytics-start-date" => start_date,
+          "analytics-end-date" => end_date
+        }
+      else
+        %{"analytics-date-range" => preset}
+      end
+
+    {:noreply,
+     push_patch(socket,
+       to:
+         ~p"/#{socket.assigns.handle}/#{socket.assigns.project.handle}/-/analytics?#{query_params}"
+     )}
+  end
+
   def handle_event("cancel_project_avatar", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :project_avatar, ref)}
   end
@@ -3464,6 +3606,20 @@ defmodule GlossiaWeb.DashboardLive do
           project_settings_changed?={@project_settings_changed?}
           project_avatar_url={@project_avatar_url}
           uploads={assigns[:uploads]}
+        />
+      <% :project_analytics -> %>
+        <.project_analytics_page
+          handle={@handle}
+          project={@project}
+          settings={@analytics_settings}
+          date_preset={@analytics_date_preset}
+          date_period={@analytics_date_period}
+          summary={@analytics_summary}
+          top_pages={assigns[:analytics_top_pages] || []}
+          top_countries={assigns[:analytics_top_countries] || []}
+          languages={assigns[:analytics_languages] || []}
+          hourly_traffic={assigns[:analytics_hourly_traffic] || []}
+          priority={assigns[:analytics_priority] || []}
         />
       <% :project_translations -> %>
         <.project_translations_page
@@ -6353,8 +6509,81 @@ defmodule GlossiaWeb.DashboardLive do
           cancel_path={"/" <> @handle <> "/" <> @project.handle}
         />
       </.form>
+
+      <.form
+        for={%{}}
+        id="analytics-settings-form"
+        class="voice-form"
+        phx-submit="update_analytics_settings"
+      >
+        <div class="voice-section">
+          <div class="voice-section-info">
+            <h2>{gettext("Web analytics")}</h2>
+            <p>
+              {gettext(
+                "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
+              )}
+            </p>
+          </div>
+          <Noora.Card.card_section class="voice-card">
+            <div class="voice-card-fields">
+              <Noora.TextInput.text_input
+                id="analytics-domain"
+                name="analytics[domain]"
+                value={@analytics_domain}
+                label={gettext("Domain")}
+                placeholder="example.com"
+              />
+
+              <div class="voice-field">
+                <label>{gettext("Install snippet")}</label>
+                <div class="api-token-reveal-value">
+                  <code id="analytics-snippet">{analytics_snippet(@analytics_domain)}</code>
+                  <Noora.Button.button
+                    type="button"
+                    label={gettext("Copy")}
+                    variant="secondary"
+                    size="small"
+                    phx-hook=".CopySnippet"
+                    id="copy-analytics-snippet-btn"
+                    data-value={analytics_snippet(@analytics_domain)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Noora.Button.button
+                  type="submit"
+                  label={gettext("Save analytics settings")}
+                  variant="primary"
+                  size="medium"
+                />
+              </div>
+            </div>
+          </Noora.Card.card_section>
+        </div>
+        <script :type={Phoenix.LiveView.ColocatedHook} name=".CopySnippet">
+          export default {
+            mounted() {
+              this.el.addEventListener("click", () => {
+                var value = this.el.getAttribute("data-value");
+                var original = this.el.innerHTML;
+                navigator.clipboard.writeText(value).then(() => {
+                  this.el.textContent = "Copied!";
+                  setTimeout(() => { this.el.innerHTML = original; }, 1500);
+                });
+              });
+            }
+          }
+        </script>
+      </.form>
     </div>
     """
+  end
+
+  defp analytics_snippet(domain) do
+    domain = if domain in [nil, ""], do: "example.com", else: domain
+    ~s(<script defer data-domain="#{domain}" src="https://cdn.glossia.ai/web.js"></script>)
   end
 
   defp project_avatar_display_url(nil), do: nil
@@ -6843,9 +7072,9 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  attr :items, :list, required: true
-  attr :summary, :map, required: true
-  attr :failures, :list, required: true
+  attr(:items, :list, required: true)
+  attr(:summary, :map, required: true)
+  attr(:failures, :list, required: true)
 
   defp translation_progress_panel(assigns) do
     assigns =
@@ -10197,6 +10426,7 @@ defmodule GlossiaWeb.DashboardLive do
         :llm_models -> "/#{handle}/-/settings/models"
         :project -> "/#{handle}/#{project_handle}"
         :project_translations -> "/#{handle}/#{project_handle}/-/translations"
+        :project_analytics -> "/#{handle}/#{project_handle}/-/analytics"
         _ -> "/#{handle}"
       end
 
@@ -11623,5 +11853,428 @@ defmodule GlossiaWeb.DashboardLive do
       <% end %>
     </div>
     """
+  end
+
+  attr(:handle, :string, required: true)
+  attr(:project, :map, required: true)
+  attr(:settings, :any, default: nil)
+  attr(:date_preset, :string, required: true)
+  attr(:date_period, :any, required: true)
+  attr(:summary, :any, default: nil)
+  attr(:top_pages, :list, default: [])
+  attr(:top_countries, :list, default: [])
+  attr(:languages, :list, default: [])
+  attr(:hourly_traffic, :list, default: [])
+  attr(:priority, :list, default: [])
+
+  defp project_analytics_page(assigns) do
+    ~H"""
+    <div id="project-analytics-page" class="dash-page">
+      <.page_header title={gettext("Analytics")} />
+
+      <div :if={@settings && @settings.verified_at} data-part="content">
+        <.card
+          title={dgettext("dashboard_projects", "At a glance")}
+          icon="chart_arcs"
+          data-part="at-a-glance"
+        >
+          <:actions>
+            <.date_picker
+              id="analytics-date-range-picker"
+              name="analytics-date-range"
+              presets={analytics_date_presets()}
+              selected_preset={@date_preset}
+              period={@date_period}
+              on_period_change="analytics_period_changed"
+              max={Date.utc_today()}
+            >
+              <:actions>
+                <Noora.Button.button
+                  label={gettext("Cancel")}
+                  variant="secondary"
+                  phx-click={
+                    JS.dispatch("phx:date-picker-cancel",
+                      detail: %{id: "analytics-date-range-picker"}
+                    )
+                  }
+                />
+                <Noora.Button.button
+                  label={gettext("Apply")}
+                  phx-click={
+                    JS.dispatch("phx:date-picker-apply",
+                      detail: %{id: "analytics-date-range-picker"}
+                    )
+                  }
+                />
+              </:actions>
+            </.date_picker>
+          </:actions>
+          <div data-part="widgets">
+            <.card_section data-part="widget">
+              <div data-part="header">
+                <span data-part="legend" data-color="primary"></span>
+                <span data-part="title">{gettext("Pageviews")}</span>
+              </div>
+              <span data-part="value">{format_count((@summary && @summary.pageviews) || 0)}</span>
+            </.card_section>
+            <.card_section data-part="widget">
+              <div data-part="header">
+                <span data-part="legend" data-color="secondary"></span>
+                <span data-part="title">{gettext("Unique visitors")}</span>
+              </div>
+              <span data-part="value">
+                {format_count((@summary && @summary.unique_visitors) || 0)}
+              </span>
+            </.card_section>
+            <.card_section data-part="widget">
+              <div data-part="header">
+                <span data-part="legend" data-color="destructive"></span>
+                <span data-part="title">{gettext("Locale-gap visits")}</span>
+                <.tooltip
+                  id="locale-gap-visits-tooltip"
+                  title={gettext("Locale-gap visits")}
+                  description={gettext("Visitors whose language the project does not serve.")}
+                  size="large"
+                >
+                  <:trigger :let={attrs}>
+                    <span {attrs} data-part="tooltip-icon">
+                      <Noora.Icon.icon name="alert_circle" />
+                    </span>
+                  </:trigger>
+                </.tooltip>
+              </div>
+              <span data-part="value">
+                {format_count((@summary && @summary.locale_gap_visits) || 0)}
+              </span>
+            </.card_section>
+            <.card_section data-part="widget">
+              <div data-part="header">
+                <span data-part="legend" data-color="tertiary"></span>
+                <span data-part="title">{gettext("Top country")}</span>
+              </div>
+              <span data-part="value">
+                {analytics_country_name((@summary && @summary.top_country) || "")}
+              </span>
+            </.card_section>
+          </div>
+        </.card>
+
+        <.card
+          title={dgettext("dashboard_projects", "Where to translate next")}
+          icon="world"
+          data-part="localization-priority"
+        >
+          <:actions>
+            <.tooltip
+              id="localization-priority-tooltip"
+              title={gettext("How is this scored?")}
+              description={
+                gettext(
+                  "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
+                )
+              }
+              size="large"
+            >
+              <:trigger :let={attrs}>
+                <span {attrs} data-part="help-icon">
+                  <Noora.Icon.icon name="alert_circle" />
+                </span>
+              </:trigger>
+            </.tooltip>
+          </:actions>
+          <.card_section data-part="localization-priority-content">
+            <div data-part="map-wrapper">
+              <div
+                id="localization-priority-map"
+                phx-hook="LocalizationPriorityMap"
+              >
+                <div
+                  id="localization-priority-map-canvas"
+                  data-priority={Jason.encode!(Enum.map(@priority, &encode_priority/1))}
+                >
+                </div>
+                <div data-part="legend">
+                  <span data-part="legend-label">{gettext("Low priority")}</span>
+                  <span data-part="legend-bar"></span>
+                  <span data-part="legend-label">{gettext("High priority")}</span>
+                </div>
+              </div>
+            </div>
+            <Noora.Table.table
+              :if={@priority != []}
+              id="localization-priority-table"
+              rows={@priority}
+              row_key={fn row -> "priority-" <> row.country_code <> "-" <> row.browser_language end}
+            >
+              <:col :let={row} label={gettext("Country")}>
+                <Noora.Table.text_cell label={row.country_name} />
+              </:col>
+              <:col :let={row} label={gettext("Language")}>
+                <Noora.Table.text_cell label={row.browser_language} />
+              </:col>
+              <:col :let={row} label={gettext("Visitors")}>
+                <Noora.Table.text_cell label={to_string(row.visitors)} />
+              </:col>
+              <:col :let={row} label={gettext("EN tolerance")}>
+                <Noora.Table.text_cell label={format_percent(row.english_score)} />
+              </:col>
+              <:col :let={row} label={gettext("Priority")}>
+                <Noora.Table.text_cell label={format_count_truncated(row.priority_score)} />
+              </:col>
+            </Noora.Table.table>
+            <Noora.Table.table_empty_state
+              :if={@priority == []}
+              title={gettext("No locale-gap visits")}
+              subtitle={
+                gettext(
+                  "Once visitors land in a language the project does not serve, they will appear here."
+                )
+              }
+            />
+          </.card_section>
+        </.card>
+
+        <.card
+          title={dgettext("dashboard_projects", "Traffic by hour")}
+          icon="chart_bar_popular"
+          data-part="traffic-by-hour"
+        >
+          <.card_section>
+            <div id="analytics-hourly-traffic" phx-hook="AnalyticsHourlyTraffic">
+              <div
+                id="analytics-hourly-traffic-canvas"
+                data-series={Jason.encode!(@hourly_traffic)}
+              >
+              </div>
+            </div>
+          </.card_section>
+        </.card>
+
+        <div data-part="two-column">
+          <.card
+            title={dgettext("dashboard_projects", "Top pages")}
+            icon="file"
+            data-part="top-pages"
+          >
+            <.card_section>
+              <Noora.Table.table
+                :if={@top_pages != []}
+                id="top-pages-table"
+                rows={@top_pages}
+                row_key={fn row -> row.pathname end}
+              >
+                <:col :let={row} label={gettext("Path")}>
+                  <Noora.Table.text_cell label={row.pathname} />
+                </:col>
+                <:col :let={row} label={gettext("Pageviews")}>
+                  <Noora.Table.text_cell label={to_string(row.pageviews)} />
+                </:col>
+              </Noora.Table.table>
+              <Noora.Table.table_empty_state
+                :if={@top_pages == []}
+                title={gettext("No pageviews yet")}
+                subtitle={gettext("Once the snippet is live, pageviews will appear here.")}
+              />
+            </.card_section>
+          </.card>
+
+          <.card
+            title={dgettext("dashboard_projects", "Top countries")}
+            icon="world"
+            data-part="top-countries"
+          >
+            <.card_section>
+              <Noora.Table.table
+                :if={@top_countries != []}
+                id="top-countries-table"
+                rows={@top_countries}
+                row_key={fn row -> row.country_code end}
+              >
+                <:col :let={row} label={gettext("Country")}>
+                  <Noora.Table.text_cell label={analytics_country_name(row.country_code)} />
+                </:col>
+                <:col :let={row} label={gettext("Visits")}>
+                  <Noora.Table.text_cell label={to_string(row.visits)} />
+                </:col>
+              </Noora.Table.table>
+              <Noora.Table.table_empty_state
+                :if={@top_countries == []}
+                title={gettext("No country data yet")}
+                subtitle={gettext("Once the snippet is live, visitor countries will appear here.")}
+              />
+            </.card_section>
+          </.card>
+        </div>
+
+        <.card
+          title={dgettext("dashboard_projects", "Browser languages")}
+          icon="language"
+          data-part="browser-languages"
+        >
+          <.card_section>
+            <Noora.Table.table
+              :if={@languages != []}
+              id="browser-languages-table"
+              rows={@languages}
+              row_key={fn row -> row.browser_language end}
+            >
+              <:col :let={row} label={gettext("Language")}>
+                <Noora.Table.text_cell label={row.browser_language} />
+              </:col>
+              <:col :let={row} label={gettext("Served as")}>
+                <Noora.Table.text_cell label={
+                  if row.served_locale == "", do: "—", else: row.served_locale
+                } />
+              </:col>
+              <:col :let={row} label={gettext("Gap?")}>
+                <Noora.Table.status_badge_cell
+                  :if={row.has_locale_gap == 1}
+                  label={gettext("Gap")}
+                  status="warning"
+                />
+                <Noora.Table.status_badge_cell
+                  :if={row.has_locale_gap == 0}
+                  label={gettext("Served")}
+                  status="success"
+                />
+              </:col>
+              <:col :let={row} label={gettext("Visits")}>
+                <Noora.Table.text_cell label={to_string(row.visits)} />
+              </:col>
+            </Noora.Table.table>
+            <Noora.Table.table_empty_state
+              :if={@languages == []}
+              title={gettext("No language data yet")}
+              subtitle={gettext("Once the snippet is live, visitor languages will appear here.")}
+            />
+          </.card_section>
+        </.card>
+      </div>
+
+      <.card
+        :if={!(@settings && @settings.verified_at)}
+        title={
+          if @settings,
+            do: gettext("Verify web analytics"),
+            else: gettext("Set up web analytics")
+        }
+        icon="chart_arcs"
+      >
+        <.card_section>
+          <p>
+            {if @settings,
+              do:
+                gettext(
+                  "Install the snippet on %{domain}, then return here once the domain has been verified.",
+                  domain: @settings.domain
+                ),
+              else:
+                gettext(
+                  "Choose a domain and install the Glossia snippet to start collecting analytics."
+                )}
+          </p>
+          <Noora.Button.button
+            label={gettext("Open analytics settings")}
+            navigate={~p"/#{@handle}/#{@project.handle}/-/settings"}
+            size="medium"
+          />
+        </.card_section>
+      </.card>
+    </div>
+    """
+  end
+
+  defp encode_priority(row) do
+    %{
+      country_code: row.country_code,
+      country_name: row.country_name,
+      browser_language: row.browser_language,
+      visitors: row.visitors,
+      english_score: row.english_score,
+      priority_score: row.priority_score,
+      centroid: row.centroid
+    }
+  end
+
+  defp format_count(n) when is_integer(n), do: n |> Integer.to_string() |> format_with_thousands()
+
+  defp format_count(n) when is_float(n),
+    do: n |> Float.round() |> trunc() |> Integer.to_string() |> format_with_thousands()
+
+  defp format_count(_), do: "0"
+
+  defp format_count_truncated(n) when is_number(n) do
+    n
+    |> Kernel.round()
+    |> Integer.to_string()
+    |> format_with_thousands()
+  end
+
+  defp format_count_truncated(_), do: "0"
+
+  defp format_with_thousands(int_str) do
+    int_str
+    |> String.reverse()
+    |> String.codepoints()
+    |> Enum.chunk_every(3)
+    |> Enum.join(",")
+    |> String.reverse()
+  end
+
+  defp format_percent(score) when is_float(score) do
+    "#{Float.round(score * 100)}%"
+  end
+
+  defp format_percent(_), do: "—"
+
+  defp analytics_country_name(""), do: "—"
+  defp analytics_country_name(code), do: Glossia.Analytics.EnglishProficiency.name(code)
+
+  defp analytics_date_presets do
+    [
+      %{id: "last-24-hours", label: gettext("Last 24 hours"), period: {24, :hour}},
+      %{id: "last-7-days", label: gettext("Last 7 days"), period: {7, :day}},
+      %{id: "last-30-days", label: gettext("Last 30 days"), period: {30, :day}},
+      %{id: "last-12-months", label: gettext("Last 12 months"), period: {12, :month}},
+      %{id: "custom", label: gettext("Custom")}
+    ]
+  end
+
+  defp analytics_date_picker_params(params) do
+    preset = params["analytics-date-range"] || "last-30-days"
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    period =
+      case preset do
+        "last-24-hours" ->
+          {DateTime.add(now, -24, :hour), now}
+
+        "last-7-days" ->
+          {DateTime.add(now, -7, :day), now}
+
+        "last-12-months" ->
+          {DateTime.add(now, -365, :day), now}
+
+        "custom" ->
+          {
+            parse_analytics_datetime(params["analytics-start-date"]) ||
+              DateTime.add(now, -30, :day),
+            parse_analytics_datetime(params["analytics-end-date"]) || now
+          }
+
+        _ ->
+          {DateTime.add(now, -30, :day), now}
+      end
+
+    %{preset: preset, period: period}
+  end
+
+  defp parse_analytics_datetime(nil), do: nil
+
+  defp parse_analytics_datetime(value) when is_binary(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, datetime, _offset} -> DateTime.truncate(datetime, :second)
+      {:error, _reason} -> nil
+    end
   end
 end

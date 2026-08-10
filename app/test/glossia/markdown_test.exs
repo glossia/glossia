@@ -14,7 +14,9 @@ defmodule Glossia.MarkdownTest do
 
     assert {:ok, html} = Glossia.Markdown.to_html(markdown)
     assert html =~ "<table>"
-    assert html =~ ~s(<code class="language-elixir">)
+    # Lumis highlighting adds attributes (and a wrapping `<pre class="lumis">`)
+    # around the code element, so assert on the language class itself.
+    assert html =~ ~s(<code class="language-elixir")
   end
 
   test "sanitizes unsafe html by default" do

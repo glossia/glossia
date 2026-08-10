@@ -36,8 +36,23 @@ defmodule Glossia.DataCase do
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Glossia.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    shared? = not tags[:async]
+
+    repo_pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Glossia.Repo, shared: shared?)
+
+    clickhouse_pid =
+      try do
+        Ecto.Adapters.SQL.Sandbox.start_owner!(Glossia.IngestRepo, shared: shared?)
+      catch
+        kind, reason ->
+          Ecto.Adapters.SQL.Sandbox.stop_owner(repo_pid)
+          :erlang.raise(kind, reason, __STACKTRACE__)
+      end
+
+    on_exit(fn ->
+      Ecto.Adapters.SQL.Sandbox.stop_owner(clickhouse_pid)
+      Ecto.Adapters.SQL.Sandbox.stop_owner(repo_pid)
+    end)
   end
 
   @doc """

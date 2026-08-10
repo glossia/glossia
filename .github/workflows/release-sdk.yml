@@ -1,0 +1,133 @@
+name: Release SDK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "sdk/**"
+      - ".github/workflows/release-sdk.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 0.2.0). Leave empty to auto-bump from conventional commits."
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    name: Prepare SDK release
+    runs-on: hetzner-docker
+    timeout-minutes: 10
+    if: "!startsWith(github.event.head_commit.message, '[Release]')"
+    outputs:
+      should_release: ${{ steps.detect.outputs.should_release }}
+      tag_name: ${{ steps.detect.outputs.tag_name }}
+      version: ${{ steps.detect.outputs.version }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+        with:
+          cache: true
+          install_args: git-cliff
+
+      - name: Detect releasable SDK changes
+        id: detect
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${INPUT_VERSION:-}" ]; then
+            version="${INPUT_VERSION#v}"
+            version="${version#sdk-v}"
+            tag_name="sdk-v${version}"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
+            echo "version=${version}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          release_filter=(
+            --config sdk/web/cliff.toml
+            --include-path 'sdk/**'
+            --exclude-path 'sdk/web/node_modules/**'
+          )
+
+          if git cliff "${release_filter[@]}" --unreleased | grep -qE '^[[:space:]]*\* [^*]'; then
+            tag_name="$(git cliff "${release_filter[@]}" --bumped-version)"
+            version="${tag_name#sdk-v}"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
+            echo "version=${version}" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    name: Publish SDK release
+    runs-on: hetzner-docker
+    timeout-minutes: 15
+    needs: [prepare]
+    if: needs.prepare.outputs.should_release == 'true'
+    env:
+      RELEASE_TAG: ${{ needs.prepare.outputs.tag_name }}
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+        with:
+          cache: true
+
+      - name: Set package version
+        working-directory: sdk/web
+        run: aube version "${RELEASE_VERSION#v}" --no-git-tag-version --allow-same-version
+
+      - name: Install dependencies
+        working-directory: sdk/web
+        run: aube install
+
+      - name: Build
+        working-directory: sdk/web
+        run: aube run build
+
+      - name: Publish to npm
+        working-directory: sdk/web
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          test -n "${NODE_AUTH_TOKEN:-}"
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > "${HOME}/.npmrc"
+          aube publish --access public
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          notes="$(git cliff \
+            --config sdk/web/cliff.toml \
+            --include-path 'sdk/**' \
+            --exclude-path 'sdk/web/node_modules/**' \
+            --latest --strip header)"
+          {
+            echo "notes<<EOF"
+            echo "${notes}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@c062e08bd532815e2082a6311e27b3e8070e6fe0 # v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ env.RELEASE_TAG }}
+          body: ${{ steps.notes.outputs.notes }}
+          generate_release_notes: false

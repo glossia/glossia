@@ -118,6 +118,13 @@
             selected={@live_action in [:project_translations, :project_session]}
           />
           <.sidebar_item
+            :if={Glossia.Analytics.Config.enabled?()}
+            label={gettext("Analytics")}
+            icon="chart_column"
+            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/analytics"}
+            selected={@live_action == :project_analytics}
+          />
+          <.sidebar_item
             :if={assigns[:is_admin]}
             label={gettext("Settings")}
             icon="settings"
