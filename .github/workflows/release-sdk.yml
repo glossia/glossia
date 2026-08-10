@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "sdk/**"
-      - ".github/workflows/release-sdk.yml"
   workflow_dispatch:
     inputs:
       version:
@@ -113,7 +112,21 @@ jobs:
         working-directory: sdk/web
         run: aube run build
 
+      - name: Check whether the package version is already published
+        id: npm
+        working-directory: sdk/web
+        run: |
+          set -euo pipefail
+          package_name="$(node -p 'require("./package.json").name')"
+
+          if npm view "${package_name}@${RELEASE_VERSION}" version --silent >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npm
+        if: steps.npm.outputs.already_published != 'true'
         working-directory: sdk/web
         run: |
           test -n "${NPM_TOKEN:-}"
@@ -127,7 +140,9 @@ jobs:
             --config sdk/web/cliff.toml \
             --include-path 'sdk/**' \
             --exclude-path 'sdk/web/node_modules/**' \
-            --latest --strip header)"
+            --unreleased \
+            --tag "${RELEASE_TAG}" \
+            --strip header)"
           {
             echo "notes<<EOF"
             echo "${notes}"
