@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   prepare:
@@ -76,6 +77,7 @@ jobs:
     timeout-minutes: 15
     needs: [prepare]
     if: needs.prepare.outputs.should_release == 'true'
+    environment: production
     env:
       RELEASE_TAG: ${{ needs.prepare.outputs.tag_name }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
@@ -88,6 +90,16 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           cache: true
+
+      - name: Load npm publishing token from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /npm
+          domain: https://eu.infisical.com
 
       - name: Set package version
         working-directory: sdk/web
@@ -103,11 +115,9 @@ jobs:
 
       - name: Publish to npm
         working-directory: sdk/web
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          test -n "${NODE_AUTH_TOKEN:-}"
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > "${HOME}/.npmrc"
+          test -n "${NPM_TOKEN:-}"
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "${HOME}/.npmrc"
           aube publish --access public
 
       - name: Generate release notes
