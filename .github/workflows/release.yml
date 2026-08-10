@@ -114,19 +114,26 @@ jobs:
       - name: Build binary
         run: cargo build --release --bin glossia
 
-      - name: Package archive
+      - name: Package archive (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p ../release
           binary="target/release/${{ matrix.binary_name }}"
           test -s "$binary"
+          tar -C "$(dirname "$binary")" -czf "../release/${{ matrix.archive_name }}" "${{ matrix.binary_name }}"
 
-          if [[ "${{ matrix.archive_name }}" == *.zip ]]; then
-            zip -j "../release/${{ matrix.archive_name }}" "$binary"
-          else
-            tar -C "$(dirname "$binary")" -czf "../release/${{ matrix.archive_name }}" "${{ matrix.binary_name }}"
-          fi
+      - name: Package archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ../release
+          $binary = "target/release/${{ matrix.binary_name }}"
+          if ((Get-Item $binary).Length -eq 0) {
+            throw "The release binary is empty."
+          }
+          Compress-Archive -Path $binary -DestinationPath "../release/${{ matrix.archive_name }}" -Force
 
       - uses: actions/upload-artifact@v4
         with:
