@@ -169,6 +169,15 @@ defmodule Glossia.Translations.ValidateTest do
       assert message =~ "preserve every source msgid exactly once"
     end
 
+    test "allows a generated header when the source template has none" do
+      source = ~s(msgid "Hello"\nmsgstr ""\n)
+
+      translated =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello"\nmsgstr "Hola"\n)
+
+      assert :ok = Validate.validate_syntax("po", translated, source)
+    end
+
     test "requires interpolation tokens in translated strings" do
       source =
         ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello %{client_name}"\nmsgstr ""\n)

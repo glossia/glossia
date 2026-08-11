@@ -32,8 +32,8 @@ defmodule Glossia.Translations.Validate.Po do
     if String.trim(source) == "" do
       :ok
     else
-      source_set = Enum.frequencies_by(source_entries, &{&1.msgid, &1.msgid_plural})
-      translated_set = Enum.frequencies_by(entries, &{&1.msgid, &1.msgid_plural})
+      source_set = message_frequencies(source_entries)
+      translated_set = message_frequencies(entries)
 
       if source_set == translated_set do
         :ok
@@ -41,6 +41,12 @@ defmodule Glossia.Translations.Validate.Po do
         {:error, "po entries must preserve every source msgid exactly once"}
       end
     end
+  end
+
+  defp message_frequencies(entries) do
+    entries
+    |> Enum.reject(&(&1.msgid == ""))
+    |> Enum.frequencies_by(&{&1.msgid, &1.msgid_plural})
   end
 
   defp validate_structure(content) do
