@@ -251,6 +251,11 @@ mailRelay:
         podSelector:
           app.kubernetes.io/name: glitchtip
           app.kubernetes.io/instance: observability
+      - namespace: community
+        podSelector:
+          app.kubernetes.io/name: discourse
+          app.kubernetes.io/instance: community
+          app.kubernetes.io/component: web
   ciliumEgressPolicy:
     enabled: false
     dns:

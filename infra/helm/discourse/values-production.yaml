@@ -1,0 +1,43 @@
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+
+persistence:
+  storageClass: hcloud-volumes
+
+postgres:
+  storage:
+    storageClass: hcloud-volumes
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+redis:
+  persistence:
+    storageClass: hcloud-volumes
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+backups:
+  enabled: true
+  s3:
+    bucket: glossia-production-db-backups
+    prefix: community-production
+    endpointURL: https://bb7ccb20a20a58b2d5242d0277c750fe.eu.r2.cloudflarestorage.com
+    region: auto
+
+nodeSelector:
+  node.cluster.x-k8s.io/pool: app

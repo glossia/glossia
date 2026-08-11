@@ -1,0 +1,125 @@
+fullnameOverride: community
+
+host: community.glossia.ai
+developerEmails: ops@glossia.ai
+notificationEmail: community@glossia.ai
+
+image:
+  repository: docker.io/discourse/discourse
+  tag: "2026.1.5"
+  digest: sha256:00b6220e841a72d99e551a69a2dfd5dcce077aa5ca8c75b86bb1cbae248683d6
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+revisionHistoryLimit: 3
+terminationGracePeriodSeconds: 120
+
+web:
+  workers: 2
+  sidekiqWorkers: 1
+  resources:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+    limits:
+      cpu: "3"
+      memory: 3Gi
+
+service:
+  port: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  tlsSecretName: community-glossia-ai-tls
+
+persistence:
+  storageClass: ""
+  size: 50Gi
+  accessModes:
+    - ReadWriteOnce
+
+postgres:
+  clusterName: community-postgres
+  database: discourse
+  user: discourse
+  appSecretName: community-secrets
+  imageName: ghcr.io/cloudnative-pg/postgresql:15.18-202608031127-standard-trixie@sha256:5da9a3fcee9a13a36260c5424c068c3c3533f7e734e586718311234e6a9ab6b6
+  instances: 1
+  storage:
+    storageClass: ""
+    size: 50Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  enablePodAntiAffinity: false
+  topologyKey: kubernetes.io/hostname
+  nodeSelector: {}
+  tolerations: []
+
+redis:
+  image:
+    repository: docker.io/library/redis
+    tag: 7.2.15-alpine
+    digest: sha256:05a97a479bc73de66f087dc05b569010772880f778cc8671fa6b8aadee32e5c6
+    pullPolicy: IfNotPresent
+  passwordSecretName: community-secrets
+  passwordSecretKey: redis-password
+  persistence:
+    storageClass: ""
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  nodeSelector: {}
+  tolerations: []
+  networkPolicy:
+    enabled: true
+
+mailRelay:
+  host: mail-relay.platform.svc.cluster.local
+  port: 587
+  startTls: false
+  authentication: plain
+  usernameSecretKey: smtp-username
+  passwordSecretKey: smtp-password
+
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  itemKey: /kubernetes
+  databasePasswordField: DISCOURSE_DB_PASSWORD
+  redisPasswordField: DISCOURSE_REDIS_PASSWORD
+  mailRelayUsernameField: MAIL_RELAY_USERNAME
+  mailRelayPasswordField: MAIL_RELAY_PASSWORD
+
+backups:
+  enabled: false
+  secretName: community-database-backup
+  s3:
+    bucket: ""
+    prefix: community-production
+    endpointURL: ""
+    region: ""
+  postgres:
+    schedule: "0 0 4 * * *"
+    retentionPolicy: 30d
+  externalSecret:
+    itemKey: /glossia-db-backups-keys
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+
+nodeSelector: {}
+tolerations: []

@@ -46,8 +46,10 @@ is closed.
   configure the cluster [Simple Mail Transfer Protocol](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol)
   relay. It must also include `MAIL_RELAY_USERNAME` and
   `MAIL_RELAY_PASSWORD`, which are separate client credentials for services
-  submitting to the relay. Keep the provider host and port aligned with the
-  Cilium
+  submitting to the relay. The Discourse forum additionally requires
+  `DISCOURSE_DB_PASSWORD` and `DISCOURSE_REDIS_PASSWORD`; generate independent,
+  random values for them in the same folder. Keep the provider host and port
+  aligned with the Cilium
   [fully qualified domain name policy](https://docs.cilium.io/en/stable/security/dns/)
   in `infra/helm/platform/values-hetzner.yaml`; relay egress is denied
   everywhere else.
@@ -723,6 +725,23 @@ workflow deploys the Glossia app chart. Smoke test with:
 ```bash
 curl -v https://glossia.ai/ready
 ```
+
+The workload application reconciliation also installs the Discourse forum in
+the `community` namespace. Its first reconciliation waits for the two forum
+passwords listed in the prerequisites and reuses the cluster mail relay client
+credentials. Verify the release, database backup, and public endpoint with:
+
+```bash
+kubectl -n community rollout status deployment/community --timeout=30m
+kubectl -n community wait --for=condition=Ready cluster/community-postgres --timeout=15m
+kubectl -n community get externalsecret,scheduledbackup,ingress
+curl -fsS https://community.glossia.ai/srv/status
+```
+
+The address in `developerEmails` within
+`infra/helm/discourse/values.yaml` becomes an administrator after it signs up.
+Change that value before the first public registration if another mailbox
+should own the forum.
 
 ### B.7 Database backup storage
 
