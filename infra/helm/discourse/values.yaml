@@ -47,6 +47,8 @@ postgres:
   appSecretName: community-secrets
   imageName: ghcr.io/cloudnative-pg/postgresql:15.18-202608031127-standard-trixie@sha256:5da9a3fcee9a13a36260c5424c068c3c3533f7e734e586718311234e6a9ab6b6
   instances: 1
+  extensions:
+    - name: vector
   storage:
     storageClass: ""
     size: 50Gi

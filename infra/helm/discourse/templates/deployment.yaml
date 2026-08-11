@@ -27,6 +27,58 @@ spec:
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
       initContainers:
+        {{- if .Values.postgres.extensions }}
+        - name: wait-for-postgres-extensions
+          image: {{ include "discourse.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/bash
+            - -euo
+            - pipefail
+            - -c
+          args:
+            - |-
+              required_extensions=(
+                {{- range .Values.postgres.extensions }}
+                {{ .name | quote }}
+                {{- end }}
+              )
+
+              for extension in "${required_extensions[@]}"; do
+                until psql --tuples-only --no-align --set=ON_ERROR_STOP=1 \
+                  --command "SELECT 1 FROM pg_extension WHERE extname = '${extension}';" \
+                  | grep -qx 1; do
+                  echo "Waiting for PostgreSQL extension ${extension}"
+                  sleep 5
+                done
+              done
+          env:
+            - name: PGHOST
+              value: {{ printf "%s-rw.%s.svc.cluster.local" .Values.postgres.clusterName .Release.Namespace | quote }}
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: {{ .Values.postgres.database | quote }}
+            - name: PGUSER
+              value: {{ .Values.postgres.user | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.appSecretName }}
+                  key: password
+            - name: PGCONNECT_TIMEOUT
+              value: "5"
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+        {{- end }}
         - name: configure-proxy-headers
           image: {{ include "discourse.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}

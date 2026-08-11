@@ -1,0 +1,17 @@
+{{- if .Values.postgres.extensions }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ include "discourse.name" . }}-database
+  labels:
+    {{- include "discourse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  name: {{ .Values.postgres.database | quote }}
+  owner: {{ .Values.postgres.user | quote }}
+  cluster:
+    name: {{ .Values.postgres.clusterName }}
+  databaseReclaimPolicy: retain
+  extensions:
+    {{- toYaml .Values.postgres.extensions | nindent 4 }}
+{{- end }}

@@ -199,6 +199,13 @@ jobs:
           abort "Community retention policy is not set at spec.retentionPolicy" unless spec["retentionPolicy"] == "30d"
           abort "Community retention policy is incorrectly nested under spec.configuration" if spec.fetch("configuration").key?("retentionPolicy")
 
+          database = documents.find do |document|
+            document["apiVersion"] == "postgresql.cnpg.io/v1" && document["kind"] == "Database"
+          end
+          abort "Community Database is missing" unless database
+          abort "Community Database does not retain its data when the resource is removed" unless database.dig("spec", "databaseReclaimPolicy") == "retain"
+          abort "Community Database does not manage the vector extension" unless database.dig("spec", "extensions").any? { |extension| extension["name"] == "vector" }
+
           deployment = documents.find do |document|
             document["kind"] == "Deployment" && document.dig("metadata", "name") == "community"
           end
@@ -209,6 +216,15 @@ jobs:
             container["name"] == "configure-proxy-headers"
           end
           abort "Community proxy-header initialization is missing" unless proxy_init
+
+          extension_init = deployment.dig("spec", "template", "spec", "initContainers").find do |container|
+            container["name"] == "wait-for-postgres-extensions"
+          end
+          abort "Community extension initialization is missing" unless extension_init
+
+          extension_script = extension_init.fetch("args").join("\n")
+          abort "Community extension initialization does not wait for vector" unless extension_script.include?("vector")
+          abort "Community extension initialization does not inspect installed extensions" unless extension_script.include?("pg_extension")
 
           proxy_script = proxy_init.fetch("args").join("\n")
           abort "Community proxy-header initialization does not support the current Discourse image" unless proxy_script.include?("$proxy_add_x_forwarded_for")
