@@ -592,6 +592,12 @@ defmodule Glossia.Seeds do
     )
 
     ensure_llm_model!(dev.account, dev,
+      handle: "local-pi",
+      model: "openrouter/anthropic/claude-sonnet-4.6",
+      api_key: Glossia.Translations.Credentials.development_session_api_key(:pi)
+    )
+
+    ensure_llm_model!(dev.account, dev,
       handle: "local-claude",
       model: "anthropic/claude-sonnet-5",
       api_key: Glossia.Translations.Credentials.development_session_api_key(:claude),

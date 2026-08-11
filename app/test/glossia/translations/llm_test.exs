@@ -99,6 +99,32 @@ defmodule Glossia.Translations.LLMTest do
     end
   end
 
+  describe "run/3 with a Pi session" do
+    test "runs the configured provider model without tools or session state" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", args, opts ->
+        assert ["-c", ~s(exec "$@" </dev/null), "sh", "pi", "-p", "--no-tools" | _] =
+                 args
+
+        assert Enum.at(args, Enum.find_index(args, &(&1 == "--provider")) + 1) == "openrouter"
+
+        assert Enum.at(args, Enum.find_index(args, &(&1 == "--model")) + 1) ==
+                 "anthropic/claude-sonnet-4.6"
+
+        assert List.last(args) == @user
+        assert opts[:timeout] == 1_800_000
+        {"Hola\n", 0}
+      end)
+
+      cred = %{
+        model: "openrouter/anthropic/claude-sonnet-4.6",
+        auth: :pi_session,
+        source: :pi_session
+      }
+
+      assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
+    end
+  end
+
   describe "stream/4" do
     test "OAuth wraps the result in synthetic turn events" do
       Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :resp} end)

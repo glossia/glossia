@@ -11,7 +11,7 @@ defmodule Glossia.Translations.Credentials do
     1. The account's `LLMModel` and provider key, which is the normal production path.
     2. A globally configured inference provider token and endpoint, which is the
        production fallback.
-    3. In development only, the local Claude Code or Codex command-line session,
+    3. In development only, a local Codex, Claude Code, or Pi command-line session,
        whichever is valid, so real translations can run without configuring a key.
 
   Returns a credential map:
@@ -29,12 +29,14 @@ defmodule Glossia.Translations.Credentials do
   alias Glossia.Models.ModelIdentifier
 
   @default_local_model "anthropic/claude-haiku-4-5"
+  @default_pi_model "openrouter/anthropic/claude-sonnet-4.6"
   @development_session_keys %{
     claude: "development-session:claude",
-    codex: "development-session:codex"
+    codex: "development-session:codex",
+    pi: "development-session:pi"
   }
 
-  @type auth :: {:api_key, String.t(), String.t() | nil} | {:oauth, String.t()}
+  @type auth :: {:api_key, String.t(), String.t() | nil} | {:oauth, String.t()} | :pi_session
   @type credential :: %{
           model: String.t(),
           handle: String.t() | nil,
@@ -76,7 +78,7 @@ defmodule Glossia.Translations.Credentials do
   end
 
   @doc false
-  def development_session_api_key(source) when source in [:claude, :codex],
+  def development_session_api_key(source) when source in [:claude, :codex, :pi],
     do: Map.fetch!(@development_session_keys, source)
 
   @doc """
@@ -98,6 +100,9 @@ defmodule Glossia.Translations.Credentials do
         else
           :error -> {:error, :claude_session_not_available}
         end
+
+      {:ok, %{source: :pi_session}} ->
+        {:error, :pi_session_not_supported_for_setup}
 
       {:error, _reason} = error ->
         error
@@ -140,7 +145,11 @@ defmodule Glossia.Translations.Credentials do
     credential =
       case configured_model do
         %{model: model, api_key: key}
-        when key in ["development-session:claude", "development-session:codex"] ->
+        when key in [
+               "development-session:claude",
+               "development-session:codex",
+               "development-session:pi"
+             ] ->
           development_account_session(key, model)
 
         %{model: model, api_key: key} when is_binary(key) and key != "" ->
@@ -182,10 +191,43 @@ defmodule Glossia.Translations.Credentials do
     end
   end
 
-  # 3. Local Claude/Codex session (dev only).
+  # 3. Local Codex/Claude/Pi session (dev only).
   defp local_session_credential do
     if config()[:allow_local_session] do
-      codex_session() || claude_session()
+      codex_session() || claude_session() || pi_session()
+    end
+  end
+
+  @doc false
+  def pi_session(model \\ @default_pi_model) when is_binary(model) do
+    with {_provider, _model_id} <- split_pi_model(model),
+         {output, 0} <-
+           MuonTrap.cmd(
+             "sh",
+             [
+               "-c",
+               ~s(exec "$@" </dev/null),
+               "sh",
+               pi_executable(),
+               "auth",
+               "check",
+               "--provider",
+               "openrouter",
+               "--json"
+             ],
+             stderr_to_stdout: true,
+             into: "",
+             timeout: 10_000
+           ),
+         {:ok, %{"status" => "ready"}} <- Jason.decode(String.trim(output)) do
+      %{
+        model: ModelIdentifier.normalize(model),
+        handle: nil,
+        auth: :pi_session,
+        source: :pi_session
+      }
+    else
+      _ -> nil
     end
   end
 
@@ -376,6 +418,7 @@ defmodule Glossia.Translations.Credentials do
         case key do
           "development-session:claude" -> claude_session()
           "development-session:codex" -> codex_session()
+          "development-session:pi" -> pi_session(model)
         end
 
       with_model(session, model)
@@ -397,6 +440,15 @@ defmodule Glossia.Translations.Credentials do
     (config()[:local_session_model] || default)
     |> ModelIdentifier.normalize()
   end
+
+  defp split_pi_model(model) do
+    case String.split(ModelIdentifier.normalize(model), "/", parts: 2) do
+      [provider, model_id] when provider != "" and model_id != "" -> {provider, model_id}
+      _ -> nil
+    end
+  end
+
+  defp pi_executable, do: System.get_env("GLOSSIA_PI_PATH") || "pi"
 
   defp config, do: Application.get_env(:glossia, Glossia.Translations, [])
 

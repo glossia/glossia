@@ -1,5 +1,6 @@
 defmodule Glossia.Translations.CredentialsTest do
   use Glossia.DataCase, async: false
+  use Mimic
 
   alias Glossia.LLMModels
   alias Glossia.Translations.Credentials
@@ -137,5 +138,26 @@ defmodule Glossia.Translations.CredentialsTest do
     assert credential.command == "codex"
     assert credential.model == "gpt-5.4"
     assert credential.codex_auth == auth
+  end
+
+  test "resolves an explicit Pi development session", %{user: user, account: account} do
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "local-pi",
+        "model" => "openrouter/anthropic/claude-sonnet-4.6",
+        "api_key" => Credentials.development_session_api_key(:pi)
+      })
+
+    Mimic.expect(MuonTrap, :cmd, fn "sh", args, _opts ->
+      assert ["-c", ~s(exec "$@" </dev/null), "sh", "pi", "auth" | _] = args
+      {~s({"status":"ready","provider":"openrouter"}), 0}
+    end)
+
+    put_config(allow_local_session: true)
+
+    assert {:ok, credential} = Credentials.resolve(account, "local-pi")
+    assert credential.source == :pi_session
+    assert credential.model == "openrouter/anthropic/claude-sonnet-4.6"
+    assert credential.auth == :pi_session
   end
 end

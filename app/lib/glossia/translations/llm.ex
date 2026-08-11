@@ -15,6 +15,7 @@ defmodule Glossia.Translations.LLM do
 
   @together_base_url "https://api.together.ai/v1"
   @codex_cli_timeout_ms 1_800_000
+  @pi_cli_timeout_ms 1_800_000
 
   @doc "One-shot generation."
   def run(%{auth: {:api_key, key, base_url}, model: model}, system, user) do
@@ -31,6 +32,10 @@ defmodule Glossia.Translations.LLM do
 
   def run(%{source: :codex_session}, system, user) do
     run_via_codex_cli(system, user)
+  end
+
+  def run(%{source: :pi_session, model: model}, system, user) do
+    run_via_pi_cli(model, system, user)
   end
 
   def run(%{auth: {:oauth, token}, model: model}, system, user) do
@@ -90,6 +95,46 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
+  defp run_via_pi_cli(model, system, user) do
+    with {:ok, provider, model_id} <- pi_model_parts(model) do
+      case MuonTrap.cmd(
+             "sh",
+             [
+               "-c",
+               ~s(exec "$@" </dev/null),
+               "sh",
+               pi_executable(),
+               "-p",
+               "--no-tools",
+               "--no-session",
+               "--no-context-files",
+               "--no-skills",
+               "--no-prompt-templates",
+               "--no-extensions",
+               "--provider",
+               provider,
+               "--model",
+               model_id,
+               "--system-prompt",
+               system,
+               user
+             ],
+             stderr_to_stdout: true,
+             into: "",
+             timeout: @pi_cli_timeout_ms
+           ) do
+        {output, 0} ->
+          case String.trim(output) do
+            "" -> {:error, :empty_pi_response}
+            text -> {:ok, text}
+          end
+
+        {output, code} ->
+          {:error, {:pi_cli_failed, code, String.slice(output, 0, 2_000)}}
+      end
+    end
+  end
+
   @doc "Streamed generation, forwarding turn events to `on_event`."
   def stream(%{auth: {:api_key, _key, _base_url}} = cred, system, user, on_event) do
     stream_via_condukt(cred, system, user, on_event)
@@ -99,6 +144,22 @@ defmodule Glossia.Translations.LLM do
     on_event.(:turn_start)
 
     case run_via_codex_cli(system, user) do
+      {:ok, text} = ok ->
+        on_event.({:text, text})
+        on_event.(:turn_end)
+        on_event.(:done)
+        ok
+
+      {:error, reason} = error ->
+        on_event.({:error, reason})
+        error
+    end
+  end
+
+  def stream(%{source: :pi_session, model: model}, system, user, on_event) do
+    on_event.(:turn_start)
+
+    case run_via_pi_cli(model, system, user) do
       {:ok, text} = ok ->
         on_event.({:text, text})
         on_event.(:turn_end)
@@ -176,6 +237,18 @@ defmodule Glossia.Translations.LLM do
   defp messages(system, user) do
     [%{role: "system", content: system}, %{role: "user", content: user}]
   end
+
+  defp pi_model_parts(model) do
+    case String.split(ModelIdentifier.normalize(model), "/", parts: 2) do
+      [provider, model_id] when provider != "" and model_id != "" ->
+        {:ok, provider, model_id}
+
+      _ ->
+        {:error, :invalid_pi_model}
+    end
+  end
+
+  defp pi_executable, do: System.get_env("GLOSSIA_PI_PATH") || "pi"
 
   defp maybe_base_url(opts, url) when is_binary(url) and url != "",
     do: Keyword.put(opts, :base_url, url)
