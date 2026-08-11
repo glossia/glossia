@@ -201,25 +201,7 @@ defmodule Glossia.Translations.Credentials do
   @doc false
   def pi_session(model \\ @default_pi_model) when is_binary(model) do
     with {_provider, _model_id} <- split_pi_model(model),
-         {output, 0} <-
-           MuonTrap.cmd(
-             "sh",
-             [
-               "-c",
-               ~s(exec "$@" </dev/null),
-               "sh",
-               pi_executable(),
-               "auth",
-               "check",
-               "--provider",
-               "openrouter",
-               "--json"
-             ],
-             stderr_to_stdout: true,
-             into: "",
-             timeout: 10_000
-           ),
-         {:ok, %{"status" => "ready"}} <- Jason.decode(String.trim(output)) do
+         true <- executable_available?(pi_executable()) do
       %{
         model: ModelIdentifier.normalize(model),
         handle: nil,
@@ -449,6 +431,13 @@ defmodule Glossia.Translations.Credentials do
   end
 
   defp pi_executable, do: System.get_env("GLOSSIA_PI_PATH") || "pi"
+
+  defp executable_available?(path) do
+    case Path.type(path) do
+      :absolute -> File.regular?(path)
+      _ -> not is_nil(System.find_executable(path))
+    end
+  end
 
   defp config, do: Application.get_env(:glossia, Glossia.Translations, [])
 

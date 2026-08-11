@@ -1,6 +1,5 @@
 defmodule Glossia.Translations.CredentialsTest do
   use Glossia.DataCase, async: false
-  use Mimic
 
   alias Glossia.LLMModels
   alias Glossia.Translations.Credentials
@@ -141,17 +140,21 @@ defmodule Glossia.Translations.CredentialsTest do
   end
 
   test "resolves an explicit Pi development session", %{user: user, account: account} do
+    previous_pi_path = System.get_env("GLOSSIA_PI_PATH")
+    System.put_env("GLOSSIA_PI_PATH", System.find_executable("sh"))
+
+    on_exit(fn ->
+      if previous_pi_path,
+        do: System.put_env("GLOSSIA_PI_PATH", previous_pi_path),
+        else: System.delete_env("GLOSSIA_PI_PATH")
+    end)
+
     {:ok, _model} =
       LLMModels.create_model(account, user, %{
         "handle" => "local-pi",
         "model" => "openrouter/anthropic/claude-sonnet-4.6",
         "api_key" => Credentials.development_session_api_key(:pi)
       })
-
-    Mimic.expect(MuonTrap, :cmd, fn "sh", args, _opts ->
-      assert ["-c", ~s(exec "$@" </dev/null), "sh", "pi", "auth" | _] = args
-      {~s({"status":"ready","provider":"openrouter"}), 0}
-    end)
 
     put_config(allow_local_session: true)
 
