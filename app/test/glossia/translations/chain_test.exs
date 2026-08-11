@@ -3,6 +3,13 @@ defmodule Glossia.Translations.ChainTest do
 
   alias Glossia.Translations.Chain
 
+  defp git!(root, args) do
+    {_output, 0} =
+      MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
+
+    :ok
+  end
+
   @tag :tmp_dir
   test "resolves an inherited model identifier and merges bodies", %{tmp_dir: root} do
     File.write!(Path.join(root, "GLOSSIA.md"), """
@@ -47,6 +54,43 @@ defmodule Glossia.Translations.ChainTest do
 
     assert {:ok, [dir]} = Chain.find_translation_roots(root)
     assert Path.basename(dir) == "server"
+  end
+
+  @tag :tmp_dir
+  test "ignores translation roots excluded by Git", %{tmp_dir: root} do
+    git!(root, ["init", "-q"])
+
+    File.write!(Path.join(root, ".gitignore"), "/tmp\n")
+
+    File.write!(Path.join(root, "GLOSSIA.md"), """
+    ---
+    source_language: en
+    sources:
+      "docs/*.md": "docs/i18n/{locale}/*.md"
+    targets:
+      es: Spanish
+    ---
+    """)
+
+    File.mkdir_p!(Path.join(root, "docs"))
+    File.write!(Path.join([root, "docs", "guide.md"]), "# Guide\n")
+
+    File.mkdir_p!(Path.join([root, "tmp", "nested", "docs"]))
+
+    File.write!(Path.join([root, "tmp", "nested", "GLOSSIA.md"]), """
+    ---
+    source_language: en
+    sources:
+      "docs/*.custom": "docs/i18n/{locale}/*.custom"
+    targets:
+      es: Spanish
+    ---
+    """)
+
+    File.write!(Path.join([root, "tmp", "nested", "docs", "guide.custom"]), "guide")
+
+    assert {:ok, [item]} = Glossia.Translations.Planner.build_plan(root, "es")
+    assert item.source_path == "docs/guide.md"
   end
 
   @tag :tmp_dir
