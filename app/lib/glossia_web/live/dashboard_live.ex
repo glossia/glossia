@@ -12019,7 +12019,7 @@ defmodule GlossiaWeb.DashboardLive do
             </.tooltip>
           </:actions>
           <.card_section data-part="localization-priority-content">
-            <div data-part="map-wrapper">
+            <div :if={@priority != []} data-part="map-wrapper">
               <div
                 id="localization-priority-map"
                 phx-hook="LocalizationPriorityMap"
@@ -12037,7 +12037,6 @@ defmodule GlossiaWeb.DashboardLive do
               </div>
             </div>
             <Noora.Table.table
-              :if={@priority != []}
               id="localization-priority-table"
               rows={@priority}
               row_key={fn row -> "priority-" <> row.country_code <> "-" <> row.browser_language end}
@@ -12057,16 +12056,17 @@ defmodule GlossiaWeb.DashboardLive do
               <:col :let={row} label={gettext("Priority")}>
                 <Noora.Table.text_cell label={format_count_truncated(row.priority_score)} />
               </:col>
+              <:empty_state>
+                <Noora.Table.table_empty_state
+                  title={gettext("No locale-gap visits")}
+                  subtitle={
+                    gettext(
+                      "Once visitors land in a language the project does not serve, they will appear here."
+                    )
+                  }
+                />
+              </:empty_state>
             </Noora.Table.table>
-            <Noora.Table.table_empty_state
-              :if={@priority == []}
-              title={gettext("No locale-gap visits")}
-              subtitle={
-                gettext(
-                  "Once visitors land in a language the project does not serve, they will appear here."
-                )
-              }
-            />
           </.card_section>
         </.card>
 

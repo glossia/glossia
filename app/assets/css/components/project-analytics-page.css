@@ -129,8 +129,15 @@
   & [data-part="help-icon"] {
     display: inline-flex;
     align-items: center;
+    width: var(--noora-icon-size-medium);
+    height: var(--noora-icon-size-medium);
     color: var(--noora-surface-label-secondary);
     cursor: help;
+
+    & svg {
+      width: 100%;
+      height: 100%;
+    }
   }
 
   /* ── Traffic by hour chart container ────────────────────────────────────── */

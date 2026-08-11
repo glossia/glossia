@@ -5,6 +5,7 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
 
   alias Glossia.Analytics.Settings
   alias Glossia.Projects
+  alias Glossia.Repo
   alias Glossia.TestHelpers
 
   setup %{conn: conn} do
@@ -74,5 +75,30 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
 
     assert has_element?(view, "#project-settings-form")
     refute has_element?(view, "#analytics-settings-form")
+  end
+
+  test "shows a compact empty state when there are no localization priorities", %{
+    conn: conn,
+    project: project,
+    user: user
+  } do
+    {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: "example.com"})
+
+    settings
+    |> Ecto.Changeset.change(%{
+      verified_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    })
+    |> Repo.update!()
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/analytics")
+
+    assert has_element?(
+             view,
+             "[data-part='localization-priority-content'] .noora-table-empty-state",
+             "No locale-gap visits"
+           )
+
+    refute has_element?(view, "#localization-priority-map")
   end
 end
