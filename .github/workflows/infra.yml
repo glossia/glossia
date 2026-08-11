@@ -185,6 +185,19 @@ jobs:
           validate_chart community infra/helm/discourse community \
             --values infra/helm/discourse/values-production.yaml
 
+          ruby /dev/stdin /tmp/community-rendered.yaml <<'RUBY'
+          require "yaml"
+
+          object_store = YAML.load_stream(File.read(ARGV.fetch(0))).compact.find do |document|
+            document["apiVersion"] == "barmancloud.cnpg.io/v1" && document["kind"] == "ObjectStore"
+          end
+          abort "Community ObjectStore is missing" unless object_store
+
+          spec = object_store.fetch("spec")
+          abort "Community retention policy is not set at spec.retentionPolicy" unless spec["retentionPolicy"] == "30d"
+          abort "Community retention policy is incorrectly nested under spec.configuration" if spec.fetch("configuration").key?("retentionPolicy")
+          RUBY
+
           mise exec -- helm lint infra/helm/observability \
             --values infra/helm/observability/values-hetzner.yaml \
             --values infra/helm/observability/values-object-storage-hetzner.yaml

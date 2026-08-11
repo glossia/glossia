@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "discourse.labels" . | nindent 4 }}
 spec:
+  retentionPolicy: {{ .Values.backups.postgres.retentionPolicy | quote }}
   configuration:
     destinationPath: {{ printf "s3://%s/%s/postgres" (required "backups.s3.bucket is required when backups are enabled" .Values.backups.s3.bucket) .Values.backups.s3.prefix | quote }}
     {{- with .Values.backups.s3.endpointURL }}
@@ -25,7 +26,6 @@ spec:
       compression: gzip
     data:
       compression: gzip
-    retentionPolicy: {{ .Values.backups.postgres.retentionPolicy | quote }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
