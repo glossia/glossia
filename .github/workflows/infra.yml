@@ -188,7 +188,9 @@ jobs:
           ruby /dev/stdin /tmp/community-rendered.yaml <<'RUBY'
           require "yaml"
 
-          object_store = YAML.load_stream(File.read(ARGV.fetch(0))).compact.find do |document|
+          documents = YAML.load_stream(File.read(ARGV.fetch(0))).compact
+
+          object_store = documents.find do |document|
             document["apiVersion"] == "barmancloud.cnpg.io/v1" && document["kind"] == "ObjectStore"
           end
           abort "Community ObjectStore is missing" unless object_store
@@ -196,6 +198,12 @@ jobs:
           spec = object_store.fetch("spec")
           abort "Community retention policy is not set at spec.retentionPolicy" unless spec["retentionPolicy"] == "30d"
           abort "Community retention policy is incorrectly nested under spec.configuration" if spec.fetch("configuration").key?("retentionPolicy")
+
+          deployment = documents.find do |document|
+            document["kind"] == "Deployment" && document.dig("metadata", "name") == "community"
+          end
+          abort "Community Deployment is missing" unless deployment
+          abort "Community Deployment must remain portable across production worker-pool profiles" if deployment.dig("spec", "template", "spec").key?("nodeSelector")
           RUBY
 
           mise exec -- helm lint infra/helm/observability \
