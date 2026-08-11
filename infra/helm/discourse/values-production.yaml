@@ -38,6 +38,3 @@ backups:
     prefix: community-production
     endpointURL: https://bb7ccb20a20a58b2d5242d0277c750fe.eu.r2.cloudflarestorage.com
     region: auto
-
-nodeSelector:
-  node.cluster.x-k8s.io/pool: app
