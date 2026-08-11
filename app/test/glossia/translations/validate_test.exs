@@ -181,6 +181,7 @@ defmodule Glossia.Translations.ValidateTest do
 
       valid = String.replace(translated, ~s(msgstr "Hola"), ~s(msgstr "Hola %{client_name}"))
       assert :ok = Validate.validate_syntax("po", valid, source)
+      assert :ok = Validate.validate_output("/repo", "po", valid, source)
     end
   end
 
