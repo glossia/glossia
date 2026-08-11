@@ -350,8 +350,6 @@ msgstr ""
 msgid "Language overrides"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/app.html.heex:35
-#: lib/glossia_web/components/layouts/app.html.heex:85
 #: lib/glossia_web/controllers/auth_controller.ex:33
 #: lib/glossia_web/controllers/auth_controller.ex:49
 #, elixir-autogen, elixir-format
@@ -1567,7 +1565,7 @@ msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:71
 #, elixir-autogen, elixir-format
-msgid "Chat with the team, share feedback, and connect with other builders using Glossia."
+msgid "Ask questions, share feedback, and connect with other builders using Glossia."
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:2233
@@ -1581,15 +1579,15 @@ msgid "From builders who worked at"
 msgstr ""
 
 #: lib/glossia_web/components/layouts/app.html.heex:34
-#: lib/glossia_web/components/layouts/app.html.heex:84
+#: lib/glossia_web/components/layouts/app.html.heex:83
 #: lib/glossia_web/controllers/page_html/home.html.heex:11
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr ""
 
-#: lib/glossia_web/controllers/page_html/home.html.heex:92
+#: lib/glossia_web/controllers/page_html/home.html.heex:82
 #, elixir-autogen, elixir-format
-msgid "Join our Discord"
+msgid "Visit the forum"
 msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:69
@@ -2846,7 +2844,7 @@ msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
 #, elixir-autogen, elixir-format
-msgid "The language OS for your organization"
+msgid "The open-source language OS for your organization"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:11264
@@ -2881,10 +2879,14 @@ msgstr ""
 msgid "Delete model"
 msgstr ""
 
-#: lib/glossia_web/controllers/page_controller.ex:15
 #: lib/glossia_web/controllers/page_html/home.html.heex:6
 #, elixir-autogen, elixir-format
 msgid "Glossia captures your linguistic preferences in one place so linguists and teams can shape how your organization speaks across every language and surface."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_controller.ex:15
+#, elixir-autogen, elixir-format
+msgid "Glossia is the open-source language OS where linguists and teams shape how your organization speaks across every language and surface."
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:11324

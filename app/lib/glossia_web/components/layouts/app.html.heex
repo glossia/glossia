@@ -31,8 +31,7 @@
           </ul>
         </div>
       <% else %>
-        <a href={~p"/signup"}>{gettext("Get started")}</a>
-        <a href={~p"/auth/login"}>{gettext("Log in")}</a>
+        <a class="nav-cta" href={~p"/signup"}>{gettext("Get started")}</a>
       <% end %>
     </nav>
     <button class="mobile-menu-toggle" aria-expanded="false" aria-label={gettext("Menu")}>
@@ -81,8 +80,7 @@
     <a href={~p"/dashboard"}>{gettext("Your profile")}</a>
     <a href={~p"/auth/logout"} data-method="delete">{gettext("Log out")}</a>
   <% else %>
-    <a href={~p"/signup"}>{gettext("Get started")}</a>
-    <a href={~p"/auth/login"}>{gettext("Log in")}</a>
+    <a class="nav-cta" href={~p"/signup"}>{gettext("Get started")}</a>
   <% end %>
 </nav>
 
