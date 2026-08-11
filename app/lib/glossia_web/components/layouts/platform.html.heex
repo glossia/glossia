@@ -111,7 +111,6 @@
             selected={@live_action == :project}
           />
           <.sidebar_item
-            :if={assigns[:translation_enabled]}
             label={gettext("Translations")}
             icon="language"
             navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/translations"}

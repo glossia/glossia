@@ -64,7 +64,6 @@ defmodule Glossia.Seeds do
       )
 
     ensure_visibility!(dev.account, "public")
-    {:ok, true} = FunWithFlags.enable(:translation, for_actor: dev.account)
 
     acme =
       ensure_organization!(

@@ -1116,7 +1116,6 @@ defmodule GlossiaWeb.DashboardLive do
          "project" => project_handle,
          "session_id" => session_id
        }) do
-    require_translation_enabled!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
     project = Glossia.Projects.get_project(account, project_handle)
@@ -1143,8 +1142,8 @@ defmodule GlossiaWeb.DashboardLive do
       session: session,
       session_events: events,
       breadcrumb_items: [
-        {project.handle, "/" <> handle <> "/" <> project.handle},
-        {gettext("Translations"), "/" <> handle <> "/" <> project.handle <> "/-/translations"},
+        {project.handle, ~p"/#{handle}/#{project.handle}"},
+        {gettext("Translations"), ~p"/#{handle}/#{project.handle}/-/translations"},
         {gettext("Session"), nil}
       ],
       sidebar_context: :project,
@@ -1154,7 +1153,6 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :project_translations, %{"project" => project_handle}) do
-    require_translation_enabled!(socket)
     account = socket.assigns.account
     handle = socket.assigns.handle
     project = Glossia.Projects.get_project(account, project_handle)
@@ -1169,7 +1167,7 @@ defmodule GlossiaWeb.DashboardLive do
       project: project,
       available_filters: available_filters,
       breadcrumb_items: [
-        {project.handle, "/" <> handle <> "/" <> project.handle},
+        {project.handle, ~p"/#{handle}/#{project.handle}"},
         {gettext("Translations"), nil}
       ],
       sidebar_context: :project,
@@ -1412,12 +1410,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp require_write!(socket) do
     unless socket.assigns.can_write do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
-    end
-  end
-
-  defp require_translation_enabled!(socket) do
-    unless socket.assigns[:translation_enabled] do
-      raise Ecto.NoResultsError, queryable: Glossia.TranslationSessions.TranslationSession
     end
   end
 

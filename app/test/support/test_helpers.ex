@@ -23,7 +23,6 @@ defmodule Glossia.TestHelpers do
 
     user = %{user | account: account}
     Accounts.ensure_personal_organization!(user)
-    {:ok, true} = FunWithFlags.enable(:translation, for_actor: account)
 
     user
   end
