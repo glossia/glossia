@@ -6,11 +6,6 @@ metadata:
 spec:
   dependsOn:
     - name: workload-platforms
-  healthChecks:
-    - apiVersion: helm.toolkit.fluxcd.io/v2
-      kind: HelmRelease
-      name: glossia
-      namespace: org-glossia
   interval: 5m0s
   path: ./infra/k8s/workload-apps
   prune: true
@@ -19,5 +14,3 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  timeout: 30m0s
-  wait: true
