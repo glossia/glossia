@@ -1,0 +1,41 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: community
+  namespace: org-glossia
+spec:
+  dependsOn:
+    - name: platform
+  maxHistory: 5
+  interval: 10m0s
+  releaseName: community
+  targetNamespace: community
+  storageNamespace: community
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig
+  chart:
+    spec:
+      chart: ./infra/helm/discourse
+      interval: 5m0s
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+      valuesFiles:
+        - infra/helm/discourse/values.yaml
+        - infra/helm/discourse/values-production.yaml
+  install:
+    createNamespace: true
+    crds: Create
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  timeout: 30m0s

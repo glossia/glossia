@@ -182,6 +182,9 @@ jobs:
           validate_chart observability infra/helm/observability observability \
             --values infra/helm/observability/values-hetzner.yaml
 
+          validate_chart community infra/helm/discourse community \
+            --values infra/helm/discourse/values-production.yaml
+
           mise exec -- helm lint infra/helm/observability \
             --values infra/helm/observability/values-hetzner.yaml \
             --values infra/helm/observability/values-object-storage-hetzner.yaml
