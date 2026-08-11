@@ -14,6 +14,7 @@ defmodule Glossia.Translations.LLM do
   alias Glossia.Models.ModelIdentifier
 
   @together_base_url "https://api.together.ai/v1"
+  @codex_cli_timeout_ms 1_800_000
 
   @doc "One-shot generation."
   def run(%{auth: {:api_key, key, base_url}, model: model}, system, user) do
@@ -61,7 +62,7 @@ defmodule Glossia.Translations.LLM do
            ],
            stderr_to_stdout: true,
            into: "",
-           timeout: 600_000
+           timeout: @codex_cli_timeout_ms
          ) do
       {output, 0} ->
         text =
