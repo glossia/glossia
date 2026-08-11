@@ -36,7 +36,10 @@ spec:
           args:
             - |-
               cp /etc/nginx/conf.d/discourse.conf /work/discourse.conf
-              sed -i 's/proxy_set_header X-Forwarded-For $remote_addr;/proxy_set_header X-Forwarded-For $http_x_forwarded_for;/g' /work/discourse.conf
+              sed -i \
+                -e 's/proxy_set_header X-Forwarded-For $remote_addr;/proxy_set_header X-Forwarded-For $http_x_forwarded_for;/g' \
+                -e 's/proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;/proxy_set_header X-Forwarded-For $http_x_forwarded_for;/g' \
+                /work/discourse.conf
               grep -q 'proxy_set_header X-Forwarded-For $http_x_forwarded_for;' /work/discourse.conf
           securityContext:
             runAsUser: 0

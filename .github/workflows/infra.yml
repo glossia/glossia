@@ -204,6 +204,15 @@ jobs:
           end
           abort "Community Deployment is missing" unless deployment
           abort "Community Deployment must remain portable across production worker-pool profiles" if deployment.dig("spec", "template", "spec").key?("nodeSelector")
+
+          proxy_init = deployment.dig("spec", "template", "spec", "initContainers").find do |container|
+            container["name"] == "configure-proxy-headers"
+          end
+          abort "Community proxy-header initialization is missing" unless proxy_init
+
+          proxy_script = proxy_init.fetch("args").join("\n")
+          abort "Community proxy-header initialization does not support the current Discourse image" unless proxy_script.include?("$proxy_add_x_forwarded_for")
+          abort "Community proxy-header initialization does not preserve the forwarded chain" unless proxy_script.include?("$http_x_forwarded_for")
           RUBY
 
           mise exec -- helm lint infra/helm/observability \
