@@ -351,6 +351,39 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "segments large Gettext catalogs without splitting entries", %{tmp_dir: dir} do
+      source = Path.join(dir, "default.pot")
+
+      header =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n)
+
+      entries =
+        1..400
+        |> Enum.map(fn index ->
+          ~s(#: lib/example.ex:#{index}\nmsgid "Message #{index}"\nmsgstr ""\n)
+        end)
+
+      content = Enum.join([header | entries], "\n")
+      File.write!(source, content)
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        translated(payload["source_content"])
+      end)
+
+      item = work_item(%{source_abs: source, format: "po"})
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert length(calls) > 1
+      assert Enum.all?(calls, &(&1["segment_count"] == length(calls)))
+      assert Enum.all?(calls, &String.ends_with?(&1["source_content"], ~s(msgstr "")))
+      assert result.text == String.trim(content)
+    end
+
+    @tag :tmp_dir
     test "retries with the previous validation error until it passes", %{tmp_dir: dir} do
       source = Path.join(dir, "data.txt")
       File.write!(source, "raw content")

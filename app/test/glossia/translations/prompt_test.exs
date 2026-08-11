@@ -122,6 +122,22 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~
                "\n\nOrganization context for Spanish:\nOrganization voice:\n- Formality: formal"
     end
+
+    test "scopes rules to the supplied catalog segment" do
+      first =
+        Prompt.build_system_prompt(base(%{format: "po", segment_index: 1, segment_count: 3}))
+
+      assert first =~ "segment 1 of 3"
+      assert first =~ "Preserve every supplied entry and its order"
+      assert first =~ "This segment contains the PO header"
+
+      later =
+        Prompt.build_system_prompt(base(%{format: "po", segment_index: 2, segment_count: 3}))
+
+      assert later =~ "segment 2 of 3"
+      assert later =~ "Do not add a PO header"
+      refute later =~ "This segment contains the PO header"
+    end
   end
 
   describe "build_user_prompt/5" do
