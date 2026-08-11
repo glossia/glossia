@@ -259,6 +259,13 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
+  defp prepare_translation(%{format: "po"} = work_item, source_text, _preserve_kinds) do
+    {segments, protections} =
+      planned_content_segments(source_text, work_item.format, [], "document")
+
+    %{preserved_frontmatter: nil, segments: segments, protections: protections}
+  end
+
   defp prepare_translation(work_item, source_text, preserve_kinds) do
     {segments, protections} =
       planned_content_segments(source_text, work_item.format, preserve_kinds, "document")

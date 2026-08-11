@@ -384,6 +384,26 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "leaves Gettext identifiers visible for format validation", %{tmp_dir: dir} do
+      source = Path.join(dir, "default.pot")
+
+      content =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello %{client_name}"\nmsgstr ""\n)
+
+      File.write!(source, content)
+
+      stub_stream(fn _account, payload, _on_event ->
+        assert payload["source_content"] =~ "%{client_name}"
+        refute payload["source_content"] =~ "glossia.invalid/protected-token"
+        translated(payload["source_content"])
+      end)
+
+      item = work_item(%{source_abs: source, format: "po"})
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text == String.trim(content)
+    end
+
+    @tag :tmp_dir
     test "retries with the previous validation error until it passes", %{tmp_dir: dir} do
       source = Path.join(dir, "data.txt")
       File.write!(source, "raw content")

@@ -157,6 +157,31 @@ defmodule Glossia.Translations.ValidateTest do
       assert {:error, msg} = Validate.validate_syntax("po", po, "")
       assert msg =~ "missing header"
     end
+
+    test "requires every source message identifier exactly once" do
+      source =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello"\nmsgstr ""\n\nmsgid "Goodbye"\nmsgstr ""\n)
+
+      translated =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello"\nmsgstr "Hola"\n)
+
+      assert {:error, message} = Validate.validate_syntax("po", translated, source)
+      assert message =~ "preserve every source msgid exactly once"
+    end
+
+    test "requires interpolation tokens in translated strings" do
+      source =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello %{client_name}"\nmsgstr ""\n)
+
+      translated =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello %{client_name}"\nmsgstr "Hola"\n)
+
+      assert {:error, message} = Validate.validate_syntax("po", translated, source)
+      assert message =~ ~s(po format string "{client_name}")
+
+      valid = String.replace(translated, ~s(msgstr "Hola"), ~s(msgstr "Hola %{client_name}"))
+      assert :ok = Validate.validate_syntax("po", valid, source)
+    end
   end
 
   describe "Locks" do
