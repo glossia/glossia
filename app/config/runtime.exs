@@ -619,11 +619,15 @@ if config_env() == :prod and not runner_child? do
 
   analytics_secret =
     System.get_env("GLOSSIA_ANALYTICS_IDENTITY_SECRET") ||
-      raise """
-      environment variable GLOSSIA_ANALYTICS_IDENTITY_SECRET is missing.
-      This secret salts the daily-rotated visitor hash; it must be stable and
-      secret. Generate one with: mix phx.gen.secret
-      """
+      if System.get_env("GLOSSIA_MIGRATION") == "true" do
+        "migration-only"
+      else
+        raise """
+        environment variable GLOSSIA_ANALYTICS_IDENTITY_SECRET is missing.
+        This secret salts the daily-rotated visitor hash; it must be stable and
+        secret. Generate one with: mix phx.gen.secret
+        """
+      end
 
   geoip_database_path = System.get_env("GLOSSIA_GEOIP_DATABASE_PATH")
 

@@ -2,4 +2,10 @@
 set -eu
 
 cd -P -- "$(dirname -- "$0")"
+
+# Schema migrations run before Helm applies an updated ExternalSecret. Mark this
+# invocation so runtime configuration can avoid requiring a newly introduced
+# application-only secret before that Secret has been synchronized.
+export GLOSSIA_MIGRATION=true
+
 exec ./glossia eval Glossia.Release.migrate

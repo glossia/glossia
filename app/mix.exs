@@ -21,6 +21,7 @@ defmodule Glossia.MixProject do
   def application do
     [
       mod: {Glossia.Application, []},
+      included_applications: [:fun_with_flags],
       extra_applications: [
         :opentelemetry_exporter,
         :opentelemetry,
