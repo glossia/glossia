@@ -78,6 +78,13 @@ defmodule GlossiaWeb.Router do
 
   get "/up", GlossiaWeb.HealthController, :index
 
+  scope "/v1", GlossiaWeb do
+    pipe_through :analytics
+
+    post "/collect", AnalyticsController, :collect
+    options "/collect", AnalyticsController, :collect
+  end
+
   scope "/api", GlossiaWeb do
     pipe_through :analytics
 
