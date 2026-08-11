@@ -4,6 +4,7 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
   import Ecto.Query
 
   alias Glossia.Analytics.Event
+  alias Glossia.Analytics.Queries
   alias Glossia.Analytics.Settings
   alias Glossia.ClickHouseRepo
   alias Glossia.Projects
@@ -41,6 +42,17 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
     assert get_resp_header(conn, "access-control-allow-origin") == ["*"]
   end
 
+  test "public collection route accepts analytics events", %{conn: conn, domain: domain} do
+    conn =
+      post(conn, "/v1/collect", %{
+        "d" => domain,
+        "u" => "https://#{domain}/",
+        "n" => "pageview"
+      })
+
+    assert conn.status == 202
+  end
+
   test "records an enriched event for a known domain and returns 202", ctx do
     %{conn: conn, project: project, domain: domain} = ctx
 
@@ -52,7 +64,8 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
         "u" => "https://#{domain}/pricing",
         "r" => "https://www.google.com/",
         "l" => "ja,en",
-        "n" => "pageview"
+        "n" => "pageview",
+        "sw" => 1_440
       })
 
     assert conn.status == 202
@@ -73,7 +86,13 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
     assert event.served_locale == ""
     assert event.has_locale_gap == 1
     assert event.browser == "Chrome"
+    assert event.screen_width == 1_440
     assert is_integer(event.visitor_id) and event.visitor_id > 0
+
+    now = DateTime.utc_now()
+    summary = Queries.summary(project.id, DateTime.add(now, -60), DateTime.add(now, 60))
+    assert summary.top_country == ""
+    assert summary.top_browser_language == "ja"
   end
 
   test "returns 202 without recording for an unknown domain", %{conn: conn, domain: domain} do

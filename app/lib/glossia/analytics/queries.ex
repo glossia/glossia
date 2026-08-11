@@ -57,7 +57,7 @@ defmodule Glossia.Analytics.Queries do
   # (`ILLEGAL_AGGREGATION`), so we compute the most-common value for the
   # window with a separate, single-column aggregate.
   defp top_value(project_id, column, since_dt, until_dt) do
-    [field] =
+    query =
       from(e in "analytics_events",
         where:
           e.project_id == ^to_string(project_id) and
@@ -69,9 +69,11 @@ defmodule Glossia.Analytics.Queries do
         limit: 1,
         select: field(e, ^column)
       )
-      |> IngestRepo.all()
 
-    field || ""
+    case IngestRepo.all(query) do
+      [value | _] -> value || ""
+      [] -> ""
+    end
   end
 
   @doc """

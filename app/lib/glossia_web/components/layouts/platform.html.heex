@@ -107,30 +107,40 @@
           <.sidebar_item
             label={gettext("Overview")}
             icon="smart_home"
-            navigate={"/#{@handle}/#{@sidebar_project.handle}"}
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}"}
             selected={@live_action == :project}
           />
           <.sidebar_item
             :if={assigns[:translation_enabled]}
             label={gettext("Translations")}
             icon="language"
-            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
             selected={@live_action in [:project_translations, :project_session]}
           />
           <.sidebar_item
             :if={Glossia.Analytics.Config.enabled?()}
             label={gettext("Analytics")}
             icon="chart_column"
-            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/analytics"}
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/analytics"}
             selected={@live_action == :project_analytics}
           />
-          <.sidebar_item
+          <.sidebar_group
             :if={assigns[:is_admin]}
+            id="project-settings-navigation"
             label={gettext("Settings")}
             icon="settings"
-            navigate={"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
-            selected={@live_action == :project_settings}
-          />
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
+            default_open={@live_action in [:project_settings, :project_analytics_settings]}
+            selected={@live_action in [:project_settings, :project_analytics_settings]}
+          >
+            <.sidebar_item
+              :if={Glossia.Analytics.Config.enabled?()}
+              label={gettext("Analytics")}
+              icon="chart_column"
+              navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings/analytics"}
+              selected={@live_action == :project_analytics_settings}
+            />
+          </.sidebar_group>
         </.sidebar>
       <% _ -> %>
         <.sidebar id="platform-sidebar">

@@ -16,6 +16,7 @@ defmodule GlossiaWeb.DashboardComponents do
   attr :icon, :string, required: true
   attr :title, :string, required: true
   attr :subtitle, :string, default: nil
+  slot :actions
 
   def noora_empty_state(assigns) do
     ~H"""
@@ -23,6 +24,7 @@ defmodule GlossiaWeb.DashboardComponents do
       <div data-part="icon"><Noora.Icon.icon name={@icon} /></div>
       <div data-part="title">{@title}</div>
       <div :if={@subtitle} data-part="subtitle">{@subtitle}</div>
+      <div :if={@actions != []} data-part="actions">{render_slot(@actions)}</div>
     </div>
     """
   end

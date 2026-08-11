@@ -149,4 +149,14 @@
       grid-template-columns: 1fr;
     }
   }
+
+  & [data-part="setup-card"] > #analytics-setup-empty-state {
+    justify-content: center;
+    padding-top: var(--noora-spacing-11);
+    padding-bottom: var(--noora-spacing-11);
+
+    & .dashboard-empty-state > [data-part="actions"] {
+      margin-top: var(--noora-spacing-3);
+    }
+  }
 }

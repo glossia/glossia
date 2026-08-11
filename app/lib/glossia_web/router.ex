@@ -78,6 +78,13 @@ defmodule GlossiaWeb.Router do
 
   get "/up", GlossiaWeb.HealthController, :index
 
+  scope "/v1", GlossiaWeb do
+    pipe_through :analytics
+
+    post "/collect", AnalyticsController, :collect
+    options "/collect", AnalyticsController, :collect
+  end
+
   scope "/api", GlossiaWeb do
     pipe_through :analytics
 
@@ -429,6 +436,7 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/models/new", DashboardLive, :llm_model_new
       live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
       live "/:handle/:project/-/settings", DashboardLive, :project_settings
+      live "/:handle/:project/-/settings/analytics", DashboardLive, :project_analytics_settings
       live "/:handle/:project/-/analytics", DashboardLive, :project_analytics
     end
   end

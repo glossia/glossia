@@ -1053,9 +1053,6 @@ defmodule GlossiaWeb.DashboardLive do
         as: :project
       )
 
-    analytics_settings = Glossia.Analytics.Settings.get_for_project(project.id)
-    analytics_domain = (analytics_settings && analytics_settings.domain) || ""
-
     socket =
       cond do
         not connected?(socket) ->
@@ -1078,11 +1075,37 @@ defmodule GlossiaWeb.DashboardLive do
       project: project,
       project_settings_form: form,
       project_settings_changed?: false,
-      analytics_domain: analytics_domain,
       project_avatar_url: project_avatar_display_url(project.avatar_url),
       breadcrumb_items: [
-        {project.handle, "/" <> handle <> "/" <> project.handle},
+        {project.handle, ~p"/#{handle}/#{project.handle}"},
         {gettext("Settings"), nil}
+      ],
+      sidebar_context: :project,
+      sidebar_project: project
+    )
+  end
+
+  defp apply_action(socket, :project_analytics_settings, %{"project" => project_handle}) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+    project = Glossia.Projects.get_project(account, project_handle)
+
+    unless project do
+      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
+    end
+
+    analytics_settings = Glossia.Analytics.Settings.get_for_project(project.id)
+    analytics_domain = (analytics_settings && analytics_settings.domain) || ""
+
+    assign(socket,
+      page_title: gettext("Analytics settings"),
+      project: project,
+      analytics_domain: analytics_domain,
+      breadcrumb_items: [
+        {project.handle, ~p"/#{handle}/#{project.handle}"},
+        {gettext("Settings"), ~p"/#{handle}/#{project.handle}/-/settings"},
+        {gettext("Analytics"), nil}
       ],
       sidebar_context: :project,
       sidebar_project: project
@@ -2855,7 +2878,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> put_flash(:info, gettext("Project settings updated."))
-           |> push_patch(to: "/#{handle}/#{updated_project.handle}/-/settings")}
+           |> push_patch(to: ~p"/#{handle}/#{updated_project.handle}/-/settings")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not update project settings."))}
@@ -2878,7 +2901,7 @@ defmodule GlossiaWeb.DashboardLive do
            socket
            |> assign(analytics_domain: settings.domain)
            |> put_flash(:info, gettext("Web analytics settings updated."))
-           |> push_patch(to: "/#{handle}/#{project.handle}/-/settings")}
+           |> push_patch(to: ~p"/#{handle}/#{project.handle}/-/settings/analytics")}
 
         {:error, _changeset} ->
           {:noreply,
@@ -3607,6 +3630,8 @@ defmodule GlossiaWeb.DashboardLive do
           project_avatar_url={@project_avatar_url}
           uploads={assigns[:uploads]}
         />
+      <% :project_analytics_settings -> %>
+        <.project_analytics_settings_page analytics_domain={@analytics_domain} />
       <% :project_analytics -> %>
         <.project_analytics_page
           handle={@handle}
@@ -6506,9 +6531,20 @@ defmodule GlossiaWeb.DashboardLive do
         <.form_save_bar
           id="project-settings-save-bar"
           visible={@project_settings_changed?}
-          cancel_path={"/" <> @handle <> "/" <> @project.handle}
+          cancel_path={~p"/#{@handle}/#{@project.handle}"}
         />
       </.form>
+    </div>
+    """
+  end
+
+  defp project_analytics_settings_page(assigns) do
+    ~H"""
+    <div class="dash-page">
+      <.page_header
+        title={gettext("Analytics settings")}
+        description={gettext("Configure web analytics for this project.")}
+      />
 
       <.form
         for={%{}}
@@ -12153,31 +12189,39 @@ defmodule GlossiaWeb.DashboardLive do
 
       <.card
         :if={!(@settings && @settings.verified_at)}
-        title={
-          if @settings,
-            do: gettext("Verify web analytics"),
-            else: gettext("Set up web analytics")
-        }
+        title={gettext("Web analytics")}
         icon="chart_arcs"
+        data-part="setup-card"
       >
-        <.card_section>
-          <p>
-            {if @settings,
-              do:
-                gettext(
-                  "Install the snippet on %{domain}, then return here once the domain has been verified.",
-                  domain: @settings.domain
-                ),
-              else:
-                gettext(
-                  "Choose a domain and install the Glossia snippet to start collecting analytics."
-                )}
-          </p>
-          <Noora.Button.button
-            label={gettext("Open analytics settings")}
-            navigate={~p"/#{@handle}/#{@project.handle}/-/settings"}
-            size="medium"
-          />
+        <.card_section id="analytics-setup-empty-state">
+          <.noora_empty_state
+            icon="chart_arcs"
+            title={
+              if @settings,
+                do: gettext("Verify web analytics"),
+                else: gettext("Set up web analytics")
+            }
+            subtitle={
+              if @settings,
+                do:
+                  gettext(
+                    "Install the snippet on %{domain}, then return here once the domain has been verified.",
+                    domain: @settings.domain
+                  ),
+                else:
+                  gettext(
+                    "Choose a domain and install the Glossia snippet to start collecting analytics."
+                  )
+            }
+          >
+            <:actions>
+              <Noora.Button.button
+                label={gettext("Open analytics settings")}
+                navigate={~p"/#{@handle}/#{@project.handle}/-/settings/analytics"}
+                size="medium"
+              />
+            </:actions>
+          </.noora_empty_state>
         </.card_section>
       </.card>
     </div>
