@@ -14,6 +14,10 @@ defmodule Glossia.Analytics.Config do
 
   def enabled?, do: get(:enabled, true)
 
+  # Falls back to Noop rather than a network adapter: an install that has not
+  # configured geolocation should not start shipping visitor IPs to a third
+  # party as a side effect of the default. Production opts in explicitly in
+  # `runtime.exs`.
   def geolocation_adapter,
-    do: get(:geolocation, []) |> Keyword.get(:adapter, Glossia.Analytics.Geolocation.Ipapi)
+    do: get(:geolocation, []) |> Keyword.get(:adapter, Glossia.Analytics.Geolocation.Noop)
 end
