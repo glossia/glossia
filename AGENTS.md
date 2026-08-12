@@ -15,6 +15,19 @@
 
 - Declare `alias`, `import`, and `require` only at module scope. Never place them inside function implementations.
 
+## Caching
+
+- Use [Cachex](https://hexdocs.pm/cachex) for in-memory caches. Do not hand-roll a GenServer that owns a public ETS table: those consistently ship without expiry reclamation (an entry read as expired still occupies the table forever), without a size bound, and without protection against concurrent misses stampeding the same expensive resolver. Cachex gives all three via `expiration(default: ...)`, a `Cachex.Limit.Scheduled` hook, and `Cachex.fetch/3`.
+- Reach for `Cachex.fetch/3` rather than a read-check-write triple whenever the miss path is expensive (a network call, a heavy query). Its courier collapses concurrent misses for the same key into one resolver invocation. Return `{:ignore, value}` from the resolver for failures so a transient error is not cached for the whole TTL.
+- Bound any cache whose key space is user- or attacker-influenced (client IPs, arbitrary hostnames) with a size limit hook. TTL alone does not bound a cache that keeps seeing new keys.
+- Nebulex is **not** an alternative here. It is a cache abstraction (adapters, decorators, distributed topologies) rather than a cache, it only reaches us transitively through `boruta`, and `nebulex_adapters_cachex` 3.x requires Nebulex 3, which drops the `Nebulex.Adapters.Replicated` module that `Boruta.Cache` starts. Overriding the version resolves but breaks OAuth at boot.
+
+### Cachex instances in tests
+
+- Cache modules must accept a `:name` in `child_spec/1` and expose their public functions with an optional cache argument defaulting to the application-wide instance. See `Glossia.Analytics.SettingsCache`.
+- Tests that exercise a cache module should `start_supervised!({TheCache, name: :"test_cache_#{:erlang.unique_integer([:positive])}"})` and pass that name in, so each test owns its own instance and the file stays `async: true`. Do not reach for `Cachex.clear/1` on the global instance and `async: false` — that serializes the suite and leaks state between tests.
+- One caveat worth knowing: `Cachex.fetch/3` runs the resolver in a process the courier `spawn_link`s, which does not inherit `$callers`. Mimic stubs therefore do not reach it, and a test that both goes through `fetch/3` and stubs a module needs `set_mimic_global` (and so `async: false`). Prefer injecting the resolver directly in those tests; only fall back to global Mimic when the code under test owns the resolver.
+
 ## Routes and links
 
 - Always use the `~p` sigil for paths and the `~pH` variant for HTTPS URLs. It gives us compile-time verification that the route exists, the right number of path segments, and the right types of dynamic segments. Examples:
