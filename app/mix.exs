@@ -109,7 +109,8 @@ defmodule Glossia.MixProject do
       {:cloak, "~> 1.1"},
       {:fun_with_flags, "~> 1.13", app: false, override: true},
       {:fun_with_flags_ui, "~> 1.1", app: false},
-      {:ua_inspector, "~> 3.0"}
+      {:ua_inspector, "~> 3.0"},
+      {:cachex, "~> 4.1"}
     ]
   end
 

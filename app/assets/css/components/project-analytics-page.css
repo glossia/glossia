@@ -125,18 +125,34 @@
     );
   }
 
-  /* ── Help icon in card actions ─────────────────────────────────────────── */
-  & [data-part="help-icon"] {
-    display: inline-flex;
-    align-items: center;
-    width: var(--noora-icon-size-medium);
-    height: var(--noora-icon-size-medium);
-    color: var(--noora-surface-label-secondary);
-    cursor: help;
+  /* ── Help icon in card actions ───────────────────────────────────────────
+   * The `<.tooltip>` trigger slot overwrites the consumer's `data-part` with
+   * `"trigger"`, so we cannot target the inner span directly. Instead we size
+   * the `.noora-tooltip` container itself, mirroring how the widget header
+   * above handles its inline info icon.
+   */
+  & [data-part="actions"] {
+    & > .noora-tooltip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--noora-icon-size-medium);
+      height: var(--noora-icon-size-medium);
+      color: var(--noora-surface-label-secondary);
+      cursor: help;
 
-    & svg {
-      width: 100%;
-      height: 100%;
+      & [data-part="trigger"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+      }
+
+      & svg {
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 

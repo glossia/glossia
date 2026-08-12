@@ -12012,7 +12012,7 @@ defmodule GlossiaWeb.DashboardLive do
               size="large"
             >
               <:trigger :let={attrs}>
-                <span {attrs} data-part="help-icon">
+                <span {attrs}>
                   <Noora.Icon.icon name="alert_circle" />
                 </span>
               </:trigger>

@@ -1,49 +1,43 @@
 defmodule Glossia.Analytics.SettingsCache do
   @moduledoc false
 
-  # Tiny read-optimized ETS cache for analytics project lookups, keyed by site
-  # domain. Domains rarely change, so a short TTL keeps the hot path off Postgres
-  # without serving stale data for long. The table is public, so reads and the
-  # occasional invalidation happen directly without a GenServer round-trip.
+  # Cachex-backed cache for analytics project lookups, keyed by site domain.
+  # Domains rarely change, so a short TTL keeps the hot path off Postgres
+  # without serving stale data for long. Cachex owns the table and runs a
+  # janitor that reclaims expired rows, so entries for domains that are never
+  # looked up again do not accumulate.
 
-  use GenServer
+  import Cachex.Spec
 
-  @table __MODULE__
+  @cache __MODULE__
   @ttl :timer.seconds(60)
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  # `:name` lets a test start its own scoped instance and stay `async: true`
+  # instead of sharing the application-wide one.
+  def child_spec(opts) do
+    name = Keyword.get(opts, :name, @cache)
+
+    Supervisor.child_spec({Cachex, name: name, expiration: expiration(default: @ttl)}, id: name)
   end
 
-  def get(key) do
-    now = System.monotonic_time(:millisecond)
-
-    case :ets.lookup(@table, key) do
-      [{^key, entry, expires_at}]
-      when expires_at > now ->
-        entry
-
-      _ ->
-        :miss
+  @doc """
+  Returns the cached entry for `key`, or `:miss` when absent or expired.
+  """
+  def get(key, cache \\ @cache) do
+    case Cachex.get(cache, key) do
+      {:ok, nil} -> :miss
+      {:ok, entry} -> entry
+      _error -> :miss
     end
   end
 
-  def put(key, entry) do
-    :ets.insert(@table, {key, entry, System.monotonic_time(:millisecond) + @ttl})
+  def put(key, entry, cache \\ @cache) do
+    Cachex.put(cache, key, entry)
     entry
   end
 
-  def delete(key) do
-    :ets.delete(@table, key)
+  def delete(key, cache \\ @cache) do
+    Cachex.del(cache, key)
     :ok
-  end
-
-  @impl true
-  def init(_opts) do
-    if :ets.whereis(@table) == :undefined do
-      :ets.new(@table, [:set, :named_table, :public, read_concurrency: true])
-    end
-
-    {:ok, %{}}
   end
 end

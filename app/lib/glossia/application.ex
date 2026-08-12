@@ -92,7 +92,8 @@ defmodule Glossia.Application do
               |> Map.to_list())},
           id: Glossia.Analytics.EventBuffer
         ),
-        Glossia.Analytics.SettingsCache
+        Glossia.Analytics.SettingsCache,
+        Glossia.Analytics.Geolocation.Ipapi.Cache
       ] ++
         setup_recovery_children() ++
         [
