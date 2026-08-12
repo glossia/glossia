@@ -15,5 +15,5 @@ defmodule Glossia.Analytics.Config do
   def enabled?, do: get(:enabled, true)
 
   def geolocation_adapter,
-    do: get(:geolocation, []) |> Keyword.get(:adapter, Glossia.Analytics.Geolocation.Noop)
+    do: get(:geolocation, []) |> Keyword.get(:adapter, Glossia.Analytics.Geolocation.Ipapi)
 end

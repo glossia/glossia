@@ -634,7 +634,7 @@ if config_env() == :prod and not runner_child? do
   geo_adapter =
     if geoip_database_path,
       do: Glossia.Analytics.Geolocation.Maxmind,
-      else: Glossia.Analytics.Geolocation.Noop
+      else: Glossia.Analytics.Geolocation.Ipapi
 
   config :glossia, Glossia.Analytics,
     enabled: System.get_env("GLOSSIA_ANALYTICS_ENABLED") not in ~w(false 0),
