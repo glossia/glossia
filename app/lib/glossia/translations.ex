@@ -20,10 +20,13 @@ defmodule Glossia.Translations do
   """
 
   @supported_formats ~w(markdown json yaml po text)
+  @max_llm_attempts 3
+  @llm_retry_backoff_ms 2_000
 
   alias Glossia.Accounts.Account
   alias Glossia.Models.ModelIdentifier
   alias Glossia.Translations.Credentials
+  alias Glossia.Translations.Failure
   alias Glossia.Translations.LLM
   alias Glossia.Translations.Prompt
 
@@ -59,7 +62,9 @@ defmodule Glossia.Translations do
   @spec translate(Account.t(), map()) :: {:ok, result()} | {:error, error()}
   def translate(%Account{} = account, payload) do
     with {:ok, credential, system_prompt, user_prompt} <- prepare(account, payload) do
-      case LLM.run(credential, system_prompt, user_prompt) do
+      call = fn -> LLM.run(credential, system_prompt, user_prompt) end
+
+      case with_retries(call, credential, fn _attempt -> :ok end, @llm_retry_backoff_ms) do
         {:ok, text} -> {:ok, build_result(credential, text)}
         {:error, reason} -> {:error, {:llm_failed, reason}}
       end
@@ -87,17 +92,49 @@ defmodule Glossia.Translations do
   Streams a translation while resolving credentials on a designated node.
 
   The `:credential_node` option is used by isolated repository runners, which
-  cannot access the account database directly.
+  cannot access the account database directly. `:retry_backoff_ms` overrides the
+  delay between transient-failure retries.
   """
   @spec translate_stream(Account.t(), map(), (term() -> any()), keyword()) ::
           {:ok, result()} | {:error, error() | {:credential_relay_failed, term()}}
   def translate_stream(%Account{} = account, payload, on_event, opts)
       when is_function(on_event, 1) and is_list(opts) do
     with {:ok, credential, system_prompt, user_prompt} <- prepare(account, payload, opts) do
-      case LLM.stream(credential, system_prompt, user_prompt, on_event) do
+      call = fn -> LLM.stream(credential, system_prompt, user_prompt, on_event) end
+
+      notify_retry = fn attempt ->
+        on_event.({:provider_retry, attempt, @max_llm_attempts})
+      end
+
+      backoff_ms = Keyword.get(opts, :retry_backoff_ms, @llm_retry_backoff_ms)
+
+      case with_retries(call, credential, notify_retry, backoff_ms) do
         {:ok, text} -> {:ok, build_result(credential, text)}
         {:error, reason} -> {:error, {:llm_failed, reason}}
       end
+    end
+  end
+
+  # A dropped connection, a rate limit, or a provider hiccup would otherwise
+  # fail the whole item (and, in a repository run, the whole session), even
+  # though the same call succeeds moments later. Non-transient failures - no
+  # credit, bad credentials - are returned immediately.
+  defp with_retries(call, credential, notify_retry, backoff_ms, attempt \\ 1) do
+    case call.() do
+      {:ok, text} ->
+        {:ok, text}
+
+      {:error, reason} ->
+        provider = ModelIdentifier.provider(credential.model)
+
+        if attempt < @max_llm_attempts and
+             Failure.retryable?(Failure.from({:llm_failed, reason}, provider)) do
+          Process.sleep(backoff_ms * attempt)
+          notify_retry.(attempt + 1)
+          with_retries(call, credential, notify_retry, backoff_ms, attempt + 1)
+        else
+          {:error, reason}
+        end
     end
   end
 
