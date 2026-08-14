@@ -1,3 +1,4 @@
+#
 msgid ""
 msgstr ""
 "Language: ja\n"
@@ -6,83 +7,92 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-## From Ecto.Changeset.cast/4
+# From Ecto.Changeset.cast/4
 msgid "can't be blank"
 msgstr "を入力してください"
 
-## From Ecto.Changeset.unique_constraint/3
+# From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
 msgstr "は既に使用されています"
 
-## From Ecto.Changeset.put_change/3
+# From Ecto.Changeset.put_change/3
 msgid "is invalid"
 msgstr "は無効です"
 
-## From Ecto.Changeset.validate_acceptance/3
+# From Ecto.Changeset.validate_acceptance/3
 msgid "must be accepted"
 msgstr "に同意してください"
 
-## From Ecto.Changeset.validate_format/3
+# From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
 msgstr "は不正な形式です"
 
-## From Ecto.Changeset.validate_subset/3
+# From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
 msgstr "に無効な値が含まれています"
 
-## From Ecto.Changeset.validate_exclusion/3
+# From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
 msgstr "は予約されています"
 
-## From Ecto.Changeset.validate_confirmation/3
+# From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
 msgstr "が一致しません"
 
-## From Ecto.Changeset.no_assoc_constraint/3
+# From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
 msgstr "がこの項目にまだ関連付けられています"
 
 msgid "are still associated with this entry"
 msgstr "がこの項目にまだ関連付けられています"
 
-## From Ecto.Changeset.validate_length/3
+# From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
-msgstr[0] "は%{count}個でなければなりません"
+msgstr[0] "%{count}個のアイテムがあるはずです"
+msgstr[1] "%{count}個のアイテムがあるはずです"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] "は%{count}文字でなければなりません"
+msgstr[0] "%{count}文字である必要があります"
+msgstr[1] "%{count}文字である必要があります"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
-msgstr[0] "は%{count}バイトでなければなりません"
+msgstr[0] "%{count}バイトでなければなりません"
+msgstr[1] "%{count}バイトでなければなりません"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "は%{count}個以上でなければなりません"
+msgstr[0] "少なくとも %{count} 個の項目が必要です"
+msgstr[1] "少なくとも %{count} 個の項目が必要です"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "は%{count}文字以上でなければなりません"
+msgstr[0] "%{count}文字以上である必要があります"
+msgstr[1] "%{count}文字以上である必要があります"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "は%{count}バイト以上でなければなりません"
+msgstr[0] "%{count} バイト以上である必要があります"
+msgstr[1] "%{count} バイト以上である必要があります"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "は%{count}個以下でなければなりません"
+msgstr[0] "は最大で %{count} 個までです"
+msgstr[1] "は最大で %{count} 個までです"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "は%{count}文字以下でなければなりません"
+msgstr[0] "%{count}文字以内で入力してください"
+msgstr[1] "%{count}文字以内で入力してください"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "は%{count}バイト以下でなければなりません"
+msgstr[0] "%{count}バイト以下でなければなりません"
+msgstr[1] "%{count}バイト以下でなければなりません"
 
-## From Ecto.Changeset.validate_number/3
+# From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
 msgstr "は%{number}未満でなければなりません"
 

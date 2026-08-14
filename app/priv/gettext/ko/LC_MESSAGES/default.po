@@ -1,19 +1,19 @@
-## This file is a PO Template file.
-##
-## "msgid"s here are often extracted from source code.
-## Add new messages manually only if they're dynamic
-## messages that can't be statically extracted.
-##
-## Run "mix gettext.extract" to bring this file up to
-## date. Leave "msgstr"s empty as changing them here has no
-## effect: edit them in PO (.po) files instead.
+#  This file is a PO Template file.
+#
+#  "msgid"s here are often extracted from source code.
+#  Add new messages manually only if they're dynamic
+#  messages that can't be statically extracted.
+#
+#  Run "mix gettext.extract" to bring this file up to
+#  date. Leave "msgstr"s empty as changing them here has no
+#  effect: edit them in PO (.po) files instead.
 #
 msgid ""
 msgstr ""
+"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: lib/glossia_web/controllers/oauth/authorize_html/consent.html.heex:7
@@ -302,12 +302,16 @@ msgstr "조직 생성"
 
 #: lib/glossia_web/live/dashboard_live.ex:3975
 #, elixir-autogen, elixir-format
-msgid "Customize the voice for specific languages. Fields left empty will fall back to the base voice above."
+msgid ""
+"Customize the voice for specific languages. Fields left empty will fall back"
+" to the base voice above."
 msgstr "특정 언어에 맞춰 보이스를 맞춤 설정합니다. 빈칸으로 두는 필드는 위의 기본 보이스 설정을 따릅니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:3939
 #, elixir-autogen, elixir-format
-msgid "Detailed writing rules, brand voice notes, and things to avoid. Supports Markdown."
+msgid ""
+"Detailed writing rules, brand voice notes, and things to avoid. Supports "
+"Markdown."
 msgstr "상세한 작성 규칙, 브랜드 보이스 참고 사항 및 주의해야 할 사항입니다. 마크다운을 지원합니다."
 
 #: lib/glossia_web/components/dashboard_components.ex:969
@@ -648,7 +652,8 @@ msgstr "만료일"
 
 #: lib/glossia/emails.ex:22
 #, elixir-autogen, elixir-format
-msgid "If you did not expect this invitation, you can safely ignore this email."
+msgid ""
+"If you did not expect this invitation, you can safely ignore this email."
 msgstr "이 초대를 예상하지 않으셨다면 이 이메일을 무시하셔도 됩니다."
 
 #: lib/glossia_web/controllers/invitation_controller.ex:117
@@ -1012,8 +1017,12 @@ msgstr "본인을 제거할 수 없습니다."
 
 #: lib/glossia_web/controllers/feature_html/index.html.heex:6
 #, elixir-autogen, elixir-format
-msgid "Explore the capabilities that make Glossia the content agent for your codebase. Each feature is designed to fit into your existing workflow."
-msgstr "Glossia를 코드베이스용 콘텐츠 에이전트로 만드는 강력한 기능들을 탐색해 보세요. 각 기능은 기존 워크플로우에 원활하게 통합되도록 설계되었습니다."
+msgid ""
+"Explore the capabilities that make Glossia the content agent for your "
+"codebase. Each feature is designed to fit into your existing workflow."
+msgstr ""
+"Glossia를 코드베이스용 콘텐츠 에이전트로 만드는 강력한 기능들을 탐색해 보세요. 각 기능은 기존 워크플로우에 원활하게 통합되도록 "
+"설계되었습니다."
 
 #: lib/glossia_web/components/layouts/app.html.heex:8
 #: lib/glossia_web/components/layouts/app.html.heex:77
@@ -1197,17 +1206,23 @@ msgstr "애플리케이션이 업데이트되었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5988
 #, elixir-autogen, elixir-format
-msgid "Are you sure you want to delete this application? This action cannot be undone."
+msgid ""
+"Are you sure you want to delete this application? This action cannot be "
+"undone."
 msgstr "이 애플리케이션을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5508
 #, elixir-autogen, elixir-format
-msgid "Are you sure you want to revoke this token? Any applications using this token will no longer be able to access the API."
+msgid ""
+"Are you sure you want to revoke this token? Any applications using this "
+"token will no longer be able to access the API."
 msgstr "이 토큰을 취소하시겠습니까? 이 토큰을 사용하는 모든 애플리케이션은 더 이상 API에 액세스할 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5962
 #, elixir-autogen, elixir-format
-msgid "Are you sure? Existing integrations using the current secret will stop working."
+msgid ""
+"Are you sure? Existing integrations using the current secret will stop "
+"working."
 msgstr "정말 진행하시겠습니까? 현재 보안 비밀을 사용하는 기존 연동이 작동 중단됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5779
@@ -1288,7 +1303,9 @@ msgstr "애플리케이션 삭제"
 
 #: lib/glossia_web/live/dashboard_live.ex:5974
 #, elixir-autogen, elixir-format
-msgid "Deleting this application will revoke all tokens issued through it and break any integrations using it."
+msgid ""
+"Deleting this application will revoke all tokens issued through it and break"
+" any integrations using it."
 msgstr "이 애플리케이션을 삭제하면 이를 통해 발급된 모든 토큰이 취소되며, 이를 사용하는 모든 연동이 작동하지 않게 됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:3705
@@ -1374,7 +1391,9 @@ msgstr "OAuth 애플리케이션"
 
 #: lib/glossia_web/live/dashboard_live.ex:6002
 #, elixir-autogen, elixir-format
-msgid "OAuth applications allow external services to access Glossia on behalf of users."
+msgid ""
+"OAuth applications allow external services to access Glossia on behalf of "
+"users."
 msgstr "OAuth 애플리케이션을 사용하면 외부 서비스가 사용자를 대신하여 Glossia에 액세스할 수 있습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5956
@@ -1402,7 +1421,9 @@ msgstr "범위"
 #: lib/glossia_web/live/dashboard_live.ex:5366
 #: lib/glossia_web/live/dashboard_live.ex:5453
 #, elixir-autogen, elixir-format
-msgid "Select the permissions this token should have. Only grant the minimum scopes needed."
+msgid ""
+"Select the permissions this token should have. Only grant the minimum scopes"
+" needed."
 msgstr "이 토큰에 부여할 권한을 선택하십시오. 필요한 최소한의 범위만 부여하는 것이 좋습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5320
@@ -1475,7 +1496,9 @@ msgstr "사용자를 찾을 수 없습니다."
 
 #: lib/glossia_web/live/admin_live.ex:373
 #, elixir-autogen, elixir-format
-msgid "Provide a reason for this impersonation. This will be recorded in the audit log."
+msgid ""
+"Provide a reason for this impersonation. This will be recorded in the audit "
+"log."
 msgstr "이 사용자 가장에 대한 사유를 입력해 주십시오. 이 내용은 감사 로그에 기록됩니다."
 
 #: lib/glossia_web/live/admin_live.ex:384
@@ -1570,7 +1593,9 @@ msgstr "제목"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:71
 #, elixir-autogen, elixir-format
-msgid "Ask questions, share feedback, and connect with other builders using Glossia."
+msgid ""
+"Ask questions, share feedback, and connect with other builders using "
+"Glossia."
 msgstr "Glossia를 사용하는 다른 개발자들과 질문을 나누고 피드백을 공유하며 소통해 보십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:2233
@@ -1618,8 +1643,22 @@ msgstr "토큰이 업데이트되었습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:545
 #, elixir-autogen, elixir-format
-msgid "For the first time in history, we have tools that can capture context and interact with the outside world to produce and transform content across languages. LLMs changed what is possible, but possibility alone is not enough. You need a system that orchestrates those capabilities reliably: hashing to avoid redundant work, validation to catch errors, and retries to close the loop. On top of that, we build experiences for humans to review, correct, and enhance the system over time. That is what we are building from first principles and from years of experience building developer experiences and localization systems."
-msgstr "역사상 최초로 맥락을 파악하고 외부 세계와 상호작용하여 언어 전반에 걸쳐 콘텐츠를 생성하고 변환할 수 있는 도구를 갖추게 되었습니다. LLM은 가능성의 범위를 넓혔지만, 가능성만으로는 충분하지 않습니다. 중복 작업을 방지하기 위한 해싱, 오류를 잡아내기 위한 검증, 루프를 완성하기 위한 재시도 등 이러한 역량을 안정적으로 오케스트레이션하는 시스템이 필요합니다. 또한, 인간이 시스템을 검토하고 교정하며 지속적으로 개선할 수 있는 경험을 구축합니다. 이것이 바로 개발자 경험과 현지화 시스템을 구축해 온 오랜 경험과 제1원칙을 바탕으로 저희가 만들어 가고 있는 것입니다."
+msgid ""
+"For the first time in history, we have tools that can capture context and "
+"interact with the outside world to produce and transform content across "
+"languages. LLMs changed what is possible, but possibility alone is not "
+"enough. You need a system that orchestrates those capabilities reliably: "
+"hashing to avoid redundant work, validation to catch errors, and retries to "
+"close the loop. On top of that, we build experiences for humans to review, "
+"correct, and enhance the system over time. That is what we are building from"
+" first principles and from years of experience building developer "
+"experiences and localization systems."
+msgstr ""
+"역사상 최초로 맥락을 파악하고 외부 세계와 상호작용하여 언어 전반에 걸쳐 콘텐츠를 생성하고 변환할 수 있는 도구를 갖추게 되었습니다. "
+"LLM은 가능성의 범위를 넓혔지만, 가능성만으로는 충분하지 않습니다. 중복 작업을 방지하기 위한 해싱, 오류를 잡아내기 위한 검증, "
+"루프를 완성하기 위한 재시도 등 이러한 역량을 안정적으로 오케스트레이션하는 시스템이 필요합니다. 또한, 인간이 시스템을 검토하고 교정하며"
+" 지속적으로 개선할 수 있는 경험을 구축합니다. 이것이 바로 개발자 경험과 현지화 시스템을 구축해 온 오랜 경험과 제1원칙을 바탕으로 "
+"저희가 만들어 가고 있는 것입니다."
 
 #: lib/glossia_web/controllers/docs_controller.ex:10
 #: lib/glossia_web/controllers/docs_html/index.html.heex:5
@@ -1629,8 +1668,19 @@ msgstr "Glossia를 사용하여 콘텐츠를 현지화하고 개선하는 방법
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:553
 #, elixir-autogen, elixir-format
-msgid "No. Glossia acts as a broker between your content and the models. We work with linguists to understand which models perform best at certain tasks and define those defaults for you, so you get the best experience combining the models, the system, and your context. The landscape is moving fast, and you want the flexibility to switch models quickly without rewiring your pipeline. Glossia gives you strong defaults out of the box while keeping the freedom to override with any provider you prefer."
-msgstr "아닙니다. Glossia는 콘텐츠와 모델 사이에서 중개자 역할을 합니다. 당사는 언어 전문가들과 협력하여 특정 작업에 가장 적합한 모델이 무엇인지 파악하고 이를 기본값으로 정의하므로, 모델, 시스템 및 맥락이 결합된 최상의 경험을 누릴 수 있습니다. 인공지능 환경은 빠르게 변화하고 있으며, 귀사는 파이프라인을 재설정하지 않고도 모델을 신속하게 전환할 수 있는 유연성을 원할 것입니다. Glossia는 즉시 사용 가능한 강력한 기본값을 제공하는 동시에, 귀사가 선호하는 제공업체로 자유롭게 대체할 수 있는 유연성을 유지합니다."
+msgid ""
+"No. Glossia acts as a broker between your content and the models. We work "
+"with linguists to understand which models perform best at certain tasks and "
+"define those defaults for you, so you get the best experience combining the "
+"models, the system, and your context. The landscape is moving fast, and you "
+"want the flexibility to switch models quickly without rewiring your "
+"pipeline. Glossia gives you strong defaults out of the box while keeping the"
+" freedom to override with any provider you prefer."
+msgstr ""
+"아닙니다. Glossia는 콘텐츠와 모델 사이에서 중개자 역할을 합니다. 당사는 언어 전문가들과 협력하여 특정 작업에 가장 적합한 모델이"
+" 무엇인지 파악하고 이를 기본값으로 정의하므로, 모델, 시스템 및 맥락이 결합된 최상의 경험을 누릴 수 있습니다. 인공지능 환경은 빠르게"
+" 변화하고 있으며, 귀사는 파이프라인을 재설정하지 않고도 모델을 신속하게 전환할 수 있는 유연성을 원할 것입니다. Glossia는 즉시 "
+"사용 가능한 강력한 기본값을 제공하는 동시에, 귀사가 선호하는 제공업체로 자유롭게 대체할 수 있는 유연성을 유지합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:559
 #, elixir-autogen, elixir-format
@@ -1718,8 +1768,13 @@ msgstr "귀사의 언어적 정체성을 위한 협업 플랫폼"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:206
 #, elixir-autogen, elixir-format
-msgid "AI agents translate, adapt, and refine your content, guided by your linguistic preferences. When context changes, the system knows what is affected and revisits it automatically."
-msgstr "AI 에이전트가 귀사의 언어적 선호도에 따라 콘텐츠를 번역, 조정 및 개선합니다. 맥락이 변경되면 시스템은 영향을 받는 요소를 파악하고 이를 자동으로 재검토합니다."
+msgid ""
+"AI agents translate, adapt, and refine your content, guided by your "
+"linguistic preferences. When context changes, the system knows what is "
+"affected and revisits it automatically."
+msgstr ""
+"AI 에이전트가 귀사의 언어적 선호도에 따라 콘텐츠를 번역, 조정 및 개선합니다. 맥락이 변경되면 시스템은 영향을 받는 요소를 파악하고 "
+"이를 자동으로 재검토합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:169
 #, elixir-autogen, elixir-format
@@ -1738,8 +1793,13 @@ msgstr "에이전트 기반 현지화 및 콘텐츠 재검토"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:124
 #, elixir-autogen, elixir-format
-msgid "All of your linguistic preferences live in one place. Every team draws from the same foundation, so your organization sounds consistent whether it is a product screen, a marketing campaign, or a support reply."
-msgstr "모든 언어적 선호도가 한 곳에서 관리됩니다. 모든 팀이 동일한 기반을 공유하므로, 제품 화면, 마케팅 캠페인, 지원 답변 등 어떤 영역에서든 조직의 일관된 보이스를 유지할 수."
+msgid ""
+"All of your linguistic preferences live in one place. Every team draws from "
+"the same foundation, so your organization sounds consistent whether it is a "
+"product screen, a marketing campaign, or a support reply."
+msgstr ""
+"모든 언어적 선호도가 한 곳에서 관리됩니다. 모든 팀이 동일한 기반을 공유하므로, 제품 화면, 마케팅 캠페인, 지원 답변 등 어떤 "
+"영역에서든 조직의 일관된 보이스를 유지할 수."
 
 #: lib/glossia_web/live/dashboard_live.ex:7385
 #, elixir-autogen, elixir-format
@@ -1799,7 +1859,9 @@ msgstr "댓글"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:263
 #, elixir-autogen, elixir-format
-msgid "Connect your writing platforms, content systems, and AI assistants to your organization's linguistic knowledge."
+msgid ""
+"Connect your writing platforms, content systems, and AI assistants to your "
+"organization's linguistic knowledge."
 msgstr "작성 플랫폼, 콘텐츠 시스템 및 AI 어시스턴트를 조직의 언어적 지식에 연결하십시오."
 
 #: lib/glossia_web/components/layouts.ex:101
@@ -1890,8 +1952,13 @@ msgstr "GitHub가 이미 연결되어 있습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:381
 #, elixir-autogen, elixir-format
-msgid "Global definitions on Glossia set the baseline for your organization. Project-level context narrows the scope. The result: every agent gets exactly the right instructions without you repeating yourself."
-msgstr "Glossia의 글로벌 정의는 조직의 기준을 설정합니다. 프로젝트 수준의 맥락은 범위를 좁혀 줍니다. 그 결과, 사용자가 지시 사항을 반복할 필요 없이 모든 에이전트가 정확하고 적절한 지침을 받게 됩니다."
+msgid ""
+"Global definitions on Glossia set the baseline for your organization. "
+"Project-level context narrows the scope. The result: every agent gets "
+"exactly the right instructions without you repeating yourself."
+msgstr ""
+"Glossia의 글로벌 정의는 조직의 기준을 설정합니다. 프로젝트 수준의 맥락은 범위를 좁혀 줍니다. 그 결과, 사용자가 지시 사항을 "
+"반복할 필요 없이 모든 에이전트가 정확하고 적절한 지침을 받게 됩니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:168
 #, elixir-autogen, elixir-format
@@ -1900,8 +1967,13 @@ msgstr "Glossia는 다음을 통해 기존 워크플로우와 통합됩니다"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:529
 #, elixir-autogen, elixir-format
-msgid "Integrate linguistic context into your existing tools and workflows through APIs and MCP. Your content stays consistent without adding manual steps to the development process."
-msgstr "API 및 MCP를 통해 기존 도구와 워크플로우에 언어적 맥락을 통합하십시오. 개발 프로세스에 번거로운 수동 단계를 추가하지 않고도 콘텐츠의 일관성을 유지할 수 있습니다."
+msgid ""
+"Integrate linguistic context into your existing tools and workflows through "
+"APIs and MCP. Your content stays consistent without adding manual steps to "
+"the development process."
+msgstr ""
+"API 및 MCP를 통해 기존 도구와 워크플로우에 언어적 맥락을 통합하십시오. 개발 프로세스에 번거로운 수동 단계를 추가하지 않고도 "
+"콘텐츠의 일관성을 유지할 수 있습니다."
 
 #: lib/glossia_web/controllers/oauth/device_controller.ex:136
 #, elixir-autogen, elixir-format
@@ -1942,13 +2014,22 @@ msgstr "언어 전문가 중심"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:368
 #, elixir-autogen, elixir-format
-msgid "Linguists contribute across multiple organizations, refine preferences, and see the impact of their decisions propagate through the system in real time."
-msgstr "언어 전문가는 여러 조직에서 기여하고, 선호도를 미세 조정하며, 자신의 결정이 시스템 전체에 실시간으로 반영되는 결과를 확인할 수 있습니다."
+msgid ""
+"Linguists contribute across multiple organizations, refine preferences, and "
+"see the impact of their decisions propagate through the system in real time."
+msgstr ""
+"언어 전문가는 여러 조직에서 기여하고, 선호도를 미세 조정하며, 자신의 결정이 시스템 전체에 실시간으로 반영되는 결과를 확인할 수 "
+"있습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:289
 #, elixir-autogen, elixir-format
-msgid "Linguists review, refine, and approve content directly. They are not at the end of a chain but at the center, shaping how your organization speaks before anything ships."
-msgstr "언어 전문가가 콘텐츠를 직접 검토, 개선 및 승인합니다. 이들은 작업 체인의 끝단에 있는 것이 아니라 중심에 서서 제품이 출시되기 전에 조직의 보이스를 형성합니다."
+msgid ""
+"Linguists review, refine, and approve content directly. They are not at the "
+"end of a chain but at the center, shaping how your organization speaks "
+"before anything ships."
+msgstr ""
+"언어 전문가가 콘텐츠를 직접 검토, 개선 및 승인합니다. 이들은 작업 체인의 끝단에 있는 것이 아니라 중심에 서서 제품이 출시되기 전에 "
+"조직의 보이스를 형성합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:435
 #: lib/glossia_web/controllers/page_html/home.html.heex:441
@@ -1963,8 +2044,13 @@ msgstr "Glossia에서"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:302
 #, elixir-autogen, elixir-format
-msgid "One place where linguists and language managers define how an organization speaks, track every change, and collaborate across projects. Think of it as what GitHub did for software teams, but for the people who shape language."
-msgstr "언어 전문가와 언어 관리자가 조직의 보이스를 정의하고, 모든 변경 사항을 추적하며, 프로젝트 전반에서 협업할 수 있는 단일 공간입니다. GitHub가 소프트웨어 팀에 제공했던 가치를 언어를 형성하는 사람들에게 제공한다고 생각하시면 됩니다."
+msgid ""
+"One place where linguists and language managers define how an organization "
+"speaks, track every change, and collaborate across projects. Think of it as "
+"what GitHub did for software teams, but for the people who shape language."
+msgstr ""
+"언어 전문가와 언어 관리자가 조직의 보이스를 정의하고, 모든 변경 사항을 추적하며, 프로젝트 전반에서 협업할 수 있는 단일 공간입니다. "
+"GitHub가 소프트웨어 팀에 제공했던 가치를 언어를 형성하는 사람들에게 제공한다고 생각하시면 됩니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:122
 #, elixir-autogen, elixir-format
@@ -2062,8 +2148,13 @@ msgstr "새로운 언어로 말하고, 새로운 시장을 개척하십시오"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:507
 #, elixir-autogen, elixir-format
-msgid "Stop gluing tools together. Glossia is the system you have been looking for: one place to maintain terminology, enforce consistency, and coordinate across teams and projects."
-msgstr "여러 도구를 임시방편으로 연결하는 일을 멈추십시오. Glossia는 귀사가 찾던 시스템입니다. 용어를 유지하고, 일관성을 강제하며, 팀과 프로젝트 전반의 협업을 조율하는 단일 공간을 제공합니다."
+msgid ""
+"Stop gluing tools together. Glossia is the system you have been looking for:"
+" one place to maintain terminology, enforce consistency, and coordinate "
+"across teams and projects."
+msgstr ""
+"여러 도구를 임시방편으로 연결하는 일을 멈추십시오. Glossia는 귀사가 찾던 시스템입니다. 용어를 유지하고, 일관성을 강제하며, 팀과"
+" 프로젝트 전반의 협업을 조율하는 단일 공간을 제공합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:379
 #, elixir-autogen, elixir-format
@@ -2072,8 +2163,13 @@ msgstr "맥락이 구체적일수록 콘텐츠에 더 밀접하게 반영됩니�
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:146
 #, elixir-autogen, elixir-format
-msgid "The same linguistic foundation that keeps your content consistent also powers expansion into new languages. Linguists refine the voice once, and every market benefits from that work immediately."
-msgstr "콘텐츠의 일관성을 유지하는 동일한 언어적 기반이 새로운 언어로의 확장도 지원합니다. 언어 전문가가 한 번 보이스를 개선하면 모든 시장이 그 결과를 즉시 누릴 수 있습니다."
+msgid ""
+"The same linguistic foundation that keeps your content consistent also "
+"powers expansion into new languages. Linguists refine the voice once, and "
+"every market benefits from that work immediately."
+msgstr ""
+"콘텐츠의 일관성을 유지하는 동일한 언어적 기반이 새로운 언어로의 확장도 지원합니다. 언어 전문가가 한 번 보이스를 개선하면 모든 시장이 "
+"그 결과를 즉시 누릴 수 있습니다."
 
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex:28
 #, elixir-autogen, elixir-format
@@ -2129,13 +2225,20 @@ msgstr "보이스"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:184
 #, elixir-autogen, elixir-format
-msgid "We build solutions on top of the language OS, and you can build your own. The same foundation powers everything."
-msgstr "우리는 언어 OS를 기반으로 솔루션을 구축하며, 여러분 역시 자체 솔루션을 구축할 수 있습니다. 동일한 기반이 모든 것을 구동합니다."
+msgid ""
+"We build solutions on top of the language OS, and you can build your own. "
+"The same foundation powers everything."
+msgstr ""
+"우리는 언어 OS를 기반으로 솔루션을 구축하며, 여러분 역시 자체 솔루션을 구축할 수 있습니다. 동일한 기반이 모든 것을 구동합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:457
 #, elixir-autogen, elixir-format
-msgid "Whether you define the voice, manage the workflows, or build the products, Glossia gives you a shared system to work from."
-msgstr "보이스를 정의하거나, 워크플로우를 관리하거나, 제품을 구축하는 등 어떤 작업을 하든 Glossia는 협업할 수 있는 공유 시스템을 제공합니다."
+msgid ""
+"Whether you define the voice, manage the workflows, or build the products, "
+"Glossia gives you a shared system to work from."
+msgstr ""
+"보이스를 정의하거나, 워크플로우를 관리하거나, 제품을 구축하는 등 어떤 작업을 하든 Glossia는 협업할 수 있는 공유 시스템을 "
+"제공합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:100
 #, elixir-autogen, elixir-format
@@ -2149,12 +2252,16 @@ msgstr "댓글 작성..."
 
 #: lib/glossia_web/controllers/github_install_callback_controller.ex:29
 #, elixir-autogen, elixir-format
-msgid "Your GitHub App installation request has been sent to the organization admin."
+msgid ""
+"Your GitHub App installation request has been sent to the organization "
+"admin."
 msgstr "GitHub 앱 설치 요청이 조직 관리자에게 전송되었습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:102
 #, elixir-autogen, elixir-format
-msgid "Your organization already has systems for code, design, and data. Language deserves the same level of care."
+msgid ""
+"Your organization already has systems for code, design, and data. Language "
+"deserves the same level of care."
 msgstr "귀하의 조직에는 이미 코드, 디자인, 데이터를 위한 시스템이 있습니다. 언어도 동일한 수준으로 관리되어야 합니다."
 
 #: lib/glossia_web/components/layouts/app.html.heex:23
@@ -2165,8 +2272,11 @@ msgstr "내 프로필"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:171
 #, elixir-autogen, elixir-format
-msgid "Your writing tools, content platforms, and AI assistants can all tap into your organization's linguistic knowledge without switching systems."
-msgstr "귀하의 작성 도구, 콘텐츠 플랫폼, AI 어시스턴트는 시스템을 전환할 필요 없이 모두 조직의 언어적 지식을 활용할 수 있습니다."
+msgid ""
+"Your writing tools, content platforms, and AI assistants can all tap into "
+"your organization's linguistic knowledge without switching systems."
+msgstr ""
+"귀하의 작성 도구, 콘텐츠 플랫폼, AI 어시스턴트는 시스템을 전환할 필요 없이 모두 조직의 언어적 지식을 활용할 수 있습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:170
 #, elixir-autogen, elixir-format
@@ -2311,7 +2421,8 @@ msgstr "프로젝트 설정을 업데이트할 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:3667
 #, elixir-autogen, elixir-format
-msgid "Create a suggestion with title, description, and proposed voice updates."
+msgid ""
+"Create a suggestion with title, description, and proposed voice updates."
 msgstr "제목, 설명, 제안할 보이스 업데이트 내용을 포함하여 제안을 작성하세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:9578
@@ -2606,6 +2717,7 @@ msgstr "이 프로젝트의 번역 세션입니다."
 msgid "%{count} language selected"
 msgid_plural "%{count} languages selected"
 msgstr[0] "%{count}개 언어 선택됨"
+msgstr[1] "%{count}개 언어 선택됨"
 
 #: lib/glossia_web/live/dashboard_live.ex:7956
 #, elixir-autogen, elixir-format
@@ -2700,12 +2812,18 @@ msgstr "저장소가 보이지 않으십니까?"
 
 #: lib/glossia_web/controllers/github_install_redirect_controller.ex:27
 #, elixir-autogen, elixir-format
-msgid "GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and GITHUB_APP_SLUG."
-msgstr "GitHub 앱이 구성되지 않았습니다. GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_SLUG를 설정하십시오."
+msgid ""
+"GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and"
+" GITHUB_APP_SLUG."
+msgstr ""
+"GitHub 앱이 구성되지 않았습니다. GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, "
+"GITHUB_APP_SLUG를 설정하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:7912
 #, elixir-autogen, elixir-format
-msgid "Install the Glossia GitHub App to import repositories and set up localization."
+msgid ""
+"Install the Glossia GitHub App to import repositories and set up "
+"localization."
 msgstr "저장소를 가져오고 현지화를 설정하려면 Glossia GitHub 앱을 설치하십시오."
 
 #: lib/glossia_web/live/profile_live.ex:330
@@ -2744,8 +2862,12 @@ msgstr "변경 사항을 제안할 준비가 됨"
 
 #: lib/glossia_web/live/dashboard_live.ex:7892
 #, elixir-autogen, elixir-format
-msgid "The GitHub App is installed but has no accessible repositories. Configure the installation to grant access to the repositories you want to import."
-msgstr "GitHub 앱이 설치되었으나 액세스 가능한 저장소가 없습니다. 가져오려는 저장소에 대한 액세스 권한을 부여하도록 설치 구성을 변경하십시오."
+msgid ""
+"The GitHub App is installed but has no accessible repositories. Configure "
+"the installation to grant access to the repositories you want to import."
+msgstr ""
+"GitHub 앱이 설치되었으나 액세스 가능한 저장소가 없습니다. 가져오려는 저장소에 대한 액세스 권한을 부여하도록 설치 구성을 "
+"변경하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:825
 #, elixir-autogen, elixir-format
@@ -2843,8 +2965,13 @@ msgstr "현지화 기준선이 검토 준비되었습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:389
 #, elixir-autogen, elixir-format
-msgid "GLOSSIA.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
-msgstr "GLOSSIA.md 파일은 콘텐츠와 함께 배치됩니다. 이 파일에는 지침, 어조 가이드, 그리고 필요한 위치에 정확하게 문맥 범위를 지정하는 언어별 재정의(override)가 포함되어 있습니다."
+msgid ""
+"GLOSSIA.md files sit alongside your content. They carry instructions, tone "
+"guidance, and per-language overrides that scope context to exactly where it "
+"is needed."
+msgstr ""
+"GLOSSIA.md 파일은 콘텐츠와 함께 배치됩니다. 이 파일에는 지침, 어조 가이드, 그리고 필요한 위치에 정확하게 문맥 범위를 "
+"지정하는 언어별 재정의(override)가 포함되어 있습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
 #, elixir-autogen, elixir-format
@@ -2885,12 +3012,19 @@ msgstr "모델 삭제"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:6
 #, elixir-autogen, elixir-format
-msgid "Glossia captures your linguistic preferences in one place so linguists and teams can shape how your organization speaks across every language and surface."
-msgstr "Glossia는 언어적 선호 사항을 한곳에 담아내어, 언어 전문가와 팀이 모든 언어와 영역에서 조직이 소통하는 방식을 정립할 수 있도록 돕습니다."
+msgid ""
+"Glossia captures your linguistic preferences in one place so linguists and "
+"teams can shape how your organization speaks across every language and "
+"surface."
+msgstr ""
+"Glossia는 언어적 선호 사항을 한곳에 담아내어, 언어 전문가와 팀이 모든 언어와 영역에서 조직이 소통하는 방식을 정립할 수 있도록 "
+"돕습니다."
 
 #: lib/glossia_web/controllers/page_controller.ex:15
 #, elixir-autogen, elixir-format
-msgid "Glossia is the open-source language OS where linguists and teams shape how your organization speaks across every language and surface."
+msgid ""
+"Glossia is the open-source language OS where linguists and teams shape how "
+"your organization speaks across every language and surface."
 msgstr "Glossia는 언어 전문가와 팀이 모든 언어와 영역에서 조직이 소통하는 방식을 정립하는 오픈 소스 언어 OS입니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:11324
@@ -2969,8 +3103,13 @@ msgstr "모델 선택..."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:232
 #, elixir-autogen, elixir-format
-msgid "A queryable map that connects your voices, terminology, audiences, and rules. Agents and integrations query it at runtime, so every decision a linguist makes flows through to every piece of content it touches."
-msgstr "어조, 용어집, 대상 독자, 규칙을 연결하여 쿼리할 수 있는 맵입니다. 에이전트와 통합 도구는 런타임에 이를 조회하므로, 언어 전문가의 모든 결정이 관련된 모든 콘텐츠에 즉각 반영됩니다."
+msgid ""
+"A queryable map that connects your voices, terminology, audiences, and "
+"rules. Agents and integrations query it at runtime, so every decision a "
+"linguist makes flows through to every piece of content it touches."
+msgstr ""
+"어조, 용어집, 대상 독자, 규칙을 연결하여 쿼리할 수 있는 맵입니다. 에이전트와 통합 도구는 런타임에 이를 조회하므로, 언어 전문가의 "
+"모든 결정이 관련된 모든 콘텐츠에 즉각 반영됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:4852
 #, elixir-autogen, elixir-format
@@ -3036,13 +3175,20 @@ msgstr "제안을 다시 열 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:4485
 #, elixir-autogen, elixir-format
-msgid "Create a suggestion with title, description, and proposed terminology updates."
+msgid ""
+"Create a suggestion with title, description, and proposed terminology "
+"updates."
 msgstr "제목, 설명, 제안된 용어 업데이트가 포함된 제안을 생성합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:324
 #, elixir-autogen, elixir-format
-msgid "Create an organization, invite your team, and organize work into projects. Each project has its own voices, terminology, and rules that linguists iterate on together."
-msgstr "조직을 생성하고, 팀을 초대하며, 작업을 프로젝트로 체계화하십시오. 각 프로젝트에는 언어 전문가들이 함께 개선해 나갈 고유한 어조, 용어집, 규칙이 정의됩니다."
+msgid ""
+"Create an organization, invite your team, and organize work into projects. "
+"Each project has its own voices, terminology, and rules that linguists "
+"iterate on together."
+msgstr ""
+"조직을 생성하고, 팀을 초대하며, 작업을 프로젝트로 체계화하십시오. 각 프로젝트에는 언어 전문가들이 함께 개선해 나갈 고유한 어조, "
+"용어집, 규칙이 정의됩니다."
 
 #: lib/glossia_web/controllers/changelog_html/index.html.heex:23
 #, elixir-autogen, elixir-format
@@ -3061,12 +3207,17 @@ msgstr "단일 용어와 해당 용어의 승인된 번역을 편집합니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:346
 #, elixir-autogen, elixir-format
-msgid "Every change to a voice, terminology entry, or rule is versioned. See what changed, who changed it, and why. Roll back when needed."
-msgstr "어조, 용어집 항목, 규칙에 대한 모든 변경 사항은 버전별로 기록됩니다. 무엇이, 누구에 의해, 왜 변경되었는지 확인하고 필요할 때 이전 버전으로 되돌릴 수 있습니다."
+msgid ""
+"Every change to a voice, terminology entry, or rule is versioned. See what "
+"changed, who changed it, and why. Roll back when needed."
+msgstr ""
+"어조, 용어집 항목, 규칙에 대한 모든 변경 사항은 버전별로 기록됩니다. 무엇이, 누구에 의해, 왜 변경되었는지 확인하고 필요할 때 이전"
+" 버전으로 되돌릴 수 있습니다."
 
 #: lib/glossia_web/controllers/feature_controller.ex:11
 #, elixir-autogen, elixir-format
-msgid "Explore Glossia's language memory, localization, API, and MCP capabilities."
+msgid ""
+"Explore Glossia's language memory, localization, API, and MCP capabilities."
 msgstr "Glossia의 언어 메모리, 현지화, API, MCP 기능을 살펴보십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:9632
@@ -3091,7 +3242,8 @@ msgstr "Glossia 로그인"
 
 #: lib/glossia_web/live/dashboard_live.ex:5540
 #, elixir-autogen, elixir-format
-msgid "Make sure to copy your token now. You will not be able to see it again."
+msgid ""
+"Make sure to copy your token now. You will not be able to see it again."
 msgstr "지금 토큰을 복사해 두십시오. 이 토큰은 다시 확인할 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5092
@@ -3148,17 +3300,33 @@ msgstr "이 조직에 연결된 프로젝트입니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:9709
 #, elixir-autogen, elixir-format
-msgid "Proposed %{resource} update.\n\nChange note: %{note}\n\nUse the suggestion action to apply this when ready."
-msgstr "%{resource} 업데이트 제안.\n\n변경 메모: %{note}\n\n준비가 되면 제안 작업을 사용하여 이를 반영하십시오."
+msgid ""
+"Proposed %{resource} update.\n"
+"\n"
+"Change note: %{note}\n"
+"\n"
+"Use the suggestion action to apply this when ready."
+msgstr ""
+"%{resource} 업데이트 제안.\n"
+"\n"
+"변경 메모: %{note}\n"
+"\n"
+"준비가 되면 제안 작업을 사용하여 이를 반영하십시오."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:479
 #, elixir-autogen, elixir-format
-msgid "Refine voice definitions, update terminology, and review content directly. Your expertise becomes the foundation that agents and integrations draw from across every project."
-msgstr "어조 정의를 개선하고, 용어집을 업데이트하며, 콘텐츠를 직접 검토하십시오. 귀하의 전문성은 에이전트와 통합 도구가 모든 프로젝트에서 활용할 수 있는 토대가 됩니다."
+msgid ""
+"Refine voice definitions, update terminology, and review content directly. "
+"Your expertise becomes the foundation that agents and integrations draw from"
+" across every project."
+msgstr ""
+"어조 정의를 개선하고, 용어집을 업데이트하며, 콘텐츠를 직접 검토하십시오. 귀하의 전문성은 에이전트와 통합 도구가 모든 프로젝트에서 "
+"활용할 수 있는 토대가 됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:6105
 #, elixir-autogen, elixir-format
-msgid "Register an OAuth application to let external services access your account."
+msgid ""
+"Register an OAuth application to let external services access your account."
 msgstr "외부 서비스가 귀하의 계정에 액세스할 수 있도록 OAuth 애플리케이션을 등록하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:10995
@@ -3183,7 +3351,9 @@ msgstr "리비전 #%{version}"
 
 #: lib/glossia_web/live/dashboard_live.ex:5495
 #, elixir-autogen, elixir-format
-msgid "Revoking this token will immediately prevent any applications using it from accessing Glossia."
+msgid ""
+"Revoking this token will immediately prevent any applications using it from "
+"accessing Glossia."
 msgstr "이 토큰을 취소하면 이 토큰을 사용하는 모든 애플리케이션의 Glossia 액세스가 즉시 차단됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:4036
@@ -3280,7 +3450,9 @@ msgstr "토큰을 사용하여 자동화 도구가 Glossia에 인증할 수 있�
 
 #: lib/glossia_web/live/dashboard_live.ex:5520
 #, elixir-autogen, elixir-format
-msgid "Tokens you have generated that can be used to access Glossia programmatically."
+msgid ""
+"Tokens you have generated that can be used to access Glossia "
+"programmatically."
 msgstr "프로그램 방식으로 Glossia에 액세스하는 데 사용할 수 있도록 생성된 토큰입니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:9573
@@ -3290,13 +3462,28 @@ msgstr "보이스 제안이 제안 #%{number}(으)로 제출되었습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:421
 #, elixir-autogen, elixir-format
-msgid "Voices, terminology, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
-msgstr "보이스, 용어, 타겟 프로필 및 스타일 규칙은 플랫폼에서 관리됩니다. 이는 조직 내 모든 프로젝트에서 공유되며 버전이 관리되므로 누락되는 내용이 없습니다."
+msgid ""
+"Voices, terminology, audience profiles, and style rules live on the "
+"platform. They are shared across every project in your organization and "
+"versioned so nothing gets lost."
+msgstr ""
+"보이스, 용어, 타겟 프로필 및 스타일 규칙은 플랫폼에서 관리됩니다. 이는 조직 내 모든 프로젝트에서 공유되며 버전이 관리되므로 누락되는"
+" 내용이 없습니다."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:561
 #, elixir-autogen, elixir-format
-msgid "We are building experiences where humans take part in the agentic loops through interfaces that run in the browser or on the go. Implementation details like tools, models, and environments are abstracted away so reviewers can focus on the content itself. We are also designing agentic experiences for linguists to contribute directly to the system, refining voice, terminology, and quality standards without needing to touch config files or code."
-msgstr "우리는 브라우저나 이동 중에도 실행되는 인터페이스를 통해 인간이 에이전트 루프에 참여할 수 있는 경험을 구축하고 있습니다. 도구, 모델, 환경과 같은 구현 세부 사항은 추상화되어 검토자가 콘텐츠 자체에 집중할 수 있도록 돕습니다. 또한 언어 학자가 구성 파일이나 코드를 다루지 않고도 보이스, 용어 및 품질 표준을 미세 조정하여 시스템에 직접 기여할 수 있도록 지원하는 에이전트 경험을 설계하고 있습니다."
+msgid ""
+"We are building experiences where humans take part in the agentic loops "
+"through interfaces that run in the browser or on the go. Implementation "
+"details like tools, models, and environments are abstracted away so "
+"reviewers can focus on the content itself. We are also designing agentic "
+"experiences for linguists to contribute directly to the system, refining "
+"voice, terminology, and quality standards without needing to touch config "
+"files or code."
+msgstr ""
+"우리는 브라우저나 이동 중에도 실행되는 인터페이스를 통해 인간이 에이전트 루프에 참여할 수 있는 경험을 구축하고 있습니다. 도구, 모델,"
+" 환경과 같은 구현 세부 사항은 추상화되어 검토자가 콘텐츠 자체에 집중할 수 있도록 돕습니다. 또한 언어 학자가 구성 파일이나 코드를 "
+"다루지 않고도 보이스, 용어 및 품질 표준을 미세 조정하여 시스템에 직접 기여할 수 있도록 지원하는 에이전트 경험을 설계하고 있습니다."
 
 #: lib/glossia_web/controllers/auth_controller.ex:35
 #, elixir-autogen, elixir-format
@@ -3341,7 +3528,9 @@ msgstr "사용자가 이 애플리케이션을 승인할 때 표시되는 식별
 
 #: lib/glossia_web/live/dashboard_live.ex:5704
 #, elixir-autogen, elixir-format
-msgid "Allow users to sign in with Glossia or let an external service access the account."
+msgid ""
+"Allow users to sign in with Glossia or let an external service access the "
+"account."
 msgstr "사용자가 Glossia로 로그인하거나 외부 서비스가 계정에 액세스할 수 있도록 허용합니다."
 
 #: lib/glossia_web/controllers/auth_controller.ex:47
@@ -3356,7 +3545,9 @@ msgstr "애플리케이션이 등록되었습니다"
 
 #: lib/glossia_web/live/dashboard_live.ex:4593
 #, elixir-autogen, elixir-format
-msgid "Canonical terms and their approved translations. Terms are matched during content processing to keep terminology consistent."
+msgid ""
+"Canonical terms and their approved translations. Terms are matched during "
+"content processing to keep terminology consistent."
 msgstr "표준 용어 및 승인된 번역입니다. 콘텐츠 처리 중에 용어가 일치되어 용어 일관성을 유지합니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5046
@@ -3565,7 +3756,8 @@ msgstr "모델 검색..."
 #, elixir-autogen, elixir-format
 msgid "%{count} repository"
 msgid_plural "%{count} repositories"
-msgstr[0] "%{count}개의 리포지토리"
+msgstr[0] "%{count}개의 저장소"
+msgstr[1] "%{count}개의 저장소"
 
 #: lib/glossia_web/live/dashboard_live.ex:2669
 #: lib/glossia_web/live/dashboard_live.ex:2682
@@ -3721,13 +3913,21 @@ msgstr "기본 모델을 업데이트할 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:11225
 #, elixir-autogen, elixir-format
-msgid "Add a named model configuration. Each translation uses one model handle from the nearest applicable GLOSSIA.md file, or the account default when no handle is set."
-msgstr "지정된 이름의 모델 구성을 추가합니다. 각 번역은 가장 가까운 위치의 GLOSSIA.md 파일에 지정된 모델 핸들 하나를 사용하며, 설정된 핸들이 없으면 계정 기본값을 사용합니다."
+msgid ""
+"Add a named model configuration. Each translation uses one model handle from"
+" the nearest applicable GLOSSIA.md file, or the account default when no "
+"handle is set."
+msgstr ""
+"지정된 이름의 모델 구성을 추가합니다. 각 번역은 가장 가까운 위치의 GLOSSIA.md 파일에 지정된 모델 핸들 하나를 사용하며, "
+"설정된 핸들이 없으면 계정 기본값을 사용합니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:11239
 #, elixir-autogen, elixir-format
-msgid "Use lowercase letters, numbers, and hyphens. Reference this handle from GLOSSIA.md to choose the model for a content scope."
-msgstr "영문 소문자, 숫자, 하이픈을 사용하십시오. 콘텐츠 범위를 위한 모델을 선택하려면 GLOSSIA.md에서 이 핸들을 참조하십시오."
+msgid ""
+"Use lowercase letters, numbers, and hyphens. Reference this handle from "
+"GLOSSIA.md to choose the model for a content scope."
+msgstr ""
+"영문 소문자, 숫자, 하이픈을 사용하십시오. 콘텐츠 범위를 위한 모델을 선택하려면 GLOSSIA.md에서 이 핸들을 참조하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:11301
 #, elixir-autogen, elixir-format
@@ -3741,12 +3941,16 @@ msgstr "계정 기본값"
 
 #: lib/glossia_web/live/dashboard_live.ex:11337
 #, elixir-autogen, elixir-format
-msgid "This model is used for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+msgid ""
+"This model is used for project setup and translations whose GLOSSIA.md "
+"configuration does not name a model handle."
 msgstr "이 모델은 프로젝트 설정 및 GLOSSIA.md 구성에 모델 핸들이 지정되지 않은 번역에 사용됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:11341
 #, elixir-autogen, elixir-format
-msgid "Make this the fallback for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+msgid ""
+"Make this the fallback for project setup and translations whose GLOSSIA.md "
+"configuration does not name a model handle."
 msgstr "이 모델을 프로젝트 설정 및 GLOSSIA.md 구성에 모델 핸들이 지정되지 않은 번역의 폴백으로 지정합니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:11349
@@ -3763,8 +3967,12 @@ msgstr "기본값으로 설정"
 
 #: lib/glossia_web/live/dashboard_live.ex:11396
 #, elixir-autogen, elixir-format
-msgid "Each translation uses one configured model. GLOSSIA.md can select a handle for a content scope; work without a handle uses the account default."
-msgstr "각 번역은 구성된 하나의 모델을 사용합니다. GLOSSIA.md는 콘텐츠 범위에 대한 핸들을 선택할 수 있으며, 핸들이 지정되지 않은 작업에는 계정 기본값이 사용됩니다."
+msgid ""
+"Each translation uses one configured model. GLOSSIA.md can select a handle "
+"for a content scope; work without a handle uses the account default."
+msgstr ""
+"각 번역은 구성된 하나의 모델을 사용합니다. GLOSSIA.md는 콘텐츠 범위에 대한 핸들을 선택할 수 있으며, 핸들이 지정되지 않은 "
+"작업에는 계정 기본값이 사용됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:6341
 #, elixir-autogen, elixir-format
@@ -3773,7 +3981,9 @@ msgstr "설정 풀 리퀘스트가 닫혔습니다"
 
 #: lib/glossia_web/live/dashboard_live.ex:6343
 #, elixir-autogen, elixir-format
-msgid "Pull request #%{number} was closed without being merged. Reopen it to finish setting up localization."
+msgid ""
+"Pull request #%{number} was closed without being merged. Reopen it to finish"
+" setting up localization."
 msgstr "풀 리퀘스트 #%{number}이 병합되지 않고 닫혔습니다. 현지화 설정을 완료하려면 이 풀 리퀘스트를 다시 여십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:6347
@@ -3788,14 +3998,17 @@ msgstr "Glossia 설정 완료"
 
 #: lib/glossia_web/live/dashboard_live.ex:6355
 #, elixir-autogen, elixir-format
-msgid "Merge pull request #%{number} to activate this project's localization baseline."
+msgid ""
+"Merge pull request #%{number} to activate this project's localization "
+"baseline."
 msgstr "이 프로젝트의 현지화 베이스라인을 활성화하려면 풀 리퀘스트 #%{number}을 병합하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:6839
 #, elixir-autogen, elixir-format
 msgid "%{count} file was affected."
 msgid_plural "%{count} files were affected."
-msgstr[0] "%{count}개의 파일이 영향을 받았습니다."
+msgstr[0] "%{count}개 파일이 영향을 받았습니다."
+msgstr[1] "%{count}개 파일이 영향을 받았습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:6993
 #, elixir-autogen, elixir-format
@@ -3804,7 +4017,9 @@ msgstr "모델 제공업체 크레딧 한도에 도달했습니다"
 
 #: lib/glossia_web/live/dashboard_live.ex:6995
 #, elixir-autogen, elixir-format
-msgid "Add credits to your model provider account, then retry this translation session."
+msgid ""
+"Add credits to your model provider account, then retry this translation "
+"session."
 msgstr "모델 제공업체 계정에 크레딧을 추가한 다음 이 번역 세션을 다시 시도하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:7002
@@ -3829,7 +4044,8 @@ msgstr "모델 제공업체 자격 증명이 거부되었습니다"
 
 #: lib/glossia_web/live/dashboard_live.ex:7022
 #, elixir-autogen, elixir-format
-msgid "Check the model provider credentials, then retry this translation session."
+msgid ""
+"Check the model provider credentials, then retry this translation session."
 msgstr "모델 제공업체 자격 증명을 확인한 다음 이 번역 세션을 다시 시도하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:7033
@@ -3840,7 +4056,9 @@ msgstr "모델 제공업체가 제시간에 응답하지 않았습니다"
 #: lib/glossia_web/live/dashboard_live.ex:7035
 #: lib/glossia_web/live/dashboard_live.ex:7046
 #, elixir-autogen, elixir-format
-msgid "Retry this translation session. If the problem continues, check the provider."
+msgid ""
+"Retry this translation session. If the problem continues, check the "
+"provider."
 msgstr "이 번역 세션을 다시 시도하십시오. 문제가 계속되면 제공업체를 확인하십시오."
 
 #: lib/glossia_web/live/dashboard_live.ex:7113
@@ -3860,17 +4078,20 @@ msgstr "오류"
 
 #: lib/glossia_web/live/dashboard_live.ex:7068
 #, elixir-autogen, elixir-format
-msgid "Glossia could not preserve every required token in this file after retrying."
+msgid ""
+"Glossia could not preserve every required token in this file after retrying."
 msgstr "재시도 후에도 Glossia가 이 파일에 필요한 모든 토큰을 보존할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7088
 #, elixir-autogen, elixir-format
-msgid "Glossia could not produce output that passed this file's validation rules."
+msgid ""
+"Glossia could not produce output that passed this file's validation rules."
 msgstr "Glossia가 이 파일의 검증 규칙을 통과하는 출력을 생성할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7058
 #, elixir-autogen, elixir-format
-msgid "Glossia could not produce well-formed output for this file after retrying."
+msgid ""
+"Glossia could not produce well-formed output for this file after retrying."
 msgstr "재시도 후에도 Glossia가 이 파일에 대한 올바른 형식의 출력을 생성할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7097
@@ -3966,27 +4187,36 @@ msgstr "검증 명령이 이 파일의 번역된 출력을 거부했습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:6999
 #, elixir-autogen, elixir-format
-msgid "This file could not be translated because the model provider account has no remaining credit."
+msgid ""
+"This file could not be translated because the model provider account has no "
+"remaining credit."
 msgstr "모델 제공업체 계정에 크레딧이 남아 있지 않아 이 파일을 번역할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7048
 #, elixir-autogen, elixir-format
-msgid "This file could not be translated because the model provider request failed."
+msgid ""
+"This file could not be translated because the model provider request failed."
 msgstr "모델 제공업체 요청에 실패하여 이 파일을 번역할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7037
 #, elixir-autogen, elixir-format
-msgid "This file could not be translated because the provider did not respond in time."
+msgid ""
+"This file could not be translated because the provider did not respond in "
+"time."
 msgstr "제공업체가 제시간에 응답하지 않아 이 파일을 번역할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7011
 #, elixir-autogen, elixir-format
-msgid "This file could not be translated because the provider is temporarily limiting requests."
+msgid ""
+"This file could not be translated because the provider is temporarily "
+"limiting requests."
 msgstr "제공업체가 일시적으로 요청을 제한하고 있어 이 파일을 번역할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7024
 #, elixir-autogen, elixir-format
-msgid "This file could not be translated because the provider rejected the configured credentials."
+msgid ""
+"This file could not be translated because the provider rejected the "
+"configured credentials."
 msgstr "제공업체가 구성된 자격 증명을 거부하여 이 파일을 번역할 수 없었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:7065
@@ -4024,6 +4254,7 @@ msgstr "경고"
 msgid "%{n} model call"
 msgid_plural "%{n} model calls"
 msgstr[0] "%{n}회 모델 호출"
+msgstr[1] "%{n}회 모델 호출"
 
 #: lib/glossia_web/live/dashboard_live.ex:6876
 #, elixir-autogen, elixir-format
