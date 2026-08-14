@@ -46,10 +46,12 @@ defmodule Glossia.Translations.Format do
   Returns the content segmentation policy for a format.
 
   Prose formats can share the format-neutral content segmenter while supplying
-  only the boundaries that must remain intact. Structured formats remain atomic
-  so their document-level syntax is preserved.
+  only the boundaries that must remain intact. Gettext catalogs use the same
+  blank-line boundaries so entries stay intact, while JSON and YAML remain
+  atomic to preserve their document-level syntax.
   """
   def segmentation("markdown"), do: {:segmented, protected_delimiters: ["```", "~~~"]}
+  def segmentation("po"), do: {:segmented, max_segment_bytes: 16_000}
   def segmentation("text"), do: {:segmented, []}
   def segmentation(_format), do: :atomic
 end

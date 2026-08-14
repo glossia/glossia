@@ -581,11 +581,17 @@ defmodule Glossia.Translations.RepositoryRun do
   defp normalize_event(:done), do: %{type: "done"}
   defp normalize_event({:attempt_start, attempt}), do: %{type: "attempt_start", attempt: attempt}
 
+  defp normalize_event({:provider_retry, attempt, max_attempts}),
+    do: %{type: "provider_retry", attempt: attempt, max_attempts: max_attempts}
+
   defp normalize_event({:context_budget, budget}),
     do: Map.put(budget, :type, "context_budget")
 
   defp normalize_event({:segment_start, index, count, kind}),
     do: %{type: "segment_start", index: index, count: count, kind: to_string(kind)}
+
+  defp normalize_event({:segment_retry, index, _message}),
+    do: %{type: "segment_retry", index: index}
 
   defp normalize_event({:segment_output, text}), do: %{type: "segment_output", text: text}
   defp normalize_event({:translation_output, text}), do: %{type: "translation_output", text: text}

@@ -10,18 +10,43 @@ defmodule Glossia.Translations.Validate.Po do
   def validate_po(content, source) do
     with :ok <- validate_structure(content) do
       entries = parse_entries(content)
+      source_entries = parse_entries(source)
 
       case Enum.find(entries, &(&1.msgid == "")) do
         nil ->
           {:error, ~s|po file missing header entry (msgid "" with Content-Type)|}
 
         header ->
-          with :ok <- validate_plurals(entries, plural_count(header.msgstr)),
+          with :ok <- validate_entry_set(source, source_entries, entries),
+               :ok <- validate_plurals(entries, plural_count(header.msgstr)),
                :ok <- validate_format_strings(source, entries) do
             validate_untranslated(entries)
           end
       end
     end
+  end
+
+  defp validate_entry_set(source, _source_entries, _entries) when source == "", do: :ok
+
+  defp validate_entry_set(source, source_entries, entries) do
+    if String.trim(source) == "" do
+      :ok
+    else
+      source_set = message_frequencies(source_entries)
+      translated_set = message_frequencies(entries)
+
+      if source_set == translated_set do
+        :ok
+      else
+        {:error, "po entries must preserve every source msgid exactly once"}
+      end
+    end
+  end
+
+  defp message_frequencies(entries) do
+    entries
+    |> Enum.reject(&(&1.msgid == ""))
+    |> Enum.frequencies_by(&{&1.msgid, &1.msgid_plural})
   end
 
   defp validate_structure(content) do
@@ -129,13 +154,26 @@ defmodule Glossia.Translations.Validate.Po do
 
   defp check_entry_format_strings(source_entry, entries) do
     with translated when not is_nil(translated) <-
-           Enum.find(entries, &(&1.msgid == source_entry.msgid)),
-         false <- String.trim(translated.msgstr) == "" do
+           Enum.find(
+             entries,
+             &(&1.msgid == source_entry.msgid and
+                 &1.msgid_plural == source_entry.msgid_plural)
+           ) do
+      translated_strings =
+        if map_size(translated.plural_msgstr) == 0 do
+          [translated.msgstr]
+        else
+          Map.values(translated.plural_msgstr)
+        end
+
       missing =
         @format_regex
-        |> Regex.scan(source_entry.msgstr)
+        |> Regex.scan(source_entry.msgid <> "\n" <> source_entry.msgid_plural)
         |> Enum.map(&hd/1)
-        |> Enum.find(&(not String.contains?(translated.msgstr, &1)))
+        |> Enum.uniq()
+        |> Enum.find(fn token ->
+          Enum.any?(translated_strings, &(not String.contains?(&1, token)))
+        end)
 
       if missing do
         {:halt,
@@ -190,7 +228,15 @@ defmodule Glossia.Translations.Validate.Po do
         }
 
       String.starts_with?(line, "msgid_plural ") ->
-        %{acc | state: "msgid_plural", current: %{acc.current | has_plural: true}}
+        %{
+          acc
+          | state: "msgid_plural",
+            current: %{
+              acc.current
+              | has_plural: true,
+                msgid_plural: extract_quoted(line)
+            }
+        }
 
       String.starts_with?(line, "msgstr[") ->
         index = plural_index(line)
@@ -218,6 +264,12 @@ defmodule Glossia.Translations.Validate.Po do
 
   defp append_continuation(%{state: "msgid"} = acc, text),
     do: %{acc | current: %{acc.current | msgid: acc.current.msgid <> text}}
+
+  defp append_continuation(%{state: "msgid_plural"} = acc, text),
+    do: %{
+      acc
+      | current: %{acc.current | msgid_plural: acc.current.msgid_plural <> text}
+    }
 
   defp append_continuation(%{state: "msgstr"} = acc, text),
     do: %{acc | current: %{acc.current | msgstr: acc.current.msgstr <> text}}
@@ -254,7 +306,8 @@ defmodule Glossia.Translations.Validate.Po do
     }
   end
 
-  defp new_entry, do: %{msgid: "", msgstr: "", has_plural: false, plural_msgstr: %{}}
+  defp new_entry,
+    do: %{msgid: "", msgid_plural: "", msgstr: "", has_plural: false, plural_msgstr: %{}}
 
   defp plural_index(line) do
     with [_, inside] <- Regex.run(~r/^msgstr\[([^\]]*)\]/, line),

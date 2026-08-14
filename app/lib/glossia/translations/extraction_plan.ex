@@ -101,6 +101,24 @@ defmodule Glossia.Translations.ExtractionPlan do
     end
   end
 
+  @doc """
+  Markers `output` reproduces the wrong number of times for `excerpt`.
+
+  A marker the excerpt carries must occur exactly once; a marker belonging to
+  another part of the document must not occur at all, so a marker copied into
+  the wrong place is caught too. Lets a caller detect a lost or duplicated
+  marker while it still knows which part produced it, instead of only after the
+  whole output is assembled.
+  """
+  def unpreserved_markers(%__MODULE__{regions: regions}, excerpt, output)
+      when is_binary(excerpt) and is_binary(output) do
+    Enum.flat_map(regions, fn region ->
+      expected = if String.contains?(excerpt, region.marker), do: 1, else: 0
+
+      if marker_count(output, region.marker) == expected, do: [], else: [region.marker]
+    end)
+  end
+
   @doc "Restores every protected region, requiring each marker exactly once."
   @spec restore(String.t(), t()) :: {:ok, String.t()} | {:error, String.t()}
   def restore(output, %__MODULE__{regions: regions}) when is_binary(output) do

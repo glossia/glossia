@@ -160,10 +160,7 @@ defmodule Glossia.Translations.Chain do
   def find_translation_roots(repo_root) do
     repo_root = Path.expand(repo_root)
 
-    documents =
-      [Path.join(repo_root, "GLOSSIA.md") | Path.wildcard(Path.join(repo_root, "**/GLOSSIA.md"))]
-      |> Enum.filter(&File.regular?/1)
-      |> Enum.uniq()
+    documents = translation_documents(repo_root)
 
     result =
       Enum.reduce_while(documents, {:ok, []}, fn path, {:ok, acc} ->
@@ -183,6 +180,46 @@ defmodule Glossia.Translations.Chain do
 
     with {:ok, roots} <- result do
       {:ok, Enum.sort_by(roots, &normalize_slashes/1)}
+    end
+  end
+
+  defp translation_documents(repo_root) do
+    with {git_root, 0} <-
+           MuonTrap.cmd(
+             "git",
+             ["-C", repo_root, "rev-parse", "--show-toplevel"],
+             stderr_to_stdout: true,
+             into: ""
+           ),
+         true <- Path.expand(String.trim(git_root)) == repo_root,
+         {output, 0} <-
+           MuonTrap.cmd(
+             "git",
+             [
+               "-C",
+               repo_root,
+               "ls-files",
+               "--cached",
+               "--others",
+               "--exclude-standard",
+               "--",
+               ":(glob)**/GLOSSIA.md"
+             ],
+             stderr_to_stdout: true,
+             into: ""
+           ) do
+      output
+      |> String.split("\n", trim: true)
+      |> Enum.map(&Path.join(repo_root, &1))
+      |> Enum.filter(&File.regular?/1)
+    else
+      _ ->
+        [
+          Path.join(repo_root, "GLOSSIA.md")
+          | Path.wildcard(Path.join(repo_root, "**/GLOSSIA.md"))
+        ]
+        |> Enum.filter(&File.regular?/1)
+        |> Enum.uniq()
     end
   end
 

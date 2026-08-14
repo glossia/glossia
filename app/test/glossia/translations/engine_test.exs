@@ -351,6 +351,59 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "segments large Gettext catalogs without splitting entries", %{tmp_dir: dir} do
+      source = Path.join(dir, "default.pot")
+
+      header =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n)
+
+      entries =
+        1..400
+        |> Enum.map(fn index ->
+          ~s(#: lib/example.ex:#{index}\nmsgid "Message #{index}"\nmsgstr ""\n)
+        end)
+
+      content = Enum.join([header | entries], "\n")
+      File.write!(source, content)
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        translated(payload["source_content"])
+      end)
+
+      item = work_item(%{source_abs: source, format: "po"})
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert length(calls) > 1
+      assert Enum.all?(calls, &(&1["segment_count"] == length(calls)))
+      assert Enum.all?(calls, &String.ends_with?(&1["source_content"], ~s(msgstr "")))
+      assert result.text == String.trim(content)
+    end
+
+    @tag :tmp_dir
+    test "leaves Gettext identifiers visible for format validation", %{tmp_dir: dir} do
+      source = Path.join(dir, "default.pot")
+
+      content =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello %{client_name}"\nmsgstr ""\n)
+
+      File.write!(source, content)
+
+      stub_stream(fn _account, payload, _on_event ->
+        assert payload["source_content"] =~ "%{client_name}"
+        refute payload["source_content"] =~ "glossia.invalid/protected-token"
+        translated(payload["source_content"])
+      end)
+
+      item = work_item(%{source_abs: source, format: "po"})
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text == String.trim(content)
+    end
+
+    @tag :tmp_dir
     test "retries with the previous validation error until it passes", %{tmp_dir: dir} do
       source = Path.join(dir, "data.txt")
       File.write!(source, "raw content")
@@ -501,6 +554,74 @@ defmodule Glossia.Translations.EngineTest do
                Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, fn _, _ ->
                  {:error, "nope"}
                end)
+    end
+
+    @tag :tmp_dir
+    test "retranslates only the segment that lost a protected marker", %{tmp_dir: dir} do
+      source = Path.join(dir, "links.md")
+
+      first = String.duplicate("First paragraph stays together. ", 90)
+      second = String.duplicate("Second paragraph stays together. ", 80)
+
+      File.write!(
+        source,
+        "#{first}\n\nSee [the report](https://example.com/report) for details.\n\n#{second}"
+      )
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        content = payload["source_content"]
+
+        marker =
+          case Regex.run(~r{https://glossia\.invalid/[^\s\)"'<>]+}, content) do
+            [marker] -> marker
+            nil -> nil
+          end
+
+        cond do
+          # The first attempt on the segment holding the link drops its marker.
+          is_nil(marker) ->
+            translated("traducido")
+
+          Enum.count(Elixir.Agent.get(payloads, & &1), &(&1["source_content"] == content)) == 1 ->
+            translated("informe traducido sin enlace")
+
+          true ->
+            translated("consulta [el informe](#{marker}) para más detalles")
+        end
+      end)
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
+
+      {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
+      on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
+      assert result.text =~ "https://example.com/report"
+
+      # Progress folds `segment_output` into the item's completed text, so the
+      # rejected attempt must not announce output it is about to discard.
+      outputs =
+        events
+        |> Elixir.Agent.get(&Enum.reverse/1)
+        |> Enum.flat_map(fn
+          {:segment_output, text} -> [text]
+          _ -> []
+        end)
+
+      refute Enum.any?(outputs, &(&1 == "informe traducido sin enlace"))
+
+      calls = Elixir.Agent.get(payloads, &Enum.reverse/1)
+      contents = Enum.map(calls, & &1["source_content"])
+
+      # Exactly one extra call: only the segment that lost the marker ran twice.
+      assert length(calls) == length(Enum.uniq(contents)) + 1
+
+      retry = Enum.find(calls, &(&1["last_error"] not in [nil, ""]))
+      assert retry["last_error"] =~ "copied byte-for-byte exactly once"
+      assert retry["last_error"] =~ "glossia.invalid"
     end
   end
 end

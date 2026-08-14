@@ -64,7 +64,6 @@ defmodule Glossia.Seeds do
       )
 
     ensure_visibility!(dev.account, "public")
-    {:ok, true} = FunWithFlags.enable(:translation, for_actor: dev.account)
 
     acme =
       ensure_organization!(
@@ -590,6 +589,12 @@ defmodule Glossia.Seeds do
       model: "openai/gpt-5.4",
       api_key: Glossia.Translations.Credentials.development_session_api_key(:codex),
       default: true
+    )
+
+    ensure_llm_model!(dev.account, dev,
+      handle: "local-pi",
+      model: "openrouter/anthropic/claude-sonnet-4.6",
+      api_key: Glossia.Translations.Credentials.development_session_api_key(:pi)
     )
 
     ensure_llm_model!(dev.account, dev,

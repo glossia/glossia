@@ -99,6 +99,96 @@ defmodule Glossia.Translations.LLMTest do
     end
   end
 
+  describe "run/3 with a Pi session" do
+    test "runs the configured provider model without tools or session state" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", args, opts ->
+        assert ["-c", ~s(exec "$@" </dev/null), "sh", "pi", "-p", "--no-tools" | _] =
+                 args
+
+        assert Enum.at(args, Enum.find_index(args, &(&1 == "--provider")) + 1) == "openrouter"
+
+        assert Enum.at(args, Enum.find_index(args, &(&1 == "--model")) + 1) ==
+                 "anthropic/claude-sonnet-4.6"
+
+        assert List.last(args) == @user
+        assert opts[:timeout] == 1_800_000
+        {"Hola\n", 0}
+      end)
+
+      cred = %{
+        model: "openrouter/anthropic/claude-sonnet-4.6",
+        auth: :pi_session,
+        source: :pi_session
+      }
+
+      assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
+    end
+  end
+
+  describe "run/3 with a Codex session" do
+    test "returns the agent message from the event stream" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"thread.started","thread_id":"t"}\n) <>
+           ~s({"type":"item.completed","item":{"type":"agent_message","text":"Hola"}}\n), 0}
+      end)
+
+      assert {:ok, "Hola"} = LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    # The CLI reports usage limits and provider outages as an event while still
+    # exiting 0, and its raw output is mostly unrelated tool chatter.
+    test "surfaces the reported error instead of an empty response" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"thread.started","thread_id":"t"}\n) <>
+           ~s({"type":"error","message":"You've hit your usage limit."}\n) <>
+           ~s({"type":"turn.failed","error":{"message":"You've hit your usage limit."}}\n), 0}
+      end)
+
+      assert {:error, {:codex_cli_failed, 0, "You've hit your usage limit."}} =
+               LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    test "prefers the reported error over raw output when the CLI exits non-zero" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s(2026-08-12 ERROR unrelated tool chatter\n) <>
+           ~s({"type":"thread.started","thread_id":"t"}\n) <>
+           ~s({"type":"turn.failed","error":{"message":"Provider is unavailable."}}\n), 1}
+      end)
+
+      assert {:error, {:codex_cli_failed, 1, "Provider is unavailable."}} =
+               LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    # A failed turn means the agent message that preceded it is partial, so it
+    # must not be published as a translation.
+    test "fails a turn that reports a failure after emitting an agent message" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"item.completed","item":{"type":"agent_message","text":"partial"}}\n) <>
+           ~s({"type":"turn.failed","error":{"message":"Provider disconnected"}}\n), 0}
+      end)
+
+      assert {:error, {:codex_cli_failed, 0, "Provider disconnected"}} =
+               LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    test "keeps a completed turn that recovered from a mid-turn error event" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"error","message":"tool call failed, retrying"}\n) <>
+           ~s({"type":"item.completed","item":{"type":"agent_message","text":"Hola"}}\n), 0}
+      end)
+
+      assert {:ok, "Hola"} = LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    test "falls back to an empty-response error when nothing is reported" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"thread.started","thread_id":"t"}\n), 0}
+      end)
+
+      assert {:error, :empty_codex_response} = LLM.run(%{source: :codex_session}, @system, @user)
+    end
+  end
+
   describe "stream/4" do
     test "OAuth wraps the result in synthetic turn events" do
       Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :resp} end)

@@ -26,7 +26,13 @@ defmodule Glossia.Translations.Validate do
   """
   def validate_output(root, format, output, source, options \\ %{}) do
     with :ok <- validate_syntax(format, output, source),
-         :ok <- validate_preserve_step(output, source, resolve_preserve(options[:preserve] || [])),
+         :ok <-
+           validate_preserve_step(
+             format,
+             output,
+             source,
+             resolve_preserve(options[:preserve] || [])
+           ),
          :ok <- validate_external(root, format, output, options) do
       :ok
     end
@@ -99,8 +105,12 @@ defmodule Glossia.Translations.Validate do
   @doc "Resolves the preserve kinds: default set, `\"none\"` to disable, or the given list."
   defdelegate resolve_preserve(kinds), to: PreservedTokens, as: :resolve
 
-  defp validate_preserve_step(_output, _source, []), do: :ok
-  defp validate_preserve_step(output, source, kinds), do: validate_preserve(output, source, kinds)
+  defp validate_preserve_step(_format, _output, _source, []), do: :ok
+
+  defp validate_preserve_step("po", _output, _source, _kinds), do: :ok
+
+  defp validate_preserve_step(_format, output, source, kinds),
+    do: validate_preserve(output, source, kinds)
 
   @doc "Fails unless placeholders, links, and code occur equally in source and output."
   def validate_preserve(output, source, kinds) do

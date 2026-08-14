@@ -15,7 +15,6 @@ defmodule GlossiaWeb.Api.TranslationController do
   alias Glossia.Translations
 
   plug GlossiaWeb.Plugs.AuthorizeAccount, :translation_write
-  plug GlossiaWeb.Plugs.RequireAccountFeature, :translation
 
   def create(conn, params) do
     case Translations.translate(conn.assigns.account, params) do

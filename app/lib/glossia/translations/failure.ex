@@ -39,6 +39,12 @@ defmodule Glossia.Translations.Failure do
     provider-error
   )
 
+  @retryable_kinds ~w(
+    provider-rate-limit
+    provider-timeout
+    provider-error
+  )
+
   @search_keys ~w(reason message error errors response_body cause code type status)
   @nested_error_keys ~w(reason error errors response_body cause headers)
   @request_id_keys ~w(x-request-id request-id openai-request-id)
@@ -101,6 +107,25 @@ defmodule Glossia.Translations.Failure do
 
   def normalize(reason), do: from(reason)
 
+  @doc """
+  Whether a failure is worth retrying.
+
+  Rate limits, timeouts, and unclassified provider/transport errors are
+  transient. Exhausted credit and bad credentials are not - retrying those only
+  burns time and produces the same failure. Neither is a client-side 4xx: an
+  unknown model, a malformed request, or content the provider rejects fails the
+  same way every time, so only 408 and 429 stay retryable in that range.
+  """
+  def retryable?(%{kind: kind} = failure),
+    do: kind in @retryable_kinds and not permanent_status?(Map.get(failure, :status))
+
+  def retryable?(_failure), do: false
+
+  defp permanent_status?(status) when is_integer(status),
+    do: status >= 400 and status < 500 and status not in [408, 429]
+
+  defp permanent_status?(_status), do: false
+
   @doc "Whether a failure should also have a session-level summary."
   @spec session_level?(t()) :: boolean()
   def session_level?(%{scope: "session"}), do: true
@@ -113,7 +138,14 @@ defmodule Glossia.Translations.Failure do
 
     kind =
       cond do
-        status == 402 or contains_any?(normalized, ["credit limit", "insufficient credit"]) ->
+        status == 402 or
+            (status != 429 and
+               contains_any?(normalized, [
+                 "credit limit",
+                 "insufficient credit",
+                 "usage limit",
+                 "purchase more credits"
+               ])) ->
           "provider-credit"
 
         status == 429 or
@@ -311,6 +343,8 @@ defmodule Glossia.Translations.Failure do
       end
   end
 
+  defp find_value(%_{} = struct, keys), do: struct |> struct_fields() |> find_value(keys)
+
   defp find_value(%{} = map, keys) do
     direct =
       Enum.find_value(map, fn {key, value} ->
@@ -330,6 +364,9 @@ defmodule Glossia.Translations.Failure do
     do: tuple |> Tuple.to_list() |> Enum.find_value(&find_value(&1, keys))
 
   defp find_value(_value, _keys), do: nil
+
+  defp find_header_value(%_{} = struct, keys),
+    do: struct |> struct_fields() |> find_header_value(keys)
 
   defp find_header_value(%{} = map, keys) do
     direct =
@@ -365,6 +402,8 @@ defmodule Glossia.Translations.Failure do
   defp searchable_parts(value) when is_atom(value), do: [Atom.to_string(value)]
   defp searchable_parts(value) when is_number(value), do: [to_string(value)]
 
+  defp searchable_parts(%_{} = struct), do: struct |> struct_fields() |> searchable_parts()
+
   defp searchable_parts(%{} = map) do
     Enum.flat_map(map, fn {key, value} ->
       if normalized_key(key) in @search_keys, do: searchable_parts(value), else: []
@@ -378,6 +417,11 @@ defmodule Glossia.Translations.Failure do
     do: tuple |> Tuple.to_list() |> Enum.flat_map(&searchable_parts/1)
 
   defp searchable_parts(_value), do: []
+
+  # Provider errors often arrive as structs (`ReqLLM.Error.API.Request`,
+  # `Req.TransportError`). A struct matches the map pattern but is not
+  # enumerable, so its fields are read explicitly rather than crashing the run.
+  defp struct_fields(%_{} = struct), do: struct |> Map.from_struct() |> Map.drop([:__exception__])
 
   defp normalized_key(key) when is_atom(key), do: key |> Atom.to_string() |> normalized_key()
   defp normalized_key(key) when is_binary(key), do: String.downcase(key)

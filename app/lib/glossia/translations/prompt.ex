@@ -141,7 +141,28 @@ defmodule Glossia.Translations.Prompt do
   defp po_prompt(input) do
     plural_forms = plural_forms(input.locale)
 
-    lines = [
+    lines =
+      if Map.get(input, :segment_count, 1) > 1 do
+        segmented_po_prompt(input, plural_forms)
+      else
+        atomic_po_prompt(input, plural_forms)
+      end
+
+    lines
+    |> append_block("Project context:", Map.get(input, :context_body))
+    |> append_block(
+      "Locale-specific instructions for #{input.language}:",
+      Map.get(input, :locale_override_body)
+    )
+    |> append_block(
+      "Organization context for #{input.language}:",
+      Map.get(input, :server_context_body)
+    )
+    |> Enum.join("\n")
+  end
+
+  defp atomic_po_prompt(input, plural_forms) do
+    [
       "You are a professional translator specializing in software localization.",
       "You translate Gettext PO template files from #{input.source_language} to #{input.language} (#{input.locale}).",
       "Output ONLY a valid Gettext .po file. No markdown fences, no explanation, no preamble.",
@@ -158,18 +179,37 @@ defmodule Glossia.Translations.Prompt do
       "9. Do not add the fuzzy flag to any translations.",
       "10. Keep each msgstr on a single line unless the source already uses multi-line PO strings."
     ]
+  end
 
-    lines
-    |> append_block("Project context:", Map.get(input, :context_body))
-    |> append_block(
-      "Locale-specific instructions for #{input.language}:",
-      Map.get(input, :locale_override_body)
-    )
-    |> append_block(
-      "Organization context for #{input.language}:",
-      Map.get(input, :server_context_body)
-    )
-    |> Enum.join("\n")
+  defp segmented_po_prompt(input, plural_forms) do
+    header_rules =
+      if input.segment_index == 1 do
+        [
+          "9. This segment contains the PO header. Keep it as the first entry.",
+          "10. The header must include Language: #{input.locale}.",
+          "11. The header must include MIME-Version: 1.0, Content-Type: text/plain; charset=UTF-8, and Content-Transfer-Encoding: 8bit.",
+          "12. The header must include Plural-Forms: #{plural_forms}."
+        ]
+      else
+        ["9. Do not add a PO header because it belongs only in the first segment."]
+      end
+
+    [
+      "You are a professional translator specializing in software localization.",
+      "You translate segment #{input.segment_index} of #{input.segment_count} from a Gettext PO template from #{input.source_language} to #{input.language} (#{input.locale}).",
+      "Output ONLY valid Gettext PO entries for the supplied segment. No markdown fences, no explanation, no preamble.",
+      "",
+      "Rules:",
+      "1. Preserve every supplied entry and its order. Do not add, omit, or duplicate entries.",
+      "2. Preserve all msgid values exactly as they appear in the source.",
+      "3. Translate each msgid into the corresponding msgstr for #{input.language}.",
+      "4. Preserve all references, flags, interpolation variables, HTML tags, and comments exactly as-is.",
+      "5. For plural forms, provide the correct number of msgstr[N] entries for #{input.language}.",
+      "6. Use the locale plural rule #{plural_forms}.",
+      "7. Do not add the fuzzy flag to any translations.",
+      "8. Keep each msgstr on a single line unless the source already uses multi-line PO strings."
+      | header_rules
+    ]
   end
 
   defp plural_forms("es"), do: "nplurals=2; plural=n != 1;"

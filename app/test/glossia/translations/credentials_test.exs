@@ -138,4 +138,29 @@ defmodule Glossia.Translations.CredentialsTest do
     assert credential.model == "gpt-5.4"
     assert credential.codex_auth == auth
   end
+
+  test "resolves an explicit Pi development session", %{user: user, account: account} do
+    previous_pi_path = System.get_env("GLOSSIA_PI_PATH")
+    System.put_env("GLOSSIA_PI_PATH", System.find_executable("sh"))
+
+    on_exit(fn ->
+      if previous_pi_path,
+        do: System.put_env("GLOSSIA_PI_PATH", previous_pi_path),
+        else: System.delete_env("GLOSSIA_PI_PATH")
+    end)
+
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "local-pi",
+        "model" => "openrouter/anthropic/claude-sonnet-4.6",
+        "api_key" => Credentials.development_session_api_key(:pi)
+      })
+
+    put_config(allow_local_session: true)
+
+    assert {:ok, credential} = Credentials.resolve(account, "local-pi")
+    assert credential.source == :pi_session
+    assert credential.model == "openrouter/anthropic/claude-sonnet-4.6"
+    assert credential.auth == :pi_session
+  end
 end

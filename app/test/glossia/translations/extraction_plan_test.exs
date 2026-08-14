@@ -55,6 +55,26 @@ defmodule Glossia.Translations.ExtractionPlanTest do
     assert message =~ "does not match the original source"
   end
 
+  test "reports markers an excerpt's output lost, duplicated, or borrowed" do
+    source = "See {one} and {two}"
+
+    {:ok, plan} =
+      ExtractionPlan.build(source, [
+        %{start: 4, length: 5, value: "{one}", kind: "placeholders"},
+        %{start: 14, length: 5, value: "{two}", kind: "placeholders"}
+      ])
+
+    [first, second] = Enum.map(plan.regions, & &1.marker)
+    excerpt = "See #{first}"
+
+    assert ExtractionPlan.unpreserved_markers(plan, excerpt, "Vea #{first}") == []
+    assert ExtractionPlan.unpreserved_markers(plan, excerpt, "Vea nada") == [first]
+    assert ExtractionPlan.unpreserved_markers(plan, excerpt, "#{first} #{first}") == [first]
+
+    # A marker belonging to another excerpt must not be copied in here.
+    assert ExtractionPlan.unpreserved_markers(plan, excerpt, "Vea #{first} #{second}") == [second]
+  end
+
   test "uses scope to keep markers unique across independently planned regions" do
     source = "Hello {name}"
     ranges = [%{start: 6, length: 6, value: "{name}", kind: "placeholders"}]

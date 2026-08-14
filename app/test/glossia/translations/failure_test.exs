@@ -34,6 +34,81 @@ defmodule Glossia.Translations.FailureTest do
     refute rendered =~ "private/internal/path.ex"
   end
 
+  test "classifies an exhausted local session quota as a credit failure" do
+    reason =
+      {:llm_failed,
+       {:codex_cli_failed, 0,
+        "You've hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits."}}
+
+    failure = Failure.from(reason, "openai")
+
+    assert failure.kind == "provider-credit"
+    assert failure.scope == "session"
+    assert failure.provider == "openai"
+  end
+
+  test "classifies a provider error struct instead of crashing on it" do
+    reason =
+      {:llm_failed,
+       %ReqLLM.Error.API.Request{
+         reason: "Credit limit exceeded",
+         status: 402,
+         response_body: %{"type" => "credit_limit"},
+         request_body: ["{\"", "messages", "\": private source document"]
+       }}
+
+    failure = Failure.from(reason, "anthropic")
+
+    assert failure.kind == "provider-credit"
+    assert failure.status == 402
+    assert failure.code == "credit_limit"
+    refute inspect(failure) =~ "private source document"
+  end
+
+  test "treats transport failures as retryable and credit failures as terminal" do
+    transport =
+      Failure.from(
+        {:llm_failed, %ReqLLM.Error.API.Request{reason: "non-existing domain"}},
+        "anthropic"
+      )
+
+    assert transport.kind == "provider-error"
+    assert Failure.retryable?(transport)
+
+    assert Failure.retryable?(Failure.from({:llm_failed, %{status: 429}}, "anthropic"))
+    refute Failure.retryable?(Failure.from({:llm_failed, %{status: 402}}, "anthropic"))
+    refute Failure.retryable?(Failure.from({:llm_failed, %{status: 401}}, "anthropic"))
+    refute Failure.retryable?(Failure.from({:validation_failed, "invalid yaml"}))
+  end
+
+  # An unknown model or a malformed request fails identically every time.
+  test "does not retry a client error the provider will reject again" do
+    for status <- [400, 404, 422] do
+      failure = Failure.from({:llm_failed, %{reason: "bad request", status: status}}, "anthropic")
+
+      assert failure.kind == "provider-error"
+      refute Failure.retryable?(failure)
+    end
+
+    assert Failure.retryable?(
+             Failure.from({:llm_failed, %{reason: "request timed out", status: 408}}, "anthropic")
+           )
+  end
+
+  # Providers word per-minute rate limits as an exceeded quota; that is a
+  # retryable throttle, not an exhausted balance.
+  test "reads a rate-limited quota message as a rate limit, not exhausted credit" do
+    failure =
+      Failure.from(
+        {:llm_failed,
+         %{reason: "Quota exceeded for quota metric requests per minute", status: 429}},
+        "google"
+      )
+
+    assert failure.kind == "provider-rate-limit"
+    assert Failure.retryable?(failure)
+  end
+
   test "classifies a nested streaming error without retaining its raw text" do
     raw =
       """

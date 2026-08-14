@@ -26,6 +26,12 @@ defmodule Glossia.Translations.OutputPathTest do
       for f <- ~w(json yaml po), do: assert(Format.structured?(f))
       for f <- ~w(markdown text), do: refute(Format.structured?(f))
     end
+
+    test "segments Gettext catalogs at entry boundaries" do
+      assert Format.segmentation("po") == {:segmented, max_segment_bytes: 16_000}
+      assert Format.segmentation("json") == :atomic
+      assert Format.segmentation("yaml") == :atomic
+    end
   end
 
   describe "OutputPath.expand_output/2" do
