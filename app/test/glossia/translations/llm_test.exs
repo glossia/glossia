@@ -125,6 +125,49 @@ defmodule Glossia.Translations.LLMTest do
     end
   end
 
+  describe "run/3 with a Codex session" do
+    test "returns the agent message from the event stream" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"thread.started","thread_id":"t"}\n) <>
+           ~s({"type":"item.completed","item":{"type":"agent_message","text":"Hola"}}\n), 0}
+      end)
+
+      assert {:ok, "Hola"} = LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    # The CLI reports usage limits and provider outages as an event while still
+    # exiting 0, and its raw output is mostly unrelated tool chatter.
+    test "surfaces the reported error instead of an empty response" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"thread.started","thread_id":"t"}\n) <>
+           ~s({"type":"error","message":"You've hit your usage limit."}\n) <>
+           ~s({"type":"turn.failed","error":{"message":"You've hit your usage limit."}}\n), 0}
+      end)
+
+      assert {:error, {:codex_cli_failed, 0, "You've hit your usage limit."}} =
+               LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    test "prefers the reported error over raw output when the CLI exits non-zero" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s(2026-08-12 ERROR unrelated tool chatter\n) <>
+           ~s({"type":"thread.started","thread_id":"t"}\n) <>
+           ~s({"type":"turn.failed","error":{"message":"Provider is unavailable."}}\n), 1}
+      end)
+
+      assert {:error, {:codex_cli_failed, 1, "Provider is unavailable."}} =
+               LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    test "falls back to an empty-response error when nothing is reported" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"thread.started","thread_id":"t"}\n), 0}
+      end)
+
+      assert {:error, :empty_codex_response} = LLM.run(%{source: :codex_session}, @system, @user)
+    end
+  end
+
   describe "stream/4" do
     test "OAuth wraps the result in synthetic turn events" do
       Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :resp} end)

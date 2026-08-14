@@ -69,30 +69,57 @@ defmodule Glossia.Translations.LLM do
            into: "",
            timeout: @codex_cli_timeout_ms
          ) do
-      {output, 0} ->
-        text =
-          output
-          |> String.split("\n", trim: true)
-          |> Enum.flat_map(fn line ->
-            case Jason.decode(line) do
-              {:ok,
-               %{
-                 "type" => "item.completed",
-                 "item" => %{"type" => "agent_message", "text" => text}
-               }} ->
-                [text]
-
-              _ ->
-                []
-            end
-          end)
-          |> Enum.join("\n")
-
-        if text == "", do: {:error, :empty_codex_response}, else: {:ok, text}
-
       {output, code} ->
-        {:error, {:codex_cli_failed, code, String.slice(output, 0, 2_000)}}
+        events = codex_events(output)
+        text = events |> codex_agent_messages() |> Enum.join("\n")
+
+        # The CLI exits 0 even when the turn fails (usage limits, provider
+        # outages), reporting the reason as an `error`/`turn.failed` event, and
+        # its raw output is mostly unrelated tool chatter. Prefer the reported
+        # message so the failure is classified and shown accurately.
+        cond do
+          code == 0 and text != "" ->
+            {:ok, text}
+
+          message = codex_error_message(events) ->
+            {:error, {:codex_cli_failed, code, message}}
+
+          code == 0 ->
+            {:error, :empty_codex_response}
+
+          true ->
+            {:error, {:codex_cli_failed, code, String.slice(output, 0, 2_000)}}
+        end
     end
+  end
+
+  defp codex_events(output) do
+    output
+    |> String.split("\n", trim: true)
+    |> Enum.flat_map(fn line ->
+      case Jason.decode(line) do
+        {:ok, %{"type" => _type} = event} -> [event]
+        _ -> []
+      end
+    end)
+  end
+
+  defp codex_agent_messages(events) do
+    Enum.flat_map(events, fn
+      %{"type" => "item.completed", "item" => %{"type" => "agent_message", "text" => text}} ->
+        [text]
+
+      _ ->
+        []
+    end)
+  end
+
+  defp codex_error_message(events) do
+    Enum.find_value(events, fn
+      %{"type" => "error", "message" => message} when is_binary(message) -> message
+      %{"type" => "turn.failed", "error" => %{"message" => message}} -> message
+      _ -> nil
+    end)
   end
 
   defp run_via_pi_cli(model, system, user) do
