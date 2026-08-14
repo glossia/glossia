@@ -555,5 +555,58 @@ defmodule Glossia.Translations.EngineTest do
                  {:error, "nope"}
                end)
     end
+
+    @tag :tmp_dir
+    test "retranslates only the segment that lost a protected marker", %{tmp_dir: dir} do
+      source = Path.join(dir, "links.md")
+
+      first = String.duplicate("First paragraph stays together. ", 90)
+      second = String.duplicate("Second paragraph stays together. ", 80)
+
+      File.write!(
+        source,
+        "#{first}\n\nSee [the report](https://example.com/report) for details.\n\n#{second}"
+      )
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        content = payload["source_content"]
+
+        marker =
+          case Regex.run(~r{https://glossia\.invalid/[^\s\)"'<>]+}, content) do
+            [marker] -> marker
+            nil -> nil
+          end
+
+        cond do
+          # The first attempt on the segment holding the link drops its marker.
+          is_nil(marker) ->
+            translated("traducido")
+
+          Enum.count(Elixir.Agent.get(payloads, & &1), &(&1["source_content"] == content)) == 1 ->
+            translated("informe traducido sin enlace")
+
+          true ->
+            translated("consulta [el informe](#{marker}) para más detalles")
+        end
+      end)
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text =~ "https://example.com/report"
+
+      calls = Elixir.Agent.get(payloads, &Enum.reverse/1)
+      contents = Enum.map(calls, & &1["source_content"])
+
+      # Exactly one extra call: only the segment that lost the marker ran twice.
+      assert length(calls) == length(Enum.uniq(contents)) + 1
+
+      retry = Enum.find(calls, &(&1["last_error"] not in [nil, ""]))
+      assert retry["last_error"] =~ "copied byte-for-byte exactly once"
+      assert retry["last_error"] =~ "glossia.invalid"
+    end
   end
 end

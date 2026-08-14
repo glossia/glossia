@@ -48,6 +48,11 @@ defmodule Glossia.Translations.PreservedTokens do
       when is_binary(source) and is_list(kinds) and is_list(opts),
       do: ExtractionPlan.build!(source, ranges(source, kinds), opts)
 
+  @doc "Markers from `excerpt` that the output failed to reproduce exactly once."
+  @spec unpreserved_markers(protection(), String.t(), String.t()) :: [String.t()]
+  def unpreserved_markers(%ExtractionPlan{} = protection, excerpt, output),
+    do: ExtractionPlan.unpreserved_markers(protection, excerpt, output)
+
   @doc "Restores protected values, failing when a model changed or duplicated a marker."
   @spec restore(String.t(), protection()) :: {:ok, String.t()} | {:error, String.t()}
   def restore(output, %ExtractionPlan{} = protection) when is_binary(output),

@@ -14,6 +14,8 @@ defmodule Glossia.Translations.Engine do
   `validate/` port lands).
   """
 
+  @segment_attempts 2
+
   alias Glossia.Translations.ContentSegments
   alias Glossia.Translations.Context
   alias Glossia.Translations
@@ -133,25 +135,15 @@ defmodule Glossia.Translations.Engine do
     |> Enum.with_index(1)
     |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
       {segment, segment_index}, {:ok, acc} ->
-        state.on_event.({:segment_start, segment_index, segment_count, segment.kind})
-
-        payload =
-          payload(
-            state.work_item,
-            segment.content,
-            segment.server_context_body,
-            not is_nil(state.preserved_frontmatter),
-            state.last_error,
-            segment.kind,
-            segment_index,
-            segment_count
-          )
-
-        case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
-          {:ok, result} ->
-            text = strip_structured_code_fence(state.work_item.format, result.text)
-            state.on_event.({:segment_output, text})
-
+        case translate_segment(
+               state,
+               segment,
+               segment_index,
+               segment_count,
+               1,
+               state.last_error
+             ) do
+          {:ok, text, result} ->
             translated_segment = %{kind: segment.kind, text: text}
 
             {:cont,
@@ -166,6 +158,61 @@ defmodule Glossia.Translations.Engine do
             {:halt, {:error, reason}}
         end
     end)
+  end
+
+  # A long segment carrying many protected markers occasionally comes back with
+  # one of them dropped or rewritten. Re-running that one segment, naming the
+  # markers it lost, recovers far more cheaply than failing the document and
+  # retranslating every segment of it. When the retries run out the output is
+  # kept as is, so restoration still reports it as a document-level failure.
+  defp translate_segment(state, segment, index, count, attempt, last_error) do
+    state.on_event.({:segment_start, index, count, segment.kind})
+
+    payload =
+      payload(
+        state.work_item,
+        segment.content,
+        segment.server_context_body,
+        not is_nil(state.preserved_frontmatter),
+        last_error,
+        segment.kind,
+        index,
+        count
+      )
+
+    case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
+      {:ok, result} ->
+        text = strip_structured_code_fence(state.work_item.format, result.text)
+        state.on_event.({:segment_output, text})
+
+        case unpreserved_markers(state.protections, segment.content, text) do
+          [] ->
+            {:ok, text, result}
+
+          markers when attempt < @segment_attempts ->
+            message = marker_error_message(markers)
+            state.on_event.({:segment_retry, index, message})
+            translate_segment(state, segment, index, count, attempt + 1, message)
+
+          _markers ->
+            {:ok, text, result}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp unpreserved_markers(protections, segment_content, text) do
+    Enum.flat_map(
+      protections,
+      &PreservedTokens.unpreserved_markers(&1, segment_content, text)
+    )
+  end
+
+  defp marker_error_message(markers) do
+    "these protected token markers must be copied byte-for-byte exactly once: " <>
+      Enum.join(markers, ", ")
   end
 
   defp assemble_segments(state, translated_segments) do
