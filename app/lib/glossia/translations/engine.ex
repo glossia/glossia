@@ -183,18 +183,18 @@ defmodule Glossia.Translations.Engine do
     case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
       {:ok, result} ->
         text = strip_structured_code_fence(state.work_item.format, result.text)
-        state.on_event.({:segment_output, text})
 
         case unpreserved_markers(state.protections, segment.content, text) do
-          [] ->
-            {:ok, text, result}
-
-          markers when attempt < @segment_attempts ->
+          markers when markers != [] and attempt < @segment_attempts ->
+            # Deliberately no `segment_output`: progress folds that event into
+            # the item's completed text, so announcing output we are about to
+            # discard would leave the rejected and corrected text concatenated.
             message = marker_error_message(markers)
             state.on_event.({:segment_retry, index, message})
             translate_segment(state, segment, index, count, attempt + 1, message)
 
           _markers ->
+            state.on_event.({:segment_output, text})
             {:ok, text, result}
         end
 

@@ -112,11 +112,19 @@ defmodule Glossia.Translations.Failure do
 
   Rate limits, timeouts, and unclassified provider/transport errors are
   transient. Exhausted credit and bad credentials are not - retrying those only
-  burns time and produces the same failure.
+  burns time and produces the same failure. Neither is a client-side 4xx: an
+  unknown model, a malformed request, or content the provider rejects fails the
+  same way every time, so only 408 and 429 stay retryable in that range.
   """
-  @spec retryable?(t()) :: boolean()
-  def retryable?(%{kind: kind}), do: kind in @retryable_kinds
+  def retryable?(%{kind: kind} = failure),
+    do: kind in @retryable_kinds and not permanent_status?(Map.get(failure, :status))
+
   def retryable?(_failure), do: false
+
+  defp permanent_status?(status) when is_integer(status),
+    do: status >= 400 and status < 500 and status not in [408, 429]
+
+  defp permanent_status?(_status), do: false
 
   @doc "Whether a failure should also have a session-level summary."
   @spec session_level?(t()) :: boolean()
@@ -131,13 +139,13 @@ defmodule Glossia.Translations.Failure do
     kind =
       cond do
         status == 402 or
-            contains_any?(normalized, [
-              "credit limit",
-              "insufficient credit",
-              "usage limit",
-              "purchase more credits",
-              "quota"
-            ]) ->
+            (status != 429 and
+               contains_any?(normalized, [
+                 "credit limit",
+                 "insufficient credit",
+                 "usage limit",
+                 "purchase more credits"
+               ])) ->
           "provider-credit"
 
         status == 429 or

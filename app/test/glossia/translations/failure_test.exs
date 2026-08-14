@@ -81,6 +81,34 @@ defmodule Glossia.Translations.FailureTest do
     refute Failure.retryable?(Failure.from({:validation_failed, "invalid yaml"}))
   end
 
+  # An unknown model or a malformed request fails identically every time.
+  test "does not retry a client error the provider will reject again" do
+    for status <- [400, 404, 422] do
+      failure = Failure.from({:llm_failed, %{reason: "bad request", status: status}}, "anthropic")
+
+      assert failure.kind == "provider-error"
+      refute Failure.retryable?(failure)
+    end
+
+    assert Failure.retryable?(
+             Failure.from({:llm_failed, %{reason: "request timed out", status: 408}}, "anthropic")
+           )
+  end
+
+  # Providers word per-minute rate limits as an exceeded quota; that is a
+  # retryable throttle, not an exhausted balance.
+  test "reads a rate-limited quota message as a rate limit, not exhausted credit" do
+    failure =
+      Failure.from(
+        {:llm_failed,
+         %{reason: "Quota exceeded for quota metric requests per minute", status: 429}},
+        "google"
+      )
+
+    assert failure.kind == "provider-rate-limit"
+    assert Failure.retryable?(failure)
+  end
+
   test "classifies a nested streaming error without retaining its raw text" do
     raw =
       """

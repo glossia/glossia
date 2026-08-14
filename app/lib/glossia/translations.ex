@@ -100,7 +100,16 @@ defmodule Glossia.Translations do
   def translate_stream(%Account{} = account, payload, on_event, opts)
       when is_function(on_event, 1) and is_list(opts) do
     with {:ok, credential, system_prompt, user_prompt} <- prepare(account, payload, opts) do
-      call = fn -> LLM.stream(credential, system_prompt, user_prompt, on_event) end
+      # A streamed error is documented as failing the call, so forwarding one
+      # from an attempt that is about to be retried would show subscribers a
+      # terminal failure on an item that then completes. Hold it back; the
+      # retry loop emits it only when it gives up.
+      attempt_on_event = fn
+        {:error, _reason} -> :ok
+        event -> on_event.(event)
+      end
+
+      call = fn -> LLM.stream(credential, system_prompt, user_prompt, attempt_on_event) end
 
       notify_retry = fn attempt ->
         on_event.({:provider_retry, attempt, @max_llm_attempts})
@@ -108,7 +117,7 @@ defmodule Glossia.Translations do
 
       backoff_ms = Keyword.get(opts, :retry_backoff_ms, @llm_retry_backoff_ms)
 
-      case with_retries(call, credential, notify_retry, backoff_ms) do
+      case with_retries(call, credential, notify_retry, backoff_ms, on_event) do
         {:ok, text} -> {:ok, build_result(credential, text)}
         {:error, reason} -> {:error, {:llm_failed, reason}}
       end
@@ -119,7 +128,7 @@ defmodule Glossia.Translations do
   # fail the whole item (and, in a repository run, the whole session), even
   # though the same call succeeds moments later. Non-transient failures - no
   # credit, bad credentials - are returned immediately.
-  defp with_retries(call, credential, notify_retry, backoff_ms, attempt \\ 1) do
+  defp with_retries(call, credential, notify_retry, backoff_ms, on_error \\ nil, attempt \\ 1) do
     case call.() do
       {:ok, text} ->
         {:ok, text}
@@ -131,8 +140,9 @@ defmodule Glossia.Translations do
              Failure.retryable?(Failure.from({:llm_failed, reason}, provider)) do
           Process.sleep(backoff_ms * attempt)
           notify_retry.(attempt + 1)
-          with_retries(call, credential, notify_retry, backoff_ms, attempt + 1)
+          with_retries(call, credential, notify_retry, backoff_ms, on_error, attempt + 1)
         else
+          if on_error, do: on_error.({:error, reason})
           {:error, reason}
         end
     end

@@ -77,7 +77,15 @@ defmodule Glossia.Translations.LLM do
         # outages), reporting the reason as an `error`/`turn.failed` event, and
         # its raw output is mostly unrelated tool chatter. Prefer the reported
         # message so the failure is classified and shown accurately.
+        #
+        # `turn.failed` is authoritative: the turn did not finish, so any agent
+        # message collected before it is partial and must not be published. A
+        # bare `error` event can be a recovered tool error mid-turn, so it only
+        # decides when no agent message came back.
         cond do
+          message = codex_turn_failure(events) ->
+            {:error, {:codex_cli_failed, code, message}}
+
           code == 0 and text != "" ->
             {:ok, text}
 
@@ -114,10 +122,22 @@ defmodule Glossia.Translations.LLM do
     end)
   end
 
+  defp codex_turn_failure(events) do
+    Enum.find_value(events, fn
+      %{"type" => "turn.failed", "error" => %{"message" => message}} when is_binary(message) ->
+        message
+
+      %{"type" => "turn.failed"} ->
+        "the codex turn failed"
+
+      _ ->
+        nil
+    end)
+  end
+
   defp codex_error_message(events) do
     Enum.find_value(events, fn
       %{"type" => "error", "message" => message} when is_binary(message) -> message
-      %{"type" => "turn.failed", "error" => %{"message" => message}} -> message
       _ -> nil
     end)
   end

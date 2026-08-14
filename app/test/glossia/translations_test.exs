@@ -91,6 +91,28 @@ defmodule Glossia.TranslationsTest do
 
       assert Elixir.Agent.get(attempts, & &1) == 2
       assert {:provider_retry, 2, 3} in Elixir.Agent.get(events, & &1)
+
+      # A streamed error fails the call by contract, so an attempt that is
+      # about to be retried must not publish one to subscribers.
+      refute Enum.any?(Elixir.Agent.get(events, & &1), &match?({:error, _reason}, &1))
+    end
+
+    test "emits the streamed error once the retries are exhausted", %{account: account} do
+      Mimic.stub(Condukt, :stream, fn _pid, _prompt ->
+        [:turn_start, {:error, %{reason: "connection closed"}}]
+      end)
+
+      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
+        Elixir.Agent.start_link(fn -> nil end)
+      end)
+
+      {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
+      on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
+
+      assert {:error, {:llm_failed, _}} =
+               Translations.translate_stream(account, payload(%{}), on_event, retry_backoff_ms: 0)
+
+      assert Enum.any?(Elixir.Agent.get(events, & &1), &match?({:error, _reason}, &1))
     end
 
     test "does not retry an exhausted credit failure", %{account: account} do

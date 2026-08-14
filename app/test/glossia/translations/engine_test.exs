@@ -595,8 +595,23 @@ defmodule Glossia.Translations.EngineTest do
 
       item = work_item(%{source_abs: source, frontmatter_mode: :translate})
 
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
+      on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
       assert result.text =~ "https://example.com/report"
+
+      # Progress folds `segment_output` into the item's completed text, so the
+      # rejected attempt must not announce output it is about to discard.
+      outputs =
+        events
+        |> Elixir.Agent.get(&Enum.reverse/1)
+        |> Enum.flat_map(fn
+          {:segment_output, text} -> [text]
+          _ -> []
+        end)
+
+      refute Enum.any?(outputs, &(&1 == "informe traducido sin enlace"))
 
       calls = Elixir.Agent.get(payloads, &Enum.reverse/1)
       contents = Enum.map(calls, & &1["source_content"])

@@ -159,6 +159,27 @@ defmodule Glossia.Translations.LLMTest do
                LLM.run(%{source: :codex_session}, @system, @user)
     end
 
+    # A failed turn means the agent message that preceded it is partial, so it
+    # must not be published as a translation.
+    test "fails a turn that reports a failure after emitting an agent message" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"item.completed","item":{"type":"agent_message","text":"partial"}}\n) <>
+           ~s({"type":"turn.failed","error":{"message":"Provider disconnected"}}\n), 0}
+      end)
+
+      assert {:error, {:codex_cli_failed, 0, "Provider disconnected"}} =
+               LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
+    test "keeps a completed turn that recovered from a mid-turn error event" do
+      Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
+        {~s({"type":"error","message":"tool call failed, retrying"}\n) <>
+           ~s({"type":"item.completed","item":{"type":"agent_message","text":"Hola"}}\n), 0}
+      end)
+
+      assert {:ok, "Hola"} = LLM.run(%{source: :codex_session}, @system, @user)
+    end
+
     test "falls back to an empty-response error when nothing is reported" do
       Mimic.expect(MuonTrap, :cmd, fn "sh", _args, _opts ->
         {~s({"type":"thread.started","thread_id":"t"}\n), 0}
