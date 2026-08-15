@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang={assigns[:locale] || Glossia.I18n.default_locale()}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
+    <link :if={assigns[:canonical_url]} rel="canonical" href={@canonical_url} />
+    <link
+      :for={alternate <- assigns[:locale_alternates] || []}
+      rel="alternate"
+      hreflang={alternate.hreflang}
+      href={alternate.url}
+    />
     <.live_title
       default={gettext("Glossia")}
       suffix={if(assigns[:page_title], do: " · Glossia", else: "")}

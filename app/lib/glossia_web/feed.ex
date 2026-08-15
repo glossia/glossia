@@ -22,7 +22,7 @@ defmodule GlossiaWeb.Feed do
       <channel>
         <title>#{xml_escape(attrs[:title])}</title>
         <description>#{xml_escape(attrs[:description])}</description>
-        <link>#{xml_escape(base_url <> attrs[:path])}</link>
+        <link>#{xml_escape(absolute_url(base_url, attrs[:path]))}</link>
     #{items}
       </channel>
     </rss>
@@ -34,12 +34,14 @@ defmodule GlossiaWeb.Feed do
         <item>
           <title>#{xml_escape(item.title)}</title>
           <description>#{xml_escape(item.description)}</description>
-          <link>#{xml_escape(base_url <> item.path)}</link>
-          <guid>#{xml_escape(base_url <> item.path)}</guid>
+          <link>#{xml_escape(absolute_url(base_url, item.path))}</link>
+          <guid>#{xml_escape(absolute_url(base_url, item.path))}</guid>
           <pubDate>#{rfc822(item.date)}</pubDate>
         </item>
     """
   end
+
+  defp absolute_url(base_url, path), do: base_url |> URI.merge(path) |> URI.to_string()
 
   defp rfc822(%Date{} = date) do
     date

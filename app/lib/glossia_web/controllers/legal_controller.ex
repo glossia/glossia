@@ -8,8 +8,9 @@ defmodule GlossiaWeb.LegalController do
   def cookies(conn, params), do: show_document(conn, "cookies", params)
 
   defp show_document(conn, document, %{"date" => date}) do
-    version = Legal.get_version!(document, date)
-    all_versions = Legal.versions_for(document)
+    locale = conn.assigns.locale
+    version = Legal.get_version!(document, date, locale)
+    all_versions = Legal.versions_for(document, locale)
 
     render(conn, :show,
       version: version,
@@ -20,8 +21,9 @@ defmodule GlossiaWeb.LegalController do
   end
 
   defp show_document(conn, document, _params) do
-    version = Legal.latest_version!(document)
-    all_versions = Legal.versions_for(document)
+    locale = conn.assigns.locale
+    version = Legal.latest_version!(document, locale)
+    all_versions = Legal.versions_for(document, locale)
 
     render(conn, :show,
       version: version,

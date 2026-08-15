@@ -1,9 +1,9 @@
 <section class="section docs-page">
   <div class="container">
     <nav class="docs-breadcrumbs">
-      <a href={~p"/docs"}>{gettext("Documentation")}</a>
+      <a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a>
       <span class="docs-breadcrumb-sep">/</span>
-      <a href={~p"/docs/#{@category_key}"}>{@category_meta.title}</a>
+      <a href={locale_path(~p"/docs/#{@category_key}")}>{@category_meta.title}</a>
       <span class="docs-breadcrumb-sep">/</span>
       <span>{@subcategory_meta.title}</span>
     </nav>
@@ -14,7 +14,7 @@
     <div class="docs-page-list">
       <a
         :for={page <- @pages}
-        href={~p"/docs/#{@category_key}/#{@subcategory_key}/#{page.slug}"}
+        href={locale_path(~p"/docs/#{@category_key}/#{@subcategory_key}/#{page.slug}")}
         class="card docs-page-card"
         data-interactive
       >

@@ -5,7 +5,7 @@ defmodule GlossiaWeb.FeatureController do
 
   def index(conn, _params) do
     render(conn, :index,
-      pages: Features.all_pages(),
+      pages: Features.all_pages(conn.assigns.locale),
       page_title: gettext("Features"),
       page_description:
         gettext("Explore Glossia's language memory, localization, API, and MCP capabilities.")
@@ -13,7 +13,7 @@ defmodule GlossiaWeb.FeatureController do
   end
 
   def show(conn, %{"slug" => slug}) do
-    page = Features.get_page!(slug)
+    page = Features.get_page!(slug, conn.assigns.locale)
 
     render(conn, :show,
       page: page,

@@ -1,12 +1,14 @@
 <section class="section docs-page">
   <div class="container">
     <nav class="docs-breadcrumbs">
-      <a href={~p"/docs"}>{gettext("Documentation")}</a>
+      <a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a>
       <span class="docs-breadcrumb-sep">/</span>
-      <a href={~p"/docs/#{@current_category}"}>{@categories[@current_category].title}</a>
+      <a href={locale_path(~p"/docs/#{@current_category}")}>
+        {@categories[@current_category].title}
+      </a>
       <%= if assigns[:current_subcategory] do %>
         <span class="docs-breadcrumb-sep">/</span>
-        <a href={~p"/docs/#{@current_category}/#{@current_subcategory}"}>
+        <a href={locale_path(~p"/docs/#{@current_category}/#{@current_subcategory}")}>
           {@current_subcategory_meta.title}
         </a>
       <% end %>
@@ -27,7 +29,7 @@
             </li>
           </ul>
           <div class="docs-toc-back">
-            <a href={~p"/docs"}>{gettext("All documentation")}</a>
+            <a href={locale_path(~p"/docs")}>{gettext("All documentation")}</a>
           </div>
         </nav>
       </aside>

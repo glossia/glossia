@@ -49,15 +49,22 @@ defmodule Glossia.Features do
   use Glossia.ContentPublisher,
     build: Page,
     from: Application.app_dir(:glossia, "priv/features/**/*.md"),
+    i18n: "features",
     as: :pages,
     html_converter: Glossia.Markdown.Publisher
 
   @pages Enum.sort_by(@pages, & &1.order)
 
-  def all_pages, do: @pages
+  @pages_by_locale Map.new(@pages_by_locale, fn {locale, pages} ->
+                     {locale, Enum.sort_by(pages, & &1.order)}
+                   end)
 
-  def get_page!(slug) do
-    Enum.find(@pages, &(&1.slug == slug)) ||
+  def all_pages(locale \\ Glossia.I18n.default_locale()) do
+    Map.get(@pages_by_locale, locale, @pages)
+  end
+
+  def get_page!(slug, locale \\ Glossia.I18n.default_locale()) do
+    Enum.find(all_pages(locale), &(&1.slug == slug)) ||
       raise Glossia.Features.NotFoundError, "feature page not found: #{slug}"
   end
 end
