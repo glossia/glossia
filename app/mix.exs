@@ -131,8 +131,9 @@ defmodule Glossia.MixProject do
         "assets.setup",
         "assets.build"
       ],
+      "ecto.create": ["db.create"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       test: [
         "ecto.create --quiet",
         "ecto.migrate --quiet",

@@ -4,13 +4,11 @@ set -euo pipefail
 app_dir="${MISE_PROJECT_ROOT}/app"
 cd "${app_dir}"
 
-mix deps.get
+# ClickHouse has to be listening before the repos are created: `mix setup`
+# creates, migrates, and seeds both the PostgreSQL and the ClickHouse repo,
+# and verifies each one connects.
 mise run clickhouse:start
 
-mix ecto.create --repo Glossia.Repo
-mix ecto.migrate --repo Glossia.Repo
-
-mix ecto.create --repo Glossia.IngestRepo
-mix ecto.migrate --repo Glossia.IngestRepo
-
-mix run priv/repo/seeds.exs
+# `mix setup` is the single entry point: dependencies, the user-agent database,
+# the repos, and the JavaScript bundles a fresh clone has none of.
+mix setup
