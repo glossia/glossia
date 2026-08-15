@@ -54,12 +54,32 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "glossia.bifrostName" -}}
+{{- printf "%s-bifrost" (include "glossia.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "glossia.bifrostImage" -}}
+{{- if .Values.bifrost.image.digest -}}
+{{- printf "%s@%s" .Values.bifrost.image.repository .Values.bifrost.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.bifrost.image.repository .Values.bifrost.image.tag -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "glossia.hermesGrafanaMCPImage" -}}
 {{- if .Values.hermes.observability.image.digest -}}
 {{- printf "%s@%s" .Values.hermes.observability.image.repository .Values.hermes.observability.image.digest -}}
 {{- else -}}
 {{- printf "%s:%s" .Values.hermes.observability.image.repository .Values.hermes.observability.image.tag -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "glossia.bifrostConfig" -}}
+{
+  "$schema": "https://www.getbifrost.ai/schema"{{- if .Values.bifrost.envLabel }},
+  "env_label": {{ .Values.bifrost.envLabel | quote }}{{ end }}{{- if .Values.bifrost.setupToken }},
+  "setup_token": {{ .Values.bifrost.setupToken | quote }}{{ end }}
+}
 {{- end -}}
 
 {{- define "glossia.headlessServiceName" -}}

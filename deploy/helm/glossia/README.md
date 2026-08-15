@@ -23,6 +23,7 @@ needs whichever of these match the components you enable:
 | `objectStorage.rook.enabled` | A Rook and Ceph `ObjectBucketClaim` Secret with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` |
 | `smolanalytics.enabled` | A default storage class, or an explicit `smolanalytics.persistence.storageClass` |
 | `hermes.enabled` | `smolanalytics.enabled=true`, a [Slack Socket Mode](https://api.slack.com/apis/connections/socket) application, a [Together](https://docs.together.ai/docs/quickstart) key, and a read-only [Grafana service account](https://grafana.com/docs/grafana/latest/administration/service-accounts/) token |
+| `bifrost.enabled` | A default storage class, or an explicit `bifrost.persistence.storageClass`; an encryption key Secret (`glossia-bifrost`) is recommended but optional |
 
 ## Install
 
@@ -247,7 +248,7 @@ separate password.
 
 ### Configure credentials
 
-When the External Secrets integration is disabled, provision these three
+When the External Secrets integration is disabled, provision these four
 Kubernetes Secrets before installing the chart:
 
 | Secret | Required keys |
@@ -255,6 +256,7 @@ Kubernetes Secrets before installing the chart:
 | `glossia-smolanalytics` | `SMOLANALYTICS_WRITE_KEY`, `SMOLANALYTICS_READ_KEY`, `SMOLANALYTICS_PASSWORD` |
 | `glossia-hermes` | `TOGETHER_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_ALLOWED_USERS`, `API_SERVER_KEY` |
 | `glossia-grafana-mcp` | `GRAFANA_SERVICE_ACCOUNT_TOKEN` |
+| `glossia-bifrost` | `BIFROST_ENCRYPTION_KEY` (only when `bifrost.enabled=true`) |
 
 Generate independent random values for both smolanalytics keys, its dashboard
 password, and `API_SERVER_KEY`. Never reuse the ingestion key as the report
@@ -281,6 +283,9 @@ externalSecrets:
   grafanaMcp:
     itemKey: /glossia
     serviceAccountTokenField: GRAFANA_SERVICE_ACCOUNT_TOKEN
+  bifrost:
+    itemKey: /glossia-bifrost
+    encryptionKeyField: BIFROST_ENCRYPTION_KEY
 ```
 
 Set `hermes.slackHomeChannelEnabled=true` and provide
@@ -320,6 +325,61 @@ Then ask Hermes questions that exercise each source, for example:
   Grafana?”
 - “Show the conversion from project creation to the first completed
   translation, and state the exact filters you used.”
+
+## Bifrost AI gateway
+
+Enable `bifrost` to deploy a single OpenAI-compatible gateway that fronts and
+governs access to the model providers used across the service. It is
+zero-config on first boot: after the pod is healthy, open the web UI and
+configure providers from the running gateway. The OpenAI-compatible endpoint
+and the web UI are both served on the gateway port (default 8080).
+
+```yaml
+bifrost:
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - host: gateway.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+```
+
+Provider API keys are entered through the web UI and stored in the sqlite
+database under `bifrost.appDir`. The persisted state is held on a persistent
+volume, so sign up providers once and the gateway keeps them across restarts.
+Use a `Recreate` deployment strategy: the gateway is a single writer over its
+sqlite store, so running more than one replica against the same volume is not
+supported.
+
+The gateway stores provider credentials; encrypt them at rest with a
+Bifrost encryption key. When the External Secrets integration is enabled, the
+chart creates the `glossia-bifrost` Secret from `externalSecrets.bifrost`;
+otherwise provision it yourself:
+
+```bash
+kubectl -n glossia create secret generic glossia-bifrost \
+  --from-literal=BIFROST_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+```
+
+The key only encrypts provider secrets; it does not gate access to the gateway
+itself. In a low-trust network use an auth configuration or a sidecar and
+restrict the `bifrost` ingress accordingly. Optionally set `bifrost.envLabel`
+to show a short environment label in the UI sidebar, and `bifrost.setupToken`
+to drive the first-run admin setup from `config.json` (note that it is written
+into an unencrypted ConfigMap, so prefer transient single-use values).
+
+### Verify the deployment
+
+```bash
+kubectl -n glossia rollout status deployment/glossia-bifrost
+kubectl -n glossia get pod -l app.kubernetes.io/component=gateway
+```
+
+curl `https://gateway.example.com/health`, then open the web UI and add your
+first provider. Any OpenAI-compatible client can target the gateway at
+`{gateway}/v1` and set `baseURL` accordingly.
 
 ## Object Storage
 

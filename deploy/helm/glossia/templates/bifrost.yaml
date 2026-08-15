@@ -1,0 +1,188 @@
+{{- if .Values.bifrost.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "glossia.bifrostName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- with .Values.bifrost.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.bifrost.persistence.size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "glossia.bifrostName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+spec:
+  replicas: {{ .Values.bifrost.replicaCount }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "glossia.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: gateway
+  template:
+    metadata:
+      labels:
+        {{- include "glossia.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: gateway
+      annotations:
+        checksum/bifrost-config: {{ include (print $.Template.BasePath "/bifrost-configmap.yaml") . | sha256sum }}
+        checksum/bifrost-secret: {{ printf "%s:%s" .Values.bifrost.secretName .Values.bifrost.encryptionKeyKey | sha256sum }}
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: bifrost
+          image: {{ include "glossia.bifrostImage" . | quote }}
+          imagePullPolicy: {{ .Values.bifrost.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.bifrost.port }}
+              protocol: TCP
+          env:
+            - name: APP_DIR
+              value: {{ .Values.bifrost.appDir | quote }}
+            - name: APP_PORT
+              value: {{ .Values.bifrost.port | quote }}
+            - name: APP_HOST
+              value: 0.0.0.0
+            - name: LOG_LEVEL
+              value: {{ .Values.bifrost.logLevel | quote }}
+            - name: LOG_STYLE
+              value: {{ .Values.bifrost.logStyle | quote }}
+            - name: BIFROST_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.bifrost.secretName | quote }}
+                  key: {{ .Values.bifrost.encryptionKeyKey | quote }}
+                  optional: true
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+          resources:
+            {{- toYaml .Values.bifrost.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.bifrost.appDir }}
+            - name: config
+              mountPath: {{ .Values.bifrost.appDir }}/config.json
+              subPath: config.json
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "glossia.bifrostName" . }}
+        - name: config
+          configMap:
+            name: {{ include "glossia.bifrostName" . }}
+      {{- with .Values.bifrost.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bifrost.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bifrost.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "glossia.bifrostName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+spec:
+  selector:
+    {{- include "glossia.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+  ports:
+    - name: http
+      port: {{ .Values.bifrost.port }}
+      targetPort: http
+{{ if .Values.bifrost.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "glossia.bifrostName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+  {{- with .Values.bifrost.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.bifrost.ingress.className }}
+  rules:
+    {{- range .Values.bifrost.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "glossia.bifrostName" $ }}
+                port:
+                  number: {{ $.Values.bifrost.port }}
+          {{- end }}
+    {{- end }}
+  {{- with .Values.bifrost.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,20 @@
+{{- if and .Values.externalSecrets.enabled .Values.bifrost.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.bifrost.secretName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.bifrost.secretName }}
+    creationPolicy: Owner
+  data:
+    - secretKey: {{ .Values.bifrost.encryptionKeyKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.bifrost.itemKey .Values.externalSecrets.bifrost.encryptionKeyField | quote }}
+{{- end }}

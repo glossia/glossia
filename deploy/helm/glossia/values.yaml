@@ -180,6 +180,62 @@ hermes:
   tolerations: []
   affinity: {}
 
+# Bifrost AI gateway. Exposes a single OpenAI-compatible endpoint that fronts
+# and governs access to the model providers used across the service. Zero-config
+# on first boot: after the pod is ready, open the web UI at "/" and configure
+# providers from the running gateway. Provider API keys are entered in the UI
+# and stored in the sqlite store under bifrost.appDir; set an encryption key to
+# encrypt them at rest (see externalSecrets.bifrost).
+bifrost:
+  enabled: false
+  image:
+    repository: docker.io/maximhq/bifrost
+    tag: v1.6.11
+    digest: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  # Store + config directory. The sqlite database and uploaded schemas live
+  # here; config.json is overlaid on top of it from a ConfigMap.
+  appDir: /app/data
+  port: 8080
+  logLevel: info
+  logStyle: dev
+  # Optional short label (max 10 chars) shown in the Bifrost UI sidebar.
+  envLabel: ""
+  # Optional bootstrap token written into config.json to drive the first-run
+  # admin setup. Leave empty for zero-config (create the admin account from
+  # the web UI on first visit). It is rendered into an unencrypted ConfigMap,
+  # so prefer env secrets over this for anything shared across environments.
+  setupToken: ""
+  # Name of the Kubernetes Secret holding the encryption key. When the External
+  # Secrets integration is enabled, the chart creates it from the remote field
+  # below; otherwise provision it yourself with the bifrost.encryptionKeyKey key.
+  secretName: glossia-bifrost
+  encryptionKeyKey: BIFROST_ENCRYPTION_KEY
+  persistence:
+    storageClass: ""
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: gateway.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # App object storage. By default the app expects the storage environment
 # variables to come from secrets.envSecretName. Enable the provider-neutral
 # configuration below to read credentials from a dedicated Kubernetes Secret.
@@ -462,6 +518,12 @@ externalSecrets:
   grafanaMcp:
     itemKey: /glossia
     serviceAccountTokenField: GRAFANA_SERVICE_ACCOUNT_TOKEN
+  # Encryption key for the Bifrost gateway's stored provider credentials.
+  # Pulls from a SEPARATE backend item (not appEnv.itemKey) so gateway keys
+  # are not entangled with the app's secrets.
+  bifrost:
+    itemKey: /glossia-bifrost
+    encryptionKeyField: BIFROST_ENCRYPTION_KEY
   # ExternalSecret for the dedicated DB-backup bucket credentials. Pulls
   # from a SEPARATE backend item (not appEnv.itemKey) so backup creds are
   # not entangled with the app's secrets. Maps remote fields →
