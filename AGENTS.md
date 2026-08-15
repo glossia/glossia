@@ -37,6 +37,21 @@
   - `redirect(conn, external: ~pH"https://github.com/#{@org}/#{@repo}")`
 - Never build paths with string concatenation, `String.replace`, or `Phoenix.VerifiedRoutes.unverified_url/1`. The whole point of `~p` is to fail at compile time when a route is wrong.
 
+### URL and path manipulation
+
+- Parse, modify, and build URLs and paths with the `URI` module, never with `String` surgery. `URI.parse/1`, `URI.to_string/1`, and `URI.merge/2` handle query strings, fragments, escaping, and scheme/host detection correctly; splitting on `"?"`, concatenating `"#"`, or checking `String.starts_with?(path, "//")` all get those cases wrong.
+- Turning a path into an absolute URL is `base_url |> URI.merge(path) |> URI.to_string()`.
+- Validating a user-supplied redirect target is a `URI.parse/1` plus a match on `%URI{scheme: nil, host: nil, path: "/" <> _}`, which is what keeps an open redirect out.
+
+### Localized marketing links
+
+The public marketing site is served once per locale: English unprefixed (`/blog`) and every translated locale behind a literal prefix (`/es/blog`, `/zh-hans/docs/...`, see `GlossiaWeb.MarketingRoutes`). Marketing links therefore wrap `~p` in `locale_path/1`, which prefixes the verified path with the locale of the current request:
+
+- `href={locale_path(~p"/blog")}` renders `/blog` in English and `/es/blog` in Spanish.
+- The route itself is still verified at compile time; only the prefix is added at runtime, from `Glossia.I18n`.
+- Do **not** use `locale_path/1` for dashboard, auth, or API routes. Those exist at a single URL, and prefixing them produces a 404.
+
+
 ## Type annotations
 
 - Do not write `@type` or `@spec` module attributes. Types are conveyed through `@moduledoc`, function names, the function signatures themselves, and the tests. `@type` / `@spec` add maintenance overhead (they drift, they are not enforced at runtime, and Elixir's tooling is stronger for code-as-documentation) without buying us anything the editor cannot infer.

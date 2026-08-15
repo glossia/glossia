@@ -18,6 +18,23 @@ defmodule GlossiaWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
+  The path the visitor is on, query string included, used by the language
+  switcher to come back to the same page in another language.
+  """
+  def current_path(assigns) do
+    case assigns[:conn] do
+      %Plug.Conn{request_path: path, query_string: ""} ->
+        path
+
+      %Plug.Conn{request_path: path, query_string: query} ->
+        URI.to_string(%URI{path: path, query: query})
+
+      _other ->
+        "/"
+    end
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
 
   ## Examples

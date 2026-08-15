@@ -94,7 +94,11 @@ defmodule GlossiaWeb.AuthController do
 
     case Auth.callback(provider, params, session_params) do
       {:ok, oauth_response} ->
-        case Accounts.find_or_create_user_from_oauth(provider, oauth_response) do
+        # New accounts start in the language the browser asked for, which the
+        # locale plug has already resolved for this request.
+        case Accounts.find_or_create_user_from_oauth(provider, oauth_response,
+               locale: conn.assigns[:locale]
+             ) do
           {:ok, user} ->
             return_to = get_session(conn, :return_to)
 

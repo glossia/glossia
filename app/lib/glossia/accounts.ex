@@ -95,17 +95,31 @@ defmodule Glossia.Accounts do
     |> Repo.one()
   end
 
-  def find_or_create_user_from_oauth(provider, %{user: user_info, token: token_info}) do
+  @doc """
+  Signs a user in through an OAuth provider, creating the account the first
+  time we see them.
+
+  `:locale` is the language the browser asked for during sign-up. It is only
+  applied on creation: returning users keep whatever they picked in their
+  settings.
+  """
+  def find_or_create_user_from_oauth(provider, %{user: user_info, token: token_info}, opts \\ []) do
     Tracer.with_span "glossia.accounts.find_or_create_user_from_oauth" do
       Tracer.set_attributes([{"glossia.oauth.provider", to_string(provider)}])
 
       provider_uid = to_string(user_info["sub"])
 
       case get_identity(provider, provider_uid) do
-        nil -> create_user_from_oauth(provider, user_info, token_info)
+        nil -> create_user_from_oauth(provider, user_info, token_info, opts)
         identity -> update_identity_tokens(identity, token_info)
       end
     end
+  end
+
+  def update_user_locale(%User{} = user, locale) do
+    user
+    |> User.locale_changeset(%{locale: locale})
+    |> Repo.update()
   end
 
   def update_user_profile(%User{} = user, attrs) do
@@ -127,7 +141,7 @@ defmodule Glossia.Accounts do
     |> Repo.one()
   end
 
-  defp create_user_from_oauth(provider, user_info, token_info) do
+  defp create_user_from_oauth(provider, user_info, token_info, opts) do
     handle =
       generate_handle(
         user_info["preferred_username"] || user_info["nickname"] || user_info["name"]
@@ -142,7 +156,8 @@ defmodule Glossia.Accounts do
       |> User.changeset(%{
         email: user_info["email"],
         name: user_info["name"],
-        avatar_url: user_info["picture"]
+        avatar_url: user_info["picture"],
+        locale: Glossia.I18n.normalize(opts[:locale])
       })
     end)
     |> Ecto.Multi.insert(:organization, fn %{account: account} ->

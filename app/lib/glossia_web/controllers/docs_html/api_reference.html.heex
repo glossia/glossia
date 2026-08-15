@@ -1,11 +1,11 @@
 <section class="section docs-page">
   <div class="container">
     <nav class="docs-breadcrumbs">
-      <a href={~p"/docs"}>{gettext("Documentation")}</a>
+      <a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a>
       <span class="docs-breadcrumb-sep">/</span>
-      <a href={~p"/docs/reference"}>{@categories["reference"].title}</a>
+      <a href={locale_path(~p"/docs/reference")}>{@categories["reference"].title}</a>
       <span class="docs-breadcrumb-sep">/</span>
-      <a href={~p"/docs/reference/apis"}>{@current_subcategory_meta.title}</a>
+      <a href={locale_path(~p"/docs/reference/apis")}>{@current_subcategory_meta.title}</a>
       <span class="docs-breadcrumb-sep">/</span>
       <span>{@page_title}</span>
     </nav>

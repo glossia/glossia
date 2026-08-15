@@ -64,6 +64,8 @@ end
 defmodule Glossia.Docs do
   @moduledoc false
 
+  use Gettext, backend: GlossiaWeb.Gettext
+
   alias Glossia.Docs.Page
 
   @category_order ~w(tutorials how-to reference explanation)
@@ -122,10 +124,15 @@ defmodule Glossia.Docs do
   use Glossia.ContentPublisher,
     build: Page,
     from: Application.app_dir(:glossia, "priv/docs/**/*.md"),
+    i18n: "docs",
     as: :content_pages,
     html_converter: Glossia.Markdown.Publisher
 
   @content_pages Enum.sort_by(@content_pages, & &1.order)
+
+  @content_pages_by_locale Map.new(@content_pages_by_locale, fn {locale, pages} ->
+                             {locale, Enum.sort_by(pages, & &1.order)}
+                           end)
 
   @synthetic_pages [
     %Page{
@@ -189,85 +196,146 @@ defmodule Glossia.Docs do
 
   @pages @content_pages ++ @synthetic_pages
 
-  def categories, do: @categories
+  @pages_by_locale Map.new(@content_pages_by_locale, fn {locale, pages} ->
+                     {locale, pages ++ @synthetic_pages}
+                   end)
 
-  def sorted_categories do
+  def categories do
+    Map.new(@categories, fn {key, meta} -> {key, translate_meta(meta)} end)
+  end
+
+  def sorted_categories(locale \\ Glossia.I18n.default_locale()) do
     @category_order
-    |> Enum.map(&{&1, Map.fetch!(@categories, &1)})
-    |> Enum.filter(fn {category, _meta} -> category_items(category) != [] end)
+    |> Enum.map(&{&1, category_meta!(&1)})
+    |> Enum.filter(fn {category, _meta} -> category_items(category, locale) != [] end)
     |> Map.new()
   end
 
-  def category_meta!(category), do: Map.fetch!(@categories, category)
+  def category_meta!(category) do
+    @categories |> Map.fetch!(category) |> translate_meta()
+  end
 
   def subcategory_meta!(category, subcategory) do
-    Map.fetch!(@subcategories, "#{category}/#{subcategory}")
+    @subcategories |> Map.fetch!("#{category}/#{subcategory}") |> translate_meta()
   end
 
   def subcategory?(category, subcategory) do
     Map.has_key?(@subcategories, "#{category}/#{subcategory}")
   end
 
-  def category_items(category) do
+  def category_items(category, locale \\ Glossia.I18n.default_locale()) do
     page_items =
-      @pages
+      locale
+      |> pages()
       |> Enum.filter(
         &(&1.category == category and is_nil(&1.subcategory) and &1.id != "reference/api")
       )
-      |> Enum.map(&%{title: &1.title, summary: &1.summary, href: path_for(&1), order: &1.order})
-
-    subcategory_items =
-      @subcategories
-      |> Map.values()
-      |> Enum.filter(&(&1.category == category and subcategory_pages(category, &1.key) != []))
       |> Enum.map(
         &%{
           title: &1.title,
           summary: &1.summary,
-          href: "/docs/#{category}/#{&1.key}",
+          href: Glossia.I18n.localize_path(locale, path_for(&1)),
           order: &1.order
         }
       )
 
+    subcategory_items =
+      @subcategories
+      |> Map.values()
+      |> Enum.filter(
+        &(&1.category == category and subcategory_pages(category, &1.key, locale) != [])
+      )
+      |> Enum.map(fn subcategory ->
+        meta = translate_meta(subcategory)
+
+        %{
+          title: meta.title,
+          summary: meta.summary,
+          href: Glossia.I18n.localize_path(locale, "/docs/#{category}/#{meta.key}"),
+          order: meta.order
+        }
+      end)
+
     Enum.sort_by(page_items ++ subcategory_items, & &1.order)
   end
 
-  def subcategory_pages(category, subcategory) do
-    @pages
+  def subcategory_pages(category, subcategory, locale \\ Glossia.I18n.default_locale()) do
+    locale
+    |> pages()
     |> Enum.filter(&(&1.category == category and &1.subcategory == subcategory))
     |> Enum.sort_by(& &1.order)
   end
 
-  def all_pages do
-    Enum.reject(@pages, &(&1.id == "reference/api"))
+  def all_pages(locale \\ Glossia.I18n.default_locale()) do
+    locale |> pages() |> Enum.reject(&(&1.id == "reference/api"))
   end
 
-  def get_page!(category, nil, slug) do
-    Enum.find(@pages, &(&1.category == category and is_nil(&1.subcategory) and &1.slug == slug)) ||
+  def get_page!(category, subcategory, slug, locale \\ Glossia.I18n.default_locale())
+
+  def get_page!(category, nil, slug, locale) do
+    Enum.find(
+      pages(locale),
+      &(&1.category == category and is_nil(&1.subcategory) and &1.slug == slug)
+    ) ||
       raise Glossia.Docs.NotFoundError, "doc page not found: #{category}/#{slug}"
   end
 
-  def get_page!(category, subcategory, slug) do
+  def get_page!(category, subcategory, slug, locale) do
     Enum.find(
-      @pages,
+      pages(locale),
       &(&1.category == category and &1.subcategory == subcategory and &1.slug == slug)
     ) ||
       raise Glossia.Docs.NotFoundError, "doc page not found: #{category}/#{subcategory}/#{slug}"
   end
 
-  def search_index do
-    Enum.map(all_pages(), fn page ->
+  def search_index(locale \\ Glossia.I18n.default_locale()) do
+    Enum.map(all_pages(locale), fn page ->
       %{
         title: page.title,
         summary: page.summary,
         category: page.category,
         slug: page.slug,
-        url: String.trim_trailing(path_for(page), "/"),
+        url: locale |> Glossia.I18n.localize_path(path_for(page)) |> String.trim_trailing("/"),
         headings: Enum.map(page.toc, &Map.take(&1, [:text, :id])),
         body_text: Glossia.MarketingMarkdown.strip_html(page.body)
       }
     end)
   end
+
+  defp pages(locale), do: Map.get(@pages_by_locale, locale, @pages)
+
+  # The Diataxis labels live in code rather than in content, so they go through
+  # Gettext instead of through the translated markdown.
+  defp translate_meta(%{key: key} = meta) do
+    %{meta | title: translated_title(key), summary: translated_summary(key)}
+  end
+
+  defp translated_title("tutorials"), do: gettext("Tutorials")
+  defp translated_title("how-to"), do: gettext("How-to guides")
+  defp translated_title("reference"), do: gettext("Reference")
+  defp translated_title("explanation"), do: gettext("Explanation")
+  defp translated_title("cli"), do: gettext("CLI")
+  defp translated_title("apis"), do: gettext("APIs")
+  defp translated_title("mcp"), do: gettext("MCP")
+
+  defp translated_summary("tutorials"),
+    do: gettext("Step-by-step lessons to get started with Glossia.")
+
+  defp translated_summary("how-to"), do: gettext("Practical directions for specific tasks.")
+
+  defp translated_summary("reference"),
+    do: gettext("Technical descriptions of configuration, CLI, and APIs.")
+
+  defp translated_summary("explanation"),
+    do: gettext("Background, design decisions, and concepts.")
+
+  defp translated_summary("cli"),
+    do: gettext("Command-line tool documentation and release history.")
+
+  defp translated_summary("apis"), do: gettext("Authentication and REST interfaces.")
+
+  defp translated_summary("mcp"),
+    do: gettext("Model Context Protocol server, tools, and prompts.")
 
   def path_for(%Page{subcategory: nil, category: category, slug: slug}) do
     "/docs/#{category}/#{slug}"

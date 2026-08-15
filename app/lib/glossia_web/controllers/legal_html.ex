@@ -9,9 +9,9 @@ defmodule GlossiaWeb.LegalHTML do
 
   def document_path(document) do
     case document do
-      "terms" -> "/terms"
-      "privacy" -> "/privacy"
-      "cookies" -> "/cookies"
+      "terms" -> locale_path(~p"/terms")
+      "privacy" -> locale_path(~p"/privacy")
+      "cookies" -> locale_path(~p"/cookies")
     end
   end
 end

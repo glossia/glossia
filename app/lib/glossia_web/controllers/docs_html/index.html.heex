@@ -12,7 +12,7 @@
     <div class="docs-category-grid">
       <a
         :for={{key, meta} <- GlossiaWeb.DocsHTML.sorted_categories(@categories)}
-        href={~p"/docs/#{key}"}
+        href={locale_path(~p"/docs/#{key}")}
         class="card docs-category-card"
         data-interactive
       >

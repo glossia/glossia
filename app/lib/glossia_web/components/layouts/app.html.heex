@@ -1,13 +1,41 @@
 <header class="site-header">
   <div class="container nav">
-    <a class="logo" href={~p"/"}>
+    <a class="logo" href={locale_path(~p"/")}>
       <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" /> Glossia
     </a>
     <nav class="nav-links">
-      <a href={~p"/blog"}>{gettext("Blog")}</a>
-      <a href={~p"/features"}>{gettext("Features")}</a>
-      <a href={~p"/docs"}>{gettext("Docs")}</a>
-      <a href={~p"/changelog"}>{gettext("Changelog")}</a>
+      <a href={locale_path(~p"/blog")}>{gettext("Blog")}</a>
+      <a href={locale_path(~p"/features")}>{gettext("Features")}</a>
+      <a href={locale_path(~p"/docs")}>{gettext("Docs")}</a>
+      <a href={locale_path(~p"/changelog")}>{gettext("Changelog")}</a>
+      <div id="language-switcher">
+        <button data-part="toggle" aria-expanded="false" aria-haspopup="true">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.5" />
+            <path
+              d="M10 2.75c2 2 3 4.4 3 7.25s-1 5.25-3 7.25c-2-2-3-4.4-3-7.25s1-5.25 3-7.25ZM3 10h14"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+          </svg>
+          <span data-part="label">{Glossia.I18n.native_name(@locale)}</span>
+        </button>
+        <ul data-part="menu" role="menu" aria-label={gettext("Language")}>
+          <li :for={locale <- Glossia.I18n.locales()} role="none">
+            <a
+              role="menuitem"
+              lang={locale}
+              hreflang={locale}
+              aria-current={locale == @locale && "true"}
+              href={
+                ~p"/-/locale/#{Glossia.I18n.segment(locale)}?#{[return_to: GlossiaWeb.Layouts.current_path(assigns)]}"
+              }
+            >
+              {Glossia.I18n.native_name(locale)}
+            </a>
+          </li>
+        </ul>
+      </div>
       <%= if assigns[:current_user] && @current_user do %>
         <div class="avatar-dropdown">
           <button class="avatar-toggle" aria-expanded="false" aria-haspopup="true">
@@ -72,10 +100,23 @@
 <.flash_group :if={assigns[:flash]} flash={@flash} />
 
 <nav class="mobile-menu" aria-label="Mobile navigation">
-  <a href={~p"/blog"}>{gettext("Blog")}</a>
-  <a href={~p"/features"}>{gettext("Features")}</a>
-  <a href={~p"/docs"}>{gettext("Docs")}</a>
-  <a href={~p"/changelog"}>{gettext("Changelog")}</a>
+  <a href={locale_path(~p"/blog")}>{gettext("Blog")}</a>
+  <a href={locale_path(~p"/features")}>{gettext("Features")}</a>
+  <a href={locale_path(~p"/docs")}>{gettext("Docs")}</a>
+  <a href={locale_path(~p"/changelog")}>{gettext("Changelog")}</a>
+  <details id="language-switcher-mobile">
+    <summary>{Glossia.I18n.native_name(@locale)}</summary>
+    <a
+      :for={locale <- Glossia.I18n.locales()}
+      lang={locale}
+      hreflang={locale}
+      href={
+        ~p"/-/locale/#{Glossia.I18n.segment(locale)}?#{[return_to: GlossiaWeb.Layouts.current_path(assigns)]}"
+      }
+    >
+      {Glossia.I18n.native_name(locale)}
+    </a>
+  </details>
   <%= if assigns[:current_user] && @current_user do %>
     <a href={~p"/dashboard"}>{gettext("Your profile")}</a>
     <a href={~p"/auth/logout"} data-method="delete">{gettext("Log out")}</a>
@@ -91,7 +132,7 @@
 <footer class="site-footer">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <a class="logo" href={~p"/"}>
+      <a class="logo" href={locale_path(~p"/")}>
         <img src={~p"/images/logo-rounded.png"} alt="" class="logo-icon" /> Glossia
       </a>
       <p>{gettext("Built with love from Berlin.")}</p>
@@ -99,18 +140,18 @@
     <div>
       <h4>{gettext("Navigate")}</h4>
       <ul class="legal-links">
-        <li><a href={~p"/blog"}>{gettext("Blog")}</a></li>
-        <li><a href={~p"/features"}>{gettext("Features")}</a></li>
-        <li><a href={~p"/docs"}>{gettext("Documentation")}</a></li>
-        <li><a href={~p"/changelog"}>{gettext("Changelog")}</a></li>
+        <li><a href={locale_path(~p"/blog")}>{gettext("Blog")}</a></li>
+        <li><a href={locale_path(~p"/features")}>{gettext("Features")}</a></li>
+        <li><a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a></li>
+        <li><a href={locale_path(~p"/changelog")}>{gettext("Changelog")}</a></li>
       </ul>
     </div>
     <div>
       <h4>{gettext("Legal")}</h4>
       <ul class="legal-links">
-        <li><a href={~p"/terms"}>{gettext("Terms of Service")}</a></li>
-        <li><a href={~p"/privacy"}>{gettext("Privacy Policy")}</a></li>
-        <li><a href={~p"/cookies"}>{gettext("Cookie Policy")}</a></li>
+        <li><a href={locale_path(~p"/terms")}>{gettext("Terms of Service")}</a></li>
+        <li><a href={locale_path(~p"/privacy")}>{gettext("Privacy Policy")}</a></li>
+        <li><a href={locale_path(~p"/cookies")}>{gettext("Cookie Policy")}</a></li>
       </ul>
     </div>
   </div>
@@ -133,6 +174,22 @@
           menuBtn.classList.remove('open');
           menuBtn.setAttribute('aria-expanded', 'false');
         });
+      });
+    }
+
+    var langDd = document.getElementById('language-switcher');
+    if (langDd) {
+      var langBtn = langDd.querySelector('[data-part="toggle"]');
+      langBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = langDd.hasAttribute('data-open');
+        if (isOpen) langDd.removeAttribute('data-open');
+        else langDd.setAttribute('data-open', '');
+        langBtn.setAttribute('aria-expanded', !isOpen);
+      });
+      document.addEventListener('click', function() {
+        langDd.removeAttribute('data-open');
+        langBtn.setAttribute('aria-expanded', 'false');
       });
     }
 

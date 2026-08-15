@@ -43,6 +43,7 @@ defmodule GlossiaWeb do
       use Gettext, backend: GlossiaWeb.Gettext
 
       import Plug.Conn
+      import GlossiaWeb.Locale, only: [locale_path: 1, locale_path: 2]
 
       unquote(verified_routes())
     end
@@ -86,6 +87,9 @@ defmodule GlossiaWeb do
       import Phoenix.HTML
       # Core UI components
       import GlossiaWeb.CoreComponents
+
+      # Locale-aware links for the marketing site
+      import GlossiaWeb.Locale, only: [locale_path: 1, locale_path: 2]
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

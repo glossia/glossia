@@ -49,6 +49,8 @@ defmodule Glossia.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      # Compile-time only: the CLDR locale inventory feeds the reserved handles.
+      {:ex_cldr, "~> 2.47", runtime: false},
       {:phoenix, "~> 1.8.3"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
@@ -129,8 +131,9 @@ defmodule Glossia.MixProject do
         "assets.setup",
         "assets.build"
       ],
+      "ecto.create": ["db.create"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       test: [
         "ecto.create --quiet",
         "ecto.migrate --quiet",

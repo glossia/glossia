@@ -64,6 +64,12 @@
         navigate={~p"/-/settings/connected-accounts"}
         selected={@live_action == :connected_accounts}
       />
+      <.sidebar_item
+        label={gettext("Preferences")}
+        icon="settings"
+        navigate={~p"/-/settings/preferences"}
+        selected={@live_action == :preferences}
+      />
     </.sidebar>
   </:sidebar>
 

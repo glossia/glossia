@@ -9,7 +9,9 @@
       </p>
       <div class="cta-row">
         <a class="button primary" href={~p"/signup"}>{gettext("Get started")}</a>
-        <a class="button secondary" href={~p"/docs"}>{gettext("Check out the docs")}</a>
+        <a class="button secondary" href={locale_path(~p"/docs")}>
+          {gettext("Check out the docs")}
+        </a>
       </div>
       <div class="hero-logos">
         <span class="hero-logos-label">{gettext("From builders who worked at")}</span>
@@ -156,7 +158,7 @@
         <strong>{gettext("Bring context to the tools you already use")}</strong>
         <p>
           {gettext("Glossia integrates with your existing workflows through")}
-          <a href={~p"/docs/reference/api"}>{gettext("APIs")}</a>
+          <a href={locale_path(~p"/docs/reference/api")}>{gettext("APIs")}</a>
           {gettext("and open standards like")}
           <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">MCP</a>. {gettext(
             "Your writing tools, content platforms, and AI assistants can all tap into your organization's linguistic knowledge without switching systems."
@@ -248,7 +250,7 @@
         <h3>{gettext("Open integrations")}</h3>
         <p>
           {gettext("Build your own solutions on top of the foundation through")}
-          <a href={~p"/docs/reference/api"}>{gettext("REST APIs")}</a>
+          <a href={locale_path(~p"/docs/reference/api")}>{gettext("REST APIs")}</a>
           {gettext("and")}
           <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">MCP</a>. {gettext(
             "Connect your writing platforms, content systems, and AI assistants to your organization's linguistic knowledge."
@@ -562,7 +564,7 @@
     <h2 class="reveal">{gettext("From the blog")}</h2>
     <div class="blog-list">
       <article :for={post <- @posts} class="card blog-card reveal" data-interactive>
-        <a href={~p"/blog/#{post.slug}"}>
+        <a href={locale_path(~p"/blog/#{post.slug}")}>
           <div class="blog-card-author">
             <img src={post.author.avatar} alt={post.author.name} class="blog-card-avatar" />
             <span class="blog-card-name">{post.author.name}</span>
@@ -574,7 +576,7 @@
       </article>
     </div>
     <p class="reveal" style="text-align: center; margin-top: var(--space-8);">
-      <a href={~p"/blog"} class="button secondary">{gettext("View all posts")}</a>
+      <a href={locale_path(~p"/blog")} class="button secondary">{gettext("View all posts")}</a>
     </p>
   </div>
 </section>

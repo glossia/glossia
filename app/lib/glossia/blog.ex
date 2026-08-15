@@ -69,16 +69,26 @@ defmodule Glossia.Blog do
   use Glossia.ContentPublisher,
     build: Post,
     from: Application.app_dir(:glossia, "priv/blog/**/*.md"),
+    i18n: "blog",
     as: :posts,
     html_converter: Glossia.Markdown.Publisher
 
   @posts Enum.sort_by(@posts, & &1.date, {:desc, Date})
 
-  def all_posts, do: @posts
-  def recent_posts(limit \\ 3), do: Enum.take(@posts, limit)
+  @posts_by_locale Map.new(@posts_by_locale, fn {locale, posts} ->
+                     {locale, Enum.sort_by(posts, & &1.date, {:desc, Date})}
+                   end)
 
-  def get_post!(slug) do
-    Enum.find(@posts, &(&1.slug == slug)) ||
+  def all_posts(locale \\ Glossia.I18n.default_locale()) do
+    Map.get(@posts_by_locale, locale, @posts)
+  end
+
+  def recent_posts(limit \\ 3, locale \\ Glossia.I18n.default_locale()) do
+    locale |> all_posts() |> Enum.take(limit)
+  end
+
+  def get_post!(slug, locale \\ Glossia.I18n.default_locale()) do
+    Enum.find(all_posts(locale), &(&1.slug == slug)) ||
       raise Glossia.Blog.NotFoundError, "blog post not found: #{slug}"
   end
 end

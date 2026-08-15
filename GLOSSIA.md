@@ -7,6 +7,7 @@ sources:
   "app/priv/features/*.md": "app/priv/i18n/{locale}/features/{relpath}"
   "app/priv/legal/*.md": "app/priv/i18n/{locale}/legal/{relpath}"
   "app/priv/gettext/default.pot": "app/priv/gettext/{locale}/LC_MESSAGES"
+  "app/priv/gettext/dashboard_projects.pot": "app/priv/gettext/{locale}/LC_MESSAGES"
   "app/priv/gettext/errors.pot": "app/priv/gettext/{locale}/LC_MESSAGES"
 targets:
   - es

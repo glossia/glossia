@@ -16,7 +16,7 @@
     <div class="feature-index-grid">
       <a
         :for={page <- @pages}
-        href={~p"/features/#{page.slug}"}
+        href={locale_path(~p"/features/#{page.slug}")}
         class="card feature-index-card reveal"
         data-interactive
       >

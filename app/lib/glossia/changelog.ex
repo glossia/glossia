@@ -41,11 +41,21 @@ defmodule Glossia.Changelog do
   use Glossia.ContentPublisher,
     build: Entry,
     from: Application.app_dir(:glossia, "priv/changelog/**/*.md"),
+    i18n: "changelog",
     as: :entries,
     html_converter: Glossia.Markdown.Publisher
 
   @entries Enum.sort_by(@entries, & &1.date, {:desc, Date})
 
-  def all_entries, do: @entries
-  def recent_entries(limit \\ 20), do: Enum.take(@entries, limit)
+  @entries_by_locale Map.new(@entries_by_locale, fn {locale, entries} ->
+                       {locale, Enum.sort_by(entries, & &1.date, {:desc, Date})}
+                     end)
+
+  def all_entries(locale \\ Glossia.I18n.default_locale()) do
+    Map.get(@entries_by_locale, locale, @entries)
+  end
+
+  def recent_entries(limit \\ 20, locale \\ Glossia.I18n.default_locale()) do
+    locale |> all_entries() |> Enum.take(limit)
+  end
 end

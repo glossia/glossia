@@ -5,7 +5,7 @@ defmodule GlossiaWeb.DocsController do
 
   def index(conn, _params) do
     render(conn, :index,
-      categories: Docs.sorted_categories(),
+      categories: Docs.sorted_categories(conn.assigns.locale),
       page_title: gettext("Documentation"),
       page_description: gettext("Learn how to use Glossia to localize and improve your content.")
     )
@@ -14,7 +14,7 @@ defmodule GlossiaWeb.DocsController do
   def category(conn, %{"category" => category}) do
     render(conn, :category,
       category_meta: Docs.category_meta!(category),
-      items: Docs.category_items(category),
+      items: Docs.category_items(category, conn.assigns.locale),
       page_title: Docs.category_meta!(category).title,
       page_description: Docs.category_meta!(category).summary
     )
@@ -23,14 +23,14 @@ defmodule GlossiaWeb.DocsController do
   def section(conn, %{"category" => category, "section" => section}) do
     cond do
       markdown_slug?(section) ->
-        page = Docs.get_page!(category, nil, strip_markdown_suffix(section))
+        page = Docs.get_page!(category, nil, strip_markdown_suffix(section), conn.assigns.locale)
         send_markdown(conn, page)
 
       Docs.subcategory?(category, section) ->
         render_subcategory(conn, category, section)
 
       true ->
-        page = Docs.get_page!(category, nil, section)
+        page = Docs.get_page!(category, nil, section, conn.assigns.locale)
         render_page(conn, page, category, nil)
     end
   end
@@ -45,7 +45,7 @@ defmodule GlossiaWeb.DocsController do
       category_meta: Docs.category_meta!(category),
       subcategory_key: subcategory,
       subcategory_meta: Docs.subcategory_meta!(category, subcategory),
-      pages: Docs.subcategory_pages(category, subcategory),
+      pages: Docs.subcategory_pages(category, subcategory, conn.assigns.locale),
       page_title: Docs.subcategory_meta!(category, subcategory).title,
       page_description: Docs.subcategory_meta!(category, subcategory).summary
     )
@@ -53,11 +53,12 @@ defmodule GlossiaWeb.DocsController do
 
   def show(conn, %{"category" => category, "subcategory" => subcategory, "slug" => slug}) do
     if markdown_slug?(slug) do
-      page = Docs.get_page!(category, subcategory, strip_markdown_suffix(slug))
+      page =
+        Docs.get_page!(category, subcategory, strip_markdown_suffix(slug), conn.assigns.locale)
 
       send_markdown(conn, page)
     else
-      page = Docs.get_page!(category, subcategory, slug)
+      page = Docs.get_page!(category, subcategory, slug, conn.assigns.locale)
 
       render_page(conn, page, category, subcategory)
     end
@@ -65,18 +66,20 @@ defmodule GlossiaWeb.DocsController do
 
   def show(conn, %{"category" => category, "slug" => slug}) do
     if markdown_slug?(slug) do
-      page = Docs.get_page!(category, nil, strip_markdown_suffix(slug))
+      page = Docs.get_page!(category, nil, strip_markdown_suffix(slug), conn.assigns.locale)
 
       send_markdown(conn, page)
     else
-      page = Docs.get_page!(category, nil, slug)
+      page = Docs.get_page!(category, nil, slug, conn.assigns.locale)
 
       render_page(conn, page, category, nil)
     end
   end
 
-  def search_index(conn, _params) do
-    json(conn, Docs.search_index())
+  def search_index(conn, params) do
+    locale = Glossia.I18n.normalize(params["locale"]) || Glossia.I18n.default_locale()
+
+    json(conn, Docs.search_index(locale))
   end
 
   defp markdown_slug?(slug) do

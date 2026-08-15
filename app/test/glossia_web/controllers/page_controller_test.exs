@@ -13,6 +13,20 @@ defmodule GlossiaWeb.PageControllerTest do
     refute response =~ "discord.gg"
   end
 
+  test "GET /es does not loop for an account whose handle reads as a locale", %{conn: conn} do
+    # Handles like this predate the locale prefixes; the marketing page now
+    # owns the URL, and redirecting to it from itself would loop forever.
+    user = TestHelpers.create_user("locale-handle@test.com", "localehandle")
+    {:ok, _account} = force_handle(user, "es")
+
+    conn =
+      conn
+      |> init_test_session(%{user_id: user.id})
+      |> get("/es")
+
+    assert html_response(conn, 200)
+  end
+
   test "GET / redirects authenticated users to their account", %{conn: conn} do
     user = TestHelpers.create_user("page-root-access@test.com", "pageroot")
 
@@ -50,5 +64,13 @@ defmodule GlossiaWeb.PageControllerTest do
   test "GET /sitemap.xml exposes the sitemap", %{conn: conn} do
     conn = get(conn, ~p"/sitemap.xml")
     assert response(conn, 200) =~ "<urlset"
+  end
+
+  # `es` is reserved now, so the collision can only be created the way it
+  # happened in production: straight in the database.
+  defp force_handle(user, handle) do
+    user.account
+    |> Ecto.Changeset.change(handle: handle)
+    |> Glossia.Repo.update()
   end
 end
