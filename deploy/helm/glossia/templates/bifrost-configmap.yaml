@@ -1,0 +1,12 @@
+{{- if .Values.bifrost.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "glossia.bifrostName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+data:
+  config.json: |
+    {{- include "glossia.bifrostConfig" . | nindent 4 }}
+{{- end }}

@@ -54,11 +54,35 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "glossia.bifrostName" -}}
+{{- printf "%s-bifrost" (include "glossia.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "glossia.bifrostImage" -}}
+{{- if .Values.bifrost.image.digest -}}
+{{- printf "%s@%s" .Values.bifrost.image.repository .Values.bifrost.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.bifrost.image.repository .Values.bifrost.image.tag -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "glossia.hermesGrafanaMCPImage" -}}
 {{- if .Values.hermes.observability.image.digest -}}
 {{- printf "%s@%s" .Values.hermes.observability.image.repository .Values.hermes.observability.image.digest -}}
 {{- else -}}
 {{- printf "%s:%s" .Values.hermes.observability.image.repository .Values.hermes.observability.image.tag -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "glossia.bifrostConfig" -}}
+{{- if .Values.bifrost.config }}
+{{ .Values.bifrost.config | toPrettyJson | nindent 4 }}
+{{- else -}}
+{{- $config := dict "$schema" "https://www.getbifrost.ai/schema" }}
+{{- if .Values.bifrost.sourceOfTruth }}{{- $_ := set $config "source_of_truth" .Values.bifrost.sourceOfTruth }}{{- end }}
+{{- if .Values.bifrost.envLabel }}{{- $_ := set $config "env_label" .Values.bifrost.envLabel }}{{- end }}
+{{- if .Values.bifrost.setupToken }}{{- $_ := set $config "setup_token" .Values.bifrost.setupToken }}{{- end }}
+{{ toPrettyJson $config }}
 {{- end -}}
 {{- end -}}
 
