@@ -75,11 +75,15 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{- define "glossia.bifrostConfig" -}}
-{
-  "$schema": "https://www.getbifrost.ai/schema"{{- if .Values.bifrost.envLabel }},
-  "env_label": {{ .Values.bifrost.envLabel | quote }}{{ end }}{{- if .Values.bifrost.setupToken }},
-  "setup_token": {{ .Values.bifrost.setupToken | quote }}{{ end }}
-}
+{{- if .Values.bifrost.config }}
+{{ .Values.bifrost.config | toPrettyJson | nindent 4 }}
+{{- else -}}
+{{- $config := dict "$schema" "https://www.getbifrost.ai/schema" }}
+{{- if .Values.bifrost.sourceOfTruth }}{{- $_ := set $config "source_of_truth" .Values.bifrost.sourceOfTruth }}{{- end }}
+{{- if .Values.bifrost.envLabel }}{{- $_ := set $config "env_label" .Values.bifrost.envLabel }}{{- end }}
+{{- if .Values.bifrost.setupToken }}{{- $_ := set $config "setup_token" .Values.bifrost.setupToken }}{{- end }}
+{{ toPrettyJson $config }}
+{{- end -}}
 {{- end -}}
 
 {{- define "glossia.headlessServiceName" -}}

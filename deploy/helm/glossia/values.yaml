@@ -205,8 +205,25 @@ bifrost:
   # Optional bootstrap token written into config.json to drive the first-run
   # admin setup. Leave empty for zero-config (create the admin account from
   # the web UI on first visit). It is rendered into an unencrypted ConfigMap,
+  # Optional bootstrap token written into config.json to drive the first-run
+  # admin setup. Leave empty for zero-config (create the admin account from
+  # the web UI on first visit). It is rendered into an unencrypted ConfigMap,
   # so prefer env secrets over this for anything shared across environments.
   setupToken: ""
+  # Controls how the mounted config.json is reconciled with the gateway's
+  # database on startup. "config.json" (default, recommended) makes sections
+  # that appear in config.json authoritative and prunes database-only rows for
+  # them, so the gateway converges to the declarative config on every boot.
+  # "split" leaves file and database rows coexisting (the upstream default).
+  # Empty omits the field and Bifrost falls back to its own default.
+  sourceOfTruth: config.json
+  # Optional complete Bifrost config object. When provided, it is written
+  # verbatim as config.json (replacing every field the chart generates) and, with
+  # sourceOfTruth "config.json", is reconciled into the database on every start.
+  # Use it to manage providers, schemas, groups, and keys declaratively instead
+  # of through the web UI. Values are rendered with toPrettyJson, so use YAML/
+  # JSON maps (camelCase keys, matching the Bifrost schema).
+  config: {}
   # Name of the Kubernetes Secret holding the encryption key. When the External
   # Secrets integration is enabled, the chart creates it from the remote field
   # below; otherwise provision it yourself with the bifrost.encryptionKeyKey key.

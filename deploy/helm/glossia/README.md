@@ -370,6 +370,24 @@ to show a short environment label in the UI sidebar, and `bifrost.setupToken`
 to drive the first-run admin setup from `config.json` (note that it is written
 into an unencrypted ConfigMap, so prefer transient single-use values).
 
+### Automatic reconciliation
+
+The gateway reconciles its mounted `config.json` against its internal database
+on startup. By default `bifrost.sourceOfTruth` is `config.json`, which makes
+sections present in `config.json` authoritative and prunes database-only rows
+for those sections, so the deployment converges to the declared config on every
+boot. The chart renders this config from a ConfigMap, and the deployment's
+checksum annotation restarts the pod when that ConfigMap changes.
+
+For changed declarative configuration, update the `glossia-bifrost` ConfigMap
+(e.g. via a `bifrost.config` values override), roll the deployment, and Bifrost
+applies it. Providers and keys you configure through the web UI remain in the
+database and are unaffected unless they fall under a section you also declare
+in `config.json`. Set `bifrost.sourceOfTruth` to `split` if you prefer file and
+database rows to coexist. Pass a complete Bifrost config object under
+`bifrost.config` to manage providers, schemas, groups, and keys declaratively
+instead of through the UI.
+
 ### Verify the deployment
 
 ```bash
