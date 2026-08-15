@@ -1,0 +1,37 @@
+msgid ""
+msgstr ""
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: lib/glossia_web/live/dashboard_live.ex:11905
+#, elixir-autogen, elixir-format
+msgid "At a glance"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:12138
+#, elixir-autogen, elixir-format
+msgid "Browser languages"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:12110
+#, elixir-autogen, elixir-format
+msgid "Top countries"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:12083
+#, elixir-autogen, elixir-format
+msgid "Top pages"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:12066
+#, elixir-autogen, elixir-format
+msgid "Traffic by hour"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:11991
+#, elixir-autogen, elixir-format
+msgid "Where to translate next"
+msgstr ""
