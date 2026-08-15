@@ -11,6 +11,7 @@ defmodule Glossia.Accounts.User do
     field :x_url, :string
     field :linkedin_url, :string
     field :mastodon_url, :string
+    field :locale, :string
     field :super_admin, :boolean, default: false
 
     belongs_to :account, Glossia.Accounts.Account
@@ -23,7 +24,8 @@ defmodule Glossia.Accounts.User do
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :name, :avatar_url])
+    |> cast(attrs, [:email, :name, :avatar_url, :locale])
+    |> validate_locale()
     |> validate_required([:email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
@@ -39,6 +41,22 @@ defmodule Glossia.Accounts.User do
     |> validate_url(:x_url)
     |> validate_url(:linkedin_url)
     |> validate_url(:mastodon_url)
+  end
+
+  def locale_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:locale])
+    |> validate_locale()
+  end
+
+  defp validate_locale(changeset) do
+    validate_change(changeset, :locale, fn _field, locale ->
+      if Glossia.I18n.supported?(locale) do
+        []
+      else
+        [locale: "is not a language Glossia is available in"]
+      end
+    end)
   end
 
   defp validate_url(changeset, field) do

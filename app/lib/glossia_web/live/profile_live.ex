@@ -47,6 +47,16 @@ defmodule GlossiaWeb.ProfileLive do
     )
   end
 
+  defp apply_action(socket, :preferences) do
+    user = socket.assigns.current_user
+
+    assign(socket,
+      page_title: gettext("Preferences"),
+      breadcrumb_label: gettext("Preferences"),
+      selected_locale: user.locale || socket.assigns.locale
+    )
+  end
+
   defp apply_action(socket, :connected_accounts) do
     user = socket.assigns.current_user
     identities = Glossia.Accounts.list_user_identities(user)
@@ -96,6 +106,32 @@ defmodule GlossiaWeb.ProfileLive do
     end
   end
 
+  def handle_event("select_locale", %{"value" => locale}, socket) do
+    {:noreply, assign(socket, :selected_locale, locale)}
+  end
+
+  def handle_event("save_locale", _params, socket) do
+    case Glossia.Accounts.update_user_locale(
+           socket.assigns.current_user,
+           socket.assigns.selected_locale
+         ) do
+      {:ok, updated_user} ->
+        # The new language only reaches the layout and the flash once this
+        # process renders with it, so apply it before replying.
+        Gettext.put_locale(GlossiaWeb.Gettext, updated_user.locale)
+
+        {:noreply,
+         socket
+         |> assign(:current_user, updated_user)
+         |> assign(:locale, updated_user.locale)
+         |> put_flash(:info, gettext("Language updated."))
+         |> push_navigate(to: ~p"/-/settings/preferences")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not update your language."))}
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # Render
   # ---------------------------------------------------------------------------
@@ -111,6 +147,8 @@ defmodule GlossiaWeb.ProfileLive do
           user_avatar_url={@user_avatar_url}
           gravatar_url={@gravatar_url}
         />
+      <% :preferences -> %>
+        <.preferences_page selected_locale={@selected_locale} current_user={@current_user} />
       <% :connected_accounts -> %>
         <.connected_accounts_page identities={@identities} />
     <% end %>
@@ -314,6 +352,56 @@ defmodule GlossiaWeb.ProfileLive do
           }
         }
       </script>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Page: Preferences
+  # ---------------------------------------------------------------------------
+
+  defp preferences_page(assigns) do
+    ~H"""
+    <div class="profile-page">
+      <.page_header
+        title={gettext("Preferences")}
+        description={gettext("Choose how Glossia behaves for your account.")}
+      />
+
+      <div class="noora-resource-list">
+        <.form for={%{}} id="preferences-form" class="voice-form" phx-submit="save_locale">
+          <Noora.Card.card class="noora-resource-card" title={gettext("Language")} icon="language">
+            <Noora.Card.card_section class="voice-card">
+              <div class="voice-card-fields">
+                <Noora.Select.select
+                  id="preferences-locale-select"
+                  name="locale"
+                  label={gettext("Dashboard language")}
+                  hint={
+                    gettext(
+                      "Applies to the dashboard. Anything not translated yet falls back to English."
+                    )
+                  }
+                  value={@selected_locale}
+                  on_value_change="select_locale"
+                >
+                  <:item
+                    :for={locale <- Glossia.I18n.locales()}
+                    value={locale}
+                    label={Glossia.I18n.native_name(locale)}
+                  />
+                </Noora.Select.select>
+              </div>
+            </Noora.Card.card_section>
+          </Noora.Card.card>
+
+          <.form_save_bar
+            id="preferences-save-bar"
+            visible={@selected_locale != @current_user.locale}
+            cancel_path={~p"/-/settings/preferences"}
+          />
+        </.form>
+      </div>
     </div>
     """
   end

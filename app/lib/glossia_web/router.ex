@@ -1,5 +1,6 @@
 defmodule GlossiaWeb.Router do
   use GlossiaWeb, :router
+  use GlossiaWeb.MarketingRoutes
 
   import Phoenix.LiveDashboard.Router
   import Oban.Web.Router
@@ -24,8 +25,8 @@ defmodule GlossiaWeb.Router do
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.Auth
+    plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.OtelAttributes
   end
 
@@ -35,9 +36,16 @@ defmodule GlossiaWeb.Router do
     plug :put_root_layout, html: {GlossiaWeb.Layouts, :root}
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
     plug :put_secure_browser_headers
-    plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.Auth
+    plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.OtelAttributes
+  end
+
+  # The marketing site is the only surface where the locale lives in the URL,
+  # so it is also the only one that redirects to the visitor's language and
+  # advertises hreflang alternates.
+  pipeline :marketing do
+    plug GlossiaWeb.Plugs.MarketingLocale
   end
 
   pipeline :require_auth do
@@ -58,6 +66,10 @@ defmodule GlossiaWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    # Error messages are translated too, and a connection is reused across
+    # requests, so the locale has to be resolved here rather than inherited
+    # from whatever HTML request came before on the same connection.
+    plug GlossiaWeb.Plugs.Locale
   end
 
   pipeline :analytics do
@@ -218,27 +230,29 @@ defmodule GlossiaWeb.Router do
     get "/search.json", DocsController, :search_index
   end
 
+  # Explicit language switch: remembers the choice and returns to the page the
+  # visitor was reading.
   scope "/", GlossiaWeb do
     pipe_through :public
 
-    get "/", PageController, :home
-    get "/blog", BlogController, :index
-    get "/blog/feed.xml", BlogController, :feed
-    get "/blog/:slug", BlogController, :show
-    get "/features", FeatureController, :index
-    get "/features/:slug", FeatureController, :show
-    get "/changelog", ChangelogController, :index
-    get "/changelog/feed.xml", ChangelogController, :feed
-    get "/docs", DocsController, :index
-    get "/docs/:category/:subcategory/:slug", DocsController, :show
-    get "/docs/:category/:section", DocsController, :section
-    get "/docs/:category", DocsController, :category
-    get "/terms", LegalController, :terms
-    get "/terms/:date", LegalController, :terms
-    get "/privacy", LegalController, :privacy
-    get "/privacy/:date", LegalController, :privacy
-    get "/cookies", LegalController, :cookies
-    get "/cookies/:date", LegalController, :cookies
+    get "/-/locale/:locale", LocaleController, :update
+  end
+
+  # Translated marketing site. One literal scope per locale, mounted before the
+  # unprefixed English routes so `/es/blog` never reaches `/:handle/:project`.
+  for locale <- Glossia.I18n.translated_locales() do
+    scope "/" <> Glossia.I18n.segment(locale), GlossiaWeb, assigns: %{url_locale: locale} do
+      pipe_through [:public, :marketing]
+
+      marketing_routes()
+    end
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through [:public, :marketing]
+
+    marketing_routes()
+
     get "/sitemap.xml", SitemapController, :show
   end
 
@@ -352,8 +366,10 @@ defmodule GlossiaWeb.Router do
 
     live_session :admin,
       layout: {GlossiaWeb.Layouts, :admin},
+      session: {GlossiaWeb.LocaleHooks, :session, []},
       on_mount: [
         {GlossiaWeb.AdminHooks, :load_user},
+        {GlossiaWeb.LocaleHooks, :put_locale},
         {GlossiaWeb.AdminHooks, :require_super_admin}
       ] do
       live "/", AdminLive, :home
@@ -407,9 +423,14 @@ defmodule GlossiaWeb.Router do
 
     live_session :user_profile,
       layout: {GlossiaWeb.Layouts, :user_profile},
-      on_mount: [{GlossiaWeb.ProfileHooks, :load_user_and_require_auth}] do
+      session: {GlossiaWeb.LocaleHooks, :session, []},
+      on_mount: [
+        {GlossiaWeb.ProfileHooks, :load_user_and_require_auth},
+        {GlossiaWeb.LocaleHooks, :put_locale}
+      ] do
       live "/-/settings/profile", ProfileLive, :overview
       live "/-/settings/connected-accounts", ProfileLive, :connected_accounts
+      live "/-/settings/preferences", ProfileLive, :preferences
     end
   end
 
@@ -420,8 +441,10 @@ defmodule GlossiaWeb.Router do
 
     live_session :authenticated_platform,
       layout: {GlossiaWeb.Layouts, :platform},
+      session: {GlossiaWeb.LocaleHooks, :session, []},
       on_mount: [
         {GlossiaWeb.PlatformHooks, :load_user},
+        {GlossiaWeb.LocaleHooks, :put_locale},
         {GlossiaWeb.PlatformHooks, :load_account},
         {GlossiaWeb.PlatformHooks, :check_write}
       ] do
@@ -453,8 +476,10 @@ defmodule GlossiaWeb.Router do
 
     live_session :platform,
       layout: {GlossiaWeb.Layouts, :platform},
+      session: {GlossiaWeb.LocaleHooks, :session, []},
       on_mount: [
         {GlossiaWeb.PlatformHooks, :load_user},
+        {GlossiaWeb.LocaleHooks, :put_locale},
         {GlossiaWeb.PlatformHooks, :load_account},
         {GlossiaWeb.PlatformHooks, :check_write}
       ] do
