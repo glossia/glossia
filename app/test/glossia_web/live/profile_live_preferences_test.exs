@@ -16,10 +16,26 @@ defmodule GlossiaWeb.ProfileLivePreferencesTest do
 
     assert html =~ "Español"
 
-    render_hook(view, "select_locale", %{"value" => "es"})
+    # The payload is the one Noora's select hook actually pushes: it forwards
+    # Zag's event object, whose value is a list even for a single selection.
+    render_hook(view, "select_locale", %{"value" => ["es"], "items" => [%{"value" => "es"}]})
     render_submit(view, "save_locale", %{})
 
     assert Accounts.get_user(user.id).locale == "es"
+  end
+
+  test "a select payload without a usable value leaves the account alone", %{conn: conn} do
+    user = TestHelpers.create_user("preferences-empty@test.com", "preferencesempty")
+
+    {:ok, view, _html} =
+      conn
+      |> init_test_session(%{user_id: user.id})
+      |> live(~p"/-/settings/preferences")
+
+    render_hook(view, "select_locale", %{"value" => []})
+    render_submit(view, "save_locale", %{})
+
+    assert Accounts.get_user(user.id).locale == "en"
   end
 
   test "the account language beats the locale frozen into the live session" do

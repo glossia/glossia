@@ -106,8 +106,11 @@ defmodule GlossiaWeb.ProfileLive do
     end
   end
 
-  def handle_event("select_locale", %{"value" => locale}, socket) do
-    {:noreply, assign(socket, :selected_locale, locale)}
+  def handle_event("select_locale", params, socket) do
+    case noora_select_value(params) do
+      nil -> {:noreply, socket}
+      locale -> {:noreply, assign(socket, :selected_locale, locale)}
+    end
   end
 
   def handle_event("save_locale", _params, socket) do

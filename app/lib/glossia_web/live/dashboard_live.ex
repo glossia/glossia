@@ -9844,11 +9844,6 @@ defmodule GlossiaWeb.DashboardLive do
     Map.put(form_params, "entries", Map.put(entries, entry_idx, entry))
   end
 
-  defp noora_select_value(%{"value" => [value | _]}), do: value
-  defp noora_select_value(%{"value" => value}) when is_binary(value), do: value
-  defp noora_select_value(%{"data" => value}) when is_binary(value), do: value
-  defp noora_select_value(_params), do: nil
-
   defp normalize_noora_empty_value("__base__"), do: ""
   defp normalize_noora_empty_value(value), do: value
 

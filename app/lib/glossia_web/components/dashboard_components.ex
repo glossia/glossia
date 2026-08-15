@@ -1059,6 +1059,20 @@ defmodule GlossiaWeb.DashboardComponents do
   def locale_options, do: @locale_options
 
   @doc """
+  Reads the selected value out of a Noora select's `on_value_change` payload.
+
+  The hook forwards Zag's event object as-is, and Zag models a select value as
+  a list even when only one option can be picked, so the payload is
+  `%{"value" => ["es"]}` rather than `%{"value" => "es"}`. Reaching for the
+  string directly silently binds the list and fails much later, when it reaches
+  a changeset.
+  """
+  def noora_select_value(%{"value" => [value | _rest]}), do: value
+  def noora_select_value(%{"value" => value}) when is_binary(value), do: value
+  def noora_select_value(%{"data" => value}) when is_binary(value), do: value
+  def noora_select_value(_params), do: nil
+
+  @doc """
   Renders a searchable locale picker combobox.
 
   The input field displays only the locale code (e.g. "es"). The dropdown
