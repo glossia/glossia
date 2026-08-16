@@ -164,7 +164,7 @@ defmodule GlossiaWeb.ProfileLive do
 
   defp overview_page(assigns) do
     ~H"""
-    <div class="profile-page">
+    <div id="profile-page" class="profile-page">
       <.page_header
         title={gettext("Profile")}
         description={gettext("Manage your personal profile and account information.")}
@@ -365,7 +365,7 @@ defmodule GlossiaWeb.ProfileLive do
 
   defp preferences_page(assigns) do
     ~H"""
-    <div class="profile-page">
+    <div id="profile-page" class="profile-page">
       <.page_header
         title={gettext("Preferences")}
         description={gettext("Choose how Glossia behaves for your account.")}
@@ -415,7 +415,7 @@ defmodule GlossiaWeb.ProfileLive do
 
   defp connected_accounts_page(assigns) do
     ~H"""
-    <div class="profile-page">
+    <div id="profile-page" class="profile-page">
       <.page_header
         title={gettext("Connections")}
         description={gettext("Manage third-party services connected to your Glossia account.")}

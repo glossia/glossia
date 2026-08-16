@@ -11,6 +11,7 @@
 @import "./components/project-analytics-page.css";
 @import "./routes/login.css";
 @import "./routes/members.css";
+@import "./routes/profile.css";
 @import "./routes/project-new.css";
 @import "./routes/translation-session.css";
 
@@ -245,34 +246,6 @@
   min-width: var(--noora-spacing-0);
   min-height: var(--noora-spacing-0);
   overflow: hidden;
-}
-
-.noora-shell .dash-main,
-.noora-shell .profile-main,
-.noora-shell .admin-main {
-  flex: 1;
-  height: 100%;
-  min-width: var(--noora-spacing-0);
-  overflow-y: auto;
-  background: var(--noora-surface-background-primary);
-  padding: var(--noora-spacing-9) var(--noora-spacing-8);
-}
-
-.noora-shell .dash-page,
-.noora-shell .profile-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--noora-spacing-8);
-  box-sizing: border-box;
-  width: 100%;
-  min-width: var(--noora-spacing-0);
-  max-width: calc(var(--noora-spacing-16) * 15);
-}
-
-.noora-shell .admin-main {
-  margin: var(--noora-spacing-0);
-  max-width: none;
-  width: auto;
 }
 
 .noora-shell .noora-projects-page {
@@ -940,35 +913,6 @@
   background: var(--noora-surface-background-secondary);
 }
 
-.noora-shell .profile-form {
-  gap: var(--noora-spacing-8);
-}
-
-.noora-shell .profile-avatar-card {
-  display: flex;
-  align-items: flex-start;
-  padding: var(--noora-spacing-7) var(--noora-spacing-8);
-}
-
-.noora-shell .user-avatar-picker {
-  display: inline-flex;
-  border-radius: var(--noora-radius-99);
-  cursor: pointer;
-}
-
-.noora-shell .user-avatar-picker:focus-visible {
-  outline: none;
-  box-shadow: var(--noora-border-light-focus);
-}
-
-.noora-shell .user-avatar-picker[data-dragging] .noora-avatar {
-  box-shadow: var(--noora-border-light-focus);
-}
-
-.noora-shell .user-avatar-file-input-hidden {
-  display: none;
-}
-
 .noora-shell .voice-form #voice-overrides {
   align-items: stretch;
 }
@@ -1331,12 +1275,6 @@
 
   .noora-shell__backdrop.open {
     display: block;
-  }
-
-  .noora-shell .dash-main,
-  .noora-shell .profile-main,
-  .noora-shell .admin-main {
-    padding: var(--noora-spacing-6);
   }
 
   .noora-shell .noora-page-header {

@@ -1,6 +1,5 @@
 #translation-session {
   gap: var(--space-6);
-  max-width: var(--max-width-dash);
 
   & [data-part="overview"] {
     display: flex;
