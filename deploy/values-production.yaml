@@ -108,6 +108,41 @@ hermes:
   observability:
     grafanaURL: http://observability-grafana.observability.svc.cluster.local
 
+# Bifrost AI gateway. Routes the cluster's model traffic through a single
+# OpenAI-compatible endpoint so provider keys live in one place and usage can be
+# attributed per client key. PVC-backed, so it is pinned to the stateful pool
+# like smolanalytics (single writer over its sqlite store with a Recreate
+# strategy: more than one replica cannot share the volume). The web UI and the
+# OpenAI-compatible endpoint are both served on the gateway port; in-cluster
+# consumers will target the glossia-bifrost Service directly rather than this
+# host.
+bifrost:
+  enabled: true
+  persistence:
+    storageClass: hcloud-volumes
+    size: 5Gi
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    hosts:
+      - host: gateway.glossia.ai
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: gateway-glossia-ai-tls
+        hosts:
+          - gateway.glossia.ai
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
 # CAPI/Hetzner stateful pool: hcloud-volumes for PVCs, taint+nodeSelector
 # pin Postgres + ClickHouse to the dedicated stateful nodes.
 postgres:
@@ -231,6 +266,13 @@ externalSecrets:
   grafanaMcp:
     itemKey: /kubernetes
     serviceAccountTokenField: GRAFANA_SERVICE_ACCOUNT_TOKEN
+  # Encryption key for the Bifrost gateway's stored provider credentials.
+  # Reads BIFROST_ENCRYPTION_KEY from the same /kubernetes item as the app
+  # secrets. Without it the pod still starts (the env reference is optional),
+  # but provider keys entered in the gateway are not encrypted at rest.
+  bifrost:
+    itemKey: /kubernetes
+    encryptionKeyField: BIFROST_ENCRYPTION_KEY
   backup:
     itemKey: /glossia-db-backups-keys
     accessKeyIdField: ACCESS_KEY_ID
