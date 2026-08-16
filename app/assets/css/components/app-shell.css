@@ -1,4 +1,8 @@
 #noora-shell {
+  & .noora-dropdown-item:hover {
+    text-decoration: none;
+  }
+
   & .noora-shell__avatar {
     display: block;
     border-radius: var(--noora-radius-99);
@@ -11,5 +15,13 @@
     padding: var(--noora-spacing-3);
     width: var(--noora-spacing-6);
     height: var(--noora-spacing-6);
+
+    & > [data-part="icon"] {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
   }
 }
