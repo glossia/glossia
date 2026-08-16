@@ -99,8 +99,8 @@ defmodule Glossia.Analytics.Queries do
   end
 
   @doc """
-  Visitors by country, descending. Empty-string countries (could not be
-  geolocated) are reported as `Unknown` in the UI.
+  Visitors by country, descending. Visits that could not be geolocated are
+  omitted rather than presented as a country.
   """
   def top_countries(project_id, opts \\ []) do
     limit = Keyword.get(opts, :limit, 10)
@@ -111,7 +111,8 @@ defmodule Glossia.Analytics.Queries do
       where:
         e.project_id == ^to_string(project_id) and
           e.inserted_at >= ^DateTime.truncate(since, :second) and
-          e.inserted_at < ^DateTime.truncate(until, :second),
+          e.inserted_at < ^DateTime.truncate(until, :second) and
+          e.country_code != "",
       group_by: e.country_code,
       order_by: [desc: count(e.id)],
       limit: ^limit,
