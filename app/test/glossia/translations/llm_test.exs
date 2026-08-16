@@ -57,7 +57,7 @@ defmodule Glossia.Translations.LLMTest do
       ]
 
       Mimic.expect(Condukt, :run, length(provider_models), fn _prompt, opts ->
-        assert opts[:model] in Enum.map(provider_models, &%{provider: :openai, id: &1})
+        assert opts[:model] in Enum.map(provider_models, &"openai:#{&1}")
 
         assert opts[:base_url] == "https://api.together.ai/v1"
         assert Keyword.has_key?(opts, :thinking_level)
@@ -74,6 +74,27 @@ defmodule Glossia.Translations.LLMTest do
 
         assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
       end)
+    end
+
+    test "routes a Together AI model through a custom gateway base URL" do
+      Mimic.expect(Condukt, :run, fn _prompt, opts ->
+        # ReqLLM accepts the model as a "provider:model" string; passing the
+        # OpenAI-compatible map form crashes model resolution (Invalid.Provider)
+        # inside the Condukt session.
+        assert opts[:model] == "openai:Qwen/Qwen3.5-9B"
+        assert opts[:base_url] == "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"
+        assert opts[:thinking_level] == nil
+        {:ok, "Hola"}
+      end)
+
+      cred = %{
+        model: "togetherai/Qwen/Qwen3.5-9B",
+        auth:
+          {:api_key, "sk-glossia-org", "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"},
+        source: :account_model
+      }
+
+      assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
     end
   end
 
