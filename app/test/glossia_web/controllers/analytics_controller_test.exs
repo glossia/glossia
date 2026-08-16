@@ -10,6 +10,14 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
   alias Glossia.Projects
   alias Glossia.TestHelpers
 
+  defmodule GeolocationAdapter do
+    @behaviour Glossia.Analytics.Geolocation
+
+    @impl true
+    def lookup("8.8.8.8"), do: %{country: "DE"}
+    def lookup(_ip), do: %{country: nil}
+  end
+
   setup do
     user = TestHelpers.create_user("collect@test.com", "collect")
 
@@ -98,6 +106,43 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
              since: DateTime.add(now, -60),
              until: DateTime.add(now, 60)
            ) == []
+  end
+
+  test "falls back to the socket address when the forwarded address is malformed", ctx do
+    %{conn: conn, project: project, domain: domain} = ctx
+    original_config = Application.get_env(:glossia, Glossia.Analytics, [])
+
+    Application.put_env(
+      :glossia,
+      Glossia.Analytics,
+      Keyword.put(original_config, :geolocation, adapter: GeolocationAdapter)
+    )
+
+    on_exit(fn -> Application.put_env(:glossia, Glossia.Analytics, original_config) end)
+
+    conn =
+      conn
+      |> Map.put(:remote_ip, {8, 8, 8, 8})
+      |> put_req_header("x-forwarded-for", "not-an-address")
+      |> post("/v1/collect", %{
+        "d" => domain,
+        "u" => "https://#{domain}/country"
+      })
+
+    assert conn.status == 202
+
+    [event] =
+      from(e in Event, where: e.hostname == ^domain and e.pathname == "/country")
+      |> ClickHouseRepo.all()
+
+    assert event.country_code == "DE"
+
+    now = DateTime.utc_now()
+
+    assert Queries.top_countries(project.id,
+             since: DateTime.add(now, -60),
+             until: DateTime.add(now, 60)
+           ) == [%{country_code: "DE", visits: 1}]
   end
 
   test "returns 202 without recording for an unknown domain", %{conn: conn, domain: domain} do

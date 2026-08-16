@@ -22,6 +22,7 @@ defmodule GlossiaWeb.AnalyticsController do
   alias Glossia.Analytics.Identity
   alias Glossia.Analytics.Ingestion
   alias Glossia.Analytics.Settings
+  alias GlossiaWeb.ClientIP
 
   def collect(conn, params) do
     try do
@@ -80,7 +81,7 @@ defmodule GlossiaWeb.AnalyticsController do
   end
 
   defp build_event(conn, params, settings) do
-    ip = client_ip(conn)
+    ip = ClientIP.value(conn)
     user_agent = conn |> get_req_header("user-agent") |> List.first() || ""
     languages = client_languages(params, conn)
     target_locales = settings.target_languages || []
@@ -126,33 +127,6 @@ defmodule GlossiaWeb.AnalyticsController do
 
   defp accept_language(conn) do
     conn |> get_req_header("accept-language") |> List.first() || ""
-  end
-
-  # The first X-Forwarded-For hop is the originating client when behind a load
-  # balancer. We validate it parses as an IP before trusting it, and fall back to
-  # the socket peer (`conn.remote_ip`) otherwise.
-  defp client_ip(conn) do
-    case get_req_header(conn, "x-forwarded-for") do
-      [xff | _] when is_binary(xff) and xff != "" ->
-        xff
-        |> String.split(",")
-        |> List.first()
-        |> String.trim()
-        |> validate_ip()
-
-      _ ->
-        case :inet.ntoa(conn.remote_ip) do
-          charlist when is_list(charlist) -> List.to_string(charlist)
-          _ -> nil
-        end
-    end
-  end
-
-  defp validate_ip(candidate) do
-    case :inet.parse_address(to_charlist(candidate)) do
-      {:ok, _} -> candidate
-      {:error, _} -> nil
-    end
   end
 
   defp event_name(nil), do: "pageview"
