@@ -1,6 +1,5 @@
 /* Analytics page layout — built from Noora cards and tables, styled with Noora tokens. */
 #project-analytics-page {
-  max-width: none;
   display: flex;
   flex-direction: column;
   gap: var(--noora-spacing-6);

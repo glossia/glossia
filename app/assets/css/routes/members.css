@@ -1,6 +1,4 @@
 #members-page {
-  max-width: none;
-
   & > [data-part="members-section"] {
     display: flex;
     flex-direction: column;

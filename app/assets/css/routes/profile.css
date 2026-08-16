@@ -1,0 +1,35 @@
+#profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-8);
+  min-width: var(--noora-spacing-0);
+
+  & .profile-form {
+    gap: var(--noora-spacing-8);
+  }
+
+  & .profile-avatar-card {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--noora-spacing-7) var(--noora-spacing-8);
+  }
+
+  & .user-avatar-picker {
+    display: inline-flex;
+    border-radius: var(--noora-radius-99);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--noora-border-light-focus);
+    }
+
+    &[data-dragging] .noora-avatar {
+      box-shadow: var(--noora-border-light-focus);
+    }
+  }
+
+  & .user-avatar-file-input-hidden {
+    display: none;
+  }
+}

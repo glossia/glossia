@@ -12386,7 +12386,6 @@ defmodule GlossiaWeb.DashboardLive do
           >
             <.card_section>
               <Noora.Table.table
-                :if={@top_pages != []}
                 id="top-pages-table"
                 rows={@top_pages}
                 row_key={fn row -> row.pathname end}
@@ -12397,12 +12396,14 @@ defmodule GlossiaWeb.DashboardLive do
                 <:col :let={row} label={gettext("Pageviews")}>
                   <Noora.Table.text_cell label={to_string(row.pageviews)} />
                 </:col>
+                <:empty_state>
+                  <Noora.Table.table_empty_state
+                    icon="file"
+                    title={gettext("No pageviews yet")}
+                    subtitle={gettext("Once the snippet is live, pageviews will appear here.")}
+                  />
+                </:empty_state>
               </Noora.Table.table>
-              <Noora.Table.table_empty_state
-                :if={@top_pages == []}
-                title={gettext("No pageviews yet")}
-                subtitle={gettext("Once the snippet is live, pageviews will appear here.")}
-              />
             </.card_section>
           </.card>
 
@@ -12413,7 +12414,6 @@ defmodule GlossiaWeb.DashboardLive do
           >
             <.card_section>
               <Noora.Table.table
-                :if={@top_countries != []}
                 id="top-countries-table"
                 rows={@top_countries}
                 row_key={fn row -> row.country_code end}
@@ -12424,12 +12424,16 @@ defmodule GlossiaWeb.DashboardLive do
                 <:col :let={row} label={gettext("Visits")}>
                   <Noora.Table.text_cell label={to_string(row.visits)} />
                 </:col>
+                <:empty_state>
+                  <Noora.Table.table_empty_state
+                    icon="world"
+                    title={gettext("No country data yet")}
+                    subtitle={
+                      gettext("Once the snippet is live, visitor countries will appear here.")
+                    }
+                  />
+                </:empty_state>
               </Noora.Table.table>
-              <Noora.Table.table_empty_state
-                :if={@top_countries == []}
-                title={gettext("No country data yet")}
-                subtitle={gettext("Once the snippet is live, visitor countries will appear here.")}
-              />
             </.card_section>
           </.card>
         </div>

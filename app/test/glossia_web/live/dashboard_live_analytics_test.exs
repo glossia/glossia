@@ -99,6 +99,18 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
              "No locale-gap visits"
            )
 
+    assert has_element?(
+             view,
+             "#top-pages-table .noora-table-empty-state",
+             "No pageviews yet"
+           )
+
+    assert has_element?(
+             view,
+             "#top-countries-table .noora-table-empty-state",
+             "No country data yet"
+           )
+
     assert has_element?(view, "#localization-priority-map[phx-hook='LocalizationPriorityMap']")
     refute has_element?(view, "[data-part='localization-priority'] [data-part='legend-bar']")
   end

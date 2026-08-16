@@ -2143,19 +2143,6 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
 
 
 
-.profile-main {
-  flex: 1;
-  height: 100%;
-  padding: var(--space-5);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-}
-
-.profile-page { width: 100%; max-width: var(--max-width-dash); flex: 1; display: flex; flex-direction: column; min-width: 0; }
-
 .profile-page-header {
   margin-bottom: var(--space-6);
 }
@@ -2173,20 +2160,7 @@ code[class*="language-"] { font-family: var(--font-code); font-size: var(--text-
   margin: 0;
 }
 
-/* --- Backward compatibility: keep .dash-main for page content --- */
-.dash-main {
-  flex: 1;
-  height: 100%;
-  padding: var(--space-5);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-}
-
 /* --- Dashboard page content --- */
-.dash-page { width: 100%; max-width: var(--max-width-dash); flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .dash-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
 .dash-page-header h1 { font-size: var(--text-4xl); }
 .dash-page-header-desc { margin-top: var(--space-1); font-size: var(--text-sm); color: var(--color-text-muted); line-height: var(--leading-normal); }
@@ -3851,14 +3825,6 @@ th[aria-sort] .resource-sort-indicator { color: var(--color-primary); }
 
 .admin-mobile-backdrop { display: none; }
 
-.admin-main {
-  flex: 1;
-  padding: var(--space-8);
-  max-width: var(--max-width-dash);
-  width: 100%;
-  margin: 0 auto;
-}
-
 .admin-stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -5108,8 +5074,6 @@ a.ticket-comment-time:hover {
   .gl-sidebar-toggle { display: flex; }
   .gl-shell[data-sidebar="hidden"] .gl-sidebar-toggle { display: none; }
 
-  .dash-main { padding: var(--space-4); }
-  .profile-main { padding: var(--space-4); }
   .dash-page-header { flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
 
   .admin-shell { grid-template-columns: 1fr; }
@@ -5134,7 +5098,6 @@ a.ticket-comment-time:hover {
   }
   .admin-sidebar.open { display: flex; }
   .admin-topbar { padding: 0 var(--space-4); }
-  .admin-main { padding: var(--space-6) var(--space-4); }
 }
 
 /* ====================================================================
