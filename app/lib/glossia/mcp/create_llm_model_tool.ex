@@ -19,6 +19,10 @@ defmodule Glossia.MCP.CreateLLMModelTool do
 
     field :api_key, {:required, :string}, description: "Provider API key"
 
+    field :base_url, :string,
+      description:
+        "Optional base URL to route this model's requests through (e.g. http://glossia-bifrost.glossia.svc.cluster.local:8080/v1). Leave empty to use the provider's default endpoint."
+
     field :default, :boolean,
       description: "Whether this model should be used when no model handle is configured"
   end
@@ -39,6 +43,7 @@ defmodule Glossia.MCP.CreateLLMModelTool do
         "handle" => model_handle,
         "model" => model,
         "api_key" => api_key,
+        "base_url" => params["base_url"],
         "default" => params["default"]
       }
 
@@ -51,6 +56,7 @@ defmodule Glossia.MCP.CreateLLMModelTool do
                 id: created.id,
                 handle: created.handle,
                 model: created.model,
+                base_url: created.base_url,
                 default: created.default
               })
             )

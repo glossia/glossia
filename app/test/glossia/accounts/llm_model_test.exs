@@ -45,6 +45,49 @@ defmodule Glossia.Accounts.LLMModelTest do
       refute errors_on(changeset) |> Map.has_key?(:api_key)
     end
 
+    test "casts a valid base_url" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "gw",
+          "model" => "anthropic/test",
+          "api_key" => "sk",
+          "base_url" => "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"
+        })
+
+      assert changeset.valid?
+
+      assert changeset.changes[:base_url] ==
+               "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"
+    end
+
+    test "normalizes blank and whitespace base_url to nil" do
+      for blank <- ["", "   "] do
+        changeset =
+          LLMModel.changeset(%LLMModel{}, %{
+            "handle" => "gw",
+            "model" => "anthropic/test",
+            "api_key" => "sk",
+            "base_url" => blank
+          })
+
+        assert changeset.valid?
+        assert changeset.changes[:base_url] == nil
+      end
+    end
+
+    test "rejects base_url without an http/https scheme" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "gw",
+          "model" => "anthropic/test",
+          "api_key" => "sk",
+          "base_url" => "api.together.ai/v1"
+        })
+
+      refute changeset.valid?
+      assert {:base_url, _} = errors_on(changeset) |> Enum.find(&(elem(&1, 0) == :base_url))
+    end
+
     test "handle must start with a letter" do
       changeset =
         LLMModel.changeset(%LLMModel{}, %{

@@ -31,6 +31,25 @@ defmodule Glossia.Translations.CredentialsTest do
     assert cred.auth == {:api_key, "sk-account-key", nil}
   end
 
+  test "routes the account model through its base_url when set", %{user: user, account: account} do
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "gated",
+        "model" => "togetherai/Qwen/Qwen3.5-9B",
+        "api_key" => "sk-account-key",
+        "base_url" => "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"
+      })
+
+    put_config([])
+
+    assert {:ok, cred} = Credentials.resolve(account, "gated")
+    assert cred.source == :account_model
+
+    assert cred.auth ==
+             {:api_key, "sk-account-key",
+              "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"}
+  end
+
   test "resolves credentials on the designated database node", %{
     user: user,
     account: account

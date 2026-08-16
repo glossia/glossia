@@ -68,6 +68,7 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
               "handle" => params["model_handle"],
               "model" => params["model"],
               "api_key" => params["api_key"],
+              "base_url" => params["base_url"],
               "default" => params["default"]
             }
 
@@ -109,6 +110,7 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
                   |> maybe_put("handle", params["model_handle"])
                   |> maybe_put("model", params["model"])
                   |> maybe_put("api_key", params["api_key"])
+                  |> maybe_put("base_url", params["base_url"])
                   |> maybe_put("default", params["default"])
 
                 case LLMModels.update_model(account, user, model, attrs) do
@@ -165,6 +167,7 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
       id: model.id,
       handle: model.handle,
       model: model.model,
+      base_url: model.base_url,
       default: model.default,
       inserted_at: model.inserted_at,
       updated_at: model.updated_at
