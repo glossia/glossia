@@ -118,6 +118,11 @@ hermes:
 # host.
 bifrost:
   enabled: true
+  # Pre-provisioned administrator account (admin@glossia.ai) so the gateway's
+  # authentication is enabled and the admin REST API can be driven. Credentials
+  # come from the /kubernetes Infisical item (BIFROST_ADMIN_USERNAME/PASSWORD).
+  authConfig:
+    enabled: true
   persistence:
     storageClass: hcloud-volumes
     size: 5Gi
