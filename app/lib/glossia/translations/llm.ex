@@ -327,7 +327,10 @@ defmodule Glossia.Translations.LLM do
   defp request_model(model, base_url) do
     case ModelIdentifier.split(model) do
       {:ok, {"togetherai", provider_model}} ->
-        {%{provider: :openai, id: provider_model}, base_url || @together_base_url}
+        # Together is OpenAI-compatible. ReqLLM expects a "provider:model"
+        # string; a "%{provider: :openai, id: ...}" map fails model resolution
+        # inside Condukt with ReqLLM.Error.Invalid.Provider.
+        {"openai:#{provider_model}", base_url || @together_base_url}
 
       {:ok, _parts} ->
         {ModelIdentifier.to_req_llm(model), base_url}
