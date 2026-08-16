@@ -82,6 +82,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Values.bifrost.sourceOfTruth }}{{- $_ := set $config "source_of_truth" .Values.bifrost.sourceOfTruth }}{{- end }}
 {{- if .Values.bifrost.envLabel }}{{- $_ := set $config "env_label" .Values.bifrost.envLabel }}{{- end }}
 {{- if .Values.bifrost.setupToken }}{{- $_ := set $config "setup_token" .Values.bifrost.setupToken }}{{- end }}
+{{- if and .Values.bifrost.authConfig.enabled .Values.bifrost.authConfig.usernameKey .Values.bifrost.authConfig.passwordKey }}
+{{- $_ := set $config "auth_config" (dict "admin_username" (printf "env.%s" .Values.bifrost.authConfig.usernameKey) "admin_password" (printf "env.%s" .Values.bifrost.authConfig.passwordKey) "is_enabled" true) }}
+{{- end }}
 {{ toPrettyJson $config }}
 {{- end -}}
 {{- end -}}
