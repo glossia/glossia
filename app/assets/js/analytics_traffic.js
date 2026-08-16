@@ -1,15 +1,14 @@
 /**
- * Hourly traffic sparkline / bar chart.
+ * Traffic bar chart for the selected analytics period.
  *
- * Renders one bar per hour bucket. The container provides the series via a
- * `data-series` attribute. Like the priority map, this is intentionally
- * dependency-free: just SVG, sized to the container, themed with the
- * Noora tokens via CSS variables.
+ * The server chooses hourly, daily, or monthly buckets based on the selected
+ * period and includes empty buckets so quiet stretches keep their true width.
+ * The container provides the series and granularity through data attributes.
  */
 
 const NS = "http://www.w3.org/2000/svg"
 
-const AnalyticsHourlyTraffic = {
+const AnalyticsTraffic = {
   mounted() {
     this.observeCanvas()
     this.scheduleRender()
@@ -25,7 +24,7 @@ const AnalyticsHourlyTraffic = {
   },
 
   observeCanvas() {
-    const canvas = this.el.querySelector("#analytics-hourly-traffic-canvas")
+    const canvas = this.el.querySelector("#analytics-traffic-canvas")
     if (!canvas) return
 
     this.resizeObserver = new ResizeObserver(() => this.scheduleRender())
@@ -38,10 +37,11 @@ const AnalyticsHourlyTraffic = {
   },
 
   render() {
-    const canvas = this.el.querySelector("#analytics-hourly-traffic-canvas")
+    const canvas = this.el.querySelector("#analytics-traffic-canvas")
     if (!canvas) return
 
     const series = this.parseSeries(canvas)
+    const granularity = canvas.dataset.granularity || "day"
     canvas.innerHTML = ""
 
     if (series.length === 0) {
@@ -61,7 +61,7 @@ const AnalyticsHourlyTraffic = {
     svg.setAttribute("width", "100%")
     svg.setAttribute("height", "100%")
     svg.setAttribute("role", "img")
-    svg.setAttribute("aria-label", "Hourly pageviews over the last 30 days")
+    svg.setAttribute("aria-label", `Pageviews by ${granularity} for the selected period`)
 
     // Y-axis grid (3 lines).
     for (let i = 0; i <= 3; i++) {
@@ -101,23 +101,17 @@ const AnalyticsHourlyTraffic = {
       rect.setAttribute("fill-opacity", "0.85")
       rect.setAttribute("rx", "1.5")
 
-      const dateLabel = new Date(point.bucket).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-      })
       const title = document.createElementNS(NS, "title")
-      title.textContent = `${dateLabel} ${new Date(point.bucket).toLocaleTimeString(
-        undefined,
-        {hour: "2-digit"},
-      )} — ${point.pageviews} pageviews, ${point.unique_visitors} unique visitors`
+      title.textContent = `${this.formatBucketLabel(point.bucket, granularity, true)} — ${point.pageviews} pageviews, ${point.unique_visitors} unique visitors`
       rect.appendChild(title)
       svg.appendChild(rect)
     })
 
-    // X-axis: 4 date labels evenly spaced.
-    const labelCount = 4
+    // X-axis labels follow the bucket size selected for the period.
+    const labelCount = Math.min(4, series.length)
     for (let i = 0; i < labelCount; i++) {
-      const index = Math.floor((series.length - 1) * (i / (labelCount - 1)))
+      const index =
+        labelCount === 1 ? 0 : Math.floor((series.length - 1) * (i / (labelCount - 1)))
       const point = series[index]
       if (!point) continue
 
@@ -128,10 +122,7 @@ const AnalyticsHourlyTraffic = {
       label.setAttribute("text-anchor", "middle")
       label.setAttribute("font-size", "10")
       label.setAttribute("fill", "var(--noora-surface-label-secondary)")
-      label.textContent = new Date(point.bucket).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-      })
+      label.textContent = this.formatBucketLabel(point.bucket, granularity, false)
       svg.appendChild(label)
     }
 
@@ -156,9 +147,35 @@ const AnalyticsHourlyTraffic = {
   renderEmptyState(canvas) {
     const note = document.createElement("p")
     note.className = "voice-empty"
-    note.textContent = "No traffic in the last 30 days."
+    note.textContent = "No traffic in the selected period."
     canvas.appendChild(note)
+  },
+
+  formatBucketLabel(bucket, granularity, detailed) {
+    const date = new Date(bucket)
+
+    if (granularity === "hour") {
+      return new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        ...(detailed ? {minute: "2-digit"} : {}),
+      }).format(date)
+    }
+
+    if (granularity === "month") {
+      return new Intl.DateTimeFormat(undefined, {
+        month: detailed ? "long" : "short",
+        year: "numeric",
+      }).format(date)
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+      month: detailed ? "long" : "short",
+      day: "numeric",
+      ...(detailed ? {year: "numeric"} : {}),
+    }).format(date)
   },
 }
 
-export default AnalyticsHourlyTraffic
+export default AnalyticsTraffic

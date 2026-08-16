@@ -1221,11 +1221,11 @@ defmodule GlossiaWeb.DashboardLive do
         []
       end
 
-    hourly_traffic =
+    traffic =
       if settings && settings.verified_at do
-        Glossia.Analytics.Queries.hourly_traffic(project.id, query_opts)
+        Glossia.Analytics.Queries.traffic(project.id, query_opts)
       else
-        []
+        %{granularity: "day", points: []}
       end
 
     priority =
@@ -1245,7 +1245,7 @@ defmodule GlossiaWeb.DashboardLive do
       analytics_top_pages: top_pages,
       analytics_top_countries: top_countries,
       analytics_languages: languages,
-      analytics_hourly_traffic: hourly_traffic,
+      analytics_traffic: traffic,
       analytics_priority: priority,
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
@@ -3661,7 +3661,7 @@ defmodule GlossiaWeb.DashboardLive do
           top_pages={assigns[:analytics_top_pages] || []}
           top_countries={assigns[:analytics_top_countries] || []}
           languages={assigns[:analytics_languages] || []}
-          hourly_traffic={assigns[:analytics_hourly_traffic] || []}
+          traffic={assigns[:analytics_traffic] || %{granularity: "day", points: []}}
           priority={assigns[:analytics_priority] || []}
         />
       <% :project_translations -> %>
@@ -12188,7 +12188,7 @@ defmodule GlossiaWeb.DashboardLive do
   attr(:top_pages, :list, default: [])
   attr(:top_countries, :list, default: [])
   attr(:languages, :list, default: [])
-  attr(:hourly_traffic, :list, default: [])
+  attr(:traffic, :map, default: %{granularity: "day", points: []})
   attr(:priority, :list, default: [])
 
   defp project_analytics_page(assigns) do
@@ -12363,15 +12363,18 @@ defmodule GlossiaWeb.DashboardLive do
         </.card>
 
         <.card
-          title={dgettext("dashboard_projects", "Traffic by hour")}
+          title={dgettext("dashboard_projects", "Traffic")}
           icon="chart_bar_popular"
-          data-part="traffic-by-hour"
+          data-part="traffic"
         >
           <.card_section>
-            <div id="analytics-hourly-traffic" phx-hook="AnalyticsHourlyTraffic">
+            <div id="analytics-traffic" phx-hook="AnalyticsTraffic">
               <div
-                id="analytics-hourly-traffic-canvas"
-                data-series={Jason.encode!(@hourly_traffic)}
+                id="analytics-traffic-canvas"
+                data-series={Jason.encode!(@traffic.points)}
+                data-granularity={@traffic.granularity}
+                data-start={@date_period |> elem(0) |> DateTime.to_iso8601()}
+                data-end={@date_period |> elem(1) |> DateTime.to_iso8601()}
               >
               </div>
             </div>

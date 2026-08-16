@@ -108,6 +108,7 @@ defmodule Glossia.Analytics.Geolocation do
     @behaviour Glossia.Analytics.Geolocation
 
     import Bitwise
+    require Logger
 
     @endpoint "https://api.ipapi.is"
 
@@ -138,7 +139,7 @@ defmodule Glossia.Analytics.Geolocation do
       case Req.get(@endpoint,
              params: [q: ip],
              receive_timeout: 1_000,
-             connect_timeout: 1_000,
+             connect_options: [timeout: 1_000],
              retry: false
            ) do
         {:ok, %Req.Response{status: 200, body: body}} when is_map(body) ->
@@ -146,16 +147,37 @@ defmodule Glossia.Analytics.Geolocation do
 
           if is_binary(code) and byte_size(code) == 2,
             do: {:ok, String.upcase(code)},
-            else: :error
+            else: report_failure("country_missing")
 
-        _ ->
-          :error
+        {:ok, %Req.Response{status: status}} ->
+          report_failure("unexpected_status", status: status)
+
+        {:error, reason} ->
+          report_failure("request_failed", error_type: error_type(reason))
       end
     rescue
-      _ -> :error
+      exception ->
+        report_failure("request_exception",
+          error_type: error_type(exception),
+          stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+        )
     catch
-      _, _ -> :error
+      kind, reason ->
+        report_failure("request_throw", kind: kind, error_type: error_type(reason))
     end
+
+    defp report_failure(failure, metadata \\ []) do
+      Logger.error(
+        "Analytics country lookup failed: #{failure}",
+        [adapter: "ipapi", failure: failure] ++ metadata
+      )
+
+      :error
+    end
+
+    defp error_type(%{__struct__: module}), do: inspect(module)
+    defp error_type(reason) when is_atom(reason), do: Atom.to_string(reason)
+    defp error_type(_reason), do: "unknown"
 
     # Reserved ranges have no useful country and `ipapi.is` would refuse to
     # answer them anyway, so short-circuit them rather than spend a request we

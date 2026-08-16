@@ -155,8 +155,8 @@
     }
   }
 
-  /* ── Traffic by hour chart container ────────────────────────────────────── */
-  & #analytics-hourly-traffic-canvas {
+  /* ── Traffic chart container ────────────────────────────────────────────── */
+  & #analytics-traffic-canvas {
     width: 100%;
     height: 180px;
   }

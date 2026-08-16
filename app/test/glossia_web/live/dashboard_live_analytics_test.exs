@@ -112,6 +112,9 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
            )
 
     assert has_element?(view, "#localization-priority-map[phx-hook='LocalizationPriorityMap']")
+    assert has_element?(view, "#analytics-traffic[phx-hook='AnalyticsTraffic']")
+    assert has_element?(view, "#analytics-traffic-canvas[data-granularity='day']")
+    refute render(view) =~ "Traffic by hour"
     refute has_element?(view, "[data-part='localization-priority'] [data-part='legend-bar']")
   end
 end
