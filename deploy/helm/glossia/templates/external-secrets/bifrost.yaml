@@ -17,4 +17,12 @@ spec:
     - secretKey: {{ .Values.bifrost.encryptionKeyKey }}
       remoteRef:
         key: {{ printf "%s/%s" .Values.externalSecrets.bifrost.itemKey .Values.externalSecrets.bifrost.encryptionKeyField | quote }}
+    {{- if and .Values.bifrost.authConfig.enabled .Values.externalSecrets.bifrost.adminUsernameField }}
+    - secretKey: {{ .Values.bifrost.authConfig.usernameKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.bifrost.itemKey .Values.externalSecrets.bifrost.adminUsernameField | quote }}
+    - secretKey: {{ .Values.bifrost.authConfig.passwordKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.bifrost.itemKey .Values.externalSecrets.bifrost.adminPasswordField | quote }}
+    {{- end }}
 {{- end }}

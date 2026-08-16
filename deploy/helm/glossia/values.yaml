@@ -229,6 +229,14 @@ bifrost:
   # below; otherwise provision it yourself with the bifrost.encryptionKeyKey key.
   secretName: glossia-bifrost
   encryptionKeyKey: BIFROST_ENCRYPTION_KEY
+  # Optional pre-provisioned administrator account. When enabled, the gateway
+  # seeds the admin from these two values on first startup and turns on its
+  # authentication. Credentials are read from bifrost.secretName (keys below),
+  # which the External Secret fills from externalSecrets.bifrost when enabled.
+  authConfig:
+    enabled: false
+    usernameKey: BIFROST_ADMIN_USERNAME
+    passwordKey: BIFROST_ADMIN_PASSWORD
   persistence:
     storageClass: ""
     size: 5Gi
@@ -541,6 +549,8 @@ externalSecrets:
   bifrost:
     itemKey: /glossia-bifrost
     encryptionKeyField: BIFROST_ENCRYPTION_KEY
+    adminUsernameField: BIFROST_ADMIN_USERNAME
+    adminPasswordField: BIFROST_ADMIN_PASSWORD
   # ExternalSecret for the dedicated DB-backup bucket credentials. Pulls
   # from a SEPARATE backend item (not appEnv.itemKey) so backup creds are
   # not entangled with the app's secrets. Maps remote fields →
