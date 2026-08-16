@@ -156,27 +156,38 @@ defmodule Glossia.Analytics.Queries do
   end
 
   @doc """
-  The visit-count time series bucketed by hour. Used by the sparkline /
-  trend section of the dashboard.
+  The visit-count time series, bucketed to suit the requested period.
+
+  Periods up to 48 hours use hourly buckets, periods up to 90 days use daily
+  buckets, and longer periods use monthly buckets. Empty buckets are included
+  so the chart preserves the selected period instead of compressing quiet
+  stretches of time.
   """
-  def hourly_traffic(project_id, opts \\ []) do
+  def traffic(project_id, opts \\ []) do
     since = Keyword.get(opts, :since, default_since())
     until = Keyword.get(opts, :until, DateTime.utc_now())
+    granularity = traffic_granularity(since, until)
 
-    from(e in "analytics_events",
-      where:
-        e.project_id == ^to_string(project_id) and
-          e.inserted_at >= ^DateTime.truncate(since, :second) and
-          e.inserted_at < ^DateTime.truncate(until, :second),
-      group_by: fragment("toStartOfHour(?)", e.inserted_at),
-      order_by: [asc: fragment("toStartOfHour(?)", e.inserted_at)],
-      select: %{
-        bucket: fragment("toStartOfHour(?)", e.inserted_at),
-        pageviews: count(e.id),
-        unique_visitors: fragment("uniqExact(?)", e.visitor_id)
-      }
-    )
-    |> IngestRepo.all()
+    points =
+      project_id
+      |> traffic_query(since, until, granularity)
+      |> IngestRepo.all()
+      |> fill_traffic_buckets(since, until, granularity)
+
+    %{granularity: Atom.to_string(granularity), points: points}
+  end
+
+  @doc """
+  Chooses the chart bucket size for a selected analytics period.
+  """
+  def traffic_granularity(since, until) do
+    duration = max(DateTime.diff(until, since, :second), 0)
+
+    cond do
+      duration <= 48 * 60 * 60 -> :hour
+      duration <= 90 * 24 * 60 * 60 -> :day
+      true -> :month
+    end
   end
 
   @doc """
@@ -242,6 +253,132 @@ defmodule Glossia.Analytics.Queries do
 
   defp default_since do
     DateTime.utc_now() |> DateTime.add(-30 * 24 * 60 * 60, :second)
+  end
+
+  defp traffic_query(project_id, since, until, :hour) do
+    from(e in "analytics_events",
+      where:
+        e.project_id == ^to_string(project_id) and
+          e.inserted_at >= ^DateTime.truncate(since, :second) and
+          e.inserted_at < ^DateTime.truncate(until, :second),
+      group_by: fragment("toStartOfHour(toTimeZone(?, 'UTC'))", e.inserted_at),
+      order_by: [asc: fragment("toStartOfHour(toTimeZone(?, 'UTC'))", e.inserted_at)],
+      select: %{
+        bucket:
+          fragment(
+            "formatDateTime(toStartOfHour(toTimeZone(?, 'UTC')), '%FT%TZ', 'UTC')",
+            e.inserted_at
+          ),
+        pageviews: count(e.id),
+        unique_visitors: fragment("uniqExact(?)", e.visitor_id)
+      }
+    )
+  end
+
+  defp traffic_query(project_id, since, until, :day) do
+    from(e in "analytics_events",
+      where:
+        e.project_id == ^to_string(project_id) and
+          e.inserted_at >= ^DateTime.truncate(since, :second) and
+          e.inserted_at < ^DateTime.truncate(until, :second),
+      group_by: fragment("toStartOfDay(toTimeZone(?, 'UTC'))", e.inserted_at),
+      order_by: [asc: fragment("toStartOfDay(toTimeZone(?, 'UTC'))", e.inserted_at)],
+      select: %{
+        bucket:
+          fragment(
+            "formatDateTime(toStartOfDay(toTimeZone(?, 'UTC')), '%FT%TZ', 'UTC')",
+            e.inserted_at
+          ),
+        pageviews: count(e.id),
+        unique_visitors: fragment("uniqExact(?)", e.visitor_id)
+      }
+    )
+  end
+
+  defp traffic_query(project_id, since, until, :month) do
+    from(e in "analytics_events",
+      where:
+        e.project_id == ^to_string(project_id) and
+          e.inserted_at >= ^DateTime.truncate(since, :second) and
+          e.inserted_at < ^DateTime.truncate(until, :second),
+      group_by: fragment("toStartOfMonth(toTimeZone(?, 'UTC'))", e.inserted_at),
+      order_by: [asc: fragment("toStartOfMonth(toTimeZone(?, 'UTC'))", e.inserted_at)],
+      select: %{
+        bucket:
+          fragment(
+            "formatDateTime(toStartOfMonth(toTimeZone(?, 'UTC')), '%FT%TZ', 'UTC')",
+            e.inserted_at
+          ),
+        pageviews: count(e.id),
+        unique_visitors: fragment("uniqExact(?)", e.visitor_id)
+      }
+    )
+  end
+
+  defp fill_traffic_buckets([], _since, _until, _granularity), do: []
+
+  defp fill_traffic_buckets(rows, since, until, granularity) do
+    counts =
+      Map.new(rows, fn row ->
+        {bucket_iso8601(row.bucket), Map.drop(row, [:bucket])}
+      end)
+
+    since
+    |> start_of_bucket(granularity)
+    |> Stream.iterate(&next_bucket(&1, granularity))
+    |> Enum.take_while(&(DateTime.compare(&1, until) == :lt))
+    |> Enum.map(fn bucket ->
+      bucket = DateTime.to_iso8601(bucket)
+
+      Map.merge(
+        %{bucket: bucket, pageviews: 0, unique_visitors: 0},
+        Map.get(counts, bucket, %{})
+      )
+    end)
+  end
+
+  defp start_of_bucket(datetime, :hour) do
+    %{datetime | minute: 0, second: 0, microsecond: {0, 0}}
+  end
+
+  defp start_of_bucket(datetime, :day) do
+    datetime
+    |> DateTime.to_date()
+    |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+  end
+
+  defp start_of_bucket(datetime, :month) do
+    date = DateTime.to_date(datetime)
+    DateTime.new!(Date.new!(date.year, date.month, 1), ~T[00:00:00], "Etc/UTC")
+  end
+
+  defp next_bucket(datetime, :hour), do: DateTime.add(datetime, 1, :hour)
+  defp next_bucket(datetime, :day), do: DateTime.add(datetime, 1, :day)
+
+  defp next_bucket(datetime, :month) do
+    date = DateTime.to_date(datetime)
+
+    next_date =
+      if date.month == 12,
+        do: Date.new!(date.year + 1, 1, 1),
+        else: Date.new!(date.year, date.month + 1, 1)
+
+    DateTime.new!(next_date, ~T[00:00:00], "Etc/UTC")
+  end
+
+  defp bucket_iso8601(%DateTime{} = datetime), do: DateTime.to_iso8601(datetime)
+  defp bucket_iso8601(bucket) when is_binary(bucket), do: bucket
+
+  defp bucket_iso8601(%Date{} = date) do
+    date
+    |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+    |> DateTime.to_iso8601()
+  end
+
+  defp bucket_iso8601(%NaiveDateTime{} = datetime) do
+    datetime
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.to_iso8601()
   end
 
   defp empty_summary do
