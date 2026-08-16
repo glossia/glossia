@@ -517,6 +517,7 @@ defmodule GlossiaWeb.DashboardLive do
           members_sort_dir: "asc",
           members_filters: %{},
           members_page: 1,
+          members_tab: "members",
           invitations_search: "",
           invitations_sort_key: "email",
           invitations_sort_dir: "asc",
@@ -2203,7 +2204,8 @@ defmodule GlossiaWeb.DashboardLive do
              all_invitations: Organizations.list_pending_invitations(org),
              invite_form: to_form(%{"email" => "", "role" => "member"}, as: :invite)
            )
-           |> apply_invitations_filters()}
+           |> apply_invitations_filters()
+           |> push_event("close-modal", %{id: "invite-member-modal"})}
 
         {:error, :already_member} ->
           {:noreply, put_flash(socket, :error, gettext("This user is already a member."))}
@@ -2215,6 +2217,28 @@ defmodule GlossiaWeb.DashboardLive do
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, gettext("Could not send invitation."))}
       end
+    end
+  end
+
+  def handle_event("close_invite_member", _params, socket) do
+    {:noreply, push_event(socket, "close-modal", %{id: "invite-member-modal"})}
+  end
+
+  def handle_event("filter_members_by_role", params, socket) do
+    case noora_select_value(params) do
+      "__all__" ->
+        {:noreply, push_table_params(socket, "members-table", %{filters: %{}, page: 1})}
+
+      role when is_binary(role) ->
+        if role in socket.assigns.member_roles do
+          filters = Map.put(socket.assigns.members_filters, "role", [role])
+          {:noreply, push_table_params(socket, "members-table", %{filters: filters, page: 1})}
+        else
+          {:noreply, socket}
+        end
+
+      _other ->
+        {:noreply, socket}
     end
   end
 
@@ -3523,6 +3547,7 @@ defmodule GlossiaWeb.DashboardLive do
           members_sort_dir={@members_sort_dir}
           members_filters={@members_filters}
           members_page={@members_page}
+          members_tab={@members_tab}
           member_roles={@member_roles}
           pending_invitations={@pending_invitations}
           all_invitations={@all_invitations}
@@ -5293,172 +5318,409 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp members_page(assigns) do
     assigns =
-      assign(
-        assigns,
-        :role_filter_options,
-        Enum.map(assigns.member_roles, fn r -> %{value: r, label: String.capitalize(r)} end)
+      assigns
+      |> assign(
+        :selected_member_role,
+        assigns.members_filters |> Map.get("role", []) |> List.first() || "__all__"
+      )
+      |> assign(:members_total_pages, max(1, ceil(assigns.members_total / 10)))
+      |> assign(
+        :members_path_state,
+        Map.take(assigns, [
+          :handle,
+          :members_tab,
+          :members_search,
+          :members_sort_key,
+          :members_sort_dir,
+          :members_page,
+          :members_filters,
+          :invitations_search,
+          :invitations_sort_key,
+          :invitations_sort_dir
+        ])
       )
 
     ~H"""
-    <div class="dash-page">
+    <div id="members-page" class="dash-page">
       <.page_header
         title={gettext("Members")}
         description={gettext("Manage who has access to this organization.")}
-      />
+      >
+        <:actions>
+          <.form for={@invite_form} id="invite-member-form" phx-submit="send_invitation">
+            <Noora.Modal.modal
+              id="invite-member-modal"
+              title={gettext("Invite member")}
+              description={gettext("Add someone to this organization and choose their role.")}
+              on_dismiss="close_invite_member"
+            >
+              <:trigger :let={attrs}>
+                <Noora.Button.button label={gettext("Invite member")} size="medium" {attrs}>
+                  <:icon_left><Noora.Icon.plus /></:icon_left>
+                </Noora.Button.button>
+              </:trigger>
 
-      <div class="members-invite-section">
-        <h2>{gettext("Invite a new member")}</h2>
-        <.form
-          for={@invite_form}
-          id="invite-form"
-          phx-submit="send_invitation"
-          class="members-invite-form"
-        >
-          <div class="members-invite-fields">
-            <div class="voice-field">
-              <label for="invite_email">{gettext("Email address")}</label>
-              <input
-                type="email"
-                id="invite_email"
-                name="invite[email]"
-                value={@invite_form[:email].value}
-                required
-                placeholder={gettext("colleague@example.com")}
+              <div data-part="modal-content-wrapper">
+                <Noora.LineDivider.line_divider />
+                <div data-part="modal-body">
+                  <Noora.TextInput.text_input
+                    id="invite-member-email"
+                    field={@invite_form[:email]}
+                    type="email"
+                    label={gettext("Email address")}
+                    placeholder={gettext("colleague@example.com")}
+                    show_prefix={false}
+                    required
+                    show_required
+                  />
+                  <div data-part="role-field">
+                    <Noora.Label.label label={gettext("Role")} required />
+                    <Noora.Select.select
+                      id="invite-member-role"
+                      field={@invite_form[:role]}
+                      label={gettext("Role")}
+                    >
+                      <:item value="member" label={gettext("Member")} icon="user" />
+                      <:item value="linguist" label={gettext("Linguist")} icon="language" />
+                      <:item value="admin" label={gettext("Admin")} icon="settings" />
+                    </Noora.Select.select>
+                  </div>
+                </div>
+                <Noora.LineDivider.line_divider />
+              </div>
+
+              <:footer>
+                <Noora.Modal.modal_footer>
+                  <:action>
+                    <Noora.Button.button
+                      label={gettext("Cancel")}
+                      variant="secondary"
+                      type="button"
+                      phx-click="close_invite_member"
+                    />
+                  </:action>
+                  <:action>
+                    <Noora.Button.button label={gettext("Send invitation")} type="submit" />
+                  </:action>
+                </Noora.Modal.modal_footer>
+              </:footer>
+            </Noora.Modal.modal>
+          </.form>
+        </:actions>
+      </.page_header>
+
+      <div data-part="members-section">
+        <div data-part="toolbar">
+          <.form
+            for={%{}}
+            phx-change="resource_search"
+            id="members-search-form"
+            data-part="search"
+          >
+            <input
+              type="hidden"
+              name="table_id"
+              value={
+                if(@members_tab == "invitations", do: "invitations-table", else: "members-table")
+              }
+            />
+            <Noora.TextInput.text_input
+              id="members-search"
+              name="search"
+              type="search"
+              value={
+                if(@members_tab == "invitations",
+                  do: @invitations_search,
+                  else: @members_search
+                )
+              }
+              placeholder={
+                if(@members_tab == "invitations",
+                  do: gettext("Search invitations..."),
+                  else: gettext("Search members...")
+                )
+              }
+              show_suffix={false}
+              phx-debounce="300"
+            />
+          </.form>
+
+          <div :if={@members_tab == "members"} data-part="role-filter">
+            <Noora.Select.select
+              id="members-role-filter"
+              label={gettext("All roles")}
+              name="member_role_filter"
+              value={@selected_member_role}
+              on_value_change="filter_members_by_role"
+            >
+              <:item value="__all__" label={gettext("All roles")} icon="users" />
+              <:item
+                :for={role <- @member_roles}
+                value={role}
+                label={String.capitalize(role)}
+                icon="user"
               />
-            </div>
-            <div class="voice-field">
-              <label for="invite_role">{gettext("Role")}</label>
-              <select id="invite_role" name="invite[role]">
-                <option value="member" selected={@invite_form[:role].value == "member"}>
-                  {gettext("Member")}
-                </option>
-                <option value="admin" selected={@invite_form[:role].value == "admin"}>
-                  {gettext("Admin")}
-                </option>
-              </select>
-            </div>
+            </Noora.Select.select>
           </div>
-          <button type="submit" class="dash-btn dash-btn-primary">
-            {gettext("Send invitation")}
-          </button>
-        </.form>
-      </div>
+        </div>
 
-      <div class="members-section">
-        <h2>{gettext("Current members")}</h2>
-        <.resource_table
-          id="members-table"
-          rows={@members}
-          search={@members_search}
-          search_placeholder={gettext("Search members...")}
-          sort_key={@members_sort_key}
-          sort_dir={@members_sort_dir}
-          filters={[%{key: "role", label: gettext("Role"), options: @role_filter_options}]}
-          active_filters={@members_filters}
-          page={@members_page}
-          per_page={10}
-          total={@members_total}
-        >
-          <:col :let={member} label={gettext("Name")} key="name" sortable>
-            <span class="voice-author-chip">
-              <img
-                src={gravatar_url(member.user.email)}
-                alt=""
-                width="24"
-                height="24"
-                class="voice-author-avatar"
-              />
-              <span>{member.user.name || member.user.email}</span>
-            </span>
-          </:col>
-          <:col :let={member} label={gettext("Email")} key="email" sortable>
-            {member.user.email}
-          </:col>
-          <:col :let={member} label={gettext("Role")} key="role" sortable>
-            <span class={"members-role-badge members-role-#{member.role}"}>
-              {String.capitalize(member.role)}
-            </span>
-          </:col>
-          <:col
-            :let={member}
-            label={gettext("Joined")}
-            key="joined"
-            sortable
-            class="resource-col-nowrap"
+        <div id="members-tabs">
+          <Noora.TabMenu.tab_menu_horizontal data-part="list">
+            <Noora.TabMenu.tab_menu_horizontal_item
+              label={gettext("All members")}
+              patch={members_tab_patch(@members_path_state, "members")}
+              selected={@members_tab == "members"}
+            />
+            <Noora.TabMenu.tab_menu_horizontal_item
+              label={gettext("Invitations")}
+              patch={members_tab_patch(@members_path_state, "invitations")}
+              selected={@members_tab == "invitations"}
+            />
+          </Noora.TabMenu.tab_menu_horizontal>
+        </div>
+
+        <div :if={@members_tab == "members"} data-part="table-content">
+          <Noora.Table.table
+            id="members-table"
+            rows={@members}
+            row_key={fn member -> "member-#{member.id}" end}
           >
-            <time datetime={DateTime.to_iso8601(member.inserted_at)}>
-              {Calendar.strftime(member.inserted_at, "%b %d, %Y")}
-            </time>
-          </:col>
-          <:action :let={member}>
-            <%= if @can_write && @current_user && member.user.id != @current_user.id do %>
-              <button
-                type="button"
-                class="voice-link-btn voice-link-btn-danger"
-                phx-click="remove_member"
-                phx-value-user-id={member.user.id}
-                data-confirm={gettext("Are you sure you want to remove this member?")}
+            <:col
+              :let={member}
+              label={gettext("Member")}
+              patch={members_sort_patch(@members_path_state, "members-table", "name")}
+              sort_order={if(@members_sort_key == "name", do: @members_sort_dir)}
+            >
+              <Noora.Table.text_and_description_cell
+                label={member.user.name || member.user.email}
+                description={member.user.email}
               >
-                {gettext("Remove")}
-              </button>
-            <% end %>
-          </:action>
-        </.resource_table>
-      </div>
-
-      <%= if @all_invitations != [] do %>
-        <div class="members-section">
-          <h2>{gettext("Pending invitations")}</h2>
-          <.resource_table
-            id="invitations-table"
-            rows={@pending_invitations}
-            search={@invitations_search}
-            search_placeholder={gettext("Search invitations...")}
-            sort_key={@invitations_sort_key}
-            sort_dir={@invitations_sort_dir}
-          >
-            <:col :let={inv} label={gettext("Email")} key="email" sortable>
-              {inv.email}
-            </:col>
-            <:col :let={inv} label={gettext("Role")} key="role" sortable>
-              <span class={"members-role-badge members-role-#{inv.role}"}>
-                {String.capitalize(inv.role)}
-              </span>
-            </:col>
-            <:col :let={inv} label={gettext("Invited by")} key="invited_by" sortable>
-              <%= if inv.invited_by do %>
-                {inv.invited_by.name || inv.invited_by.email}
-              <% else %>
-                -
-              <% end %>
+                <:image>
+                  <Noora.Avatar.avatar
+                    id={"member-#{member.user.id}-avatar"}
+                    name={member.user.name || member.user.email}
+                    image_href={gravatar_url(member.user.email)}
+                    color="purple"
+                    size="small"
+                  />
+                </:image>
+              </Noora.Table.text_and_description_cell>
             </:col>
             <:col
-              :let={inv}
-              label={gettext("Expires")}
-              key="expires"
-              sortable
-              class="resource-col-nowrap"
+              :let={member}
+              label={gettext("Role")}
+              patch={members_sort_patch(@members_path_state, "members-table", "role")}
+              sort_order={if(@members_sort_key == "role", do: @members_sort_dir)}
             >
-              <time datetime={DateTime.to_iso8601(inv.expires_at)}>
-                {Calendar.strftime(inv.expires_at, "%b %d, %Y")}
-              </time>
+              <Noora.Table.badge_cell
+                label={String.capitalize(member.role)}
+                color={member_role_badge_color(member.role)}
+                style="light-fill"
+              />
             </:col>
-            <:action :let={inv}>
-              <button
-                type="button"
-                class="voice-link-btn voice-link-btn-danger"
-                phx-click="revoke_invitation"
-                phx-value-id={inv.id}
-              >
-                {gettext("Revoke")}
-              </button>
-            </:action>
-          </.resource_table>
+            <:col
+              :let={member}
+              label={gettext("Joined")}
+              patch={members_sort_patch(@members_path_state, "members-table", "joined")}
+              sort_order={if(@members_sort_key == "joined", do: @members_sort_dir)}
+            >
+              <Noora.Table.time_cell time={member.inserted_at} />
+            </:col>
+            <:col :let={member}>
+              <Noora.Table.button_cell :if={
+                @can_write && @current_user && member.user.id != @current_user.id
+              }>
+                <:button>
+                  <Noora.Button.button
+                    type="button"
+                    label={gettext("Remove")}
+                    variant="destructive"
+                    size="small"
+                    phx-click="remove_member"
+                    phx-value-user-id={member.user.id}
+                    data-confirm={gettext("Are you sure you want to remove this member?")}
+                  />
+                </:button>
+              </Noora.Table.button_cell>
+            </:col>
+            <:empty_state>
+              <Noora.Table.table_empty_state
+                icon="user_x"
+                title={gettext("No members found")}
+                subtitle={gettext("Try changing your search or role filter.")}
+              />
+            </:empty_state>
+          </Noora.Table.table>
+
+          <Noora.PaginationGroup.pagination_group
+            :if={@members_total_pages > 1}
+            current_page={@members_page}
+            number_of_pages={@members_total_pages}
+            page_patch={
+              fn page ->
+                members_table_patch(@members_path_state, "members-table", %{page: page})
+              end
+            }
+            data-part="pagination"
+          />
         </div>
-      <% end %>
+
+        <div :if={@members_tab == "invitations"} data-part="table-content">
+          <Noora.Table.table
+            id="invitations-table"
+            rows={@pending_invitations}
+            row_key={fn invitation -> "invitation-#{invitation.id}" end}
+          >
+            <:col
+              :let={invitation}
+              label={gettext("Email")}
+              patch={members_sort_patch(@members_path_state, "invitations-table", "email")}
+              sort_order={if(@invitations_sort_key == "email", do: @invitations_sort_dir)}
+            >
+              <Noora.Table.text_cell icon="mail" label={invitation.email} />
+            </:col>
+            <:col
+              :let={invitation}
+              label={gettext("Role")}
+              patch={members_sort_patch(@members_path_state, "invitations-table", "role")}
+              sort_order={if(@invitations_sort_key == "role", do: @invitations_sort_dir)}
+            >
+              <Noora.Table.badge_cell
+                label={String.capitalize(invitation.role)}
+                color={member_role_badge_color(invitation.role)}
+                style="light-fill"
+              />
+            </:col>
+            <:col
+              :let={invitation}
+              label={gettext("Invited by")}
+              patch={members_sort_patch(@members_path_state, "invitations-table", "invited_by")}
+              sort_order={if(@invitations_sort_key == "invited_by", do: @invitations_sort_dir)}
+            >
+              <Noora.Table.text_cell label={
+                if(invitation.invited_by,
+                  do: invitation.invited_by.name || invitation.invited_by.email,
+                  else: gettext("Unknown")
+                )
+              } />
+            </:col>
+            <:col
+              :let={invitation}
+              label={gettext("Expires")}
+              patch={members_sort_patch(@members_path_state, "invitations-table", "expires")}
+              sort_order={if(@invitations_sort_key == "expires", do: @invitations_sort_dir)}
+            >
+              <Noora.Table.time_cell time={invitation.expires_at} />
+            </:col>
+            <:col :let={invitation}>
+              <Noora.Table.button_cell>
+                <:button>
+                  <Noora.Button.button
+                    type="button"
+                    label={gettext("Revoke")}
+                    variant="destructive"
+                    size="small"
+                    phx-click="revoke_invitation"
+                    phx-value-id={invitation.id}
+                    data-confirm={gettext("Are you sure you want to revoke this invitation?")}
+                  />
+                </:button>
+              </Noora.Table.button_cell>
+            </:col>
+            <:empty_state>
+              <Noora.Table.table_empty_state
+                icon="mail"
+                title={
+                  if(@invitations_search == "",
+                    do: gettext("No pending invitations"),
+                    else: gettext("No invitations found")
+                  )
+                }
+                subtitle={
+                  if(@invitations_search == "",
+                    do: gettext("Invitations you send will appear here."),
+                    else: gettext("Try changing your search term.")
+                  )
+                }
+              />
+            </:empty_state>
+          </Noora.Table.table>
+        </div>
+      </div>
     </div>
     """
   end
+
+  defp members_tab_patch(path_state, tab) do
+    members_table_patch(path_state, nil, %{tab: tab})
+  end
+
+  defp members_sort_patch(path_state, table_id, sort_key) do
+    {current_sort_key, current_sort_dir} =
+      case table_id do
+        "invitations-table" ->
+          {path_state.invitations_sort_key, path_state.invitations_sort_dir}
+
+        _other ->
+          {path_state.members_sort_key, path_state.members_sort_dir}
+      end
+
+    sort_dir =
+      if current_sort_key == sort_key and current_sort_dir == "asc",
+        do: "desc",
+        else: "asc"
+
+    members_table_patch(path_state, table_id, %{sort: sort_key, dir: sort_dir})
+  end
+
+  defp members_table_patch(path_state, table_id, overrides) do
+    tab = Map.get(overrides, :tab, path_state.members_tab)
+
+    members_state =
+      %{
+        search: path_state.members_search,
+        sort: path_state.members_sort_key,
+        dir: path_state.members_sort_dir,
+        page: path_state.members_page,
+        filters: path_state.members_filters
+      }
+      |> maybe_merge_table_overrides(table_id == "members-table", overrides)
+
+    invitations_state =
+      %{
+        search: path_state.invitations_search,
+        sort: path_state.invitations_sort_key,
+        dir: path_state.invitations_sort_dir
+      }
+      |> maybe_merge_table_overrides(table_id == "invitations-table", overrides)
+
+    query_params =
+      []
+      |> maybe_add_param("tab", tab, "members")
+      |> maybe_add_param("mq", members_state.search, "")
+      |> maybe_add_param("msort", members_state.sort, default_sort_key("members-table"))
+      |> maybe_add_param("mdir", members_state.dir, default_sort_dir("members-table"))
+      |> maybe_add_param("mpage", members_state.page, 1)
+      |> add_filter_params("m", members_state.filters)
+      |> maybe_add_param("iq", invitations_state.search, "")
+      |> maybe_add_param(
+        "isort",
+        invitations_state.sort,
+        default_sort_key("invitations-table")
+      )
+      |> maybe_add_param("idir", invitations_state.dir, default_sort_dir("invitations-table"))
+
+    ~p"/#{path_state.handle}/-/members?#{query_params}"
+  end
+
+  defp maybe_merge_table_overrides(state, true, overrides),
+    do: Map.merge(state, Map.take(overrides, [:search, :sort, :dir, :page, :filters]))
+
+  defp maybe_merge_table_overrides(state, false, _overrides), do: state
+
+  defp member_role_badge_color("admin"), do: "primary"
+  defp member_role_badge_color("linguist"), do: "information"
+  defp member_role_badge_color(_role), do: "neutral"
 
   attr(:id, :string, required: true)
   attr(:available_filters, :list, default: [])
@@ -10546,6 +10808,14 @@ defmodule GlossiaWeb.DashboardLive do
       :members ->
         tables = ["members-table", "invitations-table"]
 
+        params =
+          maybe_add_param(
+            params,
+            "tab",
+            socket.assigns[:members_tab] || "members",
+            "members"
+          )
+
         Enum.reduce(tables, params, fn tid, acc ->
           if tid == current_table_id do
             acc
@@ -10901,8 +11171,14 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_url_params_members(socket, params) do
+    members_tab =
+      if Map.get(params, "tab") == "invitations",
+        do: "invitations",
+        else: "members"
+
     socket
     |> assign(
+      members_tab: members_tab,
       members_search: Map.get(params, "mq", ""),
       members_sort_key: Map.get(params, "msort", "name"),
       members_sort_dir: Map.get(params, "mdir", "asc"),

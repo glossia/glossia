@@ -10,6 +10,7 @@
 @import "./components/model-picker.css";
 @import "./components/project-analytics-page.css";
 @import "./routes/login.css";
+@import "./routes/members.css";
 @import "./routes/project-new.css";
 @import "./routes/translation-session.css";
 
