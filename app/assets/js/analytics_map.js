@@ -23,11 +23,30 @@ const MIN_DOT_RADIUS = 4
 
 const LocalizationPriorityMap = {
   mounted() {
-    this.render()
+    this.observeCanvas()
+    this.scheduleRender()
   },
 
   updated() {
-    this.render()
+    this.scheduleRender()
+  },
+
+  destroyed() {
+    this.resizeObserver?.disconnect()
+    cancelAnimationFrame(this.renderFrame)
+  },
+
+  observeCanvas() {
+    const canvas = this.el.querySelector("#localization-priority-map-canvas")
+    if (!canvas) return
+
+    this.resizeObserver = new ResizeObserver(() => this.scheduleRender())
+    this.resizeObserver.observe(canvas)
+  },
+
+  scheduleRender() {
+    cancelAnimationFrame(this.renderFrame)
+    this.renderFrame = requestAnimationFrame(() => this.render())
   },
 
   render() {
@@ -36,11 +55,6 @@ const LocalizationPriorityMap = {
 
     const points = this.aggregateCountries(this.parsePoints(canvas))
     canvas.innerHTML = ""
-
-    if (points.length === 0) {
-      this.renderEmptyState(canvas)
-      return
-    }
 
     const {width, height} = this.measureCanvas(canvas)
     const projection = geoNaturalEarth1().fitSize([width, height], {type: "Sphere"})
@@ -131,7 +145,6 @@ const LocalizationPriorityMap = {
     ocean.setAttribute("width", String(width))
     ocean.setAttribute("height", String(height))
     ocean.setAttribute("fill", "var(--noora-surface-background-secondary)")
-    ocean.setAttribute("rx", "12")
     svg.appendChild(ocean)
 
     const land = document.createElementNS(NS, "path")
@@ -312,13 +325,6 @@ const LocalizationPriorityMap = {
     )
   },
 
-  renderEmptyState(canvas) {
-    const note = document.createElement("p")
-    note.className = "voice-empty"
-    note.textContent =
-      "No locale-gap visits in the last 30 days. Once visitors land on a page in a language the project does not serve, they will appear here."
-    canvas.appendChild(note)
-  },
 }
 
 export default LocalizationPriorityMap

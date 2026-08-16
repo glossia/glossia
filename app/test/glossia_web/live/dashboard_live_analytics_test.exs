@@ -77,7 +77,7 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
     refute has_element?(view, "#analytics-settings-form")
   end
 
-  test "shows a compact empty state when there are no localization priorities", %{
+  test "keeps the world map visible with an empty priority table", %{
     conn: conn,
     project: project,
     user: user
@@ -99,6 +99,7 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
              "No locale-gap visits"
            )
 
-    refute has_element?(view, "#localization-priority-map")
+    assert has_element?(view, "#localization-priority-map[phx-hook='LocalizationPriorityMap']")
+    refute has_element?(view, "[data-part='localization-priority'] [data-part='legend-bar']")
   end
 end

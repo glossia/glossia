@@ -11,11 +11,30 @@ const NS = "http://www.w3.org/2000/svg"
 
 const AnalyticsHourlyTraffic = {
   mounted() {
-    this.render()
+    this.observeCanvas()
+    this.scheduleRender()
   },
 
   updated() {
-    this.render()
+    this.scheduleRender()
+  },
+
+  destroyed() {
+    this.resizeObserver?.disconnect()
+    cancelAnimationFrame(this.renderFrame)
+  },
+
+  observeCanvas() {
+    const canvas = this.el.querySelector("#analytics-hourly-traffic-canvas")
+    if (!canvas) return
+
+    this.resizeObserver = new ResizeObserver(() => this.scheduleRender())
+    this.resizeObserver.observe(canvas)
+  },
+
+  scheduleRender() {
+    cancelAnimationFrame(this.renderFrame)
+    this.renderFrame = requestAnimationFrame(() => this.render())
   },
 
   render() {

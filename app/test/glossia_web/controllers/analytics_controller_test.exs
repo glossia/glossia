@@ -93,6 +93,11 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
     summary = Queries.summary(project.id, DateTime.add(now, -60), DateTime.add(now, 60))
     assert summary.top_country == ""
     assert summary.top_browser_language == "ja"
+
+    assert Queries.top_countries(project.id,
+             since: DateTime.add(now, -60),
+             until: DateTime.add(now, 60)
+           ) == []
   end
 
   test "returns 202 without recording for an unknown domain", %{conn: conn, domain: domain} do

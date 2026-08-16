@@ -89,21 +89,21 @@ defmodule Glossia.Analytics.GeolocationTest do
       assert Ipapi.lookup(ip) == %{country: nil}
     end
 
-    test "returns the country code from a well-formed payload and memoizes it" do
+    test "uses the documented query and returns the country code from the free response" do
       ip = "203.0.113.20"
 
       test_pid = self()
 
-      expect(Req, :get, fn _url, _opts ->
-        send(test_pid, :hit)
-        {:ok, %Req.Response{status: 200, body: %{"location" => %{"country_code" => "US"}}}}
+      expect(Req, :get, fn url, opts ->
+        send(test_pid, {:request, url, opts[:params]})
+        {:ok, %Req.Response{status: 200, body: %{"cc" => "us"}}}
       end)
 
       assert Ipapi.lookup(ip) == %{country: "US"}
-      assert_received :hit
+      assert_received {:request, "https://api.ipapi.is", [q: ^ip]}
       # Second call must be served from the cache, no extra HTTP request.
       assert Ipapi.lookup(ip) == %{country: "US"}
-      refute_received :hit
+      refute_received {:request, _, _}
     end
 
     test "ignores responses that do not carry a 2-letter country code" do

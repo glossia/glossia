@@ -12006,7 +12006,7 @@ defmodule GlossiaWeb.DashboardLive do
             </.tooltip>
           </:actions>
           <.card_section data-part="localization-priority-content">
-            <div :if={@priority != []} data-part="map-wrapper">
+            <div data-part="map-wrapper">
               <div
                 id="localization-priority-map"
                 phx-hook="LocalizationPriorityMap"
@@ -12017,9 +12017,13 @@ defmodule GlossiaWeb.DashboardLive do
                 >
                 </div>
                 <div data-part="legend">
-                  <span data-part="legend-label">{gettext("Low priority")}</span>
-                  <span data-part="legend-bar"></span>
-                  <span data-part="legend-label">{gettext("High priority")}</span>
+                  <span :if={@priority != []} data-part="legend-label">
+                    {gettext("Low priority")}
+                  </span>
+                  <span :if={@priority != []} data-part="legend-bar"></span>
+                  <span :if={@priority != []} data-part="legend-label">
+                    {gettext("High priority")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -12146,7 +12150,7 @@ defmodule GlossiaWeb.DashboardLive do
               </:col>
               <:col :let={row} label={gettext("Served as")}>
                 <Noora.Table.text_cell label={
-                  if row.served_locale == "", do: "—", else: row.served_locale
+                  if row.served_locale == "", do: gettext("None"), else: row.served_locale
                 } />
               </:col>
               <:col :let={row} label={gettext("Gap?")}>

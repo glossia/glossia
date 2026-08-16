@@ -135,14 +135,18 @@ defmodule Glossia.Analytics.Geolocation do
     end
 
     defp request(ip) do
-      case Req.get("#{@endpoint}/#{URI.encode(ip)}",
+      case Req.get(@endpoint,
+             params: [q: ip],
              receive_timeout: 1_000,
              connect_timeout: 1_000,
              retry: false
            ) do
         {:ok, %Req.Response{status: 200, body: body}} when is_map(body) ->
-          code = get_in(body, ["location", "country_code"]) || body["country_code"]
-          if is_binary(code) and byte_size(code) == 2, do: {:ok, code}, else: :error
+          code = body["cc"] || get_in(body, ["location", "country_code"]) || body["country_code"]
+
+          if is_binary(code) and byte_size(code) == 2,
+            do: {:ok, String.upcase(code)},
+            else: :error
 
         _ ->
           :error
