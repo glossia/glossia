@@ -278,6 +278,10 @@ externalSecrets:
   bifrost:
     itemKey: /kubernetes
     encryptionKeyField: BIFROST_ENCRYPTION_KEY
+    # Pre-provisioned admin account, referenced from config.json auth_config
+    # via env indirection (chart fix #133).
+    adminUsernameField: BIFROST_ADMIN_USERNAME
+    adminPasswordField: BIFROST_ADMIN_PASSWORD
   backup:
     itemKey: /glossia-db-backups-keys
     accessKeyIdField: ACCESS_KEY_ID
