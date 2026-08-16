@@ -155,7 +155,7 @@ defmodule Glossia.Translations.Credentials do
         %{model: model, api_key: key} when is_binary(key) and key != "" ->
           %{
             model: ModelIdentifier.normalize(model),
-            auth: {:api_key, key, nil},
+            auth: {:api_key, key, present_url(Map.get(configured_model, :base_url))},
             source: :account_model
           }
 
@@ -442,4 +442,8 @@ defmodule Glossia.Translations.Credentials do
   defp config, do: Application.get_env(:glossia, Glossia.Translations, [])
 
   defp present?(value), do: is_binary(value) and String.trim(value) != ""
+
+  defp present_url(nil), do: nil
+  defp present_url(""), do: nil
+  defp present_url(url) when is_binary(url), do: url
 end

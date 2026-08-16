@@ -15,6 +15,7 @@ defmodule Glossia.Accounts.LLMModel do
     field :handle, :string
     field :model, :string
     field :api_key, Glossia.Encrypted.Binary
+    field :base_url, :string
     field :default, :boolean, default: false
 
     belongs_to :account, Glossia.Accounts.Account
@@ -30,8 +31,10 @@ defmodule Glossia.Accounts.LLMModel do
         else: [:handle, :model]
 
     model_struct
-    |> cast(attrs, [:handle, :model, :api_key, :default])
+    |> cast(attrs, [:handle, :model, :api_key, :base_url, :default])
     |> update_change(:model, &ModelIdentifier.normalize/1)
+    |> update_change(:base_url, &normalize_base_url/1)
+    |> validate_change(:base_url, &validate_base_url/2)
     |> validate_required(required)
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
@@ -48,6 +51,34 @@ defmodule Glossia.Accounts.LLMModel do
       name: :llm_models_one_default_per_account,
       message: "another model is already the default for this account"
     )
+  end
+
+  # Treat blank base URLs as "use the provider default endpoint" and trim
+  # surrounding whitespace. The resolver emits nil for these so Condukt routes
+  # to the provider's native base URL.
+  defp normalize_base_url(nil), do: nil
+
+  defp normalize_base_url(url) when is_binary(url) do
+    case String.trim(url) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  # validate_change/3 calls this as fun.(field, value) and expects a list of
+  # {field, message} tuples. Only enforce a scheme when a value was actually
+  # provided. A path such as "http://api.together.ai/v1" or an in-cluster
+  # service like "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1" is
+  # fine; a bare hostname is not a usable gateway URL.
+  defp validate_base_url(_field, nil), do: []
+  defp validate_base_url(_field, ""), do: []
+
+  defp validate_base_url(field, url) do
+    if String.starts_with?(String.downcase(String.trim(url)), ["http://", "https://"]) do
+      []
+    else
+      [{field, {"must start with http:// or https://", []}}]
+    end
   end
 
   @doc """

@@ -3030,6 +3030,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp changed_model_form?(params, original) do
     String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
       String.trim(params["model"] || "") != String.trim(original["model"] || "") or
+      String.trim(params["base_url"] || "") != String.trim(original["base_url"] || "") or
       String.trim(params["api_key"] || "") != ""
   end
 
@@ -11933,6 +11934,18 @@ defmodule GlossiaWeb.DashboardLive do
                     required
                     show_required
                   />
+                  <Noora.TextInput.text_input
+                    id="model-base-url"
+                    field={@model_form[:base_url]}
+                    error={model_field_error(@model_form[:base_url])}
+                    label={gettext("Base URL")}
+                    placeholder={gettext("e.g. https://api.together.ai/v1")}
+                    hint={
+                      gettext(
+                        "Optional. Route this model through a custom gateway endpoint. Leave empty to use the provider default."
+                      )
+                    }
+                  />
                 </div>
               </Noora.Card.card_section>
             </div>
@@ -11988,6 +12001,18 @@ defmodule GlossiaWeb.DashboardLive do
                     type="password"
                     label={gettext("API key")}
                     placeholder={gettext("Leave blank to keep current key")}
+                  />
+                  <Noora.TextInput.text_input
+                    id="edit-model-base-url"
+                    field={@model_edit_form[:base_url]}
+                    error={model_field_error(@model_edit_form[:base_url])}
+                    label={gettext("Base URL")}
+                    placeholder={gettext("e.g. https://api.together.ai/v1")}
+                    hint={
+                      gettext(
+                        "Route this model through a custom gateway endpoint. Leave empty to use the provider default."
+                      )
+                    }
                   />
                 </div>
               </Noora.Card.card_section>
