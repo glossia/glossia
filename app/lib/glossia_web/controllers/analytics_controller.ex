@@ -24,6 +24,8 @@ defmodule GlossiaWeb.AnalyticsController do
   alias Glossia.Analytics.Settings
   alias GlossiaWeb.ClientIP
 
+  require Logger
+
   def collect(conn, params) do
     try do
       with {:ok, settings} <- fetch_settings(conn, params),
@@ -31,7 +33,21 @@ defmodule GlossiaWeb.AnalyticsController do
         Ingestion.record_event(event)
       end
     rescue
-      _ -> :ok
+      exception ->
+        Logger.error("Analytics collection failed",
+          error_type: inspect(exception.__struct__),
+          stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+        )
+
+        :ok
+    catch
+      kind, reason ->
+        Logger.error("Analytics collection failed",
+          error_type: if(is_atom(reason), do: Atom.to_string(reason), else: "unknown"),
+          failure_kind: kind
+        )
+
+        :ok
     end
 
     conn

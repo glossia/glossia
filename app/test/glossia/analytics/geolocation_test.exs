@@ -1,6 +1,7 @@
 defmodule Glossia.Analytics.GeolocationTest do
   use ExUnit.Case, async: false
 
+  import ExUnit.CaptureLog
   import Mimic
 
   alias Glossia.Analytics.Geolocation
@@ -79,14 +80,16 @@ defmodule Glossia.Analytics.GeolocationTest do
       end
     end
 
-    test "returns nil on a non-200 response" do
+    test "reports a non-200 response and returns nil" do
       ip = "203.0.113.10"
 
       expect(Req, :get, fn _url, _opts ->
         {:ok, %Req.Response{status: 429, body: %{"error" => "rate limit"}}}
       end)
 
-      assert Ipapi.lookup(ip) == %{country: nil}
+      log = capture_log(fn -> assert Ipapi.lookup(ip) == %{country: nil} end)
+
+      assert log =~ "Analytics country lookup failed: unexpected_status"
     end
 
     test "uses the documented query and returns the country code from the free response" do
@@ -95,15 +98,29 @@ defmodule Glossia.Analytics.GeolocationTest do
       test_pid = self()
 
       expect(Req, :get, fn url, opts ->
-        send(test_pid, {:request, url, opts[:params]})
+        assert %Req.Request{} = Req.new([url: url] ++ opts)
+        send(test_pid, {:request, url, opts})
         {:ok, %Req.Response{status: 200, body: %{"cc" => "us"}}}
       end)
 
       assert Ipapi.lookup(ip) == %{country: "US"}
-      assert_received {:request, "https://api.ipapi.is", [q: ^ip]}
+      assert_received {:request, "https://api.ipapi.is", opts}
+      assert opts[:params] == [q: ip]
+      assert opts[:connect_options] == [timeout: 1_000]
       # Second call must be served from the cache, no extra HTTP request.
       assert Ipapi.lookup(ip) == %{country: "US"}
       refute_received {:request, _, _}
+    end
+
+    test "reports request exceptions without exposing the visitor address" do
+      ip = "203.0.113.25"
+
+      expect(Req, :get, fn _url, _opts -> raise ArgumentError, "invalid request option" end)
+
+      log = capture_log(fn -> assert Ipapi.lookup(ip) == %{country: nil} end)
+
+      assert log =~ "Analytics country lookup failed: request_exception"
+      refute log =~ ip
     end
 
     test "ignores responses that do not carry a 2-letter country code" do

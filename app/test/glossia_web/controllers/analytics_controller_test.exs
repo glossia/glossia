@@ -2,13 +2,18 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
   use GlossiaWeb.ConnCase, async: false
 
   import Ecto.Query
+  import ExUnit.CaptureLog
+  import Mimic
 
   alias Glossia.Analytics.Event
+  alias Glossia.Analytics.Ingestion
   alias Glossia.Analytics.Queries
   alias Glossia.Analytics.Settings
   alias Glossia.ClickHouseRepo
   alias Glossia.Projects
   alias Glossia.TestHelpers
+
+  setup :verify_on_exit!
 
   defmodule GeolocationAdapter do
     @behaviour Glossia.Analytics.Geolocation
@@ -59,6 +64,21 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
       })
 
     assert conn.status == 202
+  end
+
+  test "reports collection failures while preserving the accepted response", %{
+    conn: conn,
+    domain: domain
+  } do
+    expect(Ingestion, :record_event, fn _event -> raise RuntimeError, "write failed" end)
+
+    log =
+      capture_log(fn ->
+        conn = post(conn, "/v1/collect", %{"d" => domain, "u" => "https://#{domain}/"})
+        assert conn.status == 202
+      end)
+
+    assert log =~ "Analytics collection failed"
   end
 
   test "records an enriched event for a known domain and returns 202", ctx do
