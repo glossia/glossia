@@ -124,8 +124,9 @@ defmodule GlossiaWeb.MarketingLocaleTest do
 
     test "point search engines at themselves as the canonical URL", %{conn: conn} do
       response = conn |> get("/es/blog") |> html_response(200)
+      canonical_url = GlossiaWeb.Endpoint.url() |> URI.merge("/es/blog") |> URI.to_string()
 
-      assert response =~ ~s(rel="canonical" href="http://localhost:4993/es/blog")
+      assert response =~ ~s(rel="canonical" href="#{canonical_url}")
     end
 
     test "do not vary, since the URL alone decides the language", %{conn: conn} do
