@@ -76,6 +76,18 @@ spec:
                   name: {{ .Values.bifrost.secretName | quote }}
                   key: {{ .Values.bifrost.encryptionKeyKey | quote }}
                   optional: true
+            {{- if .Values.bifrost.authConfig.enabled }}
+            - name: BIFROST_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.bifrost.secretName | quote }}
+                  key: {{ .Values.bifrost.authConfig.usernameKey | quote }}
+            - name: BIFROST_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.bifrost.secretName | quote }}
+                  key: {{ .Values.bifrost.authConfig.passwordKey | quote }}
+            {{- end }}
           startupProbe:
             httpGet:
               path: /health
