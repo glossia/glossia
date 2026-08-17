@@ -9,6 +9,8 @@ defmodule Glossia.Sandbox.MicrosandboxAdapter do
 
   @behaviour Glossia.Sandbox
 
+  alias Glossia.Sandbox.Output
+
   @impl true
   def create(params) when is_map(params) do
     sandbox_id = to_string(params[:id] || params["id"] || Ecto.UUID.generate())
@@ -68,7 +70,7 @@ defmodule Glossia.Sandbox.MicrosandboxAdapter do
     {:ok,
      %{
        "exitCode" => if(is_integer(status), do: status),
-       "stdout" => truncate(output, output_limit),
+       "stdout" => Output.truncate(output, output_limit),
        "stderr" => "",
        "timedOut" => status == :timeout
      }}
@@ -546,10 +548,4 @@ defmodule Glossia.Sandbox.MicrosandboxAdapter do
   defp sandbox_name(sandbox_id) do
     "glossia-" <> String.replace(sandbox_id, "-", "")
   end
-
-  defp truncate(output, limit) when byte_size(output) > limit do
-    binary_part(output, 0, limit)
-  end
-
-  defp truncate(output, _limit), do: output
 end

@@ -33,7 +33,7 @@ defmodule Glossia.Translations.RepositoryRun do
   `"added" | "modified" | "deleted"`, ready for the PR builder.
   """
   def run(session, account, repository, locales, opts \\ []) do
-    with {:ok, context_snapshot} <- Context.snapshot(account) do
+    with {:ok, context_snapshot} <- Context.snapshot(account, session_project(session)) do
       run_with_context(session, account, repository, locales, context_snapshot, opts)
     end
   end
@@ -96,10 +96,12 @@ defmodule Glossia.Translations.RepositoryRun do
     context_node = Keyword.get(opts, :context_node, Node.self())
     publication_target = Keyword.get(opts, :publication_target)
 
-    with {:ok, context_snapshot} <- context_snapshot(account, context_node, opts),
+    project = session_project(session)
+
+    with {:ok, context_snapshot} <- context_snapshot(account, project, context_node, opts),
          {:ok, items} <- build_items(repo_path, locales),
          {:ok, locale_contexts} <-
-           resolve_locale_contexts(items, account, context_node, context_snapshot) do
+           resolve_locale_contexts(items, account, project, context_node, context_snapshot) do
       total = length(items)
       broadcast(session, %{type: "plan", total: total}, progress_node)
 
@@ -152,11 +154,17 @@ defmodule Glossia.Translations.RepositoryRun do
   defp filter_locales(items, []), do: items
   defp filter_locales(items, locales), do: Enum.filter(items, &(&1.locale in locales))
 
-  defp resolve_locale_contexts(items, account, context_node, context_snapshot) do
+  defp resolve_locale_contexts(items, account, project, context_node, context_snapshot) do
     locales = items |> Enum.map(& &1.locale) |> Enum.uniq()
 
     with {:ok, locale_contexts} <-
-           Context.resolve_locales_on(context_node, account, context_snapshot, locales) do
+           Context.resolve_locales_on(
+             context_node,
+             account,
+             project,
+             context_snapshot,
+             locales
+           ) do
       {:ok, Context.prepare_locale_contexts(locale_contexts)}
     end
   end
@@ -185,7 +193,8 @@ defmodule Glossia.Translations.RepositoryRun do
           locale_contexts,
           item.locale,
           translatable_source,
-          item.preserve || []
+          item.preserve || [],
+          item.source_path
         )
 
       item = Map.put(item, :server_context, server_context)
@@ -289,15 +298,18 @@ defmodule Glossia.Translations.RepositoryRun do
     end
   end
 
-  defp context_snapshot(account, context_node, opts) do
+  defp context_snapshot(account, project, context_node, opts) do
     case Keyword.fetch(opts, :context_snapshot) do
       {:ok, snapshot} ->
         {:ok, snapshot}
 
       :error ->
-        Context.snapshot_on(context_node, account)
+        Context.snapshot_on(context_node, account, project)
     end
   end
+
+  defp session_project(%{project: %Glossia.Accounts.Project{} = project}), do: project
+  defp session_project(_session), do: nil
 
   defp translate_item(
          session,

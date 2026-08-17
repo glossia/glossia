@@ -86,6 +86,9 @@ defmodule GlossiaWeb.PlatformHooks do
     can_voice_write = Glossia.Authz.authorize?(:voice_write, user, account)
     can_glossary_read = Glossia.Authz.authorize?(:glossary_read, user, account)
     can_glossary_write = Glossia.Authz.authorize?(:glossary_write, user, account)
+    can_quality_read = Glossia.Authz.authorize?(:quality_read, user, account)
+    can_quality_write = Glossia.Authz.authorize?(:quality_write, user, account)
+    can_quality_admin = Glossia.Authz.authorize?(:quality_admin, user, account)
     can_discussion_write = Glossia.Authz.authorize?(:discussion_write, user, account)
 
     can_voice_propose = can_discussion_write
@@ -103,6 +106,9 @@ defmodule GlossiaWeb.PlatformHooks do
      |> assign(:can_glossary_read, can_glossary_read)
      |> assign(:can_glossary_write, can_glossary_write)
      |> assign(:can_glossary_propose, can_glossary_propose)
+     |> assign(:can_quality_read, can_quality_read)
+     |> assign(:can_quality_write, can_quality_write)
+     |> assign(:can_quality_admin, can_quality_admin)
      |> assign(:show_sidebar, show_sidebar)
      |> assign(:sidebar_context, :account)
      |> assign(:sidebar_project, nil)}

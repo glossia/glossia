@@ -3,6 +3,8 @@ defmodule Glossia.Sandbox.Runner do
 
   use GenServer
 
+  alias Glossia.Sandbox.Output
+
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts)
   end
@@ -117,7 +119,7 @@ defmodule Glossia.Sandbox.Runner do
           Glossia.Sandbox.configured(:output_limit_bytes, 256_000)
         )
 
-      run_safe_command(state, cwd, argv, output_limit)
+      run_safe_command(state, cwd, argv, output_limit, opts)
     end
   end
 
@@ -142,7 +144,7 @@ defmodule Glossia.Sandbox.Runner do
       {:ok,
        %{
          "exitCode" => if(is_integer(exit_status), do: exit_status),
-         "stdout" => truncate(output, output_limit),
+         "stdout" => Output.truncate(output, output_limit),
          "stderr" => "",
          "timedOut" => exit_status == :timeout
        }}
@@ -163,6 +165,24 @@ defmodule Glossia.Sandbox.Runner do
       env when env in [nil, %{}, []] -> :ok
       _env -> {:error, :env_not_supported_for_safe_commands}
     end
+  end
+
+  defp run_safe_command(_state, cwd, ["chromium" | args], limit, opts) do
+    timeout = option(opts, :timeout_ms, Glossia.Sandbox.configured(:browser_timeout_ms, 45_000))
+
+    {output, exit_status} =
+      MuonTrap.cmd("chromium", args,
+        cd: cwd,
+        timeout: timeout,
+        stderr_to_stdout: true,
+        into: ""
+      )
+
+    safe_response(output, exit_status, limit)
+  end
+
+  defp run_safe_command(state, cwd, argv, limit, _opts) do
+    run_safe_command(state, cwd, argv, limit)
   end
 
   defp run_safe_command(_state, _cwd, ["echo" | args], limit) do
@@ -271,10 +291,10 @@ defmodule Glossia.Sandbox.Runner do
   defp safe_response(output, exit_status, limit) do
     {:ok,
      %{
-       "exitCode" => exit_status,
-       "stdout" => truncate(output, limit),
+       "exitCode" => if(is_integer(exit_status), do: exit_status),
+       "stdout" => Output.truncate(output, limit),
        "stderr" => "",
-       "timedOut" => false
+       "timedOut" => exit_status == :timeout
      }}
   end
 
@@ -407,12 +427,6 @@ defmodule Glossia.Sandbox.Runner do
   end
 
   defp option(_opts, _key, default), do: default
-
-  defp truncate(output, limit) when is_integer(limit) and byte_size(output) > limit do
-    binary_part(output, 0, limit)
-  end
-
-  defp truncate(output, _limit), do: output
 
   defp default_root_path(sandbox_id) do
     Path.join(System.tmp_dir!(), "glossia-sandbox-#{sandbox_id}")

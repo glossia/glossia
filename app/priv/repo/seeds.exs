@@ -25,6 +25,18 @@ defmodule Glossia.Seeds do
 
   alias Glossia.AccountTokens
   alias Glossia.LLMModels
+  alias Glossia.Quality
+
+  alias Glossia.Quality.{
+    Finding,
+    Occurrence,
+    Page,
+    ProjectContextEntry,
+    ProjectContextVersion,
+    Run,
+    SessionEvent
+  }
+
   alias Glossia.Github.Installations
   alias Glossia.Glossaries
   alias Glossia.OAuth.FirstPartyClient
@@ -173,6 +185,7 @@ defmodule Glossia.Seeds do
 
     # Translation sessions for the "blog" project to exercise the activity timeline
     if blog_project, do: ensure_translation_sessions!(blog_project, dev)
+    if blog_project, do: ensure_quality_data!(blog_project, dev)
 
     # A local git remote that stands in for the blog project's GitHub repo, so the
     # full clone → translate → PR flow can run end-to-end locally (dev only).
@@ -631,6 +644,204 @@ defmodule Glossia.Seeds do
       api_key: "fw-acme-placeholder-key",
       default: false
     )
+
+    :ok
+  end
+
+  defp ensure_quality_data!(project, user) do
+    {:ok, _profile} =
+      Quality.upsert_profile(project, %{
+        source_locale: "en",
+        locale_origins: %{
+          "en" => "http://localhost:4000",
+          "es" => "http://localhost:4000/es"
+        },
+        seed_paths: ["/", "/docs"],
+        max_pages: 10
+      })
+
+    now = DateTime.utc_now()
+
+    run_attrs = %{
+      account_id: project.account_id,
+      project_id: project.id,
+      triggered_by_id: user.id,
+      status: "completed",
+      configuration: %{
+        "source_locale" => "en",
+        "locale_origins" => %{
+          "en" => "http://localhost:4000",
+          "es" => "http://localhost:4000/es"
+        },
+        "seed_paths" => ["/", "/docs"],
+        "max_pages" => 10,
+        "seeded" => true
+      },
+      pages_count: 1,
+      findings_count: 1,
+      started_at: DateTime.add(now, -15, :minute),
+      completed_at: DateTime.add(now, -14, :minute)
+    }
+
+    run =
+      case Repo.get(Run, "00000000-0000-4000-8000-00000000a101") do
+        nil ->
+          Repo.insert!(
+            struct!(Run, Map.put(run_attrs, :id, "00000000-0000-4000-8000-00000000a101"))
+          )
+
+        existing ->
+          existing |> Ecto.Changeset.change(run_attrs) |> Repo.update!()
+      end
+
+    page_attrs = %{
+      run_id: run.id,
+      project_id: project.id,
+      locale: "es",
+      logical_path: "/docs",
+      requested_url: "http://localhost:4000/es/docs",
+      final_url: "http://localhost:4000/es/docs",
+      title: "Documentación",
+      document_locale: "es",
+      visible_text: "Localization QA helps teams ship consistent translations.",
+      alternate_links: %{"en" => "http://localhost:4000/docs"}
+    }
+
+    page =
+      case Repo.get(Page, "00000000-0000-4000-8000-00000000a102") do
+        nil ->
+          Repo.insert!(
+            struct!(Page, Map.put(page_attrs, :id, "00000000-0000-4000-8000-00000000a102"))
+          )
+
+        existing ->
+          existing |> Ecto.Changeset.change(page_attrs) |> Repo.update!()
+      end
+
+    finding_attrs = %{
+      project_id: project.id,
+      fingerprint: String.duplicate("a", 64),
+      check: "possible_untranslated_content",
+      category: "language",
+      severity: "medium",
+      status: "acknowledged",
+      title: "Possible untranslated content",
+      description: "The Spanish page contains a substantial phrase from the English page.",
+      locale: "es",
+      logical_path: "/docs",
+      source_text: "Localization QA",
+      target_text: "Localization QA",
+      metadata: %{},
+      first_seen_at: now,
+      last_seen_at: now
+    }
+
+    finding =
+      case Repo.get(Finding, "00000000-0000-4000-8000-00000000a103") do
+        nil ->
+          Repo.insert!(
+            struct!(Finding, Map.put(finding_attrs, :id, "00000000-0000-4000-8000-00000000a103"))
+          )
+
+        existing ->
+          existing |> Ecto.Changeset.change(finding_attrs) |> Repo.update!()
+      end
+
+    unless Repo.get(Occurrence, "00000000-0000-4000-8000-00000000a104") do
+      Repo.insert!(%Occurrence{
+        id: "00000000-0000-4000-8000-00000000a104",
+        finding_id: finding.id,
+        run_id: run.id,
+        page_id: page.id,
+        evidence: %{
+          "requested_url" => page.requested_url,
+          "text" => finding.source_text
+        }
+      })
+    end
+
+    [
+      {"00000000-0000-4000-8000-00000000a107", "session_started", "Review session started",
+       "The browser sandbox is ready.", nil, nil, %{}, 0},
+      {"00000000-0000-4000-8000-00000000a108", "navigation_started", "Opening es /docs",
+       page.requested_url, nil, nil,
+       %{"locale" => "es", "logical_path" => "/docs", "requested_url" => page.requested_url}, 4},
+      {"00000000-0000-4000-8000-00000000a109", "page_captured", "Captured es /docs", page.title,
+       page.id, nil, %{"locale" => "es", "logical_path" => "/docs"}, 9},
+      {"00000000-0000-4000-8000-00000000a110", "analysis_started", "Analyzing captured pages",
+       "The agent is comparing navigation, declared languages, and visible copy.", nil, nil, %{},
+       11},
+      {"00000000-0000-4000-8000-00000000a111", "finding_recorded", finding.title,
+       finding.description, page.id, finding.id,
+       %{
+         "severity" => finding.severity,
+         "locale" => finding.locale,
+         "logical_path" => finding.logical_path
+       }, 13},
+      {"00000000-0000-4000-8000-00000000a112", "session_completed", "Review session completed",
+       "1 page inspected and 1 finding recorded.", nil, nil, %{}, 18}
+    ]
+    |> Enum.each(fn {id, kind, label, detail, page_id, finding_id, metadata, offset} ->
+      event_attrs = %{
+        run_id: run.id,
+        page_id: page_id,
+        finding_id: finding_id,
+        kind: kind,
+        label: label,
+        detail: detail,
+        metadata: metadata,
+        inserted_at: DateTime.add(run.started_at, offset, :second)
+      }
+
+      case Repo.get(SessionEvent, id) do
+        nil -> Repo.insert!(struct!(SessionEvent, Map.put(event_attrs, :id, id)))
+        existing -> existing |> Ecto.Changeset.change(event_attrs) |> Repo.update!()
+      end
+    end)
+
+    context_attrs = %{
+      project_id: project.id,
+      created_by_id: user.id,
+      version: 1,
+      change_note: "Approved a translation from the seeded localization QA finding"
+    }
+
+    context =
+      case Repo.get(ProjectContextVersion, "00000000-0000-4000-8000-00000000a105") do
+        nil ->
+          Repo.insert!(
+            struct!(
+              ProjectContextVersion,
+              Map.put(context_attrs, :id, "00000000-0000-4000-8000-00000000a105")
+            )
+          )
+
+        existing ->
+          existing |> Ecto.Changeset.change(context_attrs) |> Repo.update!()
+      end
+
+    context_entry_attrs = %{
+      project_context_version_id: context.id,
+      origin_finding_id: finding.id,
+      kind: "terminology",
+      locale: "es",
+      source_text: "Localization QA",
+      instruction: "QA de localización",
+      route_scope: "/docs"
+    }
+
+    case Repo.get(ProjectContextEntry, "00000000-0000-4000-8000-00000000a106") do
+      nil ->
+        Repo.insert!(
+          struct!(
+            ProjectContextEntry,
+            Map.put(context_entry_attrs, :id, "00000000-0000-4000-8000-00000000a106")
+          )
+        )
+
+      existing ->
+        existing |> Ecto.Changeset.change(context_entry_attrs) |> Repo.update!()
+    end
 
     :ok
   end

@@ -255,6 +255,45 @@ defmodule Glossia.Translations.ValidateTest do
       assert first_hash.hash == second_hash.hash
     end
 
+    test "empty reviewed project memory preserves the existing server context tree" do
+      empty = Locks.build_hash_state(hash_state_input())
+
+      [_, _, server_context_node] =
+        get_in(empty.tree, ["root", "children", Access.at(2), "children"])
+
+      assert Enum.map(server_context_node["children"], & &1["label"]) == [
+               "voice",
+               "terminology"
+             ]
+
+      reviewed_context = %{
+        Context.empty_bundle("es")
+        | project_terminology: [
+            %{
+              id: "project-account",
+              term: "Account",
+              translation: "Cuenta",
+              definition: nil,
+              case_sensitive: false
+            }
+          ]
+      }
+
+      reviewed =
+        hash_state_input()
+        |> Map.put(:server_context, reviewed_context)
+        |> Locks.build_hash_state()
+
+      [_, _, reviewed_server_context_node] =
+        get_in(reviewed.tree, ["root", "children", Access.at(2), "children"])
+
+      assert Enum.map(reviewed_server_context_node["children"], & &1["label"]) == [
+               "voice",
+               "terminology",
+               "reviewed_project_memory"
+             ]
+    end
+
     @tag :tmp_dir
     test "round-trips a lockfile and detects staleness", %{tmp_dir: root} do
       lock = Locks.build_lock("openai", "gpt-5", "docs/g.md", "docs/es/g.md", "salida", "hash-1")

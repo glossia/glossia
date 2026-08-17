@@ -72,6 +72,8 @@ config :glossia, Glossia.Sandbox, reaper_enabled: false
 
 config :glossia, Glossia.Projects.SetupRecovery, enabled: false
 
+config :glossia, Glossia.Quality, allow_private_origins: true
+
 config :fun_with_flags, :cache, enabled: false
 
 # Cloak encryption vault (deterministic test key)

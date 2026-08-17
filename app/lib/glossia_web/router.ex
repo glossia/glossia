@@ -439,6 +439,10 @@ defmodule GlossiaWeb.Router do
   scope "/", GlossiaWeb do
     pipe_through [:browser, :require_auth, :platform]
 
+    get "/:handle/:project/-/qa/runs/:run_id/pages/:page_id/screenshot",
+        QualityScreenshotController,
+        :show
+
     live_session :authenticated_platform,
       layout: {GlossiaWeb.Layouts, :platform},
       session: {GlossiaWeb.LocaleHooks, :session, []},
@@ -460,6 +464,9 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
       live "/:handle/:project/-/settings", DashboardLive, :project_settings
       live "/:handle/:project/-/settings/analytics", DashboardLive, :project_analytics_settings
+      live "/:handle/:project/-/qa/settings", QualityLive, :project_quality_settings
+      live "/:handle/:project/-/qa/runs/:run_id", QualityLive, :project_quality_run
+      live "/:handle/:project/-/qa", QualityLive, :project_quality
       live "/:handle/:project/-/analytics", DashboardLive, :project_analytics
     end
   end

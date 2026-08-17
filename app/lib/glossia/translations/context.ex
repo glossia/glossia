@@ -3,11 +3,12 @@ defmodule Glossia.Translations.Context do
   Resolves versioned account context and compiles the small subset required by a
   translation.
 
-  A translation run captures only the latest voice and glossary version numbers.
-  The database-owning node resolves those immutable versions once per locale.
-  The isolated repository runner then matches the resolved terminology against
-  source files locally, avoiding both repeated database queries and sending the
-  repository's complete source corpus over the node connection.
+  A translation run captures the latest voice, glossary, and reviewed project
+  context version numbers. The database-owning node resolves those immutable
+  versions once per locale. The isolated repository runner then matches the
+  resolved terminology against source files locally, avoiding both repeated
+  database queries and sending the repository's complete source corpus over the
+  node connection.
 
   Glossary entries are selected deterministically from translatable source text,
   with longer phrases claiming overlapping matches before shorter terms. The
@@ -15,8 +16,9 @@ defmodule Glossia.Translations.Context do
   and applies a fixed prompt budget.
   """
 
-  alias Glossia.Accounts.{Account, Voice}
+  alias Glossia.Accounts.{Account, Project, Voice}
   alias Glossia.Glossaries
+  alias Glossia.Quality
   alias Glossia.Translations.PreservedTokens
   alias Glossia.Voices
 
@@ -32,29 +34,6 @@ defmodule Glossia.Translations.Context do
   @max_voice_scalar_bytes 80
   @truncation_marker " … [truncated]"
 
-  @type snapshot :: %{
-          compiler_version: pos_integer(),
-          voice_version: integer() | nil,
-          glossary_version: integer() | nil
-        }
-
-  @type terminology_entry :: %{
-          id: String.t() | nil,
-          term: String.t(),
-          definition: String.t() | nil,
-          case_sensitive: boolean(),
-          translation: String.t()
-        }
-
-  @type bundle :: %{
-          compiler_version: pos_integer(),
-          selector_version: pos_integer(),
-          locale: String.t(),
-          snapshot: snapshot(),
-          voice: map() | nil,
-          terminology: [terminology_entry()]
-        }
-
   @doc "The version of the deterministic server-context compiler."
   def compiler_version, do: @compiler_version
 
@@ -69,7 +48,8 @@ defmodule Glossia.Translations.Context do
     %{
       compiler_version: @compiler_version,
       voice_version: nil,
-      glossary_version: nil
+      glossary_version: nil,
+      project_context_version: nil
     }
   end
 
@@ -81,7 +61,9 @@ defmodule Glossia.Translations.Context do
       locale: locale,
       snapshot: empty_snapshot(),
       voice: nil,
-      terminology: []
+      terminology: [],
+      project_terminology: [],
+      project_guidance: []
     }
   end
 
@@ -91,24 +73,27 @@ defmodule Glossia.Translations.Context do
   The snapshot is captured before the isolated runner starts. Versioned content
   is then resolved once per target locale and remains fixed for the whole run.
   """
-  @spec snapshot(Account.t()) :: {:ok, snapshot()}
-  def snapshot(%Account{} = account) do
+  def snapshot(%Account{} = account), do: snapshot(account, nil)
+
+  def snapshot(%Account{} = account, project)
+      when is_nil(project) or is_struct(project, Project) do
     {:ok,
      %{
        compiler_version: @compiler_version,
        voice_version: Voices.latest_voice_version(account),
-       glossary_version: Glossaries.latest_glossary_version(account)
+       glossary_version: Glossaries.latest_glossary_version(account),
+       project_context_version: project && Quality.latest_project_context_version(project)
      }}
   end
 
   @doc "Captures a snapshot on the node that owns the account database."
-  @spec snapshot_on(node(), Account.t()) ::
-          {:ok, snapshot()} | {:error, {:context_relay_failed, term()}}
-  def snapshot_on(target_node, %Account{} = account) when target_node == node(),
-    do: snapshot(account)
+  def snapshot_on(target_node, %Account{} = account), do: snapshot_on(target_node, account, nil)
 
-  def snapshot_on(target_node, %Account{} = account) when is_atom(target_node) do
-    case :rpc.call(target_node, __MODULE__, :snapshot, [account], @relay_timeout) do
+  def snapshot_on(target_node, %Account{} = account, project) when target_node == node(),
+    do: snapshot(account, project)
+
+  def snapshot_on(target_node, %Account{} = account, project) when is_atom(target_node) do
+    case :rpc.call(target_node, __MODULE__, :snapshot, [account, project], @relay_timeout) do
       {:badrpc, reason} -> {:error, {:context_relay_failed, reason}}
       result -> result
     end
@@ -120,7 +105,6 @@ defmodule Glossia.Translations.Context do
   Voice and terminology are loaded once per locale. Matching still happens
   independently for every source.
   """
-  @spec resolve_many(Account.t(), snapshot(), [map()]) :: {:ok, [bundle()]}
   def resolve_many(%Account{} = account, snapshot, requests)
       when is_map(snapshot) and is_list(requests) do
     locales = requests |> Enum.map(& &1.locale) |> Enum.uniq()
@@ -133,7 +117,8 @@ defmodule Glossia.Translations.Context do
           locale_contexts,
           request.locale,
           request.source,
-          request.preserve
+          request.preserve,
+          Map.get(request, :source_path)
         )
       end)
 
@@ -141,8 +126,10 @@ defmodule Glossia.Translations.Context do
   end
 
   @doc "Loads the effective voice and terminology once for every requested locale."
-  @spec resolve_locales(Account.t(), snapshot(), [String.t()]) :: map()
-  def resolve_locales(%Account{} = account, snapshot, locales)
+  def resolve_locales(%Account{} = account, snapshot, locales),
+    do: resolve_locales(account, nil, snapshot, locales)
+
+  def resolve_locales(%Account{} = account, project, snapshot, locales)
       when is_map(snapshot) and is_list(locales) do
     locales
     |> Enum.uniq()
@@ -150,26 +137,30 @@ defmodule Glossia.Translations.Context do
       {locale,
        %{
          voice: resolve_voice(account, snapshot.voice_version, locale),
-         terminology: resolve_terminology(account, snapshot.glossary_version, locale)
+         terminology: resolve_terminology(account, snapshot.glossary_version, locale),
+         project_context:
+           resolve_project_context(project, snapshot.project_context_version, locale)
        }}
     end)
   end
 
   @doc "Loads locale context on the node that owns the account database."
-  @spec resolve_locales_on(node(), Account.t(), snapshot(), [String.t()]) ::
-          {:ok, map()} | {:error, {:context_relay_failed, term()}}
   def resolve_locales_on(target_node, %Account{} = account, snapshot, locales)
+      when is_atom(target_node),
+      do: resolve_locales_on(target_node, account, nil, snapshot, locales)
+
+  def resolve_locales_on(target_node, %Account{} = account, project, snapshot, locales)
       when target_node == node() do
-    {:ok, resolve_locales(account, snapshot, locales)}
+    {:ok, resolve_locales(account, project, snapshot, locales)}
   end
 
-  def resolve_locales_on(target_node, %Account{} = account, snapshot, locales)
+  def resolve_locales_on(target_node, %Account{} = account, project, snapshot, locales)
       when is_atom(target_node) do
     case :rpc.call(
            target_node,
            __MODULE__,
            :resolve_locales,
-           [account, snapshot, locales],
+           [account, project, snapshot, locales],
            @relay_timeout
          ) do
       {:badrpc, reason} -> {:error, {:context_relay_failed, reason}}
@@ -186,16 +177,41 @@ defmodule Glossia.Translations.Context do
   """
   def prepare_locale_contexts(locale_contexts) when is_map(locale_contexts) do
     Map.new(locale_contexts, fn {locale, context} ->
-      {locale, Map.update!(context, :terminology, &prepare_entries/1)}
+      context =
+        Map.put_new(context, :project_context, %{version: nil, terminology: [], guidance: []})
+
+      prepared =
+        context
+        |> Map.update!(:terminology, &prepare_entries/1)
+        |> update_in([:project_context, :terminology], &prepare_entries/1)
+
+      {locale, prepared}
     end)
   end
 
   @doc "Builds one file-level bundle from already resolved locale context."
-  @spec build_bundle(snapshot(), map(), String.t(), String.t(), [String.t()]) :: bundle()
   def build_bundle(snapshot, locale_contexts, locale, source, preserve)
       when is_map(snapshot) and is_map(locale_contexts) and is_binary(locale) and
              is_binary(source) and is_list(preserve) do
+    build_bundle(snapshot, locale_contexts, locale, source, preserve, nil)
+  end
+
+  def build_bundle(snapshot, locale_contexts, locale, source, preserve, source_path)
+      when is_map(snapshot) and is_map(locale_contexts) and is_binary(locale) and
+             is_binary(source) and is_list(preserve) and
+             (is_binary(source_path) or is_nil(source_path)) do
     context = Map.fetch!(locale_contexts, locale)
+
+    project_context =
+      Map.get(context, :project_context, %{version: nil, terminology: [], guidance: []})
+
+    project_terminology =
+      Enum.filter(project_context.terminology, &route_scope_matches?(&1, source_path))
+
+    project_guidance =
+      project_context.guidance
+      |> Enum.filter(&route_scope_matches?(&1, source_path))
+      |> Enum.map(&guidance_instruction/1)
 
     %{
       compiler_version: @compiler_version,
@@ -203,7 +219,9 @@ defmodule Glossia.Translations.Context do
       locale: locale,
       snapshot: snapshot,
       voice: context.voice,
-      terminology: select_entries(context.terminology, source, preserve)
+      terminology: select_entries(context.terminology, source, preserve),
+      project_terminology: select_entries(project_terminology, source, preserve),
+      project_guidance: project_guidance
     }
   end
 
@@ -214,8 +232,6 @@ defmodule Glossia.Translations.Context do
   contents, and suppresses shorter terms when all their matches are contained in
   a longer selected phrase.
   """
-  @spec select_entries([terminology_entry()], String.t(), [String.t()]) ::
-          [terminology_entry()]
   def select_entries(entries, source, preserve)
       when is_list(entries) and is_binary(source) and is_list(preserve) do
     text = translatable_text(source, preserve)
@@ -250,7 +266,6 @@ defmodule Glossia.Translations.Context do
   Voice remains present for every segment. The file-level terminology candidates
   are matched again so a segment sees only the terms it contains.
   """
-  @spec prompt_body(bundle(), String.t(), [String.t()]) :: String.t()
   def prompt_body(bundle, segment, preserve)
       when is_map(bundle) and is_binary(segment) and is_list(preserve) do
     prompt(bundle, segment, preserve).body
@@ -264,12 +279,21 @@ defmodule Glossia.Translations.Context do
   """
   def prompt(bundle, segment, preserve)
       when is_map(bundle) and is_binary(segment) and is_list(preserve) do
-    terminology = select_entries(bundle.terminology || [], segment, preserve)
+    project_terminology = select_entries(bundle.project_terminology || [], segment, preserve)
+
+    terminology =
+      bundle.terminology
+      |> Kernel.||([])
+      |> without_project_overrides(project_terminology)
+      |> Kernel.++(project_terminology)
+      |> select_entries(segment, preserve)
+
     {voice_body, voice_truncated} = render_voice_with_budget(bundle.voice)
     {terminology_body, terminology_budget} = render_terminology_with_budget(terminology)
+    guidance_body = render_project_guidance(bundle.project_guidance || [])
 
     body =
-      [voice_body, terminology_body]
+      [voice_body, guidance_body, terminology_body]
       |> Enum.reject(&(&1 == ""))
       |> Enum.join("\n\n")
 
@@ -288,6 +312,18 @@ defmodule Glossia.Translations.Context do
   def provenance(bundle) when is_map(bundle) do
     snapshot = bundle.snapshot || empty_snapshot()
 
+    project_content = %{
+      terminology: normalized_terminology(bundle.project_terminology || []),
+      guidance: bundle.project_guidance || []
+    }
+
+    project_content_hash =
+      if project_content.terminology == [] and project_content.guidance == [] do
+        nil
+      else
+        content_hash(project_content)
+      end
+
     %{
       "compiler_version" => bundle.compiler_version || @compiler_version,
       "selector_version" => bundle.selector_version || @selector_version,
@@ -298,6 +334,10 @@ defmodule Glossia.Translations.Context do
       "terminology" => %{
         "glossary_version" => snapshot.glossary_version,
         "content_hash" => content_hash(normalized_terminology(bundle.terminology || []))
+      },
+      "project_context" => %{
+        "version" => snapshot.project_context_version,
+        "content_hash" => project_content_hash
       }
     }
   end
@@ -310,7 +350,8 @@ defmodule Glossia.Translations.Context do
       "compiler_version" => provenance["compiler_version"],
       "selector_version" => provenance["selector_version"],
       "voice_content_hash" => get_in(provenance, ["voice", "content_hash"]),
-      "terminology_content_hash" => get_in(provenance, ["terminology", "content_hash"])
+      "terminology_content_hash" => get_in(provenance, ["terminology", "content_hash"]),
+      "project_context_content_hash" => get_in(provenance, ["project_context", "content_hash"])
     }
   end
 
@@ -330,6 +371,43 @@ defmodule Glossia.Translations.Context do
     |> Glossaries.get_resolved_glossary_version(version, locale)
     |> Map.get(:entries, [])
   end
+
+  defp resolve_project_context(nil, _version, _locale),
+    do: %{version: nil, terminology: [], guidance: []}
+
+  defp resolve_project_context(%Project{} = project, version, locale) do
+    Quality.resolve_project_context(project, version, locale)
+  end
+
+  defp without_project_overrides(entries, project_entries) do
+    overridden_terms = MapSet.new(project_entries, fn entry -> :string.casefold(entry.term) end)
+
+    Enum.reject(entries, fn entry ->
+      MapSet.member?(overridden_terms, :string.casefold(entry.term))
+    end)
+  end
+
+  defp route_scope_matches?(entry, source_path) do
+    case Map.get(entry, :route_scope) do
+      scope when scope in [nil, ""] -> true
+      _scope when is_nil(source_path) -> false
+      scope -> path_prefix?(scope, source_path)
+    end
+  end
+
+  defp path_prefix?(scope, source_path) do
+    scope_segments = scope |> URI.parse() |> Map.get(:path) |> path_segments()
+    source_segments = source_path |> URI.parse() |> Map.get(:path) |> path_segments()
+
+    scope_segments == [] or
+      Enum.take(source_segments, length(scope_segments)) == scope_segments
+  end
+
+  defp path_segments(path) when is_binary(path), do: String.split(path, "/", trim: true)
+  defp path_segments(_path), do: []
+
+  defp guidance_instruction(%{instruction: instruction}), do: instruction
+  defp guidance_instruction(instruction) when is_binary(instruction), do: instruction
 
   defp prepare_entries(entries) do
     Enum.map(entries, fn entry ->
@@ -502,6 +580,23 @@ defmodule Glossia.Translations.Context do
        terminology_omitted: length(entries) - length(included),
        terminology_definitions_omitted: definitions_available - definitions_included
      }}
+  end
+
+  defp render_project_guidance([]), do: ""
+
+  defp render_project_guidance(guidance) do
+    lines =
+      guidance
+      |> Enum.map(&String.trim(to_string(&1)))
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.uniq()
+      |> Enum.map_join("\n", &"- #{&1}")
+
+    if lines == "" do
+      ""
+    else
+      bounded_text("Reviewed project guidance:\n#{lines}", @max_voice_prompt_bytes)
+    end
   end
 
   defp fitting_terminology(entries, initial_bytes) do
