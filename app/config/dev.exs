@@ -96,6 +96,9 @@ config :glossia, GlossiaWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :glossia, dev_routes: true
 
+config :glossia, Glossia.Quality.Artifacts,
+  local_directory: Path.expand("../tmp/quality-artifacts", __DIR__)
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 
@@ -144,3 +147,5 @@ config :glossia, Glossia.Vault,
 config :glossia, Glossia.Translations,
   allow_local_session: true,
   local_remotes_dir: Path.expand("tmp/dev-remotes")
+
+config :glossia, Glossia.Quality, allow_private_origins: true

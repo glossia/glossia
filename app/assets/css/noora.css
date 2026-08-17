@@ -13,6 +13,7 @@
 @import "./routes/members.css";
 @import "./routes/profile.css";
 @import "./routes/project-new.css";
+@import "./routes/quality.css";
 @import "./routes/translation-session.css";
 
 @font-face {
@@ -403,21 +404,7 @@
 }
 
 .noora-shell .noora-card > [data-part="header"] [data-part="icon-with-title"] > [data-part="icon"] {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
   box-sizing: content-box;
-  width: var(--noora-icon-size-large);
-  height: var(--noora-icon-size-large);
-  color: var(--noora-surface-label-secondary);
-}
-
-.noora-shell .noora-card > [data-part="header"] [data-part="icon-with-title"] > [data-part="icon"] > svg {
-  display: block;
-  flex: 0 0 auto;
-  width: 100%;
-  height: 100%;
 }
 
 .noora-shell .noora-settings-list-card {

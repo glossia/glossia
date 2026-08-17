@@ -120,4 +120,8 @@ COPY --from=cli_builder /cli/target/release/glossia /usr/local/bin/glossia
 
 USER nobody
 
+# Fail the image build if Chromium cannot start with its operating-system sandbox
+# under the same unprivileged user that runs browser quality reviews.
+RUN chromium --headless --disable-gpu --disable-dev-shm-usage --dump-dom about:blank >/dev/null
+
 CMD ["/app/bin/start"]
