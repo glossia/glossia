@@ -111,7 +111,7 @@ defmodule GlossiaWeb.QualityLiveTest do
     assert has_element?(view, "#quality-session-replay[phx-hook]")
     assert has_element?(view, "#quality-session-replay-range[max]")
 
-    assert {:ok, _finding} =
+    assert {:ok, finding} =
              Quality.record_finding(running, page, %{
                check: "wording_consistency",
                category: "language",
@@ -135,6 +135,14 @@ defmodule GlossiaWeb.QualityLiveTest do
     assert has_element?(
              view,
              "#quality-session-replay [data-part='finding-marker'][data-time]"
+           )
+
+    assert has_element?(view, "#quality-finding-actions-#{finding.id}.noora-dropdown")
+    assert has_element?(view, "#quality-memory-modal-#{finding.id}.noora-modal")
+
+    refute has_element?(
+             view,
+             "#quality-findings-table [phx-click='update_finding'].noora-button"
            )
 
     assert {:ok, _completed} = Quality.complete_run(running)

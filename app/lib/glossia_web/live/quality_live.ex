@@ -4,6 +4,7 @@ defmodule GlossiaWeb.QualityLive do
   import GlossiaWeb.DashboardComponents
 
   alias Glossia.Quality
+  alias Phoenix.LiveView.JS
 
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :subscribed_quality_run_id, nil)}
@@ -141,6 +142,7 @@ defmodule GlossiaWeb.QualityLive do
          socket
          |> reload_findings()
          |> assign(:project_context, Quality.get_latest_project_context(socket.assigns.project))
+         |> push_event("close-modal", %{id: "quality-memory-modal-#{finding.id}"})
          |> put_flash(:info, gettext("The approved translation will guide future translations."))}
 
       {:error, reason} ->
@@ -1281,44 +1283,116 @@ defmodule GlossiaWeb.QualityLive do
               label={humanize(finding.status)}
             />
           </:col>
-          <:col :let={finding} :if={@can_write} label={gettext("Review")}>
-            <Noora.Table.button_cell>
-              <:button :if={finding.status not in ["resolved", "dismissed"]}>
-                <Noora.Button.button
-                  label={gettext("Resolve")}
-                  variant="secondary"
-                  size="small"
-                  phx-click="update_finding"
-                  phx-value-id={finding.id}
-                  phx-value-status="resolved"
-                />
-              </:button>
-              <:button :if={finding.status not in ["resolved", "dismissed"]}>
-                <Noora.Button.button
-                  label={gettext("Dismiss")}
-                  variant="secondary"
-                  size="small"
-                  phx-click="update_finding"
-                  phx-value-id={finding.id}
-                  phx-value-status="dismissed"
-                />
-              </:button>
-            </Noora.Table.button_cell>
+          <:col :let={finding} :if={@can_write}>
             <form
-              :if={finding.source_text not in [nil, ""] and finding.locale not in [nil, ""]}
+              :if={rememberable_finding?(finding)}
+              id={"quality-memory-form-#{finding.id}"}
               phx-submit="remember_translation"
             >
               <input type="hidden" name="finding_id" value={finding.id} />
-              <Noora.TextInput.text_input
-                id={"quality-memory-#{finding.id}"}
-                name="translation"
-                value=""
-                placeholder={gettext("Approved translation")}
-                show_suffix={false}
-                required
-              />
-              <Noora.Button.button label={gettext("Remember")} size="small" type="submit" />
+
+              <Noora.Modal.modal
+                id={"quality-memory-modal-#{finding.id}"}
+                title={gettext("Remember translation")}
+                description={
+                  gettext(
+                    "Save an approved translation as project context for future translation runs."
+                  )
+                }
+                header_type="icon"
+              >
+                <:header_icon><Noora.Icon.language /></:header_icon>
+                <:trigger :let={modal_attrs}>
+                  <button type="button" hidden {modal_attrs}></button>
+                </:trigger>
+
+                <div data-part="memory-modal-content">
+                  <Noora.LineDivider.line_divider />
+                  <div data-part="memory-modal-body">
+                    <Noora.TextInput.text_input
+                      id={"quality-memory-#{finding.id}"}
+                      name="translation"
+                      value=""
+                      label={gettext("Approved translation")}
+                      placeholder={gettext("Enter the preferred translation")}
+                      show_prefix={false}
+                      show_suffix={false}
+                      required
+                      show_required
+                    />
+                  </div>
+                  <Noora.LineDivider.line_divider />
+                </div>
+
+                <:footer>
+                  <Noora.Modal.modal_footer>
+                    <:action>
+                      <Noora.Button.button
+                        label={gettext("Cancel")}
+                        variant="secondary"
+                        type="button"
+                        phx-click={
+                          JS.dispatch("phx:close-modal",
+                            detail: %{id: "quality-memory-modal-#{finding.id}"}
+                          )
+                        }
+                      />
+                    </:action>
+                    <:action>
+                      <Noora.Button.button label={gettext("Remember translation")} type="submit" />
+                    </:action>
+                  </Noora.Modal.modal_footer>
+                </:footer>
+              </Noora.Modal.modal>
             </form>
+
+            <Noora.Dropdown.dropdown
+              id={"quality-finding-actions-#{finding.id}"}
+              icon_only
+              size="medium"
+            >
+              <:icon><Noora.Icon.dots_vertical /></:icon>
+
+              <Noora.Dropdown.dropdown_item
+                :if={rememberable_finding?(finding)}
+                label={gettext("Remember translation")}
+                value="remember"
+                phx-click={
+                  JS.dispatch("phx:open-modal",
+                    detail: %{id: "quality-memory-modal-#{finding.id}"}
+                  )
+                }
+              >
+                <:left_icon><Noora.Icon.language /></:left_icon>
+              </Noora.Dropdown.dropdown_item>
+
+              <Noora.Dropdown.dropdown_separator :if={
+                rememberable_finding?(finding) and
+                  finding.status not in ["resolved", "dismissed"]
+              } />
+
+              <Noora.Dropdown.dropdown_item
+                :if={finding.status not in ["resolved", "dismissed"]}
+                label={gettext("Resolve")}
+                value="resolve"
+                phx-click="update_finding"
+                phx-value-id={finding.id}
+                phx-value-status="resolved"
+              >
+                <:left_icon><Noora.Icon.circle_check /></:left_icon>
+              </Noora.Dropdown.dropdown_item>
+
+              <Noora.Dropdown.dropdown_item
+                :if={finding.status not in ["resolved", "dismissed"]}
+                label={gettext("Dismiss")}
+                value="dismiss"
+                phx-click="update_finding"
+                phx-value-id={finding.id}
+                phx-value-status="dismissed"
+              >
+                <:left_icon><Noora.Icon.circle_x /></:left_icon>
+              </Noora.Dropdown.dropdown_item>
+            </Noora.Dropdown.dropdown>
           </:col>
           <:empty_state>
             <Noora.Table.table_empty_state>
@@ -1333,5 +1407,9 @@ defmodule GlossiaWeb.QualityLive do
       </Noora.Card.card_section>
     </Noora.Card.card>
     """
+  end
+
+  defp rememberable_finding?(finding) do
+    finding.source_text not in [nil, ""] and finding.locale not in [nil, ""]
   end
 end
