@@ -120,8 +120,9 @@ COPY --from=cli_builder /cli/target/release/glossia /usr/local/bin/glossia
 
 USER nobody
 
-# Fail the image build if Chromium cannot start with its operating-system sandbox
-# under the same unprivileged user that runs browser quality reviews.
-RUN chromium --headless --disable-gpu --disable-dev-shm-usage --dump-dom about:blank >/dev/null
+# Verify that Chromium can start as the unprivileged runtime user. Docker build
+# sandboxes do not permit Chromium's own namespace sandbox, so disable it only
+# for this build-time smoke check.
+RUN chromium --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --dump-dom about:blank >/dev/null
 
 CMD ["/app/bin/start"]
