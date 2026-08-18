@@ -59,14 +59,13 @@ defmodule Glossia.Quality do
   end
 
   def default_profile(%Project{} = project) do
-    locales = ["en" | project.setup_target_languages || []] |> Enum.uniq()
     origin = project.url || ""
 
     %Profile{
       project_id: project.id,
       project: project,
       source_locale: "en",
-      locale_origins: Map.new(locales, &{&1, origin}),
+      locale_origins: %{"en" => origin},
       seed_paths: ["/"],
       max_pages: 20
     }

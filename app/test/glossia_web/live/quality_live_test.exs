@@ -29,22 +29,20 @@ defmodule GlossiaWeb.QualityLiveTest do
     {:ok, settings, html} = live(conn, settings_path)
 
     assert has_element?(settings, "#quality-profile-form")
-    assert html =~ "Localization QA settings"
+    assert html =~ "QA settings"
     assert html =~ ~s(href="/#{user.account.handle}/#{project.handle}/-/qa")
 
     settings
     |> form("#quality-profile-form", %{
       "profile" => %{
-        "source_locale" => "en",
-        "locale_origins" => "en=https://example.com\nes=https://example.com/es",
-        "seed_paths" => "/\n/pricing",
-        "max_pages" => "12"
+        "site_url" => "https://example.com"
       }
     })
     |> render_submit()
 
-    assert render(settings) =~ "Localization QA settings saved."
-    assert Quality.get_profile(project).seed_paths == ["/", "/pricing"]
+    assert render(settings) =~ "QA settings saved."
+    assert Quality.get_profile(project).locale_origins == %{"en" => "https://example.com"}
+    assert Quality.get_profile(project).seed_paths == ["/"]
 
     {:ok, overview, overview_html} =
       live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/qa")

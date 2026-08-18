@@ -42,8 +42,8 @@ defmodule Glossia.Quality.Profile do
       source_locale = get_field(changeset, :source_locale)
 
       cond do
-        not is_map(origins) or map_size(origins) < 2 ->
-          [locale_origins: "must contain at least two locale web addresses"]
+        not is_map(origins) or map_size(origins) < 1 ->
+          [locale_origins: "must contain a website URL"]
 
         map_size(origins) > @maximum_locale_origins ->
           [locale_origins: "cannot contain more than #{@maximum_locale_origins} locales"]

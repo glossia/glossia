@@ -13,11 +13,14 @@ defmodule Glossia.Quality.Checks do
     pages
     |> Enum.each(fn page ->
       check_load(run, page)
-      check_document_locale(run, page)
-      check_alternate_navigation(run, page, locale_origins)
+
+      if map_size(locale_origins) > 1 do
+        check_document_locale(run, page)
+        check_alternate_navigation(run, page, locale_origins)
+      end
     end)
 
-    check_source_leakage(run, pages, source_locale)
+    if map_size(locale_origins) > 1, do: check_source_leakage(run, pages, source_locale)
     :ok
   end
 
