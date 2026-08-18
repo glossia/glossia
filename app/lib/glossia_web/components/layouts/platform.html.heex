@@ -153,7 +153,7 @@
           >
             <.sidebar_item
               :if={assigns[:can_quality_admin]}
-              label={gettext("Localization QA")}
+              label={gettext("QA")}
               icon="checkup_list"
               navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/qa/settings"}
               selected={@live_action == :project_quality_settings}

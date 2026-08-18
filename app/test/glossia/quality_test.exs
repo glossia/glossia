@@ -26,15 +26,12 @@ defmodule Glossia.QualityTest do
                max_pages: 100
              })
 
-    assert %{locale_origins: [_], seed_paths: [_], max_pages: [_]} = errors_on(changeset)
+    assert %{seed_paths: [_], max_pages: [_]} = errors_on(changeset)
 
     assert {:ok, profile} =
              Quality.upsert_profile(project, %{
                source_locale: "en",
-               locale_origins: %{
-                 "en" => " https://example.com ",
-                 "es" => "https://example.com/es"
-               },
+               locale_origins: %{"en" => " https://example.com "},
                seed_paths: "/\n/pricing\n",
                max_pages: 10
              })

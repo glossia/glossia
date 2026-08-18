@@ -95,10 +95,10 @@ defmodule GlossiaWeb.QualityLive do
     require_quality_admin!(socket)
 
     attrs = %{
-      "source_locale" => params["source_locale"],
-      "locale_origins" => parse_locale_origins(params["locale_origins"]),
-      "seed_paths" => params["seed_paths"],
-      "max_pages" => params["max_pages"]
+      "source_locale" => "en",
+      "locale_origins" => %{"en" => params["site_url"]},
+      "seed_paths" => ["/"],
+      "max_pages" => 20
     }
 
     case Quality.upsert_profile(socket.assigns.project, attrs) do
@@ -106,7 +106,7 @@ defmodule GlossiaWeb.QualityLive do
         {:noreply,
          socket
          |> assign_profile_form(profile)
-         |> put_flash(:info, gettext("Localization QA settings saved."))}
+         |> put_flash(:info, gettext("QA settings saved."))}
 
       {:error, changeset} ->
         {:noreply, assign(socket, profile_form: to_form(changeset, as: :profile))}
@@ -215,13 +215,13 @@ defmodule GlossiaWeb.QualityLive do
     |> clear_run_subscription()
     |> assign_profile_form(profile)
     |> assign(
-      page_title: gettext("Localization QA settings"),
+      page_title: gettext("QA settings"),
       breadcrumb_items: [
         {socket.assigns.project.handle,
          ~p"/#{socket.assigns.handle}/#{socket.assigns.project.handle}"},
         {gettext("Settings"),
          ~p"/#{socket.assigns.handle}/#{socket.assigns.project.handle}/-/settings"},
-        {gettext("Localization QA"), nil}
+        {gettext("QA"), nil}
       ]
     )
   end
@@ -392,28 +392,8 @@ defmodule GlossiaWeb.QualityLive do
     assign(socket,
       profile: profile,
       profile_form: form,
-      locale_origins_text: format_locale_origins(profile.locale_origins),
-      seed_paths_text: Enum.join(profile.seed_paths || [], "\n")
+      site_url: Map.get(profile.locale_origins || %{}, profile.source_locale || "en", "")
     )
-  end
-
-  defp parse_locale_origins(value) when is_binary(value) do
-    value
-    |> String.split("\n", trim: true)
-    |> Enum.reduce(%{}, fn line, origins ->
-      case String.split(line, "=", parts: 2) do
-        [locale, origin] -> Map.put(origins, String.trim(locale), String.trim(origin))
-        _ -> origins
-      end
-    end)
-  end
-
-  defp parse_locale_origins(_value), do: %{}
-
-  defp format_locale_origins(origins) do
-    origins
-    |> Enum.sort()
-    |> Enum.map_join("\n", fn {locale, origin} -> "#{locale}=#{origin}" end)
   end
 
   defp require_quality_read!(socket), do: require_quality!(socket, :quality_read)
@@ -1138,13 +1118,15 @@ defmodule GlossiaWeb.QualityLive do
 
     ~H"""
     <.page_header
-      title={gettext("Localization QA settings")}
-      description={
-        gettext("Choose equivalent locale sites and the paths every inspection should visit.")
-      }
+      title={gettext("QA settings")}
+      description={gettext("Set the website that QA should inspect.")}
     />
 
-    <Noora.Card.card icon="settings" title={gettext("Browser verification")}>
+    <Noora.Card.card
+      id="quality-settings-card"
+      icon="settings"
+      title={gettext("Website")}
+    >
       <Noora.Card.card_section>
         <.form
           id="quality-profile-form"
@@ -1152,37 +1134,12 @@ defmodule GlossiaWeb.QualityLive do
           phx-submit="save_quality_profile"
         >
           <Noora.TextInput.text_input
-            field={@page.profile_form[:source_locale]}
-            label={gettext("Source locale")}
-            hint={gettext("For example, en or en-US")}
-            required
-          />
-          <Noora.TextArea.text_area
-            id="quality-locale-origins"
-            name="profile[locale_origins]"
-            value={@page.locale_origins_text}
-            label={gettext("Locale web addresses")}
-            hint={gettext("One locale and web address per line, such as es=https://example.com/es")}
-            rows={6}
-            max_length={5_000}
-            required
-          />
-          <Noora.TextArea.text_area
-            id="quality-seed-paths"
-            name="profile[seed_paths]"
-            value={@page.seed_paths_text}
-            label={gettext("Paths to inspect")}
-            hint={gettext("One absolute path per line, such as / or /pricing")}
-            rows={6}
-            max_length={5_000}
-            required
-          />
-          <Noora.TextInput.text_input
-            field={@page.profile_form[:max_pages]}
-            label={gettext("Maximum paths")}
-            input_type="number"
-            min="1"
-            max="50"
+            id="quality-site-url"
+            name="profile[site_url]"
+            value={@page.site_url}
+            label={gettext("Website URL")}
+            hint={gettext("For example, https://example.com")}
+            input_type="url"
             required
           />
           <Noora.Button.button label={gettext("Save settings")} size="medium" type="submit" />
