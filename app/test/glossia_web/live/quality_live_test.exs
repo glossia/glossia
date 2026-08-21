@@ -109,6 +109,12 @@ defmodule GlossiaWeb.QualityLiveTest do
     assert has_element?(view, "#quality-session-replay[phx-hook]")
     assert has_element?(view, "#quality-session-replay-range[max]")
 
+    # A later event superseded the session start, so that step is no longer in progress.
+    assert has_element?(
+             view,
+             "[data-kind='session_started'] .noora-status-badge[data-status='success']"
+           )
+
     assert {:ok, finding} =
              Quality.record_finding(running, page, %{
                check: "wording_consistency",
@@ -150,6 +156,12 @@ defmodule GlossiaWeb.QualityLiveTest do
              view,
              "#quality-session-events [data-part='timeline-item']",
              "Review session completed"
+           )
+
+    # Nothing on a finished run may keep spinning, or the run reads as stuck.
+    refute has_element?(
+             view,
+             "#quality-session-events .noora-status-badge[data-status='in_progress']"
            )
   end
 

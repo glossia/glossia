@@ -459,25 +459,36 @@ defmodule GlossiaWeb.QualityLive do
   defp event_color("session_cancelled"), do: "neutral"
   defp event_color(_kind), do: "primary"
 
-  defp event_status("session_completed"), do: "success"
-  defp event_status("session_failed"), do: "error"
-  defp event_status("session_cancelled"), do: "disabled"
-  defp event_status("finding_recorded"), do: "warning"
-  defp event_status("page_captured"), do: "success"
-  defp event_status(_kind), do: "in_progress"
+  # Every event in the timeline records the start of a step, so only the newest one on a run that
+  # is still going can still be happening. Anything a later event has already superseded — or
+  # anything at all once the run is terminal — is settled, and keeping those badges spinning is
+  # what made a finished run read as stuck.
+  defp event_settled?(run, index, last_index),
+    do: index < last_index or terminal_run?(run)
 
-  defp event_status_label(%{kind: "finding_recorded", metadata: metadata}) do
+  defp event_status(%{kind: "session_completed"}, _settled?), do: "success"
+  defp event_status(%{kind: "session_failed"}, _settled?), do: "error"
+  defp event_status(%{kind: "session_cancelled"}, _settled?), do: "disabled"
+  defp event_status(%{kind: "finding_recorded"}, _settled?), do: "warning"
+  defp event_status(%{kind: "page_captured"}, _settled?), do: "success"
+  defp event_status(_event, true), do: "success"
+  defp event_status(_event, false), do: "in_progress"
+
+  defp event_status_label(%{kind: "finding_recorded", metadata: metadata}, _settled?) do
     humanize(metadata["severity"] || "finding")
   end
 
-  defp event_status_label(%{kind: "session_started"}), do: gettext("Started")
-  defp event_status_label(%{kind: "navigation_started"}), do: gettext("Opening")
-  defp event_status_label(%{kind: "page_captured"}), do: gettext("Captured")
-  defp event_status_label(%{kind: "analysis_started"}), do: gettext("Analyzing")
-  defp event_status_label(%{kind: "session_completed"}), do: gettext("Completed")
-  defp event_status_label(%{kind: "session_failed"}), do: gettext("Failed")
-  defp event_status_label(%{kind: "session_cancelled"}), do: gettext("Cancelled")
-  defp event_status_label(_event), do: gettext("In progress")
+  defp event_status_label(%{kind: "session_started"}, _settled?), do: gettext("Started")
+  defp event_status_label(%{kind: "navigation_started"}, true), do: gettext("Opened")
+  defp event_status_label(%{kind: "navigation_started"}, false), do: gettext("Opening")
+  defp event_status_label(%{kind: "page_captured"}, _settled?), do: gettext("Captured")
+  defp event_status_label(%{kind: "analysis_started"}, true), do: gettext("Analyzed")
+  defp event_status_label(%{kind: "analysis_started"}, false), do: gettext("Analyzing")
+  defp event_status_label(%{kind: "session_completed"}, _settled?), do: gettext("Completed")
+  defp event_status_label(%{kind: "session_failed"}, _settled?), do: gettext("Failed")
+  defp event_status_label(%{kind: "session_cancelled"}, _settled?), do: gettext("Cancelled")
+  defp event_status_label(_event, true), do: gettext("Done")
+  defp event_status_label(_event, false), do: gettext("In progress")
 
   defp elapsed_time(run, event), do: run |> elapsed_seconds(event) |> format_elapsed_time()
 
@@ -1125,8 +1136,9 @@ defmodule GlossiaWeb.QualityLive do
     >
       <Noora.Card.card_section data-part="activity-section">
         <div id="quality-session-events" data-part="timeline">
+          <% last_event_index = length(@page.session_events) - 1 %>
           <div
-            :for={event <- @page.session_events}
+            :for={{event, index} <- Enum.with_index(@page.session_events)}
             data-part="timeline-item"
             data-kind={event.kind}
           >
@@ -1139,9 +1151,9 @@ defmodule GlossiaWeb.QualityLive do
                 {event.detail}
               </span>
             </div>
-            <Noora.Badge.status_badge
-              status={event_status(event.kind)}
-              label={event_status_label(event)}
+            <.event_badge
+              event={event}
+              settled={event_settled?(@page.run, index, last_event_index)}
             />
             <time data-part="timeline-time">{elapsed_time(@page.run, event)}</time>
           </div>
@@ -1208,6 +1220,18 @@ defmodule GlossiaWeb.QualityLive do
         </Noora.Card.card_section>
       </section>
     </.form>
+    """
+  end
+
+  attr :event, :any, required: true
+  attr :settled, :boolean, required: true
+
+  defp event_badge(assigns) do
+    ~H"""
+    <Noora.Badge.status_badge
+      status={event_status(@event, @settled)}
+      label={event_status_label(@event, @settled)}
+    />
     """
   end
 
