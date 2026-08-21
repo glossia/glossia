@@ -1,13 +1,45 @@
 #quality-page {
-  & #quality-settings-card {
-    max-width: calc(var(--noora-spacing-16) * 5);
-  }
-
-  & form[phx-submit="save_quality_profile"] {
+  & #quality-profile-form {
     display: flex;
     flex-direction: column;
+    gap: var(--noora-spacing-8);
+    max-width: calc(var(--noora-spacing-16) * 8);
+  }
+
+  & [data-part="settings-section"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+  }
+
+  & [data-part="settings-section-header"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-1);
+
+    & > h2 {
+      margin: var(--noora-spacing-0);
+      color: var(--noora-surface-label-primary);
+      font: var(--noora-font-weight-medium) var(--noora-font-body-large);
+    }
+
+    & > p {
+      margin: var(--noora-spacing-0);
+      color: var(--noora-surface-label-secondary);
+      font: var(--noora-font-weight-regular) var(--noora-font-body-medium);
+    }
+  }
+
+  & [data-part="settings-card"] {
     gap: var(--noora-spacing-6);
-    width: 100%;
+  }
+
+  /* Wrapping the submit keeps it at its intrinsic width; the card stretches its
+   * flex children, which is what made the button span the whole form. */
+  & [data-part="settings-actions"] {
+    display: flex;
+    align-items: center;
+    gap: var(--noora-spacing-4);
   }
 
   & [data-part="memory-modal-content"] {
@@ -25,13 +57,37 @@
     }
   }
 
-  & [data-part="memory-section"] > p {
-    margin: var(--noora-spacing-4) var(--noora-spacing-0) var(--noora-spacing-0);
-    color: var(--noora-surface-label-secondary);
-  }
+  & [data-part="memory-summary"] {
+    display: flex;
+    align-items: center;
+    gap: var(--noora-spacing-9);
 
-  & .noora-resource-table-card {
-    overflow-x: auto;
+    & [data-part="metadata"] {
+      display: flex;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--noora-spacing-3);
+
+      /* Child combinators only: the version badge carries its own `data-part="label"`,
+       * and a descendant selector would repaint it. */
+      & > [data-part="title"] {
+        color: var(--noora-surface-label-secondary);
+        font: var(--noora-font-weight-medium) var(--noora-font-body-medium);
+      }
+
+      & > [data-part="label"] {
+        color: var(--noora-surface-label-primary);
+        font: var(--noora-font-weight-regular) var(--noora-font-body-medium);
+      }
+    }
+
+    & > [data-part="memory-hint"] {
+      margin: var(--noora-spacing-0);
+      margin-left: auto;
+      color: var(--noora-surface-label-secondary);
+      font: var(--noora-font-weight-regular) var(--noora-font-body-small);
+      text-align: right;
+    }
   }
 
   & #quality-run-details {
@@ -143,6 +199,8 @@
     }
 
     & #quality-session-capture {
+      --capture-scroll: 0px;
+
       display: grid;
       place-items: center;
       margin: var(--noora-spacing-0);
@@ -157,11 +215,20 @@
         width: 100%;
       }
 
+      /* The capture fills the frame's width rather than being letterboxed inside it, so the
+       * frame reads as a browser viewport onto the page. `max-height` caps the viewport while
+       * leaving shorter captures at their natural height; the replay hook pans the overflow
+       * through `--capture-scroll` as the playhead crosses this capture's stretch of the
+       * timeline, which is what makes playback look like someone scrolling the page. */
+      &:has(> img) {
+        display: block;
+        max-height: calc(var(--noora-spacing-16) * 6);
+      }
+
       & > img {
         display: block;
-        max-height: calc(var(--noora-spacing-16) * 5);
-        object-fit: contain;
-        object-position: center top;
+        height: auto;
+        transform: translateY(var(--capture-scroll));
       }
 
       & [data-part="text-preview"] {
@@ -344,12 +411,14 @@
       font: var(--noora-font-weight-regular) var(--noora-font-code-medium);
     }
 
+    /* No `overflow` here: the Noora table scrolls on its own inner wrapper, and a scroll
+     * container around it clips the box-shadow that draws the table's border, which reads
+     * as a table with its edges cut off. */
     & [data-part="capture-annotations"] {
       display: flex;
       min-width: var(--noora-spacing-0);
       flex-direction: column;
       gap: var(--noora-spacing-4);
-      overflow-x: auto;
     }
 
     & [data-part="section-header"] {
@@ -483,6 +552,21 @@
     & #quality-run-details [data-part="metadata-row"],
     & #quality-session-viewer [data-part="capture-details"] {
       flex-direction: column;
+    }
+
+    & [data-part="memory-summary"] {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--noora-spacing-5);
+
+      & [data-part="memory-hint"] {
+        margin-left: var(--noora-spacing-0);
+        text-align: left;
+      }
+    }
+
+    & [data-part="settings-actions"] .noora-button {
+      width: 100%;
     }
 
     & #quality-session-viewer {
