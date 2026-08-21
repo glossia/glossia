@@ -212,11 +212,21 @@ defmodule Glossia.Docs do
   end
 
   def category_meta!(category) do
-    @categories |> Map.fetch!(category) |> translate_meta()
+    case Map.fetch(@categories, category) do
+      {:ok, meta} -> translate_meta(meta)
+      :error -> raise Glossia.Docs.NotFoundError, "doc category not found: #{category}"
+    end
   end
 
   def subcategory_meta!(category, subcategory) do
-    @subcategories |> Map.fetch!("#{category}/#{subcategory}") |> translate_meta()
+    case Map.fetch(@subcategories, "#{category}/#{subcategory}") do
+      {:ok, meta} ->
+        translate_meta(meta)
+
+      :error ->
+        raise Glossia.Docs.NotFoundError,
+              "doc subcategory not found: #{category}/#{subcategory}"
+    end
   end
 
   def subcategory?(category, subcategory) do

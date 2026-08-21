@@ -459,25 +459,36 @@ defmodule GlossiaWeb.QualityLive do
   defp event_color("session_cancelled"), do: "neutral"
   defp event_color(_kind), do: "primary"
 
-  defp event_status("session_completed"), do: "success"
-  defp event_status("session_failed"), do: "error"
-  defp event_status("session_cancelled"), do: "disabled"
-  defp event_status("finding_recorded"), do: "warning"
-  defp event_status("page_captured"), do: "success"
-  defp event_status(_kind), do: "in_progress"
+  # Every event in the timeline records the start of a step, so only the newest one on a run that
+  # is still going can still be happening. Anything a later event has already superseded — or
+  # anything at all once the run is terminal — is settled, and keeping those badges spinning is
+  # what made a finished run read as stuck.
+  defp event_settled?(run, index, last_index),
+    do: index < last_index or terminal_run?(run)
 
-  defp event_status_label(%{kind: "finding_recorded", metadata: metadata}) do
+  defp event_status(%{kind: "session_completed"}, _settled?), do: "success"
+  defp event_status(%{kind: "session_failed"}, _settled?), do: "error"
+  defp event_status(%{kind: "session_cancelled"}, _settled?), do: "disabled"
+  defp event_status(%{kind: "finding_recorded"}, _settled?), do: "warning"
+  defp event_status(%{kind: "page_captured"}, _settled?), do: "success"
+  defp event_status(_event, true), do: "success"
+  defp event_status(_event, false), do: "in_progress"
+
+  defp event_status_label(%{kind: "finding_recorded", metadata: metadata}, _settled?) do
     humanize(metadata["severity"] || "finding")
   end
 
-  defp event_status_label(%{kind: "session_started"}), do: gettext("Started")
-  defp event_status_label(%{kind: "navigation_started"}), do: gettext("Opening")
-  defp event_status_label(%{kind: "page_captured"}), do: gettext("Captured")
-  defp event_status_label(%{kind: "analysis_started"}), do: gettext("Analyzing")
-  defp event_status_label(%{kind: "session_completed"}), do: gettext("Completed")
-  defp event_status_label(%{kind: "session_failed"}), do: gettext("Failed")
-  defp event_status_label(%{kind: "session_cancelled"}), do: gettext("Cancelled")
-  defp event_status_label(_event), do: gettext("In progress")
+  defp event_status_label(%{kind: "session_started"}, _settled?), do: gettext("Started")
+  defp event_status_label(%{kind: "navigation_started"}, true), do: gettext("Opened")
+  defp event_status_label(%{kind: "navigation_started"}, false), do: gettext("Opening")
+  defp event_status_label(%{kind: "page_captured"}, _settled?), do: gettext("Captured")
+  defp event_status_label(%{kind: "analysis_started"}, true), do: gettext("Analyzed")
+  defp event_status_label(%{kind: "analysis_started"}, false), do: gettext("Analyzing")
+  defp event_status_label(%{kind: "session_completed"}, _settled?), do: gettext("Completed")
+  defp event_status_label(%{kind: "session_failed"}, _settled?), do: gettext("Failed")
+  defp event_status_label(%{kind: "session_cancelled"}, _settled?), do: gettext("Cancelled")
+  defp event_status_label(_event, true), do: gettext("Done")
+  defp event_status_label(_event, false), do: gettext("In progress")
 
   defp elapsed_time(run, event), do: run |> elapsed_seconds(event) |> format_elapsed_time()
 
@@ -626,15 +637,31 @@ defmodule GlossiaWeb.QualityLive do
     <Noora.Card.card icon="book" title={gettext("Reviewed project memory")}>
       <Noora.Card.card_section data-part="memory-section">
         <%= if @page.project_context do %>
-          <p>
-            {gettext(
-              "Version %{version} contains %{count} approved instructions used by future translations.",
-              version: @page.project_context.version,
-              count: length(@page.project_context.entries)
-            )}
-          </p>
+          <div data-part="memory-summary">
+            <div data-part="metadata">
+              <div data-part="title">{gettext("Version")}</div>
+              <Noora.Badge.badge
+                label={to_string(@page.project_context.version)}
+                color="information"
+                style="light-fill"
+              />
+            </div>
+            <div data-part="metadata">
+              <div data-part="title">{gettext("Approved instructions")}</div>
+              <span data-part="label">{length(@page.project_context.entries)}</span>
+            </div>
+            <p data-part="memory-hint">
+              {gettext("Future translations are grounded in these instructions.")}
+            </p>
+          </div>
         <% else %>
-          <p>{gettext("No findings have been approved as translation context yet.")}</p>
+          <.noora_empty_state
+            icon="book"
+            title={gettext("No project memory yet")}
+            subtitle={
+              gettext("Approve a QA finding to turn it into context for future translations.")
+            }
+          />
         <% end %>
       </Noora.Card.card_section>
     </Noora.Card.card>
@@ -892,10 +919,19 @@ defmodule GlossiaWeb.QualityLive do
                   this.selectFrame(this.position);
                 };
 
+                // A capture is taller than the frame it is shown in, so the pan below is what
+                // makes the replay read as a recording of someone scrolling the page. `load`
+                // does not bubble, hence the capture-phase listener: it has to fire for the
+                // <img> LiveView swaps in on every capture change, before its height is known.
+                this.onLoad = (event) => {
+                  if (event.target.tagName === 'IMG') this.render();
+                };
+
                 this.playButton?.addEventListener('click', this.onPlayClick);
                 this.el.addEventListener('click', this.onClick);
                 this.el.addEventListener('input', this.onInput);
                 this.el.addEventListener('change', this.onChange);
+                this.el.addEventListener('load', this.onLoad, true);
                 this.render();
               },
 
@@ -912,6 +948,7 @@ defmodule GlossiaWeb.QualityLive do
                 this.el.removeEventListener('click', this.onClick);
                 this.el.removeEventListener('input', this.onInput);
                 this.el.removeEventListener('change', this.onChange);
+                this.el.removeEventListener('load', this.onLoad, true);
               },
 
               refreshData() {
@@ -961,6 +998,37 @@ defmodule GlossiaWeb.QualityLive do
                 });
               },
 
+              // How far into the currently visible capture the playhead is, from 0 to 1. Each
+              // capture owns the stretch of the timeline between its own event and the next
+              // one, so a page that was on screen for a long time scrolls slowly.
+              captureProgress() {
+                if (!this.frames.length) return 0;
+
+                let index = 0;
+                this.frames.forEach((frame, frameIndex) => {
+                  if (frame.time <= this.position) index = frameIndex;
+                });
+
+                const start = this.frames[index].time;
+                const end = index + 1 < this.frames.length
+                  ? this.frames[index + 1].time
+                  : this.duration;
+                const span = end - start;
+
+                if (span <= 0) return this.position >= end ? 1 : 0;
+                return Math.min(Math.max((this.position - start) / span, 0), 1);
+              },
+
+              renderCapture() {
+                const capture = this.el.querySelector('#quality-session-capture');
+                const image = capture && capture.querySelector('img');
+                if (!capture) return;
+
+                const overflow = image ? image.offsetHeight - capture.clientHeight : 0;
+                const offset = overflow > 0 ? -overflow * this.captureProgress() : 0;
+                capture.style.setProperty('--capture-scroll', `${Math.round(offset)}px`);
+              },
+
               render() {
                 const range = this.el.querySelector('#quality-session-replay-range');
                 const time = this.el.querySelector('[data-part="replay-time"]');
@@ -979,6 +1047,7 @@ defmodule GlossiaWeb.QualityLive do
                   const labelNode = button.querySelector(':scope > span:not([data-part])');
                   if (labelNode) labelNode.textContent = label;
                 }
+                this.renderCapture();
               },
 
               formatTime(value) {
@@ -1067,8 +1136,9 @@ defmodule GlossiaWeb.QualityLive do
     >
       <Noora.Card.card_section data-part="activity-section">
         <div id="quality-session-events" data-part="timeline">
+          <% last_event_index = length(@page.session_events) - 1 %>
           <div
-            :for={event <- @page.session_events}
+            :for={{event, index} <- Enum.with_index(@page.session_events)}
             data-part="timeline-item"
             data-kind={event.kind}
           >
@@ -1081,9 +1151,9 @@ defmodule GlossiaWeb.QualityLive do
                 {event.detail}
               </span>
             </div>
-            <Noora.Badge.status_badge
-              status={event_status(event.kind)}
-              label={event_status_label(event)}
+            <.event_badge
+              event={event}
+              settled={event_settled?(@page.run, index, last_event_index)}
             />
             <time data-part="timeline-time">{elapsed_time(@page.run, event)}</time>
           </div>
@@ -1119,33 +1189,49 @@ defmodule GlossiaWeb.QualityLive do
     ~H"""
     <.page_header
       title={gettext("QA settings")}
-      description={gettext("Set the website that QA should inspect.")}
+      description={gettext("Choose the website Glossia inspects when it runs localization QA.")}
     />
 
-    <Noora.Card.card
-      id="quality-settings-card"
-      icon="settings"
-      title={gettext("Website")}
-    >
-      <Noora.Card.card_section>
-        <.form
-          id="quality-profile-form"
-          for={@page.profile_form}
-          phx-submit="save_quality_profile"
-        >
+    <.form id="quality-profile-form" for={@page.profile_form} phx-submit="save_quality_profile">
+      <section data-part="settings-section">
+        <header data-part="settings-section-header">
+          <h2>{gettext("Website")}</h2>
+          <p>
+            {gettext(
+              "Glossia opens this address and navigates it the way a user would, one locale at a time."
+            )}
+          </p>
+        </header>
+
+        <Noora.Card.card_section data-part="settings-card">
           <Noora.TextInput.text_input
             id="quality-site-url"
             name="profile[site_url]"
             value={@page.site_url}
             label={gettext("Website URL")}
             hint={gettext("For example, https://example.com")}
+            placeholder="https://example.com"
             input_type="url"
             required
           />
-          <Noora.Button.button label={gettext("Save settings")} size="medium" type="submit" />
-        </.form>
-      </Noora.Card.card_section>
-    </Noora.Card.card>
+          <div data-part="settings-actions">
+            <Noora.Button.button label={gettext("Save settings")} size="medium" type="submit" />
+          </div>
+        </Noora.Card.card_section>
+      </section>
+    </.form>
+    """
+  end
+
+  attr :event, :any, required: true
+  attr :settled, :boolean, required: true
+
+  defp event_badge(assigns) do
+    ~H"""
+    <Noora.Badge.status_badge
+      status={event_status(@event, @settled)}
+      label={event_status_label(@event, @settled)}
+    />
     """
   end
 
