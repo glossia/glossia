@@ -58,6 +58,21 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 1})
 
+    assert has_element?(
+             view,
+             "#translation-progress-summary-checking",
+             "Checking 0 of 1 file for updates"
+           )
+
+    refute has_element?(view, "#translation-progress-summary-running")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "plan_assessed",
+      total: 1,
+      needs_translation: 1,
+      up_to_date: 0
+    })
+
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_started",
       index: 0,
@@ -78,6 +93,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
            )
 
     assert has_element?(view, "#translation-progress-summary-translated", "0/1 translated")
+    refute has_element?(view, "#translation-progress-summary-checking")
     assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
     assert has_element?(view, "#translation-progress-item-0")
 
@@ -567,6 +583,87 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     refute has_element?(view, "#translation-progress [data-part='failure-summary']")
     refute render(view) =~ "repository-secret"
+  end
+
+  test "a repository with nothing to translate says so once", %{conn: conn} do
+    user = TestHelpers.create_user("translation-up-to-date@test.com", "translation-up-to-date")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "up-to-date", name: "Up to date"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 231})
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "plan_assessed",
+      total: 231,
+      needs_translation: 0,
+      up_to_date: 231
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-summary-up-to-date",
+             "No translations needed"
+           )
+
+    # "No translations needed" and "231 up to date" say the same thing.
+    refute has_element?(view, "#translation-progress-summary-skipped")
+    refute has_element?(view, "#translation-progress-summary-running")
+    refute has_element?(view, "#translation-progress-summary-checking")
+  end
+
+  test "a viewer who joins mid-run sees translation progress, not a stuck check", %{conn: conn} do
+    user = TestHelpers.create_user("translation-late-join@test.com", "translation-late-join")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "late-join", name: "Late join"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    # Progress is not replayed on mount, so a viewer arriving after the plan was
+    # assessed never receives `plan_assessed`. Neither does a session driven by
+    # a runner from an earlier release during a rolling deploy.
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      total: 4,
+      output_path: "app/priv/i18n/de/first.md",
+      locale: "de"
+    })
+
+    assert has_element?(view, "#translation-progress-summary-translated", "0/4 translated")
+    refute has_element?(view, "#translation-progress-summary-checking")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_completed",
+      index: 0,
+      output_path: "app/priv/i18n/de/first.md"
+    })
+
+    assert has_element?(view, "#translation-progress-summary-translated", "1/4 translated")
+    assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
   end
 
   test "a session must belong to the account and project in the route", %{conn: conn} do

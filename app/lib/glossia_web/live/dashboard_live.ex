@@ -7370,15 +7370,37 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_progress_panel(assigns) do
     assigns =
-      assign(assigns, :display_running, translation_progress_display_running(assigns.summary))
+      assigns
+      |> assign(:display_running, translation_progress_display_running(assigns.summary))
+      |> assign(:summary_state, translation_progress_summary_state(assigns.summary))
 
     ~H"""
-    <%= if @items != [] do %>
+    <%= if @summary.total > 0 do %>
       <div id="translation-progress" class="translation-progress">
         <div id="translation-progress-summary" data-part="summary">
-          <span id="translation-progress-summary-translated" data-part="translated">
-            {gettext("%{done}/%{total} translated", done: @summary.done, total: @summary.total)}
-          </span>
+          <%= case @summary_state do %>
+            <% :up_to_date -> %>
+              <span id="translation-progress-summary-up-to-date" data-part="up-to-date">
+                {gettext("No translations needed")}
+              </span>
+            <% :checking -> %>
+              <span id="translation-progress-summary-checking" data-part="checking">
+                {ngettext(
+                  "Checking %{checked} of %{total} file for updates",
+                  "Checking %{checked} of %{total} files for updates",
+                  @summary.total,
+                  checked: @summary.checked,
+                  total: @summary.total
+                )}
+              </span>
+            <% :translating -> %>
+              <span id="translation-progress-summary-translated" data-part="translated">
+                {gettext("%{done}/%{total} translated",
+                  done: @summary.done,
+                  total: @summary.needs_translation
+                )}
+              </span>
+          <% end %>
           <%= if @display_running > 0 do %>
             <span id="translation-progress-summary-running" data-part="running">
               {gettext("%{n} in progress", n: @display_running)}
@@ -7389,19 +7411,23 @@ defmodule GlossiaWeb.DashboardLive do
               {gettext("%{n} failed", n: @summary.failed)}
             </span>
           <% end %>
-          <%= if @summary.skipped > 0 do %>
+          <%= if @summary.skipped > 0 and @summary_state != :up_to_date do %>
             <span id="translation-progress-summary-skipped" data-part="skipped">
               {gettext("%{n} up to date", n: @summary.skipped)}
             </span>
           <% end %>
         </div>
-        <div :if={@failures != []} id="translation-progress-failures" data-part="failures">
+        <div
+          :if={@failures != []}
+          id="translation-progress-failures"
+          data-part="failures"
+          role="status"
+        >
           <section
             :for={failure <- @failures}
             id={failure.dom_id}
             data-part="failure-summary"
             data-kind={failure.kind}
-            role="alert"
           >
             <span data-part="failure-icon" aria-hidden="true">
               <Icon.alert_circle />
@@ -7531,9 +7557,30 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_progress_display_running(%{running: running}) when running > 0, do: running
 
   defp translation_progress_display_running(summary) do
-    processed = summary.done + summary.failed + summary.skipped
-    if processed < summary.total, do: 1, else: 0
+    processed = summary.done + summary.failed
+
+    if translation_progress_assessing?(summary, processed) do
+      0
+    else
+      if processed < summary.needs_translation, do: 1, else: 0
+    end
   end
+
+  # A session the viewer joined mid-run replays no `plan_assessed`, and neither
+  # does a runner from an earlier release. Once a file has reported in, the run
+  # is demonstrably past its assessment, so fall back to the plan total rather
+  # than claiming the session is still checking for updates.
+  defp translation_progress_summary_state(%{assessed?: true, needs_translation: 0}),
+    do: :up_to_date
+
+  defp translation_progress_summary_state(summary) do
+    if translation_progress_assessing?(summary, summary.done + summary.failed),
+      do: :checking,
+      else: :translating
+  end
+
+  defp translation_progress_assessing?(summary, processed),
+    do: not summary.assessed? and processed == 0 and summary.running == 0
 
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")
