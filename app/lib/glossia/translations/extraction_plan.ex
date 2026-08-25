@@ -308,7 +308,12 @@ defmodule Glossia.Translations.ExtractionPlan do
       binary_part(source, end_offset, length) == after_text
   end
 
-  defp marker("urls", _value, %{url: root}, index), do: "#{root}#{index}/value"
+  # A web-address-shaped marker is tempting here because it fits naturally in a
+  # Markdown link destination. Models tend to repair an invalid web address,
+  # though, which makes it less reliable than an opaque identifier. Markdown
+  # accepts this identifier in a link destination while the model is translating;
+  # the exact original web address is restored before output is written.
+  defp marker("urls", _value, %{url: root}, index), do: "#{root}#{index}__"
 
   defp marker("inline_code", _value, %{token: root}, index),
     do: "`#{root}#{index}`"
@@ -342,7 +347,7 @@ defmodule Glossia.Translations.ExtractionPlan do
       url:
         collision_free_root(
           source,
-          "https://glossia.invalid/protected-token/#{marker_digest}/"
+          "__GLOSSIA_URL_#{marker_digest}_"
         )
     }
   end
