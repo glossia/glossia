@@ -111,6 +111,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert_receive {:translation_session_event, %{type: "plan", total: 1}}
 
     assert_receive {:translation_session_event,
+                    %{type: "plan_assessed", total: 1, needs_translation: 1, up_to_date: 0}}
+
+    assert_receive {:translation_session_event,
                     %{type: "item_completed", output_path: "docs/i18n/es/guide.md"}}
   end
 
@@ -145,11 +148,53 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     git!(root, ["commit", "-q", "-m", "translations"])
 
     stub.()
+    TranslationSessions.subscribe_session_events(session)
 
     assert {:ok, []} =
              RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
                context_snapshot: Context.empty_snapshot()
              )
+
+    # The whole point of the assessment: the session reports that there is
+    # nothing to do rather than going silent with no items.
+    assert_receive {:translation_session_event,
+                    %{type: "plan_assessed", total: 1, needs_translation: 0, up_to_date: 1}}
+
+    refute_receive {:translation_session_event, %{type: "item_started"}}
+  end
+
+  @tag :tmp_dir
+  test "reports an unreadable source instead of aborting the whole run", %{tmp_dir: root} do
+    init_repo(root)
+
+    # A second source that the assessment cannot read. It must not take the
+    # readable file down with it.
+    File.write!(Path.join([root, "docs", "broken.md"]), "# Broken\n\nHello.")
+    File.chmod!(Path.join([root, "docs", "broken.md"]), 0o000)
+    on_exit(fn -> File.chmod(Path.join([root, "docs", "broken.md"]), 0o644) end)
+
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+    TranslationSessions.subscribe_session_events(session)
+
+    Mimic.stub(Translations, :translate_stream, fn _account, _payload, _on_event ->
+      {:ok,
+       %{text: "# Guía\n\nHola.", model: "openai/gpt-5", provider: "openai", model_handle: "m"}}
+    end)
+
+    assert {:error, {:translation_items_failed, failures}} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
+
+    assert [%{output_path: "docs/i18n/es/broken.md", reason: reason}] = failures
+    assert reason.kind == "source-unreadable"
+
+    assert_receive {:translation_session_event,
+                    %{type: "item_failed", output_path: "docs/i18n/es/broken.md"}}
+
+    # The readable file was still translated and published.
+    assert_receive {:translation_session_event,
+                    %{type: "item_completed", output_path: "docs/i18n/es/guide.md"}}
   end
 
   @tag :tmp_dir
