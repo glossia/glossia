@@ -95,8 +95,7 @@
   }
 
   & [data-part="status-icon"] svg,
-  & [data-part="failure-icon"] svg,
-  & [data-part="item-failure-icon"] svg {
+  & [data-part="failure-icon"] svg {
     width: var(--space-4);
     height: var(--space-4);
   }
@@ -250,22 +249,10 @@
   }
 
   & [data-part="item-failure"] {
-    display: grid;
-    grid-template-columns:
-      var(--translation-progress-status-width)
-      minmax(var(--space-0), 1fr);
-    gap: var(--space-3);
-    align-items: flex-start;
     margin-top: var(--space-3);
     padding-top: var(--space-3);
+    padding-inline-start: calc(var(--translation-progress-status-width) + var(--space-3));
     border-top: var(--space-px) solid var(--color-error-mid);
-  }
-
-  & [data-part="item-failure-icon"] {
-    display: inline-flex;
-    justify-self: start;
-    flex: 0 0 auto;
-    color: var(--color-error);
   }
 
   & [data-part="item-failure-content"] {

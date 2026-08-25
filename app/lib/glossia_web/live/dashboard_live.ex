@@ -7483,9 +7483,6 @@ defmodule GlossiaWeb.DashboardLive do
                 data-part="item-failure"
                 data-kind={item.failure.kind}
               >
-                <span data-part="item-failure-icon" aria-hidden="true">
-                  <Icon.alert_circle />
-                </span>
                 <div data-part="item-failure-content">
                   <p data-part="item-failure-title">{item.failure.title}</p>
                   <p data-part="item-failure-description">{item.failure.item_description}</p>

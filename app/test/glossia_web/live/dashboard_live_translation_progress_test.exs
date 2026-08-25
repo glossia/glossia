@@ -258,6 +258,8 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "#translation-progress-item-0 [data-part='status-icon'] svg.icon-tabler-alert-circle"
            )
 
+    refute has_element?(view, "#translation-progress-item-0 [data-part='item-failure-icon']")
+
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_started",
       index: 1,
