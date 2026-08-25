@@ -123,6 +123,9 @@ defmodule Glossia.Translations.Engine do
       {:validation_error, message} ->
         retry_validation(state, message)
 
+      {:preservation_error, message} ->
+        {:error, {:validation_failed, message}}
+
       {:error, reason} ->
         {:error, {:llm_failed, reason}}
     end
@@ -156,15 +159,18 @@ defmodule Glossia.Translations.Engine do
 
           {:error, reason} ->
             {:halt, {:error, reason}}
+
+          {:preservation_error, message} ->
+            {:halt, {:preservation_error, message}}
         end
     end)
   end
 
   # A long segment carrying many protected markers occasionally comes back with
   # one of them dropped or rewritten. Re-running that one segment, naming the
-  # markers it lost, recovers far more cheaply than failing the document and
-  # retranslating every segment of it. When the retries run out the output is
-  # kept as is, so restoration still reports it as a document-level failure.
+  # markers it lost, recovers far more cheaply than retranslating the document.
+  # If that focused recovery runs out, stop there rather than repeatedly
+  # translating segments whose output has already passed preservation checks.
   defp translate_segment(state, segment, index, count, attempt, last_error) do
     state.on_event.({:segment_start, index, count, segment.kind})
 
@@ -193,9 +199,12 @@ defmodule Glossia.Translations.Engine do
             state.on_event.({:segment_retry, index, message})
             translate_segment(state, segment, index, count, attempt + 1, message)
 
-          _markers ->
+          [] ->
             state.on_event.({:segment_output, text})
             {:ok, text, result}
+
+          markers ->
+            {:preservation_error, marker_error_message(markers)}
         end
 
       {:error, reason} ->

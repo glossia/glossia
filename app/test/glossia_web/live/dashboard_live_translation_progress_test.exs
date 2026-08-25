@@ -253,6 +253,11 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
 
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='status-icon'] svg.icon-tabler-alert-circle"
+           )
+
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_started",
       index: 1,

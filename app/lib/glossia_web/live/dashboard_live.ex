@@ -20,6 +20,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Translations.Failure
   alias Glossia.Voices
   alias Noora.Filter
+  alias Noora.Icon
 
   @tone_options ~w(casual formal playful authoritative neutral)
   @formality_options ~w(informal neutral formal very_formal)
@@ -7403,20 +7404,7 @@ defmodule GlossiaWeb.DashboardLive do
             role="alert"
           >
             <span data-part="failure-icon" aria-hidden="true">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 8v4"></path>
-                <path d="M12 16h.01"></path>
-              </svg>
+              <Icon.alert_circle />
             </span>
             <div data-part="failure-content">
               <p data-part="failure-title">{failure.title}</p>
@@ -7454,6 +7442,9 @@ defmodule GlossiaWeb.DashboardLive do
                   <%= if item.status == :running do %>
                     <span data-part="indicator" aria-hidden="true"></span>
                   <% end %>
+                  <span :if={item.status == :failed} data-part="status-icon" aria-hidden="true">
+                    <Icon.alert_circle />
+                  </span>
                   {translation_item_status_label(item.status)}
                 </span>
                 <a
@@ -7493,20 +7484,7 @@ defmodule GlossiaWeb.DashboardLive do
                 data-kind={item.failure.kind}
               >
                 <span data-part="item-failure-icon" aria-hidden="true">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M12 8v4"></path>
-                    <path d="M12 16h.01"></path>
-                  </svg>
+                  <Icon.alert_circle />
                 </span>
                 <div data-part="item-failure-content">
                   <p data-part="item-failure-title">{item.failure.title}</p>

@@ -637,6 +637,7 @@ defmodule Glossia.Quality do
           end)
         end)
       end)
+      |> Enum.sort_by(&context_entry_sort_key/1)
 
     terminology =
       selected
@@ -660,6 +661,17 @@ defmodule Glossia.Quality do
       end)
 
     %{version: context.version, terminology: terminology, guidance: guidance}
+  end
+
+  defp context_entry_sort_key(entry) do
+    {
+      entry.kind,
+      normalize_locale(entry.locale),
+      entry.route_scope || "",
+      entry.source_text || "",
+      entry.instruction || "",
+      entry.id || ""
+    }
   end
 
   defp locale_candidates(locale) do

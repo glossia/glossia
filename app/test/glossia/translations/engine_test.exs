@@ -435,7 +435,7 @@ defmodule Glossia.Translations.EngineTest do
         refute payload["source_content"] =~ "`mix test`"
 
         assert payload["source_content"] =~
-                 ~r|https://glossia\.invalid/protected-token/[a-f0-9]{12}/\d+/value|
+                 ~r/__GLOSSIA_URL_[a-f0-9]{12}_\d+__/
 
         translated(String.replace(payload["source_content"], "Visit", "Visita"))
       end)
@@ -465,7 +465,7 @@ defmodule Glossia.Translations.EngineTest do
 
         assert length(
                  Regex.scan(
-                   ~r|https://glossia\.invalid/protected-token/[a-f0-9]{12}/\d+/value|,
+                   ~r/__GLOSSIA_URL_[a-f0-9]{12}_\d+__/,
                    payload["source_content"]
                  )
                ) == 2
@@ -524,8 +524,8 @@ defmodule Glossia.Translations.EngineTest do
       assert {:error, {:validation_failed, message}} =
                Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
-      assert message =~ "protected token marker occurred 2 times"
-      assert message =~ "{name}"
+      assert message =~ "copied byte-for-byte exactly once"
+      assert message =~ "glossia_protected"
     end
 
     @tag :tmp_dir
@@ -575,7 +575,7 @@ defmodule Glossia.Translations.EngineTest do
         content = payload["source_content"]
 
         marker =
-          case Regex.run(~r{https://glossia\.invalid/[^\s\)"'<>]+}, content) do
+          case Regex.run(~r/__GLOSSIA_URL_[a-f0-9]{12}_\d+__/, content) do
             [marker] -> marker
             nil -> nil
           end
@@ -621,7 +621,44 @@ defmodule Glossia.Translations.EngineTest do
 
       retry = Enum.find(calls, &(&1["last_error"] not in [nil, ""]))
       assert retry["last_error"] =~ "copied byte-for-byte exactly once"
-      assert retry["last_error"] =~ "glossia.invalid"
+      assert retry["last_error"] =~ "GLOSSIA_URL"
+    end
+
+    @tag :tmp_dir
+    test "fails after segment-level token recovery without retranslating prior segments", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "links.md")
+      first = String.duplicate("First paragraph remains together. ", 130)
+      third = String.duplicate("Third paragraph remains together. ", 130)
+
+      File.write!(
+        source,
+        "#{first}\n\nSee [the report](https://example.com/report) for details.\n\n#{third}"
+      )
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        if payload["source_content"] =~ "__GLOSSIA_URL_" do
+          translated("consulta el informe para más detalles")
+        else
+          translated(payload["source_content"])
+        end
+      end)
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate, retries: 2})
+
+      assert {:error, {:validation_failed, message}} =
+               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      assert message =~ "GLOSSIA_URL"
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.map(calls, & &1["segment_index"]) == [1, 2, 2]
+      assert Enum.at(calls, 2)["last_error"] =~ "GLOSSIA_URL"
     end
   end
 end

@@ -89,6 +89,18 @@
     animation: translation-progress-spin var(--translation-progress-spinner-duration) linear infinite;
   }
 
+  & [data-part="status-icon"] {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  & [data-part="status-icon"] svg,
+  & [data-part="failure-icon"] svg,
+  & [data-part="item-failure-icon"] svg {
+    width: var(--space-4);
+    height: var(--space-4);
+  }
+
   & [data-part="path"] {
     min-width: var(--space-0);
     font-family: var(--font-family-mono);

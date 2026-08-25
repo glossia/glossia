@@ -212,6 +212,7 @@ defmodule Glossia.Translations.Context do
       project_context.guidance
       |> Enum.filter(&route_scope_matches?(&1, source_path))
       |> Enum.map(&guidance_instruction/1)
+      |> normalize_project_guidance()
 
     %{
       compiler_version: @compiler_version,
@@ -240,7 +241,16 @@ defmodule Glossia.Translations.Context do
     entries
     |> Enum.filter(&valid_entry?/1)
     |> Enum.filter(&likely_present?(&1, text, casefolded_text))
-    |> Enum.sort_by(&{-byte_size(&1.term), &1.term, &1.id || ""})
+    |> Enum.sort_by(
+      &{
+        -byte_size(&1.term),
+        &1.term,
+        &1.translation,
+        &1.definition || "",
+        &1.case_sensitive,
+        &1.id || ""
+      }
+    )
     |> Enum.reduce({[], []}, fn entry, {selected, claimed_ranges} ->
       available_ranges =
         entry
@@ -290,7 +300,12 @@ defmodule Glossia.Translations.Context do
 
     {voice_body, voice_truncated} = render_voice_with_budget(bundle.voice)
     {terminology_body, terminology_budget} = render_terminology_with_budget(terminology)
-    guidance_body = render_project_guidance(bundle.project_guidance || [])
+
+    guidance_body =
+      bundle.project_guidance
+      |> Kernel.||([])
+      |> normalize_project_guidance()
+      |> render_project_guidance()
 
     body =
       [voice_body, guidance_body, terminology_body]
@@ -314,7 +329,7 @@ defmodule Glossia.Translations.Context do
 
     project_content = %{
       terminology: normalized_terminology(bundle.project_terminology || []),
-      guidance: bundle.project_guidance || []
+      guidance: bundle.project_guidance |> Kernel.||([]) |> normalize_project_guidance()
     }
 
     project_content_hash =
@@ -377,6 +392,12 @@ defmodule Glossia.Translations.Context do
 
   defp resolve_project_context(%Project{} = project, version, locale) do
     Quality.resolve_project_context(project, version, locale)
+  end
+
+  defp normalize_project_guidance(guidance) do
+    guidance
+    |> Enum.filter(&is_binary/1)
+    |> Enum.sort()
   end
 
   defp without_project_overrides(entries, project_entries) do
@@ -553,7 +574,15 @@ defmodule Glossia.Translations.Context do
     prioritized =
       entries
       |> Enum.sort_by(fn entry ->
-        {-Map.get(entry, :match_count, 0), -byte_size(entry.term), entry.term, entry.id || ""}
+        {
+          -Map.get(entry, :match_count, 0),
+          -byte_size(entry.term),
+          entry.term,
+          entry.translation,
+          entry.definition || "",
+          entry.case_sensitive,
+          entry.id || ""
+        }
       end)
       |> Enum.take(@max_terminology_entries)
 
@@ -670,7 +699,7 @@ defmodule Glossia.Translations.Context do
   defp normalized_terminology(entries) do
     entries
     |> Enum.map(&Map.take(&1, [:term, :definition, :case_sensitive, :translation]))
-    |> Enum.sort_by(&{&1.term, &1.translation})
+    |> Enum.sort_by(&{&1.term, &1.translation, &1.definition || "", &1.case_sensitive})
   end
 
   defp bounded_text(value, limit) do
