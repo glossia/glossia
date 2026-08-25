@@ -114,10 +114,8 @@ defmodule Glossia.Translations.Validate do
 
   @doc "Fails unless placeholders, links, and code occur equally in source and output."
   def validate_preserve(output, source, kinds) do
-    source_values = PreservedTokens.values(source, kinds)
-    output_values = PreservedTokens.values(output, kinds)
-    missing = frequency_difference(source_values, output_values)
-    unexpected = frequency_difference(output_values, source_values)
+    missing = source |> PreservedTokens.unpreserved_values(output, kinds) |> Enum.take(5)
+    unexpected = output |> PreservedTokens.unpreserved_values(source, kinds) |> Enum.take(5)
 
     cond do
       missing != [] ->
@@ -129,17 +127,6 @@ defmodule Glossia.Translations.Validate do
       true ->
         :ok
     end
-  end
-
-  defp frequency_difference(expected, actual) do
-    actual_counts = Enum.frequencies(actual)
-
-    expected
-    |> Enum.frequencies()
-    |> Enum.flat_map(fn {value, count} ->
-      List.duplicate(value, max(count - Map.get(actual_counts, value, 0), 0))
-    end)
-    |> Enum.take(5)
   end
 
   # ── external ────────────────────────────────────────────────────────────

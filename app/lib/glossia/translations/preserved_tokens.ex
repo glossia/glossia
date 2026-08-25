@@ -4,18 +4,40 @@ defmodule Glossia.Translations.PreservedTokens do
 
   The masker deliberately recognizes a small, format-neutral set of atomic
   values rather than attempting to parse every Markdown extension. Fenced code,
-  inline code, web addresses, and placeholders are replaced with stable markers
-  before a model sees the content. The exact source values are then reconstructed
-  in the translated output.
+  inline code, and placeholders are replaced with stable markers before a model
+  sees the content.
+
+  A plain web address stays visible: models reproduce a real address more
+  reliably than a synthetic marker sitting in a Markdown link destination, and
+  the validation step still requires its exact source value in the final output.
+  An address that carries another protected value, such as a `{locale}` path
+  segment, is masked whole instead, so the model never sees the half-real
+  address it would otherwise be tempted to repair.
   """
 
   alias Glossia.Translations.ExtractionPlan
 
   @default_kinds ~w(code_blocks inline_code urls placeholders)
-  @version 5
+  @version 6
   @inline_code_regex ~r/`[^`\n]+`/
-  @url_regex ~r/https?:\/\/[^\s\)"'<>]+/
+
+  # A bare address in prose has no closing delimiter, so the scan itself decides
+  # where the address ends. Two rules keep that decision stable across locales.
+  # Restricting the run to the ASCII characters an address can carry stops a
+  # Japanese or Chinese sentence that continues straight after it — those
+  # scripts put no space there — from being swallowed into the match. Trimming
+  # sentence punctuation keeps "https://example.com." and "https://example.com。"
+  # comparable, so a translation that ends its sentence differently from the
+  # source is not mistaken for a dropped address.
+  @url_regex ~r/https?:\/\/[A-Za-z0-9\-._~:\/?#\[\]@!$&*+,;=%({}]+/
+  @url_trailing_punctuation ~r/[.,;:!?*_]+\z/
   @placeholder_regex ~r/\{\{[^{}\n]+\}\}|\{[^\s{}]+\}/
+
+  @regex_kinds [
+    {"inline_code", @inline_code_regex},
+    {"urls", @url_regex},
+    {"placeholders", @placeholder_regex}
+  ]
 
   @type protection :: ExtractionPlan.t()
 
@@ -42,15 +64,42 @@ defmodule Glossia.Translations.PreservedTokens do
     |> Enum.map(& &1.value)
   end
 
-  @doc "Replaces recognized source values with collision-resistant markers."
+  @doc "Replaces model-sensitive source values with collision-resistant markers."
   @spec protect(String.t(), [String.t()], keyword()) :: protection()
   def protect(source, kinds, opts \\ [])
-      when is_binary(source) and is_list(kinds) and is_list(opts),
-      do: ExtractionPlan.build!(source, ranges(source, kinds), opts)
+      when is_binary(source) and is_list(kinds) and is_list(opts) do
+    nested = nested_ranges(source, kinds)
+
+    ExtractionPlan.build!(
+      source,
+      source |> ranges(kinds) |> Enum.reject(&visible_url?(&1, nested)),
+      opts
+    )
+  end
 
   @doc "Markers the output reproduced the wrong number of times for `excerpt`."
   def unpreserved_markers(%ExtractionPlan{} = protection, excerpt, output),
     do: ExtractionPlan.unpreserved_markers(protection, excerpt, output)
+
+  @doc """
+  Values of `kinds` that `excerpt` carries but `output` does not reproduce.
+
+  Counts matter: a value the excerpt uses twice has to come back twice. Unlike
+  `unpreserved_markers/3` this compares the values themselves, so it also covers
+  content left visible to the model, such as a plain web address.
+  """
+  def unpreserved_values(excerpt, output, kinds)
+      when is_binary(excerpt) and is_binary(output) and is_list(kinds) do
+    reproduced = output |> values(kinds) |> Enum.frequencies()
+
+    excerpt
+    |> values(kinds)
+    |> Enum.frequencies()
+    |> Enum.flat_map(fn {value, count} ->
+      List.duplicate(value, max(count - Map.get(reproduced, value, 0), 0))
+    end)
+    |> Enum.sort()
+  end
 
   @doc "Restores protected values, failing when a model changed or duplicated a marker."
   @spec restore(String.t(), protection()) :: {:ok, String.t()} | {:error, String.t()}
@@ -65,11 +114,7 @@ defmodule Glossia.Translations.PreservedTokens do
         []
       end
 
-    [
-      {"inline_code", @inline_code_regex},
-      {"urls", @url_regex},
-      {"placeholders", @placeholder_regex}
-    ]
+    @regex_kinds
     |> Enum.reduce(code_ranges, fn {kind, regex}, accepted ->
       if kind in kinds do
         regex_ranges(source, regex, kind)
@@ -83,13 +128,44 @@ defmodule Glossia.Translations.PreservedTokens do
     |> Enum.sort_by(& &1.start)
   end
 
+  # A web address only has to be masked when it carries another protected value.
+  # `ranges/2` accepts addresses before placeholders, so an address that
+  # overlaps nothing suppressed nothing: dropping it cannot leave a nested value
+  # exposed, and the model gets to see the real address.
+  defp visible_url?(%{kind: "urls"} = range, nested_ranges),
+    do: not Enum.any?(nested_ranges, &overlap?(range, &1))
+
+  defp visible_url?(_range, _nested_ranges), do: false
+
+  defp nested_ranges(source, kinds) do
+    @regex_kinds
+    |> Enum.filter(fn {kind, _regex} -> kind != "urls" and kind in kinds end)
+    |> Enum.flat_map(fn {kind, regex} -> regex_ranges(source, regex, kind) end)
+  end
+
   defp regex_ranges(source, regex, kind) do
     regex
     |> Regex.scan(source, return: :index, capture: :first)
-    |> Enum.map(fn [{start, length}] ->
-      %{start: start, length: length, value: binary_part(source, start, length), kind: kind}
+    |> Enum.flat_map(fn [{start, length}] ->
+      trim_range(%{
+        start: start,
+        length: length,
+        value: binary_part(source, start, length),
+        kind: kind
+      })
     end)
   end
+
+  # Sentence punctuation that follows a bare address is prose, not part of the
+  # address, and the translation is free to change it.
+  defp trim_range(%{kind: "urls"} = range) do
+    case Regex.replace(@url_trailing_punctuation, range.value, "") do
+      "" -> []
+      trimmed -> [%{range | value: trimmed, length: byte_size(trimmed)}]
+    end
+  end
+
+  defp trim_range(range), do: [range]
 
   defp fenced_code_ranges(source) do
     source

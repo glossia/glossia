@@ -68,6 +68,7 @@ defmodule Glossia.Translations.Engine do
           account: account,
           work_item: work_item,
           segments: segments,
+          preserve_kinds: segment_preserve_kinds(work_item.format, preserve_kinds),
           protections: translation.protections,
           preserved_frontmatter: translation.preserved_frontmatter,
           source_text: source_text,
@@ -190,12 +191,12 @@ defmodule Glossia.Translations.Engine do
       {:ok, result} ->
         text = strip_structured_code_fence(state.work_item.format, result.text)
 
-        case unpreserved_markers(state.protections, segment.content, text) do
-          markers when markers != [] and attempt < @segment_attempts ->
+        case unpreserved(state, segment, text) do
+          unpreserved when unpreserved != [] and attempt < @segment_attempts ->
             # Deliberately no `segment_output`: progress folds that event into
             # the item's completed text, so announcing output we are about to
             # discard would leave the rejected and corrected text concatenated.
-            message = marker_error_message(markers)
+            message = preservation_error_message(unpreserved)
             state.on_event.({:segment_retry, index, message})
             translate_segment(state, segment, index, count, attempt + 1, message)
 
@@ -203,13 +204,23 @@ defmodule Glossia.Translations.Engine do
             state.on_event.({:segment_output, text})
             {:ok, text, result}
 
-          markers ->
-            {:preservation_error, marker_error_message(markers)}
+          unpreserved ->
+            {:preservation_error, preservation_error_message(unpreserved)}
         end
 
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  # Masked content is checked against the extraction plan's markers. Content
+  # left visible to the model, such as a plain web address, is checked against
+  # the segment source instead, so a model that localizes or drops an address is
+  # corrected by one focused retry rather than by a whole extra document attempt
+  # driven from the final validation step.
+  defp unpreserved(state, segment, text) do
+    unpreserved_markers(state.protections, segment.content, text) ++
+      PreservedTokens.unpreserved_values(segment.content, text, state.preserve_kinds)
   end
 
   defp unpreserved_markers(protections, segment_content, text) do
@@ -219,9 +230,15 @@ defmodule Glossia.Translations.Engine do
     )
   end
 
-  defp marker_error_message(markers) do
-    "these protected token markers must be copied byte-for-byte exactly once: " <>
-      Enum.join(markers, ", ")
+  # `Glossia.Translations.Validate` exempts PO output from preserved-value
+  # checks, where the catalog structure rather than the prose carries the
+  # protected values. The per-segment check follows the same policy.
+  defp segment_preserve_kinds("po", _kinds), do: []
+  defp segment_preserve_kinds(_format, kinds), do: kinds
+
+  defp preservation_error_message(values) do
+    "these protected token markers and web addresses must be copied byte-for-byte exactly once: " <>
+      Enum.join(values, ", ")
   end
 
   defp assemble_segments(state, translated_segments) do
