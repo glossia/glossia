@@ -42,7 +42,7 @@ defmodule Glossia.Translations.PreservedTokensTest do
     assert message =~ "occurred 2 times"
   end
 
-  test "masks web addresses with address-shaped markers" do
+  test "masks web addresses with opaque markers" do
     protection =
       PreservedTokens.protect(
         "Follow [Anthropic](https://anthropic.com) closely.",
@@ -51,8 +51,7 @@ defmodule Glossia.Translations.PreservedTokensTest do
 
     [{marker, "https://anthropic.com"}] = protection.replacements
 
-    assert marker =~
-             ~r|\Ahttps://glossia\.invalid/protected-token/[a-f0-9]{12}/0/value\z|
+    assert marker =~ ~r/\A__GLOSSIA_URL_[a-f0-9]{12}_0__\z/
 
     assert protection.text == "Follow [Anthropic](#{marker}) closely."
 
