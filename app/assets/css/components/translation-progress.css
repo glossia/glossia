@@ -209,7 +209,9 @@
 
     & dl {
       display: grid;
-      gap: var(--space-2);
+      grid-template-columns: max-content minmax(var(--space-0), 1fr);
+      column-gap: var(--space-3);
+      row-gap: var(--space-2);
       margin: var(--space-2) var(--space-0) var(--space-0);
       padding: var(--space-3);
       border: var(--space-px) solid var(--color-border);
@@ -218,9 +220,7 @@
     }
 
     & dl > div {
-      display: grid;
-      grid-template-columns: max-content minmax(var(--space-0), 1fr);
-      gap: var(--space-3);
+      display: contents;
     }
 
     & dt {
@@ -251,7 +251,7 @@
 
   & [data-part="item-failure-icon"] {
     display: inline-flex;
-    justify-self: end;
+    justify-self: start;
     flex: 0 0 auto;
     color: var(--color-error);
   }
@@ -355,6 +355,10 @@
     & [data-part="item-failure"] {
       grid-template-columns: max-content minmax(var(--space-0), 1fr);
       gap: var(--space-2);
+    }
+
+    & [data-part="item-diagnostics"] dl {
+      grid-template-columns: minmax(var(--space-0), 1fr);
     }
 
     & [data-part="live-output"],
