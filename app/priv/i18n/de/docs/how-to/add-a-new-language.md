@@ -1,15 +1,9 @@
-%{
-  title: "Eine neue Sprache hinzufügen",
-  summary: "Wie Sie einem bestehenden Glossia-Setup eine Zielsprache hinzufügen.",
-  category: "how-to",
-  order: 1
-}
----
+
 Wenn Sie Glossia bereits konfiguriert haben und eine weitere Zielsprache hinzufügen möchten, befolgen Sie diese Schritte.
 
 ## 1. GLOSSIA.md aktualisieren
 
-Öffnen Sie Ihre `GLOSSIA.md` und fügen Sie den neuen Sprachcode zum Array `targets` hinzu:
+Öffnen Sie Ihre `GLOSSIA.md` und fügen Sie den neuen Sprachcode dem `targets` Array hinzu:
 
 ```yaml
 targets:
@@ -21,21 +15,21 @@ targets:
 
 ## 2. Sprachspezifischen Kontext hinzufügen (optional)
 
-Wenn die neue Sprache spezielle Anweisungen erfordert, wie z. B. den Formalitätsgrad oder Aspekte des Zeichensatzes, erstellen Sie eine Datei zur Kontext-Überschreibung:
+Wenn die neue Sprache spezielle Anweisungen benötigt, wie Formalitätsgrad oder Zeichensatzüberlegungen, erstellen Sie eine Kontext-Überschreibungsdatei:
 
 ```
 GLOSSIA/
   ja.md
 ```
 
-Schreiben Sie alle sprachspezifischen Vorgaben in diese Datei. Glossia führt diese für japanische Übersetzungen mit dem Basis-Kontext zusammen.
+Schreiben Sie darin weitere sprachspezifische Anleitungen. Glossia kombiniert dies mit dem Basis-Kontext für Japanisch-Übersetzungen.
 
-## 3. Konfigurationsänderung veröffentlichen
+## 3. Die Konfigurationsänderung veröffentlichen
 
-Committen und pushen Sie die aktualisierte Konfiguration. Wenn das Repository mit Glossia verbunden ist, erkennt der Server die neue Zielsprache und startet eine Übersetzungssitzung.
+Kommiten und pushen Sie die aktualisierte Konfiguration. Wenn das Repository mit Glossia verbunden ist, erkennt der Server die neue Zielsprache und startet eine Übersetzungssitzung.
 
-Bestehende Übersetzungen für andere Sprachen bleiben unverändert, wenn sich deren Eingaben und der effektive Kontext nicht geändert haben.
+Bestehende Übersetzungen für andere Sprachen bleiben unverändert, wenn Ihre Eingaben und der effektive Kontext unverändert sind.
 
-## 4. Übersetzungs-Pull-Request prüfen
+## 4. Die Übersetzungs-Pull-Request überprüfen
 
-Verfolgen Sie die Übersetzungssitzung in Glossia und prüfen Sie anschließend die generierten Sprachdateien im vom Server geöffneten Pull-Request.
+Folgen Sie der Übersetzungssitzung in Glossia und beziehen Sie dann die generierten Sprachdateien im vom Server eröffneten Pull-Request mit.
