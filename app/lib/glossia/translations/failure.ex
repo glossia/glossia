@@ -94,12 +94,19 @@ defmodule Glossia.Translations.Failure do
   def normalize(reason)
 
   def normalize(%{} = failure) do
-    kind = safe_kind(map_value(failure, :kind))
+    status = safe_status(map_value(failure, :status))
+
+    kind =
+      failure
+      |> map_value(:kind)
+      |> safe_kind()
+      |> normalize_provider_kind(status)
+
     scope = if kind in @provider_kinds, do: "session", else: "item"
 
     failure(kind, scope,
       provider: safe_provider(map_value(failure, :provider)),
-      status: safe_status(map_value(failure, :status)),
+      status: status,
       code: safe_identifier(map_value(failure, :code), 80),
       request_id: safe_identifier(map_value(failure, :request_id), 200)
     )
@@ -162,7 +169,11 @@ defmodule Glossia.Translations.Failure do
             ]) ->
           "provider-credentials"
 
-        contains_any?(normalized, ["timed out", "timeout", "checkout timeout"]) ->
+        permanent_status?(status) ->
+          "provider-error"
+
+        status == 408 or
+            contains_any?(normalized, ["timed out", "timeout", "checkout timeout"]) ->
           "provider-timeout"
 
         true ->
@@ -252,6 +263,12 @@ defmodule Glossia.Translations.Failure do
 
   defp safe_kind(kind) when kind in @known_kinds, do: kind
   defp safe_kind(_kind), do: "translation-failed"
+
+  defp normalize_provider_kind("provider-timeout", status) do
+    if permanent_status?(status), do: "provider-error", else: "provider-timeout"
+  end
+
+  defp normalize_provider_kind(kind, _status), do: kind
 
   defp safe_provider(nil), do: nil
 

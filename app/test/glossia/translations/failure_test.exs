@@ -95,6 +95,37 @@ defmodule Glossia.Translations.FailureTest do
            )
   end
 
+  test "does not call a rejected request a timeout" do
+    failure =
+      Failure.from(
+        {:llm_failed,
+         %{
+           reason: "request timed out while the provider rejected the request",
+           status: 400,
+           response_body: %{"type" => "invalid_request_error"}
+         }},
+        "openai"
+      )
+
+    assert failure.kind == "provider-error"
+    assert failure.status == 400
+    assert failure.code == "invalid_request_error"
+    refute Failure.retryable?(failure)
+  end
+
+  test "corrects a stale timeout event with a rejected-request status" do
+    failure =
+      Failure.normalize(%{
+        kind: "provider-timeout",
+        status: 400,
+        code: "invalid_request_error"
+      })
+
+    assert failure.kind == "provider-error"
+    assert failure.status == 400
+    assert failure.code == "invalid_request_error"
+  end
+
   # Providers word per-minute rate limits as an exceeded quota; that is a
   # retryable throttle, not an exhausted balance.
   test "reads a rate-limited quota message as a rate limit, not exhausted credit" do
