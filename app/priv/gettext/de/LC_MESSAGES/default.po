@@ -3312,6 +3312,18 @@ msgstr "Was dieser Begriff bedeutet"
 msgid "terminology"
 msgstr "Terminologie"
 
+#: lib/glossia_web/live/dashboard_live.ex:7389
+#, elixir-autogen, elixir-format
+msgid "Checking %{checked} of %{total} file for updates"
+msgid_plural "Checking %{checked} of %{total} files for updates"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/glossia_web/live/dashboard_live.ex:7384
+#, elixir-autogen, elixir-format
+msgid "No translations needed"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex:7379
 #, elixir-autogen, elixir-format
 msgid "%{done}/%{total} translated"

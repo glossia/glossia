@@ -38,7 +38,16 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     assert second.reason.kind == "translation-failed"
     assert second.reason.scope == "item"
 
-    assert Progress.summary(state) == %{total: 2, skipped: 0, done: 1, failed: 1, running: 0}
+    assert Progress.summary(state) == %{
+             total: 2,
+             checked: 0,
+             needs_translation: 2,
+             assessed?: false,
+             skipped: 0,
+             done: 1,
+             failed: 1,
+             running: 0
+           }
   end
 
   test "keeps completed segments visible while the next segment streams" do
@@ -130,10 +139,20 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       ])
 
     assert [%{index: 0, status: :running, turns: 0}] = Progress.items(state)
-    assert Progress.summary(state) == %{total: 2, skipped: 0, done: 0, failed: 0, running: 1}
+
+    assert Progress.summary(state) == %{
+             total: 2,
+             checked: 0,
+             needs_translation: 2,
+             assessed?: false,
+             skipped: 0,
+             done: 0,
+             failed: 0,
+             running: 1
+           }
   end
 
-  test "counts skipped items" do
+  test "counts per-file skips reported by a runner from an earlier release" do
     state =
       Progress.fold([
         %{type: "plan", total: 1},
@@ -141,6 +160,43 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       ])
 
     assert Progress.summary(state).skipped == 1
+  end
+
+  test "tracks how far the plan assessment has come" do
+    state =
+      Progress.fold([
+        %{type: "plan", total: 231},
+        %{type: "plan_progress", checked: 25, total: 231},
+        %{type: "plan_progress", checked: 50, total: 231}
+      ])
+
+    summary = Progress.summary(state)
+
+    assert summary.checked == 50
+    assert summary.total == 231
+    refute summary.assessed?
+  end
+
+  test "shows a file that failed before it started" do
+    # The plan assessment can fail a file before it announces itself, such as
+    # when its source cannot be read. The row still has to appear.
+    state =
+      Progress.fold([
+        %{type: "plan", total: 1},
+        %{
+          type: "item_failed",
+          index: 0,
+          total: 1,
+          output_path: "de/a.md",
+          reason: %{kind: "source-unreadable", scope: "item"}
+        }
+      ])
+
+    assert [%{index: 0, status: :failed, output_path: "de/a.md", reason: reason}] =
+             Progress.items(state)
+
+    assert reason.kind == "source-unreadable"
+    assert Progress.summary(state).failed == 1
   end
 
   test "recovers the plan total from a file event" do
@@ -153,6 +209,34 @@ defmodule Glossia.TranslationSessions.ProgressTest do
         locale: "de"
       })
 
-    assert Progress.summary(state) == %{total: 6, skipped: 0, done: 0, failed: 0, running: 1}
+    assert Progress.summary(state) == %{
+             total: 6,
+             checked: 0,
+             needs_translation: 6,
+             assessed?: false,
+             skipped: 0,
+             done: 0,
+             failed: 0,
+             running: 1
+           }
+  end
+
+  test "records the number of files that need model work after checking locks" do
+    state =
+      Progress.fold([
+        %{type: "plan", total: 231},
+        %{type: "plan_assessed", total: 231, needs_translation: 1, up_to_date: 230}
+      ])
+
+    assert Progress.summary(state) == %{
+             total: 231,
+             checked: 0,
+             needs_translation: 1,
+             assessed?: true,
+             skipped: 230,
+             done: 0,
+             failed: 0,
+             running: 0
+           }
   end
 end

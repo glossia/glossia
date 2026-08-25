@@ -14,7 +14,7 @@ defmodule Glossia.Translations.PreservedTokensTest do
 
     protection = PreservedTokens.protect(source, PreservedTokens.resolve([]))
 
-    refute protection.text =~ "https://example.com/guide"
+    assert protection.text =~ "https://example.com/guide"
     refute protection.text =~ "IO.puts"
     refute protection.text =~ "{locale}"
 
@@ -42,18 +42,15 @@ defmodule Glossia.Translations.PreservedTokensTest do
     assert message =~ "occurred 2 times"
   end
 
-  test "masks web addresses with opaque markers" do
+  test "keeps web addresses visible to the model" do
     protection =
       PreservedTokens.protect(
         "Follow [Anthropic](https://anthropic.com) closely.",
         ["urls"]
       )
 
-    [{marker, "https://anthropic.com"}] = protection.replacements
-
-    assert marker =~ ~r/\A__GLOSSIA_URL_[a-f0-9]{12}_0__\z/
-
-    assert protection.text == "Follow [Anthropic](#{marker}) closely."
+    assert protection.replacements == []
+    assert protection.text == "Follow [Anthropic](https://anthropic.com) closely."
 
     assert {:ok, "Sigue [Anthropic](https://anthropic.com) de cerca."} =
              protection.text
@@ -62,38 +59,92 @@ defmodule Glossia.Translations.PreservedTokensTest do
              |> PreservedTokens.restore(protection)
   end
 
-  test "masks repeated web addresses independently and restores every occurrence" do
-    source =
-      "Compare [one](https://anthropic.com) with [two](https://anthropic.com)."
+  test "masks a web address whole when it carries another protected value" do
+    protection =
+      PreservedTokens.protect("Read [the guide](https://glossia.ai/{locale}/docs).", [
+        "urls",
+        "placeholders"
+      ])
 
-    protection = PreservedTokens.protect(source, ["urls"])
+    [{marker, "https://glossia.ai/{locale}/docs"}] = protection.replacements
 
-    assert [{first, "https://anthropic.com"}, {second, "https://anthropic.com"}] =
-             protection.replacements
+    # The model must never see a half-real address: it repairs those.
+    refute protection.text =~ "https://glossia.ai"
+    assert protection.text == "Read [the guide](#{marker})."
 
-    assert first != second
-    refute protection.text =~ "https://anthropic.com"
-    assert protection.text =~ "[one](#{first})"
-    assert protection.text =~ "[two](#{second})"
-
-    assert {:ok, "Compara [uno](https://anthropic.com) con [dos](https://anthropic.com)."} =
+    assert {:ok, "Lee [la guía](https://glossia.ai/{locale}/docs)."} =
              protection.text
-             |> String.replace("Compare", "Compara")
-             |> String.replace("[one]", "[uno]")
-             |> String.replace(" with ", " con ")
-             |> String.replace("[two]", "[dos]")
+             |> String.replace("Read", "Lee")
+             |> String.replace("[the guide]", "[la guía]")
              |> PreservedTokens.restore(protection)
   end
 
-  test "keeps address markers prefix-safe after the tenth occurrence" do
+  test "leaves a placeholder beside a plain web address visible and masks the placeholder" do
+    protection =
+      PreservedTokens.protect("Open https://glossia.ai for {count} items.", [
+        "urls",
+        "placeholders"
+      ])
+
+    assert protection.text =~ "https://glossia.ai"
+    refute protection.text =~ "{count}"
+  end
+
+  test "ends a bare web address at the sentence, not at the next space" do
+    # Japanese and Chinese put no space after the address, so a scan that only
+    # stops at whitespace swallows the translated sentence that follows it.
+    assert PreservedTokens.values("詳細は https://example.com/a。次をご覧ください", ["urls"]) ==
+             ["https://example.com/a"]
+
+    assert PreservedTokens.values("参照（https://example.com/a）", ["urls"]) ==
+             ["https://example.com/a"]
+  end
+
+  test "treats trailing sentence punctuation as prose, not as part of the address" do
+    for source <- [
+          "See https://example.com/a.",
+          "Voir https://example.com/a, puis",
+          "Siehe https://example.com/a!",
+          "**https://example.com/a**"
+        ] do
+      assert PreservedTokens.values(source, ["urls"]) == ["https://example.com/a"]
+    end
+  end
+
+  test "reports values the output did not reproduce, counting occurrences" do
+    excerpt = "Compare https://a.example with https://b.example and https://a.example."
+
+    assert PreservedTokens.unpreserved_values(excerpt, excerpt, ["urls"]) == []
+
+    assert PreservedTokens.unpreserved_values(
+             excerpt,
+             "Compara https://a.example con https://b.example.",
+             ["urls"]
+           ) == ["https://a.example"]
+
+    assert PreservedTokens.unpreserved_values(
+             excerpt,
+             "Compara https://a.example/es con https://b.example.",
+             ["urls"]
+           ) == ["https://a.example", "https://a.example"]
+  end
+
+  test "finds repeated web addresses for output validation" do
+    source =
+      "Compare [one](https://anthropic.com) with [two](https://anthropic.com)."
+
+    assert PreservedTokens.values(source, ["urls"]) == [
+             "https://anthropic.com",
+             "https://anthropic.com"
+           ]
+  end
+
+  test "finds web addresses after the tenth occurrence" do
     source =
       0..11
       |> Enum.map_join(" ", fn index -> "https://example.com/#{index}" end)
 
-    protection = PreservedTokens.protect(source, ["urls"])
-
-    assert length(protection.replacements) == 12
-    assert {:ok, ^source} = PreservedTokens.restore(protection.text, protection)
+    assert length(PreservedTokens.values(source, ["urls"])) == 12
   end
 
   test "none disables masking" do

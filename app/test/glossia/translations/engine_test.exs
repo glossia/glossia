@@ -431,11 +431,12 @@ defmodule Glossia.Translations.EngineTest do
       )
 
       stub_stream(fn _account, payload, _on_event ->
-        refute payload["source_content"] =~ "https://glossia.ai/{locale}"
+        # The address carries a placeholder, so it is masked whole rather than
+        # handed to the model as a half-real address it would try to repair.
+        refute payload["source_content"] =~ "https://glossia.ai"
+        refute payload["source_content"] =~ "{locale}"
         refute payload["source_content"] =~ "`mix test`"
-
-        assert payload["source_content"] =~
-                 ~r/__GLOSSIA_URL_[a-f0-9]{12}_\d+__/
+        assert payload["source_content"] =~ ~r/__GLOSSIA_URL_[a-f0-9]{12}_\d+__/
 
         translated(String.replace(payload["source_content"], "Visit", "Visita"))
       end)
@@ -452,7 +453,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "masks repeated web addresses and reconstructs every exact occurrence", %{tmp_dir: dir} do
+    test "keeps repeated web addresses visible to the model", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.md")
 
       File.write!(
@@ -461,14 +462,7 @@ defmodule Glossia.Translations.EngineTest do
       )
 
       stub_stream(fn _account, payload, _on_event ->
-        refute payload["source_content"] =~ "https://anthropic.com"
-
-        assert length(
-                 Regex.scan(
-                   ~r/__GLOSSIA_URL_[a-f0-9]{12}_\d+__/,
-                   payload["source_content"]
-                 )
-               ) == 2
+        assert length(Regex.scan(~r/https:\/\/anthropic\.com/, payload["source_content"])) == 2
 
         translated(
           payload["source_content"]
@@ -565,7 +559,7 @@ defmodule Glossia.Translations.EngineTest do
 
       File.write!(
         source,
-        "#{first}\n\nSee [the report](https://example.com/report) for details.\n\n#{second}"
+        "#{first}\n\nSee [the report]({report_url}) for details.\n\n#{second}"
       )
 
       {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
@@ -575,7 +569,7 @@ defmodule Glossia.Translations.EngineTest do
         content = payload["source_content"]
 
         marker =
-          case Regex.run(~r/__GLOSSIA_URL_[a-f0-9]{12}_\d+__/, content) do
+          case Regex.run(~r/\{glossia_protected_[a-f0-9]{12}_\d+\}/, content) do
             [marker] -> marker
             nil -> nil
           end
@@ -599,7 +593,7 @@ defmodule Glossia.Translations.EngineTest do
       on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
 
       assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
-      assert result.text =~ "https://example.com/report"
+      assert result.text =~ "{report_url}"
 
       # Progress folds `segment_output` into the item's completed text, so the
       # rejected attempt must not announce output it is about to discard.
@@ -621,7 +615,7 @@ defmodule Glossia.Translations.EngineTest do
 
       retry = Enum.find(calls, &(&1["last_error"] not in [nil, ""]))
       assert retry["last_error"] =~ "copied byte-for-byte exactly once"
-      assert retry["last_error"] =~ "GLOSSIA_URL"
+      assert retry["last_error"] =~ "glossia_protected"
     end
 
     @tag :tmp_dir
@@ -634,7 +628,7 @@ defmodule Glossia.Translations.EngineTest do
 
       File.write!(
         source,
-        "#{first}\n\nSee [the report](https://example.com/report) for details.\n\n#{third}"
+        "#{first}\n\nSee [the report]({report_url}) for details.\n\n#{third}"
       )
 
       {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
@@ -642,7 +636,7 @@ defmodule Glossia.Translations.EngineTest do
       stub_stream(fn _account, payload, _on_event ->
         Elixir.Agent.update(payloads, &[payload | &1])
 
-        if payload["source_content"] =~ "__GLOSSIA_URL_" do
+        if payload["source_content"] =~ "{glossia_protected_" do
           translated("consulta el informe para más detalles")
         else
           translated(payload["source_content"])
@@ -654,11 +648,88 @@ defmodule Glossia.Translations.EngineTest do
       assert {:error, {:validation_failed, message}} =
                Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
-      assert message =~ "GLOSSIA_URL"
+      assert message =~ "glossia_protected"
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
       assert Enum.map(calls, & &1["segment_index"]) == [1, 2, 2]
-      assert Enum.at(calls, 2)["last_error"] =~ "GLOSSIA_URL"
+      assert Enum.at(calls, 2)["last_error"] =~ "glossia_protected"
+    end
+
+    @tag :tmp_dir
+    test "keeps web addresses visible to the model and validates the returned address", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "links.md")
+      File.write!(source, "See [the report](https://example.com/report) for details.")
+
+      stub_stream(fn _account, payload, _on_event ->
+        assert payload["source_content"] =~ "https://example.com/report"
+        refute payload["source_content"] =~ "GLOSSIA_URL"
+
+        translated("Consulta [el informe](https://example.com/report) para más detalles.")
+      end)
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text =~ "https://example.com/report"
+    end
+
+    @tag :tmp_dir
+    test "accepts an address the translation ends with its own sentence punctuation", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "links.md")
+      File.write!(source, "See https://example.com/report for details.")
+
+      # Japanese closes the sentence with 。 and puts no space after the
+      # address. The address is unchanged; only the prose around it moved.
+      stub_stream(fn _account, _payload, _on_event ->
+        translated("詳細は https://example.com/report。をご覧ください")
+      end)
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text =~ "https://example.com/report"
+    end
+
+    @tag :tmp_dir
+    test "repairs a localized address with one focused segment retry", %{tmp_dir: dir} do
+      source = Path.join(dir, "links.md")
+      File.write!(source, "See [the report](https://example.com/report) for details.")
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        # A model that localizes the path must not cost a whole extra document
+        # attempt: the segment is retried on its own with the address named.
+        if payload["last_error"] in [nil, ""] do
+          translated("Consulta [el informe](https://example.com/es/report) para más detalles.")
+        else
+          translated("Consulta [el informe](https://example.com/report) para más detalles.")
+        end
+      end)
+
+      {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
+      on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
+      assert result.text =~ "https://example.com/report"
+      refute result.text =~ "/es/report"
+
+      calls = Elixir.Agent.get(payloads, &Enum.reverse/1)
+      assert length(calls) == 2
+      assert Enum.at(calls, 1)["last_error"] =~ "https://example.com/report"
+
+      # One segment was retried, not the whole document.
+      recorded = Elixir.Agent.get(events, &Enum.reverse/1)
+      assert Enum.count(recorded, &match?({:attempt_start, _}, &1)) == 1
+      assert Enum.count(recorded, &match?({:segment_retry, _, _}, &1)) == 1
     end
   end
 end

@@ -25,6 +25,7 @@ defmodule Glossia.Translations.RepositoryRun do
 
   @git_timeout_ms 600_000
   @runner_timeout :infinity
+  @assessment_progress_interval 25
 
   @doc """
   Clones `repository`, translates `locales`, and returns `{:ok, changes}`.
@@ -105,21 +106,34 @@ defmodule Glossia.Translations.RepositoryRun do
       total = length(items)
       broadcast(session, %{type: "plan", total: total}, progress_node)
 
+      prepared_items =
+        prepare_items(session, repo_path, items, context_snapshot, locale_contexts, progress_node)
+
+      needs_translation = Enum.count(prepared_items, &(&1.status != :up_to_date))
+
+      broadcast(
+        session,
+        %{
+          type: "plan_assessed",
+          total: total,
+          needs_translation: needs_translation,
+          up_to_date: total - needs_translation
+        },
+        progress_node
+      )
+
       result =
-        items
-        |> Enum.with_index()
-        |> Enum.reduce_while({:ok, []}, fn {item, index}, {:ok, failures} ->
-          case apply_one(
+        prepared_items
+        |> Enum.reject(&(&1.status == :up_to_date))
+        |> Enum.reduce_while({:ok, []}, fn prepared_item, {:ok, failures} ->
+          case apply_prepared_item(
                  session,
                  account,
                  repo_path,
-                 item,
-                 index,
+                 prepared_item,
                  total,
                  progress_node,
                  credential_node,
-                 context_snapshot,
-                 locale_contexts,
                  publication_target
                ) do
             :ok -> {:cont, {:ok, failures}}
@@ -169,21 +183,59 @@ defmodule Glossia.Translations.RepositoryRun do
     end
   end
 
-  defp apply_one(
-         session,
-         account,
+  # Resolving an item's lock state means building its context bundle, which is
+  # the expensive half of the assessment. A repository whose files are almost
+  # all up to date therefore spends most of the run here, so report how far the
+  # assessment has come rather than leaving the session silent until it ends.
+  defp prepare_items(session, repo_path, items, context_snapshot, locale_contexts, progress_node) do
+    total = length(items)
+
+    items
+    |> Enum.with_index()
+    |> Enum.map(fn {item, index} ->
+      prepared = prepare_item(repo_path, item, index, context_snapshot, locale_contexts)
+      broadcast_assessment_progress(session, index + 1, total, progress_node)
+      prepared
+    end)
+  end
+
+  defp broadcast_assessment_progress(session, checked, total, progress_node) do
+    if checked < total and rem(checked, @assessment_progress_interval) == 0 do
+      broadcast(
+        session,
+        %{type: "plan_progress", checked: checked, total: total},
+        progress_node
+      )
+    end
+
+    :ok
+  end
+
+  defp prepare_item(repo_path, item, index, context_snapshot, locale_contexts) do
+    case File.read(item.source_abs) do
+      {:ok, source_content} ->
+        prepare_readable_item(
+          repo_path,
+          item,
+          index,
+          source_content,
+          context_snapshot,
+          locale_contexts
+        )
+
+      {:error, reason} ->
+        failed_item(item, index, Failure.from({:source_unreadable, reason}))
+    end
+  end
+
+  defp prepare_readable_item(
          repo_path,
          item,
          index,
-         total,
-         progress_node,
-         credential_node,
+         source_content,
          context_snapshot,
-         locale_contexts,
-         publication_target
+         locale_contexts
        ) do
-    source_content = File.read!(item.source_abs)
-
     if String.valid?(source_content) do
       {_preserved_frontmatter, translatable_source} = Engine.prepare(item, source_content)
 
@@ -198,104 +250,107 @@ defmodule Glossia.Translations.RepositoryRun do
         )
 
       item = Map.put(item, :server_context, server_context)
+      provider = ModelIdentifier.provider(item.model)
 
-      translate_or_skip_item(
-        session,
-        account,
-        repo_path,
-        item,
-        source_content,
-        index,
-        total,
-        progress_node,
-        credential_node,
-        publication_target
-      )
-    else
-      failure = Failure.from(:source_invalid_encoding)
+      hash_state =
+        Locks.build_hash_state(%{
+          format: item.format,
+          source_path: item.source_path,
+          source_content: source_content,
+          provider: provider,
+          model: item.model || "",
+          source_language: item.source_language,
+          language: item.language,
+          locale: item.locale,
+          frontmatter_mode: item.frontmatter_mode,
+          preserve: item.preserve || [],
+          custom_prompt: item.prompt,
+          context_body: item.context_body,
+          locale_override_body: item.locale_override_body,
+          retries: item.retries,
+          check_cmd: item.check_cmd,
+          check_cmds: item.check_cmds,
+          validation: item.validation,
+          validation_relative_path: item.validation_relative_path,
+          server_context: item.server_context
+        })
 
-      broadcast(
-        session,
+      current_output_hash =
+        if File.exists?(item.output_abs),
+          do: Locks.output_hash(File.read!(item.output_abs)),
+          else: ""
+
+      lock = Locks.read_lock(repo_path, item.source_path, item.locale)
+
+      if Locks.stale?(lock, hash_state.hash, item.output_path, current_output_hash) do
         %{
-          type: "item_failed",
           index: index,
-          output_path: item.output_path,
-          reason: failure
-        },
-        progress_node
-      )
-
-      {:error, item_failure(item, index, failure)}
+          item: item,
+          provider: provider,
+          hash_state: hash_state,
+          status: :translation_needed
+        }
+      else
+        # Only the count is read for an up-to-date file, so its context bundle
+        # is dropped here instead of being held for the whole run.
+        %{index: index, status: :up_to_date}
+      end
+    else
+      failed_item(item, index, Failure.from(:source_invalid_encoding))
     end
   end
 
-  defp translate_or_skip_item(
+  defp failed_item(item, index, reason),
+    do: %{index: index, item: item, reason: reason, status: :failed}
+
+  defp apply_prepared_item(
          session,
          account,
          repo_path,
-         item,
-         source_content,
-         index,
+         %{status: :translation_needed} = prepared_item,
          total,
          progress_node,
          credential_node,
          publication_target
        ) do
-    provider = ModelIdentifier.provider(item.model)
+    translate_item(
+      session,
+      account,
+      repo_path,
+      prepared_item.item,
+      prepared_item.index,
+      total,
+      prepared_item.provider,
+      prepared_item.hash_state,
+      progress_node,
+      credential_node,
+      publication_target
+    )
+  end
 
-    hash_state =
-      Locks.build_hash_state(%{
-        format: item.format,
-        source_path: item.source_path,
-        source_content: source_content,
-        provider: provider,
-        model: item.model || "",
-        source_language: item.source_language,
-        language: item.language,
-        locale: item.locale,
-        frontmatter_mode: item.frontmatter_mode,
-        preserve: item.preserve || [],
-        custom_prompt: item.prompt,
-        context_body: item.context_body,
-        locale_override_body: item.locale_override_body,
-        retries: item.retries,
-        check_cmd: item.check_cmd,
-        check_cmds: item.check_cmds,
-        validation: item.validation,
-        validation_relative_path: item.validation_relative_path,
-        server_context: item.server_context
-      })
+  defp apply_prepared_item(
+         session,
+         _account,
+         _repo_path,
+         %{status: :failed} = prepared_item,
+         total,
+         progress_node,
+         _credential_node,
+         _publication_target
+       ) do
+    broadcast(
+      session,
+      %{
+        type: "item_failed",
+        index: prepared_item.index,
+        total: total,
+        output_path: prepared_item.item.output_path,
+        reason: prepared_item.reason
+      },
+      progress_node
+    )
 
-    current_output_hash =
-      if File.exists?(item.output_abs),
-        do: Locks.output_hash(File.read!(item.output_abs)),
-        else: ""
-
-    lock = Locks.read_lock(repo_path, item.source_path, item.locale)
-
-    if Locks.stale?(lock, hash_state.hash, item.output_path, current_output_hash) do
-      translate_item(
-        session,
-        account,
-        repo_path,
-        item,
-        index,
-        total,
-        provider,
-        hash_state,
-        progress_node,
-        credential_node,
-        publication_target
-      )
-    else
-      broadcast(
-        session,
-        %{type: "item_skipped", index: index, output_path: item.output_path},
-        progress_node
-      )
-
-      :ok
-    end
+    {:error, item_failure(prepared_item.item, prepared_item.index, prepared_item.reason)}
   end
 
   defp context_snapshot(account, project, context_node, opts) do
