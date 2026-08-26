@@ -10,7 +10,7 @@ defmodule Glossia.TranslationSessions.Translate do
 
   @translation_branch_prefix "glossia/translate"
 
-  def run(session_id, opts \\ []) do
+  def run(session_id) do
     session =
       TranslationSessions.get_session!(session_id)
       |> Glossia.Repo.preload(project: [:account, :github_installation])
@@ -21,11 +21,11 @@ defmodule Glossia.TranslationSessions.Translate do
     if session.status == "cancelled" do
       :ok
     else
-      do_run(session, project, account, opts)
+      do_run(session, project, account)
     end
   end
 
-  defp do_run(%TranslationSession{} = session, project, account, opts) do
+  defp do_run(%TranslationSession{} = session, project, account) do
     TranslationSessions.update_session_status(session, "running")
 
     Events.emit("translation_session.started", account, nil,
@@ -44,21 +44,18 @@ defmodule Glossia.TranslationSessions.Translate do
       }
 
       locales = session.target_languages || []
-      publication_target = publication_target(session, project, token)
 
-      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales,
-             publication_target: publication_target
-           ) do
+      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales, []) do
         {:ok, changes} ->
-          result = publication_result(session, changes, publication_target)
-          handle_translation_result(session, project, account, result, opts)
+          result = publication_result(session, project, token, changes)
+          handle_translation_result(session, project, account, result)
 
         {:error, reason} ->
-          fail_translation(session, project, account, reason, opts)
+          fail_translation(session, project, account, reason)
       end
     else
       {:error, reason} ->
-        fail_translation(session, project, account, reason, opts)
+        fail_translation(session, project, account, reason)
     end
   end
 
@@ -85,59 +82,47 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  # Deliberately no token in the context. A run can outlive the hour GitHub
-  # gives an installation token, and a token captured here would already be
-  # dead by the time a long run made its first write. `publish_item/2` resolves
-  # one at the moment it publishes instead.
-  defp publication_target(session, project, token)
-       when not is_nil(project.github_installation) and is_binary(token) and token != "" do
-    %{
-      node: Node.self(),
-      module: __MODULE__,
-      context: %{session_id: session.id}
-    }
-  end
+  defp publication_result(_session, _project, _clone_token, []), do: :no_changes
 
-  defp publication_target(_session, _project, _token), do: nil
-
-  defp publication_result(_session, changes, nil) do
-    if changes == [], do: :no_changes, else: :skipped_pull_request
-  end
-
-  defp publication_result(session, changes, _publication_target) do
-    fresh = TranslationSessions.get_session!(session.id)
-
-    cond do
-      is_binary(fresh.pull_request_url) and fresh.pull_request_url != "" ->
-        {:published, fresh.pull_request_url}
-
-      changes == [] ->
-        :no_changes
-
-      true ->
-        {:error, :invalid_github_response}
+  # The isolated runner never contacts GitHub. It returns a complete staged
+  # change set to this process, which validates the session result before one
+  # commit and pull request are created.
+  defp publication_result(session, project, clone_token, changes)
+       when not is_nil(project.github_installation) and is_binary(clone_token) and
+              clone_token != "" do
+    with {:ok, _publication} <- publish_changes(%{session_id: session.id}, %{changes: changes}),
+         fresh <- TranslationSessions.get_session!(session.id),
+         pull_request_url when is_binary(pull_request_url) and pull_request_url != "" <-
+           fresh.pull_request_url do
+      {:published, pull_request_url}
+    else
+      nil -> {:error, :invalid_github_response}
+      "" -> {:error, :invalid_github_response}
+      {:error, _reason} = error -> error
     end
   end
 
+  defp publication_result(_session, _project, _clone_token, _changes), do: :skipped_pull_request
+
   @doc false
-  def publish_item(
+  def publish_changes(
         %{session_id: session_id},
-        %{changes: changes, output_path: output_path, locale: locale}
+        %{changes: changes}
       )
       when is_list(changes) do
     session =
       TranslationSessions.get_session!(session_id)
       |> Glossia.Repo.preload(project: [:account, :github_installation])
 
-    publish_item_with_token(session, changes, output_path, locale, true)
+    publish_changes_with_token(session, changes, true)
   end
 
-  defp publish_item_with_token(session, changes, output_path, locale, retry_on_unauthorized?) do
+  defp publish_changes_with_token(session, changes, retry_on_unauthorized?) do
     installation = session.project.github_installation
 
     with {:ok, token} <-
            Glossia.Github.App.installation_token(installation.github_installation_id) do
-      case do_publish_item(session, session.project, token, changes, output_path, locale) do
+      case do_publish_changes(session, session.project, token, changes) do
         # GitHub rejected a token we believed was live, so it either expired
         # between the cache handing it over and the request landing, or it was
         # revoked. Drop it and mint a new one before failing the run, since
@@ -149,7 +134,7 @@ defmodule Glossia.TranslationSessions.Translate do
           )
 
           Glossia.Github.InstallationTokens.invalidate(installation.github_installation_id)
-          publish_item_with_token(session, changes, output_path, locale, false)
+          publish_changes_with_token(session, changes, false)
 
         result ->
           result
@@ -157,11 +142,11 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  defp do_publish_item(session, project, token, changes, output_path, locale) do
+  defp do_publish_changes(session, project, token, changes) do
     full_name = project.github_repo_full_name
     default_branch = project.github_repo_default_branch || "main"
     branch_name = session.publication_branch || translation_branch_name(session)
-    commit_message = translation_item_commit_message(output_path, locale)
+    commit_message = translation_commit_message(session)
 
     with {:ok, parent_commit_sha} <-
            publication_parent_sha(full_name, default_branch, session, token),
@@ -347,13 +332,7 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  defp handle_translation_result(
-         session,
-         project,
-         account,
-         {:published, _pull_request_url},
-         _opts
-       ) do
+  defp handle_translation_result(session, project, account, {:published, _pull_request_url}) do
     summary = "Created translation pull request."
 
     with {:ok, _session} <-
@@ -369,7 +348,7 @@ defmodule Glossia.TranslationSessions.Translate do
     :ok
   end
 
-  defp handle_translation_result(session, project, account, :skipped_pull_request, _opts) do
+  defp handle_translation_result(session, project, account, :skipped_pull_request) do
     summary = "Translation completed. Pull request skipped because GitHub is not configured."
 
     with {:ok, _session} <-
@@ -385,7 +364,7 @@ defmodule Glossia.TranslationSessions.Translate do
     :ok
   end
 
-  defp handle_translation_result(session, project, account, :no_changes, _opts) do
+  defp handle_translation_result(session, project, account, :no_changes) do
     summary = "No translations needed."
 
     with {:ok, _session} <-
@@ -407,41 +386,34 @@ defmodule Glossia.TranslationSessions.Translate do
     :ok
   end
 
-  defp handle_translation_result(session, _project, _account, {:error, reason}, opts) do
+  defp handle_translation_result(session, _project, _account, {:error, reason}) do
     fail_translation(
       session,
       session.project,
       session.account,
-      {:translation_publication_failed, reason},
-      opts
+      {:translation_publication_failed, reason}
     )
   end
 
-  defp fail_translation(session, project, account, reason, opts) do
+  defp fail_translation(session, project, account, reason) do
     error_msg = humanize_error(reason)
     Logger.error("Translation failed for session #{session.id}: #{inspect(reason)}")
 
-    if Keyword.get(opts, :terminal_failure?, true) do
-      TranslationSessions.update_session_status(session, "failed", error: error_msg)
+    TranslationSessions.update_session_status(session, "failed", error: error_msg)
 
-      record_translation_event(session, %{
-        "event_type" => "error",
-        "content" => error_msg,
-        "metadata" => %{}
-      })
+    record_translation_event(session, %{
+      "event_type" => "error",
+      "content" => error_msg,
+      "metadata" => %{}
+    })
 
-      Events.emit("translation_session.failed", account, nil,
-        resource_type: "translation_session",
-        resource_id: to_string(session.id),
-        resource_path: "/#{account.handle}/#{project.handle}/-/sessions/#{session.id}",
-        summary:
-          "Translation session failed for #{project.handle}: #{String.slice(error_msg, 0, 200)}"
-      )
-    else
-      Logger.warning(
-        "Translation attempt for session #{session.id} will be retried: #{inspect(reason)}"
-      )
-    end
+    Events.emit("translation_session.failed", account, nil,
+      resource_type: "translation_session",
+      resource_id: to_string(session.id),
+      resource_path: "/#{account.handle}/#{project.handle}/-/sessions/#{session.id}",
+      summary:
+        "Translation session failed for #{project.handle}: #{String.slice(error_msg, 0, 200)}"
+    )
 
     {:error, reason}
   end
@@ -543,10 +515,6 @@ defmodule Glossia.TranslationSessions.Translate do
 
     The translation command completed successfully inside a sandbox.
     """
-  end
-
-  defp translation_item_commit_message(output_path, locale) do
-    "feat: translate #{Path.basename(output_path)} to #{locale}"
   end
 
   defp humanize_error(:translation_harness_failed),

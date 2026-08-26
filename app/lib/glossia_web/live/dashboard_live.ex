@@ -7739,6 +7739,28 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
+  defp translation_failure_presentation("validation-empty-output") do
+    %{
+      title: gettext("The model returned empty output"),
+      description: nil,
+      item_description:
+        gettext("Glossia rejected this empty translation and did not publish any changes."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("validation-structure") do
+    %{
+      title: gettext("Translated output changed document structure"),
+      description: nil,
+      item_description:
+        gettext(
+          "Glossia rejected this translation because it did not retain the source document layout."
+        ),
+      action_label: nil
+    }
+  end
+
   defp translation_failure_presentation("validation-preserved-content") do
     %{
       title: gettext("Translated output changed protected content"),

@@ -55,23 +55,35 @@ defmodule Glossia.Translations.Validate do
   end
 
   def validate_syntax("po", output, source), do: Po.validate_po(output, source)
-  def validate_syntax("markdown", output, _source), do: validate_markdown(output)
+  def validate_syntax("markdown", output, source), do: validate_markdown(output, source)
   def validate_syntax("text", _output, _source), do: :ok
 
-  defp validate_markdown(content) do
-    case content |> String.split("\n", parts: 2) |> List.first() |> String.trim() do
-      "%{" <> _rest ->
+  defp validate_markdown(content, source) do
+    source_first = source |> String.split("\n", parts: 2) |> List.first() |> String.trim()
+    candidate_first = content |> String.split("\n", parts: 2) |> List.first() |> String.trim()
+
+    cond do
+      String.starts_with?(source_first, "%{") ->
         validate_nimble_publisher_frontmatter(content)
 
-      first ->
-        if first in ["---", "+++"] do
-          case Frontmatter.parse_content(content) do
-            {:ok, _parsed} -> :ok
-            {:error, error} -> {:error, "markdown frontmatter invalid: #{error}"}
-          end
-        else
-          :ok
-        end
+      source_first in ["---", "+++"] ->
+        validate_delimited_frontmatter(content)
+
+      String.starts_with?(candidate_first, "%{") ->
+        validate_nimble_publisher_frontmatter(content)
+
+      candidate_first in ["---", "+++"] ->
+        validate_delimited_frontmatter(content)
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_delimited_frontmatter(content) do
+    case Frontmatter.parse_content(content) do
+      {:ok, _parsed} -> :ok
+      {:error, error} -> {:error, "markdown frontmatter invalid: #{error}"}
     end
   end
 

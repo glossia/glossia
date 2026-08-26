@@ -15,13 +15,6 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
 
-  defmodule RecordingPublisher do
-    def publish_item(test_pid, payload) do
-      send(test_pid, {:published_translation, payload})
-      {:ok, %{ref: "glossia/translate-test"}}
-    end
-  end
-
   defp git!(root, args) do
     {_out, 0} = MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
   end
@@ -118,6 +111,66 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   end
 
   @tag :tmp_dir
+  test "returns all staged translations in one changeset after every item succeeds", %{
+    tmp_dir: root
+  } do
+    init_repo(root)
+    File.write!(Path.join([root, "docs", "reference.md"]), "# Reference\n\nUse the guide.")
+    git!(root, ["add", "."])
+    git!(root, ["commit", "-q", "-m", "add reference"])
+
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
+      translated =
+        payload["source_content"]
+        |> String.replace("Guide", "Guía")
+        |> String.replace("Reference", "Referencia")
+        |> String.replace("Hello, world.", "Hola, mundo.")
+        |> String.replace("Use the guide.", "Usa la guía.")
+
+      {:ok,
+       %{
+         text: translated,
+         model: "openai/gpt-5",
+         provider: "openai",
+         model_handle: "translator"
+       }}
+    end)
+
+    assert {:ok, changes} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
+
+    assert length(changes) == 4
+  end
+
+  @tag :tmp_dir
+  test "rejects empty translated documents without writing or publishing them", %{tmp_dir: root} do
+    init_repo(root)
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+
+    Mimic.stub(Translations, :translate_stream, fn _account, _payload, _on_event ->
+      {:ok,
+       %{
+         text: "",
+         model: "openai/gpt-5",
+         provider: "openai",
+         model_handle: "translator"
+       }}
+    end)
+
+    assert {:error, {:translation_items_failed, [failure]}} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot()
+             )
+
+    assert failure.reason.kind == "validation-empty-output"
+    refute File.exists?(Path.join([root, "docs", "i18n", "es", "guide.md"]))
+  end
+
+  @tag :tmp_dir
   test "skips a file whose lockfile is already current (no changes)", %{tmp_dir: root} do
     init_repo(root)
     session = %TranslationSession{id: Ecto.UUID.generate()}
@@ -192,13 +245,13 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert_receive {:translation_session_event,
                     %{type: "item_failed", output_path: "docs/i18n/es/broken.md"}}
 
-    # The readable file was still translated and published.
+    # The readable file was still translated in the isolated checkout.
     assert_receive {:translation_session_event,
                     %{type: "item_completed", output_path: "docs/i18n/es/guide.md"}}
   end
 
   @tag :tmp_dir
-  test "publishes completed files before reporting another file's failure", %{
+  test "does not publish staged files when another file fails", %{
     tmp_dir: root
   } do
     init_repo(root)
@@ -221,12 +274,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
     assert {:error, {:translation_items_failed, [failure]}} =
              RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
-               context_snapshot: Context.empty_snapshot(),
-               publication_target: %{
-                 node: Node.self(),
-                 module: RecordingPublisher,
-                 context: self()
-               }
+               context_snapshot: Context.empty_snapshot()
              )
 
     assert failure.output_path == "docs/i18n/es/broken.md"
@@ -235,18 +283,6 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert failure.reason.scope == "item"
     assert File.exists?(Path.join([root, "docs", "i18n", "es", "guide.md"]))
     refute File.exists?(Path.join([root, "docs", "i18n", "es", "broken.md"]))
-
-    assert_receive {:published_translation,
-                    %{
-                      output_path: "docs/i18n/es/guide.md",
-                      locale: "es",
-                      changes: published_changes
-                    }}
-
-    assert Enum.map(published_changes, & &1.path) == [
-             "docs/i18n/es/guide.md",
-             ".glossia/docs/guide.md/es.lock"
-           ]
 
     assert_receive {:translation_session_event,
                     %{
@@ -258,8 +294,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert_receive {:translation_session_event,
                     %{
                       type: "item_completed",
-                      output_path: "docs/i18n/es/guide.md",
-                      file_ref: "glossia/translate-test"
+                      output_path: "docs/i18n/es/guide.md"
                     }}
   end
 
