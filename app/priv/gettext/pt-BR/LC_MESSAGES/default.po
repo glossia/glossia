@@ -2836,8 +2836,8 @@ msgstr "Os arquivos GLOSSIA.md ficam ao lado do seu conteúdo. Eles contêm inst
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
 #, elixir-autogen, elixir-format
-msgid "The open-source language OS for your organization"
-msgstr "O sistema operacional de idiomas de código aberto para sua organização"
+msgid "The language platform for your organization"
+msgstr "A plataforma de idiomas para sua organização"
 
 #: lib/glossia_web/live/dashboard_live.ex:11931
 #: lib/glossia_web/live/dashboard_live.ex:12002
@@ -2878,8 +2878,8 @@ msgstr "O Glossia reúne suas preferências linguísticas em um só lugar para q
 
 #: lib/glossia_web/controllers/page_controller.ex:30
 #, elixir-autogen, elixir-format
-msgid "Glossia is the open-source language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "O Glossia é o sistema operacional de idiomas de código aberto onde linguistas e equipes moldam como sua organização se comunica em todos os idiomas e superfícies."
+msgid "Glossia is the language platform where linguists and teams shape how your organization speaks across every language and surface."
+msgstr "Glossia é a plataforma de idiomas onde linguistas e equipes moldam como sua organização se comunica em todos os idiomas e superfícies."
 
 #: lib/glossia_web/live/dashboard_live.ex:12003
 #, elixir-autogen, elixir-format

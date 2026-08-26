@@ -15,7 +15,7 @@
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-소프트웨어 개발 키트는 자동으로 초기화되고, 페이지가 로드될 때 페이지 조회를 전송하며, 단일 페이지 애플리케이션의 클라이언트 측 탐색에서 이후 페이지 조회를 기록합니다. `data-domain`를 생략하면 기본값은 `window.location.hostname`이므로 단일 도메인 사이트에서는 지정하지 않아도 됩니다. 수집 엔드포인트를 직접 호스팅하려면 `data-endpoint="https://collect.your-host.com"`를 추가합니다.
+소프트웨어 개발 키트는 자동으로 초기화되고, 페이지가 로드될 때 페이지 조회를 전송하며, 단일 페이지 애플리케이션의 클라이언트 측 탐색에서 이후 페이지 조회를 기록합니다. `data-domain`를 생략하면 기본값은 `window.location.hostname`이므로 단일 도메인 사이트에서는 지정하지 않아도 됩니다. 사용자 지정 수집 엔드포인트를 사용하려면 `data-endpoint="https://collect.your-host.com"`를 추가합니다.
 
 ## 옵션 B: npm
 

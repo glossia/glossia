@@ -1,8 +1,8 @@
 # Hetzner-specific overlay for the observability chart.
 # Layer on top of values.yaml:
-#   helm upgrade --install observability infra/helm/observability \
+#   helm upgrade --install observability ops/infra/helm/observability \
 #     -n observability --create-namespace \
-#     -f infra/helm/observability/values-hetzner.yaml
+#     -f ops/infra/helm/observability/values-hetzner.yaml
 #
 # The base values.yaml is provider-portable; this overlay carries:
 #   - StorageClass pinning to hcloud-volumes for Ceph OSD PVCs

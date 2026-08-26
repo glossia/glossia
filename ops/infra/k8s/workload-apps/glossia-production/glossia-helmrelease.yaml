@@ -25,8 +25,8 @@ spec:
         namespace: flux-system
       valuesFiles:
         - deploy/helm/glossia/values.yaml
-        - deploy/values-production.yaml
-        - deploy/values-object-storage-hetzner.yaml
+        - ops/deploy/values-production.yaml
+        - ops/deploy/values-object-storage-hetzner.yaml
   install:
     createNamespace: true
     crds: Create

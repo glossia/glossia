@@ -14,7 +14,7 @@ spec:
       name: glossia-production-kubeconfig
   chart:
     spec:
-      chart: ./infra/helm/platform
+      chart: ./ops/infra/helm/platform
       interval: 5m0s
       reconcileStrategy: Revision
       sourceRef:
@@ -22,10 +22,10 @@ spec:
         name: flux-system
         namespace: flux-system
       valuesFiles:
-        - infra/helm/platform/values.yaml
-        - infra/helm/platform/values-hetzner.yaml
-        - infra/helm/platform/values-object-storage-hetzner.yaml
-        - infra/helm/platform/values-remove-ceph.yaml
+        - ops/infra/helm/platform/values.yaml
+        - ops/infra/helm/platform/values-hetzner.yaml
+        - ops/infra/helm/platform/values-object-storage-hetzner.yaml
+        - ops/infra/helm/platform/values-remove-ceph.yaml
   install:
     createNamespace: true
     crds: Create

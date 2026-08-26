@@ -1,12 +1,12 @@
 # Default values for the glossia-alloy chart.
 # Install per workload cluster:
-#   helm dependency update deploy/helm/glossia-alloy
-#   helm upgrade --install alloy deploy/helm/glossia-alloy \
+#   helm dependency update ops/deploy/helm/glossia-alloy
+#   helm upgrade --install alloy ops/deploy/helm/glossia-alloy \
 #     -n observability --create-namespace \
-#     -f deploy/values-alloy-production.yaml
+#     -f ops/deploy/values-alloy-production.yaml
 #
 # Per-cluster overlay (cluster_label, push hostnames if multi-tenant later)
-# lives next to deploy/values-production.yaml.
+# lives next to ops/deploy/values-production.yaml.
 
 # ExternalSecret config shared with deploy/helm/glossia. The `infisical`
 # ClusterSecretStore is provisioned per workload cluster by the bootstrap

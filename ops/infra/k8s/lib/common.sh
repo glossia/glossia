@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Shared helpers for the infra/k8s operational scripts. Source this file from a
+# Shared helpers for the ops/infra/k8s operational scripts. Source this file from a
 # script; do not execute it directly.
 
 # Fail early if any required command is missing from PATH.

@@ -3,10 +3,10 @@
 # settings are retained while app-specific object storage is disabled.
 #
 # Install:
-#   helm upgrade --install platform infra/helm/platform \
+#   helm upgrade --install platform ops/infra/helm/platform \
 #     -n platform \
-#     -f infra/helm/platform/values-hetzner.yaml \
-#     -f infra/helm/platform/values-observability.yaml
+#     -f ops/infra/helm/platform/values-hetzner.yaml \
+#     -f ops/infra/helm/platform/values-observability.yaml
 
 # The observability chart owns its own Rook operator and Ceph cluster:
 #   - rook-ceph operator release in namespace rook-ceph

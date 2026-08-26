@@ -15,7 +15,7 @@
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-软件开发工具包会自动初始化，在页面加载时发送一次页面浏览事件，并在单页应用的客户端导航过程中记录后续页面浏览事件。省略 `data-domain` 时，其默认值为 `window.location.hostname`，因此单域名网站无需配置该项。若要自行托管收集端点，请添加 `data-endpoint="https://collect.your-host.com"`。
+软件开发工具包会自动初始化，在页面加载时发送一次页面浏览事件，并在单页应用的客户端导航过程中记录后续页面浏览事件。省略 `data-domain` 时，其默认值为 `window.location.hostname`，因此单域名网站无需配置该项。若要使用自定义收集端点，请添加 `data-endpoint="https://collect.your-host.com"`。
 
 ## 选项 B：npm
 

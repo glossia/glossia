@@ -16,7 +16,7 @@ Add this to your site:
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-The script auto-initializes and records pageviews, including on client-side navigation (single-page apps). `data-domain` is optional — when omitted, the SDK uses `window.location.hostname` to identify the project. Point `data-endpoint` at a self-hosted collect host if you don't use the Glossia CDN.
+The script auto-initializes and records pageviews, including on client-side navigation (single-page apps). `data-domain` is optional — when omitted, the SDK uses `window.location.hostname` to identify the project. Set `data-endpoint` to use a custom collection endpoint instead of the Glossia CDN.
 
 ### npm
 
@@ -40,7 +40,3 @@ glossia.track("signup");
 Sent from the browser: page URL, referrer, `navigator.languages`, timezone, screen width, and a per-tab session id (in `sessionStorage`, cleared on close).
 
 Derived on the server (never stored raw): a daily-rotated visitor id, country from GeoIP, device/browser/OS from the User-Agent, and the localization gap against your project's target languages.
-
-## License
-
-MIT

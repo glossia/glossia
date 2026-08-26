@@ -4,22 +4,22 @@ on:
   push:
     branches: [main]
     paths:
-      - "deploy/helm/glossia-alloy/**"
-      - "deploy/values-*.yaml"
-      - "infra/helm/**"
-      - "infra/k8s/**"
-      - "infra/tailscale/**"
+      - "ops/deploy/helm/glossia-alloy/**"
+      - "ops/deploy/values-*.yaml"
+      - "ops/infra/helm/**"
+      - "ops/infra/k8s/**"
+      - "ops/infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise.toml"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "deploy/helm/glossia-alloy/**"
-      - "deploy/values-*.yaml"
-      - "infra/helm/**"
-      - "infra/k8s/**"
-      - "infra/tailscale/**"
+      - "ops/deploy/helm/glossia-alloy/**"
+      - "ops/deploy/values-*.yaml"
+      - "ops/infra/helm/**"
+      - "ops/infra/k8s/**"
+      - "ops/infra/tailscale/**"
       - ".github/workflows/infra.yml"
       - "mise.toml"
 
@@ -47,7 +47,7 @@ jobs:
           ruby <<'RUBY'
           require "json"
 
-          file = "infra/tailscale/policy.hujson"
+          file = "ops/infra/tailscale/policy.hujson"
           input = File.read(file)
           output = +""
           in_string = false
@@ -88,40 +88,40 @@ jobs:
         run: |
           set -euo pipefail
 
-          mise exec -- kubectl kustomize infra/k8s/clusters/workloads/production >/tmp/glossia-production-cluster.yaml
-          mise exec -- kubectl kustomize infra/k8s/clusters/workloads/observability >/tmp/glossia-observability-cluster.yaml
-          mise exec -- kubectl kustomize infra/k8s/clusters/profiles/consolidation-production >/tmp/glossia-consolidation-cluster.yaml
-          mise exec -- kubectl kustomize infra/k8s/clusters/profiles/compact-production >/tmp/glossia-compact-cluster.yaml
-          mise exec -- kubectl kustomize infra/k8s/mgmt/flux/flux-system >/tmp/glossia-flux-system.yaml
-          mise exec -- kubectl kustomize infra/k8s/workload-platforms >/tmp/glossia-workload-platforms.yaml
-          mise exec -- kubectl kustomize infra/k8s/workload-apps >/tmp/glossia-workload-apps.yaml
+          mise exec -- kubectl kustomize ops/infra/k8s/clusters/workloads/production >/tmp/glossia-production-cluster.yaml
+          mise exec -- kubectl kustomize ops/infra/k8s/clusters/workloads/observability >/tmp/glossia-observability-cluster.yaml
+          mise exec -- kubectl kustomize ops/infra/k8s/clusters/profiles/consolidation-production >/tmp/glossia-consolidation-cluster.yaml
+          mise exec -- kubectl kustomize ops/infra/k8s/clusters/profiles/compact-production >/tmp/glossia-compact-cluster.yaml
+          mise exec -- kubectl kustomize ops/infra/k8s/mgmt/flux/flux-system >/tmp/glossia-flux-system.yaml
+          mise exec -- kubectl kustomize ops/infra/k8s/workload-platforms >/tmp/glossia-workload-platforms.yaml
+          mise exec -- kubectl kustomize ops/infra/k8s/workload-apps >/tmp/glossia-workload-apps.yaml
 
           ruby <<'RUBY'
           require "yaml"
 
-          Dir["infra/k8s/mgmt/flux/**/*.yaml"].sort.each do |file|
+          Dir["ops/infra/k8s/mgmt/flux/**/*.yaml"].sort.each do |file|
             YAML.parse_stream(File.read(file))
           end
           RUBY
 
           mise exec flux2@2.9.1 -- flux build kustomization flux-system \
-            --path ./infra/k8s/mgmt/flux \
-            --kustomization-file ./infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
+            --path ./ops/infra/k8s/mgmt/flux \
+            --kustomization-file ./ops/infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
             --dry-run >/tmp/flux-system-build.yaml
 
           mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-production \
-            --path ./infra/k8s/clusters/workloads/production \
-            --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
+            --path ./ops/infra/k8s/clusters/workloads/production \
+            --kustomization-file ./ops/infra/k8s/mgmt/flux/workload-clusters.yaml \
             --dry-run >/tmp/flux-production-build.yaml
 
           mise exec flux2@2.9.1 -- flux build kustomization workload-platforms \
-            --path ./infra/k8s/workload-platforms \
-            --kustomization-file ./infra/k8s/mgmt/flux/workload-platforms-kustomization.yaml \
+            --path ./ops/infra/k8s/workload-platforms \
+            --kustomization-file ./ops/infra/k8s/mgmt/flux/workload-platforms-kustomization.yaml \
             --dry-run >/tmp/flux-workload-platforms-build.yaml
 
           mise exec flux2@2.9.1 -- flux build kustomization workload-apps \
-            --path ./infra/k8s/workload-apps \
-            --kustomization-file ./infra/k8s/mgmt/flux/workload-apps-kustomization.yaml \
+            --path ./ops/infra/k8s/workload-apps \
+            --kustomization-file ./ops/infra/k8s/mgmt/flux/workload-apps-kustomization.yaml \
             --dry-run >/tmp/flux-workload-apps-build.yaml
 
       - name: Add Helm repositories
@@ -153,37 +153,37 @@ jobs:
               "$@" >/tmp/"$release"-rendered.yaml
           }
 
-          validate_chart platform infra/helm/platform platform \
-            --values infra/helm/platform/values-hetzner.yaml
+          validate_chart platform ops/infra/helm/platform platform \
+            --values ops/infra/helm/platform/values-hetzner.yaml
 
-          mise exec -- helm lint infra/helm/platform \
-            --values infra/helm/platform/values-hetzner.yaml \
-            --values infra/helm/platform/values-object-storage-hetzner.yaml
-          mise exec -- helm template platform-object-storage infra/helm/platform \
+          mise exec -- helm lint ops/infra/helm/platform \
+            --values ops/infra/helm/platform/values-hetzner.yaml \
+            --values ops/infra/helm/platform/values-object-storage-hetzner.yaml
+          mise exec -- helm template platform-object-storage ops/infra/helm/platform \
             --namespace platform \
-            --values infra/helm/platform/values-hetzner.yaml \
-            --values infra/helm/platform/values-object-storage-hetzner.yaml \
+            --values ops/infra/helm/platform/values-hetzner.yaml \
+            --values ops/infra/helm/platform/values-object-storage-hetzner.yaml \
             >/tmp/platform-object-storage-rendered.yaml
-          mise exec -- helm lint infra/helm/platform \
-            --values infra/helm/platform/values-hetzner.yaml \
-            --values infra/helm/platform/values-object-storage-hetzner.yaml \
-            --values infra/helm/platform/values-remove-ceph.yaml
-          mise exec -- helm template platform-without-ceph infra/helm/platform \
+          mise exec -- helm lint ops/infra/helm/platform \
+            --values ops/infra/helm/platform/values-hetzner.yaml \
+            --values ops/infra/helm/platform/values-object-storage-hetzner.yaml \
+            --values ops/infra/helm/platform/values-remove-ceph.yaml
+          mise exec -- helm template platform-without-ceph ops/infra/helm/platform \
             --namespace platform \
-            --values infra/helm/platform/values-hetzner.yaml \
-            --values infra/helm/platform/values-object-storage-hetzner.yaml \
-            --values infra/helm/platform/values-remove-ceph.yaml \
+            --values ops/infra/helm/platform/values-hetzner.yaml \
+            --values ops/infra/helm/platform/values-object-storage-hetzner.yaml \
+            --values ops/infra/helm/platform/values-remove-ceph.yaml \
             >/tmp/platform-without-ceph-rendered.yaml
 
-          validate_chart platform-observability infra/helm/platform platform \
-            --values infra/helm/platform/values-hetzner.yaml \
-            --values infra/helm/platform/values-observability.yaml
+          validate_chart platform-observability ops/infra/helm/platform platform \
+            --values ops/infra/helm/platform/values-hetzner.yaml \
+            --values ops/infra/helm/platform/values-observability.yaml
 
-          validate_chart observability infra/helm/observability observability \
-            --values infra/helm/observability/values-hetzner.yaml
+          validate_chart observability ops/infra/helm/observability observability \
+            --values ops/infra/helm/observability/values-hetzner.yaml
 
-          validate_chart community infra/helm/discourse community \
-            --values infra/helm/discourse/values-production.yaml
+          validate_chart community ops/infra/helm/discourse community \
+            --values ops/infra/helm/discourse/values-production.yaml
 
           ruby /dev/stdin /tmp/community-rendered.yaml <<'RUBY'
           require "yaml"
@@ -239,24 +239,24 @@ jobs:
           abort "Community Ingress does not enable Cloudflare proxying" unless annotations["external-dns.alpha.kubernetes.io/cloudflare-proxied"] == "true"
           RUBY
 
-          mise exec -- helm lint infra/helm/observability \
-            --values infra/helm/observability/values-hetzner.yaml \
-            --values infra/helm/observability/values-object-storage-hetzner.yaml
-          mise exec -- helm template observability-object-storage infra/helm/observability \
+          mise exec -- helm lint ops/infra/helm/observability \
+            --values ops/infra/helm/observability/values-hetzner.yaml \
+            --values ops/infra/helm/observability/values-object-storage-hetzner.yaml
+          mise exec -- helm template observability-object-storage ops/infra/helm/observability \
             --namespace observability \
-            --values infra/helm/observability/values-hetzner.yaml \
-            --values infra/helm/observability/values-object-storage-hetzner.yaml \
+            --values ops/infra/helm/observability/values-hetzner.yaml \
+            --values ops/infra/helm/observability/values-object-storage-hetzner.yaml \
             >/tmp/observability-object-storage-rendered.yaml
 
-          mise exec -- helm lint infra/helm/observability \
-            --values infra/helm/observability/values-hetzner.yaml \
-            --values infra/helm/observability/values-object-storage-hetzner.yaml \
-            --values infra/helm/observability/values-compact-hetzner.yaml
-          mise exec -- helm template observability-compact infra/helm/observability \
+          mise exec -- helm lint ops/infra/helm/observability \
+            --values ops/infra/helm/observability/values-hetzner.yaml \
+            --values ops/infra/helm/observability/values-object-storage-hetzner.yaml \
+            --values ops/infra/helm/observability/values-compact-hetzner.yaml
+          mise exec -- helm template observability-compact ops/infra/helm/observability \
             --namespace observability \
-            --values infra/helm/observability/values-hetzner.yaml \
-            --values infra/helm/observability/values-object-storage-hetzner.yaml \
-            --values infra/helm/observability/values-compact-hetzner.yaml \
+            --values ops/infra/helm/observability/values-hetzner.yaml \
+            --values ops/infra/helm/observability/values-object-storage-hetzner.yaml \
+            --values ops/infra/helm/observability/values-compact-hetzner.yaml \
             >/tmp/observability-compact-rendered.yaml
 
           if grep -q 'storageClassName: ceph-block' /tmp/observability-compact-rendered.yaml; then
@@ -279,14 +279,14 @@ jobs:
           abort "Compact workload replicas are not one: #{oversized.map { |document| document.dig("metadata", "name") }.join(", ")}" unless oversized.empty?
           RUBY
 
-          validate_chart alloy deploy/helm/glossia-alloy observability \
-            --values deploy/values-alloy-production.yaml
+          validate_chart alloy ops/deploy/helm/glossia-alloy observability \
+            --values ops/deploy/values-alloy-production.yaml
 
-          validate_chart tailscale-apiserver-proxy-production infra/helm/tailscale-apiserver-proxy tailscale \
-            --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
+          validate_chart tailscale-apiserver-proxy-production ops/infra/helm/tailscale-apiserver-proxy tailscale \
+            --values ops/infra/helm/tailscale-apiserver-proxy/values-production.yaml
 
-          validate_chart tailscale-apiserver-proxy-observability infra/helm/tailscale-apiserver-proxy tailscale \
-            --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml
+          validate_chart tailscale-apiserver-proxy-observability ops/infra/helm/tailscale-apiserver-proxy tailscale \
+            --values ops/infra/helm/tailscale-apiserver-proxy/values-observability.yaml
 
   reconcile-management:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -402,10 +402,9 @@ jobs:
           set -euo pipefail
 
           mise exec -- kubectl apply \
-            -f infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
-            -f infra/k8s/mgmt/flux/flux-system/glossia-source.yaml \
-            -f infra/k8s/mgmt/flux/workload-cluster-rbac.yaml \
-            -f infra/k8s/mgmt/flux/workload-clusters.yaml
+            -f ops/infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
+            -f ops/infra/k8s/mgmt/flux/workload-cluster-rbac.yaml \
+            -f ops/infra/k8s/mgmt/flux/workload-clusters.yaml
 
           requested_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           mise exec -- kubectl -n flux-system annotate --overwrite \

@@ -17,7 +17,7 @@ Kubernetes server certificate.
 
 ## Prerequisites
 
-Mirror `infra/tailscale/policy.hujson` into the Tailscale access controls.
+Mirror `ops/infra/tailscale/policy.hujson` into the Tailscale access controls.
 Then create one tagged, pre-approved auth key for each long-running proxy:
 
 - `tag:glossia-k8s-production` for production.
@@ -46,9 +46,9 @@ kubectl label --overwrite namespace tailscale \
   pod-security.kubernetes.io/warn=privileged
 
 helm upgrade --install tailscale-apiserver-proxy \
-  infra/helm/tailscale-apiserver-proxy \
+  ops/infra/helm/tailscale-apiserver-proxy \
   --namespace tailscale \
-  --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
+  --values ops/infra/helm/tailscale-apiserver-proxy/values-production.yaml
 ```
 
 Use `values-observability.yaml` when installing into the observability

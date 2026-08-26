@@ -47,5 +47,5 @@ spec:
     push:
       branch: main
   update:
-    path: ./infra/k8s/workload-apps/glossia-production
+    path: ./ops/infra/k8s/workload-apps/glossia-production
     strategy: Setters

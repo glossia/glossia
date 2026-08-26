@@ -1,9 +1,9 @@
 # Default values for the Glossia observability chart.
 # Install:
-#   helm dependency update infra/helm/observability
-#   helm upgrade --install observability infra/helm/observability \
+#   helm dependency update ops/infra/helm/observability
+#   helm upgrade --install observability ops/infra/helm/observability \
 #     -n observability --create-namespace \
-#     -f infra/helm/observability/values-hetzner.yaml
+#     -f ops/infra/helm/observability/values-hetzner.yaml
 #
 # Subchart values live nested under their dependency name (see Chart.yaml).
 # Top-level keys below are chart-owned (CephObjectStore CR + ExternalSecrets +
@@ -146,7 +146,7 @@ ingress:
 
 # Node placement shared by every workload this chart owns. The
 # observability cluster only has the `stateful` pool (see
-# infra/k8s/clusters/workloads/observability/cluster.yaml), so everything needs
+# ops/infra/k8s/clusters/workloads/observability/cluster.yaml), so everything needs
 # the toleration. Subcharts get the same applied via their respective
 # nodeSelector / tolerations keys below.
 nodePlacement:

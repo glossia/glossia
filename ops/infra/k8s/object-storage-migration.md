@@ -105,16 +105,16 @@ With `KUBECONFIG` pointing at production:
 helm dependency update deploy/helm/glossia
 helm template glossia deploy/helm/glossia \
   --namespace glossia \
-  --values deploy/values-production.yaml \
-  --values deploy/values-object-storage-hetzner.yaml \
+  --values ops/deploy/values-production.yaml \
+  --values ops/deploy/values-object-storage-hetzner.yaml \
   --show-only templates/external-secrets/object-storage.yaml \
   | kubectl apply -f -
 
-helm dependency update infra/helm/platform
-helm template platform infra/helm/platform \
+helm dependency update ops/infra/helm/platform
+helm template platform ops/infra/helm/platform \
   --namespace platform \
-  --values infra/helm/platform/values-hetzner.yaml \
-  --values infra/helm/platform/values-object-storage-hetzner.yaml \
+  --values ops/infra/helm/platform/values-hetzner.yaml \
+  --values ops/infra/helm/platform/values-object-storage-hetzner.yaml \
   --show-only templates/external-object-storage-release-secret.yaml \
   | kubectl apply -f -
 
@@ -129,11 +129,11 @@ kubectl -n platform wait \
 With `KUBECONFIG` pointing at observability:
 
 ```bash
-helm dependency update infra/helm/observability
-helm template observability infra/helm/observability \
+helm dependency update ops/infra/helm/observability
+helm template observability ops/infra/helm/observability \
   --namespace observability \
-  --values infra/helm/observability/values-hetzner.yaml \
-  --values infra/helm/observability/values-object-storage-hetzner.yaml \
+  --values ops/infra/helm/observability/values-hetzner.yaml \
+  --values ops/infra/helm/observability/values-object-storage-hetzner.yaml \
   --show-only templates/external-secrets/object-storage.yaml \
   | kubectl apply -f -
 
@@ -153,14 +153,14 @@ then restricts every bucket to its intended key. It is safe to rerun.
 With `KUBECONFIG` pointing at production:
 
 ```bash
-mise exec -- infra/k8s/prepare-hetzner-object-storage.sh production-app
-mise exec -- infra/k8s/prepare-hetzner-object-storage.sh production-releases
+mise exec -- ops/infra/k8s/prepare-hetzner-object-storage.sh production-app
+mise exec -- ops/infra/k8s/prepare-hetzner-object-storage.sh production-releases
 ```
 
 With `KUBECONFIG` pointing at observability:
 
 ```bash
-mise exec -- infra/k8s/prepare-hetzner-object-storage.sh observability
+mise exec -- ops/infra/k8s/prepare-hetzner-object-storage.sh observability
 ```
 
 ## 4. Install the migration tool
@@ -180,16 +180,16 @@ Ceph gateway.
 Point `KUBECONFIG` at the production cluster and copy its two buckets:
 
 ```bash
-mise exec -- infra/k8s/migrate-object-storage.sh production-app copy
-mise exec -- infra/k8s/migrate-object-storage.sh production-releases copy
+mise exec -- ops/infra/k8s/migrate-object-storage.sh production-app copy
+mise exec -- ops/infra/k8s/migrate-object-storage.sh production-releases copy
 ```
 
 Point `KUBECONFIG` at the observability cluster and copy its three buckets:
 
 ```bash
-mise exec -- infra/k8s/migrate-object-storage.sh observability-mimir copy
-mise exec -- infra/k8s/migrate-object-storage.sh observability-loki copy
-mise exec -- infra/k8s/migrate-object-storage.sh observability-tempo copy
+mise exec -- ops/infra/k8s/migrate-object-storage.sh observability-mimir copy
+mise exec -- ops/infra/k8s/migrate-object-storage.sh observability-loki copy
+mise exec -- ops/infra/k8s/migrate-object-storage.sh observability-tempo copy
 ```
 
 Each copy ends with a one-way comparison of every source object by path and
@@ -203,7 +203,7 @@ can occur during the final synchronization:
 
 ```bash
 kubectl -n glossia scale deployment/glossia --replicas=0
-mise exec -- infra/k8s/migrate-object-storage.sh \
+mise exec -- ops/infra/k8s/migrate-object-storage.sh \
   production-app sync glossia-ai-production
 ```
 
@@ -212,13 +212,13 @@ Apply the application overlay and wait for the deployment:
 ```bash
 helm upgrade --install glossia deploy/helm/glossia \
   --namespace glossia \
-  --values deploy/values-production.yaml \
-  --values deploy/values-object-storage-hetzner.yaml
+  --values ops/deploy/values-production.yaml \
+  --values ops/deploy/values-object-storage-hetzner.yaml
 kubectl -n glossia rollout status deployment/glossia --timeout=10m
 ```
 
 At the same time, change `production_object_storage` to `true` in
-`infra/k8s/object-storage-migration-state` and commit it. The production
+`ops/infra/k8s/object-storage-migration-state` and commit it. The production
 deployment workflow reads this flag and will keep applying both production
 overlays on every later deployment. Without the flag, the next deployment
 would intentionally return the application to Ceph.
@@ -238,13 +238,13 @@ RELEASE_PREFIX=cli
 Apply the public proxy overlay:
 
 ```bash
-mise exec -- infra/k8s/migrate-object-storage.sh \
+mise exec -- ops/infra/k8s/migrate-object-storage.sh \
   production-releases sync glossia-ai-releases
 
-helm upgrade --install platform infra/helm/platform \
+helm upgrade --install platform ops/infra/helm/platform \
   --namespace platform \
-  --values infra/helm/platform/values-hetzner.yaml \
-  --values infra/helm/platform/values-object-storage-hetzner.yaml
+  --values ops/infra/helm/platform/values-hetzner.yaml \
+  --values ops/infra/helm/platform/values-object-storage-hetzner.yaml
 
 curl --fail --location \
   https://releases.glossia.ai/cli/versions.txt >/dev/null
@@ -253,7 +253,7 @@ curl --fail --location \
 Keep Ceph running during the verification window. After seven successful days,
 change `production_ceph_removed` to `true` in the migration state file and
 commit it. The production workflow then applies
-`infra/helm/platform/values-remove-ceph.yaml` together with both platform
+`ops/infra/helm/platform/values-remove-ceph.yaml` together with both platform
 overlays. Remove only the three 100-gibibyte Ceph volumes after confirming the
 Ceph resources are gone.
 
@@ -265,10 +265,10 @@ Mimir, Loki, and Tempo writers, allow their graceful shutdown to finish, and
 run the three final synchronizations. Then deploy with the additional overlay:
 
 ```bash
-helm upgrade --install observability infra/helm/observability \
+helm upgrade --install observability ops/infra/helm/observability \
   --namespace observability \
-  --values infra/helm/observability/values-hetzner.yaml \
-  --values infra/helm/observability/values-object-storage-hetzner.yaml \
+  --values ops/infra/helm/observability/values-hetzner.yaml \
+  --values ops/infra/helm/observability/values-object-storage-hetzner.yaml \
   --timeout 30m
 ```
 
@@ -278,12 +278,12 @@ still use its block storage. Their migration to direct Hetzner volumes is a
 separate operation with separate backups and rollback steps.
 
 Change `observability_object_storage` to `true` in
-`infra/k8s/object-storage-migration-state` and commit it with the cutover. The
+`ops/infra/k8s/object-storage-migration-state` and commit it with the cutover. The
 infrastructure workflow will keep applying the observability overlay on later
 deployments.
 
 If the observability cluster is being consolidated into production, stop here
-with Ceph intact and continue with `infra/k8s/cluster-consolidation.md`. That
+with Ceph intact and continue with `ops/infra/k8s/cluster-consolidation.md`. That
 runbook restores Grafana and GlitchTip PostgreSQL onto direct Hetzner volumes
 in the production cluster before it enables `observability_ceph_removed` and
 `observability_on_production`.

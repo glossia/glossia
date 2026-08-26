@@ -7,7 +7,7 @@ spec:
   dependsOn:
     - name: workload-platforms
   interval: 5m0s
-  path: ./infra/k8s/workload-apps
+  path: ./ops/infra/k8s/workload-apps
   prune: true
   retryInterval: 2m0s
   serviceAccountName: workload-app-reconciler

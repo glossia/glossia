@@ -42,11 +42,11 @@ the same push endpoint credentials via `OTEL_EXPORTER_OTLP_HEADERS`.
 ```bash
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm dependency update deploy/helm/glossia-alloy
+helm dependency update ops/deploy/helm/glossia-alloy
 
-helm upgrade --install alloy deploy/helm/glossia-alloy \
+helm upgrade --install alloy ops/deploy/helm/glossia-alloy \
   -n observability --create-namespace \
-  -f deploy/values-alloy-production.yaml
+  -f ops/deploy/values-alloy-production.yaml
 ```
 
 ## Verify
@@ -75,7 +75,7 @@ You should see one series per Glossia pod, value 1.
 ## Wiring traces (app-side, separate from this chart)
 
 After Alloy is running, the app should export traces directly to Tempo.
-`deploy/values-production.yaml` sets `OTEL_EXPORTER_OTLP_ENDPOINT` and
+`ops/deploy/values-production.yaml` sets `OTEL_EXPORTER_OTLP_ENDPOINT` and
 pulls `OTEL_EXPORTER_OTLP_HEADERS` from the app environment
 ExternalSecret. Store the header value in Infisical as
 `authorization=Basic <base64-of-user:pass>`.

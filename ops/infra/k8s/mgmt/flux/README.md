@@ -8,7 +8,7 @@ mise exec -- flux bootstrap github \
   --owner=glossia \
   --repository=glossia \
   --branch=main \
-  --path=infra/k8s/mgmt/flux
+  --path=ops/infra/k8s/mgmt/flux
 ```
 
 Flux's generated controller and sync manifests are checked in under the
@@ -38,7 +38,7 @@ and still lets its generated `flux-system/kustomization.yaml` manage the
 controller installation.
 
 The workload cluster reconciler deliberately watches only
-`infra/k8s/clusters/workloads/*`. The shared `ClusterClass` remains on
+`ops/infra/k8s/clusters/workloads/*`. The shared `ClusterClass` remains on
 the explicit apply path in the onboarding runbook because its templates
 contain immutable fields.
 
@@ -56,7 +56,7 @@ Infra workflow restores that Secret from `GHCR_PULL_USERNAME` and
 This keeps the credential out of Git without requiring the management cluster
 to run the External Secrets Operator. The image policy watches the `main` tag,
 and image automation commits its new digest into
-`infra/k8s/workload-apps/glossia-production`. The workload platform and
+`ops/infra/k8s/workload-apps/glossia-production`. The workload platform and
 application Kustomizations then reconcile remote `HelmRelease` resources
 through `glossia-production-kubeconfig` in the `org-glossia` namespace.
 

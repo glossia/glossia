@@ -8,7 +8,7 @@ and includes the vector extension required by the bundled artificial-intelligenc
 plugin.
 
 The production release is reconciled from
-`infra/k8s/workload-apps/glossia-production/discourse-helmrelease.yaml`. Before
+`ops/infra/k8s/workload-apps/glossia-production/discourse-helmrelease.yaml`. Before
 the first reconciliation, create independent random values named
 `DISCOURSE_DB_PASSWORD` and `DISCOURSE_REDIS_PASSWORD` under `/kubernetes` in
 Infisical. The chart reuses `MAIL_RELAY_USERNAME` and `MAIL_RELAY_PASSWORD` from
@@ -22,10 +22,10 @@ annotation so removing the release does not remove that claim.
 Render the production configuration locally with:
 
 ```bash
-helm lint infra/helm/discourse \
-  --values infra/helm/discourse/values-production.yaml
+helm lint ops/infra/helm/discourse \
+  --values ops/infra/helm/discourse/values-production.yaml
 
-helm template community infra/helm/discourse \
+helm template community ops/infra/helm/discourse \
   --namespace community \
-  --values infra/helm/discourse/values-production.yaml
+  --values ops/infra/helm/discourse/values-production.yaml
 ```

@@ -16,7 +16,7 @@ spec:
       name: observability
       namespace: org-glossia
   interval: 5m0s
-  path: ./infra/k8s/workload-platforms
+  path: ./ops/infra/k8s/workload-platforms
   prune: true
   retryInterval: 2m0s
   serviceAccountName: workload-platform-reconciler

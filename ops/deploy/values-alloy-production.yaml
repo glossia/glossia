@@ -1,4 +1,4 @@
-# Production workload-cluster overlay for deploy/helm/glossia-alloy.
+# Production workload-cluster overlay for ops/deploy/helm/glossia-alloy.
 # Installs the node-local Alloy collector plus the singleton Kubernetes
 # event collector into the production cluster. Observability now runs on
 # this same cluster (the dedicated glossia-observability cluster was

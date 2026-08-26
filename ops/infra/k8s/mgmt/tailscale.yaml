@@ -33,7 +33,7 @@
 #        }
 #      (Merge with any existing `tagOwners` block; don't replace.)
 #   3. Settings → OAuth clients → Generate OAuth client.
-#      - Description: `mgmt-cluster tailscaled (manifest: infra/k8s/mgmt/tailscale.yaml)`
+#      - Description: `mgmt-cluster tailscaled (manifest: ops/infra/k8s/mgmt/tailscale.yaml)`
 #      - Scopes: `auth_keys` write (Devices → Auth Keys → Write)
 #      - Tags: `tag:glossia-mgmt` (limits what the client can mint)
 #      Copy the secret (starts with `tskey-client-`); shown once.
@@ -47,7 +47,7 @@
 #      rejects it as an unknown attribute. The tag is set instead by
 #      `--advertise-tags=tag:glossia-mgmt` in TS_EXTRA_ARGS below, which
 #      OAuth flow requires regardless.
-#   6. `kubectl apply -f infra/k8s/mgmt/tailscale.yaml`.
+#   6. `kubectl apply -f ops/infra/k8s/mgmt/tailscale.yaml`.
 #   7. Wait for the pod to come up, confirm the device shows up in
 #      the Tailscale admin console as `glossia-mgmt` with `tag:glossia-mgmt`.
 #   8. In the admin console: Machines → glossia-mgmt → ⋯ → Disable key

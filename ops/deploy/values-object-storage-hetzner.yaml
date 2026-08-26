@@ -1,7 +1,7 @@
 # Cutover overlay for the private application bucket in Hetzner Object Storage.
 # Apply only after the bucket exists, credentials have been stored in Infisical,
 # and the Ceph bucket has been copied and verified. See
-# infra/k8s/object-storage-migration.md.
+# ops/infra/k8s/object-storage-migration.md.
 
 objectStorage:
   enabled: true

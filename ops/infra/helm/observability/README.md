@@ -10,10 +10,10 @@ Hetzner cluster. Bundles:
 | Loki | `loki` (SimpleScalable) | Log store, S3-backed |
 | Tempo | `tempo-distributed` | OTLP-native traces store, S3-backed |
 | Grafana | `grafana` | UI + datasources pre-pointed at the three above |
-| GlitchTip | `glitchtip` | Open source error tracking compatible with Sentry client libraries |
+| GlitchTip | `glitchtip` | Error tracking compatible with Sentry client libraries |
 
 Receives metrics/logs/traces pushed from other Glossia workload clusters
-via Grafana Alloy (`deploy/helm/glossia-alloy`). Lives in a separate
+via Grafana Alloy (`ops/deploy/helm/glossia-alloy`). Lives in a separate
 failure domain from production so dashboards survive a production
 outage.
 
@@ -25,12 +25,12 @@ project's server and browser Sentry data source names.
 
 ## Pre-install (one-time, in this order)
 
-1. **Provision the cluster** per `infra/k8s/onboarding.md` §B.8 — reconcile
-   `infra/k8s/clusters/workloads/observability/cluster.yaml`, fetch its
+1. **Provision the cluster** per `ops/infra/k8s/onboarding.md` §B.8 — reconcile
+   `ops/infra/k8s/clusters/workloads/observability/cluster.yaml`, fetch its
    kubeconfig, install Cilium / HCCM / hcloud-csi, install the platform
-   chart with `infra/helm/platform/values-observability.yaml`, install the
+   chart with `ops/infra/helm/platform/values-observability.yaml`, install the
    `infisical` ClusterSecretStore from
-   `infra/k8s/mgmt/bootstrap/infisical-secretstore-observability.yaml`.
+   `ops/infra/k8s/mgmt/bootstrap/infisical-secretstore-observability.yaml`.
    The observability platform overlay enables CloudNativePG because
    GlitchTip stores its events in a PostgreSQL cluster managed by that
    operator.
@@ -43,7 +43,7 @@ project's server and browser Sentry data source names.
    helm upgrade --install rook-ceph rook-release/rook-ceph \
      --version v1.16.4 \
      -n rook-ceph --create-namespace \
-     -f infra/helm/observability/rook-operator-values-observability.yaml
+     -f ops/infra/helm/observability/rook-operator-values-observability.yaml
    ```
    Wait for the operator Deployment to be Ready:
    ```bash
@@ -80,11 +80,11 @@ project's server and browser Sentry data source names.
 ```bash
 helm repo add rook-release https://charts.rook.io/release
 helm repo add grafana https://grafana.github.io/helm-charts
-helm dependency update infra/helm/observability
+helm dependency update ops/infra/helm/observability
 
-helm upgrade --install observability infra/helm/observability \
+helm upgrade --install observability ops/infra/helm/observability \
   -n observability --create-namespace \
-  -f infra/helm/observability/values-hetzner.yaml
+  -f ops/infra/helm/observability/values-hetzner.yaml
 ```
 
 First install takes ~15 min: Ceph mons + OSDs need to bootstrap, RGW
@@ -121,7 +121,7 @@ curl -fsS -u glossia-production:<plain-token> \
   https://mimir.glossia.ai/ready
 ```
 
-End-to-end telemetry test: install `deploy/helm/glossia-alloy` on the
+End-to-end telemetry test: install `ops/deploy/helm/glossia-alloy` on the
 `glossia-production` cluster, wait 5 minutes, then run `up{job="glossia"}`
 in Grafana. Series should appear.
 
@@ -150,7 +150,7 @@ PVCs (Hetzner volumes resize online up to 10 TiB) or by adding OSDs.
 - **Add more OSDs** (one per Ceph node): bump `count`. Requires
   enough headroom on existing nodes; if not, add a new
   MachineDeployment replica to
-  `infra/k8s/clusters/workloads/observability/cluster.yaml` first.
+  `ops/infra/k8s/clusters/workloads/observability/cluster.yaml` first.
 
 Retention bounds (Mimir 30d / Loki 14d / Tempo 7d) cap accumulation.
 Tune them in `values.yaml` if you need longer.
@@ -163,7 +163,7 @@ and disables the Ceph Object Gateway. It intentionally keeps the Ceph cluster
 because Grafana, GlitchTip PostgreSQL, and several write-ahead log volumes
 still use Ceph block storage.
 
-Follow `infra/k8s/object-storage-migration.md` for the copy, comparison,
+Follow `ops/infra/k8s/object-storage-migration.md` for the copy, comparison,
 maintenance window, cutover, and rollback sequence. Do not apply the overlay
 to an empty destination.
 
@@ -175,7 +175,7 @@ local state to direct Hetzner block volumes, and disables Ceph. It must be
 layered after `values-object-storage-hetzner.yaml` and must not be applied to
 the existing observability cluster in place.
 
-Follow `infra/k8s/cluster-consolidation.md` to restore a new compact release in
+Follow `ops/infra/k8s/cluster-consolidation.md` to restore a new compact release in
 the production cluster while keeping the old cluster available for rollback.
 
 ## Teardown

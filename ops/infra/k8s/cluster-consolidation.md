@@ -56,9 +56,9 @@ preparation does not move a workload or remove a server.
 
 ## 1. Finish the object-storage migration
 
-Complete `infra/k8s/object-storage-migration.md` through the production and
+Complete `ops/infra/k8s/object-storage-migration.md` through the production and
 observability object cutovers. Do not continue until these lines are present in
-`infra/k8s/object-storage-migration-state`:
+`ops/infra/k8s/object-storage-migration-state`:
 
 ```text
 production_object_storage=true
@@ -71,10 +71,10 @@ release will not use it.
 ## 2. Add the combined workers
 
 Change the `workload-cluster-production` path in
-`infra/k8s/mgmt/flux/workload-clusters.yaml` to:
+`ops/infra/k8s/mgmt/flux/workload-clusters.yaml` to:
 
 ```yaml
-path: ./infra/k8s/clusters/profiles/consolidation-production
+path: ./ops/infra/k8s/clusters/profiles/consolidation-production
 ```
 
 Commit the change and wait for the three `md-combined` machines and nodes to
@@ -94,7 +94,7 @@ export HCLOUD_TOKEN="$(
 )"
 
 mise exec -- \
-  infra/k8s/allow-production-worker-control-plane.sh watch
+  ops/infra/k8s/allow-production-worker-control-plane.sh watch
 ```
 
 Stop the reconciler after every new node is Ready, then unset the token. Remove
@@ -133,7 +133,7 @@ kubectl -n infisical create secret generic \
   --from-literal=clientSecret='<client secret>'
 
 kubectl apply -f \
-  infra/k8s/mgmt/bootstrap/infisical-secretstore-observability-shared-cluster.yaml
+  ops/infra/k8s/mgmt/bootstrap/infisical-secretstore-observability-shared-cluster.yaml
 
 kubectl wait --for=condition=Ready \
   clustersecretstore/infisical-observability --timeout=2m
@@ -151,13 +151,13 @@ Install the compact release into production without public ingresses while the
 database and Grafana data are restored:
 
 ```bash
-helm dependency update infra/helm/observability
-helm upgrade --install observability infra/helm/observability \
+helm dependency update ops/infra/helm/observability
+helm upgrade --install observability ops/infra/helm/observability \
   --namespace observability \
   --create-namespace \
-  --values infra/helm/observability/values-hetzner.yaml \
-  --values infra/helm/observability/values-object-storage-hetzner.yaml \
-  --values infra/helm/observability/values-compact-hetzner.yaml \
+  --values ops/infra/helm/observability/values-hetzner.yaml \
+  --values ops/infra/helm/observability/values-object-storage-hetzner.yaml \
+  --values ops/infra/helm/observability/values-compact-hetzner.yaml \
   --set glitchtip.replicaCount=0 \
   --set ingress.enabled=false \
   --timeout 30m
@@ -183,7 +183,7 @@ state uses direct Hetzner block volumes:
 Keep both consumers stopped while restoring the verified off-cluster archives:
 
 ```bash
-mise exec -- infra/k8s/restore-compact-observability.sh \
+mise exec -- ops/infra/k8s/restore-compact-observability.sh \
   glossia-production/observability-migration/glitchtip-20260719T082042Z.dump \
   glossia-production/observability-migration/grafana-20260719T084833Z.tar.gz
 ```
@@ -199,11 +199,11 @@ GlitchTip schema migrations to the restored database before the application
 starts:
 
 ```bash
-helm upgrade observability infra/helm/observability \
+helm upgrade observability ops/infra/helm/observability \
   --namespace observability \
-  --values infra/helm/observability/values-hetzner.yaml \
-  --values infra/helm/observability/values-object-storage-hetzner.yaml \
-  --values infra/helm/observability/values-compact-hetzner.yaml \
+  --values ops/infra/helm/observability/values-hetzner.yaml \
+  --values ops/infra/helm/observability/values-object-storage-hetzner.yaml \
+  --values ops/infra/helm/observability/values-compact-hetzner.yaml \
   --set ingress.enabled=false \
   --timeout 30m
 
@@ -241,7 +241,7 @@ After the shared deployment has remained healthy, change the production Flux
 path to:
 
 ```yaml
-path: ./infra/k8s/clusters/profiles/compact-production
+path: ./ops/infra/k8s/clusters/profiles/compact-production
 ```
 
 The final profile retains `md-combined` and removes `md-app` and

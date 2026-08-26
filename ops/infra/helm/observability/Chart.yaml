@@ -60,7 +60,7 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
 
-  # GlitchTip — open source error tracking compatible with Sentry client
+  # GlitchTip — error tracking compatible with Sentry client
   # data source names. We use the upstream web/Valkey chart pieces but own
   # PostgreSQL and the migration Job in this parent chart so they inherit the
   # observability cluster's stateful node placement.

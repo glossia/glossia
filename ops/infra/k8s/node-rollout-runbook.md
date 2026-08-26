@@ -8,7 +8,7 @@ that keep a rollout from stalling. Skipping them once froze the production
 rollout for over a day.
 
 The ClusterClass now sets `deletion.nodeDrainTimeoutSeconds: 600`
-(`infra/k8s/clusters/clusterclass-glossia.yaml`), so a blocked drain degrades
+(`ops/infra/k8s/clusters/clusterclass-glossia.yaml`), so a blocked drain degrades
 and self-heals in ten minutes instead of hanging forever. The steps
 below avoid the ten-minute stall (and the disruption it causes) entirely.
 

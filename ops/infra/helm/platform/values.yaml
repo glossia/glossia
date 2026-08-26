@@ -2,10 +2,10 @@
 # This chart is installed once per cluster, not per app release.
 #
 # Install:
-#   helm dependency update infra/helm/platform
-#   helm upgrade --install platform infra/helm/platform \
+#   helm dependency update ops/infra/helm/platform
+#   helm upgrade --install platform ops/infra/helm/platform \
 #     -n platform --create-namespace \
-#     -f infra/helm/platform/values-hetzner.yaml
+#     -f ops/infra/helm/platform/values-hetzner.yaml
 #
 # The Cloudflare API token is synchronized from Infisical by External Secrets
 # Operator after the platform controllers are installed.

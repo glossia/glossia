@@ -7,7 +7,7 @@ by simply raising `controlPlane.replicas`, and the reason is important.
 
 ## Why it is not a replica bump
 
-`infra/k8s/clusters/workloads/production/cluster.yaml` pins the API endpoint to
+`ops/infra/k8s/clusters/workloads/production/cluster.yaml` pins the API endpoint to
 the control-plane node's own address:
 
 ```yaml

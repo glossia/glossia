@@ -6,18 +6,13 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  include:
-    - repository:
-        name: glossia-source
-      fromPath: deploy/helm/glossia
-      toPath: deploy/helm/glossia
   interval: 1m0s
   provider: github
   ref:
     branch: main
   secretRef:
     name: flux-system
-  url: https://github.com/glossia/ops.git
+  url: https://github.com/glossia/glossia.git
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -26,7 +21,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./infra/k8s/mgmt/flux
+  path: ./ops/infra/k8s/mgmt/flux
   prune: true
   sourceRef:
     kind: GitRepository

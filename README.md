@@ -19,11 +19,6 @@ mise exec -- glossia init
 The command-line interface only initializes the repository configuration.
 Translation runs on the Glossia server after the repository is connected.
 
-## License 📄
-
-Glossia is licensed under the [Mozilla Public License 2.0](LICENSE).
-The [Glossia trademarks](TRADEMARKS.md) are not licensed under that grant.
-
 ## Release tags 🏷️
 
 Release tags identify the component they version:
@@ -38,8 +33,9 @@ Release tags identify the component they version:
 Until server releases are versioned, production images use immutable commit
 tags and the moving `main` tag in the GitHub Container Registry.
 
-## Contributing 🤝
+## Repository layout
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or pull
-request. Security vulnerabilities should be reported according to
-[SECURITY.md](SECURITY.md), not through a public issue.
+- `app/` contains the Glossia web application.
+- `cli/`, `sdk/`, and `mobile/` contain the client software.
+- `deploy/` contains the application Helm chart.
+- `ops/` contains production infrastructure and deployment configuration.

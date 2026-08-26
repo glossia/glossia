@@ -51,7 +51,7 @@ is closed.
   random values for them in the same folder. Keep the provider host and port
   aligned with the Cilium
   [fully qualified domain name policy](https://docs.cilium.io/en/stable/security/dns/)
-  in `infra/helm/platform/values-hetzner.yaml`; relay egress is denied
+  in `ops/infra/helm/platform/values-hetzner.yaml`; relay egress is denied
   everywhere else.
 - CLI tools installed via mise:
   ```bash
@@ -246,14 +246,14 @@ curl -sX POST https://api.hetzner.cloud/v1/ssh_keys \
   -d "$(jq -n --arg key "$(cat ~/.ssh/glossia-ops.pub)" '{name:"glossia-ops", public_key:$key}')" \
   || echo "(skip if 'uniqueness_error': key already in this project)"
 
-kubectl apply -f infra/k8s/clusters/clusterclass-glossia.yaml
+kubectl apply -f ops/infra/k8s/clusters/clusterclass-glossia.yaml
 kubectl -n org-glossia get clusterclass glossia-hcloud
 ```
 
 ### A.5 etcd-snapshot CronJob
 
 ```bash
-kubectl apply -f infra/k8s/mgmt/etcd-snapshot.yaml
+kubectl apply -f ops/infra/k8s/mgmt/etcd-snapshot.yaml
 
 # Pre-stage the two Secrets the CronJob expects:
 #
@@ -322,7 +322,7 @@ this point on; GitHub Actions hits `:6443` over the public IP using
 [GitOps](https://opengitops.dev/) path for workload `Cluster`
 resources. The management kubeconfig is still used once here to install
 Flux. After that, routine edits to
-`infra/k8s/clusters/workloads/*/cluster.yaml` are merged to `main` and
+`ops/infra/k8s/clusters/workloads/*/cluster.yaml` are merged to `main` and
 reconciled from git. The `ClusterClass` stays on the explicit apply
 path in §A.4 because its templates contain immutable fields.
 
@@ -336,13 +336,13 @@ mise exec -- flux bootstrap github \
   --owner=glossia \
   --repository=glossia \
   --branch=main \
-  --path=infra/k8s/mgmt/flux
+  --path=ops/infra/k8s/mgmt/flux
 ```
 
 The generated controller and sync manifests are already reviewed under
-`infra/k8s/mgmt/flux/flux-system`, so bootstrap installs that version
+`ops/infra/k8s/mgmt/flux/flux-system`, so bootstrap installs that version
 without adding a direct commit to `main`. The sibling manifests in
-`infra/k8s/mgmt/flux/` declare the narrow `workload-cluster-reconciler`
+`ops/infra/k8s/mgmt/flux/` declare the narrow `workload-cluster-reconciler`
 service account and one Flux `Kustomization` per workload cluster. Each
 workload `Kustomization` uses `prune: false`, so deleting a `Cluster`
 file from git does not delete live infrastructure.
@@ -368,7 +368,7 @@ the `glossia-hcloud` ClusterClass. The production resource is at
 [`clusters/workloads/production/cluster.yaml`](clusters/workloads/production/cluster.yaml).
 For new clusters, copy a workload directory, adjust `metadata.name`,
 replica counts, machine types, and any per-pool labels, then add a
-matching entry to `infra/k8s/mgmt/flux/workload-clusters.yaml`.
+matching entry to `ops/infra/k8s/mgmt/flux/workload-clusters.yaml`.
 
 ### B.2 Reconcile the Cluster resource
 
@@ -387,7 +387,7 @@ If Flux is unavailable and this is an emergency, use the management
 kubeconfig as a break-glass path:
 
 ```bash
-kubectl apply -k infra/k8s/clusters/workloads/production
+kubectl apply -k ops/infra/k8s/clusters/workloads/production
 ```
 
 Fetch the workload cluster kubeconfig:
@@ -417,7 +417,7 @@ API_HOST=$(KUBECONFIG=~/.kube/glossia-mgmt.yaml kubectl -n org-glossia \
 helm repo add cilium https://helm.cilium.io
 helm upgrade --install cilium cilium/cilium \
   -n kube-system --version 1.18.5 \
-  -f infra/k8s/mgmt/bootstrap/cilium-values.yaml \
+  -f ops/infra/k8s/mgmt/bootstrap/cilium-values.yaml \
   --set k8sServiceHost="${API_HOST}" \
   --set k8sServicePort=443
 
@@ -430,13 +430,13 @@ REGION=$(KUBECONFIG=~/.kube/glossia-mgmt.yaml kubectl -n org-glossia \
 helm repo add hcloud https://charts.hetzner.cloud
 helm upgrade --install hccm hcloud/hcloud-cloud-controller-manager \
   -n kube-system \
-  -f infra/k8s/mgmt/bootstrap/hccm-values.yaml \
+  -f ops/infra/k8s/mgmt/bootstrap/hccm-values.yaml \
   --set "env.HCLOUD_LOAD_BALANCERS_LOCATION.value=${REGION}"
 
 # 3. hcloud-csi.
 helm upgrade --install hcloud-csi hcloud/hcloud-csi \
   -n kube-system \
-  -f infra/k8s/mgmt/bootstrap/hcloud-csi-values.yaml
+  -f ops/infra/k8s/mgmt/bootstrap/hcloud-csi-values.yaml
 
 # 4. Platform chart: cert-manager, ingress-nginx, external-dns, ESO,
 #    and Rook and Ceph object storage when enabled by the provider overlay.
@@ -457,10 +457,10 @@ kubectl label --overwrite ns platform \
 
 # charts/ and Chart.lock are gitignored — deps resolve at install time.
 helm repo add rook-release https://charts.rook.io/release
-helm dependency update infra/helm/platform
-helm upgrade --install platform infra/helm/platform \
+helm dependency update ops/infra/helm/platform
+helm upgrade --install platform ops/infra/helm/platform \
   -n platform \
-  -f infra/helm/platform/values-hetzner.yaml
+  -f ops/infra/helm/platform/values-hetzner.yaml
 
 # cert-manager + ESO install in the same release; if a cold first apply
 # reports a webhook not-ready it is self-healing — re-run the upgrade
@@ -509,7 +509,7 @@ infisical secrets set \
 #
 #    Apply the manifest first. The store reports NotReady until the credential
 #    Secret exists; that is expected.
-kubectl apply -f infra/k8s/mgmt/bootstrap/infisical-secretstore.yaml
+kubectl apply -f ops/infra/k8s/mgmt/bootstrap/infisical-secretstore.yaml
 
 kubectl -n infisical create secret generic infisical-universal-auth \
   --from-literal=clientId="$INFISICAL_CLIENT_ID" \
@@ -520,7 +520,7 @@ kubectl get clustersecretstore infisical
 # Expect READY=True (re-check after a few seconds; ESO revalidates).
 
 # On the observability cluster, use its isolated project and credentials:
-# kubectl apply -f infra/k8s/mgmt/bootstrap/infisical-secretstore-observability.yaml
+# kubectl apply -f ops/infra/k8s/mgmt/bootstrap/infisical-secretstore-observability.yaml
 
 kubectl -n platform get externalsecret mail-relay
 kubectl -n platform get networkpolicy mail-relay-ingress
@@ -557,7 +557,7 @@ closing that endpoint, install the Tailscale proxy in each workload
 cluster and cut operator plus GitHub Actions kubeconfigs over to the
 tailnet path.
 
-Keep `infra/tailscale/policy.hujson` mirrored into the Tailscale
+Keep `ops/infra/tailscale/policy.hujson` mirrored into the Tailscale
 Access controls page. The policy defines the proxy tags, the GitHub
 Actions tag, and the access grants for Transmission Control Protocol
 port 443.
@@ -592,9 +592,9 @@ kubectl label --overwrite namespace tailscale \
   pod-security.kubernetes.io/warn=privileged
 
 helm upgrade --install tailscale-apiserver-proxy \
-  infra/helm/tailscale-apiserver-proxy \
+  ops/infra/helm/tailscale-apiserver-proxy \
   --namespace tailscale \
-  --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
+  --values ops/infra/helm/tailscale-apiserver-proxy/values-production.yaml
 
 kubectl -n tailscale rollout status deployment/tailscale-apiserver-proxy \
   --timeout=5m
@@ -606,9 +606,9 @@ observability cluster:
 
 ```bash
 helm upgrade --install tailscale-apiserver-proxy \
-  infra/helm/tailscale-apiserver-proxy \
+  ops/infra/helm/tailscale-apiserver-proxy \
   --namespace tailscale \
-  --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml
+  --values ops/infra/helm/tailscale-apiserver-proxy/values-observability.yaml
 
 kubectl -n tailscale rollout status deployment/tailscale-apiserver-proxy \
   --timeout=5m
@@ -679,7 +679,7 @@ automation has moved behind Tailscale.
 ```bash
 APP_NS=glossia
 
-sed "s/__NAMESPACE__/${APP_NS}/g" infra/k8s/mgmt/ci-service-account.yaml \
+sed "s/__NAMESPACE__/${APP_NS}/g" ops/infra/k8s/mgmt/ci-service-account.yaml \
   | KUBECONFIG=~/.kube/glossia-production.yaml kubectl apply -f -
 
 SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
@@ -739,7 +739,7 @@ curl -fsS https://community.glossia.ai/srv/status
 ```
 
 The address in `developerEmails` within
-`infra/helm/discourse/values.yaml` becomes an administrator after it signs up.
+`ops/infra/helm/discourse/values.yaml` becomes an administrator after it signs up.
 Change that value before the first public registration if another mailbox
 should own the forum.
 
@@ -795,7 +795,7 @@ kubectl -n platform create secret generic grafana-datasource-env \
 helm repo add grafana https://grafana.github.io/helm-charts
 helm upgrade --install grafana grafana/grafana \
   -n platform \
-  -f infra/k8s/observability/grafana-values.yaml
+  -f ops/infra/k8s/observability/grafana-values.yaml
 ```
 
 Reachable at `https://data.glossia.ai` once external-dns + cert-manager

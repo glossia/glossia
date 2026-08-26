@@ -1,7 +1,7 @@
 # Cutover overlay for Mimir, Loki, and Tempo data in Hetzner Object Storage.
 # It removes only the Ceph Object Gateway. The Ceph cluster stays enabled until
 # the remaining block volumes have been migrated. See
-# infra/k8s/object-storage-migration.md.
+# ops/infra/k8s/object-storage-migration.md.
 
 cephObjectStore:
   enabled: false

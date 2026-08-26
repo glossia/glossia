@@ -18,7 +18,7 @@
 #
 # Rook-Ceph OSDs use PVC-based device sets sourced from the cluster's
 # only StorageClass, `hcloud-volumes` (Hetzner block storage, per
-# infra/k8s/mgmt/bootstrap/hcloud-csi-values.yaml). Replica 2 on the
+# ops/infra/k8s/mgmt/bootstrap/hcloud-csi-values.yaml). Replica 2 on the
 # RGW data pool — Hetzner Volumes are already replicated by Hetzner's
 # SAN, so 3× on top would be 9× total overhead; 2× still survives an
 # OSD pod loss.

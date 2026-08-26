@@ -1,7 +1,7 @@
 # Cutover overlay for public command-line release downloads. This keeps Ceph
 # running but moves releases.glossia.ai to a public Hetzner Object Storage
 # bucket through the existing ingress controller. See
-# infra/k8s/object-storage-migration.md.
+# ops/infra/k8s/object-storage-migration.md.
 
 releaseObjectStorage:
   ingress:

@@ -2,7 +2,7 @@
   "name": "@glossia/web",
   "version": "0.1.0",
   "description": "Cookieless, privacy-friendly web analytics that surfaces localization opportunities for Glossia.",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/glossia-web.cjs",
   "module": "./dist/glossia-web.js",
