@@ -23,6 +23,8 @@ defmodule Glossia.Translations.Failure do
     provider-timeout
     provider-error
     validation-syntax
+    validation-empty-output
+    validation-structure
     validation-preserved-content
     validation-command
     validation
@@ -203,6 +205,12 @@ defmodule Glossia.Translations.Failure do
       ]) ->
         "validation-syntax"
 
+      String.contains?(normalized, "translated output was empty") ->
+        "validation-empty-output"
+
+      String.contains?(normalized, "translated markdown changed the document structure") ->
+        "validation-structure"
+
       contains_any?(normalized, [
         "preserved tokens missing",
         "unexpected preserved tokens",
@@ -231,7 +239,9 @@ defmodule Glossia.Translations.Failure do
       "preserved token",
       "po file",
       "po entry",
-      "po invalid"
+      "po invalid",
+      "translated output was empty",
+      "translated markdown changed the document structure"
     ])
   end
 

@@ -585,6 +585,42 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     refute render(view) =~ "repository-secret"
   end
 
+  test "empty model output explains that no changes were published", %{conn: conn} do
+    user =
+      TestHelpers.create_user("translation-empty-output@test.com", "translation-empty-output")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "empty-output", name: "Empty output"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 1})
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_failed",
+      index: 0,
+      output_path: "app/priv/i18n/de/docs/how-to/retry-project-setup.md",
+      locale: "de",
+      reason: %{kind: "validation-empty-output", scope: "item"}
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='item-failure'][data-kind='validation-empty-output']",
+             "Glossia rejected this empty translation and did not publish any changes."
+           )
+  end
+
   test "a repository with nothing to translate says so once", %{conn: conn} do
     user = TestHelpers.create_user("translation-up-to-date@test.com", "translation-up-to-date")
 

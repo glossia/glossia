@@ -35,6 +35,15 @@ defmodule Glossia.Translations.ValidateTest do
       assert message =~ "frontmatter invalid"
     end
 
+    test "requires the frontmatter form present in the source document" do
+      source = "%{\n  title: \"Retry setup\"\n}\n---\nBody"
+
+      assert {:error, message} =
+               Validate.validate_syntax("markdown", "Translated body only", source)
+
+      assert message =~ "frontmatter invalid"
+    end
+
     test "text is always valid" do
       assert :ok = Validate.validate_syntax("text", "anything", "")
     end
@@ -235,7 +244,7 @@ defmodule Glossia.Translations.ValidateTest do
 
       [_, config_node, _] = get_in(original.tree, ["root", "children"])
       assert config_node["metadata"]["segmentation_version"] == 1
-      assert config_node["metadata"]["preservation_version"] == 6
+      refute Map.has_key?(config_node["metadata"], "preservation_version")
     end
 
     test "unrelated server version changes do not invalidate identical effective context" do
@@ -305,6 +314,31 @@ defmodule Glossia.Translations.ValidateTest do
       refute Locks.stale?(read, "hash-1", "docs/es/g.md", Locks.output_hash("salida"))
       assert Locks.stale?(read, "hash-2", "docs/es/g.md", Locks.output_hash("salida"))
       assert Locks.stale?(nil, "hash-1", "docs/es/g.md", "x")
+    end
+
+    test "keeps a valid lock current across preservation implementation changes" do
+      hash_state = Locks.build_hash_state(hash_state_input())
+
+      legacy_tree =
+        put_in(
+          hash_state.tree,
+          ["root", "children", Access.at(1), "metadata", "preservation_version"],
+          5
+        )
+
+      lock = %{
+        "hash" => "pre-preservation-compatibility",
+        "output_path" => "docs/i18n/es/guide.md",
+        "output_hash" => Locks.output_hash("Guía"),
+        "hash_tree" => legacy_tree
+      }
+
+      refute Locks.stale?(
+               lock,
+               hash_state,
+               "docs/i18n/es/guide.md",
+               Locks.output_hash("Guía")
+             )
     end
   end
 

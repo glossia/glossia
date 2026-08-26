@@ -5,18 +5,12 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
 
   use Oban.Worker,
     queue: :default,
-    max_attempts: 3,
-    unique: [keys: [:session_id], states: [:available, :scheduled, :executing, :retryable]]
+    max_attempts: 1,
+    unique: [keys: [:session_id], states: [:available, :scheduled, :executing]]
 
   @impl Oban.Worker
-  def perform(%Oban.Job{
-        args: %{"session_id" => session_id},
-        attempt: attempt,
-        max_attempts: max_attempts
-      }) do
-    case Glossia.TranslationSessions.Translate.run(session_id,
-           terminal_failure?: attempt >= max_attempts
-         ) do
+  def perform(%Oban.Job{args: %{"session_id" => session_id}}) do
+    case Glossia.TranslationSessions.Translate.run(session_id) do
       :ok -> :ok
       {:error, reason} -> {:error, reason}
     end

@@ -21,6 +21,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations
   alias Glossia.Translations.Format
   alias Glossia.Translations.Frontmatter
+  alias Glossia.Translations.Markdown
   alias Glossia.Translations.PreservedTokens
 
   @doc """
@@ -189,23 +190,35 @@ defmodule Glossia.Translations.Engine do
 
     case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
       {:ok, result} ->
-        text = strip_structured_code_fence(state.work_item.format, result.text)
+        text =
+          state.work_item.format
+          |> strip_structured_code_fence(result.text)
 
-        case unpreserved(state, segment, text) do
-          unpreserved when unpreserved != [] and attempt < @segment_attempts ->
-            # Deliberately no `segment_output`: progress folds that event into
-            # the item's completed text, so announcing output we are about to
-            # discard would leave the rejected and corrected text concatenated.
-            message = preservation_error_message(unpreserved)
+        with :ok <- reject_empty_output(segment.content, text),
+             {:ok, text} <- reconcile_markdown_segment(text, segment, state.work_item.format) do
+          case unpreserved(state, segment, text) do
+            unpreserved when unpreserved != [] and attempt < @segment_attempts ->
+              # Deliberately no `segment_output`: progress folds that event into
+              # the item's completed text, so announcing output we are about to
+              # discard would leave the rejected and corrected text concatenated.
+              message = preservation_error_message(unpreserved)
+              state.on_event.({:segment_retry, index, message})
+              translate_segment(state, segment, index, count, attempt + 1, message)
+
+            [] ->
+              state.on_event.({:segment_output, text})
+              {:ok, text, result}
+
+            unpreserved ->
+              {:preservation_error, preservation_error_message(unpreserved)}
+          end
+        else
+          {:error, message} when attempt < @segment_attempts ->
             state.on_event.({:segment_retry, index, message})
             translate_segment(state, segment, index, count, attempt + 1, message)
 
-          [] ->
-            state.on_event.({:segment_output, text})
-            {:ok, text, result}
-
-          unpreserved ->
-            {:preservation_error, preservation_error_message(unpreserved)}
+          {:error, message} ->
+            {:preservation_error, message}
         end
 
       {:error, reason} ->
@@ -221,6 +234,14 @@ defmodule Glossia.Translations.Engine do
   defp unpreserved(state, segment, text) do
     unpreserved_markers(state.protections, segment.content, text) ++
       PreservedTokens.unpreserved_values(segment.content, text, state.preserve_kinds)
+  end
+
+  defp reject_empty_output(source, output) do
+    if String.trim(source) != "" and String.trim(output) == "" do
+      {:error, "translated output was empty for non-empty source content"}
+    else
+      :ok
+    end
   end
 
   defp unpreserved_markers(protections, segment_content, text) do
@@ -346,10 +367,36 @@ defmodule Glossia.Translations.Engine do
     %{preserved_frontmatter: nil, segments: segments, protections: protections}
   end
 
+  # Markdown source structure is reassembled after translation. Link
+  # destinations and code therefore never need opaque markers or a model round
+  # trip. Placeholders remain opaque, including placeholders inside a link
+  # destination. Other formats continue to use their existing format-neutral
+  # plan.
+  defp planned_content_segments(content, "markdown", preserve_kinds, scope) do
+    protection =
+      PreservedTokens.protect(content, Enum.filter(preserve_kinds, &(&1 == "placeholders")),
+        scope: scope
+      )
+
+    {content_segments(protection.text, "markdown"), [protection]}
+  end
+
   defp planned_content_segments(content, format, preserve_kinds, scope) do
     protection = PreservedTokens.protect(content, preserve_kinds, scope: scope)
     {content_segments(protection.text, format), [protection]}
   end
+
+  defp reconcile_markdown_segment(text, %{kind: "frontmatter"}, _format), do: {:ok, text}
+
+  defp reconcile_markdown_segment(text, segment, "markdown") do
+    if Markdown.requires_reconciliation?(segment.content) do
+      Markdown.reconcile(segment.content, text)
+    else
+      {:ok, text}
+    end
+  end
+
+  defp reconcile_markdown_segment(text, _segment, _format), do: {:ok, text}
 
   defp content_segments(content, format) do
     case Format.segmentation(format) do
