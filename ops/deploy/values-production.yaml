@@ -1,0 +1,295 @@
+# Production overrides for the Glossia Helm chart.
+# Layered on top of deploy/helm/glossia/values.yaml by deploy.yml.
+
+fullnameOverride: glossia
+
+# Two replicas so the PodDisruptionBudget (minAvailable: 1) can ever be
+# satisfied during a node drain. At one replica the only pod is unevictable,
+# which deadlocks CAPI node rollouts, and it leaves the app a single point of
+# failure. The compact cx53 pool has the headroom for this.
+replicaCount: 2
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
+
+env:
+  GLOSSIA_HOST: glossia.ai
+  OTEL_SERVICE_NAME: glossia-web
+  OTEL_DEPLOYMENT_ENVIRONMENT: production
+  OTEL_EXPORTER_OTLP_PROTOCOL: http_protobuf
+  # In-cluster Tempo gateway. The public https://tempo.glossia.ai hostname
+  # resolves to this cluster's own load balancer now that observability is
+  # co-located, and Hetzner load balancers do not hairpin, so trace export
+  # timed out after the consolidation. Tempo runs auth_enabled: false, so the
+  # OTEL_EXPORTER_OTLP_HEADERS secret below is simply ignored internally.
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://observability-tempo-gateway.observability.svc.cluster.local
+
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+mailRelay:
+  enabled: true
+  host: mail-relay.platform.svc.cluster.local
+  port: 587
+  tls: never
+  auth: always
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+  hosts:
+    - host: glossia.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: glossia-ai-tls
+      hosts:
+        - glossia.ai
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 768Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+objectStorage:
+  rook:
+    enabled: true
+    endpointURL: http://rook-ceph-rgw-glossia-s3.platform.svc.cluster.local
+    region: us-east-1
+    bucketName: glossia-production
+    bucketSecretName: glossia-s3
+
+smolanalytics:
+  enabled: true
+  persistence:
+    storageClass: hcloud-volumes
+    size: 20Gi
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    hosts:
+      - host: analytics.glossia.ai
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: analytics-glossia-ai-tls
+        hosts:
+          - analytics.glossia.ai
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+hermes:
+  enabled: true
+  model:
+    provider: custom:together
+    default: MiniMaxAI/MiniMax-M3
+    baseURL: https://api.together.ai/v1
+    apiKeyEnvironmentVariable: TOGETHER_API_KEY
+  persistence:
+    storageClass: hcloud-volumes
+    size: 5Gi
+  observability:
+    grafanaURL: http://observability-grafana.observability.svc.cluster.local
+
+# Bifrost AI gateway. Routes the cluster's model traffic through a single
+# OpenAI-compatible endpoint so provider keys live in one place and usage can be
+# attributed per client key. PVC-backed, so it is pinned to the stateful pool
+# like smolanalytics (single writer over its sqlite store with a Recreate
+# strategy: more than one replica cannot share the volume). The web UI and the
+# OpenAI-compatible endpoint are both served on the gateway port; in-cluster
+# consumers will target the glossia-bifrost Service directly rather than this
+# host.
+bifrost:
+  enabled: true
+  # Pre-provisioned administrator account (admin@glossia.ai) so the gateway's
+  # authentication is enabled and the admin REST API can be driven. Credentials
+  # come from the /kubernetes Infisical item (BIFROST_ADMIN_USERNAME/PASSWORD).
+  authConfig:
+    enabled: true
+  persistence:
+    storageClass: hcloud-volumes
+    size: 5Gi
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    hosts:
+      - host: gateway.glossia.ai
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: gateway-glossia-ai-tls
+        hosts:
+          - gateway.glossia.ai
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+# CAPI/Hetzner stateful pool: hcloud-volumes for PVCs, taint+nodeSelector
+# pin Postgres + ClickHouse to the dedicated stateful nodes.
+postgres:
+  # Two 200Gi instances fit the current Hetzner project volume quota. Raise
+  # the quota before returning to 3 instances.
+  instances: 2
+  storage:
+    storageClass: hcloud-volumes
+    size: 200Gi
+  storageAutoResize:
+    enabled: true
+    thresholdPercent: 80
+    scaleFactorPercent: 150
+    minIncrementGi: 50
+    maxSize: 500Gi
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+clickhouse:
+  # Three-node Keeper quorum. At one replica the operator's PDB is
+  # maxUnavailable: 0, so the sole pod is unevictable and deadlocks node
+  # drains, and a single Keeper is a coordination SPOF for ClickHouse
+  # (access control, user-defined objects, encrypted named collections).
+  # The operator reports ScaleAllowed, so it expands the standalone node into
+  # a quorum online while preserving the existing node's data.
+  keeperReplicas: 3
+  # Spread the three Keeper pods across nodes. Without this the operator can
+  # co-schedule two on one node, so losing that node loses quorum - defeating
+  # the point of a three-node quorum. ScheduleAnyway keeps the pods
+  # schedulable if a node is briefly unavailable during a rollout.
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          clickhouse.com/role: clickhouse-keeper
+  storage:
+    storageClass: hcloud-volumes
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+# Dedicated DB-backup bucket on Cloudflare R2 — SEPARATE provider and
+# credentials from the app's GLOSSIA_S3_* store (DR isolation). The
+# bucket + the scoped R2 token live behind the `glossia-db-backups-keys`
+# Infisical folder (ops/infra/k8s/onboarding.md §B.6). endpointURL is the
+# account's EU-jurisdiction R2 S3 endpoint; R2's region is always "auto".
+backups:
+  enabled: true
+  s3:
+    bucket: glossia-production-db-backups
+    prefix: glossia-production
+    endpointURL: https://bb7ccb20a20a58b2d5242d0277c750fe.eu.r2.cloudflarestorage.com
+    region: auto
+  postgres:
+    schedule: "0 0 3 * * *"
+    retentionPolicy: "30d"
+  clickhouse:
+    schedule: "30 3 * * *"
+    keepRemote: 30
+    # R2 needs path-style addressing for clickhouse-backup.
+    forcePathStyle: true
+
+# Pull every secret from the Glossia Infisical project via the `infisical`
+# ClusterSecretStore provisioned by ops/infra/k8s/onboarding.md.
+externalSecrets:
+  enabled: true
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  appEnv:
+    itemKey: /kubernetes
+    fields:
+      GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
+      GLOSSIA_ANALYTICS_IDENTITY_SECRET: ANALYTICS_IDENTITY_SECRET
+      GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
+      GLOSSIA_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
+      GLOSSIA_SMTP_HOST:
+      GLOSSIA_SMTP_PORT:
+      GLOSSIA_SMTP_USERNAME: MAIL_RELAY_USERNAME
+      GLOSSIA_SMTP_PASSWORD: MAIL_RELAY_PASSWORD
+      GLOSSIA_ENCRYPTION_KEY: ENCRYPTION_KEY
+      GLOSSIA_SENTRY_DSN: SENTRY_DSN
+      GLOSSIA_SENTRY_DSN_JS: SENTRY_DSN_JS
+      GLOSSIA_GITHUB_CLIENT_ID: GITHUB_CLIENT_ID
+      GLOSSIA_GITHUB_CLIENT_SECRET: GITHUB_CLIENT_SECRET
+      GLOSSIA_GITHUB_WEBHOOK_SECRET: GITHUB_WEBHOOK_SECRET
+      GLOSSIA_GITHUB_APP_ID: GITHUB_APP_ID
+      GLOSSIA_GITHUB_APP_PRIVATE_KEY: GITHUB_APP_PRIVATE_KEY
+      GLOSSIA_GITHUB_APP_SLUG: GITHUB_APP_SLUG
+      GLOSSIA_GITLAB_CLIENT_ID: GITLAB_CLIENT_ID
+      GLOSSIA_GITLAB_CLIENT_SECRET: GITLAB_CLIENT_SECRET
+      GLOSSIA_GITLAB_WEBHOOK_SECRET: GITLAB_WEBHOOK_SECRET
+      OTEL_EXPORTER_OTLP_HEADERS: OTEL_EXPORTER_OTLP_HEADERS
+  postgres:
+    itemKey: /kubernetes
+    passwordField: POSTGRES_PASSWORD
+  smolanalytics:
+    itemKey: /kubernetes
+    writeKeyField: SMOLANALYTICS_WRITE_KEY
+    readKeyField: SMOLANALYTICS_READ_KEY
+    passwordField: SMOLANALYTICS_PASSWORD
+  hermes:
+    itemKey: /kubernetes
+    apiKeyField: TOGETHER_API_KEY
+    slackBotTokenField: SLACK_BOT_TOKEN
+    slackAppTokenField: SLACK_APP_TOKEN
+    slackAllowedUsersField: SLACK_ALLOWED_USERS
+    slackHomeChannelField: ""
+    apiServerKeyField: HERMES_API_SERVER_KEY
+  grafanaMcp:
+    itemKey: /kubernetes
+    serviceAccountTokenField: GRAFANA_SERVICE_ACCOUNT_TOKEN
+  # Encryption key for the Bifrost gateway's stored provider credentials.
+  # Reads BIFROST_ENCRYPTION_KEY from the same /kubernetes item as the app
+  # secrets. Without it the pod still starts (the env reference is optional),
+  # but provider keys entered in the gateway are not encrypted at rest.
+  bifrost:
+    itemKey: /kubernetes
+    encryptionKeyField: BIFROST_ENCRYPTION_KEY
+    # Pre-provisioned admin account, referenced from config.json auth_config
+    # via env indirection (chart fix #133).
+    adminUsernameField: BIFROST_ADMIN_USERNAME
+    adminPasswordField: BIFROST_ADMIN_PASSWORD
+  backup:
+    itemKey: /glossia-db-backups-keys
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+  imagePullSecret:
+    enabled: true
+    name: ghcr-pull-secret
+    registry: ghcr.io
+    itemKey: /kubernetes
+    usernameField: GHCR_PULL_USERNAME
+    passwordField: GHCR_PULL_TOKEN

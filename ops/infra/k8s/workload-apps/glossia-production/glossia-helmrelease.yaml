@@ -1,0 +1,47 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: glossia
+  namespace: org-glossia
+spec:
+  dependsOn:
+    - name: platform
+  maxHistory: 5
+  interval: 10m0s
+  releaseName: glossia
+  targetNamespace: glossia
+  storageNamespace: glossia
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig
+  chart:
+    spec:
+      chart: ./deploy/helm/glossia
+      interval: 5m0s
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+      valuesFiles:
+        - deploy/helm/glossia/values.yaml
+        - ops/deploy/values-production.yaml
+        - ops/deploy/values-object-storage-hetzner.yaml
+  install:
+    createNamespace: true
+    crds: Create
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  timeout: 20m0s
+  values:
+    image:
+      repository: ghcr.io/glossia/glossia # {"$imagepolicy": "flux-system:glossia:name"}
+      tag: main # {"$imagepolicy": "flux-system:glossia:tag"}
+      digest: sha256:5abc0c126f4d8167dbb11486e72e8ca4032e6be604292207d8cd2c5e1e70e5fb # {"$imagepolicy": "flux-system:glossia:digest"}

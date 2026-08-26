@@ -16,7 +16,7 @@ Add this snippet to every page, ideally in the `<head>`:
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-The SDK auto-initializes, sends a pageview on load, and records subsequent pageviews on client-side navigation in single-page apps. `data-domain` defaults to `window.location.hostname` when omitted, so you can drop it on a single-domain site. To self-host the collect endpoint, add `data-endpoint="https://collect.your-host.com"`.
+The SDK auto-initializes, sends a pageview on load, and records subsequent pageviews on client-side navigation in single-page apps. `data-domain` defaults to `window.location.hostname` when omitted, so you can drop it on a single-domain site. To use a custom collection endpoint, add `data-endpoint="https://collect.your-host.com"`.
 
 ## Option B: npm
 

@@ -15,7 +15,7 @@ Ajoutez cet extrait à chaque page, idéalement dans le `<head>` :
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-Le kit de développement logiciel s'initialise automatiquement, envoie une vue de page lors du chargement et enregistre les vues de page suivantes lors de la navigation côté client dans les applications monopages. `data-domain` utilise `window.location.hostname` par défaut lorsqu'il est omis. Vous pouvez donc l'intégrer directement à un site utilisant un seul domaine. Pour auto-héberger le point de terminaison de collecte, ajoutez `data-endpoint="https://collect.your-host.com"`.
+Le kit de développement logiciel s'initialise automatiquement, envoie une vue de page lors du chargement et enregistre les vues de page suivantes lors de la navigation côté client dans les applications monopages. `data-domain` utilise `window.location.hostname` par défaut lorsqu'il est omis. Vous pouvez donc l'intégrer directement à un site utilisant un seul domaine. Pour utiliser un point de terminaison de collecte personnalisé, ajoutez `data-endpoint="https://collect.your-host.com"`.
 
 ## Option B : npm
 

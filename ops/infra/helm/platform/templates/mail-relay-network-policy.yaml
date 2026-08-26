@@ -1,0 +1,36 @@
+{{- if and .Values.mailRelay.enabled .Values.mailRelay.networkPolicy.enabled }}
+{{- if empty .Values.mailRelay.networkPolicy.allowedClients }}
+{{- fail "mailRelay.networkPolicy.allowedClients must contain at least one client when mailRelay.networkPolicy.enabled=true" }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-ingress" .Values.mailRelay.fullnameOverride }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: mail-relay
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mail-relay
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        {{- range .Values.mailRelay.networkPolicy.allowedClients }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ required "mailRelay.networkPolicy.allowedClients[].namespace is required" .namespace | quote }}
+          {{- with .podSelector }}
+          podSelector:
+            matchLabels:
+              {{- toYaml . | nindent 14 }}
+          {{- end }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.mailRelay.service.targetPort }}
+{{- end }}

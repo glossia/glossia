@@ -15,7 +15,7 @@ Fügen Sie dieses Snippet auf jeder Seite ein, idealerweise im `<head>`:
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-Das SDK initialisiert sich automatisch, sendet beim Laden einen Seitenaufruf und erfasst nachfolgende Seitenaufrufe bei der clientseitigen Navigation in Single-Page-Anwendungen. `data-domain` wird standardmäßig auf `window.location.hostname` gesetzt, wenn es ausgelassen wird, sodass Sie es auf einer Website mit nur einer Domain weglassen können. Um den Erfassungsendpunkt selbst zu hosten, fügen Sie `data-endpoint="https://collect.your-host.com"` hinzu.
+Das SDK initialisiert sich automatisch, sendet beim Laden einen Seitenaufruf und erfasst nachfolgende Seitenaufrufe bei der clientseitigen Navigation in Single-Page-Anwendungen. `data-domain` wird standardmäßig auf `window.location.hostname` gesetzt, wenn es ausgelassen wird, sodass Sie es auf einer Website mit nur einer Domain weglassen können. Um einen benutzerdefinierten Erfassungsendpunkt zu verwenden, fügen Sie `data-endpoint="https://collect.your-host.com"` hinzu.
 
 ## Option B: npm
 

@@ -1,0 +1,629 @@
+# Platform-level values for the Glossia-managed Kubernetes cluster.
+# This chart is installed once per cluster, not per app release.
+#
+# Install:
+#   helm dependency update ops/infra/helm/platform
+#   helm upgrade --install platform ops/infra/helm/platform \
+#     -n platform --create-namespace \
+#     -f ops/infra/helm/platform/values-hetzner.yaml
+#
+# The Cloudflare API token is synchronized from Infisical by External Secrets
+# Operator after the platform controllers are installed.
+
+# Kubernetes intentionally leaves kubelet serving Certificate Signing Requests
+# pending until a deployment-specific approver validates them. Glossia node
+# names are not public Domain Name System records, so resolution is bypassed;
+# the controller still verifies the serving signer, node identity, common name,
+# hostname prefix, requested usages, and Subject Alternative Name structure.
+# https://kubernetes.io/docs/reference/access-authn-authz/kubelet-tls-bootstrapping/
+kubelet-csr-approver:
+  enabled: true
+  providerRegex: '^glossia-(production|observability)-[a-z0-9-]+$'
+  bypassDnsResolution: true
+  maxExpirationSeconds: "31536000"
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+# Cloudflare wiring shared by cert-manager (DNS-01 ACME) and external-dns.
+cloudflare:
+  email: ops@glossia.ai
+  # Name + key of the Secret that holds the Cloudflare API token. The token
+  # must have Zone.DNS:Edit scope on the glossia.ai zone and any other
+  # managed zones.
+  apiTokenSecret:
+    name: cloudflare-api-token
+    key: api-token
+  externalSecret:
+    enabled: true
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: infisical
+    itemKey: /cloudflare-glossia-dns
+    credentialField: CREDENTIAL
+
+# Lets Encrypt account email for certificates issued by cert-manager.
+letsencrypt:
+  email: ops@glossia.ai
+
+cert-manager:
+  enabled: true
+  installCRDs: true
+  prometheus:
+    enabled: true
+  # Resource requests so these are not BestEffort. cert-manager-webhook in
+  # particular gates every Certificate/Issuer API write cluster-wide, so it
+  # must not be first-evicted under node memory pressure.
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  webhook:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  cainjector:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+ingress-nginx:
+  enabled: true
+  controller:
+    replicaCount: 2
+    # Spread the two controllers across nodes. Without this both can land on
+    # one node, so losing that node is a full public-ingress outage despite
+    # the minAvailable:1 PDB. On a small cluster co-scheduling is likely.
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: ingress-nginx
+            app.kubernetes.io/instance: platform
+            app.kubernetes.io/component: controller
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+    publishService:
+      enabled: true
+    service:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      # Provider-specific LB annotations are set via overlays so this base
+      # chart stays portable (see values-hetzner.yaml). Leaving annotations
+      # empty here means any cloud provider's default LB controller will
+      # provision a plain public LB with its own defaults — works everywhere,
+      # but without provider-native features like PROXY protocol.
+      annotations: {}
+    # X-Forwarded-For from upstream proxies (Cloudflare, Hetzner LB) is
+    # the canonical client-IP source. PROXY protocol is OFF by default
+    # because Cloudflare's free/Pro plans don't pass it through; orange-
+    # cloud proxying breaks if ingress-nginx insists on it. Re-enable
+    # via a provider overlay only when the LB path is end-to-end PROXY-
+    # protocol-aware AND the front edge (Cloudflare) is gray-cloud.
+    config:
+      use-forwarded-headers: "true"
+      compute-full-forwarded-for: "true"
+    metrics:
+      enabled: true
+
+external-dns:
+  enabled: true
+  provider: cloudflare
+  sources:
+    - service
+    - ingress
+  txtOwnerId: glossia-platform
+  # Limit which records external-dns will touch. The token projected below
+  # must be able to list and edit this zone.
+  domainFilters:
+    - glossia.ai
+  policy: sync
+  cloudflare:
+    # Reference the Cloudflare API token Secret created out-of-band. The
+    # external-dns chart accepts env from an existing Secret under env[].
+    apiTokenType: token
+  env:
+    - name: CF_API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: cloudflare-api-token
+          key: api-token
+
+external-secrets:
+  enabled: true
+  installCRDs: true
+  crds:
+    # Keep serving the deprecated version temporarily for third-party or older
+    # releases while Glossia's own resources use external-secrets.io/v1.
+    unsafeServeV1Beta1: true
+  # Resource requests so these controllers are not BestEffort. The webhook
+  # gates every ExternalSecret API write, so it must not be first-evicted.
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      memory: 192Mi
+  webhook:
+    port: 9443
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  certController:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+# --- Cluster mail relay -----------------------------------------------------
+# Optional in-cluster mail relay. Applications submit mail to this ClusterIP
+# service without carrying provider credentials. The relay authenticates to the
+# upstream provider and keeps those credentials in the platform namespace.
+mailRelay:
+  enabled: false
+  fullnameOverride: mail-relay
+  replicaCount: 1
+  image:
+    repository: boky/postfix
+    tag: "5.1.0-debian"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 587
+    targetPort: 587
+  # Relay host can be set directly for non-sensitive environments, but
+  # production should use externalSecret or existingSecret instead.
+  relayHost: ""
+  existingSecret:
+    name: ""
+    keys:
+      relayHost: RELAYHOST
+      username: RELAYHOST_USERNAME
+      password: RELAYHOST_PASSWORD
+      saslUsers: SMTPD_SASL_USERS
+  externalSecret:
+    enabled: false
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: infisical
+    secretName: mail-relay
+    itemKey: /kubernetes
+    fields:
+      host: SMTP_HOST
+      port: SMTP_PORT
+      username: SMTP_USERNAME
+      password: SMTP_PASSWORD
+      clientUsername: MAIL_RELAY_USERNAME
+      clientPassword: MAIL_RELAY_PASSWORD
+  config:
+    allowedSenderDomains: glossia.ai
+    allowEmptySenderDomains: "false"
+    myHostname: mail-relay.glossia.ai
+    # Keep the base chart closed by default. Production overlays should set
+    # this to the pod network because this image trusts clients by source
+    # address.
+    myNetworks: "127.0.0.0/8"
+    outboundTlsSecurityLevel: encrypt
+    messageSizeLimit: ""
+  clientAuth:
+    enabled: false
+    # Comma-separated user:password pairs for local development without an
+    # external Secret. Production should set this through externalSecret.
+    saslUsers: ""
+    senderRestrictions: "reject_non_fqdn_sender,reject_unknown_sender_domain,check_sender_access lmdb:/etc/postfix/allowed_senders,reject"
+    recipientRestrictions: "reject_non_fqdn_recipient,reject_unknown_recipient_domain,permit_sasl_authenticated,reject"
+    relayRestrictions: "permit_sasl_authenticated,reject_unauth_destination"
+  networkPolicy:
+    enabled: false
+    allowedClients:
+      - namespace: glossia
+        podSelector:
+          app.kubernetes.io/name: glossia
+          app.kubernetes.io/instance: glossia
+          app.kubernetes.io/component: agent
+      - namespace: observability
+        podSelector:
+          app.kubernetes.io/name: glitchtip
+          app.kubernetes.io/instance: observability
+      - namespace: community
+        podSelector:
+          app.kubernetes.io/name: discourse
+          app.kubernetes.io/instance: community
+          app.kubernetes.io/component: web
+  ciliumEgressPolicy:
+    enabled: false
+    dns:
+      namespace: kube-system
+      podSelector:
+        k8s-app: kube-dns
+      port: "53"
+    allowedFQDNs: []
+    allowedPorts: []
+  persistence:
+    enabled: false
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# --- Rook and Ceph object storage ------------------------------------------
+# Optional in-cluster object storage compatible with Amazon Simple Storage
+# Service. This follows the same operator/instance split as the database
+# operators: the rook-ceph chart installs the operator and custom resource
+# definitions, while rook-ceph-cluster creates one persistent volume
+# claim-backed Ceph cluster and a Rook Ceph Object Gateway object store.
+#
+# Defaults are conservative and OFF. The Hetzner overlay enables and sizes this
+# for the Glossia workload cluster.
+rook-ceph:
+  enabled: false
+  crds:
+    enabled: true
+  currentNamespaceOnly: false
+  csi:
+    installCsiOperator: true
+    serviceMonitor:
+      enabled: false
+  monitoring:
+    enabled: false
+
+rook-ceph-cluster:
+  enabled: false
+  # Must match the namespace where this platform release installs rook-ceph.
+  operatorNamespace: platform
+  clusterName: rook-ceph
+  toolbox:
+    enabled: false
+  monitoring:
+    enabled: false
+    createPrometheusRules: false
+  cephImage:
+    repository: quay.io/ceph/ceph
+    tag: v20.2.1
+    allowUnsupported: false
+  cephClusterSpec:
+    dataDirHostPath: /var/lib/rook
+    skipUpgradeChecks: false
+    continueUpgradeAfterChecksEvenIfNotHealthy: false
+    mon:
+      count: 3
+      allowMultiplePerNode: false
+    mgr:
+      count: 2
+      allowMultiplePerNode: false
+    dashboard:
+      enabled: false
+      ssl: true
+    crashCollector:
+      disable: false
+    logCollector:
+      enabled: true
+      periodicity: daily
+      maxLogSize: 500M
+    cleanupPolicy:
+      confirmation: ""
+      allowUninstallWithVolumes: false
+    resources:
+      mgr:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 512Mi
+      mon:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      osd:
+        limits:
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 4Gi
+      prepareosd:
+        requests:
+          cpu: 500m
+          memory: 50Mi
+    storage:
+      useAllNodes: false
+      useAllDevices: false
+      allowOsdCrushWeightUpdate: true
+      storageClassDeviceSets:
+        - name: default
+          count: 3
+          portable: true
+          tuneFastDeviceClass: true
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 4Gi
+          volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 100Gi
+                storageClassName: ""
+                volumeMode: Block
+    disruptionManagement:
+      managePodBudgets: true
+      osdMaintenanceTimeout: 30
+  # Glossia only needs object storage here. Leave block and file storage
+  # classes off until another workload explicitly needs them.
+  cephBlockPools: []
+  cephFileSystems: []
+  cephObjectStores:
+    - name: glossia-s3
+      spec:
+        metadataPool:
+          failureDomain: host
+          replicated:
+            size: 3
+        dataPool:
+          failureDomain: host
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          # Let the autoscaler grow placement groups with actual usage. A bulk
+          # pool reserves a full complement before the object data needs it.
+          parameters:
+            bulk: "false"
+        preservePoolsOnDelete: true
+        gateway:
+          port: 80
+          instances: 2
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          priorityClassName: system-cluster-critical
+      storageClass:
+        enabled: true
+        name: glossia-s3-bucket
+        reclaimPolicy: Retain
+        volumeBindingMode: Immediate
+        annotations: {}
+        labels: {}
+        parameters:
+          region: us-east-1
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+
+# Resources around the Rook object store that are not part of the upstream
+# rook-ceph-cluster chart: the app bucket claim and autoscaling policy.
+rookObjectStorage:
+  enabled: false
+  clusterNamespace: platform
+  clusterName: rook-ceph
+  objectStoreName: glossia-s3
+  appNamespace: glossia
+  bucketClaim:
+    enabled: true
+    name: glossia-s3
+    bucketName: glossia-production
+    storageClassName: glossia-s3-bucket
+    additionalConfig: {}
+  autoscaling:
+    storage:
+      enabled: false
+      schedule: "*/15 * * * *"
+      image: alpine/k8s:1.34.1
+      deviceSetIndex: 0
+      thresholdPercent: 75
+      increment: 1
+      maxDeviceCount: 9
+      blockOnHealthError: true
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 3
+      resources:
+        requests:
+          cpu: 25m
+          memory: 64Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
+    gateway:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 8
+      cpuAverageUtilization: 65
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 60
+            - type: Pods
+              value: 2
+              periodSeconds: 60
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 60
+  networkPolicy:
+    enabled: false
+    # Restricts Object Gateway ingress to the platform namespace, where Rook
+    # reconciles bucket/user state, plus the selected app pods in appNamespace.
+    servicePort: 80
+    podPort: 8080
+    appPodSelector:
+      app.kubernetes.io/name: glossia
+      app.kubernetes.io/instance: glossia
+      app.kubernetes.io/component: agent
+
+# Public release artifact storage. This intentionally uses a separate Rook
+# Object Gateway from the app bucket so release downloads can be public without
+# exposing the app object storage endpoint.
+releaseObjectStorage:
+  enabled: false
+  clusterNamespace: platform
+  objectStoreName: glossia-releases-s3
+  bucketClaim:
+    enabled: true
+    namespace: platform
+    name: glossia-releases
+    bucketName: releases.glossia.ai
+    storageClassName: glossia-releases-s3-bucket
+    additionalConfig: {}
+  publicAccess:
+    enabled: true
+    image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+    backoffLimit: 30
+    activeDeadlineSeconds: 1800
+    ttlSecondsAfterFinished: 86400
+  ingress:
+    enabled: false
+    className: nginx
+    host: releases.glossia.ai
+    clusterIssuer: letsencrypt-cloudflare
+    tlsSecretName: glossia-releases-tls
+    publicPrefixes:
+      - cli
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  dnsCleanup:
+    enabled: false
+    image: python:3.13-alpine
+    zoneName: glossia.ai
+    backoffLimit: 3
+    activeDeadlineSeconds: 300
+    ttlSecondsAfterFinished: 86400
+  networkPolicy:
+    enabled: false
+    servicePort: 80
+    podPort: 8080
+    allowedNamespaceNames:
+      - platform
+
+# Public release downloads backed by a provider-managed object storage bucket.
+# The ExternalName Service and Ingress preserve releases.glossia.ai while the
+# upstream bucket uses its provider hostname. Keep this disabled until the
+# release bucket has been copied and made public.
+externalObjectStorage:
+  releaseProxy:
+    enabled: false
+    namespace: platform
+    serviceName: glossia-releases-object-storage
+    bucketHost: ""
+    servicePort: 443
+    credentials:
+      secretName: glossia-releases-object-storage
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: infisical
+      itemKey: /glossia-releases-object-storage
+      accessKeyIdField: AWS_ACCESS_KEY_ID
+      secretAccessKeyField: AWS_SECRET_ACCESS_KEY
+    ingress:
+      className: nginx
+      host: releases.glossia.ai
+      clusterIssuer: letsencrypt-cloudflare
+      tlsSecretName: glossia-releases-tls
+      annotations: {}
+
+# Whether to emit the ClusterIssuer template below. Turn off if you manage
+# cert-manager issuers with a separate GitOps process.
+clusterIssuer:
+  enabled: true
+  name: letsencrypt-cloudflare
+  server: https://acme-v02.api.letsencrypt.org/directory
+
+# --- Database operators -----------------------------------------------------
+# These are the cluster-level controllers the Glossia application chart
+# (deploy/helm/glossia in glossia/glossia) consumes. The app chart ships the
+# Postgres/ClickHouse *instances* (CRs); this chart can ship the *operators*
+# that reconcile them — the standard operator/instance split.
+#
+# Default OFF. They are cluster-scoped singletons (CRDs, webhooks, leader
+# election); on any cluster where CNPG / the ClickHouse operator / the Barman
+# plugin are already installed out-of-band (e.g. the Hetzner workload cluster
+# runs them standalone in cnpg-system / clickhouse-operator-system), turning
+# these on would stand up a SECOND, conflicting controller. Flip the relevant
+# ones to true only on a greenfield cluster where you want this chart to own
+# them, and keep exactly one owner per operator.
+
+# CloudNativePG — reconciles postgresql.cnpg.io/v1 Cluster.
+cloudnative-pg:
+  enabled: false
+  # CRDs ship with the chart so the app chart's Cluster CR is schema-valid.
+  crds:
+    create: true
+  # No Prometheus Operator on the cluster (Grafana is community Grafana with
+  # direct datasources), so don't emit a PodMonitor it can't consume.
+  monitoring:
+    podMonitorEnabled: false
+
+# CNPG Barman Cloud backup plugin. Installs the plugin controller only; the
+# ObjectStore + ScheduledBackup CRs and Cluster.spec.plugins wiring live in
+# the Glossia application chart, pointed at a dedicated backup bucket with
+# its own credentials (see k8s/onboarding.md). Uses cert-manager (above) via
+# a self-signed issuer for plugin<->operator mTLS.
+plugin-barman-cloud:
+  enabled: false
+
+# Official ClickHouse operator — reconciles clickhouse.com/v1alpha1
+# ClickHouseCluster + KeeperCluster. The official operator has no native
+# backup CR; ClickHouse backups run as a clickhouse-backup CronJob defined in
+# the Glossia application chart.
+clickhouse-operator:
+  enabled: false
+  certManager:
+    # Use cert-manager for the operator's admission-webhook certificate…
+    enable: true
+    # …but the platform-level cert-manager above, not a vendored copy. (This
+    # is already the chart default; pinned explicitly because flipping it on
+    # would install a second, conflicting cert-manager.)
+    install: false

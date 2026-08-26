@@ -15,7 +15,7 @@
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-ソフトウェア開発キットは自動的に初期化され、読み込み時にページビューを送信し、シングルページアプリケーション内のクライアント側ナビゲーションで発生する以降のページビューも記録します。`data-domain` を省略すると、デフォルトで `window.location.hostname` が使用されるため、単一ドメインのサイトでは指定する必要はありません。収集エンドポイントをセルフホストするには、`data-endpoint="https://collect.your-host.com"` を追加します。
+ソフトウェア開発キットは自動的に初期化され、読み込み時にページビューを送信し、シングルページアプリケーション内のクライアント側ナビゲーションで発生する以降のページビューも記録します。`data-domain` を省略すると、デフォルトで `window.location.hostname` が使用されるため、単一ドメインのサイトでは指定する必要はありません。カスタム収集エンドポイントを使用するには、`data-endpoint="https://collect.your-host.com"` を追加します。
 
 ## オプション B: npm
 

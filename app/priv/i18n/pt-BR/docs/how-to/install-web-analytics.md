@@ -15,7 +15,7 @@ Adicione este trecho a todas as páginas, idealmente em `<head>`:
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-O SDK é inicializado automaticamente, envia uma visualização de página ao carregar e registra as visualizações de página subsequentes durante a navegação no lado do cliente em aplicações de página única. Quando omitido, `data-domain` usa `window.location.hostname` como padrão, portanto, você pode adicioná-lo diretamente a um site com um único domínio. Para hospedar o endpoint de coleta em sua própria infraestrutura, adicione `data-endpoint="https://collect.your-host.com"`.
+O SDK é inicializado automaticamente, envia uma visualização de página ao carregar e registra as visualizações de página subsequentes durante a navegação no lado do cliente em aplicações de página única. Quando omitido, `data-domain` usa `window.location.hostname` como padrão, portanto, você pode adicioná-lo diretamente a um site com um único domínio. Para usar um endpoint de coleta personalizado, adicione `data-endpoint="https://collect.your-host.com"`.
 
 ## Opção B: npm
 

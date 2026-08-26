@@ -2956,9 +2956,8 @@ msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
 #, elixir-autogen, elixir-format
-msgid "The open-source language OS for your organization"
-msgstr ""
-"El sistema operativo de idiomas de código abierto para su organización"
+msgid "The language platform for your organization"
+msgstr "La plataforma de idiomas para su organización"
 
 #: lib/glossia_web/live/dashboard_live.ex:11931
 #: lib/glossia_web/live/dashboard_live.ex:12002
@@ -3002,11 +3001,8 @@ msgstr ""
 
 #: lib/glossia_web/controllers/page_controller.ex:30
 #, elixir-autogen, elixir-format
-msgid "Glossia is the open-source language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr ""
-"Glossia es el sistema operativo de idiomas de código abierto donde los "
-"lingüistas y los equipos definen cómo se expresa su organización en cada "
-"idioma y canal."
+msgid "Glossia is the language platform where linguists and teams shape how your organization speaks across every language and surface."
+msgstr "Glossia es la plataforma de idiomas donde lingüistas y equipos definen cómo se expresa su organización en cada idioma y canal."
 
 #: lib/glossia_web/live/dashboard_live.ex:12003
 #, elixir-autogen, elixir-format

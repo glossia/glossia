@@ -1,0 +1,32 @@
+{{- if and .Values.ingress.enabled .Values.glitchtip.enabled }}
+{{- $glitchtipName := include "observability.glitchtipFullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: glitchtip
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 32m
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.glitchtip.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $glitchtipName }}-web
+                port:
+                  number: 80
+  tls:
+    - secretName: glitchtip-tls
+      hosts:
+        - {{ .Values.ingress.glitchtip.host | quote }}
+{{- end }}

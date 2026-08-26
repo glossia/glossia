@@ -1,0 +1,40 @@
+{{- if and .Values.ingress.enabled (index .Values "tempo-distributed" "enabled") }}
+# Tempo OTLP receiver — served at .Values.ingress.tempo.host. The app
+# exports traces here via OTEL_EXPORTER_OTLP_ENDPOINT
+# (app/config/runtime.exs). OTLP HTTP at /v1/traces is what nginx ingress
+# can carry; OTLP gRPC needs a separate path / TCP termination and is
+# out of scope for this ingress. Apps that prefer gRPC export should
+# either use the in-cluster Service DNS (intra-region) or get a dedicated
+# TCP LB later.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tempo
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 32m
+    {{- include "observability.pushAuthAnnotations" . | nindent 4 }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.tempo.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # nginx gateway shipped by tempo-distributed.
+                name: {{ .Release.Name }}-tempo-gateway
+                port:
+                  number: 80
+  tls:
+    - secretName: tempo-tls
+      hosts:
+        - {{ .Values.ingress.tempo.host | quote }}
+{{- end }}

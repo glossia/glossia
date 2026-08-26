@@ -1,0 +1,47 @@
+{{- if (index .Values "alloy-events" "enabled") }}
+# Singleton Alloy River config for cluster-wide Kubernetes event logs.
+# This is separate from the node DaemonSet config because Kubernetes
+# events are not node-local, so collecting them from every Alloy replica
+# would duplicate event lines in Loki.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glossia-alloy-events-config
+  labels:
+    app.kubernetes.io/name: glossia-alloy-events
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/part-of: glossia
+data:
+  config.alloy: |
+    loki.source.kubernetes_events "cluster" {
+    	job_name   = "integrations/kubernetes/eventhandler"
+    	log_format = "logfmt"
+    	forward_to = [loki.process.kubernetes_events.receiver]
+    }
+
+    loki.process "kubernetes_events" {
+    	stage.static_labels {
+    		values = {
+    			job = "integrations/kubernetes/eventhandler",
+    		}
+    	}
+    	forward_to = [loki.write.central.receiver]
+    }
+
+    loki.write "central" {
+    	external_labels = {
+    		cluster = {{ .Values.externalLabels.cluster | quote }},
+    		region  = {{ .Values.externalLabels.region | quote }},
+    	}
+
+    	endpoint {
+    		url = {{ .Values.remoteEndpoints.loki.url | quote }}
+
+    		basic_auth {
+    			username = sys.env("PUSH_USERNAME")
+    			password = sys.env("PUSH_PASSWORD")
+    		}
+    	}
+    }
+{{- end }}
