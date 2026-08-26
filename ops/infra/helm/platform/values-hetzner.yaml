@@ -1,0 +1,307 @@
+# Hetzner-specific overlay for the platform chart.
+# Layer on top of the base values:
+#   helm upgrade --install platform infra/helm/platform \
+#     -n platform --create-namespace \
+#     -f infra/helm/platform/values-hetzner.yaml
+
+ingress-nginx:
+  controller:
+    service:
+      annotations:
+        # Hetzner Cloud LB, provisioned by hcloud-cloud-controller-manager
+        # which the bootstrap procedure installs on every workload cluster.
+        load-balancer.hetzner.cloud/location: fsn1
+        # PROXY protocol is explicitly OFF (not just absent). Cloudflare's
+        # free/Pro proxy doesn't pass PROXY protocol through, so orange-
+        # cloud DNS relies on HTTP-header client-IP propagation
+        # (CF-Connecting-IP / X-Forwarded-For) which ingress-nginx trusts
+        # via use-forwarded-headers.
+        #
+        # Set to "false" rather than removed: HCCM's UpdateService omits
+        # the proxyprotocol field when the annotation is absent, so a
+        # `helm upgrade` of a cluster whose LB was previously created with
+        # uses-proxyprotocol="true" would leave the LB still prepending
+        # PROXY lines to an ingress that no longer consumes them (525 /
+        # TLS failures until manually patched). An explicit "false" makes
+        # HCCM send proxyprotocol=false and the chart converges.
+        load-balancer.hetzner.cloud/uses-proxyprotocol: "false"
+
+mailRelay:
+  enabled: true
+  config:
+    myNetworks: "127.0.0.0/8,192.168.0.0/16"
+  clientAuth:
+    enabled: true
+  networkPolicy:
+    enabled: true
+  ciliumEgressPolicy:
+    enabled: true
+    allowedFQDNs:
+      - matchName: next-smtp.useplunk.com
+    allowedPorts:
+      - port: "2587"
+        protocol: TCP
+  externalSecret:
+    enabled: true
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: infisical
+    itemKey: /kubernetes
+    fields:
+      host: SMTP_HOST
+      port: SMTP_PORT
+      username: SMTP_USERNAME
+      password: SMTP_PASSWORD
+  persistence:
+    enabled: true
+    storageClassName: hcloud-volumes
+    size: 1Gi
+
+# Rook and Ceph object storage for the app. This runs in the platform
+# namespace because the platform chart is installed there; keep
+# operatorNamespace and rookObjectStorage.clusterNamespace aligned with the
+# Helm release namespace.
+rook-ceph:
+  enabled: true
+
+rook-ceph-cluster:
+  enabled: true
+  operatorNamespace: platform
+  cephClusterSpec:
+    placement:
+      mon:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.cluster.x-k8s.io/pool
+                    operator: In
+                    values:
+                      - stateful
+        tolerations:
+          - key: node.cluster.x-k8s.io/pool
+            operator: Equal
+            value: stateful
+            effect: NoSchedule
+      mgr:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.cluster.x-k8s.io/pool
+                    operator: In
+                    values:
+                      - stateful
+        tolerations:
+          - key: node.cluster.x-k8s.io/pool
+            operator: Equal
+            value: stateful
+            effect: NoSchedule
+    resources:
+      mgr:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      mon:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      osd:
+        limits:
+          memory: 4Gi
+        requests:
+          cpu: 500m
+          memory: 2Gi
+      exporter:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 50Mi
+    storage:
+      useAllNodes: false
+      useAllDevices: false
+      allowOsdCrushWeightUpdate: true
+      storageClassDeviceSets:
+        - name: hcloud-volumes
+          count: 3
+          portable: true
+          tuneFastDeviceClass: true
+          placement:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node.cluster.x-k8s.io/pool
+                        operator: In
+                        values:
+                          - stateful
+            tolerations:
+              - key: node.cluster.x-k8s.io/pool
+                operator: Equal
+                value: stateful
+                effect: NoSchedule
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
+          volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 100Gi
+                storageClassName: hcloud-volumes
+                volumeMode: Block
+  cephObjectStores:
+    - name: glossia-s3
+      spec:
+        metadataPool:
+          failureDomain: host
+          replicated:
+            size: 3
+        dataPool:
+          failureDomain: host
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          # Let the autoscaler grow placement groups with actual usage. A bulk
+          # pool reserves a full complement before the object data needs it.
+          parameters:
+            bulk: "false"
+        preservePoolsOnDelete: true
+        gateway:
+          port: 80
+          instances: 2
+          placement:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node.cluster.x-k8s.io/pool
+                        operator: In
+                        values:
+                          - app
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: rook_object_store
+                        operator: In
+                        values:
+                          - glossia-s3
+                  topologyKey: kubernetes.io/hostname
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          priorityClassName: system-cluster-critical
+      storageClass:
+        enabled: true
+        name: glossia-s3-bucket
+        reclaimPolicy: Retain
+        volumeBindingMode: Immediate
+        annotations: {}
+        labels: {}
+        parameters:
+          region: us-east-1
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+    - name: glossia-releases-s3
+      spec:
+        metadataPool:
+          failureDomain: host
+          replicated:
+            size: 3
+        dataPool:
+          failureDomain: host
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          # Let the autoscaler grow placement groups with actual usage. A bulk
+          # pool reserves a full complement before the object data needs it.
+          parameters:
+            bulk: "false"
+        preservePoolsOnDelete: true
+        gateway:
+          port: 80
+          instances: 1
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          priorityClassName: system-cluster-critical
+        hosting:
+          dnsNames:
+            - releases.glossia.ai
+      storageClass:
+        enabled: true
+        name: glossia-releases-s3-bucket
+        reclaimPolicy: Retain
+        volumeBindingMode: Immediate
+        annotations: {}
+        labels: {}
+        parameters:
+          region: eu-central-1
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+
+rookObjectStorage:
+  enabled: true
+  clusterNamespace: platform
+  clusterName: rook-ceph
+  objectStoreName: glossia-s3
+  appNamespace: glossia
+  bucketClaim:
+    enabled: true
+    name: glossia-s3
+    bucketName: glossia-production
+    storageClassName: glossia-s3-bucket
+  autoscaling:
+    storage:
+      enabled: true
+      thresholdPercent: 75
+      increment: 1
+      maxDeviceCount: 9
+    gateway:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      cpuAverageUtilization: 65
+  networkPolicy:
+    enabled: true
+
+releaseObjectStorage:
+  enabled: true
+  clusterNamespace: platform
+  objectStoreName: glossia-releases-s3
+  bucketClaim:
+    enabled: true
+    namespace: platform
+    name: glossia-releases
+    bucketName: releases.glossia.ai
+    storageClassName: glossia-releases-s3-bucket
+  ingress:
+    enabled: true
+    host: releases.glossia.ai
+  dnsCleanup:
+    enabled: true
+  networkPolicy:
+    enabled: true

@@ -1,0 +1,18 @@
+{{- if and .Values.rookObjectStorage.enabled .Values.rookObjectStorage.bucketClaim.enabled }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ .Values.rookObjectStorage.bucketClaim.name }}
+  namespace: {{ .Values.rookObjectStorage.appNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  bucketName: {{ .Values.rookObjectStorage.bucketClaim.bucketName | quote }}
+  storageClassName: {{ .Values.rookObjectStorage.bucketClaim.storageClassName | quote }}
+  {{- with .Values.rookObjectStorage.bucketClaim.additionalConfig }}
+  additionalConfig:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

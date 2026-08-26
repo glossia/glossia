@@ -1,0 +1,3 @@
+resources:
+  - discourse-helmrelease.yaml
+  - glossia-helmrelease.yaml

@@ -1,0 +1,3 @@
+resources:
+  - platform-helmrelease.yaml
+  - observability-helmrelease.yaml

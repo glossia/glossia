@@ -1,0 +1,18 @@
+{{- if and .Values.releaseObjectStorage.enabled .Values.releaseObjectStorage.bucketClaim.enabled }}
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: {{ .Values.releaseObjectStorage.bucketClaim.name }}
+  namespace: {{ .Values.releaseObjectStorage.bucketClaim.namespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  bucketName: {{ .Values.releaseObjectStorage.bucketClaim.bucketName | quote }}
+  storageClassName: {{ .Values.releaseObjectStorage.bucketClaim.storageClassName | quote }}
+  {{- with .Values.releaseObjectStorage.bucketClaim.additionalConfig }}
+  additionalConfig:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

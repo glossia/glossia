@@ -1,0 +1,60 @@
+{{- if and .Values.glitchtip.enabled .Values.glitchtipMigrationJob.enabled }}
+{{- $glitchtipName := include "observability.glitchtipFullname" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $glitchtipName }}-migrate
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+    app.kubernetes.io/component: glitchtip-migrate
+  annotations:
+    helm.sh/hook: post-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "0"
+spec:
+  backoffLimit: {{ .Values.glitchtipMigrationJob.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.glitchtipMigrationJob.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.glitchtipMigrationJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "observability.labels" . | nindent 8 }}
+        app.kubernetes.io/component: glitchtip-migrate
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        {{- toYaml .Values.nodePlacement.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.nodePlacement.tolerations | nindent 8 }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.glitchtip.image.repository }}:{{ required "glitchtip.image.tag is required by the parent migration job" .Values.glitchtip.image.tag }}"
+          imagePullPolicy: {{ .Values.glitchtip.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.glitchtipMigrationJob.command | nindent 12 }}
+          env:
+            - name: DEBUG
+              value: "False"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.glitchtip.glitchtip.existingSecret }}
+                  key: {{ .Values.glitchtip.glitchtip.existingSecretKey }}
+            - name: GLITCHTIP_DOMAIN
+              value: {{ .Values.glitchtip.glitchtip.domain | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.glitchtip.glitchtip.database.existingSecret }}
+                  key: {{ .Values.glitchtip.glitchtip.database.existingSecretKey }}
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $glitchtipName }}
+                  key: REDIS_URL
+            {{- with .Values.glitchtip.extraEnvVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.glitchtipMigrationJob.resources | nindent 12 }}
+{{- end }}

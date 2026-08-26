@@ -1,0 +1,34 @@
+# Cluster API provider webhooks mount these certificate Secrets. The provider
+# processes do not reload the serving certificate after cert-manager rotates it,
+# so Reloader performs a rolling restart when the named Secret changes.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capi-controller-manager
+  namespace: capi-system
+  annotations:
+    secret.reloader.stakater.com/reload: capi-webhook-service-cert
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capi-kubeadm-bootstrap-controller-manager
+  namespace: capi-kubeadm-bootstrap-system
+  annotations:
+    secret.reloader.stakater.com/reload: capi-kubeadm-bootstrap-webhook-service-cert
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capi-kubeadm-control-plane-controller-manager
+  namespace: capi-kubeadm-control-plane-system
+  annotations:
+    secret.reloader.stakater.com/reload: capi-kubeadm-control-plane-webhook-service-cert
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caph-controller-manager
+  namespace: caph-system
+  annotations:
+    secret.reloader.stakater.com/reload: caph-webhook-server-cert

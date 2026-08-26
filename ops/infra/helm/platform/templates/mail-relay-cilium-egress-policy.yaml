@@ -1,0 +1,50 @@
+{{- if and .Values.mailRelay.enabled .Values.mailRelay.ciliumEgressPolicy.enabled }}
+{{- if empty .Values.mailRelay.ciliumEgressPolicy.allowedFQDNs }}
+{{- fail "mailRelay.ciliumEgressPolicy.allowedFQDNs must contain at least one destination when mailRelay.ciliumEgressPolicy.enabled=true" }}
+{{- end }}
+{{- if empty .Values.mailRelay.ciliumEgressPolicy.allowedPorts }}
+{{- fail "mailRelay.ciliumEgressPolicy.allowedPorts must contain at least one port when mailRelay.ciliumEgressPolicy.enabled=true" }}
+{{- end }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ printf "%s-egress" .Values.mailRelay.fullnameOverride }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: mail-relay
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: mail-relay
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": {{ .Values.mailRelay.ciliumEgressPolicy.dns.namespace | quote }}
+            {{- range $key, $value := .Values.mailRelay.ciliumEgressPolicy.dns.podSelector }}
+            "k8s:{{ $key }}": {{ $value | quote }}
+            {{- end }}
+      toPorts:
+        - ports:
+            - port: {{ .Values.mailRelay.ciliumEgressPolicy.dns.port | quote }}
+              protocol: UDP
+          rules:
+            dns:
+              - matchPattern: "*"
+        - ports:
+            - port: {{ .Values.mailRelay.ciliumEgressPolicy.dns.port | quote }}
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"
+    - toFQDNs:
+        {{- toYaml .Values.mailRelay.ciliumEgressPolicy.allowedFQDNs | nindent 8 }}
+      toPorts:
+        - ports:
+            {{- range .Values.mailRelay.ciliumEgressPolicy.allowedPorts }}
+            - port: {{ .port | quote }}
+              protocol: {{ .protocol | default "TCP" | quote }}
+            {{- end }}
+{{- end }}

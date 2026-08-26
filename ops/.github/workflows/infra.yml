@@ -1,0 +1,423 @@
+name: Infra
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "deploy/helm/glossia-alloy/**"
+      - "deploy/values-*.yaml"
+      - "infra/helm/**"
+      - "infra/k8s/**"
+      - "infra/tailscale/**"
+      - ".github/workflows/infra.yml"
+      - "mise.toml"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "deploy/helm/glossia-alloy/**"
+      - "deploy/values-*.yaml"
+      - "infra/helm/**"
+      - "infra/k8s/**"
+      - "infra/tailscale/**"
+      - ".github/workflows/infra.yml"
+      - "mise.toml"
+
+permissions:
+  contents: read
+
+jobs:
+  helm:
+    if: github.event.pull_request.draft != true
+    name: Helm Charts
+    runs-on: hetzner-docker
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+
+      - name: Install tools
+        run: mise install
+
+      - name: Validate Tailscale policy
+        run: |
+          ruby <<'RUBY'
+          require "json"
+
+          file = "infra/tailscale/policy.hujson"
+          input = File.read(file)
+          output = +""
+          in_string = false
+          escaped = false
+          index = 0
+
+          while index < input.length
+            character = input[index]
+            following = input[index + 1]
+
+            if !in_string && character == "/" && following == "/"
+              index += 1 while index < input.length && input[index] != "\n"
+              output << "\n"
+              next
+            end
+
+            output << character
+
+            if in_string
+              if escaped
+                escaped = false
+              elsif character == "\\"
+                escaped = true
+              elsif character == '"'
+                in_string = false
+              end
+            elsif character == '"'
+              in_string = true
+            end
+
+            index += 1
+          end
+
+          JSON.parse(output.gsub(/,\s*([}\]])/, '\1'))
+          RUBY
+
+      - name: Validate Kubernetes manifests
+        run: |
+          set -euo pipefail
+
+          mise exec -- kubectl kustomize infra/k8s/clusters/workloads/production >/tmp/glossia-production-cluster.yaml
+          mise exec -- kubectl kustomize infra/k8s/clusters/workloads/observability >/tmp/glossia-observability-cluster.yaml
+          mise exec -- kubectl kustomize infra/k8s/clusters/profiles/consolidation-production >/tmp/glossia-consolidation-cluster.yaml
+          mise exec -- kubectl kustomize infra/k8s/clusters/profiles/compact-production >/tmp/glossia-compact-cluster.yaml
+          mise exec -- kubectl kustomize infra/k8s/mgmt/flux/flux-system >/tmp/glossia-flux-system.yaml
+          mise exec -- kubectl kustomize infra/k8s/workload-platforms >/tmp/glossia-workload-platforms.yaml
+          mise exec -- kubectl kustomize infra/k8s/workload-apps >/tmp/glossia-workload-apps.yaml
+
+          ruby <<'RUBY'
+          require "yaml"
+
+          Dir["infra/k8s/mgmt/flux/**/*.yaml"].sort.each do |file|
+            YAML.parse_stream(File.read(file))
+          end
+          RUBY
+
+          mise exec flux2@2.9.1 -- flux build kustomization flux-system \
+            --path ./infra/k8s/mgmt/flux \
+            --kustomization-file ./infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
+            --dry-run >/tmp/flux-system-build.yaml
+
+          mise exec flux2@2.9.1 -- flux build kustomization workload-cluster-production \
+            --path ./infra/k8s/clusters/workloads/production \
+            --kustomization-file ./infra/k8s/mgmt/flux/workload-clusters.yaml \
+            --dry-run >/tmp/flux-production-build.yaml
+
+          mise exec flux2@2.9.1 -- flux build kustomization workload-platforms \
+            --path ./infra/k8s/workload-platforms \
+            --kustomization-file ./infra/k8s/mgmt/flux/workload-platforms-kustomization.yaml \
+            --dry-run >/tmp/flux-workload-platforms-build.yaml
+
+          mise exec flux2@2.9.1 -- flux build kustomization workload-apps \
+            --path ./infra/k8s/workload-apps \
+            --kustomization-file ./infra/k8s/mgmt/flux/workload-apps-kustomization.yaml \
+            --dry-run >/tmp/flux-workload-apps-build.yaml
+
+      - name: Add Helm repositories
+        run: |
+          mise exec -- helm repo add jetstack https://charts.jetstack.io
+          mise exec -- helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          mise exec -- helm repo add external-dns https://kubernetes-sigs.github.io/external-dns
+          mise exec -- helm repo add external-secrets https://charts.external-secrets.io
+          mise exec -- helm repo add cnpg https://cloudnative-pg.github.io/charts
+          mise exec -- helm repo add rook-release https://charts.rook.io/release
+          mise exec -- helm repo add grafana https://grafana.github.io/helm-charts
+          mise exec -- helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          mise exec -- helm repo update
+
+      - name: Validate Helm charts
+        run: |
+          set -euo pipefail
+
+          validate_chart() {
+            local release="$1"
+            local chart="$2"
+            local namespace="$3"
+            shift 3
+
+            mise exec -- helm dependency build "$chart"
+            mise exec -- helm lint "$chart" "$@"
+            mise exec -- helm template "$release" "$chart" \
+              --namespace "$namespace" \
+              "$@" >/tmp/"$release"-rendered.yaml
+          }
+
+          validate_chart platform infra/helm/platform platform \
+            --values infra/helm/platform/values-hetzner.yaml
+
+          mise exec -- helm lint infra/helm/platform \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --values infra/helm/platform/values-object-storage-hetzner.yaml
+          mise exec -- helm template platform-object-storage infra/helm/platform \
+            --namespace platform \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --values infra/helm/platform/values-object-storage-hetzner.yaml \
+            >/tmp/platform-object-storage-rendered.yaml
+          mise exec -- helm lint infra/helm/platform \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --values infra/helm/platform/values-object-storage-hetzner.yaml \
+            --values infra/helm/platform/values-remove-ceph.yaml
+          mise exec -- helm template platform-without-ceph infra/helm/platform \
+            --namespace platform \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --values infra/helm/platform/values-object-storage-hetzner.yaml \
+            --values infra/helm/platform/values-remove-ceph.yaml \
+            >/tmp/platform-without-ceph-rendered.yaml
+
+          validate_chart platform-observability infra/helm/platform platform \
+            --values infra/helm/platform/values-hetzner.yaml \
+            --values infra/helm/platform/values-observability.yaml
+
+          validate_chart observability infra/helm/observability observability \
+            --values infra/helm/observability/values-hetzner.yaml
+
+          validate_chart community infra/helm/discourse community \
+            --values infra/helm/discourse/values-production.yaml
+
+          ruby /dev/stdin /tmp/community-rendered.yaml <<'RUBY'
+          require "yaml"
+
+          documents = YAML.load_stream(File.read(ARGV.fetch(0))).compact
+
+          object_store = documents.find do |document|
+            document["apiVersion"] == "barmancloud.cnpg.io/v1" && document["kind"] == "ObjectStore"
+          end
+          abort "Community ObjectStore is missing" unless object_store
+
+          spec = object_store.fetch("spec")
+          abort "Community retention policy is not set at spec.retentionPolicy" unless spec["retentionPolicy"] == "30d"
+          abort "Community retention policy is incorrectly nested under spec.configuration" if spec.fetch("configuration").key?("retentionPolicy")
+
+          database = documents.find do |document|
+            document["apiVersion"] == "postgresql.cnpg.io/v1" && document["kind"] == "Database"
+          end
+          abort "Community Database is missing" unless database
+          abort "Community Database does not retain its data when the resource is removed" unless database.dig("spec", "databaseReclaimPolicy") == "retain"
+          abort "Community Database does not manage the vector extension" unless database.dig("spec", "extensions").any? { |extension| extension["name"] == "vector" }
+
+          deployment = documents.find do |document|
+            document["kind"] == "Deployment" && document.dig("metadata", "name") == "community"
+          end
+          abort "Community Deployment is missing" unless deployment
+          abort "Community Deployment must remain portable across production worker-pool profiles" if deployment.dig("spec", "template", "spec").key?("nodeSelector")
+
+          proxy_init = deployment.dig("spec", "template", "spec", "initContainers").find do |container|
+            container["name"] == "configure-proxy-headers"
+          end
+          abort "Community proxy-header initialization is missing" unless proxy_init
+
+          extension_init = deployment.dig("spec", "template", "spec", "initContainers").find do |container|
+            container["name"] == "wait-for-postgres-extensions"
+          end
+          abort "Community extension initialization is missing" unless extension_init
+
+          extension_script = extension_init.fetch("args").join("\n")
+          abort "Community extension initialization does not wait for vector" unless extension_script.include?("vector")
+          abort "Community extension initialization does not inspect installed extensions" unless extension_script.include?("pg_extension")
+
+          proxy_script = proxy_init.fetch("args").join("\n")
+          abort "Community proxy-header initialization does not support the current Discourse image" unless proxy_script.include?("$proxy_add_x_forwarded_for")
+          abort "Community proxy-header initialization does not preserve the forwarded chain" unless proxy_script.include?("$http_x_forwarded_for")
+
+          ingress = documents.find do |document|
+            document["kind"] == "Ingress" && document.dig("metadata", "name") == "community"
+          end
+          abort "Community Ingress is missing" unless ingress
+
+          annotations = ingress.dig("metadata", "annotations")
+          abort "Community Ingress does not enable Cloudflare proxying" unless annotations["external-dns.alpha.kubernetes.io/cloudflare-proxied"] == "true"
+          RUBY
+
+          mise exec -- helm lint infra/helm/observability \
+            --values infra/helm/observability/values-hetzner.yaml \
+            --values infra/helm/observability/values-object-storage-hetzner.yaml
+          mise exec -- helm template observability-object-storage infra/helm/observability \
+            --namespace observability \
+            --values infra/helm/observability/values-hetzner.yaml \
+            --values infra/helm/observability/values-object-storage-hetzner.yaml \
+            >/tmp/observability-object-storage-rendered.yaml
+
+          mise exec -- helm lint infra/helm/observability \
+            --values infra/helm/observability/values-hetzner.yaml \
+            --values infra/helm/observability/values-object-storage-hetzner.yaml \
+            --values infra/helm/observability/values-compact-hetzner.yaml
+          mise exec -- helm template observability-compact infra/helm/observability \
+            --namespace observability \
+            --values infra/helm/observability/values-hetzner.yaml \
+            --values infra/helm/observability/values-object-storage-hetzner.yaml \
+            --values infra/helm/observability/values-compact-hetzner.yaml \
+            >/tmp/observability-compact-rendered.yaml
+
+          if grep -q 'storageClassName: ceph-block' /tmp/observability-compact-rendered.yaml; then
+            echo 'Compact observability still references Ceph block storage' >&2
+            exit 1
+          fi
+
+          if grep -Eq '^kind: Ceph(Cluster|ObjectStore)$' /tmp/observability-compact-rendered.yaml; then
+            echo 'Compact observability still renders Ceph resources' >&2
+            exit 1
+          fi
+
+          ruby /dev/stdin /tmp/observability-compact-rendered.yaml <<'RUBY'
+          require "yaml"
+
+          workloads = YAML.load_stream(File.read(ARGV.fetch(0))).compact.select do |document|
+            %w[Deployment StatefulSet].include?(document["kind"])
+          end
+          oversized = workloads.reject { |document| document.dig("spec", "replicas") == 1 }
+          abort "Compact workload replicas are not one: #{oversized.map { |document| document.dig("metadata", "name") }.join(", ")}" unless oversized.empty?
+          RUBY
+
+          validate_chart alloy deploy/helm/glossia-alloy observability \
+            --values deploy/values-alloy-production.yaml
+
+          validate_chart tailscale-apiserver-proxy-production infra/helm/tailscale-apiserver-proxy tailscale \
+            --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
+
+          validate_chart tailscale-apiserver-proxy-observability infra/helm/tailscale-apiserver-proxy tailscale \
+            --values infra/helm/tailscale-apiserver-proxy/values-observability.yaml
+
+  reconcile-management:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Reconcile management cluster
+    runs-on: hetzner-docker
+    timeout-minutes: 10
+    environment: production
+    needs: [helm]
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: reconcile-management-cluster
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: jdx/mise-action@v2
+        with:
+          cache: true
+          install_args: kubectl
+
+      - name: Load management kubeconfig from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /kubeconfig-glossia-mgmt
+          domain: https://eu.infisical.com
+
+      - name: Write management kubeconfig
+        run: |
+          set -euo pipefail
+          umask 077
+
+          kubeconfig="$RUNNER_TEMP/management-kubeconfig"
+          test -n "${CONTENT:-}"
+          printf '%s' "$CONTENT" > "$kubeconfig"
+          test -s "$kubeconfig"
+
+          echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
+          echo "CONTENT=" >> "$GITHUB_ENV"
+
+      - name: Verify management cluster reachability
+        run: mise exec -- kubectl --request-timeout=10s get --raw /version >/dev/null
+
+      - name: Load registry credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /kubernetes
+          domain: https://eu.infisical.com
+
+      - name: Restore Flux registry credentials
+        run: |
+          set -euo pipefail
+
+          test -n "${GHCR_PULL_USERNAME:-}"
+          test -n "${GHCR_PULL_TOKEN:-}"
+
+          mise exec -- kubectl -n flux-system create secret docker-registry ghcr-glossia \
+            --docker-server=ghcr.io \
+            --docker-username="$GHCR_PULL_USERNAME" \
+            --docker-password="$GHCR_PULL_TOKEN" \
+            --dry-run=client -o yaml \
+            | mise exec -- kubectl apply -f -
+
+          echo "GHCR_PULL_USERNAME=" >> "$GITHUB_ENV"
+          echo "GHCR_PULL_TOKEN=" >> "$GITHUB_ENV"
+
+      - name: Load Flux source credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /flux-system
+          domain: https://eu.infisical.com
+
+      - name: Restore Flux source credentials
+        run: |
+          set -euo pipefail
+          umask 077
+
+          auth_dir="$RUNNER_TEMP/flux-auth"
+          mkdir -p "$auth_dir"
+
+          test -n "${GITHUB_APP_ID:-}"
+          test -n "${GITHUB_APP_INSTALLATION_OWNER:-}"
+          test -n "${GITHUB_APP_PRIVATE_KEY:-}"
+          printf '%s\n' "$GITHUB_APP_PRIVATE_KEY" > "$auth_dir/github-app-private-key"
+
+          mise exec -- kubectl -n flux-system create secret generic flux-system \
+            --from-literal=githubAppID="$GITHUB_APP_ID" \
+            --from-literal=githubAppInstallationOwner="$GITHUB_APP_INSTALLATION_OWNER" \
+            --from-file=githubAppPrivateKey="$auth_dir/github-app-private-key" \
+            --dry-run=client -o yaml \
+            | mise exec -- kubectl apply -f -
+
+          rm -rf "$auth_dir"
+          echo "GITHUB_APP_ID=" >> "$GITHUB_ENV"
+          echo "GITHUB_APP_INSTALLATION_OWNER=" >> "$GITHUB_ENV"
+          echo "GITHUB_APP_PRIVATE_KEY=" >> "$GITHUB_ENV"
+
+      - name: Reconcile Flux configuration
+        run: |
+          set -euo pipefail
+
+          mise exec -- kubectl apply \
+            -f infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
+            -f infra/k8s/mgmt/flux/flux-system/glossia-source.yaml \
+            -f infra/k8s/mgmt/flux/workload-cluster-rbac.yaml \
+            -f infra/k8s/mgmt/flux/workload-clusters.yaml
+
+          requested_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          mise exec -- kubectl -n flux-system annotate --overwrite \
+            gitrepository.source.toolkit.fluxcd.io/flux-system \
+            "reconcile.fluxcd.io/requestedAt=$requested_at"
+          mise exec -- kubectl -n flux-system wait \
+            --for=condition=Ready gitrepository.source.toolkit.fluxcd.io/flux-system \
+            --timeout=2m
+
+          mise exec -- kubectl -n flux-system annotate --overwrite \
+            kustomization.kustomize.toolkit.fluxcd.io/flux-system \
+            "reconcile.fluxcd.io/requestedAt=$requested_at"
+          mise exec -- kubectl -n flux-system wait \
+            --for=condition=Ready kustomization.kustomize.toolkit.fluxcd.io/flux-system \
+            --timeout=5m
