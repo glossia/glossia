@@ -406,6 +406,11 @@ jobs:
             -f ops/infra/k8s/mgmt/flux/workload-cluster-rbac.yaml \
             -f ops/infra/k8s/mgmt/flux/workload-clusters.yaml
 
+          mise exec -- kubectl -n flux-system patch \
+            gitrepository.source.toolkit.fluxcd.io/flux-system \
+            --type=merge \
+            --patch '{"spec":{"include":null}}'
+
           requested_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           mise exec -- kubectl -n flux-system annotate --overwrite \
             gitrepository.source.toolkit.fluxcd.io/flux-system \
