@@ -219,6 +219,106 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert :ok = Translate.run(session.id)
   end
 
+  test "resolves a token when it publishes, not once when the run starts" do
+    {user, project} =
+      project_with_installation("translate-token-age@test.com", "translate-token-age")
+
+    session = session_for(user, project)
+
+    # A run can outlive the hour GitHub gives an installation token. Freezing
+    # one at the start meant a long run presented a dead credential on its
+    # first write, so the token must be resolved at publication time.
+    {:ok, minted} = Elixir.Agent.start_link(fn -> 0 end)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 ->
+      count = Elixir.Agent.get_and_update(minted, &{&1 + 1, &1 + 1})
+      {:ok, "github-token-#{count}"}
+    end)
+
+    stub_run([])
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales,
+                                                            opts ->
+      publication_target = Keyword.fetch!(opts, :publication_target)
+      refute Map.has_key?(publication_target.context, :token)
+
+      {:ok, []}
+    end)
+
+    assert :ok = Translate.run(session.id)
+  end
+
+  test "mints a new token and retries when GitHub rejects the one it had" do
+    {user, project} =
+      project_with_installation("translate-token-401@test.com", "translate-token-401")
+
+    session = session_for(user, project)
+
+    {:ok, tokens} = Elixir.Agent.start_link(fn -> [] end)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 ->
+      count = length(Elixir.Agent.get(tokens, & &1))
+      {:ok, "github-token-#{count}"}
+    end)
+
+    # The first token is rejected, standing in for one that expired between the
+    # cache handing it over and the request landing. Giving up here would throw
+    # away every translation the run has produced.
+    Mimic.stub(Glossia.Github.Client, :get_commit, fn "glossia/demo", _sha, token ->
+      Elixir.Agent.update(tokens, &(&1 ++ [token]))
+
+      case token do
+        "github-token-0" ->
+          {:error, {:api_error, 401, %{"message" => "Bad credentials", "status" => "401"}}}
+
+        _ ->
+          {:ok, %{"tree" => %{"sha" => "base-tree-sha"}}}
+      end
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_blob, fn "glossia/demo", _params, _token ->
+      {:ok, %{"sha" => "blob-sha"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_tree, fn "glossia/demo", _params, _token ->
+      {:ok, %{"sha" => "tree-sha"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_commit, fn "glossia/demo", _params, _token ->
+      {:ok, %{"sha" => "commit-sha"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_branch, fn "glossia/demo", _branch, _sha, _token ->
+      {:ok, %{}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_pull_request, fn "glossia/demo", _params, _token ->
+      {:ok, %{"html_url" => "https://github.com/glossia/demo/pull/7"}}
+    end)
+
+    stub_published_run([
+      %{
+        output_path: "docs/i18n/es/guide.md",
+        locale: "es",
+        changes: [
+          %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola\n"}
+        ]
+      }
+    ])
+
+    assert :ok = Translate.run(session.id)
+
+    # Rejected once, then retried with a freshly minted token.
+    assert ["github-token-0", "github-token-1"] = Elixir.Agent.get(tokens, & &1)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "completed"
+    assert updated.pull_request_url == "https://github.com/glossia/demo/pull/7"
+  end
+
   test "completes without a PR when there are no changes" do
     {user, project} = project_with_installation("translate-empty@test.com", "translate-empty")
     session = session_for(user, project)

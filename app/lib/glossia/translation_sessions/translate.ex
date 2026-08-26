@@ -85,12 +85,16 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
+  # Deliberately no token in the context. A run can outlive the hour GitHub
+  # gives an installation token, and a token captured here would already be
+  # dead by the time a long run made its first write. `publish_item/2` resolves
+  # one at the moment it publishes instead.
   defp publication_target(session, project, token)
        when not is_nil(project.github_installation) and is_binary(token) and token != "" do
     %{
       node: Node.self(),
       module: __MODULE__,
-      context: %{session_id: session.id, token: token}
+      context: %{session_id: session.id}
     }
   end
 
@@ -117,15 +121,40 @@ defmodule Glossia.TranslationSessions.Translate do
 
   @doc false
   def publish_item(
-        %{session_id: session_id, token: token},
+        %{session_id: session_id},
         %{changes: changes, output_path: output_path, locale: locale}
       )
-      when is_list(changes) and is_binary(token) do
+      when is_list(changes) do
     session =
       TranslationSessions.get_session!(session_id)
       |> Glossia.Repo.preload(project: [:account, :github_installation])
 
-    do_publish_item(session, session.project, token, changes, output_path, locale)
+    publish_item_with_token(session, changes, output_path, locale, true)
+  end
+
+  defp publish_item_with_token(session, changes, output_path, locale, retry_on_unauthorized?) do
+    installation = session.project.github_installation
+
+    with {:ok, token} <-
+           Glossia.Github.App.installation_token(installation.github_installation_id) do
+      case do_publish_item(session, session.project, token, changes, output_path, locale) do
+        # GitHub rejected a token we believed was live, so it either expired
+        # between the cache handing it over and the request landing, or it was
+        # revoked. Drop it and mint a new one before failing the run, since
+        # giving up here discards every translation the run has produced.
+        {:error, {:api_error, 401, _body}} when retry_on_unauthorized? ->
+          Logger.warning("GitHub rejected an installation token, minting a new one",
+            translation_session_id: session.id,
+            github_installation_id: installation.github_installation_id
+          )
+
+          Glossia.Github.InstallationTokens.invalidate(installation.github_installation_id)
+          publish_item_with_token(session, changes, output_path, locale, false)
+
+        result ->
+          result
+      end
+    end
   end
 
   defp do_publish_item(session, project, token, changes, output_path, locale) do

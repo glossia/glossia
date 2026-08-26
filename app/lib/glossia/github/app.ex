@@ -3,6 +3,8 @@ defmodule Glossia.Github.App do
 
   require Logger
 
+  alias Glossia.Github.InstallationTokens
+
   @default_github_api_url "https://api.github.com"
   @default_github_app_url "https://github.com/apps"
 
@@ -40,7 +42,14 @@ defmodule Glossia.Github.App do
     end
   end
 
-  def installation_token(installation_id, opts \\ []) do
+  @doc """
+  Mints an installation token, returning it alongside GitHub's expiry.
+
+  GitHub expires the token an hour after this call, so a caller that keeps it
+  for longer than a request needs the expiry to know when to mint another. See
+  `Glossia.Github.InstallationTokens`, which caches on exactly that basis.
+  """
+  def mint_installation_token(installation_id, opts \\ []) do
     with {:ok, jwt_token} <- jwt(opts) do
       api_url = github_api_url(opts)
       url = "#{api_url}/app/installations/#{installation_id}/access_tokens"
@@ -55,7 +64,7 @@ defmodule Glossia.Github.App do
              ]
            ) do
         {:ok, %Req.Response{status: 201, body: body}} ->
-          {:ok, body["token"]}
+          {:ok, %{token: body["token"], expires_at: body["expires_at"]}}
 
         {:ok, %Req.Response{status: status, body: body}} ->
           Logger.warning("GitHub installation token request failed",
@@ -68,6 +77,22 @@ defmodule Glossia.Github.App do
         {:error, reason} ->
           {:error, reason}
       end
+    end
+  end
+
+  @doc """
+  Returns a token for `installation_id`, reusing a cached one while it is live.
+
+  Callers that hold the token only for the length of one request can use this
+  directly. A caller that spans more than an hour, such as a translation run,
+  has to ask again at the point of use rather than holding the result.
+  """
+  def installation_token(installation_id, opts \\ []) do
+    resolver = fn -> mint_installation_token(installation_id, opts) end
+
+    case Keyword.fetch(opts, :token_cache) do
+      {:ok, cache} -> InstallationTokens.fetch(installation_id, resolver, cache)
+      :error -> InstallationTokens.fetch(installation_id, resolver)
     end
   end
 
