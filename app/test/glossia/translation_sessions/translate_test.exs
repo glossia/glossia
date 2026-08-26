@@ -157,7 +157,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert :ok = Translate.run(session.id)
   end
 
-  test "does not mint a publication token when no files changed" do
+  test "does not mint another token when no files changed" do
     {user, project} =
       project_with_installation("translate-token-age@test.com", "translate-token-age")
 
@@ -186,6 +186,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     end)
 
     assert :ok = Translate.run(session.id)
+    assert 1 == Elixir.Agent.get(minted, & &1)
   end
 
   test "mints a new token and retries when GitHub rejects the one it had" do
