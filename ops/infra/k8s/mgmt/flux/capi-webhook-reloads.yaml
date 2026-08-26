@@ -62,6 +62,7 @@ metadata:
 spec:
   selector:
     matchLabels:
+      cluster.x-k8s.io/provider: infrastructure-hetzner
       control-plane: caph-controller-manager
   template:
     metadata:
