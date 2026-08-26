@@ -93,7 +93,8 @@ defmodule Glossia.Application do
           id: Glossia.Analytics.EventBuffer
         ),
         Glossia.Analytics.SettingsCache,
-        Glossia.Analytics.Geolocation.Ipapi.Cache
+        Glossia.Analytics.Geolocation.Ipapi.Cache,
+        Glossia.Github.InstallationTokens
       ] ++
         setup_recovery_children() ++
         [
