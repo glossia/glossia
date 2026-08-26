@@ -410,9 +410,14 @@ jobs:
           mise exec -- kubectl -n flux-system annotate --overwrite \
             gitrepository.source.toolkit.fluxcd.io/flux-system \
             "reconcile.fluxcd.io/requestedAt=$requested_at"
-          mise exec -- kubectl -n flux-system wait \
+          if ! mise exec -- kubectl -n flux-system wait \
             --for=condition=Ready gitrepository.source.toolkit.fluxcd.io/flux-system \
-            --timeout=2m
+            --timeout=2m; then
+            mise exec -- kubectl -n flux-system get \
+              gitrepository.source.toolkit.fluxcd.io/flux-system \
+              -o jsonpath='{range .status.conditions[*]}{.type}={.status}: {.reason}: {.message}{"\n"}{end}'
+            exit 1
+          fi
 
           mise exec -- kubectl -n flux-system annotate --overwrite \
             kustomization.kustomize.toolkit.fluxcd.io/flux-system \
