@@ -12,7 +12,6 @@ defmodule Glossia.Translations.Locks do
 
   alias Glossia.Translations.Context
   alias Glossia.Translations.Format
-  alias Glossia.Translations.PreservedTokens
   alias Glossia.Translations.Prompt
 
   @doc "Path to the lockfile for a source/locale under the repo root."
@@ -43,6 +42,16 @@ defmodule Glossia.Translations.Locks do
 
   @doc "Whether the output is stale given the current input hash and output."
   def stale?(nil, _hash, _output_path, _output_hash), do: true
+
+  # Preservation is an operational safety mechanism: changing how the runner
+  # protects Markdown must not retranslate an otherwise valid repository. New
+  # hashes intentionally omit that implementation version. Existing locks are
+  # compared by dependency tree with the former version field ignored, so the
+  # version 5 to 6 change does not invalidate every locale at once.
+  def stale?(lock, %{hash: hash, tree: tree}, output_path, output_hash) do
+    lock["output_path"] != output_path or lock["output_hash"] != output_hash or
+      not (lock["hash"] == hash or compatible_hash_tree?(lock["hash_tree"], tree))
+  end
 
   def stale?(lock, hash, output_path, output_hash) do
     lock["hash"] != hash or lock["output_path"] != output_path or
@@ -110,7 +119,6 @@ defmodule Glossia.Translations.Locks do
           "custom_prompt_hash" => hash_string(input.custom_prompt || ""),
           "prompt_version" => Prompt.version(),
           "segmentation_version" => Format.segmentation_version(),
-          "preservation_version" => PreservedTokens.version(),
           "retries" => Map.get(input, :retries, 0),
           "validation_hash" =>
             hash_json(%{
@@ -303,4 +311,26 @@ defmodule Glossia.Translations.Locks do
   end
 
   defp normalize_slashes(input), do: String.replace(input, "\\", "/")
+
+  defp compatible_hash_tree?(%{"root" => stored_root}, %{"root" => current_root}) do
+    normalize_tree_for_compatibility(stored_root) ==
+      normalize_tree_for_compatibility(current_root)
+  end
+
+  defp compatible_hash_tree?(_stored, _current), do: false
+
+  defp normalize_tree_for_compatibility(node) do
+    node
+    |> Map.drop(["hash"])
+    |> update_in(["metadata"], fn metadata ->
+      if Map.get(node, "kind") == "translation_config" do
+        Map.delete(metadata || %{}, "preservation_version")
+      else
+        metadata
+      end
+    end)
+    |> update_in(["children"], fn children ->
+      Enum.map(children || [], &normalize_tree_for_compatibility/1)
+    end)
+  end
 end
