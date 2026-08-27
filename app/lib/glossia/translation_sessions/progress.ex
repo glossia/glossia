@@ -58,6 +58,13 @@ defmodule Glossia.TranslationSessions.Progress do
   def progress_event?(_event), do: false
 
   @doc "Folds a single progress event into the state."
+  # A plan begins a run. A new run clears this state when it changes to
+  # "running", so a duplicate plan from a reconnect or a delayed node must not
+  # make already-visible file progress disappear.
+  def apply_event(%{items: items} = state, %{type: "plan", total: total})
+      when map_size(items) > 0,
+      do: %{state | total: max(state.total, total)}
+
   def apply_event(_state, %{type: "plan", total: total}), do: %{new() | total: total}
 
   def apply_event(state, %{type: "plan_progress", checked: checked} = event) do
@@ -165,6 +172,7 @@ defmodule Glossia.TranslationSessions.Progress do
     %{
       item
       | completed_text: "",
+        completed_segments: [],
         current_segment_text: "",
         reasoning: "",
         replace_text_on_next_chunk: true,
@@ -185,17 +193,37 @@ defmodule Glossia.TranslationSessions.Progress do
   end
 
   defp apply_turn(item, %{type: "segment_output", text: text}) do
+    text = to_string(text)
+
     completed_text =
       if item.replace_text_on_next_chunk do
-        to_string(text)
+        text
       else
-        join_preview(item.completed_text, to_string(text))
+        join_preview(item.completed_text, text)
+      end
+
+    completed_segments =
+      case item.segment_index do
+        nil ->
+          item.completed_segments
+
+        index ->
+          item.completed_segments ++
+            [
+              %{
+                index: index,
+                count: item.segment_count,
+                kind: item.segment_kind,
+                text: text
+              }
+            ]
       end
 
     %{
       item
       | text: completed_text,
         completed_text: completed_text,
+        completed_segments: completed_segments,
         current_segment_text: "",
         replace_text_on_next_chunk: false
     }
@@ -270,6 +298,7 @@ defmodule Glossia.TranslationSessions.Progress do
       text: "",
       reasoning: "",
       completed_text: "",
+      completed_segments: [],
       current_segment_text: "",
       replace_text_on_next_chunk: false,
       segment_index: nil,

@@ -17,6 +17,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Discussions
   alias Glossia.LLMModels
   alias Glossia.TranslationSessions.Progress
+  alias Glossia.TranslationSessions.ProgressCache
   alias Glossia.Translations.Failure
   alias Glossia.Voices
   alias Noora.Filter
@@ -1151,7 +1152,7 @@ defmodule GlossiaWeb.DashboardLive do
       sidebar_context: :project,
       sidebar_project: project
     )
-    |> assign_translation_progress(Glossia.TranslationSessions.Progress.new())
+    |> assign_translation_progress(translation_session_progress(session))
   end
 
   defp apply_action(socket, :project_translations, %{"project" => project_handle}) do
@@ -3257,10 +3258,10 @@ defmodule GlossiaWeb.DashboardLive do
 
   def handle_info({:translation_session_event, event}, socket) do
     if Glossia.TranslationSessions.Progress.progress_event?(event) do
-      progress =
-        socket.assigns[:translation_progress]
-        |> Kernel.||(Glossia.TranslationSessions.Progress.new())
-        |> Glossia.TranslationSessions.Progress.apply_event(event)
+      # Progress is folded before this notification is broadcast. Reading that
+      # shared snapshot avoids applying an event twice when it arrives between
+      # this LiveView subscribing and its initial render.
+      progress = translation_session_progress(socket.assigns[:session])
 
       {:noreply, assign_translation_progress(socket, progress)}
     else
@@ -3281,7 +3282,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     socket =
       if status == "running" do
-        assign_translation_progress(socket, Glossia.TranslationSessions.Progress.new())
+        assign_translation_progress(socket, translation_session_progress(session))
       else
         socket
       end
@@ -7585,10 +7586,29 @@ defmodule GlossiaWeb.DashboardLive do
                   </details>
                 </div>
               </div>
+              <div
+                :if={item.status == :running and item.completed_segments != []}
+                data-part="completed-segments"
+              >
+                <details
+                  :for={segment <- item.completed_segments}
+                  id={"translation-progress-item-#{item.index}-segment-#{segment.index}"}
+                  data-part="completed-segment"
+                  phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
+                >
+                  <summary>
+                    <span data-part="completed-segment-icon" aria-hidden="true">
+                      <Icon.circle_check />
+                    </span>
+                    {translation_segment_label(segment)}
+                  </summary>
+                  <pre data-part="stream">{stream_tail(segment.text)}</pre>
+                </details>
+              </div>
               <%= cond do %>
-                <% item.status == :running and item.text != "" -> %>
+                <% item.status == :running and live_translation_text(item) != "" -> %>
                   <div data-part="live-output">
-                    <pre data-part="stream">{stream_tail(item.text)}</pre>
+                    <pre data-part="stream">{stream_tail(live_translation_text(item))}</pre>
                   </div>
                 <% item.status == :running and item.reasoning != "" -> %>
                   <div data-part="live-output" data-kind="reasoning">
@@ -7617,7 +7637,8 @@ defmodule GlossiaWeb.DashboardLive do
                   </details>
                 <% true -> %>
               <% end %>
-              <%= if item.reasoning != "" and not (item.status == :running and item.text == "") do %>
+              <%= if item.reasoning != "" and
+                       not (item.status == :running and live_translation_text(item) == "") do %>
                 <details
                   id={"translation-progress-item-#{item.index}-reasoning"}
                   data-part="reasoning-output"
@@ -7672,6 +7693,23 @@ defmodule GlossiaWeb.DashboardLive do
 
     if length > 2000, do: String.slice(text, length - 2000, 2000), else: text
   end
+
+  defp live_translation_text(%{segment_count: count, current_segment_text: text})
+       when is_integer(count) and count > 1,
+       do: text
+
+  defp live_translation_text(%{text: text}), do: text
+
+  defp translation_segment_label(%{kind: "frontmatter"}), do: gettext("Front matter")
+
+  defp translation_segment_label(%{index: index, count: count})
+       when is_integer(index) and is_integer(count),
+       do: gettext("Segment %{index} of %{count}", index: index, count: count)
+
+  defp translation_segment_label(_segment), do: gettext("Show translated output")
+
+  defp translation_session_progress(nil), do: Progress.new()
+  defp translation_session_progress(session), do: ProgressCache.get(session.id)
 
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")

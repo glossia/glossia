@@ -69,6 +69,12 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_event",
       index: 0,
+      event: %{type: "segment_start", index: 1, count: 3, kind: "frontmatter"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
       event: %{type: "thinking", text: "The title is a metaphor, so:\n\n* "}
     })
 
@@ -101,30 +107,33 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       event: %{type: "segment_start", index: 2, count: 3, kind: "content"}
     })
 
-    # Its translation has arrived, so the live preview shows that instead, and
-    # the deliberation behind it is one disclosure away rather than gone.
+    # Its translation has arrived, so it leaves the active box for a completed
+    # segment disclosure. The active area now reflects the next segment.
     refute has_element?(
              view,
-             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning']"
-           )
-
-    assert has_element?(
-             view,
-             "#translation-progress-item-0 [data-part='live-output'] [data-part='stream']",
+             "#translation-progress-item-0 [data-part='live-output']:not([data-kind='reasoning']) [data-part='stream']",
              "Der Titel"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0-reasoning summary",
-             "Show reasoning"
+             "#translation-progress-item-0 [data-part='completed-segment'] summary",
+             "Front matter"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0-reasoning [data-part='prose'] li",
+             "#translation-progress-item-0 [data-part='completed-segment'] [data-part='stream']",
+             "Der Titel"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning'] [data-part='prose'] li",
              "it should not be translated literally."
            )
+
+    refute has_element?(view, "#translation-progress-item-0-reasoning")
 
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_completed",
@@ -337,6 +346,51 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     })
 
     assert has_element?(view, "#translation-progress-item-0-completed-output")
+  end
+
+  test "restores cached progress when the viewer reconnects", %{conn: conn} do
+    user = TestHelpers.create_user("translation-reconnect@test.com", "translation-reconnect")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "reconnect-progress",
+        name: "Reconnect progress",
+        github_repo_full_name: "example/reconnect-progress"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, _view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 1})
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      total: 1,
+      output_path: "app/priv/i18n/de/example.md",
+      locale: "de"
+    })
+
+    {:ok, reconnected_view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(reconnected_view, "#translation-progress-item-0")
+
+    assert has_element?(
+             reconnected_view,
+             "#translation-progress-item-0 [data-part='path']",
+             "app/priv/i18n/de/example.md"
+           )
   end
 
   test "running translation items show an active progress indicator", %{conn: conn} do

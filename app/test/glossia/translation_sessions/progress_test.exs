@@ -76,6 +76,9 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     assert [
              %{
                text: "front matter",
+               completed_segments: [
+                 %{count: 3, index: 1, kind: "frontmatter", text: "front matter"}
+               ],
                segment_index: 2,
                segment_count: 3,
                segment_kind: "content"
@@ -127,7 +130,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              Progress.items(state)
   end
 
-  test "a new plan clears progress left by a retried run" do
+  test "a duplicate plan keeps progress already reported for its run" do
     state =
       Progress.fold([
         %{type: "plan", total: 2},
@@ -138,7 +141,10 @@ defmodule Glossia.TranslationSessions.ProgressTest do
         %{type: "item_started", index: 0, output_path: "de/a.md", locale: "de"}
       ])
 
-    assert [%{index: 0, status: :running, turns: 0}] = Progress.items(state)
+    assert [
+             %{index: 0, status: :running, output_path: "de/a.md"},
+             %{index: 1, status: :running, output_path: "es/a.md"}
+           ] = Progress.items(state)
 
     assert Progress.summary(state) == %{
              total: 2,
@@ -148,7 +154,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              skipped: 0,
              done: 0,
              failed: 0,
-             running: 1
+             running: 2
            }
   end
 
