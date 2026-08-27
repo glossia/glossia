@@ -15,6 +15,11 @@ Describe 'Glossia chart assistant services'
   It 'renders analytics delivery and read-only assistant workloads'
     When call render_assistant_services
     The status should be success
+    The stdout should include 'name: glossia-hermes'
+    The stdout should include 'kind: StatefulSet'
+    The stdout should include 'serviceName: glossia-hermes'
+    The stdout should include 'updateStrategy:'
+    The stdout should include 'type: OnDelete'
     The stdout should include 'name: GLOSSIA_SMOLANALYTICS_URL'
     The stdout should include 'image: "ghcr.io/arjun0606/smolanalytics:v0.9.11"'
     The stdout should include 'image: "nousresearch/hermes-agent:v2026.7.20"'

@@ -246,6 +246,14 @@ horizontally. Its public write key can only ingest events, while the secret
 read key protects reports and the protocol endpoint. The dashboard has a
 separate password.
 
+Hermes is a singleton StatefulSet over the same kind of ReadWriteOnce volume, so a rolling update can never run two pods side by side (the new pod cannot attach the volume the old one still holds). It therefore uses `updateStrategy.type: OnDelete`: the StatefulSet controller only replaces the pod when it is explicitly deleted, so a routine chart deploy (image bump, config/secret checksum change) does NOT take the Slack bot offline. To apply a new Hermes image or config, delete the pod so the controller recreates it with the current template:
+
+```bash
+kubectl -n glossia delete pod glossia-hermes-0
+```
+
+Node drains still evict the pod to move it to another node; the OnDelete strategy only decouples template changes from pod recreation.
+
 ### Configure credentials
 
 When the External Secrets integration is disabled, provision these four
@@ -311,7 +319,7 @@ After installation, wait for both workloads:
 
 ```bash
 kubectl -n glossia rollout status deployment/glossia-smolanalytics
-kubectl -n glossia rollout status deployment/glossia-hermes
+kubectl -n glossia rollout status statefulset/glossia-hermes
 kubectl -n glossia get pods -l app.kubernetes.io/component=assistant
 kubectl -n glossia get pods -l app.kubernetes.io/component=analytics
 ```
