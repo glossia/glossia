@@ -103,6 +103,32 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "Der Titel"
            )
 
+    # The deliberation behind a phrasing stays readable once the translation it
+    # produced has arrived, rather than vanishing with the first text chunk.
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-reasoning summary",
+             "Show reasoning"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-reasoning [data-part='stream']",
+             "it should not be translated literally."
+           )
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_completed",
+      index: 0,
+      file_ref: "glossia/translate-0123456789ab"
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-reasoning [data-part='stream']",
+             "The title is a metaphor"
+           )
+
     {:ok, _session} = TranslationSessions.update_session_status(session, "completed")
 
     refute has_element?(view, "#translation-session [data-part='spinner']")

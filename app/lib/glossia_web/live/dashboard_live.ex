@@ -7543,10 +7543,10 @@ defmodule GlossiaWeb.DashboardLive do
                   <div data-part="live-output">
                     <pre data-part="stream">{stream_tail(item.text)}</pre>
                   </div>
-                <% item.status == :running and item.thinking != "" -> %>
+                <% item.status == :running and item.reasoning != "" -> %>
                   <div data-part="live-output" data-kind="reasoning">
                     <p data-part="live-output-label">{gettext("Reasoning")}</p>
-                    <pre data-part="stream">{stream_tail(item.thinking)}</pre>
+                    <pre data-part="stream">{stream_tail(item.reasoning)}</pre>
                   </div>
                 <% item.status == :failed and item.text != "" -> %>
                   <details data-part="partial-output">
@@ -7559,6 +7559,16 @@ defmodule GlossiaWeb.DashboardLive do
                     <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
                   </details>
                 <% true -> %>
+              <% end %>
+              <%= if item.reasoning != "" and not (item.status == :running and item.text == "") do %>
+                <details
+                  id={"translation-progress-item-#{item.index}-reasoning"}
+                  data-part="reasoning-output"
+                  phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
+                >
+                  <summary>{gettext("Show reasoning")}</summary>
+                  <pre data-part="stream">{item.reasoning}</pre>
+                </details>
               <% end %>
             </li>
           <% end %>

@@ -281,7 +281,8 @@
 
   & [data-part="live-output"],
   & [data-part="partial-output"],
-  & [data-part="completed-output"] {
+  & [data-part="completed-output"],
+  & [data-part="reasoning-output"] {
     min-width: var(--space-0);
     margin-top: var(--space-2);
     /* Logical, so this lines up with the failure block's padding-inline-start
@@ -290,7 +291,8 @@
   }
 
   & [data-part="partial-output"],
-  & [data-part="completed-output"] {
+  & [data-part="completed-output"],
+  & [data-part="reasoning-output"] {
     color: var(--color-text-muted);
     font-size: var(--text-xs);
 
@@ -315,7 +317,8 @@
     flex-direction: column-reverse;
   }
 
-  & [data-part="live-output"][data-kind="reasoning"] [data-part="stream"] {
+  & [data-part="live-output"][data-kind="reasoning"] [data-part="stream"],
+  & [data-part="reasoning-output"] [data-part="stream"] {
     color: var(--color-text-muted);
     font-style: italic;
   }
@@ -385,7 +388,8 @@
 
     & [data-part="live-output"],
     & [data-part="partial-output"],
-    & [data-part="completed-output"] {
+    & [data-part="completed-output"],
+    & [data-part="reasoning-output"] {
       margin-left: var(--space-0);
     }
   }
