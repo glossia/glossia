@@ -18,6 +18,11 @@ spec:
       labels:
         cluster.x-k8s.io/provider: cluster-api
         control-plane: controller-manager
+    spec:
+      containers:
+        - name: manager
+          args:
+            - --feature-gates=ClusterTopology=true
 ---
 apiVersion: apps/v1
 kind: Deployment
