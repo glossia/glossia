@@ -58,6 +58,16 @@ defmodule Glossia.TranslationsTest do
   end
 
   describe "translate_stream/4 retries" do
+    defp stub_joined_response(text) do
+      Mimic.stub(ReqLLM.StreamResponse, :process_stream, fn :stream, opts ->
+        opts[:on_result].(text)
+        {:ok, :response}
+      end)
+
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> text end)
+    end
+
     setup %{user: user, account: account} do
       {:ok, _model} =
         LLMModels.create_model(account, user, %{
@@ -72,16 +82,14 @@ defmodule Glossia.TranslationsTest do
     test "retries a transient provider failure and succeeds", %{account: account} do
       {:ok, attempts} = Elixir.Agent.start_link(fn -> 0 end)
 
-      Mimic.stub(Condukt, :stream, fn _pid, _prompt ->
+      Mimic.stub(ReqLLM, :stream_text, fn _model, _messages, _opts ->
         case Elixir.Agent.get_and_update(attempts, &{&1 + 1, &1 + 1}) do
-          1 -> [:turn_start, {:error, %ReqLLM.Error.API.Request{reason: "non-existing domain"}}]
-          _ -> [:turn_start, {:text, "Hola"}, :turn_end]
+          1 -> {:error, %ReqLLM.Error.API.Request{reason: "non-existing domain"}}
+          _ -> {:ok, :stream}
         end
       end)
 
-      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
-        Elixir.Agent.start_link(fn -> nil end)
-      end)
+      stub_joined_response("Hola")
 
       {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
@@ -98,12 +106,8 @@ defmodule Glossia.TranslationsTest do
     end
 
     test "emits the streamed error once the retries are exhausted", %{account: account} do
-      Mimic.stub(Condukt, :stream, fn _pid, _prompt ->
-        [:turn_start, {:error, %{reason: "connection closed"}}]
-      end)
-
-      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
-        Elixir.Agent.start_link(fn -> nil end)
+      Mimic.stub(ReqLLM, :stream_text, fn _model, _messages, _opts ->
+        {:error, %{reason: "connection closed"}}
       end)
 
       {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
@@ -118,13 +122,9 @@ defmodule Glossia.TranslationsTest do
     test "does not retry an exhausted credit failure", %{account: account} do
       {:ok, attempts} = Elixir.Agent.start_link(fn -> 0 end)
 
-      Mimic.stub(Condukt, :stream, fn _pid, _prompt ->
+      Mimic.stub(ReqLLM, :stream_text, fn _model, _messages, _opts ->
         Elixir.Agent.update(attempts, &(&1 + 1))
-        [:turn_start, {:error, %{reason: "Credit limit exceeded", status: 402}}]
-      end)
-
-      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
-        Elixir.Agent.start_link(fn -> nil end)
+        {:error, %{reason: "Credit limit exceeded", status: 402}}
       end)
 
       assert {:error, {:llm_failed, _}} =

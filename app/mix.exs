@@ -103,7 +103,6 @@ defmodule Glossia.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:muontrap, "~> 2.0.0-rc.1", override: true},
       {:req_llm, "~> 1.17"},
-      {:condukt, "~> 1.5"},
       {:yaml_elixir, "~> 2.12"},
       {:toml, "~> 0.7"},
       {:noora, "~> 0.81"},

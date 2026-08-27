@@ -54,8 +54,8 @@ defmodule Glossia.Accounts.LLMModel do
   end
 
   # Treat blank base URLs as "use the provider default endpoint" and trim
-  # surrounding whitespace. The resolver emits nil for these so Condukt routes
-  # to the provider's native base URL.
+  # surrounding whitespace. The resolver emits nil for these so the request
+  # routes to the provider's native base URL.
   defp normalize_base_url(nil), do: nil
 
   defp normalize_base_url(url) when is_binary(url) do

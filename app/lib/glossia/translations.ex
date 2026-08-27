@@ -3,7 +3,7 @@ defmodule Glossia.Translations do
   Server-side content translation.
 
   Owns the translation prompt construction (`Glossia.Translations.Prompt`) and
-  the model call (via `tuist/condukt`), so that logic is never shipped to CLI
+  the model call (via `ReqLLM`), so that logic is never shipped to CLI
   clients. Given a single translation work item — source content plus
   locale/format metadata — it returns the translated content and the resolved
   model.
@@ -11,9 +11,9 @@ defmodule Glossia.Translations do
   Two entry points:
 
     * `translate/2` — one-shot, returns the final text. Used by the HTTP endpoint.
-    * `translate_stream/3` — streams each Condukt turn event to an `on_event`
-      callback (for live progress in the translation LiveView) while accumulating
-      the final text. Used by the server-side translation workflow.
+    * `translate_stream/3` — streams each turn event to an `on_event` callback
+      (for live progress in the translation LiveView) while accumulating the
+      final text. Used by the server-side translation workflow.
 
   The resolved `model`/`provider` are returned so callers can fold them into the
   translation cache key and stay correct when the effective model changes.
@@ -72,14 +72,12 @@ defmodule Glossia.Translations do
   end
 
   @doc """
-  Streams a translation, invoking `on_event` for every Condukt turn event as it
-  occurs and returning the accumulated translated text.
+  Streams a translation, invoking `on_event` for every turn event as it occurs
+  and returning the translated text.
 
-  Events forwarded to `on_event/1` (see `Condukt.stream/3`): `:agent_start`,
-  `:turn_start`, `{:text, chunk}`, `{:thinking, chunk}`, `{:tool_call, name, id,
-  args}`, `{:tool_result, id, result}`, `:turn_end`, `:agent_end`, `:done`, and
-  `{:error, reason}`. The final text is the concatenation of the `{:text, _}`
-  chunks; a streamed `{:error, reason}` fails the call.
+  Events forwarded to `on_event/1`: `:turn_start`, `{:text, chunk}`,
+  `{:thinking, chunk}`, `:turn_end`, `:done`, and `{:error, reason}`. A streamed
+  `{:error, reason}` fails the call.
   """
   @spec translate_stream(Account.t(), map(), (term() -> any())) ::
           {:ok, result()} | {:error, error()}

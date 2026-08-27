@@ -20,6 +20,7 @@ defmodule Glossia.Translations.Failure do
     provider-credit
     provider-rate-limit
     provider-credentials
+    provider-output-limit
     provider-timeout
     provider-error
     validation-syntax
@@ -37,6 +38,7 @@ defmodule Glossia.Translations.Failure do
     provider-credit
     provider-rate-limit
     provider-credentials
+    provider-output-limit
     provider-timeout
     provider-error
   )
@@ -54,6 +56,12 @@ defmodule Glossia.Translations.Failure do
   @doc "Builds a safe failure from an engine error."
   @spec from(term(), term()) :: t()
   def from(reason, provider \\ nil)
+
+  # The model stopped at its output ceiling. Retrying reproduces it exactly, and
+  # it is a property of the configured model rather than of the file, so it is
+  # reported once for the session instead of as a per-file translation error.
+  def from({:llm_failed, {:output_limit_reached, _bytes}}, provider),
+    do: failure("provider-output-limit", "session", provider: safe_provider(provider))
 
   def from({:llm_failed, reason}, provider), do: provider_failure(reason, provider)
 

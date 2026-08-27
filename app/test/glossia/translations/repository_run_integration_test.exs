@@ -2,7 +2,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   @moduledoc """
   Exercises the native translation pipeline end to end against a real git working
   tree — plan → engine (read/translate/validate/write) → lockfile → `git status`
-  collection — with only the Condukt LLM call stubbed. This is the closest check
+  collection — with only the model call stubbed. This is the closest check
   to a live run without a real model or a FLAME clone.
   """
   use ExUnit.Case, async: true
@@ -108,6 +108,61 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
     assert_receive {:translation_session_event,
                     %{type: "item_completed", output_path: "docs/i18n/es/guide.md"}}
+  end
+
+  # A reasoning model produces thousands of thinking chunks per segment, and each
+  # progress event is a synchronous call to the node serving the LiveView.
+  @tag :tmp_dir
+  test "coalesces streamed reasoning into periodic events, in order", %{tmp_dir: root} do
+    init_repo(root)
+
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+    :ok = TranslationSessions.subscribe_session_events(session)
+
+    Mimic.stub(Translations, :translate_stream, fn _account, _payload, on_event, _opts ->
+      on_event.(:turn_start)
+      Enum.each(1..500, fn n -> on_event.({:thinking, "chunk #{n} "}) end)
+      on_event.({:text, "# Guía"})
+      on_event.(:done)
+
+      {:ok,
+       %{
+         text: "# Guía\n\nHola, mundo.",
+         model: "anthropic/x",
+         provider: "anthropic",
+         model_handle: "m"
+       }}
+    end)
+
+    assert {:ok, _changes} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               progress_node: Node.self(),
+               credential_node: Node.self(),
+               context_snapshot: Context.empty_snapshot()
+             )
+
+    events =
+      collect_session_events([])
+      |> Enum.filter(&match?(%{type: "item_event"}, &1))
+      |> Enum.map(& &1.event)
+
+    thinking = Enum.filter(events, &(&1.type == "thinking"))
+
+    assert length(thinking) < 500
+    assert thinking |> Enum.map_join("", & &1.text) |> String.trim() =~ "chunk 500"
+
+    # The reasoning that produced a translation is flushed before the
+    # translation itself, so the two never arrive out of order.
+    types = Enum.map(events, & &1.type)
+    assert Enum.find_index(types, &(&1 == "thinking")) < Enum.find_index(types, &(&1 == "text"))
+  end
+
+  defp collect_session_events(acc) do
+    receive do
+      {:translation_session_event, event} -> collect_session_events([event | acc])
+    after
+      0 -> Enum.reverse(acc)
+    end
   end
 
   @tag :tmp_dir

@@ -8,7 +8,7 @@ defmodule Glossia.Translations.Frontmatter do
   `check_cmd`/`check_cmds`, `retries`, `validation`, plus `locale` and `model`.
 
   The CLI's LLM-connection fields (provider/base_url/api_key/…) are intentionally
-  omitted: server-side translation uses account-configured models via Condukt, so
+  omitted: server-side translation uses account-configured models via ReqLLM, so
   per-document connection config is not a thing here. Unknown keys are ignored.
 
   `sources`/`targets` mirror the Rust untagged enums as tagged tuples:

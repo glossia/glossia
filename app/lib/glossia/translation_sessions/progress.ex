@@ -5,11 +5,18 @@ defmodule Glossia.TranslationSessions.Progress do
   translation LiveView: overall totals plus, per file, its status, the number of
   language model calls made, and the streamed output so far.
 
+  A reasoning model streams its thinking long before it writes any translation,
+  and on a small model that can be the entire response. The tail of that
+  reasoning is kept alongside the output so a running file shows what the model
+  is doing rather than an empty box.
+
   Progress events are distinguished from persisted session events by their
   top-level `:type` key.
   """
 
   alias Glossia.Translations.Failure
+
+  @thinking_preview_chars 2_000
 
   @type item :: %{
           index: non_neg_integer(),
@@ -18,6 +25,7 @@ defmodule Glossia.TranslationSessions.Progress do
           status: :running | :done | :failed,
           turns: non_neg_integer(),
           text: String.t(),
+          thinking: String.t(),
           completed_text: String.t(),
           current_segment_text: String.t(),
           replace_text_on_next_chunk: boolean(),
@@ -143,11 +151,16 @@ defmodule Glossia.TranslationSessions.Progress do
     end
   end
 
+  defp apply_turn(item, %{type: "thinking", text: text}) do
+    %{item | thinking: append_thinking(item.thinking, to_string(text))}
+  end
+
   defp apply_turn(item, %{type: "attempt_start"}) do
     %{
       item
       | completed_text: "",
         current_segment_text: "",
+        thinking: "",
         replace_text_on_next_chunk: true,
         segment_index: nil,
         segment_count: nil,
@@ -159,6 +172,7 @@ defmodule Glossia.TranslationSessions.Progress do
     %{
       item
       | current_segment_text: "",
+        thinking: "",
         segment_index: event[:index],
         segment_count: event[:count],
         segment_kind: event[:kind]
@@ -178,6 +192,7 @@ defmodule Glossia.TranslationSessions.Progress do
       | text: completed_text,
         completed_text: completed_text,
         current_segment_text: "",
+        thinking: "",
         replace_text_on_next_chunk: false
     }
   end
@@ -190,12 +205,28 @@ defmodule Glossia.TranslationSessions.Progress do
       | text: text,
         completed_text: text,
         current_segment_text: "",
+        thinking: "",
         replace_text_on_next_chunk: false
     }
   end
 
   defp apply_turn(item, %{type: "turn_start"}), do: %{item | turns: item.turns + 1}
   defp apply_turn(item, _turn), do: item
+
+  # Only the tail is kept: reasoning runs to thousands of chunks, and what a
+  # viewer needs is the sentence the model is writing now.
+  defp append_thinking(existing, ""), do: existing
+
+  defp append_thinking(existing, chunk) do
+    combined = existing <> chunk
+    length = String.length(combined)
+
+    if length > @thinking_preview_chars do
+      String.slice(combined, length - @thinking_preview_chars, @thinking_preview_chars)
+    else
+      combined
+    end
+  end
 
   defp join_preview("", right), do: right
   defp join_preview(left, ""), do: left
@@ -216,6 +247,7 @@ defmodule Glossia.TranslationSessions.Progress do
       status: :running,
       turns: 0,
       text: "",
+      thinking: "",
       completed_text: "",
       current_segment_text: "",
       replace_text_on_next_chunk: false,
