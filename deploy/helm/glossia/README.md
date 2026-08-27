@@ -246,13 +246,18 @@ horizontally. Its public write key can only ingest events, while the secret
 read key protects reports and the protocol endpoint. The dashboard has a
 separate password.
 
-Hermes is a singleton StatefulSet over the same kind of ReadWriteOnce volume, so a rolling update can never run two pods side by side (the new pod cannot attach the volume the old one still holds). It therefore uses `updateStrategy.type: OnDelete`: the StatefulSet controller only replaces the pod when it is explicitly deleted, so a routine chart deploy (image bump, config/secret checksum change) does NOT take the Slack bot offline. To apply a new Hermes image or config, delete the pod so the controller recreates it with the current template:
+Hermes is a singleton StatefulSet over the same kind of ReadWriteOnce volume, so a rolling update can never run two pods side by side (the new pod cannot attach the volume the old one still holds). A Deployment therefore had to use a disruptive `Recreate` strategy, which took the Slack bot offline on any change to its pod template. It now uses `updateStrategy.type: OnDelete`: the StatefulSet controller only replaces the pod when it is explicitly deleted, so a chart deploy that changes the Hermes template no longer restarts the bot.
+
+**Tradeoff you must know (this is the cost of OnDelete):** because the StatefulSet does not roll on a template change, a deploy that updates the Hermes template is a **no-op until the pod is deleted** — and Flux/Helm still report a green, `Ready=True` release even though Hermes is running the old template. A routine Flux image update never touches the Hermes pod at all (Hermes pins its own image; Flux only bumps the app image in `deployment.yaml`). Only apply a new Hermes image or config deliberately, and treat the deploy's green status as *not* implying Hermes updated:
 
 ```bash
 kubectl -n glossia delete pod glossia-hermes-0
+# then verify it is actually running the new template:
+kubectl -n glossia wait --for=jsonpath='{.status.readyReplicas}'=1 statefulset/glossia-hermes
+kubectl -n glossia get pod glossia-hermes-0 -o wide
 ```
 
-Node drains still evict the pod to move it to another node; the OnDelete strategy only decouples template changes from pod recreation.
+Recommend adding an alert on `kube_statefulset_status_current_revision != kube_statefulset_status_update_revision` for `glossia-hermes` so a stale bot can't hide. Node drains still evict the pod to move it to another node (OnDelete gates updates, not delete-and-reschedule), and on that eviction it comes back with the current template.
 
 ### Configure credentials
 
@@ -319,7 +324,7 @@ After installation, wait for both workloads:
 
 ```bash
 kubectl -n glossia rollout status deployment/glossia-smolanalytics
-kubectl -n glossia rollout status statefulset/glossia-hermes
+kubectl -n glossia wait --for=jsonpath='{.status.readyReplicas}'=1 statefulset/glossia-hermes
 kubectl -n glossia get pods -l app.kubernetes.io/component=assistant
 kubectl -n glossia get pods -l app.kubernetes.io/component=analytics
 ```

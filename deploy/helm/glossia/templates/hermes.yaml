@@ -54,12 +54,12 @@ spec:
   revisionHistoryLimit: 3
   # The bot is a stateful singleton over its ReadWriteOnce volume, so a rolling
   # update can never run two pods side by side (the new pod cannot attach the
-  # volume the old one still holds). A Deployment therefore has to use a
-  # disruptive Recreate strategy, which takes the Slack bot fully offline on
-  # EVERY helm reconcile that touches its template (image bump, config/secret
-  # checksum change). OnDelete keeps the bot up across routine deployments: the
-  # StatefulSet controller only replaces the pod when it is explicitly deleted
-  # (`kubectl -n glossia delete pod glossia-hermes-0`), not on template changes.
+  # volume the old one still holds). A Deployment therefore had to use a
+  # disruptive Recreate strategy, which took the Slack bot fully offline on any
+  # change to its pod template. OnDelete keeps the bot up across routine
+  # deployments: the StatefulSet controller only replaces the pod when it is
+  # explicitly deleted (`kubectl -n glossia delete pod glossia-hermes-0`), not on
+  # a template change.
   updateStrategy:
     type: OnDelete
   selector:
