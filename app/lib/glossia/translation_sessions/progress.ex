@@ -20,6 +20,9 @@ defmodule Glossia.TranslationSessions.Progress do
   alias Glossia.Translations.Failure
 
   @reasoning_retained_chars 4_000
+  # Graphemes alone do not bound memory: one grapheme can carry an unbounded run
+  # of combining marks, so a byte ceiling backs the character one up.
+  @reasoning_retained_bytes 16_000
 
   @type item :: %{
           index: non_neg_integer(),
@@ -219,15 +222,32 @@ defmodule Glossia.TranslationSessions.Progress do
   defp append_reasoning(existing, ""), do: existing
 
   defp append_reasoning(existing, chunk) do
-    combined = existing <> chunk
-    length = String.length(combined)
+    existing
+    |> Kernel.<>(chunk)
+    |> take_last_graphemes(@reasoning_retained_chars)
+    |> take_last_bytes(@reasoning_retained_bytes)
+  end
 
-    if length > @reasoning_retained_chars do
-      String.slice(combined, length - @reasoning_retained_chars, @reasoning_retained_chars)
-    else
-      combined
+  defp take_last_graphemes(text, count) do
+    case String.length(text) do
+      length when length > count -> String.slice(text, length - count, count)
+      _length -> text
     end
   end
+
+  defp take_last_bytes(text, count) when byte_size(text) <= count, do: text
+
+  defp take_last_bytes(text, count) do
+    text
+    |> binary_part(byte_size(text) - count, count)
+    |> drop_partial_codepoint()
+  end
+
+  # Cutting on a byte offset can land inside a character, so the leading bytes
+  # of a split one are dropped rather than left as invalid UTF-8.
+  defp drop_partial_codepoint(<<>>), do: <<>>
+  defp drop_partial_codepoint(<<_::utf8, _::binary>> = text), do: text
+  defp drop_partial_codepoint(<<_byte, rest::binary>>), do: drop_partial_codepoint(rest)
 
   defp join_preview("", right), do: right
   defp join_preview(left, ""), do: left
