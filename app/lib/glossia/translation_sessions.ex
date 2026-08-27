@@ -9,6 +9,7 @@ defmodule Glossia.TranslationSessions do
 
   alias Glossia.Repo
   alias Glossia.Accounts.{Account, Project}
+  alias Glossia.TranslationSessions.{Progress, ProgressCache}
   alias Glossia.TranslationSessions.TranslationSession
 
   def list_project_sessions(%Project{} = project, params \\ %{}) do
@@ -120,6 +121,7 @@ defmodule Glossia.TranslationSessions do
     |> Repo.update()
     |> case do
       {:ok, updated_session} ->
+        if status == "running", do: ProgressCache.clear(updated_session.id)
         broadcast_session_status(updated_session, status)
         {:ok, updated_session}
 
@@ -172,6 +174,8 @@ defmodule Glossia.TranslationSessions do
   end
 
   def broadcast_session_event(%TranslationSession{id: id}, event) do
+    if Progress.progress_event?(event), do: ProgressCache.apply_event(id, event)
+
     Phoenix.PubSub.broadcast(
       Glossia.PubSub,
       "translation_session:#{id}",
