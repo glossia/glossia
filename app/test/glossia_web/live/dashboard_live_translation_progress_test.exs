@@ -143,13 +143,22 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       type: "item_failed",
       index: 0,
       reason:
-        Glossia.Translations.Failure.from({:llm_failed, {:output_limit_reached, 0}}, "togetherai")
+        Glossia.Translations.Failure.from(
+          {:validation_failed, "translated output was empty for non-empty frontmatter"},
+          "togetherai"
+        )
     })
 
     assert has_element?(
              view,
-             "#translation-progress-failures [data-kind='provider-output-limit']",
-             "The model stopped at its output limit"
+             "#translation-progress-item-0 [data-part='item-failure'][data-kind='validation-empty-output']",
+             "The model returned empty output"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='item-failure-description']",
+             "can spend its whole output budget thinking and return nothing"
            )
   end
 

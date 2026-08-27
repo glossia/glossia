@@ -47,25 +47,6 @@ defmodule Glossia.Translations.FailureTest do
     assert failure.provider == "openai"
   end
 
-  # A model that stops at its output ceiling does so for every file and every
-  # retry, so this is reported once for the session and never retried.
-  test "classifies a truncated response as a terminal output-limit failure" do
-    failure = Failure.from({:llm_failed, {:output_limit_reached, 0}}, "togetherai")
-
-    assert failure == %{
-             kind: "provider-output-limit",
-             scope: "session",
-             provider: "togetherai",
-             status: nil,
-             code: nil,
-             request_id: nil
-           }
-
-    refute Failure.retryable?(failure)
-    assert Failure.session_level?(failure)
-    assert Failure.normalize(failure).kind == "provider-output-limit"
-  end
-
   test "classifies a provider error struct instead of crashing on it" do
     reason =
       {:llm_failed,

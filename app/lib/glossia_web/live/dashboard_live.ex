@@ -7729,21 +7729,6 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
-  defp translation_failure_presentation("provider-output-limit") do
-    %{
-      title: gettext("The model stopped at its output limit"),
-      description:
-        gettext(
-          "This model spends its output budget reasoning before it writes a translation. Configure a model with a larger output limit, or one that does not reason, then retry."
-        ),
-      item_description:
-        gettext(
-          "This file could not be translated because the model reached its output limit before returning a translation."
-        ),
-      action_label: nil
-    }
-  end
-
   defp translation_failure_presentation("provider-timeout") do
     %{
       title: gettext("The model provider did not respond in time"),
@@ -7781,7 +7766,9 @@ defmodule GlossiaWeb.DashboardLive do
       title: gettext("The model returned empty output"),
       description: nil,
       item_description:
-        gettext("Glossia rejected this empty translation and did not publish any changes."),
+        gettext(
+          "Glossia rejected this empty translation and did not publish any changes. A model that reasons before answering can spend its whole output budget thinking and return nothing."
+        ),
       action_label: nil
     }
   end

@@ -2,7 +2,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   @moduledoc """
   Exercises the native translation pipeline end to end against a real git working
   tree — plan → engine (read/translate/validate/write) → lockfile → `git status`
-  collection — with only the model call stubbed. This is the closest check
+  collection — with only the Condukt LLM call stubbed. This is the closest check
   to a live run without a real model or a FLAME clone.
   """
   use ExUnit.Case, async: true

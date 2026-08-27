@@ -107,6 +107,7 @@ defmodule Glossia.MixProject do
       {:toml, "~> 0.7"},
       {:noora, "~> 0.81"},
       {:cloak_ecto, "~> 1.3"},
+      {:condukt, "~> 1.12"},
       {:cloak, "~> 1.1"},
       {:fun_with_flags, "~> 1.13", app: false, override: true},
       {:fun_with_flags_ui, "~> 1.1", app: false},
