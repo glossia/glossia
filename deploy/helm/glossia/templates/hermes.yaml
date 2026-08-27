@@ -19,18 +19,49 @@ spec:
     requests:
       storage: {{ .Values.hermes.persistence.size }}
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
   name: {{ include "glossia.hermesName" . }}
   labels:
     {{- include "glossia.labels" . | nindent 4 }}
     app.kubernetes.io/component: assistant
 spec:
+  # Headless so the StatefulSet has a stable per-pod network identity
+  # (<name>-0.<name>), which the OnDelete controller publishes as it brings
+  # each pod up. The API/health port is declared for completeness; Hermes
+  # connects outbound to Slack over Socket Mode and needs no cluster ingress.
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "glossia.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: assistant
+  ports:
+    - name: health
+      port: 8642
+      targetPort: health
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "glossia.hermesName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: assistant
+spec:
+  serviceName: {{ include "glossia.hermesName" . }}
   replicas: 1
   revisionHistoryLimit: 3
-  strategy:
-    type: Recreate
+  # The bot is a stateful singleton over its ReadWriteOnce volume, so a rolling
+  # update can never run two pods side by side (the new pod cannot attach the
+  # volume the old one still holds). A Deployment therefore had to use a
+  # disruptive Recreate strategy, which took the Slack bot fully offline on any
+  # change to its pod template. OnDelete keeps the bot up across routine
+  # deployments: the StatefulSet controller only replaces the pod when it is
+  # explicitly deleted (`kubectl -n glossia delete pod glossia-hermes-0`), not on
+  # a template change.
+  updateStrategy:
+    type: OnDelete
   selector:
     matchLabels:
       {{- include "glossia.selectorLabels" . | nindent 6 }}
