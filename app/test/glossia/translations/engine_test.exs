@@ -2,6 +2,8 @@ defmodule Glossia.Translations.EngineTest do
   use ExUnit.Case, async: true
   use Mimic
 
+  import ExUnit.CaptureLog
+
   alias Glossia.Accounts.Account
   alias Glossia.Translations
   alias Glossia.Translations.Context
@@ -120,6 +122,55 @@ defmodule Glossia.Translations.EngineTest do
                Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
       assert message == "translated output was empty for non-empty source content"
+    end
+
+    @tag :tmp_dir
+    test "retries an empty frontmatter response with a complete-block instruction", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "%{\n  title: \"Hello\"\n}\n---\n\nBody")
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        case {payload["segment_kind"], payload["last_error"]} do
+          {"frontmatter", nil} ->
+            translated("")
+
+          {"frontmatter", error} ->
+            assert error =~ "translated output was empty for non-empty frontmatter"
+            assert error =~ "return the complete frontmatter block"
+            translated("%{\n  title: \"Hola\"\n}\n---")
+
+          {"content", _error} ->
+            translated("Cuerpo")
+        end
+      end)
+
+      item = work_item(%{source_abs: source, frontmatter_mode: :translate, retries: 0})
+
+      log =
+        capture_log([level: :warning], fn ->
+          assert {:ok, %{text: "%{\n  title: \"Hola\"\n}\n---\nCuerpo"}} =
+                   Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+        end)
+
+      assert log =~ "Translation model returned empty output"
+      assert log =~ ~s("segment_kind":"frontmatter")
+      assert log =~ ~s("segment_attempt":1)
+      assert log =~ ~s("source_bytes":25)
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+
+      assert Enum.map(calls, &{&1["segment_kind"], &1["last_error"]}) == [
+               {"frontmatter", nil},
+               {"frontmatter",
+                "translated output was empty for non-empty frontmatter; return the complete frontmatter block with its syntax and delimiters intact"},
+               {"content", nil}
+             ]
     end
 
     @tag :tmp_dir

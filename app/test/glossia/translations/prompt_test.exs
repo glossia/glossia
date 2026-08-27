@@ -50,6 +50,13 @@ defmodule Glossia.Translations.PromptTest do
                "Frontmatter is preserved separately"
     end
 
+    test "requires complete non-empty metadata blocks" do
+      prompt = Prompt.build_system_prompt(base(%{segment_kind: "frontmatter"}))
+
+      assert prompt =~ "Return the complete block, including every delimiter"
+      assert prompt =~ "Never return an empty response for a non-empty metadata block."
+    end
+
     test "appends a non-blank custom prompt, trimmed" do
       prompt = Prompt.build_system_prompt(base(%{custom_prompt: "  Use the formal register.  "}))
       assert prompt =~ "\nUse the formal register."
@@ -194,7 +201,9 @@ defmodule Glossia.Translations.PromptTest do
         )
 
       assert prompt =~ "Translate only the human-readable string values"
+      assert prompt =~ "Return the complete frontmatter block."
       assert prompt =~ "Preserve its syntax, keys, identifiers, dates, and delimiters exactly."
+      assert prompt =~ "Do not return an empty response."
     end
   end
 end

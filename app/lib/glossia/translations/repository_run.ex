@@ -14,6 +14,8 @@ defmodule Glossia.Translations.RepositoryRun do
   clone, so it can be driven directly against a working directory in tests.
   """
 
+  require Logger
+
   alias Glossia.Models.ModelIdentifier
   alias Glossia.Translations.Context
   alias Glossia.Translations.Engine
@@ -330,6 +332,14 @@ defmodule Glossia.Translations.RepositoryRun do
          progress_node,
          _credential_node
        ) do
+    log_item_failure(
+      session,
+      prepared_item.item,
+      prepared_item.index,
+      total,
+      prepared_item.reason
+    )
+
     broadcast(
       session,
       %{
@@ -370,6 +380,11 @@ defmodule Glossia.Translations.RepositoryRun do
          progress_node,
          credential_node
        ) do
+    item =
+      item
+      |> Map.put(:translation_session_id, session.id)
+      |> Map.put(:translation_provider, provider)
+
     broadcast(
       session,
       %{
@@ -427,6 +442,7 @@ defmodule Glossia.Translations.RepositoryRun do
 
       {:error, reason} ->
         failure = Failure.from(reason, provider)
+        log_item_failure(session, item, index, total, failure)
 
         broadcast(
           session,
@@ -448,8 +464,41 @@ defmodule Glossia.Translations.RepositoryRun do
       index: index,
       output_path: item.output_path,
       locale: item.locale,
-      reason: reason
+      reason: reason,
+      diagnostics: %{
+        source_path: item.source_path,
+        format: item.format,
+        frontmatter_mode: item.frontmatter_mode,
+        model: item.model,
+        provider: Map.get(item, :translation_provider)
+      }
     }
+  end
+
+  # Record one safe, queryable log entry per item. The session-level error only
+  # tells operators that a run failed; this ties it to a path, locale, format,
+  # model, and provider without leaking translated content or provider payloads.
+  defp log_item_failure(session, item, index, total, failure) do
+    details = %{
+      "event" => "translation.item_failed",
+      "translation_session_id" => session.id,
+      "item_index" => index,
+      "item_total" => total,
+      "source_path" => item.source_path,
+      "output_path" => item.output_path,
+      "locale" => item.locale,
+      "format" => item.format,
+      "frontmatter_mode" => to_string(item.frontmatter_mode),
+      "model" => item.model,
+      "provider" => failure.provider || Map.get(item, :translation_provider),
+      "failure_kind" => failure.kind,
+      "failure_scope" => failure.scope,
+      "provider_status" => failure.status,
+      "provider_error_code" => failure.code,
+      "provider_request_id" => failure.request_id
+    }
+
+    Logger.error("Translation item failed: #{JSON.encode!(details)}")
   end
 
   defp write_output(item, text) do

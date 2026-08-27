@@ -2,6 +2,8 @@ defmodule Glossia.TranslationSessions.TranslateTest do
   use Glossia.DataCase, async: true
   use Mimic
 
+  import ExUnit.CaptureLog
+
   alias Glossia.Github.Installations
   alias Glossia.Projects
   alias Glossia.Repo
@@ -309,6 +311,55 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.error == "Translation failed for 1 file. Review the file errors and retry."
 
     assert updated.completed_at
+  end
+
+  test "records safe item diagnostics when a translation item fails" do
+    {user, project} =
+      project_with_installation("translate-diagnostics@test.com", "translate-diagnostics")
+
+    session = session_for(user, project)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales,
+                                                            _opts ->
+      {:error,
+       {:translation_items_failed,
+        [
+          %{
+            index: 7,
+            output_path: "app/priv/i18n/ja/blog/why-glossia.md",
+            locale: "ja",
+            reason: %{
+              kind: "validation-empty-output",
+              scope: "item",
+              raw: "private source content"
+            },
+            diagnostics: %{
+              source_path: "app/priv/blog/why-glossia.md",
+              format: "markdown",
+              frontmatter_mode: :translate,
+              model: "openai/gpt-5",
+              provider: "openai"
+            }
+          }
+        ]}}
+    end)
+
+    log =
+      capture_log(fn ->
+        assert {:error, {:translation_items_failed, [_failure]}} = Translate.run(session.id)
+      end)
+
+    assert log =~ "Translation session failed"
+    assert log =~ ~s("translation_session_id":"#{session.id}")
+    assert log =~ ~s("source_path":"app/priv/blog/why-glossia.md")
+    assert log =~ ~s("output_path":"app/priv/i18n/ja/blog/why-glossia.md")
+    assert log =~ ~s("failure_kind":"validation-empty-output")
+    refute log =~ "private source content"
   end
 
   test "fails the session when the isolated repository run returns an exit" do
