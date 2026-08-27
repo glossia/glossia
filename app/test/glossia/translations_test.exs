@@ -58,6 +58,12 @@ defmodule Glossia.TranslationsTest do
   end
 
   describe "translate_stream/4 retries" do
+    defp stub_condukt_session do
+      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
+        Elixir.Agent.start_link(fn -> nil end)
+      end)
+    end
+
     setup %{user: user, account: account} do
       {:ok, _model} =
         LLMModels.create_model(account, user, %{
@@ -79,9 +85,7 @@ defmodule Glossia.TranslationsTest do
         end
       end)
 
-      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
-        Elixir.Agent.start_link(fn -> nil end)
-      end)
+      stub_condukt_session()
 
       {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
@@ -102,9 +106,7 @@ defmodule Glossia.TranslationsTest do
         [:turn_start, {:error, %{reason: "connection closed"}}]
       end)
 
-      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
-        Elixir.Agent.start_link(fn -> nil end)
-      end)
+      stub_condukt_session()
 
       {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
@@ -123,9 +125,7 @@ defmodule Glossia.TranslationsTest do
         [:turn_start, {:error, %{reason: "Credit limit exceeded", status: 402}}]
       end)
 
-      Mimic.stub(Glossia.Translations.Agent, :start_link, fn _opts ->
-        Elixir.Agent.start_link(fn -> nil end)
-      end)
+      stub_condukt_session()
 
       assert {:error, {:llm_failed, _}} =
                Translations.translate_stream(account, payload(%{}), fn _event -> :ok end,

@@ -7,6 +7,10 @@ defmodule Glossia.Translations.LLM do
   through `ReqLLM` directly, because Condukt's option set can't carry OAuth
   (`auth_mode`/`access_token`); ReqLLM supports it natively.
 
+  Both paths state an output-token budget for a model whose catalog entry does
+  not, because a reasoning model spends that budget thinking before it writes
+  any translation.
+
   Both `run/3` and `stream/4` return `{:ok, text}` or `{:error, reason}`.
   """
 
@@ -17,14 +21,23 @@ defmodule Glossia.Translations.LLM do
   @codex_cli_timeout_ms 1_800_000
   @pi_cli_timeout_ms 1_800_000
 
+  # A reasoning model spends output tokens thinking before it writes a single
+  # character of the translation, so a budget sized for the translation alone
+  # truncates the response mid-thought and returns no content at all. ReqLLM
+  # falls back to 4096 tokens for a model its catalog does not know, which is
+  # not enough: Qwen3.5 spends around 5300 tokens translating a 344-byte
+  # metadata block. Models whose catalog entry states an output limit keep
+  # ReqLLM's own default, which is the provider's real ceiling.
+  @uncatalogued_max_output_tokens 16_384
+
   @doc "One-shot generation."
   def run(%{auth: {:api_key, key, base_url}, model: model}, system, user) do
-    opts = request_options(model, key, base_url, system)
-
-    case Condukt.run(user, opts) do
-      {:ok, text} when is_binary(text) -> {:ok, text}
-      {:error, reason} -> {:error, reason}
-      other -> {:error, "unexpected condukt response: #{inspect(other)}"}
+    with {:ok, opts} <- request_options(model, key, base_url, system) do
+      case Condukt.run(user, opts) do
+        {:ok, text} when is_binary(text) -> {:ok, text}
+        {:error, reason} -> {:error, reason}
+        other -> {:error, "unexpected condukt response: #{inspect(other)}"}
+      end
     end
   rescue
     error -> {:error, Exception.message(error)}
@@ -39,12 +52,13 @@ defmodule Glossia.Translations.LLM do
   end
 
   def run(%{auth: {:oauth, token}, model: model}, system, user) do
-    case ReqLLM.generate_text(ModelIdentifier.to_req_llm(model), messages(system, user),
-           auth_mode: :oauth,
-           access_token: token
-         ) do
-      {:ok, response} -> {:ok, ReqLLM.Response.text(response) || ""}
-      {:error, reason} -> {:error, reason}
+    with {:ok, spec, budget, _base_url} <- resolve_model(model, nil) do
+      opts = [auth_mode: :oauth, access_token: token] ++ budget
+
+      case ReqLLM.generate_text(spec, messages(system, user), opts) do
+        {:ok, response} -> {:ok, ReqLLM.Response.text(response) || ""}
+        {:error, reason} -> {:error, reason}
+      end
     end
   rescue
     error -> {:error, Exception.message(error)}
@@ -183,8 +197,8 @@ defmodule Glossia.Translations.LLM do
   end
 
   @doc "Streamed generation, forwarding turn events to `on_event`."
-  def stream(%{auth: {:api_key, _key, _base_url}} = cred, system, user, on_event) do
-    stream_via_condukt(cred, system, user, on_event)
+  def stream(%{auth: {:api_key, key, base_url}, model: model}, system, user, on_event) do
+    stream_via_condukt(model, key, base_url, system, user, on_event)
   end
 
   def stream(%{source: :codex_session}, system, user, on_event) do
@@ -237,26 +251,21 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
-  defp stream_via_condukt(
-         %{auth: {:api_key, key, base_url}, model: model},
-         system,
-         user,
-         on_event
-       ) do
-    opts = request_options(model, key, base_url, system)
+  defp stream_via_condukt(model, key, base_url, system, user, on_event) do
+    with {:ok, opts} <- request_options(model, key, base_url, system) do
+      case Agent.start_link(opts) do
+        {:ok, pid} ->
+          try do
+            run_stream(pid, user, on_event)
+          rescue
+            error -> {:error, Exception.message(error)}
+          after
+            if Process.alive?(pid), do: GenServer.stop(pid, :normal, 5_000)
+          end
 
-    case Agent.start_link(opts) do
-      {:ok, pid} ->
-        try do
-          run_stream(pid, user, on_event)
-        rescue
-          error -> {:error, Exception.message(error)}
-        after
-          if Process.alive?(pid), do: GenServer.stop(pid, :normal, 5_000)
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+        {:error, reason} ->
+          {:error, reason}
+      end
     end
   end
 
@@ -302,21 +311,35 @@ defmodule Glossia.Translations.LLM do
 
   defp maybe_base_url(opts, _url), do: opts
 
-  defp request_options(model, key, base_url, system) do
+  # The model is resolved once, up front, and the resolved struct is what the
+  # request carries. Resolving it here rather than passing the string on keeps a
+  # model the catalog does not know from being resolved (and warned about) again
+  # per call, and its stated limits are what decide whether an output budget has
+  # to be supplied.
+  defp resolve_model(model, base_url) do
     {request_model, request_base_url} = request_model(model, base_url)
 
-    [
-      model: request_model,
-      api_key: key,
-      system_prompt: system,
-      thinking_level: thinking_level(model)
-    ]
-    |> maybe_base_url(request_base_url)
+    case ReqLLM.model(request_model) do
+      {:ok, spec} -> {:ok, spec, output_budget(spec), request_base_url}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp request_options(model, key, base_url, system) do
+    with {:ok, spec, budget, request_base_url} <- resolve_model(model, base_url) do
+      opts =
+        [model: spec, api_key: key, system_prompt: system, thinking_level: thinking_level(model)]
+        |> Keyword.merge(budget)
+        |> maybe_base_url(request_base_url)
+
+      {:ok, opts}
+    end
   end
 
   # Together rejects the generic `reasoning_effort: "none"` value that Condukt
   # derives from `:off`. Passing nil explicitly overrides Condukt's `:medium`
-  # default while leaving reasoning configuration out of the provider request.
+  # default while leaving reasoning configuration out of the provider request,
+  # which is why a Together model needs a budget wide enough to reason within.
   defp thinking_level(model) do
     case ModelIdentifier.split(model) do
       {:ok, {"togetherai", _provider_model}} -> nil
@@ -324,12 +347,18 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
+  # A model whose catalog entry states an output limit already has the
+  # provider's real ceiling applied by ReqLLM. One the catalog does not know
+  # falls back to 4096, which truncates a reasoning model mid-thought.
+  defp output_budget(%{limits: %{output: output}}) when is_integer(output) and output > 0, do: []
+
+  defp output_budget(_spec), do: [max_tokens: @uncatalogued_max_output_tokens]
+
   defp request_model(model, base_url) do
     case ModelIdentifier.split(model) do
       {:ok, {"togetherai", provider_model}} ->
-        # Together is OpenAI-compatible. ReqLLM expects a "provider:model"
-        # string; a "%{provider: :openai, id: ...}" map fails model resolution
-        # inside Condukt with ReqLLM.Error.Invalid.Provider.
+        # Together is OpenAI-compatible, and ReqLLM has no `togetherai`
+        # provider, so the request is made as OpenAI against Together's URL.
         {"openai:#{provider_model}", base_url || @together_base_url}
 
       {:ok, _parts} ->

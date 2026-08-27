@@ -7276,6 +7276,8 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_session_cancellable?(%{status: status}), do: status in ["pending", "running"]
 
+  defp translation_session_in_flight?(%{status: status}), do: status in ["pending", "running"]
+
   defp session_detail_page(assigns) do
     ~H"""
     <div id="translation-session" class="dash-page">
@@ -7291,7 +7293,15 @@ defmodule GlossiaWeb.DashboardLive do
       <div class="card" data-part="overview">
         <div data-part="overview-header">
           <div data-part="overview-primary">
-            <span class={["badge", "badge-#{@session.status}"]}>{@session.status}</span>
+            <span class={["badge", "badge-#{@session.status}"]} data-part="status">
+              <span
+                :if={translation_session_in_flight?(@session)}
+                data-part="spinner"
+                aria-hidden="true"
+              >
+              </span>
+              {@session.status}
+            </span>
             <%= if @session.source_language do %>
               <span data-part="languages">
                 {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
@@ -7528,23 +7538,27 @@ defmodule GlossiaWeb.DashboardLive do
                   </details>
                 </div>
               </div>
-              <%= if item.text != "" do %>
-                <%= cond do %>
-                  <% item.status == :running -> %>
-                    <div data-part="live-output">
-                      <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
-                    </div>
-                  <% item.status == :failed -> %>
-                    <details data-part="partial-output">
-                      <summary>{gettext("Show incomplete output")}</summary>
-                      <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
-                    </details>
-                  <% true -> %>
-                    <details data-part="completed-output">
-                      <summary>{gettext("Show translated output")}</summary>
-                      <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
-                    </details>
-                <% end %>
+              <%= cond do %>
+                <% item.status == :running and item.text != "" -> %>
+                  <div data-part="live-output">
+                    <pre data-part="stream">{stream_tail(item.text)}</pre>
+                  </div>
+                <% item.status == :running and item.thinking != "" -> %>
+                  <div data-part="live-output" data-kind="reasoning">
+                    <p data-part="live-output-label">{gettext("Reasoning")}</p>
+                    <pre data-part="stream">{stream_tail(item.thinking)}</pre>
+                  </div>
+                <% item.status == :failed and item.text != "" -> %>
+                  <details data-part="partial-output">
+                    <summary>{gettext("Show incomplete output")}</summary>
+                    <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                  </details>
+                <% item.status == :done and item.text != "" -> %>
+                  <details data-part="completed-output">
+                    <summary>{gettext("Show translated output")}</summary>
+                    <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
+                  </details>
+                <% true -> %>
               <% end %>
             </li>
           <% end %>
@@ -7581,6 +7595,14 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_progress_assessing?(summary, processed),
     do: not summary.assessed? and processed == 0 and summary.running == 0
+
+  # A running file streams as it is written, so the newest characters are the
+  # ones worth showing; a finished one is read from the top.
+  defp stream_tail(text) do
+    length = String.length(text)
+
+    if length > 2000, do: String.slice(text, length - 2000, 2000), else: text
+  end
 
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")
@@ -7744,7 +7766,9 @@ defmodule GlossiaWeb.DashboardLive do
       title: gettext("The model returned empty output"),
       description: nil,
       item_description:
-        gettext("Glossia rejected this empty translation and did not publish any changes."),
+        gettext(
+          "Glossia rejected this empty translation and did not publish any changes. A model that reasons before answering can spend its whole output budget thinking and return nothing."
+        ),
       action_label: nil
     }
   end

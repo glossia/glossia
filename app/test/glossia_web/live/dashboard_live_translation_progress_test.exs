@@ -31,6 +31,137 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert TranslationSessions.get_session!(session.id).status == "cancelled"
   end
 
+  # A reasoning model can spend a whole minute thinking before it writes the
+  # first character of a translation, which used to leave the page looking dead.
+  test "a running session shows the model's reasoning and a header spinner", %{conn: conn} do
+    user = TestHelpers.create_user("translation-reasoning@test.com", "translation-reasoning")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "reasoning",
+        name: "Reasoning",
+        github_repo_full_name: "example/reasoning"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(view, "#translation-session [data-part='status'] [data-part='spinner']")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      total: 1,
+      output_path: "app/priv/i18n/de/example.md",
+      locale: "de"
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "thinking", text: "The title is a metaphor, so "}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "thinking", text: "it should not be translated literally."}
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning'] [data-part='stream']",
+             "it should not be translated literally."
+           )
+
+    # Once the translation itself starts arriving it replaces the reasoning,
+    # which is context rather than output.
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "text", text: "Der Titel"}
+    })
+
+    refute has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning']"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='live-output'] [data-part='stream']",
+             "Der Titel"
+           )
+
+    {:ok, _session} = TranslationSessions.update_session_status(session, "completed")
+
+    refute has_element?(view, "#translation-session [data-part='spinner']")
+  end
+
+  test "a model that stops at its output limit is reported as such", %{conn: conn} do
+    user = TestHelpers.create_user("translation-budget@test.com", "translation-budget")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "budget",
+        name: "Budget",
+        github_repo_full_name: "example/budget"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      total: 1,
+      output_path: "app/priv/i18n/de/example.md",
+      locale: "de"
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_failed",
+      index: 0,
+      reason:
+        Glossia.Translations.Failure.from(
+          {:validation_failed, "translated output was empty for non-empty frontmatter"},
+          "togetherai"
+        )
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='item-failure'][data-kind='validation-empty-output']",
+             "The model returned empty output"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='item-failure-description']",
+             "can spend its whole output budget thinking and return nothing"
+           )
+  end
+
   test "running translation items show an active progress indicator", %{conn: conn} do
     user = TestHelpers.create_user("translation-progress@test.com", "translation-progress")
 

@@ -397,17 +397,21 @@ defmodule Glossia.Translations.RepositoryRun do
       progress_node
     )
 
+    reset_thinking_buffer()
+
     on_event = fn event ->
-      broadcast(
-        session,
-        %{
-          type: "item_event",
-          index: index,
-          output_path: item.output_path,
-          event: normalize_event(event)
-        },
-        progress_node
-      )
+      Enum.each(progress_events(event), fn emitted ->
+        broadcast(
+          session,
+          %{
+            type: "item_event",
+            index: index,
+            output_path: item.output_path,
+            event: normalize_event(emitted)
+          },
+          progress_node
+        )
+      end)
     end
 
     validate = fn output, source ->
@@ -640,6 +644,48 @@ defmodule Glossia.Translations.RepositoryRun do
   defp broadcast(session, event, progress_node) do
     TranslationSessions.broadcast_session_event(session, event, progress_node)
   end
+
+  # A reasoning model streams several thousand thinking chunks per segment, and
+  # every progress event is a synchronous call to the node serving the LiveView.
+  # Thinking is coalesced into one event per @thinking_flush_ms so the reasoning
+  # preview still moves without the progress channel becoming the slowest part
+  # of a translation. Items run one at a time in this process, and the buffer is
+  # reset for each, so it never carries reasoning across files.
+  @thinking_flush_ms 250
+  @thinking_buffer_key :translation_thinking_buffer
+
+  defp reset_thinking_buffer,
+    do: Process.put(@thinking_buffer_key, {"", System.monotonic_time(:millisecond)})
+
+  defp progress_events({:thinking, chunk}) when is_binary(chunk) do
+    {buffered, flushed_at} = thinking_buffer()
+    buffered = buffered <> chunk
+    now = System.monotonic_time(:millisecond)
+
+    if now - flushed_at >= @thinking_flush_ms do
+      Process.put(@thinking_buffer_key, {"", now})
+      [{:thinking, buffered}]
+    else
+      Process.put(@thinking_buffer_key, {buffered, flushed_at})
+      []
+    end
+  end
+
+  # Anything else flushes first, so the reasoning a viewer reads stays in the
+  # order the model produced it.
+  defp progress_events(event) do
+    case thinking_buffer() do
+      {"", _flushed_at} ->
+        [event]
+
+      {buffered, _flushed_at} ->
+        Process.put(@thinking_buffer_key, {"", System.monotonic_time(:millisecond)})
+        [{:thinking, buffered}, event]
+    end
+  end
+
+  defp thinking_buffer,
+    do: Process.get(@thinking_buffer_key, {"", System.monotonic_time(:millisecond)})
 
   defp normalize_event(:agent_start), do: %{type: "agent_start"}
   defp normalize_event(:agent_end), do: %{type: "agent_end"}
