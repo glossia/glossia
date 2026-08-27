@@ -12,7 +12,7 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
-  @version 2
+  @version 3
 
   @doc """
   Version of the prompt contract used in translation lockfiles.
@@ -57,6 +57,17 @@ defmodule Glossia.Translations.Prompt do
     lines =
       if Map.get(input, :frontmatter_preserved, false) do
         lines ++ ["Frontmatter is preserved separately. Do not add new frontmatter."]
+      else
+        lines
+      end
+
+    lines =
+      if Map.get(input, :segment_kind) == "frontmatter" do
+        lines ++
+          [
+            "The supplied segment is a metadata block. Return the complete block, including every delimiter and non-translated value, even when only a few reader-facing strings change.",
+            "Never return an empty response for a non-empty metadata block."
+          ]
       else
         lines
       end
@@ -109,7 +120,7 @@ defmodule Glossia.Translations.Prompt do
     instruction =
       cond do
         segment_kind == "frontmatter" ->
-          "Translate only the human-readable string values in this frontmatter from #{source_language} to #{language} (#{locale}). Preserve its syntax, keys, identifiers, dates, and delimiters exactly."
+          "Translate only the human-readable string values in this frontmatter from #{source_language} to #{language} (#{locale}). Return the complete frontmatter block. Preserve its syntax, keys, identifiers, dates, and delimiters exactly. Do not return an empty response."
 
         segment_count > 1 ->
           "Translate segment #{segment_index} of #{segment_count} from #{source_language} to #{language} (#{locale}). Return only this segment."

@@ -6,6 +6,7 @@ defmodule Glossia.TranslationSessions.Translate do
   require Logger
 
   alias Glossia.{Events, Ingestion, TranslationSessions}
+  alias Glossia.Translations.Failure
   alias Glossia.TranslationSessions.TranslationSession
 
   @translation_branch_prefix "glossia/translate"
@@ -397,14 +398,25 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp fail_translation(session, project, account, reason) do
     error_msg = humanize_error(reason)
-    Logger.error("Translation failed for session #{session.id}: #{inspect(reason)}")
+    failure_metadata = failure_metadata(reason)
+
+    Logger.error(
+      "Translation session failed: " <>
+        JSON.encode!(
+          Map.merge(failure_metadata, %{
+            "event" => "translation.session_failed",
+            "translation_session_id" => session.id,
+            "project_id" => project.id
+          })
+        )
+    )
 
     TranslationSessions.update_session_status(session, "failed", error: error_msg)
 
     record_translation_event(session, %{
       "event_type" => "error",
       "content" => error_msg,
-      "metadata" => %{}
+      "metadata" => failure_metadata
     })
 
     Events.emit("translation_session.failed", account, nil,
@@ -449,6 +461,48 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp encode_event_metadata(metadata) when is_binary(metadata), do: metadata
   defp encode_event_metadata(metadata), do: JSON.encode!(metadata || %{})
+
+  defp failure_metadata({:translation_items_failed, failures}) when is_list(failures) do
+    max_items = 100
+    persisted_items = failures |> Enum.take(max_items) |> Enum.map(&item_failure_metadata/1)
+
+    %{
+      "failure_kind" => "translation_items_failed",
+      "failure_count" => length(failures),
+      "recorded_failure_count" => length(persisted_items),
+      "omitted_failure_count" => max(length(failures) - length(persisted_items), 0),
+      "items" => persisted_items
+    }
+  end
+
+  defp failure_metadata({:translation_publication_failed, _reason}) do
+    %{"failure_kind" => "translation_publication_failed"}
+  end
+
+  defp failure_metadata(_reason), do: %{"failure_kind" => "translation_failed"}
+
+  defp item_failure_metadata(item) when is_map(item) do
+    failure = Failure.normalize(Map.get(item, :reason))
+    diagnostics = Map.get(item, :diagnostics, %{})
+
+    %{
+      "index" => Map.get(item, :index),
+      "source_path" => Map.get(diagnostics, :source_path),
+      "output_path" => Map.get(item, :output_path),
+      "locale" => Map.get(item, :locale),
+      "format" => Map.get(diagnostics, :format),
+      "frontmatter_mode" => diagnostics |> Map.get(:frontmatter_mode) |> to_string(),
+      "model" => Map.get(diagnostics, :model),
+      "provider" => failure.provider || Map.get(diagnostics, :provider),
+      "failure_kind" => failure.kind,
+      "failure_scope" => failure.scope,
+      "provider_status" => failure.status,
+      "provider_error_code" => failure.code,
+      "provider_request_id" => failure.request_id
+    }
+  end
+
+  defp item_failure_metadata(_item), do: %{"failure_kind" => "translation-failed"}
 
   defp next_translation_event_sequence(session) do
     key = {__MODULE__, :translation_event_sequence, session.id}

@@ -16,6 +16,8 @@ defmodule Glossia.Translations.Engine do
 
   @segment_attempts 2
 
+  require Logger
+
   alias Glossia.Translations.ContentSegments
   alias Glossia.Translations.Context
   alias Glossia.Translations
@@ -194,7 +196,7 @@ defmodule Glossia.Translations.Engine do
           state.work_item.format
           |> strip_structured_code_fence(result.text)
 
-        with :ok <- reject_empty_output(segment.content, text),
+        with :ok <- reject_empty_output(state, segment, text, index, count, attempt),
              {:ok, text} <- reconcile_markdown_segment(text, segment, state.work_item.format) do
           case unpreserved(state, segment, text) do
             unpreserved when unpreserved != [] and attempt < @segment_attempts ->
@@ -236,12 +238,51 @@ defmodule Glossia.Translations.Engine do
       PreservedTokens.unpreserved_values(segment.content, text, state.preserve_kinds)
   end
 
-  defp reject_empty_output(source, output) do
+  defp reject_empty_output(state, %{content: source} = segment, output, index, count, attempt) do
     if String.trim(source) != "" and String.trim(output) == "" do
-      {:error, "translated output was empty for non-empty source content"}
+      message = empty_output_message(segment.kind)
+      log_empty_output(state, segment, output, index, count, attempt, message)
+      {:error, message}
     else
       :ok
     end
+  end
+
+  defp empty_output_message("frontmatter") do
+    "translated output was empty for non-empty frontmatter; return the complete frontmatter block with its syntax and delimiters intact"
+  end
+
+  defp empty_output_message(_kind), do: "translated output was empty for non-empty source content"
+
+  # A model's response can be empty without producing a provider error, which
+  # otherwise left the server logs with only the final, session-level failure.
+  # Keep enough operational context to investigate the failed request while
+  # deliberately excluding source text, model output, credentials, and provider
+  # response payloads.
+  defp log_empty_output(state, segment, output, index, count, attempt, message) do
+    work_item = state.work_item
+
+    details = %{
+      "event" => "translation.empty_output",
+      "translation_session_id" => Map.get(work_item, :translation_session_id),
+      "source_path" => Map.get(work_item, :source_path),
+      "output_path" => Map.get(work_item, :output_path),
+      "locale" => Map.get(work_item, :locale),
+      "format" => Map.get(work_item, :format),
+      "frontmatter_mode" => to_string(Map.get(work_item, :frontmatter_mode)),
+      "model" => Map.get(work_item, :model),
+      "provider" => Map.get(work_item, :translation_provider),
+      "segment_kind" => segment.kind,
+      "segment_index" => index,
+      "segment_count" => count,
+      "segment_attempt" => attempt,
+      "segment_attempt_limit" => @segment_attempts,
+      "source_bytes" => byte_size(segment.content),
+      "output_bytes" => byte_size(output),
+      "validation_message" => message
+    }
+
+    Logger.warning("Translation model returned empty output: #{JSON.encode!(details)}")
   end
 
   defp unpreserved_markers(protections, segment_content, text) do
