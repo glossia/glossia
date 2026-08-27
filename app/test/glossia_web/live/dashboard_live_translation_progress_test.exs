@@ -69,29 +69,40 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_event",
       index: 0,
-      event: %{type: "thinking", text: "The title is a metaphor, so "}
+      event: %{type: "thinking", text: "The title is a metaphor, so:\n\n* "}
     })
 
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_event",
       index: 0,
-      event: %{type: "thinking", text: "it should not be translated literally."}
+      event: %{type: "thinking", text: "it should **not** be translated literally."}
     })
 
+    # The model writes markdown, so it is rendered rather than shown as source.
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning'] [data-part='stream']",
-             "it should not be translated literally."
+             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning'] [data-part='prose'] li strong",
+             "not"
            )
 
-    # Once the translation itself starts arriving it replaces the reasoning,
-    # which is context rather than output.
+    refute render(view) =~ "**not**"
+
+    # The two boundaries this change stopped clearing reasoning on. Reinstating
+    # either clear drops it here and fails every assertion below.
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_event",
       index: 0,
-      event: %{type: "text", text: "Der Titel"}
+      event: %{type: "segment_output", text: "%{title: \"Der Titel\"}"}
     })
 
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "segment_start", index: 2, count: 3, kind: "content"}
+    })
+
+    # Its translation has arrived, so the live preview shows that instead, and
+    # the deliberation behind it is one disclosure away rather than gone.
     refute has_element?(
              view,
              "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning']"
@@ -102,6 +113,40 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "#translation-progress-item-0 [data-part='live-output'] [data-part='stream']",
              "Der Titel"
            )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-reasoning summary",
+             "Show reasoning"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-reasoning [data-part='prose'] li",
+             "it should not be translated literally."
+           )
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_completed",
+      index: 0,
+      file_ref: "glossia/translate-0123456789ab"
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-reasoning [data-part='prose']",
+             "The title is a metaphor"
+           )
+
+    # A fresh attempt is the one thing that does discard it, along with the
+    # markup it was rendered into.
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "attempt_start", attempt: 2}
+    })
+
+    refute has_element?(view, "#translation-progress-item-0-reasoning")
 
     {:ok, _session} = TranslationSessions.update_session_status(session, "completed")
 
@@ -160,6 +205,138 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "#translation-progress-item-0 [data-part='item-failure-description']",
              "can spend its whole output budget thinking and return nothing"
            )
+  end
+
+  # Reasoning is the one place in the dashboard that renders text a model wrote
+  # into the page. Raw markup must not survive as markup, and a link or image
+  # URL the model chooses must not be able to carry a scheme that executes.
+  test "renders model reasoning without letting its markup or URLs go live", %{conn: conn} do
+    user = TestHelpers.create_user("translation-sanitize@test.com", "translation-sanitize")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "sanitize",
+        name: "Sanitize",
+        github_repo_full_name: "example/sanitize"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      total: 1,
+      output_path: "app/priv/i18n/de/example.md",
+      locale: "de"
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{
+        type: "thinking",
+        text: """
+        Weighing <script>alert(1)</script> and <img src=x onerror="alert(2)"> here.
+
+        Also [a link](javascript:alert(3)) and ![an image](data:text/html;base64,PHNjcmlwdD4=).
+        """
+      }
+    })
+
+    reasoning =
+      view
+      |> element("#translation-progress-item-0 [data-part='prose']")
+      |> render()
+
+    assert reasoning =~ "Weighing"
+    assert reasoning =~ "a link"
+
+    # Raw markup does not survive as markup, escaped or otherwise.
+    refute reasoning =~ "<script"
+    refute reasoning =~ "&lt;script"
+    refute reasoning =~ "onerror"
+
+    # A markdown link or image cannot carry a scheme that executes. Anything
+    # other than an empty href here means a URL the model chose reached the
+    # browser intact.
+    refute reasoning =~ "javascript:"
+    refute reasoning =~ "data:text/html"
+    assert reasoning =~ ~s(href="")
+  end
+
+  # A progress event re-renders every item several times a second, and each patch
+  # reset an output the viewer had unfolded. The fix is client-side, so what can
+  # be asserted from here is that the instruction is on the element and its id is
+  # stable; whether the browser honours it is LiveView's own contract.
+  test "marks the output disclosures so a patch cannot collapse them", %{conn: conn} do
+    user = TestHelpers.create_user("translation-details@test.com", "translation-details")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "details",
+        name: "Details",
+        github_repo_full_name: "example/details"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      total: 1,
+      output_path: "app/priv/i18n/de/example.md",
+      locale: "de"
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 0,
+      event: %{type: "translation_output", text: "Der Titel"}
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{type: "item_completed", index: 0})
+
+    rendered =
+      view
+      |> element("#translation-progress-item-0-completed-output")
+      |> render()
+
+    assert rendered =~ "phx-mounted"
+    assert rendered =~ "ignore_attrs"
+
+    # The id is derived from the planned item index, which is also what
+    # `Progress.items/1` sorts by, so it survives later items arriving.
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 1,
+      total: 2,
+      output_path: "app/priv/i18n/es/example.md",
+      locale: "es"
+    })
+
+    assert has_element?(view, "#translation-progress-item-0-completed-output")
   end
 
   test "running translation items show an active progress indicator", %{conn: conn} do

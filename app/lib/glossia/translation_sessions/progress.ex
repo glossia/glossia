@@ -8,7 +8,10 @@ defmodule Glossia.TranslationSessions.Progress do
   A reasoning model streams its thinking long before it writes any translation,
   and on a small model that can be the entire response. The tail of that
   reasoning is kept alongside the output so a running file shows what the model
-  is doing rather than an empty box.
+  is doing rather than an empty box, and it is kept after the translation
+  arrives so the deliberation behind a phrasing can still be read. Only the tail
+  is retained: a single segment produces tens of kilobytes of it, and a session
+  holds one item per file per locale.
 
   Progress events are distinguished from persisted session events by their
   top-level `:type` key.
@@ -16,7 +19,10 @@ defmodule Glossia.TranslationSessions.Progress do
 
   alias Glossia.Translations.Failure
 
-  @thinking_preview_chars 2_000
+  @reasoning_retained_chars 4_000
+  # Graphemes alone do not bound memory: one grapheme can carry an unbounded run
+  # of combining marks, so a byte ceiling backs the character one up.
+  @reasoning_retained_bytes 16_000
 
   @type item :: %{
           index: non_neg_integer(),
@@ -25,7 +31,7 @@ defmodule Glossia.TranslationSessions.Progress do
           status: :running | :done | :failed,
           turns: non_neg_integer(),
           text: String.t(),
-          thinking: String.t(),
+          reasoning: String.t(),
           completed_text: String.t(),
           current_segment_text: String.t(),
           replace_text_on_next_chunk: boolean(),
@@ -152,7 +158,7 @@ defmodule Glossia.TranslationSessions.Progress do
   end
 
   defp apply_turn(item, %{type: "thinking", text: text}) do
-    %{item | thinking: append_thinking(item.thinking, to_string(text))}
+    %{item | reasoning: append_reasoning(item.reasoning, to_string(text))}
   end
 
   defp apply_turn(item, %{type: "attempt_start"}) do
@@ -160,7 +166,7 @@ defmodule Glossia.TranslationSessions.Progress do
       item
       | completed_text: "",
         current_segment_text: "",
-        thinking: "",
+        reasoning: "",
         replace_text_on_next_chunk: true,
         segment_index: nil,
         segment_count: nil,
@@ -172,7 +178,6 @@ defmodule Glossia.TranslationSessions.Progress do
     %{
       item
       | current_segment_text: "",
-        thinking: "",
         segment_index: event[:index],
         segment_count: event[:count],
         segment_kind: event[:kind]
@@ -192,7 +197,6 @@ defmodule Glossia.TranslationSessions.Progress do
       | text: completed_text,
         completed_text: completed_text,
         current_segment_text: "",
-        thinking: "",
         replace_text_on_next_chunk: false
     }
   end
@@ -205,7 +209,6 @@ defmodule Glossia.TranslationSessions.Progress do
       | text: text,
         completed_text: text,
         current_segment_text: "",
-        thinking: "",
         replace_text_on_next_chunk: false
     }
   end
@@ -213,20 +216,38 @@ defmodule Glossia.TranslationSessions.Progress do
   defp apply_turn(item, %{type: "turn_start"}), do: %{item | turns: item.turns + 1}
   defp apply_turn(item, _turn), do: item
 
-  # Only the tail is kept: reasoning runs to thousands of chunks, and what a
-  # viewer needs is the sentence the model is writing now.
-  defp append_thinking(existing, ""), do: existing
+  # Only the tail is kept: reasoning runs to thousands of chunks per segment, and
+  # a session holds one item per file per locale, so retaining all of it would
+  # cost megabytes per connected viewer.
+  defp append_reasoning(existing, ""), do: existing
 
-  defp append_thinking(existing, chunk) do
-    combined = existing <> chunk
-    length = String.length(combined)
+  defp append_reasoning(existing, chunk) do
+    existing
+    |> Kernel.<>(chunk)
+    |> take_last_graphemes(@reasoning_retained_chars)
+    |> take_last_bytes(@reasoning_retained_bytes)
+  end
 
-    if length > @thinking_preview_chars do
-      String.slice(combined, length - @thinking_preview_chars, @thinking_preview_chars)
-    else
-      combined
+  defp take_last_graphemes(text, count) do
+    case String.length(text) do
+      length when length > count -> String.slice(text, length - count, count)
+      _length -> text
     end
   end
+
+  defp take_last_bytes(text, count) when byte_size(text) <= count, do: text
+
+  defp take_last_bytes(text, count) do
+    text
+    |> binary_part(byte_size(text) - count, count)
+    |> drop_partial_codepoint()
+  end
+
+  # Cutting on a byte offset can land inside a character, so the leading bytes
+  # of a split one are dropped rather than left as invalid UTF-8.
+  defp drop_partial_codepoint(<<>>), do: <<>>
+  defp drop_partial_codepoint(<<_::utf8, _::binary>> = text), do: text
+  defp drop_partial_codepoint(<<_byte, rest::binary>>), do: drop_partial_codepoint(rest)
 
   defp join_preview("", right), do: right
   defp join_preview(left, ""), do: left
@@ -247,7 +268,7 @@ defmodule Glossia.TranslationSessions.Progress do
       status: :running,
       turns: 0,
       text: "",
-      thinking: "",
+      reasoning: "",
       completed_text: "",
       current_segment_text: "",
       replace_text_on_next_chunk: false,

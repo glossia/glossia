@@ -239,4 +239,41 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              running: 0
            }
   end
+
+  describe "retained reasoning" do
+    defp reasoning_after(chunks) do
+      [
+        %{type: "item_started", index: 0, total: 1, output_path: "a.md", locale: "de"}
+        | Enum.map(chunks, &%{type: "item_event", index: 0, event: %{type: "thinking", text: &1}})
+      ]
+      |> Progress.fold()
+      |> Progress.items()
+      |> hd()
+      |> Map.fetch!(:reasoning)
+    end
+
+    test "keeps the newest reasoning rather than the oldest" do
+      reasoning = reasoning_after([String.duplicate("old ", 2_000), "the newest thought"])
+
+      assert String.ends_with?(reasoning, "the newest thought")
+      assert String.length(reasoning) <= 4_000
+    end
+
+    # Graphemes alone do not bound memory: one can carry an unbounded run of
+    # combining marks, so a byte ceiling backs the character one up.
+    test "bounds pathological graphemes by bytes as well as by character count" do
+      grapheme = "a" <> String.duplicate("\u0301", 200)
+      reasoning = reasoning_after([String.duplicate(grapheme, 500)])
+
+      assert String.length(reasoning) <= 4_000
+      assert byte_size(reasoning) <= 16_000
+    end
+
+    test "never cuts a character in half" do
+      reasoning = reasoning_after([String.duplicate("日本語のテキスト ", 3_000)])
+
+      assert String.valid?(reasoning)
+      assert byte_size(reasoning) <= 16_000
+    end
+  end
 end
