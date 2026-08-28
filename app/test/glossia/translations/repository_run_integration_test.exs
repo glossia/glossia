@@ -107,13 +107,16 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
                     %{type: "plan_assessed", total: 1, needs_translation: 1, up_to_date: 0}}
 
     assert_receive {:translation_session_event,
-                    %{type: "item_completed", output_path: "docs/i18n/es/guide.md"}}
+                    %{
+                      type: "item_completed",
+                      output_path: "docs/i18n/es/guide.md",
+                      output_preview: "# Guía\n\nHola, mundo.",
+                      model_calls: 1
+                    }}
   end
 
-  # A reasoning model produces thousands of thinking chunks per segment, and each
-  # progress event is a synchronous call to the node serving the LiveView.
   @tag :tmp_dir
-  test "coalesces streamed reasoning into periodic events, in order", %{tmp_dir: root} do
+  test "keeps model thinking out of structured progress events", %{tmp_dir: root} do
     init_repo(root)
 
     session = %TranslationSession{id: Ecto.UUID.generate()}
@@ -146,15 +149,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
       |> Enum.filter(&match?(%{type: "item_event"}, &1))
       |> Enum.map(& &1.event)
 
-    thinking = Enum.filter(events, &(&1.type == "thinking"))
-
-    assert length(thinking) < 500
-    assert thinking |> Enum.map_join("", & &1.text) |> String.trim() =~ "chunk 500"
-
-    # The reasoning that produced a translation is flushed before the
-    # translation itself, so the two never arrive out of order.
-    types = Enum.map(events, & &1.type)
-    assert Enum.find_index(types, &(&1 == "thinking")) < Enum.find_index(types, &(&1 == "text"))
+    refute Enum.any?(events, &(&1.type == "thinking"))
+    assert Enum.any?(events, &(&1.type == "segment_start"))
+    assert Enum.any?(events, &(&1.type == "segment_output"))
   end
 
   defp collect_session_events(acc) do

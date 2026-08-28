@@ -31,9 +31,49 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert TranslationSessions.get_session!(session.id).status == "cancelled"
   end
 
-  # A reasoning model can spend a whole minute thinking before it writes the
-  # first character of a translation, which used to leave the page looking dead.
-  test "a running session shows the model's reasoning and a header spinner", %{conn: conn} do
+  test "a running translation session has a cancel action in the page header", %{conn: conn} do
+    user = TestHelpers.create_user("cancel-action@test.com", "cancel-action")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "cancel-action",
+        name: "Cancel action",
+        github_repo_full_name: "example/cancel-action"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(
+             view,
+             ".dash-page-header-actions #cancel-translation-session",
+             "Cancel translation"
+           )
+
+    assert view
+           |> element("#cancel-translation-session")
+           |> render() =~ "data-confirm"
+
+    view
+    |> element("#cancel-translation-session")
+    |> render_click()
+
+    assert render(view) =~ "Translation cancelled."
+    assert TranslationSessions.get_session!(session.id).status == "cancelled"
+    refute has_element?(view, "#cancel-translation-session")
+  end
+
+  test "a running session shows structured progress without model reasoning", %{conn: conn} do
     user = TestHelpers.create_user("translation-reasoning@test.com", "translation-reasoning")
 
     {:ok, project} =
@@ -84,22 +124,15 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       event: %{type: "thinking", text: "it should **not** be translated literally."}
     })
 
-    # The model writes markdown, so it is rendered rather than shown as source.
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning'] [data-part='prose'] li strong",
-             "not"
+             "#translation-progress-item-0 [data-part='progress-meta']",
+             "Front matter, segment 1 of 3"
            )
 
-    assert has_element?(
-             view,
-             "#translation-progress-item-0-reasoning-stream[data-part='stream'][data-format='prose']"
-           )
+    refute render(view) =~ "The title is a metaphor"
+    refute has_element?(view, "#translation-progress-item-0 [data-part='reasoning-output']")
 
-    refute render(view) =~ "**not**"
-
-    # The two boundaries this change stopped clearing reasoning on. Reinstating
-    # either clear drops it here and fails every assertion below.
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_event",
       index: 0,
@@ -112,11 +145,9 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       event: %{type: "segment_start", index: 2, count: 3, kind: "content"}
     })
 
-    # Its translation has arrived, so it leaves the active box for a completed
-    # segment disclosure. The active area now reflects the next segment.
     refute has_element?(
              view,
-             "#translation-progress-item-0 [data-part='live-output']:not([data-kind='reasoning']) [data-part='stream']",
+             "#translation-progress-item-0 [data-part='live-output'] [data-part='stream']",
              "Der Titel"
            )
 
@@ -138,35 +169,21 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "Content, segment 2 of 3"
            )
 
-    assert has_element?(
-             view,
-             "#translation-progress-item-0 [data-part='live-output'][data-kind='reasoning'] [data-part='prose'] li",
-             "it should not be translated literally."
-           )
-
-    refute has_element?(view, "#translation-progress-item-0-reasoning")
-
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_completed",
       index: 0,
-      file_ref: "glossia/translate-0123456789ab"
+      file_ref: "glossia/translate-0123456789ab",
+      output_preview: "%{title: \"Der Titel\"}\n\nDer Inhalt",
+      model_calls: 2
     })
 
-    assert has_element?(
-             view,
-             "#translation-progress-item-0-reasoning [data-part='prose']",
-             "The title is a metaphor"
-           )
-
-    # A fresh attempt is the one thing that does discard it, along with the
-    # markup it was rendered into.
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_event",
       index: 0,
       event: %{type: "attempt_start", attempt: 2}
     })
 
-    refute has_element?(view, "#translation-progress-item-0-reasoning")
+    refute render(view) =~ "The title is a metaphor"
 
     {:ok, _session} = TranslationSessions.update_session_status(session, "completed")
 
@@ -225,74 +242,6 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "#translation-progress-item-0 [data-part='item-failure-description']",
              "can spend its whole output budget thinking and return nothing"
            )
-  end
-
-  # Reasoning is the one place in the dashboard that renders text a model wrote
-  # into the page. Raw markup must not survive as markup, and a link or image
-  # URL the model chooses must not be able to carry a scheme that executes.
-  test "renders model reasoning without letting its markup or URLs go live", %{conn: conn} do
-    user = TestHelpers.create_user("translation-sanitize@test.com", "translation-sanitize")
-
-    {:ok, project} =
-      Projects.create_project(user.account, %{
-        handle: "sanitize",
-        name: "Sanitize",
-        github_repo_full_name: "example/sanitize"
-      })
-
-    {:ok, session} =
-      TranslationSessions.create_session(user.account, project, %{
-        status: "running",
-        commit_sha: "0123456789abcdef0123456789abcdef01234567",
-        source_language: "en",
-        target_languages: ["de"]
-      })
-
-    conn = init_test_session(conn, %{user_id: user.id})
-
-    {:ok, view, _html} =
-      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
-
-    TranslationSessions.broadcast_session_event(session, %{
-      type: "item_started",
-      index: 0,
-      total: 1,
-      output_path: "app/priv/i18n/de/example.md",
-      locale: "de"
-    })
-
-    TranslationSessions.broadcast_session_event(session, %{
-      type: "item_event",
-      index: 0,
-      event: %{
-        type: "thinking",
-        text: """
-        Weighing <script>alert(1)</script> and <img src=x onerror="alert(2)"> here.
-
-        Also [a link](javascript:alert(3)) and ![an image](data:text/html;base64,PHNjcmlwdD4=).
-        """
-      }
-    })
-
-    reasoning =
-      view
-      |> element("#translation-progress-item-0 [data-part='prose']")
-      |> render()
-
-    assert reasoning =~ "Weighing"
-    assert reasoning =~ "a link"
-
-    # Raw markup does not survive as markup, escaped or otherwise.
-    refute reasoning =~ "<script"
-    refute reasoning =~ "&lt;script"
-    refute reasoning =~ "onerror"
-
-    # A markdown link or image cannot carry a scheme that executes. Anything
-    # other than an empty href here means a URL the model chose reached the
-    # browser intact.
-    refute reasoning =~ "javascript:"
-    refute reasoning =~ "data:text/html"
-    assert reasoning =~ ~s(href="")
   end
 
   # A progress event re-renders every item several times a second, and each patch
@@ -392,6 +341,13 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       locale: "de"
     })
 
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_completed",
+      index: 0,
+      output_preview: "# Überschrift\n\nÜbersetzter Inhalt",
+      model_calls: 2
+    })
+
     {:ok, reconnected_view, _html} =
       live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
@@ -401,6 +357,20 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              reconnected_view,
              "#translation-progress-item-0 [data-part='path']",
              "app/priv/i18n/de/example.md"
+           )
+
+    assert has_element?(reconnected_view, "#translation-progress-item-0-completed-output")
+
+    assert has_element?(
+             reconnected_view,
+             "#translation-progress-item-0 [data-part='completed-output'] [data-part='stream']",
+             "Übersetzter Inhalt"
+           )
+
+    assert has_element?(
+             reconnected_view,
+             "#translation-progress-item-0 [data-part='progress-meta']",
+             "2 model calls"
            )
   end
 
@@ -568,7 +538,9 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_completed",
       index: 0,
-      file_ref: "glossia/translate-0123456789ab"
+      file_ref: "glossia/translate-0123456789ab",
+      output_preview: "translated front matter\n\ntranslated body",
+      model_calls: 2
     })
 
     refute has_element?(view, "#translation-progress [data-part='indicator']")
@@ -584,6 +556,18 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              view,
              "#translation-progress-item-0 [data-part='completed-output'] summary",
              "Show translated output"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='completed-output'] [data-part='stream']",
+             "translated body"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='progress-meta']",
+             "2 model calls"
            )
 
     {:ok, _session} =
