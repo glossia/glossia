@@ -24,7 +24,6 @@ spec:
     numerical:
       order: asc
   digestReflectionPolicy: Never
-  interval: 1m0s
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageUpdateAutomation
