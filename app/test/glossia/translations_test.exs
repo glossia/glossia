@@ -94,7 +94,7 @@ defmodule Glossia.TranslationsTest do
                Translations.translate_stream(account, payload(%{}), on_event, retry_backoff_ms: 0)
 
       assert Elixir.Agent.get(attempts, & &1) == 2
-      assert {:provider_retry, 2, 3} in Elixir.Agent.get(events, & &1)
+      assert {:provider_retry, 2, 5} in Elixir.Agent.get(events, & &1)
 
       # A streamed error fails the call by contract, so an attempt that is
       # about to be retried must not publish one to subscribers.
@@ -115,6 +115,29 @@ defmodule Glossia.TranslationsTest do
                Translations.translate_stream(account, payload(%{}), on_event, retry_backoff_ms: 0)
 
       assert Enum.any?(Elixir.Agent.get(events, & &1), &match?({:error, _reason}, &1))
+    end
+
+    test "keeps retrying through a gateway restart", %{account: account} do
+      {:ok, attempts} = Elixir.Agent.start_link(fn -> 0 end)
+
+      Mimic.stub(Condukt, :stream, fn _pid, _prompt ->
+        case Elixir.Agent.get_and_update(attempts, &{&1 + 1, &1 + 1}) do
+          attempt when attempt < 5 -> [:turn_start, {:error, %{reason: "connection refused"}}]
+          5 -> [:turn_start, {:text, "Hola"}, :turn_end]
+        end
+      end)
+
+      stub_condukt_session()
+
+      {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
+      on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
+
+      assert {:ok, %{text: "Hola"}} =
+               Translations.translate_stream(account, payload(%{}), on_event, retry_backoff_ms: 0)
+
+      assert Elixir.Agent.get(attempts, & &1) == 5
+      assert {:provider_retry, 5, 5} in Elixir.Agent.get(events, & &1)
+      refute Enum.any?(Elixir.Agent.get(events, & &1), &match?({:error, _reason}, &1))
     end
 
     test "does not retry an exhausted credit failure", %{account: account} do

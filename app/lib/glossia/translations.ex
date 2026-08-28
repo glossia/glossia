@@ -20,7 +20,11 @@ defmodule Glossia.Translations do
   """
 
   @supported_formats ~w(markdown json yaml po text)
-  @max_llm_attempts 3
+  # The in-cluster model gateway has one persistent-volume-backed replica. A
+  # configuration rollout can briefly make it unreachable while the replacement
+  # process starts, so keep transient failures alive for twenty seconds instead
+  # of exhausting every file in the first six.
+  @max_llm_attempts 5
   @llm_retry_backoff_ms 2_000
 
   alias Glossia.Accounts.Account
