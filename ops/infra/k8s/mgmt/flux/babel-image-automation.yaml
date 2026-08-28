@@ -1,0 +1,52 @@
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: babel
+  namespace: flux-system
+spec:
+  image: ghcr.io/glossia/babel
+  interval: 1m0s
+  secretRef:
+    name: ghcr-glossia
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: babel
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: babel
+  filterTags:
+    pattern: "^main-(?P<build>[0-9]+)-[0-9a-f]{40}$"
+    extract: "$build"
+  policy:
+    numerical:
+      order: asc
+  digestReflectionPolicy: Never
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: babel
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: fluxcdbot@users.noreply.github.com
+        name: fluxcdbot
+      messageTemplate: "chore(deploy): update Babel production image"
+    push:
+      branch: main
+  update:
+    path: ./ops/infra/k8s/workload-apps/babel-production
+    strategy: Setters
