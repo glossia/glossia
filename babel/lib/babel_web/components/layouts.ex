@@ -19,10 +19,6 @@ defmodule BabelWeb.Layouts do
           <span data-part="brand-mark">B</span>
           <span data-part="brand-name">Babel</span>
         </.link>
-        <div data-part="header-copy">
-          <span data-part="eyebrow">Glossia</span>
-          <span data-part="context">Operations platform</span>
-        </div>
       </header>
 
       <div data-part="main">

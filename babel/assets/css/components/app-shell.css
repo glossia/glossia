@@ -39,23 +39,6 @@
     font: var(--noora-font-weight-medium) var(--noora-font-heading-medium);
   }
 
-  & [data-part="header-copy"] {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--noora-spacing-2);
-  }
-
-  & [data-part="eyebrow"] {
-    color: var(--noora-surface-label-secondary);
-    font: var(--noora-font-body-small);
-  }
-
-  & [data-part="context"] {
-    color: var(--noora-surface-label-primary);
-    font: var(--noora-font-weight-medium) var(--noora-font-body-small);
-  }
-
   & > [data-part="main"] {
     display: flex;
     flex: 1;
