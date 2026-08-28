@@ -33,7 +33,7 @@ spec:
       name: RetryOnFailure
       retryInterval: 2m0s
   upgrade:
-    cleanupOnFail: true
+    cleanupOnFail: false
     crds: CreateReplace
     strategy:
       name: RetryOnFailure
