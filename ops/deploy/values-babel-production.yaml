@@ -62,12 +62,12 @@ externalSecrets:
     kind: ClusterSecretStore
     name: infisical
   appEnv:
-    itemKey: /babel
+    itemKey: /kubernetes
     fields:
       BABEL_SECRET_KEY_BASE: SECRET_KEY_BASE
       BABEL_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
   postgres:
-    itemKey: /babel
+    itemKey: /kubernetes
     passwordField: POSTGRES_PASSWORD
   backup:
     itemKey: /glossia-db-backups-keys
