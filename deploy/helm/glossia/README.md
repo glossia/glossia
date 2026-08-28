@@ -43,7 +43,7 @@ with at minimum:
 | `GLOSSIA_SECRET_KEY_BASE` | Phoenix session signing key |
 | `GLOSSIA_METRICS_BEARER_TOKEN` | Bearer token guarding `/metrics` |
 | `GLOSSIA_OPS_AUTH_PASSWORD` | Basic-auth for `/ops` dashboards |
-| `RELEASE_COOKIE` | Erlang distribution cookie shared by the parent pod and FLAME runners |
+| `RELEASE_COOKIE` | Erlang distribution cookie shared by every pod running the image |
 | `GLOSSIA_SMTP_*` | Outbound email, unless `mailRelay.enabled=true` supplies the relay settings |
 
 …and (when `postgres.enabled`) a basic-auth Secret named `glossia-postgres-app`
@@ -52,6 +52,15 @@ with `username` + `password` keys for the application Postgres user.
 Provision both manually, with sealed-secrets, sops, or any other tooling —
 or let the chart create them from your secret backend by enabling the
 External Secrets integration below.
+
+`RELEASE_COOKIE` is easy to leave unset and hard to notice: the release still
+boots, because `mix release` bakes a random cookie into every image. But that
+cookie differs per build, so pods from two builds cannot connect. During a
+rolling update the old and new replicas reject each other with
+`** Connection attempt from node :"glossia@<ip>" rejected. Invalid challenge
+reply. **`, and `Phoenix.PubSub` splits into two partitions for the length of
+the rollout. Set it once, keep it stable, and only rotate it while restarting
+every pod together.
 
 ## FLAME runners
 

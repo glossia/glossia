@@ -502,6 +502,14 @@ externalSecrets:
   appEnv:
     itemKey: /glossia
     fields:
+      # Distribution cookie for the BEAM cluster. `mix release` bakes a fresh
+      # random cookie into every image, so without this the pods from two
+      # different builds cannot connect: during a rolling update the old and
+      # new replicas reject each other ("Invalid challenge reply") and
+      # Phoenix.PubSub splits in two for the length of the rollout. Set it once
+      # in the backend item and never rotate it without restarting every pod at
+      # the same time.
+      RELEASE_COOKIE: RELEASE_COOKIE
       GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
       GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
       GLOSSIA_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
