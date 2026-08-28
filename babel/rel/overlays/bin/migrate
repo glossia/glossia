@@ -2,4 +2,17 @@
 set -eu
 
 cd -P -- "$(dirname -- "$0")"
-exec ./babel eval Babel.Release.migrate
+
+# The database service is created by CloudNativePG alongside this hook. Retry
+# transient start-up failures until the primary is ready to accept migrations.
+attempt=1
+max_attempts=60
+
+until ./babel eval Babel.Release.migrate; do
+  if [ "$attempt" -ge "$max_attempts" ]; then
+    exit 1
+  fi
+
+  attempt=$((attempt + 1))
+  sleep 2
+done
