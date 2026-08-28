@@ -7543,14 +7543,12 @@ defmodule GlossiaWeb.DashboardLive do
                 <span :if={is_nil(item.file_url)} data-part="path">{item.output_path}</span>
                 <span data-part="locale">{item.locale}</span>
                 <span data-part="progress-meta">
-                  <span :if={item.segment_kind == "frontmatter"}>
-                    {gettext("Front matter")}
-                  </span>
-                  <span :if={item.segment_count && item.segment_count > 1}>
-                    {gettext("Segment %{index} of %{count}",
+                  <span :if={item.segment_kind}>
+                    {translation_segment_label(%{
+                      kind: item.segment_kind,
                       index: item.segment_index,
                       count: item.segment_count
-                    )}
+                    })}
                   </span>
                   <span>
                     {ngettext(
@@ -7613,9 +7611,25 @@ defmodule GlossiaWeb.DashboardLive do
                 <% item.status == :running and item.reasoning != "" -> %>
                   <div data-part="live-output" data-kind="reasoning">
                     <p data-part="live-output-label">{gettext("Reasoning")}</p>
-                    <div data-part="stream" data-format="prose">
+                    <div
+                      id={"translation-progress-item-#{item.index}-reasoning-stream"}
+                      data-part="stream"
+                      data-format="prose"
+                      phx-hook=".PreserveScrollPosition"
+                    >
                       <div data-part="prose">{item.reasoning_html}</div>
                     </div>
+                    <script :type={Phoenix.LiveView.ColocatedHook} name=".PreserveScrollPosition">
+                      export default {
+                        beforeUpdate() {
+                          this.scrollTop = this.el.scrollTop;
+                        },
+
+                        updated() {
+                          this.el.scrollTop = this.scrollTop;
+                        }
+                      }
+                    </script>
                   </div>
                 <% item.status == :failed and item.text != "" -> %>
                   <details
@@ -7700,7 +7714,17 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp live_translation_text(%{text: text}), do: text
 
+  defp translation_segment_label(%{kind: "frontmatter", index: index, count: count})
+       when is_integer(index) and is_integer(count) and count > 1,
+       do: gettext("Front matter, segment %{index} of %{count}", index: index, count: count)
+
   defp translation_segment_label(%{kind: "frontmatter"}), do: gettext("Front matter")
+
+  defp translation_segment_label(%{kind: "content", index: index, count: count})
+       when is_integer(index) and is_integer(count) and count > 1,
+       do: gettext("Content, segment %{index} of %{count}", index: index, count: count)
+
+  defp translation_segment_label(%{kind: "content"}), do: gettext("Content")
 
   defp translation_segment_label(%{index: index, count: count})
        when is_integer(index) and is_integer(count),
