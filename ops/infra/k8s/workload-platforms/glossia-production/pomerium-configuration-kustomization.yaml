@@ -9,7 +9,7 @@ spec:
   healthChecks:
     - apiVersion: cert-manager.io/v1
       kind: Certificate
-      name: authenticate-babel-glossia-ai
+      name: authenticate-glossia-ai
       namespace: pomerium
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
