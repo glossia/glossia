@@ -49,7 +49,7 @@ backups:
   enabled: true
   s3:
     bucket: glossia-production-db-backups
-    prefix: babel-production
+    prefix: babel-production-v2
     endpointURL: https://bb7ccb20a20a58b2d5242d0277c750fe.eu.r2.cloudflarestorage.com
     region: auto
   postgres:
