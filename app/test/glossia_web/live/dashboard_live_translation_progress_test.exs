@@ -91,6 +91,11 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "not"
            )
 
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-reasoning-stream[data-part='stream'][data-format='prose']"
+           )
+
     refute render(view) =~ "**not**"
 
     # The two boundaries this change stopped clearing reasoning on. Reinstating
@@ -118,13 +123,19 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(
              view,
              "#translation-progress-item-0 [data-part='completed-segment'] summary",
-             "Front matter"
+             "Front matter, segment 1 of 3"
            )
 
     assert has_element?(
              view,
              "#translation-progress-item-0 [data-part='completed-segment'] [data-part='stream']",
              "Der Titel"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 [data-part='progress-meta']",
+             "Content, segment 2 of 3"
            )
 
     assert has_element?(
@@ -518,7 +529,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(
              view,
              "#translation-progress-item-0 [data-part='progress-meta']",
-             "Segment 2 of 2"
+             "Content, segment 2 of 2"
            )
 
     assert has_element?(

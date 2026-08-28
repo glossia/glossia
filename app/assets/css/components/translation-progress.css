@@ -352,6 +352,7 @@
     font-family: var(--font-family-sans);
     font-size: var(--text-xs);
     white-space: normal;
+    overflow-anchor: none;
 
     & [data-part="prose"] > :first-child {
       margin-top: var(--space-0);
@@ -395,6 +396,15 @@
       margin: var(--space-0) var(--space-0) var(--space-2);
       overflow-x: auto;
       white-space: pre-wrap;
+    }
+
+    /* A model may indent a list far enough for Markdown to interpret it as a
+     * code block. Code blocks must not inherit the white pill used by inline
+     * code, which makes every line look like a separate white fragment. */
+    & pre > code {
+      padding: var(--space-0);
+      border-radius: var(--space-0);
+      background: transparent;
     }
 
     & h1,
