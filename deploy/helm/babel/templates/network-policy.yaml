@@ -1,0 +1,31 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- if empty .Values.networkPolicy.allowedIngress }}
+{{- fail "networkPolicy.allowedIngress must contain at least one source when networkPolicy.enabled=true" }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "babel.fullname" . }}
+  labels:
+    {{- include "babel.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "babel.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        {{- range .Values.networkPolicy.allowedIngress }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ required "networkPolicy.allowedIngress[].namespace is required" .namespace | quote }}
+          podSelector:
+            matchLabels:
+              {{- toYaml (required "networkPolicy.allowedIngress[].podSelector is required" .podSelector) | nindent 14 }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+{{- end }}

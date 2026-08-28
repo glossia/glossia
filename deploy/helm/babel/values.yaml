@@ -37,6 +37,10 @@ secrets:
 env:
   BABEL_PHX_SERVER: "true"
 
+networkPolicy:
+  enabled: false
+  allowedIngress: []
+
 resources:
   requests:
     cpu: 100m
@@ -120,7 +124,6 @@ externalSecrets:
     itemKey: /babel
     fields:
       BABEL_SECRET_KEY_BASE: SECRET_KEY_BASE
-      BABEL_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
   postgres:
     itemKey: /babel
     passwordField: POSTGRES_PASSWORD
