@@ -5,7 +5,7 @@ metadata:
   namespace: pomerium
 spec:
   dnsNames:
-    - authenticate.babel.glossia.ai
+    - authenticate-babel.glossia.ai
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-cloudflare

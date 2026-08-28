@@ -14,7 +14,7 @@ Create a Google [Open Authorization 2.0](https://oauth.net/2/) web client with
 this callback URL:
 
 ```text
-https://authenticate.babel.glossia.ai/oauth2/callback
+https://authenticate-babel.glossia.ai/oauth2/callback
 ```
 
 The Pomerium route forwards a signed [JSON Web Token](https://jwt.io/)
