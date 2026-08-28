@@ -81,6 +81,29 @@ flame:
     repoPoolSize: 1
     clickhousePoolSize: 1
 
+# Translation sessions run as Kubernetes Jobs rather than inside the web pod.
+# A translation takes an hour or more, which is longer than any termination
+# grace period can cover, so it is given a workload whose lifetime is its own:
+# the Job carries no ownerReference, and a rolling update of the web tier
+# leaves it running. Each Job is built from the manifest of the pod that
+# created it, so it uses the image and environment that were live when the
+# session started and nothing has to be kept in step here.
+#
+# Placement and sizing come from `flame.k8s` — the same description of where a
+# translation belongs — so only the Job's own lifetime is configured below.
+translationJob:
+  # "kubernetes" schedules a detached Job; "inline" runs the translation in the
+  # web process, which is only appropriate outside a cluster. Empty lets the
+  # app decide from its environment.
+  backend: ""
+  # How long a finished Job sticks around for its logs to be read.
+  ttlSecondsAfterFinished: 3600
+  # A ceiling on one translation, so a run wedged against a model provider
+  # cannot hold a pod forever. Six hours.
+  activeDeadlineSeconds: 21600
+  # Empty inherits flame.k8s.resources.
+  resources: {}
+
 mailRelay:
   enabled: false
   host: ""
@@ -506,9 +529,10 @@ externalSecrets:
       # random cookie into every image, so without this the pods from two
       # different builds cannot connect: during a rolling update the old and
       # new replicas reject each other ("Invalid challenge reply") and
-      # Phoenix.PubSub splits in two for the length of the rollout. Set it once
-      # in the backend item and never rotate it without restarting every pod at
-      # the same time.
+      # Phoenix.PubSub splits in two for the length of the rollout. Detached
+      # translation jobs also need it to reach the web replicas at all. Set it
+      # once in the backend item and never rotate it without restarting every
+      # pod at the same time.
       RELEASE_COOKIE: RELEASE_COOKIE
       GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
       GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN

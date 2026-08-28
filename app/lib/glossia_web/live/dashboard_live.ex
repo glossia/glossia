@@ -17,7 +17,6 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Discussions
   alias Glossia.LLMModels
   alias Glossia.TranslationSessions.Progress
-  alias Glossia.TranslationSessions.ProgressCache
   alias Glossia.Translations.Failure
   alias Glossia.Voices
   alias Noora.Filter
@@ -3258,10 +3257,12 @@ defmodule GlossiaWeb.DashboardLive do
 
   def handle_info({:translation_session_event, event}, socket) do
     if Glossia.TranslationSessions.Progress.progress_event?(event) do
-      # Progress is folded before this notification is broadcast. Reading that
-      # shared snapshot avoids applying an event twice when it arrives between
-      # this LiveView subscribing and its initial render.
-      progress = translation_session_progress(socket.assigns[:session])
+      # Folded into this LiveView's own state. The translation runs on a node
+      # that is not serving this socket - a detached job, or the other replica -
+      # so there is no shared snapshot here to read. The sequence carried by the
+      # event is what keeps a fold that already covered it from counting twice.
+      progress =
+        Progress.apply_event(socket.assigns[:translation_progress] || Progress.new(), event)
 
       {:noreply, assign_translation_progress(socket, progress)}
     else
@@ -7733,7 +7734,9 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_segment_label(_segment), do: gettext("Show translated output")
 
   defp translation_session_progress(nil), do: Progress.new()
-  defp translation_session_progress(session), do: ProgressCache.get(session.id)
+
+  defp translation_session_progress(session),
+    do: Glossia.TranslationSessions.session_progress(session.id)
 
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")

@@ -282,4 +282,118 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       assert byte_size(reasoning) <= 16_000
     end
   end
+
+  describe "sequence handling" do
+    test "ignores an event the state has already folded" do
+      state =
+        Progress.new()
+        |> Progress.apply_event(%{type: "plan", total: 3, seq: 1})
+        |> Progress.apply_event(%{type: "item_skipped", seq: 2})
+
+      assert state.skipped == 1
+
+      # The same event redelivered, which is what a viewer sees when it
+      # subscribes before reading the persisted prefix.
+      assert Progress.apply_event(state, %{type: "item_skipped", seq: 2}).skipped == 1
+    end
+
+    test "folds an event the state has not seen" do
+      state =
+        Progress.new()
+        |> Progress.apply_event(%{type: "item_skipped", seq: 2})
+        |> Progress.apply_event(%{type: "item_skipped", seq: 3})
+
+      assert state.skipped == 2
+      assert state.seq == 3
+    end
+
+    test "an event without a sequence still folds" do
+      assert Progress.apply_event(Progress.new(), %{type: "plan", total: 4}).total == 4
+    end
+
+    test "a new run resets the files while keeping the sequence climbing" do
+      state =
+        Progress.new()
+        |> Progress.apply_event(%{type: "plan", total: 1, seq: 1})
+        |> Progress.apply_event(%{type: "item_started", index: 0, output_path: "es/a.md", seq: 2})
+        |> Progress.apply_event(%{type: "run_started", seq: 3})
+
+      assert Progress.items(state) == []
+      assert state.total == 0
+      assert state.seq == 3
+
+      # The second run's events must still land rather than being taken for
+      # replays of the first.
+      state =
+        Progress.apply_event(state, %{
+          type: "item_started",
+          index: 0,
+          output_path: "ja/a.md",
+          seq: 4
+        })
+
+      assert [%{output_path: "ja/a.md"}] = Progress.items(state)
+    end
+  end
+
+  describe "durability" do
+    test "only the events that shape the panel are worth persisting" do
+      assert Progress.durable_event?(%{type: "plan", total: 1})
+      assert Progress.durable_event?(%{type: "item_started", index: 0})
+      assert Progress.durable_event?(%{type: "item_completed", index: 0})
+      assert Progress.durable_event?(%{type: "item_failed", index: 0})
+
+      # A re-run's reset has to be written down too, or a viewer folding the
+      # whole history would merge both attempts into one panel.
+      assert Progress.durable_event?(%{type: "run_started"})
+
+      # Thousands per file. These stay on the live stream.
+      refute Progress.durable_event?(%{type: "item_event", index: 0, event: %{type: "text"}})
+    end
+
+    test "decodes a payload that round-tripped through JSON" do
+      decoded =
+        Progress.decode(%{
+          "type" => "item_started",
+          "seq" => 7,
+          "index" => 2,
+          "output_path" => "es/a.md",
+          "locale" => "es",
+          "unexpected" => "dropped"
+        })
+
+      assert decoded == %{
+               type: "item_started",
+               seq: 7,
+               index: 2,
+               output_path: "es/a.md",
+               locale: "es"
+             }
+    end
+
+    test "folds decoded payloads back into the same state" do
+      payloads = [
+        %{"type" => "plan", "total" => 2, "seq" => 1},
+        %{"type" => "item_started", "index" => 0, "output_path" => "es/a.md", "seq" => 2},
+        %{"type" => "item_completed", "index" => 0, "file_ref" => "ref", "seq" => 3},
+        %{"type" => "item_started", "index" => 1, "output_path" => "ja/a.md", "seq" => 4},
+        %{
+          "type" => "item_failed",
+          "index" => 1,
+          "reason" => %{"kind" => "provider-timeout"},
+          "seq" => 5
+        }
+      ]
+
+      state = payloads |> Enum.map(&Progress.decode/1) |> Progress.fold()
+
+      assert state.total == 2
+      assert %{done: 1, failed: 1} = Progress.summary(state)
+      [first, second] = Progress.items(state)
+      assert first.status == :done
+      assert first.file_ref == "ref"
+      assert second.status == :failed
+      assert second.reason.kind == "provider-timeout"
+    end
+  end
 end

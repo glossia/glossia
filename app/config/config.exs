@@ -150,7 +150,8 @@ config :glossia, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker},
-       {"*/5 * * * *", Glossia.Quality.RunRecoveryWorker}
+       {"*/5 * * * *", Glossia.Quality.RunRecoveryWorker},
+       {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker}
      ]}
   ]
 
