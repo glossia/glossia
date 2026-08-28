@@ -3364,81 +3364,34 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp assign_translation_progress(socket, progress) do
-    {items, rendered} =
+    items =
       progress
       |> Progress.items()
-      |> Enum.map_reduce(socket.assigns[:translation_reasoning_html] || %{}, fn item, rendered ->
+      |> Enum.map(fn item ->
         failure =
           if item.status == :failed,
             do: translation_failure(item.reason, item.index),
             else: nil
 
-        {html, rendered} = reasoning_html(rendered, item)
-
-        item =
-          item
-          |> Map.put(:failure, failure)
-          |> Map.put(:reasoning_html, html)
-          |> Map.put(
-            :file_url,
-            translation_file_url(
-              socket.assigns[:project],
-              item.status,
-              item.file_ref,
-              item.output_path
-            )
+        item
+        |> Map.put(:failure, failure)
+        |> Map.put(
+          :file_url,
+          translation_file_url(
+            socket.assigns[:project],
+            item.status,
+            item.file_ref,
+            item.output_path
           )
-
-        {item, rendered}
+        )
       end)
-
-    # Only the item that is streaming changes between events, so the rest keep
-    # the markdown they were already rendered into rather than every file in the
-    # session being re-rendered several times a second.
-    rendered = Map.take(rendered, Enum.map(items, & &1.index))
 
     assign(socket,
       translation_progress: progress,
       translation_progress_items: items,
-      translation_reasoning_html: rendered,
       translation_progress_summary: Progress.summary(progress),
       translation_progress_failures: translation_failure_groups(items)
     )
-  end
-
-  # An item whose attempt restarts drops its reasoning, and its markup goes with
-  # it rather than staying allocated for a session that may never show it again.
-  defp reasoning_html(rendered, %{index: index, reasoning: ""}),
-    do: {nil, Map.delete(rendered, index)}
-
-  defp reasoning_html(rendered, %{index: index, reasoning: reasoning}) do
-    # Size alongside the hash: a 32-bit hash collides often enough to be worth
-    # ruling out, and a collision here would leave stale reasoning on screen.
-    digest = {byte_size(reasoning), :erlang.phash2(reasoning)}
-
-    case Map.get(rendered, index) do
-      {^digest, html} ->
-        {html, rendered}
-
-      _stale ->
-        html = render_reasoning(reasoning)
-        {html, Map.put(rendered, index, {digest, html})}
-    end
-  end
-
-  # What keeps model output from becoming live markup is MDEx not rendering raw
-  # HTML at all, which is its default, plus comrak emptying dangerous link and
-  # image URLs. Sanitization is asked for on top of both: it is the layer that
-  # stays correct if either of those defaults ever changes under us, and this is
-  # the one place in the dashboard that renders text a provider wrote.
-  defp render_reasoning(reasoning) do
-    case Glossia.Markdown.to_html(reasoning,
-           sanitize: MDEx.Document.default_sanitize_options(),
-           syntax_highlight: nil
-         ) do
-      {:ok, html} -> Phoenix.HTML.raw(html)
-      {:error, _reason} -> reasoning
-    end
   end
 
   defp refetch_project(project, status) do
@@ -3733,6 +3686,7 @@ defmodule GlossiaWeb.DashboardLive do
           handle={@handle}
           project={@project}
           session={@session}
+          can_write={@can_write}
           session_events={assigns[:session_events] || []}
           translation_progress_items={assigns[:translation_progress_items] || []}
           translation_progress_summary={
@@ -7337,7 +7291,20 @@ defmodule GlossiaWeb.DashboardLive do
             do: gettext("Session for commit %{sha}", sha: String.slice(@session.commit_sha, 0, 7)),
             else: gettext("Translation session details")
         }
-      />
+      >
+        <:actions>
+          <Noora.Button.button
+            :if={assigns[:can_write] && translation_session_cancellable?(@session)}
+            id="cancel-translation-session"
+            type="button"
+            label={gettext("Cancel translation")}
+            variant="destructive"
+            size="medium"
+            phx-click="cancel_translation_session"
+            data-confirm={gettext("Are you sure you want to cancel this translation?")}
+          />
+        </:actions>
+      </.page_header>
 
       <div class="card" data-part="overview">
         <div data-part="overview-header">
@@ -7367,14 +7334,6 @@ defmodule GlossiaWeb.DashboardLive do
               </a>
             <% end %>
           </div>
-          <Noora.Button.button
-            :if={assigns[:can_write] && translation_session_cancellable?(@session)}
-            type="button"
-            label={gettext("Cancel translation")}
-            variant="secondary"
-            size="small"
-            phx-click="cancel_translation_session"
-          />
         </div>
         <%= if @session.commit_message do %>
           <p data-part="commit-message">{@session.commit_message}</p>
@@ -7551,7 +7510,7 @@ defmodule GlossiaWeb.DashboardLive do
                       count: item.segment_count
                     })}
                   </span>
-                  <span>
+                  <span :if={item.turns > 0}>
                     {ngettext(
                       "%{n} model call",
                       "%{n} model calls",
@@ -7609,29 +7568,6 @@ defmodule GlossiaWeb.DashboardLive do
                   <div data-part="live-output">
                     <pre data-part="stream">{stream_tail(live_translation_text(item))}</pre>
                   </div>
-                <% item.status == :running and item.reasoning != "" -> %>
-                  <div data-part="live-output" data-kind="reasoning">
-                    <p data-part="live-output-label">{gettext("Reasoning")}</p>
-                    <div
-                      id={"translation-progress-item-#{item.index}-reasoning-stream"}
-                      data-part="stream"
-                      data-format="prose"
-                      phx-hook=".PreserveScrollPosition"
-                    >
-                      <div data-part="prose">{item.reasoning_html}</div>
-                    </div>
-                    <script :type={Phoenix.LiveView.ColocatedHook} name=".PreserveScrollPosition">
-                      export default {
-                        beforeUpdate() {
-                          this.scrollTop = this.el.scrollTop;
-                        },
-
-                        updated() {
-                          this.el.scrollTop = this.scrollTop;
-                        }
-                      }
-                    </script>
-                  </div>
                 <% item.status == :failed and item.text != "" -> %>
                   <details
                     id={"translation-progress-item-#{item.index}-partial-output"}
@@ -7651,19 +7587,6 @@ defmodule GlossiaWeb.DashboardLive do
                     <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
                   </details>
                 <% true -> %>
-              <% end %>
-              <%= if item.reasoning != "" and
-                       not (item.status == :running and live_translation_text(item) == "") do %>
-                <details
-                  id={"translation-progress-item-#{item.index}-reasoning"}
-                  data-part="reasoning-output"
-                  phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-                >
-                  <summary>{gettext("Show reasoning")}</summary>
-                  <div data-part="stream" data-format="prose">
-                    <div data-part="prose">{item.reasoning_html}</div>
-                  </div>
-                </details>
               <% end %>
             </li>
           <% end %>

@@ -17,10 +17,16 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       %{type: "item_event", index: 0, event: %{type: "text", text: ", mundo"}},
       %{type: "item_event", index: 0, event: %{type: "segment_output", text: "Hola, mundo"}},
       %{type: "item_event", index: 0, event: %{type: "translation_output", text: "Hola, mundo"}},
-      %{type: "item_completed", index: 0, file_ref: "glossia/translate-source"},
+      %{
+        type: "item_completed",
+        index: 0,
+        file_ref: "glossia/translate-source",
+        output_preview: "Hola, mundo.",
+        model_calls: 2
+      },
       %{type: "item_started", index: 1, output_path: "ja/a.md", locale: "ja"},
       %{type: "item_event", index: 1, event: %{type: "turn_start"}},
-      %{type: "item_failed", index: 1, reason: "boom"}
+      %{type: "item_failed", index: 1, reason: "boom", model_calls: 3}
     ]
 
     state = Progress.fold(events)
@@ -31,12 +37,13 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     assert first.output_path == "es/a.md"
     assert first.status == :done
     assert first.file_ref == "glossia/translate-source"
-    assert first.turns == 1
-    assert first.text == "Hola, mundo"
+    assert first.turns == 2
+    assert first.text == "Hola, mundo."
 
     assert second.status == :failed
     assert second.reason.kind == "translation-failed"
     assert second.reason.scope == "item"
+    assert second.turns == 3
 
     assert Progress.summary(state) == %{
              total: 2,
@@ -246,41 +253,26 @@ defmodule Glossia.TranslationSessions.ProgressTest do
            }
   end
 
-  describe "retained reasoning" do
-    defp reasoning_after(chunks) do
-      [
-        %{type: "item_started", index: 0, total: 1, output_path: "a.md", locale: "de"}
-        | Enum.map(chunks, &%{type: "item_event", index: 0, event: %{type: "thinking", text: &1}})
-      ]
-      |> Progress.fold()
-      |> Progress.items()
-      |> hd()
-      |> Map.fetch!(:reasoning)
-    end
+  test "ignores unstructured model thinking" do
+    state =
+      Progress.fold([
+        %{type: "item_started", index: 0, total: 1, output_path: "a.md", locale: "de"},
+        %{
+          type: "item_event",
+          index: 0,
+          event: %{type: "thinking", text: String.duplicate("unstructured thought ", 2_000)}
+        },
+        %{
+          type: "item_event",
+          index: 0,
+          event: %{type: "segment_start", index: 1, count: 2, kind: "content"}
+        }
+      ])
 
-    test "keeps the newest reasoning rather than the oldest" do
-      reasoning = reasoning_after([String.duplicate("old ", 2_000), "the newest thought"])
+    assert [%{segment_index: 1, segment_count: 2, segment_kind: "content"} = item] =
+             Progress.items(state)
 
-      assert String.ends_with?(reasoning, "the newest thought")
-      assert String.length(reasoning) <= 4_000
-    end
-
-    # Graphemes alone do not bound memory: one can carry an unbounded run of
-    # combining marks, so a byte ceiling backs the character one up.
-    test "bounds pathological graphemes by bytes as well as by character count" do
-      grapheme = "a" <> String.duplicate("\u0301", 200)
-      reasoning = reasoning_after([String.duplicate(grapheme, 500)])
-
-      assert String.length(reasoning) <= 4_000
-      assert byte_size(reasoning) <= 16_000
-    end
-
-    test "never cuts a character in half" do
-      reasoning = reasoning_after([String.duplicate("日本語のテキスト ", 3_000)])
-
-      assert String.valid?(reasoning)
-      assert byte_size(reasoning) <= 16_000
-    end
+    refute Map.has_key?(item, :reasoning)
   end
 
   describe "sequence handling" do
@@ -359,6 +351,8 @@ defmodule Glossia.TranslationSessions.ProgressTest do
           "index" => 2,
           "output_path" => "es/a.md",
           "locale" => "es",
+          "output_preview" => "Hola, mundo.",
+          "model_calls" => 2,
           "unexpected" => "dropped"
         })
 
@@ -367,7 +361,9 @@ defmodule Glossia.TranslationSessions.ProgressTest do
                seq: 7,
                index: 2,
                output_path: "es/a.md",
-               locale: "es"
+               locale: "es",
+               output_preview: "Hola, mundo.",
+               model_calls: 2
              }
     end
 
@@ -375,7 +371,14 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       payloads = [
         %{"type" => "plan", "total" => 2, "seq" => 1},
         %{"type" => "item_started", "index" => 0, "output_path" => "es/a.md", "seq" => 2},
-        %{"type" => "item_completed", "index" => 0, "file_ref" => "ref", "seq" => 3},
+        %{
+          "type" => "item_completed",
+          "index" => 0,
+          "file_ref" => "ref",
+          "output_preview" => "Hola, mundo.",
+          "model_calls" => 2,
+          "seq" => 3
+        },
         %{"type" => "item_started", "index" => 1, "output_path" => "ja/a.md", "seq" => 4},
         %{
           "type" => "item_failed",
@@ -392,6 +395,8 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       [first, second] = Progress.items(state)
       assert first.status == :done
       assert first.file_ref == "ref"
+      assert first.text == "Hola, mundo."
+      assert first.turns == 2
       assert second.status == :failed
       assert second.reason.kind == "provider-timeout"
     end

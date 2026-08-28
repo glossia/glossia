@@ -34,6 +34,8 @@ defmodule Glossia.Translations.RepositoryRun do
   @git_timeout_ms 600_000
   @runner_timeout :infinity
   @assessment_progress_interval 25
+  @completed_output_preview_length 2_000
+  @completed_output_preview_bytes 8_000
 
   @doc """
   Clones `repository`, translates `locales`, and returns `{:ok, changes}`.
@@ -443,9 +445,14 @@ defmodule Glossia.Translations.RepositoryRun do
       progress_node
     )
 
-    reset_thinking_buffer()
+    model_calls_key = {__MODULE__, :model_calls, item.output_path}
+    Process.put(model_calls_key, 0)
 
     on_event = fn event ->
+      if event == :turn_start do
+        Process.put(model_calls_key, Process.get(model_calls_key, 0) + 1)
+      end
+
       Enum.each(progress_events(event), fn emitted ->
         broadcast(
           session,
@@ -473,39 +480,73 @@ defmodule Glossia.Translations.RepositoryRun do
     engine_opts =
       if is_nil(credential_node), do: [], else: [credential_node: credential_node]
 
-    case Engine.apply_item(item, account, on_event, validate, engine_opts) do
-      {:ok, result} ->
-        write_output(item, result.text)
-        write_lock(repo_path, item, provider, hash_state, result.text)
+    try do
+      case Engine.apply_item(item, account, on_event, validate, engine_opts) do
+        {:ok, result} ->
+          write_output(item, result.text)
+          write_lock(repo_path, item, provider, hash_state, result.text)
 
-        broadcast(
-          session,
-          %{
-            type: "item_completed",
-            index: index,
-            output_path: item.output_path
-          },
-          progress_node
-        )
+          broadcast(
+            session,
+            %{
+              type: "item_completed",
+              index: index,
+              output_path: item.output_path,
+              output_preview: completed_output_preview(result.text),
+              model_calls: Process.get(model_calls_key, 0)
+            },
+            progress_node
+          )
 
-        :ok
+          :ok
 
-      {:error, reason} ->
-        failure = Failure.from(reason, provider)
-        log_item_failure(session, item, index, total, failure)
+        {:error, reason} ->
+          failure = Failure.from(reason, provider)
+          log_item_failure(session, item, index, total, failure)
 
-        broadcast(
-          session,
-          %{
-            type: "item_failed",
-            index: index,
-            output_path: item.output_path,
-            reason: failure
-          },
-          progress_node
-        )
+          broadcast(
+            session,
+            %{
+              type: "item_failed",
+              index: index,
+              output_path: item.output_path,
+              reason: failure,
+              model_calls: Process.get(model_calls_key, 0)
+            },
+            progress_node
+          )
 
-        {:error, item_failure(item, index, failure)}
+          {:error, item_failure(item, index, failure)}
+      end
+    after
+      Process.delete(model_calls_key)
+    end
+  end
+
+  # Persisting the preview must stay bounded even if a model produces unusually
+  # large graphemes built from combining characters. Preserve valid UTF-8 so the
+  # LiveView can render the preview without a fallback path.
+  defp completed_output_preview(text) do
+    text
+    |> take_first_bytes(@completed_output_preview_bytes)
+    |> String.slice(0, @completed_output_preview_length)
+  end
+
+  defp take_first_bytes(text, limit) when byte_size(text) <= limit, do: text
+
+  defp take_first_bytes(text, limit) do
+    text
+    |> binary_part(0, limit)
+    |> trim_partial_codepoint()
+  end
+
+  defp trim_partial_codepoint(text) do
+    if String.valid?(text) do
+      text
+    else
+      text
+      |> binary_part(0, byte_size(text) - 1)
+      |> trim_partial_codepoint()
     end
   end
 
@@ -719,47 +760,12 @@ defmodule Glossia.Translations.RepositoryRun do
   # FLAME runner has neither Repo nor PubSub, so it cannot look this up itself.
   defp seed_seq(seq_start), do: Process.put(@seq_key, seq_start)
 
-  # A reasoning model streams several thousand thinking chunks per segment, and
-  # every progress event is a synchronous call to the node serving the LiveView.
-  # Thinking is coalesced into one event per @thinking_flush_ms so the reasoning
-  # preview still moves without the progress channel becoming the slowest part
-  # of a translation. Items run one at a time in this process, and the buffer is
-  # reset for each, so it never carries reasoning across files.
-  @thinking_flush_ms 250
-  @thinking_buffer_key :translation_thinking_buffer
-
-  defp reset_thinking_buffer,
-    do: Process.put(@thinking_buffer_key, {"", System.monotonic_time(:millisecond)})
-
-  defp progress_events({:thinking, chunk}) when is_binary(chunk) do
-    {buffered, flushed_at} = thinking_buffer()
-    buffered = buffered <> chunk
-    now = System.monotonic_time(:millisecond)
-
-    if now - flushed_at >= @thinking_flush_ms do
-      Process.put(@thinking_buffer_key, {"", now})
-      [{:thinking, buffered}]
-    else
-      Process.put(@thinking_buffer_key, {buffered, flushed_at})
-      []
-    end
-  end
-
-  # Anything else flushes first, so the reasoning a viewer reads stays in the
-  # order the model produced it.
-  defp progress_events(event) do
-    case thinking_buffer() do
-      {"", _flushed_at} ->
-        [event]
-
-      {buffered, _flushed_at} ->
-        Process.put(@thinking_buffer_key, {"", System.monotonic_time(:millisecond)})
-        [{:thinking, buffered}, event]
-    end
-  end
-
-  defp thinking_buffer,
-    do: Process.get(@thinking_buffer_key, {"", System.monotonic_time(:millisecond)})
+  # Model thinking can contain thousands of free-form chunks per segment. It is
+  # not part of the progress contract, so do not send it through the synchronous
+  # LiveView progress channel. The surrounding segment and turn events already
+  # communicate useful, stable progress.
+  defp progress_events({:thinking, _chunk}), do: []
+  defp progress_events(event), do: [event]
 
   defp normalize_event(:agent_start), do: %{type: "agent_start"}
   defp normalize_event(:agent_end), do: %{type: "agent_end"}
@@ -787,7 +793,6 @@ defmodule Glossia.Translations.RepositoryRun do
     do: %{type: "validation_error", reason: Failure.from({:validation_failed, reason})}
 
   defp normalize_event({:text, chunk}), do: %{type: "text", text: chunk}
-  defp normalize_event({:thinking, chunk}), do: %{type: "thinking", text: chunk}
 
   defp normalize_event({:tool_call, name, id, args}),
     do: %{type: "tool_call", name: to_string(name), id: to_string(id), args: inspect(args)}

@@ -3,53 +3,18 @@ defmodule Glossia.TranslationSessions.Progress do
   Folds the live progress events broadcast by
   `Glossia.Translations.RepositoryRun` into a renderable state for the
   translation LiveView: overall totals plus, per file, its status, the number of
-  language model calls made, and the streamed output so far.
+  language model calls made, and the translated output so far.
 
-  A reasoning model streams its thinking long before it writes any translation,
-  and on a small model that can be the entire response. The tail of that
-  reasoning is kept alongside the output so a running file shows what the model
-  is doing rather than an empty box, and it is kept after the translation
-  arrives so the deliberation behind a phrasing can still be read. Only the tail
-  is retained: a single segment produces tens of kilobytes of it, and a session
-  holds one item per file per locale.
+  The user-facing contract contains only application-owned milestones: planning,
+  starting a file or segment, accepting output, retrying, and completing. Model
+  thinking is intentionally excluded. It is both too verbose to present well
+  and not a stable data format for a progress interface.
 
   Progress events are distinguished from persisted session events by their
   top-level `:type` key.
   """
 
   alias Glossia.Translations.Failure
-
-  @reasoning_retained_chars 4_000
-  # Graphemes alone do not bound memory: one grapheme can carry an unbounded run
-  # of combining marks, so a byte ceiling backs the character one up.
-  @reasoning_retained_bytes 16_000
-
-  @type item :: %{
-          index: non_neg_integer(),
-          output_path: String.t() | nil,
-          locale: String.t() | nil,
-          status: :running | :done | :failed,
-          turns: non_neg_integer(),
-          text: String.t(),
-          reasoning: String.t(),
-          completed_text: String.t(),
-          current_segment_text: String.t(),
-          replace_text_on_next_chunk: boolean(),
-          segment_index: pos_integer() | nil,
-          segment_count: pos_integer() | nil,
-          segment_kind: String.t() | nil,
-          file_ref: String.t() | nil,
-          reason: Failure.t() | nil
-        }
-
-  @type t :: %{
-          total: non_neg_integer(),
-          checked: non_neg_integer(),
-          needs_translation: non_neg_integer() | nil,
-          skipped: non_neg_integer(),
-          seq: non_neg_integer(),
-          items: %{optional(non_neg_integer()) => item()}
-        }
 
   @doc "An empty progress state."
   def new, do: %{total: 0, checked: 0, needs_translation: nil, skipped: 0, seq: 0, items: %{}}
@@ -59,9 +24,9 @@ defmodule Glossia.TranslationSessions.Progress do
   def progress_event?(_event), do: false
 
   # The events that shape the panel, and so the ones worth a row in Postgres.
-  # Text and reasoning chunks arrive thousands of times per file and are left to
-  # the live stream: a viewer who joins late sees the file as running with the
-  # text it has produced since they arrived, rather than a replayed transcript.
+  # Text chunks arrive thousands of times per file and are left to the live
+  # stream: a viewer who joins late sees the file as running with the text it
+  # has produced since they arrived, rather than a replayed transcript.
   @durable_types ~w(run_started plan plan_progress plan_assessed item_started item_completed item_failed item_skipped)
 
   @doc "Whether `event` is worth persisting so a later viewer can rebuild the panel."
@@ -76,7 +41,21 @@ defmodule Glossia.TranslationSessions.Progress do
   """
   def decode(%{} = payload) do
     Enum.reduce(
-      ~w(type seq index total checked needs_translation up_to_date output_path locale file_ref reason)a,
+      ~w(
+        type
+        seq
+        index
+        total
+        checked
+        needs_translation
+        up_to_date
+        output_path
+        locale
+        file_ref
+        output_preview
+        model_calls
+        reason
+      )a,
       %{},
       fn key, acc ->
         case Map.fetch(payload, Atom.to_string(key)) do
@@ -154,13 +133,31 @@ defmodule Glossia.TranslationSessions.Progress do
   end
 
   defp do_apply_event(state, %{type: "item_completed", index: index} = event) do
-    update_item(state, index, &%{&1 | status: :done, file_ref: event[:file_ref]})
+    update_item(state, index, fn item ->
+      output_preview =
+        if is_binary(event[:output_preview]), do: event.output_preview, else: item.text
+
+      model_calls = if is_integer(event[:model_calls]), do: event.model_calls, else: item.turns
+
+      %{
+        item
+        | status: :done,
+          file_ref: event[:file_ref] || item.file_ref,
+          text: output_preview,
+          completed_text: output_preview,
+          current_segment_text: "",
+          turns: model_calls
+      }
+    end)
   end
 
   defp do_apply_event(state, %{type: "item_failed", index: index} = event) do
     state
     |> put_new_item(index, event)
-    |> update_item(index, &%{&1 | status: :failed, reason: Failure.normalize(event[:reason])})
+    |> update_item(index, fn item ->
+      model_calls = if is_integer(event[:model_calls]), do: event.model_calls, else: item.turns
+      %{item | status: :failed, reason: Failure.normalize(event[:reason]), turns: model_calls}
+    end)
   end
 
   defp do_apply_event(state, _event), do: state
@@ -217,17 +214,12 @@ defmodule Glossia.TranslationSessions.Progress do
     end
   end
 
-  defp apply_turn(item, %{type: "thinking", text: text}) do
-    %{item | reasoning: append_reasoning(item.reasoning, to_string(text))}
-  end
-
   defp apply_turn(item, %{type: "attempt_start"}) do
     %{
       item
       | completed_text: "",
         completed_segments: [],
         current_segment_text: "",
-        reasoning: "",
         replace_text_on_next_chunk: true,
         segment_index: nil,
         segment_count: nil,
@@ -297,39 +289,6 @@ defmodule Glossia.TranslationSessions.Progress do
   defp apply_turn(item, %{type: "turn_start"}), do: %{item | turns: item.turns + 1}
   defp apply_turn(item, _turn), do: item
 
-  # Only the tail is kept: reasoning runs to thousands of chunks per segment, and
-  # a session holds one item per file per locale, so retaining all of it would
-  # cost megabytes per connected viewer.
-  defp append_reasoning(existing, ""), do: existing
-
-  defp append_reasoning(existing, chunk) do
-    existing
-    |> Kernel.<>(chunk)
-    |> take_last_graphemes(@reasoning_retained_chars)
-    |> take_last_bytes(@reasoning_retained_bytes)
-  end
-
-  defp take_last_graphemes(text, count) do
-    case String.length(text) do
-      length when length > count -> String.slice(text, length - count, count)
-      _length -> text
-    end
-  end
-
-  defp take_last_bytes(text, count) when byte_size(text) <= count, do: text
-
-  defp take_last_bytes(text, count) do
-    text
-    |> binary_part(byte_size(text) - count, count)
-    |> drop_partial_codepoint()
-  end
-
-  # Cutting on a byte offset can land inside a character, so the leading bytes
-  # of a split one are dropped rather than left as invalid UTF-8.
-  defp drop_partial_codepoint(<<>>), do: <<>>
-  defp drop_partial_codepoint(<<_::utf8, _::binary>> = text), do: text
-  defp drop_partial_codepoint(<<_byte, rest::binary>>), do: drop_partial_codepoint(rest)
-
   defp join_preview("", right), do: right
   defp join_preview(left, ""), do: left
   defp join_preview(left, right), do: left <> "\n\n" <> right
@@ -349,7 +308,6 @@ defmodule Glossia.TranslationSessions.Progress do
       status: :running,
       turns: 0,
       text: "",
-      reasoning: "",
       completed_text: "",
       completed_segments: [],
       current_segment_text: "",
