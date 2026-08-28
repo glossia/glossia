@@ -17,7 +17,39 @@ defmodule BabelWeb.Router do
     plug BabelWeb.Plugs.PomeriumAuth
   end
 
+  pipeline :api do
+    plug :accepts, ["json"]
+  end
+
   get "/up", BabelWeb.HealthController, :index
+
+  scope "/.well-known", BabelWeb do
+    pipe_through :api
+
+    get "/oauth-authorization-server", WellKnownController, :oauth_authorization_server
+    get "/oauth-protected-resource", WellKnownController, :oauth_protected_resource
+    get "/oauth-protected-resource/mcp", WellKnownController, :oauth_protected_resource
+  end
+
+  scope "/oauth", BabelWeb.OAuth do
+    pipe_through :api
+
+    post "/register", RegisterController, :register
+    post "/token", TokenController, :token
+  end
+
+  scope "/oauth", BabelWeb.OAuth do
+    pipe_through [:browser, :operations]
+
+    get "/authorize", AuthorizeController, :authorize
+    post "/authorize", AuthorizeController, :authorize
+  end
+
+  scope "/mcp" do
+    pipe_through [:api, BabelWeb.Plugs.OAuthBearerAuth, BabelWeb.Plugs.RequireMcpAuth]
+
+    forward "/", Hermes.Server.Transport.StreamableHTTP.Plug, server: Babel.MCP.Server
+  end
 
   scope "/", BabelWeb do
     pipe_through [:browser, :operations]

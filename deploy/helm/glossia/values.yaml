@@ -198,6 +198,11 @@ hermes:
       limits:
         cpu: 250m
         memory: 256Mi
+  babel:
+    # Leave empty outside the production cluster. When set, Hermes discovers
+    # Babel's public OAuth metadata but calls the protected server over this
+    # in-cluster service address.
+    mcpURL: ""
   bootstrapImage: busybox:1.37.0
   nodeSelector: {}
   tolerations: []

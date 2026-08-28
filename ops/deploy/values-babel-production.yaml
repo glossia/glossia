@@ -39,6 +39,10 @@ networkPolicy:
       podSelector:
         app.kubernetes.io/name: pomerium
         app.kubernetes.io/component: proxy
+    - namespace: glossia
+      podSelector:
+        app.kubernetes.io/name: glossia
+        app.kubernetes.io/component: assistant
 
 resources:
   requests:

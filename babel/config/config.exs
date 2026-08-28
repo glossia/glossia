@@ -16,6 +16,11 @@ config :babel, BabelWeb.Endpoint,
 
 config :babel, BabelWeb.Plugs.PomeriumAuth, enabled: false
 
+config :boruta, Boruta.Oauth,
+  repo: Babel.Repo,
+  issuer: "http://localhost:4060",
+  contexts: [resource_owners: Babel.OAuth.ResourceOwners]
+
 noora_static_path = Path.expand("../deps/noora/priv/static", __DIR__)
 
 config :esbuild,

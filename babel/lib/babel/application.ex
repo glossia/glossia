@@ -11,6 +11,13 @@ defmodule Babel.Application do
       Babel.Pomerium.JWKSCache,
       {Phoenix.PubSub, name: Babel.PubSub},
       BabelWeb.Telemetry,
+      Hermes.Server.Registry,
+      %{
+        id: Babel.MCP.Server,
+        start:
+          {Hermes.Server.Supervisor, :start_link,
+           [Babel.MCP.Server, [transport: :streamable_http]]}
+      },
       BabelWeb.Endpoint
     ]
 

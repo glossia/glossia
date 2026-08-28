@@ -6,6 +6,10 @@ defmodule Babel.Accounts do
   alias Babel.Accounts.Account
   alias Babel.Repo
 
+  def get_account(id), do: Repo.get(Account, id)
+
+  def get_account_by_email(email), do: Repo.get_by(Account, email: email)
+
   def provision_pomerium_account(identity, email_domain) do
     with {:ok, identity} <- normalize_identity(identity, email_domain) do
       case find_account(identity) do

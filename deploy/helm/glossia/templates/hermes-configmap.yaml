@@ -26,9 +26,15 @@ data:
       slack:
         - mcp-observability
         - mcp-analytics
+        {{ if .Values.hermes.babel.mcpURL }}
+        - mcp-babel-operations
+        {{ end }}
       api_server:
         - mcp-observability
         - mcp-analytics
+        {{ if .Values.hermes.babel.mcpURL }}
+        - mcp-babel-operations
+        {{ end }}
 
     tool_loop_guardrails:
       warnings_enabled: true
@@ -70,6 +76,20 @@ data:
             - goal_report
           resources: false
           prompts: false
+      {{ if .Values.hermes.babel.mcpURL }}
+      babel-operations:
+        url: {{ .Values.hermes.babel.mcpURL | quote }}
+        auth: oauth
+        oauth:
+          cimd: false
+        supports_parallel_tool_calls: true
+        tools:
+          include:
+            - get_operations_overview
+            - list_work_items
+          resources: false
+          prompts: false
+      {{ end }}
   SOUL.md: |
     You are the Glossia operations and analytics assistant.
 
