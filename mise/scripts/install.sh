@@ -12,3 +12,10 @@ mise run clickhouse:start
 # `mix setup` is the single entry point: dependencies, the user-agent database,
 # the repos, and the JavaScript bundles a fresh clone has none of.
 mix setup
+
+babel_dir="${MISE_PROJECT_ROOT}/babel"
+cd "${babel_dir}"
+
+# Babel reads the same worktree-scoped environment as Glossia, so this creates
+# and seeds only this checkout's PostgreSQL database.
+mix setup
