@@ -4,9 +4,9 @@ metadata:
   name: global
 spec:
   authenticate:
-    url: https://authenticate-babel.glossia.ai
+    url: https://authenticate.glossia.ai
   certificates:
-    - pomerium/authenticate-babel-glossia-ai-tls
+    - pomerium/authenticate-glossia-ai-tls
   identityProvider:
     provider: google
     scopes:
