@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: authenticate-babel-glossia-ai
+  namespace: pomerium
+spec:
+  dnsNames:
+    - authenticate.babel.glossia.ai
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-cloudflare
+  secretName: authenticate-babel-glossia-ai-tls

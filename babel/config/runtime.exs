@@ -26,7 +26,6 @@ end
 if config_env() == :prod do
   database_url = System.fetch_env!("BABEL_DATABASE_URL")
   secret_key_base = System.fetch_env!("BABEL_SECRET_KEY_BASE")
-  ops_auth_password = System.fetch_env!("BABEL_OPS_AUTH_PASSWORD")
   host = System.get_env("BABEL_HOST") || "babel.glossia.ai"
 
   config :babel, Babel.Repo,
@@ -41,8 +40,10 @@ if config_env() == :prod do
 
   config :babel, :dns_cluster_query, System.get_env("BABEL_DNS_CLUSTER_QUERY") || :ignore
 
-  config :babel, BabelWeb.Plugs.OpsAuth,
+  config :babel, BabelWeb.Plugs.PomeriumAuth,
     enabled: true,
-    username: System.get_env("BABEL_OPS_AUTH_USERNAME") || "ops",
-    password: ops_auth_password
+    email_domain: "glossia.ai",
+    expected_issuer: "babel.glossia.ai",
+    expected_audience: "babel.glossia.ai",
+    jwks_url: "https://babel.glossia.ai/.well-known/pomerium/jwks.json"
 end

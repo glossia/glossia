@@ -14,7 +14,7 @@ defmodule BabelWeb.Router do
   end
 
   pipeline :operations do
-    plug BabelWeb.Plugs.OpsAuth
+    plug BabelWeb.Plugs.PomeriumAuth
   end
 
   get "/up", BabelWeb.HealthController, :index

@@ -18,7 +18,7 @@ defmodule Babel.MixProject do
   def application do
     [
       mod: {Babel.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :inets, :ssl]
     ]
   end
 
@@ -45,6 +45,8 @@ defmodule Babel.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0", override: true},
       {:jason, "~> 1.2"},
+      {:cachex, "~> 4.1"},
+      {:jose, "~> 1.11"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:noora, "~> 0.82.5"},

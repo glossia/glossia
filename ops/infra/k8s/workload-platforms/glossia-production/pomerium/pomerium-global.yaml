@@ -1,0 +1,21 @@
+apiVersion: ingress.pomerium.io/v1
+kind: Pomerium
+metadata:
+  name: global
+spec:
+  authenticate:
+    url: https://authenticate.babel.glossia.ai
+  certificates:
+    - pomerium/authenticate-babel-glossia-ai-tls
+  identityProvider:
+    provider: google
+    scopes:
+      - openid
+      - email
+      - profile
+    secret: pomerium/idp-google
+  secrets: pomerium/bootstrap
+  storage:
+    postgres:
+      caSecret: pomerium/pomerium-postgres-ca
+      secret: pomerium/pomerium-postgres-connection
