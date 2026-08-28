@@ -31,8 +31,7 @@ if config_env() == :prod do
 
   config :babel, Babel.Repo,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: [:inet6]
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
 
   config :babel, BabelWeb.Endpoint,
     url: [host: host, scheme: "https", port: 443],
