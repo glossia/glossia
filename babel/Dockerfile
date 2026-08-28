@@ -51,6 +51,10 @@ ENV MIX_ENV="prod"
 
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/babel ./
 
+# Release overlay scripts are committed with regular-file modes. Make the
+# executable entrypoints explicit in the image before dropping root.
+RUN chmod 755 /app/bin/server /app/bin/migrate
+
 USER nobody
 
 CMD ["/app/bin/server"]
