@@ -70,6 +70,14 @@ spec:
               value: {{ .Values.flame.k8s.runtimeClassName | quote }}
             - name: GLOSSIA_FLAME_RESOURCES_JSON
               value: {{ .Values.flame.k8s.resources | toJson | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_BACKEND
+              value: {{ .Values.translationJob.backend | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED
+              value: {{ .Values.translationJob.ttlSecondsAfterFinished | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS
+              value: {{ .Values.translationJob.activeDeadlineSeconds | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON
+              value: {{ (.Values.translationJob.resources | default .Values.flame.k8s.resources) | toJson | quote }}
             - name: GLOSSIA_FLAME_NODE_SELECTOR_JSON
               value: {{ .Values.flame.k8s.nodeSelector | toJson | quote }}
             - name: GLOSSIA_FLAME_TOLERATIONS_JSON
@@ -84,7 +92,7 @@ spec:
               value: {{ .Values.flame.child.repoPoolSize | quote }}
             - name: GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE
               value: {{ .Values.flame.child.clickhousePoolSize | quote }}
-            {{- range $key, $value := omit .Values.env "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_FLAME_BACKEND" "GLOSSIA_FLAME_MIN" "GLOSSIA_FLAME_MAX" "GLOSSIA_FLAME_MAX_CONCURRENCY" "GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS" "GLOSSIA_FLAME_TIMEOUT_MS" "GLOSSIA_FLAME_BOOT_TIMEOUT_MS" "GLOSSIA_FLAME_LOG" "GLOSSIA_FLAME_APP_CONTAINER_NAME" "GLOSSIA_FLAME_RUNTIME_CLASS_NAME" "GLOSSIA_FLAME_RESOURCES_JSON" "GLOSSIA_FLAME_NODE_SELECTOR_JSON" "GLOSSIA_FLAME_TOLERATIONS_JSON" "GLOSSIA_FLAME_AFFINITY_JSON" "GLOSSIA_FLAME_ENV_JSON" "GLOSSIA_FLAME_K8S_LOG" "GLOSSIA_FLAME_REPO_POOL_SIZE" "GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE" }}
+            {{- range $key, $value := omit .Values.env "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_FLAME_BACKEND" "GLOSSIA_FLAME_MIN" "GLOSSIA_FLAME_MAX" "GLOSSIA_FLAME_MAX_CONCURRENCY" "GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS" "GLOSSIA_FLAME_TIMEOUT_MS" "GLOSSIA_FLAME_BOOT_TIMEOUT_MS" "GLOSSIA_FLAME_LOG" "GLOSSIA_FLAME_APP_CONTAINER_NAME" "GLOSSIA_FLAME_RUNTIME_CLASS_NAME" "GLOSSIA_FLAME_RESOURCES_JSON" "GLOSSIA_FLAME_NODE_SELECTOR_JSON" "GLOSSIA_FLAME_TOLERATIONS_JSON" "GLOSSIA_FLAME_AFFINITY_JSON" "GLOSSIA_FLAME_ENV_JSON" "GLOSSIA_FLAME_K8S_LOG" "GLOSSIA_FLAME_REPO_POOL_SIZE" "GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE" "GLOSSIA_TRANSLATION_JOB_BACKEND" "GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED" "GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS" "GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON" }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}

@@ -47,27 +47,80 @@ defmodule Glossia.TranslationSessions.Progress do
           checked: non_neg_integer(),
           needs_translation: non_neg_integer() | nil,
           skipped: non_neg_integer(),
+          seq: non_neg_integer(),
           items: %{optional(non_neg_integer()) => item()}
         }
 
   @doc "An empty progress state."
-  def new, do: %{total: 0, checked: 0, needs_translation: nil, skipped: 0, items: %{}}
+  def new, do: %{total: 0, checked: 0, needs_translation: nil, skipped: 0, seq: 0, items: %{}}
 
   @doc "Whether `event` is a RepositoryRun progress event (vs a persisted session event)."
   def progress_event?(%{type: type}) when is_binary(type), do: true
   def progress_event?(_event), do: false
 
-  @doc "Folds a single progress event into the state."
-  # A plan begins a run. A new run clears this state when it changes to
-  # "running", so a duplicate plan from a reconnect or a delayed node must not
-  # make already-visible file progress disappear.
-  def apply_event(%{items: items} = state, %{type: "plan", total: total})
-      when map_size(items) > 0,
-      do: %{state | total: max(state.total, total)}
+  # The events that shape the panel, and so the ones worth a row in Postgres.
+  # Text and reasoning chunks arrive thousands of times per file and are left to
+  # the live stream: a viewer who joins late sees the file as running with the
+  # text it has produced since they arrived, rather than a replayed transcript.
+  @durable_types ~w(run_started plan plan_progress plan_assessed item_started item_completed item_failed item_skipped)
 
-  def apply_event(_state, %{type: "plan", total: total}), do: %{new() | total: total}
+  @doc "Whether `event` is worth persisting so a later viewer can rebuild the panel."
+  def durable_event?(%{type: type}), do: type in @durable_types
+  def durable_event?(_event), do: false
 
-  def apply_event(state, %{type: "plan_progress", checked: checked} = event) do
+  @doc """
+  Restores an event that was persisted as JSON.
+
+  Only the keys the fold reads are converted back to atoms, from a fixed list,
+  so a payload written by a newer release cannot introduce atoms here.
+  """
+  def decode(%{} = payload) do
+    Enum.reduce(
+      ~w(type seq index total checked needs_translation up_to_date output_path locale file_ref reason)a,
+      %{},
+      fn key, acc ->
+        case Map.fetch(payload, Atom.to_string(key)) do
+          {:ok, value} -> Map.put(acc, key, value)
+          :error -> acc
+        end
+      end
+    )
+  end
+
+  @doc """
+  Folds a single progress event into the state.
+
+  Events carry a `seq` that is monotonic for the lifetime of the session, so one
+  that has already been folded is ignored. That is what lets a viewer subscribe
+  first and read the persisted prefix second without double-counting whatever
+  arrived in between.
+  """
+  def apply_event(state, %{seq: seq} = event) when is_integer(seq) do
+    if seq <= Map.get(state, :seq, 0) do
+      state
+    else
+      state |> do_apply_event(event) |> Map.put(:seq, seq)
+    end
+  end
+
+  def apply_event(state, event), do: do_apply_event(state, event)
+
+  # A run announces itself before it plans anything. Folding this resets the
+  # files from any earlier attempt while keeping `seq` climbing, so a viewer
+  # holding the previous run's state adopts the new one instead of discarding
+  # its events as stale.
+  defp do_apply_event(state, %{type: "run_started"}), do: %{new() | seq: Map.get(state, :seq, 0)}
+
+  # A plan begins a run. A duplicate plan from a reconnect or a delayed node
+  # must not make already-visible file progress disappear.
+  defp do_apply_event(%{items: items} = state, %{type: "plan", total: total})
+       when map_size(items) > 0,
+       do: %{state | total: max(state.total, total)}
+
+  defp do_apply_event(state, %{type: "plan", total: total}),
+    do: %{new() | total: total, seq: Map.get(state, :seq, 0)}
+
+  defp do_apply_event(state, %{type: "plan_progress", checked: checked} = event) do
     %{
       state
       | total: max(state.total, event[:total] || 0),
@@ -75,11 +128,11 @@ defmodule Glossia.TranslationSessions.Progress do
     }
   end
 
-  def apply_event(
-        state,
-        %{type: "plan_assessed", needs_translation: needs_translation, up_to_date: up_to_date} =
-          event
-      ) do
+  defp do_apply_event(
+         state,
+         %{type: "plan_assessed", needs_translation: needs_translation, up_to_date: up_to_date} =
+           event
+       ) do
     %{
       state
       | total: max(state.total, event[:total] || 0),
@@ -91,26 +144,26 @@ defmodule Glossia.TranslationSessions.Progress do
   # A runner from an earlier release reports up-to-date files one at a time
   # instead of as a single `plan_assessed` count. Kept so a rolling deploy still
   # folds a correct summary.
-  def apply_event(state, %{type: "item_skipped"}), do: %{state | skipped: state.skipped + 1}
+  defp do_apply_event(state, %{type: "item_skipped"}), do: %{state | skipped: state.skipped + 1}
 
-  def apply_event(state, %{type: "item_started", index: index} = event),
+  defp do_apply_event(state, %{type: "item_started", index: index} = event),
     do: put_item(state, index, event)
 
-  def apply_event(state, %{type: "item_event", index: index, event: turn}) do
+  defp do_apply_event(state, %{type: "item_event", index: index, event: turn}) do
     update_item(state, index, &apply_turn(&1, turn))
   end
 
-  def apply_event(state, %{type: "item_completed", index: index} = event) do
+  defp do_apply_event(state, %{type: "item_completed", index: index} = event) do
     update_item(state, index, &%{&1 | status: :done, file_ref: event[:file_ref]})
   end
 
-  def apply_event(state, %{type: "item_failed", index: index} = event) do
+  defp do_apply_event(state, %{type: "item_failed", index: index} = event) do
     state
     |> put_new_item(index, event)
     |> update_item(index, &%{&1 | status: :failed, reason: Failure.normalize(event[:reason])})
   end
 
-  def apply_event(state, _event), do: state
+  defp do_apply_event(state, _event), do: state
 
   @doc "Folds a list of events into a fresh state."
   def fold(events), do: Enum.reduce(events, new(), &flip_apply/2)

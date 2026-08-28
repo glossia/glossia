@@ -6,6 +6,12 @@ flame_child? = not is_nil(FLAME.Parent.get())
 isolated_child? = truthy?.(System.get_env("GLOSSIA_ISOLATED_CHILD"))
 runner_child? = flame_child? or isolated_child?
 
+# A detached translation pod is not a runner. It owns its work rather than
+# being placed into, so it needs the full configuration a parent gets: its own
+# database and ClickHouse pools, the vault, GitHub credentials and the model
+# gateway. Only the web-serving parts are left out.
+translation_job? = truthy?.(System.get_env("GLOSSIA_TRANSLATION_JOB"))
+
 json_env = fn name, default ->
   case System.get_env(name) do
     nil -> default
@@ -83,6 +89,30 @@ config :glossia, :flame,
     env: json_env.("GLOSSIA_FLAME_ENV_JSON", %{}),
     log: truthy?.(System.get_env("GLOSSIA_FLAME_K8S_LOG"))
   ]
+
+# Where a translation session runs. `:kubernetes` schedules a Job that outlives
+# the pod that created it; `:inline` runs it in the calling process, which is
+# what development and tests want. Defaults to whichever the environment can
+# support, so no configuration is needed in either place.
+translation_job_backend =
+  case System.get_env("GLOSSIA_TRANSLATION_JOB_BACKEND") do
+    value when value in [nil, ""] -> if config_env() == :test, do: :inline, else: nil
+    "kubernetes" -> :kubernetes
+    "inline" -> :inline
+    value -> raise "unsupported GLOSSIA_TRANSLATION_JOB_BACKEND=#{inspect(value)}"
+  end
+
+config :glossia, Glossia.TranslationSessions.Launcher,
+  backend: translation_job_backend,
+  # Long enough to read the logs of a finished translation, short enough that
+  # completed Jobs do not accumulate.
+  ttl_seconds_after_finished:
+    integer_env.("GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED", 3_600),
+  # A ceiling on a single translation, so one that wedges against a provider
+  # cannot hold a pod indefinitely.
+  active_deadline_seconds:
+    integer_env.("GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS", 21_600),
+  resources: json_env.("GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON", %{})
 
 sandbox_adapter =
   case System.get_env("GLOSSIA_SANDBOX_ADAPTER") ||
@@ -211,7 +241,13 @@ config :glossia, Glossia.Analytics.Smolanalytics,
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
-if not runner_child? and (System.get_env("GLOSSIA_PHX_SERVER") || System.get_env("PHX_SERVER")) do
+# Truthiness, not presence: "false" is a truthy string in Elixir, so a pod that
+# explicitly turns the server off - a translation job does - would otherwise
+# still be configured to serve.
+phx_server? =
+  truthy?.(System.get_env("GLOSSIA_PHX_SERVER") || System.get_env("PHX_SERVER") || "false")
+
+if not runner_child? and not translation_job? and phx_server? do
   config :glossia, GlossiaWeb.Endpoint, server: true
 end
 
@@ -392,7 +428,13 @@ if config_env() == :prod and not runner_child? do
     config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: metrics_bearer_token
   end
 
-  default_otel_service_name = if runner_child?, do: "glossia-runner", else: "glossia-web"
+  default_otel_service_name =
+    cond do
+      runner_child? -> "glossia-runner"
+      translation_job? -> "glossia-translation"
+      true -> "glossia-web"
+    end
+
   otel_service_name = System.get_env("OTEL_SERVICE_NAME", default_otel_service_name)
   otel_deployment_environment = System.get_env("OTEL_DEPLOYMENT_ENVIRONMENT", "production")
   loki_url = System.get_env("GLOSSIA_LOKI_URL")

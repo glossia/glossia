@@ -1,6 +1,11 @@
 defmodule Glossia.TranslationSessions.Translate do
   @moduledoc """
-  Runs repository translation sessions in a sandbox.
+  Runs a repository translation session end to end.
+
+  In a cluster this executes inside the detached Job that
+  `Glossia.TranslationSessions.Launcher` scheduled for the session, so the run,
+  the pull request it opens, and the status it records all outlive whatever web
+  pod accepted the webhook. Outside a cluster it runs in the calling process.
   """
 
   require Logger
@@ -10,6 +15,21 @@ defmodule Glossia.TranslationSessions.Translate do
   alias Glossia.TranslationSessions.TranslationSession
 
   @translation_branch_prefix "glossia/translate"
+
+  @doc """
+  Fails a session that never got as far as running.
+
+  Kept alongside the run so a session that could not be launched is recorded,
+  announced and analysed exactly like one that failed mid-translation, rather
+  than sitting in `pending` until the reaper notices it.
+  """
+  def fail_session(session_id, reason) do
+    session =
+      TranslationSessions.get_session!(session_id)
+      |> Glossia.Repo.preload(project: [:account, :github_installation])
+
+    fail_translation(session, session.project, session.project.account, reason)
+  end
 
   def run(session_id) do
     session =
@@ -582,6 +602,13 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp humanize_error({:runner_exit, _reason}),
     do: "Translation stopped unexpectedly in the isolated runner. Please retry."
+
+  defp humanize_error({:translation_job_launch_failed, _reason}),
+    do: "Could not start the translation runner. Please retry."
+
+  defp humanize_error(:translation_abandoned),
+    do:
+      "The translation stopped reporting progress and was ended. This usually means its runner was lost. Please retry."
 
   defp humanize_error({:translation_items_failed, failures}) when is_list(failures) do
     count = length(failures)

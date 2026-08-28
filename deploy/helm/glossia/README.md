@@ -43,7 +43,7 @@ with at minimum:
 | `GLOSSIA_SECRET_KEY_BASE` | Phoenix session signing key |
 | `GLOSSIA_METRICS_BEARER_TOKEN` | Bearer token guarding `/metrics` |
 | `GLOSSIA_OPS_AUTH_PASSWORD` | Basic-auth for `/ops` dashboards |
-| `RELEASE_COOKIE` | Erlang distribution cookie shared by the parent pod and FLAME runners |
+| `RELEASE_COOKIE` | Erlang distribution cookie shared by every pod running the image |
 | `GLOSSIA_SMTP_*` | Outbound email, unless `mailRelay.enabled=true` supplies the relay settings |
 
 …and (when `postgres.enabled`) a basic-auth Secret named `glossia-postgres-app`
@@ -52,6 +52,65 @@ with `username` + `password` keys for the application Postgres user.
 Provision both manually, with sealed-secrets, sops, or any other tooling —
 or let the chart create them from your secret backend by enabling the
 External Secrets integration below.
+
+`RELEASE_COOKIE` is easy to leave unset and hard to notice: the release still
+boots, because `mix release` bakes a random cookie into every image. But that
+cookie differs per build, so pods from two builds cannot connect. During a
+rolling update the old and new replicas reject each other with
+`** Connection attempt from node :"glossia@<ip>" rejected. Invalid challenge
+reply. **`, `Phoenix.PubSub` splits into two partitions for the length of the
+rollout, and detached translation jobs cannot reach the web replicas at all.
+Set it once, keep it stable, and only rotate it while restarting every pod
+together.
+
+## Translation jobs
+
+A translation session runs for an hour or more. Anything whose lifetime is tied
+to a web pod — a FLAME runner, a placed sandbox child, an Oban job executing in
+the web process — dies with that pod, and a web pod is replaced on every
+deploy, every node drain and every eviction. No `terminationGracePeriodSeconds`
+can cover work that long, and FLAME has no mechanism for a runner to outlive
+its parent: `place_child(link: false)` is documented to allow it, but
+`FLAME.Terminator` calls `system_stop` as soon as the parent goes down
+([phoenixframework/flame#86](https://github.com/phoenixframework/flame/issues/86)),
+and `FLAMEK8sBackend` sets an `ownerReference` that has Kubernetes collect the
+runner pod regardless.
+
+So translations are scheduled as Kubernetes Jobs instead. The app creates the
+Job **without an `ownerReference`**, which is the property that matters: nothing
+garbage-collects it when the pod that created it is replaced, and a rolling
+update of the web tier leaves a running translation alone.
+
+Each Job is built from the manifest of the pod that creates it, so it inherits
+the image, environment, `envFrom` secrets and pull secrets that are live at that
+moment. Nothing has to be kept in step by hand, and no long-lived worker sits
+around running last month's code. Sizing and placement come from `flame.k8s`,
+which already describes where a translation belongs; only the Job's own lifetime
+is configured separately:
+
+```yaml
+translationJob:
+  backend: ""            # "kubernetes", "inline", or empty to detect
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 21600
+  resources: {}          # empty inherits flame.k8s.resources
+```
+
+The Job pod runs the release image in a translation role: database, vault,
+PubSub and ingestion buffers, but no HTTP endpoint, no FLAME pool, and Oban
+started with `queues: false` so it can record domain events without picking up
+work it would abandon when it exits. It joins the same BEAM cluster as the web
+replicas, which is how progress reaches connected LiveViews — and why
+`RELEASE_COOKIE` has to be stable across the image.
+
+`backoffLimit` is 0. Without checkpointing, a retry would re-translate every
+file and pay the model for it a second time, so a lost pod is surfaced by the
+session reaper (`Glossia.TranslationSessions.SessionRecoveryWorker`, every five
+minutes) rather than retried blindly. The reaper ends sessions that stop
+heartbeating, which is the only signal anything has that a detached run died.
+
+This needs `create`, `get`, `list` and `delete` on `batch/jobs`, which
+`flame.rbac.create` grants alongside the pod permissions.
 
 ## FLAME runners
 

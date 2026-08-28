@@ -1,8 +1,14 @@
 defmodule Glossia.Translations.RepositoryRun do
   @moduledoc """
-  Runs a repository translation natively in Elixir inside a FLAME runner — no CLI.
+  Runs a repository translation natively in Elixir — no CLI.
 
-  `run/4` clones the repo into a runner, plans the work with
+  Where it runs depends on who is calling. Inside the detached translation Job
+  the work happens in that pod directly: it is already the isolated compute, and
+  placing a FLAME runner from there would re-attach the translation to a pod's
+  lifetime, which is what made translations die on every deploy. Everywhere
+  else — a development machine, a test — it still goes through a FLAME runner.
+
+  `run/4` clones the repo, plans the work with
   `Glossia.Translations.Planner`, translates each stale item with
   `Glossia.Translations.Engine` (streaming every LLM turn to the translation
   session's PubSub topic and validating with `Glossia.Translations.Validate`),
@@ -43,6 +49,41 @@ defmodule Glossia.Translations.RepositoryRun do
 
   defp run_with_context(session, account, repository, locales, context_snapshot) do
     progress_node = Node.self()
+    seq_start = TranslationSessions.max_progress_seq(session.id)
+
+    opts = [
+      progress_node: progress_node,
+      credential_node: progress_node,
+      context_node: progress_node,
+      context_snapshot: context_snapshot,
+      seq_start: seq_start
+    ]
+
+    if Glossia.TranslationSessions.Job.current?() do
+      run_here(session, account, repository, locales, opts)
+    else
+      run_in_flame(session, account, repository, locales, opts)
+    end
+  end
+
+  # A detached translation pod is already the isolated compute: it has no FLAME
+  # pool to place work onto, and adding one would recreate the ownership that
+  # made translations die with the pod that started them.
+  defp run_here(session, account, repository, locales, opts) do
+    case clone(repository) do
+      {:ok, repo_path} ->
+        try do
+          translate_repository(session, account, repo_path, locales, opts)
+        after
+          File.rm_rf(repo_path)
+        end
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp run_in_flame(session, account, repository, locales, opts) do
     caller = self()
     result_ref = make_ref()
 
@@ -55,12 +96,7 @@ defmodule Glossia.Translations.RepositoryRun do
               case clone(repository) do
                 {:ok, repo_path} ->
                   try do
-                    translate_repository(session, account, repo_path, locales,
-                      progress_node: progress_node,
-                      credential_node: progress_node,
-                      context_node: progress_node,
-                      context_snapshot: context_snapshot
-                    )
+                    translate_repository(session, account, repo_path, locales, opts)
                   after
                     File.rm_rf(repo_path)
                   end
@@ -96,6 +132,11 @@ defmodule Glossia.Translations.RepositoryRun do
     credential_node = Keyword.get(opts, :credential_node)
     context_node = Keyword.get(opts, :context_node, Node.self())
 
+    # Continues the numbering past the `run_started` that the session's move to
+    # "running" already recorded, so this run's events are never mistaken for
+    # ones a viewer has already folded.
+    seed_seq(Keyword.get(opts, :seq_start, 0))
+
     project = session_project(session)
 
     with {:ok, context_snapshot} <- context_snapshot(account, project, context_node, opts),
@@ -125,6 +166,11 @@ defmodule Glossia.Translations.RepositoryRun do
         prepared_items
         |> Enum.reject(&(&1.status == :up_to_date))
         |> Enum.reduce_while({:ok, []}, fn prepared_item, {:ok, failures} ->
+          # Marks the session alive between files. A translation that stops
+          # heartbeating is one whose pod is gone, and that is the only signal
+          # anything has that a detached run died.
+          heartbeat(session, progress_node)
+
           case apply_prepared_item(
                  session,
                  account,
@@ -641,9 +687,37 @@ defmodule Glossia.Translations.RepositoryRun do
 
   # ── helpers ─────────────────────────────────────────────────────────────
 
+  # Every event is stamped with a sequence that keeps climbing for the lifetime
+  # of the session, seeded from what is already persisted so a second attempt
+  # continues the numbering rather than restarting it. A viewer folding the
+  # persisted prefix and the live stream together uses it to ignore what it has
+  # already applied.
+  @seq_key :translation_progress_seq
+
   defp broadcast(session, event, progress_node) do
+    event = Map.put(event, :seq, next_seq())
     TranslationSessions.broadcast_session_event(session, event, progress_node)
   end
+
+  # Written on the node with a database, which is this one for a detached
+  # translation and the placing node for a FLAME runner.
+  defp heartbeat(session, progress_node) when progress_node == node(),
+    do: TranslationSessions.heartbeat_session(session.id)
+
+  defp heartbeat(session, progress_node) do
+    :rpc.cast(progress_node, TranslationSessions, :heartbeat_session, [session.id])
+    :ok
+  end
+
+  defp next_seq do
+    seq = (Process.get(@seq_key) || 0) + 1
+    Process.put(@seq_key, seq)
+    seq
+  end
+
+  # Seeded on the node that owns the run, which is the one with a database. A
+  # FLAME runner has neither Repo nor PubSub, so it cannot look this up itself.
+  defp seed_seq(seq_start), do: Process.put(@seq_key, seq_start)
 
   # A reasoning model streams several thousand thinking chunks per segment, and
   # every progress event is a synchronous call to the node serving the LiveView.
