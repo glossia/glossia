@@ -18,20 +18,20 @@
     gap: var(--noora-spacing-2);
   }
 
-  & [data-part="eyebrow"] {
+  & > [data-part="header"] > [data-part="copy"] > [data-part="eyebrow"] {
     margin: 0;
     color: var(--color-primary);
     font: var(--noora-font-weight-medium) var(--noora-font-body-small);
     text-transform: uppercase;
   }
 
-  & [data-part="title"] {
+  & > [data-part="header"] > [data-part="copy"] > [data-part="title"] {
     margin: 0;
     color: var(--noora-surface-label-primary);
     font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
   }
 
-  & [data-part="description"] {
+  & > [data-part="header"] > [data-part="copy"] > [data-part="description"] {
     margin: 0;
     color: var(--noora-surface-label-secondary);
     font: var(--noora-font-body-medium);
@@ -51,7 +51,7 @@
   & [data-part="metric-card"] [data-part="metric-value"] {
     margin: 0;
     color: var(--noora-surface-label-primary);
-    font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+    font: var(--noora-font-weight-medium) var(--noora-font-heading-medium);
   }
 
   & [data-part="metric-card"][data-tone="warning"] [data-part="icon"] {
