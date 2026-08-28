@@ -42,5 +42,5 @@ spec:
   values:
     image:
       repository: ghcr.io/glossia/glossia-babel # {"$imagepolicy": "flux-system:babel:name"}
-      tag: main-6-8024c6167f84fa17dc330a37ca9f3fbca3ef3ab8 # {"$imagepolicy": "flux-system:babel:tag"}
+      tag: main-7-d8760f7d3d3d3e1339d3edb658783ab2057691ad # {"$imagepolicy": "flux-system:babel:tag"}
       digest: "" # {"$imagepolicy": "flux-system:babel:digest"}
