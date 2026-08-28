@@ -2,7 +2,8 @@ render_assistant_services() {
   helm template glossia "${CHART_DIR:-deploy/helm/glossia}" \
     --namespace glossia \
     --set smolanalytics.enabled=true \
-    --set hermes.enabled=true
+    --set hermes.enabled=true \
+    --set hermes.babel.mcpURL=http://babel.babel.svc.cluster.local/mcp
 }
 
 render_hermes_without_analytics() {
@@ -45,6 +46,11 @@ Describe 'Glossia chart assistant services'
     The stdout should include 'url: http://127.0.0.1:8000/mcp'
     The stdout should include '- --disable-write'
     The stdout should include '- mcp-analytics'
+    The stdout should include '- mcp-babel-operations'
+    The stdout should include 'url: "http://babel.babel.svc.cluster.local/mcp"'
+    The stdout should include 'auth: oauth'
+    The stdout should include 'cimd: false'
+    The stdout should include '- get_operations_overview'
     The stdout should include '- instrumentation_health'
   End
 

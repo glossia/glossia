@@ -292,6 +292,33 @@ also enables hard tool-loop limits and gives the bot a production-specific
 instruction file that requires evidence, explicit time windows, and
 privacy-preserving answers.
 
+### Connect Babel operations
+
+Babel can provide its read-only operations queue to Hermes through the same
+[Model Context Protocol](https://modelcontextprotocol.io/). Configure its
+in-cluster endpoint in the production values:
+
+```yaml
+hermes:
+  babel:
+    mcpURL: http://babel.babel.svc.cluster.local/mcp
+```
+
+The server advertises its public authorization metadata, but Hermes calls the
+protected server through the internal service address. On first deployment,
+run the login command after Babel has completed its database migration and the
+Hermes pod is ready:
+
+```bash
+kubectl -n glossia exec -it glossia-hermes-0 -- hermes mcp login babel-operations
+```
+
+Complete the Pomerium sign-in and authorization prompt shown by the command.
+`cimd: false` makes Hermes use dynamic client registration. The resulting
+client and token are stored on Hermes's persistent volume, not in Helm values
+or a Kubernetes Secret. The configured allowlist exposes only
+`get_operations_overview` and `list_work_items`.
+
 Glossia sends its existing domain events through an `analytics` background
 queue. A user action only adds a durable job to the Glossia database; delivery
 to smolanalytics happens out of band and is retried. The payload includes the

@@ -46,6 +46,8 @@ defmodule Babel.MixProject do
       {:gettext, "~> 1.0", override: true},
       {:jason, "~> 1.2"},
       {:cachex, "~> 4.1"},
+      {:boruta, "2.3.5"},
+      {:hermes_mcp, "~> 0.14.1"},
       {:jose, "~> 1.11"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},

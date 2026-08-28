@@ -107,6 +107,8 @@ hermes:
     size: 5Gi
   observability:
     grafanaURL: http://observability-grafana.observability.svc.cluster.local
+  babel:
+    mcpURL: http://babel.babel.svc.cluster.local/mcp
 
 # Bifrost AI gateway. Routes the cluster's model traffic through a single
 # OpenAI-compatible endpoint so provider keys live in one place and usage can be

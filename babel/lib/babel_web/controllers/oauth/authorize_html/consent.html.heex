@@ -1,0 +1,15 @@
+<main id="oauth-consent">
+  <.card title="Authorize access" icon="shield_check">
+    <.card_section>
+      <p><strong>{@client_name}</strong> is requesting read-only access to Babel operations.</p>
+      <ul>
+        <li :for={scope <- @scopes}>{scope}</li>
+      </ul>
+      <form method="post" action={~p"/oauth/authorize"}>
+        <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
+        <input :for={{name, value} <- @params} type="hidden" name={name} value={value} />
+        <.button label="Allow" size="medium" />
+      </form>
+    </.card_section>
+  </.card>
+</main>

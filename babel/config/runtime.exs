@@ -10,6 +10,10 @@ if config_env() == :dev do
   if postgres_db = System.get_env("BABEL_POSTGRES_DB") do
     config :babel, Babel.Repo, database: postgres_db
   end
+
+  if server_url = System.get_env("BABEL_SERVER_URL") do
+    config :boruta, Boruta.Oauth, issuer: server_url
+  end
 end
 
 if config_env() == :test do
@@ -46,4 +50,6 @@ if config_env() == :prod do
     expected_issuer: "babel.glossia.ai",
     expected_audience: "babel.glossia.ai",
     jwks_url: "https://babel.glossia.ai/.well-known/pomerium/jwks.json"
+
+  config :boruta, Boruta.Oauth, issuer: "https://#{host}"
 end
