@@ -1,0 +1,82 @@
+fullnameOverride: babel
+
+replicaCount: 2
+
+env:
+  BABEL_HOST: babel.glossia.ai
+
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    external-dns.alpha.kubernetes.io/hostname: babel.glossia.ai
+  hosts:
+    - host: babel.glossia.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: babel-glossia-ai-tls
+      hosts:
+        - babel.glossia.ai
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+postgres:
+  storage:
+    storageClass: hcloud-volumes
+    size: 20Gi
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
+backups:
+  enabled: true
+  s3:
+    bucket: glossia-production-db-backups
+    prefix: babel-production
+    endpointURL: https://bb7ccb20a20a58b2d5242d0277c750fe.eu.r2.cloudflarestorage.com
+    region: auto
+  postgres:
+    schedule: "0 0 3 * * *"
+    retentionPolicy: "30d"
+
+externalSecrets:
+  enabled: true
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  appEnv:
+    itemKey: /babel
+    fields:
+      BABEL_SECRET_KEY_BASE: SECRET_KEY_BASE
+      BABEL_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
+  postgres:
+    itemKey: /babel
+    passwordField: POSTGRES_PASSWORD
+  backup:
+    itemKey: /glossia-db-backups-keys
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+  imagePullSecret:
+    enabled: true
+    name: ghcr-pull-secret
+    registry: ghcr.io
+    itemKey: /kubernetes
+    usernameField: GHCR_PULL_USERNAME
+    passwordField: GHCR_PULL_TOKEN

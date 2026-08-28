@@ -1,0 +1,137 @@
+fullnameOverride: ""
+
+replicaCount: 2
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
+
+image:
+  repository: ghcr.io/glossia/babel
+  tag: main
+  digest: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  port: 80
+  targetPort: 4060
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: babel.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+secrets:
+  envSecretName: babel-app-env
+
+env:
+  BABEL_PHX_SERVER: "true"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+migrationJob:
+  enabled: true
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 900
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+postgres:
+  enabled: true
+  clusterName: babel-postgres
+  user: babel
+  database: babel_prod
+  host: ""
+  appSecretName: babel-postgres-app
+  instances: 2
+  storage:
+    storageClass: ""
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  enablePodAntiAffinity: true
+  topologyKey: kubernetes.io/hostname
+  nodeSelector: {}
+  tolerations: []
+
+backups:
+  enabled: false
+  s3:
+    bucket: ""
+    prefix: babel
+    endpointURL: ""
+    region: auto
+  secretName: babel-db-backup
+  postgres:
+    enabled: true
+    # CloudNativePG ScheduledBackup uses a six-field cron expression, with a
+    # leading seconds field.
+    schedule: "0 0 3 * * *"
+    retentionPolicy: "30d"
+
+nodeSelector: {}
+tolerations: []
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: babel
+            app.kubernetes.io/component: web
+        topologyKey: kubernetes.io/hostname
+
+externalSecrets:
+  enabled: false
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: default
+  appEnv:
+    itemKey: /babel
+    fields:
+      BABEL_SECRET_KEY_BASE: SECRET_KEY_BASE
+      BABEL_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
+  postgres:
+    itemKey: /babel
+    passwordField: POSTGRES_PASSWORD
+  backup:
+    itemKey: ""
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+  imagePullSecret:
+    enabled: false
+    name: ghcr-pull-secret
+    registry: ghcr.io
+    itemKey: /kubernetes
+    usernameField: GHCR_PULL_USERNAME
+    passwordField: GHCR_PULL_TOKEN

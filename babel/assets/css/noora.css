@@ -1,0 +1,102 @@
+@import "noora/noora.css";
+@import "./components/app-shell.css";
+@import "./routes/operations.css";
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+:root {
+  --space-px: 1px;
+  --color-ink-950: #1f1a14;
+  --color-ink-800: #3e3428;
+  --color-ink-600: #746451;
+  --color-paper-50: #fffcf5;
+  --color-paper-100: #f8f2e6;
+  --color-paper-200: #f1e9da;
+  --color-paper-300: #ded1bc;
+  --color-paper-400: #c6b493;
+  --color-amber-300: #f6c75f;
+  --color-amber-500: #cf8e13;
+  --color-amber-600: #a76e09;
+  --color-red-500: #b94235;
+  --color-green-500: #4a8067;
+  --color-blue-500: #547b94;
+
+  --color-text: var(--color-ink-950);
+  --color-text-muted: var(--color-ink-600);
+  --color-surface: var(--color-paper-50);
+  --color-bg: var(--color-paper-100);
+  --color-bg-subtle: var(--color-paper-200);
+  --color-border: var(--color-paper-300);
+  --color-border-strong: var(--color-paper-400);
+  --color-primary: var(--color-amber-600);
+  --color-primary-hover: var(--color-ink-800);
+  --color-primary-soft: #f9e7b8;
+  --color-primary-mid: var(--color-amber-300);
+  --color-error: var(--color-red-500);
+  --color-error-soft: #fae0dc;
+  --color-success: var(--color-green-500);
+  --color-success-soft: #dcece4;
+  --color-warning: var(--color-amber-500);
+  --color-warning-soft: #f9ebc9;
+  --color-information: var(--color-blue-500);
+  --color-text-on-accent: var(--color-paper-50);
+
+  --noora-surface-background-primary: var(--color-surface);
+  --noora-surface-background-secondary: var(--color-bg-subtle);
+  --noora-surface-background-tertiary: var(--color-bg);
+  --noora-surface-label-primary: var(--color-text);
+  --noora-surface-label-secondary: var(--color-text-muted);
+  --noora-surface-label-tertiary: var(--color-text-muted);
+  --noora-surface-label-disabled: var(--color-text-muted);
+  --noora-surface-border-primary: var(--color-border-strong);
+  --noora-surface-table-header: var(--color-bg-subtle);
+  --noora-content-divider-line: var(--color-border);
+  --noora-border-light-default: 0 0 0 var(--space-px) var(--color-border);
+  --noora-border-light-focus:
+    0 0 0 var(--space-px) var(--color-primary),
+    0 0 0 var(--noora-spacing-1) var(--color-primary-soft);
+  --noora-border-medium:
+    0 0 0 var(--space-px) var(--color-border);
+  --noora-button-primary-background: var(--color-primary);
+  --noora-button-primary-label: var(--color-text-on-accent);
+  --noora-button-primary-disabled-background: var(--color-primary-mid);
+  --noora-button-primary-disabled-label: var(--color-paper-50);
+  --noora-button-secondary-background: var(--color-surface);
+  --noora-button-secondary-label: var(--color-text);
+  --noora-button-background-primary: var(--color-primary);
+  --noora-button-background-primary-hover: var(--color-primary-hover);
+  --noora-button-background-primary-active: var(--color-primary-hover);
+  --noora-button-background-primary-disabled: var(--color-primary-mid);
+  --noora-button-border-primary: 0 0 0 var(--space-px) var(--color-primary);
+  --noora-button-border-primary-hover: 0 0 0 var(--space-px) var(--color-primary-hover);
+  --noora-button-border-primary-focus:
+    0 0 0 var(--space-px) var(--color-surface),
+    0 0 0 var(--noora-spacing-1) var(--color-primary-mid);
+  --noora-button-border-primary-active: 0 0 0 var(--space-px) var(--color-primary-hover);
+  --noora-button-border-primary-disabled: 0 0 0 var(--space-px) var(--color-primary-mid);
+  --noora-button-background-secondary: var(--color-surface);
+  --noora-button-background-secondary-hover: var(--color-bg-subtle);
+  --noora-button-background-secondary-active: var(--color-bg-subtle);
+  --noora-button-border-secondary: 0 0 0 var(--space-px) var(--color-border);
+  --noora-button-border-secondary-hover: 0 0 0 var(--space-px) var(--color-border-strong);
+  --noora-button-border-secondary-focus:
+    0 0 0 var(--space-px) var(--color-primary),
+    0 0 0 var(--noora-spacing-1) var(--color-primary-soft);
+  --noora-button-border-secondary-active: 0 0 0 var(--space-px) var(--color-border-strong);
+  --noora-badge-fill-primary: var(--color-primary);
+  --noora-badge-fill-destructive: var(--color-error);
+  --noora-badge-fill-success: var(--color-success);
+  --noora-badge-fill-warning: var(--color-warning);
+  --noora-badge-light-fill-primary-background: var(--color-primary-soft);
+  --noora-badge-light-fill-primary-label: var(--color-primary);
+  --noora-badge-light-fill-destructive-background: var(--color-error-soft);
+  --noora-badge-light-fill-destructive-label: var(--color-error);
+  --noora-badge-light-fill-success-background: var(--color-success-soft);
+  --noora-badge-light-fill-success-label: var(--color-success);
+  --noora-badge-light-fill-warning-background: var(--color-warning-soft);
+  --noora-badge-light-fill-warning-label: var(--color-warning);
+}

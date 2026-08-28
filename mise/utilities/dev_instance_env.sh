@@ -173,3 +173,12 @@ export GLOSSIA_POSTGRES_DB="glossia_dev_${suffix}"
 export GLOSSIA_CLICKHOUSE_DB="glossia_dev_${suffix}"
 export GLOSSIA_TEST_POSTGRES_DB="glossia_test${test_partition}_${suffix}"
 export GLOSSIA_TEST_CLICKHOUSE_DB="glossia_test${test_partition}_${suffix}"
+
+# Babel uses the same worktree suffix while keeping independent ports and
+# PostgreSQL databases. The port ranges do not overlap with Glossia, so both
+# applications can run from the same worktree at the same time.
+export BABEL_SERVER_PORT="$((5050 + suffix))"
+export BABEL_SERVER_URL="http://localhost:${BABEL_SERVER_PORT}"
+export BABEL_TEST_PORT="$((7100 + suffix))"
+export BABEL_POSTGRES_DB="babel_dev_${suffix}"
+export BABEL_TEST_POSTGRES_DB="babel_test${test_partition}_${suffix}"
