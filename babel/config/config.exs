@@ -14,7 +14,7 @@ config :babel, BabelWeb.Endpoint,
   pubsub_server: Babel.PubSub,
   live_view: [signing_salt: "8KTbw9dE"]
 
-config :babel, BabelWeb.Plugs.OpsAuth, enabled: false
+config :babel, BabelWeb.Plugs.PomeriumAuth, enabled: false
 
 noora_static_path = Path.expand("../deps/noora/priv/static", __DIR__)
 

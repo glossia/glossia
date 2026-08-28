@@ -1,7 +1,23 @@
+alias Babel.Accounts.Account
 alias Babel.Operations.WorkItem
 alias Babel.Repo
 
 today = Date.utc_today()
+now = DateTime.utc_now(:second)
+
+accounts = [
+  %{email: "marek@glossia.ai", name: "Marek", pomerium_id: "google/marek", last_seen_at: now},
+  %{email: "paulina@glossia.ai", name: "Paulina", pomerium_id: "google/paulina", last_seen_at: now},
+  %{email: "nina@glossia.ai", name: "Nina", pomerium_id: "google/nina", last_seen_at: now},
+  %{email: "tomas@glossia.ai", name: "Tomas", pomerium_id: "google/tomas", last_seen_at: now}
+]
+
+for attributes <- accounts do
+  case Repo.get_by(Account, email: attributes.email) do
+    nil -> Repo.insert!(Account.registration_changeset(%Account{}, attributes))
+    account -> Repo.update!(Account.identity_changeset(account, attributes))
+  end
+end
 
 work_items = [
   %{

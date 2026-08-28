@@ -8,6 +8,7 @@ defmodule Babel.Application do
     children = [
       Babel.Repo,
       {DNSCluster, query: Application.get_env(:babel, :dns_cluster_query) || :ignore},
+      Babel.Pomerium.JWKSCache,
       {Phoenix.PubSub, name: Babel.PubSub},
       BabelWeb.Telemetry,
       BabelWeb.Endpoint
