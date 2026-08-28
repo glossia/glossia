@@ -27,7 +27,7 @@ spec:
       compression: gzip
     data:
       compression: gzip
-    retentionPolicy: {{ .Values.backups.postgres.retentionPolicy | quote }}
+  retentionPolicy: {{ .Values.backups.postgres.retentionPolicy | quote }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
