@@ -9,7 +9,7 @@ strategy:
     maxUnavailable: 1
 
 image:
-  repository: ghcr.io/glossia/babel
+  repository: ghcr.io/glossia/glossia-babel
   tag: main
   digest: ""
   pullPolicy: IfNotPresent

@@ -4,7 +4,7 @@ metadata:
   name: babel
   namespace: flux-system
 spec:
-  image: ghcr.io/glossia/babel
+  image: ghcr.io/glossia/glossia-babel
   interval: 1m0s
   secretRef:
     name: ghcr-glossia
