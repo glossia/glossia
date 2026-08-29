@@ -27,6 +27,14 @@ defmodule Glossia.Translations.LLM do
   # ReqLLM's own default, which is the provider's real ceiling.
   @uncatalogued_max_output_tokens 16_384
 
+  # The gateway completes a non-streaming reasoning response only after the
+  # model has finished thinking. Qwen regularly takes longer than ReqLLM's
+  # 30-second OpenAI-compatible default, so that default abandons a request the
+  # gateway is still successfully completing and turns one translation into
+  # several avoidable retries. Keep the timeout bounded, but wide enough for a
+  # complete translated segment.
+  @model_receive_timeout_ms :timer.minutes(5)
+
   @doc "One-shot generation."
   def run(%{auth: {:api_key, key, base_url}, model: model}, system, user) do
     with {:ok, spec, opts} <- request(model, api_key_options(key, model), base_url) do
@@ -286,6 +294,7 @@ defmodule Glossia.Translations.LLM do
       {:ok, spec} ->
         opts =
           auth_options
+          |> Keyword.put(:receive_timeout, @model_receive_timeout_ms)
           |> maybe_max_tokens(spec)
           |> maybe_base_url(request_base_url)
 

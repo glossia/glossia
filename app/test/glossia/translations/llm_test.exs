@@ -40,6 +40,7 @@ defmodule Glossia.Translations.LLMTest do
         assert opts[:api_key] == "sk-test"
         assert opts[:base_url] == "https://proxy.test/v1"
         assert opts[:reasoning_effort] == :none
+        assert opts[:receive_timeout] == :timer.minutes(5)
         assert [%{role: "system", content: @system}, %{role: "user", content: @user}] = messages
         {:ok, :response}
       end)
@@ -198,6 +199,7 @@ defmodule Glossia.Translations.LLMTest do
         refute Keyword.has_key?(opts, :reasoning_effort)
         assert opts[:auth_mode] == :oauth
         assert opts[:access_token] == "oauth-tok"
+        assert opts[:receive_timeout] == :timer.minutes(5)
         assert [%{role: "system", content: @system}, %{role: "user", content: @user}] = messages
         {:ok, :fake_response}
       end)
@@ -327,6 +329,7 @@ defmodule Glossia.Translations.LLMTest do
 
       Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
         assert opts[:max_tokens] == 16_384
+        assert opts[:receive_timeout] == :timer.minutes(5)
         {:ok, :response}
       end)
 
