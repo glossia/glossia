@@ -226,7 +226,12 @@ defmodule Glossia.TranslationSessions do
   def update_session_publication(%TranslationSession{} = session, attrs) do
     session
     |> Ecto.Changeset.change(
-      Map.take(attrs, [:publication_branch, :publication_commit_sha, :pull_request_url])
+      Map.take(attrs, [
+        :publication_branch,
+        :publication_commit_sha,
+        :pull_request_url,
+        :pull_request_number
+      ])
     )
     |> Repo.update()
     |> case do

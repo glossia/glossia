@@ -15,6 +15,7 @@ defmodule Glossia.TranslationSessions.Translate do
   alias Glossia.TranslationSessions.TranslationSession
 
   @translation_branch_prefix "glossia/translate"
+  @incremental_publication_timeout_ms :timer.minutes(5)
 
   @doc """
   Fails a session that never got as far as running.
@@ -65,10 +66,11 @@ defmodule Glossia.TranslationSessions.Translate do
       }
 
       locales = session.target_languages || []
+      run_opts = incremental_publication_opts(session, project, token)
 
-      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales, []) do
+      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales, run_opts) do
         {:ok, changes} ->
-          result = publication_result(session, project, token, changes)
+          result = publication_result(session, project, token, changes, run_opts)
           handle_translation_result(session, project, account, result)
 
         {:error, reason} ->
@@ -100,6 +102,66 @@ defmodule Glossia.TranslationSessions.Translate do
         {:error, reason} ->
           {:error, {:github_token_failed, reason}}
       end
+    end
+  end
+
+  # Publishing each completed item makes the branch a durable checkpoint. A
+  # FLAME runner may live on another node during development, so relay the
+  # GitHub work to this node, which owns the database and app credentials.
+  defp incremental_publication_opts(session, project, clone_token)
+       when not is_nil(project.github_installation) and is_binary(clone_token) and
+              clone_token != "" do
+    publisher_node = node()
+
+    [
+      after_item_completed: fn changes ->
+        publish_completed_item_changes(publisher_node, session.id, changes)
+      end
+    ]
+  end
+
+  defp incremental_publication_opts(_session, _project, _clone_token), do: []
+
+  defp publish_completed_item_changes(publisher_node, session_id, changes)
+       when publisher_node == node() do
+    publish_changes_result(session_id, changes)
+  end
+
+  defp publish_completed_item_changes(publisher_node, session_id, changes) do
+    case :rpc.call(
+           publisher_node,
+           __MODULE__,
+           :publish_changes,
+           [%{session_id: session_id}, %{changes: changes}],
+           @incremental_publication_timeout_ms
+         ) do
+      {:badrpc, reason} -> {:error, {:publication_relay_failed, reason}}
+      result -> normalize_publication_result(result)
+    end
+  end
+
+  defp publish_changes_result(session_id, changes) do
+    publish_changes(%{session_id: session_id}, %{changes: changes})
+    |> normalize_publication_result()
+  end
+
+  defp normalize_publication_result({:ok, _publication}), do: :ok
+  defp normalize_publication_result({:error, _reason} = error), do: error
+  defp normalize_publication_result(other), do: {:error, {:invalid_publication_result, other}}
+
+  defp publication_result(session, project, clone_token, changes, run_opts) do
+    if Keyword.has_key?(run_opts, :after_item_completed) and changes != [] do
+      fresh = TranslationSessions.get_session!(session.id)
+
+      case fresh.pull_request_url do
+        pull_request_url when is_binary(pull_request_url) and pull_request_url != "" ->
+          {:published, pull_request_url}
+
+        _ ->
+          publication_result(session, project, clone_token, changes)
+      end
+    else
+      publication_result(session, project, clone_token, changes)
     end
   end
 
@@ -166,10 +228,11 @@ defmodule Glossia.TranslationSessions.Translate do
   defp do_publish_changes(session, project, token, changes) do
     full_name = project.github_repo_full_name
     default_branch = project.github_repo_default_branch || "main"
-    branch_name = session.publication_branch || translation_branch_name(session)
     commit_message = translation_commit_message(session)
 
-    with {:ok, parent_commit_sha} <-
+    with {:ok, session} <- active_publication_session(session, full_name, token),
+         branch_name = session.publication_branch || translation_branch_name(session),
+         {:ok, parent_commit_sha} <-
            publication_parent_sha(full_name, default_branch, session, token),
          {:ok, parent_commit} <-
            Glossia.Github.Client.get_commit(full_name, parent_commit_sha, token),
@@ -194,7 +257,7 @@ defmodule Glossia.TranslationSessions.Translate do
            ),
          commit_sha when is_binary(commit_sha) <- commit["sha"],
          :ok <- publish_branch(session, full_name, branch_name, commit_sha, token),
-         {:ok, pull_request_url, pull_request_created?} <-
+         {:ok, pull_request_url, pull_request_created?, pull_request_number} <-
            ensure_pull_request(
              session,
              full_name,
@@ -206,7 +269,8 @@ defmodule Glossia.TranslationSessions.Translate do
            TranslationSessions.update_session_publication(session, %{
              publication_branch: branch_name,
              publication_commit_sha: commit_sha,
-             pull_request_url: pull_request_url
+             pull_request_url: pull_request_url,
+             pull_request_number: pull_request_number
            }) do
       if pull_request_created? do
         record_translation_event(updated_session, %{
@@ -231,6 +295,19 @@ defmodule Glossia.TranslationSessions.Translate do
        )
        when is_binary(sha) and sha != "",
        do: {:ok, sha}
+
+  # Once reviewers merge a checkpoint pull request, the next completed file
+  # needs a new branch based on the default branch. The original source commit
+  # may no longer be its head after a merge, especially with squash merging.
+  defp publication_parent_sha(
+         full_name,
+         default_branch,
+         %TranslationSession{publication_branch: branch_name},
+         token
+       )
+       when is_binary(branch_name) and branch_name != "" do
+    base_commit_sha(full_name, default_branch, nil, token)
+  end
 
   defp publication_parent_sha(full_name, default_branch, session, token),
     do: base_commit_sha(full_name, default_branch, session, token)
@@ -320,15 +397,54 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
+  defp active_publication_session(
+         %TranslationSession{pull_request_number: pull_request_number} = session,
+         full_name,
+         token
+       )
+       when is_integer(pull_request_number) do
+    case Glossia.Github.Client.get_pull_request(full_name, pull_request_number, token) do
+      {:ok, %{"state" => "open"}} ->
+        {:ok, session}
+
+      {:ok, %{"state" => "closed", "merged_at" => merged_at}}
+      when not is_nil(merged_at) ->
+        start_next_publication(session)
+
+      {:ok, %{"state" => "closed"}} ->
+        {:error, {:translation_pull_request_closed, pull_request_number}}
+
+      {:ok, _response} ->
+        {:error, :invalid_github_response}
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp active_publication_session(session, _full_name, _token), do: {:ok, session}
+
+  defp start_next_publication(session) do
+    TranslationSessions.update_session_publication(session, %{
+      publication_branch: next_translation_branch_name(session),
+      publication_commit_sha: nil,
+      pull_request_url: nil,
+      pull_request_number: nil
+    })
+  end
+
   defp ensure_pull_request(
-         %TranslationSession{pull_request_url: pull_request_url},
+         %TranslationSession{
+           pull_request_url: pull_request_url,
+           pull_request_number: pull_request_number
+         },
          _full_name,
          _default_branch,
          _branch_name,
          _token
        )
        when is_binary(pull_request_url) and pull_request_url != "" do
-    {:ok, pull_request_url, false}
+    {:ok, pull_request_url, false, pull_request_number}
   end
 
   defp ensure_pull_request(session, full_name, default_branch, branch_name, token) do
@@ -342,8 +458,12 @@ defmodule Glossia.TranslationSessions.Translate do
            },
            token
          ) do
+      {:ok, %{"html_url" => pull_request_url, "number" => pull_request_number}}
+      when is_binary(pull_request_url) and is_integer(pull_request_number) ->
+        {:ok, pull_request_url, true, pull_request_number}
+
       {:ok, %{"html_url" => pull_request_url}} when is_binary(pull_request_url) ->
-        {:ok, pull_request_url, true}
+        {:ok, pull_request_url, true, nil}
 
       {:ok, _response} ->
         {:error, :invalid_github_response}
@@ -544,6 +664,11 @@ defmodule Glossia.TranslationSessions.Translate do
     "#{@translation_branch_prefix}-#{suffix}"
   end
 
+  defp next_translation_branch_name(%TranslationSession{} = session) do
+    suffix = Ecto.UUID.generate() |> String.replace("-", "") |> String.slice(0, 8)
+    "#{translation_branch_name(session)}-#{suffix}"
+  end
+
   defp translation_commit_message(%TranslationSession{} = session) do
     case session.commit_sha do
       sha when is_binary(sha) and byte_size(sha) >= 7 ->
@@ -645,6 +770,10 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp humanize_error({:translation_publication_failed, reason}),
     do: "The translation pull request could not be updated: #{inspect(reason)}"
+
+  defp humanize_error({:translation_pull_request_closed, pull_request_number}),
+    do:
+      "Translation pull request ##{pull_request_number} was closed without merging. Reopen it or start another translation."
 
   defp humanize_error(:codex_session_token_missing),
     do: "Could not read a local Codex session token for development translation."

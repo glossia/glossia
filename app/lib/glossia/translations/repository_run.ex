@@ -8,13 +8,13 @@ defmodule Glossia.Translations.RepositoryRun do
   lifetime, which is what made translations die on every deploy. Everywhere
   else — a development machine, a test — it still goes through a FLAME runner.
 
-  `run/4` clones the repo, plans the work with
+  `run/5` clones the repo, plans the work with
   `Glossia.Translations.Planner`, translates each stale item with
   `Glossia.Translations.Engine` (streaming every LLM turn to the translation
   session's PubSub topic and validating with `Glossia.Translations.Validate`),
   writes outputs and lockfiles, and collects the changed files via `git status`.
-  The returned change list feeds the GitHub-API PR creation in
-  `Glossia.TranslationSessions.Translate`.
+  Callers can provide an `:after_item_completed` callback, which receives the
+  output and lockfile for the completed item after they have been written.
 
   `translate_repository/4` is the same orchestration without the FLAME hop or the
   clone, so it can be driven directly against a working directory in tests.
@@ -43,13 +43,13 @@ defmodule Glossia.Translations.RepositoryRun do
   `changes` is a list of `%{path, status, content}` where `status` is
   `"added" | "modified" | "deleted"`, ready for the PR builder.
   """
-  def run(session, account, repository, locales, _opts \\ []) do
+  def run(session, account, repository, locales, run_opts \\ []) do
     with {:ok, context_snapshot} <- Context.snapshot(account, session_project(session)) do
-      run_with_context(session, account, repository, locales, context_snapshot)
+      run_with_context(session, account, repository, locales, context_snapshot, run_opts)
     end
   end
 
-  defp run_with_context(session, account, repository, locales, context_snapshot) do
+  defp run_with_context(session, account, repository, locales, context_snapshot, run_opts) do
     progress_node = Node.self()
     seq_start = TranslationSessions.max_progress_seq(session.id)
 
@@ -58,7 +58,8 @@ defmodule Glossia.Translations.RepositoryRun do
       credential_node: progress_node,
       context_node: progress_node,
       context_snapshot: context_snapshot,
-      seq_start: seq_start
+      seq_start: seq_start,
+      after_item_completed: Keyword.get(run_opts, :after_item_completed)
     ]
 
     if Glossia.TranslationSessions.Job.current?() do
@@ -133,6 +134,7 @@ defmodule Glossia.Translations.RepositoryRun do
     progress_node = Keyword.get(opts, :progress_node, Node.self())
     credential_node = Keyword.get(opts, :credential_node)
     context_node = Keyword.get(opts, :context_node, Node.self())
+    after_item_completed = Keyword.get(opts, :after_item_completed)
 
     # Continues the numbering past the `run_started` that the session's move to
     # "running" already recorded, so this run's events are never mistaken for
@@ -180,7 +182,8 @@ defmodule Glossia.Translations.RepositoryRun do
                  prepared_item,
                  total,
                  progress_node,
-                 credential_node
+                 credential_node,
+                 after_item_completed
                ) do
             :ok -> {:cont, {:ok, failures}}
             {:error, failure} -> {:cont, {:ok, [failure | failures]}}
@@ -355,7 +358,8 @@ defmodule Glossia.Translations.RepositoryRun do
          %{status: :translation_needed} = prepared_item,
          total,
          progress_node,
-         credential_node
+         credential_node,
+         after_item_completed
        ) do
     translate_item(
       session,
@@ -367,7 +371,8 @@ defmodule Glossia.Translations.RepositoryRun do
       prepared_item.provider,
       prepared_item.hash_state,
       progress_node,
-      credential_node
+      credential_node,
+      after_item_completed
     )
   end
 
@@ -378,7 +383,8 @@ defmodule Glossia.Translations.RepositoryRun do
          %{status: :failed} = prepared_item,
          total,
          progress_node,
-         _credential_node
+         _credential_node,
+         _after_item_completed
        ) do
     log_item_failure(
       session,
@@ -426,7 +432,8 @@ defmodule Glossia.Translations.RepositoryRun do
          provider,
          hash_state,
          progress_node,
-         credential_node
+         credential_node,
+         after_item_completed
        ) do
     item =
       item
@@ -486,19 +493,40 @@ defmodule Glossia.Translations.RepositoryRun do
           write_output(item, result.text)
           write_lock(repo_path, item, provider, hash_state, result.text)
 
-          broadcast(
-            session,
-            %{
-              type: "item_completed",
-              index: index,
-              output_path: item.output_path,
-              output_preview: completed_output_preview(result.text),
-              model_calls: Process.get(model_calls_key, 0)
-            },
-            progress_node
-          )
+          case publish_completed_item(after_item_completed, repo_path, item) do
+            :ok ->
+              broadcast(
+                session,
+                %{
+                  type: "item_completed",
+                  index: index,
+                  output_path: item.output_path,
+                  output_preview: completed_output_preview(result.text),
+                  model_calls: Process.get(model_calls_key, 0)
+                },
+                progress_node
+              )
 
-          :ok
+              :ok
+
+            {:error, reason} ->
+              failure = Failure.from({:translation_publication_failed, reason}, provider)
+              log_item_failure(session, item, index, total, failure)
+
+              broadcast(
+                session,
+                %{
+                  type: "item_failed",
+                  index: index,
+                  output_path: item.output_path,
+                  reason: failure,
+                  model_calls: Process.get(model_calls_key, 0)
+                },
+                progress_node
+              )
+
+              {:error, item_failure(item, index, failure)}
+          end
 
         {:error, reason} ->
           failure = Failure.from(reason, provider)
@@ -611,6 +639,43 @@ defmodule Glossia.Translations.RepositoryRun do
       )
 
     Locks.write_lock(repo_path, item.source_path, item.locale, lock)
+  end
+
+  # The local checkout remains on the source commit for the whole run, so its
+  # status contains every earlier translation. Select just the current output
+  # and lockfile so each publication is a small, durable checkpoint.
+  defp publish_completed_item(nil, _repo_path, _item), do: :ok
+
+  defp publish_completed_item(callback, repo_path, item) when is_function(callback, 1) do
+    with {:ok, changes} <- completed_item_changes(repo_path, item) do
+      case callback.(changes) do
+        :ok -> :ok
+        {:ok, _publication} -> :ok
+        {:error, _reason} = error -> error
+        other -> {:error, {:invalid_publication_result, other}}
+      end
+    end
+  rescue
+    error -> {:error, {:publication_callback_failed, Exception.message(error)}}
+  end
+
+  defp completed_item_changes(repo_path, item) do
+    lock_path =
+      repo_path
+      |> Locks.lock_path(item.source_path, item.locale)
+      |> Path.relative_to(repo_path)
+
+    expected_paths = MapSet.new([item.output_path, lock_path])
+
+    with {:ok, changes} <- collect_changes(repo_path) do
+      changes = Enum.filter(changes, &MapSet.member?(expected_paths, &1.path))
+
+      if changes == [] do
+        {:error, :translation_change_manifest_empty}
+      else
+        {:ok, changes}
+      end
+    end
   end
 
   defp validate_opts(repo_path, item) do

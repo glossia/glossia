@@ -116,6 +116,56 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   end
 
   @tag :tmp_dir
+  test "publishes a completed file before another file fails", %{tmp_dir: root} do
+    init_repo(root)
+    File.write!(Path.join(root, "docs/broken.md"), "# Broken\n\nThis one fails.")
+    git!(root, ["add", "."])
+    git!(root, ["commit", "-q", "-m", "add broken source"])
+
+    session = %TranslationSession{id: Ecto.UUID.generate()}
+    test_pid = self()
+
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
+      case payload["source_content"] do
+        "# Broken\n\nThis one fails." ->
+          {:error, %{reason: "provider unavailable", status: 503, response_body: %{}}}
+
+        _ ->
+          {:ok,
+           %{
+             text: "# Guía\n\nHola, mundo.",
+             model: "openai/gpt-5",
+             provider: "openai",
+             model_handle: "translator"
+           }}
+      end
+    end)
+
+    publish = fn changes ->
+      send(test_pid, {:published_item, changes})
+      :ok
+    end
+
+    assert {:error, {:translation_items_failed, failures}} =
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+               context_snapshot: Context.empty_snapshot(),
+               credential_node: Node.self(),
+               after_item_completed: publish
+             )
+
+    assert Enum.any?(failures, &(&1.output_path == "docs/i18n/es/broken.md"))
+
+    assert_receive {:published_item, changes}
+
+    assert changes
+           |> Enum.map(& &1.path)
+           |> Enum.sort() == [
+             ".glossia/docs/guide.md/es.lock",
+             "docs/i18n/es/guide.md"
+           ]
+  end
+
+  @tag :tmp_dir
   test "keeps model thinking out of structured progress events", %{tmp_dir: root} do
     init_repo(root)
 

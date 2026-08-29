@@ -147,6 +147,191 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.pull_request_url == "https://github.com/glossia/demo/pull/2"
   end
 
+  test "publishes each completed file in its own commit" do
+    {user, project} = project_with_installation("incremental-translate@test.com", "incremental")
+    session = session_for(user, project)
+    test_pid = self()
+
+    first_changes = [
+      %{path: "docs/i18n/es/guide.md", status: "added", content: "# Guía\n"},
+      %{path: ".glossia/docs/guide.md/es.lock", status: "added", content: "{}"}
+    ]
+
+    second_changes = [
+      %{path: "docs/i18n/es/reference.md", status: "added", content: "# Referencia\n"},
+      %{path: ".glossia/docs/reference.md/es.lock", status: "added", content: "{}"}
+    ]
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales,
+                                                            opts ->
+      publish = Keyword.fetch!(opts, :after_item_completed)
+      assert :ok = publish.(first_changes)
+      assert :ok = publish.(second_changes)
+      {:ok, first_changes ++ second_changes}
+    end)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Github.Client, :get_pull_request, fn "glossia/demo", 8, "github-token" ->
+      {:ok, %{"state" => "open"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :get_commit, fn "glossia/demo",
+                                                      parent_sha,
+                                                      "github-token" ->
+      {:ok, %{"tree" => %{"sha" => "tree-for-#{parent_sha}"}}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_blob, fn "glossia/demo", _params, "github-token" ->
+      {:ok, %{"sha" => "blob-sha"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_tree, fn "glossia/demo", params, "github-token" ->
+      send(test_pid, {:tree, params})
+      {:ok, %{"sha" => "commit-tree-#{length(params.tree)}"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_commit, fn "glossia/demo", params, "github-token" ->
+      send(test_pid, {:commit, params})
+
+      case params.parents do
+        ["abc1234567890"] -> {:ok, %{"sha" => "first-translation-commit"}}
+        ["first-translation-commit"] -> {:ok, %{"sha" => "second-translation-commit"}}
+      end
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_branch, fn "glossia/demo",
+                                                         branch,
+                                                         sha,
+                                                         "github-token" ->
+      send(test_pid, {:created_branch, branch, sha})
+      {:ok, %{}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :update_ref, fn "glossia/demo",
+                                                      branch,
+                                                      sha,
+                                                      "github-token" ->
+      send(test_pid, {:updated_branch, branch, sha})
+      {:ok, %{}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_pull_request, fn "glossia/demo",
+                                                               _params,
+                                                               "github-token" ->
+      {:ok, %{"html_url" => "https://github.com/glossia/demo/pull/8", "number" => 8}}
+    end)
+
+    assert :ok = Translate.run(session.id)
+
+    assert_received {:tree, %{tree: first_entries}}
+    assert length(first_entries) == 2
+    assert_received {:tree, %{tree: second_entries}}
+    assert length(second_entries) == 2
+    assert_received {:commit, %{parents: ["abc1234567890"]}}
+    assert_received {:commit, %{parents: ["first-translation-commit"]}}
+
+    assert_received {
+      :created_branch,
+      "glossia/translate-abc123456789",
+      "first-translation-commit"
+    }
+
+    assert_received {
+      :updated_branch,
+      "heads/glossia/translate-abc123456789",
+      "second-translation-commit"
+    }
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "completed"
+    assert updated.publication_commit_sha == "second-translation-commit"
+    assert updated.pull_request_url == "https://github.com/glossia/demo/pull/8"
+    assert updated.pull_request_number == 8
+  end
+
+  test "starts a new pull request after a checkpoint is merged" do
+    {user, project} = project_with_installation("merged-checkpoint@test.com", "merged-checkpoint")
+    session = session_for(user, project)
+    test_pid = self()
+
+    {:ok, session} =
+      TranslationSessions.update_session_publication(session, %{
+        publication_branch: "glossia/translate-abc123456789",
+        publication_commit_sha: "first-translation-commit",
+        pull_request_url: "https://github.com/glossia/demo/pull/8",
+        pull_request_number: 8
+      })
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Github.Client, :get_pull_request, fn "glossia/demo", 8, "github-token" ->
+      {:ok, %{"state" => "closed", "merged_at" => "2026-08-29T12:00:00Z"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :get_ref, fn "glossia/demo", "heads/main", "github-token" ->
+      {:ok, %{"object" => %{"sha" => "merged-default-branch"}}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :get_commit, fn "glossia/demo",
+                                                      "merged-default-branch",
+                                                      "github-token" ->
+      {:ok, %{"tree" => %{"sha" => "merged-default-tree"}}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_blob, fn "glossia/demo", _params, "github-token" ->
+      {:ok, %{"sha" => "blob-sha"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_tree, fn "glossia/demo", params, "github-token" ->
+      send(test_pid, {:tree, params})
+      {:ok, %{"sha" => "new-tree"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_commit, fn "glossia/demo", params, "github-token" ->
+      send(test_pid, {:commit, params})
+      {:ok, %{"sha" => "second-translation-commit"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_branch, fn "glossia/demo",
+                                                         branch,
+                                                         sha,
+                                                         "github-token" ->
+      send(test_pid, {:created_branch, branch, sha})
+      {:ok, %{}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_pull_request, fn "glossia/demo",
+                                                               _params,
+                                                               "github-token" ->
+      {:ok, %{"html_url" => "https://github.com/glossia/demo/pull/9", "number" => 9}}
+    end)
+
+    changes = [
+      %{path: "docs/i18n/es/reference.md", status: "added", content: "# Referencia\n"},
+      %{path: ".glossia/docs/reference.md/es.lock", status: "added", content: "{}"}
+    ]
+
+    assert {:ok, publication} =
+             Translate.publish_changes(%{session_id: session.id}, %{changes: changes})
+
+    assert_received {:tree, %{base_tree: "merged-default-tree", tree: entries}}
+    assert length(entries) == 2
+    assert_received {:commit, %{parents: ["merged-default-branch"]}}
+    assert_received {:created_branch, branch, "second-translation-commit"}
+    assert branch =~ ~r/^glossia\/translate-abc123456789-[a-f0-9]{8}$/
+    assert publication.ref == branch
+    assert publication.pull_request_url == "https://github.com/glossia/demo/pull/9"
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.publication_branch == branch
+    assert updated.publication_commit_sha == "second-translation-commit"
+    assert updated.pull_request_number == 9
+  end
+
   test "does not run a cancelled translation session" do
     {user, project} =
       project_with_installation("cancelled-translate@test.com", "cancelled-translate")
@@ -182,7 +367,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
                                                             _repository,
                                                             _locales,
                                                             opts ->
-      assert opts == []
+      assert is_function(opts[:after_item_completed], 1)
 
       {:ok, []}
     end)

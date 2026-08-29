@@ -22,6 +22,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
     field :publication_branch, :string
     field :publication_commit_sha, :string
     field :pull_request_url, :string
+    field :pull_request_number, :integer
     field :started_at, :utc_datetime_usec
     field :completed_at, :utc_datetime_usec
 
@@ -44,6 +45,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
       :publication_branch,
       :publication_commit_sha,
       :pull_request_url,
+      :pull_request_number,
       :started_at,
       :completed_at
     ])
