@@ -1,21 +1,21 @@
 %{
-  title: "Instalar análise da web",
+  title: "Instale a análise web",
   summary: "Adicione o SDK web da Glossia ao seu site com uma linha de HTML ou via npm e comece a coletar sinais de localização.",
-  category: "how-to",
+  category: "instruções",
   order: 1
 }
 ---
-Este guia pressupõe que você tenha um projeto do Glossia com o domínio do site configurado nas definições de análise do projeto. A coleta é identificada por esse domínio, portanto, não há nenhuma chave ou segredo para copiar.
+Este guia pressupõe que você tem um projeto Glossia com seu domínio do site configurado nas configurações de análise do projeto. A coleta é identificada por esse domínio, e portanto não há chave ou segredo para copiar.
 
-## Opção A: tag de script
+## Opção A: tag script
 
-Adicione este trecho a todas as páginas, idealmente em `<head>`:
+Adicione este trecho a cada página, idealmente no `<head>`:
 
 ```html
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-O SDK é inicializado automaticamente, envia uma visualização de página ao carregar e registra as visualizações de página subsequentes durante a navegação no lado do cliente em aplicações de página única. Quando omitido, `data-domain` usa `window.location.hostname` como padrão, portanto, você pode adicioná-lo diretamente a um site com um único domínio. Para usar um endpoint de coleta personalizado, adicione `data-endpoint="https://collect.your-host.com"`.
+O SDK se inicializa automaticamente, envia uma visualização de página ao carregar e registra visualizações de página subsequentes em navegação do lado do cliente em aplicações de página única. O atributo `data-domain` padrão é `window.location.hostname` quando omitido, portanto você pode omiti-lo em um site de domínio único. Para usar um endpoint de coleta personalizado, adicione `data-endpoint="https://collect.your-host.com"`.
 
 ## Opção B: npm
 
@@ -25,7 +25,7 @@ Instale o pacote:
 npm install @glossia/web
 ```
 
-Inicialize-o uma vez no ponto de entrada da aplicação:
+Inicialize-o uma vez no ponto de entrada do seu aplicativo:
 
 ```ts
 import glossia from "@glossia/web";
@@ -33,20 +33,20 @@ import glossia from "@glossia/web";
 glossia.init();
 ```
 
-O `domain` é inferido de `window.location.hostname`, permitindo que o SDK registre os dados no projeto cadastrado para o seu site. Passe `{ domain: "example.com" }` para substituir esse valor, por exemplo, para enviar eventos de uma origem de homologação ao mesmo projeto usado em produção.
+O `domain` é inferido a partir de `window.location.hostname`, de modo que o SDK registra no projeto registrado para o seu site. Passe `{ domain: "example.com" }` para sobrescrever, por exemplo, para enviar eventos de uma origem de teste para o mesmo projeto do que produção.
 
-Para registrar um evento personalizado, como um cadastro:
+Para registrar um evento personalizado, por exemplo, uma inscrição:
 
 ```ts
 glossia.track("signup");
 ```
 
-## Verifique o funcionamento
+## Verifique se funciona
 
 1. Abra seu site em um navegador.
-2. Abra a guia de rede e confirme se uma solicitação `POST` para `/api/analytics/events` retorna `202 Accepted`.
-3. Em até um minuto, a visualização de página será exibida no painel de análise do projeto.
+2. Abra a guia de rede e confirme que uma requisição `POST` para `/api/analytics/events` retorna `202 Accepted`.
+3. Dentro de um minuto, a visualização de página aparece no painel de análise do seu projeto.
 
-## Dados coletados
+## O que é coletado
 
-O navegador envia o URL da página, a referência, `navigator.languages`, o fuso horário e a largura da tela, além de um identificador de sessão por guia. O servidor adiciona o país, com base no GeoIP, e calcula a lacuna de localização em relação aos idiomas de destino do projeto. Nenhum cookie é definido e nenhuma técnica de impressão digital é utilizada.
+O navegador envia a URL da página, referrer, `navigator.languages`, fuso horário e largura da tela, além de um ID de sessão por aba. O servidor adiciona o país (via GeoIP) e calcula o gap de localização em relação às línguas-alvo do seu projeto. Nenhum cookie é definido e nada é rastreado por impressão digital.
