@@ -18,10 +18,9 @@ defmodule Glossia.Translations.Credentials do
 
       %{model: "provider/model", handle: "account-handle", auth: auth, source: atom}
 
-  where `auth` is `{:api_key, key, base_url_or_nil}` (used via Condukt) or
-  `{:oauth, access_token}` (used via ReqLLM directly, since Condukt cannot carry
-  [Open Authorization](https://oauth.net/2/) tokens). Local sessions use the
-  `:oauth` path.
+  where `auth` is `{:api_key, key, base_url_or_nil}` or
+  `{:oauth, access_token}`. Both authorization forms are passed directly to
+  ReqLLM; local sessions use the `:oauth` path.
   """
 
   alias Glossia.Accounts.Account

@@ -2,19 +2,15 @@ defmodule Glossia.Translations.LLM do
   @moduledoc """
   Runs a translation prompt against the resolved credential.
 
-  API-key credentials go through `tuist/condukt` (agent runtime with real turn
-  streaming). OAuth credentials — the local Claude/Codex dev sessions — go
-  through `ReqLLM` directly, because Condukt's option set can't carry OAuth
-  (`auth_mode`/`access_token`); ReqLLM supports it natively.
-
-  Both paths state an output-token budget for a model whose catalog entry does
-  not, because a reasoning model spends that budget thinking before it writes
-  any translation.
+  API-key and OAuth credentials both go through `ReqLLM`, which streams text and
+  reasoning chunks separately and lets us state the output-token budget a
+  translation needs. Condukt, the agent runtime, waits for its agent session to
+  finish after Bifrost has already completed a streamed response. A translation
+  is a single tool-less turn, so the agent runtime adds no behavior we need here.
 
   Both `run/3` and `stream/4` return `{:ok, text}` or `{:error, reason}`.
   """
 
-  alias Glossia.Translations.Agent
   alias Glossia.Models.ModelIdentifier
 
   @together_base_url "https://api.together.ai/v1"
@@ -32,11 +28,10 @@ defmodule Glossia.Translations.LLM do
 
   @doc "One-shot generation."
   def run(%{auth: {:api_key, key, base_url}, model: model}, system, user) do
-    with {:ok, opts} <- request_options(model, key, base_url, system) do
-      case Condukt.run(user, opts) do
-        {:ok, text} when is_binary(text) -> {:ok, text}
+    with {:ok, spec, opts} <- request(model, api_key_options(key, model), base_url) do
+      case ReqLLM.generate_text(spec, messages(system, user), opts) do
+        {:ok, response} -> response_text(response)
         {:error, reason} -> {:error, reason}
-        other -> {:error, "unexpected condukt response: #{inspect(other)}"}
       end
     end
   rescue
@@ -52,11 +47,9 @@ defmodule Glossia.Translations.LLM do
   end
 
   def run(%{auth: {:oauth, token}, model: model}, system, user) do
-    with {:ok, spec, budget, _base_url} <- resolve_model(model, nil) do
-      opts = [auth_mode: :oauth, access_token: token] ++ budget
-
+    with {:ok, spec, opts} <- request(model, oauth_options(token), nil) do
       case ReqLLM.generate_text(spec, messages(system, user), opts) do
-        {:ok, response} -> {:ok, ReqLLM.Response.text(response) || ""}
+        {:ok, response} -> response_text(response)
         {:error, reason} -> {:error, reason}
       end
     end
@@ -198,7 +191,7 @@ defmodule Glossia.Translations.LLM do
 
   @doc "Streamed generation, forwarding turn events to `on_event`."
   def stream(%{auth: {:api_key, key, base_url}, model: model}, system, user, on_event) do
-    stream_via_condukt(model, key, base_url, system, user, on_event)
+    stream_via_req_llm(model, api_key_options(key, model), base_url, system, user, on_event)
   end
 
   def stream(%{source: :codex_session}, system, user, on_event) do
@@ -233,62 +226,41 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
-  def stream(%{auth: {:oauth, _token}} = cred, system, user, on_event) do
-    # ReqLLM handles the OAuth call but not through Condukt's streaming session,
-    # so we wrap the non-streamed result in a single synthetic turn.
+  def stream(%{auth: {:oauth, token}, model: model}, system, user, on_event) do
+    stream_via_req_llm(model, oauth_options(token), nil, system, user, on_event)
+  end
+
+  defp stream_via_req_llm(model, auth_options, base_url, system, user, on_event) do
     on_event.(:turn_start)
 
-    case run(cred, system, user) do
-      {:ok, text} = ok ->
-        on_event.({:text, text})
-        on_event.(:turn_end)
-        on_event.(:done)
-        ok
-
-      {:error, reason} = error ->
+    with {:ok, spec, opts} <- request(model, auth_options, base_url),
+         {:ok, stream_response} <- ReqLLM.stream_text(spec, messages(system, user), opts),
+         {:ok, response} <- process_stream(stream_response, on_event),
+         {:ok, text} <- response_text(response) do
+      on_event.(:turn_end)
+      on_event.(:done)
+      {:ok, text}
+    else
+      {:error, reason} ->
         on_event.({:error, reason})
-        error
+        {:error, reason}
     end
+  rescue
+    error ->
+      message = Exception.message(error)
+      on_event.({:error, message})
+      {:error, message}
   end
 
-  defp stream_via_condukt(model, key, base_url, system, user, on_event) do
-    with {:ok, opts} <- request_options(model, key, base_url, system) do
-      case Agent.start_link(opts) do
-        {:ok, pid} ->
-          try do
-            run_stream(pid, user, on_event)
-          rescue
-            error -> {:error, Exception.message(error)}
-          after
-            if Process.alive?(pid), do: GenServer.stop(pid, :normal, 5_000)
-          end
-
-        {:error, reason} ->
-          {:error, reason}
-      end
-    end
+  # The text of the joined response, not the concatenated chunks, is what the
+  # caller gets back: a provider that reports its output only in the final
+  # payload would otherwise translate to an empty document.
+  defp process_stream(stream_response, on_event) do
+    ReqLLM.StreamResponse.process_stream(stream_response,
+      on_result: fn chunk -> on_event.({:text, chunk}) end,
+      on_thinking: fn chunk -> on_event.({:thinking, chunk}) end
+    )
   end
-
-  defp run_stream(pid, user, on_event) do
-    outcome =
-      pid
-      |> Condukt.stream(user)
-      |> Enum.reduce(%{text: "", error: nil}, fn event, acc ->
-        on_event.(event)
-        reduce_event(acc, event)
-      end)
-
-    case outcome do
-      %{error: nil, text: text} -> {:ok, text}
-      %{error: reason} -> {:error, reason}
-    end
-  end
-
-  defp reduce_event(acc, {:text, chunk}) when is_binary(chunk),
-    do: %{acc | text: acc.text <> chunk}
-
-  defp reduce_event(acc, {:error, reason}), do: %{acc | error: acc.error || reason}
-  defp reduce_event(acc, _event), do: acc
 
   defp messages(system, user) do
     [%{role: "system", content: system}, %{role: "user", content: user}]
@@ -312,47 +284,63 @@ defmodule Glossia.Translations.LLM do
   defp maybe_base_url(opts, _url), do: opts
 
   # The model is resolved once, up front, and the resolved struct is what the
-  # request carries. Resolving it here rather than passing the string on keeps a
-  # model the catalog does not know from being resolved (and warned about) again
-  # per call, and its stated limits are what decide whether an output budget has
-  # to be supplied.
-  defp resolve_model(model, base_url) do
+  # request carries. Resolving it here rather than letting `ReqLLM` resolve the
+  # string again per call keeps a model the catalog does not know from warning
+  # on every segment, and it is what tells us whether an output budget has to be
+  # supplied.
+  defp request(model, auth_options, base_url) do
     {request_model, request_base_url} = request_model(model, base_url)
 
     case ReqLLM.model(request_model) do
-      {:ok, spec} -> {:ok, spec, output_budget(spec), request_base_url}
-      {:error, reason} -> {:error, reason}
+      {:ok, spec} ->
+        opts =
+          auth_options
+          |> maybe_max_tokens(spec)
+          |> maybe_base_url(request_base_url)
+
+        {:ok, spec, opts}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  defp request_options(model, key, base_url, system) do
-    with {:ok, spec, budget, request_base_url} <- resolve_model(model, base_url) do
-      opts =
-        [model: spec, api_key: key, system_prompt: system, thinking_level: thinking_level(model)]
-        |> Keyword.merge(budget)
-        |> maybe_base_url(request_base_url)
+  defp api_key_options(key, model), do: [api_key: key] ++ reasoning_options(model)
 
-      {:ok, opts}
-    end
-  end
+  # The local Claude and Codex sessions are asked for no reasoning
+  # configuration, which is how they have always been called.
+  defp oauth_options(token), do: [auth_mode: :oauth, access_token: token]
 
-  # Together rejects the generic `reasoning_effort: "none"` value that Condukt
-  # derives from `:off`. Passing nil explicitly overrides Condukt's `:medium`
-  # default while leaving reasoning configuration out of the provider request,
-  # which is why a Together model needs a budget wide enough to reason within.
-  defp thinking_level(model) do
+  # Together rejects the generic `reasoning_effort: "none"`, answering the whole
+  # request with a 400, so its models are asked for no reasoning configuration
+  # at all and are given an output budget wide enough to think within instead.
+  defp reasoning_options(model) do
     case ModelIdentifier.split(model) do
-      {:ok, {"togetherai", _provider_model}} -> nil
-      _ -> :off
+      {:ok, {"togetherai", _provider_model}} -> []
+      _ -> [reasoning_effort: :none]
     end
   end
 
-  # A model whose catalog entry states an output limit already has the
-  # provider's real ceiling applied by ReqLLM. One the catalog does not know
-  # falls back to 4096, which truncates a reasoning model mid-thought.
-  defp output_budget(%{limits: %{output: output}}) when is_integer(output) and output > 0, do: []
+  defp maybe_max_tokens(opts, %{limits: %{output: output}})
+       when is_integer(output) and output > 0,
+       do: opts
 
-  defp output_budget(_spec), do: [max_tokens: @uncatalogued_max_output_tokens]
+  defp maybe_max_tokens(opts, _spec),
+    do: Keyword.put(opts, :max_tokens, @uncatalogued_max_output_tokens)
+
+  # A truncated completion is never a usable translation, and a reasoning model
+  # that runs out of budget mid-thought returns no content whatsoever. Naming
+  # the limit here is what keeps that from surfacing as an unexplained empty
+  # translation further down the pipeline.
+  defp response_text(response) do
+    case ReqLLM.Response.finish_reason(response) do
+      :length ->
+        {:error, {:output_limit_reached, byte_size(ReqLLM.Response.text(response) || "")}}
+
+      _reason ->
+        {:ok, ReqLLM.Response.text(response) || ""}
+    end
+  end
 
   defp request_model(model, base_url) do
     case ModelIdentifier.split(model) do

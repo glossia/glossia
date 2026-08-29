@@ -1,13 +1,12 @@
 defmodule Glossia.Translations.LLMTest do
   @moduledoc """
-  Tests the LLM dispatch: api-key credentials route through Condukt, OAuth
-  credentials through ReqLLM, command-line sessions through their executable.
-  The provider calls are stubbed, so these are deterministic and async.
+  Tests the LLM dispatch: api-key and OAuth credentials both route through
+  ReqLLM, command-line sessions through their executable. The provider calls are
+  stubbed, so these are deterministic and async.
   """
   use ExUnit.Case, async: true
   use Mimic
 
-  alias Glossia.Translations.Agent
   alias Glossia.Translations.LLM
 
   @system "You are a professional localization engine."
@@ -29,24 +28,24 @@ defmodule Glossia.Translations.LLMTest do
     end)
   end
 
-  describe "run/3 with an api-key credential (Condukt)" do
-    test "passes the resolved model, system prompt, api key, and base url" do
+  describe "run/3 with an api-key credential" do
+    test "passes the resolved model, api key, base url, and messages" do
       expect_model(
         fn spec -> assert spec == "anthropic:claude" end,
         catalogued("anthropic:claude")
       )
 
-      Mimic.expect(Condukt, :run, fn prompt, opts ->
-        assert prompt == @user
-        # The resolved struct, not the string: resolving it here is what tells
-        # us whether the model states an output ceiling of its own.
-        assert opts[:model] == catalogued("anthropic:claude")
-        assert opts[:system_prompt] == @system
+      Mimic.expect(ReqLLM, :generate_text, fn model, messages, opts ->
+        assert model == catalogued("anthropic:claude")
         assert opts[:api_key] == "sk-test"
         assert opts[:base_url] == "https://proxy.test/v1"
-        assert opts[:thinking_level] == :off
-        {:ok, "Hola"}
+        assert opts[:reasoning_effort] == :none
+        assert [%{role: "system", content: @system}, %{role: "user", content: @user}] = messages
+        {:ok, :response}
       end)
+
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
       cred = %{
         model: "anthropic/claude",
@@ -57,10 +56,10 @@ defmodule Glossia.Translations.LLMTest do
       assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
     end
 
-    test "omits base_url when nil and surfaces Condukt errors" do
+    test "omits base_url when nil and surfaces provider errors" do
       stub_model(catalogued("anthropic:claude"))
 
-      Mimic.expect(Condukt, :run, fn _prompt, opts ->
+      Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
         refute Keyword.has_key?(opts, :base_url)
         {:error, :boom}
       end)
@@ -86,14 +85,15 @@ defmodule Glossia.Translations.LLMTest do
         {:ok, uncatalogued(spec)}
       end)
 
-      Mimic.expect(Condukt, :run, length(provider_models), fn _prompt, opts ->
+      Mimic.expect(ReqLLM, :generate_text, length(provider_models), fn _model, _messages, opts ->
         assert opts[:base_url] == "https://api.together.ai/v1"
-        # Together answers `reasoning_effort: "none"` with a 400, which is what
-        # Condukt derives from `:off`.
-        assert Keyword.has_key?(opts, :thinking_level)
-        assert opts[:thinking_level] == nil
-        {:ok, "Hola"}
+        # Together answers `reasoning_effort: "none"` with a 400.
+        refute Keyword.has_key?(opts, :reasoning_effort)
+        {:ok, :response}
       end)
+
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
       Enum.each(provider_models, fn provider_model ->
         cred = %{
@@ -112,11 +112,13 @@ defmodule Glossia.Translations.LLMTest do
         uncatalogued("openai:Qwen/Qwen3.5-9B")
       )
 
-      Mimic.expect(Condukt, :run, fn _prompt, opts ->
+      Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
         assert opts[:base_url] == "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"
-        assert opts[:thinking_level] == nil
-        {:ok, "Hola"}
+        {:ok, :response}
       end)
+
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
       cred = %{
         model: "togetherai/Qwen/Qwen3.5-9B",
@@ -133,10 +135,13 @@ defmodule Glossia.Translations.LLMTest do
     test "budgets output for a model the catalog does not know" do
       stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
 
-      Mimic.expect(Condukt, :run, fn _prompt, opts ->
+      Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
         assert opts[:max_tokens] == 16_384
-        {:ok, "Hola"}
+        {:ok, :response}
       end)
+
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
       cred = %{
         model: "togetherai/Qwen/Qwen3.5-9B",
@@ -150,18 +155,38 @@ defmodule Glossia.Translations.LLMTest do
     test "leaves the budget to the catalog when the model states its own limit" do
       stub_model(catalogued("anthropic:claude"))
 
-      Mimic.expect(Condukt, :run, fn _prompt, opts ->
+      Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
         refute Keyword.has_key?(opts, :max_tokens)
-        {:ok, "Hola"}
+        {:ok, :response}
       end)
+
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
       cred = %{model: "anthropic/claude", auth: {:api_key, "sk", nil}, source: :account_model}
 
       assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
     end
+
+    # A response cut off at the ceiling is not a translation, and a reasoning
+    # model that runs out mid-thought returns no content at all.
+    test "reports a truncated response as an output limit rather than empty text" do
+      stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
+      Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :response} end)
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :length end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "" end)
+
+      cred = %{
+        model: "togetherai/Qwen/Qwen3.5-9B",
+        auth: {:api_key, "sk", nil},
+        source: :account_model
+      }
+
+      assert {:error, {:output_limit_reached, 0}} = LLM.run(cred, @system, @user)
+    end
   end
 
-  describe "run/3 with an OAuth credential (ReqLLM)" do
+  describe "run/3 with an OAuth credential" do
     test "sends auth_mode/access_token and system+user messages" do
       expect_model(
         fn spec -> assert spec == "anthropic:claude-haiku-4-5" end,
@@ -170,13 +195,14 @@ defmodule Glossia.Translations.LLMTest do
 
       Mimic.expect(ReqLLM, :generate_text, fn model, messages, opts ->
         assert model == catalogued("anthropic:claude-haiku-4-5")
-        refute Keyword.has_key?(opts, :max_tokens)
+        refute Keyword.has_key?(opts, :reasoning_effort)
         assert opts[:auth_mode] == :oauth
         assert opts[:access_token] == "oauth-tok"
         assert [%{role: "system", content: @system}, %{role: "user", content: @user}] = messages
         {:ok, :fake_response}
       end)
 
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :fake_response -> :stop end)
       Mimic.stub(ReqLLM.Response, :text, fn :fake_response -> "Hola, mundo." end)
 
       cred = %{
@@ -280,57 +306,42 @@ defmodule Glossia.Translations.LLMTest do
   end
 
   describe "stream/4" do
-    defp stub_condukt_session,
-      do:
-        Mimic.stub(Agent, :start_link, fn _opts ->
-          Elixir.Agent.start_link(fn -> nil end)
+    # `process_stream/2` invokes the callbacks for every chunk and returns the
+    # joined response, which is the authoritative text.
+    defp stub_stream(chunks) do
+      Mimic.stub(ReqLLM, :stream_text, fn _model, _messages, _opts -> {:ok, :stream} end)
+
+      Mimic.stub(ReqLLM.StreamResponse, :process_stream, fn :stream, opts ->
+        Enum.each(chunks, fn
+          {:text, chunk} -> opts[:on_result].(chunk)
+          {:thinking, chunk} -> opts[:on_thinking].(chunk)
         end)
 
-    test "OAuth wraps the result in synthetic turn events" do
+        {:ok, :response}
+      end)
+    end
+
+    test "OAuth streams the model's chunks and returns the joined text" do
       stub_model(catalogued("anthropic:x"))
-      Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :resp} end)
-      Mimic.stub(ReqLLM.Response, :text, fn :resp -> "Hola" end)
+      stub_stream([{:text, "Hola"}, {:text, ", mundo"}])
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola, mundo" end)
 
       {:ok, collector} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
 
       cred = %{model: "anthropic/x", auth: {:oauth, "tok"}, source: :claude_session}
-      assert {:ok, "Hola"} = LLM.stream(cred, @system, @user, on_event)
-
-      assert Elixir.Agent.get(collector, &Enum.reverse/1) ==
-               [:turn_start, {:text, "Hola"}, :turn_end, :done]
-    end
-
-    test "api-key streams Condukt turn events and accumulates text" do
-      stub_model(catalogued("anthropic:x"))
-      stub_condukt_session()
-
-      Mimic.stub(Condukt, :stream, fn _pid, prompt ->
-        assert prompt == @user
-        [:turn_start, {:text, "Hola"}, {:text, ", mundo"}, :turn_end]
-      end)
-
-      {:ok, collector} = Elixir.Agent.start_link(fn -> [] end)
-      on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
-
-      cred = %{model: "anthropic/x", auth: {:api_key, "sk", nil}, source: :account_model}
       assert {:ok, "Hola, mundo"} = LLM.stream(cred, @system, @user, on_event)
 
-      events = Elixir.Agent.get(collector, &Enum.reverse/1)
-      assert :turn_start in events
-      assert {:text, "Hola"} in events
+      assert Elixir.Agent.get(collector, &Enum.reverse/1) ==
+               [:turn_start, {:text, "Hola"}, {:text, ", mundo"}, :turn_end, :done]
     end
 
-    # Reasoning is what a small model streams while it decides, and forwarding
-    # it is what puts something on the session page before any translation
-    # exists.
-    test "forwards reasoning chunks without folding them into the text" do
+    test "api-key forwards text and reasoning chunks separately" do
       stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
-      stub_condukt_session()
-
-      Mimic.stub(Condukt, :stream, fn _pid, _prompt ->
-        [:turn_start, {:thinking, "weighing register"}, {:text, "Hola"}, :turn_end]
-      end)
+      stub_stream([{:thinking, "weighing register"}, {:text, "Hola"}])
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
       {:ok, collector} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
@@ -345,19 +356,41 @@ defmodule Glossia.Translations.LLMTest do
 
       events = Elixir.Agent.get(collector, &Enum.reverse/1)
       assert {:thinking, "weighing register"} in events
+      assert {:text, "Hola"} in events
     end
 
-    test "budgets output for a streamed call on a model the catalog does not know" do
+    # The joined response is what the caller gets, not the concatenated chunks,
+    # so a provider that reports its output only in the final payload still
+    # produces a translation.
+    test "returns the joined response text rather than the streamed chunks" do
+      stub_model(catalogued("anthropic:x"))
+      stub_stream([{:text, "Hol"}])
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola, mundo" end)
+
+      cred = %{model: "anthropic/x", auth: {:api_key, "sk", nil}, source: :account_model}
+      assert {:ok, "Hola, mundo"} = LLM.stream(cred, @system, @user, fn _ -> :ok end)
+    end
+
+    test "a streamed error fails the call and is announced once" do
+      stub_model(catalogued("anthropic:x"))
+      Mimic.stub(ReqLLM, :stream_text, fn _model, _messages, _opts -> {:error, :rate_limited} end)
+
+      {:ok, collector} = Elixir.Agent.start_link(fn -> [] end)
+      on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
+
+      cred = %{model: "anthropic/x", auth: {:api_key, "sk", nil}, source: :account_model}
+      assert {:error, :rate_limited} = LLM.stream(cred, @system, @user, on_event)
+
+      assert Elixir.Agent.get(collector, &Enum.reverse/1) ==
+               [:turn_start, {:error, :rate_limited}]
+    end
+
+    test "a response truncated at the output limit fails the call" do
       stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
-
-      Mimic.expect(Agent, :start_link, fn opts ->
-        assert opts[:max_tokens] == 16_384
-        Elixir.Agent.start_link(fn -> nil end)
-      end)
-
-      Mimic.stub(Condukt, :stream, fn _pid, _prompt ->
-        [:turn_start, {:text, "Hola"}, :turn_end]
-      end)
+      stub_stream([{:thinking, "still weighing register"}])
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :length end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "" end)
 
       cred = %{
         model: "togetherai/Qwen/Qwen3.5-9B",
@@ -365,16 +398,8 @@ defmodule Glossia.Translations.LLMTest do
         source: :account_model
       }
 
-      assert {:ok, "Hola"} = LLM.stream(cred, @system, @user, fn _ -> :ok end)
-    end
-
-    test "a streamed error fails the call" do
-      stub_model(catalogued("anthropic:x"))
-      stub_condukt_session()
-      Mimic.stub(Condukt, :stream, fn _pid, _prompt -> [:turn_start, {:error, :rate_limited}] end)
-
-      cred = %{model: "anthropic/x", auth: {:api_key, "sk", nil}, source: :account_model}
-      assert {:error, :rate_limited} = LLM.stream(cred, @system, @user, fn _ -> :ok end)
+      assert {:error, {:output_limit_reached, 0}} =
+               LLM.stream(cred, @system, @user, fn _ -> :ok end)
     end
   end
 end
