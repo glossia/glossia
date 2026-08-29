@@ -4,11 +4,12 @@ defmodule GlossiaWeb.Plugs.InternalBabelTransport do
   import Phoenix.Controller, only: [json: 2]
   import Plug.Conn
 
-  @babel_port 4051
-
   def init(opts), do: opts
 
-  def call(%Plug.Conn{scheme: :https, port: @babel_port} = conn, _opts), do: conn
+  # The Service maps its logical port (443) to the private listener (4051),
+  # so the request port does not reliably identify the listener. Network
+  # policy keeps this encrypted listener reachable only from Babel's service account.
+  def call(%Plug.Conn{scheme: :https} = conn, _opts), do: conn
 
   def call(conn, _opts) do
     conn

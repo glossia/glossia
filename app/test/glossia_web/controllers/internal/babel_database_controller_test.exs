@@ -11,7 +11,7 @@ defmodule GlossiaWeb.Internal.BabelDatabaseControllerTest do
     put_req_header(conn, "authorization", "Bearer valid-token")
   end
 
-  defp babel_path, do: "https://babel-internal.glossia.ai:4051/api/internal/babel/db/query"
+  defp babel_path, do: "https://babel-internal.glossia.ai/api/internal/babel/db/query"
 
   defp allow_babel do
     stub(BabelWorkloadIdentity, :verify, fn "valid-token" ->
@@ -65,7 +65,7 @@ defmodule GlossiaWeb.Internal.BabelDatabaseControllerTest do
       conn =
         post(
           conn,
-          "https://glossia.ai:4050/api/internal/babel/db/query",
+          "http://glossia.ai:4050/api/internal/babel/db/query",
           %{"query" => "SELECT 1"}
         )
 
