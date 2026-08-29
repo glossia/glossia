@@ -48,6 +48,26 @@ env:
   GLOSSIA_PHX_SERVER: "true"
   GLOSSIA_SANDBOX_ADAPTER: "cluster"
 
+# Babel's short-lived workload identity for the internal read-only database
+# interface. Enable only in an environment where the corresponding Babel
+# ServiceAccount is deployed.
+internalBabel:
+  enabled: false
+  databaseReadonlyRole: glossia_babel_ro
+  tls:
+    servicePort: 443
+    targetPort: 4051
+    certificateSecretName: glossia-babel-internal-tls
+    certificateIssuerName: ""
+    certificateServerName: ""
+  token:
+    issuer: ""
+    audience: glossia-internal
+    jwks: ""
+    maxLifetimeSeconds: 3600
+    namespace: babel
+    serviceAccount: babel
+
 flame:
   backend: k8s
   min: 0

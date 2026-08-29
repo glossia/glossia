@@ -34,8 +34,24 @@ ingress:
 secrets:
   envSecretName: babel-app-env
 
+# Babel uses this identity only for the internal Glossia operations interface.
+# It has no Kubernetes permissions and no production Glossia database password.
+serviceAccount:
+  create: true
+  name: ""
+
 env:
   BABEL_PHX_SERVER: "true"
+
+# Connection to Glossia's internal read-only database interface. The kubelet
+# projects a short-lived service-account token into Babel when this is enabled.
+glossia:
+  enabled: false
+  internalURL: ""
+  tlsServerName: ""
+  tokenAudience: glossia-internal
+  tokenMountPath: /var/run/secrets/glossia
+  tokenExpirationSeconds: 3600
 
 networkPolicy:
   enabled: false

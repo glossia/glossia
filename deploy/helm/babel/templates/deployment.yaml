@@ -19,6 +19,7 @@ spec:
         {{- include "babel.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: web
     spec:
+      serviceAccountName: {{ include "babel.serviceAccountName" . }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -48,6 +49,14 @@ spec:
               value: "babel@$(POD_IP)"
             - name: BABEL_DNS_CLUSTER_QUERY
               value: {{ include "babel.headlessServiceFQDN" . | quote }}
+            {{- if .Values.glossia.enabled }}
+            - name: BABEL_GLOSSIA_INTERNAL_URL
+              value: {{ required "glossia.internalURL is required when glossia.enabled=true" .Values.glossia.internalURL | quote }}
+            - name: BABEL_GLOSSIA_TLS_SERVER_NAME
+              value: {{ required "glossia.tlsServerName is required when glossia.enabled=true" .Values.glossia.tlsServerName | quote }}
+            - name: BABEL_GLOSSIA_TOKEN_PATH
+              value: {{ printf "%s/token" .Values.glossia.tokenMountPath | quote }}
+            {{- end }}
             {{- range $key, $value := omit .Values.env "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "BABEL_DNS_CLUSTER_QUERY" }}
             - name: {{ $key }}
               value: {{ $value | quote }}
@@ -55,6 +64,12 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.envSecretName }}
+          {{- if .Values.glossia.enabled }}
+          volumeMounts:
+            - name: glossia-token
+              mountPath: {{ .Values.glossia.tokenMountPath | quote }}
+              readOnly: true
+          {{- end }}
           startupProbe:
             httpGet:
               path: /up
@@ -86,4 +101,14 @@ spec:
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.glossia.enabled }}
+      volumes:
+        - name: glossia-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: {{ .Values.glossia.tokenAudience | quote }}
+                  expirationSeconds: {{ .Values.glossia.tokenExpirationSeconds }}
       {{- end }}

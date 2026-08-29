@@ -38,6 +38,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{ include "babel.headlessServiceName" . }}.{{ .Release.Namespace }}.svc.cluster.local
 {{- end -}}
 
+{{- define "babel.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "babel.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "babel.postgresHost" -}}
 {{- if .Values.postgres.host -}}
 {{- .Values.postgres.host -}}

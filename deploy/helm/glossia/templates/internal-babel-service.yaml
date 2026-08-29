@@ -1,0 +1,20 @@
+{{- if .Values.internalBabel.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "glossia.fullname" . }}-babel
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: babel-internal
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "glossia.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: agent
+  ports:
+    - name: https
+      appProtocol: https
+      port: {{ .Values.internalBabel.tls.servicePort }}
+      targetPort: babel-https
+      protocol: TCP
+{{- end }}

@@ -45,6 +45,7 @@ defmodule Babel.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0", override: true},
       {:jason, "~> 1.2"},
+      {:req, "~> 0.5"},
       {:cachex, "~> 4.1"},
       {:boruta, "2.3.5"},
       {:hermes_mcp, "~> 0.14.1"},
