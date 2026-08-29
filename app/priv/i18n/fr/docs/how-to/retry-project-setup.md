@@ -1,33 +1,33 @@
 %{
   title: "Réessayer la configuration du projet",
-  summary: "Récupérer un projet après l’échec de sa configuration.",
+  summary: "Récupérer un projet après un échec de configuration signalé.",
   category: "how-to",
   order: 4
 }
 ---
-Utilisez **Relancer la configuration** après avoir corrigé la cause de l’échec de la configuration d’un projet.
+Utilisez **Réessayer la configuration** après avoir corrigé la condition ayant entraîné l'échec de la configuration du projet.
 
-## 1. Examiner l’échec
+## 1\. Lire l'échec
 
-Ouvrez la vue d’ensemble du projet. La carte de progression de la configuration affiche l’échec et l’activité de configuration la plus récente.
+Ouvrez la vue d'ensemble du projet. La carte de progression de la configuration affiche l'échec et les dernières activités de configuration.
 
-Causes courantes :
+Les causes courantes incluent :
 
-- Aucun modèle n’est configuré pour le compte.
-- La clé du fournisseur est manquante ou n’est plus valide.
-- L’application GitHub Glossia ne peut pas accéder au dépôt.
-- Le dépôt n’a pas pu être préparé ou vérifié.
+- Le compte ne dispose d'aucun modèle configuré.
+- La clé du fournisseur est manquante ou n'est plus valide.
+- L'application Glossia GitHub ne peut pas accéder au dépôt.
+- Le dépôt n'a pas pu être préparé ou vérifié.
 
-## 2. Corriger le prérequis
+## 2\. Corriger le prérequis
 
-Pour les problèmes de modèle, ouvrez **Paramètres**, puis **Modèles**. Pour les problèmes d’accès au dépôt, mettez à jour l’installation de l’application GitHub Glossia dans GitHub et accordez-lui l’accès au dépôt.
+Pour les problèmes de modèle, ouvrez **Paramètres** et **Modèles**. Pour les problèmes d'accès au dépôt, mettez à jour l'installation de l'application Glossia GitHub sur GitHub et accordez-lui l'accès au dépôt.
 
-## 3. Relancer
+## 3\. Réessayer
 
-Revenez à la vue d’ensemble du projet et sélectionnez **Relancer la configuration**.
+Revenez à la vue d'ensemble du projet et sélectionnez **Réessayer la configuration**.
 
-La carte repasse à l’état **En attente**, puis **En cours**, et affiche les nouvelles activités à mesure que le traitement avance. La relance n’est disponible que lorsque le projet est à l’état **Échec**, ce qui empêche l’exécution simultanée de deux tentatives de configuration.
+La carte revient à **En attente**, puis **En cours**, et affiche de nouvelles activités au fur et à mesure que le travail avance. Le réessai n'est disponible que tant que le projet est dans l'état **Échoué**, ce qui empêche deux tentatives de configuration d'exécuter simultanément.
 
-## 4. Vérifier le résultat
+## 4\. Examiner la finalisation
 
-Lorsque l’état passe à **Terminée**, examinez la pull request créée dans GitHub. En cas de nouvel échec, utilisez les nouvelles activités affichées dans la carte, plutôt que celles de la tentative précédente, pour déterminer l’action suivante.
+Quand l'état passe à **Terminé**, examinez la demande de tirage résultante sur GitHub. Si elle échoue à nouveau, utilisez les nouvelles activités dans la carte plutôt que la tentative précédente pour identifier l'action suivante.
