@@ -1,47 +1,47 @@
 %{
-  title: "Modelos da conta",
-  summary: "Por que os provedores de modelos são configurados uma vez por conta e referenciados pelo identificador.",
-  category: "explanation",
+  title: "Modelos de conta",
+  summary: "Por que os provedores de modelos são configurados uma vez por conta e referenciados pelo handle.",
+  category: "explicação",
   order: 2
 }
 ---
-A Glossia separa as instruções do repositório das credenciais do provedor de modelos. Os repositórios descrevem o que deve ser traduzido, enquanto as contas determinam qual [modelo de linguagem de grande porte](https://en.wikipedia.org/wiki/Large_language_model) realiza o trabalho.
+Glossia separa instruções do repositório das credenciais do provedor de modelo. Repositórios descrevem o que deve ser traduzido, enquanto contas decidem qual [modelo de linguagem grande](https://en.wikipedia.org/wiki/Large_language_model) executa o trabalho.
 
 ## Por que os modelos pertencem às contas
 
-Uma equipe frequentemente traduz vários repositórios com o mesmo provedor. Modelos no escopo da conta permitem que administradores alternem uma chave de provedor ou substituam o modelo subjacente uma única vez, sem editar todos os repositórios.
+Uma equipe frequentemente traduz vários repositórios com o mesmo provedor. Modelos com escopo de conta permitem que administradores rotem uma chave de provedor ou alternem para outro modelo subjacente uma vez, sem editar cada repositório.
 
-Essa separação também mantém as credenciais fora do controle de versão. Um repositório contém um identificador legível, como `translation-default`, e não a chave do provedor.
+Esta fronteira também mantém credenciais fora do controle de versão. Um repositório contém um identificador legível como `translation-default`, não a chave do provedor.
 
-## Os identificadores preservam uma intenção estável
+## Identificadores fornecem intenção estável
 
-O campo `model` em `GLOSSIA.md` faz referência ao identificador de um modelo da conta:
+O campo `model` no `GLOSSIA.md` refere-se a um identificador de modelo de conta:
 
 ```yaml
 model: translation-default
 ```
 
-O identificador expressa a intenção do repositório. Posteriormente, um administrador pode atualizar qual modelo do provedor esse identificador seleciona, mantendo estável a configuração do repositório.
+O identificador expressa a intenção do repositório. Um administrador pode atualizar posteriormente qual modelo do provedor esse identificador seleciona enquanto a configuração do repositório permanece estável.
 
-## Como vários modelos são usados
+## Como vários modelos são utilizados
 
-A Glossia usa um modelo configurado para cada tradução de documento. Adicionar vários modelos não cria um conjunto de modelos, uma cadeia de contingência nem um nível automático de qualidade. O autor do repositório determina a finalidade de cada modelo por meio de identificadores estáveis, como `translation-default`, `long-form` ou `japanese-specialist`.
+O Glossia usa um modelo configurado para cada tradução de documento. Adicionar vários modelos não cria um conjunto, uma cadeia de fallback ou um nível de qualidade automática. O autor do repositório escolhe seu propósito através de identificadores estáveis como `translation-default`, `long-form` ou `japanese-specialist`.
 
-A seleção segue a hierarquia de contexto do documento e da localidade de destino:
+A seleção segue a hierarquia de contexto para o documento e localização alvo:
 
-1. O arquivo `GLOSSIA/<locale>.md` mais próximo que declara `model` prevalece para essa localidade.
-2. Caso contrário, o arquivo `GLOSSIA.md` mais próximo que declara `model` prevalece para seu diretório.
-3. As configurações de `GLOSSIA.md` do diretório pai são herdadas quando um arquivo mais próximo não declara um modelo.
-4. Quando nenhum arquivo de contexto aplicável declara um identificador, a Glossia usa o modelo padrão da conta.
+1. O arquivo `GLOSSIA/<locale>.md` mais próximo que declara `model` vence para essa localização.
+2. Caso contrário, o arquivo `GLOSSIA.md` mais próximo que declara `model` vence para o seu diretório.
+3. As configurações dos arquivos `GLOSSIA.md` do pai são herdadas quando um arquivo mais próximo não declara um modelo.
+4. Quando nenhum arquivo de contexto aplicável declara um identificador, o Glossia usa o padrão da conta.
 
-Um identificador configurado explicitamente deve existir. A Glossia informa um erro para um identificador desconhecido, em vez de alternar silenciosamente para o padrão da conta.
+Um identificador configurado explicitamente deve existir. O Glossia relata um erro para um identificador desconhecido em vez de silenciosamente alternar para o padrão da conta.
 
 ## Seleção padrão
 
-A configuração do projeto requer um modelo antes que o repositório tenha seu próprio `GLOSSIA.md`. Portanto, a Glossia seleciona o padrão da conta. O primeiro modelo adicionado a uma conta torna-se o padrão, e um administrador pode definir outro modelo como padrão na página de configurações desse modelo.
+O setup do projeto precisa de um modelo antes que o repositório tenha seu próprio `GLOSSIA.md`. O Glossia, portanto, seleciona o padrão da conta. O primeiro modelo adicionado a uma conta torna-se o padrão e um administrador pode definir outro modelo como padrão a partir de sua página de configurações.
 
-Depois que um repositório possui `GLOSSIA.md`, o uso de um identificador explícito deixa a escolha clara para os revisores. Omitir `model` mantém o repositório no padrão da conta.
+Uma vez que o repositório possui `GLOSSIA.md`, usar um identificador explícito torna sua escolha clara para revisores. Omitir `model` mantém o repositório no padrão da conta.
 
-## O limite da revisão humana
+## A fronteira de revisão humana
 
-O resultado do modelo é uma proposta de alteração, não uma integração automática. As atividades de configuração e tradução permanecem visíveis na Glossia, enquanto as alterações do repositório são publicadas por meio de uma solicitação de pull para revisão pela equipe. Isso preserva o mesmo limite de qualidade e responsabilidade que as equipes já aplicam ao código.
+A saída do modelo é trabalho proposto, não um merge automático. A atividade de setup e tradução permanece visível no Glossia, enquanto as alterações do repositório são publicadas por meio de um pull request para a equipe revisar. Isso preserva a mesma fronteira de qualidade e propriedade que as equipes já usam para código.
