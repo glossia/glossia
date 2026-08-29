@@ -88,6 +88,11 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.OpsAuth
   end
 
+  pipeline :babel_internal_api do
+    plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.InternalBabelAuth
+  end
+
   get "/up", GlossiaWeb.HealthController, :index
 
   scope "/v1", GlossiaWeb do
@@ -105,6 +110,12 @@ defmodule GlossiaWeb.Router do
   end
 
   # Webhooks (no session, no CSRF)
+  scope "/api/internal/babel", GlossiaWeb.Internal do
+    pipe_through :babel_internal_api
+
+    post "/db/query", BabelDatabaseController, :query
+  end
+
   scope "/webhooks", GlossiaWeb do
     pipe_through :api
 

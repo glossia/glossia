@@ -27,6 +27,17 @@ env:
   # OTEL_EXPORTER_OTLP_HEADERS secret below is simply ignored internally.
   OTEL_EXPORTER_OTLP_ENDPOINT: http://observability-tempo-gateway.observability.svc.cluster.local
 
+internalBabel:
+  enabled: true
+  token:
+    issuer: https://kubernetes.default.svc.cluster.local
+    audience: glossia-internal
+    maxLifetimeSeconds: 3600
+    namespace: babel
+    serviceAccount: babel
+    jwks: >-
+      {"keys":[{"use":"sig","kty":"RSA","kid":"Ldcc-WHSJEYg6OhweW_zG9Iaihs7Lsq0VAp4ifnUWtM","alg":"RS256","n":"zwYxmtBt8ccv4SAGWWKRTQqOcQBQXNx8t3io7Nq-3zl1Mc9TN0sQfU7hJhXZPt-JsgvfjKWUyA6KlwtMvQMMr6lOxj6fFafJu7ioMX8ym0RuDVh2HYFDjMvJs_nE-A4Ft8VwSbWpKYEgHy6JUDpeg6d39X04XrQQkNvK5TxWcezVVfQsopdayuXWO8aM4y0_dvgq0tdCmnQQGMJfwVA02N6WN74s7aG1nlHQSDYcX6WyfqDZhdpVRPV4Q_7EXZkjxjC-TDi_1LJrrYbTg6G0YIgxJmB30cGqCQ77Vm2KmVWo0wL25S_aJQRAnqbc9ZYiTCYU-cGWt3Xy0zQcJMrDaw","e":"AQAB"}]}
+
 imagePullSecrets:
   - name: ghcr-pull-secret
 

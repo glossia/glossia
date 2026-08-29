@@ -76,6 +76,7 @@ defmodule Glossia.MixProject do
       {:opentelemetry_logger_metadata, "~> 0.2.0"},
       {:gettext, "~> 1.0", override: true},
       {:jason, "~> 1.2"},
+      {:jose, "~> 1.11"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:assent, "~> 0.3"},

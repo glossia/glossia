@@ -44,6 +44,12 @@ if config_env() == :prod do
 
   config :babel, :dns_cluster_query, System.get_env("BABEL_DNS_CLUSTER_QUERY") || :ignore
 
+  config :babel, Babel.Glossia,
+    base_url: System.get_env("BABEL_GLOSSIA_INTERNAL_URL"),
+    token_path: System.get_env("BABEL_GLOSSIA_TOKEN_PATH"),
+    receive_timeout:
+      String.to_integer(System.get_env("BABEL_GLOSSIA_RECEIVE_TIMEOUT_MS") || "30000")
+
   config :babel, BabelWeb.Plugs.PomeriumAuth,
     enabled: true,
     email_domain: "glossia.ai",

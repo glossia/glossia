@@ -5,6 +5,10 @@ replicaCount: 2
 env:
   BABEL_HOST: babel.glossia.ai
 
+glossia:
+  enabled: true
+  internalURL: http://glossia.glossia.svc.cluster.local
+
 imagePullSecrets:
   - name: ghcr-pull-secret
 
