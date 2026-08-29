@@ -46,11 +46,35 @@ defmodule Glossia.Translations.Markdown do
   defp merge(%MDEx.Text{} = source, %MDEx.Text{} = translated, _path),
     do: {:ok, %{source | literal: translated.literal}}
 
+  # Models sometimes add emphasis around an otherwise plain text node. The
+  # source document owns that presentation, so retain it while taking the
+  # translated words. Treating this as a structural failure makes a harmless
+  # decoration change consume every retry, particularly for headings.
+  defp merge(%MDEx.Text{} = source, translated, path) when is_struct(translated) do
+    case inline_literal(translated) do
+      {:ok, literal} -> {:ok, %{source | literal: literal}}
+      :error -> structure_changed(source, translated, path)
+    end
+  end
+
+  # A model can render a Markdown heading as a bold paragraph. Preserve the
+  # source heading rather than failing the entire file, but only for simple
+  # headings whose source text has one unambiguous destination.
+  defp merge(
+         %MDEx.Heading{nodes: [%MDEx.Text{} = source_text]} = source,
+         %MDEx.Paragraph{} = translated,
+         _path
+       ) do
+    case inline_nodes_literal(translated.nodes) do
+      {:ok, literal} -> {:ok, %{source | nodes: [%{source_text | literal: literal}]}}
+      :error -> {:error, "translated Markdown changed the document structure"}
+    end
+  end
+
   defp merge(source, translated, path) when is_struct(source) and is_struct(translated) do
     cond do
       source.__struct__ != translated.__struct__ ->
-        {:error,
-         "translated Markdown changed the document structure at #{path}: expected #{node_name(source)}, got #{node_name(translated)}"}
+        structure_changed(source, translated, path)
 
       Map.has_key?(source, :nodes) and Map.has_key?(translated, :nodes) ->
         merge_children(source, translated, path)
@@ -62,6 +86,32 @@ defmodule Glossia.Translations.Markdown do
 
   defp merge(_source, _translated, path),
     do: {:error, "translated Markdown changed the document structure at #{path}"}
+
+  defp inline_literal(%MDEx.Text{literal: literal}), do: {:ok, literal}
+
+  defp inline_literal(%MDEx.Emph{nodes: nodes}), do: inline_nodes_literal(nodes)
+  defp inline_literal(%MDEx.Strong{nodes: nodes}), do: inline_nodes_literal(nodes)
+
+  defp inline_literal(_node), do: :error
+
+  defp inline_nodes_literal(nodes) do
+    nodes
+    |> Enum.reduce_while({:ok, []}, fn node, {:ok, literals} ->
+      case inline_literal(node) do
+        {:ok, literal} -> {:cont, {:ok, [literal | literals]}}
+        :error -> {:halt, :error}
+      end
+    end)
+    |> case do
+      {:ok, literals} -> {:ok, literals |> Enum.reverse() |> Enum.join()}
+      :error -> :error
+    end
+  end
+
+  defp structure_changed(source, translated, path) do
+    {:error,
+     "translated Markdown changed the document structure at #{path}: expected #{node_name(source)}, got #{node_name(translated)}"}
+  end
 
   defp merge_children(%{nodes: source_nodes}, %{nodes: translated_nodes}, path)
        when length(source_nodes) != length(translated_nodes) do

@@ -23,6 +23,18 @@ defmodule Glossia.Translations.MarkdownTest do
     assert message =~ "changed the document structure"
   end
 
+  test "retains a source heading when the translation makes it a bold paragraph" do
+    assert {:ok, output} = Markdown.reconcile("## Next steps", "**다음 단계**")
+
+    assert String.trim(output) == "## 다음 단계"
+  end
+
+  test "does not retain emphasis added around a plain source paragraph" do
+    assert {:ok, output} = Markdown.reconcile("Read the guide.", "**가이드를 읽어보세요.**")
+
+    assert String.trim(output) == "가이드를 읽어보세요."
+  end
+
   test "rejects an empty candidate for Markdown without protected tokens" do
     assert {:error, message} =
              Markdown.reconcile(
