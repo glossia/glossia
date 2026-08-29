@@ -306,24 +306,9 @@ defmodule Glossia.Translations.LLMTest do
   end
 
   describe "stream/4" do
-    # `process_stream/2` invokes the callbacks for every chunk and returns the
-    # joined response, which is the authoritative text.
-    defp stub_stream(chunks) do
-      Mimic.stub(ReqLLM, :stream_text, fn _model, _messages, _opts -> {:ok, :stream} end)
-
-      Mimic.stub(ReqLLM.StreamResponse, :process_stream, fn :stream, opts ->
-        Enum.each(chunks, fn
-          {:text, chunk} -> opts[:on_result].(chunk)
-          {:thinking, chunk} -> opts[:on_thinking].(chunk)
-        end)
-
-        {:ok, :response}
-      end)
-    end
-
-    test "OAuth streams the model's chunks and returns the joined text" do
+    test "OAuth publishes the complete model response" do
       stub_model(catalogued("anthropic:x"))
-      stub_stream([{:text, "Hola"}, {:text, ", mundo"}])
+      Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :response} end)
       Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
       Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola, mundo" end)
 
@@ -334,12 +319,17 @@ defmodule Glossia.Translations.LLMTest do
       assert {:ok, "Hola, mundo"} = LLM.stream(cred, @system, @user, on_event)
 
       assert Elixir.Agent.get(collector, &Enum.reverse/1) ==
-               [:turn_start, {:text, "Hola"}, {:text, ", mundo"}, :turn_end, :done]
+               [:turn_start, {:text, "Hola, mundo"}, :turn_end, :done]
     end
 
-    test "api-key forwards text and reasoning chunks separately" do
+    test "api-key publishes a complete response through the gateway" do
       stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
-      stub_stream([{:thinking, "weighing register"}, {:text, "Hola"}])
+
+      Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
+        assert opts[:max_tokens] == 16_384
+        {:ok, :response}
+      end)
+
       Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
       Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
@@ -354,27 +344,16 @@ defmodule Glossia.Translations.LLMTest do
 
       assert {:ok, "Hola"} = LLM.stream(cred, @system, @user, on_event)
 
-      events = Elixir.Agent.get(collector, &Enum.reverse/1)
-      assert {:thinking, "weighing register"} in events
-      assert {:text, "Hola"} in events
+      assert Elixir.Agent.get(collector, &Enum.reverse/1) ==
+               [:turn_start, {:text, "Hola"}, :turn_end, :done]
     end
 
-    # The joined response is what the caller gets, not the concatenated chunks,
-    # so a provider that reports its output only in the final payload still
-    # produces a translation.
-    test "returns the joined response text rather than the streamed chunks" do
+    test "a generation error fails the call and is announced once" do
       stub_model(catalogued("anthropic:x"))
-      stub_stream([{:text, "Hol"}])
-      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
-      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola, mundo" end)
 
-      cred = %{model: "anthropic/x", auth: {:api_key, "sk", nil}, source: :account_model}
-      assert {:ok, "Hola, mundo"} = LLM.stream(cred, @system, @user, fn _ -> :ok end)
-    end
-
-    test "a streamed error fails the call and is announced once" do
-      stub_model(catalogued("anthropic:x"))
-      Mimic.stub(ReqLLM, :stream_text, fn _model, _messages, _opts -> {:error, :rate_limited} end)
+      Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts ->
+        {:error, :rate_limited}
+      end)
 
       {:ok, collector} = Elixir.Agent.start_link(fn -> [] end)
       on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
@@ -388,7 +367,7 @@ defmodule Glossia.Translations.LLMTest do
 
     test "a response truncated at the output limit fails the call" do
       stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
-      stub_stream([{:thinking, "still weighing register"}])
+      Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :response} end)
       Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :length end)
       Mimic.stub(ReqLLM.Response, :text, fn :response -> "" end)
 

@@ -2,11 +2,12 @@ defmodule Glossia.Translations.LLM do
   @moduledoc """
   Runs a translation prompt against the resolved credential.
 
-  API-key and OAuth credentials both go through `ReqLLM`, which streams text and
-  reasoning chunks separately and lets us state the output-token budget a
-  translation needs. Condukt, the agent runtime, waits for its agent session to
-  finish after Bifrost has already completed a streamed response. A translation
-  is a single tool-less turn, so the agent runtime adds no behavior we need here.
+  API-key and OAuth credentials both go through `ReqLLM` and let us state the
+  output-token budget a translation needs. Bifrost completes ordinary responses
+  reliably but does not terminate a compatible event stream, so translations
+  publish their complete text after each model response instead of waiting for a
+  stream to finish. A translation is a single tool-less turn, so that preserves
+  its behavior while avoiding a gateway-dependent stream lifecycle.
 
   Both `run/3` and `stream/4` return `{:ok, text}` or `{:error, reason}`.
   """
@@ -189,9 +190,9 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
-  @doc "Streamed generation, forwarding turn events to `on_event`."
+  @doc "Generation, forwarding lifecycle events to `on_event`."
   def stream(%{auth: {:api_key, key, base_url}, model: model}, system, user, on_event) do
-    stream_via_req_llm(model, api_key_options(key, model), base_url, system, user, on_event)
+    complete_via_req_llm(model, api_key_options(key, model), base_url, system, user, on_event)
   end
 
   def stream(%{source: :codex_session}, system, user, on_event) do
@@ -227,16 +228,16 @@ defmodule Glossia.Translations.LLM do
   end
 
   def stream(%{auth: {:oauth, token}, model: model}, system, user, on_event) do
-    stream_via_req_llm(model, oauth_options(token), nil, system, user, on_event)
+    complete_via_req_llm(model, oauth_options(token), nil, system, user, on_event)
   end
 
-  defp stream_via_req_llm(model, auth_options, base_url, system, user, on_event) do
+  defp complete_via_req_llm(model, auth_options, base_url, system, user, on_event) do
     on_event.(:turn_start)
 
     with {:ok, spec, opts} <- request(model, auth_options, base_url),
-         {:ok, stream_response} <- ReqLLM.stream_text(spec, messages(system, user), opts),
-         {:ok, response} <- process_stream(stream_response, on_event),
+         {:ok, response} <- ReqLLM.generate_text(spec, messages(system, user), opts),
          {:ok, text} <- response_text(response) do
+      on_event.({:text, text})
       on_event.(:turn_end)
       on_event.(:done)
       {:ok, text}
@@ -250,16 +251,6 @@ defmodule Glossia.Translations.LLM do
       message = Exception.message(error)
       on_event.({:error, message})
       {:error, message}
-  end
-
-  # The text of the joined response, not the concatenated chunks, is what the
-  # caller gets back: a provider that reports its output only in the final
-  # payload would otherwise translate to an empty document.
-  defp process_stream(stream_response, on_event) do
-    ReqLLM.StreamResponse.process_stream(stream_response,
-      on_result: fn chunk -> on_event.({:text, chunk}) end,
-      on_thinking: fn chunk -> on_event.({:thinking, chunk}) end
-    )
   end
 
   defp messages(system, user) do
