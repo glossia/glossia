@@ -1,30 +1,30 @@
 %{
-  title: "Por qué son importantes las métricas de localización",
-  summary: "Cómo las señales recopiladas se convierten en decisiones de localización y por qué importa la métrica de brecha.",
-  category: "explanation",
+  title: "Por qué análisis de localización",
+  summary: "Cómo las señales recopiladas se convierten en decisiones de localización, y por qué la métrica de brecha importa.",
+  category: "explicación",
   order: 2
 }
 ---
-Elegir a qué idioma traducir a continuación es una apuesta: cuesta tiempo y dinero, y el resultado depende de una demanda que normalmente no puede ver. La analítica de localización hace visible esa demanda.
+Elegir en qué idioma traducir a continuación es una apuesta: cuesta tiempo y dinero, y el retorno depende de la demanda que usualmente no puedes ver. La analítica de localización hace visible esa demanda.
 
 ## La decisión, no el panel
 
-El objetivo de recopilar analítica aquí es específico y deliberado: responder a la pregunta «¿deberíamos localizar al idioma X?». Las señales se eligen para responder a esa pregunta, no para crear una solución de analítica de uso general.
+El propósito de recopilar estas analíticas aquí es limitado y deliberado: para responder «¿debemos localizar en el idioma X?». Las señales se seleccionan para alimentar esa pregunta, no para constituir una suite analítica de propósito general.
 
-La decisión se basa en tres factores:
+Tres entradas impulsan la decisión:
 
-1. **Demanda.** ¿Cuántos visitantes quieren este idioma? Los idiomas del navegador y el país indican de dónde procede el interés.
-2. **La brecha.** ¿Ya se atiende esa demanda? Comparar los idiomas preferidos con los idiomas de destino de su proyecto revela la proporción del tráfico que no puede avanzar.
-3. **Valor.** ¿Sería rentable localizar? La interacción según la brecha de configuración regional, las páginas a las que llega el tráfico desatendido y el origen de ese tráfico indican si una nueva configuración regional genera conversiones.
+1. **Demanda.** ¿Cuántos visitantes desean este idioma? El idioma del navegador y el país te indican dónde está el interés.
+2. **La brecha.** ¿Esa demanda ya está satisfecha? Comparar los idiomas preferidos contra los idiomas objetivo de tu proyecto revela la proporción del tráfico que choca con un obstáculo.
+3. **Valor.** ¿Vale la pena localizar? El compromiso en función de la brecha de localización, las páginas donde aterriza el tráfico desatendido, y de dónde proviene ese tráfico indican si una nueva localización convierte.
 
-## Por qué la brecha se calcula en el momento de la ingesta
+## Por qué la brecha se calcula en el tiempo de ingestión
 
-`served_locale` y `has_locale_gap` se almacenan por evento y se calculan con respecto a los idiomas de destino configurados en el momento de la visita. Esto significa que los datos históricos reflejan la oportunidad que existía entonces, no un nuevo cálculo basado en los destinos actuales. Si añade portugués el próximo mes, la brecha del mes pasado no se reduce retroactivamente. Así conserva un registro fiel de cuánta demanda quedó sin atender.
+`served_locale` y `has_locale_gap` se almacenan por evento, calculados contra tus idiomas objetivo tal como eran en el momento de la visita. Esto significa que los datos históricos reflejan la oportunidad que enfrentaste entonces, no una recomputación contra los objetivos de hoy. Si añades portugués el próximo mes, la brecha del mes pasado no se encoge retroactivamente; mantienes un registro honesto de cuánto demanda iba sin atenderse.
 
-## Por qué se prescinde específicamente de las cookies
+## Por qué sin cookies, específicamente
 
-Cuando se quieren identificar «visitantes únicos», lo habitual es establecer una cookie o crear una huella digital del navegador. Ambos métodos generan identificadores persistentes y, en la mayoría de las normativas de privacidad, una huella digital es más difícil de eliminar que una cookie. Ninguno de ellos es necesario en este caso.
+El instinto al desear «visitantes únicos» es establecer una cookie o generar una huella digital en el navegador. Ambos crean identificadores de larga duración, y la identificación por huella digital es, bajo la mayoría de los regímenes de privacidad, más difícil de eliminar que una cookie. Ninguno es necesario aquí.
 
-Para contabilizar visitantes únicos durante un día solo se necesita un identificador que sea estable *durante ese día*. Un hash de la dirección IP y el User-Agent, renovado a diario y limitado a cada proyecto, permite obtener cifras precisas de visitantes únicos diarios y semanales, a la vez que impide vincular a un visitante entre distintos días o sitios. Se renuncia al seguimiento a largo plazo de los visitantes recurrentes, que es precisamente la capacidad que genera el riesgo para la privacidad por el que, de otro modo, sería necesario mostrar un aviso de consentimiento para operar legalmente.
+Los visitantes únicos de un día solo requieren un identificador que sea estable *dentro del día*. Un hash de la IP y el User-Agent, rotado diariamente y delimitado por proyecto, proporciona únicos diarios y semanales precisos mientras hace imposible vincular a un visitante entre días o entre sitios. Renuncias al seguimiento a largo plazo de visitantes recurrentes, que es exactamente la capacidad que genera la exposición de privacidad para la cual necesitarías un banner de consentimiento para operar legalmente.
 
-Esta decisión es deliberada: la analítica de localización debe poder implementarse en cualquier lugar y para todos los visitantes, sin obstáculos legales.
+El compromiso es intencional: la analítica de localización debe ser algo que puedas desplegar en todas partes, a cada visitante, sin fricción legal.
