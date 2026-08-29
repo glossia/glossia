@@ -34,6 +34,11 @@ config :glossia, GlossiaWeb.Endpoint,
   pubsub_server: Glossia.PubSub,
   live_view: [signing_salt: "mUXrjioL"]
 
+config :glossia, GlossiaWeb.BabelInternalEndpoint,
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [formats: [json: GlossiaWeb.ErrorJSON], layout: false],
+  server: false
+
 # Configure the mailer
 #
 # By default it uses the "Local" adapter which stores the emails

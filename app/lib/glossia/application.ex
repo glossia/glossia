@@ -101,7 +101,7 @@ defmodule Glossia.Application do
           Glossia.Flame.pool_child_spec(),
           # Start to serve requests, typically the last entry
           GlossiaWeb.Endpoint
-        ]
+        ] ++ internal_babel_endpoint_children()
 
     children =
       if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
@@ -124,6 +124,10 @@ defmodule Glossia.Application do
     else
       [Glossia.Projects.SetupRecovery]
     end
+  end
+
+  defp internal_babel_endpoint_children do
+    [GlossiaWeb.BabelInternalEndpoint]
   end
 
   defp role do
@@ -185,6 +189,7 @@ defmodule Glossia.Application do
   @impl true
   def config_change(changed, _new, removed) do
     GlossiaWeb.Endpoint.config_change(changed, removed)
+    GlossiaWeb.BabelInternalEndpoint.config_change(changed, removed)
     :ok
   end
 end
