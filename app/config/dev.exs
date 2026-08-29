@@ -55,6 +55,10 @@ config :glossia, GlossiaWeb.Endpoint,
     esbuild_glossia_sdk_web: {Esbuild, :install_and_run, [:glossia_sdk_web, ~w(--watch)]}
   ]
 
+config :glossia, GlossiaWeb.BabelInternalEndpoint,
+  secret_key_base: "65pP1xr3jmj+N1BsGXNwwYPPpS7aG7F6dj38YdnvijVD204/u7fKbSWRZ9rY6Jv0",
+  server: false
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

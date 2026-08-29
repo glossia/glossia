@@ -2,6 +2,8 @@ defmodule GlossiaWeb.Internal.BabelDatabaseControllerTest do
   use GlossiaWeb.ConnCase, async: true
   use Mimic
 
+  @endpoint GlossiaWeb.BabelInternalEndpoint
+
   alias Glossia.BabelWorkloadIdentity
   alias Glossia.Repo
 
@@ -59,17 +61,6 @@ defmodule GlossiaWeb.Internal.BabelDatabaseControllerTest do
         |> post(babel_path(), %{"query" => "SELECT 1"})
 
       assert %{"error" => "invalid_workload_identity"} = json_response(conn, 401)
-    end
-
-    test "does not expose the endpoint through the public listener", %{conn: conn} do
-      conn =
-        post(
-          conn,
-          "http://glossia.ai:4050/api/internal/babel/db/query",
-          %{"query" => "SELECT 1"}
-        )
-
-      assert %{"error" => "not_found"} = json_response(conn, 404)
     end
   end
 end

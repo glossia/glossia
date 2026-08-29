@@ -44,6 +44,10 @@ config :glossia, GlossiaWeb.Endpoint,
   secret_key_base: "qSsvrUWYZI7plNpHSFNvM/HoGGRZ+FIAyhrfEvxrIAH6OrdCSvfCBxO/Sa30L5UU",
   server: false
 
+config :glossia, GlossiaWeb.BabelInternalEndpoint,
+  secret_key_base: "qSsvrUWYZI7plNpHSFNvM/HoGGRZ+FIAyhrfEvxrIAH6OrdCSvfCBxO/Sa30L5UU",
+  server: false
+
 # In test we don't send emails
 config :glossia, Glossia.Mailer, adapter: Swoosh.Adapters.Test
 
