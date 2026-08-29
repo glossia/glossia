@@ -6,6 +6,11 @@ on:
     branches: [main]
     paths:
       - "app/**"
+      # Translation checkpoints are content and lockfile updates. Building and
+      # deploying the application for each one restarts the model gateway while
+      # the same translation session is still using it.
+      - "!app/priv/i18n/**"
+      - "!app/priv/gettext/*/LC_MESSAGES/**"
       - "cli/**"
       - "mise/**"
       - "mise.toml"
@@ -15,6 +20,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "app/**"
+      - "!app/priv/i18n/**"
+      - "!app/priv/gettext/*/LC_MESSAGES/**"
       - "cli/**"
       - "mise/**"
       - "mise.toml"
