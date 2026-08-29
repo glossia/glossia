@@ -7,7 +7,8 @@ env:
 
 glossia:
   enabled: true
-  internalURL: http://glossia.glossia.svc.cluster.local
+  internalURL: https://glossia-babel.glossia.svc.cluster.local
+  tlsServerName: babel-internal.glossia.ai
 
 imagePullSecrets:
   - name: ghcr-pull-secret

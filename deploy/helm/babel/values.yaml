@@ -48,6 +48,7 @@ env:
 glossia:
   enabled: false
   internalURL: ""
+  tlsServerName: ""
   tokenAudience: glossia-internal
   tokenMountPath: /var/run/secrets/glossia
   tokenExpirationSeconds: 3600

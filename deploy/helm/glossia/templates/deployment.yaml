@@ -31,6 +31,10 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
+            {{- if .Values.internalBabel.enabled }}
+            - name: babel-https
+              containerPort: {{ .Values.internalBabel.tls.targetPort }}
+            {{- end }}
           env:
             - name: POD_NAME
               valueFrom:
@@ -107,6 +111,10 @@ spec:
               value: {{ .Values.internalBabel.token.namespace | quote }}
             - name: GLOSSIA_BABEL_TOKEN_SERVICE_ACCOUNT
               value: {{ .Values.internalBabel.token.serviceAccount | quote }}
+            - name: GLOSSIA_BABEL_INTERNAL_TLS_CERT_PATH
+              value: /var/run/secrets/glossia-babel-internal/tls.crt
+            - name: GLOSSIA_BABEL_INTERNAL_TLS_KEY_PATH
+              value: /var/run/secrets/glossia-babel-internal/tls.key
             {{- end }}
             {{- range $key, $value := omit .Values.env "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_FLAME_BACKEND" "GLOSSIA_FLAME_MIN" "GLOSSIA_FLAME_MAX" "GLOSSIA_FLAME_MAX_CONCURRENCY" "GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS" "GLOSSIA_FLAME_TIMEOUT_MS" "GLOSSIA_FLAME_BOOT_TIMEOUT_MS" "GLOSSIA_FLAME_LOG" "GLOSSIA_FLAME_APP_CONTAINER_NAME" "GLOSSIA_FLAME_RUNTIME_CLASS_NAME" "GLOSSIA_FLAME_RESOURCES_JSON" "GLOSSIA_FLAME_NODE_SELECTOR_JSON" "GLOSSIA_FLAME_TOLERATIONS_JSON" "GLOSSIA_FLAME_AFFINITY_JSON" "GLOSSIA_FLAME_ENV_JSON" "GLOSSIA_FLAME_K8S_LOG" "GLOSSIA_FLAME_REPO_POOL_SIZE" "GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE" "GLOSSIA_TRANSLATION_JOB_BACKEND" "GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED" "GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS" "GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON" }}
             - name: {{ $key }}
@@ -165,6 +173,12 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.envSecretName }}
+          {{- if .Values.internalBabel.enabled }}
+          volumeMounts:
+            - name: babel-internal-tls
+              mountPath: /var/run/secrets/glossia-babel-internal
+              readOnly: true
+          {{- end }}
           # Guard the boot separately from liveness. A cold BEAM start behind
           # an image pull, DB connect and migration wait can exceed the
           # liveness initialDelay, and without a startupProbe liveness then
@@ -190,6 +204,12 @@ spec:
             periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.internalBabel.enabled }}
+      volumes:
+        - name: babel-internal-tls
+          secret:
+            secretName: {{ .Values.internalBabel.tls.certificateSecretName | quote }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

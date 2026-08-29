@@ -90,6 +90,7 @@ defmodule GlossiaWeb.Router do
 
   pipeline :babel_internal_api do
     plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.InternalBabelTransport
     plug GlossiaWeb.Plugs.InternalBabelAuth
   end
 

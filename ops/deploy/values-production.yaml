@@ -29,6 +29,9 @@ env:
 
 internalBabel:
   enabled: true
+  tls:
+    certificateIssuerName: letsencrypt-cloudflare
+    certificateServerName: babel-internal.glossia.ai
   token:
     issuer: https://kubernetes.default.svc.cluster.local
     audience: glossia-internal

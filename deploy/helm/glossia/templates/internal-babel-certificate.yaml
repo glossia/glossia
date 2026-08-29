@@ -1,0 +1,20 @@
+{{- if .Values.internalBabel.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "glossia.fullname" . }}-babel-internal
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: babel-internal
+spec:
+  secretName: {{ .Values.internalBabel.tls.certificateSecretName | quote }}
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: {{ required "internalBabel.tls.certificateIssuerName is required when internalBabel.enabled=true" .Values.internalBabel.tls.certificateIssuerName | quote }}
+  dnsNames:
+    - {{ required "internalBabel.tls.certificateServerName is required when internalBabel.enabled=true" .Values.internalBabel.tls.certificateServerName | quote }}
+  usages:
+    - digital signature
+    - key encipherment
+{{- end }}

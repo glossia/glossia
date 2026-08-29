@@ -54,6 +54,12 @@ env:
 internalBabel:
   enabled: false
   databaseReadonlyRole: glossia_babel_ro
+  tls:
+    servicePort: 443
+    targetPort: 4051
+    certificateSecretName: glossia-babel-internal-tls
+    certificateIssuerName: ""
+    certificateServerName: ""
   token:
     issuer: ""
     audience: glossia-internal

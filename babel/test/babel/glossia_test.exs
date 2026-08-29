@@ -12,9 +12,10 @@ defmodule Babel.GlossiaTest do
       assert request.method == :post
 
       assert URI.to_string(request.url) ==
-               "http://glossia.glossia.svc.cluster.local/api/internal/babel/db/query"
+               "https://glossia-babel.glossia.svc.cluster.local/api/internal/babel/db/query"
 
       assert request.options[:auth] == {:bearer, "projected-token"}
+      assert request.options[:connect_options] == [hostname: "babel-internal.glossia.ai"]
       assert request.options[:json] == %{"limit" => 10, "query" => "SELECT 1"}
 
       {:ok,
@@ -26,8 +27,9 @@ defmodule Babel.GlossiaTest do
 
     assert {:ok, %{"rows" => [%{"one" => 1}]}} =
              Glossia.query("SELECT 1",
-               base_url: "http://glossia.glossia.svc.cluster.local",
+               base_url: "https://glossia-babel.glossia.svc.cluster.local",
                token_path: token_path,
+               tls_server_name: "babel-internal.glossia.ai",
                request: request,
                limit: 10
              )
@@ -35,7 +37,8 @@ defmodule Babel.GlossiaTest do
 
   test "does not consider a missing workload token configured" do
     refute Glossia.configured?(
-             base_url: "http://glossia.glossia.svc.cluster.local",
+             base_url: "https://glossia-babel.glossia.svc.cluster.local",
+             tls_server_name: "babel-internal.glossia.ai",
              token_path: "/missing/token"
            )
   end
@@ -47,9 +50,19 @@ defmodule Babel.GlossiaTest do
 
     assert {:error, "invalid_workload_identity"} =
              Glossia.query("SELECT 1",
-               base_url: "http://glossia.glossia.svc.cluster.local",
+               base_url: "https://glossia-babel.glossia.svc.cluster.local",
                token: "secret-token",
+               tls_server_name: "babel-internal.glossia.ai",
                request: request
+             )
+  end
+
+  test "refuses a cleartext Glossia URL" do
+    assert {:error, "The Glossia internal API URL must use HTTPS."} =
+             Glossia.query("SELECT 1",
+               base_url: "http://glossia-babel.glossia.svc.cluster.local",
+               token: "projected-token",
+               tls_server_name: "babel-internal.glossia.ai"
              )
   end
 end

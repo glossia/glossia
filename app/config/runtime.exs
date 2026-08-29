@@ -572,16 +572,38 @@ if config_env() == :prod and not runner_child? do
 
   host = System.get_env("GLOSSIA_HOST") || "example.com"
 
+  babel_internal_tls =
+    case System.get_env("GLOSSIA_BABEL_INTERNAL_TLS_CERT_PATH") do
+      nil ->
+        []
+
+      certfile ->
+        keyfile = System.fetch_env!("GLOSSIA_BABEL_INTERNAL_TLS_KEY_PATH")
+
+        [
+          https: [
+            ip: {0, 0, 0, 0, 0, 0, 0, 0},
+            port: 4051,
+            cipher_suite: :strong,
+            certfile: certfile,
+            keyfile: keyfile
+          ]
+        ]
+    end
+
   config :glossia, :dns_cluster_query, System.get_env("GLOSSIA_DNS_CLUSTER_QUERY")
 
   config :boruta, Boruta.Oauth, issuer: "https://#{host}"
 
-  config :glossia, GlossiaWeb.Endpoint,
-    url: [host: host, port: 443, scheme: "https"],
-    http: [
-      ip: {0, 0, 0, 0, 0, 0, 0, 0}
-    ],
-    secret_key_base: secret_key_base
+  config :glossia,
+         GlossiaWeb.Endpoint,
+         [
+           url: [host: host, port: 443, scheme: "https"],
+           http: [
+             ip: {0, 0, 0, 0, 0, 0, 0, 0}
+           ],
+           secret_key_base: secret_key_base
+         ] ++ babel_internal_tls
 
   smtp_host =
     System.get_env("GLOSSIA_SMTP_HOST") ||

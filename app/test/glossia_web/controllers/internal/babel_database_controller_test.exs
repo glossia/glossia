@@ -11,6 +11,8 @@ defmodule GlossiaWeb.Internal.BabelDatabaseControllerTest do
     put_req_header(conn, "authorization", "Bearer valid-token")
   end
 
+  defp babel_path, do: "https://babel-internal.glossia.ai:4051/api/internal/babel/db/query"
+
   defp allow_babel do
     stub(BabelWorkloadIdentity, :verify, fn "valid-token" ->
       {:ok, %{namespace: "babel", name: "babel"}}
@@ -33,7 +35,7 @@ defmodule GlossiaWeb.Internal.BabelDatabaseControllerTest do
       conn =
         conn
         |> authenticated()
-        |> post("/api/internal/babel/db/query", %{"query" => "SELECT 1 AS one"})
+        |> post(babel_path(), %{"query" => "SELECT 1 AS one"})
 
       assert %{"columns" => ["one"], "rows" => [%{"one" => 1}], "truncated" => false} =
                json_response(conn, 200)
@@ -45,16 +47,29 @@ defmodule GlossiaWeb.Internal.BabelDatabaseControllerTest do
       conn =
         conn
         |> authenticated()
-        |> post("/api/internal/babel/db/query", %{"query" => "DELETE FROM accounts"})
+        |> post(babel_path(), %{"query" => "DELETE FROM accounts"})
 
       assert %{"error" => "Only SELECT, WITH, EXPLAIN, and SHOW statements are allowed."} =
                json_response(conn, 422)
     end
 
     test "requires a bearer token", %{conn: conn} do
-      conn = post(conn, "/api/internal/babel/db/query", %{"query" => "SELECT 1"})
+      conn =
+        conn
+        |> post(babel_path(), %{"query" => "SELECT 1"})
 
       assert %{"error" => "invalid_workload_identity"} = json_response(conn, 401)
+    end
+
+    test "does not expose the endpoint through the public listener", %{conn: conn} do
+      conn =
+        post(
+          conn,
+          "https://glossia.ai:4050/api/internal/babel/db/query",
+          %{"query" => "SELECT 1"}
+        )
+
+      assert %{"error" => "not_found"} = json_response(conn, 404)
     end
   end
 end

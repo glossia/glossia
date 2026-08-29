@@ -12,7 +12,7 @@ defmodule Babel.Glossia do
 
   def configured?(opts \\ []) do
     client = client(opts)
-    is_binary(client.base_url) and token_available?(client)
+    secure_url?(client.base_url) and present?(client.tls_server_name) and token_available?(client)
   end
 
   def query(sql, opts \\ []) when is_binary(sql) do
@@ -29,7 +29,8 @@ defmodule Babel.Glossia do
     client = client(client_opts)
 
     with {:ok, token} <- fetch_token(client),
-         {:ok, url} <- request_url(client.base_url, path) do
+         {:ok, url} <- request_url(client.base_url, path),
+         {:ok, connect_options} <- connect_options(client) do
       request =
         Req.new(
           [
@@ -37,6 +38,7 @@ defmodule Babel.Glossia do
             url: url,
             auth: {:bearer, token},
             receive_timeout: client.receive_timeout,
+            connect_options: connect_options,
             headers: [{"accept", "application/json"}]
           ] ++ request_opts
         )
@@ -83,16 +85,26 @@ defmodule Babel.Glossia do
 
   defp request_url(base_url, path) when is_binary(base_url) do
     case URI.parse(base_url) do
-      %URI{scheme: scheme, host: host} = base_uri when is_binary(scheme) and is_binary(host) ->
+      %URI{scheme: "https", host: host} = base_uri when is_binary(host) ->
         {:ok, base_uri |> URI.merge(path) |> URI.to_string()}
 
       _ ->
-        {:error, "The Glossia internal API URL is invalid."}
+        {:error, "The Glossia internal API URL must use HTTPS."}
     end
   end
 
   defp request_url(_base_url, _path),
     do: {:error, "The Glossia internal API is not configured for this environment."}
+
+  defp connect_options(%{tls_server_name: tls_server_name}) when is_binary(tls_server_name) do
+    case String.trim(tls_server_name) do
+      "" -> {:error, "The Glossia internal API certificate name is not configured."}
+      hostname -> {:ok, [hostname: hostname]}
+    end
+  end
+
+  defp connect_options(_client),
+    do: {:error, "The Glossia internal API certificate name is not configured."}
 
   defp token_available?(%{token: token}) when is_binary(token) and token != "", do: true
 
@@ -109,6 +121,7 @@ defmodule Babel.Glossia do
       base_url: configured_option(opts, config, :base_url),
       token: configured_option(opts, config, :token),
       token_path: configured_option(opts, config, :token_path),
+      tls_server_name: configured_option(opts, config, :tls_server_name),
       receive_timeout: receive_timeout(configured_option(opts, config, :receive_timeout)),
       request: Keyword.get(opts, :request, &Req.request/1)
     }
@@ -120,4 +133,12 @@ defmodule Babel.Glossia do
 
   defp receive_timeout(timeout) when is_integer(timeout) and timeout > 0, do: timeout
   defp receive_timeout(_timeout), do: @default_receive_timeout
+
+  defp secure_url?(url) when is_binary(url) do
+    match?(%URI{scheme: "https", host: host} when is_binary(host), URI.parse(url))
+  end
+
+  defp secure_url?(_url), do: false
+
+  defp present?(value), do: is_binary(value) and String.trim(value) != ""
 end

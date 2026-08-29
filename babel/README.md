@@ -32,10 +32,13 @@ the environment is not loaded, Babel falls back to port `4060` and the
 
 ## Glossia production data
 
-Babel reaches Glossia through an internal Hypertext Transfer Protocol endpoint,
-not through a production PostgreSQL connection. Each Babel pod receives a
-short-lived Kubernetes service-account token with the `glossia-internal`
-audience. Glossia verifies the token as a
+Babel reaches Glossia through a cluster-only
+[Transport Layer Security](https://en.wikipedia.org/wiki/Transport_Layer_Security)
+listener, not through a production PostgreSQL connection. The listener has no
+ingress route, only Babel can reach its service port, and Glossia rejects this
+endpoint on its public listener before authentication is attempted. Each Babel
+pod receives a short-lived Kubernetes service-account token with the
+`glossia-internal` audience. Glossia verifies the token as a
 [JSON Web Token](https://jwt.io/introduction) against the production
 [JSON Web Key Set](https://datatracker.ietf.org/doc/html/rfc7517), then checks
 the issuer, audience, namespace, service-account name, and lifetime.

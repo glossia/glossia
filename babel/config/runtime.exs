@@ -47,6 +47,7 @@ if config_env() == :prod do
   config :babel, Babel.Glossia,
     base_url: System.get_env("BABEL_GLOSSIA_INTERNAL_URL"),
     token_path: System.get_env("BABEL_GLOSSIA_TOKEN_PATH"),
+    tls_server_name: System.get_env("BABEL_GLOSSIA_TLS_SERVER_NAME"),
     receive_timeout:
       String.to_integer(System.get_env("BABEL_GLOSSIA_RECEIVE_TIMEOUT_MS") || "30000")
 

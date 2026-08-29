@@ -52,6 +52,8 @@ spec:
             {{- if .Values.glossia.enabled }}
             - name: BABEL_GLOSSIA_INTERNAL_URL
               value: {{ required "glossia.internalURL is required when glossia.enabled=true" .Values.glossia.internalURL | quote }}
+            - name: BABEL_GLOSSIA_TLS_SERVER_NAME
+              value: {{ required "glossia.tlsServerName is required when glossia.enabled=true" .Values.glossia.tlsServerName | quote }}
             - name: BABEL_GLOSSIA_TOKEN_PATH
               value: {{ printf "%s/token" .Values.glossia.tokenMountPath | quote }}
             {{- end }}
