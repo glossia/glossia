@@ -452,7 +452,9 @@ clickhouse:
     maxRowsToRead: 100000
     maxBytesToRead: 52428800
     maxMemoryBytes: 268435456
-    maxConcurrentQueries: 2
+    # Two web replicas each keep a pool of five ClickHouse connections. Leave
+    # room for an overlapping rollout while retaining a bounded per-user limit.
+    maxConcurrentQueries: 20
   # Empty → defaults to "<clusterName>-clickhouse-headless" in the release
   # namespace (the operator-managed headless service).
   host: ""

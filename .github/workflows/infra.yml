@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "deploy/helm/babel/**"
+      - "deploy/helm/glossia/**"
       - "ops/deploy/helm/glossia-alloy/**"
       - "ops/deploy/values-*.yaml"
       - "ops/infra/helm/**"
@@ -17,6 +18,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "deploy/helm/babel/**"
+      - "deploy/helm/glossia/**"
       - "ops/deploy/helm/glossia-alloy/**"
       - "ops/deploy/values-*.yaml"
       - "ops/infra/helm/**"
@@ -160,6 +162,10 @@ jobs:
 
           validate_chart babel deploy/helm/babel babel \
             --values ops/deploy/values-babel-production.yaml
+
+          validate_chart glossia deploy/helm/glossia glossia \
+            --values ops/deploy/values-production.yaml \
+            --values ops/deploy/values-object-storage-hetzner.yaml
 
           mise exec -- helm lint ops/infra/helm/platform \
             --values ops/infra/helm/platform/values-hetzner.yaml \

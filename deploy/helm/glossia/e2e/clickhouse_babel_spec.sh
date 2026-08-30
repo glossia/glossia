@@ -15,6 +15,7 @@ Describe 'Glossia chart Babel ClickHouse access'
     The stdout should include 'GRANT SELECT ON glossia.*'
     The stdout should include 'readonly: 1'
     The stdout should include 'max_execution_time: 5'
+    The stdout should include 'max_concurrent_queries_for_user: 20'
     The stdout should include 'GLOSSIA_CLICKHOUSE_READONLY_URL:'
   End
 End
