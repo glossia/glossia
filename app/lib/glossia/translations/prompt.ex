@@ -12,7 +12,7 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
-  @version 3
+  @version 4
 
   @doc """
   Version of the prompt contract used in translation lockfiles.
@@ -50,6 +50,17 @@ defmodule Glossia.Translations.Prompt do
     lines =
       if structured?(format) do
         lines ++ ["Return valid #{format} only. Do not wrap the output in markdown fences."]
+      else
+        lines
+      end
+
+    lines =
+      if format == "markdown" do
+        lines ++
+          [
+            "Preserve the Markdown document structure exactly: retain every heading, block quote, list item, paragraph, and their order.",
+            "Do not combine, split, omit, or add Markdown blocks, even when making the translated prose read naturally."
+          ]
       else
         lines
       end
@@ -141,6 +152,16 @@ defmodule Glossia.Translations.Prompt do
           [
             "",
             "The reassembled document previously failed validation: #{last_error}\nReturn a corrected translation of only this supplied segment. Preserve every required token present in this segment."
+          ]
+      else
+        parts
+      end
+
+    parts =
+      if markdown_structure_error?(last_error) do
+        parts ++
+          [
+            "Do not alter the Markdown structure. Keep every heading, block quote, list item, paragraph, and its order exactly as in the supplied segment."
           ]
       else
         parts
@@ -242,6 +263,12 @@ defmodule Glossia.Translations.Prompt do
   end
 
   defp structured?(format), do: format in @structured_formats
+
+  defp markdown_structure_error?(value) when is_binary(value) do
+    String.contains?(String.downcase(value), "markdown changed the document structure")
+  end
+
+  defp markdown_structure_error?(_value), do: false
 
   defp present?(value), do: trimmed(value) != ""
 

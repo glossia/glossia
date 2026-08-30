@@ -25,7 +25,9 @@ defmodule Glossia.Translations.PromptTest do
                Translate the content from English to Spanish (es).
                Preserve code blocks, inline code, URLs, placeholders, lists, and headings.
                Copy every Glossia protected token marker byte-for-byte exactly once.
-               Return only the translated content. Do not add commentary or markdown fences.\
+               Return only the translated content. Do not add commentary or markdown fences.
+               Preserve the Markdown document structure exactly: retain every heading, block quote, list item, paragraph, and their order.
+               Do not combine, split, omit, or add Markdown blocks, even when making the translated prose read naturally.\
                """
     end
 
@@ -167,6 +169,20 @@ defmodule Glossia.Translations.PromptTest do
                "\n\nThe reassembled document previously failed validation: invalid YAML at line 2"
 
       assert prompt =~ "Return a corrected translation of only this supplied segment."
+    end
+
+    test "adds Markdown structure repair guidance after a structure validation error" do
+      prompt =
+        Prompt.build_user_prompt(
+          "English",
+          "de",
+          "German",
+          "## Heading\n\nParagraph.",
+          "translated Markdown changed the document structure at document.1"
+        )
+
+      assert prompt =~ "Do not alter the Markdown structure."
+      assert prompt =~ "Keep every heading, block quote, list item, paragraph, and its order"
     end
 
     test "ignores a blank previous error" do

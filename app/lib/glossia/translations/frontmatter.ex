@@ -38,7 +38,7 @@ defmodule Glossia.Translations.Frontmatter do
   @merge_fields ~w(source_language model validation sources targets target_path output
                    translate exclude preserve frontmatter prompt check_cmd check_cmds retries)a
 
-  @default_retries 2
+  @default_retries 3
 
   @type t :: %Frontmatter{}
 

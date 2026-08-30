@@ -105,7 +105,7 @@ defmodule Glossia.Translations.FrontmatterTest do
       assert hd(rule.sources).pattern == "docs/**/*.md"
       assert rule.targets["es"] == "Spanish"
       assert rule.output == "docs/i18n/{locale}/{relpath}"
-      assert rule.retries == 2
+      assert rule.retries == 3
       assert rule.frontmatter == :preserve
     end
 
