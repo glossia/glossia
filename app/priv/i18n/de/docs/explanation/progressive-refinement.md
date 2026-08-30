@@ -1,27 +1,28 @@
 %{
-  title: "Schrittweise Verfeinerung",
-  summary: "Warum die Qualität von Inhalten im Laufe der Zeit konvergiert und nicht in einem einzigen Durchgang.",
+  title: "Progressive Verfeinerung",
+  summary: "Warum sich die Inhaltsqualität im Laufe der Zeit verbessert, nicht in einem einzigen Durchgang.",
   category: "Erklärung",
   order: 1
 }
 ---
-Erste Entwürfe von [großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind strukturell korrekt, lassen jedoch möglicherweise Nuancen, Tonalität oder fachspezifische Formulierungen vermissen. Das ist beabsichtigt. Glossia behandelt die Erstellung von Inhalten genauso, wie Softwareteams Code behandeln: eine funktionierende Version veröffentlichen, diese überprüfen und iterativ verbessern.
+Erste Entwürfe von [large language models](https://en.wikipedia.org/wiki/Large_language_model) sind strukturell korrekt, können aber Nuancen, Tonalität oder domänenspezifische Formulierungen übersehen. Das ist so konzipiert. Glossia behandelt die Inhaltsgenerierung genauso, wie Software-Teams Code: Veröffentlichen Sie eine funktionierende Version, überprüfen Sie diese und verbessern Sie sie iterativ.
 
-## Der Optimierungszyklus
+## Der Verfeinerungszyklus
 
-1. **Entwurf**: Glossia erstellt einen strukturell validen ersten Entwurf basierend auf Ihren Quelldateien und dem Kontext in `GLOSSIA.md`.
-2. **Review**: Ihr Team markiert Probleme über Pull-Requests und Diffs - derselbe Arbeitsablauf, den Sie bereits für Code verwenden.
-3. **Optimieren**: Aktualisierte Kontextdateien, Korrekturen der Terminologie und Review-Feedback fließen in den nächsten Durchlauf ein.
-4. **Konvergieren**: Jeder Zyklus verringert den Abstand zur produktionsreifen Qualität. Das System lernt die Stimme Ihres Produkts durch den von Ihnen bereitgestellten Kontext.
+1. **Entwurf**: Glossia generiert einen strukturell gültigen Erstentwurf basierend auf Ihren Quelldateien und dem Kontext in `GLOSSIA.md`.
+2. **Überprüfung**: Ihr Team meldet Probleme über Pull Requests und Diffs, den gleichen Workflow, den Sie bereits für Code nutzen.
+3. **Verfeinerung**: Aktualisierte Kontextdateien, terminologische Korrekturen und Rückmeldungen aus der Überprüfung fließen in den nächsten Durchlauf ein.
+4. **Konvergenz**: Jeder Zyklus schließt den Abstand zur Produktionsqualität ein. Das System lernt die Stimme Ihres Produkts durch den Kontext, den Sie bereitstellen.
 
-## Warum dies funktioniert
+## Warum das funktioniert
 
-Die entscheidende Erkenntnis ist, dass sich Kontext summiert. Jeder Review-Kommentar, der zu einer aktualisierten `GLOSSIA.md` oder einem korrigierten Terminologie-Eintrag führt, verbessert alle zukünftigen Durchläufe und nicht nur die Datei, die das Review ausgelöst hat.
+Der Schlüsselaspekt ist, dass sich Kontext ansammelt. Jeder Review-Kommentar, der zu einem aktualisierten `GLOSSIA.md` oder einer korrigierten Terminologietradition führt, verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die den Review ausgelöst hat.
 
-Dies folgt dem gleichen Prinzip wie Kaizen in der Fertigung und die schrittweise Annäherung im Ingenieurwesen: Beginnen Sie mit einer ausreichend guten Basis und verbessern Sie diese systematisch unter Einbeziehung menschlicher Beurteilung.
+Dies folgt demselben Prinzip hinter Kaizen in der Fertigung und schrittweiser Annäherung in der Technik: Starten Sie mit einer ausreichenden Basislinie und verbessern Sie sie systematisch mit menschlicher Einschätzung im Prozess.
 
-## Praktische Auswirkungen
+## Praktische Implikationen
 
-- Erwarten Sie im ersten Durchlauf keine Perfektion. Planen Sie ein oder zwei Review-Zyklen ein.
-- Investieren Sie Zeit in das Schreiben klarer Kontextdateien. Sie sind der Hebel mit der größten Wirkung, den Sie ansetzen können.
-- Nutzen Sie die Server-Übersetzungssitzung, um zu verfolgen, welche Dateien übersetzt, übersprungen oder fehlgeschlagen sind.
+- Erwarten Sie keine Perfektion beim ersten Durchlauf. Planen Sie einen oder zwei Review-Zyklen ein.
+- Investieren Sie Zeit in das Schreiben klarer Kontextdateien. Sie sind die stärkste Verbesserung, die Sie vornehmen können.
+- Nutzen Sie die Serverübersetzungssitzung, um zu verfolgen, welche Dateien übersetzt, übersprungen oder fehlgeschlagen sind.
+  The reassembled document previously failed validation: translated Markdown changed the document structure at document.8.3.1: expected 3 children, got 1

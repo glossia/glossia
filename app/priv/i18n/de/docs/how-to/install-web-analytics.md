@@ -1,21 +1,21 @@
 %{
-  title: "Web-Analyse installieren",
-  summary: "Fügen Sie das Glossia Web-SDK mit einer einzigen Zeile HTML oder über npm zu Ihrer Website hinzu und beginnen Sie mit der Erfassung von Lokalisierungssignalen.",
+  title: "Web-Analytik installieren",
+  summary: "Fügen Sie das Glossia Web-SDK mit einer Zeile HTML oder über npm auf Ihrer Website hinzu und sammeln Sie Lokalisierungssignale.",
   category: "how-to",
   order: 1
 }
 ---
-Diese Anleitung setzt voraus, dass Sie ein Glossia-Projekt haben, dessen Website-Domain in den Analytics-Einstellungen des Projekts konfiguriert ist. Die Erfassung wird über diese Domain identifiziert, sodass kein Schlüssel oder Secret kopiert werden muss.
+Diese Anleitung geht von einem Glossia-Projekt aus, dessen Site-Domain in den Analytics-Einstellungen des Projekts konfiguriert ist. Die Erfassung wird durch diese Domain identifiziert, sodass kein Schlüssel oder Geheimnis kopiert werden muss.
 
 ## Option A: script-Tag
 
-Fügen Sie dieses Snippet auf jeder Seite ein, idealerweise im `<head>`:
+Fügen Sie diesen Codeausschnitt jeder Seite hinzu, idealerweise im `<head>`:
 
 ```html
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-Das SDK initialisiert sich automatisch, sendet beim Laden einen Seitenaufruf und erfasst nachfolgende Seitenaufrufe bei der clientseitigen Navigation in Single-Page-Anwendungen. `data-domain` wird standardmäßig auf `window.location.hostname` gesetzt, wenn es ausgelassen wird, sodass Sie es auf einer Website mit nur einer Domain weglassen können. Um einen benutzerdefinierten Erfassungsendpunkt zu verwenden, fügen Sie `data-endpoint="https://collect.your-host.com"` hinzu.
+Das SDK initialisiert sich automatisch, sendet einen Seitenbesuch beim Laden und protokolliert nachfolgende Seitenbesuche bei der clientseitigen Navigation in Single-Page-Apps. `data-domain` ist standardmäßig auf `window.location.hostname` gesetzt, wenn es weggelassen wird, sodass Sie es auf einer Single-Domain-Website weglassen können. Für einen benutzerdefinierten Collection-Endpunkt können Sie `data-endpoint="https://collect.your-host.com"` hinzufügen.
 
 ## Option B: npm
 
@@ -25,7 +25,7 @@ Installieren Sie das Paket:
 npm install @glossia/web
 ```
 
-Initialisieren Sie es einmalig im Einstiegspunkt Ihrer Anwendung:
+Initialisieren Sie es einmal in Ihrem Anwendungseinstiegscode:
 
 ```ts
 import glossia from "@glossia/web";
@@ -33,20 +33,20 @@ import glossia from "@glossia/web";
 glossia.init();
 ```
 
-Der `domain` wird aus `window.location.hostname` abgeleitet, sodass das SDK Daten für das für Ihre Website registrierte Projekt erfasst. Übergeben Sie `{ domain: "example.com" }`, um dies zu überschreiben, beispielsweise um Ereignisse von einem Staging-Origin an dasselbe Projekt wie in der Produktionsumgebung zu senden.
+Der `domain` wird aus `window.location.hostname` abgeleitet, sodass das SDK gemäß dem für Ihre Seite registrierten Projekt protokolliert. Übergeben Sie `{ domain: "example.com" }`, um dies zu überschreiben, z. B., um Events von einer Staging-Umgebung an dasselbe Projekt wie in der Produktion zu senden.
 
-Um ein benutzerdefiniertes Ereignis aufzuzeichnen, beispielsweise eine Registrierung:
+Um ein benutzerdefiniertes Event aufzuzeichnen, z. B. eine Anmeldung:
 
 ```ts
 glossia.track("signup");
 ```
 
-## Funktionsfähigkeit überprüfen
+## Überprüfen Sie die Funktionsweise
 
-1. Öffnen Sie Ihre Website in einem Browser.
-2. Öffnen Sie den Netzwerk-Tab und bestätigen Sie, dass eine `POST`-Anfrage an `/api/analytics/events` den Status `202 Accepted` zurückgibt.
-3. Innerhalb einer Minute erscheint der Seitenaufruf im Analytics-Dashboard Ihres Projekts.
+1. Öffnen Sie Ihre Seite im Browser.
+2. Öffnen Sie das Netzwerk-Tab und bestätigen Sie, dass eine `POST`-Anfrage an `/api/analytics/events` mit `202 Accepted` beantwortet wird.
+3. Innerhalb einer Minute erscheint der Seitenbesuch im Analytics-Dashboard Ihres Projekts.
 
-## Was erfasst wird
+## Was gesammelt wird
 
-Der Browser sendet die Seiten-URL, den Referrer, `navigator.languages`, die Zeitzone und die Bildschirmbreite sowie eine Sitzungs-ID pro Tab. Der Server fügt das Land hinzu (aus GeoIP) und berechnet die Lokalisierungslücke im Vergleich zu den Zielsprachen Ihres Projekts. Es werden keine Cookies gesetzt und es wird kein Fingerprinting durchgeführt.
+Der Browser sendet die Seiten-URL, Referrer, `navigator.languages`, Zeitzone und Bildschirmbreite sowie eine pro Tab bestimmte Session-ID. Der Server fügt das Land (aus GeoIP) hinzu und berechnet die Lokalisierungsabstand zu den Zielsprachen Ihres Projekts. Es werden keine Cookies gesetzt und es wird nicht Fingerprinting durchgeführt.
