@@ -12,5 +12,6 @@ defmodule GlossiaWeb.BabelInternalRouter do
     pipe_through :babel_internal_api
 
     post "/db/query", BabelDatabaseController, :query
+    post "/clickhouse/query", BabelClickHouseController, :query
   end
 end

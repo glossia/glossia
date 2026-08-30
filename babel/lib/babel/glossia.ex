@@ -16,13 +16,21 @@ defmodule Babel.Glossia do
   end
 
   def query(sql, opts \\ []) when is_binary(sql) do
+    query("/api/internal/babel/db/query", sql, opts)
+  end
+
+  def clickhouse_query(sql, opts \\ []) when is_binary(sql) do
+    query("/api/internal/babel/clickhouse/query", sql, opts)
+  end
+
+  defp query(path, sql, opts) do
     body =
       case Keyword.get(opts, :limit) do
         limit when is_integer(limit) and limit > 0 -> %{"query" => sql, "limit" => limit}
         _ -> %{"query" => sql}
       end
 
-    request(:post, "/api/internal/babel/db/query", [json: body], opts)
+    request(:post, path, [json: body], opts)
   end
 
   defp request(method, path, request_opts, client_opts) do

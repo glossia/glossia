@@ -487,6 +487,10 @@ if config_env() == :prod and not runner_child? do
       For example: http://localhost:8123/glossia
       """
 
+  # Production routes read workloads through a distinct ClickHouse account.
+  # Local development and tests keep using the standard local URL.
+  clickhouse_readonly_url = System.get_env("GLOSSIA_CLICKHOUSE_READONLY_URL") || clickhouse_url
+
   clickhouse_pool_size =
     if runner_child? do
       String.to_integer(System.get_env("GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE") || "1")
@@ -495,7 +499,7 @@ if config_env() == :prod and not runner_child? do
     end
 
   config :glossia, Glossia.ClickHouseRepo,
-    url: clickhouse_url,
+    url: clickhouse_readonly_url,
     pool_size: clickhouse_pool_size,
     queue_target: 5000,
     queue_interval: 1000,

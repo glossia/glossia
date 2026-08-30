@@ -1,0 +1,23 @@
+{{- if and .Values.externalSecrets.enabled .Values.clickhouse.babelReadonly.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.clickhouse.babelReadonly.passwordSecretName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.clickhouse.babelReadonly.passwordSecretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        {{ .Values.clickhouse.babelReadonly.passwordSecretKey }}: {{ printf "{{ .%s }}" .Values.externalSecrets.clickhouseBabel.passwordField | quote }}
+  data:
+    - secretKey: {{ .Values.externalSecrets.clickhouseBabel.passwordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.clickhouseBabel.itemKey .Values.externalSecrets.clickhouseBabel.passwordField | quote }}
+{{- end }}

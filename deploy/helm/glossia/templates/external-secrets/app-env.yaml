@@ -17,6 +17,9 @@ spec:
       data:
         GLOSSIA_DATABASE_URL: {{ printf "ecto://%s:{{ .%s | urlquery }}@%s/%s" .Values.postgres.user .Values.externalSecrets.postgres.passwordField (include "glossia.postgresHost" .) .Values.postgres.database | quote }}
         GLOSSIA_CLICKHOUSE_URL: {{ printf "http://%s:%d/%s" (include "glossia.clickhouseHost" .) (int .Values.clickhouse.port) .Values.clickhouse.database | quote }}
+        {{- if .Values.clickhouse.babelReadonly.enabled }}
+        GLOSSIA_CLICKHOUSE_READONLY_URL: {{ printf "http://%s:{{ .%s | urlquery }}@%s:%d/%s" .Values.clickhouse.babelReadonly.username .Values.externalSecrets.clickhouseBabel.passwordField (include "glossia.clickhouseHost" .) (int .Values.clickhouse.port) .Values.clickhouse.database | quote }}
+        {{- end }}
         {{- range $key, $remoteKey := .Values.externalSecrets.appEnv.fields }}
         {{- if $remoteKey }}
         {{ $key }}: {{ printf "{{ .%s }}" $remoteKey | quote }}
@@ -33,4 +36,9 @@ spec:
     - secretKey: {{ .Values.externalSecrets.postgres.passwordField }}
       remoteRef:
         key: {{ printf "%s/%s" .Values.externalSecrets.postgres.itemKey .Values.externalSecrets.postgres.passwordField | quote }}
+    {{- if .Values.clickhouse.babelReadonly.enabled }}
+    - secretKey: {{ .Values.externalSecrets.clickhouseBabel.passwordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.clickhouseBabel.itemKey .Values.externalSecrets.clickhouseBabel.passwordField | quote }}
+    {{- end }}
 {{- end }}
