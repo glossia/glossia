@@ -495,6 +495,30 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "retries a Markdown structure failure one source block at a time", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "[Guide](https://example.com/guide)\n\nParagraph.")
+
+      stub_stream(fn _account, payload, _on_event ->
+        case String.trim(payload["source_content"]) do
+          "[Guide](https://example.com/guide)\n\nParagraph." ->
+            translated("Guide\n\nParagraph.")
+
+          "[Guide](https://example.com/guide)" ->
+            translated("[Leitfaden](https://example.com/guide)")
+
+          "Paragraph." ->
+            translated("Absatz.")
+        end
+      end)
+
+      item = work_item(%{source_abs: source, retries: 1})
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text == "[Leitfaden](https://example.com/guide)\n\nAbsatz."
+    end
+
+    @tag :tmp_dir
     test "reassembles Markdown structure while keeping placeholders opaque", %{
       tmp_dir: dir
     } do

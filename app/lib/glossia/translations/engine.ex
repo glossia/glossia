@@ -165,9 +165,61 @@ defmodule Glossia.Translations.Engine do
             {:halt, {:error, reason}}
 
           {:preservation_error, message} ->
-            {:halt, {:preservation_error, message}}
+            case recover_markdown_segment(state, segment, segment_index, segment_count, message) do
+              {:ok, recovered} ->
+                {:cont,
+                 {:ok,
+                  %{
+                    segments: acc.segments ++ recovered.segments,
+                    model: recovered.model,
+                    provider: recovered.provider
+                  }}}
+
+              :error ->
+                {:halt, {:preservation_error, message}}
+            end
         end
     end)
+  end
+
+  # A model occasionally combines or drops Markdown blocks even after the
+  # segment-level correction prompt. Re-run only a multi-block failed segment
+  # as individual source blocks, retaining both the document structure and all
+  # earlier successful segment output.
+  defp recover_markdown_segment(state, segment, index, count, message) do
+    segments = isolate_markdown_blocks([segment])
+
+    if markdown_structure_error?(state, message) and length(segments) > 1 do
+      recovered_count = count + length(segments) - 1
+
+      segments
+      |> Enum.with_index(index)
+      |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
+        {recovery_segment, recovery_index}, {:ok, acc} ->
+          case translate_segment(
+                 state,
+                 recovery_segment,
+                 recovery_index,
+                 recovered_count,
+                 1,
+                 message
+               ) do
+            {:ok, text, result} ->
+              {:cont,
+               {:ok,
+                %{
+                  segments: acc.segments ++ [%{kind: recovery_segment.kind, text: text}],
+                  model: result.model,
+                  provider: result.provider
+                }}}
+
+            _ ->
+              {:halt, :error}
+          end
+      end)
+    else
+      :error
+    end
   end
 
   # A long segment carrying many protected markers occasionally comes back with
@@ -336,7 +388,38 @@ defmodule Glossia.Translations.Engine do
   defp retry_validation(state, message) do
     message = to_string(message)
     state.on_event.({:validation_error, message})
+
+    state =
+      if markdown_structure_error?(state, message) do
+        %{state | segments: isolate_markdown_blocks(state.segments)}
+      else
+        state
+      end
+
     run_attempt(%{state | attempt: state.attempt + 1, last_error: message})
+  end
+
+  # A model occasionally combines or drops Markdown blocks even after an
+  # explicit repair prompt. Retrying only the affected document as individual
+  # source blocks lets Markdown.reconcile/2 retain its source structure while
+  # still taking the model's translation for each piece of prose. Successful
+  # documents keep their normal, larger segments.
+  defp markdown_structure_error?(%{work_item: %{format: "markdown"}}, message) do
+    String.contains?(String.downcase(message), "markdown changed the document structure")
+  end
+
+  defp markdown_structure_error?(_state, _message), do: false
+
+  defp isolate_markdown_blocks(segments) do
+    Enum.flat_map(segments, fn
+      %{kind: "frontmatter"} = segment ->
+        [segment]
+
+      %{content: content} = segment ->
+        content
+        |> ContentSegments.split(max_segment_bytes: 1)
+        |> Enum.map(&%{segment | content: &1})
+    end)
   end
 
   defp restore_protections(text, protections) do
