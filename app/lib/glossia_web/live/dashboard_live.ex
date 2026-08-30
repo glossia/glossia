@@ -24,6 +24,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   @tone_options ~w(casual formal playful authoritative neutral)
   @formality_options ~w(informal neutral formal very_formal)
+  @translation_refresh_interval_ms :timer.seconds(3)
 
   # ---------------------------------------------------------------------------
   # Mount
@@ -71,6 +72,7 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     socket = maybe_redirect_to_suggestion_finalize(socket, params)
+    socket = schedule_translation_refresh(socket)
 
     {:noreply, socket}
   end
@@ -3301,6 +3303,37 @@ defmodule GlossiaWeb.DashboardLive do
 
   def handle_info({:translation_session_publication, session}, socket) do
     {:noreply, assign(socket, session: session)}
+  end
+
+  # Translation jobs run in their own Kubernetes pod. Progress broadcasts are
+  # delivered immediately when that pod is connected to this LiveView's PubSub
+  # mesh, while this bounded refresh makes the status and durable progress
+  # reliable when a pod joins late or the mesh is being restarted.
+  def handle_info(:refresh_translation_session, socket) do
+    socket =
+      case socket.assigns.live_action do
+        :project_session ->
+          session = socket.assigns.session
+
+          socket
+          |> assign(
+            session:
+              Glossia.TranslationSessions.get_session!(
+                socket.assigns.account,
+                socket.assigns.project,
+                session.id
+              )
+          )
+          |> assign_translation_progress(translation_session_progress(session))
+
+        :project_translations ->
+          apply_url_params_translations(socket, socket.assigns[:settings_query_params] || %{})
+
+        _ ->
+          socket
+      end
+
+    {:noreply, schedule_translation_refresh(socket)}
   end
 
   def handle_info({:setup_status, status}, socket) do
@@ -7317,15 +7350,11 @@ defmodule GlossiaWeb.DashboardLive do
       <div class="card" data-part="overview">
         <div data-part="overview-header">
           <div data-part="overview-primary">
-            <span class={["badge", "badge-#{@session.status}"]} data-part="status">
-              <span
-                :if={translation_session_in_flight?(@session)}
-                data-part="spinner"
-                aria-hidden="true"
-              >
-              </span>
-              {@session.status}
-            </span>
+            <Noora.Badge.status_badge
+              data-part="status"
+              status={translation_session_status_badge(@session.status)}
+              label={translation_session_status_label(@session.status)}
+            />
             <%= if @session.source_language do %>
               <span data-part="languages">
                 {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
@@ -7668,6 +7697,33 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_session_progress(session),
     do: Glossia.TranslationSessions.session_progress(session.id)
+
+  defp schedule_translation_refresh(socket) do
+    if ref = socket.assigns[:translation_session_refresh_ref] do
+      Process.cancel_timer(ref)
+    end
+
+    if connected?(socket) and translation_refresh_active?(socket) do
+      ref =
+        Process.send_after(self(), :refresh_translation_session, @translation_refresh_interval_ms)
+
+      assign(socket, translation_session_refresh_ref: ref)
+    else
+      assign(socket, translation_session_refresh_ref: nil)
+    end
+  end
+
+  defp translation_refresh_active?(%{
+         assigns: %{live_action: :project_session, session: session}
+       }),
+       do: translation_session_in_flight?(session)
+
+  defp translation_refresh_active?(%{
+         assigns: %{live_action: :project_translations, translations: sessions}
+       }),
+       do: Enum.any?(sessions, &translation_session_in_flight?/1)
+
+  defp translation_refresh_active?(_socket), do: false
 
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")

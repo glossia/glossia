@@ -36,6 +36,8 @@ defmodule Glossia.Translations.RepositoryRun do
   @assessment_progress_interval 25
   @completed_output_preview_length 2_000
   @completed_output_preview_bytes 8_000
+  @default_translation_concurrency 4
+  @seq_key :translation_progress_seq
 
   @doc """
   Clones `repository`, translates `locales`, and returns `{:ok, changes}`.
@@ -139,7 +141,7 @@ defmodule Glossia.Translations.RepositoryRun do
     # Continues the numbering past the `run_started` that the session's move to
     # "running" already recorded, so this run's events are never mistaken for
     # ones a viewer has already folded.
-    seed_seq(Keyword.get(opts, :seq_start, 0))
+    seq_counter = seed_seq(Keyword.get(opts, :seq_start, 0))
 
     project = session_project(session)
 
@@ -167,28 +169,18 @@ defmodule Glossia.Translations.RepositoryRun do
       )
 
       result =
-        prepared_items
-        |> Enum.reject(&(&1.status == :up_to_date))
-        |> Enum.reduce_while({:ok, []}, fn prepared_item, {:ok, failures} ->
-          # Marks the session alive between files. A translation that stops
-          # heartbeating is one whose pod is gone, and that is the only signal
-          # anything has that a detached run died.
-          heartbeat(session, progress_node)
-
-          case apply_prepared_item(
-                 session,
-                 account,
-                 repo_path,
-                 prepared_item,
-                 total,
-                 progress_node,
-                 credential_node,
-                 after_item_completed
-               ) do
-            :ok -> {:cont, {:ok, failures}}
-            {:error, failure} -> {:cont, {:ok, [failure | failures]}}
-          end
-        end)
+        translate_prepared_items(
+          prepared_items,
+          session,
+          account,
+          repo_path,
+          total,
+          progress_node,
+          credential_node,
+          after_item_completed,
+          seq_counter,
+          opts
+        )
 
       case result do
         {:ok, failures} ->
@@ -201,6 +193,121 @@ defmodule Glossia.Translations.RepositoryRun do
           end
       end
     end
+  end
+
+  # Files are independent after planning: each writes a distinct localized
+  # output and lockfile. Run several at once so a slow model response cannot
+  # leave the rest of a repository idle. The final collection and publication
+  # still happen only after every item settles, preserving one commit and one
+  # pull request for the session.
+  defp translate_prepared_items(
+         prepared_items,
+         session,
+         account,
+         repo_path,
+         total,
+         progress_node,
+         credential_node,
+         after_item_completed,
+         seq_counter,
+         opts
+       ) do
+    items = Enum.reject(prepared_items, &(&1.status == :up_to_date))
+
+    case translation_concurrency(opts) do
+      1 ->
+        Enum.reduce_while(items, {:ok, []}, fn prepared_item, {:ok, failures} ->
+          case translate_prepared_item(
+                 prepared_item,
+                 session,
+                 account,
+                 repo_path,
+                 total,
+                 progress_node,
+                 credential_node,
+                 after_item_completed,
+                 seq_counter
+               ) do
+            :ok -> {:cont, {:ok, failures}}
+            {:error, failure} -> {:cont, {:ok, [failure | failures]}}
+          end
+        end)
+
+      concurrency ->
+        items
+        |> Task.async_stream(
+          fn prepared_item ->
+            translate_prepared_item(
+              prepared_item,
+              session,
+              account,
+              repo_path,
+              total,
+              progress_node,
+              credential_node,
+              after_item_completed,
+              seq_counter
+            )
+          end,
+          max_concurrency: concurrency,
+          ordered: false,
+          timeout: :infinity
+        )
+        |> Enum.reduce_while({:ok, []}, fn
+          {:ok, :ok}, {:ok, failures} ->
+            {:cont, {:ok, failures}}
+
+          {:ok, {:error, failure}}, {:ok, failures} ->
+            {:cont, {:ok, [failure | failures]}}
+
+          {:exit, reason}, _result ->
+            {:halt, {:error, {:translation_task_failed, reason}}}
+        end)
+    end
+  end
+
+  defp translate_prepared_item(
+         prepared_item,
+         session,
+         account,
+         repo_path,
+         total,
+         progress_node,
+         credential_node,
+         after_item_completed,
+         seq_counter
+       ) do
+    # Task processes do not inherit the run's process dictionary. The atomic
+    # counter gives each concurrent event a unique, monotonic sequence while
+    # keeping the existing live and durable progress protocol unchanged.
+    Process.put(@seq_key, seq_counter)
+
+    # Marks the session alive between files. A translation that stops
+    # heartbeating is one whose pod is gone, and that is the only signal
+    # anything has that a detached run died.
+    heartbeat(session, progress_node)
+
+    apply_prepared_item(
+      session,
+      account,
+      repo_path,
+      prepared_item,
+      total,
+      progress_node,
+      credential_node,
+      after_item_completed
+    )
+  end
+
+  defp translation_concurrency(opts) do
+    configured =
+      Keyword.get(
+        opts,
+        :translation_concurrency,
+        Application.get_env(:glossia, :translation_concurrency, @default_translation_concurrency)
+      )
+
+    if is_integer(configured) and configured > 0, do: configured, else: 1
   end
 
   # Plan the whole repository once (walking the filesystem and parsing the
@@ -798,8 +905,6 @@ defmodule Glossia.Translations.RepositoryRun do
   # continues the numbering rather than restarting it. A viewer folding the
   # persisted prefix and the live stream together uses it to ignore what it has
   # already applied.
-  @seq_key :translation_progress_seq
-
   defp broadcast(session, event, progress_node) do
     event = Map.put(event, :seq, next_seq())
     TranslationSessions.broadcast_session_event(session, event, progress_node)
@@ -816,14 +921,20 @@ defmodule Glossia.Translations.RepositoryRun do
   end
 
   defp next_seq do
-    seq = (Process.get(@seq_key) || 0) + 1
-    Process.put(@seq_key, seq)
-    seq
+    case Process.get(@seq_key) do
+      counter when is_reference(counter) -> :atomics.add_get(counter, 1, 1)
+      _ -> 1
+    end
   end
 
   # Seeded on the node that owns the run, which is the one with a database. A
   # FLAME runner has neither Repo nor PubSub, so it cannot look this up itself.
-  defp seed_seq(seq_start), do: Process.put(@seq_key, seq_start)
+  defp seed_seq(seq_start) do
+    counter = :atomics.new(1, [])
+    :ok = :atomics.put(counter, 1, seq_start)
+    Process.put(@seq_key, counter)
+    counter
+  end
 
   # Model thinking can contain thousands of free-form chunks per segment. It is
   # not part of the progress contract, so do not send it through the synchronous

@@ -73,6 +73,70 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     refute has_element?(view, "#cancel-translation-session")
   end
 
+  test "automatically refreshes the session status while a translation is active", %{conn: conn} do
+    user =
+      TestHelpers.create_user("translation-status-refresh@test.com", "translation-status-refresh")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "status-refresh",
+        name: "Status refresh",
+        github_repo_full_name: "example/status-refresh"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    {:ok, _completed} = TranslationSessions.update_session_status(session, "completed")
+    send(view.pid, :refresh_translation_session)
+
+    assert has_element?(
+             view,
+             "#translation-session [data-part='status'][data-status='success']",
+             "Completed"
+           )
+  end
+
+  test "automatically refreshes active sessions in the translations list", %{conn: conn} do
+    user =
+      TestHelpers.create_user("translation-list-refresh@test.com", "translation-list-refresh")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "list-refresh",
+        name: "List refresh",
+        github_repo_full_name: "example/list-refresh"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/translations")
+
+    {:ok, _completed} = TranslationSessions.update_session_status(session, "completed")
+    send(view.pid, :refresh_translation_session)
+
+    assert has_element?(view, "#translations-table [data-status='success']", "Completed")
+  end
+
   test "does not render a legacy pull request event beside the current pull request", %{
     conn: conn
   } do
@@ -132,7 +196,10 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     {:ok, view, _html} =
       live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
-    assert has_element?(view, "#translation-session [data-part='status'] [data-part='spinner']")
+    assert has_element?(
+             view,
+             "#translation-session [data-part='status'][data-status='in_progress']"
+           )
 
     TranslationSessions.broadcast_session_event(session, %{
       type: "item_started",
@@ -223,7 +290,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     {:ok, _session} = TranslationSessions.update_session_status(session, "completed")
 
-    refute has_element?(view, "#translation-session [data-part='spinner']")
+    assert has_element?(view, "#translation-session [data-part='status'][data-status='success']")
   end
 
   test "a model that stops at its output limit is reported as such", %{conn: conn} do

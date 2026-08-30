@@ -70,6 +70,11 @@ config :phoenix,
 
 config :glossia, Oban, testing: :inline
 
+# Repository-run tests use the SQL sandbox and process-local model stubs.
+# Keep their deterministic single-process execution while production runs
+# independent files in parallel.
+config :glossia, :translation_concurrency, 1
+
 config :glossia, Glossia.OgImage, enabled: false
 
 config :glossia, Glossia.Sandbox, reaper_enabled: false
