@@ -93,6 +93,8 @@ spec:
           allow_ddl: 0
           allow_introspection_functions: 0
           join_algorithm: direct,parallel_hash,hash
+          input_format_binary_read_json_as_string: 1
+          output_format_binary_write_json_as_string: 1
           max_execution_time: {{ .Values.clickhouse.babelReadonly.maxExecutionTimeSeconds | int }}
           max_result_rows: {{ .Values.clickhouse.babelReadonly.maxResultRows | int }}
           result_overflow_mode: break
