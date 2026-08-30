@@ -188,6 +188,10 @@ postgres:
       effect: NoSchedule
 
 clickhouse:
+  babelReadonly:
+    enabled: true
+    allowedNetworks:
+      - 192.168.0.0/16
   # Three-node Keeper quorum. At one replica the operator's PDB is
   # maxUnavailable: 0, so the sole pod is unevictable and deadlocks node
   # drains, and a single Keeper is a coordination SPOF for ClickHouse
@@ -272,6 +276,9 @@ externalSecrets:
   postgres:
     itemKey: /kubernetes
     passwordField: POSTGRES_PASSWORD
+  clickhouseBabel:
+    itemKey: /kubernetes
+    passwordField: BABEL_CLICKHOUSE_PASSWORD
   smolanalytics:
     itemKey: /kubernetes
     writeKeyField: SMOLANALYTICS_WRITE_KEY

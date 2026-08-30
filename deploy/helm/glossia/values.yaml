@@ -436,6 +436,23 @@ clickhouse:
   clusterName: glossia-clickhouse
   keeperName: glossia-keeper
   database: glossia
+  # The private Babel endpoint executes through this distinct server-side
+  # ClickHouse account. Babel never receives its password.
+  babelReadonly:
+    enabled: false
+    username: glossia_babel_clickhouse_ro
+    passwordSecretName: glossia-clickhouse-babel
+    passwordSecretKey: password
+    profile: glossia_babel_readonly
+    allowedNetworks:
+      - 0.0.0.0/0
+    maxExecutionTimeSeconds: 5
+    maxResultRows: 201
+    maxResultBytes: 1048576
+    maxRowsToRead: 100000
+    maxBytesToRead: 52428800
+    maxMemoryBytes: 268435456
+    maxConcurrentQueries: 2
   # Empty → defaults to "<clusterName>-clickhouse-headless" in the release
   # namespace (the operator-managed headless service).
   host: ""
@@ -572,6 +589,11 @@ externalSecrets:
   postgres:
     itemKey: /glossia
     passwordField: POSTGRES_PASSWORD
+  # Password for the restricted ClickHouse user. It is made available only to
+  # the Glossia application and ClickHouse server, never to Babel.
+  clickhouseBabel:
+    itemKey: /glossia
+    passwordField: BABEL_CLICKHOUSE_PASSWORD
   # ExternalSecret for provider-neutral app object storage credentials. Enable
   # this together with objectStorage.enabled. The destination key names come
   # from objectStorage.accessKeyIdKey and objectStorage.secretAccessKeyKey.
