@@ -20,12 +20,13 @@ defmodule Glossia.Translations do
   """
 
   @supported_formats ~w(markdown json yaml po text)
-  # The in-cluster model gateway has one persistent-volume-backed replica. A
-  # configuration rollout can briefly make it unreachable while the replacement
-  # process starts, so keep transient failures alive for twenty seconds instead
-  # of exhausting every file in the first six.
-  @max_llm_attempts 5
+  # A singleton gateway performs a Recreate rollout, so a request can lose its
+  # connection while the replacement starts. Keep retrying transient provider
+  # failures for two minutes rather than treating a short gateway restart as a
+  # failed translation.
+  @max_llm_attempts 8
   @llm_retry_backoff_ms 2_000
+  @max_llm_retry_backoff_ms 30_000
 
   alias Glossia.Accounts.Account
   alias Glossia.Models.ModelIdentifier
@@ -142,7 +143,7 @@ defmodule Glossia.Translations do
 
         if attempt < @max_llm_attempts and
              Failure.retryable?(Failure.from({:llm_failed, reason}, provider)) do
-          Process.sleep(backoff_ms * attempt)
+          Process.sleep(retry_delay_ms(backoff_ms, attempt))
           notify_retry.(attempt + 1)
           with_retries(call, credential, notify_retry, backoff_ms, on_error, attempt + 1)
         else
@@ -150,6 +151,12 @@ defmodule Glossia.Translations do
           {:error, reason}
         end
     end
+  end
+
+  defp retry_delay_ms(backoff_ms, attempt) do
+    backoff_ms
+    |> Kernel.*(Integer.pow(2, attempt - 1))
+    |> min(@max_llm_retry_backoff_ms)
   end
 
   defp prepare(account, payload, opts \\ []) do

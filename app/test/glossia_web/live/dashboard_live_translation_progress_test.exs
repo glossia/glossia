@@ -73,6 +73,42 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     refute has_element?(view, "#cancel-translation-session")
   end
 
+  test "does not render a legacy pull request event beside the current pull request", %{
+    conn: conn
+  } do
+    user =
+      TestHelpers.create_user("translation-pull-request-event@test.com", "translation-pr-event")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "pull-request-event",
+        name: "Pull request event",
+        github_repo_full_name: "example/pull-request-event"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    legacy_pull_request_url = "https://github.com/example/pull-request-event/pull/42"
+
+    TranslationSessions.broadcast_session_event(session, %{
+      event_type: "pr_created",
+      content: legacy_pull_request_url
+    })
+
+    refute render(view) =~ legacy_pull_request_url
+  end
+
   test "a running session shows structured progress without model reasoning", %{conn: conn} do
     user = TestHelpers.create_user("translation-reasoning@test.com", "translation-reasoning")
 

@@ -1127,7 +1127,11 @@ defmodule GlossiaWeb.DashboardLive do
     end
 
     session = Glossia.TranslationSessions.get_session!(account, project, session_id)
-    events = Glossia.Ingestion.list_translation_session_events(session.id)
+
+    events =
+      session.id
+      |> Glossia.Ingestion.list_translation_session_events()
+      |> Enum.filter(&visible_translation_session_event?/1)
 
     socket =
       if connected?(socket) and session.status in ["pending", "running"] do
@@ -3266,8 +3270,12 @@ defmodule GlossiaWeb.DashboardLive do
 
       {:noreply, assign_translation_progress(socket, progress)}
     else
-      session_events = socket.assigns[:session_events] || []
-      {:noreply, assign(socket, session_events: session_events ++ [event])}
+      if visible_translation_session_event?(event) do
+        session_events = socket.assigns[:session_events] || []
+        {:noreply, assign(socket, session_events: session_events ++ [event])}
+      else
+        {:noreply, socket}
+      end
     end
   end
 
@@ -8039,6 +8047,14 @@ defmodule GlossiaWeb.DashboardLive do
     <% end %>
     """
   end
+
+  # The active pull request is shown in the session overview. Earlier releases
+  # also wrote raw pull request URLs to the event feed, which made checkpoint
+  # pull requests look like additional translation outputs. Retain those events
+  # for audit history without rendering them in the product interface.
+  defp visible_translation_session_event?(%{event_type: "pr_created"}), do: false
+  defp visible_translation_session_event?(%{"event_type" => "pr_created"}), do: false
+  defp visible_translation_session_event?(_event), do: true
 
   defp extract_session_tool_name(event) do
     metadata = event[:metadata] || Map.get(event, :metadata, "")

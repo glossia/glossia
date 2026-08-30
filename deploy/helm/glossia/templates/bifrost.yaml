@@ -38,7 +38,10 @@ spec:
         {{- include "glossia.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: gateway
       annotations:
-        checksum/bifrost-config: {{ include (print $.Template.BasePath "/bifrost-configmap.yaml") . | sha256sum }}
+        # Hash the generated configuration only. Hashing the whole ConfigMap
+        # also captures Helm's revision-specific chart label, which restarts
+        # this singleton gateway for every unrelated repository commit.
+        checksum/bifrost-config: {{ include "glossia.bifrostConfig" . | sha256sum }}
         checksum/bifrost-secret: {{ printf "%s:%s" .Values.bifrost.secretName .Values.bifrost.encryptionKeyKey | sha256sum }}
     spec:
       securityContext:

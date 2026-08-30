@@ -93,7 +93,7 @@ defmodule Glossia.TranslationsTest do
                Translations.translate_stream(account, payload(%{}), on_event, retry_backoff_ms: 0)
 
       assert Elixir.Agent.get(attempts, & &1) == 2
-      assert {:provider_retry, 2, 5} in Elixir.Agent.get(events, & &1)
+      assert {:provider_retry, 2, 8} in Elixir.Agent.get(events, & &1)
 
       # A streamed error fails the call by contract, so an attempt that is
       # about to be retried must not publish one to subscribers.
@@ -119,8 +119,8 @@ defmodule Glossia.TranslationsTest do
 
       Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts ->
         case Elixir.Agent.get_and_update(attempts, &{&1 + 1, &1 + 1}) do
-          attempt when attempt < 5 -> {:error, %{reason: "connection refused"}}
-          5 -> {:ok, :response}
+          attempt when attempt < 8 -> {:error, %{reason: "connection refused"}}
+          8 -> {:ok, :response}
         end
       end)
 
@@ -132,8 +132,8 @@ defmodule Glossia.TranslationsTest do
       assert {:ok, %{text: "Hola"}} =
                Translations.translate_stream(account, payload(%{}), on_event, retry_backoff_ms: 0)
 
-      assert Elixir.Agent.get(attempts, & &1) == 5
-      assert {:provider_retry, 5, 5} in Elixir.Agent.get(events, & &1)
+      assert Elixir.Agent.get(attempts, & &1) == 8
+      assert {:provider_retry, 8, 8} in Elixir.Agent.get(events, & &1)
       refute Enum.any?(Elixir.Agent.get(events, & &1), &match?({:error, _reason}, &1))
     end
 
