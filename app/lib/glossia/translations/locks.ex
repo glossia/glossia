@@ -25,7 +25,7 @@ defmodule Glossia.Translations.Locks do
 
     with true <- File.exists?(path),
          {:ok, raw} <- File.read(path),
-         {:ok, lock} <- Jason.decode(raw) do
+         {:ok, lock} <- JSON.decode(raw) do
       lock
     else
       _ -> nil
@@ -36,7 +36,7 @@ defmodule Glossia.Translations.Locks do
   def write_lock(root, source_path, locale, lock) do
     path = lock_path(root, source_path, locale)
     File.mkdir_p!(Path.dirname(path))
-    File.write!(path, Jason.encode!(lock) <> "\n")
+    File.write!(path, pretty_json(lock) <> "\n")
     :ok
   end
 
@@ -218,7 +218,7 @@ defmodule Glossia.Translations.Locks do
   defp hash_node(kind, label, metadata, children) do
     child_hashes = Enum.map(children, & &1["hash"])
     descriptor = %{kind: kind, label: label, metadata: metadata, child_hashes: child_hashes}
-    hash = :crypto.hash(:sha256, Jason.encode!(descriptor)) |> Base.encode16(case: :lower)
+    hash = :crypto.hash(:sha256, JSON.encode!(descriptor)) |> Base.encode16(case: :lower)
 
     %{
       "kind" => kind,
@@ -251,7 +251,58 @@ defmodule Glossia.Translations.Locks do
   def source_hash(_format, content), do: hash_string(content)
 
   defp hash_string(value), do: :crypto.hash(:sha256, value) |> Base.encode16(case: :lower)
-  defp hash_json(value), do: value |> Jason.encode!() |> hash_string()
+  defp hash_json(value), do: value |> JSON.encode!() |> hash_string()
+
+  defp pretty_json(value), do: value |> pretty_encode(0) |> IO.iodata_to_binary()
+
+  defp pretty_encode(value, depth) when is_map(value) do
+    case value |> Map.to_list() |> Enum.sort_by(fn {key, _value} -> to_string(key) end) do
+      [] ->
+        "{}"
+
+      entries ->
+        [
+          "{\n",
+          entries
+          |> Enum.map(fn {key, nested_value} ->
+            [
+              indent(depth + 1),
+              JSON.encode_to_iodata!(key),
+              ": ",
+              pretty_encode(nested_value, depth + 1)
+            ]
+          end)
+          |> Enum.intersperse(",\n"),
+          "\n",
+          indent(depth),
+          "}"
+        ]
+    end
+  end
+
+  defp pretty_encode(value, depth) when is_list(value) do
+    case value do
+      [] ->
+        "[]"
+
+      values ->
+        [
+          "[\n",
+          values
+          |> Enum.map(fn nested_value ->
+            [indent(depth + 1), pretty_encode(nested_value, depth + 1)]
+          end)
+          |> Enum.intersperse(",\n"),
+          "\n",
+          indent(depth),
+          "]"
+        ]
+    end
+  end
+
+  defp pretty_encode(value, _depth), do: JSON.encode_to_iodata!(value)
+
+  defp indent(depth), do: String.duplicate("  ", depth)
 
   # Collapses consecutive `#: ` reference runs into a single sorted/deduped line
   # and strips trailing `:<line-number>` from each reference.

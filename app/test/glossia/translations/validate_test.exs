@@ -308,6 +308,11 @@ defmodule Glossia.Translations.ValidateTest do
       lock = Locks.build_lock("openai", "gpt-5", "docs/g.md", "docs/es/g.md", "salida", "hash-1")
       :ok = Locks.write_lock(root, "docs/g.md", "es", lock)
 
+      raw = root |> Locks.lock_path("docs/g.md", "es") |> File.read!()
+      assert raw =~ "{\n"
+      assert raw =~ "\n  \""
+      assert String.ends_with?(raw, "\n")
+
       read = Locks.read_lock(root, "docs/g.md", "es")
       assert read["output_path"] == "docs/es/g.md"
 
