@@ -176,7 +176,25 @@ defmodule Glossia.Translations.Engine do
                   }}}
 
               :error ->
-                {:halt, {:preservation_error, message}}
+                case recover_markdown_text_nodes(
+                       state,
+                       segment,
+                       segment_index,
+                       segment_count,
+                       message
+                     ) do
+                  {:ok, recovered} ->
+                    {:cont,
+                     {:ok,
+                      %{
+                        segments: acc.segments ++ recovered.segments,
+                        model: recovered.model,
+                        provider: recovered.provider
+                      }}}
+
+                  :error ->
+                    {:halt, {:preservation_error, message}}
+                end
             end
         end
     end)
@@ -220,6 +238,46 @@ defmodule Glossia.Translations.Engine do
     else
       :error
     end
+  end
+
+  # A Markdown block can itself contain links, lists, or admonitions that a
+  # model still rearranges after the block-level retry. In that case give the
+  # model marker-delimited text literals and rebuild the original Markdown tree
+  # directly, making syntax preservation independent of its rendered output.
+  defp recover_markdown_text_nodes(state, segment, index, count, message) do
+    with true <- markdown_structure_error?(state, message),
+         {:ok, marked_content} <- Markdown.mark_text_nodes(segment.content),
+         true <- marked_content != segment.content,
+         recovery_segment <-
+           Map.merge(segment, %{
+             kind: "markdown_text_markers",
+             content: marked_content,
+             markdown_source: segment.content
+           }),
+         {:ok, text, result} <-
+           translate_segment(
+             state,
+             recovery_segment,
+             index,
+             count,
+             1,
+             markdown_marker_instruction(message)
+           ) do
+      {:ok,
+       %{
+         segments: [%{kind: segment.kind, text: text}],
+         model: result.model,
+         provider: result.provider
+       }}
+    else
+      _ -> :error
+    end
+  end
+
+  defp markdown_marker_instruction(message) do
+    "#{message}. Each @@GLOSSIA-TEXT-<number>-START@@ and " <>
+      "@@GLOSSIA-TEXT-<number>-END@@ marker is immutable: copy every marker " <>
+      "exactly once and translate only the text between its matching markers."
   end
 
   # A long segment carrying many protected markers occasionally comes back with
@@ -511,6 +569,14 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp reconcile_markdown_segment(text, %{kind: "frontmatter"}, _format), do: {:ok, text}
+
+  defp reconcile_markdown_segment(
+         text,
+         %{kind: "markdown_text_markers", markdown_source: source},
+         "markdown"
+       ) do
+    Markdown.reconcile_marked_text_nodes(source, text)
+  end
 
   defp reconcile_markdown_segment(text, segment, "markdown") do
     if Markdown.requires_reconciliation?(segment.content) do

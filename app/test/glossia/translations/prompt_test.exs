@@ -59,6 +59,13 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "Never return an empty response for a non-empty metadata block."
     end
 
+    test "requires exact Markdown text recovery markers" do
+      prompt = Prompt.build_system_prompt(base(%{segment_kind: "markdown_text_markers"}))
+
+      assert prompt =~ "@@GLOSSIA-TEXT-<number>-START@@"
+      assert prompt =~ "Copy every marker byte-for-byte exactly once"
+    end
+
     test "appends a non-blank custom prompt, trimmed" do
       prompt = Prompt.build_system_prompt(base(%{custom_prompt: "  Use the formal register.  "}))
       assert prompt =~ "\nUse the formal register."
@@ -220,6 +227,21 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "Return the complete frontmatter block."
       assert prompt =~ "Preserve its syntax, keys, identifiers, dates, and delimiters exactly."
       assert prompt =~ "Do not return an empty response."
+    end
+
+    test "limits Markdown marker recovery to delimited prose" do
+      prompt =
+        Prompt.build_user_prompt(
+          "English",
+          "es",
+          "Spanish",
+          "@@GLOSSIA-TEXT-1-START@@Hello@@GLOSSIA-TEXT-1-END@@",
+          nil,
+          %{kind: "markdown_text_markers", index: 1, count: 1}
+        )
+
+      assert prompt =~ "Translate only the prose between matching @@GLOSSIA-TEXT-<number>-START@@"
+      assert prompt =~ "Return every marker exactly once."
     end
   end
 end

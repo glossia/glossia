@@ -12,7 +12,7 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
-  @version 4
+  @version 5
 
   @doc """
   Version of the prompt contract used in translation lockfiles.
@@ -84,6 +84,17 @@ defmodule Glossia.Translations.Prompt do
       end
 
     lines =
+      if Map.get(input, :segment_kind) == "markdown_text_markers" do
+        lines ++
+          [
+            "Markers of the form @@GLOSSIA-TEXT-<number>-START@@ and @@GLOSSIA-TEXT-<number>-END@@ delimit individual Markdown text nodes.",
+            "Copy every marker byte-for-byte exactly once and translate only the text between matching marker pairs. Markdown syntax outside markers is not authoritative."
+          ]
+      else
+        lines
+      end
+
+    lines =
       if Map.get(input, :segment_count, 1) > 1 do
         lines ++
           [
@@ -132,6 +143,9 @@ defmodule Glossia.Translations.Prompt do
       cond do
         segment_kind == "frontmatter" ->
           "Translate only the human-readable string values in this frontmatter from #{source_language} to #{language} (#{locale}). Return the complete frontmatter block. Preserve its syntax, keys, identifiers, dates, and delimiters exactly. Do not return an empty response."
+
+        segment_kind == "markdown_text_markers" ->
+          "Translate only the prose between matching @@GLOSSIA-TEXT-<number>-START@@ and @@GLOSSIA-TEXT-<number>-END@@ markers from #{source_language} to #{language} (#{locale}). Return every marker exactly once."
 
         segment_count > 1 ->
           "Translate segment #{segment_index} of #{segment_count} from #{source_language} to #{language} (#{locale}). Return only this segment."

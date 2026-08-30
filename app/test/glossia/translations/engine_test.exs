@@ -519,6 +519,29 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "recovers a structurally invalid Markdown block through text markers", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Read [the guide](https://example.com/guide).")
+
+      stub_stream(fn _account, payload, _on_event ->
+        if String.contains?(payload["source_content"], "@@GLOSSIA-TEXT-") do
+          translated(
+            "@@GLOSSIA-TEXT-1-START@@Lee @@GLOSSIA-TEXT-1-END@@" <>
+              "@@GLOSSIA-TEXT-2-START@@la guía@@GLOSSIA-TEXT-2-END@@" <>
+              "@@GLOSSIA-TEXT-3-START@@.@@GLOSSIA-TEXT-3-END@@"
+          )
+        else
+          translated("Lee la guía.")
+        end
+      end)
+
+      item = work_item(%{source_abs: source, retries: 0})
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text == "Lee [la guía](https://example.com/guide)."
+    end
+
+    @tag :tmp_dir
     test "reassembles Markdown structure while keeping placeholders opaque", %{
       tmp_dir: dir
     } do
@@ -722,7 +745,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "fails after segment-level token recovery without retranslating prior segments", %{
+    test "recovers a dropped Markdown link without retranslating prior segments", %{
       tmp_dir: dir
     } do
       source = Path.join(dir, "links.md")
@@ -750,13 +773,12 @@ defmodule Glossia.Translations.EngineTest do
 
       item = work_item(%{source_abs: source, frontmatter_mode: :translate, retries: 2})
 
-      assert {:error, {:validation_failed, message}} =
-               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-
-      assert message =~ "changed the document structure"
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      assert result.text =~ "{report_url}"
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.map(calls, & &1["segment_index"]) == [1, 2, 2]
+      assert Enum.count(calls, &(&1["segment_index"] == 1)) == 1
+      assert Enum.count(calls, &(&1["segment_index"] == 2)) == 3
       assert Enum.at(calls, 2)["last_error"] =~ "changed the document structure"
     end
 

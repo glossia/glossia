@@ -44,4 +44,23 @@ defmodule Glossia.Translations.MarkdownTest do
 
     assert message =~ "changed the document structure"
   end
+
+  test "rebuilds source Markdown from marker-delimited translated text" do
+    source = "Read [the guide](https://example.com/guide)."
+
+    assert {:ok, marked} = Markdown.mark_text_nodes(source)
+
+    assert marked ==
+             "@@GLOSSIA-TEXT-1-START@@Read @@GLOSSIA-TEXT-1-END@@[" <>
+               "@@GLOSSIA-TEXT-2-START@@the guide@@GLOSSIA-TEXT-2-END@@]" <>
+               "(https://example.com/guide)@@GLOSSIA-TEXT-3-START@@.@@GLOSSIA-TEXT-3-END@@"
+
+    translated =
+      "@@GLOSSIA-TEXT-1-START@@Lee @@GLOSSIA-TEXT-1-END@@" <>
+        "@@GLOSSIA-TEXT-2-START@@la guía@@GLOSSIA-TEXT-2-END@@" <>
+        "@@GLOSSIA-TEXT-3-START@@.@@GLOSSIA-TEXT-3-END@@"
+
+    assert {:ok, output} = Markdown.reconcile_marked_text_nodes(source, translated)
+    assert String.trim(output) == "Lee [la guía](https://example.com/guide)."
+  end
 end

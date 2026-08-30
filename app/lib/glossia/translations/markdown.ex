@@ -36,12 +36,107 @@ defmodule Glossia.Translations.Markdown do
     end
   end
 
+  @doc """
+  Marks every translatable text node in a Markdown fragment.
+
+  The markers allow a recovery translation to alter prose without having to
+  reproduce Markdown syntax. `reconcile_marked_text_nodes/2` uses the markers
+  to put the translated literals back into the source tree.
+  """
+  def mark_text_nodes(markdown) when is_binary(markdown) do
+    with {:ok, document} <- parse(markdown, "source") do
+      {document, _next_index} = mark_text_nodes(document, 1)
+      {:ok, MDEx.to_markdown!(document)}
+    end
+  rescue
+    error in ArgumentError ->
+      {:error, "Markdown could not be prepared for recovery: #{Exception.message(error)}"}
+  end
+
+  @doc """
+  Rebuilds source Markdown with text delimited by recovery markers.
+
+  Unlike `reconcile/2`, the candidate need not retain Markdown syntax. Every
+  source node and attribute remains authoritative, while only the text between
+  matching marker pairs is used for the translated literals.
+  """
+  def reconcile_marked_text_nodes(source, translated)
+      when is_binary(source) and is_binary(translated) do
+    with {:ok, source_document} <- parse(source, "source"),
+         {:ok, literals} <- marked_literals(translated, text_node_count(source_document)),
+         {document, []} <- replace_text_nodes(source_document, literals) do
+      {:ok, MDEx.to_markdown!(document)}
+    else
+      {:error, _message} = error -> error
+      _ -> {:error, "Markdown recovery markers did not match the source text nodes"}
+    end
+  rescue
+    error in ArgumentError ->
+      {:error, "Markdown could not be reassembled: #{Exception.message(error)}"}
+  end
+
   defp parse(markdown, label) do
     case MDEx.parse_document(markdown) do
       {:ok, document} -> {:ok, document}
       {:error, reason} -> {:error, "#{label} Markdown could not be parsed: #{inspect(reason)}"}
     end
   end
+
+  defp mark_text_nodes(%MDEx.Text{literal: literal} = node, index) do
+    {%{node | literal: "#{marker_start(index)}#{literal}#{marker_end(index)}"}, index + 1}
+  end
+
+  defp mark_text_nodes(%{nodes: nodes} = node, index) when is_struct(node) do
+    {nodes, index} = Enum.map_reduce(nodes, index, &mark_text_nodes/2)
+    {%{node | nodes: nodes}, index}
+  end
+
+  defp mark_text_nodes(node, index), do: {node, index}
+
+  defp text_node_count(%MDEx.Text{}), do: 1
+
+  defp text_node_count(%{nodes: nodes}) when is_list(nodes) do
+    Enum.sum(Enum.map(nodes, &text_node_count/1))
+  end
+
+  defp text_node_count(_node), do: 0
+
+  defp marked_literals(_translated, 0), do: {:ok, []}
+
+  defp marked_literals(translated, count) do
+    1..count
+    |> Enum.reduce_while({:ok, []}, fn index, {:ok, literals} ->
+      pattern =
+        "#{Regex.escape(marker_start(index))}(.*?)#{Regex.escape(marker_end(index))}"
+        |> Regex.compile!("s")
+
+      case Regex.scan(pattern, translated, capture: :all_but_first) do
+        [[literal]] -> {:cont, {:ok, [literal | literals]}}
+        _ -> {:halt, {:error, "Markdown recovery marker #{index} was missing or duplicated"}}
+      end
+    end)
+    |> case do
+      {:ok, literals} -> {:ok, Enum.reverse(literals)}
+      error -> error
+    end
+  end
+
+  defp replace_text_nodes(%MDEx.Text{} = node, [literal | rest]),
+    do: {%{node | literal: literal}, rest}
+
+  defp replace_text_nodes(%{nodes: nodes} = node, literals) when is_struct(node) do
+    {nodes, literals} =
+      Enum.map_reduce(nodes, literals, fn child, remaining ->
+        replace_text_nodes(child, remaining)
+      end)
+
+    {%{node | nodes: nodes}, literals}
+  end
+
+  defp replace_text_nodes(node, literals), do: {node, literals}
+
+  defp marker_start(index), do: "@@GLOSSIA-TEXT-#{index}-START@@"
+  defp marker_end(index), do: "@@GLOSSIA-TEXT-#{index}-END@@"
 
   defp merge(%MDEx.Text{} = source, %MDEx.Text{} = translated, _path),
     do: {:ok, %{source | literal: translated.literal}}
