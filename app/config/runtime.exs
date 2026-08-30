@@ -505,7 +505,11 @@ if config_env() == :prod and not runner_child? do
     queue_interval: 1000,
     settings: [
       readonly: 1,
-      join_algorithm: "direct,parallel_hash,hash"
+      join_algorithm: "direct,parallel_hash,hash",
+      # The ClickHouse client uses RowBinary result encoding and needs these
+      # format settings to decode document values. The server profile pins them.
+      input_format_binary_read_json_as_string: 1,
+      output_format_binary_write_json_as_string: 1
     ],
     transport_opts: [
       keepalive: true,
