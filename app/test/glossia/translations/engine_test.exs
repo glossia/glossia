@@ -594,6 +594,42 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "recovers a dropped Markdown link through text markers", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Read [the guide](https://example.com/guide).")
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        case payload["segment_kind"] do
+          "markdown_text_markers" ->
+            translated(
+              "@@GLOSSIA-TEXT-1-START@@Lee @@GLOSSIA-TEXT-1-END@@" <>
+                "@@GLOSSIA-TEXT-2-START@@la guía@@GLOSSIA-TEXT-2-END@@" <>
+                "@@GLOSSIA-TEXT-3-START@@.@@GLOSSIA-TEXT-3-END@@"
+            )
+
+          _ ->
+            translated("Lee la guía.")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text == "Lee [la guía](https://example.com/guide)."
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.map(calls, & &1["segment_kind"]) == ["content", "markdown_text_markers"]
+    end
+
+    @tag :tmp_dir
     test "rebuilds Markdown from individual text literals after every structural recovery fails",
          %{
            tmp_dir: dir

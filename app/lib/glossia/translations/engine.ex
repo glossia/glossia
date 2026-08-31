@@ -265,7 +265,7 @@ defmodule Glossia.Translations.Engine do
       |> isolate_markdown_blocks()
       |> Enum.map(&Map.put(&1, :markdown_block_recovery, true))
 
-    if markdown_structure_error?(state, message) and length(segments) > 1 do
+    if markdown_recovery_error?(state, segment, message) and length(segments) > 1 do
       recovered_count = count + length(segments) - 1
 
       segments
@@ -306,7 +306,7 @@ defmodule Glossia.Translations.Engine do
   # original Markdown tree directly, making syntax preservation independent of
   # its rendered output.
   defp recover_markdown_text_nodes(state, segment, index, count, message) do
-    with true <- markdown_structure_error?(state, message),
+    with true <- markdown_recovery_error?(state, segment, message),
          true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
          {:ok, marked_content} <- Markdown.mark_text_nodes(segment.content),
          true <- String.contains?(marked_content, "@@GLOSSIA-TEXT-"),
@@ -355,7 +355,7 @@ defmodule Glossia.Translations.Engine do
   # document ourselves. The model never receives Markdown syntax, so it cannot
   # change headings, links, lists, code spans, or block ordering.
   defp recover_markdown_text_literals(state, segment, index, count, message, remaining_calls) do
-    with true <- markdown_structure_error?(state, message),
+    with true <- markdown_recovery_error?(state, segment, message),
          true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
          {:ok, source_literals} <- Markdown.text_literals(segment.content),
          true <- source_literals != [],
@@ -651,6 +651,19 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp markdown_structure_error?(_state, _message), do: false
+
+  # Markdown's parsed source tree owns both its structure and link
+  # destinations. Rebuilding that tree therefore also repairs a model response
+  # that dropped a visible URL or another preserved value, without asking the
+  # model to reproduce it again. A segment carrying an internal marker still
+  # uses this path for a Markdown-structure error, but not for a marker-copy
+  # failure, where recovery must fail closed rather than move the marker.
+  defp markdown_recovery_error?(%{work_item: %{format: "markdown"}} = state, segment, message) do
+    markdown_structure_error?(state, message) or
+      not String.contains?(segment.content, "{glossia_protected_")
+  end
+
+  defp markdown_recovery_error?(_state, _segment, _message), do: false
 
   defp isolate_markdown_blocks(segments) do
     Enum.flat_map(segments, fn
