@@ -121,6 +121,10 @@ Reference: the Tuist server pages under `~/.codex/worktrees/*/server/lib/tuist_w
 
 If a need is not covered by Noora, add a new component to `noora` upstream rather than maintaining a parallel one in `glossia_web`. The token system (`--noora-spacing-*`, `--noora-surface-*`, `--noora-chart-*`, etc.) is consumed automatically through Noora's CSS — there is no Glossia-specific design-system layer above it.
 
+### Data tables
+
+Every data table follows the established Tuist table pattern: a debounced search field, the Noora filter dropdown, active-filter controls, and sortable column headers. Keep search, filter, sort column, and sort direction in the URL so a table view is shareable and survives navigation. Use `<.table>` column `patch` and `sort_order` attributes for sorting rather than bespoke header controls.
+
 ### Three-tier token architecture
 
 Tokens are CSS custom properties defined in `:root`. They are organized in three tiers:
