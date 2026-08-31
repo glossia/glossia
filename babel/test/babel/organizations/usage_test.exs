@@ -26,6 +26,7 @@ defmodule Babel.Organizations.UsageTest do
 
     assert usage == %{
              organization_name: "Example organization",
+             account_handle: nil,
              projects: 2,
              translations: 5
            }

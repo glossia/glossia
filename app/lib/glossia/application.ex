@@ -94,7 +94,8 @@ defmodule Glossia.Application do
         ),
         Glossia.Analytics.SettingsCache,
         Glossia.Analytics.Geolocation.Ipapi.Cache,
-        Glossia.Github.InstallationTokens
+        Glossia.Github.InstallationTokens,
+        Glossia.Pomerium.JWKSCache
       ] ++
         setup_recovery_children() ++
         [

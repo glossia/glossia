@@ -27,6 +27,7 @@ defmodule BabelWeb.Plugs.PomeriumAuthTest do
   } do
     conn =
       conn
+      |> init_test_session(%{})
       |> put_req_header(
         "x-pomerium-jwt-assertion",
         assertion(private_key, %{
@@ -39,6 +40,7 @@ defmodule BabelWeb.Plugs.PomeriumAuthTest do
 
     assert conn.assigns.current_account.email == "operator@glossia.ai"
     assert conn.assigns.current_account.pomerium_id == "google/operator"
+    assert get_session(conn, :current_account_id) == conn.assigns.current_account.id
   end
 
   test "rejects requests without a Pomerium assertion", %{conn: conn, cache: cache, jwks: jwks} do

@@ -77,7 +77,8 @@ organizations = [
     state: "customer",
     translation_tool: "Managed in Glossia",
     notes: "An existing Glossia organization with a working localization program.",
-    glossia_organization_id: "0198b3ce-6f00-7b2f-9bc7-345e3420c101"
+    glossia_organization_id: "0198b3ce-6f00-7b2f-9bc7-345e3420c101",
+    glossia_account_handle: "northstar-learning"
   },
   %{
     name: "Paper Kite Publishing",
@@ -85,7 +86,8 @@ organizations = [
     state: "customer",
     translation_tool: "Managed in Glossia",
     notes: "An existing Glossia organization whose relationship history is tracked in Babel.",
-    glossia_organization_id: "0198b3ce-6f00-7b2f-9bc7-345e3420c102"
+    glossia_organization_id: "0198b3ce-6f00-7b2f-9bc7-345e3420c102",
+    glossia_account_handle: "paper-kite-publishing"
   },
   %{
     name: "Braze",

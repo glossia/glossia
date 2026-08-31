@@ -13,5 +13,6 @@ defmodule GlossiaWeb.BabelInternalRouter do
 
     post "/db/query", BabelDatabaseController, :query
     post "/clickhouse/query", BabelClickHouseController, :query
+    post "/temporary-access-grants", TemporaryAccessGrantController, :create
   end
 end

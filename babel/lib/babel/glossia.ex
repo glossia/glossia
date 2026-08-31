@@ -23,6 +23,44 @@ defmodule Babel.Glossia do
     query("/api/internal/babel/clickhouse/query", sql, opts)
   end
 
+  def grant_temporary_access(organization_id, attributes, opts \\ [])
+      when is_binary(organization_id) and is_map(attributes) do
+    body = Map.put(attributes, "organization_id", organization_id)
+
+    request(:post, "/api/internal/babel/temporary-access-grants", [json: body], opts)
+  end
+
+  def account_url(handle, opts \\ []) when is_binary(handle) do
+    base_url = configured_option(opts, Application.get_env(:babel, __MODULE__, []), :public_url)
+
+    with true <- Regex.match?(~r/^[a-z]([a-z0-9-]*[a-z0-9])?$/, handle),
+         true <- is_binary(base_url),
+         %URI{scheme: "https", host: host} = base_uri when is_binary(host) <- URI.parse(base_url) do
+      {:ok, base_uri |> URI.merge("/#{handle}") |> URI.to_string()}
+    else
+      _ -> {:error, :invalid_account_url}
+    end
+  end
+
+  def temporary_access_url(handle, opts \\ []) when is_binary(handle) do
+    base_url =
+      configured_option(opts, Application.get_env(:babel, __MODULE__, []), :temporary_access_url)
+
+    with true <- Regex.match?(~r/^[a-z]([a-z0-9-]*[a-z0-9])?$/, handle),
+         true <- is_binary(base_url),
+         %URI{scheme: "https", host: host} = base_uri when is_binary(host) <- URI.parse(base_url) do
+      url =
+        base_uri
+        |> URI.merge("/auth/pomerium")
+        |> Map.put(:query, URI.encode_query(%{"account" => handle}))
+        |> URI.to_string()
+
+      {:ok, url}
+    else
+      _ -> {:error, :invalid_temporary_access_url}
+    end
+  end
+
   defp query(path, sql, opts) do
     body =
       case Keyword.get(opts, :limit) do

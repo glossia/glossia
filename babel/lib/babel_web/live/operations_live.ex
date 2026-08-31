@@ -5,11 +5,20 @@ defmodule BabelWeb.OperationsLive do
   alias Babel.Organizations
   alias Babel.Organizations.Interaction
   alias Babel.Organizations.Organization
+  alias Babel.Organizations.TemporaryAccess
+  alias Babel.Accounts
   alias Noora.Filter
   alias Phoenix.LiveView.JS
 
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, available_filters: account_filters())}
+  def mount(_params, session, socket) do
+    {:ok,
+     assign(socket,
+       available_filters: account_filters(),
+       current_account: current_account(session),
+       temporary_access_form: new_temporary_access_form(),
+       temporary_access_recipient: nil,
+       temporary_access_url: nil
+     )}
   end
 
   def handle_params(params, uri, socket) do
@@ -43,6 +52,9 @@ defmodule BabelWeb.OperationsLive do
         account_form: new_account_form(),
         organization_edit_form: edit_organization_form(account),
         interaction_form: new_interaction_form(),
+        temporary_access_form: new_temporary_access_form(),
+        temporary_access_recipient: nil,
+        temporary_access_url: nil,
         page_favicon: organization_favicon_url(account),
         page_title: page_title(live_action, account),
         uri: uri,
@@ -129,6 +141,9 @@ defmodule BabelWeb.OperationsLive do
               account_usage={@account_usage}
               organization_edit_form={@organization_edit_form}
               interaction_form={@interaction_form}
+              temporary_access_form={@temporary_access_form}
+              temporary_access_recipient={@temporary_access_recipient}
+              temporary_access_url={@temporary_access_url}
             />
         <% end %>
       </main>
@@ -136,7 +151,7 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :account_summary, :map, required: true
+  attr(:account_summary, :map, required: true)
 
   def overview(assigns) do
     ~H"""
@@ -162,7 +177,7 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :account_summary, :map, required: true
+  attr(:account_summary, :map, required: true)
 
   def growth(assigns) do
     ~H"""
@@ -183,14 +198,14 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :directory_entries, :list, required: true
-  attr :active_filters, :list, required: true
-  attr :available_filters, :list, required: true
-  attr :account_search, :string, required: true
-  attr :account_sort_by, :string, required: true
-  attr :account_sort_order, :string, required: true
-  attr :account_form, :any, required: true
-  attr :uri, :any, required: true
+  attr(:directory_entries, :list, required: true)
+  attr(:active_filters, :list, required: true)
+  attr(:available_filters, :list, required: true)
+  attr(:account_search, :string, required: true)
+  attr(:account_sort_by, :string, required: true)
+  attr(:account_sort_order, :string, required: true)
+  attr(:account_form, :any, required: true)
+  attr(:uri, :any, required: true)
 
   def organization_directory(assigns) do
     ~H"""
@@ -320,8 +335,8 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :form, :any, required: true
-  attr :id_prefix, :string, required: true
+  attr(:form, :any, required: true)
+  attr(:id_prefix, :string, required: true)
 
   def organization_form_fields(assigns) do
     ~H"""
@@ -368,11 +383,11 @@ defmodule BabelWeb.OperationsLive do
         placeholder="Optional"
       />
       <.text_input
-        field={@form[:glossia_organization_id]}
-        id={"#{@id_prefix}-glossia-organization-id"}
-        label="Glossia organization identifier"
-        placeholder="Optional UUID"
-        hint="Connects this organization to its Glossia usage data."
+        field={@form[:glossia_account_handle]}
+        id={"#{@id_prefix}-glossia-account-handle"}
+        label="Glossia account handle"
+        placeholder="acme"
+        hint="Used to link directly to this account in Glossia."
       />
       <.text_area
         field={@form[:notes]}
@@ -386,9 +401,9 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :label, :string, required: true
-  attr :value, :integer, required: true
-  attr :tone, :string, default: "primary"
+  attr(:label, :string, required: true)
+  attr(:value, :integer, required: true)
+  attr(:tone, :string, default: "primary")
 
   def metric_widget(assigns) do
     ~H"""
@@ -402,10 +417,13 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :account, :any, required: true
-  attr :account_usage, :any, required: true
-  attr :organization_edit_form, :any, required: true
-  attr :interaction_form, :any, required: true
+  attr(:account, :any, required: true)
+  attr(:account_usage, :any, required: true)
+  attr(:organization_edit_form, :any, required: true)
+  attr(:interaction_form, :any, required: true)
+  attr(:temporary_access_form, :any, required: true)
+  attr(:temporary_access_recipient, :string, default: nil)
+  attr(:temporary_access_url, :string, default: nil)
 
   def organization(%{account: nil} = assigns) do
     ~H"""
@@ -490,12 +508,115 @@ defmodule BabelWeb.OperationsLive do
                 />
               </dd>
             </div>
-            <div :if={@account.glossia_organization_id} data-part="organization-fact">
-              <dt>Glossia organization identifier</dt>
-              <dd data-part="organization-identifier">{@account.glossia_organization_id}</dd>
+            <div
+              :if={glossia_account_url(@account, @account_usage)}
+              data-part="organization-fact"
+            >
+              <dt>Glossia account</dt>
+              <dd>
+                <Noora.Button.link_button
+                  label="Open account in Glossia"
+                  href={glossia_account_url(@account, @account_usage)}
+                  variant="secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                />
+              </dd>
             </div>
           </dl>
           <p :if={@account.notes} data-part="organization-notes">{@account.notes}</p>
+        </.card_section>
+      </.card>
+
+      <.card
+        :if={@account.glossia_organization_id}
+        title="Temporary access"
+        icon="lock_open_2"
+        id="organization-temporary-access-card"
+      >
+        <.card_section>
+          <.form
+            id="temporary-access-form"
+            for={@temporary_access_form}
+            phx-submit="grant_temporary_access"
+          >
+            <.modal
+              id="temporary-access-modal"
+              title="Grant temporary access"
+              description="Grant read-only access to a Glossia account for a verified @glossia.ai colleague."
+              header_type="icon"
+            >
+              <:trigger :let={attrs}>
+                <.button label="Grant access" size="small" variant="secondary" {attrs}>
+                  <:icon_left><.icon name="lock_open_2" /></:icon_left>
+                </.button>
+              </:trigger>
+              <:header_icon><.icon name="lock_open_2" /></:header_icon>
+              <div data-part="temporary-access-form-fields">
+                <.text_input
+                  field={@temporary_access_form[:email]}
+                  id="temporary-access-email"
+                  label="Glossia email"
+                  placeholder="name@glossia.ai"
+                  input_type="email"
+                  required
+                  show_required
+                />
+                <div data-part="dropdown">
+                  <.label label="Access duration" />
+                  <.select
+                    id="temporary-access-duration"
+                    label="Access duration"
+                    name={@temporary_access_form[:duration_minutes].name}
+                    value={to_string(@temporary_access_form[:duration_minutes].value || 30)}
+                  >
+                    <:item
+                      :for={duration <- TemporaryAccess.durations()}
+                      value={to_string(duration)}
+                      label={temporary_access_duration_label(duration)}
+                    />
+                  </.select>
+                </div>
+                <.text_area
+                  field={@temporary_access_form[:reason]}
+                  id="temporary-access-reason"
+                  label="Reason"
+                  placeholder="Explain why access is needed."
+                  rows={4}
+                  max_length={2_000}
+                  required
+                  show_required
+                />
+              </div>
+              <:footer>
+                <.modal_footer>
+                  <:action>
+                    <.button label="Grant access" size="medium" variant="primary" type="submit">
+                      <:icon_left><.icon name="lock_open_2" /></:icon_left>
+                    </.button>
+                  </:action>
+                </.modal_footer>
+              </:footer>
+            </.modal>
+          </.form>
+          <p data-part="temporary-access-note">
+            Access is read-only, expires automatically, and requires Pomerium verification.
+          </p>
+          <div :if={@temporary_access_url} data-part="temporary-access-link">
+            <p>
+              Share this link with {@temporary_access_recipient} so they can activate the grant through
+              Pomerium.
+            </p>
+            <Noora.Button.link_button
+              label="Open temporary access link"
+              href={@temporary_access_url}
+              variant="secondary"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <:icon_right><.icon name="arrow_up_right" /></:icon_right>
+            </Noora.Button.link_button>
+          </div>
         </.card_section>
       </.card>
 
@@ -632,6 +753,43 @@ defmodule BabelWeb.OperationsLive do
 
       {:error, changeset} ->
         {:noreply, assign(socket, interaction_form: to_form(changeset, as: :interaction))}
+    end
+  end
+
+  def handle_event("grant_temporary_access", %{"temporary_access" => attributes}, socket) do
+    case Organizations.grant_temporary_access(
+           socket.assigns.account,
+           socket.assigns.current_account,
+           attributes
+         ) do
+      {:ok, %{"expires_at" => expires_at} = grant} ->
+        {:noreply,
+         socket
+         |> assign(
+           temporary_access_form: new_temporary_access_form(),
+           temporary_access_recipient: grant["recipient_email"],
+           temporary_access_url: temporary_access_url(grant)
+         )
+         |> put_flash(:info, "Temporary access granted until #{expires_at}.")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply,
+         assign(socket, temporary_access_form: to_form(changeset, as: :temporary_access))}
+
+      {:error, :not_connected} ->
+        {:noreply,
+         put_flash(socket, :error, "Connect this organization to Glossia before granting access.")}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, "Your Pomerium identity cannot grant access.")}
+
+      {:error, reason}
+      when reason in ["recipient_not_found", "recipient_or_organization_not_found"] ->
+        {:noreply,
+         put_flash(socket, :error, "That email must belong to an existing Glossia account.")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Temporary access could not be granted.")}
     end
   end
 
@@ -808,6 +966,38 @@ defmodule BabelWeb.OperationsLive do
   defp directory_entry_source_color(%{source: :glossia}), do: "success"
   defp directory_entry_source_color(%{source: :lead}), do: "warning"
 
+  defp glossia_account_url(%{glossia_account_handle: handle}, _usage)
+       when is_binary(handle) and handle != "" do
+    case Babel.Glossia.account_url(handle) do
+      {:ok, url} -> url
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp glossia_account_url(_organization, {:ok, %{account_handle: handle}})
+       when is_binary(handle) and handle != "" do
+    case Babel.Glossia.account_url(handle) do
+      {:ok, url} -> url
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp glossia_account_url(_organization, _usage), do: nil
+
+  defp temporary_access_url(%{"account_handle" => handle}) when is_binary(handle) do
+    case Babel.Glossia.temporary_access_url(handle) do
+      {:ok, url} -> url
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp temporary_access_url(_grant), do: nil
+
+  defp temporary_access_duration_label(15), do: "15 minutes"
+  defp temporary_access_duration_label(30), do: "30 minutes"
+  defp temporary_access_duration_label(60), do: "1 hour"
+  defp temporary_access_duration_label(240), do: "4 hours"
+
   defp parse_uri(uri) do
     uri = URI.parse(uri)
     %{uri | query: uri.query || ""}
@@ -817,6 +1007,12 @@ defmodule BabelWeb.OperationsLive do
     %Interaction{}
     |> Interaction.changeset(%{kind: "note"})
     |> to_form(as: :interaction)
+  end
+
+  defp new_temporary_access_form do
+    %TemporaryAccess{}
+    |> TemporaryAccess.changeset(%{duration_minutes: 30})
+    |> to_form(as: :temporary_access)
   end
 
   defp new_account_form do
@@ -832,4 +1028,10 @@ defmodule BabelWeb.OperationsLive do
   end
 
   defp edit_organization_form(_organization), do: nil
+
+  defp current_account(%{"current_account_id" => account_id}) do
+    Accounts.get_account(account_id)
+  end
+
+  defp current_account(_session), do: nil
 end

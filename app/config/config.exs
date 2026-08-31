@@ -39,6 +39,8 @@ config :glossia, GlossiaWeb.BabelInternalEndpoint,
   render_errors: [formats: [json: GlossiaWeb.ErrorJSON], layout: false],
   server: false
 
+config :glossia, Glossia.Pomerium, enabled: false
+
 # Configure the mailer
 #
 # By default it uses the "Local" adapter which stores the emails

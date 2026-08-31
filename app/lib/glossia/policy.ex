@@ -35,6 +35,7 @@ defmodule Glossia.Policy do
       allow([:authenticated, :collection])
       allow(:organization_admin)
       allow(:organization_member)
+      allow(:temporary_account_access)
       allow(:public_account)
     end
   end
@@ -66,6 +67,7 @@ defmodule Glossia.Policy do
       allow(:super_admin)
       allow(:organization_admin)
       allow(:organization_member)
+      allow(:temporary_account_access)
       allow(:public_account)
     end
 
@@ -87,6 +89,7 @@ defmodule Glossia.Policy do
       allow(:super_admin)
       allow(:organization_admin)
       allow(:organization_member)
+      allow(:temporary_account_access)
       allow(:public_account)
     end
 
@@ -116,6 +119,7 @@ defmodule Glossia.Policy do
       allow(:super_admin)
       allow(:organization_admin)
       allow(:organization_member)
+      allow(:temporary_account_access)
     end
 
     action :write do
@@ -132,6 +136,7 @@ defmodule Glossia.Policy do
       allow(:super_admin)
       allow(:organization_admin)
       allow(:organization_member)
+      allow(:temporary_account_access)
       allow(:public_account)
     end
 
@@ -153,6 +158,7 @@ defmodule Glossia.Policy do
       allow(:super_admin)
       allow(:organization_admin)
       allow(:organization_member)
+      allow(:temporary_account_access)
       allow(:public_account)
     end
 
@@ -192,6 +198,7 @@ defmodule Glossia.Policy do
       allow(:super_admin)
       allow(:organization_admin)
       allow(:organization_member)
+      allow(:temporary_account_access)
     end
 
     action :write do

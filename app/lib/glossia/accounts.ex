@@ -3,6 +3,7 @@ defmodule Glossia.Accounts do
 
   alias Glossia.Repo
   alias Glossia.Roles
+  alias Glossia.TemporaryAccess
 
   alias Glossia.Accounts.{
     Account,
@@ -30,11 +31,17 @@ defmodule Glossia.Accounts do
     Tracer.with_span "glossia.accounts.list_user_accounts" do
       Tracer.set_attributes([{"glossia.user.id", to_string(user.id)}])
 
-      account_ids =
+      membership_account_ids =
         OrganizationMembership
         |> where(user_id: ^user.id)
         |> join(:inner, [m], o in Organization, on: o.id == m.organization_id)
         |> select([_m, o], o.account_id)
+
+      account_ids =
+        case TemporaryAccess.active_account_ids_query(user) do
+          nil -> membership_account_ids
+          temporary_account_ids -> membership_account_ids |> union_all(^temporary_account_ids)
+        end
 
       query =
         Account
@@ -85,6 +92,13 @@ defmodule Glossia.Accounts do
     User
     |> preload([:account, user_roles: :role])
     |> Repo.get(id)
+  end
+
+  def get_user_by_email(email) when is_binary(email) do
+    User
+    |> where(email: ^(email |> String.trim() |> String.downcase()))
+    |> preload([:account, user_roles: :role])
+    |> Repo.one()
   end
 
   def get_user_by_handle(handle) when is_binary(handle) do

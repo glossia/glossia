@@ -5,6 +5,7 @@ defmodule BabelWeb.OperationsLiveTest do
 
   alias Babel.Organizations.Interaction
   alias Babel.Organizations.Organization
+  alias Babel.Organizations.TemporaryAccess
   alias Babel.Repo
 
   test "renders the overview at the home path", %{conn: conn} do
@@ -176,12 +177,45 @@ defmodule BabelWeb.OperationsLiveTest do
         interaction_form:
           %Interaction{}
           |> Interaction.changeset(%{kind: "note"})
-          |> Phoenix.Component.to_form(as: :interaction)
+          |> Phoenix.Component.to_form(as: :interaction),
+        temporary_access_form:
+          %TemporaryAccess{}
+          |> TemporaryAccess.changeset(%{duration_minutes: 30})
+          |> Phoenix.Component.to_form(as: :temporary_access)
       })
 
     assert html =~ "Projects"
     assert html =~ "Translations"
     refute html =~ "Members"
+  end
+
+  test "links an organization to its Glossia account and offers a 30 minute access grant", %{
+    conn: conn
+  } do
+    organization =
+      insert_organization!(%{
+        glossia_organization_id: Ecto.UUID.generate(),
+        glossia_account_handle: "northstar-learning"
+      })
+
+    {:ok, view, html} = live(conn, ~p"/organizations/#{organization}")
+
+    assert has_element?(
+             view,
+             "#organization-summary-card a[href='https://glossia.ai/northstar-learning']",
+             "Open account in Glossia"
+           )
+
+    assert has_element?(view, "#organization-temporary-access-card", "Grant access")
+
+    temporary_access_form =
+      %TemporaryAccess{}
+      |> TemporaryAccess.changeset(%{duration_minutes: 30})
+      |> Phoenix.Component.to_form(as: :temporary_access)
+
+    assert temporary_access_form[:duration_minutes].value == 30
+
+    refute html =~ organization.glossia_organization_id
   end
 
   test "adds a manual interaction to an organization timeline", %{conn: conn} do

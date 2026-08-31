@@ -13,6 +13,7 @@ defmodule Glossia.Accounts.User do
     field :mastodon_url, :string
     field :locale, :string
     field :super_admin, :boolean, default: false
+    field :temporary_access_grant_id, :binary_id, virtual: true
 
     belongs_to :account, Glossia.Accounts.Account
     has_many :identities, Glossia.Accounts.Identity

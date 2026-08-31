@@ -43,13 +43,11 @@
     font: var(--noora-font-weight-medium) var(--noora-font-body-medium);
   }
 
-  & [data-part="organization-identifier"] {
-    overflow-wrap: anywhere;
-  }
-
   & [data-part="organization-notes"],
   & [data-part="empty-organization"],
-  & [data-part="usage-message"] {
+  & [data-part="usage-message"],
+  & [data-part="temporary-access-note"],
+  & [data-part="temporary-access-link"] p {
     margin: 0;
     color: var(--noora-surface-label-secondary);
     font: var(--noora-font-body-medium);
@@ -59,6 +57,19 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--noora-spacing-4);
+  }
+
+  & [data-part="temporary-access-link"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--noora-spacing-4);
+    margin-top: var(--noora-spacing-5);
+  }
+
+  & [data-part="temporary-access-link"] p {
+    flex: 1;
+    min-width: min(100%, calc(var(--noora-spacing-16) * 3));
   }
 
   & [data-part="timeline"] {
@@ -126,6 +137,22 @@
   & [data-part="timeline-body"] {
     color: var(--noora-surface-label-secondary);
     font: var(--noora-font-body-medium);
+  }
+}
+
+#temporary-access-modal {
+  & [data-part="temporary-access-form-fields"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+    padding: var(--noora-spacing-5) 0;
+    min-width: min(100%, calc(var(--noora-spacing-16) * 3));
+  }
+
+  & [data-part="temporary-access-form-fields"] [data-part="dropdown"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-2);
   }
 }
 
