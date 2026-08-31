@@ -78,6 +78,35 @@ defmodule Glossia.Translations.Markdown do
       {:error, "Markdown could not be reassembled: #{Exception.message(error)}"}
   end
 
+  @doc "Returns the text-node literals in a Markdown fragment in document order."
+  def text_literals(markdown) when is_binary(markdown) do
+    with {:ok, document} <- parse(markdown, "source") do
+      {:ok, text_node_literals(document)}
+    end
+  rescue
+    error in ArgumentError ->
+      {:error, "Markdown text nodes could not be read: #{Exception.message(error)}"}
+  end
+
+  @doc "Rebuilds Markdown from its source tree and translated text-node literals."
+  def rebuild_text_literals(source, literals) when is_binary(source) and is_list(literals) do
+    with {:ok, source_document} <- parse(source, "source"),
+         source_literals <- text_node_literals(source_document),
+         true <- length(source_literals) == length(literals),
+         true <-
+           Enum.zip(source_literals, literals)
+           |> Enum.all?(fn {original, literal} -> valid_text_literal?(original, literal) end),
+         {document, []} <- replace_text_nodes(source_document, literals) do
+      {:ok, MDEx.to_markdown!(document)}
+    else
+      false -> {:error, "Markdown text-node recovery changed or emptied a source literal"}
+      _ -> {:error, "Markdown text-node recovery did not match the source text nodes"}
+    end
+  rescue
+    error in ArgumentError ->
+      {:error, "Markdown could not be reassembled: #{Exception.message(error)}"}
+  end
+
   defp parse(markdown, label) do
     case MDEx.parse_document(markdown) do
       {:ok, document} -> {:ok, document}
@@ -188,6 +217,16 @@ defmodule Glossia.Translations.Markdown do
     literal != "" and
       (String.trim(source_literal) == "" or String.trim(literal) != "")
   end
+
+  defp valid_text_literal?(source_literal, literal) when is_binary(literal) do
+    if String.trim(source_literal) == "" do
+      literal == source_literal
+    else
+      String.trim(literal) != ""
+    end
+  end
+
+  defp valid_text_literal?(_source_literal, _literal), do: false
 
   defp replace_text_nodes(%MDEx.Text{} = node, [literal | rest]),
     do: {%{node | literal: literal}, rest}

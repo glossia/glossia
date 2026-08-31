@@ -594,6 +594,108 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "rebuilds Markdown from individual text literals after every structural recovery fails",
+         %{
+           tmp_dir: dir
+         } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Read [Guide](https://example.com/guide) now.")
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+      {:ok, progress} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        case payload["segment_kind"] do
+          "markdown_text_markers" ->
+            translated("The required recovery markers are absent.")
+
+          "markdown_text_literal" ->
+            case payload["source_content"] do
+              "Read" ->
+                on_event.({:text, "Lies"})
+                translated("Lies")
+
+              "Guide" ->
+                on_event.({:text, "Leitfaden"})
+                translated("Leitfaden")
+
+              "now." ->
+                on_event.({:text, "jetzt."})
+                translated("jetzt.")
+
+              value ->
+                flunk("unexpected literal input: #{inspect(value)}")
+            end
+
+          _ ->
+            translated("Read Guide now.")
+        end
+      end)
+
+      item = work_item(%{source_abs: source, retries: 0})
+      on_event = fn event -> Elixir.Agent.update(progress, &[event | &1]) end
+
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
+      assert result.text == "Lies [Leitfaden](https://example.com/guide) jetzt."
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literal"))
+
+      literal_inputs =
+        calls
+        |> Enum.filter(&(&1["segment_kind"] == "markdown_text_literal"))
+        |> Enum.map(& &1["source_content"])
+
+      assert literal_inputs == ["Read", "Guide", "now."]
+
+      outputs =
+        progress
+        |> Elixir.Agent.get(&Enum.reverse/1)
+        |> Enum.filter(&match?({:segment_output, _}, &1))
+
+      assert outputs == [{:segment_output, "Lies [Leitfaden](https://example.com/guide) jetzt."}]
+
+      progress_events = progress |> Elixir.Agent.get(&Enum.reverse/1)
+      refute Enum.any?(progress_events, &match?({:text, _}, &1))
+    end
+
+    @tag :tmp_dir
+    test "bounds individual text-literal recovery", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+
+      content =
+        1..129
+        |> Enum.map_join(" ", fn index ->
+          "[Sentence #{index}](https://example.com/#{index})."
+        end)
+
+      File.write!(source, content)
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        if payload["segment_kind"] == "markdown_text_markers" do
+          translated("The required recovery markers are absent.")
+        else
+          translated("All sentences.")
+        end
+      end)
+
+      assert {:error, {:validation_failed, _message}} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      refute Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literal"))
+    end
+
+    @tag :tmp_dir
     test "does not run marker recovery when source prose contains a marker lookalike", %{
       tmp_dir: dir
     } do

@@ -15,6 +15,7 @@ defmodule Glossia.Translations.Engine do
   """
 
   @segment_attempts 2
+  @markdown_text_literal_recovery_max_calls 128
 
   require Logger
 
@@ -140,81 +141,118 @@ defmodule Glossia.Translations.Engine do
 
     state.segments
     |> Enum.with_index(1)
-    |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
-      {segment, segment_index}, {:ok, acc} ->
-        case translate_segment(
-               state,
-               segment,
-               segment_index,
-               segment_count,
-               1,
-               state.last_error
-             ) do
-          {:ok, text, result} ->
-            translated_segment = %{kind: segment.kind, text: text}
+    |> Enum.reduce_while(
+      {:ok, %{segments: [], model: nil, provider: nil, markdown_text_literal_recovery_calls: 0}},
+      fn
+        {segment, segment_index}, {:ok, acc} ->
+          case translate_segment(
+                 state,
+                 segment,
+                 segment_index,
+                 segment_count,
+                 1,
+                 state.last_error
+               ) do
+            {:ok, text, result} ->
+              translated_segment = %{kind: segment.kind, text: text}
 
-            {:cont,
-             {:ok,
-              %{
-                segments: acc.segments ++ [translated_segment],
-                model: result.model,
-                provider: result.provider
-              }}}
+              {:cont,
+               {:ok,
+                %{
+                  segments: acc.segments ++ [translated_segment],
+                  model: result.model,
+                  provider: result.provider,
+                  markdown_text_literal_recovery_calls: acc.markdown_text_literal_recovery_calls
+                }}}
 
-          {:error, reason} ->
-            {:halt, {:error, reason}}
+            {:error, reason} ->
+              {:halt, {:error, reason}}
 
-          {:preservation_error, message} ->
-            # Markdown's source tree already gives us a deterministic recovery
-            # path. Try that before asking the model to reproduce the same
-            # Markdown syntax in smaller blocks: models that normalize a link
-            # or list tend to do so on every ordinary retry, which turns one
-            # bad response into several slow, identical requests.
-            case recover_markdown_text_nodes(
-                   state,
-                   segment,
-                   segment_index,
-                   segment_count,
-                   message
-                 ) do
-              {:ok, recovered} ->
-                {:cont,
-                 {:ok,
-                  %{
-                    segments: acc.segments ++ recovered.segments,
-                    model: recovered.model,
-                    provider: recovered.provider
-                  }}}
+            {:preservation_error, message} ->
+              # Markdown's source tree already gives us a deterministic recovery
+              # path. Try that before asking the model to reproduce the same
+              # Markdown syntax in smaller blocks: models that normalize a link
+              # or list tend to do so on every ordinary retry, which turns one
+              # bad response into several slow, identical requests.
+              case recover_markdown_text_nodes(
+                     state,
+                     segment,
+                     segment_index,
+                     segment_count,
+                     message
+                   ) do
+                {:ok, recovered} ->
+                  {:cont,
+                   {:ok,
+                    %{
+                      segments: acc.segments ++ recovered.segments,
+                      model: recovered.model,
+                      provider: recovered.provider,
+                      markdown_text_literal_recovery_calls:
+                        acc.markdown_text_literal_recovery_calls
+                    }}}
 
-              {:error, reason} ->
-                {:halt, {:error, reason}}
+                {:error, reason} ->
+                  {:halt, {:error, reason}}
 
-              :error ->
-                case recover_markdown_segment(
-                       state,
-                       segment,
-                       segment_index,
-                       segment_count,
-                       message
-                     ) do
-                  {:ok, recovered} ->
-                    {:cont,
-                     {:ok,
-                      %{
-                        segments: acc.segments ++ recovered.segments,
-                        model: recovered.model,
-                        provider: recovered.provider
-                      }}}
+                :error ->
+                  case recover_markdown_segment(
+                         state,
+                         segment,
+                         segment_index,
+                         segment_count,
+                         message
+                       ) do
+                    {:ok, recovered} ->
+                      {:cont,
+                       {:ok,
+                        %{
+                          segments: acc.segments ++ recovered.segments,
+                          model: recovered.model,
+                          provider: recovered.provider,
+                          markdown_text_literal_recovery_calls:
+                            acc.markdown_text_literal_recovery_calls
+                        }}}
 
-                  {:error, reason} ->
-                    {:halt, {:error, reason}}
+                    {:error, reason} ->
+                      {:halt, {:error, reason}}
 
-                  :error ->
-                    {:halt, {:preservation_error, message}}
-                end
-            end
-        end
-    end)
+                    :error ->
+                      case recover_markdown_text_literals(
+                             state,
+                             segment,
+                             segment_index,
+                             segment_count,
+                             message,
+                             @markdown_text_literal_recovery_max_calls -
+                               acc.markdown_text_literal_recovery_calls
+                           ) do
+                        {:ok, recovered} ->
+                          {:cont,
+                           {:ok,
+                            %{
+                              segments: acc.segments ++ recovered.segments,
+                              model: recovered.model,
+                              provider: recovered.provider,
+                              markdown_text_literal_recovery_calls:
+                                acc.markdown_text_literal_recovery_calls +
+                                  recovered.markdown_text_literal_recovery_calls
+                            }}}
+
+                        {:error, reason} ->
+                          {:halt, {:error, reason}}
+
+                        {:preservation_error, reason} ->
+                          {:halt, {:preservation_error, reason}}
+
+                        :error ->
+                          {:halt, {:preservation_error, message}}
+                      end
+                  end
+              end
+          end
+      end
+    )
   end
 
   # A model occasionally combines or drops Markdown blocks even after the
@@ -311,13 +349,104 @@ defmodule Glossia.Translations.Engine do
       "exactly once and translate only the text between its matching markers."
   end
 
+  # Marker-delimited recovery keeps the ordinary fast path compact, but a
+  # smaller model can still lose markers in a dense document. At that point,
+  # translate only one source-tree text literal per request and rebuild the
+  # document ourselves. The model never receives Markdown syntax, so it cannot
+  # change headings, links, lists, code spans, or block ordering.
+  defp recover_markdown_text_literals(state, segment, index, count, message, remaining_calls) do
+    with true <- markdown_structure_error?(state, message),
+         true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
+         {:ok, source_literals} <- Markdown.text_literals(segment.content),
+         true <- source_literals != [],
+         true <- length(source_literals) <= remaining_calls do
+      source_literals
+      |> Enum.reduce_while({:ok, %{literals: [], model: nil, provider: nil}}, fn literal,
+                                                                                 {:ok, acc} ->
+        case translate_markdown_text_literal(state, segment, literal, index, count, message) do
+          {:ok, translated_literal, result} ->
+            {:cont,
+             {:ok,
+              %{
+                literals: [translated_literal | acc.literals],
+                model: result.model || acc.model,
+                provider: result.provider || acc.provider
+              }}}
+
+          {:error, reason} ->
+            {:halt, {:error, reason}}
+
+          {:preservation_error, reason} ->
+            {:halt, {:preservation_error, reason}}
+
+          _ ->
+            {:halt, :error}
+        end
+      end)
+      |> case do
+        {:ok, %{literals: literals} = recovery} ->
+          with {:ok, text} <-
+                 Markdown.rebuild_text_literals(segment.content, Enum.reverse(literals)) do
+            state.on_event.({:segment_output, text})
+
+            {:ok,
+             %{
+               segments: [%{kind: segment.kind, text: text}],
+               model: recovery.model,
+               provider: recovery.provider,
+               markdown_text_literal_recovery_calls: length(source_literals)
+             }}
+          else
+            {:error, reason} -> {:preservation_error, reason}
+          end
+
+        other ->
+          other
+      end
+    else
+      _ -> :error
+    end
+  end
+
+  defp translate_markdown_text_literal(state, segment, literal, index, count, _message) do
+    {leading, content, trailing} = split_literal_whitespace(literal)
+
+    if content == "" do
+      {:ok, literal, %{model: nil, provider: nil}}
+    else
+      recovery_segment =
+        Map.merge(segment, %{
+          kind: "markdown_text_literal",
+          content: content,
+          markdown_text_literal_recovery: true,
+          suppress_progress: true,
+          suppress_stream_text: true
+        })
+
+      case translate_segment(state, recovery_segment, index, count, 1, nil) do
+        {:ok, translated, result} -> {:ok, leading <> String.trim(translated) <> trailing, result}
+        other -> other
+      end
+    end
+  end
+
+  defp split_literal_whitespace(literal) do
+    trimmed = String.trim(literal)
+    leading_size = byte_size(literal) - byte_size(String.trim_leading(literal))
+    trailing_size = byte_size(literal) - byte_size(String.trim_trailing(literal))
+    leading = binary_part(literal, 0, leading_size)
+    trailing = binary_part(literal, byte_size(literal) - trailing_size, trailing_size)
+
+    {leading, trimmed, trailing}
+  end
+
   # A long segment carrying many protected markers occasionally comes back with
   # one of them dropped or rewritten. Re-running that one segment, naming the
   # markers it lost, recovers far more cheaply than retranslating the document.
   # If that focused recovery runs out, stop there rather than repeatedly
   # translating segments whose output has already passed preservation checks.
   defp translate_segment(state, segment, index, count, attempt, last_error) do
-    state.on_event.({:segment_start, index, count, segment.kind})
+    emit_segment_event(state, segment, {:segment_start, index, count, segment.kind})
 
     payload =
       payload(
@@ -331,7 +460,12 @@ defmodule Glossia.Translations.Engine do
         count
       )
 
-    case translate_stream(state.account, payload, state.on_event, state.translation_opts) do
+    case translate_stream(
+           state.account,
+           payload,
+           segment_on_event(state, segment),
+           state.translation_opts
+         ) do
       {:ok, result} ->
         text =
           state.work_item.format
@@ -345,11 +479,11 @@ defmodule Glossia.Translations.Engine do
               # the item's completed text, so announcing output we are about to
               # discard would leave the rejected and corrected text concatenated.
               message = preservation_error_message(unpreserved)
-              state.on_event.({:segment_retry, index, message})
+              emit_segment_event(state, segment, {:segment_retry, index, message})
               translate_segment(state, segment, index, count, attempt + 1, message)
 
             [] ->
-              state.on_event.({:segment_output, text})
+              emit_segment_event(state, segment, {:segment_output, text})
               {:ok, text, result}
 
             unpreserved ->
@@ -361,7 +495,7 @@ defmodule Glossia.Translations.Engine do
                  not Map.get(segment, :markdown_block_recovery, false) do
               {:preservation_error, message}
             else
-              state.on_event.({:segment_retry, index, message})
+              emit_segment_event(state, segment, {:segment_retry, index, message})
               translate_segment(state, segment, index, count, attempt + 1, message)
             end
 
@@ -373,6 +507,20 @@ defmodule Glossia.Translations.Engine do
         {:error, reason}
     end
   end
+
+  defp emit_segment_event(state, segment, event) do
+    unless Map.get(segment, :suppress_progress, false), do: state.on_event.(event)
+  end
+
+  defp segment_on_event(state, %{suppress_stream_text: true}) do
+    fn
+      {:text, _chunk} -> :ok
+      {:thinking, _chunk} -> :ok
+      event -> state.on_event.(event)
+    end
+  end
+
+  defp segment_on_event(state, _segment), do: state.on_event
 
   # Masked content is checked against the extraction plan's markers. Content
   # left visible to the model, such as a plain web address, is checked against
@@ -613,6 +761,9 @@ defmodule Glossia.Translations.Engine do
        ) do
     Markdown.reconcile_marked_text_nodes(source, text)
   end
+
+  defp reconcile_markdown_segment(text, %{kind: "markdown_text_literal"}, "markdown"),
+    do: {:ok, text}
 
   defp reconcile_markdown_segment(text, segment, "markdown") do
     if Markdown.requires_reconciliation?(segment.content) do

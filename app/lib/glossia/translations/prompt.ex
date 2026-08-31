@@ -12,7 +12,7 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
-  @version 5
+  @version 6
 
   @doc """
   Version of the prompt contract used in translation lockfiles.
@@ -95,6 +95,17 @@ defmodule Glossia.Translations.Prompt do
       end
 
     lines =
+      if Map.get(input, :segment_kind) == "markdown_text_literal" do
+        lines ++
+          [
+            "The supplied content is one plain-text literal from a Markdown document.",
+            "Translate its prose only. Do not add Markdown syntax, fences, headings, list markers, links, or commentary."
+          ]
+      else
+        lines
+      end
+
+    lines =
       if Map.get(input, :segment_count, 1) > 1 do
         lines ++
           [
@@ -146,6 +157,9 @@ defmodule Glossia.Translations.Prompt do
 
         segment_kind == "markdown_text_markers" ->
           "Translate only the prose between matching @@GLOSSIA-TEXT-<number>-START@@ and @@GLOSSIA-TEXT-<number>-END@@ markers from #{source_language} to #{language} (#{locale}). Return every marker exactly once."
+
+        segment_kind == "markdown_text_literal" ->
+          "Translate this plain-text literal from #{source_language} to #{language} (#{locale}). Return only the translated prose, without Markdown syntax or commentary."
 
         segment_count > 1 ->
           "Translate segment #{segment_index} of #{segment_count} from #{source_language} to #{language} (#{locale}). Return only this segment."

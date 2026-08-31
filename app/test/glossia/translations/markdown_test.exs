@@ -121,4 +121,30 @@ defmodule Glossia.Translations.MarkdownTest do
     assert {:ok, output} = Markdown.reconcile_marked_text_nodes(source, marked)
     assert output == expected
   end
+
+  test "rebuilds Markdown from individually translated text literals" do
+    source = "Read [the guide](https://example.com/guide).\n\nParagraph."
+
+    assert {:ok, literals} = Markdown.text_literals(source)
+    assert literals == ["Read ", "the guide", ".", "Paragraph."]
+
+    assert {:ok, output} =
+             Markdown.rebuild_text_literals(source, ["Lee ", "la guía", ".", "Párrafo."])
+
+    assert String.trim(output) == "Lee [la guía](https://example.com/guide).\n\nPárrafo."
+  end
+
+  test "rejects an individually translated literal that erases source prose" do
+    assert {:error, message} =
+             Markdown.rebuild_text_literals("Keep this sentence.", ["   "])
+
+    assert message =~ "emptied a source literal"
+  end
+
+  test "requires whitespace-only literals to remain byte-for-byte unchanged" do
+    assert {:error, message} =
+             Markdown.rebuild_text_literals("[guide](https://example.com) ", ["guide", "\n"])
+
+    assert message =~ "emptied a source literal"
+  end
 end
