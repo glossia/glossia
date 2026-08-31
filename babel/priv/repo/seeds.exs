@@ -72,6 +72,22 @@ end
 
 organizations = [
   %{
+    name: "Northstar Learning",
+    website_url: "https://northstarlearning.example.com",
+    state: "customer",
+    translation_tool: "Managed in Glossia",
+    notes: "An existing Glossia organization with a working localization program.",
+    glossia_organization_id: "0198b3ce-6f00-7b2f-9bc7-345e3420c101"
+  },
+  %{
+    name: "Paper Kite Publishing",
+    website_url: "https://paperkite.example.com",
+    state: "customer",
+    translation_tool: "Managed in Glossia",
+    notes: "An existing Glossia organization whose relationship history is tracked in Babel.",
+    glossia_organization_id: "0198b3ce-6f00-7b2f-9bc7-345e3420c102"
+  },
+  %{
     name: "Braze",
     website_url: "https://www.braze.com",
     origin_url: "https://phrase.com/customers/braze/",
@@ -235,7 +251,8 @@ interactions = [
     organization_name: "Braze",
     kind: "research",
     summary: "Reviewed the public Phrase customer story.",
-    body: "The source describes multilingual content growth and a Sanity content-management workflow.",
+    body:
+      "The source describes multilingual content growth and a Sanity content-management workflow.",
     source_url: "https://phrase.com/customers/braze/",
     occurred_at: DateTime.add(now, -7 * 86_400, :second)
   },
@@ -243,7 +260,8 @@ interactions = [
     organization_name: "Braze",
     kind: "introduction_draft",
     summary: "Prepared a reviewed working-demo introduction for the localization contact.",
-    body: "The draft offers a small, non-production content change and does not send anything automatically.",
+    body:
+      "The draft offers a small, non-production content change and does not send anything automatically.",
     occurred_at: DateTime.add(now, -2 * 86_400, :second)
   },
   %{
@@ -257,7 +275,8 @@ interactions = [
   %{
     organization_name: "Tito",
     kind: "research",
-    summary: "Reviewed the public Phrase case study about scaling languages in a Rails application.",
+    summary:
+      "Reviewed the public Phrase case study about scaling languages in a Rails application.",
     body: "A no-migration pull request demonstration is the proposed next conversation artifact.",
     source_url: "https://phrase.com/customers/tito/",
     occurred_at: DateTime.add(now, -4 * 86_400, :second)
@@ -266,7 +285,8 @@ interactions = [
     organization_name: "Dailymotion",
     kind: "note",
     summary: "Identified a public localization workflow signal; contact remains unverified.",
-    body: "Keep this organization in research until a current public contact and workflow are confirmed.",
+    body:
+      "Keep this organization in research until a current public contact and workflow are confirmed.",
     source_url: "https://lokalise.com/case-studies/",
     occurred_at: DateTime.add(now, -3 * 86_400, :second)
   }
@@ -274,7 +294,9 @@ interactions = [
 
 for %{organization_name: organization_name} = attributes <- interactions do
   organization = Map.fetch!(organizations_by_name, organization_name)
-  attributes = attributes |> Map.delete(:organization_name) |> Map.put(:organization_id, organization.id)
+
+  attributes =
+    attributes |> Map.delete(:organization_name) |> Map.put(:organization_id, organization.id)
 
   case Repo.get_by(Interaction,
          organization_id: organization.id,

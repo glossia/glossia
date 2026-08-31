@@ -7,6 +7,7 @@ defmodule Babel.Organizations do
 
   alias Babel.Organizations.Interaction
   alias Babel.Organizations.Organization
+  alias Babel.Organizations.Directory
   alias Babel.Organizations.Usage
   alias Babel.Organizations.UsageCache
   alias Babel.Repo
@@ -20,6 +21,8 @@ defmodule Babel.Organizations do
     |> order(Keyword.get(options, :sort_by), Keyword.get(options, :sort_order))
     |> Repo.all()
   end
+
+  def directory(opts \\ []), do: Directory.list(opts)
 
   def get_organization(id) do
     case Repo.get(Organization, id) do

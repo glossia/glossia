@@ -16,8 +16,7 @@ defmodule Babel.Organizations.UsageTest do
            %{
              "organization_name" => "Example organization",
              "project_count" => "2",
-             "member_count" => 3,
-             "translation_session_count" => "5"
+             "translation_count" => "5"
            }
          ]
        }}
@@ -28,8 +27,7 @@ defmodule Babel.Organizations.UsageTest do
     assert usage == %{
              organization_name: "Example organization",
              projects: 2,
-             members: 3,
-             translation_sessions: 5
+             translations: 5
            }
   end
 

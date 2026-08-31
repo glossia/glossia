@@ -19,10 +19,25 @@ defmodule BabelWeb.Layouts do
           <span data-part="brand-mark">B</span>
           <span data-part="brand-name">Babel</span>
         </.link>
+        <.neutral_button
+          id="babel-sidebar-toggle"
+          size="large"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+          aria-controls="babel-navigation"
+          phx-click={
+            JS.toggle_attribute({"data-mobile-open", ""}, to: "#babel-navigation")
+            |> JS.toggle_attribute({"aria-expanded", "true", "false"},
+              to: "#babel-sidebar-toggle"
+            )
+          }
+        >
+          <.icon name="menu_3" />
+        </.neutral_button>
       </header>
 
       <div data-part="main">
-        <aside data-part="sidebar">
+        <aside id="babel-navigation" data-part="sidebar">
           <.sidebar id="babel-sidebar">
             <.sidebar_item
               id="babel-overview-navigation"
@@ -32,11 +47,18 @@ defmodule BabelWeb.Layouts do
               selected={@live_action == :overview}
             />
             <.sidebar_item
-              id="babel-growth-navigation"
-              label="Growth"
+            id="babel-growth-navigation"
+            label="Growth"
+            icon="chart_donut_4"
+            navigate={~p"/growth"}
+              selected={@live_action == :go_to_market}
+            />
+            <.sidebar_item
+              id="babel-organizations-navigation"
+              label="Organizations"
               icon="building"
-              navigate={~p"/growth"}
-              selected={@live_action in [:go_to_market, :organization]}
+              navigate={~p"/organizations"}
+              selected={@live_action in [:organizations, :organization]}
             />
           </.sidebar>
         </aside>

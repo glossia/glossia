@@ -16,6 +16,10 @@
     min-height: calc(var(--noora-spacing-9) + var(--noora-spacing-5));
     background: var(--noora-surface-background-tertiary);
     padding: var(--noora-spacing-4) var(--noora-spacing-6);
+
+    & #babel-sidebar-toggle {
+      display: none;
+    }
   }
 
   & [data-part="brand"] {
@@ -70,7 +74,12 @@
 
   @media (max-width: 768px) {
     & > [data-part="header"] {
+      justify-content: space-between;
       padding: var(--noora-spacing-4);
+
+      & #babel-sidebar-toggle {
+        display: inline-flex;
+      }
     }
 
     & > [data-part="main"] {
@@ -78,9 +87,15 @@
     }
 
     & > [data-part="main"] > [data-part="sidebar"] {
+      display: none;
       border-right: 0;
-      border-bottom: var(--space-px) solid var(--noora-content-divider-line);
+      border-bottom: 0;
       width: 100%;
+    }
+
+    & > [data-part="main"] > [data-part="sidebar"][data-mobile-open] {
+      display: block;
+      border-bottom: var(--space-px) solid var(--noora-content-divider-line);
     }
 
     & > [data-part="main"] > [data-part="sidebar"] > .noora-sidebar {

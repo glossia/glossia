@@ -56,6 +56,7 @@ defmodule BabelWeb.Router do
 
     live "/", OperationsLive, :overview
     live "/growth", OperationsLive, :go_to_market
+    live "/organizations", OperationsLive, :organizations
     live "/organizations/:id", OperationsLive, :organization
   end
 

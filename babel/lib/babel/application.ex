@@ -10,6 +10,7 @@ defmodule Babel.Application do
       {Oban, Application.fetch_env!(:babel, Oban)},
       {DNSCluster, query: Application.get_env(:babel, :dns_cluster_query) || :ignore},
       Babel.Pomerium.JWKSCache,
+      Babel.Organizations.DirectoryCache,
       Babel.Organizations.UsageCache,
       {Phoenix.PubSub, name: Babel.PubSub},
       BabelWeb.Telemetry,
