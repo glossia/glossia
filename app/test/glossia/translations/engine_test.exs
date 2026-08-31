@@ -630,7 +630,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "rebuilds Markdown from individual text literals after every structural recovery fails",
+    test "rebuilds Markdown from bounded text-literal batches after every structural recovery fails",
          %{
            tmp_dir: dir
          } do
@@ -647,23 +647,10 @@ defmodule Glossia.Translations.EngineTest do
           "markdown_text_markers" ->
             translated("The required recovery markers are absent.")
 
-          "markdown_text_literal" ->
-            case payload["source_content"] do
-              "Read" ->
-                on_event.({:text, "Lies"})
-                translated("Lies")
-
-              "Guide" ->
-                on_event.({:text, "Leitfaden"})
-                translated("Leitfaden")
-
-              "now." ->
-                on_event.({:text, "jetzt."})
-                translated("jetzt.")
-
-              value ->
-                flunk("unexpected literal input: #{inspect(value)}")
-            end
+          "markdown_text_literals" ->
+            assert JSON.decode!(payload["source_content"]) == ["Read", "Guide", "now."]
+            on_event.({:text, "Lies"})
+            translated(JSON.encode!(["Lies", "Leitfaden", "jetzt."]))
 
           _ ->
             translated("Read Guide now.")
@@ -677,14 +664,14 @@ defmodule Glossia.Translations.EngineTest do
       assert result.text == "Lies [Leitfaden](https://example.com/guide) jetzt."
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literal"))
+      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
 
-      literal_inputs =
+      literal_batches =
         calls
-        |> Enum.filter(&(&1["segment_kind"] == "markdown_text_literal"))
+        |> Enum.filter(&(&1["segment_kind"] == "markdown_text_literals"))
         |> Enum.map(& &1["source_content"])
 
-      assert literal_inputs == ["Read", "Guide", "now."]
+      assert literal_batches == [JSON.encode!(["Read", "Guide", "now."])]
 
       outputs =
         progress
@@ -698,7 +685,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "masks bare web addresses during individual Markdown text-literal recovery", %{
+    test "masks bare web addresses during batched Markdown text-literal recovery", %{
       tmp_dir: dir
     } do
       source = Path.join(dir, "guide.md")
@@ -710,12 +697,12 @@ defmodule Glossia.Translations.EngineTest do
         Elixir.Agent.update(payloads, &[payload | &1])
 
         case payload["segment_kind"] do
-          "markdown_text_literal" ->
-            assert payload["source_content"] =~ "__GLOSSIA_URL_"
+          "markdown_text_literals" ->
+            [literal] = JSON.decode!(payload["source_content"])
+            assert literal =~ "__GLOSSIA_URL_"
 
             translated(
-              payload["source_content"]
-              |> String.replace("Find details at", "Weitere Details unter")
+              JSON.encode!([String.replace(literal, "Find details at", "Weitere Details unter")])
             )
 
           "markdown_text_markers" ->
@@ -737,12 +724,16 @@ defmodule Glossia.Translations.EngineTest do
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
 
-      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literal"))
+      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
 
       refute Enum.any?(
                calls,
-               &(&1["segment_kind"] == "markdown_text_literal" and
-                   &1["source_content"] =~ "https://example.com/docs")
+               fn payload ->
+                 payload["segment_kind"] == "markdown_text_literals" and
+                   payload["source_content"]
+                   |> JSON.decode!()
+                   |> Enum.any?(&(&1 =~ "https://example.com/docs"))
+               end
              )
     end
 
@@ -777,7 +768,7 @@ defmodule Glossia.Translations.EngineTest do
                )
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      refute Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literal"))
+      refute Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
     end
 
     @tag :tmp_dir

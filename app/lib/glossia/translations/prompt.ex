@@ -12,7 +12,7 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
-  @version 6
+  @version 7
 
   @doc """
   Version of the prompt contract used in translation lockfiles.
@@ -95,11 +95,12 @@ defmodule Glossia.Translations.Prompt do
       end
 
     lines =
-      if Map.get(input, :segment_kind) == "markdown_text_literal" do
+      if Map.get(input, :segment_kind) == "markdown_text_literals" do
         lines ++
           [
-            "The supplied content is one plain-text literal from a Markdown document.",
-            "Translate its prose only. Do not add Markdown syntax, fences, headings, list markers, links, or commentary."
+            "The supplied content is a JSON array of plain-text literals from a Markdown document.",
+            "Return a valid JSON array of translated strings in exactly the same order and with exactly the same number of elements.",
+            "Translate each string's prose only. Do not add Markdown syntax, fences, headings, list markers, links, keys, or commentary."
           ]
       else
         lines
@@ -158,8 +159,8 @@ defmodule Glossia.Translations.Prompt do
         segment_kind == "markdown_text_markers" ->
           "Translate only the prose between matching @@GLOSSIA-TEXT-<number>-START@@ and @@GLOSSIA-TEXT-<number>-END@@ markers from #{source_language} to #{language} (#{locale}). Return every marker exactly once."
 
-        segment_kind == "markdown_text_literal" ->
-          "Translate this plain-text literal from #{source_language} to #{language} (#{locale}). Return only the translated prose, without Markdown syntax or commentary."
+        segment_kind == "markdown_text_literals" ->
+          "Translate every string in this JSON array from #{source_language} to #{language} (#{locale}). Return only a valid JSON array of translated strings, with the same number of elements and the same order. Do not add Markdown syntax or commentary."
 
         segment_count > 1 ->
           "Translate segment #{segment_index} of #{segment_count} from #{source_language} to #{language} (#{locale}). Return only this segment."

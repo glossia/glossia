@@ -16,6 +16,8 @@ defmodule Glossia.Translations.Engine do
 
   @segment_attempts 2
   @markdown_text_literal_recovery_max_calls 128
+  @markdown_text_literal_recovery_batch_size 12
+  @markdown_text_literal_recovery_batch_bytes 8_000
 
   require Logger
 
@@ -351,7 +353,7 @@ defmodule Glossia.Translations.Engine do
 
   # Marker-delimited recovery keeps the ordinary fast path compact, but a
   # smaller model can still lose markers in a dense document. At that point,
-  # translate only one source-tree text literal per request and rebuild the
+  # translate bounded batches of source-tree text literals and rebuild the
   # document ourselves. The model never receives Markdown syntax, so it cannot
   # change headings, links, lists, code spans, or block ordering.
   defp recover_markdown_text_literals(state, segment, index, count, message, remaining_calls) do
@@ -360,33 +362,61 @@ defmodule Glossia.Translations.Engine do
          {:ok, source_literals} <- Markdown.text_literals(segment.content),
          true <- source_literals != [],
          true <- length(source_literals) <= remaining_calls do
-      source_literals
-      |> Enum.reduce_while({:ok, %{literals: [], model: nil, provider: nil}}, fn literal,
-                                                                                 {:ok, acc} ->
-        case translate_markdown_text_literal(state, segment, literal, index, count, message) do
-          {:ok, translated_literal, result} ->
-            {:cont,
-             {:ok,
-              %{
-                literals: [translated_literal | acc.literals],
-                model: result.model || acc.model,
-                provider: result.provider || acc.provider
-              }}}
+      entries =
+        source_literals
+        |> Enum.with_index()
+        |> Enum.map(fn {literal, literal_index} ->
+          markdown_text_literal_entry(state, literal, literal_index)
+        end)
 
-          {:error, reason} ->
-            {:halt, {:error, reason}}
+      entries
+      |> Enum.reject(&(&1.content == ""))
+      |> batch_markdown_text_literals()
+      |> Enum.reduce_while(
+        {:ok,
+         %{
+           literals: blank_markdown_text_literals(entries),
+           model: nil,
+           provider: nil,
+           markdown_text_literal_recovery_calls: 0
+         }},
+        fn batch, {:ok, acc} ->
+          case translate_markdown_text_literal_batch(state, segment, batch, index, count, message) do
+            {:ok, translated_literals, result} ->
+              literals =
+                batch
+                |> Enum.zip(translated_literals)
+                |> Map.new(fn {%{index: literal_index}, literal} -> {literal_index, literal} end)
+                |> then(&Map.merge(acc.literals, &1))
 
-          {:preservation_error, reason} ->
-            {:halt, {:preservation_error, reason}}
+              {:cont,
+               {:ok,
+                %{
+                  acc
+                  | literals: literals,
+                    model: result.model || acc.model,
+                    provider: result.provider || acc.provider,
+                    markdown_text_literal_recovery_calls:
+                      acc.markdown_text_literal_recovery_calls + 1
+                }}}
 
-          _ ->
-            {:halt, :error}
+            {:error, reason} ->
+              {:halt, {:error, reason}}
+
+            {:preservation_error, reason} ->
+              {:halt, {:preservation_error, reason}}
+
+            _ ->
+              {:halt, :error}
+          end
         end
-      end)
+      )
       |> case do
         {:ok, %{literals: literals} = recovery} ->
+          literals = Enum.map(entries, &Map.fetch!(literals, &1.index))
+
           with {:ok, text} <-
-                 Markdown.rebuild_text_literals(segment.content, Enum.reverse(literals)) do
+                 Markdown.rebuild_text_literals(segment.content, literals) do
             state.on_event.({:segment_output, text})
 
             {:ok,
@@ -394,7 +424,7 @@ defmodule Glossia.Translations.Engine do
                segments: [%{kind: segment.kind, text: text}],
                model: recovery.model,
                provider: recovery.provider,
-               markdown_text_literal_recovery_calls: length(source_literals)
+               markdown_text_literal_recovery_calls: recovery.markdown_text_literal_recovery_calls
              }}
           else
             {:error, reason} -> {:preservation_error, reason}
@@ -408,45 +438,122 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
-  defp translate_markdown_text_literal(state, segment, literal, index, count, _message) do
+  defp markdown_text_literal_entry(state, literal, index) do
     {leading, content, trailing} = split_literal_whitespace(literal)
 
-    if content == "" do
-      {:ok, literal, %{model: nil, provider: nil}}
-    else
-      # The source Markdown tree restores link destinations, headings, and
-      # other syntax, but a bare web address belongs to a text literal. Mask
-      # every protected value here so the final recovery path does not rely on
-      # a model copying a URL exactly after the structural recoveries failed.
-      protection =
-        PreservedTokens.protect(
-          content,
-          state.preserve_kinds,
-          scope: "markdown_text_literal",
-          mask_urls: true
-        )
+    protection =
+      PreservedTokens.protect(
+        content,
+        state.preserve_kinds,
+        scope: "markdown_text_literal_#{index}",
+        mask_urls: true
+      )
 
-      recovery_segment =
-        Map.merge(segment, %{
-          kind: "markdown_text_literal",
-          content: protection.text,
-          protections: [protection],
-          markdown_text_literal_recovery: true,
-          suppress_progress: true,
-          suppress_stream_text: true
-        })
+    %{
+      index: index,
+      leading: leading,
+      content: protection.text,
+      trailing: trailing,
+      protection: protection
+    }
+  end
 
-      case translate_segment(state, recovery_segment, index, count, 1, nil) do
-        {:ok, translated, result} ->
-          with {:ok, restored} <- PreservedTokens.restore(translated, protection) do
-            {:ok, leading <> String.trim(restored) <> trailing, result}
-          else
-            {:error, reason} -> {:preservation_error, reason}
-          end
+  defp blank_markdown_text_literals(entries) do
+    entries
+    |> Enum.filter(&(&1.content == ""))
+    |> Map.new(fn entry -> {entry.index, entry.leading <> entry.trailing} end)
+  end
 
-        other ->
-          other
+  defp batch_markdown_text_literals([]), do: []
+
+  defp batch_markdown_text_literals(entries) do
+    entries
+    |> Enum.reduce({[], [], 0}, fn entry, {batches, current, bytes} ->
+      entry_bytes = byte_size(entry.content)
+
+      if current != [] and
+           (length(current) >= @markdown_text_literal_recovery_batch_size or
+              bytes + entry_bytes > @markdown_text_literal_recovery_batch_bytes) do
+        {[Enum.reverse(current) | batches], [entry], entry_bytes}
+      else
+        {batches, [entry | current], bytes + entry_bytes}
       end
+    end)
+    |> then(fn {batches, current, _bytes} -> Enum.reverse([Enum.reverse(current) | batches]) end)
+  end
+
+  defp translate_markdown_text_literal_batch(state, segment, entries, index, count, _message) do
+    recovery_segment =
+      Map.merge(segment, %{
+        kind: "markdown_text_literals",
+        content: entries |> Enum.map(& &1.content) |> JSON.encode!(),
+        protections: Enum.map(entries, & &1.protection),
+        markdown_text_literal_recovery: true,
+        suppress_progress: true,
+        suppress_stream_text: true
+      })
+
+    case translate_segment(state, recovery_segment, index, count, 1, nil) do
+      {:ok, translated, result} ->
+        with {:ok, translated_literals} <-
+               decode_markdown_text_literal_batch(translated, length(entries)),
+             {:ok, restored_literals} <-
+               restore_markdown_text_literal_batch(entries, translated_literals) do
+          {:ok, restored_literals, result}
+        else
+          {:error, reason} -> {:preservation_error, reason}
+        end
+
+      other ->
+        other
+    end
+  end
+
+  defp decode_markdown_text_literal_batch(text, expected_count) do
+    case text |> strip_json_code_fence() |> JSON.decode() do
+      {:ok, literals} when is_list(literals) ->
+        if length(literals) == expected_count and Enum.all?(literals, &is_binary/1) do
+          {:ok, literals}
+        else
+          {:error,
+           "Markdown text-literal recovery must return a JSON string array of matching length"}
+        end
+
+      {:ok, _value} ->
+        {:error,
+         "Markdown text-literal recovery must return a JSON string array of matching length"}
+
+      {:error, _reason} ->
+        {:error, "Markdown text-literal recovery returned invalid JSON"}
+    end
+  end
+
+  defp strip_json_code_fence(text) do
+    trimmed = String.trim(text)
+
+    case Regex.run(~r/\A```(?:json)?\s*\n(.*)\n```\z/is, trimmed, capture: :all_but_first) do
+      [json] -> json
+      _ -> trimmed
+    end
+  end
+
+  defp restore_markdown_text_literal_batch(entries, translated_literals) do
+    entries
+    |> Enum.zip(translated_literals)
+    |> Enum.reduce_while({:ok, []}, fn {%{protection: protection} = entry, translated},
+                                       {:ok, literals} ->
+      with true <- String.trim(translated) != "",
+           {:ok, restored} <- PreservedTokens.restore(translated, protection) do
+        literal = entry.leading <> String.trim(restored) <> entry.trailing
+        {:cont, {:ok, [literal | literals]}}
+      else
+        false -> {:halt, {:error, "Markdown text-node recovery produced an empty translation"}}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, literals} -> {:ok, Enum.reverse(literals)}
+      error -> error
     end
   end
 
@@ -800,6 +907,9 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp reconcile_markdown_segment(text, %{kind: "markdown_text_literal"}, "markdown"),
+    do: {:ok, text}
+
+  defp reconcile_markdown_segment(text, %{kind: "markdown_text_literals"}, "markdown"),
     do: {:ok, text}
 
   defp reconcile_markdown_segment(text, segment, "markdown") do

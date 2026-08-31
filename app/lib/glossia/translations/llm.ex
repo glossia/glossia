@@ -25,7 +25,7 @@ defmodule Glossia.Translations.LLM do
   # not enough: Qwen3.5 spends around 5300 tokens translating a 344-byte
   # metadata block. Models whose catalog entry states an output limit keep
   # ReqLLM's own default, which is the provider's real ceiling.
-  @uncatalogued_max_output_tokens 16_384
+  @uncatalogued_max_output_tokens 32_768
 
   # The gateway completes a non-streaming reasoning response only after the
   # model has finished thinking. Qwen regularly takes longer than ReqLLM's

@@ -137,7 +137,7 @@ defmodule Glossia.Translations.LLMTest do
       stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
 
       Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
-        assert opts[:max_tokens] == 16_384
+        assert opts[:max_tokens] == 32_768
         {:ok, :response}
       end)
 
@@ -328,7 +328,7 @@ defmodule Glossia.Translations.LLMTest do
       stub_model(uncatalogued("openai:Qwen/Qwen3.5-9B"))
 
       Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
-        assert opts[:max_tokens] == 16_384
+        assert opts[:max_tokens] == 32_768
         assert opts[:receive_timeout] == :timer.minutes(5)
         {:ok, :response}
       end)

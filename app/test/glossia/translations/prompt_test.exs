@@ -66,6 +66,14 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "Copy every marker byte-for-byte exactly once"
     end
 
+    test "requires a JSON array for batched Markdown text recovery" do
+      prompt = Prompt.build_system_prompt(base(%{segment_kind: "markdown_text_literals"}))
+
+      assert prompt =~ "JSON array of plain-text literals"
+      assert prompt =~ "exactly the same order"
+      assert prompt =~ "exactly the same number of elements"
+    end
+
     test "appends a non-blank custom prompt, trimmed" do
       prompt = Prompt.build_system_prompt(base(%{custom_prompt: "  Use the formal register.  "}))
       assert prompt =~ "\nUse the formal register."
@@ -242,6 +250,21 @@ defmodule Glossia.Translations.PromptTest do
 
       assert prompt =~ "Translate only the prose between matching @@GLOSSIA-TEXT-<number>-START@@"
       assert prompt =~ "Return every marker exactly once."
+    end
+
+    test "requires a matching JSON array for batched Markdown text recovery" do
+      prompt =
+        Prompt.build_user_prompt(
+          "English",
+          "es",
+          "Spanish",
+          ~s(["Hello", "world"]),
+          nil,
+          %{kind: "markdown_text_literals", index: 1, count: 1}
+        )
+
+      assert prompt =~ "Translate every string in this JSON array"
+      assert prompt =~ "same number of elements and the same order"
     end
   end
 end
