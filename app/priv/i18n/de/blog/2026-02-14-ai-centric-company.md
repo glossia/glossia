@@ -1,107 +1,109 @@
 %{
-  title: "Ein KI-zentriertes Unternehmen aufbauen, um eine Branche herauszufordern, die sich nicht selbst erfinden kann.",
-  summary: "Etablierte Lokalisierungsfirmen verfügen zwar über das Kapital, nicht aber über die Freiheit zu innovieren. Wir gestalten Glossia von Grund auf neu rund um KI und Agenten, nicht nur im Produkt, sondern auch darin, wie wir das gesamte Unternehmen führen.",
+  title:
+    "Aufbau eines KI-zentrierten Unternehmens, um eine Branche herauszufordern, die nicht neu erfinden kann",
+  summary:
+    "Etablierte Lokalisierungsunternehmen verfügen über das Kapital, aber nicht über die Freiheit zu innovieren. Wir gestalten Glossia von Grund auf rund um KI und Agenten, nicht nur im Produkt, sondern auch in der Art, wie wir das gesamte Unternehmen führen.",
   date: ~D[2026-02-14],
   slug: "2026-02-14-ai-centric-company",
   author: "pedro"
 }
 ---
-LLMs und Agenten verändern alles. Nicht nur, was Software kann, sondern auch, wie Unternehmen aufgebaut sind, um diese Software zu entwickeln. Bei [Glossia](https://glossia.ai) sehen wir dies als eine einmalige Chance der Generation, neu zu denken, wie Inhalte jede Sprache erreichen. Aber wir wissen auch, dass eine gute Produktidee nicht ausreicht. Sie brauchen eine Organisation, die schnell genug agieren kann, um wirklich zu zählen.
+LLMs und Agenten verwandeln alles. Nicht nur, was Software kann, sondern wie Unternehmen aufgebaut sind, um diese Software zu entwickeln. Bei [Glossia](https://glossia.ai) sehen wir dies als eine einmalige Chance, neu zu denken, wie Inhalte in jede Sprache gelangen. Aber wir wissen auch, dass eine gute Produktidee allein nicht ausreicht. Man braucht eine Organisation, die schnell genug agieren kann, um Relevanz zu gewinnen.
 
-Das zweite Stück ist genau das Thema dieses Beitrags.
+Genau darum geht es in diesem Beitrag.
 
-## Das Innovator's Dilemma in Echtzeit
+## Das Innovators-Dilemma, das sich in Echtzeit abspielt
 
-Die Lokalisierungsbranche ist groß und gut finanziert. Unternehmen wie Smartling, Phrase, Crowdin und Lokalise bauen seit Jahren Tools und Dienste auf. Sie haben Kunden, Einnahmen etablierter Workflows und Teams, die wissen, wie sie ihre Produkte verkaufen und unterstützen.
+Die Lokalisierungswirtschaft ist groß und gut finanziert. Unternehmen wie Smartling, Phrase, Crowdin und Lokalise entwickeln seit Jahren Tools und Dienste. Sie haben Kunden, Umsatz, etablierte Arbeitsabläufe und Teams, die wissen, wie man ihre Produkte verkauft und unterstützt.
 
-Warum würde also eine Zwei-Personen-Team eigentlich versuchen?
+Warum sollte ein Team von nur zwei Personen es denn überhaupt versuchen?
 
-Aus etwas, das Clayton Christensen in [The Innovator's Dilemma](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma) beschrieb: Etablierte Unternehmen haben Mühe, disruptive Innovation anzunehmen, nicht wegen Ressourcenmangel, sondern weil ihre bestehenden Geschäftsmodelle, Kundenerwartungen und Organisationsstrukturen es verhindern.
+Weil Clayton Christensen in [Das Innovators-Dilemma](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma) beschreibt: Etablierte Unternehmen haben Schwierigkeiten, disruptive Innovationen anzunehmen, nicht wegen fehlender Ressourcen, sondern weil ihre bestehenden Geschäftsmodelle, Kundenerwartungen und Organisationsstrukturen dies verhindern.
 
-Diese Unternehmen bauten ihre Produkte um Translation Memories, Stichwortpreise und Workflows menschlicher Übersetzer. Ihre Kunden haben mentale Modelle und Prozesse rund um diese Bausteine entwickelt. Das Fundament zu ändern bedeutet, Verträge bestehenden Kunden zu brechen, Teams neu zu schulen und Ertragsmodelle neu zu denken. Selbst mit bester Absicht und den Mitteln zu investieren, ist die organisatorische Trägheit enorm.
+Diese Unternehmen bauten ihre Produkte um einen Übersetzungsspeicher, Preise pro Wort und Arbeitsabläufe menschlicher Übersetzer herum. Ihre Kunden haben mentale Modelle und Prozesse um diese Bausteine herum aufgebaut. Das Fundament zu ändern bedeutet, Versprechungen gegenüber bestehenden Kunden zu brechen, Teams nachzuschrüben und Umsatzmodelle neu zu durchdenken. Selbst bei den besten Absichten und dem Kapital für Investitionen ist die organisatorische Trägheit enorm.
 
-Sie brauchen Innovationsfähigkeit und Commitment von Ihrer Belegschaft, um neue Ideen anzunehmen. Aber noch schwieriger ist es, ihre bestehenden Kunden mitzunehmen. Und diese Kunden sind im alten Modell investiert.
+Sie brauchen Innovationsfähigkeit und Engagement ihrer Belegschaft, um neue Ideen anzunehmen. Aber noch schwieriger ist, dass sie ihre bestehenden Kunden für die Fahrt brauchen. Und diese Kunden sind im alten Modell investiert.
 
-Hier liegt das, was wir sehen. Nicht trotz weniger Ressourcen, sondern wegen. Wir haben kein altes Erbe zu schützen, keine Workflows zu bewahren, keine Kunden zu migrieren. Wir können alles von Grund auf neu entwickeln.
+Das ist die Lücke, die wir sehen. Nicht trotz weniger Ressourcen, sondern gerade wegen davon. Wir haben kein veraltetes Erbe zu schützen, keine Abläufe zu erhalten und keine Kunden zu migrieren. Wir können alles von Grund auf entwerfen.
 
 > \[\!NOTE\]
-> Das Innovator's Dilemma geht nicht um Technologie. Es geht um Anreize. Etablierte Unternehmen optimieren für das, was ihre aktuellen Kunden wollen, was es quasi unmöglich macht, etwas grundlegend anderes zu verfolgen.
+> Das Innovators-Dilemma geht nicht um Technologie. Es geht um Anreize. Etablierte Unternehmen optimieren für das, was ihre aktuellen Kunden wollen, was es nahezu unmöglich macht, etwas grundlegend anderes anzustreben.
 
-## KI im Zentrum, nicht am Rand
+## KI im Zentrum, nicht an den Rändern
 
-Die meisten Unternehmen integrieren KI, indem sie sie an bestehenden Prozessen festklemmen. Ein Chatbot hier, ein Vorschlagsmodul dort. Wir gehen den anderen Weg: Wir designen das gesamte Unternehmen von Tag eins an KI-zentriert zu sein.
+Die meisten Unternehmen setzen KI ein, indem sie sie auf bestehende Prozesse aufbauen. Ein Chatbot hier, ein Suggestion-Engine dort. Wir gehen den anderen Weg: Wir gestalten das gesamte Unternehmen vom ersten Tag an als KI-zentriert.
 
-Das bedeutet, KI ist keine Funktion des Produkts. Sie bestimmt, wie wir bauen, verkaufen, unterstützen und betreiben. Jede Entscheidung beginnt mit einer Frage: Kann ein Agent das?
+Das bedeutet, KI ist keine Funktion des Produkts. Sie prägt, wie wir bauen, verkaufen, unterstützen und betreiben. Jede Entscheidung, die wir treffen, beginnt mit einer Frage: Kann ein Agent dies tun?
 
-Das Produkt selbst ist ein Agent, der in deinem Terminal lebt, deine Quelldateien liest, Übersetzungen generiert, deine CI-Checks durchführt und zu iterieren, bis die Ausgabe akzeptiert ist. Das ist der Teil, den man sieht. Aber dahinter läuft dieselbe Philosophie im Unternehmen.
+Das Produkt selbst ist ein Agent, der in deinem Terminal lebt, deine Quelldateien liest, Übersetzungen generiert, deine CI-Checks ausführt und iteriert, bis die Ausgabe validiert wird. Das ist der Teil, den die Leute sehen. Aber dahinter läuft die gleiche Philosophie über das Geschäft.
 
-## Zwei Personen, Null organisatorischer Overhead
+## Zwei Personen, kein organisatorischer Overhead
 
-Wir halten das Team absichtlich so klein wie möglich möglich. Derzeit sind es genau zwei von uns. Unser Ziel ist es, bei zwei oder drei Personen so lange zu bleiben, wie wir können.
+Wir halten das Team absichtlich so klein wie möglich. Momentan sind es gerade zwei von uns. Unser Ziel ist es, zwei oder drei Personen so lange wie möglich zu bleiben.
 
-Es geht nicht um Geldersparnis (obwohl es hilft). Es geht darum, eine gesamte Kategorie von Arbeit abzuschaffen, die den Nutzern keine Wertschöpfung bringt.
+Es geht nicht darum, Geld zu sparen (obwohl es hilft). Es geht darum, eine ganze Kategorie von Arbeit zu eliminieren, die keinen Mehrwert für Benutzer liefert.
 
-Je mehr Menschen Sie hinzufügen, desto mehr Koordination benötigen Sie. Sie bauen Vertrauenssysteme, Berechtigungsmodelle, Genehmigungsreihen. Sie koordinieren Konflikte, passen Prioritäten an und planen Meetings. All das ist kreative Energie, die in das Aufrechterhalten einer menschlichen Organisation fließt, anstatt ein Produkt zu bauen.
+Je mehr Menschen Sie hinzufügen, desto mehr Koordination brauchen Sie. Sie bauen Vertrauenssysteme, Berechtigungsmodelle und Genehmigungsreihenfolgen auf. Sie lösen Konflikte, richten Prioritäten aus und planen Meetings. All das ist kreative Energie, die der Aufrechterhaltung einer menschlichen Organisation dient, statt ein Produkt zu bauen.
 
-Mit zwei Personen überspringen wir das alles. Wir vertrauen einander voll. Wir haben Zugriff auf alles. Es gibt keinen Overhead, keine Politik, keinen Prozess um des Prozesses willen.
+Mit zwei Personen überspringen wir das alles. Wir vertrauen einander voll und ganz. Wir haben Zugang zu allem. Es gibt keinen Overhead, keine Politik, keinen Prozess, nur um den Prozess willen.
 
-Der Schlüssel, wie wir dies im großen Maßstab funktionieren, liegt darin, alles andere an Agenten zu delegieren.
+Die Art und Weise, wie dies in großem Maßstab funktioniert, besteht darin, alles andere an Agenten zu delegieren.
 
 ## Discord, ein KI-Agent und eine einzige Kommandozeile
 
-Hier kommt etwas, das seltsam klingen mag: Unsere primäre geschäftliche Schnittstelle ist ein [Discord](https://discord.com)-Server.
+Hier ist etwas, das vielleicht ungewohnt klingt: Unsere primäre Geschäftsoberfläche ist ein [Discord](https://discord.com)-Server.
 
-Wir verfügen über einen damit verbundenen KI-Agenten, der von [OpenAI](https://openai.com) angetrieben wird, Zugriff auf alle benötigten Tools zum Betrieb des Unternehmens. Statt zwischen Web-Dashboards, Analyseplattformen und Admin-Panels umzuschalten, sprechen wir mit dem Agenten. Text und Stimme sind die Einheit der Interaktion.
+Wir verfügen über einen daran angeschlossenen KI-Agenten, der von [OpenAI](https://openai.com) angetrieben wird und Zugriff auf alle Tools hat, die wir brauchen, um das Geschäft zu betreiben. Anstatt zwischen Web-Dashboards, Analytics-Plattformen und Admin-Panele umzuschalten, sprechen wir mit dem Agenten. Text und Sprache sind die Interaktionseinheit.
 
-Durch den Agenten können wir:
+Unter dem Agenten kann einer von uns:
 
-- Marketing- und Produktanalysen abfragen
+- Marketing- und Produkt-Analysen abfragen
 - Produktionsserver inspizieren
 - Marktforschung durchführen
 - Kundenfeedback sammeln
-- Wettbewerbsanalysen durch Web-Browsing durchführen
-- Inhalte entwerfen, Texte überprüfen und veröffentlichen
+- Wettbewerbsanalysen durch Web-Surfen durchführen
+- Inhalte entwerfen, Übersetzungen prüfen und veröffentlichen
 
-Keiner von uns ist auf den anderen angewiesen, um dies zu erledigen. Der Agent hat Zugriff auf unsere APIs, Datenbanken und Überwachungstools. Er kann das Web durchsuchen, Dokumentation lesen und Informationen synthetisieren. Es ist ein Discord-Server, eine OpenAI-Instanz und ein LLM-Schlüssel. Das ist das Betriebssystem des Unternehmens.
+Keiner von uns ist vom anderen abhängig, um dies zu erledigen. Der Agent hat Zugriff auf unsere APIs, Datenbanken und Monitoring-Tools. Er kann das Web durchsuchen, Dokumentation lesen und Informationen synthetisieren. Er ist ein Discord-Server, eine OpenAI-Instanz und ein LLM-Schlüssel. Das ist das Betriebssystem des Unternehmens.
 
 > \[\!TIP\]
-> Wenn Sie ein kleines Team aufbauen und den Koordinierungsbedarf reduzieren wollen, sollten Sie Text und Stimme als primäres Interface für Geschäftsoperationen考虑 machen. Ein gemeinsamer Agent in einem Chat-Kanal kann dutzende Dashboards ersetzen und die meisten internen Tools überflüssig machen.
+> Wenn Sie ein kleines Team aufbauen und Koordinationsaufwand reduzieren wollen, sollten Sie Texte und Sprache als Ihre primäre Schnittstelle für das Geschäftsbetrieb in Betracht ziehen. Ein gemeinsamer Agent in einem Chat-Kanal kann dutzende Dashboards ersetzen und die Notwendigkeit für die meisten internen Tools beseitigen.
 
-## Bewusste technologische Entscheidungen
+## Gezielte Technologieentscheidungen
 
-Wir sind sehr bewusst mit unserem Stack, da dies direkt beeinflusst, wie schnell wir vorankommen und wie kostengünstig wir operieren können.
+Wir sind sehr bewusst in Bezug auf unseren Stack, da dies direkt beeinflusst, wie schnell wir uns bewegen können und wie günstig wir operieren können.
 
-**Für den Agenten (CLI):** Wir haben uns für Go entschieden. Es kompiliert zu einzelnen, portablen Binärdateien über Plattformen hinweg ohne Laufzeitabhängigkeiten für den Benutzer.
+**Für den Agenten (CLI):** Wir haben Go gewählt. Es kompiliert zu einzelnen, portablen Binärdateien auf Plattformen ohne Laufzeitabhängigkeiten für den Benutzer.
 
-**Für den Server:** Wir haben uns für [Elixir](https://elixir-lang.org) und das [Erlang](https://www.erlang.org) Runtime entschieden. Die funktionale Natur von Elixir macht es ideal für agentenbasierte Workloads. Die Erlang-VM ist für Parallelverarbeitung und Fehlertoleranz bewährt. Und hier ist ein Bonus: Ein KI-Agent kann das laufende Erlang-System introspektieren, um zu verstehen, was passiert, Erkenntnisse sammeln und sogar Probleme in der Produktion beheben.
+**Für den Server:** Wir haben [Elixir](https://elixir-lang.org) und die [Erlang](https://www.erlang.org)-Laufzeitumgebung gewählt. Die funktionale Natur von Elixir macht es zu einer hervorragenden Wahl für Agenten-Arbeitslasten. Die Erlang-VM ist für Parallelverarbeitung und Fehlertoleranz bewährt. Und hier ist ein Bonus: Ein KI-Agent kann das laufende Erlang-System inspizieren, um zu verstehen, was geschieht, Einblicke zu sammeln und sogar Probleme in der Produktion zu beheben.
 
-**Für die Infrastruktur:** Alles läuft auf einer einzelnen VPS. Nicht nur der Glossia-Produktionsserver, sondern auch alle peripheren Dienste: [PostgreSQL](https://www.postgresql.org/) für die Datenbank, [Plausible](https://plausible.io) für datenschutzfreundliche Analysen, [Grafana](https://grafana.com) für Telemetrie und Observability. Alles wird aus version kontrollierten Infrastrukturdefinitionen bereitgestellt, die beschreiben, wohin was gehört.
+**Für die Infrastruktur:** Alles läuft auf einem einzigen VPS. Nicht nur der Glossia-Produktions-Server, sondern auch alle peripheren Dienste: [PostgreSQL](https://www.postgresql.org/) für die Datenbank, [Plausible](https://plausible.io) für datenschutzfreundliche Analysen, [Grafana](https://grafana.com) für Telemetrie und Beobachtbarkeit. Alles wird von versionierten Infrastrukturdefinitionen bereitgestellt, die beschreiben, wohin es geht.
 
-Dies hält die Kosten extrem niedrig. Wir sind nicht von Drittanbieter-Cloud-Diensten, verwalteten Datenbanken oder Plattform-als-a-Service-Anbietern abhängig. Wir haben einige externe Abhängigkeiten, aber nur für Dinge, die uns eine lange Zeit zur Replikation erfordern würden und bei denen der Preis Sinn ergibt.
+Dies hält die Kosten extrem niedrig. Wir sind nicht auf dritte Cloud-Dienste, verwaltete Datenbanken oder Plattform-als-Service-Anbieter angewiesen. Wir haben einige externe Abhängigkeiten, aber nur für Dinge, die uns eine lange Zeit kosten würden, um zu replizieren und bei denen die Kosten Sinn ergeben.
 
-Wenn es die Zeit kommt, über Server hinweg zu skalieren, werden wir das Modell weiterentwickeln. Aber wir glauben, wir können eine lange Strecke mit dieser Aufstellung gehen. Und Geschwindigkeit zählt vorerst wichtiger als Größe.
+Wenn der Zeitpunkt gekommen ist, um auf mehrere Server zu skalieren, werden wir das Modell entwickeln. Aber wir glauben, dass wir mit dieser Einrichtung sehr weit kommen können. Und Geschwindigkeit ist derzeit wichtiger als Größe.
 
 > \[\!IMPORTANT\]
-> Wir sind sehr bewusst dabei, technische Komplexität zu überspringen, der Ingenieure tendenziell frühzeitig streben. Kubernetes, Microservices, Multi-Region-Bereitstellungen. Dafür wird an dieser Stelle nichts benötigt und alles würde uns verlangsamen.
+> Wir sind sehr bewusst in Bezug auf das Auslassen technischer Komplexität, auf die Ingenieure oft zu früh zugreifen. Kubernetes, Microservices, Multi-Region-Deployments. Keine davon ist in dieser Phase notwendig und alles würde uns verlangsamen.
 
-## Was dies ermöglicht
+## Was das ermöglicht
 
-Das Unternehmen auf diese Weise zu führen ist nicht nur ein Effizienz-Vergnügen. Es ändert, was wir bieten können und wie schnell wir lernen können.
+Das Unternehmen auf diese Weise zu betreiben ist nicht nur ein Effizienz-Spiel. Es ändert, was wir bieten können und wie schnell wir lernen können.
 
-**Günstiger für Nutzer.** Die Lokalisierungsindustrie hat ihre Tools durch komplexe Preisgestaltung, pro-Wort-Gebühren und Enterprise-Verkaufszyklen unzugänglich gemacht. Wenn Ihr Übersetzungsworkflow Beschaffung, Preisverhandlungen und einen Projektmanager benötigt, werden die meisten kleinen Teams einfach auf Englisch veröffentlichen. Indem wir unsere Betriebskosten nahe Null halten, können wir etwas anbieten, das wirklich zugänglich ist.
+**Günstiger für Nutzer.** Die Lokalisierungsbranche hat ihre Tools durch komplexe Preise, pro-Wort-Gebühren und Vertriebszyklen für Unternehmen unzugänglich gemacht. Wenn Ihr Übersetzungsworkflow von Beschaffung, Preisanbahnungen und einem Projektmanager abhängt, veröffentlichen die meisten kleinen Teams einfach auf Englisch. Indem wir unsere Betriebskosten auf Null halten, können wir etwas anbieten, das wirklich zugänglich ist.
 
-**Schnellere Innovation.** Wir wollen viele Ideen erforschen. Neue Schnittstellen für den Agenten, bessere Feedbackschleifen, neue Wege, Linguisten in den Workflow zu bringen. Ein traditionelles Unternehmen müsste Personal aufnehmen, Teams ausrichten und Roadmap-Reviews planen. Wir versuchen einfach Dinge. Die Distanz zwischen einer Idee und einem eingeführten Experiment wird in Stunden gemessen, nicht in Quartalen.
+**Schnellere Innovation.** Wir wollen viele Ideen erkunden. Neue Schnittstellen für den Agenten, bessere Feedback-Schleifen, neue Möglichkeiten, Linguisten in den Workflow einzubinden. Ein traditionelles Unternehmen müsste Personal nachrüsten, Teams ausrichten und Roadmap-Updates planen. Wir probieren einfach etwas aus. Der Abstand zwischen einer Idee und einem implementierten Experiment wird in Stunden gemessen, nicht in Quartalen.
 
-## Wie wir arbeiten hinterfragen, nicht nur das, was wir bauen
+## Herausfordern, wie wir arbeiten, nicht nur das, was wir bauen
 
-Wir sind nicht emotionally an die alten Vorgehensweisen gebunden. Wir hinterfragen aktiv, was Code-Review bedeutet, wenn ein Agent den Großteil des Codes schreibt. Wie Zusammenarbeit funktioniert, wenn nur zwei Menschen beteiligt sind. Wie du einen Fehler behebst, wenn der Agent das laufende System prüfen kann.
+Wir sind nicht emotional an die alten Vorgehensweisen gebunden. Wir hinterfragen aktiv, was Code-Reviews bedeutet, wenn ein Agent den Großteil des Codes schreibt. Wie Zusammenarbeit funktioniert, wenn nur zwei Menschen beteiligt sind. Wie man einen Fehler behebt, wenn der Agent das laufende System untersucht.
 
-Wir machen Fehler. Wir werden sie auch weiterhin begehen. Aber indem wir offen bleiben für die Art und Weise, wie wir das Unternehmen gestalten und betreiben, entdecken wir ständig Ideen, die das Produkt beeinflussen. Die Art, wie wir operieren, ist nicht von dem getrennt, was wir bauen. Sie sind dasselbe.
+Wir machen Fehler. Wir machen sie weiterhin. Aber indem wir offen bleiben, wie wir das Geschäft konzipieren und betreiben, entdecken wir ständig Ideen, die das Produkt beeinflussen. Unsere Arbeitsweise ist nicht getrennt davon, was wir bauen. Sie sind dasselbe.
 
-[McKinsey hat kürzlich beschrieben](https://www.mckinsey.com/capabilities/people-and-organizational-performance/our-insights/the-agentic-organization-contours-of-the-next-paradigm-for-the-ai-era), was sie »die agentische Organisation« nennen, ein neues Betriebsmodell, in dem KI-Agenten zu gleichberechtigten Teilnehmern werden, die bestimmen, wie ein Unternehmen funktioniert. Wir betrachten es nicht als Modell. Es ist einfach nur das, wie wir arbeiten.
+[McKinsey hat kürzlich beschrieben](https://www.mckinsey.com/capabilities/people-and-organizational-performance/our-insights/the-agentic-organization-contours-of-the-next-paradigm-for-the-ai-era), was sie als "die agentische Organisation" bezeichnen, ein neues Betriebsmodell, in dem KI-Agenten zu gleichrangigen Teilnehmern im Geschäftsablauf eines Unternehmens werden. Wir betrachten es nicht als Modell. Es ist einfach nur so, wie wir arbeiten.
 
 ## Die Wette
 
-Wir setzen darauf, dass ein Zwei-Personen-Team mit den richtigen Werkzeugen, der richtigen Einstellung und ohne organisatorischen Ballast Unternehmen mit hunderten Mitarbeitern und Millionen an Finanzierung überholen kann. Nicht an jeder Front, sondern an derjenigen, die zählt: das Anbieten einer grundlegend besseren Lokalisierungserfahrung.
+Wir wetten darauf, dass ein Zwei-Personen-Team mit den richtigen Werkzeugen, der richtigen Einstellung und ohne Organisationsballast Unternehmen mit hunderten Mitarbeitern und Millionen an Finanzierung überholen kann. Nicht auf allen Fronten, sondern auf der einen, die zählt: Ein grundlegend besseres Lokalisierungserlebnis zu liefern.
 
-Die Branche kann sich nicht neu erfinden. Wir können.
+Die Branche kann sich nicht selbst neu erfinden. Wir können.
