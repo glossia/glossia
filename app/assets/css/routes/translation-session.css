@@ -31,14 +31,7 @@
     gap: var(--space-2);
   }
 
-  & [data-part="spinner"] {
-    display: inline-block;
-    flex: 0 0 auto;
-    width: var(--space-3);
-    height: var(--space-3);
-    border: var(--space-0-5) solid currentColor;
-    border-right-color: transparent;
-    border-radius: var(--radius-full);
+  & .noora-status-badge[data-status="in_progress"] [data-part="icon"] svg {
     transform-origin: center;
     animation: translation-session-spin 1s linear infinite;
   }
@@ -119,7 +112,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #translation-session [data-part="spinner"] {
+  #translation-session .noora-status-badge[data-status="in_progress"] [data-part="icon"] svg {
     animation: none;
   }
 }

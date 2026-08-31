@@ -59,6 +59,20 @@ defmodule Glossia.Translations.PreservedTokensTest do
              |> PreservedTokens.restore(protection)
   end
 
+  test "can mask ordinary web addresses for an isolated recovery request" do
+    protection =
+      PreservedTokens.protect(
+        "Read https://glossia.ai/docs for more.",
+        ["urls"],
+        mask_urls: true
+      )
+
+    refute protection.text =~ "https://glossia.ai/docs"
+
+    assert {:ok, "Read https://glossia.ai/docs for more."} =
+             PreservedTokens.restore(protection.text, protection)
+  end
+
   test "masks a web address whole when it carries another protected value" do
     protection =
       PreservedTokens.protect("Read [the guide](https://glossia.ai/{locale}/docs).", [

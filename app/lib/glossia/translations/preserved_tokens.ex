@@ -69,10 +69,11 @@ defmodule Glossia.Translations.PreservedTokens do
   def protect(source, kinds, opts \\ [])
       when is_binary(source) and is_list(kinds) and is_list(opts) do
     nested = nested_ranges(source, kinds)
+    mask_urls = Keyword.get(opts, :mask_urls, false)
 
     ExtractionPlan.build!(
       source,
-      source |> ranges(kinds) |> Enum.reject(&visible_url?(&1, nested)),
+      source |> ranges(kinds) |> Enum.reject(&visible_url?(&1, nested, mask_urls)),
       opts
     )
   end
@@ -132,10 +133,12 @@ defmodule Glossia.Translations.PreservedTokens do
   # `ranges/2` accepts addresses before placeholders, so an address that
   # overlaps nothing suppressed nothing: dropping it cannot leave a nested value
   # exposed, and the model gets to see the real address.
-  defp visible_url?(%{kind: "urls"} = range, nested_ranges),
+  defp visible_url?(%{kind: "urls"}, _nested_ranges, true), do: false
+
+  defp visible_url?(%{kind: "urls"} = range, nested_ranges, false),
     do: not Enum.any?(nested_ranges, &overlap?(range, &1))
 
-  defp visible_url?(_range, _nested_ranges), do: false
+  defp visible_url?(_range, _nested_ranges, _mask_urls), do: false
 
   defp nested_ranges(source, kinds) do
     @regex_kinds

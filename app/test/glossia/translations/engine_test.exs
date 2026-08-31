@@ -698,6 +698,55 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "masks bare web addresses during individual Markdown text-literal recovery", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Find details at https://example.com/docs.")
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        case payload["segment_kind"] do
+          "markdown_text_literal" ->
+            assert payload["source_content"] =~ "__GLOSSIA_URL_"
+
+            translated(
+              payload["source_content"]
+              |> String.replace("Find details at", "Weitere Details unter")
+            )
+
+          "markdown_text_markers" ->
+            translated("The required recovery markers are absent.")
+
+          _ ->
+            translated("Weitere Details.")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text == "Weitere Details unter https://example.com/docs."
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+
+      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literal"))
+
+      refute Enum.any?(
+               calls,
+               &(&1["segment_kind"] == "markdown_text_literal" and
+                   &1["source_content"] =~ "https://example.com/docs")
+             )
+    end
+
+    @tag :tmp_dir
     test "bounds individual text-literal recovery", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.md")
 

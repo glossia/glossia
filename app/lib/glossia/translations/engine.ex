@@ -414,18 +414,38 @@ defmodule Glossia.Translations.Engine do
     if content == "" do
       {:ok, literal, %{model: nil, provider: nil}}
     else
+      # The source Markdown tree restores link destinations, headings, and
+      # other syntax, but a bare web address belongs to a text literal. Mask
+      # every protected value here so the final recovery path does not rely on
+      # a model copying a URL exactly after the structural recoveries failed.
+      protection =
+        PreservedTokens.protect(
+          content,
+          state.preserve_kinds,
+          scope: "markdown_text_literal",
+          mask_urls: true
+        )
+
       recovery_segment =
         Map.merge(segment, %{
           kind: "markdown_text_literal",
-          content: content,
+          content: protection.text,
+          protections: [protection],
           markdown_text_literal_recovery: true,
           suppress_progress: true,
           suppress_stream_text: true
         })
 
       case translate_segment(state, recovery_segment, index, count, 1, nil) do
-        {:ok, translated, result} -> {:ok, leading <> String.trim(translated) <> trailing, result}
-        other -> other
+        {:ok, translated, result} ->
+          with {:ok, restored} <- PreservedTokens.restore(translated, protection) do
+            {:ok, leading <> String.trim(restored) <> trailing, result}
+          else
+            {:error, reason} -> {:preservation_error, reason}
+          end
+
+        other ->
+          other
       end
     end
   end
@@ -528,7 +548,11 @@ defmodule Glossia.Translations.Engine do
   # corrected by one focused retry rather than by a whole extra document attempt
   # driven from the final validation step.
   defp unpreserved(state, segment, text) do
-    unpreserved_markers(state.protections, segment.content, text) ++
+    unpreserved_markers(
+      state.protections ++ Map.get(segment, :protections, []),
+      segment.content,
+      text
+    ) ++
       PreservedTokens.unpreserved_values(segment.content, text, state.preserve_kinds)
   end
 
