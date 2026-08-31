@@ -90,6 +90,11 @@ config :glossia, :flame,
     log: truthy?.(System.get_env("GLOSSIA_FLAME_K8S_LOG"))
   ]
 
+# Detached translation jobs make concurrent requests to the shared model gateway.
+# Keep this configurable so production can be tuned without another application
+# release as the gateway capacity changes.
+config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 8)
+
 # Where a translation session runs. `:kubernetes` schedules a Job that outlives
 # the pod that created it; `:inline` runs it in the calling process, which is
 # what development and tests want. Defaults to whichever the environment can
