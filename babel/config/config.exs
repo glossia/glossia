@@ -16,6 +16,16 @@ config :babel, BabelWeb.Endpoint,
 
 config :babel, BabelWeb.Plugs.PomeriumAuth, enabled: false
 
+config :babel, Oban,
+  repo: Babel.Repo,
+  queues: [prospect_discovery: 1],
+  cron: [
+    timezone: "Etc/UTC",
+    crontab: [
+      {"0 3 * * *", Babel.GoToMarket.Workers.DiscoverProspectsWorker}
+    ]
+  ]
+
 config :boruta, Boruta.Oauth,
   repo: Babel.Repo,
   issuer: "http://localhost:4060",

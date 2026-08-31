@@ -7,8 +7,10 @@ defmodule Babel.Application do
   def start(_type, _args) do
     children = [
       Babel.Repo,
+      {Oban, Application.fetch_env!(:babel, Oban)},
       {DNSCluster, query: Application.get_env(:babel, :dns_cluster_query) || :ignore},
       Babel.Pomerium.JWKSCache,
+      Babel.Organizations.UsageCache,
       {Phoenix.PubSub, name: Babel.PubSub},
       BabelWeb.Telemetry,
       Hermes.Server.Registry,

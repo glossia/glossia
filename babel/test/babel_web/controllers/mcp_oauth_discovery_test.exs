@@ -13,7 +13,7 @@ defmodule BabelWeb.MCPOAuthDiscoveryTest do
     assert response["authorization_endpoint"] == "http://localhost:4060/oauth/authorize"
     assert response["token_endpoint"] == "http://localhost:4060/oauth/token"
     assert response["registration_endpoint"] == "http://localhost:4060/oauth/register"
-    assert response["scopes_supported"] == ["operations:read"]
+    assert response["scopes_supported"] == ["operations:read", "operations:write"]
     assert response["token_endpoint_auth_methods_supported"] == ["none"]
   end
 

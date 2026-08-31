@@ -55,9 +55,8 @@ defmodule BabelWeb.Router do
     pipe_through [:browser, :operations]
 
     live "/", OperationsLive, :overview
-    live "/customers", OperationsLive, :customers
-    live "/work-items", OperationsLive, :work_items
-    live "/finance", OperationsLive, :finance
+    live "/growth", OperationsLive, :go_to_market
+    live "/organizations/:id", OperationsLive, :organization
   end
 
   if Application.compile_env(:babel, :dev_routes) do

@@ -47,6 +47,7 @@ defmodule Babel.MixProject do
       {:jason, "~> 1.2"},
       {:req, "~> 0.5"},
       {:cachex, "~> 4.1"},
+      {:oban, "~> 2.19"},
       {:boruta, "2.3.5"},
       {:hermes_mcp, "~> 0.14.1"},
       {:jose, "~> 1.11"},

@@ -7,6 +7,7 @@ defmodule Babel.OAuth.ResourceOwners do
   alias Babel.Accounts.Account
 
   @operations_read_scope "operations:read"
+  @operations_write_scope "operations:write"
 
   @impl Boruta.Oauth.ResourceOwners
   def get_by(username: email) when is_binary(email) do
@@ -30,7 +31,10 @@ defmodule Babel.OAuth.ResourceOwners do
 
   @impl Boruta.Oauth.ResourceOwners
   def authorized_scopes(_resource_owner) do
-    [%Boruta.Oauth.Scope{name: @operations_read_scope, label: "Read Babel operations"}]
+    [
+      %Boruta.Oauth.Scope{name: @operations_read_scope, label: "Read Babel operations"},
+      %Boruta.Oauth.Scope{name: @operations_write_scope, label: "Manage Babel operations"}
+    ]
   end
 
   @impl Boruta.Oauth.ResourceOwners

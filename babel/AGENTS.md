@@ -35,6 +35,7 @@
 - Use `Phoenix.Component.form/1` and `to_form/2` for forms.
 - Give forms, buttons, tables, and other key elements a stable unique identifier.
 - Use Noora components for cards, tables, badges, buttons, inputs, and sidebars. When styling is needed, use `data-part` attributes rather than classes.
+- Every data table follows the established Tuist table pattern: a debounced search field, the Noora filter dropdown, active-filter controls, and sortable column headers. Keep search, filter, sort column, and sort direction in the URL so a table view is shareable and survives navigation. Use `<.table>` column `patch` and `sort_order` attributes for sorting rather than bespoke header controls.
 - Follow the three-tier token system: primitives feed semantic tokens, and component tokens are only used for intentional local overrides. Do not introduce raw visual values outside primitive tokens.
 - Put each route or component's styles in its own scoped Cascading Style Sheets file, imported by the thin `assets/css/noora.css` manifest.
 - Keep responsive breakpoints consistent: mobile below 768 pixels, tablet from 768 to 960 pixels, desktop above 960 pixels.

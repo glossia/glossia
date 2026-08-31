@@ -1,5 +1,7 @@
 import Config
 
+config :babel, Babel.GoToMarket.Search.Tavily, api_key: System.get_env("BABEL_TAVILY_API_KEY")
+
 config :babel, BabelWeb.Endpoint,
   http: [
     port:
