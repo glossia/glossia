@@ -66,7 +66,13 @@ defmodule Glossia.TranslationSessions.Translate do
 
       locales = session.target_languages || []
 
-      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales, []) do
+      run_opts =
+        case publication_callback(session, project, token) do
+          nil -> []
+          callback -> [after_item_completed: callback]
+        end
+
+      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales, run_opts) do
         {:ok, changes} ->
           result = publication_result(session, project, token, changes)
           handle_translation_result(session, project, account, result)
@@ -105,21 +111,31 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp publication_result(_session, _project, _clone_token, []), do: :no_changes
 
-  # The isolated runner never contacts GitHub. It returns the complete staged
-  # change set only after every item has finished, so the session creates one
-  # commit and one pull request rather than publishing partial checkpoints.
+  # Each validated item is published as a checkpoint while the run is still in
+  # progress. The final change list remains a compatibility fallback for runs
+  # created by an older worker, or for a runner that did not invoke the
+  # checkpoint callback.
   defp publication_result(session, project, clone_token, changes)
        when not is_nil(project.github_installation) and is_binary(clone_token) and
               clone_token != "" do
-    with {:ok, _publication} <- publish_changes(%{session_id: session.id}, %{changes: changes}),
-         fresh <- TranslationSessions.get_session!(session.id),
-         pull_request_url when is_binary(pull_request_url) and pull_request_url != "" <-
-           fresh.pull_request_url do
-      {:published, pull_request_url}
-    else
-      nil -> {:error, :invalid_github_response}
-      "" -> {:error, :invalid_github_response}
-      {:error, _reason} = error -> error
+    fresh = TranslationSessions.get_session!(session.id)
+
+    case fresh.pull_request_url do
+      pull_request_url when is_binary(pull_request_url) and pull_request_url != "" ->
+        {:published, pull_request_url}
+
+      _ ->
+        with {:ok, _publication} <-
+               publish_changes(%{session_id: session.id}, %{changes: changes}),
+             updated <- TranslationSessions.get_session!(session.id),
+             pull_request_url when is_binary(pull_request_url) and pull_request_url != "" <-
+               updated.pull_request_url do
+          {:published, pull_request_url}
+        else
+          nil -> {:error, :invalid_github_response}
+          "" -> {:error, :invalid_github_response}
+          {:error, _reason} = error -> error
+        end
     end
   end
 
@@ -136,6 +152,35 @@ defmodule Glossia.TranslationSessions.Translate do
       |> Glossia.Repo.preload(project: [:account, :github_installation])
 
     publish_changes_with_token(session, changes, true)
+  end
+
+  # Item workers run concurrently. GitHub commits must form a single linear
+  # history, so serialize checkpoints for one session before reading its latest
+  # published commit and advancing the translation branch.
+  defp publication_callback(session, project, clone_token)
+       when not is_nil(project.github_installation) and is_binary(clone_token) and
+              clone_token != "" do
+    fn changes ->
+      serialize_checkpoint(session.id, fn ->
+        fresh = TranslationSessions.get_session!(session.id)
+
+        if fresh.status == "running" do
+          publish_changes(%{session_id: session.id}, %{changes: changes})
+        else
+          {:error, :translation_cancelled}
+        end
+      end)
+    end
+  end
+
+  defp publication_callback(_session, _project, _clone_token), do: nil
+
+  defp serialize_checkpoint(session_id, callback) do
+    if Node.alive?() do
+      :global.trans({__MODULE__, :translation_checkpoint, session_id}, callback)
+    else
+      callback.()
+    end
   end
 
   defp publish_changes_with_token(session, changes, retry_on_unauthorized?) do
@@ -161,20 +206,6 @@ defmodule Glossia.TranslationSessions.Translate do
           result
       end
     end
-  end
-
-  defp do_publish_changes(
-         %TranslationSession{pull_request_url: pull_request_url} = session,
-         _project,
-         _token,
-         _changes
-       )
-       when is_binary(pull_request_url) and pull_request_url != "" do
-    {:ok,
-     %{
-       ref: session.publication_branch || translation_branch_name(session),
-       pull_request_url: pull_request_url
-     }}
   end
 
   defp do_publish_changes(session, project, token, changes) do
@@ -236,6 +267,16 @@ defmodule Glossia.TranslationSessions.Translate do
       nil -> {:error, :invalid_github_response}
       other -> other
     end
+  end
+
+  defp base_commit_sha(
+         _full_name,
+         _default_branch,
+         %TranslationSession{publication_commit_sha: sha},
+         _token
+       )
+       when is_binary(sha) and sha != "" do
+    {:ok, sha}
   end
 
   defp base_commit_sha(_full_name, _default_branch, %TranslationSession{commit_sha: sha}, _token)
@@ -364,7 +405,7 @@ defmodule Glossia.TranslationSessions.Translate do
   end
 
   defp handle_translation_result(session, project, account, {:published, _pull_request_url}) do
-    summary = "Created translation pull request."
+    summary = "Updated translation pull request."
 
     with {:ok, _session} <-
            TranslationSessions.update_session_status(session, "completed", summary: summary) do
@@ -580,7 +621,7 @@ defmodule Glossia.TranslationSessions.Translate do
     """
     ## What changed
 
-    Glossia translated stale or missing localized content and updated the corresponding `.glossia/` lockfiles.
+    Glossia is translating stale or missing localized content and updating the corresponding `.glossia/` lockfiles. Each validated file is committed to this pull request as soon as it completes.
 
     ## Why
 
@@ -589,7 +630,7 @@ defmodule Glossia.TranslationSessions.Translate do
 
     ## Approach
 
-    The translation harness ran inside a sandbox, used `GLOSSIA.md` to build the translation plan, and let the lockfiles decide which outputs needed work.
+    The translation harness runs inside a sandbox, uses `GLOSSIA.md` to build the translation plan, and lets the lockfiles decide which outputs need work. The branch is updated incrementally while the session is running.
 
     ## Impact
 
@@ -597,7 +638,7 @@ defmodule Glossia.TranslationSessions.Translate do
 
     ## Validation
 
-    The translation command completed successfully inside a sandbox.
+    Every committed file passed the translation validation before publication. More commits can appear until the session is complete.
     """
   end
 

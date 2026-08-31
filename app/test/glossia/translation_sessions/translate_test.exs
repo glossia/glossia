@@ -132,7 +132,8 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     assert :ok = Translate.run(session.id)
 
-    assert_received {:repository_run_opts, []}
+    assert_received {:repository_run_opts, run_opts}
+    assert is_function(Keyword.fetch!(run_opts, :after_item_completed), 1)
     assert_received {:tree_entries, entries}
 
     assert Enum.map(entries, & &1.path) == [
@@ -147,13 +148,134 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "completed"
-    assert updated.summary == "Created translation pull request."
+    assert updated.summary == "Updated translation pull request."
     assert updated.publication_branch == "glossia/translate-abc123456789"
     assert updated.publication_commit_sha == "translation-commit-sha"
     assert updated.pull_request_url == "https://github.com/glossia/demo/pull/2"
   end
 
-  test "reuses a recorded pull request when publication is retried" do
+  test "checkpoints completed files on one pull request while the run is active" do
+    {user, project} = project_with_installation("checkpoint-translate@test.com", "checkpoint")
+    session = session_for(user, project)
+    test_pid = self()
+
+    first_changes = [
+      %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola mundo\n"},
+      %{path: ".glossia/docs/guide.md/es.lock", status: "added", content: "{}"}
+    ]
+
+    second_changes = [
+      %{path: "docs/i18n/es/reference.md", status: "added", content: "# Referencia\n"},
+      %{path: ".glossia/docs/reference.md/es.lock", status: "added", content: "{}"}
+    ]
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales,
+                                                            opts ->
+      callback = Keyword.fetch!(opts, :after_item_completed)
+
+      assert {:ok, _publication} = callback.(first_changes)
+      assert {:ok, _publication} = callback.(second_changes)
+
+      {:ok, first_changes ++ second_changes}
+    end)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
+                                                        "abc1234567890",
+                                                        "github-token" ->
+      {:ok, %{"tree" => %{"sha" => "source-tree-sha"}}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
+                                                        "checkpoint-one",
+                                                        "github-token" ->
+      {:ok, %{"tree" => %{"sha" => "checkpoint-one-tree-sha"}}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_blob, 4, fn "glossia/demo",
+                                                            %{
+                                                              content: content,
+                                                              encoding: "base64"
+                                                            },
+                                                            "github-token" ->
+      {:ok, decoded} = Base.decode64(content)
+      {:ok, %{"sha" => :crypto.hash(:sha, decoded) |> Base.encode16(case: :lower)}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo",
+                                                         %{
+                                                           base_tree: "source-tree-sha",
+                                                           tree: entries
+                                                         },
+                                                         "github-token" ->
+      send(test_pid, {:checkpoint_tree, :first, entries})
+      {:ok, %{"sha" => "checkpoint-one-tree-sha"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo",
+                                                         %{
+                                                           base_tree: "checkpoint-one-tree-sha",
+                                                           tree: entries
+                                                         },
+                                                         "github-token" ->
+      send(test_pid, {:checkpoint_tree, :second, entries})
+      {:ok, %{"sha" => "checkpoint-two-tree-sha"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
+                                                           %{parents: ["abc1234567890"]},
+                                                           "github-token" ->
+      {:ok, %{"sha" => "checkpoint-one"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
+                                                           %{parents: ["checkpoint-one"]},
+                                                           "github-token" ->
+      {:ok, %{"sha" => "checkpoint-two"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_branch, fn "glossia/demo",
+                                                           "glossia/translate-abc123456789",
+                                                           "checkpoint-one",
+                                                           "github-token" ->
+      {:ok, %{}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :update_ref, fn "glossia/demo",
+                                                        "heads/glossia/translate-abc123456789",
+                                                        "checkpoint-two",
+                                                        "github-token" ->
+      {:ok, %{}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_pull_request, fn "glossia/demo",
+                                                                 params,
+                                                                 "github-token" ->
+      assert params.head == "glossia/translate-abc123456789"
+      {:ok, %{"html_url" => "https://github.com/glossia/demo/pull/3", "number" => 3}}
+    end)
+
+    assert :ok = Translate.run(session.id)
+
+    assert_received {:checkpoint_tree, :first, first_entries}
+    assert Enum.map(first_entries, & &1.path) == Enum.map(first_changes, & &1.path)
+
+    assert_received {:checkpoint_tree, :second, second_entries}
+    assert Enum.map(second_entries, & &1.path) == Enum.map(second_changes, & &1.path)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "completed"
+    assert updated.publication_branch == "glossia/translate-abc123456789"
+    assert updated.publication_commit_sha == "checkpoint-two"
+    assert updated.pull_request_number == 3
+    assert updated.pull_request_url == "https://github.com/glossia/demo/pull/3"
+  end
+
+  test "updates the branch behind a recorded pull request when publication is retried" do
     {user, project} = project_with_installation("reused-translate@test.com", "reused")
     session = session_for(user, project)
 
@@ -166,7 +288,39 @@ defmodule Glossia.TranslationSessions.TranslateTest do
       })
 
     Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
-    Mimic.reject(&Glossia.Github.Client.get_commit/3)
+
+    Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
+                                                        "translation-commit-sha",
+                                                        "github-token" ->
+      {:ok, %{"tree" => %{"sha" => "previous-tree-sha"}}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_blob, fn "glossia/demo",
+                                                         %{content: _content, encoding: "base64"},
+                                                         "github-token" ->
+      {:ok, %{"sha" => "blob-sha"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo",
+                                                         %{base_tree: "previous-tree-sha"},
+                                                         "github-token" ->
+      {:ok, %{"sha" => "updated-tree-sha"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
+                                                           %{parents: ["translation-commit-sha"]},
+                                                           "github-token" ->
+      {:ok, %{"sha" => "updated-translation-commit-sha"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :update_ref, fn "glossia/demo",
+                                                        "heads/glossia/translate-abc123456789",
+                                                        "updated-translation-commit-sha",
+                                                        "github-token" ->
+      {:ok, %{}}
+    end)
+
+    Mimic.reject(&Glossia.Github.Client.create_pull_request/3)
 
     assert {:ok, publication} =
              Translate.publish_changes(
@@ -178,6 +332,9 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     assert publication.ref == "glossia/translate-abc123456789"
     assert publication.pull_request_url == "https://github.com/glossia/demo/pull/2"
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.publication_commit_sha == "updated-translation-commit-sha"
   end
 
   test "does not run a cancelled translation session" do
@@ -215,7 +372,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
                                                             _repository,
                                                             _locales,
                                                             opts ->
-      assert opts == []
+      assert is_function(Keyword.fetch!(opts, :after_item_completed), 1)
 
       {:ok, []}
     end)
