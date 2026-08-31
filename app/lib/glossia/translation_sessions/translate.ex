@@ -177,7 +177,12 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp serialize_checkpoint(session_id, callback) do
     if Node.alive?() do
-      :global.trans({__MODULE__, :translation_checkpoint, session_id}, callback)
+      # `:global.trans/2` expects `{resource, requester}`. The previous
+      # three-element tuple is rejected on distributed worker nodes before the
+      # callback can publish anything. Keeping the session in the resource and
+      # the process as requester serializes a session's commits while allowing
+      # independent sessions to publish at the same time.
+      :global.trans({{__MODULE__, :translation_checkpoint, session_id}, self()}, callback)
     else
       callback.()
     end
