@@ -206,7 +206,7 @@ defmodule BabelWeb.OperationsLiveTest do
              "Open account in Glossia"
            )
 
-    assert has_element?(view, "#organization-temporary-access-card", "Grant access")
+    assert has_element?(view, "#organization-temporary-access", "Grant access")
 
     temporary_access_form =
       %TemporaryAccess{}

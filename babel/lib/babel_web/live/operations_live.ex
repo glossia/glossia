@@ -528,13 +528,11 @@ defmodule BabelWeb.OperationsLive do
         </.card_section>
       </.card>
 
-      <.card
+      <section
         :if={@account.glossia_organization_id}
-        title="Temporary access"
-        icon="lock_open_2"
-        id="organization-temporary-access-card"
+        id="organization-temporary-access"
+        data-part="temporary-access"
       >
-        <.card_section>
           <.form
             id="temporary-access-form"
             for={@temporary_access_form}
@@ -617,8 +615,7 @@ defmodule BabelWeb.OperationsLive do
               <:icon_right><.icon name="arrow_up_right" /></:icon_right>
             </Noora.Button.link_button>
           </div>
-        </.card_section>
-      </.card>
+      </section>
 
       <.card
         :if={@account.glossia_organization_id}
