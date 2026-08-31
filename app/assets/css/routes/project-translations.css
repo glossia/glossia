@@ -1,0 +1,18 @@
+#translations-table {
+  & .noora-status-badge[data-status="in_progress"] [data-part="icon"] svg {
+    transform-origin: center;
+    animation: project-translations-spin 1s linear infinite;
+  }
+}
+
+@keyframes project-translations-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #translations-table .noora-status-badge[data-status="in_progress"] [data-part="icon"] svg {
+    animation: none;
+  }
+}

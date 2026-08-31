@@ -15,6 +15,7 @@
 @import "./routes/project-new.css";
 @import "./routes/quality.css";
 @import "./routes/translation-session.css";
+@import "./routes/project-translations.css";
 
 @font-face {
   font-family: "Inter Variable";

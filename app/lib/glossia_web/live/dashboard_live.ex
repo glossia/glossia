@@ -7190,6 +7190,11 @@ defmodule GlossiaWeb.DashboardLive do
           id="translations-table"
           rows={@translations}
           row_key={fn session -> "translation-session-#{session.id}" end}
+          row_navigate={
+            fn session ->
+              ~p"/#{@handle}/#{@project.handle}/-/sessions/#{session.id}"
+            end
+          }
         >
           <:col
             :let={session}
@@ -7242,18 +7247,6 @@ defmodule GlossiaWeb.DashboardLive do
             sort_order={if(@translations_sort_key == "inserted_at", do: @translations_sort_dir)}
           >
             <Noora.Table.time_cell time={session.inserted_at} show_time />
-          </:col>
-          <:col :let={session} label={gettext("Actions")}>
-            <Noora.Table.button_cell>
-              <:button>
-                <Noora.Button.button
-                  navigate={"/" <> @handle <> "/" <> @project.handle <> "/-/sessions/" <> session.id}
-                  label={gettext("View")}
-                  variant="secondary"
-                  size="small"
-                />
-              </:button>
-            </Noora.Table.button_cell>
           </:col>
           <:empty_state>
             <Noora.Table.table_empty_state>

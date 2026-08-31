@@ -137,6 +137,37 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(view, "#translations-table [data-status='success']", "Completed")
   end
 
+  test "opens a translation session by clicking its row", %{conn: conn} do
+    user = TestHelpers.create_user("translation-row-link@test.com", "translation-row-link")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "translation-row-link",
+        name: "Translation row link",
+        github_repo_full_name: "example/translation-row-link"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        commit_sha: "0123456789abcdef0123456789abcdef01234567",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/translations")
+
+    row = "#translation-session-#{session.id}"
+    session_path = "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}"
+
+    assert has_element?(view, "#{row} [data-part='row-link'][href='#{session_path}']")
+    refute has_element?(view, "#translations-table", "Actions")
+    refute has_element?(view, "#{row}", "View")
+  end
+
   test "does not render a legacy pull request event beside the current pull request", %{
     conn: conn
   } do
