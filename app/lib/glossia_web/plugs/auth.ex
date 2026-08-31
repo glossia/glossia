@@ -3,6 +3,7 @@ defmodule GlossiaWeb.Plugs.Auth do
 
   alias Glossia.Accounts
   alias Glossia.Accounts.Scope
+  alias Glossia.TemporaryAccess
 
   def init(opts), do: opts
 
@@ -19,6 +20,9 @@ defmodule GlossiaWeb.Plugs.Auth do
             |> assign(:current_user, nil)
 
           user ->
+            user =
+              TemporaryAccess.attach_pomerium_access(user, get_session(conn, :pomerium_access))
+
             conn
             |> assign(:current_scope, Scope.for_user(user))
             |> assign(:current_user, user)

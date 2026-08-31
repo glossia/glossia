@@ -2,13 +2,23 @@ defmodule BabelWeb.OperationsLive do
   use BabelWeb, :live_view
   use Noora
 
+  alias Babel.Accounts
   alias Babel.Organizations
   alias Babel.Organizations.Interaction
   alias Babel.Organizations.Organization
+  alias Babel.Organizations.TemporaryAccess
   alias Noora.Filter
+  alias Phoenix.LiveView.JS
 
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, available_filters: account_filters())}
+  def mount(_params, session, socket) do
+    {:ok,
+     assign(socket,
+       available_filters: account_filters(),
+       current_account: current_account(session),
+       temporary_access_form: new_temporary_access_form(),
+       temporary_access_recipient: nil,
+       temporary_access_url: nil
+     )}
   end
 
   def handle_params(params, uri, socket) do
@@ -28,10 +38,10 @@ defmodule BabelWeb.OperationsLive do
         account: account,
         account_usage: account_usage(account),
         account_summary: Organizations.summary(),
-        accounts:
-          visible_accounts(
+        directory_entries:
+          visible_directory_entries(
             live_action,
-            account_list_options(
+            directory_list_options(
               active_filters,
               account_search,
               account_sort_by,
@@ -42,6 +52,9 @@ defmodule BabelWeb.OperationsLive do
         account_form: new_account_form(),
         organization_edit_form: edit_organization_form(account),
         interaction_form: new_interaction_form(),
+        temporary_access_form: new_temporary_access_form(),
+        temporary_access_recipient: nil,
+        temporary_access_url: nil,
         page_favicon: organization_favicon_url(account),
         page_title: page_title(live_action, account),
         uri: uri,
@@ -56,7 +69,11 @@ defmodule BabelWeb.OperationsLive do
 
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_path={@current_path} live_action={@live_action}>
+    <Layouts.app
+      flash={@flash}
+      current_path={@current_path}
+      live_action={@live_action}
+    >
       <main
         id="operations"
         data-page={@live_action}
@@ -70,7 +87,7 @@ defmodule BabelWeb.OperationsLive do
           label="Organizations"
           size="medium"
           variant="secondary"
-          navigate={~p"/growth"}
+          navigate={~p"/organizations"}
         >
           <:icon_left><.icon name="arrow_left" /></:icon_left>
         </.button>
@@ -102,36 +119,39 @@ defmodule BabelWeb.OperationsLive do
           <% end %>
         </div>
 
-        <%= if @live_action == :overview do %>
-          <.overview account_summary={@account_summary} />
-        <% else %>
-          <%= if @live_action == :go_to_market do %>
-          <.go_to_market
-            accounts={@accounts}
-            account_summary={@account_summary}
-            active_filters={@active_filters}
-            available_filters={@available_filters}
-            account_search={@account_search}
-            account_sort_by={@account_sort_by}
-            account_sort_order={@account_sort_order}
-            account_form={@account_form}
-            uri={@uri}
-          />
-          <% else %>
-          <.organization
-            account={@account}
-            account_usage={@account_usage}
-            organization_edit_form={@organization_edit_form}
-            interaction_form={@interaction_form}
-          />
-          <% end %>
+        <%= case @live_action do %>
+          <% :overview -> %>
+            <.overview account_summary={@account_summary} />
+          <% :go_to_market -> %>
+            <.growth account_summary={@account_summary} />
+          <% :organizations -> %>
+            <.organization_directory
+              directory_entries={@directory_entries}
+              active_filters={@active_filters}
+              available_filters={@available_filters}
+              account_search={@account_search}
+              account_sort_by={@account_sort_by}
+              account_sort_order={@account_sort_order}
+              account_form={@account_form}
+              uri={@uri}
+            />
+          <% :organization -> %>
+            <.organization
+              account={@account}
+              account_usage={@account_usage}
+              organization_edit_form={@organization_edit_form}
+              interaction_form={@interaction_form}
+              temporary_access_form={@temporary_access_form}
+              temporary_access_recipient={@temporary_access_recipient}
+              temporary_access_url={@temporary_access_url}
+            />
         <% end %>
       </main>
     </Layouts.app>
     """
   end
 
-  attr :account_summary, :map, required: true
+  attr(:account_summary, :map, required: true)
 
   def overview(assigns) do
     ~H"""
@@ -157,33 +177,44 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :accounts, :list, required: true
-  attr :account_summary, :map, required: true
-  attr :active_filters, :list, required: true
-  attr :available_filters, :list, required: true
-  attr :account_search, :string, required: true
-  attr :account_sort_by, :string, required: true
-  attr :account_sort_order, :string, required: true
-  attr :account_form, :any, required: true
-  attr :uri, :any, required: true
+  attr(:account_summary, :map, required: true)
 
-  def go_to_market(assigns) do
+  def growth(assigns) do
     ~H"""
-    <div id="go-to-market">
-      <.card title="Organization summary" icon="chart_donut_4" id="go-to-market-summary-card">
+    <div id="growth">
+      <.card title="Growth pipeline" icon="chart_donut_4" id="growth-summary-card">
         <.card_section data-part="widgets">
           <.metric_widget label="Organizations" value={@account_summary.total} tone="primary" />
           <.metric_widget label="Researching" value={@account_summary.researching} tone="warning" />
           <.metric_widget label="Qualified" value={@account_summary.qualified} tone="success" />
-          <.metric_widget label="Demos scheduled" value={@account_summary.demos_scheduled} tone="information" />
+          <.metric_widget
+            label="Demos scheduled"
+            value={@account_summary.demos_scheduled}
+            tone="information"
+          />
         </.card_section>
       </.card>
+    </div>
+    """
+  end
 
-      <.card title="Organizations" icon="building" id="go-to-market-organization-card">
+  attr(:directory_entries, :list, required: true)
+  attr(:active_filters, :list, required: true)
+  attr(:available_filters, :list, required: true)
+  attr(:account_search, :string, required: true)
+  attr(:account_sort_by, :string, required: true)
+  attr(:account_sort_order, :string, required: true)
+  attr(:account_form, :any, required: true)
+  attr(:uri, :any, required: true)
+
+  def organization_directory(assigns) do
+    ~H"""
+    <div id="organizations">
+      <.card title="Organizations" icon="building" id="organization-directory-card">
         <:actions>
-          <.form id="go-to-market-organization-form" for={@account_form} phx-submit="save_account">
+          <.form id="organization-form" for={@account_form} phx-submit="save_account">
             <.modal
-              id="add-go-to-market-organization-modal"
+              id="add-organization-modal"
               title="Add organization"
               description="Record a company for research or an existing Glossia customer."
               header_type="icon"
@@ -194,7 +225,7 @@ defmodule BabelWeb.OperationsLive do
                 </.button>
               </:trigger>
               <:header_icon><.icon name="building" /></:header_icon>
-              <.organization_form_fields form={@account_form} id_prefix="go-to-market-organization" />
+              <.organization_form_fields form={@account_form} id_prefix="organization" />
               <:footer>
                 <.modal_footer>
                   <:action>
@@ -212,7 +243,7 @@ defmodule BabelWeb.OperationsLive do
             <.form for={%{}} phx-change="search_accounts" phx-debounce="200">
               <.text_input
                 type="search"
-                id="search-go-to-market-organizations"
+                id="search-organizations"
                 name="search"
                 placeholder="Search organizations..."
                 show_suffix={false}
@@ -222,7 +253,7 @@ defmodule BabelWeb.OperationsLive do
               />
             </.form>
             <.filter_dropdown
-              id="go-to-market-organizations-filter"
+              id="organizations-filter"
               label="Filter"
               available_filters={@available_filters}
               active_filters={@active_filters}
@@ -232,26 +263,32 @@ defmodule BabelWeb.OperationsLive do
             <.active_filter :for={filter <- @active_filters} filter={filter} />
           </div>
           <.table
-            id="go-to-market-organizations"
-            rows={@accounts}
-            row_navigate={fn account -> ~p"/organizations/#{account}" end}
+            id="organizations-directory"
+            rows={@directory_entries}
+            row_click={fn
+              %{organization: %Organization{} = organization} ->
+                %{"phx-click" => JS.navigate(~p"/organizations/#{organization}")}
+
+              _entry ->
+                nil
+            end}
           >
             <:col
-              :let={account}
+              :let={entry}
               label="Organization"
               patch={account_sort_patch(assigns, "name")}
               sort_order={@account_sort_by == "name" && @account_sort_order}
             >
               <.text_and_description_cell
-                label={account.name}
-                description={account.translation_tool || "Translation tool to verify"}
+                label={entry.name}
+                description={directory_entry_description(entry)}
               >
                 <:image>
                   <.avatar
-                    id={"organization-#{account.id}-avatar"}
-                    name={account.name}
-                    image_href={organization_favicon_url(account)}
-                    data-src={organization_favicon_url(account)}
+                    id={"organization-#{entry.id}-avatar"}
+                    name={entry.name}
+                    image_href={directory_entry_favicon_url(entry)}
+                    data-src={directory_entry_favicon_url(entry)}
                     fallback="placeholder"
                     color="azure"
                     size="medium"
@@ -260,30 +297,34 @@ defmodule BabelWeb.OperationsLive do
               </.text_and_description_cell>
             </:col>
             <:col
-              :let={account}
-              label="State"
-              patch={account_sort_patch(assigns, "state")}
-              sort_order={@account_sort_by == "state" && @account_sort_order}
+              :let={entry}
+              label="Source"
+              patch={account_sort_patch(assigns, "source")}
+              sort_order={@account_sort_by == "source" && @account_sort_order}
             >
               <.badge_cell
-                label={account_state_label(account.state)}
-                color={account_state_color(account.state)}
+                label={directory_entry_source_label(entry)}
+                color={directory_entry_source_color(entry)}
                 style="light-fill"
               />
             </:col>
             <:col
-              :let={account}
-              label="Description"
-              patch={account_sort_patch(assigns, "notes")}
-              sort_order={@account_sort_by == "notes" && @account_sort_order}
+              :let={entry}
+              label="Relationship"
             >
-              <.text_cell label={account.notes || "No notes yet"} />
+              <.badge_cell
+                :if={entry.organization}
+                label={account_state_label(entry.organization.state)}
+                color={account_state_color(entry.organization.state)}
+                style="light-fill"
+              />
+              <.text_cell :if={!entry.organization} label="Not yet tracked in Babel" />
             </:col>
             <:empty_state>
               <.table_empty_state
                 icon="building"
                 title="No organizations yet"
-                subtitle="Create an organization when public research is ready for review."
+                subtitle="Glossia organizations and Babel leads will appear here."
               />
             </:empty_state>
           </.table>
@@ -294,8 +335,8 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :form, :any, required: true
-  attr :id_prefix, :string, required: true
+  attr(:form, :any, required: true)
+  attr(:id_prefix, :string, required: true)
 
   def organization_form_fields(assigns) do
     ~H"""
@@ -342,11 +383,11 @@ defmodule BabelWeb.OperationsLive do
         placeholder="Optional"
       />
       <.text_input
-        field={@form[:glossia_organization_id]}
-        id={"#{@id_prefix}-glossia-organization-id"}
-        label="Glossia organization identifier"
-        placeholder="Optional UUID"
-        hint="Connects this organization to its Glossia usage data."
+        field={@form[:glossia_account_handle]}
+        id={"#{@id_prefix}-glossia-account-handle"}
+        label="Glossia account handle"
+        placeholder="acme"
+        hint="Used to link directly to this account in Glossia."
       />
       <.text_area
         field={@form[:notes]}
@@ -360,9 +401,9 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :label, :string, required: true
-  attr :value, :integer, required: true
-  attr :tone, :string, default: "primary"
+  attr(:label, :string, required: true)
+  attr(:value, :integer, required: true)
+  attr(:tone, :string, default: "primary")
 
   def metric_widget(assigns) do
     ~H"""
@@ -376,10 +417,13 @@ defmodule BabelWeb.OperationsLive do
     """
   end
 
-  attr :account, :any, required: true
-  attr :account_usage, :any, required: true
-  attr :organization_edit_form, :any, required: true
-  attr :interaction_form, :any, required: true
+  attr(:account, :any, required: true)
+  attr(:account_usage, :any, required: true)
+  attr(:organization_edit_form, :any, required: true)
+  attr(:interaction_form, :any, required: true)
+  attr(:temporary_access_form, :any, required: true)
+  attr(:temporary_access_recipient, :string, default: nil)
+  attr(:temporary_access_url, :string, default: nil)
 
   def organization(%{account: nil} = assigns) do
     ~H"""
@@ -464,14 +508,114 @@ defmodule BabelWeb.OperationsLive do
                 />
               </dd>
             </div>
-            <div :if={@account.glossia_organization_id} data-part="organization-fact">
-              <dt>Glossia organization identifier</dt>
-              <dd data-part="organization-identifier">{@account.glossia_organization_id}</dd>
+            <div
+              :if={glossia_account_url(@account, @account_usage)}
+              data-part="organization-fact"
+            >
+              <dt>Glossia account</dt>
+              <dd>
+                <Noora.Button.link_button
+                  label="Open account in Glossia"
+                  href={glossia_account_url(@account, @account_usage)}
+                  variant="secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                />
+              </dd>
             </div>
           </dl>
           <p :if={@account.notes} data-part="organization-notes">{@account.notes}</p>
         </.card_section>
       </.card>
+
+      <section
+        :if={@account.glossia_organization_id}
+        id="organization-temporary-access"
+        data-part="temporary-access"
+      >
+          <.form
+            id="temporary-access-form"
+            for={@temporary_access_form}
+            phx-submit="grant_temporary_access"
+          >
+            <.modal
+              id="temporary-access-modal"
+              title="Grant temporary access"
+              description="Grant read-only access to a Glossia account for a verified @glossia.ai colleague."
+              header_type="icon"
+            >
+              <:trigger :let={attrs}>
+                <.button label="Grant access" size="small" variant="secondary" {attrs}>
+                  <:icon_left><.icon name="lock_open_2" /></:icon_left>
+                </.button>
+              </:trigger>
+              <:header_icon><.icon name="lock_open_2" /></:header_icon>
+              <div data-part="temporary-access-form-fields">
+                <.text_input
+                  field={@temporary_access_form[:email]}
+                  id="temporary-access-email"
+                  label="Glossia email"
+                  placeholder="name@glossia.ai"
+                  input_type="email"
+                  required
+                  show_required
+                />
+                <div data-part="dropdown">
+                  <.label label="Access duration" />
+                  <.select
+                    id="temporary-access-duration"
+                    label="Access duration"
+                    name={@temporary_access_form[:duration_minutes].name}
+                    value={to_string(@temporary_access_form[:duration_minutes].value || 30)}
+                  >
+                    <:item
+                      :for={duration <- TemporaryAccess.durations()}
+                      value={to_string(duration)}
+                      label={temporary_access_duration_label(duration)}
+                    />
+                  </.select>
+                </div>
+                <.text_area
+                  field={@temporary_access_form[:reason]}
+                  id="temporary-access-reason"
+                  label="Reason"
+                  placeholder="Explain why access is needed."
+                  rows={4}
+                  max_length={2_000}
+                  required
+                  show_required
+                />
+              </div>
+              <:footer>
+                <.modal_footer>
+                  <:action>
+                    <.button label="Grant access" size="medium" variant="primary" type="submit">
+                      <:icon_left><.icon name="lock_open_2" /></:icon_left>
+                    </.button>
+                  </:action>
+                </.modal_footer>
+              </:footer>
+            </.modal>
+          </.form>
+          <p data-part="temporary-access-note">
+            Access is read-only, expires automatically, and requires Pomerium verification.
+          </p>
+          <div :if={@temporary_access_url} data-part="temporary-access-link">
+            <p>
+              Share this link with {@temporary_access_recipient} so they can activate the grant through
+              Pomerium.
+            </p>
+            <Noora.Button.link_button
+              label="Open temporary access link"
+              href={@temporary_access_url}
+              variant="secondary"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <:icon_right><.icon name="arrow_up_right" /></:icon_right>
+            </Noora.Button.link_button>
+          </div>
+      </section>
 
       <.card
         :if={@account.glossia_organization_id}
@@ -482,12 +626,7 @@ defmodule BabelWeb.OperationsLive do
         <.card_section :if={match?({:ok, _usage}, @account_usage)} data-part="widgets">
           <% {:ok, usage} = @account_usage %>
           <.metric_widget label="Projects" value={usage.projects} tone="primary" />
-          <.metric_widget label="Members" value={usage.members} tone="success" />
-          <.metric_widget
-            label="Translation sessions"
-            value={usage.translation_sessions}
-            tone="information"
-          />
+          <.metric_widget label="Translations" value={usage.translations} tone="information" />
         </.card_section>
         <.card_section :if={@account_usage == {:error, :organization_not_found}}>
           <p data-part="usage-message">No Glossia organization was found for this identifier.</p>
@@ -614,13 +753,50 @@ defmodule BabelWeb.OperationsLive do
     end
   end
 
+  def handle_event("grant_temporary_access", %{"temporary_access" => attributes}, socket) do
+    case Organizations.grant_temporary_access(
+           socket.assigns.account,
+           socket.assigns.current_account,
+           attributes
+         ) do
+      {:ok, %{"expires_at" => expires_at} = grant} ->
+        {:noreply,
+         socket
+         |> assign(
+           temporary_access_form: new_temporary_access_form(),
+           temporary_access_recipient: grant["recipient_email"],
+           temporary_access_url: temporary_access_url(grant)
+         )
+         |> put_flash(:info, "Temporary access granted until #{expires_at}.")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply,
+         assign(socket, temporary_access_form: to_form(changeset, as: :temporary_access))}
+
+      {:error, :not_connected} ->
+        {:noreply,
+         put_flash(socket, :error, "Connect this organization to Glossia before granting access.")}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, "Your Pomerium identity cannot grant access.")}
+
+      {:error, reason}
+      when reason in ["recipient_not_found", "recipient_or_organization_not_found"] ->
+        {:noreply,
+         put_flash(socket, :error, "That email must belong to an existing Glossia account.")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Temporary access could not be granted.")}
+    end
+  end
+
   def handle_event("search_accounts", %{"search" => search}, socket) do
     params =
       socket.assigns.uri.query
       |> URI.decode_query()
       |> Map.put("search", search)
 
-    {:noreply, push_patch(socket, to: ~p"/growth?#{params}", replace: true)}
+    {:noreply, push_patch(socket, to: organization_directory_path(params), replace: true)}
   end
 
   def handle_event("add_filter", %{"value" => filter_id}, socket) do
@@ -628,7 +804,7 @@ defmodule BabelWeb.OperationsLive do
 
     {:noreply,
      socket
-     |> push_patch(to: ~p"/growth?#{params}")
+     |> push_patch(to: organization_directory_path(params))
      |> push_event("open-dropdown", %{id: "filter-#{filter_id}-value-dropdown"})}
   end
 
@@ -637,13 +813,13 @@ defmodule BabelWeb.OperationsLive do
 
     {:noreply,
      socket
-     |> push_patch(to: ~p"/growth?#{updated_params}")
+     |> push_patch(to: organization_directory_path(updated_params))
      |> push_event("close-dropdown", %{all: true})
      |> push_event("close-popover", %{all: true})}
   end
 
-  defp visible_accounts(:go_to_market, options), do: Organizations.list_organizations(options)
-  defp visible_accounts(_live_action, _options), do: []
+  defp visible_directory_entries(:organizations, options), do: Organizations.directory(options)
+  defp visible_directory_entries(_live_action, _options), do: []
 
   defp visible_account(:organization, %{"id" => id}), do: Organizations.get_organization(id)
   defp visible_account(_live_action, _params), do: nil
@@ -657,11 +833,17 @@ defmodule BabelWeb.OperationsLive do
 
   defp organization_favicon_url(_organization), do: nil
 
+  defp directory_entry_favicon_url(%{organization: %Organization{} = organization}),
+    do: organization_favicon_url(organization)
+
+  defp directory_entry_favicon_url(_entry), do: nil
+
   defp page_eyebrow(:organization), do: "Babel"
   defp page_eyebrow(_live_action), do: "Babel"
 
   defp page_title(:overview, _account), do: "Overview"
   defp page_title(:go_to_market, _account), do: "Growth"
+  defp page_title(:organizations, _account), do: "Organizations"
   defp page_title(:organization, %{name: name}), do: name
   defp page_title(:organization, _account), do: "Organization"
 
@@ -671,6 +853,10 @@ defmodule BabelWeb.OperationsLive do
 
   defp page_description(:go_to_market) do
     "Public-source research, organization context, and reviewable introductions to Glossia."
+  end
+
+  defp page_description(:organizations) do
+    "Glossia production organizations reconciled with leads that are still being researched."
   end
 
   defp page_description(:organization) do
@@ -712,36 +898,34 @@ defmodule BabelWeb.OperationsLive do
   defp format_datetime(datetime), do: Calendar.strftime(datetime, "%b %-d, %Y at %H:%M UTC")
 
   defp account_filters do
-    states = Organization.states()
-
     [
       %Filter.Filter{
-        id: "state",
-        field: "state",
-        display_name: "State",
+        id: "source",
+        field: "source",
+        display_name: "Source",
         type: :option,
-        options: states,
-        options_display_names: Map.new(states, &{&1, account_state_label(&1)}),
+        options: ["glossia", "lead"],
+        options_display_names: %{"glossia" => "Glossia", "lead" => "Lead"},
         operator: :==,
         value: nil
       }
     ]
   end
 
-  defp account_list_options(active_filters, search, sort_by, sort_order) do
+  defp directory_list_options(active_filters, search, sort_by, sort_order) do
     [search: search, sort_by: sort_by, sort_order: sort_order]
-    |> Keyword.merge(account_state_filter_options(active_filters))
+    |> Keyword.merge(directory_source_filter_options(active_filters))
   end
 
-  defp account_state_filter_options(active_filters) do
-    case Enum.find(active_filters, &(&1.id == "state" and &1.value not in [nil, ""])) do
-      %{operator: :==, value: value} -> [state: value]
-      %{operator: :!=, value: value} -> [state_not: value]
+  defp directory_source_filter_options(active_filters) do
+    case Enum.find(active_filters, &(&1.id == "source" and &1.value not in [nil, ""])) do
+      %{operator: :==, value: value} -> [source: value]
+      %{operator: :!=, value: value} -> [source_not: value]
       _filter -> []
     end
   end
 
-  defp account_sort_by_param(value) when value in ["name", "state", "notes"], do: value
+  defp account_sort_by_param(value) when value in ["name", "source"], do: value
   defp account_sort_by_param(_value), do: "name"
 
   defp account_sort_order_param(value) when value in ["asc", "desc"], do: value
@@ -759,8 +943,57 @@ defmodule BabelWeb.OperationsLive do
       |> Map.put("sort_by", column)
       |> Map.put("sort_order", next_order)
 
-    ~p"/growth?#{params}"
+    organization_directory_path(params)
   end
+
+  defp organization_directory_path(params), do: ~p"/organizations?#{params}"
+
+  defp directory_entry_description(%{source: :glossia, organization: nil}),
+    do: "Glossia production organization"
+
+  defp directory_entry_description(%{source: :glossia, organization: organization}),
+    do: organization.translation_tool || "Tracked in Babel"
+
+  defp directory_entry_description(%{organization: organization}),
+    do: organization.translation_tool || "Lead awaiting a Glossia organization"
+
+  defp directory_entry_source_label(%{source: :glossia}), do: "Glossia"
+  defp directory_entry_source_label(%{source: :lead}), do: "Lead"
+
+  defp directory_entry_source_color(%{source: :glossia}), do: "success"
+  defp directory_entry_source_color(%{source: :lead}), do: "warning"
+
+  defp glossia_account_url(%{glossia_account_handle: handle}, _usage)
+       when is_binary(handle) and handle != "" do
+    case Babel.Glossia.account_url(handle) do
+      {:ok, url} -> url
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp glossia_account_url(_organization, {:ok, %{account_handle: handle}})
+       when is_binary(handle) and handle != "" do
+    case Babel.Glossia.account_url(handle) do
+      {:ok, url} -> url
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp glossia_account_url(_organization, _usage), do: nil
+
+  defp temporary_access_url(%{"account_handle" => handle}) when is_binary(handle) do
+    case Babel.Glossia.temporary_access_url(handle) do
+      {:ok, url} -> url
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp temporary_access_url(_grant), do: nil
+
+  defp temporary_access_duration_label(15), do: "15 minutes"
+  defp temporary_access_duration_label(30), do: "30 minutes"
+  defp temporary_access_duration_label(60), do: "1 hour"
+  defp temporary_access_duration_label(240), do: "4 hours"
 
   defp parse_uri(uri) do
     uri = URI.parse(uri)
@@ -771,6 +1004,12 @@ defmodule BabelWeb.OperationsLive do
     %Interaction{}
     |> Interaction.changeset(%{kind: "note"})
     |> to_form(as: :interaction)
+  end
+
+  defp new_temporary_access_form do
+    %TemporaryAccess{}
+    |> TemporaryAccess.changeset(%{duration_minutes: 30})
+    |> to_form(as: :temporary_access)
   end
 
   defp new_account_form do
@@ -786,4 +1025,10 @@ defmodule BabelWeb.OperationsLive do
   end
 
   defp edit_organization_form(_organization), do: nil
+
+  defp current_account(%{"current_account_id" => account_id}) do
+    Accounts.get_account(account_id)
+  end
+
+  defp current_account(_session), do: nil
 end

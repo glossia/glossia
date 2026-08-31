@@ -585,6 +585,15 @@ if config_env() == :prod and not runner_child? do
 
   host = System.get_env("GLOSSIA_HOST") || "example.com"
 
+  pomerium_access_host = System.get_env("GLOSSIA_POMERIUM_ACCESS_HOST") || "access.glossia.ai"
+
+  config :glossia, Glossia.Pomerium,
+    enabled: true,
+    email_domain: "glossia.ai",
+    expected_issuer: pomerium_access_host,
+    expected_audience: pomerium_access_host,
+    jwks_url: "https://#{pomerium_access_host}/.well-known/pomerium/jwks.json"
+
   babel_internal_endpoint =
     case System.get_env("GLOSSIA_BABEL_INTERNAL_TLS_CERT_PATH") do
       nil ->

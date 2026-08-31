@@ -25,15 +25,15 @@ defmodule Babel.Organizations.Usage do
     """
     SELECT
       organizations.name AS organization_name,
+      accounts.handle AS account_handle,
       COUNT(DISTINCT projects.id)::integer AS project_count,
-      COUNT(DISTINCT organization_memberships.user_id)::integer AS member_count,
-      COUNT(DISTINCT translation_sessions.id)::integer AS translation_session_count
+      COUNT(DISTINCT translation_sessions.id)::integer AS translation_count
     FROM organizations
+    JOIN accounts ON accounts.id = organizations.account_id
     LEFT JOIN projects ON projects.account_id = organizations.account_id
-    LEFT JOIN organization_memberships ON organization_memberships.organization_id = organizations.id
     LEFT JOIN translation_sessions ON translation_sessions.account_id = organizations.account_id
     WHERE organizations.id = '#{organization_id}'::uuid
-    GROUP BY organizations.name
+    GROUP BY organizations.name, accounts.handle
     """
   end
 
@@ -41,9 +41,9 @@ defmodule Babel.Organizations.Usage do
     {:ok,
      %{
        organization_name: Map.get(row, "organization_name"),
+       account_handle: Map.get(row, "account_handle"),
        projects: count(row, "project_count"),
-       members: count(row, "member_count"),
-       translation_sessions: count(row, "translation_session_count")
+       translations: count(row, "translation_count")
      }}
   end
 

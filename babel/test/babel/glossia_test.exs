@@ -86,4 +86,16 @@ defmodule Babel.GlossiaTest do
                tls_server_name: "babel-internal.glossia.ai"
              )
   end
+
+  test "builds a Pomerium activation link for a Glossia account" do
+    assert {:ok, "https://access.glossia.ai/auth/pomerium?account=northstar-learning"} =
+             Glossia.temporary_access_url("northstar-learning")
+  end
+
+  test "refuses a temporary access URL that is not secure" do
+    assert {:error, :invalid_temporary_access_url} =
+             Glossia.temporary_access_url("northstar-learning",
+               temporary_access_url: "http://access.glossia.ai"
+             )
+  end
 end

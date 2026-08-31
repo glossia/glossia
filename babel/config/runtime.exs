@@ -48,6 +48,9 @@ if config_env() == :prod do
 
   config :babel, Babel.Glossia,
     base_url: System.get_env("BABEL_GLOSSIA_INTERNAL_URL"),
+    public_url: System.get_env("BABEL_GLOSSIA_PUBLIC_URL") || "https://glossia.ai",
+    temporary_access_url:
+      System.get_env("BABEL_GLOSSIA_TEMPORARY_ACCESS_URL") || "https://access.glossia.ai",
     token_path: System.get_env("BABEL_GLOSSIA_TOKEN_PATH"),
     tls_server_name: System.get_env("BABEL_GLOSSIA_TLS_SERVER_NAME"),
     receive_timeout:

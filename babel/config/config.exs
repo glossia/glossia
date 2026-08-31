@@ -16,6 +16,10 @@ config :babel, BabelWeb.Endpoint,
 
 config :babel, BabelWeb.Plugs.PomeriumAuth, enabled: false
 
+config :babel, Babel.Glossia,
+  public_url: "https://glossia.ai",
+  temporary_access_url: "https://access.glossia.ai"
+
 config :babel, Oban,
   repo: Babel.Repo,
   queues: [prospect_discovery: 1],

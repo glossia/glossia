@@ -1,0 +1,55 @@
+#organizations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-7);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  & #organization-directory-card {
+    min-width: 0;
+    overflow: hidden;
+
+    & [data-part="filters"] {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--noora-spacing-6);
+    }
+
+    & [data-part="search"] {
+      width: calc(var(--noora-spacing-16) * 2);
+    }
+
+    & [data-part="active-filters"] {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: var(--noora-spacing-3);
+    }
+  }
+}
+
+#add-organization-modal {
+  & [data-part="organization-form-fields"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+    padding: var(--noora-spacing-5) 0;
+    min-width: min(100%, calc(var(--noora-spacing-16) * 3));
+  }
+
+  & [data-part="organization-form-fields"] [data-part="dropdown"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-2);
+  }
+}
+
+@media (max-width: 768px) {
+  #organizations {
+    & #organization-directory-card [data-part="search"] {
+      width: 100%;
+    }
+  }
+}

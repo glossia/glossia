@@ -4,6 +4,7 @@ defmodule Glossia.Policy.Checks do
   alias Glossia.Accounts.{Account, User}
   alias Glossia.Repo
   alias Glossia.Roles
+  alias Glossia.TemporaryAccess
   import Ecto.Query
 
   @doc """
@@ -53,6 +54,21 @@ defmodule Glossia.Policy.Checks do
       org_id -> Roles.organization_member?(%User{id: user_id}, org_id)
     end
   end
+
+  @doc """
+  User has a current Pomerium-authenticated, temporary read grant for the account.
+  """
+  def temporary_account_access(%User{} = user, %Account{} = account),
+    do: TemporaryAccess.active?(user, account)
+
+  def temporary_account_access(%User{} = user, %{account_id: account_id}) do
+    case Repo.get(Account, account_id) do
+      %Account{} = account -> TemporaryAccess.active?(user, account)
+      nil -> false
+    end
+  end
+
+  def temporary_account_access(_user, _object), do: false
 
   defp resolve_organization_id(%{account_id: account_id}) do
     get_organization_id_for_account(account_id)

@@ -38,6 +38,20 @@ ingress:
           pathType: Prefix
   tls: []
 
+# A dedicated Pomerium-protected host used only for temporary staff access.
+# It reaches the same application service, but Pomerium forwards a signed
+# identity assertion that Glossia verifies before it activates a grant.
+pomeriumAccessIngress:
+  enabled: false
+  className: pomerium
+  annotations: {}
+  hosts:
+    - host: access.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
 # Name of the Secret consumed by the app pod (envFrom). The chart either
 # creates it via ExternalSecret (see externalSecrets below) or expects you
 # to provision it out-of-band before installing.

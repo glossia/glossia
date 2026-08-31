@@ -1,41 +1,16 @@
-defmodule BabelWeb.Plugs.PomeriumAuth do
+defmodule Glossia.Pomerium do
   @moduledoc false
 
-  import Plug.Conn
+  alias Glossia.Pomerium.JWKSCache
 
-  alias Babel.Accounts
-  alias Babel.Pomerium.JWKSCache
-
-  @supported_algorithms ["ES256"]
   @clock_skew_seconds 30
+  @supported_algorithms ["ES256"]
 
-  def init(opts), do: opts
+  def identity_from_assertion(assertion, config \\ config())
 
-  def call(conn, opts) do
-    config = Application.get_env(:babel, __MODULE__, []) |> Keyword.merge(opts)
-
-    if Keyword.get(config, :enabled, false) do
-      authenticate(conn, config)
-    else
-      conn
-    end
-  end
-
-  defp authenticate(conn, config) do
-    with [assertion] <- get_req_header(conn, "x-pomerium-jwt-assertion"),
-         {:ok, identity} <- identity_from_assertion(assertion, config),
-         {:ok, account} <-
-           Accounts.provision_pomerium_account(identity, Keyword.fetch!(config, :email_domain)) do
-      conn
-      |> put_session(:current_account_id, account.id)
-      |> assign(:current_account, account)
-    else
-      _error -> unauthorized(conn)
-    end
-  end
-
-  defp identity_from_assertion(assertion, config) do
-    with {:ok, key_id} <- key_id(assertion),
+  def identity_from_assertion(assertion, config) when is_binary(assertion) do
+    with true <- Keyword.get(config, :enabled, false),
+         {:ok, key_id} <- key_id(assertion),
          {:ok, jwks} <-
            JWKSCache.fetch(
              fn -> fetch_jwks(config) end,
@@ -44,18 +19,17 @@ defmodule BabelWeb.Plugs.PomeriumAuth do
          {:ok, jwk} <- jwk_for_key_id(jwks, key_id),
          {true, jwt, _jws} <- JOSE.JWT.verify_strict(jwk, @supported_algorithms, assertion),
          {:ok, claims} <- validated_claims(jwt.fields, config) do
-      {:ok,
-       %{
-         email: claims["email"],
-         name: claims["name"],
-         pomerium_id: claims["sub"]
-       }}
+      {:ok, %{email: claims["email"], name: claims["name"], subject: claims["sub"]}}
     else
       _error -> {:error, :invalid_assertion}
     end
   rescue
     _error -> {:error, :invalid_assertion}
   end
+
+  def identity_from_assertion(_assertion, _config), do: {:error, :invalid_assertion}
+
+  defp config, do: Application.get_env(:glossia, __MODULE__, [])
 
   defp key_id(assertion) do
     case JOSE.JWT.peek_protected(assertion) do
@@ -152,15 +126,12 @@ defmodule BabelWeb.Plugs.PomeriumAuth do
 
   defp valid_not_before?(_not_before, _now), do: false
 
-  defp valid_email?(email, email_domain) when is_binary(email),
-    do: String.ends_with?(String.downcase(email), "@#{String.downcase(email_domain)}")
+  defp valid_email?(email, email_domain) when is_binary(email) and is_binary(email_domain) do
+    case String.split(String.downcase(email), "@", parts: 2) do
+      [local_part, domain] when local_part != "" -> domain == String.downcase(email_domain)
+      _ -> false
+    end
+  end
 
   defp valid_email?(_email, _email_domain), do: false
-
-  defp unauthorized(conn) do
-    conn
-    |> put_resp_content_type("text/plain")
-    |> send_resp(:unauthorized, "Unauthorized")
-    |> halt()
-  end
 end

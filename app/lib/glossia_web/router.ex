@@ -124,6 +124,7 @@ defmodule GlossiaWeb.Router do
     pipe_through :browser
 
     get "/login", AuthController, :login
+    get "/pomerium", PomeriumAccessController, :create
     delete "/logout", AuthController, :logout
     get "/logout", AuthController, :logout
     get "/:provider", AuthController, :request

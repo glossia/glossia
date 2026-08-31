@@ -5,8 +5,10 @@ defmodule Babel.Organizations do
 
   import Ecto.Query
 
+  alias Babel.Organizations.Directory
   alias Babel.Organizations.Interaction
   alias Babel.Organizations.Organization
+  alias Babel.Organizations.TemporaryAccess
   alias Babel.Organizations.Usage
   alias Babel.Organizations.UsageCache
   alias Babel.Repo
@@ -20,6 +22,8 @@ defmodule Babel.Organizations do
     |> order(Keyword.get(options, :sort_by), Keyword.get(options, :sort_order))
     |> Repo.all()
   end
+
+  def directory(opts \\ []), do: Directory.list(opts)
 
   def get_organization(id) do
     case Repo.get(Organization, id) do
@@ -83,6 +87,34 @@ defmodule Babel.Organizations do
 
   def usage(%Organization{}), do: :not_connected
 
+  def grant_temporary_access(%Organization{} = organization, requester, attributes, opts \\ []) do
+    client = Keyword.get(opts, :client, &Babel.Glossia.grant_temporary_access/3)
+
+    with organization_id when is_binary(organization_id) <- organization.glossia_organization_id,
+         true <- valid_requester?(requester),
+         changeset <- TemporaryAccess.changeset(%TemporaryAccess{}, attributes),
+         {:ok, temporary_access} <- Ecto.Changeset.apply_action(changeset, :grant),
+         {:ok, grant} <-
+           client.(
+             organization_id,
+             %{
+               "email" => temporary_access.email,
+               "duration_minutes" => temporary_access.duration_minutes,
+               "reason" => temporary_access.reason,
+               "requested_by_email" => requester.email,
+               "requested_by_pomerium_id" => requester.pomerium_id
+             },
+             []
+           ) do
+      {:ok, grant}
+    else
+      nil -> {:error, :not_connected}
+      false -> {:error, :unauthorized}
+      {:error, %Ecto.Changeset{} = changeset} -> {:error, changeset}
+      {:error, _reason} = error -> error
+    end
+  end
+
   def favicon_url(%Organization{website_url: website_url}) when is_binary(website_url) do
     case URI.parse(website_url) do
       %URI{scheme: "https", host: host} = uri when is_binary(host) and host != "" ->
@@ -110,6 +142,16 @@ defmodule Babel.Organizations do
     })
     |> repo.insert()
   end
+
+  defp valid_requester?(%{email: email, pomerium_id: pomerium_id})
+       when is_binary(email) and is_binary(pomerium_id) do
+    case String.split(String.downcase(email), "@", parts: 2) do
+      [local_part, "glossia.ai"] when local_part != "" -> true
+      _ -> false
+    end
+  end
+
+  defp valid_requester?(_requester), do: false
 
   defp filter_by_state(query, nil), do: query
 

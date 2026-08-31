@@ -1,7 +1,8 @@
 # Babel Pomerium access
 
-Pomerium protects `https://babel.glossia.ai` with Google Workspace. Its policy
-allows every authenticated `@glossia.ai` account and does not assign roles.
+Pomerium protects `https://babel.glossia.ai` and the temporary-access host at
+`https://access.glossia.ai` with Google Workspace. Its policy allows every
+authenticated `@glossia.ai` account and does not assign roles.
 
 Before Flux reconciles this configuration, add these values to the
 `/kubernetes` Infisical item:
@@ -17,8 +18,9 @@ this callback URL:
 https://authenticate.glossia.ai/oauth2/callback
 ```
 
-The Pomerium route forwards a signed [JSON Web Token](https://jwt.io/)
-assertion to Babel. Babel verifies its signature, issuer, audience, and
-timestamps with Pomerium's public key, accepts traffic only from the Pomerium
-pods, and creates its local account record the first time that person visits
-the service.
+The Pomerium routes forward a signed [JSON Web Token](https://jwt.io/)
+assertion. Babel verifies it before recording a temporary access grant. The
+temporary-access host forwards a separate assertion to Glossia, which verifies
+the signature, issuer, audience, and timestamps before binding the grant to
+that employee's Pomerium subject. Glossia grants read-only access only while
+the recorded grant remains active.

@@ -19,12 +19,18 @@ defmodule GlossiaWeb.PlatformHooks do
   alias Glossia.Accounts
   alias Glossia.Accounts.Scope
   alias Glossia.OgImage
+  alias Glossia.TemporaryAccess
 
   def on_mount(:load_user, _params, session, socket) do
     user =
       case session["user_id"] do
-        nil -> nil
-        user_id -> Accounts.get_user(user_id)
+        nil ->
+          nil
+
+        user_id ->
+          user_id
+          |> Accounts.get_user()
+          |> TemporaryAccess.attach_pomerium_access(session["pomerium_access"])
       end
 
     {:cont,

@@ -2,7 +2,9 @@
 @import "./components/app-shell.css";
 @import "./components/metric-widgets.css";
 @import "./routes/operations.css";
-@import "./routes/go-to-market.css";
+@import "./routes/growth.css";
+@import "./routes/organizations.css";
+@import "./routes/organization.css";
 @import "./routes/overview.css";
 
 html,
