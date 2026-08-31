@@ -186,6 +186,9 @@ defmodule Glossia.Translations.Engine do
                     provider: recovered.provider
                   }}}
 
+              {:error, reason} ->
+                {:halt, {:error, reason}}
+
               :error ->
                 case recover_markdown_segment(
                        state,
@@ -203,6 +206,9 @@ defmodule Glossia.Translations.Engine do
                         provider: recovered.provider
                       }}}
 
+                  {:error, reason} ->
+                    {:halt, {:error, reason}}
+
                   :error ->
                     {:halt, {:preservation_error, message}}
                 end
@@ -216,7 +222,10 @@ defmodule Glossia.Translations.Engine do
   # as individual source blocks, retaining both the document structure and all
   # earlier successful segment output.
   defp recover_markdown_segment(state, segment, index, count, message) do
-    segments = isolate_markdown_blocks([segment])
+    segments =
+      [segment]
+      |> isolate_markdown_blocks()
+      |> Enum.map(&Map.put(&1, :markdown_block_recovery, true))
 
     if markdown_structure_error?(state, message) and length(segments) > 1 do
       recovered_count = count + length(segments) - 1
@@ -242,6 +251,9 @@ defmodule Glossia.Translations.Engine do
                   provider: result.provider
                 }}}
 
+            {:error, reason} ->
+              {:halt, {:error, reason}}
+
             _ ->
               {:halt, :error}
           end
@@ -251,22 +263,22 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
-  # A Markdown block can itself contain links, lists, or admonitions that a
-  # model still rearranges after the block-level retry. In that case give the
-  # model marker-delimited text literals and rebuild the original Markdown tree
-  # directly, making syntax preservation independent of its rendered output.
+  # A Markdown block can contain links, lists, or admonitions that a model
+  # rearranges. Give the model marker-delimited text literals and rebuild the
+  # original Markdown tree directly, making syntax preservation independent of
+  # its rendered output.
   defp recover_markdown_text_nodes(state, segment, index, count, message) do
     with true <- markdown_structure_error?(state, message),
+         true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
          {:ok, marked_content} <- Markdown.mark_text_nodes(segment.content),
-         true <- marked_content != segment.content,
+         true <- String.contains?(marked_content, "@@GLOSSIA-TEXT-"),
          recovery_segment <-
            Map.merge(segment, %{
              kind: "markdown_text_markers",
              content: marked_content,
              markdown_source: segment.content
-           }),
-         {:ok, text, result} <-
-           translate_segment(
+           }) do
+      case translate_segment(
              state,
              recovery_segment,
              index,
@@ -274,12 +286,20 @@ defmodule Glossia.Translations.Engine do
              1,
              markdown_marker_instruction(message)
            ) do
-      {:ok,
-       %{
-         segments: [%{kind: segment.kind, text: text}],
-         model: result.model,
-         provider: result.provider
-       }}
+        {:ok, text, result} ->
+          {:ok,
+           %{
+             segments: [%{kind: segment.kind, text: text}],
+             model: result.model,
+             provider: result.provider
+           }}
+
+        {:error, reason} ->
+          {:error, reason}
+
+        _ ->
+          :error
+      end
     else
       _ -> :error
     end
@@ -337,7 +357,8 @@ defmodule Glossia.Translations.Engine do
           end
         else
           {:error, message} when attempt < @segment_attempts ->
-            if markdown_structure_error?(state, message) do
+            if markdown_structure_error?(state, message) and
+                 not Map.get(segment, :markdown_block_recovery, false) do
               {:preservation_error, message}
             else
               state.on_event.({:segment_retry, index, message})

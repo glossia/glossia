@@ -553,6 +553,137 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "falls back to source blocks when marker recovery is invalid", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "[Guide](https://example.com/guide)\n\nParagraph.")
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        cond do
+          payload["segment_kind"] == "markdown_text_markers" ->
+            translated("The required recovery markers are absent.")
+
+          String.trim(payload["source_content"]) ==
+              "[Guide](https://example.com/guide)\n\nParagraph." ->
+            translated("Guide\n\nParagraph.")
+
+          String.trim(payload["source_content"]) == "[Guide](https://example.com/guide)" ->
+            translated("[Leitfaden](https://example.com/guide)")
+
+          String.trim(payload["source_content"]) == "Paragraph." ->
+            translated("Absatz.")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 1}),
+                 %Account{id: 1},
+                 fn _ ->
+                   :ok
+                 end
+               )
+
+      assert result.text == "[Leitfaden](https://example.com/guide)\n\nAbsatz."
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.count(calls, &(&1["segment_kind"] == "markdown_text_markers")) == 2
+    end
+
+    @tag :tmp_dir
+    test "does not run marker recovery when source prose contains a marker lookalike", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+
+      File.write!(
+        source,
+        "Docs mention @@GLOSSIA-TEXT-1-START@@ [the guide](https://example.com/guide)."
+      )
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        translated("Docs mention the guide.")
+      end)
+
+      assert {:error, {:validation_failed, message}} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ ->
+                   :ok
+                 end
+               )
+
+      assert message =~ "changed the document structure"
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      refute Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_markers"))
+    end
+
+    @tag :tmp_dir
+    test "recovers dense Markdown through markers instead of failing a single source block", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, String.duplicate("[Guide](https://example.com/guide) ", 110))
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        if payload["segment_kind"] == "markdown_text_markers" do
+          translated(payload["source_content"])
+        else
+          translated("Guide")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ ->
+                   :ok
+                 end
+               )
+
+      assert result.text =~ "[Guide](https://example.com/guide)"
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_markers"))
+    end
+
+    @tag :tmp_dir
+    test "returns a marker recovery provider error without trying source blocks", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Read [the guide](https://example.com/guide).")
+
+      stub_stream(fn _account, payload, _on_event ->
+        if payload["segment_kind"] == "markdown_text_markers" do
+          {:error, :provider_timeout}
+        else
+          translated("Read the guide.")
+        end
+      end)
+
+      assert {:error, {:llm_failed, :provider_timeout}} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ ->
+                   :ok
+                 end
+               )
+    end
+
+    @tag :tmp_dir
     test "reassembles Markdown structure while keeping placeholders opaque", %{
       tmp_dir: dir
     } do
@@ -681,6 +812,33 @@ defmodule Glossia.Translations.EngineTest do
                Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, fn _, _ ->
                  {:error, "nope"}
                end)
+    end
+
+    @tag :tmp_dir
+    test "returns a source-block recovery provider error", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+
+      File.write!(
+        source,
+        "@@GLOSSIA-TEXT-1-START@@ [Guide](https://example.com/guide)\n\nParagraph."
+      )
+
+      stub_stream(fn _account, payload, _on_event ->
+        if String.contains?(payload["source_content"], "\n\n") do
+          translated("Guide\n\nParagraph.")
+        else
+          {:error, :provider_timeout}
+        end
+      end)
+
+      assert {:error, {:llm_failed, :provider_timeout}} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ ->
+                   :ok
+                 end
+               )
     end
 
     @tag :tmp_dir

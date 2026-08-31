@@ -63,4 +63,62 @@ defmodule Glossia.Translations.MarkdownTest do
     assert {:ok, output} = Markdown.reconcile_marked_text_nodes(source, translated)
     assert String.trim(output) == "Lee [la guía](https://example.com/guide)."
   end
+
+  test "rejects an empty translation for a non-empty source text node" do
+    source = "Keep this sentence.\n\nAlso keep this one."
+
+    translated =
+      "@@GLOSSIA-TEXT-1-START@@Guarda esta frase.@@GLOSSIA-TEXT-1-END@@\n\n" <>
+        "@@GLOSSIA-TEXT-2-START@@@@GLOSSIA-TEXT-2-END@@"
+
+    assert {:error, message} = Markdown.reconcile_marked_text_nodes(source, translated)
+    assert message =~ "marker 2 had an empty translation"
+  end
+
+  test "rejects a missing whitespace text node" do
+    source = "Read [the guide](https://example.com/guide) now."
+
+    translated =
+      "@@GLOSSIA-TEXT-1-START@@@@GLOSSIA-TEXT-1-END@@" <>
+        "@@GLOSSIA-TEXT-2-START@@la guía@@GLOSSIA-TEXT-2-END@@" <>
+        "@@GLOSSIA-TEXT-3-START@@ ahora.@@GLOSSIA-TEXT-3-END@@"
+
+    assert {:error, message} = Markdown.reconcile_marked_text_nodes(source, translated)
+    assert message =~ "marker 1 had an empty translation"
+  end
+
+  test "rejects whitespace-only output for a source text node with prose" do
+    source = "Read [the guide](https://example.com/guide) now."
+
+    translated =
+      "@@GLOSSIA-TEXT-1-START@@ @@GLOSSIA-TEXT-1-END@@" <>
+        "@@GLOSSIA-TEXT-2-START@@la guía@@GLOSSIA-TEXT-2-END@@" <>
+        "@@GLOSSIA-TEXT-3-START@@ ahora.@@GLOSSIA-TEXT-3-END@@"
+
+    assert {:error, message} = Markdown.reconcile_marked_text_nodes(source, translated)
+    assert message =~ "marker 1 had an empty translation"
+  end
+
+  test "rejects interleaved recovery markers" do
+    source = "Read [the guide](https://example.com/guide) now."
+
+    translated =
+      "@@GLOSSIA-TEXT-1-START@@Lee @@GLOSSIA-TEXT-2-START@@" <>
+        "@@GLOSSIA-TEXT-1-END@@la guía@@GLOSSIA-TEXT-2-END@@" <>
+        "@@GLOSSIA-TEXT-3-START@@ ahora.@@GLOSSIA-TEXT-3-END@@"
+
+    assert {:error, message} = Markdown.reconcile_marked_text_nodes(source, translated)
+    assert message =~ "missing, duplicated, or reordered"
+  end
+
+  test "round-trips escaped text literals without compounding escapes" do
+    source =
+      "Use snake_case, costs 5 \\* 3, and {__GLOSSIA_TOKEN_abc123def456_1} in " <>
+        "[docs](https://example.com/docs)."
+
+    assert {:ok, marked} = Markdown.mark_text_nodes(source)
+    assert {:ok, expected} = Markdown.reconcile(source, source)
+    assert {:ok, output} = Markdown.reconcile_marked_text_nodes(source, marked)
+    assert output == expected
+  end
 end

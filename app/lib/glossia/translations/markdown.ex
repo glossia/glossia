@@ -10,6 +10,8 @@ defmodule Glossia.Translations.Markdown do
   structure without asking the model to reproduce those values byte-for-byte.
   """
 
+  @recovery_marker ~r/@@GLOSSIA-TEXT-\d+-(?:START|END)@@/
+
   @doc """
   Reconciles translated Markdown with `source`.
 
@@ -63,7 +65,8 @@ defmodule Glossia.Translations.Markdown do
   def reconcile_marked_text_nodes(source, translated)
       when is_binary(source) and is_binary(translated) do
     with {:ok, source_document} <- parse(source, "source"),
-         {:ok, literals} <- marked_literals(translated, text_node_count(source_document)),
+         source_literals <- text_node_literals(source_document),
+         {:ok, literals} <- marked_literals(translated, source_literals),
          {document, []} <- replace_text_nodes(source_document, literals) do
       {:ok, MDEx.to_markdown!(document)}
     else
@@ -93,32 +96,97 @@ defmodule Glossia.Translations.Markdown do
 
   defp mark_text_nodes(node, index), do: {node, index}
 
-  defp text_node_count(%MDEx.Text{}), do: 1
+  defp text_node_literals(%MDEx.Text{literal: literal}), do: [literal]
 
-  defp text_node_count(%{nodes: nodes}) when is_list(nodes) do
-    Enum.sum(Enum.map(nodes, &text_node_count/1))
+  defp text_node_literals(%{nodes: nodes}) when is_list(nodes) do
+    Enum.flat_map(nodes, &text_node_literals/1)
   end
 
-  defp text_node_count(_node), do: 0
+  defp text_node_literals(_node), do: []
 
-  defp marked_literals(_translated, 0), do: {:ok, []}
+  defp marked_literals(_translated, []),
+    do: {:error, "Markdown source had no text nodes for marker recovery"}
 
-  defp marked_literals(translated, count) do
-    1..count
-    |> Enum.reduce_while({:ok, []}, fn index, {:ok, literals} ->
-      pattern =
-        "#{Regex.escape(marker_start(index))}(.*?)#{Regex.escape(marker_end(index))}"
-        |> Regex.compile!("s")
+  defp marked_literals(translated, source_literals) do
+    source_literals
+    |> Enum.with_index(1)
+    |> Enum.reduce_while({:ok, {0, []}}, fn {source_literal, index}, {:ok, {offset, literals}} ->
+      expected_start = marker_start(index)
+      expected_end = marker_end(index)
 
-      case Regex.scan(pattern, translated, capture: :all_but_first) do
-        [[literal]] -> {:cont, {:ok, [literal | literals]}}
-        _ -> {:halt, {:error, "Markdown recovery marker #{index} was missing or duplicated"}}
+      with {:ok, {start_marker, _start_at, start_after}} <- next_marker(translated, offset),
+           ^expected_start <- start_marker,
+           {:ok, {end_marker, end_at, end_after}} <- next_marker(translated, start_after),
+           ^expected_end <- end_marker,
+           raw_literal <- binary_part(translated, start_after, end_at - start_after),
+           {:ok, literal} <- decode_marked_literal(raw_literal),
+           true <- valid_marked_literal?(source_literal, literal) do
+        {:cont, {:ok, {end_after, [literal | literals]}}}
+      else
+        {:error, _message} = error ->
+          {:halt, error}
+
+        false ->
+          {:halt, {:error, "Markdown recovery marker #{index} had an empty translation"}}
+
+        _ ->
+          {:halt, {:error, "Markdown recovery markers were missing, duplicated, or reordered"}}
       end
     end)
     |> case do
-      {:ok, literals} -> {:ok, Enum.reverse(literals)}
-      error -> error
+      {:ok, {offset, literals}} ->
+        case next_marker(translated, offset) do
+          :error ->
+            {:ok, Enum.reverse(literals)}
+
+          {:ok, _marker} ->
+            {:error, "Markdown recovery markers were missing, duplicated, or reordered"}
+        end
+
+      error ->
+        error
     end
+  end
+
+  defp next_marker(text, offset) do
+    remainder = binary_part(text, offset, byte_size(text) - offset)
+
+    case Regex.run(@recovery_marker, remainder, return: :index) do
+      [{relative_start, length}] ->
+        start = offset + relative_start
+        {:ok, {binary_part(text, start, length), start, start + length}}
+
+      nil ->
+        :error
+    end
+  end
+
+  # `MDEx.to_markdown!/1` escapes Markdown-significant characters in text
+  # nodes. Marker recovery receives that rendered source, so parse each model
+  # literal before putting it back into a text node; assigning the raw rendered
+  # bytes would escape those characters a second time on the final render.
+  defp decode_marked_literal(literal) do
+    trimmed = String.trim(literal)
+
+    if trimmed == "" do
+      {:ok, literal}
+    else
+      leading_size = byte_size(literal) - byte_size(String.trim_leading(literal))
+      trailing_size = byte_size(literal) - byte_size(String.trim_trailing(literal))
+      leading = binary_part(literal, 0, leading_size)
+      trailing = binary_part(literal, byte_size(literal) - trailing_size, trailing_size)
+
+      with {:ok, document} <- parse(trimmed, "translation") do
+        {:ok, leading <> (document |> text_node_literals() |> Enum.join()) <> trailing}
+      end
+    end
+  end
+
+  defp valid_marked_literal?("", _literal), do: true
+
+  defp valid_marked_literal?(source_literal, literal) do
+    literal != "" and
+      (String.trim(source_literal) == "" or String.trim(literal) != "")
   end
 
   defp replace_text_nodes(%MDEx.Text{} = node, [literal | rest]),
