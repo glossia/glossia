@@ -10,30 +10,42 @@
     gap: var(--noora-spacing-5);
   }
 
+  & > #organization-list-button {
+    align-self: flex-start;
+  }
+
+  & [data-part="organization-header-identity"] {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--noora-spacing-4);
+  }
+
   & [data-part="copy"] {
     display: flex;
     flex-direction: column;
     gap: var(--noora-spacing-2);
   }
 
-  & > [data-part="header"] > [data-part="copy"] > [data-part="eyebrow"] {
+  & > [data-part="header"] [data-part="copy"] > [data-part="eyebrow"] {
     margin: 0;
     color: var(--color-primary);
     font: var(--noora-font-weight-medium) var(--noora-font-body-small);
     text-transform: uppercase;
   }
 
-  & > [data-part="header"] > [data-part="copy"] > [data-part="title"] {
+  & > [data-part="header"] [data-part="copy"] > [data-part="title"] {
     margin: 0;
     color: var(--noora-surface-label-primary);
     font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
   }
 
-  & > [data-part="header"] > [data-part="copy"] > [data-part="description"] {
+  & > [data-part="header"] [data-part="copy"] > [data-part="description"] {
     margin: 0;
     color: var(--noora-surface-label-secondary);
     font: var(--noora-font-body-medium);
     max-width: calc(var(--noora-spacing-16) * 6);
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   & [data-part="metrics"] {

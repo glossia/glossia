@@ -25,47 +25,19 @@ defmodule BabelWeb.Layouts do
         <aside data-part="sidebar">
           <.sidebar id="babel-sidebar">
             <.sidebar_item
+              id="babel-overview-navigation"
               label="Overview"
               icon="smart_home"
               navigate={~p"/"}
               selected={@live_action == :overview}
             />
-            <.sidebar_group
-              id="babel-customers-navigation"
-              label="Customers"
-              icon="users"
-              navigate={~p"/customers"}
-              selected={@live_action == :customers}
-              default_open={@live_action == :customers}
-            >
-              <.sidebar_item
-                label="Customer work"
-                icon="checkup_list"
-                navigate={~p"/customers"}
-                selected={@live_action == :customers}
-              />
-            </.sidebar_group>
             <.sidebar_item
-              label="Work queue"
-              icon="checkup_list"
-              navigate={~p"/work-items"}
-              selected={@live_action == :work_items}
+              id="babel-growth-navigation"
+              label="Growth"
+              icon="building"
+              navigate={~p"/growth"}
+              selected={@live_action in [:go_to_market, :organization]}
             />
-            <.sidebar_group
-              id="babel-finance-navigation"
-              label="Finance"
-              icon="chart_donut_4"
-              navigate={~p"/finance"}
-              selected={@live_action == :finance}
-              default_open={@live_action == :finance}
-            >
-              <.sidebar_item
-                label="Commercial review"
-                icon="file_text"
-                navigate={~p"/finance"}
-                selected={@live_action == :finance}
-              />
-            </.sidebar_group>
           </.sidebar>
         </aside>
 
