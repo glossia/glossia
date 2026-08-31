@@ -3,10 +3,10 @@ defmodule Babel.MCP.CreateOrganizationInteractionTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Babel.Organizations
-  alias Babel.Organizations.Interaction
   alias Babel.MCP.Authorization
   alias Babel.MCP.OrganizationInteractionSerializer
+  alias Babel.Organizations
+  alias Babel.Organizations.Interaction
   alias Hermes.MCP.Error
   alias Hermes.Server.Response
 

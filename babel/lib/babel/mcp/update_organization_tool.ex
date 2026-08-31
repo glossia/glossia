@@ -3,10 +3,10 @@ defmodule Babel.MCP.UpdateOrganizationTool do
 
   use Hermes.Server.Component, type: :tool
 
-  alias Babel.Organizations
-  alias Babel.Organizations.Organization
   alias Babel.MCP.Authorization
   alias Babel.MCP.OrganizationSerializer
+  alias Babel.Organizations
+  alias Babel.Organizations.Organization
   alias Hermes.MCP.Error
   alias Hermes.Server.Response
 

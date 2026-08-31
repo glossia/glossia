@@ -3,10 +3,10 @@ defmodule Babel.MCP.ListOrganizationsTool do
 
   use Hermes.Server.Component, type: :tool, annotations: %{"readOnlyHint" => true}
 
-  alias Babel.Organizations
-  alias Babel.Organizations.Organization
   alias Babel.MCP.Authorization
   alias Babel.MCP.OrganizationSerializer
+  alias Babel.Organizations
+  alias Babel.Organizations.Organization
   alias Hermes.Server.Response
 
   @states Organization.states()

@@ -3,9 +3,9 @@ defmodule Babel.MCP.GetOrganizationTool do
 
   use Hermes.Server.Component, type: :tool, annotations: %{"readOnlyHint" => true}
 
-  alias Babel.Organizations
   alias Babel.MCP.Authorization
   alias Babel.MCP.OrganizationSerializer
+  alias Babel.Organizations
   alias Hermes.MCP.Error
   alias Hermes.Server.Response
 
