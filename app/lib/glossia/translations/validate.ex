@@ -41,9 +41,9 @@ defmodule Glossia.Translations.Validate do
   # ── syntax ──────────────────────────────────────────────────────────────
 
   def validate_syntax("json", output, _source) do
-    case Jason.decode(output) do
+    case JSON.decode(output) do
       {:ok, _value} -> :ok
-      {:error, error} -> {:error, "invalid JSON: #{Exception.message(error)}"}
+      {:error, error} -> {:error, "invalid JSON: #{inspect(error)}"}
     end
   end
 
@@ -131,10 +131,10 @@ defmodule Glossia.Translations.Validate do
 
     cond do
       missing != [] ->
-        {:error, "preserved tokens missing from output: #{Jason.encode!(missing)}"}
+        {:error, "preserved tokens missing from output: #{JSON.encode!(missing)}"}
 
       unexpected != [] ->
-        {:error, "unexpected preserved tokens in output: #{Jason.encode!(unexpected)}"}
+        {:error, "unexpected preserved tokens in output: #{JSON.encode!(unexpected)}"}
 
       true ->
         :ok

@@ -333,7 +333,7 @@ defmodule Glossia.Translations.Validate.Po do
   end
 
   defp extract_quoted_raw(line) do
-    case Jason.decode(line) do
+    case JSON.decode(line) do
       {:ok, value} when is_binary(value) -> value
       _ -> ""
     end

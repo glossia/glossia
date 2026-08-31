@@ -121,7 +121,7 @@ defmodule Glossia.Translations.LLM do
     output
     |> String.split("\n", trim: true)
     |> Enum.flat_map(fn line ->
-      case Jason.decode(line) do
+      case JSON.decode(line) do
         {:ok, %{"type" => _type} = event} -> [event]
         _ -> []
       end

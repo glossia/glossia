@@ -40,6 +40,14 @@ defmodule Glossia.Translations.Frontmatter do
 
   @default_retries 3
 
+  # These values identify the document or select its rendering. Translating
+  # them makes a document harder to route or attribute without making it more
+  # useful to readers.
+  @nimble_publisher_identifier_keys ~w(
+    author authors canonical canonical_url cover date datetime draft id image layout
+    order permalink published_at slug template updated_at url
+  )a
+
   @type t :: %Frontmatter{}
 
   @doc """
@@ -103,6 +111,34 @@ defmodule Glossia.Translations.Frontmatter do
     end
   end
 
+  @doc "Returns the reader-facing string values in NimblePublisher frontmatter."
+  def nimble_publisher_text_literals(frontmatter) when is_binary(frontmatter) do
+    with {:ok, ast} <- parse_nimble_publisher_map(frontmatter),
+         true <- match?({:%{}, _, _}, ast),
+         values when values != [] <- nimble_publisher_text_values(ast) do
+      {:ok, %{ast: ast, values: values}}
+    else
+      _ -> :error
+    end
+  end
+
+  @doc "Rebuilds NimblePublisher frontmatter from translated reader-facing values."
+  def rebuild_nimble_publisher_text_literals(%{ast: ast, values: source_values}, translated)
+      when is_binary(translated) do
+    with {:ok, values} <- JSON.decode(String.trim(translated)),
+         true <- length(values) == length(source_values),
+         true <- Enum.all?(values, &(is_binary(&1) and String.trim(&1) != "")),
+         {rebuilt, []} <- replace_nimble_publisher_text_values(ast, values) do
+      {:ok, Macro.to_string(rebuilt) <> "\n---"}
+    else
+      {:error, _reason} ->
+        {:error, "NimblePublisher frontmatter must return a JSON string array of matching length"}
+
+      _ ->
+        {:error, "NimblePublisher frontmatter must return a JSON string array of matching length"}
+    end
+  end
+
   defp split_fenced_frontmatter(ls, marker, content) do
     case find_closing(ls, marker) do
       nil ->
@@ -135,6 +171,53 @@ defmodule Glossia.Translations.Frontmatter do
     fm = ls |> Enum.slice(0, delimiter + 1) |> Enum.join("\n")
     body = ls |> Enum.drop(delimiter + 1) |> Enum.join("\n")
     %{frontmatter: fm, body: body, ok: true}
+  end
+
+  defp parse_nimble_publisher_map(frontmatter) do
+    frontmatter
+    |> String.trim_trailing()
+    |> String.split(~r/\n---\z/, parts: 2)
+    |> List.first()
+    |> String.trim()
+    |> Code.string_to_quoted()
+  end
+
+  defp nimble_publisher_text_values(ast) do
+    {_ast, values} =
+      Macro.prewalk(ast, [], fn
+        {key, value} = node, values when is_atom(key) and is_binary(value) ->
+          if translatable_nimble_publisher_value?(key, value) do
+            {node, [value | values]}
+          else
+            {node, values}
+          end
+
+        node, values ->
+          {node, values}
+      end)
+
+    Enum.reverse(values)
+  end
+
+  defp replace_nimble_publisher_text_values(ast, values) do
+    Macro.prewalk(ast, values, fn
+      {key, value} = node, [replacement | rest] = values
+      when is_atom(key) and is_binary(value) ->
+        if translatable_nimble_publisher_value?(key, value) do
+          {{key, replacement}, rest}
+        else
+          {node, values}
+        end
+
+      node, values ->
+        {node, values}
+    end)
+  end
+
+  defp translatable_nimble_publisher_value?(key, value) do
+    key not in @nimble_publisher_identifier_keys and
+      not String.match?(value, ~r/\Ahttps?:\/\//) and
+      not String.match?(value, ~r/\A\d{4}-\d{2}-\d{2}\z/)
   end
 
   defp nimble_publisher_delimiter(ls) do

@@ -137,13 +137,13 @@ defmodule Glossia.Translations.EngineTest do
         Elixir.Agent.update(payloads, &[payload | &1])
 
         case {payload["segment_kind"], payload["last_error"]} do
-          {"frontmatter", nil} ->
+          {"frontmatter_text_literals", nil} ->
             translated("")
 
-          {"frontmatter", error} ->
+          {"frontmatter_text_literals", error} ->
             assert error =~ "translated output was empty for non-empty frontmatter"
             assert error =~ "return the complete frontmatter block"
-            translated("%{\n  title: \"Hola\"\n}\n---")
+            translated(JSON.encode!(["Hola"]))
 
           {"content", _error} ->
             translated("Cuerpo")
@@ -154,20 +154,20 @@ defmodule Glossia.Translations.EngineTest do
 
       log =
         capture_log([level: :warning], fn ->
-          assert {:ok, %{text: "%{\n  title: \"Hola\"\n}\n---\nCuerpo"}} =
+          assert {:ok, %{text: "%{title: \"Hola\"}\n---\nCuerpo"}} =
                    Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
         end)
 
       assert log =~ "Translation model returned empty output"
-      assert log =~ ~s("segment_kind":"frontmatter")
+      assert log =~ ~s("segment_kind":"frontmatter_text_literals")
       assert log =~ ~s("segment_attempt":1)
-      assert log =~ ~s("source_bytes":25)
+      assert log =~ ~s("source_bytes":9)
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
 
       assert Enum.map(calls, &{&1["segment_kind"], &1["last_error"]}) == [
-               {"frontmatter", nil},
-               {"frontmatter",
+               {"frontmatter_text_literals", nil},
+               {"frontmatter_text_literals",
                 "translated output was empty for non-empty frontmatter; return the complete frontmatter block with its syntax and delimiters intact"},
                {"content", nil}
              ]
@@ -378,9 +378,10 @@ defmodule Glossia.Translations.EngineTest do
         Elixir.Agent.update(payloads, &[payload | &1])
 
         case payload["segment_kind"] do
-          "frontmatter" ->
+          "frontmatter_text_literals" ->
             assert payload["segment_index"] == 1
-            translated("%{\n  title: \"Hola\"\n}\n---")
+            assert JSON.decode!(payload["source_content"]) == ["Hello"]
+            translated(JSON.encode!(["Hola"]))
 
           "content" ->
             translated("Cuerpo #{payload["segment_index"]}")
@@ -391,11 +392,50 @@ defmodule Glossia.Translations.EngineTest do
       assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.map(calls, & &1["segment_kind"]) == ["frontmatter", "content", "content"]
+
+      assert Enum.map(calls, & &1["segment_kind"]) == [
+               "frontmatter_text_literals",
+               "content",
+               "content"
+             ]
+
       assert Enum.all?(calls, &(&1["segment_count"] == 3))
 
       assert result.text ==
-               "%{\n  title: \"Hola\"\n}\n---\nCuerpo 2\n\nCuerpo 3"
+               "%{title: \"Hola\"}\n---\nCuerpo 2\n\nCuerpo 3"
+    end
+
+    @tag :tmp_dir
+    test "rebuilds translated NimblePublisher values without allowing model syntax changes", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+
+      File.write!(
+        source,
+        "%{\n  title: \"Hello\",\n  summary: \"A summary\",\n  date: ~D[2026-02-03],\n  slug: \"guide\",\n  author: \"pepicrft\"\n}\n---\n\nBody"
+      )
+
+      stub_stream(fn _account, payload, _on_event ->
+        case payload["segment_kind"] do
+          "frontmatter_text_literals" ->
+            assert JSON.decode!(payload["source_content"]) == ["Hello", "A summary"]
+            translated(JSON.encode!(["Hola", "Un resumen"]))
+
+          "content" ->
+            translated("Cuerpo")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, frontmatter_mode: :translate}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text ==
+               "%{title: \"Hola\", summary: \"Un resumen\", date: ~D[2026-02-03], slug: \"guide\", author: \"pepicrft\"}\n---\nCuerpo"
     end
 
     @tag :tmp_dir

@@ -12,7 +12,7 @@ defmodule Glossia.Translations.Prompt do
   """
 
   @structured_formats ~w(json yaml po)
-  @version 7
+  @version 8
 
   @doc """
   Version of the prompt contract used in translation lockfiles.
@@ -107,6 +107,18 @@ defmodule Glossia.Translations.Prompt do
       end
 
     lines =
+      if Map.get(input, :segment_kind) == "frontmatter_text_literals" do
+        lines ++
+          [
+            "The supplied content is a JSON array of reader-facing string values from a NimblePublisher frontmatter map.",
+            "Return a valid JSON array of translated strings in exactly the same order and with exactly the same number of elements.",
+            "Do not return frontmatter syntax, keys, identifiers, dates, Markdown, fences, or commentary."
+          ]
+      else
+        lines
+      end
+
+    lines =
       if Map.get(input, :segment_count, 1) > 1 do
         lines ++
           [
@@ -161,6 +173,9 @@ defmodule Glossia.Translations.Prompt do
 
         segment_kind == "markdown_text_literals" ->
           "Translate every string in this JSON array from #{source_language} to #{language} (#{locale}). Return only a valid JSON array of translated strings, with the same number of elements and the same order. Do not add Markdown syntax or commentary."
+
+        segment_kind == "frontmatter_text_literals" ->
+          "Translate every reader-facing string in this JSON array from #{source_language} to #{language} (#{locale}). Return only a valid JSON array of translated strings, with the same number of elements and the same order. Do not add frontmatter syntax, keys, identifiers, dates, Markdown, or commentary."
 
         segment_count > 1 ->
           "Translate segment #{segment_index} of #{segment_count} from #{source_language} to #{language} (#{locale}). Return only this segment."

@@ -245,7 +245,7 @@ defmodule Glossia.Translations.Credentials do
              stderr_to_stdout: true,
              into: ""
            ),
-         {:ok, %{"claudeAiOauth" => oauth}} <- Jason.decode(String.trim(json)) do
+         {:ok, %{"claudeAiOauth" => oauth}} <- JSON.decode(String.trim(json)) do
       {:ok, oauth}
     else
       _ -> :error
@@ -346,7 +346,7 @@ defmodule Glossia.Translations.Credentials do
 
   defp read_codex_auth(path) do
     with {:ok, raw} <- File.read(Path.expand(path)),
-         {:ok, decoded} when is_map(decoded) <- Jason.decode(raw) do
+         {:ok, decoded} when is_map(decoded) <- JSON.decode(raw) do
       {:ok, decoded}
     else
       _ -> :error
@@ -381,7 +381,7 @@ defmodule Glossia.Translations.Credentials do
   defp token_expiry_ms(token) do
     with [_header, payload, _signature] <- String.split(token, "."),
          {:ok, decoded} <- Base.url_decode64(payload, padding: false),
-         {:ok, %{"exp" => expires}} when is_integer(expires) <- Jason.decode(decoded) do
+         {:ok, %{"exp" => expires}} when is_integer(expires) <- JSON.decode(decoded) do
       expires * 1_000
     else
       _ -> System.system_time(:millisecond) + :timer.minutes(5)

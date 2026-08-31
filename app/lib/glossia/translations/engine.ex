@@ -673,7 +673,7 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
-  defp empty_output_message("frontmatter") do
+  defp empty_output_message(kind) when kind in ["frontmatter", "frontmatter_text_literals"] do
     "translated output was empty for non-empty frontmatter; return the complete frontmatter block with its syntax and delimiters intact"
   end
 
@@ -730,7 +730,7 @@ defmodule Glossia.Translations.Engine do
 
   defp assemble_segments(state, translated_segments) do
     {frontmatter_segments, body_segments} =
-      Enum.split_with(translated_segments, &(&1.kind == "frontmatter"))
+      Enum.split_with(translated_segments, &frontmatter_segment?/1)
 
     frontmatter =
       state.preserved_frontmatter ||
@@ -842,18 +842,7 @@ defmodule Glossia.Translations.Engine do
         }
 
       {:translate, true} ->
-        frontmatter_protection =
-          PreservedTokens.protect(split.frontmatter, preserve_kinds, scope: "frontmatter")
-
-        {body_segments, body_protections} =
-          planned_content_segments(split.body, work_item.format, preserve_kinds, "body")
-
-        %{
-          preserved_frontmatter: nil,
-          segments:
-            [%{kind: "frontmatter", content: frontmatter_protection.text}] ++ body_segments,
-          protections: [frontmatter_protection | body_protections]
-        }
+        translated_frontmatter_segments(split.frontmatter, preserve_kinds, split.body, work_item)
 
       _ ->
         {segments, protections} =
@@ -900,6 +889,13 @@ defmodule Glossia.Translations.Engine do
 
   defp reconcile_markdown_segment(
          text,
+         %{kind: "frontmatter_text_literals", frontmatter_plan: plan},
+         "markdown"
+       ),
+       do: Frontmatter.rebuild_nimble_publisher_text_literals(plan, text)
+
+  defp reconcile_markdown_segment(
+         text,
          %{kind: "markdown_text_markers", markdown_source: source},
          "markdown"
        ) do
@@ -934,6 +930,47 @@ defmodule Glossia.Translations.Engine do
         end
     end
   end
+
+  defp translated_frontmatter_segments(frontmatter, preserve_kinds, body, work_item) do
+    {body_segments, body_protections} =
+      planned_content_segments(body, work_item.format, preserve_kinds, "body")
+
+    case Frontmatter.nimble_publisher_text_literals(frontmatter) do
+      {:ok, plan} ->
+        protection =
+          plan.values
+          |> JSON.encode!()
+          |> PreservedTokens.protect(preserve_kinds, scope: "frontmatter_literals")
+
+        %{
+          preserved_frontmatter: nil,
+          segments:
+            [
+              %{
+                kind: "frontmatter_text_literals",
+                content: protection.text,
+                frontmatter_plan: plan
+              }
+            ] ++ body_segments,
+          protections: [protection | body_protections]
+        }
+
+      :error ->
+        protection = PreservedTokens.protect(frontmatter, preserve_kinds, scope: "frontmatter")
+
+        %{
+          preserved_frontmatter: nil,
+          segments: [%{kind: "frontmatter", content: protection.text}] ++ body_segments,
+          protections: [protection | body_protections]
+        }
+    end
+  end
+
+  defp frontmatter_segment?(%{kind: kind})
+       when kind in ["frontmatter", "frontmatter_text_literals"],
+       do: true
+
+  defp frontmatter_segment?(_segment), do: false
 
   defp attach_server_context(segments, server_context, preserve) do
     initial_budget = %{

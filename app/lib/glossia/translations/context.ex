@@ -660,7 +660,7 @@ defmodule Glossia.Translations.Context do
 
   defp terminology_line(entry) do
     suffix = if entry.case_sensitive, do: " (case-sensitive)", else: ""
-    "- #{Jason.encode!(entry.term)} → #{Jason.encode!(entry.translation)}#{suffix}"
+    "- #{JSON.encode!(entry.term)} → #{JSON.encode!(entry.translation)}#{suffix}"
   end
 
   defp labeled(_label, value, _limit) when value in [nil, ""], do: nil
@@ -745,7 +745,7 @@ defmodule Glossia.Translations.Context do
 
   defp content_hash(value) do
     value
-    |> Jason.encode!()
+    |> JSON.encode!()
     |> then(&:crypto.hash(:sha256, &1))
     |> Base.encode16(case: :lower)
   end
