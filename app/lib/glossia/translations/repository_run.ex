@@ -565,6 +565,7 @@ defmodule Glossia.Translations.RepositoryRun do
     on_event = fn event ->
       if event == :turn_start do
         Process.put(model_calls_key, Process.get(model_calls_key, 0) + 1)
+        heartbeat(session, progress_node)
       end
 
       Enum.each(progress_events(event), fn emitted ->

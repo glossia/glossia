@@ -84,7 +84,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     # Lockfile written and valid.
     lock_path = Path.join([root, ".glossia", "docs/guide.md", "es.lock"])
     assert File.exists?(lock_path)
-    assert {:ok, lock} = Jason.decode(File.read!(lock_path))
+    assert {:ok, lock} = JSON.decode(File.read!(lock_path))
     assert lock["output_path"] == "docs/i18n/es/guide.md"
 
     assert %{"root" => %{"kind" => "translation_input", "children" => children}} =
