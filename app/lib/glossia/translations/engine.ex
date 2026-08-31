@@ -165,7 +165,18 @@ defmodule Glossia.Translations.Engine do
             {:halt, {:error, reason}}
 
           {:preservation_error, message} ->
-            case recover_markdown_segment(state, segment, segment_index, segment_count, message) do
+            # Markdown's source tree already gives us a deterministic recovery
+            # path. Try that before asking the model to reproduce the same
+            # Markdown syntax in smaller blocks: models that normalize a link
+            # or list tend to do so on every ordinary retry, which turns one
+            # bad response into several slow, identical requests.
+            case recover_markdown_text_nodes(
+                   state,
+                   segment,
+                   segment_index,
+                   segment_count,
+                   message
+                 ) do
               {:ok, recovered} ->
                 {:cont,
                  {:ok,
@@ -176,7 +187,7 @@ defmodule Glossia.Translations.Engine do
                   }}}
 
               :error ->
-                case recover_markdown_text_nodes(
+                case recover_markdown_segment(
                        state,
                        segment,
                        segment_index,
@@ -326,8 +337,12 @@ defmodule Glossia.Translations.Engine do
           end
         else
           {:error, message} when attempt < @segment_attempts ->
-            state.on_event.({:segment_retry, index, message})
-            translate_segment(state, segment, index, count, attempt + 1, message)
+            if markdown_structure_error?(state, message) do
+              {:preservation_error, message}
+            else
+              state.on_event.({:segment_retry, index, message})
+              translate_segment(state, segment, index, count, attempt + 1, message)
+            end
 
           {:error, message} ->
             {:preservation_error, message}

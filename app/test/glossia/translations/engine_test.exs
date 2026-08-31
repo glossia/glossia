@@ -495,20 +495,28 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "retries a Markdown structure failure one source block at a time", %{tmp_dir: dir} do
+    test "recovers a Markdown structure failure through text markers before splitting blocks", %{
+      tmp_dir: dir
+    } do
       source = Path.join(dir, "guide.md")
       File.write!(source, "[Guide](https://example.com/guide)\n\nParagraph.")
 
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
       stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
         case String.trim(payload["source_content"]) do
           "[Guide](https://example.com/guide)\n\nParagraph." ->
             translated("Guide\n\nParagraph.")
 
-          "[Guide](https://example.com/guide)" ->
-            translated("[Leitfaden](https://example.com/guide)")
+          marked when is_binary(marked) ->
+            assert payload["segment_kind"] == "markdown_text_markers"
 
-          "Paragraph." ->
-            translated("Absatz.")
+            translated(
+              "@@GLOSSIA-TEXT-1-START@@Leitfaden@@GLOSSIA-TEXT-1-END@@\n\n" <>
+                "@@GLOSSIA-TEXT-2-START@@Absatz.@@GLOSSIA-TEXT-2-END@@"
+            )
         end
       end)
 
@@ -516,6 +524,9 @@ defmodule Glossia.Translations.EngineTest do
 
       assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
       assert result.text == "[Leitfaden](https://example.com/guide)\n\nAbsatz."
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.map(calls, & &1["segment_kind"]) == ["content", "markdown_text_markers"]
     end
 
     @tag :tmp_dir
@@ -735,10 +746,11 @@ defmodule Glossia.Translations.EngineTest do
       refute Enum.any?(outputs, &String.contains?(&1, "the report for details"))
 
       calls = Elixir.Agent.get(payloads, &Enum.reverse/1)
-      contents = Enum.map(calls, & &1["source_content"])
 
-      # Exactly one extra call: only the segment that lost the marker ran twice.
-      assert length(calls) == length(Enum.uniq(contents)) + 1
+      # The valid first segment was left alone, and the invalid Markdown
+      # segment was retried once through the marker-based recovery path.
+      assert length(calls) == 3
+      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_markers"))
 
       retry = Enum.find(calls, &(&1["last_error"] not in [nil, ""]))
       assert retry["last_error"] =~ "changed the document structure"
@@ -778,7 +790,7 @@ defmodule Glossia.Translations.EngineTest do
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
       assert Enum.count(calls, &(&1["segment_index"] == 1)) == 1
-      assert Enum.count(calls, &(&1["segment_index"] == 2)) == 3
+      assert Enum.count(calls, &(&1["segment_index"] == 2)) == 2
       assert Enum.at(calls, 2)["last_error"] =~ "changed the document structure"
     end
 
