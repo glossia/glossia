@@ -5,10 +5,10 @@ defmodule Babel.Organizations do
 
   import Ecto.Query
 
+  alias Babel.Organizations.Directory
   alias Babel.Organizations.Interaction
   alias Babel.Organizations.Organization
   alias Babel.Organizations.TemporaryAccess
-  alias Babel.Organizations.Directory
   alias Babel.Organizations.Usage
   alias Babel.Organizations.UsageCache
   alias Babel.Repo

@@ -2,11 +2,11 @@ defmodule BabelWeb.OperationsLive do
   use BabelWeb, :live_view
   use Noora
 
+  alias Babel.Accounts
   alias Babel.Organizations
   alias Babel.Organizations.Interaction
   alias Babel.Organizations.Organization
   alias Babel.Organizations.TemporaryAccess
-  alias Babel.Accounts
   alias Noora.Filter
   alias Phoenix.LiveView.JS
 
