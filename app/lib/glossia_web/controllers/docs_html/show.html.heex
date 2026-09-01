@@ -20,17 +20,4 @@
   </header>
 
   {raw(@page.body)}
-
-  <footer id="docs-page-footer">
-    <Noora.Button.button
-      :if={@page.markdown}
-      label={gettext("View as Markdown")}
-      variant="primary"
-      size="large"
-      href={@docs_markdown_path}
-      target="_blank"
-    >
-      <:icon_left><Noora.Icon.markdown /></:icon_left>
-    </Noora.Button.button>
-  </footer>
 </article>

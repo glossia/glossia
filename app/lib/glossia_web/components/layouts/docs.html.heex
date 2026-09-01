@@ -243,13 +243,15 @@
           size="medium"
           align="end"
           data-docs-copy-page
+          data-default-label={gettext("Copy page")}
+          data-copied-label={gettext("Copied")}
         >
           <:icon_left><.copy /></:icon_left>
           <.dropdown_item
             label={gettext("Copy as Markdown")}
             value="copy-markdown"
             size="small"
-            data-docs-copy-page
+            data-docs-copy-markdown
           />
           <.dropdown_item
             :if={assigns[:docs_markdown_path]}
@@ -274,13 +276,15 @@
           size="medium"
           align="end"
           data-docs-copy-page
+          data-default-label={gettext("Copy page")}
+          data-copied-label={gettext("Copied")}
         >
           <:icon_left><.copy /></:icon_left>
           <.dropdown_item
             label={gettext("Copy as Markdown")}
             value="copy-markdown"
             size="small"
-            data-docs-copy-page
+            data-docs-copy-markdown
           />
           <.dropdown_item
             :if={assigns[:docs_markdown_path]}

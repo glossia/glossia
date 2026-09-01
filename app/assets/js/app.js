@@ -139,7 +139,7 @@ function initDocsLayout() {
   })
   toc?.querySelectorAll("[data-docs-toc-link]").forEach(link => link.addEventListener("click", closeToc))
 
-  const renderSearchResults = (pages, query) => {
+  const renderSearchResults = (results, query) => {
     if (!searchResults) return
     searchResults.replaceChildren()
 
@@ -151,15 +151,7 @@ function initDocsLayout() {
       return
     }
 
-    const normalized = query.trim().toLocaleLowerCase()
-    const matches = pages
-      .filter(page => {
-        const headings = (page.headings || []).map(heading => heading.text).join(" ")
-        return [page.title, page.summary, headings, page.body_text].join(" ").toLocaleLowerCase().includes(normalized)
-      })
-      .slice(0, 8)
-
-    if (matches.length === 0) {
+    if (results.length === 0) {
       const empty = document.createElement("p")
       empty.dataset.part = "search-empty"
       empty.textContent = searchDialog?.dataset.searchEmpty
@@ -167,7 +159,7 @@ function initDocsLayout() {
       return
     }
 
-    matches.forEach(page => {
+    results.forEach(page => {
       const result = document.createElement("a")
       result.href = page.url
       result.dataset.part = "search-result"
@@ -182,28 +174,42 @@ function initDocsLayout() {
     })
   }
 
-  let searchPages
-  let searchRequest
+  let searchTimer
+  let searchController
 
-  const openSearch = async event => {
+  const searchDocumentation = async query => {
+    const normalized = query.trim()
+
+    if (normalized.length < 2) {
+      renderSearchResults([], normalized)
+      return
+    }
+
+    searchController?.abort()
+    searchController = new AbortController()
+
+    const endpoint = new URL("/docs/search.json", window.location.origin)
+    endpoint.searchParams.set("locale", document.documentElement.lang || "en")
+    endpoint.searchParams.set("q", normalized)
+
+    try {
+      const response = await fetch(endpoint, {signal: searchController.signal})
+      const payload = response.ok ? await response.json() : {results: []}
+
+      if (searchInput?.value.trim() === normalized) {
+        renderSearchResults(payload.results || [], normalized)
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") renderSearchResults([], normalized)
+    }
+  }
+
+  const openSearch = event => {
     event?.preventDefault()
     if (!searchDialog?.open) searchDialog?.showModal()
     searchInput?.focus()
 
-    if (searchPages || searchRequest) return
-
-    const endpoint = new URL("/docs/search.json", window.location.origin)
-    endpoint.searchParams.set("locale", document.documentElement.lang || "en")
-    searchRequest = fetch(endpoint)
-      .then(response => response.ok ? response.json() : [])
-      .then(pages => {
-        searchPages = pages
-        renderSearchResults(pages, searchInput?.value || "")
-      })
-      .catch(() => {
-        searchPages = []
-        renderSearchResults([], searchInput?.value || "")
-      })
+    searchDocumentation(searchInput?.value || "")
   }
 
   document.querySelectorAll("[data-docs-search-trigger]").forEach(trigger => {
@@ -211,8 +217,13 @@ function initDocsLayout() {
     trigger.addEventListener("click", openSearch)
   })
 
-  searchInput?.addEventListener("input", event => renderSearchResults(searchPages || [], event.target.value))
+  searchInput?.addEventListener("input", event => {
+    window.clearTimeout(searchTimer)
+    searchTimer = window.setTimeout(() => searchDocumentation(event.target.value), 200)
+  })
   searchDialog?.addEventListener("close", () => {
+    searchController?.abort()
+    window.clearTimeout(searchTimer)
     if (searchInput) searchInput.value = ""
   })
 
@@ -231,8 +242,11 @@ function initDocsLayout() {
     document.documentElement.dataset.docsCopyPageInitialized = "true"
 
     document.addEventListener("click", async event => {
-      const button = event.target.closest("[data-docs-copy-page]")
-      if (!button) return
+      const mainButton = event.target.closest("[data-docs-copy-page]")
+      const menuItem = event.target.closest("[data-docs-copy-markdown]")
+      if (!mainButton && !menuItem) return
+
+      if (menuItem) event.preventDefault()
 
       const markdown = document.getElementById("docs-page-markdown")?.value
       if (!markdown || !navigator.clipboard) return
@@ -243,12 +257,16 @@ function initDocsLayout() {
         return
       }
 
-      const label = button.querySelector('[data-part="label"]')
-      if (!label) return
+      document.querySelectorAll("[data-docs-copy-page]").forEach(button => {
+        const label = button.querySelector('[data-part="label"]')
+        if (!label) return
 
-      const original = label.textContent
-      label.textContent = document.getElementById("docs-search")?.dataset.copyLabel
-      window.setTimeout(() => { label.textContent = original }, 1500)
+        window.clearTimeout(button.docsCopyTimeout)
+        label.textContent = button.dataset.copiedLabel || "Copied"
+        button.docsCopyTimeout = window.setTimeout(() => {
+          label.textContent = button.dataset.defaultLabel || "Copy page"
+        }, 3000)
+      })
     })
   }
 
