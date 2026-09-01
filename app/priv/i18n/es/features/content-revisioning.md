@@ -1,25 +1,41 @@
 %{
   title: "Revisión de contenido",
-  summary: "Mejore su contenido existente en el mismo lugar. Glossia revisa los archivos de origen para comprobar su claridad, precisión y tono utilizando el contexto que proporcione y, a continuación, genera versiones revisadas listas para su revisión.",
+  summary:
+    "Mejora tu contenido existente en su lugar. Glossia revisa los archivos fuente por claridad, precisión y tono usando el contexto que proporcionas, luego produce versiones revisadas listas para revisión.",
   order: 2,
   icon: "pencil",
-  hero_cta_text: "Comenzar",
+  hero_cta_text: "Empieza ahora",
   hero_cta_url: "/signup",
   highlights: [
-    %{title: "Tono y claridad", description: "Los agentes revisan la legibilidad de sus textos, el uso de jerga y la coherencia con la voz de su marca.", icon: "message-circle"},
-    %{title: "No destructivo", description: "El contenido revisado puede sobrescribir el original o escribirse en una ruta independiente. Usted siempre controla el destino de salida.", icon: "shield-check"},
-    %{title: "Ciclo de retroalimentación", description: "Los revisores corrigen el resultado y actualizan el contexto; cada ciclo reduce la diferencia entre el borrador y la versión final.", icon: "refresh-cw"}
+    %{
+      title: "Tono y claridad",
+      description:
+        "Los agentes revisan tu redacción por legibilidad, jerga y coherencia con tu voz de marca.",
+      icon: "message-circle"
+    },
+    %{
+      title: "No destructivo",
+      description:
+        "El contenido revisado puede sobrescribir el original o escribirse en una ruta separada. Siempre controlas el destino de salida.",
+      icon: "shield-check"
+    },
+    %{
+      title: "Bucle de retroalimentación",
+      description:
+        "Los revisores corrigen el resultado, actualizan el contexto y cada ciclo acorta la brecha entre el borrador y el final.",
+      icon: "refresh-cw"
+    }
   ]
 }
 ---
-## Cómo funciona el control de revisiones
+## Cómo funciona la revisión
 
-El agente lee los archivos fuente y el grafo de contexto, y combina las instrucciones locales (archivos `GLOSSIA.md` en la raíz o en subdirectorios) con el contexto remoto (la voz, la terminologia y la configuración de estilo de su cuenta). Tras recopilar toda la información, reescribe el contenido para mejorar su claridad, precisión y tono, y genera la versión revisada lista para su revisión.
+El agente lee tus archivos fuente y el gráfico de contexto, fusionando las instrucciones locales (archivos `GLOSSIA.md` en la raíz o en subdirectorios) con el contexto remoto (tus configuraciones a nivel de cuenta de voz, terminología y estilo). Con la imagen completa ensamblada, reescribe el contenido para la claridad, precisión y tono, luego exporta la versión revisada lista para su revisión.
 
-## Grafo de contexto
+## Gráfico de contexto
 
-El contexto de Glossia es un grafo que abarca su cuenta y su repositorio. La configuración de la cuenta, como la voz y la terminologia, proporciona una base global, mientras que los archivos `GLOSSIA.md` ubicados junto al contenido añaden ajustes locales. El agente resuelve este grafo en cada ejecución, por lo que las instrucciones se mantienen coherentes entre archivos sin necesidad de repetirlas. Las revisiones son incrementales gracias a los archivos de bloqueo, que registran lo que ya se ha procesado. De este modo, solo se revisa el contenido nuevo o modificado.
+El contexto en Glossia es un gráfico que abarca tu cuenta y tu repositorio. Las configuraciones a nivel de cuenta como voz y terminología proporcionan una referencia global, mientras que los archivos `GLOSSIA.md` colocados junto a tu contenido añaden sobrescrituras locales. El agente resuelve este gráfico en cada ejecución, de modo que no tengas que repetirte en los archivos para mantener tus instrucciones consistentes. Las revisiones son incrementales gracias a los archivos de bloqueo que registran lo que ya se ha procesado, de modo que solo el contenido modificado o nuevo vuelve a ser revisado.
 
 ## Refinamiento progresivo
 
-Cada ciclo de revisión mejora el resultado. Las correcciones se incorporan a los archivos de contexto, por lo que los errores recurrentes desaparecen y el resultado converge con el tiempo hacia el estándar de su equipo.
+Cada ciclo de revisión mejora el resultado. Las correcciones se retroalimentan en los archivos de contexto, de modo que los errores repetidos desaparecen y el resultado converge con el estándar de tu equipo con el tiempo.
