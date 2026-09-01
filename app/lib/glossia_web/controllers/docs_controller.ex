@@ -102,7 +102,19 @@ defmodule GlossiaWeb.DocsController do
   def search_index(conn, params) do
     locale = Glossia.I18n.normalize(params["locale"]) || Glossia.I18n.default_locale()
 
-    json(conn, Docs.search_index(locale))
+    case params["q"] do
+      query when is_binary(query) ->
+        results =
+          case Docs.Search.search(query, locale) do
+            {:ok, results} -> results
+            {:error, _reason} -> Docs.Search.fallback_search(query, locale)
+          end
+
+        json(conn, %{results: results})
+
+      _ ->
+        json(conn, Docs.search_index(locale))
+    end
   end
 
   defp markdown_slug?(slug) do

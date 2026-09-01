@@ -6,4 +6,14 @@ defmodule GlossiaWeb.DocsControllerTest do
   test "answers an unknown docs category with a 404", %{conn: conn} do
     assert_error_sent 404, fn -> get(conn, ~p"/docs/index.html") end
   end
+
+  test "returns documentation results for a search query", %{conn: conn} do
+    response =
+      conn
+      |> get(~p"/docs/search.json?#{[locale: "en", q: "getting started"]}")
+      |> json_response(200)
+
+    assert [%{"title" => "Getting started", "url" => "/docs/tutorials/getting-started"} | _] =
+             response["results"]
+  end
 end

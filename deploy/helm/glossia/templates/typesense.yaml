@@ -1,0 +1,119 @@
+{{- if .Values.typesense.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "glossia.typesenseName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: documentation-search
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- with .Values.typesense.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.typesense.persistence.size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "glossia.typesenseName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: documentation-search
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "glossia.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: documentation-search
+  template:
+    metadata:
+      labels:
+        {{- include "glossia.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: documentation-search
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: typesense
+          image: {{ include "glossia.typesenseImage" . | quote }}
+          imagePullPolicy: {{ .Values.typesense.image.pullPolicy }}
+          command: ["/bin/sh", "-ec"]
+          args:
+            - >-
+              exec /opt/typesense-server
+              --data-dir /data
+              --api-key "$TYPESENSE_API_KEY"
+              --listen-port {{ .Values.typesense.port }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.typesense.port }}
+          env:
+            - name: TYPESENSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.typesense.secretName | quote }}
+                  key: {{ .Values.typesense.apiKeyKey | quote }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.typesense.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "glossia.typesenseName" . }}
+      {{- with .Values.typesense.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.typesense.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.typesense.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "glossia.typesenseName" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: documentation-search
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "glossia.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: documentation-search
+  ports:
+    - name: http
+      port: {{ .Values.typesense.port }}
+      targetPort: http
+{{- end }}

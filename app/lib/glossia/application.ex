@@ -45,6 +45,7 @@ defmodule Glossia.Application do
         {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: Glossia.PubSub},
         FunWithFlags.Supervisor,
+        Glossia.Docs.SearchIndexer,
         Glossia.Sandbox.ProcessRegistry,
         Glossia.Sandbox.Reaper,
         # Start a worker by calling: Glossia.Worker.start_link(arg)

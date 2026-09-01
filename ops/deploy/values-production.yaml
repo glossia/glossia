@@ -51,6 +51,19 @@ mailRelay:
   tls: never
   auth: always
 
+typesense:
+  enabled: true
+  persistence:
+    storageClass: hcloud-volumes
+    size: 10Gi
+  nodeSelector:
+    node.cluster.x-k8s.io/pool: stateful
+  tolerations:
+    - key: node.cluster.x-k8s.io/pool
+      operator: Equal
+      value: stateful
+      effect: NoSchedule
+
 ingress:
   enabled: true
   className: nginx
@@ -297,6 +310,9 @@ externalSecrets:
       GLOSSIA_GITLAB_CLIENT_SECRET: GITLAB_CLIENT_SECRET
       GLOSSIA_GITLAB_WEBHOOK_SECRET: GITLAB_WEBHOOK_SECRET
       OTEL_EXPORTER_OTLP_HEADERS: OTEL_EXPORTER_OTLP_HEADERS
+  typesense:
+    itemKey: /kubernetes
+    apiKeyField: TYPESENSE_API_KEY
   postgres:
     itemKey: /kubernetes
     passwordField: POSTGRES_PASSWORD

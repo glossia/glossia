@@ -146,6 +146,34 @@ mailRelay:
   tls: never
   auth: never
 
+# Documentation-only hybrid search. Typesense stores the docs index on a
+# persistent volume and creates embeddings locally with its built-in model.
+# It is deliberately private: the Glossia app queries it server-side so the
+# administrator key is never exposed to browsers.
+typesense:
+  enabled: false
+  image:
+    repository: typesense/typesense
+    tag: "30.2"
+    digest: ""
+    pullPolicy: IfNotPresent
+  port: 8108
+  secretName: glossia-typesense
+  apiKeyKey: TYPESENSE_API_KEY
+  persistence:
+    storageClass: ""
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # Product analytics. smolanalytics is a single-writer service, so the chart
 # deliberately fixes it at one replica and uses a Recreate deployment strategy.
 smolanalytics:
@@ -600,6 +628,12 @@ externalSecrets:
       GLOSSIA_SMTP_PORT: SMTP_PORT
       GLOSSIA_SMTP_USERNAME: SMTP_USERNAME
       GLOSSIA_SMTP_PASSWORD: SMTP_PASSWORD
+  # The documentation indexer runs inside Glossia, so the Typesense API key is
+  # projected into both pods through a dedicated Secret rather than a public
+  # browser search key.
+  typesense:
+    itemKey: /glossia
+    apiKeyField: TYPESENSE_API_KEY
   # ExternalSecret for the Postgres basic-auth Secret. Username comes from
   # postgres.user (literal, set at chart-render time); password is fetched
   # from `passwordField` of the item at `itemKey`.

@@ -168,6 +168,15 @@ spec:
                   name: {{ .Values.smolanalytics.secretName | quote }}
                   key: {{ .Values.smolanalytics.writeKeyKey | quote }}
             {{- end }}
+            {{- if .Values.typesense.enabled }}
+            - name: GLOSSIA_TYPESENSE_URL
+              value: {{ printf "http://%s:%v" (include "glossia.typesenseName" .) .Values.typesense.port | quote }}
+            - name: GLOSSIA_TYPESENSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.typesense.secretName | quote }}
+                  key: {{ .Values.typesense.apiKeyKey | quote }}
+            {{- end }}
             - name: GLOSSIA_DNS_CLUSTER_QUERY
               value: {{ include "glossia.headlessServiceFQDN" . | quote }}
           envFrom:

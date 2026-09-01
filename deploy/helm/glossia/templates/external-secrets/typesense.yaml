@@ -1,0 +1,19 @@
+{{- if and .Values.externalSecrets.enabled .Values.typesense.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.typesense.secretName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.typesense.secretName }}
+    creationPolicy: Owner
+  data:
+    - secretKey: {{ .Values.typesense.apiKeyKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.typesense.itemKey .Values.externalSecrets.typesense.apiKeyField | quote }}
+{{- end }}

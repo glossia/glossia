@@ -148,6 +148,14 @@ config :glossia, Glossia.PromEx,
 
 config :glossia, GlossiaWeb.Plugs.Metrics, bearer_token: nil
 
+# Documentation search is optional in development and test. Production enables
+# it when the chart provides a Typesense endpoint and its server-only API key.
+config :glossia, Glossia.Docs.Search,
+  enabled: false,
+  url: nil,
+  api_key: nil,
+  request_options: []
+
 config :glossia, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,
