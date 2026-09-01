@@ -15,7 +15,12 @@
       hreflang={alternate.hreflang}
       href={alternate.url}
     />
-    <.live_title default={gettext("Glossia")} suffix={if(assigns[:page_title], do: " · Glossia", else: "")}>{assigns[:page_title]}</.live_title>
+    <.live_title
+      default={gettext("Glossia")}
+      suffix={if(assigns[:page_title], do: " · Glossia", else: "")}
+    >
+      {assigns[:page_title]}
+    </.live_title>
     <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
     <meta name="description" content={social_description} />
     <meta property="og:title" content={social_title} />
