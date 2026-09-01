@@ -13,6 +13,7 @@ defmodule Glossia.Translations.LLM do
   """
 
   alias Glossia.Models.ModelIdentifier
+  alias Glossia.Translations.Together
 
   @together_base_url "https://api.together.ai/v1"
   @codex_cli_timeout_ms 1_800_000
@@ -243,8 +244,7 @@ defmodule Glossia.Translations.LLM do
     on_event.(:turn_start)
 
     with {:ok, spec, opts} <- request(model, auth_options, base_url),
-         {:ok, response} <- ReqLLM.generate_text(spec, messages(system, user), opts),
-         {:ok, text} <- response_text(response) do
+         {:ok, text} <- complete(model, spec, messages(system, user), opts) do
       on_event.({:text, text})
       on_event.(:turn_end)
       on_event.(:done)
@@ -312,8 +312,8 @@ defmodule Glossia.Translations.LLM do
   defp oauth_options(token), do: [auth_mode: :oauth, access_token: token]
 
   # Together rejects the generic `reasoning_effort: "none"`, answering the whole
-  # request with a 400, so its models are asked for no reasoning configuration
-  # at all and are given an output budget wide enough to think within instead.
+  # request with a 400. The Qwen fast path below sends Together's provider-
+  # specific setting instead; other Together models get no generic setting.
   defp reasoning_options(model) do
     case ModelIdentifier.split(model) do
       {:ok, {"togetherai", _provider_model}} -> []
@@ -339,6 +339,34 @@ defmodule Glossia.Translations.LLM do
 
       _reason ->
         {:ok, ReqLLM.Response.text(response) || ""}
+    end
+  end
+
+  defp complete(model, spec, messages, opts) do
+    case ModelIdentifier.split(model) do
+      {:ok, {"togetherai", "Qwen/Qwen3.5-9B" = provider_model}} ->
+        case Keyword.fetch(opts, :api_key) do
+          {:ok, api_key} ->
+            Together.complete(
+              provider_model,
+              api_key,
+              Keyword.fetch!(opts, :base_url),
+              messages,
+              opts
+            )
+
+          :error ->
+            complete_via_req_llm(spec, messages, opts)
+        end
+
+      _ ->
+        complete_via_req_llm(spec, messages, opts)
+    end
+  end
+
+  defp complete_via_req_llm(spec, messages, opts) do
+    with {:ok, response} <- ReqLLM.generate_text(spec, messages, opts) do
+      response_text(response)
     end
   end
 

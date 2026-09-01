@@ -74,12 +74,8 @@ defmodule Glossia.Translations.LLMTest do
       assert {:error, :boom} = LLM.run(cred, @system, @user)
     end
 
-    test "routes Together text models through its compatible endpoint" do
-      provider_models = [
-        "Qwen/Qwen3.5-9B",
-        "moonshotai/Kimi-K2.7-Code",
-        "openai/gpt-oss-120b"
-      ]
+    test "routes other Together models through its compatible endpoint" do
+      provider_models = ["moonshotai/Kimi-K2.7-Code", "openai/gpt-oss-120b"]
 
       Mimic.expect(ReqLLM, :model, length(provider_models), fn spec ->
         assert spec in Enum.map(provider_models, &"openai:#{&1}")
@@ -88,7 +84,6 @@ defmodule Glossia.Translations.LLMTest do
 
       Mimic.expect(ReqLLM, :generate_text, length(provider_models), fn _model, _messages, opts ->
         assert opts[:base_url] == "https://api.together.ai/v1"
-        # Together answers `reasoning_effort: "none"` with a 400.
         refute Keyword.has_key?(opts, :reasoning_effort)
         {:ok, :response}
       end)
@@ -107,30 +102,6 @@ defmodule Glossia.Translations.LLMTest do
       end)
     end
 
-    test "routes a Together AI model through a custom gateway base URL" do
-      expect_model(
-        fn spec -> assert spec == "openai:Qwen/Qwen3.5-9B" end,
-        uncatalogued("openai:Qwen/Qwen3.5-9B")
-      )
-
-      Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
-        assert opts[:base_url] == "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"
-        {:ok, :response}
-      end)
-
-      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
-      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
-
-      cred = %{
-        model: "togetherai/Qwen/Qwen3.5-9B",
-        auth:
-          {:api_key, "sk-glossia-org", "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"},
-        source: :account_model
-      }
-
-      assert {:ok, "Hola"} = LLM.run(cred, @system, @user)
-    end
-
     # A reasoning model spends its budget thinking before it writes anything, so
     # without a stated budget the whole response comes back empty.
     test "budgets output for a model the catalog does not know" do
@@ -145,7 +116,7 @@ defmodule Glossia.Translations.LLMTest do
       Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
 
       cred = %{
-        model: "togetherai/Qwen/Qwen3.5-9B",
+        model: "openai/Qwen/Qwen3.5-9B",
         auth: {:api_key, "sk", nil},
         source: :account_model
       }
@@ -178,7 +149,7 @@ defmodule Glossia.Translations.LLMTest do
       Mimic.stub(ReqLLM.Response, :text, fn :response -> "" end)
 
       cred = %{
-        model: "togetherai/Qwen/Qwen3.5-9B",
+        model: "openai/Qwen/Qwen3.5-9B",
         auth: {:api_key, "sk", nil},
         source: :account_model
       }
@@ -340,7 +311,7 @@ defmodule Glossia.Translations.LLMTest do
       on_event = fn e -> Elixir.Agent.update(collector, &[e | &1]) end
 
       cred = %{
-        model: "togetherai/Qwen/Qwen3.5-9B",
+        model: "openai/Qwen/Qwen3.5-9B",
         auth: {:api_key, "sk", nil},
         source: :account_model
       }
