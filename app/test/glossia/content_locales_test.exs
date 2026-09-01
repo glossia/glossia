@@ -20,6 +20,14 @@ defmodule Glossia.ContentLocalesTest do
     end
   end
 
+  test "localized legal pages retain their routing document names" do
+    expected = Map.new(Legal.all_versions(), &{&1.id, &1.document})
+
+    for locale <- I18n.locales() do
+      assert Map.new(Legal.all_versions(locale), &{&1.id, &1.document}) == expected
+    end
+  end
+
   test "a section with no translations yet keeps serving English" do
     assert Changelog.all_entries("ja") == Changelog.all_entries()
   end
