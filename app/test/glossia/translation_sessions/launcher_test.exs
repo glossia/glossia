@@ -51,10 +51,10 @@ defmodule Glossia.TranslationSessions.LauncherTest do
     refute Map.has_key?(manifest["metadata"], "ownerReferences")
   end
 
-  test "the Job does not retry, because a restart would re-translate everything" do
+  test "the Job retries a lost pod from its published checkpoints" do
     {:ok, manifest} = Launcher.build_manifest(@session_id, pod())
 
-    assert manifest["spec"]["backoffLimit"] == 0
+    assert manifest["spec"]["backoffLimit"] == 2
     assert manifest["spec"]["template"]["spec"]["restartPolicy"] == "Never"
   end
 

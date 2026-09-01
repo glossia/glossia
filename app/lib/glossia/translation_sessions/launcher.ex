@@ -121,10 +121,12 @@ defmodule Glossia.TranslationSessions.Launcher do
          },
          "spec" =>
            %{
-             # One attempt. Without checkpointing, a retry would re-translate
-             # every file from the beginning and pay for it again, so a lost
-             # pod is surfaced by the session reaper instead.
-             "backoffLimit" => 0,
+             # Every validated file is checkpointed to the translation branch.
+             # A replacement pod therefore reuses that branch and plans only
+             # the remaining stale files. Two bounded retries cover a pod or
+             # gateway interruption without turning a persistent translation
+             # error into an unbounded job.
+             "backoffLimit" => 2,
              "ttlSecondsAfterFinished" => ttl_seconds_after_finished(),
              "template" => %{
                "metadata" => %{
