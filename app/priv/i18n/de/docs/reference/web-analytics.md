@@ -1,54 +1,55 @@
 %{
-  title: "Analytics-SDK",
-  summary: "Die erfassten Felder, der Ereignis-Endpunkt und das Datenschutzmodell hinter Glossia Web-Analytics.",
+  title: "Analytics SDK",
+  summary:
+    "Die gesammelten Felder, das Events-Endpoint und das Datenschutzmodell hinter der Glossia-Web-Analytik.",
   category: "Referenz",
   order: 1
 }
 ---
-## Events-Endpunkt
+## Events endpunkt
 
 `POST /api/analytics/events`
 
-Akzeptiert ein JSON-Event vom `@glossia/web`-SDK. Antwortet immer mit `202 Accepted`, auch bei unbekannten Domains oder fehlerhaften Payloads, damit das SDK zu keinem Zeitpunkt offenlegt, welche Projekte Analysedaten erfassen.
+Akzeptiert ein JSON-Event von der `@glossia/web` SDK. Immer Antwort `202 Accepted`, auch für unbekannte Domänen oder formatting Payloads, sodass das SDK nie geliefert, welche Projekte Analysen sammeln.
 
-Das Projekt wird über die vom Snippet deklarierte Website-Domain aufgelöst. `d` ist maßgebend; falls dieser Wert fehlt, greift der Server auf den Host von `u` (die Seiten-URL) und anschließend auf `Origin`/`Referer` zurück.
+Das Projekt wird durch die Website domäne-Snippet erklärt. `d` ist autoritativ; wenn sie fehlt der Server fällt zurück zur `u` (die Seiten-URL) und dann die Anforderung `Origin`/`Referer`.
 
-### Request-Body
+### Anforderung Körper
 
-| Feld | Typ | Beschreibung |
+| Feld | Typ   | Beschreibung                                                  |
 |-------|--------|--------------------------------------------------------------|
-| `d`   | string | Website-Domain, die das Projekt identifiziert (z. B. `example.com`). Erforderlich. |
-| `n`   | string | Event-Name. Standardwert ist `pageview`.                          |
-| `u`   | string | Seiten-URL (`location.href`).                                  |
-| `r`   | string | Referrer (`document.referrer`).                              |
-| `l`   | string | Browser-Sprachen (`navigator.languages.join(",")`).         |
-| `tz`  | string | IANA-Zeitzone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
+| `d`   | string | Website domäne das Projekt identifiziert (z. B. `example.com`). Erforderlich. |
+| `n`   | string | Ereignisname. Standard `pageview`.                          |
+| `u`   | string | Seiten URL (`location.href`).                                  |
+| `r`   | string | Herberrer (`document.referrer`).                              |
+| `l`   | string | Browser sprachen (`navigator.languages.join(",")`).         |
+| `tz`  | string | IANA Zeitzone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
 | `sw`  | number | Bildschirmbreite in CSS-Pixeln.                                  |
-| `sid` | string | Sitzungs-ID pro Tab (sessionStorage, wird beim Schließen gelöscht).       |
+| `sid` | string | Pro-Sitzung-ID (SessionStorage, geklärt bei schließen).       |
 
-CORS ist geöffnet (`Access-Control-Allow-Origin: *`), da der Endpunkt keine Anmeldedaten akzeptiert.
+CORS off (`Access-Control-Allow-Origin: *`), da der Endpunkt keine Zugriffsdaten akzeptiert.
 
-## Vom Server abgeleitete Felder
+## Server-abgeleitete Felder
 
-Diese werden bei der Erfassung berechnet und serverseitig gespeichert. Die rohe IP-Adresse und der User-Agent werden niemals gespeichert.
+Diese werden bei der Aufnahme berechnet und serverseitig gespeichert. Der Rohe IP und User-Agent werden nie gespeichert.
 
 | Feld             | Quelle        | Beschreibung                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
-| `visitor_id`      | HMAC          | Täglich rotierter Hash von IP + UA + Projekt. Nicht über Tage hinweg verknüpfbar.  |
-| `country_code`    | GeoIP         | ISO-3166-1-Alpha-2-Code. Leer, wenn GeoIP nicht konfiguriert ist.        |
-| `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot` oder `unknown`.                 |
-| `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera` oder `unknown`.       |
-| `os`              | User-Agent    | `windows`, `macos`, `ios`, `android`, `linux` oder `unknown`.        |
-| `hostname`        | Page URL      | Host in Kleinschreibung.                                                    |
-| `pathname`        | Page URL      | Pfad-Komponente.                                                     |
-| `referrer_source` | Referrer      | Referrer-Host, führende `www.`/`m.` entfernt.                        |
-| `browser_language`| Sprachen     | Am meisten bevorzugte, normalisierte Locale (z. B. `pt-BR`).                    |
-| `served_locale`   | Berechnet      | Erstes unterstütztes Ziel, das mit einer bevorzugten Sprache übereinstimmt, andernfalls leer.   |
-| `has_locale_gap`  | Berechnet      | `1`, wenn der Besucher eine Sprache bevorzugt, die das Projekt nicht anbietet. |
+| `visitor_id`      | HMAC          | Täglich drehende Hash von IP + UA + Projekt. Nicht verlinkbar über Tage.  |
+| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 Code. Leer wenn GeoIP nicht konfiguriert.        |
+| `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot`, oder `unknown`.                 |
+| `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera`, oder `unknown`.       |
+| `os`              | User-Agent    | `windows`, `macos`, `ios`, `android`, `linux`, oder `unknown`.        |
+| `hostname`        | Seiten URL      | Klein geschrieben weiterer.                                                    |
+| `pathname`        | Seiten URL      | Pfad-Komponente.                                                     |
+| `referrer_source` | Herberrer      | Herberrer-Hersteller, lebende `www.`/`m.` gestreift.                        |
+| `browser_language`| Sprachen     | Bevorzugt normalisiert lokal (z. B. `pt-BR`).                    |
+| `served_locale`   | Berechnet      | Erste unterstützte Ziel matching bevorzugten Sprache, sonst leer.   |
+| `has_locale_gap`  | Berechnet      | `1` wenn Besucher bevorzugte Sprache das Projekt nicht dient. |
 
-## Datenschutzmodell
+## Privatsphären Modell
 
-- **Keine clientseitige Speicherung.** Das SDK setzt keine Cookies und speichert nur eine sitzungsspezifische ID pro Tab in `sessionStorage`, die der Browser beim Schließen löscht.
-- **Kein Fingerprinting.** Canvas-, WebGL-, Schriftart- und Audio-Fingerabdrücke werden nicht erfasst. Der täglich rotierte Server-Hash ermittelt auch ohne diese Merkmale eindeutige Besucher.
-- **Keine Speicherung von Rohidentifikatoren.** IP und User-Agent werden einmalig gelesen, mit einem Server-Secret und einem täglichen Salt gehasht und anschließend verworfen.
-- **Projektbezogene Abgrenzung.** Derselbe Browser führt bei zwei Projekten zu unabhängigen Besucher-IDs, sodass Besucher nicht über verschiedene Kunden von Glossia hinweg verfolgt werden können.
+- **Keine Client-seitige Speicherung.** Der SDK setzt keine Cookies und verwendet nur eine pro-Sitzung ID in `sessionStorage`, welche der Browser bei geschlossen klärt.
+- **Keine Fingerabdrücke.** Canvas, WebGL, font, und Audio-Fingerabdrücke werden nicht gesammelt. Der täglich drehende Server-Hash bietet uniques ohne sie.
+- **Keine Roh-Identifikatoren gespeichert.** IP und User-Agent werden einmal gelesen, Hash mit einem Serverschlüssel und einem täglichen Salz, dann weggewürfelt.
+- **Pro-Projekt-Focus.** Der gleiche Browser auf zwei Projekten liefert unzusammenhängende Besucher-IDs, sodass Besucher nicht über Glossia-Kunden verfolgt werden können.

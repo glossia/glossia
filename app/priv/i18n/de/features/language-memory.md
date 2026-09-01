@@ -1,55 +1,71 @@
 %{
-  title: "Sprachgedächtnis",
-  summary: "Eine versionierte Kontextschicht, die die Stimme, Terminologie und den Stil Ihrer Organisation erfasst. Das Sprachgedächtnis steuert jeden Agenten-Workflow und lässt sich über die API und MCP auf Ihre eigenen Tools ausweiten.",
+  title: "Sprachspeicher",
+  summary:
+    "Eine versionierte Kontextschicht, die Stimme, Terminologie und Stil Ihrer Organisation erfasst. Sprachspeicher leitet jeden Agenten-Workflow und erweitert sich auf Ihre eigenen Tools über die API und MCP.",
   order: 5,
   icon: "brain",
-  hero_cta_text: "Erste Schritte",
+  hero_cta_text: "Loslegen",
   hero_cta_url: "/signup",
   highlights: [
-    %{title: "Versioniert und überprüfbar", description: "Jede Änderung an Ihrer Stimme oder Terminologie erstellt eine neue, unveränderliche Version. Sie können den Verlauf einsehen, Iterationen vergleichen und auf eine frühere Version zurücksetzen, falls Abweichungen auftreten.", icon: "git-branch"},
-    %{title: "Mehr als Lokalisierung", description: "Das Sprachgedächtnis dient nicht nur der Lokalisierung. Nutzen Sie es, um Marketingtexte zu generieren, Dokumentationsentwürfe zu erstellen, Pull Requests zu prüfen oder Social-Media-Beiträge zu verfassen, vollständig in der Stimme Ihrer Organisation.", icon: "megaphone"},
-    %{title: "Offen und erweiterbar", description: "Greifen Sie über die REST-API oder den MCP-Server auf das Sprachgedächtnis zu. Integrieren Sie es in Ihre eigenen CI-Pipelines, Content-Tools oder benutzerdefinierten Agenten, um überall dort, wo Sie schreiben, Konsistenz zu gewährleisten.", icon: "puzzle"}
+    %{
+      title: "Versioniert und überprüfbar",
+      description:
+        "Jede Änderung Ihrer Stimme oder Terminologie erzeugt eine neue unveränderliche Version. Sie können den Verlauf einsehen, Iterationen vergleichen und zurückrollen, wenn Abweichungen eintreten.",
+      icon: "git-branch"
+    },
+    %{
+      title: "Jenseits der Lokalisierung",
+      description:
+        "Sprachspeicher dient nicht nur der Lokalisierung. Verwenden Sie es für Marketingtexte, Entwurf von Dokumentation, Prüfung von Pull-Requests oder Social-Media-Beiträge, alles in der Stimme Ihrer Organisation.",
+      icon: "megaphone"
+    },
+    %{
+      title: "Offen und erweiterbar",
+      description:
+        "Greifen Sie auf den Sprachspeicher über die REST-API oder den MCP-Server zu. Leiten Sie ihn in Ihre eigenen CI-Pipelines, Content-Tools oder benutzerdefinierten Agenten ein, um die Konsistenz überall aufrechtzuerhalten, wo Sie schreiben.",
+      icon: "puzzle"
+    }
   ]
 }
 ---
-## Was ist das Sprachgedächtnis?
+## Was ist der Sprachspeicher?
 
-Das Sprachgedächtnis ist der kumulierte Kontext, der den Agenten von Glossia mitteilt, wie Ihre Organisation kommuniziert. Es besteht aus zwei Kernprimitiven, die Sie im Laufe der Zeit erstellen und verfeinern:
+Der Sprachspeicher ist der angesammelte Kontext, der Sonnen der Agenten von Glossia erklärt, wie sich Ihre Organisation kommuniziert. Er besteht aus zwei Grundelementen, die Sie mit der Zeit erstellen und verfeinern:
 
-Die **Stimme** definiert, wie Inhalte klingen sollen. Tonfall, Formalitätsgrad, Zielgruppe und freie Richtlinien sind hier hinterlegt. Sie können eine Basis-Stimme für Ihr Konto festlegen und dann spezifische Felder für einzelne Locales überschreiben, sodass Ihre japanischen Texte formeller sein können, während Ihre englischen Texte umgangssprachlich bleiben.
+**Stimme** definiert, wie Inhalte klingen sollten. Ton, Formalität, Zielgruppe und freitextorientierte Richtlinien werden hier gespeichert. Sie können eine Basisstimme für Ihr Konto festlegen und dann spezifische Felder für einzelne Lokalisierungen überschreiben, sodass Ihr japanischer Text formeller sein kann, während Ihre englischen Inhalte im Konversationston bleiben.
 
-Die **Terminologie** definiert, was Begriffe bedeuten und wie sie lokalisiert werden sollen. Jeder Eintrag enthält eine Definition und Übersetzungen pro Locale. Wenn ein Agent in Ihrem Ausgangsinhalt auf „workspace“ stößt, teilt die Terminologie ihm mit, ob der Begriff lokalisiert, transliteriert oder unverändert gelassen werden soll und welches Wort in der jeweiligen Zielsprache exakt zu verwenden ist.
+**Terminologie** definiert, was Begriffe bedeuten und wie sie lokalisiert werden sollen. Jeder Eintrag trägt eine Definition und lokalspezifische Übersetzungen. Wenn ein Agent das Wort "Arbeitsbereich" in Ihrem Quellinhalt findet, weist die Terminologie ihm an, ob er dies zu lokalisieren, zu transliteralieren oder unberührt zu lassen, und genau welches Wort in jeder Zielsprache verwendet werden soll.
 
-Zusammen bilden Stimme und Terminologie eine Kontextschicht, die von den Agenten bei jeder Ausführung herangezogen wird. Je mehr Sie in diese Schicht investieren, desto weniger Überprüfung erfordern Ihre Ergebnisse.
+Gemeinsam bilden Stimme und Terminologie eine Kontextschicht, die die Agenten bei jedem Lauf konsultieren. Je mehr Sie in diese Schicht investieren, desto weniger Überprüfung Ihr Output braucht.
 
-## Unveränderliche Versionierung
+## Unveränderbare Versionierung
 
-Das Sprachgedächtnis ist rein additiv (append-only). Wenn Sie Ihre Stimme oder Terminologie aktualisieren, erstellt Glossia eine neue Version, anstatt die alte zu überschreiben. Jede Version zeichnet auf, wer sie wann erstellt hat, und enthält eine optionale Änderungsnotiz, die die Entwicklung erklärt.
+Der Sprachspeicher ist append-only. Wenn Sie Ihre Stimme oder Terminologie aktualisieren, erstellt Glossia eine neue Version anstelle des Überschreibens der alten. Jede Version erfasst, wer sie erstellt hat, wann, und eine optionale Änderungsnotiz, die erklärt, was sich geändert hat.
 
-Das bedeutet, dass Ihnen jederzeit ein vollständiges Audit-Protokoll zur Verfügung steht. Sie können Version 3 mit Version 7 vergleichen, um zu verstehen, wie sich Ihr Tonfall im Laufe eines Quartals verändert hat. Wenn eine kürzliche Änderung Inkonsistenzen verursacht hat, setzen Sie das System einfach auf eine vorherige Version zurück und fahren Sie fort.
+Das bedeutet, Sie haben immer eine vollständige Prüfspur. Sie können Version 3 gegen Version 7 vergleichen, um zu verstehen, wie sich Ihr Ton über ein Quartal hinweg verschoben hat. Wenn eine recente Änderung Inkonsistenzen eingeführt hat, rollen Sie zurück auf eine frühere Version und setzen Sie fort.
 
-Die Versionierung macht auch die Zusammenarbeit sicherer. Mehrere Teammitglieder können Änderungen an der Stimme vorschlagen, ohne Konflikte befürchten zu müssen, da jede Änderung ein eigenständiges, nachvollziebares Ereignis darstellt.
+Versionierung macht Kollaboration auch sicherer. Mehrere Teammitglieder können Stimmenänderungen vorschlagen, ohne sich um Konflikte zu kümmern, da jede Änderung ein diskreteres, nachvollziehbares Ereignis ist.
 
-## Locale-sensitive Auflösung
+## Lokalsensitive Auflösung
 
-Wenn ein Agent einen Workflow für eine bestimmte Locale ausführt, löst Glossia das Sprachgedächtnis für diesen Kontext auf. Das System beginnt mit Ihren Basis-Stimmeneinstellungen und wendet daraufhin alle locale-spezifischen Überschreibungen an. Dasselbe geschieht mit der Terminologie: Es werden nur Einträge einbezogen, die einen lokalisierten Begriff für die Ziel-Locale enthalten.
+Wenn ein Agent einen Workflow für eine bestimmte Lokalisierung ausführt, löst Glossia den Sprachspeicher für diesen Kontext auf. Es beginnt mit Ihren Basisstimme-Einstellungen und wendet dann Überschreibungen spezifisch für diese Lokalisierung darüber an. Das Gleiche gilt für die Terminologie: Nur Einträge, die einen lokalisierten Begriff für die Zielsprache haben, werden berücksichtigt.
 
-Dieser Auflösungsschritt stellt sicher, dass Agenten stets mit dem relevantesten Kontext arbeiten. Sie müssen keine separaten Konfigurationen pro Sprache pflegen. Definieren Sie Ihre Standards einmal, überschreiben Sie diese dort, wo es nötig ist, und überlassen Sie den Rest dem Auflösungssystem.
+Dieser Auflösungsschritt bedeutet, dass Agenten immer mit dem relevantesten Kontext arbeiten. Sie müssen keine separaten Konfigurationen pro Sprache aufrechterhalten. Definieren Sie Ihre Standards nur einmal, überschreiben Sie sie dort, wo es zählt, und lassen Sie das Auflösungssystem den Rest erledigen.
 
-## Überrally einsetzbar
+## Nutzen Sie es überall
 
-Das Sprachgedächtnis wurde für die Lokalisierung entwickelt, ist jedoch überall dort nützlich, wo Sie Texte erstellen. Da der Kontext über die [REST-API](/features/rest-api) und den [MCP-Server](/features/mcp-server) zugänglich ist, können Sie ihn über die Lokalisierung hinaus in weitere Workflows integrieren:
+Der Sprachspeicher wurde für die Lokalisierung entwickelt, aber er ist nützlich überall, wo Sie Text erstellen. Da der Kontext über den [REST API](/features/rest-api) und den [MCP server](/features/mcp-server) zugänglich ist, können Sie ihn in Workflows integrieren, die über die Lokalisierung hinausgehen:
 
-**Marketing- und Social-Media-Inhalte** - Integrieren Sie die Stimme Ihrer Organisation in einen Content-Agenten, der Social-Media-Beiträge, E-Mail-Kampagnen oder Landingpage-Texte entwirft. Die Terminologie sorgt für konsistente Markenbegriffe und die Stimmeneinstellungen stellen sicher, dass der Tonfall zu Ihrer Marke passt.
+**Marketing- und soziale Inhalte** - Ziehen Sie die Stimme Ihrer Organisation in einen Content-Agenten ein, der Social-Media-Beiträge, E-Mail-Kampagnen oder Landingpage-Texte entwirft. Terminologie sorgt für konsistente Markenterme, und die Stimmeinstellungen stellen sicher, dass der Ton Ihrer Marke entspricht.
 
-**Dokumentation** - Speisen Sie das Sprachgedächtnis in eine Dokumentations-Pipeline ein, damit die technische Dokumentation denselben Stilregeln folgt wie der Rest Ihrer Inhalte. Terminologieeinträge verhindern Abweichungen zwischen Dokumenten, Hilfeartikeln und produktinternen Texten.
+**Dokumentation** - Leiten Sie den Sprachspeicher in eine Dokumentations-Pipeline ein, sodass technisches Schreiben denselben Stilregeln folgt wie der Rest Ihrer Inhalte. Terminologie-Einträge verhindern Drift über Dokumente, Hilfeseiten und im-Produkt-Texte hinweg.
 
-**Code-Review** - Erstellen Sie einen Agenten, der Texte in Pull-Requests (Fehlermeldungen, Benutzeroberflächen-Labels, Onboarding-Texte) mit Ihrer Stimme und Terminologie abgleicht. Kennzeichnen Sie Inkonsistenzen, bevor sie produktiv gehen.
+**Code-Review** - Erstellen Sie einen Agenten, der Pull-Request-Inhalte (Fehlermeldungen, UI-Labels, Onboarding-Text) gegen Ihre Stimme und Terminologie prüft. Markieren Sie Inkonsistenzen, bevor sie ausgeliefert werden.
 
-**Benutzerdefinierte Agenten** - Jeder MCP-kompatible Client kann das Sprachgedächtnis lesen und schreiben. Bitten Sie Ihren Programmierassistenten, „die Terminologie mit dem neuen Produktnamen zu aktualisieren“ oder „den Tonfall der Stimme für die deutsche Locale auf professionell zu setzen“, und er übersetzt Ihre Absicht in den richtigen API-Aufruf.
+**Benutzerdefinierte Agenten** - Jeder MCP-kompatible Client kann den Sprachspeicher lesen und schreiben. Fragen Sie Ihren Coding-Assistenten nach "Terminologie mit dem neuen Produktname aktualisieren" oder "Ton der Stimme auf professionell für die deutsche Lokalisierung setzen", und er übersetzt Ihre Absicht in den richtigen API-Aufruf.
 
 ## Progressive Verfeinerung
 
-Das Sprachgedächtnis verbessert sich mit der Nutzung. Jedes Mal, wenn ein Reviewer die Ausgabe eines Agenten korrigiert, fließt diese Korrektur in die nächste Version Ihrer Stimme oder Terminologie ein. Im Laufe der Zeit verringert sich die Kluft zwischen dem ersten Entwurf und dem Endergebnis, und der Überprüfungsschritt wird schneller.
+Der Sprachspeicher verbessert sich mit der Nutzung. Jedes Mal, wenn ein Prüfer die Ausgabe eines Agenten korrigiert, fließt diese Korrektur in die nächste Version Ihrer Stimme oder Terminologie zurück. Mit der Zeit verengt sich die Lücke zwischen dem ersten Entwurf und der endgültigen Ausgabe, und die Prüfschritte werden schneller.
 
-Dies ist die Feedbackschleife im Zentrum von Glossia: Generieren, Überprüfen, Kontext verfeinern, erneut Generieren. Die Agenten befolgen nicht einfach nur Anweisungen. Sie arbeiten mit einem Kontext, der sich mit jedem Zyklus verbessert.
+Dies ist die Feedbackschleife im Kern von Glossia: Generieren, überprüfen, Kontext verfeinern, erneut generieren. Die Agenten befolgen nicht nur Anweisungen. Sie arbeiten mit Kontext, der mit jedem Zyklus besser wird.

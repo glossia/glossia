@@ -1,54 +1,49 @@
-%{
-  title: "分析 SDK",
-  summary: "Glossia Web 分析收集的字段、事件端点及其背后的隐私模型。",
-  category: "reference",
-  order: 1
-}
+%{title: "分析 SDK", summary: "收集字段、事件端点及 Glossia Web 分析背后的隐私模型。", category: "参考", order: 1}
 ---
 ## 事件端点
 
 `POST /api/analytics/events`
 
-接收来自 `@glossia/web` 软件开发工具包的 JSON 事件。始终响应 `202 Accepted`，即使域名未知或负载格式错误也是如此，确保软件开发工具包不会泄露哪些项目正在收集分析数据。
+接受来自 `@glossia/web` SDK 的 JSON 事件。始终返回 `202 Accepted`，即使针对未知域名或格式错误的负载也是如此，这样 SDK 就不会泄露哪些项目正在收集分析数据。
 
-项目根据代码片段声明的站点域名进行解析。`d` 是权威值；若缺失，服务器将依次回退到 `u`（页面网址）的主机名，以及请求的 `Origin`/`Referer`。
+项目由代码段声明的网站域名确定。`d` 是权威标识；当它缺失时，服务器回退到 `u`（页面 URL）的主机名，然后是使用请求的 `Origin`/`Referer`。
 
-### 请求正文
+### 请求体
 
-| 字段 | 类型 | 说明 |
+| 字段 | 类型 | 描述 |
 |-------|--------|--------------------------------------------------------------|
-| `d` | 字符串 | 用于标识项目的站点域名（例如 `example.com`）。必填。 |
-| `n` | 字符串 | 事件名称。默认为 `pageview`。 |
-| `u` | 字符串 | 页面网址（`location.href`）。 |
-| `r` | 字符串 | 引荐来源（`document.referrer`）。 |
-| `l` | 字符串 | 浏览器语言（`navigator.languages.join(",")`）。 |
-| `tz` | 字符串 | 互联网号码分配机构时区（`Intl.DateTimeFormat().resolvedOptions().timeZone`）。 |
-| `sw` | 数字 | 以层叠样式表像素为单位的屏幕宽度。 |
-| `sid` | 字符串 | 每个标签页独立的会话标识符（存储于 sessionStorage，关闭时清除）。 |
+| `d`   | string | 标识项目的网站域名（例如 `example.com`）。必需。          |
+| `n`   | string | 事件名称。默认值为 `pageview`。                            |
+| `u`   | string | 页面 URL (`location.href`)。                               |
+| `r`   | string | 来源地址 (`document.referrer`)。                           |
+| `l`   | string | 浏览器语言 (`navigator.languages.join(",")`)。             |
+| `tz`  | string | IANA 时区 (`Intl.DateTimeFormat().resolvedOptions().timeZone`)。 |
+| `sw`  | number | 以 CSS 像素为单位的屏幕宽度。                              |
+| `sid` | string | 每个标签页的会话 ID (sessionStorage，关闭时清除)。        |
 
-跨源资源共享完全开放（`Access-Control-Allow-Origin: *`），因为该端点不接受任何凭据。
+CORS 已开启（`Access-Control-Allow-Origin: *`），因为该端点不接受凭据。
 
-## 服务器派生字段
+## 服务器端派生字段
 
-这些字段在数据摄取时计算并存储在服务器端。原始互联网协议地址和 User-Agent 从不存储。
+这些字段在数据摄取时计算并在服务器端存储。原始 IP 和 User-Agent 绝不会被存储。
 
-| 字段             | 来源        | 说明                                                         |
+| 字段             | 来源        | 描述                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
-| `visitor_id`      | HMAC          | 由 IP 地址、用户代理和项目生成且每日轮换的哈希。无法跨日关联。  |
-| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 代码。未配置 GeoIP 时为空。        |
+| `visitor_id`      | HMAC          | IP + UA + 项目的每日轮换哈希值。无法跨天链接。                  |
+| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 代码。当未配置 GeoIP 时为空。                  |
 | `device`          | User-Agent    | `desktop`、`mobile`、`tablet`、`bot` 或 `unknown`。                 |
 | `browser`         | User-Agent    | `chrome`、`safari`、`firefox`、`edge`、`opera` 或 `unknown`。       |
-| `os`              | User-Agent    | `windows`、`macos`、`ios`、`android`、`linux` 或 `unknown`。        |
-| `hostname`        | 页面 URL      | 转换为小写的主机名。                                                    |
-| `pathname`        | 页面 URL      | 路径部分。                                                     |
-| `referrer_source` | 引荐来源      | 引荐来源的主机名，已移除开头的 `www.`/`m.`。                        |
-| `browser_language`| 语言     | 首选的规范化区域设置（例如 `pt-BR`）。                    |
-| `served_locale`   | 计算得出      | 与首选语言匹配的第一个受支持目标语言，否则为空。   |
-| `has_locale_gap`  | 计算得出      | 当访客首选的语言未由项目提供时为 `1`。 |
+| `os`              | User-Agent    | `windows`、`macos`、`ios`、`android`、`linux` 或 `unknown`。       |
+| `hostname`        | 页面 URL      | 主机名，已转为小写。                                           |
+| `pathname`        | 页面 URL      | 路径部分。                                                       |
+| `referrer_source` | Referrer      | 来源页主机名，去除前导的 `www.`/`m.`。                         |
+| `browser_language`| 语言         | 首选的正常化本地化（例如 `pt-BR`）。                            |
+| `served_locale`   | 计算          | 首先是匹配首选语言的可用目标，否则为空。                        |
+| `has_locale_gap`  | 计算          | 当访客首选项目不支持的语言时，值为 `1`。                         |
 
 ## 隐私模型
 
-- **无客户端存储。** 软件开发工具包不会设置 Cookie，仅在 `sessionStorage` 中存储每个标签页的会话标识符，浏览器关闭时会将其清除。
-- **无指纹识别。** 不收集 Canvas、WebGL、字体和音频指纹。每日轮换的服务器哈希无需这些指纹即可统计唯一访客。
-- **不持久化原始标识符。** IP 地址和 User-Agent 仅读取一次，使用服务器密钥和每日盐值进行哈希处理后即被丢弃。
-- **按项目限定范围。** 同一浏览器访问两个项目时会生成互不相关的访客标识符，因此无法跨 Glossia 客户跟踪访客。
+- **无客户端存储。** SDK 不设置 Cookie，仅在 `sessionStorage` 中存储每个标签页的会话 ID，浏览器在关闭时清除它。
+- **不进行指纹识别。** 不收集 Canvas、WebGL、字体和声音指纹。每日轮换的服务器哈希提供了唯一性，而无需这些指纹。
+- **不保留原始标识符。** IP 和 User-Agent 仅读取一次，使用服务器密钥和每日盐值进行哈希计算后丢弃。
+- **按项目范围限制。** 同一浏览器在两个项目上产生的访客 ID 互不相同，因此无法跨 Glossia 客户追踪访客。

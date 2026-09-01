@@ -1,46 +1,46 @@
 %{
-  title: "Projekt-Einrichtung",
+  title: "Projekteinrichtung",
   summary: "Zustände, Fortschrittsinformationen und Ergebnisse der Repository-Einrichtung.",
   category: "Referenz",
   order: 2
 }
 ---
-Die Projekt-Einrichtung bereitet ein angebundenes Repository für Glossia vor. Sie beginnt, nachdem ein Benutzer ein Repository und mindestens eine Zielsprache im Ablauf **Neues Projekt** ausgewählt hat.
+Das Projekt-Setup bereitet ein verbundenes Repository für Glossia vor. Es beginnt, nachdem ein Benutzer ein Repository ausgewählt hat und mindestens eine Ziel Sprache im **Neues Projekt**-Workflow angegeben.
 
 ## Voraussetzungen
 
 - Das Konto verfügt über mindestens ein konfiguriertes Modell.
-- Die Glossia-GitHub-App kann auf das ausgewählte Repository zugreifen.
+- Die Glossia GitHub App kann auf das ausgewählte Repository zugreifen.
 - Der Benutzer kann Projekte im Konto erstellen.
-- Mindestens eine Zielsprache ist ausgewählt.
+- Mindestens eine Ziel Sprache wurde ausgewählt.
 
 ## Zustände
 
 | Zustand | Bedeutung | Verfügbare Aktion |
 |---|---|---|
-| **Ausstehend** | Das Projekt wurde angenommen und wartet auf den Start. | Den Fortschritt verfolgen oder die Seite verlassen und später zurückkehren. |
-| **Wird ausgeführt** | Glossia überprüft und aktualisiert das Repository. | Die Live-Aktivität verfolgen. |
-| **Abgeschlossen** | Die Lokalisierungs-Baseline wurde vorbereitet und zur Überprüfung veröffentlicht. | Den Pull-Request öffnen, überprüfen und zusammenführen. |
+| **Ausstehend** | Das Projekt wurde akzeptiert und wartet auf den Start. | Verfolgen Sie den Fortschritt oder verlassen Sie die Seite und kommen Sie später zurück. |
+| **läuft** | Glossia überprüft und aktualisiert das Repository. | Verfolgen Sie die aktuelle Aktivität. |
+| **Abgeschlossen** | Die Lokalisierungs-Baseline wurde zusammengestellt und veröffentlicht zur Überprüfung. | Öffnen, überprüfen und zusammenführen Sie den Pull-Request. |
 
-Projekte sind vorläufig, solange die Einrichtung **Ausstehend** oder **Wird ausgeführt** ist. Wenn die Einrichtung nicht abgeschlossen werden oder keine verwendbare Änderung veröffentlichen kann, bereinigt Glossia die Einrichtungsumgebung und löscht das vorläufige Projekt. Das Repository wird anschließend im Ablauf **Neues Projekt** wieder verfügbar, sodass die Einrichtung erneut versucht werden kann.
+Projekte sind vorläufig, solange das Setup im Zustand **Ausstehend** oder **Läuft** ist. Wenn das Setup nicht beenden oder eine brauchbare Änderung veröffentlichen kann, bereinigt Glossia die Setup-Umgebung und löscht das vorläufige Projekt. Das Repository steht dann im Workflow für **Neue Projekte** wieder bereit, sodass das Setup erneut versucht werden kann.
 
 ## Sichtbarer Fortschritt
 
-Die Einrichtungskarte bleibt im Ablauf für neue Projekte und in der Projektübersicht verfügbar. Sie enthält:
+Die Setup-Karte bleibt im neuen-Projekt-Workflow und im Projekt-Überblick verfügbar. Sie umfasst:
 
-- Ein Status-Badge und einen Fortschrittsbalken.
+- Ein Status-Abzeichen und einen Fortschrittsbalken.
 - Eine kurze Erklärung des aktuellen Zustands.
-- Aktuelle Aktivitäten zur Repository-Vorbereitung, -Überprüfung, -Dateiänderung, -Kontrolle und zum Abschluss.
-- Eine eindeutige Fehlermeldung, wenn die Einrichtung nicht abgeschlossen werden kann.
+- Jagentliche Aktivitäten der Repository-Bereitstellung, Inspektion, Dateiänderung, Überprüfung und des Abschlusses.
+- Eine klaren Fehlersmeldungen, wenn das Setup nicht abgeschlossen werden kann.
 
-Der Fortschritt wird gespeichert, solange das vorläufige Projekt existiert. Ein fataler Fehler verwirft sowohl das Projekt als auch den sichtbaren Einrichtungsfortschritt.
+Der Fortschritt wird gespeichert, solange das vorläufige Projekt existiert. Ein endgültiger Fehler verwirft sowohl das Projekt als auch seinen sichtbaren Setup-Fortschritt.
 
 ## Abgeschlossenes Ergebnis
 
-Eine erfolgreich angebundene Einrichtung erstellt einen dedizierten Branch und einen Pull-Request für den Standard-Branch des Repositorys. Der Pull-Request enthält die generierte Lokalisierungs-Baseline, einschließlich des Kontexts `GLOSSIA.md` und der kleinstmöglichen praktischen Änderungen, die zum Laden lokalisierter Inhalte erforderlich sind.
+Eine erfolgreiche verbundene Einrichtung erstellt einen dedizierten Branch und einen Pull-Request gegen den Standard-Branch des Repositories. Der Pull-Request enthält die generierte Lokalisierungs-Baseline, einschließlich `GLOSSIA.md`-Kontext und die kleinstmöglichen praktischen Änderungen, die zum Laden von lokalisiertem Inhalt erforderlich sind.
 
-Die Einrichtung veröffentlicht keine Zielkataloge, die nur Header enthalten. Wenn ein Lokalisierungs-Framework vor der Übersetzung Zielkataloge erfordert, enthalten die Kataloge die extrahierten Einträge der Quellnachrichten mit leeren Übersetzungswerten. Wenn Zielkataloge noch nicht erforderlich sind, belässt die Einrichtung diese für den ersten Übersetzungslauf.
+Das Setup veröffentlicht keine Zielkataloge, die nur Header enthalten. Wenn ein Lokalisierungs-Framework Zielkataloge vor der Übersetzung benötigt, enthalten diese die extrahierten Quellnachricht-Einträge mit leeren Übersetzungswerten. Werden Zielkataloge noch nicht benötigt, behält das Setup sie für den ersten Übersetzungs-Lauf.
 
-Glossia führt den Pull-Request nicht zusammen. Repository-Maintainer überprüfen und führen ihn über ihren normalen GitHub-Prozess zusammen.
+Glossia führt den Pull-Request nicht zusammen. Repository-Wartungsverantwortliche prüfen und führen ihn über ihren normalen GitHub-Prozess zusammen.
 
-Die Projektübersicht zeigt einen Einrichtungshinweis an, solange dieser Pull-Request geöffnet ist. Der Hinweis wird entfernt, nachdem der Pull-Request zusammengeführt wurde. Wenn der Pull-Request geschlossen wird, ohne zusammengeführt worden zu sein, wird in der Übersicht erklärt, dass er erneut geöffnet werden muss, bevor die Einrichtung als abgeschlossen betrachtet werden kann.
+Der Projekt-Überblick zeigt eine Setup-Benachrichtigung an, solange dieser Pull-Request offen ist. Die Benachrichtigung wird entfernt, nachdem der Pull-Request zusammengeführt wurde. Wenn der Pull-Request ohne Zusammenführung geschlossen wird, erklärt der Überblick, dass er erneut geöffnet werden muss, bevor das Setup als abgeschlossen betrachtet werden kann.

@@ -1,25 +1,41 @@
 %{
   title: "Localización",
-  summary: "Localice su contenido a cualquier idioma conservando la estructura, los bloques de código y el formato. Los agentes de Glossia se encargan del trabajo pesado para que su equipo pueda centrarse en la revisión.",
+  summary:
+    "Localiza tu contenido en cualquier idioma preservando la estructura, bloques de código y formato. Los agentes de Glossia realizan el trabajo pesado para que tu equipo pueda centrarse en la revisión.",
   order: 1,
-  icon: "languages",
-  hero_cta_text: "Comenzar",
+  icon: "Idiomas",
+  hero_cta_text: "Empezar",
   hero_cta_url: "/signup",
   highlights: [
-    %{title: "Respeta la estructura", description: "Los bloques de código, el frontmatter y el formato permanecen intactos durante la localización. No se requiere ninguna limpieza manual.", icon: "code"},
-    %{title: "Cualquier par de idiomas", description: "Localice contenido entre cualquier combinación de idiomas. Añada nuevos idiomas de destino editando una sola línea de la configuración.", icon: "globe"},
-    %{title: "Actualizaciones incrementales", description: "Solo se vuelve a localizar el contenido modificado. Los archivos de bloqueo registran lo que ya se ha procesado, lo que ahorra tiempo y costes.", icon: "zap"}
+    %{
+      title: "Consciente de la estructura",
+      description:
+        "Bloques de código, frontmatter y formato sobreviven intactos tras la localización. No se requiere limpieza manual.",
+      icon: "Código"
+    },
+    %{
+      title: "Cualquier par de idiomas",
+      description:
+        "Localiza entre cualquier combinación de idiomas. Añade nuevas metas editando una sola línea en tu configuración.",
+      icon: "Mundo"
+    },
+    %{
+      title: "Actualizaciones incrementales",
+      description:
+        "Solo el contenido modificado se vuelve a localizar. Los archivos de bloqueo rastrean lo que ya ha sido procesado, ahorrando tiempo y costos.",
+      icon: "Zap"
+    }
   ]
 }
 ---
 ## Cómo funciona la localización
 
-Glossia lee el contenido de su repositorio junto con los archivos de bloqueo que registran lo que ya se ha procesado. A continuación, combina su contexto local (archivos `GLOSSIA.md` en la raíz o en subdirectorios) con el contexto global (voz, terminologia y configuración de la cuenta) para obtener una visión completa de cómo debe sonar su contenido en cada idioma de destino. Una vez reunido ese contexto, un flujo de trabajo basado en agentes localiza el contenido modificado y conserva la estructura, los bloques de código y el formato. Cuando finaliza la ejecución, los resultados se envían a su repositorio como una pull request lista para revisión.
+Glossia lee el contenido de tu repositorio junto con los archivos de bloqueo que rastrean lo que ya ha sido procesado. Luego fusiona tu contexto local (`GLOSSIA.md` archivos en la raíz o en subdirectorías) junto con el contexto global (voz, terminología y configuraciones a nivel de cuenta) para construir una imagen completa de cómo tu contenido debería sonar en cada idioma objetivo. Con ese contexto montado, un flujo de trabajo por agentes localiza el contenido modificado mientras preserva la estructura, los bloques de código y el formato. Una vez que se completa la ejecución, los resultados se envían de nuevo a tu repositorio como una solicitud pull lista para revisión.
 
-## Calidad basada en el contexto
+## Calidad impulsada por contexto
 
-Cada localización se beneficia del contexto que usted proporciona. La terminologia, las indicaciones de estilo y las instrucciones específicas del dominio se incorporan al prompt para que el agente genere un resultado acorde con la voz de su producto.
+Cada localización se beneficia del contexto que proporcionas. La terminología, las notas de estilo y las instrucciones específicas del dominio fluyen al prompt para que el agente produzca una salida que coincida con la voz de tu producto.
 
-## Revise con confianza
+## Revisión con confianza
 
-Los resultados se entregan como pull requests o archivos de borrador, listos para que su equipo los revise. Los revisores señalan problemas, actualizan los archivos de contexto y la siguiente ejecución incorpora esas correcciones automáticamente.
+Las salidas se depositan como solicitudes pull o archivos en borrador, listos para que tu equipo las revise. Los revisores marcan problemas, actualizan archivos de contexto y la siguiente ejecución incorpora esas correcciones automáticamente.

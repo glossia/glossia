@@ -1,25 +1,41 @@
 %{
-  title: "Inhaltsüberarbeitung",
-  summary: "Verbessern Sie Ihre bestehenden Inhalte direkt vor Ort. Glossia überprüft Quelldateien auf Klarheit, Genauigkeit und Tonalität anhand des von Ihnen bereitgestellten Kontexts und erstellt anschließend überarbeitete Versionen, die zur Überprüfung bereitstehen.",
+  title: "Inhaltsrevision",
+  summary:
+    "Verbessere deinen bestehenden Inhalt direkt. Glossia überprüft Quellendateien auf Klarheit, Genauigkeit und Tonfall unter Verwendung deines bereitgestellten Kontexts und erstellt überarbeitete Versionen zur Überprüfung bereit.",
   order: 2,
   icon: "pencil",
-  hero_cta_text: "Jetzt starten",
+  hero_cta_text: "Loslegen",
   hero_cta_url: "/signup",
   highlights: [
-    %{title: "Tonfall und Klarheit", description: "Agents überprüfen Ihre Texte auf Lesbarkeit, Fachjargon und Konsistenz mit Ihrer Markenstimme.", icon: "message-circle"},
-    %{title: "Zerstörungsfrei", description: "Überarbeitete Inhalte können das Original überschreiben oder in einen separaten Pfad geschrieben werden. Sie behalten stets die Kontrolle über das Ausgabeziel.", icon: "shield-check"},
-    %{title: "Feedback-Schleife", description: "Prüfer korrigieren das Ergebnis, aktualisieren den Kontext, und jeder Zyklus verringert den Abstand zwischen Entwurf und Endfassung.", icon: "refresh-cw"}
+    %{
+      title: "Tonalität und Klarheit",
+      description:
+        "Agenten überprüfen deinen Text auf Lesbarkeit, Fachjargon und Konsistenz mit deiner Markenstimme.",
+      icon: "message-circle"
+    },
+    %{
+      title: "Nicht-destruktiv",
+      description:
+        "Überarbeitete Inhalte können die Originaldatei überschreiben oder an einen anderen Pfad geschrieben werden. Du kontrollierst immer das Ausgabeziel.",
+      icon: "shield-check"
+    },
+    %{
+      title: "Rückkopplungsschleife",
+      description:
+        "Prüfer korrigieren das Ergebnis, aktualisieren den Kontext und verringern mit jedem Zyklus die Lücke zwischen Entwurf und Endfassung.",
+      icon: "refresh-cw"
+    }
   ]
 }
 ---
-## Funktionsweise der Überarbeitung
+## Wie Revisionierung funktioniert
 
-Der Agent liest Ihre Quelldateien sowie den Kontextgraphen und führt lokale Anweisungen (`GLOSSIA.md`-Dateien im Stammverzeichnis oder in Unterverzeichnissen) mit dem Remote-Kontext (Ihre Stimme, Terminologie und Stileinstellungen auf Kontoebene) zusammen. Sobald das Gesamtbild vorliegt, schreibt er Inhalte im Hinblick auf Klarheit, Genauigkeit und Tonfall um und gibt die überarbeitete Version aus, die dann zur Überprüfung bereitsteht.
+Der Agent liest Ihre Quelldateien und den Kontextgraphen und vereinigt lokale Anweisungen (`GLOSSIA.md`-Dateien im Root-Verzeichnis oder in Unterordnern) mit dem Remote-Kontext (Ihre kontenweiten Einstellungen für Stimme, Terminologie und Stil). Sobald das Gesamtbild vorliegt, schreibt er den Inhalt für Klarheit, Genauigkeit und Ton um und gibt die überarbeitete Version für die Überprüfung aus.
 
 ## Kontextgraph
 
-Der Kontext in Glossia ist ein Graph, der sich über Ihr Konto und Ihr Repository erstreckt. Einstellungen auf Kontoebene wie Stimme und Terminologie bieten eine globale Basis, während `GLOSSIA.md`-Dateien, die neben Ihren Inhalten platziert werden, lokale Überschreibungen hinzufügen. Der Agent löst diesen Graphen bei jedem Durchlauf auf, sodass Ihre Anweisungen über alle Dateien hinweg konsistent bleiben, ohne dass Sie sich wiederholen müssen. Überprüfungen erfolgen inkrementell dank Lockfiles, die nachverfolgen, was bereits verarbeitet wurde, sodass nur geänderte oder neue Inhalte erneut geprüft werden.
+Kontext in Glossia ist ein Graph, der Ihr Konto und Ihr Repository umfasst. Kontenweite Einstellungen wie Stimme und Terminologie bilden eine globale Basisvorlage, während `GLOSSIA.md`-Dateien, die neben Ihrem Inhalt platziert sind, lokale Overrides hinzufügen. Der Agent löst diesen Graphen bei jeder Ausführung auf, sodass Ihre Anweisungen über Dateien hinweg konsistent bleiben, ohne dass Sie sich wiederholen müssen. Überprüfungen sind inkrementell dank Lockdateien, die verfolgen, was bereits verarbeitet wurde, sodass nur veränderte oder neue Inhalte erneut betrachtet werden.
 
 ## Progressive Verfeinerung
 
-Jeder Überprüfungszyklus verbessert das Ergebnis. Korrekturen fließen in die Kontextdateien zurück, sodass sich wiederholende Fehler verschwinden und sich das Ergebnis im Laufe der Zeit dem Standard Ihres Teams annähert.
+Jeder Überprüfungszyklus verbessert die Ausgabe. Korrekturen fließen zurück in Kontextdateien, sodass wiederholte Fehler verschwinden und das Ergebnis mit der Zeit zum Standard Ihres Teams konvergiert.
