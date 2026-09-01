@@ -1,35 +1,51 @@
 %{
-  title: "Analyses de localisation",
-  summary: "Identifiez les langues et les pays réellement demandés par vos visiteurs, ainsi que vos lacunes de localisation, avant d’investir dans une nouvelle langue.",
+  title: "Analytiques de localisation",
+  summary:
+    "Voyez quelles langues et quels pays vos visiteurs souhaitent réellement, et là où vous avez un écart de localisation, avant d'investir dans une nouvelle localisation.",
   order: 6,
-  icon: "globe",
+  icon: "Monde",
   hero_cta_text: "Commencer",
   hero_cta_url: "/signup",
   highlights: [
-    %{title: "Des opportunités, pas des indicateurs flatteurs", description: "Les tableaux de bord s’articulent autour des lacunes de localisation : la part du trafic qui souhaite une langue que vous ne proposez pas encore.", icon: "globe"},
-    %{title: "Conçu sans cookies", description: "Aucun cookie, aucune empreinte numérique, aucune bannière de consentement. Les visiteurs uniques sont déterminés au moyen d’un hachage renouvelé chaque jour, qui ne permet pas de les relier d’un jour à l’autre.", icon: "zap"},
-    %{title: "Une seule ligne à installer", description: "Ajoutez une seule balise de script à votre site et Glossia effectue les mesures automatiquement. Déployez-la via npm ou CDN.", icon: "code"}
+    %{
+      title: "Opportunité, pas vanité",
+      description:
+        "Les tableaux de bord sont construits autour de l'écart de localisation : la part du trafic qui souhaite une langue que vous ne servez pas encore.",
+      icon: "Monde"
+    },
+    %{
+      title: "Conçu sans cookies",
+      description:
+        "Pas de cookies, pas de fingerprinting, pas de bannières de consentement. Les visiteurs uniques proviennent d'un hachage rotatif quotidien qui ne peut pas être lié d'un jour à l'autre.",
+      icon: "Éclair"
+    },
+    %{
+      title: "Installation en une ligne",
+      description:
+        "Ajoutez une seule balise script à votre site et Glossia se mesure lui-même. Déployez via npm ou CDN.",
+      icon: "Code"
+    }
   ]
 }
 ---
-## Choisissez votre prochaine langue à partir des données
+## Choisissez votre prochaine localisation avec les données
 
-La plupart des équipes choisissent les langues cibles selon leur intuition. Les analyses de localisation la remplacent par des données concrètes. Ajoutez le kit de développement web et Glossia vous indique les langues demandées par les navigateurs de vos visiteurs, les pays dont ils proviennent et, surtout, leur correspondance avec les langues que vous prenez déjà en charge.
+La plupart des équipes choisissent les langues cibles par intuition. L'analyse de localisation remplace cela par des signaux. Ajoutez le SDK Web et Glossia vous montre les langues que les navigateurs de vos visiteurs demandent, les pays d'origine, et, cruciallement, le recoupement avec les langues que vous supportez déjà.
 
-L’indicateur principal est l’**écart de localisation** : le pourcentage de visiteurs dont la langue préférée ne dispose d’aucune traduction prise en charge. Analysez-le par pays, par site référent et par page pour déterminer précisément où se concentre la demande non satisfaite et quelle nouvelle langue aurait le plus d’impact.
+L'indicateur principal est l'**écart de localisation** : le pourcentage de vos visiteurs dont la langue préférée n'a pas de traduction supportée. Parmi par pays, par source de provenance et par page pour voir où la demande sous-représentée se concentre et quel nouveau marché ferait bouger l'aiguille.
 
-## La confidentialité sans compromis
+## Confidentialité sans compromis
 
-Les analyses de Glossia ne collectent que les données nécessaires et ne stockent aucune information permettant une identification. Le navigateur envoie l’adresse de la page, le site référent, les langues préférées, le fuseau horaire et la taille de l’écran. Le serveur détermine le visiteur unique à partir d’un hachage de l’adresse IP et du User-Agent, renouvelé quotidiennement, puis supprime ces données. Aucun cookie n’est créé, aucune empreinte numérique n’est générée et aucun visiteur ne peut être suivi d’un jour à l’autre ou d’un site à l’autre.
+L'analyse de Glossia ne collecte que le nécessaire et ne stocke rien d'identifiable. Le navigateur envoie l'URL de la page, la source de provenance, les langues préférées, la zone horaire et la taille d'écran. Le serveur tire le visiteur unique à partir d'un hachage de l'IP et de l'User-Agent qui tourne quotidiennement, puis les supprime. Aucun cookie n'est défini, rien n'est fingerprinté et aucun visiteur ne peut être suivi entre les jours ou entre les sites.
 
-Vous obtenez ainsi des analyses que vous pouvez déployer sans bandeau de consentement, conformément aux attentes de vos visiteurs internationaux en matière de confidentialité.
+Le résultat est une analyse que vous pouvez déployer sans bannière de consentement, alignée avec les attentes de vie privée que vos visiteurs internationaux possèdent déjà.
 
 ## Installation en quelques secondes
 
-Ajoutez une ligne à votre site et Glossia commence à effectuer les mesures :
+Ajoutez une ligne à votre site et Glossia commence à mesurer :
 
 ```html
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-Vous préférez npm ? Installez `@glossia/web` et appelez `init({ domain })`. Dans les deux cas, les pages vues, la navigation côté client et les événements personnalisés alimentent le même tableau de bord, qui classe vos possibilités de localisation.
+Préférez-vous npm ? Installez `@glossia/web` et appelez `init({ domain })`. De toute volonté, les vues de page, la navigation côté client, et les événements personnalisés convergent vers le même tableau de bord qui classe vos opportunités de localisation.
