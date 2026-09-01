@@ -1,37 +1,47 @@
 msgid ""
 msgstr ""
-"Language: ja\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: ja"
+"MIME-Version: 1.0"
+"Content-Type: text/plain; charset=UTF-8"
+"Content-Transfer-Encoding: 8bit"
+"Plural-Forms: nplurals=1; plural=0;"
+
+## 本ファイルは PO テンプレートファイルです。
+##
+## "msgid" は通常、ソースコードから抽出されます。
+## 動的で静的に抽出できないメッセージのみ手動で追加してください。
+##
+## refresh 更新ツール "mix gettext.extract" を実行してこのファイルを
+## 最新の状態に保ってください。"msgstr" は変更しないままに放置してください。
+## または変更するとここに影響はないため、PO (.po) ファイルで直接編集してください。
+#
 
 #: lib/glossia_web/live/dashboard_live.ex:12201
 #, elixir-autogen, elixir-format
 msgid "At a glance"
-msgstr ""
+msgstr "概要"
 
 #: lib/glossia_web/live/dashboard_live.ex:12438
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
-msgstr ""
+msgstr "ブラウザ言語"
 
 #: lib/glossia_web/live/dashboard_live.ex:12410
 #, elixir-autogen, elixir-format
 msgid "Top countries"
-msgstr ""
+msgstr "上位国"
 
 #: lib/glossia_web/live/dashboard_live.ex:12383
 #, elixir-autogen, elixir-format
 msgid "Top pages"
-msgstr ""
+msgstr "上位ページ"
 
 #: lib/glossia_web/live/dashboard_live.ex:12366
 #, elixir-autogen, elixir-format
 msgid "Traffic by hour"
-msgstr ""
+msgstr "時間別トラフィック"
 
 #: lib/glossia_web/live/dashboard_live.ex:12287
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
-msgstr ""
+msgstr "次回の翻訳先"
