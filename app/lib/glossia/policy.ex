@@ -53,6 +53,10 @@ defmodule Glossia.Policy do
       allow(:organization_admin)
     end
 
+    action :claim do
+      allow(:authenticated)
+    end
+
     action :delete do
       allow(:organization_admin)
     end

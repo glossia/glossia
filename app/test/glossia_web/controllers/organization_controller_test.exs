@@ -1,6 +1,7 @@
 defmodule GlossiaWeb.OrganizationControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
+  alias Glossia.Organizations
   alias Glossia.TestHelpers
 
   describe "GET /organizations/new" do
@@ -52,6 +53,30 @@ defmodule GlossiaWeb.OrganizationControllerTest do
         |> post("/organizations", %{"account" => %{"handle" => "A", "name" => "Bad"}})
 
       assert html_response(conn, 200) =~ "must start with a letter"
+    end
+  end
+
+  describe "POST /:handle/-/claim" do
+    test "claims an available organization for the signed-in user", %{conn: conn} do
+      claimant = TestHelpers.create_user("claim-route@test.com", "claim-route")
+      handle = "claim-route-#{System.unique_integer([:positive])}"
+
+      {:ok, %{organization: organization}} =
+        Organizations.create_claimable_organization(%{
+          handle: handle,
+          name: "Claim route organization"
+        })
+
+      conn =
+        conn
+        |> init_test_session(%{user_id: claimant.id})
+        |> post("/#{handle}/-/claim")
+
+      assert redirected_to(conn) == "/#{handle}"
+
+      organization = Organizations.get_organization(organization.id)
+      refute organization.claimable
+      assert %{role: "admin"} = Organizations.get_membership(organization, claimant)
     end
   end
 end

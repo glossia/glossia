@@ -1,9 +1,11 @@
 defmodule Babel.Glossia do
   @moduledoc """
-  Client for Glossia's internal read-only database interface.
+  Client for Glossia's private database interface and narrow organization operations.
 
   Babel authenticates with a short-lived projected Kubernetes service-account
-  token. It never receives production Glossia database credentials.
+  token. It never receives production Glossia database credentials. Database
+  requests are read-only; the only mutations create or transfer claimable
+  organizations.
   """
 
   require Logger
@@ -28,6 +30,24 @@ defmodule Babel.Glossia do
     body = Map.put(attributes, "organization_id", organization_id)
 
     request(:post, "/api/internal/babel/temporary-access-grants", [json: body], opts)
+  end
+
+  def create_claimable_organization(attributes, opts \\ []) when is_map(attributes) do
+    request(:post, "/api/internal/babel/claimable-organizations", [json: attributes], opts)
+  end
+
+  def transfer_claimable_organization(handle, attributes, opts \\ [])
+      when is_binary(handle) and is_map(attributes) do
+    if valid_handle?(handle) do
+      request(
+        :post,
+        "/api/internal/babel/claimable-organizations/#{handle}/transfer",
+        [json: attributes],
+        opts
+      )
+    else
+      {:error, "The Glossia organization handle is invalid."}
+    end
   end
 
   def account_url(handle, opts \\ []) when is_binary(handle) do
@@ -185,6 +205,11 @@ defmodule Babel.Glossia do
   end
 
   defp secure_url?(_url), do: false
+
+  defp valid_handle?(handle) do
+    Regex.match?(~r/^[a-z]([a-z0-9-]*[a-z0-9])?$/, handle) and
+      String.length(handle) in 2..39
+  end
 
   defp present?(value), do: is_binary(value) and String.trim(value) != ""
 end

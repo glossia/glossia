@@ -62,6 +62,48 @@ defmodule Glossia.Organizations do
     end
   end
 
+  def create_claimable_organization(attrs, opts \\ []) do
+    handle = attrs["handle"] || attrs[:handle]
+    name = attrs["name"] || attrs[:name] || handle
+    visibility = "public"
+
+    Tracer.with_span "glossia.organizations.create_claimable_organization" do
+      Tracer.set_attributes([
+        {"glossia.organization.handle", if(is_binary(handle), do: handle, else: "")},
+        {"glossia.organization.name", if(is_binary(name), do: name, else: "")}
+      ])
+
+      Ecto.Multi.new()
+      |> Ecto.Multi.insert(
+        :account,
+        Account.changeset(%Account{}, %{handle: handle, visibility: visibility})
+      )
+      |> Ecto.Multi.insert(:organization, fn %{account: account} ->
+        %Organization{account_id: account.id}
+        |> Organization.changeset(%{name: name})
+        |> Ecto.Changeset.change(claimable: true)
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{account: account, organization: organization} = result} ->
+          Events.emit("organization.claimable_created", account, nil,
+            resource_type: "organization",
+            resource_id: to_string(organization.id),
+            resource_path: "/#{account.handle}",
+            summary: "Created claimable organization \"#{account.handle}\"",
+            via: Keyword.get(opts, :via),
+            requested_by_email: Keyword.get(opts, :requested_by_email),
+            requested_by_pomerium_id: Keyword.get(opts, :requested_by_pomerium_id)
+          )
+
+          {:ok, result}
+
+        other ->
+          other
+      end
+    end
+  end
+
   def list_user_organizations(%User{id: user_id}) do
     OrganizationMembership
     |> where(user_id: ^user_id)
@@ -171,6 +213,79 @@ defmodule Glossia.Organizations do
           other ->
             other
         end
+      end
+    end
+  end
+
+  def claim_organization(%Organization{} = org, %User{} = user, opts \\ []) do
+    Tracer.with_span "glossia.organizations.claim_organization" do
+      Tracer.set_attributes([
+        {"glossia.organization.id", to_string(org.id)},
+        {"glossia.user.id", to_string(user.id)}
+      ])
+
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:organization, fn repo, _changes ->
+        organization =
+          Organization
+          |> where(id: ^org.id)
+          |> lock("FOR UPDATE")
+          |> preload(:account)
+          |> repo.one()
+
+        case organization do
+          %Organization{claimable: true} -> {:ok, organization}
+          _ -> {:error, :not_claimable}
+        end
+      end)
+      |> Ecto.Multi.run(:membership, fn repo, %{organization: organization} ->
+        memberships =
+          OrganizationMembership
+          |> where(organization_id: ^organization.id)
+          |> select([membership], membership.id)
+
+        if repo.exists?(memberships) do
+          {:error, :not_claimable}
+        else
+          %OrganizationMembership{user_id: user.id, organization_id: organization.id}
+          |> OrganizationMembership.changeset(%{role: "admin"})
+          |> repo.insert()
+        end
+      end)
+      |> Ecto.Multi.update(:claimed_organization, fn %{organization: organization} ->
+        organization
+        |> Organization.changeset(%{})
+        |> Ecto.Changeset.change(claimable: false)
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{claimed_organization: organization, membership: membership}} ->
+          organization = Repo.preload(organization, :account)
+          :ok = Roles.replace_organization_role(user, organization, "admin")
+
+          actor =
+            if Keyword.has_key?(opts, :actor),
+              do: Keyword.get(opts, :actor),
+              else: user
+
+          Events.emit("organization.claimed", organization.account, actor,
+            resource_type: "organization",
+            resource_id: to_string(organization.id),
+            resource_path: "/#{organization.account.handle}",
+            summary: "Claimed organization \"#{organization.account.handle}\"",
+            via: Keyword.get(opts, :via),
+            claimed_by_email: user.email,
+            requested_by_email: Keyword.get(opts, :requested_by_email),
+            requested_by_pomerium_id: Keyword.get(opts, :requested_by_pomerium_id)
+          )
+
+          {:ok, %{organization: organization, membership: membership}}
+
+        {:error, _step, :not_claimable, _changes} ->
+          {:error, :not_claimable}
+
+        {:error, _step, changeset, _changes} ->
+          {:error, changeset}
       end
     end
   end

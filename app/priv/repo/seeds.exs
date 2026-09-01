@@ -93,6 +93,13 @@ defmodule Glossia.Seeds do
         visibility: "private"
       )
 
+    omarchy =
+      ensure_claimable_organization!(
+        handle: "omarchy",
+        name: "Omarchy",
+        visibility: "public"
+      )
+
     # Membership mix: admin + member + linguist
     ensure_member!(acme, alex, "member")
     ensure_member!(acme, maria, "linguist")
@@ -111,6 +118,7 @@ defmodule Glossia.Seeds do
     ensure_project!(acme.account, "platform", "Platform")
     ensure_project!(acme.account, "mobile", "Mobile app")
     ensure_project!(northwind.account, "catalog", "Product catalog")
+    ensure_project!(omarchy.account, "omarchy", "Omarchy distribution")
 
     # GitHub installations
     dev_gh =
@@ -951,6 +959,36 @@ defmodule Glossia.Seeds do
 
     {:ok, org} = Organizations.update_organization(org, %{visibility: visibility, name: name})
     org
+  end
+
+  defp ensure_claimable_organization!(opts) do
+    handle = Keyword.fetch!(opts, :handle)
+    name = Keyword.fetch!(opts, :name)
+    visibility = Keyword.get(opts, :visibility, "public")
+
+    account = Repo.get_by(Account, handle: handle)
+
+    org =
+      case account do
+        nil ->
+          {:ok, %{organization: org}} =
+            Organizations.create_claimable_organization(%{
+              handle: handle,
+              name: name,
+              visibility: visibility
+            })
+
+          org
+
+        %Account{} = account ->
+          case Repo.get_by(User, account_id: account.id) do
+            nil -> Organizations.get_organization_for_account(account)
+            %User{} -> raise "Organization handle '#{handle}' is already taken"
+          end
+      end
+
+    {:ok, org} = Organizations.update_organization(org, %{visibility: visibility, name: name})
+    Repo.preload(org, :account)
   end
 
   defp ensure_member!(org, %User{} = user, role) do

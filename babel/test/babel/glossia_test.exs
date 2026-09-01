@@ -92,6 +92,66 @@ defmodule Babel.GlossiaTest do
              Glossia.temporary_access_url("northstar-learning")
   end
 
+  test "sends claimable organization operations through the private Glossia listener" do
+    request = fn request ->
+      assert URI.to_string(request.url) ==
+               "https://glossia-babel.glossia.svc.cluster.local/api/internal/babel/claimable-organizations"
+
+      assert request.options[:json] == %{
+               "handle" => "omarchy",
+               "name" => "Omarchy",
+               "requested_by_email" => "operator@glossia.ai",
+               "requested_by_pomerium_id" => "google/operator"
+             }
+
+      {:ok,
+       %Req.Response{status: 201, body: %{"id" => Ecto.UUID.generate(), "claimable" => true}}}
+    end
+
+    assert {:ok, %{"claimable" => true}} =
+             Glossia.create_claimable_organization(
+               %{
+                 "handle" => "omarchy",
+                 "name" => "Omarchy",
+                 "requested_by_email" => "operator@glossia.ai",
+                 "requested_by_pomerium_id" => "google/operator"
+               },
+               base_url: "https://glossia-babel.glossia.svc.cluster.local",
+               token: "projected-token",
+               tls_server_name: "babel-internal.glossia.ai",
+               request: request
+             )
+  end
+
+  test "sends an ownership transfer through the private Glossia listener" do
+    request = fn request ->
+      assert URI.to_string(request.url) ==
+               "https://glossia-babel.glossia.svc.cluster.local/api/internal/babel/claimable-organizations/omarchy/transfer"
+
+      assert request.options[:json] == %{
+               "email" => "maintainer@omarchy.org",
+               "requested_by_email" => "operator@glossia.ai",
+               "requested_by_pomerium_id" => "google/operator"
+             }
+
+      {:ok, %Req.Response{status: 200, body: %{"claimable" => false}}}
+    end
+
+    assert {:ok, %{"claimable" => false}} =
+             Glossia.transfer_claimable_organization(
+               "omarchy",
+               %{
+                 "email" => "maintainer@omarchy.org",
+                 "requested_by_email" => "operator@glossia.ai",
+                 "requested_by_pomerium_id" => "google/operator"
+               },
+               base_url: "https://glossia-babel.glossia.svc.cluster.local",
+               token: "projected-token",
+               tls_server_name: "babel-internal.glossia.ai",
+               request: request
+             )
+  end
+
   test "refuses a temporary access URL that is not secure" do
     assert {:error, :invalid_temporary_access_url} =
              Glossia.temporary_access_url("northstar-learning",

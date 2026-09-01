@@ -181,7 +181,11 @@ defmodule BabelWeb.OperationsLiveTest do
         temporary_access_form:
           %TemporaryAccess{}
           |> TemporaryAccess.changeset(%{duration_minutes: 30})
-          |> Phoenix.Component.to_form(as: :temporary_access)
+          |> Phoenix.Component.to_form(as: :temporary_access),
+        claimable_organization_form:
+          Phoenix.Component.to_form(%{"handle" => ""}, as: :claimable_organization),
+        transfer_organization_form:
+          Phoenix.Component.to_form(%{"email" => ""}, as: :transfer_organization)
       })
 
     assert html =~ "Projects"

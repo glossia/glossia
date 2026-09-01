@@ -51,10 +51,17 @@ The database request is constrained in three layers:
 - Glossia switches to the non-login `glossia_babel_ro` PostgreSQL role, which
   inherits PostgreSQL's
   [`pg_read_all_data`](https://www.postgresql.org/docs/current/predefined-roles.html)
-  role and has no write permission.
+role and has no write permission.
 - ClickHouse requests use a separate restricted account that has `SELECT` only
   on the Glossia analytics database. Its server-side profile fixes execution,
   result, memory, and concurrency limits; Babel never receives its password.
+
+The same private listener has two narrow mutation endpoints for claimable
+organizations. They can create a public ownerless organization and assign it
+to an existing Glossia user. Those operations are initiated only from Babel's
+[Pomerium](https://www.pomerium.com/) protected operations surface, include the
+authenticated operator identity in the audit event, and remain unavailable on
+the public Glossia listener.
 
 To verify the deployed connection, run this from an authenticated cluster
 terminal:

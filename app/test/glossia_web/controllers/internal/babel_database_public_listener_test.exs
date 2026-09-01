@@ -36,4 +36,20 @@ defmodule GlossiaWeb.Internal.BabelDatabasePublicListenerTest do
 
     assert %{"error" => "not_found"} = json_response(conn, 404)
   end
+
+  test "does not expose claimable organization creation through the public listener", %{
+    conn: conn
+  } do
+    conn =
+      conn
+      |> put_req_header("accept", "application/json")
+      |> post("http://glossia.ai:4050/api/internal/babel/claimable-organizations", %{
+        "handle" => "private-listener-test",
+        "name" => "Private listener test",
+        "requested_by_email" => "operator@glossia.ai",
+        "requested_by_pomerium_id" => "google/operator"
+      })
+
+    assert %{"error" => "not_found"} = json_response(conn, 404)
+  end
 end

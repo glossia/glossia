@@ -4,6 +4,7 @@ defmodule Glossia.Accounts.Organization do
 
   schema "organizations" do
     field :name, :string
+    field :claimable, :boolean, default: false
 
     belongs_to :account, Glossia.Accounts.Account
     has_many :organization_memberships, Glossia.Accounts.OrganizationMembership

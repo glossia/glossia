@@ -263,6 +263,7 @@ defmodule GlossiaWeb.Router do
 
     get "/organizations/new", OrganizationController, :new
     post "/organizations", OrganizationController, :create
+    post "/:handle/-/claim", ClaimableOrganizationController, :create
   end
 
   # Authenticated API

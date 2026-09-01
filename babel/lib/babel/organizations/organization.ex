@@ -20,6 +20,7 @@ defmodule Babel.Organizations.Organization do
     field :origin_url, :string
     field :glossia_organization_id, :binary_id
     field :glossia_account_handle, :string
+    field :glossia_claimable, :boolean, default: false
 
     has_many :interactions, Interaction
 
@@ -36,7 +37,8 @@ defmodule Babel.Organizations.Organization do
       :notes,
       :origin_url,
       :glossia_organization_id,
-      :glossia_account_handle
+      :glossia_account_handle,
+      :glossia_claimable
     ])
     |> validate_required([:name, :website_url, :state])
     |> validate_inclusion(:state, @states)
