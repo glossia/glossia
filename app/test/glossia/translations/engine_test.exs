@@ -725,6 +725,57 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "translates large Markdown segments as bounded text-literal batches", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+
+      content =
+        1..12
+        |> Enum.map_join("\n\n", fn index ->
+          "Read [guide #{index}](https://example.com/#{index})."
+        end)
+
+      File.write!(source, content)
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+
+        case payload["segment_kind"] do
+          "markdown_text_literals" ->
+            translated =
+              payload["source_content"]
+              |> JSON.decode!()
+              |> Enum.map(&"translated #{&1}")
+              |> JSON.encode!()
+
+            translated(translated)
+
+          other ->
+            flunk("expected bounded Markdown literal batch, got #{inspect(other)}")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
+                 :ok
+               end)
+
+      assert result.text =~ "[translated guide 1](https://example.com/1)"
+      assert result.text =~ "[translated guide 12](https://example.com/12)"
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert length(calls) > 1
+      assert Enum.all?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
+
+      assert Enum.all?(calls, fn payload ->
+               payload["source_content"]
+               |> JSON.decode!()
+               |> length()
+               |> Kernel.<=(12)
+             end)
+    end
+
+    @tag :tmp_dir
     test "masks bare web addresses during batched Markdown text-literal recovery", %{
       tmp_dir: dir
     } do

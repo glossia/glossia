@@ -18,6 +18,7 @@ defmodule Glossia.Translations.Engine do
   @markdown_text_literal_recovery_max_calls 128
   @markdown_text_literal_recovery_batch_size 12
   @markdown_text_literal_recovery_batch_bytes 8_000
+  @markdown_text_literal_fast_path_min_literals 12
 
   require Logger
 
@@ -358,8 +359,40 @@ defmodule Glossia.Translations.Engine do
   # document ourselves. The model never receives Markdown syntax, so it cannot
   # change headings, links, lists, code spans, or block ordering.
   defp recover_markdown_text_literals(state, segment, index, count, message, remaining_calls) do
-    with true <- markdown_recovery_error?(state, segment, message),
+    if markdown_recovery_error?(state, segment, message) do
+      translate_markdown_text_literals(state, segment, index, count, remaining_calls)
+    else
+      :error
+    end
+  end
+
+  # Complex Markdown used to take the ordinary full-document path first, then
+  # spend several corrections asking a model to restore headings, links, and
+  # lists it had already changed. For a large source tree it is both quicker
+  # and more reliable to translate the text nodes directly and rebuild the
+  # Markdown ourselves. Small fragments keep the normal path, whose single
+  # request is still cheaper than building a JSON array.
+  defp translate_large_markdown_segment_as_literals(state, segment, index, count) do
+    with %{format: "markdown"} <- state.work_item,
+         true <- not String.contains?(segment.content, "{glossia_protected_"),
          true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
+         {:ok, source_literals} <- Markdown.text_literals(segment.content),
+         true <- length(source_literals) >= @markdown_text_literal_fast_path_min_literals,
+         true <- length(source_literals) <= @markdown_text_literal_recovery_max_calls do
+      translate_markdown_text_literals(
+        state,
+        segment,
+        index,
+        count,
+        @markdown_text_literal_recovery_max_calls
+      )
+    else
+      _ -> :error
+    end
+  end
+
+  defp translate_markdown_text_literals(state, segment, index, count, remaining_calls) do
+    with true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
          {:ok, source_literals} <- Markdown.text_literals(segment.content),
          true <- source_literals != [],
          true <- length(source_literals) <= remaining_calls do
@@ -382,7 +415,7 @@ defmodule Glossia.Translations.Engine do
            markdown_text_literal_recovery_calls: 0
          }},
         fn batch, {:ok, acc} ->
-          case translate_markdown_text_literal_batch(state, segment, batch, index, count, message) do
+          case translate_markdown_text_literal_batch(state, segment, batch, index, count, nil) do
             {:ok, translated_literals, result} ->
               literals =
                 batch
@@ -564,7 +597,28 @@ defmodule Glossia.Translations.Engine do
   # markers it lost, recovers far more cheaply than retranslating the document.
   # If that focused recovery runs out, stop there rather than repeatedly
   # translating segments whose output has already passed preservation checks.
+  defp translate_segment(
+         state,
+         %{kind: "content"} = segment,
+         index,
+         count,
+         attempt,
+         last_error
+       ) do
+    case translate_large_markdown_segment_as_literals(state, segment, index, count) do
+      {:ok, %{segments: [%{text: text}], model: model, provider: provider}} ->
+        {:ok, text, %{model: model, provider: provider}}
+
+      _ ->
+        translate_segment_with_model(state, segment, index, count, attempt, last_error)
+    end
+  end
+
   defp translate_segment(state, segment, index, count, attempt, last_error) do
+    translate_segment_with_model(state, segment, index, count, attempt, last_error)
+  end
+
+  defp translate_segment_with_model(state, segment, index, count, attempt, last_error) do
     emit_segment_event(state, segment, {:segment_start, index, count, segment.kind})
 
     payload =
