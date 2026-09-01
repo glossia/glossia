@@ -66,6 +66,39 @@ defmodule GlossiaWeb.PageControllerTest do
     assert response(conn, 200) =~ "<urlset"
   end
 
+  test "GET /robots.txt points crawlers to the sitemap", %{conn: conn} do
+    sitemap_url = GlossiaWeb.Endpoint.url() |> URI.merge("/sitemap.xml") |> URI.to_string()
+
+    conn = get(conn, ~p"/robots.txt")
+
+    assert response(conn, 200) == "User-agent: *\nAllow: /\nSitemap: #{sitemap_url}\n"
+  end
+
+  test "GET /llms.txt gives agents an index of public documentation", %{conn: conn} do
+    conn = get(conn, ~p"/llms.txt")
+    response = response(conn, 200)
+
+    assert response =~ "# Glossia"
+    assert response =~ "## Documentation"
+    assert response =~ "Getting started"
+  end
+
+  test "documentation pages expose complete social metadata and structured data", %{conn: conn} do
+    canonical_url =
+      GlossiaWeb.Endpoint.url()
+      |> URI.merge("/docs/tutorials/getting-started")
+      |> URI.to_string()
+
+    conn = get(conn, ~p"/docs/tutorials/getting-started")
+    response = html_response(conn, 200)
+
+    assert response =~ ~s(property="og:url" content="#{canonical_url}")
+    assert response =~ ~s(property="og:type" content="website")
+    assert response =~ ~s(name="twitter:card" content="summary_large_image")
+    assert response =~ ~s(type="application/ld+json")
+    assert response =~ ~s("@type":"WebPage")
+  end
+
   # `es` is reserved now, so the collision can only be created the way it
   # happened in production: straight in the database.
   defp force_handle(user, handle) do

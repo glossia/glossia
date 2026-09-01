@@ -20,6 +20,19 @@ defmodule GlossiaWeb.BlogController do
       author: post.author,
       page_title: post.title,
       page_description: post.summary,
+      page_type: "article",
+      structured_data: %{
+        "@type" => "Article",
+        "author" => %{
+          "@type" => "Person",
+          "name" => post.author.name,
+          "sameAs" => [post.author.linkedin, post.author.mastodon, post.author.x]
+        },
+        "dateModified" => Date.to_iso8601(post.date),
+        "datePublished" => Date.to_iso8601(post.date),
+        "description" => post.summary,
+        "headline" => post.title
+      },
       og_image_url:
         Glossia.OgImage.marketing_url(%{
           category: "blog",

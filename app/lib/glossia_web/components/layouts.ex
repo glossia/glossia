@@ -54,6 +54,113 @@ defmodule GlossiaWeb.Layouts do
     end
   end
 
+  @doc false
+  def social_title(assigns) do
+    case assigns[:page_title] do
+      nil -> "Glossia"
+      "Glossia" -> "Glossia"
+      title -> "#{title} · Glossia"
+    end
+  end
+
+  @doc false
+  def social_description(assigns) do
+    description =
+      assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
+
+    description
+    |> String.trim()
+    |> pad_social_description()
+    |> trim_social_description()
+  end
+
+  @doc false
+  def social_image_url(assigns) do
+    assigns[:og_image_url] ||
+      Glossia.OgImage.marketing_url(%{
+        category: assigns[:og_image_category] || "page",
+        summary: assigns[:page_description] || "",
+        title: assigns[:page_title] || "Glossia"
+      }) || Glossia.OgImage.fallback_url()
+  end
+
+  @doc false
+  def structured_data(assigns) do
+    case assigns[:canonical_url] do
+      canonical_url when is_binary(canonical_url) ->
+        site_url = URI.merge(canonical_url, "/") |> URI.to_string()
+        image_url = social_image_url(assigns)
+
+        organization = %{
+          "@id" => URI.merge(site_url, "/#organization") |> URI.to_string(),
+          "@type" => "Organization",
+          "logo" => image_url,
+          "name" => "Glossia",
+          "url" => site_url
+        }
+
+        website = %{
+          "@id" => URI.merge(site_url, "/#website") |> URI.to_string(),
+          "@type" => "WebSite",
+          "name" => "Glossia",
+          "publisher" => %{"@id" => organization["@id"]},
+          "url" => site_url
+        }
+
+        page = %{
+          "@id" => canonical_url,
+          "@type" => "WebPage",
+          "about" => %{"@id" => organization["@id"]},
+          "description" => social_description(assigns),
+          "inLanguage" => assigns[:locale] || Glossia.I18n.default_locale(),
+          "isPartOf" => %{"@id" => website["@id"]},
+          "name" => social_title(assigns),
+          "primaryImageOfPage" => image_url,
+          "url" => canonical_url
+        }
+
+        custom_data =
+          assigns
+          |> Map.get(:structured_data, [])
+          |> List.wrap()
+          |> Enum.map(&Map.put_new(&1, "mainEntityOfPage", %{"@id" => canonical_url}))
+
+        [organization, website, page | custom_data]
+        |> Enum.map(fn data ->
+          data
+          |> Map.put("@context", "https://schema.org")
+          |> Jason.encode!()
+          |> String.replace("</", "<\\/")
+          |> Phoenix.HTML.raw()
+        end)
+
+      _other ->
+        []
+    end
+  end
+
+  defp pad_social_description(description) do
+    if String.length(description) >= 100 do
+      description
+    else
+      "#{description} #{gettext("Explore Glossia's localization guides, product documentation, and language platform for teams publishing content across languages.")}"
+    end
+  end
+
+  defp trim_social_description(description) do
+    if String.length(description) <= 160 do
+      description
+    else
+      description
+      |> String.slice(0, 160)
+      |> String.split(~r/\s+/)
+      |> Enum.drop(-1)
+      |> Enum.join(" ")
+      |> String.trim_trailing(".")
+      |> Kernel.<>(".")
+    end
+  end
+
   @doc """
   Shows the flash group with standard titles and content.
 

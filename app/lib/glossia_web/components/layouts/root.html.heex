@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang={assigns[:locale] || Glossia.I18n.default_locale()}>
   <head>
+    <% social_title = social_title(assigns) %>
+    <% social_description = social_description(assigns) %>
+    <% social_image_url = social_image_url(assigns) %>
+    <% structured_data = structured_data(assigns) %>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
@@ -11,40 +15,25 @@
       hreflang={alternate.hreflang}
       href={alternate.url}
     />
-    <.live_title
-      default={gettext("Glossia")}
-      suffix={if(assigns[:page_title], do: " · Glossia", else: "")}
-    >
-      {assigns[:page_title]}
-    </.live_title>
+    <.live_title default={gettext("Glossia")} suffix={if(assigns[:page_title], do: " · Glossia", else: "")}>{assigns[:page_title]}</.live_title>
     <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
-    <meta
-      name="description"
-      content={
-        assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
-      }
-    />
-    <meta property="og:title" content={assigns[:page_title] || "Glossia"} />
-    <meta
-      property="og:description"
-      content={
-        assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
-      }
-    />
-    <meta property="og:image" content={assigns[:og_image_url] || ~p"/images/logo-squared.jpg"} />
-    <meta
-      name="twitter:card"
-      content={if(assigns[:og_image_url], do: "summary_large_image", else: "summary")}
-    />
+    <meta name="description" content={social_description} />
+    <meta property="og:title" content={social_title} />
+    <meta property="og:description" content={social_description} />
+    <meta property="og:image" content={social_image_url} />
+    <meta property="og:site_name" content="Glossia" />
+    <meta property="og:type" content={assigns[:page_type] || "website"} />
+    <meta :if={assigns[:canonical_url]} property="og:url" content={@canonical_url} />
+    <meta property="og:locale" content={assigns[:locale] || Glossia.I18n.default_locale()} />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@glossiaai" />
-    <meta name="twitter:title" content={assigns[:page_title] || "Glossia"} />
-    <meta
-      name="twitter:description"
-      content={
-        assigns[:page_description] || "Multi-lingual and mono-lingual content, powered by AI"
-      }
-    />
-    <meta name="twitter:image" content={assigns[:og_image_url] || ~p"/images/logo-squared.jpg"} />
+    <meta name="twitter:title" content={social_title} />
+    <meta name="twitter:description" content={social_description} />
+    <meta name="twitter:image" content={social_image_url} />
+    <meta :if={assigns[:canonical_url]} name="twitter:url" content={@canonical_url} />
+    <script :for={data <- structured_data} type="application/ld+json">
+      <%= data %>
+    </script>
     <%= if assigns[:author] do %>
       <link rel="me" href={@author.mastodon} />
       <meta
