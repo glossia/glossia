@@ -663,7 +663,12 @@ body:has(#docs-page-layout) {
       border-right: var(--space-px) solid var(--noora-content-divider-line);
       background: var(--noora-surface-background-primary);
       width: calc(var(--noora-spacing-16) * 3 - var(--noora-spacing-4));
+      height: 100vh;
       max-height: 100vh;
+
+      & > [data-part="sidebar-scroll"] {
+        flex: 1;
+      }
     }
 
     & #docs-content {
