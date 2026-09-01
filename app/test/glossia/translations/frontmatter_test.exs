@@ -79,6 +79,35 @@ defmodule Glossia.Translations.FrontmatterTest do
       assert split.body == "\nBody"
     end
 
+    test "rebuilds NimblePublisher frontmatter from a fenced JSON response" do
+      frontmatter = """
+      %{
+        title: "Hello",
+        summary: "A summary",
+        date: ~D[2026-02-03]
+      }
+      ---
+      """
+
+      assert {:ok, plan} = Frontmatter.nimble_publisher_text_literals(frontmatter)
+
+      response = """
+      Here is the translated array:
+
+      ```json
+      ["Hola", "Un resumen"]
+      ```
+      """
+
+      assert {:ok, rebuilt} =
+               Frontmatter.rebuild_nimble_publisher_text_literals(plan, response)
+
+      assert rebuilt =~ ~s(title: "Hola")
+      assert rebuilt =~ ~s(summary: "Un resumen")
+      assert rebuilt =~ ~s(date: ~D[2026-02-03])
+      assert String.ends_with?(rebuilt, "---")
+    end
+
     test "does not treat a prose horizontal rule as frontmatter" do
       split = Frontmatter.split_markdown_frontmatter("Introduction\n\n---\n\nBody")
       refute split.ok

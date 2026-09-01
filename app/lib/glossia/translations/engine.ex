@@ -26,6 +26,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations
   alias Glossia.Translations.Format
   alias Glossia.Translations.Frontmatter
+  alias Glossia.Translations.JsonArray
   alias Glossia.Translations.Markdown
   alias Glossia.Translations.PreservedTokens
 
@@ -510,7 +511,7 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp decode_markdown_text_literal_batch(text, expected_count) do
-    case text |> strip_json_code_fence() |> JSON.decode() do
+    case JsonArray.decode(text) do
       {:ok, literals} when is_list(literals) ->
         if length(literals) == expected_count and Enum.all?(literals, &is_binary/1) do
           {:ok, literals}
@@ -525,15 +526,6 @@ defmodule Glossia.Translations.Engine do
 
       {:error, _reason} ->
         {:error, "Markdown text-literal recovery returned invalid JSON"}
-    end
-  end
-
-  defp strip_json_code_fence(text) do
-    trimmed = String.trim(text)
-
-    case Regex.run(~r/\A```(?:json)?\s*\n(.*)\n```\z/is, trimmed, capture: :all_but_first) do
-      [json] -> json
-      _ -> trimmed
     end
   end
 

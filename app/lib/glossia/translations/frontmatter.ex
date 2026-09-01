@@ -16,6 +16,7 @@ defmodule Glossia.Translations.Frontmatter do
   """
 
   alias __MODULE__
+  alias Glossia.Translations.JsonArray
 
   defstruct locale: nil,
             source_language: nil,
@@ -125,7 +126,7 @@ defmodule Glossia.Translations.Frontmatter do
   @doc "Rebuilds NimblePublisher frontmatter from translated reader-facing values."
   def rebuild_nimble_publisher_text_literals(%{ast: ast, values: source_values}, translated)
       when is_binary(translated) do
-    with {:ok, values} <- JSON.decode(String.trim(translated)),
+    with {:ok, values} <- JsonArray.decode(translated),
          true <- length(values) == length(source_values),
          true <- Enum.all?(values, &(is_binary(&1) and String.trim(&1) != "")),
          {rebuilt, []} <- replace_nimble_publisher_text_values(ast, values) do
