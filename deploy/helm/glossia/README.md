@@ -92,7 +92,7 @@ is configured separately:
 translationJob:
   backend: ""            # "kubernetes", "inline", or empty to detect
   ttlSecondsAfterFinished: 3600
-  activeDeadlineSeconds: 21600
+  activeDeadlineSeconds: 86400
   resources: {}          # empty inherits flame.k8s.resources
 ```
 
