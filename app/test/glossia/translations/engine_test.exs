@@ -776,6 +776,62 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "retries only an invalid Markdown text-literal batch with validation feedback", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+
+      content =
+        1..12
+        |> Enum.map_join("\n\n", fn index ->
+          "Read [guide #{index}](https://example.com/#{index})."
+        end)
+
+      File.write!(source, content)
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        call_index =
+          Elixir.Agent.get_and_update(payloads, fn calls ->
+            {length(calls), [payload | calls]}
+          end)
+
+        case payload["segment_kind"] do
+          "markdown_text_literals" ->
+            if call_index == 0 do
+              translated("not a JSON string array")
+            else
+              translated =
+                payload["source_content"]
+                |> JSON.decode!()
+                |> Enum.map(&"translated #{&1}")
+                |> JSON.encode!()
+
+              translated(translated)
+            end
+
+          other ->
+            flunk("expected bounded Markdown literal batch, got #{inspect(other)}")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
+                 :ok
+               end)
+
+      assert result.text =~ "[translated guide 1](https://example.com/1)"
+
+      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert length(calls) == 3
+
+      assert Enum.at(calls, 1)["last_error"] ==
+               "Markdown text-literal recovery returned invalid JSON"
+
+      assert Enum.at(calls, 2)["last_error"] == nil
+    end
+
+    @tag :tmp_dir
     test "masks bare web addresses during batched Markdown text-literal recovery", %{
       tmp_dir: dir
     } do

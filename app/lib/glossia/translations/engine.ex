@@ -516,7 +516,15 @@ defmodule Glossia.Translations.Engine do
     |> then(fn {batches, current, _bytes} -> Enum.reverse([Enum.reverse(current) | batches]) end)
   end
 
-  defp translate_markdown_text_literal_batch(state, segment, entries, index, count, _message) do
+  defp translate_markdown_text_literal_batch(
+         state,
+         segment,
+         entries,
+         index,
+         count,
+         message,
+         attempt \\ 1
+       ) do
     recovery_segment =
       Map.merge(segment, %{
         kind: "markdown_text_literals",
@@ -527,7 +535,7 @@ defmodule Glossia.Translations.Engine do
         suppress_stream_text: true
       })
 
-    case translate_segment(state, recovery_segment, index, count, 1, nil) do
+    case translate_segment(state, recovery_segment, index, count, 1, message) do
       {:ok, translated, result} ->
         with {:ok, translated_literals} <-
                decode_markdown_text_literal_batch(translated, length(entries)),
@@ -535,7 +543,19 @@ defmodule Glossia.Translations.Engine do
                restore_markdown_text_literal_batch(entries, translated_literals) do
           {:ok, restored_literals, result}
         else
-          {:error, reason} -> {:preservation_error, reason}
+          {:error, reason} when attempt < @segment_attempts ->
+            translate_markdown_text_literal_batch(
+              state,
+              segment,
+              entries,
+              index,
+              count,
+              reason,
+              attempt + 1
+            )
+
+          {:error, reason} ->
+            {:preservation_error, reason}
         end
 
       other ->
