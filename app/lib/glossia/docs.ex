@@ -81,19 +81,19 @@ defmodule Glossia.Docs do
       key: "how-to",
       title: "How-to guides",
       summary: "Practical directions for specific tasks.",
-      icon: "compass"
+      icon: "category"
     },
     "reference" => %{
       key: "reference",
       title: "Reference",
       summary: "Technical descriptions of configuration, CLI, and APIs.",
-      icon: "file-text"
+      icon: "file_text"
     },
     "explanation" => %{
       key: "explanation",
       title: "Explanation",
       summary: "Background, design decisions, and concepts.",
-      icon: "lightbulb"
+      icon: "bulb"
     }
   }
 
@@ -234,6 +234,8 @@ defmodule Glossia.Docs do
   end
 
   def category_items(category, locale \\ Glossia.I18n.default_locale()) do
+    icon = category_meta!(category).icon
+
     page_items =
       locale
       |> pages()
@@ -242,9 +244,11 @@ defmodule Glossia.Docs do
       )
       |> Enum.map(
         &%{
+          id: &1.id,
           title: &1.title,
           summary: &1.summary,
           href: Glossia.I18n.localize_path(locale, path_for(&1)),
+          icon: icon,
           order: &1.order
         }
       )
@@ -259,9 +263,11 @@ defmodule Glossia.Docs do
         meta = translate_meta(subcategory)
 
         %{
+          id: "#{category}/#{meta.key}",
           title: meta.title,
           summary: meta.summary,
           href: Glossia.I18n.localize_path(locale, "/docs/#{category}/#{meta.key}"),
+          icon: icon,
           order: meta.order
         }
       end)
@@ -278,6 +284,43 @@ defmodule Glossia.Docs do
 
   def all_pages(locale \\ Glossia.I18n.default_locale()) do
     locale |> pages() |> Enum.reject(&(&1.id == "reference/api"))
+  end
+
+  def navigation(locale \\ Glossia.I18n.default_locale()) do
+    @category_order
+    |> Enum.map(fn category ->
+      meta = category_meta!(category)
+
+      direct_pages =
+        locale
+        |> pages()
+        |> Enum.filter(
+          &(&1.category == category and is_nil(&1.subcategory) and &1.id != "reference/api")
+        )
+        |> Enum.sort_by(& &1.order)
+
+      subcategories =
+        @subcategories
+        |> Map.values()
+        |> Enum.filter(&(&1.category == category))
+        |> Enum.map(fn subcategory ->
+          %{
+            key: subcategory.key,
+            title: translate_meta(subcategory).title,
+            pages: subcategory_pages(category, subcategory.key, locale)
+          }
+        end)
+        |> Enum.reject(&(&1.pages == []))
+        |> Enum.sort_by(fn subcategory -> subcategory_meta!(category, subcategory.key).order end)
+
+      %{
+        key: category,
+        title: meta.title,
+        direct_pages: direct_pages,
+        subcategories: subcategories
+      }
+    end)
+    |> Enum.reject(&(&1.direct_pages == [] and &1.subcategories == []))
   end
 
   def get_page!(category, subcategory, slug, locale \\ Glossia.I18n.default_locale())

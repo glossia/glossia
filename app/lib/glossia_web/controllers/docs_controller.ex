@@ -3,18 +3,35 @@ defmodule GlossiaWeb.DocsController do
 
   alias Glossia.Docs
 
+  @category_order ~w(tutorials how-to reference explanation)
+
+  plug :put_layout, html: {GlossiaWeb.Layouts, :docs}
+  plug :assign_docs_navigation
+
   def index(conn, _params) do
+    categories = Docs.sorted_categories(conn.assigns.locale)
+
     render(conn, :index,
-      categories: Docs.sorted_categories(conn.assigns.locale),
+      categories: categories,
+      docs_current_category: nil,
+      docs_current_subcategory: nil,
+      docs_current_slug: nil,
+      docs_headings: category_headings(categories),
       page_title: gettext("Documentation"),
       page_description: gettext("Learn how to use Glossia to localize and improve your content.")
     )
   end
 
   def category(conn, %{"category" => category}) do
+    items = Docs.category_items(category, conn.assigns.locale)
+
     render(conn, :category,
       category_meta: Docs.category_meta!(category),
-      items: Docs.category_items(category, conn.assigns.locale),
+      items: items,
+      docs_current_category: category,
+      docs_current_subcategory: nil,
+      docs_current_slug: nil,
+      docs_headings: item_headings(items),
       page_title: Docs.category_meta!(category).title,
       page_description: Docs.category_meta!(category).summary
     )
@@ -40,12 +57,18 @@ defmodule GlossiaWeb.DocsController do
   end
 
   defp render_subcategory(conn, category, subcategory) do
+    pages = Docs.subcategory_pages(category, subcategory, conn.assigns.locale)
+
     render(conn, :subcategory,
       category_key: category,
       category_meta: Docs.category_meta!(category),
       subcategory_key: subcategory,
       subcategory_meta: Docs.subcategory_meta!(category, subcategory),
-      pages: Docs.subcategory_pages(category, subcategory, conn.assigns.locale),
+      pages: pages,
+      docs_current_category: category,
+      docs_current_subcategory: subcategory,
+      docs_current_slug: nil,
+      docs_headings: page_headings(pages),
       page_title: Docs.subcategory_meta!(category, subcategory).title,
       page_description: Docs.subcategory_meta!(category, subcategory).summary
     )
@@ -97,6 +120,10 @@ defmodule GlossiaWeb.DocsController do
       current_category: category,
       current_subcategory: subcategory,
       current_subcategory_meta: Docs.subcategory_meta!("reference", "apis"),
+      docs_current_category: category,
+      docs_current_subcategory: subcategory,
+      docs_current_slug: page.slug,
+      docs_headings: [],
       page_title: page.title,
       page_description: page.summary
     )
@@ -110,10 +137,44 @@ defmodule GlossiaWeb.DocsController do
       current_subcategory: subcategory,
       current_subcategory_meta: subcategory && Docs.subcategory_meta!(category, subcategory),
       current_slug: page.slug,
+      docs_current_category: category,
+      docs_current_subcategory: subcategory,
+      docs_current_slug: page.slug,
+      docs_headings: page.toc,
+      docs_markdown: page.raw_markdown,
+      docs_markdown_path: locale_path(markdown_path(category, subcategory, page.slug)),
       page_title: page.title,
       page_description: page.summary
     )
   end
+
+  defp assign_docs_navigation(conn, _opts) do
+    locale = conn.assigns[:locale] || Glossia.I18n.default_locale()
+
+    assign(conn, :docs_navigation, Docs.navigation(locale))
+  end
+
+  defp category_headings(categories) do
+    categories
+    |> Map.take(@category_order)
+    |> Enum.sort_by(fn {key, _category} -> Enum.find_index(@category_order, &(&1 == key)) end)
+    |> Enum.map(fn {key, category} ->
+      %{id: "docs-category-#{key}", text: category.title, level: 2}
+    end)
+  end
+
+  defp item_headings(items) do
+    Enum.map(items, &%{id: &1.id, text: &1.title, level: 2})
+  end
+
+  defp page_headings(pages) do
+    Enum.map(pages, &%{id: &1.id, text: &1.title, level: 2})
+  end
+
+  defp markdown_path(category, nil, slug), do: ~p"/docs/#{category}/#{slug <> ".md"}"
+
+  defp markdown_path(category, subcategory, slug),
+    do: ~p"/docs/#{category}/#{subcategory}/#{slug <> ".md"}"
 
   defp send_markdown(conn, %{markdown: true, raw_markdown: raw_markdown})
        when is_binary(raw_markdown) do

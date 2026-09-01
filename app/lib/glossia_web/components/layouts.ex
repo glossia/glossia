@@ -5,9 +5,29 @@ defmodule GlossiaWeb.Layouts do
   """
   use GlossiaWeb, :html
 
+  import Noora.Button, only: [neutral_button: 1]
+  import Noora.ButtonDropdown, only: [button_dropdown: 1]
+  import Noora.ButtonGroup, only: [button_group: 1, button_group_item: 1]
   import Noora.Breadcrumbs, only: [breadcrumb: 1, breadcrumb_item: 1, breadcrumbs: 1]
   import Noora.Dropdown, only: [dropdown: 1, dropdown_item: 1]
+
+  import Noora.Icon,
+    only: [
+      chevron_down: 1,
+      copy: 1,
+      list_tree: 1,
+      menu: 1,
+      menu_3: 1,
+      news: 1,
+      search: 1,
+      smart_home: 1
+    ]
+
+  import Noora.LineDivider, only: [line_divider: 1]
   import Noora.Sidebar, only: [sidebar: 1, sidebar_group: 1, sidebar_item: 1]
+  import Noora.ShortcutKey, only: [shortcut_key: 1]
+  import Noora.TabMenu, only: [tab_menu_vertical: 1]
+  import Noora.TextInput, only: [text_input: 1]
 
   alias Noora.Icon
 
