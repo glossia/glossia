@@ -1,8 +1,8 @@
 %{
-  title: "Versões",
-  summary: "Histórico de versões da CLI.",
-  category: "reference",
-  subcategory: "cli",
+  title: "Lançamentos",
+  summary: "Histórico de lançamentos do CLI.",
+  category: "Referência",
+  subcategory: "CLI",
   order: 2
 }
 ---
@@ -10,65 +10,72 @@
 
 *2026-02-14*
 
-#### Correções de bugs
-- Renomear o binário nos arquivos compactados de versão, substituindo o nome específico da plataforma por apenas `glossia`.
-- Remover o atributo estendido de quarentena do macOS dos binários antes do empacotamento.
+#### Correções de Bug
+
+- Renomeia o binário dentro dos arquivos de lançamento do nome específico da plataforma apenas para `glossia`.
+- Remove o atributo xattr de quarentena do macOS dos binários antes do empacotamento.
 
 ## 0.14.0
 
 *2026-02-14*
 
 #### Funcionalidades
-- Adicionar script local de versão e fluxo de trabalho de changelog mantido manualmente.
+
+- Adiciona script de lançamento local e fluxo de trabalho de registro de alterações mantido manualmente.
 
 ## 0.2.0
 
 *2026-02-14*
 
-#### Correções de bugs
-- Tornar opcional a configuração dos provedores OAuth em produção. O aplicativo deve inicializar mesmo sem as credenciais OAuth do GitHub/GitLab definidas. Configurar os provedores somente quando as variáveis de ambiente estiverem presentes.
-- Usar a porta 4000 por padrão em produção e manter a 4050 no ambiente de desenvolvimento. O proxy de produção espera que o aplicativo esteja na porta 4000. O valor padrão de `runtime.exs` era 4050, o que fazia as verificações de integridade falharem durante a implantação.
+#### Correções de Bug
+
+- Torna a configuração do provedor OAuth opcional na produção. O aplicativo deve iniciar mesmo sem as credenciais OAuth do GitHub/GitLab definidas. Configure os provedores apenas quando as variáveis de ambiente estiverem presentes.
+- Padrão na porta 4000 para produção e mantenha 4050 para desenvolvimento. O proxy de produção espera o aplicativo na porta 4000. O padrão em `runtime.exs` era 4050, o que causou falha nas verificações de saúde durante a implantação.
 
 #### Funcionalidades
-- Adicionar aplicativo Phoenix com login via OAuth, melhorias na documentação e aprimoramentos na interface do usuário.
-- Usar o logotipo arredondado como favicon.
-- Migrar a interface de linha de comando para Bun e atualizar as compilações de executáveis da integração contínua.
+
+- Adiciona aplicativo Phoenix com login OAuth, melhorias de documentação e aprimoramentos de interface.
+- Utiliza o logomarca arredondado como favicon.
+- Migra CLI para Bun e atualiza builds executáveis de CI.
 
 ## 0.1.0
 
 *2026-02-12*
 
-#### Correções de bugs
-- Evitar que trechos de código ultrapassem horizontalmente a tela em dispositivos móveis.
-- Adicionar margem direita adequada aos trechos de código em dispositivos móveis.
-- Melhorar o layout responsivo para dispositivos móveis a fim de evitar o transbordamento horizontal.
-- Aplicar a formatação do Biome.
-- Adicionar títulos de grupos ao modelo de notas de versão.
-- Migrar o fluxo de tradução de Bun para Rust.
-- Alinhar o corpo das publicações ao layout principal e melhorar o conteúdo das publicações do blog.
-- Centralizar horizontalmente o conteúdo das publicações do blog.
-- Corrigir falha crítica ao truncar resultados de ferramentas com caracteres UTF-8 de múltiplos bytes.
+#### Correções de Bug
+
+- Impede o desbordamento horizontal de trecho de código no mobile.
+- Adiciona margem direita adequada aos trechos de código no mobile.
+- Melhora o layout responsivo do mobile para evitar desbordamento horizontal.
+- Aplica formatação Biome.
+- Adiciona títulos de grupo ao modelo de notas de lançamento.
+- Atualiza fluxo de trabalho de tradução de Bun para Rust.
+- Alinha o corpo do post com o layout de destaque e melhora o conteúdo do post do blog.
+- Centraliza o conteúdo do post do blog horizontalmente.
+- Corrige o panic ao truncar resultados de ferramentas UTF-8 de múltiplos bytes.
 
 #### Funcionalidades
-- Adicionar ferramentas próprias e uma seção no site.
-- Exibir as etapas de verificação das ferramentas.
-- Simplificar a saída de progresso.
-- Aplicar tonalidade às linhas de progresso.
-- Exibir as atividades de tradução e validação.
-- Formatar as linhas das ferramentas.
-- Tornar o site responsivo, com menu para dispositivos móveis e layout adaptado a vários pontos de quebra.
-- Reimplementar a interface de linha de comando em Bun/TypeScript.
-- Adicionar fluxo de integração contínua e testes.
-- Adicionar verificação de formatação com o Biome.
-- Adicionar a seção de Refinamento progressivo à página inicial.
-- Adicionar seção de blog com suporte à otimização para mecanismos de busca e a primeira publicação.
-- Unificar a saída da interface de linha de comando com o formato de verbos alinhados à direita.
-- Colorir a saída da interface de linha de comando com uma formatação de mensagens mais completa.
-- Adicionar imagem quadrada do Open Graph e metatags de cartão do Twitter.
-- Tornar o agente coordenador capaz de agir de forma autônoma usando ferramentas.
-- Reescrever `glossia init` com o Protocolo de Cliente de Agente (Agent Client Protocol, ACP).
-- Adicionar suporte ao Gemini, validação automática, rastreamento de tokens e melhorias de confiabilidade.
+
+- Adiciona seção de ferramentas próprias e site.
+- Exibe as etapas de verificação das ferramentas.
+- Simplifica a saída de progresso.
+- Aplica um tom às linhas de progresso.
+- Mostra atividade de tradução e validação.
+- Formata as linhas de ferramentas.
+- Deixa o site responsivo com menu mobile e layout de múltiplos pontos de quebra.
+- Reimplementa CLI em Bun/TypeScript.
+- Adiciona fluxo de trabalho CI e testes.
+- Adiciona verificação de formatação com Biome.
+- Adiciona seção de Refinamento Progressivo à página inicial.
+- Adiciona seção de blog com suporte para SEO e primeiro post do blog.
+- Unifica saída CLI com formato de verbo alinhado à direita.
+- Adiciona cores à saída CLI com formatação de mensagens mais rica.
+- Adiciona imagem quadrada de OG e etiquetas meta de cartão do Twitter.
+- Torna o agente coordenador agêntrico com uso de ferramentas.
+- Reescreve `glossia init` com Protocolo de Cliente de Agente (ACP).
+- Adiciona suporte ao Gemini, validação automática, rastreamento de tokens e melhorias de confiabilidade.
 
 #### Refatorações
-- Dividir a integração contínua em tarefas separadas de formatação, verificação de tipos, testes e compilação.
-- Reescrever a interface de linha de comando de TypeScript/Bun para Rust.
+
+- Divide CI em trabalhos de formatação, typecheck, teste e build separados.
+- Reescreve CLI de TypeScript/Bun para Rust.
