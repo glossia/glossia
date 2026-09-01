@@ -1,46 +1,46 @@
 %{
   title: "Configuração do projeto",
   summary: "Estados, informações de progresso e resultados da configuração do repositório.",
-  category: "reference",
+  category: "referência",
   order: 2
 }
 ---
-A configuração do projeto prepara um repositório conectado para o Glossia. Ela começa depois que o usuário seleciona um repositório e pelo menos um idioma de destino no fluxo **Novo projeto**.
+A configuração do projeto prepara um repositório conectado para Glossia. Ela começa após o usuário selecionar um repositório e pelo menos um idioma-alvo no **Novo projeto** fluxo.
 
 ## Pré-requisitos
 
-- A conta tem pelo menos um modelo configurado.
-- O aplicativo do Glossia para GitHub pode acessar o repositório selecionado.
+- A conta possui pelo menos um modelo configurado.
+- O aplicativo Glossia GitHub pode acessar o repositório selecionado.
 - O usuário pode criar projetos na conta.
-- Pelo menos um idioma de destino está selecionado.
+- Pelo menos um idioma-alvo é selecionado.
 
 ## Estados
 
 | Estado | Significado | Ação disponível |
 |---|---|---|
-| **Pendente** | O projeto foi aceito e está aguardando o início. | Acompanhe o progresso ou saia da página e retorne mais tarde. |
-| **Em execução** | O Glossia está inspecionando e atualizando o repositório. | Acompanhe a atividade em tempo real. |
-| **Concluído** | A base de localização foi preparada e publicada para revisão. | Abra, revise e faça o merge da pull request. |
+| **Pendente** | O projeto foi aceito e está aguardando início. | Acompanhamento do progresso ou sair da página e retornar depois. |
+| **Em execução** | Glossia examina e atualiza o repositório. | Acompanhamento da atividade em tempo real. |
+| **Concluído** | A base de localização foi preparada e publicada para revisão. | Abra, revise e mescale a solicitação de pull. |
 
-Os projetos são provisórios enquanto a configuração está **Pendente** ou **Em execução**. Se não for possível concluir a configuração ou publicar uma alteração utilizável, o Glossia limpa o ambiente de configuração e exclui o projeto provisório. O repositório fica disponível novamente no fluxo **Novo projeto**, permitindo uma nova tentativa de configuração.
+Os projetos são provisórios enquanto a configuração estiver **Pendente** ou **Em execução**. Se a configuração não puder terminar ou publicar uma alteração utilizável, Glossia limpa o ambiente da configuração e excluir o projeto provisório. O repositório então se torna disponível no **Novo projeto** fluxo para que a configuração possa ser tentada novamente.
 
 ## Progresso visível
 
-O cartão de configuração permanece disponível no fluxo de novo projeto e na visão geral do projeto. Ele inclui:
+O cartão de configuração permanece disponível no fluxo de novo projeto e na visão geral do projeto. Inclui:
 
-- Um indicador de estado e uma barra de progresso.
+- Um distintivo de estado e uma barra de progresso.
 - Uma breve explicação do estado atual.
-- Atividades recentes de preparação e inspeção do repositório, alterações de arquivos, verificações e conclusão.
-- Uma mensagem de falha clara quando não for possível concluir a configuração.
+- Atividade recente de preparação, inspeção, alteração de arquivo, verificação e conclusão do repositório.
+- Uma mensagem de falha clara quando a configuração não puder ser concluída.
 
-O progresso é armazenado enquanto o projeto provisório existe. Uma falha terminal descarta tanto o projeto quanto o progresso visível da configuração.
+O progresso é armazenado enquanto o projeto provisório existe. Uma falha terminal descarta tanto o projeto quanto o progresso de configuração visível.
 
 ## Resultado concluído
 
-Uma configuração conectada bem-sucedida cria uma branch dedicada e uma pull request direcionada à branch padrão do repositório. A pull request contém a base de localização gerada, incluindo o contexto `GLOSSIA.md` e as menores alterações viáveis necessárias para carregar o conteúdo localizado.
+Uma configuração conectada bem-sucedida cria uma branch dedicada e uma solicitação de pull contra a branch padrão do repositório. A solicitação de pull contém a base de localização gerada, incluindo `GLOSSIA.md` de contexto e as menores alterações práticas necessárias para carregar conteúdo localizado.
 
-A configuração não publica catálogos de destino que contenham apenas o cabeçalho. Quando uma estrutura de localização exige catálogos de destino antes da tradução, os catálogos contêm as entradas de mensagens extraídas da origem com valores de tradução vazios. Quando os catálogos de destino ainda não são necessários, a configuração os deixa para a primeira execução de tradução.
+A configuração não publica catálogos-alvo apenas com cabeçalho. Quando um framework de localização exige catálogos-alvo antes da tradução, os catálogos contêm as entradas de mensagens extraídas com valores de tradução vazios. Quando os catálogos-alvo ainda não são necessários, a configuração os deixa para a primeira execução de tradução.
 
-O Glossia não faz o merge da pull request. Os mantenedores do repositório a revisam e fazem o merge por meio do processo habitual no GitHub.
+Glossia não mescla a solicitação de pull. Os mantenedores do repositório revisam e mesclam através de seu processo normal no GitHub.
 
-A visão geral do projeto exibe um aviso de configuração enquanto essa pull request estiver aberta. O aviso é removido depois que o merge da pull request é concluído. Se a pull request for fechada sem merge, a visão geral informa que ela deve ser reaberta para que a configuração possa ser considerada concluída.
+A visão geral do projeto exibe um aviso de configuração enquanto essa solicitação de pull está aberta. O aviso é removido após a solicitação de pull ser mesclada. Se a solicitação de pull for fechada sem ser mesclada, a visão geral explica que ela deve ser reaberta antes que a configuração seja considerada concluída.
