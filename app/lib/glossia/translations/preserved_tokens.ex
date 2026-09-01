@@ -91,13 +91,20 @@ defmodule Glossia.Translations.PreservedTokens do
   """
   def unpreserved_values(excerpt, output, kinds)
       when is_binary(excerpt) and is_binary(output) and is_list(kinds) do
-    reproduced = output |> values(kinds) |> Enum.frequencies()
+    reproduced =
+      output
+      |> comparable_values(kinds)
+      |> Enum.map(&elem(&1, 0))
+      |> Enum.frequencies()
 
     excerpt
-    |> values(kinds)
-    |> Enum.frequencies()
-    |> Enum.flat_map(fn {value, count} ->
-      List.duplicate(value, max(count - Map.get(reproduced, value, 0), 0))
+    |> comparable_values(kinds)
+    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+    |> Enum.flat_map(fn {comparison_value, values} ->
+      List.duplicate(
+        List.first(values),
+        max(length(values) - Map.get(reproduced, comparison_value, 0), 0)
+      )
     end)
     |> Enum.sort()
   end
@@ -127,6 +134,79 @@ defmodule Glossia.Translations.PreservedTokens do
       end
     end)
     |> Enum.sort_by(& &1.start)
+  end
+
+  # MDEx correctly preserves a code block's parsed structure, but renders an
+  # unlabelled fenced block as its equivalent indented form. A code block still
+  # needs to be present with identical content, while its fence spelling is
+  # Markdown presentation rather than protected content. Keep raw ranges for
+  # masking and restoration, and use this normalized representation only for
+  # the source-versus-output comparison.
+  defp comparable_values(source, kinds) do
+    non_code_kinds = Enum.reject(kinds, &(&1 == "code_blocks"))
+
+    non_code_values =
+      source
+      |> values(non_code_kinds)
+      |> Enum.map(&{&1, &1})
+
+    code_values =
+      if "code_blocks" in kinds do
+        source
+        |> comparable_code_blocks()
+        |> Enum.map(fn {raw, normalized} -> {{:code_block, normalized}, raw} end)
+      else
+        []
+      end
+
+    non_code_values ++ code_values
+  end
+
+  defp comparable_code_blocks(source) do
+    fenced =
+      source
+      |> fenced_code_ranges()
+      |> Enum.map(fn %{value: value} -> {value, normalize_fenced_code_block(value)} end)
+
+    indented =
+      source
+      |> indented_code_blocks()
+      |> Enum.map(fn value -> {value, {"", normalize_indented_code_block(value)}} end)
+
+    fenced ++ indented
+  end
+
+  defp normalize_fenced_code_block(value) do
+    lines = value |> String.trim_trailing() |> String.split("\n")
+    [opening | rest] = lines
+
+    language =
+      case Regex.run(~r/^[ \t]{0,3}(?:`{3,}|~{3,})[ \t]*(.*)$/, opening) do
+        [_, language] -> String.trim(language)
+        _ -> ""
+      end
+
+    {language, rest |> Enum.drop(-1) |> Enum.join("\n")}
+  end
+
+  defp indented_code_blocks(source) do
+    Regex.scan(~r/(?:\A|\n)((?:(?: {4}|\t)[^\r\n]*(?:\r?\n|$))+)/, source,
+      capture: :all_but_first
+    )
+    |> Enum.map(fn [block] -> block end)
+    |> Enum.reject(&(&1 == ""))
+  end
+
+  defp normalize_indented_code_block(value) do
+    value
+    |> String.trim_trailing()
+    |> String.split("\n")
+    |> Enum.map(fn line ->
+      line
+      |> String.replace_prefix("    ", "")
+      |> String.replace_prefix("\t", "")
+    end)
+    |> Enum.join("\n")
   end
 
   # A web address only has to be masked when it carries another protected value.

@@ -75,6 +75,22 @@ defmodule Glossia.Translations.ValidateTest do
       assert {:error, _} = Validate.validate_preserve("Sin bloque", source, ["code_blocks"])
     end
 
+    test "accepts an equivalent indented rendering of an unlabelled fenced code block" do
+      source = "Intro\n\n```\nGLOSSIA/\n  ja.md\n```\n\nAfter"
+      output = "Introducción\n\n    GLOSSIA/\n      ja.md\n\nDespués"
+
+      assert :ok = Validate.validate_preserve(output, source, ["code_blocks"])
+
+      assert {:error, message} =
+               Validate.validate_preserve(
+                 "Introducción\n\n    GLOSSIA/\n      ko.md\n\nDespués",
+                 source,
+                 ["code_blocks"]
+               )
+
+      assert message =~ "preserved tokens missing"
+    end
+
     test "rejects added or duplicated protected tokens" do
       assert {:error, message} =
                Validate.validate_preserve(
