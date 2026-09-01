@@ -1,15 +1,15 @@
 %{
   title: "Adicionar um novo idioma",
-  summary: "Como adicionar um idioma de destino a uma configuração existente do Glossia.",
-  category: "how-to",
+  summary: "Como adicionar um idioma de destino a uma configuração Glossia existente.",
+  category: "guia",
   order: 1
 }
 ---
-Se você já configurou o Glossia e deseja adicionar outro idioma de destino, siga estas etapas.
+Se você já tem o Glossia configurado e deseja adicionar outro idioma de destino, siga esses passos.
 
-## 1. Atualize o GLOSSIA.md
+## Atualize o GLOSSIA.md
 
-Abra seu `GLOSSIA.md` e adicione o código do novo idioma ao array `targets`:
+Abra o `GLOSSIA.md` e adicione o novo código de idioma ao `targets`array:
 
 ```yaml
 targets:
@@ -19,27 +19,25 @@ targets:
   - ja
 ```
 
-## 2. Adicione contexto específico do idioma (opcional)
+## Adicione um contexto específico do idioma (opcional)
 
-Se o novo idioma exigir instruções específicas, como nível de formalidade ou considerações sobre o conjunto de caracteres, crie um arquivo de substituição de contexto:
+Se o novo idioma precisar de instruções especiais, como nível de formalidade ou considerações sobre o conjunto de caracteres, crie um arquivo de sobrescrita de contexto:
 
-```
-GLOSSIA/
-  ja.md
-```
+    GLOSSIA/
+      ja.md
 
-Adicione a esse arquivo todas as orientações específicas do idioma. O Glossia as combina com o contexto base para as traduções em japonês.
+Escreva qualquer orientação específica do idioma nesse arquivo. O Glossia o mescla com o contexto base para traduções em japonês.
 
-## 3. Publique a alteração de configuração
+## Publicar a alteração na configuração
 
-Faça commit e push da configuração atualizada. Se o repositório estiver conectado ao
-Glossia, o servidor detectará o novo idioma de destino e iniciará uma sessão de
-tradução.
+Faça o commit e empurre a configuração atualizada. Se o repositório estiver conectado ao
+Glossia, o servidor detecta o novo idioma de destino e inicia uma tradução
+sessão.
 
-As traduções existentes para outros idiomas permanecerão inalteradas se suas entradas
-e seu contexto efetivo não tiverem sido alterados.
+As traduções existentes para outros idiomas permanecem inalteradas quando suas entradas
+e contexto efetivo não tenham mudado.
 
-## 4. Revise a solicitação de pull da tradução
+## Revise os arquivos do idioma no pull request
 
-Acompanhe a sessão de tradução no Glossia e, em seguida, revise os arquivos do idioma
-gerados na solicitação de pull aberta pelo servidor.
+Siga a sessão de tradução no Glossia e, em seguida, revise os arquivos do idioma gerados
+nos arquivos do pull request aberto pelo servidor.
