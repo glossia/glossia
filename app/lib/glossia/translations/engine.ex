@@ -16,7 +16,7 @@ defmodule Glossia.Translations.Engine do
 
   @segment_attempts 2
   @markdown_text_literal_recovery_max_calls 128
-  @markdown_text_literal_recovery_batch_size 12
+  @markdown_text_literal_recovery_batch_size 32
   @markdown_text_literal_recovery_batch_bytes 8_000
   @markdown_text_literal_fast_path_min_literals 12
 

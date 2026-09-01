@@ -771,7 +771,7 @@ defmodule Glossia.Translations.EngineTest do
                payload["source_content"]
                |> JSON.decode!()
                |> length()
-               |> Kernel.<=(12)
+               |> Kernel.<=(32)
              end)
     end
 
