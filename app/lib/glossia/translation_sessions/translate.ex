@@ -61,6 +61,7 @@ defmodule Glossia.TranslationSessions.Translate do
         full_name: project.github_repo_full_name,
         default_branch: project.github_repo_default_branch || "main",
         commit_sha: session.commit_sha,
+        publication_branch: session.publication_branch,
         token: token
       }
 

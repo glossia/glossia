@@ -841,9 +841,10 @@ defmodule Glossia.Translations.RepositoryRun do
 
   # ── clone ─────────────────────────────────────────────────────────────────
 
-  defp clone(%{full_name: full_name, default_branch: branch} = repository) do
+  defp clone(%{full_name: full_name, default_branch: default_branch} = repository) do
     dir = Path.join(System.tmp_dir!(), "glossia-translate-#{System.unique_integer([:positive])}")
     source = clone_source(full_name, repository[:token])
+    branch = repository[:publication_branch] || default_branch
 
     case MuonTrap.cmd("git", ["clone", "--branch", branch, source, dir],
            stderr_to_stdout: true,
@@ -851,7 +852,7 @@ defmodule Glossia.Translations.RepositoryRun do
            timeout: @git_timeout_ms
          ) do
       {_output, 0} ->
-        case checkout_commit(dir, repository[:commit_sha]) do
+        case checkout_source(dir, repository) do
           :ok ->
             {:ok, dir}
 
@@ -864,6 +865,15 @@ defmodule Glossia.Translations.RepositoryRun do
         {:error, {:clone_failed, String.trim(output)}}
     end
   end
+
+  # A checkpointed session already has a branch containing validated outputs and
+  # lockfiles. Clone it directly on a later attempt so planning skips that work
+  # and publication advances the same pull request rather than opening another.
+  defp checkout_source(_dir, %{publication_branch: branch})
+       when is_binary(branch) and branch != "",
+       do: :ok
+
+  defp checkout_source(dir, repository), do: checkout_commit(dir, repository[:commit_sha])
 
   # In development a `local_remotes_dir` can hold seeded repositories that stand in
   # for GitHub remotes (see `priv/repo/seeds.exs`); clone from there when present,

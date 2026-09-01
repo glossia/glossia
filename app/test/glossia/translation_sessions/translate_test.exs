@@ -477,6 +477,34 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.status == "failed"
   end
 
+  test "passes an existing publication branch to a resumed repository run" do
+    {user, project} = project_with_installation("translate-resume@test.com", "translate-resume")
+    session = session_for(user, project)
+
+    {:ok, session} =
+      TranslationSessions.update_session_publication(session, %{
+        publication_branch: "glossia/translate-abc123456789",
+        publication_commit_sha: "checkpoint-commit",
+        pull_request_url: "https://github.com/glossia/demo/pull/2",
+        pull_request_number: 2
+      })
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            repository,
+                                                            _locales,
+                                                            _opts ->
+      send(self(), {:repository, repository})
+      {:error, {:clone_failed, "boom"}}
+    end)
+
+    assert {:error, {:clone_failed, "boom"}} = Translate.run(session.id)
+
+    assert_received {:repository, %{publication_branch: "glossia/translate-abc123456789"}}
+  end
+
   test "fails the session when a translation item fails" do
     {user, project} =
       project_with_installation("translate-retry@test.com", "translate-retry")
