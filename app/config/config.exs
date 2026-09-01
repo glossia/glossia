@@ -154,6 +154,10 @@ config :glossia, Oban,
   repo: Glossia.Repo,
   queues: [default: 10, analytics: 5],
   plugins: [
+    # Oban.Met otherwise starts itself for every Oban instance and runs DDL at
+    # runtime. The schema migration owns that one-time change instead, so a
+    # restart cannot block normal application writes on pg_proc.
+    {Oban.Met, reporter: [auto_migrate: false]},
     {Oban.Plugins.Cron,
      crontab: [
        {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker},
@@ -161,6 +165,10 @@ config :glossia, Oban,
        {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker}
      ]}
   ]
+
+# Oban.Met is brought in by the dashboard. Start it only through the configured
+# Oban plugin above, where automatic database schema changes are disabled.
+config :oban_met, auto_start: false
 
 config :fun_with_flags, :persistence,
   adapter: FunWithFlags.Store.Persistent.Ecto,
