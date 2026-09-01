@@ -79,6 +79,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp apply_action(socket, :account, _params) do
     account = socket.assigns.account
+    organization = Organizations.get_organization_for_account(account)
 
     {projects, total} =
       case Glossia.Projects.list_projects(account) do
@@ -94,6 +95,7 @@ defmodule GlossiaWeb.DashboardLive do
       projects_sort_key: "name",
       projects_sort_dir: "asc",
       projects_page: 1,
+      claimable_organization: organization && organization.claimable,
       breadcrumb_items: []
     )
   end
@@ -3466,6 +3468,8 @@ defmodule GlossiaWeb.DashboardLive do
           projects_page={@projects_page}
           handle={@handle}
           can_write={@can_write}
+          claimable_organization={@claimable_organization}
+          current_user={@current_user}
         />
       <% :voice -> %>
         <.voice_page
@@ -3767,6 +3771,31 @@ defmodule GlossiaWeb.DashboardLive do
           <h1 data-part="page-title">{gettext("Organization")}</h1>
           <p data-part="page-subtitle">{gettext("Projects connected to this organization.")}</p>
         </div>
+        <.form
+          :if={@claimable_organization && @current_user}
+          for={%{}}
+          id="claim-organization-form"
+          action={~p"/#{@handle}/-/claim"}
+          method="post"
+        >
+          <Noora.Button.button
+            label={gettext("Claim organization")}
+            size="large"
+            variant="secondary"
+            type="submit"
+          >
+            <:icon_left><Noora.Icon.check /></:icon_left>
+          </Noora.Button.button>
+        </.form>
+        <Noora.Button.link_button
+          :if={@claimable_organization && is_nil(@current_user)}
+          label={gettext("Sign in to claim")}
+          href={~p"/auth/login"}
+          size="large"
+          variant="secondary"
+        >
+          <:icon_left><Noora.Icon.check /></:icon_left>
+        </Noora.Button.link_button>
         <div :if={@can_write} data-part="actions">
           <Noora.Button.button
             patch={"/" <> @handle <> "/-/projects/new"}

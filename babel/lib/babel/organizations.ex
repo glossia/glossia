@@ -115,6 +115,74 @@ defmodule Babel.Organizations do
     end
   end
 
+  def create_claimable_glossia_organization(
+        %Organization{} = organization,
+        requester,
+        handle,
+        opts \\ []
+      ) do
+    client = Keyword.get(opts, :client, &Babel.Glossia.create_claimable_organization/2)
+
+    with :ok <- ensure_not_connected(organization),
+         true <- valid_requester?(requester),
+         :ok <- validate_glossia_handle(handle),
+         {:ok, response} <-
+           client.(
+             %{
+               "handle" => handle,
+               "name" => organization.name,
+               "requested_by_email" => requester.email,
+               "requested_by_pomerium_id" => requester.pomerium_id
+             },
+             []
+           ),
+         {:ok, organization_id, account_handle} <- parse_claimable_organization(response),
+         {:ok, updated_organization} <-
+           update_claimable_organization_reference(organization, organization_id, account_handle) do
+      {:ok, updated_organization}
+    else
+      {:error, _reason} = error -> error
+      false -> {:error, :unauthorized}
+    end
+  end
+
+  def transfer_claimable_glossia_organization(
+        %Organization{} = organization,
+        requester,
+        email,
+        opts \\ []
+      ) do
+    client = Keyword.get(opts, :client, &Babel.Glossia.transfer_claimable_organization/3)
+
+    with {:ok, handle} <- connected_account_handle(organization),
+         true <- valid_requester?(requester),
+         :ok <- validate_email(email),
+         {:ok, _response} <-
+           client.(
+             handle,
+             %{
+               "email" => email,
+               "requested_by_email" => requester.email,
+               "requested_by_pomerium_id" => requester.pomerium_id
+             },
+             []
+           ),
+         {:ok, _interaction} <-
+           record_ownership_transfer(organization, email) do
+      {:ok, %{organization | glossia_claimable: false}}
+    else
+      {:error, "organization_not_claimable"} = error ->
+        {:ok, _organization} = mark_glossia_organization_not_claimable(organization)
+        error
+
+      {:error, _reason} = error ->
+        error
+
+      false ->
+        {:error, :unauthorized}
+    end
+  end
+
   def favicon_url(%Organization{website_url: website_url}) when is_binary(website_url) do
     case URI.parse(website_url) do
       %URI{scheme: "https", host: host} = uri when is_binary(host) and host != "" ->
@@ -152,6 +220,114 @@ defmodule Babel.Organizations do
   end
 
   defp valid_requester?(_requester), do: false
+
+  defp ensure_not_connected(%Organization{glossia_organization_id: nil}), do: :ok
+  defp ensure_not_connected(%Organization{}), do: {:error, :already_connected}
+
+  defp parse_claimable_organization(%{"id" => id, "handle" => handle})
+       when is_binary(id) and is_binary(handle) do
+    with {:ok, organization_id} <- Ecto.UUID.cast(id),
+         true <- valid_glossia_handle?(handle) do
+      {:ok, organization_id, handle}
+    else
+      _error -> {:error, :invalid_glossia_response}
+    end
+  end
+
+  defp parse_claimable_organization(_response), do: {:error, :invalid_glossia_response}
+
+  defp update_claimable_organization_reference(organization, organization_id, handle) do
+    Multi.new()
+    |> Multi.update(
+      :organization,
+      Organization.changeset(organization, %{
+        glossia_organization_id: organization_id,
+        glossia_account_handle: handle,
+        glossia_claimable: true
+      })
+    )
+    |> Multi.insert(:interaction, fn %{organization: updated_organization} ->
+      Interaction.changeset(%Interaction{}, %{
+        organization_id: updated_organization.id,
+        kind: "note",
+        summary: "Created claimable Glossia organization \"#{handle}\".",
+        occurred_at: DateTime.utc_now(:second)
+      })
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{organization: updated_organization}} -> {:ok, updated_organization}
+      {:error, :organization, changeset, _changes} -> {:error, changeset}
+      {:error, :interaction, changeset, _changes} -> {:error, changeset}
+    end
+  end
+
+  defp record_ownership_transfer(organization, email) do
+    Multi.new()
+    |> Multi.update(
+      :organization,
+      Organization.changeset(organization, %{glossia_claimable: false})
+    )
+    |> Multi.insert(:interaction, fn %{organization: updated_organization} ->
+      Interaction.changeset(%Interaction{}, %{
+        organization_id: updated_organization.id,
+        kind: "note",
+        summary: "Transferred claimable Glossia organization ownership to #{email}.",
+        occurred_at: DateTime.utc_now(:second)
+      })
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{interaction: interaction}} -> {:ok, interaction}
+      {:error, :organization, changeset, _changes} -> {:error, changeset}
+      {:error, :interaction, changeset, _changes} -> {:error, changeset}
+    end
+  end
+
+  defp mark_glossia_organization_not_claimable(organization) do
+    organization
+    |> Organization.changeset(%{glossia_claimable: false})
+    |> Repo.update()
+  end
+
+  defp connected_account_handle(%Organization{
+         glossia_organization_id: organization_id,
+         glossia_account_handle: handle,
+         glossia_claimable: true
+       })
+       when is_binary(organization_id) and is_binary(handle) and handle != "" do
+    {:ok, handle}
+  end
+
+  defp connected_account_handle(%Organization{glossia_organization_id: organization_id})
+       when is_binary(organization_id),
+       do: {:error, :not_claimable}
+
+  defp connected_account_handle(%Organization{}), do: {:error, :not_connected}
+
+  defp valid_glossia_handle?(handle) when is_binary(handle) do
+    Regex.match?(~r/^[a-z]([a-z0-9-]*[a-z0-9])?$/, handle) and
+      String.length(handle) in 2..39
+  end
+
+  defp valid_glossia_handle?(_handle), do: false
+
+  defp validate_glossia_handle(handle) do
+    if valid_glossia_handle?(handle), do: :ok, else: {:error, :invalid_handle}
+  end
+
+  defp valid_email?(email) when is_binary(email) do
+    case String.split(String.trim(email), "@", parts: 2) do
+      [local_part, domain] when local_part != "" and domain != "" -> true
+      _ -> false
+    end
+  end
+
+  defp valid_email?(_email), do: false
+
+  defp validate_email(email) do
+    if valid_email?(email), do: :ok, else: {:error, :invalid_email}
+  end
 
   defp filter_by_state(query, nil), do: query
 

@@ -16,6 +16,8 @@ defmodule BabelWeb.OperationsLive do
        available_filters: account_filters(),
        current_account: current_account(session),
        temporary_access_form: new_temporary_access_form(),
+       claimable_organization_form: new_claimable_organization_form(nil),
+       transfer_organization_form: new_transfer_organization_form(),
        temporary_access_recipient: nil,
        temporary_access_url: nil
      )}
@@ -53,6 +55,8 @@ defmodule BabelWeb.OperationsLive do
         organization_edit_form: edit_organization_form(account),
         interaction_form: new_interaction_form(),
         temporary_access_form: new_temporary_access_form(),
+        claimable_organization_form: new_claimable_organization_form(account),
+        transfer_organization_form: new_transfer_organization_form(),
         temporary_access_recipient: nil,
         temporary_access_url: nil,
         page_favicon: organization_favicon_url(account),
@@ -142,6 +146,8 @@ defmodule BabelWeb.OperationsLive do
               organization_edit_form={@organization_edit_form}
               interaction_form={@interaction_form}
               temporary_access_form={@temporary_access_form}
+              claimable_organization_form={@claimable_organization_form}
+              transfer_organization_form={@transfer_organization_form}
               temporary_access_recipient={@temporary_access_recipient}
               temporary_access_url={@temporary_access_url}
             />
@@ -422,6 +428,8 @@ defmodule BabelWeb.OperationsLive do
   attr(:organization_edit_form, :any, required: true)
   attr(:interaction_form, :any, required: true)
   attr(:temporary_access_form, :any, required: true)
+  attr(:claimable_organization_form, :any, required: true)
+  attr(:transfer_organization_form, :any, required: true)
   attr(:temporary_access_recipient, :string, default: nil)
   attr(:temporary_access_url, :string, default: nil)
 
@@ -525,6 +533,69 @@ defmodule BabelWeb.OperationsLive do
             </div>
           </dl>
           <p :if={@account.notes} data-part="organization-notes">{@account.notes}</p>
+        </.card_section>
+      </.card>
+
+      <.card
+        :if={is_nil(@account.glossia_organization_id)}
+        title="Create claimable Glossia organization"
+        icon="building"
+        id="organization-claimable-glossia-card"
+      >
+        <.card_section>
+          <p data-part="usage-message">
+            Create a public organization without an owner. A signed-in Glossia user can claim it,
+            or you can transfer it directly after creation.
+          </p>
+          <.form
+            id="create-claimable-glossia-organization-form"
+            for={@claimable_organization_form}
+            phx-submit="create_claimable_glossia_organization"
+          >
+            <.text_input
+              field={@claimable_organization_form[:handle]}
+              id="claimable-glossia-organization-handle"
+              label="Glossia handle"
+              placeholder="omarchy"
+              required
+              show_required
+            />
+            <.button label="Create claimable organization" size="medium" variant="primary" type="submit">
+              <:icon_left><.icon name="plus" /></:icon_left>
+            </.button>
+          </.form>
+        </.card_section>
+      </.card>
+
+      <.card
+        :if={@account.glossia_claimable}
+        title="Transfer ownership"
+        icon="building"
+        id="organization-transfer-ownership-card"
+      >
+        <.card_section>
+          <p data-part="usage-message">
+            Assign this claimable organization to an existing Glossia user. This action cannot be
+            reversed from Babel.
+          </p>
+          <.form
+            id="transfer-claimable-glossia-organization-form"
+            for={@transfer_organization_form}
+            phx-submit="transfer_claimable_glossia_organization"
+          >
+            <.text_input
+              field={@transfer_organization_form[:email]}
+              id="transfer-claimable-glossia-organization-email"
+              label="New owner email"
+              placeholder="maintainer@example.com"
+              input_type="email"
+              required
+              show_required
+            />
+            <.button label="Transfer ownership" size="medium" variant="secondary" type="submit">
+              <:icon_left><.icon name="arrow_right" /></:icon_left>
+            </.button>
+          </.form>
         </.card_section>
       </.card>
 
@@ -790,6 +861,91 @@ defmodule BabelWeb.OperationsLive do
     end
   end
 
+  def handle_event(
+        "create_claimable_glossia_organization",
+        %{"claimable_organization" => %{"handle" => handle}},
+        socket
+      ) do
+    case Organizations.create_claimable_glossia_organization(
+           socket.assigns.account,
+           socket.assigns.current_account,
+           handle
+         ) do
+      {:ok, updated_organization} ->
+        account = Organizations.get_organization(updated_organization.id)
+
+        {:noreply,
+         socket
+         |> assign(
+           account: account,
+           account_usage: account_usage(account),
+           claimable_organization_form: new_claimable_organization_form(account),
+           transfer_organization_form: new_transfer_organization_form()
+         )
+         |> put_flash(:info, "Claimable Glossia organization created.")}
+
+      {:error, :already_connected} ->
+        {:noreply,
+         put_flash(socket, :error, "This organization is already connected to Glossia.")}
+
+      {:error, :unauthorized} ->
+        {:noreply,
+         put_flash(socket, :error, "Your Pomerium identity cannot create organizations.")}
+
+      {:error, _reason} ->
+        {:noreply,
+         put_flash(socket, :error, "The claimable Glossia organization could not be created.")}
+    end
+  end
+
+  def handle_event(
+        "transfer_claimable_glossia_organization",
+        %{"transfer_organization" => %{"email" => email}},
+        socket
+      ) do
+    case Organizations.transfer_claimable_glossia_organization(
+           socket.assigns.account,
+           socket.assigns.current_account,
+           email
+         ) do
+      {:ok, updated_organization} ->
+        account = Organizations.get_organization(updated_organization.id)
+
+        {:noreply,
+         socket
+         |> assign(
+           account: account,
+           account_usage: account_usage(account),
+           transfer_organization_form: new_transfer_organization_form()
+         )
+         |> put_flash(:info, "Ownership transferred.")}
+
+      {:error, :not_connected} ->
+        {:noreply, put_flash(socket, :error, "Connect this organization to Glossia first.")}
+
+      {:error, :not_claimable} ->
+        {:noreply, put_flash(socket, :error, "This Glossia organization cannot be transferred.")}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, "Your Pomerium identity cannot transfer ownership.")}
+
+      {:error, "organization_not_claimable"} ->
+        account = Organizations.get_organization(socket.assigns.account.id)
+
+        {:noreply,
+         socket
+         |> assign(account: account, account_usage: account_usage(account))
+         |> put_flash(:error, "This organization is no longer claimable.")}
+
+      {:error, "organization_or_user_not_found"} ->
+        {:noreply,
+         put_flash(socket, :error, "The organization or recipient was not found in Glossia.")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Ownership could not be transferred.")}
+    end
+  end
+
   def handle_event("search_accounts", %{"search" => search}, socket) do
     params =
       socket.assigns.uri.query
@@ -1010,6 +1166,19 @@ defmodule BabelWeb.OperationsLive do
     %TemporaryAccess{}
     |> TemporaryAccess.changeset(%{duration_minutes: 30})
     |> to_form(as: :temporary_access)
+  end
+
+  defp new_claimable_organization_form(%Organization{glossia_account_handle: handle})
+       when is_binary(handle) and handle != "" do
+    to_form(%{"handle" => handle}, as: :claimable_organization)
+  end
+
+  defp new_claimable_organization_form(_organization) do
+    to_form(%{"handle" => ""}, as: :claimable_organization)
+  end
+
+  defp new_transfer_organization_form do
+    to_form(%{"email" => ""}, as: :transfer_organization)
   end
 
   defp new_account_form do

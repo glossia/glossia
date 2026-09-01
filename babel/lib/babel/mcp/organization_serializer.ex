@@ -12,7 +12,8 @@ defmodule Babel.MCP.OrganizationSerializer do
       state: organization.state,
       translation_tool: organization.translation_tool,
       notes: organization.notes,
-      glossia_organization_id: organization.glossia_organization_id
+      glossia_organization_id: organization.glossia_organization_id,
+      glossia_claimable: organization.glossia_claimable
     }
   end
 

@@ -16,6 +16,15 @@ defmodule Babel.MCP.Server do
   component(Babel.MCP.GetOrganizationTool, name: "get_organization")
   component(Babel.MCP.CreateOrganizationTool, name: "create_organization")
   component(Babel.MCP.UpdateOrganizationTool, name: "update_organization")
+
+  component(Babel.MCP.CreateClaimableGlossiaOrganizationTool,
+    name: "create_claimable_glossia_organization"
+  )
+
+  component(Babel.MCP.TransferClaimableGlossiaOrganizationTool,
+    name: "transfer_claimable_glossia_organization"
+  )
+
   component(Babel.MCP.CreateOrganizationInteractionTool, name: "create_organization_interaction")
   component(Babel.MCP.DiscoverGoToMarketProspectsTool, name: "discover_go_to_market_prospects")
 end
