@@ -133,8 +133,9 @@ translationJob:
   # How long a finished Job sticks around for its logs to be read.
   ttlSecondsAfterFinished: 3600
   # A ceiling on one translation, so a run wedged against a model provider
-  # cannot hold a pod forever. Six hours.
-  activeDeadlineSeconds: 21600
+  # cannot hold a pod forever. A full day leaves large repositories enough
+  # time to finish while still bounding a genuinely stuck Job.
+  activeDeadlineSeconds: 86400
   # Empty inherits flame.k8s.resources.
   resources: {}
 

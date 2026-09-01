@@ -113,10 +113,11 @@ config :glossia, Glossia.TranslationSessions.Launcher,
   # completed Jobs do not accumulate.
   ttl_seconds_after_finished:
     integer_env.("GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED", 3_600),
-  # A ceiling on a single translation, so one that wedges against a provider
-  # cannot hold a pod indefinitely.
+  # A ceiling on one translation. Large repositories can require more than six
+  # hours even with concurrent workers, so this must leave room for a complete
+  # session while still bounding a wedged provider request.
   active_deadline_seconds:
-    integer_env.("GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS", 21_600),
+    integer_env.("GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS", 86_400),
   resources: json_env.("GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON", %{})
 
 sandbox_adapter =
