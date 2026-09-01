@@ -346,7 +346,7 @@ defmodule Glossia.Translations.LLMTest do
       Mimic.stub(ReqLLM.Response, :text, fn :response -> "" end)
 
       cred = %{
-        model: "togetherai/Qwen/Qwen3.5-9B",
+        model: "openai/Qwen/Qwen3.5-9B",
         auth: {:api_key, "sk", nil},
         source: :account_model
       }

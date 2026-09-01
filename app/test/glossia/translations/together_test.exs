@@ -42,7 +42,7 @@ defmodule Glossia.Translations.TogetherTest do
       })
     end)
 
-    assert {:error, {:output_limit_reached, 5}} =
+    assert {:error, {:output_limit_reached, 4}} =
              Together.complete(
                "Qwen/Qwen3.5-9B",
                "test-key",
