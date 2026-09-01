@@ -1,55 +1,71 @@
 %{
   title: "Memória linguística",
-  summary: "Uma camada de contexto versionada que registra a voz, a terminologia e o estilo da sua organização. A memória linguística orienta todos os fluxos de trabalho dos agentes e se estende às suas próprias ferramentas por meio da API e do MCP.",
+  summary:
+    "Uma camada de contexto versionada que captura a voz, terminologia e estilo da sua organização. A memória linguística orienta cada fluxo de agente e estende-se às suas próprias ferramentas através da API e MCP.",
   order: 5,
   icon: "brain",
   hero_cta_text: "Começar",
   hero_cta_url: "/signup",
   highlights: [
-    %{title: "Versionada e auditável", description: "Cada alteração na voz ou na terminologia cria uma nova versão imutável. Você pode consultar o histórico, comparar iterações e reverter caso haja algum desvio.", icon: "git-branch"},
-    %{title: "Além da localização", description: "A memória linguística não se limita à localização. Use-a para gerar textos de marketing, redigir documentação, revisar pull requests ou criar publicações para redes sociais, sempre com a voz da sua organização.", icon: "megaphone"},
-    %{title: "Aberta e extensível", description: "Acesse a memória linguística por meio da API REST ou do servidor MCP. Integre-a aos seus próprios pipelines de CI, às ferramentas de conteúdo ou aos agentes personalizados para manter a consistência em todos os seus textos.", icon: "puzzle"}
+    %{
+      title: "Versionado e auditável",
+      description:
+        "Toda alteração na sua voz ou terminologia cria uma nova versão imutável. Você pode revisar o histórico, comparar iterações e reverter se algo desviar.",
+      icon: "git-branch"
+    },
+    %{
+      title: "Além da localização",
+      description:
+        "A memória linguística não é apenas para localização. Use-a para gerar texto de marketing, rascunhar documentação, revisar solicitações de pull ou criar postagens sociais, tudo na voz da sua organização.",
+      icon: "megaphone"
+    },
+    %{
+      title: "Aberto e extensível",
+      description:
+        "Acesse a memória linguística via API REST ou servidor MCP. Integre-a aos seus próprios pipelines de CI, ferramentas de conteúdo ou agentes personalizados para manter a consistência em todo lugar onde escreve.",
+      icon: "puzzle"
+    }
   ]
 }
 ---
-## O que é memória linguística?
+## O que é memória de idioma?
 
-Memória linguística é o contexto acumulado que orienta os agentes da Glossia sobre como sua organização se comunica. Ela é composta por dois elementos fundamentais que você cria e aprimora ao longo do tempo:
+A memória de idioma é o contexto acumulado que informa aos agentes da Glossia como sua organização se comunica. É composta por dois primitivos centrais que você cria e aprimora ao longo do tempo:
 
-**Voz** define como o conteúdo deve soar. Tom, formalidade, público-alvo e diretrizes em formato livre ficam todos registrados aqui. Você pode definir uma voz-base para sua conta e substituir campos específicos para cada localidade. Assim, seu conteúdo em japonês pode ser mais formal, enquanto o conteúdo em inglês permanece conversacional.
+**Voz** define como o conteúdo deve soar. Tom, formalidade, público-alvo e diretrizes livres estão todos aqui. Você pode definir uma voz base para sua conta e depois sobrescrever campos específicos para localizações individuais, assim seu conteúdo em japonês pode ser mais formal enquanto seu conteúdo em inglês permanece conversacional.
 
-**Terminologia** define o significado dos termos e como eles devem ser localizados. Cada entrada contém uma definição e traduções específicas por localidade. Quando um agente encontra "workspace" no conteúdo de origem, a terminologia informa se o termo deve ser localizado, transliterado ou mantido sem alterações, além de indicar exatamente qual palavra usar em cada idioma de destino.
+**Terminologia** define o que os termos significam e como devem ser localizados. Cada entrada carrega uma definição e traduções por localização. Quando um agente encontra "workspace" em seu conteúdo de origem, a terminologia indica a ele se deve localizar, transliterar ou deixá-lo inalterado e exatamente qual palavra usar em cada idioma de destino.
 
-Juntas, voz e terminologia formam uma camada de contexto que os agentes consultam em cada execução. Quanto mais você investir nessa camada, menos revisão será necessária para o conteúdo gerado.
+Juntos, voz e terminologia formam uma camada de contexto que os agentes consultam em cada execução. Quanto mais você investir nessa camada, menos revisão seu resultado precisa.
 
 ## Versionamento imutável
 
-A memória linguística funciona somente por acréscimo. Quando você atualiza sua voz ou terminologia, a Glossia cria uma nova versão em vez de substituir a anterior. Cada versão registra quem a criou, quando ela foi criada e uma nota de alteração opcional que explica o que mudou.
+A memória de idioma é apenas para adição de novos registros. Quando você atualizar sua voz ou terminologia, a Glossia cria uma nova versão em vez de sobrescrever a anterior. Cada versão registra quem a criou, quando e uma nota de alteração opcional explicando o que evoluiu.
 
-Isso significa que você sempre terá uma trilha de auditoria completa. É possível comparar a versão 3 com a versão 7 para entender como o tom mudou ao longo de um trimestre. Se uma alteração recente introduzir inconsistências, restaure uma versão anterior e prossiga.
+Isso significa que você sempre terá um histórico completo de auditoria. Você pode comparar a versão 3 contra a versão 7 para entender como seu tom mudou em um trimestre. Se uma mudança recente introduziu inconsistências, reverta para uma versão anterior e continue.
 
-O versionamento também torna a colaboração mais segura. Vários integrantes da equipe podem propor alterações de voz sem se preocupar com conflitos, pois cada mudança é um evento independente e rastreável.
+O versionamento também torna a colaboração mais segura. Múltiplos membros da equipe podem propor mudanças de voz sem se preocupar com conflitos, porque cada mudança é um evento discreto e rastreável.
 
-## Resolução ciente da localidade
+## Resolução sensível à localização
 
-Quando um agente executa um fluxo de trabalho para uma localidade específica, a Glossia resolve a memória linguística correspondente a esse contexto. Primeiro, ela utiliza as configurações da voz-base e, em seguida, aplica as substituições específicas da localidade. O mesmo ocorre com a terminologia: somente as entradas que possuem um termo localizado para a localidade de destino são incluídas.
+Quando um agente executa um fluxo de trabalho para uma localização específica, a Glossia resolve a memória de idioma para esse contexto. Começa com suas configurações de voz base e aplica quaisquer sobrescritas específicas da localização em cima. O mesmo acontece com a terminologia: apenas as entradas que têm um termo localizado para a localização de destino são incluídas.
 
-Essa etapa de resolução garante que os agentes sempre trabalhem com o contexto mais relevante. Você não precisa manter configurações separadas para cada idioma. Defina os padrões uma vez, substitua-os onde for necessário e deixe que o sistema de resolução cuide do restante.
+Esse passo de resolução significa que os agentes sempre trabalham com o contexto mais relevante. Você não precisa manter configurações separadas por idioma. Defina seus padrões uma vez, sobrescreva onde importa e deixe o sistema de resolução lidar com o resto.
 
 ## Use em qualquer lugar
 
-A memória linguística foi projetada para localização, mas é útil em qualquer processo de produção de texto. Como o contexto pode ser acessado pela [API REST](/features/rest-api) e pelo [servidor MCP](/features/mcp-server), você pode integrá-lo a fluxos de trabalho que vão além da localização:
+A memória de idioma foi projetada para a localização, mas é útil em qualquer lugar onde você produza texto. Como o contexto está acessível através do [REST API](/features/rest-api) e do [MCP server](/features/mcp-server), você pode integrá-lo em fluxos de trabalho além da localização:
 
-**Conteúdo de marketing e para redes sociais**: incorpore a voz da sua organização a um agente de conteúdo que redija publicações para redes sociais, campanhas de e-mail ou textos para páginas de destino. A terminologia mantém a consistência dos termos da marca, enquanto as configurações de voz garantem que o tom esteja alinhado à marca.
+**Marketing e conteúdo social** -- Utilize a voz da sua organização em um agente de conteúdo que redige posts para redes sociais, campanhas de e-mail ou copy de landing page. A terminologia mantém os termos da marca consistentes e as configurações de voz garantem que o tom esteja de acordo com sua marca.
 
-**Documentação**: forneça a memória linguística a um pipeline de documentação para que a redação técnica siga as mesmas regras de estilo do restante do conteúdo. As entradas de terminologia evitam divergências entre documentos, artigos de ajuda e textos exibidos no produto.
+**Documentação** -- Alimente a memória de idioma em um pipeline de documentação para que a escrita técnica siga as mesmas regras de estilo que o restante do seu conteúdo. As entradas de terminologia evitam desvios em documentos, artigos de ajuda e textos no produto.
 
-**Revisão de código**: crie um agente que verifique os textos de solicitações de pull, como mensagens de erro, rótulos da interface e textos de integração, em relação à sua voz e terminologia. Sinalize inconsistências antes da publicação.
+**Revisão de código** -- Construa um agente que revise o texto de solicitação de pull (mensagens de erro, rótulos de interface, texto de onboarding) contra sua voz e terminologia. Identifique inconsistências antes de serem lançados.
 
-**Agentes personalizados**: qualquer cliente compatível com MCP pode ler e gravar a memória linguística. Peça ao seu assistente de programação para "atualizar a terminologia com o novo nome do produto" ou "definir o tom da voz como profissional para a localidade alemã", e ele converterá sua intenção na chamada apropriada à API.
+**Agentes personalizados** -- Qualquer cliente compatível com o MCP pode ler e escrever na memória de idioma. Peça ao seu assistente de codificação para "atualizar a terminologia com o novo nome do produto" ou "definir o tom da voz como profissional para a localização em alemão" e ele traduzirá sua intenção na chamada de API adequada.
 
-## Aprimoramento progressivo
+## Refinamento progressivo
 
-A memória linguística melhora com o uso. Sempre que um revisor corrige o conteúdo gerado por um agente, essa correção é incorporada à próxima versão da voz ou terminologia. Com o tempo, a diferença entre o primeiro rascunho e o resultado final diminui, e a etapa de revisão se torna mais rápida.
+A memória de idioma melhora com o uso. Cada vez que um revisor corrige a saída de um agente, essa correção é retroalimentada para a próxima versão de sua voz ou terminologia. Ao longo do tempo, a lacuna entre o primeiro rascunho e a saída final diminui, e a etapa de revisão se torna mais rápida.
 
-Este é o ciclo de feedback no centro do Glossia: gerar, revisar, refinar o contexto e gerar novamente. Os agentes não apenas seguem instruções. Eles trabalham com um contexto que melhora a cada ciclo.
+Este é o ciclo de feedback no centro da Glossia: gerar, revisar, refinar o contexto, gerar novamente. Os agentes não apenas seguem instruções. Eles trabalham com contexto que melhora a cada ciclo.
