@@ -228,43 +228,198 @@ defmodule Glossia.Translations.RepositoryRun do
                  after_item_completed,
                  seq_counter
                ) do
-            :ok -> {:cont, {:ok, failures}}
-            {:error, failure} -> {:cont, {:ok, [failure | failures]}}
+            :ok ->
+              {:cont, {:ok, failures}}
+
+            {:error, failure} ->
+              failures = [failure | failures]
+
+              if stop_after_failure?(failure) do
+                {:halt, {:ok, failures}}
+              else
+                {:cont, {:ok, failures}}
+              end
           end
         end)
 
       concurrency ->
-        items
-        |> Task.async_stream(
-          fn prepared_item ->
-            translate_prepared_item(
-              prepared_item,
-              session,
-              account,
-              repo_path,
-              total,
-              progress_node,
-              credential_node,
-              after_item_completed,
-              seq_counter
-            )
-          end,
-          max_concurrency: concurrency,
-          ordered: false,
-          timeout: :infinity
+        translate_concurrently(
+          items,
+          concurrency,
+          session,
+          account,
+          repo_path,
+          total,
+          progress_node,
+          credential_node,
+          after_item_completed,
+          seq_counter
         )
-        |> Enum.reduce_while({:ok, []}, fn
-          {:ok, :ok}, {:ok, failures} ->
-            {:cont, {:ok, failures}}
-
-          {:ok, {:error, failure}}, {:ok, failures} ->
-            {:cont, {:ok, [failure | failures]}}
-
-          {:exit, reason}, _result ->
-            {:halt, {:error, {:translation_task_failed, reason}}}
-        end)
     end
   end
+
+  defp translate_concurrently(
+         items,
+         concurrency,
+         session,
+         account,
+         repo_path,
+         total,
+         progress_node,
+         credential_node,
+         after_item_completed,
+         seq_counter
+       ) do
+    {:ok, task_supervisor} = Task.Supervisor.start_link()
+
+    translate_item = fn prepared_item ->
+      translate_prepared_item(
+        prepared_item,
+        session,
+        account,
+        repo_path,
+        total,
+        progress_node,
+        credential_node,
+        after_item_completed,
+        seq_counter
+      )
+    end
+
+    try do
+      {initial_items, queued_items} = Enum.split(items, concurrency)
+
+      running_tasks =
+        Map.new(initial_items, fn prepared_item ->
+          task =
+            Task.Supervisor.async_nolink(task_supervisor, fn -> translate_item.(prepared_item) end)
+
+          {task.ref, task}
+        end)
+
+      await_translation_tasks(queued_items, running_tasks, task_supervisor, translate_item, [])
+    after
+      stop_translation_tasks(task_supervisor)
+      Supervisor.stop(task_supervisor, :normal)
+    end
+  end
+
+  defp await_translation_tasks([], running_tasks, _task_supervisor, _translate_item, failures)
+       when map_size(running_tasks) == 0,
+       do: {:ok, failures}
+
+  defp await_translation_tasks(
+         queued_items,
+         running_tasks,
+         task_supervisor,
+         translate_item,
+         failures
+       ) do
+    receive do
+      {ref, result} when is_reference(ref) ->
+        case Map.pop(running_tasks, ref) do
+          {nil, _running_tasks} ->
+            await_translation_tasks(
+              queued_items,
+              running_tasks,
+              task_supervisor,
+              translate_item,
+              failures
+            )
+
+          {task, remaining_tasks} ->
+            Process.demonitor(task.ref, [:flush])
+
+            case result do
+              :ok ->
+                {queued_items, running_tasks} =
+                  start_next_translation_task(
+                    queued_items,
+                    remaining_tasks,
+                    task_supervisor,
+                    translate_item
+                  )
+
+                await_translation_tasks(
+                  queued_items,
+                  running_tasks,
+                  task_supervisor,
+                  translate_item,
+                  failures
+                )
+
+              {:error, failure} ->
+                failures = [failure | failures]
+
+                if stop_after_failure?(failure) do
+                  stop_translation_tasks(task_supervisor)
+                  {:ok, failures}
+                else
+                  {queued_items, running_tasks} =
+                    start_next_translation_task(
+                      queued_items,
+                      remaining_tasks,
+                      task_supervisor,
+                      translate_item
+                    )
+
+                  await_translation_tasks(
+                    queued_items,
+                    running_tasks,
+                    task_supervisor,
+                    translate_item,
+                    failures
+                  )
+                end
+            end
+        end
+
+      {:DOWN, ref, :process, _pid, reason} when is_reference(ref) ->
+        if Map.has_key?(running_tasks, ref) do
+          stop_translation_tasks(task_supervisor)
+          {:error, {:translation_task_failed, reason}}
+        else
+          await_translation_tasks(
+            queued_items,
+            running_tasks,
+            task_supervisor,
+            translate_item,
+            failures
+          )
+        end
+    end
+  end
+
+  defp start_next_translation_task([], running_tasks, _task_supervisor, _translate_item),
+    do: {[], running_tasks}
+
+  defp start_next_translation_task(
+         [prepared_item | queued_items],
+         running_tasks,
+         task_supervisor,
+         translate_item
+       ) do
+    task = Task.Supervisor.async_nolink(task_supervisor, fn -> translate_item.(prepared_item) end)
+    {queued_items, Map.put(running_tasks, task.ref, task)}
+  end
+
+  defp stop_translation_tasks(task_supervisor) do
+    task_supervisor
+    |> Task.Supervisor.children()
+    |> Enum.each(&Process.exit(&1, :kill))
+  end
+
+  # A provider can classify a failure as session-wide while still being
+  # transient, such as a timeout or a 5xx response. Those are worth allowing
+  # other files to attempt. Credit exhaustion, invalid credentials, and other
+  # permanent provider responses are different: every queued item would fail
+  # identically, so stop the run as soon as the first one settles.
+  defp stop_after_failure?(%{reason: reason}) do
+    failure = Failure.normalize(reason)
+    Failure.session_level?(failure) and not Failure.retryable?(failure)
+  end
+
+  defp stop_after_failure?(_failure), do: false
 
   defp translate_prepared_item(
          prepared_item,
@@ -918,7 +1073,12 @@ defmodule Glossia.Translations.RepositoryRun do
   # already applied.
   defp broadcast(session, event, progress_node) do
     event = Map.put(event, :seq, next_seq())
-    TranslationSessions.broadcast_session_event(session, event, progress_node)
+
+    if progress_node == node() do
+      TranslationSessions.broadcast_session_event(session, event)
+    else
+      TranslationSessions.broadcast_session_event(session, event, progress_node)
+    end
   end
 
   # Written on the node with a database, which is this one for a detached
