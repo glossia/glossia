@@ -91,9 +91,10 @@ config :glossia, :flame,
   ]
 
 # Detached translation jobs make concurrent requests to the shared model gateway.
-# Keep this configurable so production can be tuned without another application
-# release as the gateway capacity changes.
-config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 8)
+# Four concurrent requests are a safe default for the shared gateway's
+# long-lived large-Markdown requests. Operators can still tune this explicitly
+# as measured gateway capacity changes.
+config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 4)
 
 # Where a translation session runs. `:kubernetes` schedules a Job that outlives
 # the pod that created it; `:inline` runs it in the calling process, which is
