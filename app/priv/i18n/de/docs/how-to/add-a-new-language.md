@@ -1,15 +1,15 @@
 %{
   title: "Eine neue Sprache hinzufügen",
-  summary: "Wie Sie einem bestehenden Glossia-Setup eine Zielsprache hinzufügen.",
+  summary: "So fügt man eine Zielsprache zu einer bestehenden Glossia-Einrichtung hinzu.",
   category: "how-to",
   order: 1
 }
 ---
 Wenn Sie Glossia bereits konfiguriert haben und eine weitere Zielsprache hinzufügen möchten, befolgen Sie diese Schritte.
 
-## 1. GLOSSIA.md aktualisieren
+## 1\. GLOSSIA.md aktualisieren
 
-Öffnen Sie Ihre `GLOSSIA.md` und fügen Sie den neuen Sprachcode zum Array `targets` hinzu:
+Öffnen Sie Ihr `GLOSSIA.md` und fügen Sie den neuen Sprachcode zum `targets` Array:
 
 ```yaml
 targets:
@@ -19,23 +19,25 @@ targets:
   - ja
 ```
 
-## 2. Sprachspezifischen Kontext hinzufügen (optional)
+## 2\. Sprachspezifischen Kontext hinzufügen (optional)
 
-Wenn die neue Sprache spezielle Anweisungen erfordert, wie z. B. den Formalitätsgrad oder Aspekte des Zeichensatzes, erstellen Sie eine Datei zur Kontext-Überschreibung:
+Wenn die neue Zielsprache spezielle Anweisungen benötigt, wie z. B. den Formalitätsgrad oder Zeichensatz-Anpassungen, erstellen Sie eine Kontext-Override-Datei:
 
-```
-GLOSSIA/
-  ja.md
-```
+    GLOSSIA/
+      ja.md
 
-Schreiben Sie alle sprachspezifischen Vorgaben in diese Datei. Glossia führt diese für japanische Übersetzungen mit dem Basis-Kontext zusammen.
+Schreiben Sie jede sprachspezifische Anleitung in diese Datei. Glossia verschmilzt es mit dem Basis-Kontext für japanische Übersetzungen.
 
-## 3. Konfigurationsänderung veröffentlichen
+## 3\. Veröffentlichen Sie die Konfigurationsänderung
 
-Committen und pushen Sie die aktualisierte Konfiguration. Wenn das Repository mit Glossia verbunden ist, erkennt der Server die neue Zielsprache und startet eine Übersetzungssitzung.
+Comitieren und Pushen Sie die aktualisierte Konfiguration. Wenn das Repository mit
+Glossia, erkennt der Server die neue Zielsprache und startet eine Übersetzung
+Sitzung.
 
-Bestehende Übersetzungen für andere Sprachen bleiben unverändert, wenn sich deren Eingaben und der effektive Kontext nicht geändert haben.
+Bestehende Übersetzungen für andere Sprachen bleiben unverändert, wenn ihre Eingaben
+und effektiver Kontext nicht geändert wurden.
 
-## 4. Übersetzungs-Pull-Request prüfen
+## 4\. Überprüfen Sie den Übersetzungs-Pull-Request
 
-Verfolgen Sie die Übersetzungssitzung in Glossia und prüfen Sie anschließend die generierten Sprachdateien im vom Server geöffneten Pull-Request.
+Folgen Sie der Übersetzungssitzung in Glossia und überprüfen Sie anschließend die generierten Sprach-
+dateien im vom Server eröffneten Pull-Request.

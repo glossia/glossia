@@ -1,31 +1,31 @@
 %{
   title: "安装网站分析",
-  summary: "使用一行 HTML 或通过 npm 将 Glossia Web SDK 添加到您的网站，并开始收集本地化信号。",
-  category: "how-to",
+  summary: "通过一行 HTML 或通过 npm 向您的网站添加 Glossia web SDK，并开始收集本地化信号。",
+  category: "教程",
   order: 1
 }
 ---
-本指南假设您已有一个 Glossia 项目，并已在项目的分析设置中配置网站域名。数据收集通过该域名识别，因此无需复制任何密钥或机密信息。
+本指南假设您已拥有一个 Glossia 项目，其站点域名已在项目的分析设置中配置。采集通过该域名标识，因此无需复制密钥或密码。
 
-## 选项 A：script 标签
+## 选项 A: 脚本标签
 
-将以下代码段添加到每个页面，最好放在 `<head>` 中：
+将此代码片段添加到每个页面，理想情况下在 `<head>`:
 
 ```html
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-软件开发工具包会自动初始化，在页面加载时发送一次页面浏览事件，并在单页应用的客户端导航过程中记录后续页面浏览事件。省略 `data-domain` 时，其默认值为 `window.location.hostname`，因此单域名网站无需配置该项。若要使用自定义收集端点，请添加 `data-endpoint="https://collect.your-host.com"`。
+SDK 会自动初始化，在加载时发送页面浏览事件，并在单页应用中的客户端导航时记录后续的页面浏览。 `data-domain` 默认为 `window.location.hostname` 省略时，因此您可以将其用于单域名站点。要使用自定义采集端点，请添加 `data-endpoint="https://collect.your-host.com"`.
 
-## 选项 B：npm
+## 选项 B: npm
 
-安装软件包：
+安装该包：
 
 ```bash
 npm install @glossia/web
 ```
 
-在应用入口点中初始化一次：
+在您的应用程序入口点初始化一次：
 
 ```ts
 import glossia from "@glossia/web";
@@ -33,20 +33,20 @@ import glossia from "@glossia/web";
 glossia.init();
 ```
 
-系统会根据 `window.location.hostname` 推断 `domain`，以便软件开发工具包将数据记录到为您的网站注册的项目中。传入 `{ domain: "example.com" }` 可覆盖该值，例如将预发布源站的事件发送到与生产环境相同的项目。
+该 `domain` 由...推断得出 `window.location.hostname` 因此 SDK 会针对您站点的已注册项目记录。传递 `{ domain: "example.com" }` 以覆盖，例如将来自预发布环境的事件发送到与生产相同的项目。
 
-若要记录自定义事件，例如注册事件：
+要记录自定义事件，例如注册：
 
 ```ts
 glossia.track("signup");
 ```
 
-## 验证是否正常工作
+## 验证其是否正常工作
 
 1. 在浏览器中打开您的网站。
-2. 打开网络面板，确认发送到 `/api/analytics/events` 的 `POST` 请求返回 `202 Accepted`。
-3. 页面浏览事件将在一分钟内显示在项目的分析仪表板中。
+2. 打开网络标签页并确认一个 `POST` 请求发往 `/api/analytics/events` 返回 `202 Accepted`.
+3. 一分钟内，页面浏览将出现在您的项目分析仪表盘中。
 
-## 收集的数据
+## 收集了什么
 
-浏览器会发送页面网址、来源网址、`navigator.languages`、时区和屏幕宽度，以及每个标签页独立的会话标识符。服务器会添加国家或地区信息（来自 GeoIP），并根据项目的目标语言计算本地化缺口。系统不会设置 Cookie，也不会进行任何指纹识别。
+浏览器发送页面 URL、推荐源、 `navigator.languages`时区和屏幕宽度，以及每个标签页的会话 ID。服务器添加国家（来自 GeoIP）并计算与您的项目目标语言之间的本地化差距。未设置任何 Cookie，也不会进行指纹识别。

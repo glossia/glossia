@@ -1,15 +1,15 @@
 %{
-  title: "Añadir un nuevo idioma",
-  summary: "Cómo añadir un idioma de destino a una configuración existente de Glossia.",
-  category: "how-to",
+  title: "Agregar un nuevo idioma",
+  summary: "Cómo añadir un idioma objetivo a una configuración existente de Glossia.",
+  category: "guía",
   order: 1
 }
 ---
-Si ya tiene Glossia configurado y quiere añadir otro idioma de destino, siga estos pasos.
+Si ya tiene Glossia configurado y desea añadir otro idioma de destino, siga estos pasos.
 
-## 1. Actualice GLOSSIA.md
+## 1\. Actualizar GLOSSIA.md
 
-Abra su `GLOSSIA.md` y añada el nuevo código de idioma al array `targets`:
+Abrir su `GLOSSIA.md` y añadir el código del nuevo idioma a la `targets` lista:
 
 ```yaml
 targets:
@@ -19,27 +19,25 @@ targets:
   - ja
 ```
 
-## 2. Añada contexto específico del idioma (opcional)
+## 2\. Añadir contexto específico del idioma (opcional)
 
-Si el nuevo idioma necesita instrucciones especiales, como el nivel de formalidad o consideraciones sobre el juego de caracteres, cree un archivo de configuración de contexto:
+Si el nuevo idioma necesita instrucciones especiales, como nivel de formalidad o consideraciones del conjunto de caracteres, cree un archivo de sobrescritura de contexto:
 
-```
-GLOSSIA/
-  ja.md
-```
+    GLOSSIA/
+      ja.md
 
-Escriba en ese archivo las indicaciones específicas del idioma. Glossia las combina con el contexto base para las traducciones al japonés.
+Escriba cualquier orientación específica del idioma en ese archivo. Glossia lo combina con el contexto base para las traducciones al japonés.
 
-## 3. Publique el cambio de configuración
+## 3\. Publicar el cambio de configuración
 
-Confirme y envíe la configuración actualizada. Si el repositorio está conectado a
-Glossia, el servidor detecta el nuevo idioma de destino e inicia una sesión de
-traducción.
+Realizar commit y push la configuración actualizada. Si el repositorio está conectado a
+Glossia, el servidor detecta el nuevo idioma de destino y comienza una traducción
+sesión.
 
-Las traducciones existentes en otros idiomas permanecen sin cambios cuando sus entradas
-y su contexto efectivo no han cambiado.
+Las traducciones existentes para otros idiomas permanecen sin cambios cuando sus entradas
+y el contexto efectivo no han cambiado.
 
-## 4. Revise la solicitud de incorporación de cambios de traducción
+## 4\. Revisar la solicitud de extracción de traducción
 
-Siga la sesión de traducción en Glossia y, después, revise los archivos generados para el idioma
-en la solicitud de incorporación de cambios abierta por el servidor.
+Siga la sesión de traducción en Glossia, luego revise el idioma generado
+archivos en la solicitud de extracción abierta por el servidor.
