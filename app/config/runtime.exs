@@ -90,11 +90,21 @@ config :glossia, :flame,
     log: truthy?.(System.get_env("GLOSSIA_FLAME_K8S_LOG"))
   ]
 
+# How many HTTP connections the node holds open per host. Translation is the
+# heaviest user: every concurrent file is one long-lived connection to the model
+# gateway, and asking for more concurrent translations than this only parks the
+# extras in Finch's checkout queue until they time out.
+config :glossia, :http_pool_size, integer_env.("GLOSSIA_HTTP_POOL_SIZE", 50)
+
 # Detached translation jobs make concurrent requests to the shared model gateway.
-# Four concurrent requests are a safe default for the shared gateway's
-# long-lived large-Markdown requests. Operators can still tune this explicitly
-# as measured gateway capacity changes.
-config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 4)
+# Files are independent after planning and a translation call is almost entirely
+# idle waiting on the gateway, so a fan-out ceiling only decides how long a run
+# takes: wall clock is total calls divided by it. Two things genuinely bound it,
+# and neither is a guess - the connection pool above, and the provider's own rate
+# limit, which is handled where it is observed by retrying a 429 for the interval
+# the provider names. Unset means "translate every planned file at once", capped
+# by the pool.
+config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 0)
 
 # Where a translation session runs. `:kubernetes` schedules a Job that outlives
 # the pod that created it; `:inline` runs it in the calling process, which is

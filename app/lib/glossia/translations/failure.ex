@@ -13,7 +13,8 @@ defmodule Glossia.Translations.Failure do
           provider: String.t() | nil,
           status: pos_integer() | nil,
           code: String.t() | nil,
-          request_id: String.t() | nil
+          request_id: String.t() | nil,
+          retry_after_ms: pos_integer() | nil
         }
 
   @known_kinds ~w(
@@ -50,6 +51,12 @@ defmodule Glossia.Translations.Failure do
   @search_keys ~w(reason message error errors response_body cause code type status)
   @nested_error_keys ~w(reason error errors response_body cause headers)
   @request_id_keys ~w(x-request-id request-id openai-request-id)
+  @retry_after_keys ~w(retry-after x-ratelimit-reset-requests x-ratelimit-reset-tokens)
+
+  # A provider that states how long to wait knows better than any backoff curve
+  # we could pick. Cap it so a malformed or hostile header cannot park a
+  # translation for hours.
+  @max_retry_after_ms :timer.minutes(5)
 
   @doc "Builds a safe failure from an engine error."
   @spec from(term(), term()) :: t()
@@ -110,7 +117,8 @@ defmodule Glossia.Translations.Failure do
       provider: safe_provider(map_value(failure, :provider)),
       status: status,
       code: safe_identifier(map_value(failure, :code), 80),
-      request_id: safe_identifier(map_value(failure, :request_id), 200)
+      request_id: safe_identifier(map_value(failure, :request_id), 200),
+      retry_after_ms: safe_retry_after_ms(map_value(failure, :retry_after_ms))
     )
   end
 
@@ -139,6 +147,67 @@ defmodule Glossia.Translations.Failure do
   @spec session_level?(t()) :: boolean()
   def session_level?(%{scope: "session"}), do: true
   def session_level?(_failure), do: false
+
+  @doc """
+  Whether a failure ends the whole run rather than only its own file.
+
+  A run shares one provider and one credential, so an exhausted balance or a
+  rejected key fails every remaining file identically. Transient session-level
+  failures - rate limits, timeouts, 5xx - are excluded, because another file or
+  another attempt can still succeed.
+  """
+  @spec run_stopping?(t()) :: boolean()
+  def run_stopping?(failure), do: session_level?(failure) and not retryable?(failure)
+
+  @doc """
+  A sentence naming why a run stopped, for the session error a member reads.
+
+  Counting the files a run could not translate describes the symptom and hides
+  the cause. That is actively misleading once a run stops at the first permanent
+  provider failure: "Translation failed for 1 file" sends a member to inspect a
+  file that is perfectly fine, when the account is simply out of credit.
+  """
+  @spec describe(t()) :: String.t()
+  def describe(failure) do
+    failure = normalize(failure)
+
+    cause(failure.kind) <> provider_detail(failure) <> ". " <> remediation(failure.kind)
+  end
+
+  defp cause("provider-credit"),
+    do: "The model provider rejected the translation because the account has no credit left"
+
+  defp cause("provider-credentials"),
+    do: "The model provider rejected the configured credentials"
+
+  defp cause("provider-rate-limit"), do: "The model provider rate-limited the translation"
+
+  defp cause("provider-timeout"),
+    do: "The model provider stopped responding before the translation completed"
+
+  defp cause("provider-error"), do: "The model provider returned an error"
+
+  defp cause(_kind), do: "The translation could not be completed"
+
+  defp provider_detail(%{provider: nil, status: nil}), do: ""
+
+  defp provider_detail(%{provider: provider, status: status}) do
+    detail =
+      [provider, status && "HTTP #{status}"]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join(", ")
+
+    " (" <> detail <> ")"
+  end
+
+  defp remediation("provider-credit"), do: "Add credits for the model provider and retry."
+
+  defp remediation("provider-credentials"),
+    do: "Check the account's model credentials and retry."
+
+  defp remediation("provider-rate-limit"), do: "Retry once the provider's limit resets."
+
+  defp remediation(_kind), do: "Please retry."
 
   defp provider_failure(reason, provider) do
     text = searchable_text(reason)
@@ -186,7 +255,8 @@ defmodule Glossia.Translations.Failure do
       provider: safe_provider(provider),
       status: status,
       code: extract_code(reason, text),
-      request_id: extract_request_id(reason, text)
+      request_id: extract_request_id(reason, text),
+      retry_after_ms: extract_retry_after_ms(reason)
     )
   end
 
@@ -267,7 +337,8 @@ defmodule Glossia.Translations.Failure do
       provider: Keyword.get(opts, :provider),
       status: Keyword.get(opts, :status),
       code: Keyword.get(opts, :code),
-      request_id: Keyword.get(opts, :request_id)
+      request_id: Keyword.get(opts, :request_id),
+      retry_after_ms: Keyword.get(opts, :retry_after_ms)
     }
   end
 
@@ -353,6 +424,48 @@ defmodule Glossia.Translations.Failure do
 
   defp reject_generic_code(code) when code in ["api", "error", "stream", "nil", "null"], do: nil
   defp reject_generic_code(code), do: code
+
+  # Retry-After carries seconds. Both the numeric and the HTTP-date form are
+  # legal and only the numeric one is worth honouring, so a date reads as absent
+  # and the caller falls back to its own backoff.
+  defp extract_retry_after_ms(reason) do
+    case seconds_value(find_header_value(reason, @retry_after_keys)) do
+      nil -> nil
+      seconds -> cap_retry_after_ms(seconds * 1_000)
+    end
+  end
+
+  defp seconds_value(seconds) when is_integer(seconds) and seconds > 0, do: seconds
+
+  defp seconds_value(value) when is_binary(value) do
+    case Integer.parse(String.trim(value)) do
+      {seconds, rest} ->
+        if String.trim(rest) == "", do: seconds_value(seconds), else: nil
+
+      :error ->
+        nil
+    end
+  end
+
+  defp seconds_value(_value), do: nil
+
+  # A failure that has already been through `from/2` states milliseconds, so a
+  # value arriving back over progress messaging is validated, never rescaled.
+  defp safe_retry_after_ms(ms) when is_integer(ms) and ms > 0, do: cap_retry_after_ms(ms)
+
+  defp safe_retry_after_ms(value) when is_binary(value) do
+    case Integer.parse(String.trim(value)) do
+      {ms, rest} ->
+        if String.trim(rest) == "" and ms > 0, do: cap_retry_after_ms(ms), else: nil
+
+      :error ->
+        nil
+    end
+  end
+
+  defp safe_retry_after_ms(_value), do: nil
+
+  defp cap_retry_after_ms(ms), do: min(ms, @max_retry_after_ms)
 
   defp extract_request_id(reason, text) do
     direct =

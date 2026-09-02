@@ -667,10 +667,20 @@ defmodule Glossia.TranslationSessions.Translate do
     do:
       "The translation stopped reporting progress and was ended. This usually means its runner was lost. Please retry."
 
+  # A run stops at the first permanent provider failure, so the failure list can
+  # be a single item whose cause is the provider rather than the file it names.
+  # Report that cause: counting files sends a member to inspect content that is
+  # fine while the real fix is a credit balance or a key.
   defp humanize_error({:translation_items_failed, failures}) when is_list(failures) do
-    count = length(failures)
-    suffix = if count == 1, do: "file", else: "files"
-    "Translation failed for #{count} #{suffix}. Review the file errors and retry."
+    case Enum.find(failures, &run_stopping_failure?/1) do
+      nil ->
+        count = length(failures)
+        suffix = if count == 1, do: "file", else: "files"
+        "Translation failed for #{count} #{suffix}. Review the file errors and retry."
+
+      failure ->
+        failure |> Map.get(:reason) |> Failure.describe()
+    end
   end
 
   defp humanize_error({:context_relay_failed, _reason}),
@@ -711,4 +721,9 @@ defmodule Glossia.TranslationSessions.Translate do
     do: "Could not read a local Codex session token for development translation."
 
   defp humanize_error(reason), do: "Translation failed: #{inspect(reason)}"
+
+  defp run_stopping_failure?(%{reason: reason}),
+    do: reason |> Failure.normalize() |> Failure.run_stopping?()
+
+  defp run_stopping_failure?(_failure), do: false
 end

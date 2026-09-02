@@ -36,7 +36,9 @@ defmodule Glossia.Translations.RepositoryRun do
   @assessment_progress_interval 25
   @completed_output_preview_length 2_000
   @completed_output_preview_bytes 8_000
-  @default_translation_concurrency 4
+  # No fixed default: the fan-out follows the size of the planned work unless an
+  # operator caps it explicitly. See `translation_concurrency/2`.
+  @default_translation_concurrency 0
   @seq_key :translation_progress_seq
 
   @doc """
@@ -214,7 +216,7 @@ defmodule Glossia.Translations.RepositoryRun do
        ) do
     items = Enum.reject(prepared_items, &(&1.status == :up_to_date))
 
-    case translation_concurrency(opts) do
+    case translation_concurrency(opts, length(items)) do
       1 ->
         Enum.reduce_while(items, {:ok, []}, fn prepared_item, {:ok, failures} ->
           case translate_prepared_item(
@@ -454,7 +456,10 @@ defmodule Glossia.Translations.RepositoryRun do
     )
   end
 
-  defp translation_concurrency(opts) do
+  # A configured value caps the fan-out; anything else means "as wide as the
+  # work", which is what makes a run take as long as its slowest file rather
+  # than as long as the sum of every file divided by a guessed constant.
+  defp translation_concurrency(opts, item_count) do
     configured =
       Keyword.get(
         opts,
@@ -462,8 +467,18 @@ defmodule Glossia.Translations.RepositoryRun do
         Application.get_env(:glossia, :translation_concurrency, @default_translation_concurrency)
       )
 
-    if is_integer(configured) and configured > 0, do: configured, else: 1
+    ceiling = min(max(item_count, 1), http_pool_size())
+
+    if is_integer(configured) and configured > 0,
+      do: min(configured, ceiling),
+      else: ceiling
   end
+
+  # Every concurrent file holds one connection to the gateway for the length of
+  # the call, so fanning out past the pool only queues the surplus until Finch
+  # gives up on the checkout - which surfaces as a timeout that looks like the
+  # provider's fault and is retried for nothing.
+  defp http_pool_size, do: Application.get_env(:glossia, :http_pool_size, 50)
 
   # Plan the whole repository once (walking the filesystem and parsing the
   # GLOSSIA.md chains a single time) and filter to the requested locales in
