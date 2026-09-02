@@ -111,6 +111,18 @@ resources:
     cpu: "2"
     memory: 2Gi
 
+# Translation workers are detached Jobs. Their scheduler request must fit the
+# production nodes even while the web tier is rolling, while their higher
+# limits preserve capacity for repository and model-response bursts.
+translationJob:
+  resources:
+    requests:
+      cpu: 400m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+
 objectStorage:
   rook:
     enabled: true
