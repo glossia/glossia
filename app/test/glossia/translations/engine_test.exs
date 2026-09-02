@@ -771,7 +771,7 @@ defmodule Glossia.Translations.EngineTest do
                payload["source_content"]
                |> JSON.decode!()
                |> length()
-               |> Kernel.<=(16)
+               |> Kernel.<=(8)
              end)
     end
 
@@ -823,7 +823,7 @@ defmodule Glossia.Translations.EngineTest do
       assert result.text =~ "[translated guide 1](https://example.com/1)"
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert length(calls) == 4
+      assert length(calls) == 6
 
       assert Enum.at(calls, 1)["last_error"] ==
                "Markdown text-literal recovery returned invalid JSON"
@@ -880,7 +880,7 @@ defmodule Glossia.Translations.EngineTest do
 
       assert Enum.map(calls, fn payload ->
                payload["source_content"] |> JSON.decode!() |> length()
-             end) == [16, 16, 8, 8, 16, 4]
+             end) == [8, 8, 4, 4, 8, 8, 8, 4]
 
       assert Enum.all?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
     end
@@ -934,7 +934,7 @@ defmodule Glossia.Translations.EngineTest do
 
       assert Enum.map(calls, fn payload ->
                payload["source_content"] |> JSON.decode!() |> length()
-             end) == [16, 8, 8, 16, 4]
+             end) == [8, 4, 4, 8, 8, 8, 4]
     end
 
     @tag :tmp_dir

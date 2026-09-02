@@ -16,11 +16,11 @@ defmodule Glossia.Translations.Engine do
 
   @segment_attempts 2
   @markdown_text_literal_recovery_max_calls 128
-  # The configured model returns reliable JSON arrays of sixteen strings. At
-  # thirty-two strings it repeatedly produces malformed arrays, which costs
-  # two retries plus a recursive split. Starting at the proven boundary keeps
-  # long Markdown translations both faster and structurally safe.
-  @markdown_text_literal_recovery_batch_size 16
+  # Production calls showed that arrays of sixteen strings still routinely
+  # needed retries and recursive splits. Eight literals stay within the small
+  # model's reliable JSON boundary, avoiding the extra calls that made a
+  # nominally larger batch slower in practice.
+  @markdown_text_literal_recovery_batch_size 8
   @markdown_text_literal_recovery_batch_bytes 8_000
   @markdown_text_literal_fast_path_min_literals 12
 
