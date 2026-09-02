@@ -554,12 +554,38 @@ defmodule Glossia.Translations.Engine do
               attempt + 1
             )
 
+          {:error, reason} when length(entries) > 1 ->
+            split_markdown_text_literal_batch(state, segment, entries, index, count, reason)
+
           {:error, reason} ->
             {:preservation_error, reason}
         end
 
+      {:error, _reason} when length(entries) > 1 ->
+        # Transient provider failures have already exhausted the request-level
+        # retry policy when they reach this point. A smaller request is the
+        # only remaining useful recovery, and is safer than falling through to
+        # a full-Markdown prompt that can alter the document's structure.
+        split_markdown_text_literal_batch(state, segment, entries, index, count, nil)
+
       other ->
         other
+    end
+  end
+
+  # A model that cannot return one large JSON array is still perfectly capable
+  # of translating the same text in smaller arrays. Keep the structural
+  # recovery path intact by splitting only the rejected batch rather than
+  # falling back to a full-Markdown prompt, where a model can change links,
+  # lists, and headings again.
+  defp split_markdown_text_literal_batch(state, segment, entries, index, count, reason) do
+    {left, right} = Enum.split(entries, div(length(entries), 2))
+
+    with {:ok, left_literals, left_result} <-
+           translate_markdown_text_literal_batch(state, segment, left, index, count, reason),
+         {:ok, right_literals, right_result} <-
+           translate_markdown_text_literal_batch(state, segment, right, index, count, reason) do
+      {:ok, left_literals ++ right_literals, right_result || left_result}
     end
   end
 
