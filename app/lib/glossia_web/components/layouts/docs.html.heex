@@ -1,0 +1,313 @@
+<a href="#docs-content" class="docs-skip-link">{gettext("Skip to content")}</a>
+
+<header id="docs-nav" aria-label={gettext("Documentation navigation")}>
+  <div data-part="header">
+    <a href={locale_path(~p"/docs")} data-part="logo-link">
+      <img data-part="logo" src={~p"/images/logo-rounded.png"} alt="Glossia" />
+      <span data-part="logo-divider"></span>
+      <span data-part="logo-text">{gettext("Docs")}</span>
+    </a>
+
+    <.button_group size="large" id="docs-nav-tabs">
+      <.button_group_item
+        :for={category <- @docs_navigation}
+        label={category.title}
+        href={locale_path(~p"/docs/#{category.key}")}
+        data-selected={@docs_current_category == category.key}
+      />
+    </.button_group>
+  </div>
+
+  <div data-part="cta">
+    <.text_input
+      id="docs-search-trigger"
+      name="docs-search"
+      type="search"
+      placeholder={gettext("Search documentation")}
+      data-docs-search-trigger
+    />
+
+    <details id="docs-language-selector" data-part="language-selector">
+      <summary>{Glossia.I18n.native_name(@locale)}</summary>
+      <div data-part="language-menu">
+        <a
+          :for={locale <- Glossia.I18n.locales()}
+          lang={locale}
+          hreflang={locale}
+          aria-current={locale == @locale && "true"}
+          href={
+            ~p"/-/locale/#{Glossia.I18n.segment(locale)}?#{[return_to: GlossiaWeb.Layouts.current_path(assigns)]}"
+          }
+        >
+          {Glossia.I18n.native_name(locale)}
+        </a>
+      </div>
+    </details>
+
+    <%= if assigns[:current_user] do %>
+      <Noora.Button.button
+        label={gettext("Dashboard")}
+        variant="secondary"
+        size="large"
+        href={~p"/dashboard"}
+      />
+    <% else %>
+      <Noora.Button.button
+        label={gettext("Sign in")}
+        variant="primary"
+        size="large"
+        href={~p"/auth/login"}
+      />
+    <% end %>
+  </div>
+
+  <div data-part="mobile-actions">
+    <.neutral_button
+      id="docs-nav-mobile-search"
+      size="large"
+      aria-label={gettext("Search documentation")}
+      data-docs-search-trigger
+    >
+      <.search />
+    </.neutral_button>
+    <.neutral_button
+      id="docs-nav-mobile-menu"
+      size="large"
+      aria-label={gettext("Toggle documentation navigation")}
+      aria-expanded="false"
+      aria-controls="docs-sidebar"
+      data-docs-sidebar-trigger
+    >
+      <.menu />
+    </.neutral_button>
+  </div>
+</header>
+
+<div id="docs-mobile-menu-bar" role="toolbar" aria-label={gettext("Page navigation")}>
+  <.neutral_button
+    data-part="mobile-menu-btn"
+    id="docs-mobile-menu-trigger"
+    size="medium"
+    aria-expanded="false"
+    aria-controls="docs-sidebar"
+    data-docs-sidebar-trigger
+  >
+    <.menu_3 />
+    <span>{gettext("Menu")}</span>
+  </.neutral_button>
+  <.neutral_button
+    :if={@docs_headings != []}
+    data-part="mobile-toc-btn"
+    id="docs-mobile-toc-trigger"
+    size="medium"
+    aria-expanded="false"
+    aria-controls="docs-mobile-toc"
+    data-docs-toc-trigger
+  >
+    <span>{gettext("On this page")}</span>
+    <.news />
+  </.neutral_button>
+</div>
+
+<div id="docs-mobile-sidebar-overlay" role="presentation" data-docs-sidebar-close></div>
+
+<dialog
+  id="docs-search"
+  aria-label={gettext("Search documentation")}
+  data-search-prompt={gettext("Type at least two characters to search the documentation.")}
+  data-search-empty={gettext("No documentation matched that search.")}
+  data-copy-label={gettext("Copied")}
+>
+  <div data-part="search-modal">
+    <div data-part="search-input">
+      <.text_input
+        id="docs-search-input"
+        name="query"
+        type="search"
+        placeholder={gettext("Search documentation")}
+        data-docs-search-input
+      />
+      <.shortcut_key size="small">esc</.shortcut_key>
+    </div>
+    <div id="docs-search-results" data-part="search-results" aria-live="polite"></div>
+  </div>
+</dialog>
+
+<main id="docs-page-layout" data-part="page">
+  <textarea :if={assigns[:docs_markdown]} id="docs-page-markdown" hidden readonly>{@docs_markdown}</textarea>
+
+  <nav
+    :if={@docs_headings != []}
+    id="docs-mobile-toc"
+    data-state="closed"
+    data-part="mobile-toc"
+    aria-label={gettext("Table of contents")}
+  >
+    <a href="#docs-content" data-part="mobile-toc-item">{gettext("Return to top")}</a>
+    <.line_divider />
+    <a
+      :for={heading <- @docs_headings}
+      href={"##{heading.id}"}
+      data-part="mobile-toc-item"
+      data-level={heading.level}
+      data-docs-toc-link
+    >
+      {heading.text}
+    </a>
+  </nav>
+
+  <div id="docs-layout">
+    <nav id="docs-sidebar" aria-label={gettext("Documentation navigation")}>
+      <div data-part="sidebar-scroll">
+        <a :if={is_nil(@docs_current_category)} href={locale_path(~p"/docs")} data-part="nav-link">
+          <.tab_menu_vertical
+            label={gettext("Overview")}
+            data-selected="true"
+          >
+            <:icon_left><.smart_home /></:icon_left>
+          </.tab_menu_vertical>
+        </a>
+
+        <section
+          :for={category <- Enum.filter(@docs_navigation, &(&1.key == @docs_current_category))}
+          data-part="nav-section"
+        >
+          <.line_divider />
+          <div data-part="content-divider">
+            <span>{category.title}</span>
+          </div>
+          <div data-part="nav-items">
+            <a href={locale_path(~p"/docs/#{category.key}")} data-part="nav-link">
+              <.tab_menu_vertical
+                label={gettext("Overview")}
+                data-selected={
+                  @docs_current_category == category.key and is_nil(@docs_current_slug)
+                }
+              />
+            </a>
+
+            <a
+              :for={page <- category.direct_pages}
+              href={locale_path(~p"/docs/#{category.key}/#{page.slug}")}
+              data-part="nav-link"
+            >
+              <.tab_menu_vertical
+                label={page.title}
+                data-selected={
+                  @docs_current_category == category.key and is_nil(@docs_current_subcategory) and
+                    @docs_current_slug == page.slug
+                }
+              />
+            </a>
+
+            <details
+              :for={subcategory <- category.subcategories}
+              data-part="nav-collapsible"
+              open={
+                @docs_current_category == category.key and
+                  @docs_current_subcategory == subcategory.key
+              }
+            >
+              <summary>
+                <.tab_menu_vertical label={subcategory.title}>
+                  <:icon_right><.chevron_down /></:icon_right>
+                </.tab_menu_vertical>
+              </summary>
+              <div data-part="nav-children">
+                <a
+                  :for={page <- subcategory.pages}
+                  href={locale_path(~p"/docs/#{category.key}/#{subcategory.key}/#{page.slug}")}
+                  data-part="nav-link"
+                >
+                  <.tab_menu_vertical
+                    label={page.title}
+                    data-selected={
+                      @docs_current_category == category.key and
+                        @docs_current_subcategory == subcategory.key and
+                        @docs_current_slug == page.slug
+                    }
+                  />
+                </a>
+              </div>
+            </details>
+          </div>
+        </section>
+      </div>
+    </nav>
+
+    <div id="docs-content">
+      <div :if={assigns[:docs_markdown]} data-part="mobile-copy">
+        <.button_dropdown
+          id="docs-mobile-copy-dropdown"
+          label={gettext("Copy page")}
+          size="medium"
+          align="end"
+          data-docs-copy-page
+          data-default-label={gettext("Copy page")}
+          data-copied-label={gettext("Copied")}
+        >
+          <:icon_left><.copy /></:icon_left>
+          <.dropdown_item
+            label={gettext("Copy as Markdown")}
+            value="copy-markdown"
+            size="small"
+            data-docs-copy-markdown
+          />
+          <.dropdown_item
+            :if={assigns[:docs_markdown_path]}
+            label={gettext("View as Markdown")}
+            value="view-markdown"
+            href={@docs_markdown_path}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          />
+        </.button_dropdown>
+      </div>
+      {@inner_content}
+    </div>
+
+    <aside :if={@docs_headings != []} id="docs-toc" aria-label={gettext("Table of contents")}>
+      <div data-part="toc-actions">
+        <.button_dropdown
+          :if={assigns[:docs_markdown]}
+          id="docs-copy-dropdown"
+          label={gettext("Copy page")}
+          size="medium"
+          align="end"
+          data-docs-copy-page
+          data-default-label={gettext("Copy page")}
+          data-copied-label={gettext("Copied")}
+        >
+          <:icon_left><.copy /></:icon_left>
+          <.dropdown_item
+            label={gettext("Copy as Markdown")}
+            value="copy-markdown"
+            size="small"
+            data-docs-copy-markdown
+          />
+          <.dropdown_item
+            :if={assigns[:docs_markdown_path]}
+            label={gettext("View as Markdown")}
+            value="view-markdown"
+            href={@docs_markdown_path}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          />
+        </.button_dropdown>
+      </div>
+      <div data-part="toc-header">
+        <.list_tree />
+        <span>{gettext("On this page")}</span>
+      </div>
+      <ul data-part="list">
+        <li :for={heading <- @docs_headings} data-part="item">
+          <a href={"##{heading.id}"} data-level={heading.level} data-docs-toc-link>
+            {heading.text}
+          </a>
+        </li>
+      </ul>
+    </aside>
+  </div>
+</main>

@@ -93,10 +93,220 @@ function initCodeCopyButtons() {
   })
 }
 
+function initDocsLayout() {
+  const layout = document.getElementById("docs-page-layout")
+  if (!layout || layout.dataset.docsInitialized) return
+
+  layout.dataset.docsInitialized = "true"
+  initDocsPortals(layout)
+
+  const body = document.body
+  const sidebar = document.getElementById("docs-sidebar")
+  const sidebarTriggers = document.querySelectorAll("[data-docs-sidebar-trigger]")
+  const sidebarClose = document.querySelector("[data-docs-sidebar-close]")
+  const toc = document.getElementById("docs-mobile-toc")
+  const tocTrigger = document.querySelector("[data-docs-toc-trigger]")
+  const searchDialog = document.getElementById("docs-search")
+  const searchInput = document.querySelector("[data-docs-search-input]")
+  const searchResults = document.getElementById("docs-search-results")
+
+  const closeSidebar = () => {
+    body.removeAttribute("data-docs-sidebar-open")
+    sidebar?.removeAttribute("data-mobile-open")
+    sidebarTriggers.forEach(trigger => trigger.setAttribute("aria-expanded", "false"))
+  }
+
+  const toggleSidebar = () => {
+    const open = !body.hasAttribute("data-docs-sidebar-open")
+    body.toggleAttribute("data-docs-sidebar-open", open)
+    sidebar?.toggleAttribute("data-mobile-open", open)
+    sidebarTriggers.forEach(trigger => trigger.setAttribute("aria-expanded", String(open)))
+  }
+
+  sidebarTriggers.forEach(trigger => trigger.addEventListener("click", toggleSidebar))
+  sidebarClose?.addEventListener("click", closeSidebar)
+  sidebar?.querySelectorAll("a").forEach(link => link.addEventListener("click", closeSidebar))
+
+  const closeToc = () => {
+    toc?.setAttribute("data-state", "closed")
+    tocTrigger?.setAttribute("aria-expanded", "false")
+  }
+
+  tocTrigger?.addEventListener("click", () => {
+    const open = toc?.getAttribute("data-state") !== "open"
+    toc?.setAttribute("data-state", open ? "open" : "closed")
+    tocTrigger.setAttribute("aria-expanded", String(open))
+  })
+  toc?.querySelectorAll("[data-docs-toc-link]").forEach(link => link.addEventListener("click", closeToc))
+
+  const renderSearchResults = (results, query) => {
+    if (!searchResults) return
+    searchResults.replaceChildren()
+
+    if (!query || query.trim().length < 2) {
+      const empty = document.createElement("p")
+      empty.dataset.part = "search-empty"
+      empty.textContent = searchDialog?.dataset.searchPrompt
+      searchResults.appendChild(empty)
+      return
+    }
+
+    if (results.length === 0) {
+      const empty = document.createElement("p")
+      empty.dataset.part = "search-empty"
+      empty.textContent = searchDialog?.dataset.searchEmpty
+      searchResults.appendChild(empty)
+      return
+    }
+
+    results.forEach(page => {
+      const result = document.createElement("a")
+      result.href = page.url
+      result.dataset.part = "search-result"
+
+      const title = document.createElement("strong")
+      title.textContent = page.title
+      const summary = document.createElement("span")
+      summary.textContent = page.summary
+
+      result.append(title, summary)
+      searchResults.appendChild(result)
+    })
+  }
+
+  let searchTimer
+  let searchController
+
+  const searchDocumentation = async query => {
+    const normalized = query.trim()
+
+    if (normalized.length < 2) {
+      renderSearchResults([], normalized)
+      return
+    }
+
+    searchController?.abort()
+    searchController = new AbortController()
+
+    const endpoint = new URL("/docs/search.json", window.location.origin)
+    endpoint.searchParams.set("locale", document.documentElement.lang || "en")
+    endpoint.searchParams.set("q", normalized)
+
+    try {
+      const response = await fetch(endpoint, {signal: searchController.signal})
+      const payload = response.ok ? await response.json() : {results: []}
+
+      if (searchInput?.value.trim() === normalized) {
+        renderSearchResults(payload.results || [], normalized)
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") renderSearchResults([], normalized)
+    }
+  }
+
+  const openSearch = event => {
+    event?.preventDefault()
+    if (!searchDialog?.open) searchDialog?.showModal()
+    searchInput?.focus()
+
+    searchDocumentation(searchInput?.value || "")
+  }
+
+  document.querySelectorAll("[data-docs-search-trigger]").forEach(trigger => {
+    trigger.addEventListener("focus", openSearch)
+    trigger.addEventListener("click", openSearch)
+  })
+
+  searchInput?.addEventListener("input", event => {
+    window.clearTimeout(searchTimer)
+    searchTimer = window.setTimeout(() => searchDocumentation(event.target.value), 200)
+  })
+  searchDialog?.addEventListener("close", () => {
+    searchController?.abort()
+    window.clearTimeout(searchTimer)
+    if (searchInput) searchInput.value = ""
+  })
+
+  document.addEventListener("keydown", event => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === "k") {
+      openSearch(event)
+    }
+
+    if (event.key === "Escape") {
+      closeSidebar()
+      closeToc()
+    }
+  })
+
+  if (!document.documentElement.dataset.docsCopyPageInitialized) {
+    document.documentElement.dataset.docsCopyPageInitialized = "true"
+
+    document.addEventListener("click", async event => {
+      const mainButton = event.target.closest("[data-docs-copy-page]")
+      const menuItem = event.target.closest("[data-docs-copy-markdown]")
+      if (!mainButton && !menuItem) return
+
+      if (menuItem) event.preventDefault()
+
+      const markdown = document.getElementById("docs-page-markdown")?.value
+      if (!markdown || !navigator.clipboard) return
+
+      try {
+        await navigator.clipboard.writeText(markdown)
+      } catch (_error) {
+        return
+      }
+
+      document.querySelectorAll("[data-docs-copy-page]").forEach(button => {
+        const label = button.querySelector('[data-part="label"]')
+        if (!label) return
+
+        window.clearTimeout(button.docsCopyTimeout)
+        label.textContent = button.dataset.copiedLabel || "Copied"
+        button.docsCopyTimeout = window.setTimeout(() => {
+          label.textContent = button.dataset.defaultLabel || "Copy page"
+        }, 3000)
+      })
+    })
+  }
+
+  const tocLinks = document.querySelectorAll("#docs-toc [data-docs-toc-link]")
+  const headings = Array.from(tocLinks)
+    .map(link => document.getElementById(link.getAttribute("href")?.slice(1)))
+    .filter(Boolean)
+
+  if (headings.length && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(entries => {
+      entries.filter(entry => entry.isIntersecting).forEach(entry => {
+        tocLinks.forEach(link => link.removeAttribute("data-active"))
+        document.querySelector(`#docs-toc [href="#${CSS.escape(entry.target.id)}"]`)?.setAttribute("data-active", "")
+      })
+    }, {rootMargin: "0px 0px -80% 0px"})
+
+    headings.forEach(heading => observer.observe(heading))
+  }
+}
+
+// Documentation pages are controller-rendered. Move Noora portal content into
+// its component target before LiveView mounts the Noora dropdown hook.
+function initDocsPortals(layout) {
+  layout.querySelectorAll("template[data-phx-portal]").forEach(portal => {
+    const target = document.querySelector(portal.dataset.phxPortal)
+    if (!target || target.childElementCount) return
+
+    target.replaceChildren(portal.content.cloneNode(true))
+    portal.remove()
+  })
+}
+
 // Run on initial page load and on LiveView page navigations
 initCodeCopyButtons()
+initDocsLayout()
 window.addEventListener("phx:page-loading-stop", () => {
-  setTimeout(initCodeCopyButtons, 100)
+  setTimeout(() => {
+    initCodeCopyButtons()
+    initDocsLayout()
+  }, 100)
 })
 
 // expose liveSocket on window for web console debug logs and latency simulation:

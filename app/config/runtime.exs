@@ -232,6 +232,17 @@ config :glossia, Glossia.Analytics.Smolanalytics,
   write_key: smolanalytics_write_key,
   environment: System.get_env("OTEL_DEPLOYMENT_ENVIRONMENT") || Atom.to_string(config_env())
 
+typesense_url = System.get_env("GLOSSIA_TYPESENSE_URL")
+typesense_api_key = System.get_env("GLOSSIA_TYPESENSE_API_KEY")
+
+config :glossia, Glossia.Docs.Search,
+  enabled:
+    not runner_child? and not translation_job? and is_binary(typesense_url) and
+      typesense_url != "" and
+      is_binary(typesense_api_key) and typesense_api_key != "",
+  url: typesense_url,
+  api_key: typesense_api_key
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration

@@ -31,7 +31,7 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :public do
-    plug :accepts, ["html"]
+    plug :accepts, ["html", "txt"]
     plug :fetch_session
     plug :put_root_layout, html: {GlossiaWeb.Layouts, :root}
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
@@ -230,6 +230,13 @@ defmodule GlossiaWeb.Router do
     pipe_through :api
 
     get "/search.json", DocsController, :search_index
+  end
+
+  scope "/", GlossiaWeb do
+    pipe_through :public
+
+    get "/robots.txt", RobotsController, :show
+    get "/llms.txt", AgentInfoController, :show
   end
 
   # Explicit language switch: remembers the choice and returns to the page the

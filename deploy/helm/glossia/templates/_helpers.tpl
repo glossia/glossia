@@ -42,6 +42,18 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "glossia.typesenseName" -}}
+{{- printf "%s-typesense" (include "glossia.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "glossia.typesenseImage" -}}
+{{- if .Values.typesense.image.digest -}}
+{{- printf "%s@%s" .Values.typesense.image.repository .Values.typesense.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.typesense.image.repository .Values.typesense.image.tag -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "glossia.hermesName" -}}
 {{- printf "%s-hermes" (include "glossia.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

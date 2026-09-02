@@ -1,72 +1,23 @@
-<section class="section docs-page">
-  <div class="container">
-    <nav class="docs-breadcrumbs">
+<article id="docs-article" class="prose">
+  <header data-part="article-header">
+    <nav data-part="breadcrumbs" aria-label={gettext("Breadcrumbs")}>
       <a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a>
-      <span class="docs-breadcrumb-sep">/</span>
+      <span>/</span>
       <a href={locale_path(~p"/docs/#{@current_category}")}>
         {@categories[@current_category].title}
       </a>
       <%= if assigns[:current_subcategory] do %>
-        <span class="docs-breadcrumb-sep">/</span>
+        <span>/</span>
         <a href={locale_path(~p"/docs/#{@current_category}/#{@current_subcategory}")}>
           {@current_subcategory_meta.title}
         </a>
       <% end %>
-      <span class="docs-breadcrumb-sep">/</span>
+      <span>/</span>
       <span>{@page.title}</span>
     </nav>
+    <h1>{@page.title}</h1>
+    <p>{@page.summary}</p>
+  </header>
 
-    <div class="docs-layout">
-      <aside :if={@page.toc != []} class="docs-sidebar">
-        <nav class="docs-toc">
-          <p class="docs-toc-title">{gettext("On this page")}</p>
-          <ul class="docs-toc-list">
-            <li
-              :for={entry <- @page.toc}
-              class={"docs-toc-item" <> if(entry.level == 3, do: " docs-toc-nested", else: "")}
-            >
-              <a href={"##{entry.id}"}>{entry.text}</a>
-            </li>
-          </ul>
-          <div class="docs-toc-back">
-            <a href={locale_path(~p"/docs")}>{gettext("All documentation")}</a>
-          </div>
-        </nav>
-      </aside>
-
-      <div class="docs-content">
-        <details :if={@page.toc != []} class="docs-toc-collapse">
-          <summary>{gettext("On this page")}</summary>
-          <ul class="docs-toc-list">
-            <li
-              :for={entry <- @page.toc}
-              class={"docs-toc-item" <> if(entry.level == 3, do: " docs-toc-nested", else: "")}
-            >
-              <a href={"##{entry.id}"}>{entry.text}</a>
-            </li>
-          </ul>
-        </details>
-
-        <div class="docs-title-row">
-          <h1>{@page.title}</h1>
-          <a
-            :if={@page.markdown}
-            href={
-              if assigns[:current_subcategory],
-                do: "/docs/#{@current_category}/#{@current_subcategory}/#{@current_slug}.md",
-                else: "/docs/#{@current_category}/#{@current_slug}.md"
-            }
-            class="docs-markdown-btn"
-          >
-            {gettext("Markdown")}
-          </a>
-        </div>
-        <p class="lead muted">{@page.summary}</p>
-
-        <div class="prose">
-          {raw(@page.body)}
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+  {raw(@page.body)}
+</article>
