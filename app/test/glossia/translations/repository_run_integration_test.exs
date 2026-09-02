@@ -435,7 +435,8 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
              provider: "openai",
              status: 402,
              code: "credit_limit",
-             request_id: "request_123"
+             request_id: "request_123",
+             retry_after_ms: nil
            }
 
     refute inspect(failure) =~ "private source document"

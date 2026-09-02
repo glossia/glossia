@@ -24,7 +24,8 @@ defmodule Glossia.Translations.FailureTest do
              provider: "togetherai",
              status: 402,
              code: "credit_limit",
-             request_id: "request_123"
+             request_id: "request_123",
+             retry_after_ms: nil
            }
 
     rendered = inspect(Failure.from(reason, "togetherai"))
@@ -206,6 +207,109 @@ defmodule Glossia.Translations.FailureTest do
     assert failure.kind == "validation-preserved-content"
     assert failure.scope == "item"
     refute inspect(failure) =~ "private value"
+  end
+
+  test "honours the provider's own Retry-After over any chosen backoff" do
+    failure =
+      Failure.from(
+        {:llm_failed,
+         ReqLLM.Error.API.Request.exception(
+           reason: "HTTP 429: Request failed",
+           status: 429,
+           response_body: %{"error" => %{"type" => "rate_limit"}},
+           headers: [{"retry-after", "12"}]
+         )},
+        "togetherai"
+      )
+
+    assert failure.kind == "provider-rate-limit"
+    assert failure.retry_after_ms == 12_000
+    assert Failure.retryable?(failure)
+  end
+
+  test "leaves the delay to the caller when the provider names none" do
+    failure =
+      Failure.from(
+        {:llm_failed,
+         ReqLLM.Error.API.Request.exception(
+           reason: "HTTP 429: Request failed",
+           status: 429,
+           response_body: %{"error" => %{"type" => "rate_limit"}}
+         )},
+        "togetherai"
+      )
+
+    assert failure.retry_after_ms == nil
+  end
+
+  test "refuses to park a run on an absurd or unparsable Retry-After" do
+    for value <- ["999999", "abc", "-5", "Wed, 21 Oct 2026 07:28:00 GMT", ""] do
+      failure =
+        Failure.from(
+          {:llm_failed,
+           ReqLLM.Error.API.Request.exception(
+             reason: "HTTP 429",
+             status: 429,
+             response_body: %{},
+             headers: [{"retry-after", value}]
+           )},
+          "togetherai"
+        )
+
+      assert failure.retry_after_ms in [nil, :timer.minutes(5)]
+    end
+  end
+
+  test "keeps Retry-After in milliseconds across a progress round trip" do
+    # `from/2` states milliseconds, so a value coming back over progress
+    # messaging must be validated rather than rescaled as seconds again.
+    failure =
+      Failure.normalize(%{
+        kind: "provider-rate-limit",
+        status: 429,
+        retry_after_ms: 12_000
+      })
+
+    assert failure.retry_after_ms == 12_000
+  end
+
+  test "treats exhausted credit and rejected credentials as run stopping" do
+    for kind <- ["provider-credit", "provider-credentials"] do
+      assert Failure.run_stopping?(Failure.normalize(%{kind: kind, status: 402}))
+    end
+  end
+
+  test "lets transient provider failures leave the rest of the run alone" do
+    for {kind, status} <- [
+          {"provider-rate-limit", 429},
+          {"provider-timeout", 408},
+          {"provider-error", 500}
+        ] do
+      refute Failure.run_stopping?(Failure.normalize(%{kind: kind, status: status}))
+    end
+  end
+
+  test "keeps an item failure out of the run stopping set" do
+    refute Failure.run_stopping?(Failure.from({:validation_failed, "invalid yaml"}))
+  end
+
+  test "describes exhausted credit with the provider, status, and the fix" do
+    description =
+      Failure.describe(
+        Failure.normalize(%{kind: "provider-credit", provider: "togetherai", status: 402})
+      )
+
+    assert description ==
+             "The model provider rejected the translation because the account has no " <>
+               "credit left (togetherai, HTTP 402). Add credits for the model provider and retry."
+  end
+
+  test "describes rejected credentials without inventing a provider it was not given" do
+    description = Failure.describe(Failure.normalize(%{kind: "provider-credentials"}))
+
+    assert description ==
+             "The model provider rejected the configured credentials. " <>
+               "Check the account's model credentials and retry."
   end
 
   test "revalidates values received through progress messaging" do

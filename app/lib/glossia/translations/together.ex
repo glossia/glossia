@@ -41,12 +41,16 @@ defmodule Glossia.Translations.Together do
       {:ok, %Req.Response{status: status, body: response}} when status in 200..299 ->
         response_text(response)
 
-      {:ok, %Req.Response{status: status, body: response}} ->
+      {:ok, %Req.Response{status: status, body: response} = resp} ->
+        # A rate-limited provider states how long to wait. Dropping that header
+        # is what forces the caller to guess a backoff, so carry it out with the
+        # error and let the retry loop use the provider's own number.
         {:error,
          Request.exception(
            reason: "HTTP #{status}: Request failed",
            status: status,
-           response_body: response
+           response_body: response,
+           headers: retry_after_headers(resp)
          )}
 
       {:error, error} ->
@@ -73,4 +77,11 @@ defmodule Glossia.Translations.Together do
   end
 
   defp response_text(_response), do: {:error, :invalid_together_response}
+
+  defp retry_after_headers(resp) do
+    case Req.Response.get_header(resp, "retry-after") do
+      [value | _] -> [{"retry-after", value}]
+      _ -> []
+    end
+  end
 end

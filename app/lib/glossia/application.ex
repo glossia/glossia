@@ -31,11 +31,15 @@ defmodule Glossia.Application do
     Supervisor.start_link(children, opts)
   end
 
+  # Stated rather than inherited from Finch's default, because the translation
+  # fan-out is derived from it: see `RepositoryRun.translation_concurrency/2`.
+  defp http_pool_size, do: Application.get_env(:glossia, :http_pool_size, 50)
+
   defp parent_children do
     children =
       [
         Glossia.Vault,
-        {Finch, name: Glossia.Finch},
+        {Finch, name: Glossia.Finch, pools: %{default: [size: http_pool_size()]}},
         Glossia.PromEx,
         GlossiaWeb.Telemetry,
         Glossia.Repo,
@@ -158,7 +162,7 @@ defmodule Glossia.Application do
 
     [
       Glossia.Vault,
-      {Finch, name: Glossia.Finch},
+      {Finch, name: Glossia.Finch, pools: %{default: [size: http_pool_size()]}},
       Glossia.Repo,
       Glossia.ClickHouseRepo,
       Glossia.IngestRepo,

@@ -136,4 +136,100 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
     assert failure.reason.kind == "provider-error"
     assert_receive {:model_request, "# z-queued"}
   end
+
+  # A barrier is the only honest way to assert fan-out: every file blocks until
+  # all of them have arrived, so the run can only finish if they were genuinely
+  # in flight together. A capped run deadlocks here instead of passing slowly.
+  defp barrier_stub(test_pid) do
+    stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
+      source = payload["source_content"]
+      send(test_pid, {:started, source, self()})
+
+      receive do
+        :proceed -> :ok
+      after
+        1_000 -> :ok
+      end
+
+      {:ok,
+       %{text: source, model: "openai/gpt-5", provider: "openai", model_handle: "translator"}}
+    end)
+  end
+
+  defp collect_started(count) do
+    for _ <- 1..count do
+      assert_receive {:started, source, pid}, 1_000
+      {source, pid}
+    end
+  end
+
+  @tag :tmp_dir
+  @tag timeout: 10_000
+  test "translates every planned file at once when no cap is configured", %{tmp_dir: root} do
+    assert Mimic.mode() == :global
+    init_repo(root)
+    test_pid = self()
+
+    stub(TranslationSessions, :broadcast_session_event, fn _session, _event -> :ok end)
+    stub(TranslationSessions, :heartbeat_session, fn _session_id -> :ok end)
+    barrier_stub(test_pid)
+
+    task =
+      Task.async(fn ->
+        RepositoryRun.translate_repository(
+          %TranslationSession{id: Ecto.UUID.generate()},
+          %Account{id: Ecto.UUID.generate()},
+          root,
+          ["es"],
+          context_snapshot: Context.empty_snapshot(),
+          credential_node: Node.self()
+        )
+      end)
+
+    # All five files are in flight simultaneously; with the old fixed cap of
+    # four the fifth could not have started until one of the others returned.
+    started = collect_started(5)
+    assert length(started) == 5
+    Enum.each(started, fn {_source, pid} -> send(pid, :proceed) end)
+
+    assert {:ok, _changes} = Task.await(task, 8_000)
+  end
+
+  @tag :tmp_dir
+  @tag timeout: 10_000
+  test "still honours an explicitly configured cap", %{tmp_dir: root} do
+    assert Mimic.mode() == :global
+    init_repo(root)
+    test_pid = self()
+
+    stub(TranslationSessions, :broadcast_session_event, fn _session, _event -> :ok end)
+    stub(TranslationSessions, :heartbeat_session, fn _session_id -> :ok end)
+    barrier_stub(test_pid)
+
+    task =
+      Task.async(fn ->
+        RepositoryRun.translate_repository(
+          %TranslationSession{id: Ecto.UUID.generate()},
+          %Account{id: Ecto.UUID.generate()},
+          root,
+          ["es"],
+          context_snapshot: Context.empty_snapshot(),
+          credential_node: Node.self(),
+          translation_concurrency: 2
+        )
+      end)
+
+    started = collect_started(2)
+    refute_receive {:started, _source, _pid}, 200
+    Enum.each(started, fn {_source, pid} -> send(pid, :proceed) end)
+
+    # Release each remaining file as it is scheduled rather than letting it sit
+    # on the barrier's fallback, so the test leaves nothing running behind it.
+    for _ <- 1..3 do
+      assert_receive {:started, _source, pid}, 2_000
+      send(pid, :proceed)
+    end
+
+    assert {:ok, _changes} = Task.await(task, 8_000)
+  end
 end

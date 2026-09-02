@@ -140,10 +140,10 @@ defmodule Glossia.Translations do
 
       {:error, reason} ->
         provider = ModelIdentifier.provider(credential.model)
+        failure = Failure.from({:llm_failed, reason}, provider)
 
-        if attempt < @max_llm_attempts and
-             Failure.retryable?(Failure.from({:llm_failed, reason}, provider)) do
-          Process.sleep(retry_delay_ms(backoff_ms, attempt))
+        if attempt < @max_llm_attempts and Failure.retryable?(failure) do
+          Process.sleep(retry_delay_ms(backoff_ms, attempt, failure))
           notify_retry.(attempt + 1)
           with_retries(call, credential, notify_retry, backoff_ms, on_error, attempt + 1)
         else
@@ -153,10 +153,27 @@ defmodule Glossia.Translations do
     end
   end
 
-  defp retry_delay_ms(backoff_ms, attempt) do
-    backoff_ms
-    |> Kernel.*(Integer.pow(2, attempt - 1))
-    |> min(@max_llm_retry_backoff_ms)
+  # A rate-limited provider states how long to wait, and that number beats any
+  # curve chosen here. Everything else backs off exponentially.
+  #
+  # Both are jittered. A run translates every planned file at once, so without
+  # jitter one rate-limit response would put every in-flight file on the same
+  # timer and they would return as a synchronised wave, re-trip the limit, and
+  # settle into lockstep. Spreading each wait over its own window is what turns
+  # that wave back into a stream.
+  defp retry_delay_ms(backoff_ms, attempt, failure) do
+    base =
+      case failure do
+        %{retry_after_ms: ms} when is_integer(ms) and ms > 0 ->
+          ms
+
+        _ ->
+          backoff_ms
+          |> Kernel.*(Integer.pow(2, attempt - 1))
+          |> min(@max_llm_retry_backoff_ms)
+      end
+
+    base + :rand.uniform(max(div(base, 2), 1))
   end
 
   defp prepare(account, payload, opts \\ []) do
