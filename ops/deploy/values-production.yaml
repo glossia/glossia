@@ -52,7 +52,10 @@ mailRelay:
   auth: always
 
 typesense:
-  enabled: true
+  # Enable only after the production TYPESENSE_API_KEY is provisioned in the
+  # external secret store. Rendering the application Secret reference before
+  # then prevents replacement web pods from starting.
+  enabled: false
   persistence:
     storageClass: hcloud-volumes
     size: 10Gi
