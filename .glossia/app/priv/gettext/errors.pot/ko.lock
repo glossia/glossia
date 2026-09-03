@@ -1,28 +1,28 @@
 {
-  "hash": "6b79f7c2694daf90961b7137fb34d9d58323c1f4ea857343741830e8c678ce9c",
+  "hash": "44dcd0f83748b1c55da524d2604947f61339c8c78a3fa06f847efef6be5dbcb0",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "e9899a4b7338075ddf5663639c5877f91aac52524d171f9ac58fe03a969eed45",
+          "hash": "1f6fd52d00a586a402e44da55a14999a5958750db325d24e413078bfce0c25b2",
           "kind": "source",
-          "label": "app/priv/docs/reference/apis/account-tokens.md",
+          "label": "app/priv/gettext/errors.pot",
           "metadata": {
-            "content_hash": "dd976768ce886ca2645e9042ac2ce6279ec415d62009c524f77d5d2d645cade6"
+            "content_hash": "e2ba1a9a3fd94ac18f7d60d8a03fdfcd0c306aa7b34c5c679f10d356fa42d358"
           }
         },
         {
           "children": [],
-          "hash": "3bf21476409c6cd648460d36979e86d40841e5d1506b1cd64b8a0efcd81cdb3f",
+          "hash": "4f2c28613ffd7a650bc087aaf14ef022770635acbd062c0b05102f2329c217e9",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
             "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "format": "markdown",
+            "format": "po",
             "frontmatter_mode": "translate",
-            "language": "ja",
-            "locale": "ja",
+            "language": "ko",
+            "locale": "ko",
             "model": "",
             "preserve": [],
             "prompt_version": 8,
@@ -89,15 +89,15 @@
           "metadata": {}
         }
       ],
-      "hash": "6b79f7c2694daf90961b7137fb34d9d58323c1f4ea857343741830e8c678ce9c",
+      "hash": "44dcd0f83748b1c55da524d2604947f61339c8c78a3fa06f847efef6be5dbcb0",
       "kind": "translation_input",
-      "label": "app/priv/docs/reference/apis/account-tokens.md",
+      "label": "app/priv/gettext/errors.pot",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "a47e43ddb3602ce6ac5dbe4b69ed4dac1e08e66d2049d51dd704af6241b0b791",
-  "output_path": "app/priv/i18n/ja/docs/reference/apis/account-tokens.md",
+  "output_hash": "60782af0ffa60bf08ad792cb3a850862259d55c5ad6b7fa245d81d353ef09c31",
+  "output_path": "app/priv/gettext/ko/LC_MESSAGES/errors.po",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
@@ -115,6 +115,6 @@
       "version": null
     }
   },
-  "source_path": "app/priv/docs/reference/apis/account-tokens.md",
-  "translated_at": "2026-09-03T04:31:07.148084Z"
+  "source_path": "app/priv/gettext/errors.pot",
+  "translated_at": "2026-09-03T03:44:01.496092Z"
 }

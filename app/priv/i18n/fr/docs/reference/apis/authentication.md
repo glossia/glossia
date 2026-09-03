@@ -1,32 +1,30 @@
 %{
   title: "Authentification et autorisation",
   summary: "Comment Glossia authentifie les utilisateurs et autorise l'accès à l'API.",
-  category: "reference",
-  subcategory: "apis",
+  category: "Référence",
+  subcategory: "API",
   order: 1
 }
 ---
 ## Méthodes d'authentification
 
-Glossia prend en charge deux méthodes d'authentification selon le contexte.
+Glossia prend en charge deux méthodes d'authentification en fonction du contexte.
 
-### Sessions de navigateur
+### Sessions du navigateur
 
-Lorsque vous vous connectez depuis l'interface web, Glossia utilise une authentification basée sur les sessions. Vous vous authentifiez auprès d'un fournisseur tiers (GitHub ou GitLab) à l'aide de la bibliothèque [Assent](https://github.com/pow-auth/assent). Une fois la connexion réussie, un cookie de session est défini et utilisé pour les requêtes suivantes.
+Lorsque vous vous connectez via l'interface web, Glossia utilise une authentification basée sur la session. Vous vous authentifiez via un fournisseur tiers (GitHub ou GitLab) en utilisant le [Consentement](https://github.com/pow-auth/assent) bibliothèque. Après une connexion réussie, un cookie de session est défini et utilisé pour les demandes ultérieures.
 
 ### Jetons Bearer (OAuth 2.1)
 
-Pour accéder à l'API, notamment depuis l'interface en ligne de commande ou d'autres outils, Glossia implémente OAuth 2.1 avec le flux de code d'autorisation et PKCE. Les clients obtiennent un jeton Bearer et l'incluent dans l'en-tête `Authorization` :
+Pour l'accès API (tel que depuis la CLI ou d'autres outils), Glossia met en œuvre OAuth 2.1 avec le flux de code d'autorisation et PKCE. Les clients obtiennent un jeton Bearer et l'incluent dans le `Authorization` header:
 
-```
-Authorization: Bearer <access_token>
-```
+    Authorization: Bearer <access_token>
 
 ## Flux OAuth 2.1
 
-### 1. Enregistrement dynamique du client
+### 1\. Enregistrement dynamique des clients
 
-Les clients s'enregistrent eux-mêmes en appelant `POST /oauth/register` avec leurs métadonnées. Cette procédure respecte la [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+Les clients s'enregistrent eux-mêmes en appelant `POST /oauth/register` avec leurs métadonnées. Cela suit [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 
 ```json
 {
@@ -38,91 +36,85 @@ Les clients s'enregistrent eux-mêmes en appelant `POST /oauth/register` avec le
 
 Le serveur renvoie `client_id` et `client_secret`.
 
-### 2. Requête d'autorisation
+### 2\. Demande d’autorisation
 
-Le client redirige l'utilisateur vers `/oauth/authorize` avec les paramètres PKCE :
+Le client redirige l’utilisateur vers `/oauth/authorize` avec les paramètres PKCE :
 
-```
-GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
-```
+    GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
 
-**PKCE est requis pour tous les clients.** Seule la méthode de challenge `S256` est prise en charge.
+**PKCE est obligatoire pour tous les clients.** Seule `S256` la méthode de défi est supportée.
 
-### 3. Échange de jetons
+### 3\. Échange de jeton
 
-Une fois l'autorisation accordée par l'utilisateur, le client échange le code d'autorisation contre des jetons auprès de `POST /oauth/token` :
+Après l'approbation de l'utilisateur, le client échange le code d'autorisation contre des jetons à `POST /oauth/token`:
 
-```
-POST /oauth/token
-Content-Type: application/x-www-form-urlencoded
+    POST /oauth/token
+    Content-Type: application/x-www-form-urlencoded
+    
+    grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
 
-grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
-```
+La réponse comprend un jeton d'accès et, de manière optionnelle, un jeton de rafraîchissement.
 
-La réponse contient un jeton d'accès et, éventuellement, un jeton d'actualisation.
+### 4\. Rafraîchissement de jeton
 
-### 4. Actualisation du jeton
+Lorsqu'un jeton d'accès expire, utilisez le jeton de rafraîchissement :
 
-Lorsqu'un jeton d'accès expire, utilisez le jeton d'actualisation :
-
-```
-POST /oauth/token
-Content-Type: application/x-www-form-urlencoded
-
-grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
-```
+    POST /oauth/token
+    Content-Type: application/x-www-form-urlencoded
+    
+    grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
 
 ## Portées
 
-Les portées déterminent les actions qu'un jeton peut effectuer. Elles suivent le modèle `object:action`.
+Les portées déterminent les actions qu'un jeton peut effectuer. Elles suivent la `object:action` motif.
 
 | Portée | Description |
 |-------|-------------|
 | `user:read` | Lire les informations du profil utilisateur |
 | `user:write` | Mettre à jour le profil utilisateur |
-| `account:read` | Répertorier les comptes d'organisation auxquels vous avez accès |
-| `organization:read` | Lire les informations des organisations et répertorier vos organisations |
-| `organization:write` | Créer ou mettre à jour des organisations |
-| `organization:delete` | Supprimer des organisations |
-| `organization:admin` | Effectuer des actions administratives sur les organisations |
-| `members:read` | Lire les membres et les invitations des organisations |
-| `members:write` | Gérer les membres et les invitations des organisations |
-| `project:read` | Lire les projets |
+| `account:read` | Lister les comptes d'organisation auxquels vous avez accès |
+| `organization:read` | Lire les détails de l'organisation (et lister vos organisations) |
+| `organization:write` | Créer ou mettre à jour les organisations |
+| `organization:delete` | Supprimer les organisations |
+| `organization:admin` | Actions administratives de l'organisation |
+| `members:read` | Voir les membres et les invitations de l'organisation |
+| `members:write` | Gérer les membres et les invitations de l'organisation |
+| `project:read` | Voir les projets |
 | `project:write` | Créer ou mettre à jour des projets |
-| `project:admin` | Effectuer des actions administratives sur les projets |
+| `project:admin` | Actions administratives de projet |
 | `project:delete` | Supprimer des projets |
 | `voice:read` | Lire la configuration de la voix |
-| `voice:write` | Créer ou mettre à jour la configuration de la voix |
-| `voice:admin` | Effectuer des actions administratives sur la voix |
+| `voice:write` | Créer ou mettre à jour la configuration des voix |
+| `voice:admin` | Actions administratives des voix |
 | `glossary:read` | Lire les entrées de terminologie |
 | `glossary:write` | Créer ou mettre à jour les entrées de terminologie |
-| `glossary:admin` | Gérer les paramètres de terminologie |
+| `glossary:admin` | Gestion des paramètres de terminologie |
 
 ## Modèle d'autorisation
 
-Glossia applique **deux niveaux** de contrôle à l'API REST et au serveur MCP :
+Glossia impose **deux couches** pour l'API REST et le serveur MCP:
 
-1. **Vérification de la portée** : le jeton d'accès doit inclure la portée `object:action` requise.
-2. **Politique au niveau de la ressource** : l'utilisateur actuel doit être autorisé à accéder à la ressource concernée via `Glossia.Policy`.
+1. **Vérification du scope**: le jeton d'accès doit inclure le requis `object:action` scope.
+2. **Politique au niveau de ressource**: l'utilisateur actuel doit être autorisé à la ressource spécifique via `Glossia.Policy`.
 
-Les portées représentent la capacité *maximale* d'un jeton. Le système de politiques applique l'autorisation *effective* pour une ressource donnée.
+Les portées représentent la *maximum* capacité d'un jeton. Le système de politiques applique la *réelle* permission pour une ressource spécifique.
 
 ### Rôles
 
 | Rôle | Description |
 |------|-------------|
-| `self` | L’utilisateur accédant à ses propres ressources |
-| `organization_member` | Un membre de l’organisation propriétaire de la ressource |
-| `organization_admin` | Un administrateur de l’organisation propriétaire de la ressource |
+| `self` | L'utilisateur accédant à ses propres ressources |
+| `organization_member` | Un membre de l'organisation qui possède la ressource |
+| `organization_admin` | Un administrateur de l'organisation propriétaire de la ressource |
 | `public_account` | Le compte est public (lecture seule) |
 
-### Autorisations des rôles
+### Permissions des rôles
 
-| Portée | self | organization_member | organization_admin | public_account |
+| Périmètre | self | organization\_member | organization\_admin | public\_account |
 |-------|------|----------------------|--------------------|----------------|
 | `user:read` | Oui | Oui | | |
 | `user:write` | Oui | | | |
-| `account:read` | | Oui | Oui | Oui |
+| `account:read` | | Oui | Oui |
 | `organization:read` | | Oui | Oui | |
 | `organization:write` | | | Oui | |
 | `organization:delete` | | | Oui | |
@@ -140,35 +132,31 @@ Les portées représentent la capacité *maximale* d'un jeton. Le système de po
 | `glossary:write` | | | Oui | |
 | `glossary:admin` | | | Oui | |
 
-## Points de terminaison de découverte
+## Points de découverte
 
-Glossia publie des métadonnées à des URLs standard bien connues afin que les clients puissent découvrir automatiquement les points de terminaison.
+Glossia publie des métadonnées sur des URLs standard bien connues afin que les clients puissent découvrir les points de terminaison automatiquement.
 
-### Métadonnées du serveur d’autorisation OAuth (RFC 8414)
+### Métadonnées du serveur d'autorisation OAuth (RFC 8414)
 
-```
-GET /.well-known/oauth-authorization-server
-```
+    GET /.well-known/oauth-authorization-server
 
-Renvoie l’émetteur, les points de terminaison, les portées prises en charge, les types d’autorisation et les méthodes de vérification du code.
+Retourne l'émetteur, les points de terminaison, les portées supportées, les types de concession et les méthodes de défi de code.
 
-### Métadonnées de la ressource protégée (RFC 9728)
+### Métadonnées des ressources protégées (RFC 9728)
 
-```
-GET /.well-known/oauth-protected-resource
-```
+    GET /.well-known/oauth-protected-resource
 
-Renvoie l’identifiant de la ressource, les serveurs d’autorisation, les portées prises en charge et les méthodes d’utilisation des jetons au porteur.
+Retourne l'identifiant de la ressource, les serveurs d'autorisation, les portées supportées et les méthodes Bearer.
 
-## Limitation du débit
+## Limitation de débit
 
-Le débit des points de terminaison OAuth est limité par adresse IP :
+Les points d'accès OAuth sont limités en débit par adresse IP :
 
-| Point de terminaison | Limite |
+| Point d'accès | Limite |
 |----------|-------|
 | `POST /oauth/register` | 5 requêtes par minute |
 | `POST /oauth/token` | 30 requêtes par minute |
 | `POST /oauth/revoke` | 30 requêtes par minute |
 | `POST /oauth/introspect` | 30 requêtes par minute |
 
-Lorsque la limite de débit est atteinte, le serveur renvoie le code HTTP 429 (Trop de requêtes).
+Lorsque la limite de débit est atteinte, le serveur renvoie HTTP 429 (Trop de requêtes).
