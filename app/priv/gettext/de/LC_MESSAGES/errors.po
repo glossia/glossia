@@ -5,7 +5,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-
+## This is a PO Template file.
+##
+## `msgid`s here are often extracted from source code.
+## Add new translations manually only if they're dynamic
+## translations that can't be statically extracted.
+##
+## Run `mix gettext.extract` to bring this file up to
+## date. Leave `msgstr`s empty as changing them here has no
+## effect: edit them in PO (`.po`) files instead.
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
 msgstr "darf nicht leer sein"
@@ -40,56 +48,56 @@ msgstr "stimmt nicht mit der Bestätigung überein"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr "ist immer noch mit diesem Eintrag verknüpft"
+msgstr "ist weiterhin mit diesem Eintrag verknüpft"
 
 msgid "are still associated with this entry"
-msgstr "sind immer noch mit diesem Eintrag verknüpft"
+msgstr "sind weiterhin mit diesem Eintrag verknüpft"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
-msgstr[0] "sollte %{count} Element haben"
-msgstr[1] "sollte %{count} Elemente haben"
+msgstr[0] "muss %{count} Element haben"
+msgstr[1] "muss %{count} Elemente haben"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] "sollte %{count} Zeichen lang sein"
-msgstr[1] "sollte %{count} Zeichen lang sein"
+msgstr[0] "muss %{count} Zeichen umfassen"
+msgstr[1] "muss %{count} Zeichen umfassen"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
-msgstr[0] "sollte %{count} Byte groß sein"
-msgstr[1] "sollte %{count} Bytes groß sein"
+msgstr[0] "muss %{count} Byte haben"
+msgstr[1] "muss %{count} Bytes haben"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "sollte mindestens %{count} Element haben"
-msgstr[1] "sollte mindestens %{count} Elemente haben"
+msgstr[0] "muss mindestens %{count} Element enthalten"
+msgstr[1] "muss mindestens %{count} Elemente enthalten"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "sollte mindestens %{count} Zeichen lang sein"
-msgstr[1] "sollte mindestens %{count} Zeichen lang sein"
+msgstr[0] "muss mindestens %{count} Zeichen umfassen"
+msgstr[1] "muss mindestens %{count} Zeichen umfassen"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "sollte mindestens %{count} Byte groß sein"
-msgstr[1] "sollte mindestens %{count} Bytes groß sein"
+msgstr[0] "muss mindestens %{count} Byte haben"
+msgstr[1] "muss mindestens %{count} Bytes haben"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "sollte höchstens %{count} Element haben"
-msgstr[1] "sollte höchstens %{count} Elemente haben"
+msgstr[0] "muss höchstens %{count} Element enthalten"
+msgstr[1] "muss höchstens %{count} Elemente enthalten"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "sollte höchstens %{count} Zeichen lang sein"
-msgstr[1] "sollte höchstens %{count} Zeichen lang sein"
+msgstr[0] "muss höchstens %{count} Zeichen umfassen"
+msgstr[1] "muss höchstens %{count} Zeichen umfassen"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "sollte höchstens %{count} Byte groß sein"
-msgstr[1] "sollte höchstens %{count} Bytes groß sein"
+msgstr[0] "muss höchstens %{count} Byte haben"
+msgstr[1] "muss höchstens %{count} Bytes haben"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
