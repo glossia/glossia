@@ -1,28 +1,28 @@
 {
-  "hash": "a1db28085d3adfd5ae928c77e11702375b26133d3b58e3a41b76569e2545fde5",
+  "hash": "cbd71532300b53c25ae7cdefcb5fc66a919dce4b998ff6b1e4f6bfa47c74d7ab",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "bdf276e4ab5502efaa7c6335573d7e93bccdcb9ec4e6cdbf64c758a7bc00306f",
+          "hash": "8ebbf4951aee34364a28aab905a7a651390e906c5a978382c0f7e9029b3320fc",
           "kind": "source",
-          "label": "app/priv/features/mcp-server.md",
+          "label": "app/priv/gettext/default.pot",
           "metadata": {
-            "content_hash": "63e2e78de145a423362984b46324a0a1cc7eb2adcd1692174a2b0b4ad675e1b6"
+            "content_hash": "991055ef9726ac9cfe09154071b2ea31f8eebf19749416c913b4fe5622f8859b"
           }
         },
         {
           "children": [],
-          "hash": "c3c738101240ab51cb162595e65cf4d96ef1c0faded764077588d361f8bbde67",
+          "hash": "2bf122a751586244b19884ec6ce6e94d042d2b701da19a8be96f5baf8e43c75d",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
             "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "format": "markdown",
+            "format": "po",
             "frontmatter_mode": "translate",
-            "language": "zh-Hans",
-            "locale": "zh-Hans",
+            "language": "ja",
+            "locale": "ja",
             "model": "",
             "preserve": [],
             "prompt_version": 8,
@@ -89,15 +89,15 @@
           "metadata": {}
         }
       ],
-      "hash": "a1db28085d3adfd5ae928c77e11702375b26133d3b58e3a41b76569e2545fde5",
+      "hash": "cbd71532300b53c25ae7cdefcb5fc66a919dce4b998ff6b1e4f6bfa47c74d7ab",
       "kind": "translation_input",
-      "label": "app/priv/features/mcp-server.md",
+      "label": "app/priv/gettext/default.pot",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "66ebea5b0b0e0b0f1463e6f0919b960e0f431a7440d98232c3e6744d96095624",
-  "output_path": "app/priv/i18n/zh-Hans/features/mcp-server.md",
+  "output_hash": "39382290e83408a1c98999acbebde45ca863e19d364e9584d38a8c1c5aa624b7",
+  "output_path": "app/priv/gettext/ja/LC_MESSAGES/default.po",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
@@ -115,6 +115,6 @@
       "version": null
     }
   },
-  "source_path": "app/priv/features/mcp-server.md",
-  "translated_at": "2026-09-05T08:54:40.815983Z"
+  "source_path": "app/priv/gettext/default.pot",
+  "translated_at": "2026-09-05T12:20:44.747945Z"
 }
