@@ -66,12 +66,7 @@ COPY lib lib
 # from production dependencies.
 RUN rm -rf lib/glossia/credo_checks
 
-COPY assets/package.json assets/aube-lock.yaml assets/
-RUN npm install --prefix assets --ignore-scripts
-
 COPY assets assets
-
-COPY --from=sdk web /sdk/web
 
 # Compile the project (needed before assets for colocated hooks)
 RUN mix compile
@@ -119,10 +114,5 @@ COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/glossia ./
 COPY --from=cli_builder /cli/target/release/glossia /usr/local/bin/glossia
 
 USER nobody
-
-# Verify that Chromium can start as the unprivileged runtime user. Docker build
-# sandboxes do not permit Chromium's own namespace sandbox, so disable it only
-# for this build-time smoke check.
-RUN chromium --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --dump-dom about:blank >/dev/null
 
 CMD ["/app/bin/start"]

@@ -197,26 +197,6 @@ defmodule Glossia.Policy do
     end
   end
 
-  object :quality do
-    action :read do
-      allow(:super_admin)
-      allow(:organization_admin)
-      allow(:organization_member)
-      allow(:temporary_account_access)
-    end
-
-    action :write do
-      allow(:super_admin)
-      allow(:organization_admin)
-      allow(:organization_member)
-    end
-
-    action :admin do
-      allow(:super_admin)
-      allow(:organization_admin)
-    end
-  end
-
   object :api_credentials do
     action :read do
       allow(:super_admin)

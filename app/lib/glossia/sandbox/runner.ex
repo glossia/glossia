@@ -119,7 +119,7 @@ defmodule Glossia.Sandbox.Runner do
           Glossia.Sandbox.configured(:output_limit_bytes, 256_000)
         )
 
-      run_safe_command(state, cwd, argv, output_limit, opts)
+      run_safe_command(state, cwd, argv, output_limit)
     end
   end
 
@@ -165,24 +165,6 @@ defmodule Glossia.Sandbox.Runner do
       env when env in [nil, %{}, []] -> :ok
       _env -> {:error, :env_not_supported_for_safe_commands}
     end
-  end
-
-  defp run_safe_command(_state, cwd, ["chromium" | args], limit, opts) do
-    timeout = option(opts, :timeout_ms, Glossia.Sandbox.configured(:browser_timeout_ms, 45_000))
-
-    {output, exit_status} =
-      MuonTrap.cmd("chromium", args,
-        cd: cwd,
-        timeout: timeout,
-        stderr_to_stdout: true,
-        into: ""
-      )
-
-    safe_response(output, exit_status, limit)
-  end
-
-  defp run_safe_command(state, cwd, argv, limit, _opts) do
-    run_safe_command(state, cwd, argv, limit)
   end
 
   defp run_safe_command(_state, _cwd, ["echo" | args], limit) do

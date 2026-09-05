@@ -117,55 +117,12 @@
             selected={@live_action in [:project_translations, :project_session]}
           />
           <.sidebar_item
-            :if={assigns[:can_quality_read]}
-            label={gettext("QA")}
-            icon="checkup_list"
-            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/qa"}
-            selected={@live_action in [:project_quality, :project_quality_run]}
-          />
-          <.sidebar_item
-            :if={Glossia.Analytics.Config.enabled?()}
-            label={gettext("Analytics")}
-            icon="chart_column"
-            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/analytics"}
-            selected={@live_action == :project_analytics}
-          />
-          <.sidebar_group
             :if={assigns[:is_admin]}
-            id="project-settings-navigation"
             label={gettext("Settings")}
             icon="settings"
             navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
-            default_open={
-              @live_action in [
-                :project_settings,
-                :project_analytics_settings,
-                :project_quality_settings
-              ]
-            }
-            selected={
-              @live_action in [
-                :project_settings,
-                :project_analytics_settings,
-                :project_quality_settings
-              ]
-            }
-          >
-            <.sidebar_item
-              :if={assigns[:can_quality_admin]}
-              label={gettext("QA")}
-              icon="checkup_list"
-              navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/qa/settings"}
-              selected={@live_action == :project_quality_settings}
-            />
-            <.sidebar_item
-              :if={Glossia.Analytics.Config.enabled?()}
-              label={gettext("Analytics")}
-              icon="chart_column"
-              navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings/analytics"}
-              selected={@live_action == :project_analytics_settings}
-            />
-          </.sidebar_group>
+            selected={@live_action == :project_settings}
+          />
         </.sidebar>
       <% _ -> %>
         <.sidebar id="platform-sidebar">

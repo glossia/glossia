@@ -32,11 +32,6 @@ config :glossia, Glossia.IngestRepo,
 # Keep ClickHouse buffer writes in the calling test process so they share the sandboxed transaction.
 config :glossia, Glossia.Ingestion.Bufferable, write_through_repo: true
 
-config :glossia, Glossia.Analytics,
-  enabled: true,
-  identity_secret: "test-only-analytics-identity-secret",
-  geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
-
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :glossia, GlossiaWeb.Endpoint,
@@ -80,8 +75,6 @@ config :glossia, Glossia.OgImage, enabled: false
 config :glossia, Glossia.Sandbox, reaper_enabled: false
 
 config :glossia, Glossia.Projects.SetupRecovery, enabled: false
-
-config :glossia, Glossia.Quality, allow_private_origins: true
 
 config :fun_with_flags, :cache, enabled: false
 

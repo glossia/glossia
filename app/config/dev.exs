@@ -24,16 +24,9 @@ config :glossia, Glossia.IngestRepo,
   max_buffer_size: 100_000,
   pool_size: 5
 
-# Write ClickHouse events synchronously in dev so the analytics dashboard
-# reflects seed data immediately. In production the buffer batches rows for
-# throughput; the dev latency of an immediate write is not a problem.
+# Write ClickHouse events synchronously in development so local event data is
+# immediately available. Production still batches rows for throughput.
 config :glossia, Glossia.Ingestion.Bufferable, write_through_repo: true
-
-# Dev-only secret for the daily-rotated visitor hash. Never reuse in production.
-config :glossia, Glossia.Analytics,
-  enabled: true,
-  identity_secret: "dev-only-analytics-identity-secret",
-  geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -51,8 +44,7 @@ config :glossia, GlossiaWeb.Endpoint,
   secret_key_base: "65pP1xr3jmj+N1BsGXNwwYPPpS7aG7F6dj38YdnvijVD204/u7fKbSWRZ9rY6Jv0",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:glossia, ~w(--sourcemap=inline --watch)]},
-    esbuild_noora: {Esbuild, :install_and_run, [:noora, ~w(--sourcemap=inline --watch)]},
-    esbuild_glossia_sdk_web: {Esbuild, :install_and_run, [:glossia_sdk_web, ~w(--watch)]}
+    esbuild_noora: {Esbuild, :install_and_run, [:noora, ~w(--sourcemap=inline --watch)]}
   ]
 
 config :glossia, GlossiaWeb.BabelInternalEndpoint,
@@ -99,9 +91,6 @@ config :glossia, GlossiaWeb.Endpoint,
 
 # Enable dev routes for dashboard and mailbox
 config :glossia, dev_routes: true
-
-config :glossia, Glossia.Quality.Artifacts,
-  local_directory: Path.expand("../tmp/quality-artifacts", __DIR__)
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
@@ -151,5 +140,3 @@ config :glossia, Glossia.Vault,
 config :glossia, Glossia.Translations,
   allow_local_session: true,
   local_remotes_dir: Path.expand("tmp/dev-remotes")
-
-config :glossia, Glossia.Quality, allow_private_origins: true

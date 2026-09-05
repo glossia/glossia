@@ -4077,30 +4077,9 @@ msgstr "フロントマター"
 msgid "Segment %{index} of %{count}"
 msgstr "セグメント %{index} / %{count}"
 
-#: lib/glossia_web/components/layouts/platform.html.heex:121
-#: lib/glossia_web/components/layouts/platform.html.heex:137
-#: lib/glossia_web/live/dashboard_live.ex:1109
-#: lib/glossia_web/live/dashboard_live.ex:1239
-#: lib/glossia_web/live/dashboard_live.ex:1252
-#: lib/glossia_web/live/dashboard_live.ex:12197
-#, elixir-autogen, elixir-format
-msgid "Analytics"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:1103
-#: lib/glossia_web/live/dashboard_live.ex:6800
-#, elixir-autogen, elixir-format
-msgid "Analytics settings"
-msgstr ""
-
 #: lib/glossia_web/live/profile_live.ex:384
 #, elixir-autogen, elixir-format
 msgid "Applies to the dashboard. Anything not translated yet falls back to English."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12226
-#, elixir-autogen, elixir-format
-msgid "Apply"
 msgstr ""
 
 #: lib/glossia/docs.ex:335
@@ -4128,11 +4107,6 @@ msgstr ""
 msgid "Cancelled"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12504
-#, elixir-autogen, elixir-format
-msgid "Choose a domain and install the Glossia snippet to start collecting analytics."
-msgstr ""
-
 #: lib/glossia_web/live/profile_live.ex:371
 #, elixir-autogen, elixir-format
 msgid "Choose how Glossia behaves for your account."
@@ -4143,19 +4117,9 @@ msgstr ""
 msgid "Command-line tool documentation and release history."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:6801
-#, elixir-autogen, elixir-format
-msgid "Configure web analytics for this project."
-msgstr ""
-
 #: lib/glossia_web/live/dashboard_live.ex:2975
 #, elixir-autogen, elixir-format
 msgid "Could not cancel the translation."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:2927
-#, elixir-autogen, elixir-format
-msgid "Could not save web analytics. Enter a valid domain like example.com."
 msgstr ""
 
 #: lib/glossia_web/live/profile_live.ex:134
@@ -4163,35 +4127,9 @@ msgstr ""
 msgid "Could not update your language."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12336
-#: lib/glossia_web/live/dashboard_live.ex:12421
-#, elixir-autogen, elixir-format
-msgid "Country"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12575
-#, elixir-autogen, elixir-format
-msgid "Custom"
-msgstr ""
-
 #: lib/glossia_web/live/profile_live.ex:382
 #, elixir-autogen, elixir-format
 msgid "Dashboard language"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:6825
-#, elixir-autogen, elixir-format
-msgid "Domain"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12345
-#, elixir-autogen, elixir-format
-msgid "EN tolerance"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12296
-#, elixir-autogen, elixir-format
-msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr ""
 
 #: lib/glossia/docs.ex:316
@@ -4199,75 +4137,14 @@ msgstr ""
 msgid "Explanation"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12460
-#, elixir-autogen, elixir-format
-msgid "Gap"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12457
-#, elixir-autogen, elixir-format
-msgid "Gap?"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12326
-#, elixir-autogen, elixir-format
-msgid "High priority"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12294
-#, elixir-autogen, elixir-format
-msgid "How is this scored?"
-msgstr ""
-
 #: lib/glossia/docs.ex:314
 #, elixir-autogen, elixir-format
 msgid "How-to guides"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:6830
-#, elixir-autogen, elixir-format
-msgid "Install snippet"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12499
-#, elixir-autogen, elixir-format
-msgid "Install the snippet on %{domain}, then return here once the domain has been verified."
-msgstr ""
-
 #: lib/glossia_web/live/profile_live.ex:130
 #, elixir-autogen, elixir-format
 msgid "Language updated."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12574
-#, elixir-autogen, elixir-format
-msgid "Last 12 months"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12571
-#, elixir-autogen, elixir-format
-msgid "Last 24 hours"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12573
-#, elixir-autogen, elixir-format
-msgid "Last 30 days"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12572
-#, elixir-autogen, elixir-format
-msgid "Last 7 days"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12256
-#: lib/glossia_web/live/dashboard_live.ex:12259
-#, elixir-autogen, elixir-format
-msgid "Locale-gap visits"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12322
-#, elixir-autogen, elixir-format
-msgid "Low priority"
 msgstr ""
 
 #: lib/glossia/docs.ex:319
@@ -4280,65 +4157,9 @@ msgstr ""
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12430
-#, elixir-autogen, elixir-format
-msgid "No country data yet"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12475
-#, elixir-autogen, elixir-format
-msgid "No language data yet"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12353
-#, elixir-autogen, elixir-format
-msgid "No locale-gap visits"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12403
-#, elixir-autogen, elixir-format
-msgid "No pageviews yet"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12404
-#, elixir-autogen, elixir-format
-msgid "Once the snippet is live, pageviews will appear here."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12431
-#, elixir-autogen, elixir-format
-msgid "Once the snippet is live, visitor countries will appear here."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12476
-#, elixir-autogen, elixir-format
-msgid "Once the snippet is live, visitor languages will appear here."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12355
-#, elixir-autogen, elixir-format
-msgid "Once visitors land in a language the project does not serve, they will appear here."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12511
-#, elixir-autogen, elixir-format
-msgid "Open analytics settings"
-msgstr ""
-
 #: lib/glossia_web/components/layouts/platform.html.heex:66
 #, elixir-autogen, elixir-format
 msgid "Operations"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12240
-#: lib/glossia_web/live/dashboard_live.ex:12397
-#, elixir-autogen, elixir-format
-msgid "Pageviews"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12394
-#, elixir-autogen, elixir-format
-msgid "Path"
 msgstr ""
 
 #: lib/glossia/docs.ex:324
@@ -4354,39 +4175,9 @@ msgstr ""
 msgid "Preferences"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12348
-#, elixir-autogen, elixir-format
-msgid "Priority"
-msgstr ""
-
 #: lib/glossia/docs.ex:315
 #, elixir-autogen, elixir-format
 msgid "Reference"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:6848
-#, elixir-autogen, elixir-format
-msgid "Save analytics settings"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12465
-#, elixir-autogen, elixir-format
-msgid "Served"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12452
-#, elixir-autogen, elixir-format
-msgid "Served as"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:6814
-#, elixir-autogen, elixir-format
-msgid "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12494
-#, elixir-autogen, elixir-format
-msgid "Set up web analytics"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:7543
@@ -4409,11 +4200,6 @@ msgstr ""
 msgid "This translation can no longer be cancelled."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12277
-#, elixir-autogen, elixir-format
-msgid "Top country"
-msgstr ""
-
 #: lib/glossia_web/live/dashboard_live.ex:2968
 #, elixir-autogen, elixir-format
 msgid "Translation cancelled."
@@ -4422,43 +4208,6 @@ msgstr ""
 #: lib/glossia/docs.ex:313
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12247
-#, elixir-autogen, elixir-format
-msgid "Unique visitors"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12493
-#, elixir-autogen, elixir-format
-msgid "Verify web analytics"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12342
-#, elixir-autogen, elixir-format
-msgid "Visitors"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12260
-#, elixir-autogen, elixir-format
-msgid "Visitors whose language the project does not serve."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12424
-#: lib/glossia_web/live/dashboard_live.ex:12469
-#, elixir-autogen, elixir-format
-msgid "Visits"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:6812
-#: lib/glossia_web/live/dashboard_live.ex:12484
-#, elixir-autogen, elixir-format
-msgid "Web analytics"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:2919
-#, elixir-autogen, elixir-format
-msgid "Web analytics settings updated."
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex:5355

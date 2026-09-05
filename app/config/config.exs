@@ -72,12 +72,6 @@ config :esbuild,
         ],
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
-  ],
-  glossia_sdk_web: [
-    args:
-      ~w(#{Path.expand("../../sdk/web/src/index.js", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
 # Configure Elixir's Logger
@@ -124,24 +118,6 @@ config :glossia, Glossia.Analytics.Smolanalytics,
   environment: to_string(config_env()),
   request_options: []
 
-# Website analytics ingestion. `identity_secret` salts the daily-rotated visitor
-# hash (see `Glossia.Analytics.Identity`); it is overridden per-environment below.
-config :glossia, Glossia.Analytics,
-  enabled: true,
-  geolocation: [adapter: Glossia.Analytics.Geolocation.Noop]
-
-# Dogfooding: the root layout renders the Glossia web analytics snippet on
-# every page so Glossia measures itself. Set `GLOSSIA_WEB_ANALYTICS_DOMAIN`
-# env var to override in production.
-config :glossia, :web_analytics, domain: "localhost"
-
-# User-Agent classification (device/browser/OS). The regex database lives under
-# `priv/ua_inspector` and is downloaded via `mix ua_inspector.download`; the
-# release overrides the path to the app's priv dir in `runtime.exs`.
-config :ua_inspector,
-  database_path: "priv/ua_inspector",
-  startup_silent: true
-
 config :glossia, Glossia.PromEx,
   manual_metrics_start_delay: :no_delay,
   grafana: :disabled
@@ -160,7 +136,7 @@ config :glossia, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,
   repo: Glossia.Repo,
-  queues: [default: 10, analytics: 5],
+  queues: [default: 10],
   plugins: [
     # Oban.Met otherwise starts itself for every Oban instance and runs DDL at
     # runtime. The schema migration owns that one-time change instead, so a
@@ -169,7 +145,6 @@ config :glossia, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker},
-       {"*/5 * * * *", Glossia.Quality.RunRecoveryWorker},
        {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker}
      ]}
   ]

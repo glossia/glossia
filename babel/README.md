@@ -53,7 +53,7 @@ The database request is constrained in three layers:
   [`pg_read_all_data`](https://www.postgresql.org/docs/current/predefined-roles.html)
 role and has no write permission.
 - ClickHouse requests use a separate restricted account that has `SELECT` only
-  on the Glossia analytics database. Its server-side profile fixes execution,
+  on the Glossia event database. Its server-side profile fixes execution,
   result, memory, and concurrency limits; Babel never receives its password.
 
 The same private listener has two narrow mutation endpoints for claimable
@@ -71,9 +71,9 @@ kubectl -n babel exec deploy/babel -c web -- \
   /app/bin/babel eval 'IO.inspect(Babel.Glossia.query("SELECT 1 AS connection_ok"))'
 ```
 
-To query ClickHouse analytics through the same private listener:
+To query ClickHouse events through the same private listener:
 
 ```bash
 kubectl -n babel exec deploy/babel -c web -- \
-  /app/bin/babel eval 'IO.inspect(Babel.Glossia.clickhouse_query("SELECT count() AS events FROM analytics_events"))'
+  /app/bin/babel eval 'IO.inspect(Babel.Glossia.clickhouse_query("SELECT count() AS events FROM translation_session_events"))'
 ```
