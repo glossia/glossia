@@ -1,7 +1,7 @@
 %{
   title: "Commandes",
   summary: "Référence pour toutes les commandes en ligne de commande Glossia et leurs options.",
-  category: "référence",
+  category: "reference",
   subcategory: "cli",
   order: 1
 }

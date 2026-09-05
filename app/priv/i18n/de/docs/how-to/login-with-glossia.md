@@ -2,7 +2,7 @@
   title: "Mit Glossia anmelden",
   summary:
     "Ermöglicht Nutzern, sich mit ihrem Glossia-Konto über OAuth 2.1 in Ihrer App anzumelden.",
-  category: "Anleitung",
+  category: "how-to",
   order: 2
 }
 ---

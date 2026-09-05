@@ -2,7 +2,7 @@
   title: "Se connecter avec Glossia",
   summary:
     "Permettez à vos utilisateurs de se connecter à votre application avec leur compte Glossia en utilisant OAuth 2.1.",
-  category: "Tutoriel",
+  category: "how-to",
   order: 2
 }
 ---

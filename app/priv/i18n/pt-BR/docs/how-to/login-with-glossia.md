@@ -2,7 +2,7 @@
   title: "Entrar com Glossia",
   summary:
     "Permita que os usuários façam login no seu aplicativo com sua conta Glossia usando OAuth 2.1.",
-  category: "Tutorial",
+  category: "how-to",
   order: 2
 }
 ---

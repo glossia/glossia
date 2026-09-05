@@ -2,7 +2,7 @@
   title: "Iniciar sesión con Glossia",
   summary:
     "Permitir a los usuarios iniciar sesión en su aplicación con su cuenta de Glossia usando OAuth 2.1.",
-  category: "Guías",
+  category: "how-to",
   order: 2
 }
 ---

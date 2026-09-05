@@ -4311,7 +4311,7 @@ msgstr "경로"
 #: lib/glossia/docs.ex:324
 #, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
-msgstr ""특정 작업에 대한 실용 지침."
+msgstr "특정 작업에 대한 실용 지침."
 
 #: lib/glossia_web/components/layouts/user_profile.html.heex:68
 #: lib/glossia_web/live/profile_live.ex:54
@@ -4319,205 +4319,205 @@ msgstr ""특정 작업에 대한 실용 지침."
 #: lib/glossia_web/live/profile_live.ex:370
 #, elixir-autogen, elixir-format
 msgid "Preferences"
-msgstr ""선호 사항"
+msgstr "선호 사항"
 
 #: lib/glossia_web/live/dashboard_live.ex:12348
 #, elixir-autogen, elixir-format
 msgid "Priority"
-msgstr ""우선순위"
+msgstr "우선순위"
 
 #: lib/glossia/docs.ex:315
 #, elixir-autogen, elixir-format
 msgid "Reference"
-msgstr ""참고"
+msgstr "참고"
 
 #: lib/glossia_web/live/dashboard_live.ex:6848
 #, elixir-autogen, elixir-format
 msgid "Save analytics settings"
-msgstr ""분석 설정 저장"
+msgstr "분석 설정 저장"
 
 #: lib/glossia_web/live/dashboard_live.ex:12465
 #, elixir-autogen, elixir-format
 msgid "Served"
-msgstr ""제공됨"
+msgstr "제공됨"
 
 #: lib/glossia_web/live/dashboard_live.ex:12452
 #, elixir-autogen, elixir-format
 msgid "Served as"
-msgstr ""역할로 제공됨"
+msgstr "역할로 제공됨"
 
 #: lib/glossia_web/live/dashboard_live.ex:6814
 #, elixir-autogen, elixir-format
 msgid "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
-msgstr ""측정하려는 사이트의 도메인을 설정하고 아래 스니펫을 모든 페이지에 추가하세요. Glossia 는 이 도메인으로 트래픽을 식별하므로 관리할 키나 비밀이 없습니다."
+msgstr "측정하려는 사이트의 도메인을 설정하고 아래 스니펫을 모든 페이지에 추가하세요. Glossia 는 이 도메인으로 트래픽을 식별하므로 관리할 키나 비밀이 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:12494
 #, elixir-autogen, elixir-format
 msgid "Set up web analytics"
-msgstr ""웹 분석 설정하기"
+msgstr "웹 분석 설정하기"
 
 #: lib/glossia_web/live/dashboard_live.ex:7543
 #, elixir-autogen, elixir-format
 msgid "Show translated output"
-msgstr ""번역 결과 표시"
+msgstr "번역 결과 표시"
 
 #: lib/glossia/docs.ex:322
 #, elixir-autogen, elixir-format
 msgid "Step-by-step lessons to get started with Glossia."
-msgstr ""Glossia 사용 시작을 위한 단계별 학습."
+msgstr "Glossia 사용 시작을 위한 단계별 학습."
 
 #: lib/glossia/docs.ex:327
 #, elixir-autogen, elixir-format
 msgid "Technical descriptions of configuration, CLI, and APIs."
-msgstr ""설정, CLI 및 API 의 기술 설명."
+msgstr "설정, CLI 및 API 의 기술 설명."
 
 #: lib/glossia_web/live/dashboard_live.ex:2972
 #, elixir-autogen, elixir-format
 msgid "This translation can no longer be cancelled."
-msgstr ""이 번역은 더 이상 취소할 수 없습니다."
+msgstr "이 번역은 더 이상 취소할 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:12277
 #, elixir-autogen, elixir-format
 msgid "Top country"
-msgstr ""상위 국가"
+msgstr "상위 국가"
 
 #: lib/glossia_web/live/dashboard_live.ex:2968
 #, elixir-autogen, elixir-format
 msgid "Translation cancelled."
-msgstr ""번역이 취소되었습니다."
+msgstr "번역이 취소되었습니다."
 
 #: lib/glossia/docs.ex:313
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
-msgstr ""튜토리얼"
+msgstr "튜토리얼"
 
 #: lib/glossia_web/live/dashboard_live.ex:12247
 #, elixir-autogen, elixir-format
 msgid "Unique visitors"
-msgstr ""고유 방문자"
+msgstr "고유 방문자"
 
 #: lib/glossia_web/live/dashboard_live.ex:12493
 #, elixir-autogen, elixir-format
 msgid "Verify web analytics"
-msgstr ""웹 분석 확인"
+msgstr "웹 분석 확인"
 
 #: lib/glossia_web/live/dashboard_live.ex:12342
 #, elixir-autogen, elixir-format
 msgid "Visitors"
-msgstr ""방문자"
+msgstr "방문자"
 
 #: lib/glossia_web/live/dashboard_live.ex:12260
 #, elixir-autogen, elixir-format
 msgid "Visitors whose language the project does not serve."
-msgstr ""프로젝트가 지원하지 않는 언어를 사용하는 방문자."
+msgstr "프로젝트가 지원하지 않는 언어를 사용하는 방문자."
 
 #: lib/glossia_web/live/dashboard_live.ex:12424
 #: lib/glossia_web/live/dashboard_live.ex:12469
 #, elixir-autogen, elixir-format
 msgid "Visits"
-msgstr ""방문 횟수"
+msgstr "방문 횟수"
 
 #: lib/glossia_web/live/dashboard_live.ex:6812
 #: lib/glossia_web/live/dashboard_live.ex:12484
 #, elixir-autogen, elixir-format
 msgid "Web analytics"
-msgstr ""웹 분석"
+msgstr "웹 분석"
 
 #: lib/glossia_web/live/dashboard_live.ex:2919
 #, elixir-autogen, elixir-format
 msgid "Web analytics settings updated."
-msgstr ""웹 분석 설정이 업데이트되었습니다."
+msgstr "웹 분석 설정이 업데이트되었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5355
 #, elixir-autogen, elixir-format
 msgid "Add someone to this organization and choose their role."
-msgstr ""이 조직에 사람을 추가하고 역할을 선택하세요."
+msgstr "이 조직에 사람을 추가하고 역할을 선택하세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:5471
 #, elixir-autogen, elixir-format
 msgid "All members"
-msgstr ""모든 회원"
+msgstr "모든 회원"
 
 #: lib/glossia_web/live/dashboard_live.ex:5452
 #: lib/glossia_web/live/dashboard_live.ex:5457
 #, elixir-autogen, elixir-format
 msgid "All roles"
-msgstr ""모든 역할"
+msgstr "모든 역할"
 
 #: lib/glossia_web/live/dashboard_live.ex:5626
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to revoke this invitation?"
-msgstr ""이 초대장을 회수하시겠습니까?"
+msgstr "이 초대장을 회수하시겠습니까?"
 
 #: lib/glossia_web/live/dashboard_live.ex:11941
 #: lib/glossia_web/live/dashboard_live.ex:12009
 #, elixir-autogen, elixir-format
 msgid "Base URL"
-msgstr ""기본 URL"
+msgstr "기본 URL"
 
 #: lib/glossia_web/live/dashboard_live.ex:5476
 #, elixir-autogen, elixir-format
 msgid "Invitations"
-msgstr ""초대"
+msgstr "초대"
 
 #: lib/glossia_web/live/dashboard_live.ex:5642
 #, elixir-autogen, elixir-format
 msgid "Invitations you send will appear here."
-msgstr ""보낸 초대는 여기에 표시됩니다."
+msgstr "보낸 초대는 여기에 표시됩니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5354
 #: lib/glossia_web/live/dashboard_live.ex:5359
 #, elixir-autogen, elixir-format
 msgid "Invite member"
-msgstr ""회원 초대"
+msgstr "회원 초대"
 
 #: lib/glossia_web/live/dashboard_live.ex:5385
 #, elixir-autogen, elixir-format
 msgid "Linguist"
-msgstr ""언어 전문가"
+msgstr "언어 전문가"
 
 #: lib/glossia_web/live/dashboard_live.ex:5637
 #, elixir-autogen, elixir-format
 msgid "No invitations found"
-msgstr ""초대를 찾을 수 없습니다."
+msgstr "초대를 찾을 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5550
 #, elixir-autogen, elixir-format
 msgid "No members found"
-msgstr ""회원을 찾을 수 없습니다."
+msgstr "회원을 찾을 수 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5636
 #, elixir-autogen, elixir-format
 msgid "No pending invitations"
-msgstr ""완료되지 않은 초대가 없습니다."
+msgstr "완료되지 않은 초대가 없습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:11944
 #, elixir-autogen, elixir-format
 msgid "Optional. Route this model through a custom gateway endpoint. Leave empty to use the provider default."
-msgstr ""선택 사항. 이 모델을 커스텀 게이트웨이 엔드포인트로 라우팅합니다. 비어 있으면 기본값을 사용하세요."
+msgstr "선택 사항. 이 모델을 커스텀 게이트웨이 엔드포인트로 라우팅합니다. 비어 있으면 기본값을 사용하세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:12012
 #, elixir-autogen, elixir-format
 msgid "Route this model through a custom gateway endpoint. Leave empty to use the provider default."
-msgstr ""이 모델을 커스텀 게이트웨이 엔드포인트로 라우팅합니다. 비어 있으면 기본값을 사용하세요."
+msgstr "이 모델을 커스텀 게이트웨이 엔드포인트로 라우팅합니다. 비어 있으면 기본값을 사용하세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:5551
 #, elixir-autogen, elixir-format
 msgid "Try changing your search or role filter."
-msgstr ""검색이나 역할 필터를 변경해 보세요."
+msgstr "검색이나 역할 필터를 변경해 보세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:5643
 #, elixir-autogen, elixir-format
 msgid "Try changing your search term."
-msgstr ""검색어를 변경해 보세요."
+msgstr "검색어를 변경해 보세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:5604
 #, elixir-autogen, elixir-format
 msgid "Unknown"
-msgstr ""알 수 없음"
+msgstr "알 수 없음"
 
 #: lib/glossia_web/live/dashboard_live.ex:11942
 #: lib/glossia_web/live/dashboard_live.ex:12010
 #, elixir-autogen, elixir-format
 msgid "e.g. https://api.together.ai/v1"
-msgstr ""예: https://api.together.ai/v1"
+msgstr "예: https://api.together.ai/v1"

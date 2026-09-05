@@ -259,19 +259,6 @@ defmodule Glossia.Translations.ContextTest do
     end
   end
 
-  test "normalizes reviewed guidance before rendering and hashing" do
-    first = %{
-      Context.empty_bundle("es")
-      | project_guidance: ["Use established Spanish terminology.", "Keep headings concise."]
-    }
-
-    second = %{first | project_guidance: Enum.reverse(first.project_guidance)}
-
-    assert Context.prompt_body(first, "Hello.", []) == Context.prompt_body(second, "Hello.", [])
-    assert Context.provenance(first) == Context.provenance(second)
-    assert Context.hash_input(first) == Context.hash_input(second)
-  end
-
   test "normalizes terminology with equal terms before rendering and hashing" do
     first = %{
       Context.empty_bundle("es")

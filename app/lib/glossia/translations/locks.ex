@@ -133,23 +133,6 @@ defmodule Glossia.Translations.Locks do
 
     server_hash_input = Context.hash_input(input.server_context)
 
-    server_context_children =
-      [
-        hash_node(
-          "context",
-          "voice",
-          %{"content_hash" => server_hash_input["voice_content_hash"]},
-          []
-        ),
-        hash_node(
-          "context",
-          "terminology",
-          %{"content_hash" => server_hash_input["terminology_content_hash"]},
-          []
-        )
-      ]
-      |> maybe_add_project_memory(server_hash_input["project_context_content_hash"])
-
     server_context_node =
       hash_node(
         "server_context",
@@ -158,7 +141,20 @@ defmodule Glossia.Translations.Locks do
           "compiler_version" => server_hash_input["compiler_version"],
           "selector_version" => server_hash_input["selector_version"]
         },
-        server_context_children
+        [
+          hash_node(
+            "context",
+            "voice",
+            %{"content_hash" => server_hash_input["voice_content_hash"]},
+            []
+          ),
+          hash_node(
+            "context",
+            "terminology",
+            %{"content_hash" => server_hash_input["terminology_content_hash"]},
+            []
+          )
+        ]
       )
 
     context_node =
@@ -227,13 +223,6 @@ defmodule Glossia.Translations.Locks do
       "metadata" => metadata,
       "children" => children
     }
-  end
-
-  defp maybe_add_project_memory(children, nil), do: children
-
-  defp maybe_add_project_memory(children, content_hash) do
-    children ++
-      [hash_node("context", "reviewed_project_memory", %{"content_hash" => content_hash}, [])]
   end
 
   @doc "Hash of the translation input: source (format-normalized), provider, model, context."
