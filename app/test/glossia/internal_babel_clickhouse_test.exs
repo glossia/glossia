@@ -15,7 +15,7 @@ defmodule Glossia.InternalBabelClickHouseTest do
 
   test "rejects statements that are not read-only" do
     assert {:error, "Only read-only ClickHouse statements are allowed."} =
-             InternalBabelClickHouse.execute("INSERT INTO events VALUES (1)")
+             InternalBabelClickHouse.execute("INSERT INTO analytics_events VALUES (1)")
   end
 
   test "rejects remote table functions" do

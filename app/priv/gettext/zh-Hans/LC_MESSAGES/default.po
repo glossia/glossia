@@ -4050,10 +4050,31 @@ msgstr "前置元数据"
 msgid "Segment %{index} of %{count}"
 msgstr "第 %{index} 段，共 %{count} 段"
 
+#: lib/glossia_web/components/layouts/platform.html.heex:121
+#: lib/glossia_web/components/layouts/platform.html.heex:137
+#: lib/glossia_web/live/dashboard_live.ex:1109
+#: lib/glossia_web/live/dashboard_live.ex:1239
+#: lib/glossia_web/live/dashboard_live.ex:1252
+#: lib/glossia_web/live/dashboard_live.ex:12197
+#, elixir-autogen, elixir-format
+msgid "Analytics"
+msgstr "分析"
+
+#: lib/glossia_web/live/dashboard_live.ex:1103
+#: lib/glossia_web/live/dashboard_live.ex:6800
+#, elixir-autogen, elixir-format
+msgid "Analytics settings"
+msgstr "分析设置"
+
 #: lib/glossia_web/live/profile_live.ex:384
 #, elixir-autogen, elixir-format
 msgid "Applies to the dashboard. Anything not translated yet falls back to English."
 msgstr "适用于仪表板。任何尚未翻译的内容默认回退到英文。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12226
+#, elixir-autogen, elixir-format
+msgid "Apply"
+msgstr "应用"
 
 #: lib/glossia/docs.ex:335
 #, elixir-autogen, elixir-format
@@ -4080,6 +4101,11 @@ msgstr "取消翻译"
 msgid "Cancelled"
 msgstr "已取消"
 
+#: lib/glossia_web/live/dashboard_live.ex:12504
+#, elixir-autogen, elixir-format
+msgid "Choose a domain and install the Glossia snippet to start collecting analytics."
+msgstr "选择一个域名并安装 Glossia 代码片段以开始收集分析数据。"
+
 #: lib/glossia_web/live/profile_live.ex:371
 #, elixir-autogen, elixir-format
 msgid "Choose how Glossia behaves for your account."
@@ -4090,35 +4116,132 @@ msgstr "选择 Glossia 为您账户的行为方式。"
 msgid "Command-line tool documentation and release history."
 msgstr "命令行工具文档和版本历史。"
 
+#: lib/glossia_web/live/dashboard_live.ex:6801
+#, elixir-autogen, elixir-format
+msgid "Configure web analytics for this project."
+msgstr "为此项目配置网站分析。"
+
 #: lib/glossia_web/live/dashboard_live.ex:2975
 #, elixir-autogen, elixir-format
 msgid "Could not cancel the translation."
 msgstr "无法取消翻译。"
+
+#: lib/glossia_web/live/dashboard_live.ex:2927
+#, elixir-autogen, elixir-format
+msgid "Could not save web analytics. Enter a valid domain like example.com."
+msgstr "无法保存网站分析。请输入有效域名，例如 example.com。"
 
 #: lib/glossia_web/live/profile_live.ex:134
 #, elixir-autogen, elixir-format
 msgid "Could not update your language."
 msgstr "无法更新您的语言设置。"
 
+#: lib/glossia_web/live/dashboard_live.ex:12336
+#: lib/glossia_web/live/dashboard_live.ex:12421
+#, elixir-autogen, elixir-format
+msgid "Country"
+msgstr "国家"
+
+#: lib/glossia_web/live/dashboard_live.ex:12575
+#, elixir-autogen, elixir-format
+msgid "Custom"
+msgstr "自定义"
+
 #: lib/glossia_web/live/profile_live.ex:382
 #, elixir-autogen, elixir-format
 msgid "Dashboard language"
 msgstr "仪表板语言"
+
+#: lib/glossia_web/live/dashboard_live.ex:6825
+#, elixir-autogen, elixir-format
+msgid "Domain"
+msgstr "域名"
+
+#: lib/glossia_web/live/dashboard_live.ex:12345
+#, elixir-autogen, elixir-format
+msgid "EN tolerance"
+msgstr "英文容忍度"
+
+#: lib/glossia_web/live/dashboard_live.ex:12296
+#, elixir-autogen, elixir-format
+msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
+msgstr "每个 (国家，语言) 对的优先级是具有语言区域差异的访客，按该国的 (1 - EF EPI 英文容忍度) 加权。权重越高，错失的机会越大。"
 
 #: lib/glossia/docs.ex:316
 #, elixir-autogen, elixir-format
 msgid "Explanation"
 msgstr "说明"
 
+#: lib/glossia_web/live/dashboard_live.ex:12460
+#, elixir-autogen, elixir-format
+msgid "Gap"
+msgstr "差距"
+
+#: lib/glossia_web/live/dashboard_live.ex:12457
+#, elixir-autogen, elixir-format
+msgid "Gap?"
+msgstr "差距？"
+
+#: lib/glossia_web/live/dashboard_live.ex:12326
+#, elixir-autogen, elixir-format
+msgid "High priority"
+msgstr "高优先级"
+
+#: lib/glossia_web/live/dashboard_live.ex:12294
+#, elixir-autogen, elixir-format
+msgid "How is this scored?"
+msgstr "该评分如何计算？"
+
 #: lib/glossia/docs.ex:314
 #, elixir-autogen, elixir-format
 msgid "How-to guides"
 msgstr "操作指南"
 
+#: lib/glossia_web/live/dashboard_live.ex:6830
+#, elixir-autogen, elixir-format
+msgid "Install snippet"
+msgstr "安装代码片段"
+
+#: lib/glossia_web/live/dashboard_live.ex:12499
+#, elixir-autogen, elixir-format
+msgid "Install the snippet on %{domain}, then return here once the domain has been verified."
+msgstr "在 %{domain} 上安装代码片段，待域名验证通过后返回此处。"
+
 #: lib/glossia_web/live/profile_live.ex:130
 #, elixir-autogen, elixir-format
 msgid "Language updated."
 msgstr "语言已更新。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12574
+#, elixir-autogen, elixir-format
+msgid "Last 12 months"
+msgstr "最近 12 个月"
+
+#: lib/glossia_web/live/dashboard_live.ex:12571
+#, elixir-autogen, elixir-format
+msgid "Last 24 hours"
+msgstr "最近 24 小时"
+
+#: lib/glossia_web/live/dashboard_live.ex:12573
+#, elixir-autogen, elixir-format
+msgid "Last 30 days"
+msgstr "最近 30 天"
+
+#: lib/glossia_web/live/dashboard_live.ex:12572
+#, elixir-autogen, elixir-format
+msgid "Last 7 days"
+msgstr "最近 7 天"
+
+#: lib/glossia_web/live/dashboard_live.ex:12256
+#: lib/glossia_web/live/dashboard_live.ex:12259
+#, elixir-autogen, elixir-format
+msgid "Locale-gap visits"
+msgstr "语言区域差距访问"
+
+#: lib/glossia_web/live/dashboard_live.ex:12322
+#, elixir-autogen, elixir-format
+msgid "Low priority"
+msgstr "低优先级"
 
 #: lib/glossia/docs.ex:319
 #, elixir-autogen, elixir-format
@@ -4130,10 +4253,66 @@ msgstr "MCP"
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr "模型上下文协议服务器、工具和建议。"
 
+#: lib/glossia_web/live/dashboard_live.ex:12430
+#, elixir-autogen, elixir-format
+msgid "No country data yet"
+msgstr "暂无国家数据"
+
+#: lib/glossia_web/live/dashboard_live.ex:12475
+#, elixir-autogen, elixir-format
+msgid "No language data yet"
+msgstr "暂无语言数据"
+
+#: lib/glossia_web/live/dashboard_live.ex:12353
+#, elixir-autogen, elixir-format
+msgid "No locale-gap visits"
+msgstr "暂无语言区域差距访问"
+
+#: lib/glossia_web/live/dashboard_live.ex:12403
+#, elixir-autogen, elixir-format
+msgid "No pageviews yet"
+msgstr "暂无页面浏览量"
+
+#: lib/glossia_web/live/dashboard_live.ex:12404
+#, elixir-autogen, elixir-format
+msgid "Once the snippet is live, pageviews will appear here."
+msgstr "代码片段上线后，页面浏览量将显示在此处。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12431
+#, elixir-autogen, elixir-format
+msgid "Once the snippet is live, visitor countries will appear here."
+msgstr "代码片段上线后，访客所在国家将显示在此处。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12476
+#, elixir-autogen, elixir-format
+msgid "Once the snippet is live, visitor languages will appear here."
+msgstr "代码片段上线后，访客所在语言将显示在此处。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12355
+#, elixir-autogen, elixir-format
+msgid "Once visitors land in a language the project does not serve, they will appear here."
+msgstr "当访客进入项目未支持的语言时，他们将显示在此处。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12511
+#, elixir-autogen, elixir-format
+msgid "Open analytics settings"
+msgstr "打开分析设置"
+
 #: lib/glossia_web/components/layouts/platform.html.heex:66
 #, elixir-autogen, elixir-format
 msgid "Operations"
 msgstr "运营"
+
+#: lib/glossia_web/live/dashboard_live.ex:12240
+#: lib/glossia_web/live/dashboard_live.ex:12397
+#, elixir-autogen, elixir-format
+msgid "Pageviews"
+msgstr "页面浏览量"
+
+#: lib/glossia_web/live/dashboard_live.ex:12394
+#, elixir-autogen, elixir-format
+msgid "Path"
+msgstr "路径"
 
 #: lib/glossia/docs.ex:324
 #, elixir-autogen, elixir-format
@@ -4148,10 +4327,40 @@ msgstr "针对特定任务的具体指南。"
 msgid "Preferences"
 msgstr "偏好设置"
 
+#: lib/glossia_web/live/dashboard_live.ex:12348
+#, elixir-autogen, elixir-format
+msgid "Priority"
+msgstr "优先级"
+
 #: lib/glossia/docs.ex:315
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "参考"
+
+#: lib/glossia_web/live/dashboard_live.ex:6848
+#, elixir-autogen, elixir-format
+msgid "Save analytics settings"
+msgstr "保存分析设置"
+
+#: lib/glossia_web/live/dashboard_live.ex:12465
+#, elixir-autogen, elixir-format
+msgid "Served"
+msgstr "已服务"
+
+#: lib/glossia_web/live/dashboard_live.ex:12452
+#, elixir-autogen, elixir-format
+msgid "Served as"
+msgstr "作为服务"
+
+#: lib/glossia_web/live/dashboard_live.ex:6814
+#, elixir-autogen, elixir-format
+msgid "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
+msgstr "设置您想要分析的站点域名，然后将下方的代码片段添加到每一页。Glossia 将通过此域名识别流量，因此无需管理密钥或秘密。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12494
+#, elixir-autogen, elixir-format
+msgid "Set up web analytics"
+msgstr "设置网页分析"
 
 #: lib/glossia_web/live/dashboard_live.ex:7543
 #, elixir-autogen, elixir-format
@@ -4173,6 +4382,11 @@ msgstr "关于配置、CLI 和 API 的技术描述。"
 msgid "This translation can no longer be cancelled."
 msgstr "此翻译已无法取消。"
 
+#: lib/glossia_web/live/dashboard_live.ex:12277
+#, elixir-autogen, elixir-format
+msgid "Top country"
+msgstr "主要国家"
+
 #: lib/glossia_web/live/dashboard_live.ex:2968
 #, elixir-autogen, elixir-format
 msgid "Translation cancelled."
@@ -4182,6 +4396,43 @@ msgstr "翻译已取消。"
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "教程"
+
+#: lib/glossia_web/live/dashboard_live.ex:12247
+#, elixir-autogen, elixir-format
+msgid "Unique visitors"
+msgstr "独立访客"
+
+#: lib/glossia_web/live/dashboard_live.ex:12493
+#, elixir-autogen, elixir-format
+msgid "Verify web analytics"
+msgstr "验证网页分析"
+
+#: lib/glossia_web/live/dashboard_live.ex:12342
+#, elixir-autogen, elixir-format
+msgid "Visitors"
+msgstr "访客"
+
+#: lib/glossia_web/live/dashboard_live.ex:12260
+#, elixir-autogen, elixir-format
+msgid "Visitors whose language the project does not serve."
+msgstr "项目未支持语言的访客。"
+
+#: lib/glossia_web/live/dashboard_live.ex:12424
+#: lib/glossia_web/live/dashboard_live.ex:12469
+#, elixir-autogen, elixir-format
+msgid "Visits"
+msgstr "访问次数"
+
+#: lib/glossia_web/live/dashboard_live.ex:6812
+#: lib/glossia_web/live/dashboard_live.ex:12484
+#, elixir-autogen, elixir-format
+msgid "Web analytics"
+msgstr "网页分析"
+
+#: lib/glossia_web/live/dashboard_live.ex:2919
+#, elixir-autogen, elixir-format
+msgid "Web analytics settings updated."
+msgstr "网页分析设置已更新。"
 
 #: lib/glossia_web/live/dashboard_live.ex:5355
 #, elixir-autogen, elixir-format

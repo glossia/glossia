@@ -3,7 +3,7 @@ defmodule Glossia.InternalBabelClickHouse do
   Executes bounded read-only ClickHouse queries for Babel.
 
   The dedicated ClickHouse user profile is the security boundary: it grants
-  only `SELECT` on Glossia's event database and fixes its resource limits.
+  only `SELECT` on Glossia's analytics database and fixes its resource limits.
   The validation below is intentionally conservative so requests that use
   side-effecting syntax and table functions fail before reaching ClickHouse.
   """

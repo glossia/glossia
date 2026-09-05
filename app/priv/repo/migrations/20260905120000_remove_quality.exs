@@ -1,4 +1,4 @@
-defmodule Glossia.Repo.Migrations.RemoveQualityAndWebAnalytics do
+defmodule Glossia.Repo.Migrations.RemoveQuality do
   use Ecto.Migration
 
   def up do
@@ -10,7 +10,6 @@ defmodule Glossia.Repo.Migrations.RemoveQualityAndWebAnalytics do
     drop_if_exists table(:project_context_versions)
     drop_if_exists table(:quality_runs)
     drop_if_exists table(:quality_profiles)
-    drop_if_exists table(:analytics_project_settings)
   end
 
   def down, do: :ok

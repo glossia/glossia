@@ -72,6 +72,11 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.Locale
   end
 
+  pipeline :analytics do
+    plug :accepts, ["json"]
+    plug GlossiaWeb.Plugs.AnalyticsCors
+  end
+
   pipeline :upload_proxy do
     plug :fetch_session
     plug :put_secure_browser_headers
@@ -86,6 +91,20 @@ defmodule GlossiaWeb.Router do
   get "/up", GlossiaWeb.HealthController, :index
 
   forward "/api/internal/babel", GlossiaWeb.Plugs.RejectInternalBabelPublicRoute
+
+  scope "/v1", GlossiaWeb do
+    pipe_through :analytics
+
+    post "/collect", AnalyticsController, :collect
+    options "/collect", AnalyticsController, :collect
+  end
+
+  scope "/api", GlossiaWeb do
+    pipe_through :analytics
+
+    post "/analytics/events", AnalyticsController, :collect
+    options "/analytics/events", AnalyticsController, :collect
+  end
 
   scope "/webhooks", GlossiaWeb do
     pipe_through :api
@@ -450,6 +469,8 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/models/new", DashboardLive, :llm_model_new
       live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
       live "/:handle/:project/-/settings", DashboardLive, :project_settings
+      live "/:handle/:project/-/settings/analytics", DashboardLive, :project_analytics_settings
+      live "/:handle/:project/-/analytics", DashboardLive, :project_analytics
     end
   end
 

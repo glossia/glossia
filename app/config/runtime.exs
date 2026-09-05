@@ -728,4 +728,33 @@ if config_env() == :prod and not runner_child? do
     ] ++ smtp_auth_options ++ smtp_tls_options
 
   config :glossia, Glossia.Mailer, smtp_options
+
+  analytics_secret =
+    System.get_env("GLOSSIA_ANALYTICS_IDENTITY_SECRET") ||
+      if System.get_env("GLOSSIA_MIGRATION") == "true" do
+        "migration-only"
+      else
+        raise """
+        environment variable GLOSSIA_ANALYTICS_IDENTITY_SECRET is missing.
+        This secret salts the daily-rotated visitor hash; it must be stable and
+        secret. Generate one with: mix phx.gen.secret
+        """
+      end
+
+  geoip_database_path = System.get_env("GLOSSIA_GEOIP_DATABASE_PATH")
+
+  geo_adapter =
+    if geoip_database_path,
+      do: Glossia.Analytics.Geolocation.Maxmind,
+      else: Glossia.Analytics.Geolocation.Ipapi
+
+  config :glossia, Glossia.Analytics,
+    enabled: System.get_env("GLOSSIA_ANALYTICS_ENABLED") not in ~w(false 0),
+    identity_secret: analytics_secret,
+    geolocation: [adapter: geo_adapter, database_path: geoip_database_path]
+
+  config :glossia, :web_analytics, domain: System.get_env("GLOSSIA_WEB_ANALYTICS_DOMAIN")
+
+  # Load the UAInspector regex database from the release's writable priv dir.
+  config :ua_inspector, init: {Glossia.Release, :configure_ua_inspector}
 end

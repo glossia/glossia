@@ -43,20 +43,20 @@ defmodule Babel.GlossiaTest do
            )
   end
 
-  test "sends ClickHouse queries to the private event endpoint" do
+  test "sends ClickHouse queries to the private analytics endpoint" do
     request = fn request ->
       assert URI.to_string(request.url) ==
                "https://glossia-babel.glossia.svc.cluster.local/api/internal/babel/clickhouse/query"
 
       assert request.options[:json] == %{
-               "query" => "SELECT count() AS events FROM translation_session_events"
+               "query" => "SELECT count() AS events FROM analytics_events"
              }
 
       {:ok, %Req.Response{status: 200, body: %{"rows" => [%{"events" => 1}]}}}
     end
 
     assert {:ok, %{"rows" => [%{"events" => 1}]}} =
-             Glossia.clickhouse_query("SELECT count() AS events FROM translation_session_events",
+             Glossia.clickhouse_query("SELECT count() AS events FROM analytics_events",
                base_url: "https://glossia-babel.glossia.svc.cluster.local",
                token: "projected-token",
                tls_server_name: "babel-internal.glossia.ai",

@@ -24,7 +24,7 @@
 
 ### Cachex instances in tests
 
-- Cache modules must accept a `:name` in `child_spec/1` and expose their public functions with an optional cache argument defaulting to the application-wide instance. See `Glossia.Github.InstallationTokens`.
+- Cache modules must accept a `:name` in `child_spec/1` and expose their public functions with an optional cache argument defaulting to the application-wide instance. See `Glossia.Analytics.SettingsCache`.
 - Tests that exercise a cache module should `start_supervised!({TheCache, name: :"test_cache_#{:erlang.unique_integer([:positive])}"})` and pass that name in, so each test owns its own instance and the file stays `async: true`. Do not reach for `Cachex.clear/1` on the global instance and `async: false` — that serializes the suite and leaks state between tests.
 - One caveat worth knowing: `Cachex.fetch/3` runs the resolver in a process the courier `spawn_link`s, which does not inherit `$callers`. Mimic stubs therefore do not reach it, and a test that both goes through `fetch/3` and stubs a module needs `set_mimic_global` (and so `async: false`). Prefer injecting the resolver directly in those tests; only fall back to global Mimic when the code under test owns the resolver.
 

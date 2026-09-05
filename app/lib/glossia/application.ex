@@ -89,6 +89,16 @@ defmodule Glossia.Application do
               |> Map.to_list())},
           id: Glossia.Ingestion.TranslationSessionEventBuffer
         ),
+        Supervisor.child_spec(
+          {Glossia.Ingestion.Buffer,
+           [name: Glossia.Analytics.EventBuffer, flush_interval_ms: 1_000] ++
+             (Glossia.Analytics.Event.buffer_opts()
+              |> Map.take([:insert_sql, :insert_opts, :header])
+              |> Map.to_list())},
+          id: Glossia.Analytics.EventBuffer
+        ),
+        Glossia.Analytics.SettingsCache,
+        Glossia.Analytics.Geolocation.Ipapi.Cache,
         Glossia.Github.InstallationTokens,
         Glossia.Pomerium.JWKSCache
       ] ++

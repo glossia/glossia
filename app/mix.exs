@@ -112,6 +112,7 @@ defmodule Glossia.MixProject do
       {:cloak, "~> 1.1"},
       {:fun_with_flags, "~> 1.13", app: false, override: true},
       {:fun_with_flags_ui, "~> 1.1", app: false},
+      {:ua_inspector, "~> 3.0"},
       {:cachex, "~> 4.1"}
     ]
   end
@@ -126,6 +127,7 @@ defmodule Glossia.MixProject do
     [
       setup: [
         "deps.get",
+        "ua_inspector.download --force",
         "ecto.setup",
         "assets.setup",
         "assets.build"
@@ -136,13 +138,18 @@ defmodule Glossia.MixProject do
       test: [
         "ecto.create --quiet",
         "ecto.migrate --quiet",
+        "ua_inspector.download --force",
         "test"
       ],
-      "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["compile", "esbuild glossia", "esbuild noora"],
+      "assets.setup": [
+        "esbuild.install --if-missing",
+        "cmd aube install --prefix assets"
+      ],
+      "assets.build": ["compile", "esbuild glossia", "esbuild noora", "esbuild glossia_sdk_web"],
       "assets.deploy": [
         "esbuild noora --minify",
         "esbuild glossia --minify",
+        "esbuild glossia_sdk_web --minify",
         "phx.digest"
       ],
       precommit: [

@@ -117,12 +117,39 @@
             selected={@live_action in [:project_translations, :project_session]}
           />
           <.sidebar_item
+            :if={Glossia.Analytics.Config.enabled?()}
+            label={gettext("Analytics")}
+            icon="chart_column"
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/analytics"}
+            selected={@live_action == :project_analytics}
+          />
+          <.sidebar_group
             :if={assigns[:is_admin]}
+            id="project-settings-navigation"
             label={gettext("Settings")}
             icon="settings"
             navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
-            selected={@live_action == :project_settings}
-          />
+            default_open={
+              @live_action in [
+                :project_settings,
+                :project_analytics_settings
+              ]
+            }
+            selected={
+              @live_action in [
+                :project_settings,
+                :project_analytics_settings
+              ]
+            }
+          >
+            <.sidebar_item
+              :if={Glossia.Analytics.Config.enabled?()}
+              label={gettext("Analytics")}
+              icon="chart_column"
+              navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings/analytics"}
+              selected={@live_action == :project_analytics_settings}
+            />
+          </.sidebar_group>
         </.sidebar>
       <% _ -> %>
         <.sidebar id="platform-sidebar">
