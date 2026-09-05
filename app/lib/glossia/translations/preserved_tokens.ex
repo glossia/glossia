@@ -29,8 +29,15 @@ defmodule Glossia.Translations.PreservedTokens do
   # sentence punctuation keeps "https://example.com." and "https://example.com。"
   # comparable, so a translation that ends its sentence differently from the
   # source is not mistaken for a dropped address.
-  @url_regex ~r/https?:\/\/[A-Za-z0-9\-._~:\/?#\[\]@!$&*+,;=%({}]+/
+  @url_regex ~r/https?:\/\/[A-Za-z0-9\-._~:\/?#\[\]@!$&*+,;=%({}\\]+/
   @url_trailing_punctuation ~r/[.,;:!?*_]+\z/
+
+  # Rendering a link whose destination contains parentheses escapes them, so a
+  # reconciled document carries `\(` where the source carried `(`. The escape is
+  # Markdown presentation of the same address: accept it in the scan and undo it
+  # for comparison, keeping the raw bytes for masking and restoration.
+  @markdown_escape_regex ~r/\\([!"\#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~])/
+  @url_trailing_escape ~r/\\+\z/
   @placeholder_regex ~r/\{\{[^{}\n]+\}\}|\{[^\s{}]+\}/
 
   @regex_kinds [
@@ -136,19 +143,19 @@ defmodule Glossia.Translations.PreservedTokens do
     |> Enum.sort_by(& &1.start)
   end
 
-  # MDEx correctly preserves a code block's parsed structure, but renders an
-  # unlabelled fenced block as its equivalent indented form. A code block still
-  # needs to be present with identical content, while its fence spelling is
-  # Markdown presentation rather than protected content. Keep raw ranges for
-  # masking and restoration, and use this normalized representation only for
-  # the source-versus-output comparison.
+  # Comparison runs on what Markdown means, not on how it was spelled. A code
+  # block keeps its language and content but not its fence style, and a web
+  # address keeps the address but not the renderer's backslash escapes, because
+  # reconciling a translated document rewrites both without changing either.
+  # Masking and restoration keep using the raw ranges from `ranges/2`; this
+  # normalized view exists only for the source-versus-output comparison.
   defp comparable_values(source, kinds) do
     non_code_kinds = Enum.reject(kinds, &(&1 == "code_blocks"))
 
     non_code_values =
       source
-      |> values(non_code_kinds)
-      |> Enum.map(&{&1, &1})
+      |> ranges(non_code_kinds)
+      |> Enum.map(&{comparison_key(&1.kind, &1.value), &1.value})
 
     code_values =
       if "code_blocks" in kinds do
@@ -163,51 +170,30 @@ defmodule Glossia.Translations.PreservedTokens do
   end
 
   defp comparable_code_blocks(source) do
-    fenced =
-      source
-      |> fenced_code_ranges()
-      |> Enum.map(fn %{value: value} -> {value, normalize_fenced_code_block(value)} end)
+    case MDEx.parse_document(source) do
+      {:ok, document} ->
+        document
+        |> Enum.filter(&match?(%MDEx.CodeBlock{}, &1))
+        |> Enum.map(fn %MDEx.CodeBlock{info: info, literal: literal} ->
+          literal = literal || ""
 
-    indented =
-      source
-      |> indented_code_blocks()
-      |> Enum.map(fn value -> {value, {"", normalize_indented_code_block(value)}} end)
+          {literal, {String.trim(info || ""), String.trim_trailing(literal)}}
+        end)
 
-    fenced ++ indented
+      {:error, _reason} ->
+        []
+    end
   end
 
-  defp normalize_fenced_code_block(value) do
-    lines = value |> String.trim_trailing() |> String.split("\n")
-    [opening | rest] = lines
-
-    language =
-      case Regex.run(~r/^[ \t]{0,3}(?:`{3,}|~{3,})[ \t]*(.*)$/, opening) do
-        [_, language] -> String.trim(language)
-        _ -> ""
-      end
-
-    {language, rest |> Enum.drop(-1) |> Enum.join("\n")}
+  # A web address is compared by the address it denotes rather than by the way
+  # the renderer spelled it. Every other kind is compared byte-for-byte.
+  defp comparison_key("urls", value) do
+    @markdown_escape_regex
+    |> Regex.replace(value, "\\1")
+    |> then(&Regex.replace(@url_trailing_escape, &1, ""))
   end
 
-  defp indented_code_blocks(source) do
-    Regex.scan(~r/(?:\A|\n)((?:(?: {4}|\t)[^\r\n]*(?:\r?\n|$))+)/, source,
-      capture: :all_but_first
-    )
-    |> Enum.map(fn [block] -> block end)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp normalize_indented_code_block(value) do
-    value
-    |> String.trim_trailing()
-    |> String.split("\n")
-    |> Enum.map(fn line ->
-      line
-      |> String.replace_prefix("    ", "")
-      |> String.replace_prefix("\t", "")
-    end)
-    |> Enum.join("\n")
-  end
+  defp comparison_key(_kind, value), do: value
 
   # A web address only has to be masked when it carries another protected value.
   # `ranges/2` accepts addresses before placeholders, so an address that
