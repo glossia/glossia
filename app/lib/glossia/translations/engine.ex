@@ -33,6 +33,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations.Frontmatter
   alias Glossia.Translations.JsonArray
   alias Glossia.Translations.Markdown
+  alias Glossia.Translations.Po
   alias Glossia.Translations.PreservedTokens
 
   @doc """
@@ -111,6 +112,8 @@ defmodule Glossia.Translations.Engine do
 
         case restore_protections(masked_final, state.protections) do
           {:ok, final} ->
+            final = normalize_output(final, state.work_item)
+
             case state.validate.(final, state.source_text) do
               :ok ->
                 state.on_event.({:translation_output, final})
@@ -1178,6 +1181,14 @@ defmodule Glossia.Translations.Engine do
       "segment_count" => segment_count
     }
   end
+
+  # A catalog's plural arity follows from the target language, not from the
+  # translation, so the engine settles it rather than retrying a model that
+  # cannot reliably collapse an English template's two forms into one.
+  defp normalize_output(text, %{format: "po"} = work_item),
+    do: Po.normalize_plural_forms(text, Map.get(work_item, :locale))
+
+  defp normalize_output(text, _work_item), do: text
 
   defp default_validate(_text, _source), do: :ok
 end
