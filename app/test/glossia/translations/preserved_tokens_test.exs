@@ -190,4 +190,61 @@ defmodule Glossia.Translations.PreservedTokensTest do
 
     assert {:ok, ^source} = PreservedTokens.restore(protection.text, protection)
   end
+
+  test "accepts a link destination whose parentheses the renderer escaped" do
+    source =
+      "See [fuzzy matching](https://en.wikipedia.org/wiki/Fuzzy_matching_(computer-assisted_translation)), then stop.\n"
+
+    {:ok, document} = MDEx.parse_document(source)
+    reconciled = MDEx.to_markdown!(document)
+
+    # Reconciling a translated document is what puts the escapes there, so the
+    # source form and the rendered form have to compare equal in both directions.
+    assert reconciled =~ "Fuzzy_matching_\\(computer-assisted_translation\\)"
+    assert PreservedTokens.unpreserved_values(source, reconciled, ["urls"]) == []
+    assert PreservedTokens.unpreserved_values(reconciled, source, ["urls"]) == []
+  end
+
+  test "still reports a link destination the output actually changed" do
+    source = "See [guide](https://example.com/a_(b)) now.\n"
+
+    assert PreservedTokens.unpreserved_values(
+             source,
+             "Ver [guia](https://example.com/c_(d)) ahora.\n",
+             [
+               "urls"
+             ]
+           ) == ["https://example.com/a_(b"]
+  end
+
+  test "does not read indented lines that Markdown never made a code block" do
+    # Front matter for a marketing page: an indented run inside a paragraph is
+    # translatable prose, and CommonMark cannot start indented code there.
+    source = """
+    %{
+      title: "MCP server",
+      highlights: [
+        %{title: "Natural language interface", description: "Call MCP tools.", icon: "cpu"},
+        %{title: "Plug into any agent", description: "Works with any client.", icon: "puzzle"}
+      ]
+    }
+    """
+
+    translated =
+      String.replace(source, "description: \"", "description: \"ES ")
+
+    assert PreservedTokens.unpreserved_values(source, translated, ["code_blocks"]) == []
+  end
+
+  test "compares a code block by its language and content, not by its fence" do
+    fenced = "before\n\n```\nputs 1\n```\n\nafter\n"
+    indented = "before\n\n    puts 1\n\nafter\n"
+
+    assert PreservedTokens.unpreserved_values(fenced, indented, ["code_blocks"]) == []
+    assert PreservedTokens.unpreserved_values(indented, fenced, ["code_blocks"]) == []
+
+    assert PreservedTokens.unpreserved_values(fenced, "before\n\nafter\n", ["code_blocks"]) == [
+             "puts 1\n"
+           ]
+  end
 end
