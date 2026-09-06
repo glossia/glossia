@@ -28,6 +28,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
 
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :project, Glossia.Accounts.Project
+    belongs_to :continued_from_session, __MODULE__
 
     timestamps()
   end
@@ -46,6 +47,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
       :publication_commit_sha,
       :pull_request_url,
       :pull_request_number,
+      :continued_from_session_id,
       :started_at,
       :completed_at
     ])

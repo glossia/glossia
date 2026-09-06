@@ -15,6 +15,27 @@ defmodule Glossia.Github do
     end
   end
 
+  def handle_webhook_event(
+        %{
+          "ref" => ref,
+          "after" => commit_sha,
+          "repository" => %{"id" => repo_id} = repository
+        } = event
+      )
+      when is_binary(ref) and is_binary(commit_sha) and is_integer(repo_id) do
+    case Projects.get_project_by_github_repo_id(repo_id) do
+      nil ->
+        Logger.debug("Push is not associated with a Glossia project",
+          github_repository_id: repo_id
+        )
+
+      project ->
+        handle_push_event(project, repository, event)
+    end
+
+    :ok
+  end
+
   def handle_webhook_event(%{
         "action" => action,
         "pull_request" => pull_request,
@@ -98,6 +119,62 @@ defmodule Glossia.Github do
     Logger.debug("Unhandled GitHub pull request action: #{action}")
     :ok
   end
+
+  defp handle_push_event(project, repository, event) do
+    default_branch =
+      project.github_repo_default_branch || repository["default_branch"] || "main"
+
+    expected_ref = "refs/heads/#{default_branch}"
+    commit_sha = event["after"]
+
+    if event["ref"] == expected_ref and event["deleted"] != true and
+         commit_sha != String.duplicate("0", 40) do
+      commit_message =
+        event
+        |> get_in(["head_commit", "message"])
+        |> first_line()
+
+      %{
+        project_id: project.id,
+        commit_sha: commit_sha,
+        commit_message: commit_message,
+        source_language: "en",
+        target_languages: translation_target_languages(project)
+      }
+      |> Glossia.TranslationSessions.ContinuousTranslationWorker.new()
+      |> Oban.insert()
+      |> case do
+        {:ok, _job} ->
+          Logger.info("Queued translation coordination for default branch push",
+            project_id: project.id,
+            commit_sha: commit_sha
+          )
+
+        {:error, reason} ->
+          Logger.warning("Could not queue translation for default branch push",
+            project_id: project.id,
+            commit_sha: commit_sha,
+            reason: inspect(reason)
+          )
+      end
+    end
+  end
+
+  defp translation_target_languages(project) do
+    case project.setup_target_languages do
+      languages when is_list(languages) and languages != [] -> languages
+      _ -> []
+    end
+  end
+
+  defp first_line(value) when is_binary(value) do
+    value
+    |> String.split("\n", parts: 2)
+    |> List.first()
+    |> String.trim()
+  end
+
+  defp first_line(_value), do: nil
 
   defp pull_request_state("closed", %{"merged" => true} = pull_request) do
     {"merged", parse_datetime(pull_request["merged_at"])}

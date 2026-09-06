@@ -69,7 +69,7 @@ defmodule Glossia.TranslationSessions.Job do
         :ok
 
       session ->
-        TranslationSessions.update_session_status(session, "failed",
+        TranslationSessions.finish_session(session, "failed",
           error: "Translation stopped unexpectedly: #{Exception.message(exception)}"
         )
     end
