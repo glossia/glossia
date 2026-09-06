@@ -505,6 +505,189 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert_received {:repository, %{publication_branch: "glossia/translate-abc123456789"}}
   end
 
+  test "merges the new source commit into a continued translation branch" do
+    {user, project} =
+      project_with_installation("translate-continuation@test.com", "translate-continuation")
+
+    previous_session = session_for(user, project)
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "def9876543210",
+        commit_message: "Update guide",
+        source_language: "en",
+        target_languages: ["es"],
+        continued_from_session_id: previous_session.id,
+        publication_branch: "glossia/translate-abc123456789",
+        publication_commit_sha: "checkpoint-commit",
+        pull_request_url: "https://github.com/glossia/demo/pull/2",
+        pull_request_number: 2
+      })
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.expect(Glossia.Github.Client, :get_pull_request, fn "glossia/demo", 2, "github-token" ->
+      {:ok, %{"state" => "open"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :compare_commits, fn "glossia/demo",
+                                                             "abc1234567890",
+                                                             "def9876543210",
+                                                             "github-token" ->
+      {:ok, %{"status" => "ahead"}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :merge_branch, fn "glossia/demo",
+                                                          params,
+                                                          "github-token" ->
+      assert params.base == "glossia/translate-abc123456789"
+      assert params.head == "def9876543210"
+      {:ok, %{"sha" => "merge-commit"}}
+    end)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            repository,
+                                                            _locales,
+                                                            _opts ->
+      send(self(), {:continued_repository, repository})
+      {:ok, []}
+    end)
+
+    assert :ok = Translate.run(session.id)
+
+    assert_received {:continued_repository,
+                     %{
+                       commit_sha: "def9876543210",
+                       publication_branch: "glossia/translate-abc123456789"
+                     }}
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.publication_commit_sha == "merge-commit"
+    assert updated.status == "completed"
+  end
+
+  test "starts a fresh publication when the default branch history was rewritten" do
+    {user, project} =
+      project_with_installation("translate-diverged@test.com", "translate-diverged")
+
+    previous_session = session_for(user, project)
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "rewritten-source",
+        source_language: "en",
+        target_languages: ["es"],
+        continued_from_session_id: previous_session.id,
+        publication_branch: "glossia/translate-abc123456789",
+        publication_commit_sha: "checkpoint-commit"
+      })
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.expect(Glossia.Github.Client, :compare_commits, fn "glossia/demo",
+                                                             "abc1234567890",
+                                                             "rewritten-source",
+                                                             "github-token" ->
+      {:ok, %{"status" => "diverged"}}
+    end)
+
+    Mimic.reject(&Glossia.Github.Client.merge_branch/3)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            repository,
+                                                            _locales,
+                                                            _opts ->
+      send(self(), {:fresh_repository, repository})
+      {:ok, []}
+    end)
+
+    assert :ok = Translate.run(session.id)
+    assert_received {:fresh_repository, %{publication_branch: nil}}
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert is_nil(updated.publication_branch)
+    assert is_nil(updated.publication_commit_sha)
+    assert updated.status == "completed"
+  end
+
+  test "starts fresh after the inherited pull request was merged" do
+    {user, project} =
+      project_with_installation("translate-closed-pr@test.com", "translate-closed-pr")
+
+    previous_session = session_for(user, project)
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "def9876543210",
+        source_language: "en",
+        target_languages: ["es"],
+        continued_from_session_id: previous_session.id,
+        publication_branch: "glossia/translate-abc123456789",
+        publication_commit_sha: "checkpoint-commit",
+        pull_request_url: "https://github.com/glossia/demo/pull/2",
+        pull_request_number: 2
+      })
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.expect(Glossia.Github.Client, :get_pull_request, fn "glossia/demo", 2, "github-token" ->
+      {:ok, %{"state" => "closed", "merged" => true}}
+    end)
+
+    Mimic.reject(&Glossia.Github.Client.compare_commits/4)
+    Mimic.reject(&Glossia.Github.Client.merge_branch/3)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                            _account,
+                                                            repository,
+                                                            _locales,
+                                                            _opts ->
+      send(self(), {:merged_pull_request_repository, repository})
+      {:ok, []}
+    end)
+
+    assert :ok = Translate.run(session.id)
+    assert_received {:merged_pull_request_repository, %{publication_branch: nil}}
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert is_nil(updated.pull_request_url)
+    assert is_nil(updated.pull_request_number)
+    assert is_nil(updated.publication_branch)
+    assert is_nil(updated.publication_commit_sha)
+  end
+
+  test "a cancelled runner cannot overwrite cancellation with a failure" do
+    {user, project} =
+      project_with_installation("translate-cancel-race@test.com", "translate-cancel-race")
+
+    session = session_for(user, project)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn running_session,
+                                                            _account,
+                                                            _repository,
+                                                            _locales,
+                                                            opts ->
+      {:ok, _cancelled} =
+        TranslationSessions.update_session_status(running_session, "cancelled")
+
+      callback = Keyword.fetch!(opts, :after_item_completed)
+
+      assert {:error, :translation_cancelled} =
+               callback.([
+                 %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola\n"}
+               ])
+
+      {:error, {:translation_items_failed, [%{output_path: "docs/i18n/es/guide.md"}]}}
+    end)
+
+    assert :ok = Translate.run(session.id)
+    assert Repo.get!(TranslationSession, session.id).status == "cancelled"
+  end
+
   test "fails the session when a translation item fails" do
     {user, project} =
       project_with_installation("translate-retry@test.com", "translate-retry")

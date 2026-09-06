@@ -39,16 +39,13 @@ defmodule Glossia.TranslationSessions.Translate do
     project = session.project
     account = project.account
 
-    if session.status == "cancelled" do
-      :ok
-    else
-      do_run(session, project, account)
+    case TranslationSessions.start_session(session) do
+      {:ok, started_session} -> do_run(started_session, project, account)
+      {:error, :not_active} -> :ok
     end
   end
 
   defp do_run(%TranslationSession{} = session, project, account) do
-    TranslationSessions.update_session_status(session, "running")
-
     Events.emit("translation_session.started", account, nil,
       resource_type: "translation_session",
       resource_id: to_string(session.id),
@@ -56,7 +53,8 @@ defmodule Glossia.TranslationSessions.Translate do
       summary: "Translation session started for #{project.handle}"
     )
 
-    with {:ok, token} <- get_clone_token(project) do
+    with {:ok, token} <- get_clone_token(project),
+         {:ok, session, token} <- synchronize_continued_branch(session, project, token) do
       repository = %{
         full_name: project.github_repo_full_name,
         default_branch: project.github_repo_default_branch || "main",
@@ -82,9 +80,216 @@ defmodule Glossia.TranslationSessions.Translate do
           fail_translation(session, project, account, reason)
       end
     else
+      {:error, :translation_cancelled} ->
+        :ok
+
       {:error, reason} ->
         fail_translation(session, project, account, reason)
     end
+  end
+
+  defp synchronize_continued_branch(
+         %TranslationSession{continued_from_session_id: nil} = session,
+         _project,
+         token
+       ),
+       do: {:ok, session, token}
+
+  defp synchronize_continued_branch(
+         %TranslationSession{publication_branch: branch, commit_sha: source_commit_sha} = session,
+         project,
+         token
+       )
+       when is_binary(branch) and branch != "" and is_binary(source_commit_sha) and
+              source_commit_sha != "" do
+    synchronize_continued_branch(session, project, token, true)
+  end
+
+  defp synchronize_continued_branch(session, _project, token), do: {:ok, session, token}
+
+  defp synchronize_continued_branch(session, project, token, retry_on_unauthorized?) do
+    case do_synchronize_continued_branch(session, project, token) do
+      {:ok, updated_session} ->
+        {:ok, updated_session, token}
+
+      {:aborted, reason} ->
+        {:error, {:publication_lock_aborted, reason}}
+
+      {:error, {:api_error, 401, _body}}
+      when retry_on_unauthorized? and not is_nil(project.github_installation) ->
+        installation_id = project.github_installation.github_installation_id
+        Glossia.Github.InstallationTokens.invalidate(installation_id)
+
+        with {:ok, refreshed_token} <- Glossia.Github.App.installation_token(installation_id) do
+          synchronize_continued_branch(session, project, refreshed_token, false)
+        end
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp do_synchronize_continued_branch(session, project, token) do
+    serialize_project_publication(project.id, fn ->
+      fresh = TranslationSessions.get_session!(session.id)
+
+      if fresh.status == "running" do
+        continue_or_reset_publication(fresh, project, token)
+      else
+        {:error, :translation_cancelled}
+      end
+    end)
+  end
+
+  defp continue_or_reset_publication(session, project, token) do
+    case refresh_inherited_pull_request(session, project, token) do
+      {:reset, session} ->
+        {:ok, session}
+
+      {:ok, session} ->
+        previous_session = TranslationSessions.get_session(session.continued_from_session_id)
+
+        case compare_source_history(previous_session, session, project, token) do
+          {:ok, status} when status in ["ahead", "identical"] ->
+            merge_source_commit(session, project, token)
+
+          {:ok, status} when status in ["behind", "diverged"] ->
+            reset_publication(session)
+
+          {:error, {:api_error, status, _body}} when status in [404, 409, 422] ->
+            reset_publication(session)
+
+          {:error, _reason} = error ->
+            error
+
+          _other ->
+            {:error, :invalid_github_response}
+        end
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp refresh_inherited_pull_request(
+         %TranslationSession{pull_request_number: pull_request_number} = session,
+         project,
+         token
+       )
+       when is_integer(pull_request_number) do
+    case Glossia.Github.Client.get_pull_request(
+           project.github_repo_full_name,
+           pull_request_number,
+           token
+         ) do
+      {:ok, %{"state" => "open"}} ->
+        {:ok, session}
+
+      {:ok, %{"state" => "closed", "merged" => true}} ->
+        with {:ok, session} <- reset_publication(session), do: {:reset, session}
+
+      {:ok, %{"state" => "closed"}} ->
+        clear_pull_request(session)
+
+      {:error, {:api_error, 404, _body}} ->
+        clear_pull_request(session)
+
+      {:ok, _response} ->
+        {:error, :invalid_github_response}
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp refresh_inherited_pull_request(session, _project, _token), do: {:ok, session}
+
+  defp clear_pull_request(session) do
+    TranslationSessions.update_session_publication(session, %{
+      pull_request_url: nil,
+      pull_request_number: nil
+    })
+  end
+
+  defp compare_source_history(
+         %TranslationSession{commit_sha: previous_commit_sha},
+         %TranslationSession{commit_sha: source_commit_sha},
+         project,
+         token
+       )
+       when is_binary(previous_commit_sha) and previous_commit_sha != "" and
+              is_binary(source_commit_sha) and source_commit_sha != "" do
+    with {:ok, comparison} <-
+           Glossia.Github.Client.compare_commits(
+             project.github_repo_full_name,
+             previous_commit_sha,
+             source_commit_sha,
+             token
+           ),
+         status when is_binary(status) <- comparison["status"] do
+      {:ok, status}
+    else
+      nil -> {:error, :invalid_github_response}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp compare_source_history(_previous_session, _session, _project, _token),
+    do: {:ok, "diverged"}
+
+  defp merge_source_commit(session, project, token) do
+    params = %{
+      base: session.publication_branch,
+      head: session.commit_sha,
+      commit_message: "Merge #{session.commit_sha} before continuing translations"
+    }
+
+    case Glossia.Github.Client.merge_branch(project.github_repo_full_name, params, token) do
+      {:ok, response} ->
+        with {:ok, branch_commit_sha} <-
+               merged_commit_sha(response, session.publication_branch, project, token),
+             {:ok, updated_session} <-
+               TranslationSessions.update_session_publication(session, %{
+                 publication_commit_sha: branch_commit_sha
+               }) do
+          {:ok, updated_session}
+        end
+
+      {:error, {:api_error, status, _body}} when status in [404, 409, 422] ->
+        reset_publication(session)
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  defp merged_commit_sha(%{"sha" => sha}, _branch, _project, _token)
+       when is_binary(sha) and sha != "",
+       do: {:ok, sha}
+
+  defp merged_commit_sha(_response, branch, project, token) do
+    with {:ok, ref} <-
+           Glossia.Github.Client.get_ref(
+             project.github_repo_full_name,
+             "heads/#{branch}",
+             token
+           ),
+         sha when is_binary(sha) and sha != "" <- get_in(ref, ["object", "sha"]) do
+      {:ok, sha}
+    else
+      nil -> {:error, :invalid_github_response}
+      "" -> {:error, :invalid_github_response}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp reset_publication(session) do
+    TranslationSessions.update_session_publication(session, %{
+      publication_branch: nil,
+      publication_commit_sha: nil,
+      pull_request_url: nil,
+      pull_request_number: nil
+    })
   end
 
   defp get_clone_token(project) do
@@ -152,7 +357,20 @@ defmodule Glossia.TranslationSessions.Translate do
       TranslationSessions.get_session!(session_id)
       |> Glossia.Repo.preload(project: [:account, :github_installation])
 
-    publish_changes_with_token(session, changes, true)
+    case serialize_project_publication(session.project_id, fn ->
+           fresh =
+             TranslationSessions.get_session!(session_id)
+             |> Glossia.Repo.preload(project: [:account, :github_installation])
+
+           if fresh.status in ["pending", "running"] do
+             publish_changes_with_token(fresh, changes, true)
+           else
+             {:error, :translation_cancelled}
+           end
+         end) do
+      {:aborted, reason} -> {:error, {:publication_lock_aborted, reason}}
+      result -> result
+    end
   end
 
   # Item workers run concurrently. GitHub commits must form a single linear
@@ -162,31 +380,19 @@ defmodule Glossia.TranslationSessions.Translate do
        when not is_nil(project.github_installation) and is_binary(clone_token) and
               clone_token != "" do
     fn changes ->
-      serialize_checkpoint(session.id, fn ->
-        fresh = TranslationSessions.get_session!(session.id)
-
-        if fresh.status == "running" do
-          publish_changes(%{session_id: session.id}, %{changes: changes})
-        else
-          {:error, :translation_cancelled}
-        end
-      end)
+      publish_changes(%{session_id: session.id}, %{changes: changes})
     end
   end
 
   defp publication_callback(_session, _project, _clone_token), do: nil
 
-  defp serialize_checkpoint(session_id, callback) do
-    if Node.alive?() do
-      # `:global.trans/2` expects `{resource, requester}`. The previous
-      # three-element tuple is rejected on distributed worker nodes before the
-      # callback can publish anything. Keeping the session in the resource and
-      # the process as requester serializes a session's commits while allowing
-      # independent sessions to publish at the same time.
-      :global.trans({{__MODULE__, :translation_checkpoint, session_id}, self()}, callback)
-    else
-      callback.()
-    end
+  @doc false
+  def serialize_project_publication(project_id, callback) do
+    # `:global.trans/2` expects `{resource, requester}`. Keeping the project in
+    # the resource and the process as requester serializes local and distributed
+    # commits across a handoff while allowing independent projects to publish at
+    # the same time.
+    :global.trans({{__MODULE__, :project_publication, project_id}, self()}, callback)
   end
 
   defp publish_changes_with_token(session, changes, retry_on_unauthorized?) do
@@ -414,7 +620,7 @@ defmodule Glossia.TranslationSessions.Translate do
     summary = "Updated translation pull request."
 
     with {:ok, _session} <-
-           TranslationSessions.update_session_status(session, "completed", summary: summary) do
+           TranslationSessions.finish_session(session, "completed", summary: summary) do
       Events.emit("translation_session.completed", account, nil,
         resource_type: "translation_session",
         resource_id: to_string(session.id),
@@ -430,7 +636,7 @@ defmodule Glossia.TranslationSessions.Translate do
     summary = "Translation completed. Pull request skipped because GitHub is not configured."
 
     with {:ok, _session} <-
-           TranslationSessions.update_session_status(session, "completed", summary: summary) do
+           TranslationSessions.finish_session(session, "completed", summary: summary) do
       Events.emit("translation_session.completed", account, nil,
         resource_type: "translation_session",
         resource_id: to_string(session.id),
@@ -446,7 +652,7 @@ defmodule Glossia.TranslationSessions.Translate do
     summary = "No translations needed."
 
     with {:ok, _session} <-
-           TranslationSessions.update_session_status(session, "completed", summary: summary) do
+           TranslationSessions.finish_session(session, "completed", summary: summary) do
       record_translation_event(session, %{
         "event_type" => "status",
         "content" => summary,
@@ -477,34 +683,38 @@ defmodule Glossia.TranslationSessions.Translate do
     error_msg = humanize_error(reason)
     failure_metadata = failure_metadata(reason)
 
-    Logger.error(
-      "Translation session failed: " <>
-        JSON.encode!(
-          Map.merge(failure_metadata, %{
-            "event" => "translation.session_failed",
-            "translation_session_id" => session.id,
-            "project_id" => project.id
-          })
+    case TranslationSessions.finish_session(session, "failed", error: error_msg) do
+      {:ok, _session} ->
+        Logger.error(
+          "Translation session failed: " <>
+            JSON.encode!(
+              Map.merge(failure_metadata, %{
+                "event" => "translation.session_failed",
+                "translation_session_id" => session.id,
+                "project_id" => project.id
+              })
+            )
         )
-    )
 
-    TranslationSessions.update_session_status(session, "failed", error: error_msg)
+        record_translation_event(session, %{
+          "event_type" => "error",
+          "content" => error_msg,
+          "metadata" => failure_metadata
+        })
 
-    record_translation_event(session, %{
-      "event_type" => "error",
-      "content" => error_msg,
-      "metadata" => failure_metadata
-    })
+        Events.emit("translation_session.failed", account, nil,
+          resource_type: "translation_session",
+          resource_id: to_string(session.id),
+          resource_path: "/#{account.handle}/#{project.handle}/-/sessions/#{session.id}",
+          summary:
+            "Translation session failed for #{project.handle}: #{String.slice(error_msg, 0, 200)}"
+        )
 
-    Events.emit("translation_session.failed", account, nil,
-      resource_type: "translation_session",
-      resource_id: to_string(session.id),
-      resource_path: "/#{account.handle}/#{project.handle}/-/sessions/#{session.id}",
-      summary:
-        "Translation session failed for #{project.handle}: #{String.slice(error_msg, 0, 200)}"
-    )
+        {:error, reason}
 
-    {:error, reason}
+      {:error, :not_active} ->
+        :ok
+    end
   end
 
   defp record_translation_event(session, %{"event_type" => event_type} = event)

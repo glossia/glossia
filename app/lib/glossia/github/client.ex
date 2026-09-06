@@ -132,6 +132,21 @@ defmodule Glossia.Github.Client do
     api_patch(url, %{sha: sha, force: force}, access_token)
   end
 
+  def merge_branch(full_name, params, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    url = "#{api_url}/repos/#{full_name}/merges"
+
+    api_post(url, params, access_token)
+  end
+
+  def compare_commits(full_name, base, head, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    base = URI.encode_www_form(base)
+    head = URI.encode_www_form(head)
+
+    api_get("#{api_url}/repos/#{full_name}/compare/#{base}...#{head}", access_token)
+  end
+
   def get_commit(full_name, sha, access_token, opts \\ []) do
     api_url = github_api_url(opts)
 
@@ -232,6 +247,13 @@ defmodule Glossia.Github.Client do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp headers(nil) do
+    [
+      {"accept", "application/vnd.github+json"},
+      {"x-github-api-version", "2022-11-28"}
+    ]
   end
 
   defp headers(access_token) do

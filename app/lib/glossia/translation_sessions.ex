@@ -11,6 +11,7 @@ defmodule Glossia.TranslationSessions do
   alias Glossia.Accounts.{Account, Project}
   alias Glossia.TranslationSessions.Progress
   alias Glossia.TranslationSessions.ProgressEvent
+  alias Glossia.TranslationSessions.Translate
   alias Glossia.TranslationSessions.TranslationSession
 
   # A translation heartbeats after each file, and one file on a reasoning model
@@ -80,6 +81,207 @@ defmodule Glossia.TranslationSessions do
     |> Repo.insert()
   end
 
+  @doc """
+  Starts the translation for the newest commit on a project's default branch.
+
+  Only one continuously-triggered translation remains active. A newer commit
+  cancels older pending or running sessions and carries their checkpointed
+  branch and pull request into the replacement session. The project row lock
+  makes webhook redelivery and concurrent pushes idempotent across replicas.
+  """
+  def start_continuous_session(%Project{id: project_id}, attrs, opts \\ []) do
+    Translate.serialize_project_publication(project_id, fn ->
+      with :ok <- validate_continuous_start(opts),
+           {:ok, result} <- create_continuous_session(project_id, attrs) do
+        prepare_continuous_start(result, opts)
+      end
+    end)
+    |> case do
+      {:aborted, reason} ->
+        {:error, {:publication_lock_aborted, reason}}
+
+      {:ignore, reason} ->
+        {:ignored, reason}
+
+      {:ok, session, superseded_sessions} ->
+        Enum.each(superseded_sessions, &stop_superseded_session/1)
+        {:ok, session}
+
+      {:enqueue_error, reason, superseded_sessions} ->
+        Enum.each(superseded_sessions, &stop_superseded_session/1)
+        {:error, reason}
+
+      error ->
+        error
+    end
+  end
+
+  defp validate_continuous_start(opts) do
+    case Keyword.get(opts, :validate) do
+      validator when is_function(validator, 0) -> validator.()
+      nil -> :ok
+    end
+  end
+
+  defp create_continuous_session(project_id, attrs) do
+    Repo.transaction(fn ->
+      project =
+        Project
+        |> where(id: ^project_id)
+        |> lock("FOR UPDATE")
+        |> preload([:account, :github_installation])
+        |> Repo.one!()
+
+      commit_sha = Map.get(attrs, :commit_sha) || Map.get(attrs, "commit_sha")
+
+      existing =
+        from(s in TranslationSession,
+          where: s.project_id == ^project.id and s.commit_sha == ^commit_sha,
+          where: s.status in ["pending", "running", "completed"],
+          order_by: [desc: s.inserted_at],
+          limit: 1
+        )
+        |> Repo.one()
+
+      if existing do
+        {:existing, existing}
+      else
+        active_sessions =
+          from(s in TranslationSession,
+            where: s.project_id == ^project.id and s.status in ["pending", "running"],
+            order_by: [desc: s.updated_at],
+            lock: "FOR UPDATE"
+          )
+          |> Repo.all()
+
+        continued_from = Enum.find(active_sessions, &reusable_publication?/1)
+        now = DateTime.utc_now()
+
+        superseded_sessions =
+          Enum.map(active_sessions, fn session ->
+            session
+            |> Ecto.Changeset.change(%{
+              status: "cancelled",
+              completed_at: now
+            })
+            |> Repo.update!()
+          end)
+
+        session_attrs =
+          attrs
+          |> normalize_session_attrs()
+          |> Map.put(:status, "pending")
+          |> inherit_publication(continued_from)
+
+        session =
+          %TranslationSession{account_id: project.account_id, project_id: project.id}
+          |> TranslationSession.changeset(session_attrs)
+          |> Repo.insert!()
+
+        {:created, session, superseded_sessions}
+      end
+    end)
+  end
+
+  defp prepare_continuous_start({:existing, %{status: "pending"} = session}, opts) do
+    if Keyword.get(opts, :enqueue, true) do
+      enqueue_continuous_session(session, [])
+    else
+      {:ok, session, []}
+    end
+  end
+
+  defp prepare_continuous_start({:existing, session}, _opts), do: {:ok, session, []}
+
+  defp prepare_continuous_start({:created, session, superseded_sessions}, opts) do
+    if Keyword.get(opts, :enqueue, true) do
+      enqueue_continuous_session(session, superseded_sessions)
+    else
+      {:ok, session, superseded_sessions}
+    end
+  end
+
+  defp enqueue_continuous_session(session, superseded_sessions) do
+    case session.id
+         |> then(&%{session_id: &1})
+         |> Glossia.TranslationSessions.TranslateWorker.new()
+         |> Oban.insert() do
+      {:ok, _job} ->
+        {:ok, session, superseded_sessions}
+
+      {:error, reason} ->
+        update_session_status(session, "failed",
+          error: "Could not queue the translation: #{inspect(reason)}"
+        )
+
+        {:enqueue_error, reason, superseded_sessions}
+    end
+  end
+
+  defp stop_superseded_session(session) do
+    cancel_superseded_jobs(session.id)
+
+    case Glossia.TranslationSessions.Launcher.cancel(session.id) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("Could not stop superseded translation runner",
+          translation_session_id: session.id,
+          reason: inspect(reason)
+        )
+    end
+
+    broadcast_session_status(session, "cancelled")
+  end
+
+  defp cancel_superseded_jobs(session_id) do
+    cancel_queued_jobs(session_id)
+  rescue
+    error ->
+      Logger.warning("Could not cancel queued superseded translation",
+        translation_session_id: session_id,
+        reason: Exception.message(error)
+      )
+
+      :ok
+  end
+
+  defp reusable_publication?(session) do
+    is_binary(session.publication_branch) and session.publication_branch != "" and
+      is_binary(session.publication_commit_sha) and session.publication_commit_sha != ""
+  end
+
+  defp inherit_publication(attrs, nil), do: attrs
+
+  defp inherit_publication(attrs, session) do
+    Map.merge(attrs, %{
+      continued_from_session_id: session.id,
+      publication_branch: session.publication_branch,
+      publication_commit_sha: session.publication_commit_sha,
+      pull_request_url: session.pull_request_url,
+      pull_request_number: session.pull_request_number
+    })
+  end
+
+  defp normalize_session_attrs(attrs) do
+    [
+      :commit_sha,
+      :commit_message,
+      :source_language,
+      :target_languages
+    ]
+    |> Enum.reduce(%{}, fn key, normalized ->
+      string_key = Atom.to_string(key)
+
+      cond do
+        Map.has_key?(attrs, key) -> Map.put(normalized, key, Map.fetch!(attrs, key))
+        Map.has_key?(attrs, string_key) -> Map.put(normalized, key, Map.fetch!(attrs, string_key))
+        true -> normalized
+      end
+    end)
+  end
+
   def update_session_status(%TranslationSession{} = session, status, opts \\ []) do
     now = DateTime.utc_now()
 
@@ -145,6 +347,74 @@ defmodule Glossia.TranslationSessions do
     end
   end
 
+  @doc false
+  def start_session(%TranslationSession{id: session_id}) do
+    now = DateTime.utc_now()
+
+    query =
+      from(s in TranslationSession,
+        where: s.id == ^session_id and s.status in ["pending", "running"],
+        update: [
+          set: [
+            status: "running",
+            started_at: fragment("COALESCE(?, ?)", s.started_at, ^now),
+            completed_at: nil,
+            error: nil,
+            summary: nil,
+            updated_at: ^now
+          ]
+        ]
+      )
+
+    case Repo.update_all(query, []) do
+      {1, _} ->
+        session = Repo.get!(TranslationSession, session_id)
+        start_progress_run(session)
+        broadcast_session_status(session, "running")
+        {:ok, session}
+
+      {0, _} ->
+        {:error, :not_active}
+    end
+  end
+
+  @doc false
+  def finish_session(%TranslationSession{id: session_id}, status, opts \\ [])
+      when status in ["completed", "failed"] do
+    now = DateTime.utc_now()
+
+    changes =
+      case status do
+        "completed" -> %{status: status, completed_at: now, error: nil}
+        "failed" -> %{status: status, completed_at: now, summary: nil}
+      end
+
+    changes =
+      if Keyword.has_key?(opts, :error),
+        do: Map.put(changes, :error, opts[:error]),
+        else: changes
+
+    changes =
+      if Keyword.has_key?(opts, :summary),
+        do: Map.put(changes, :summary, opts[:summary]),
+        else: changes
+
+    query =
+      from(s in TranslationSession,
+        where: s.id == ^session_id and s.status in ["pending", "running"]
+      )
+
+    case Repo.update_all(query, set: Map.to_list(Map.put(changes, :updated_at, now))) do
+      {1, _} ->
+        session = Repo.get!(TranslationSession, session_id)
+        broadcast_session_status(session, status)
+        {:ok, session}
+
+      {0, _} ->
+        {:error, :not_active}
+    end
+  end
+
   @doc """
   Records that the translation is still alive on this session.
 
@@ -202,16 +472,7 @@ defmodule Glossia.TranslationSessions do
 
   def cancel_session(%TranslationSession{status: status} = session)
       when status in ["pending", "running"] do
-    session_id = to_string(session.id)
-
-    jobs =
-      from(job in Oban.Job,
-        where: job.worker == ^to_string(Glossia.TranslationSessions.TranslateWorker),
-        where: job.state in ["available", "scheduled", "executing", "retryable"],
-        where: fragment("?->>'session_id' = ?", job.args, ^session_id)
-      )
-
-    with {:ok, _count} <- Oban.cancel_all_jobs(jobs) do
+    with {:ok, _count} <- cancel_queued_jobs(session.id) do
       # Cancelling the Oban job only stops a launch that has not happened yet.
       # Once the translation is detached it is the Kubernetes Job that has to
       # go, or it keeps translating and opens a pull request for a session the
@@ -222,6 +483,19 @@ defmodule Glossia.TranslationSessions do
   end
 
   def cancel_session(%TranslationSession{}), do: {:error, :not_cancellable}
+
+  defp cancel_queued_jobs(session_id) do
+    session_id = to_string(session_id)
+
+    from(job in Oban.Job,
+      where:
+        job.worker ==
+          ^Oban.Worker.to_string(Glossia.TranslationSessions.TranslateWorker),
+      where: job.state in ["available", "scheduled", "executing", "retryable"],
+      where: fragment("?->>'session_id' = ?", job.args, ^session_id)
+    )
+    |> Oban.cancel_all_jobs()
+  end
 
   def update_session_publication(%TranslationSession{} = session, attrs) do
     session

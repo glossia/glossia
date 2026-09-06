@@ -1394,14 +1394,35 @@ defmodule Glossia.Seeds do
       )
     end
 
-    # Session 2: running translation (en -> ja, de)
+    # Session 2: a checkpointed run superseded by a newer default-branch commit
+    {:ok, superseded_session} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "d3e4f5a",
+        commit_message: "Add new blog post: Advanced localization patterns",
+        status: "cancelled",
+        source_language: "en",
+        target_languages: ["ja", "de"],
+        publication_branch: "glossia/translate-d3e4f5a",
+        publication_commit_sha: "b4c5d6e7f8a9",
+        pull_request_url: "https://github.com/glossia/demo/pull/13",
+        pull_request_number: 13,
+        started_at: one_hour_ago,
+        completed_at: DateTime.add(one_hour_ago, 180, :second)
+      })
+
+    # Session 3: the replacement reusing session 2's completed translation work
     {:ok, session2} =
       TranslationSessions.create_session(user.account, project, %{
         commit_sha: "e4f5g6h",
-        commit_message: "Add new blog post: Advanced localization patterns",
+        commit_message: "Polish advanced localization examples",
         status: "running",
         source_language: "en",
         target_languages: ["ja", "de"],
+        continued_from_session_id: superseded_session.id,
+        publication_branch: superseded_session.publication_branch,
+        publication_commit_sha: superseded_session.publication_commit_sha,
+        pull_request_url: superseded_session.pull_request_url,
+        pull_request_number: superseded_session.pull_request_number,
         started_at: one_hour_ago
       })
 
