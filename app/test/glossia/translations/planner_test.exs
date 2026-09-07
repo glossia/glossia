@@ -5,7 +5,7 @@ defmodule Glossia.Translations.PlannerTest do
 
   @tag :tmp_dir
   test "target_path uses the path relative to the glob base", %{tmp_dir: root} do
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5
@@ -32,7 +32,7 @@ defmodule Glossia.Translations.PlannerTest do
 
   @tag :tmp_dir
   test "resolves context and model per matched source directory", %{tmp_dir: root} do
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: gpt-5
@@ -45,8 +45,8 @@ defmodule Glossia.Translations.PlannerTest do
     """)
 
     File.mkdir_p!(Path.join([root, "docs", "admin", "GLOSSIA"]))
-    File.write!(Path.join([root, "docs", "GLOSSIA.md"]), "Docs context\n")
-    File.write!(Path.join([root, "docs", "admin", "GLOSSIA.md"]), "Admin context\n")
+    File.write!(Path.join([root, "docs", "L10N.md"]), "Docs context\n")
+    File.write!(Path.join([root, "docs", "admin", "L10N.md"]), "Admin context\n")
 
     File.write!(
       Path.join([root, "docs", "admin", "GLOSSIA", "es.md"]),
@@ -64,7 +64,7 @@ defmodule Glossia.Translations.PlannerTest do
 
   @tag :tmp_dir
   test "excludes matched files and skips GLOSSIA documents", %{tmp_dir: root} do
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: gpt-5
@@ -89,7 +89,7 @@ defmodule Glossia.Translations.PlannerTest do
 
   @tag :tmp_dir
   test "prefers a nested source declaration when roots plan the same output", %{tmp_dir: root} do
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5
@@ -104,7 +104,7 @@ defmodule Glossia.Translations.PlannerTest do
 
     File.mkdir_p!(Path.join([root, "app", "docs"]))
 
-    File.write!(Path.join([root, "app", "GLOSSIA.md"]), """
+    File.write!(Path.join([root, "app", "L10N.md"]), """
     ---
     sources:
       "docs/*.md": "i18n/{locale}/{relpath}"
@@ -123,7 +123,7 @@ defmodule Glossia.Translations.PlannerTest do
 
   @tag :tmp_dir
   test "requires deterministic validation for a custom file extension", %{tmp_dir: root} do
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5
@@ -141,7 +141,7 @@ defmodule Glossia.Translations.PlannerTest do
     assert message =~ "no built-in format adapter for .custom files"
     assert message =~ "declare a validation command"
 
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5

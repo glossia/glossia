@@ -12185,7 +12185,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <h2>{gettext("Model configuration")}</h2>
                 <p>
                   {gettext(
-                    "Add a named model configuration. Each translation uses one model handle from the nearest applicable GLOSSIA.md file, or the account default when no handle is set."
+                    "Add a named model configuration. Each translation uses one model handle from the nearest applicable L10N.md file, or the account default when no handle is set."
                   )}
                 </p>
               </div>
@@ -12199,7 +12199,7 @@ defmodule GlossiaWeb.DashboardLive do
                     placeholder={gettext("e.g. my-claude-model")}
                     hint={
                       gettext(
-                        "Use lowercase letters, numbers, and hyphens. Reference this handle from GLOSSIA.md to choose the model for a content scope."
+                        "Use lowercase letters, numbers, and hyphens. Reference this handle from L10N.md to choose the model for a content scope."
                       )
                     }
                     autocapitalize="none"
@@ -12321,11 +12321,11 @@ defmodule GlossiaWeb.DashboardLive do
                 <p>
                   <%= if @editing_model.default do %>
                     {gettext(
-                      "This model is used for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+                      "This model is used for project setup and translations whose L10N.md configuration does not name a model handle."
                     )}
                   <% else %>
                     {gettext(
-                      "Make this the fallback for project setup and translations whose GLOSSIA.md configuration does not name a model handle."
+                      "Make this the fallback for project setup and translations whose L10N.md configuration does not name a model handle."
                     )}
                   <% end %>
                 </p>
@@ -12380,7 +12380,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <h1 data-part="title">{gettext("Models")}</h1>
                 <span data-part="subtitle">
                   {gettext(
-                    "Each translation uses one configured model. GLOSSIA.md can select a handle for a content scope; work without a handle uses the account default."
+                    "Each translation uses one configured model. L10N.md can select a handle for a content scope; work without a handle uses the account default."
                   )}
                 </span>
               </div>

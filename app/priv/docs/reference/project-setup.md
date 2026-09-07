@@ -38,7 +38,7 @@ Progress is stored while the provisional project exists. A terminal failure disc
 
 ## Completed result
 
-A successful connected setup creates a dedicated branch and a pull request against the repository's default branch. The pull request contains the generated localization baseline, including `GLOSSIA.md` context and the smallest practical changes needed to load localized content.
+A successful connected setup creates a dedicated branch and a pull request against the repository's default branch. The pull request contains the generated localization baseline, including `L10N.md` context and the smallest practical changes needed to load localized content.
 
 Setup does not publish header-only target catalogs. When a localization framework requires target catalogs before translation, the catalogs contain the extracted source message entries with empty translation values. When target catalogs are not required yet, setup leaves them for the first translation run.
 

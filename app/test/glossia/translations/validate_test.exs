@@ -76,14 +76,14 @@ defmodule Glossia.Translations.ValidateTest do
     end
 
     test "accepts an equivalent indented rendering of an unlabelled fenced code block" do
-      source = "Intro\n\n```\nGLOSSIA/\n  ja.md\n```\n\nAfter"
-      output = "Introducción\n\n    GLOSSIA/\n      ja.md\n\nDespués"
+      source = "Intro\n\n```\nL10N/\n  ja.md\n```\n\nAfter"
+      output = "Introducción\n\n    L10N/\n      ja.md\n\nDespués"
 
       assert :ok = Validate.validate_preserve(output, source, ["code_blocks"])
 
       assert {:error, message} =
                Validate.validate_preserve(
-                 "Introducción\n\n    GLOSSIA/\n      ko.md\n\nDespués",
+                 "Introducción\n\n    L10N/\n      ko.md\n\nDespués",
                  source,
                  ["code_blocks"]
                )
@@ -119,7 +119,7 @@ defmodule Glossia.Translations.ValidateTest do
     } do
       source = Path.join(root, "source.md")
       target = Path.join(root, "ja/target.md")
-      doc = Path.join(root, "GLOSSIA.md")
+      doc = Path.join(root, "L10N.md")
       File.write!(source, "source")
       File.mkdir_p!(Path.dirname(target))
       File.write!(target, "previous")
@@ -137,7 +137,7 @@ defmodule Glossia.Translations.ValidateTest do
     test "removes a staged candidate when the target did not exist", %{tmp_dir: root} do
       source = Path.join(root, "source.md")
       target = Path.join(root, "ja/target.md")
-      doc = Path.join(root, "GLOSSIA.md")
+      doc = Path.join(root, "L10N.md")
       File.write!(source, "source")
       File.write!(doc, "configuration")
 
@@ -153,7 +153,7 @@ defmodule Glossia.Translations.ValidateTest do
     test "restores the previous file when validation fails", %{tmp_dir: root} do
       source = Path.join(root, "source.md")
       target = Path.join(root, "ja/target.md")
-      doc = Path.join(root, "GLOSSIA.md")
+      doc = Path.join(root, "L10N.md")
       File.write!(source, "source")
       File.mkdir_p!(Path.dirname(target))
       File.write!(target, "previous")

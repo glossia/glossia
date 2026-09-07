@@ -16,7 +16,7 @@ defmodule Glossia.Projects.Setup do
   alias Glossia.Translations.Credentials
 
   @change_manifest_filename "glossia-setup-changes.json"
-  @context_file_names ["GLOSSIA.md"]
+  @context_file_names ["L10N.md"]
   @setup_branch_name "glossia/setup-localization"
 
   @doc """
@@ -153,7 +153,7 @@ defmodule Glossia.Projects.Setup do
   end
 
   defp handle_setup_result(project, account, {:error, :setup_context_missing}, sandbox_id) do
-    error_msg = "Setup finished without generating GLOSSIA.md, so no pull request was created."
+    error_msg = "Setup finished without generating L10N.md, so no pull request was created."
 
     Logger.error("Setup failed for project #{project.id}: #{error_msg}")
 

@@ -1,6 +1,6 @@
 defmodule Glossia.Translations.Frontmatter do
   @moduledoc """
-  Parses and resolves `GLOSSIA.md` frontmatter for the server-side planner.
+  Parses and resolves `L10N.md` frontmatter for the server-side planner.
 
   Ported from the CLI (`cli/src/config.rs`), covering the planning-relevant
   fields: `source_language`, `sources`/`targets`/`translate` rules, `output`/

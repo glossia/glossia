@@ -65,10 +65,10 @@ pub fn main_entry() -> i32 {
 }
 
 fn init_command(root: &Path, reporter: &mut dyn Reporter) -> Result<()> {
-    let content_path = root.join("GLOSSIA.md");
+    let content_path = root.join("L10N.md");
     if content_path.exists() {
         return Err(anyhow!(
-            "GLOSSIA.md already exists at {}",
+            "L10N.md already exists at {}",
             content_path.display()
         ));
     }
@@ -87,7 +87,7 @@ Project context for translators goes here.
 "#;
 
     fs::write(&content_path, starter)?;
-    reporter.log(Verb::Created, "GLOSSIA.md");
+    reporter.log(Verb::Created, "L10N.md");
     Ok(())
 }
 

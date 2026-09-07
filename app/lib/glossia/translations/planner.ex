@@ -49,7 +49,7 @@ defmodule Glossia.Translations.Planner do
     end
   end
 
-  # A nested GLOSSIA.md can intentionally narrow or replace a repository-level
+  # A nested L10N.md can intentionally narrow or replace a repository-level
   # source declaration. Both roots still see the same file, so prefer the item
   # planned later from the more specific root instead of translating it twice.
   defp deduplicate_items(items) do
@@ -185,8 +185,8 @@ defmodule Glossia.Translations.Planner do
   end
 
   defp glossia_document?(path) do
-    path == "GLOSSIA.md" or String.ends_with?(path, "/GLOSSIA.md") or
-      String.starts_with?(path, "GLOSSIA/") or String.contains?(path, "/GLOSSIA/")
+    path == "L10N.md" or String.ends_with?(path, "/L10N.md") or
+      String.starts_with?(path, "L10N/") or String.contains?(path, "/L10N/")
   end
 
   defp relative_to_glob_base(translation_root, ".", source_abs),
