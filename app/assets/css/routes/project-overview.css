@@ -82,6 +82,34 @@
     min-width: var(--noora-spacing-0);
   }
 
+  & [data-part="chart-legend"] {
+    display: flex;
+    align-items: center;
+    gap: var(--noora-spacing-6);
+  }
+
+  & [data-part="chart-legend-item"] {
+    display: flex;
+    align-items: center;
+    gap: var(--noora-spacing-3);
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+
+    & > [data-part="indicator"] {
+      border-radius: var(--noora-radius-1);
+      width: var(--noora-spacing-3);
+      height: var(--noora-icon-size-medium);
+    }
+
+    &[data-color="secondary"] > [data-part="indicator"] {
+      background-color: var(--noora-chart-secondary);
+    }
+
+    &[data-color="destructive"] > [data-part="indicator"] {
+      background-color: var(--noora-chart-destructive);
+    }
+  }
+
   & #translations-per-day-chart {
     width: 100%;
     height: calc(var(--noora-spacing-16) * 2);

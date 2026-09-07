@@ -6970,6 +6970,22 @@ defmodule GlossiaWeb.DashboardLive do
         icon="language"
         data-part="translations-history"
       >
+        <:actions>
+          <div
+            id="translation-chart-legend"
+            data-part="chart-legend"
+            aria-label={gettext("Translation chart legend")}
+          >
+            <span data-part="chart-legend-item" data-color="secondary">
+              <span data-part="indicator" aria-hidden="true"></span>
+              <span>{gettext("Content hits")}</span>
+            </span>
+            <span data-part="chart-legend-item" data-color="destructive">
+              <span data-part="indicator" aria-hidden="true"></span>
+              <span>{gettext("Content misses")}</span>
+            </span>
+          </div>
+        </:actions>
         <Noora.Card.card_section data-part="chart-card">
           <p data-part="chart-description">
             {gettext("Content outcomes from runs started during the last 14 days.")}

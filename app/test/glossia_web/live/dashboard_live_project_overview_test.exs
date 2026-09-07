@@ -68,6 +68,8 @@ defmodule GlossiaWeb.DashboardLiveProjectOverviewTest do
     assert has_element?(view, "#translation-runs-widget-tooltip")
     assert has_element?(view, "#project-translations-card", "Translations")
     assert has_element?(view, "#project-translations-card", "Recent activity")
+    assert has_element?(view, "#translation-chart-legend", "Content hits")
+    assert has_element?(view, "#translation-chart-legend", "Content misses")
     assert has_element?(view, "#translations-per-day-chart[phx-hook='NooraChart']")
 
     chart_data =
