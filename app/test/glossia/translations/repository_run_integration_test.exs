@@ -24,7 +24,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     git!(root, ["config", "user.email", "t@example.com"])
     git!(root, ["config", "user.name", "Tester"])
 
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5
@@ -453,7 +453,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   test "fails the repository run when a custom format has no validation command", %{
     tmp_dir: root
   } do
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5

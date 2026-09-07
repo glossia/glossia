@@ -21,7 +21,7 @@ The handle is stable even when you later change the provider model behind it. Th
 
 ## Reference the model from a repository
 
-Set `model` in the relevant `GLOSSIA.md` frontmatter:
+Set `model` in the relevant `L10N.md` frontmatter:
 
 ```yaml
 ---
@@ -33,11 +33,11 @@ The repository stores only the handle. The provider key remains in account setti
 
 ## Choose which model is used by default
 
-When `GLOSSIA.md` omits `model`, Glossia uses the account's default model. To change it, open the model that should become the default and select **Make default**.
+When `L10N.md` omits `model`, Glossia uses the account's default model. To change it, open the model that should become the default and select **Make default**.
 
-For predictable behavior across several models, reference a handle explicitly in `GLOSSIA.md`.
+For predictable behavior across several models, reference a handle explicitly in `L10N.md`.
 
-You can place a different `model` handle in a nested `GLOSSIA.md` for one content area, or in `GLOSSIA/<locale>.md` for one target locale. Glossia uses the closest applicable setting for each document and locale. It does not automatically split work among configured models.
+You can place a different `model` handle in a nested `L10N.md` for one content area, or in `L10N/<locale>.md` for one target locale. Glossia uses the closest applicable setting for each document and locale. It does not automatically split work among configured models.
 
 If an explicit handle does not exist in the account, the translation stops with an error. It does not fall back to another model.
 

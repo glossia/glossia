@@ -26,7 +26,7 @@ defmodule Glossia.Projects.SetupHarnessTest do
 
           String.contains?(command, "git status") ->
             ok_result("""
-            ?? GLOSSIA.md
+            ?? L10N.md
              M src/i18n/en.json
             ?? .glossia/docs/guide.md/es.lock
             """)
@@ -60,7 +60,7 @@ defmodule Glossia.Projects.SetupHarnessTest do
     assert %{
              "version" => 1,
              "files" => [
-               %{"path" => "GLOSSIA.md", "status" => "added"},
+               %{"path" => "L10N.md", "status" => "added"},
                %{"path" => "src/i18n/en.json", "status" => "modified"}
              ]
            } = JSON.decode!(manifest)
@@ -69,7 +69,7 @@ defmodule Glossia.Projects.SetupHarnessTest do
     assert prompt =~ "Use exactly these target languages: es, fr."
     assert prompt =~ "source_language: en"
     assert prompt =~ ~s("docs/**/*.md": "docs/i18n/{locale}/{relpath}")
-    assert prompt =~ "Locale-specific context belongs in GLOSSIA/<locale>.md."
+    assert prompt =~ "Locale-specific context belongs in L10N/<locale>.md."
     assert prompt =~ "Do not create translation lockfiles during setup."
     assert prompt =~ "source-language locale files"
     assert prompt =~ "canonical extraction and catalog merge commands"
@@ -118,7 +118,7 @@ defmodule Glossia.Projects.SetupHarnessTest do
         cond do
           String.contains?(command, "git clone") -> ok_result()
           codex_command? -> ok_result()
-          String.contains?(command, "git status") -> ok_result("?? GLOSSIA.md\n")
+          String.contains?(command, "git status") -> ok_result("?? L10N.md\n")
           String.starts_with?(command, "mkdir -p") -> ok_result()
           String.starts_with?(command, "chmod 600") -> ok_result()
         end
@@ -188,7 +188,7 @@ defmodule Glossia.Projects.SetupHarnessTest do
         cond do
           String.contains?(command, "git clone") -> ok_result()
           claude_command? -> ok_result()
-          String.contains?(command, "git status") -> ok_result("?? GLOSSIA.md\n")
+          String.contains?(command, "git status") -> ok_result("?? L10N.md\n")
           String.starts_with?(command, "mkdir -p") -> ok_result()
           String.starts_with?(command, "chmod 600") -> ok_result()
         end

@@ -260,7 +260,7 @@ defmodule Glossia.Translations.ContextResolutionTest do
     git!(root, ["config", "user.email", "context@example.com"])
     git!(root, ["config", "user.name", "Context Test"])
 
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5

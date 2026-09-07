@@ -29,13 +29,13 @@ defmodule Glossia.Projects.SetupTest do
        JSON.encode!(%{
          version: 1,
          files: [
-           %{path: "GLOSSIA.md", status: "added"},
+           %{path: "L10N.md", status: "added"},
            %{path: "src/i18n/en.json", status: "modified"}
          ]
        })}
     end
 
-    def download_file(_sandbox_id, "/workspace/repo/GLOSSIA.md") do
+    def download_file(_sandbox_id, "/workspace/repo/L10N.md") do
       {:ok, "# Glossia\n"}
     end
 
@@ -102,13 +102,13 @@ defmodule Glossia.Projects.SetupTest do
        JSON.encode!(%{
          version: 1,
          files: [
-           %{path: "GLOSSIA.md", status: "added"},
+           %{path: "L10N.md", status: "added"},
            %{path: "priv/gettext/es/LC_MESSAGES/default.po", status: "added"}
          ]
        })}
     end
 
-    def download_file(_sandbox_id, "/workspace/repo/GLOSSIA.md") do
+    def download_file(_sandbox_id, "/workspace/repo/L10N.md") do
       {:ok, "---\nsource_language: en\ntargets:\n  - es\n---\n"}
     end
 
@@ -385,7 +385,7 @@ defmodule Glossia.Projects.SetupTest do
     assert :ok = Setup.run(project.id)
 
     assert_received {:tree_entries, entries}
-    assert Enum.map(entries, & &1.path) == ["GLOSSIA.md", "src/i18n/en.json"]
+    assert Enum.map(entries, & &1.path) == ["L10N.md", "src/i18n/en.json"]
     assert Enum.all?(entries, &(&1.type == "blob"))
 
     assert_received {:pull_request_params, params}
