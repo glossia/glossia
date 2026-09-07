@@ -1,5 +1,0 @@
-[tools]
-kubectl = "latest"
-helm = "3"
-flux2 = "2.9.1"
-ruby = "3.4.7"

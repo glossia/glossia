@@ -1,6 +1,0 @@
-resources:
-  - pomerium-ingress-controller-source.yaml
-  - pomerium-controller-kustomization.yaml
-  - pomerium-configuration-kustomization.yaml
-  - platform-helmrelease.yaml
-  - observability-helmrelease.yaml
