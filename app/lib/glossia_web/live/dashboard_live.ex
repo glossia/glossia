@@ -6967,7 +6967,7 @@ defmodule GlossiaWeb.DashboardLive do
       <Noora.Card.card_section data-part="chart-card">
         <div data-part="chart-header">
           <div>
-            <h2>{gettext("Content hits and misses per day")}</h2>
+            <h2>{gettext("Translations")}</h2>
             <p>{gettext("Content outcomes from runs started during the last 14 days.")}</p>
           </div>
         </div>
@@ -6984,6 +6984,7 @@ defmodule GlossiaWeb.DashboardLive do
           extra_options={
             %{
               grid: %{left: 0, right: 0, top: "15%", bottom: 0, containLabel: true},
+              legend: %{itemGap: 32, itemHeight: 8, itemWidth: 16},
               yAxis: %{minInterval: 1}
             }
           }
