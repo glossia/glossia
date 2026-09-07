@@ -7008,7 +7008,8 @@ defmodule GlossiaWeb.DashboardLive do
             extra_options={
               %{
                 grid: %{left: 0, right: 0, top: "5%", bottom: 0, containLabel: true},
-                yAxis: %{minInterval: 1}
+                yAxis: %{minInterval: 1},
+                animation: false
               }
             }
           />
