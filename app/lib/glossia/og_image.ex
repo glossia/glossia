@@ -13,7 +13,7 @@ defmodule Glossia.OgImage do
 
   # Bump this version whenever the template design changes to force
   # re-generation of all cached images in production.
-  @design_version 10
+  @design_version 11
 
   @doc """
   Returns a SHA-256 hash (base64url, no padding) of the given attributes map.
@@ -133,6 +133,7 @@ defmodule Glossia.OgImage do
       category = attrs[:category] || attrs["category"] || ""
       author_name = attrs[:author_name] || attrs["author_name"] || ""
       author_avatar = attrs[:author_avatar] || attrs["author_avatar"] || ""
+      project_avatar = attrs[:project_avatar] || attrs["project_avatar"] || ""
 
       Tracer.set_attributes([
         {"glossia.og_image.category", to_string(category)}
@@ -144,7 +145,8 @@ defmodule Glossia.OgImage do
           description: description,
           category: category,
           author_name: author_name,
-          author_avatar: author_avatar
+          author_avatar: author_avatar,
+          project_avatar: project_avatar
         )
 
       case ChromicPDF.capture_screenshot({:html, html},
