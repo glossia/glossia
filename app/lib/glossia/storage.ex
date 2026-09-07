@@ -37,8 +37,28 @@ defmodule Glossia.Storage do
     Tracer.with_span "glossia.storage.head" do
       Tracer.set_attributes([{"glossia.storage.path", to_string(path)}])
 
-      bucket()
-      |> ExAws.S3.head_object(path)
+      case bucket() |> ExAws.S3.head_object(path) |> ExAws.request() do
+        {:ok, %{headers: headers}} -> {:ok, headers}
+        {:ok, _other} -> {:ok, []}
+        {:error, _} = error -> error
+      end
+    end
+  end
+
+  @doc """
+  Copies an object from one path to another within the configured bucket.
+  """
+  def copy(source_path, destination_path) do
+    Tracer.with_span "glossia.storage.copy" do
+      Tracer.set_attributes([
+        {"glossia.storage.source_path", to_string(source_path)},
+        {"glossia.storage.destination_path", to_string(destination_path)}
+      ])
+
+      b = bucket()
+
+      b
+      |> ExAws.S3.put_object_copy(destination_path, b, source_path)
       |> ExAws.request()
     end
   end

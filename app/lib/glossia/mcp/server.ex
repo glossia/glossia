@@ -7,6 +7,8 @@ defmodule Glossia.MCP.Server do
   component(Glossia.MCP.ListAccountsTool, name: "list_accounts")
   component(Glossia.MCP.ListProjectsTool, name: "list_projects")
   component(Glossia.MCP.CreateProjectTool, name: "create_project")
+  component(Glossia.MCP.StartProjectLogoUploadTool, name: "start_project_logo_upload")
+  component(Glossia.MCP.CompleteProjectLogoUploadTool, name: "complete_project_logo_upload")
   component(Glossia.MCP.CreateOrganizationTool, name: "create_organization")
   component(Glossia.MCP.ListOrganizationsTool, name: "list_organizations")
   component(Glossia.MCP.GetOrganizationTool, name: "get_organization")
