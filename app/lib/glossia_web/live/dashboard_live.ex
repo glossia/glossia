@@ -6960,7 +6960,7 @@ defmodule GlossiaWeb.DashboardLive do
           title={gettext("Content misses")}
           value={@overview.content_misses}
           description={gettext("Content items that required translation.")}
-          legend_color="destructive"
+          legend_color="p50"
         />
       </div>
 
@@ -6980,7 +6980,7 @@ defmodule GlossiaWeb.DashboardLive do
               <span data-part="indicator" aria-hidden="true"></span>
               <span>{gettext("Content hits")}</span>
             </span>
-            <span data-part="chart-legend-item" data-color="destructive">
+            <span data-part="chart-legend-item" data-color="p50">
               <span data-part="indicator" aria-hidden="true"></span>
               <span>{gettext("Content misses")}</span>
             </span>
@@ -6996,7 +6996,7 @@ defmodule GlossiaWeb.DashboardLive do
             labels={@chart_labels}
             series={@chart_series}
             show_legend={false}
-            colors={["var:noora-chart-secondary", "var:noora-chart-destructive"]}
+            colors={["var:noora-chart-secondary", "var:noora-chart-p50"]}
             stacked
             bar_width={8}
             bar_radius={2}

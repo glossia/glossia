@@ -42,8 +42,8 @@
       background-color: var(--noora-chart-secondary);
     }
 
-    &[data-color="destructive"] {
-      background-color: var(--noora-chart-destructive);
+    &[data-color="p50"] {
+      background-color: var(--noora-chart-p50);
     }
   }
 
@@ -105,8 +105,8 @@
       background-color: var(--noora-chart-secondary);
     }
 
-    &[data-color="destructive"] > [data-part="indicator"] {
-      background-color: var(--noora-chart-destructive);
+    &[data-color="p50"] > [data-part="indicator"] {
+      background-color: var(--noora-chart-p50);
     }
   }
 
