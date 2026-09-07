@@ -6964,7 +6964,14 @@ defmodule GlossiaWeb.DashboardLive do
           series={@chart_values}
           show_legend={false}
           colors={["var:noora-chart-primary"]}
-          extra_options={%{yAxis: %{minInterval: 1}}}
+          bar_width={8}
+          bar_radius={2}
+          extra_options={
+            %{
+              grid: %{left: 0, right: 0, top: 0, bottom: 0, containLabel: true},
+              yAxis: %{minInterval: 1}
+            }
+          }
         />
       </Noora.Card.card_section>
 
@@ -7098,9 +7105,22 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_metric(assigns) do
     ~H"""
     <Noora.Card.card_section id={@id} data-part="metric">
-      <span data-part="metric-title">{@title}</span>
+      <div data-part="metric-header">
+        <span data-part="metric-title">{@title}</span>
+        <.tooltip
+          id={@id <> "-tooltip"}
+          title={@title}
+          description={@description}
+          size="large"
+        >
+          <:trigger :let={attrs}>
+            <span {attrs} data-part="metric-tooltip-icon">
+              <Noora.Icon.icon name="alert_circle" />
+            </span>
+          </:trigger>
+        </.tooltip>
+      </div>
       <span data-part="metric-value">{@value}</span>
-      <span data-part="metric-description">{@description}</span>
     </Noora.Card.card_section>
     """
   end
