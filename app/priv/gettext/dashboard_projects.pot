@@ -11,32 +11,32 @@
 msgid ""
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12201
+#: lib/glossia_web/live/dashboard_live.ex:12420
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12438
+#: lib/glossia_web/live/dashboard_live.ex:12664
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12410
+#: lib/glossia_web/live/dashboard_live.ex:12633
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12383
+#: lib/glossia_web/live/dashboard_live.ex:12605
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12366
-#, elixir-autogen, elixir-format
-msgid "Traffic by hour"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex:12287
+#: lib/glossia_web/live/dashboard_live.ex:12506
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:12585
+#, elixir-autogen, elixir-format
+msgid "Traffic"
 msgstr ""

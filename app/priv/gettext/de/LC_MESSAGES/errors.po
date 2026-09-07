@@ -50,6 +50,7 @@ msgstr "trifft die Bestätigung nicht überein"
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
 msgstr "ist immer noch mit diesem Eintrag verknüpft"
+
 msgid "are still associated with this entry"
 msgstr "sind immer noch mit diesem Eintrag verknüpft"
 

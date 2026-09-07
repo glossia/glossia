@@ -1,5 +1,4 @@
 # Header
-
 msgid ""
 msgstr ""
 "Project-Id-Version: Glossia\n"
