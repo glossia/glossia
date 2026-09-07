@@ -80,6 +80,8 @@ defmodule GlossiaWeb.DashboardLiveProjectOverviewTest do
 
     assert chart_data =~ "&quot;name&quot;:&quot;Content hits&quot;"
     assert chart_data =~ "&quot;name&quot;:&quot;Content misses&quot;"
+    assert chart_data =~ "&quot;borderRadius&quot;:[0,0,2,2]"
+    assert chart_data =~ "&quot;borderRadius&quot;:[2,2,0,0]"
     assert has_element?(view, "#translations-table", "Translated")
     assert has_element?(view, "#translations-table", "Content hit")
     assert has_element?(view, "#translations-table", "4 translated, 2 content hits")

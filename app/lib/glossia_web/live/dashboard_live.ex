@@ -6919,11 +6919,17 @@ defmodule GlossiaWeb.DashboardLive do
         chart_series: [
           %{
             name: gettext("Content hits"),
-            values: Enum.map(assigns.overview.days, & &1.hits)
+            values:
+              Enum.map(assigns.overview.days, fn day ->
+                chart_bar_value(day.hits, if(day.misses > 0, do: :bottom, else: :standalone))
+              end)
           },
           %{
             name: gettext("Content misses"),
-            values: Enum.map(assigns.overview.days, & &1.misses)
+            values:
+              Enum.map(assigns.overview.days, fn day ->
+                chart_bar_value(day.misses, if(day.hits > 0, do: :top, else: :standalone))
+              end)
           }
         ]
       )
@@ -6999,7 +7005,6 @@ defmodule GlossiaWeb.DashboardLive do
             colors={["var:noora-chart-secondary", "var:noora-chart-p50"]}
             stacked
             bar_width={8}
-            bar_radius={2}
             extra_options={
               %{
                 grid: %{left: 0, right: 0, top: "5%", bottom: 0, containLabel: true},
@@ -7132,6 +7137,17 @@ defmodule GlossiaWeb.DashboardLive do
       </Noora.Card.card>
     </div>
     """
+  end
+
+  defp chart_bar_value(value, position) do
+    border_radius =
+      case position do
+        :bottom -> [0, 0, 2, 2]
+        :top -> [2, 2, 0, 0]
+        :standalone -> 2
+      end
+
+    %{value: value, itemStyle: %{borderRadius: border_radius}}
   end
 
   attr(:id, :string, required: true)
