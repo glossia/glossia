@@ -2,6 +2,7 @@ defmodule GlossiaWeb.DashboardLive do
   use GlossiaWeb, :live_view
 
   import Noora.Card
+  import Noora.Chart
   import Noora.DatePicker
   import Noora.Tooltip
 
@@ -1004,8 +1005,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     setup_events = Glossia.Ingestion.list_setup_events(project.id)
     project = maybe_backfill_setup_pull_request(project, setup_events)
-    {all_commits, commits_error} = fetch_or_reuse_project_commits(socket, project)
-    sessions_by_sha = Glossia.TranslationSessions.sessions_by_commit_sha(project)
+    translation_overview = Glossia.TranslationSessions.project_overview(project)
 
     socket =
       if connected?(socket) and
@@ -1016,19 +1016,22 @@ defmodule GlossiaWeb.DashboardLive do
         socket
       end
 
+    socket = subscribe_to_project_translation_sessions(socket, project)
+
     assign(socket,
       page_title: project.name,
       project: project,
       project_name: project.name,
       og_image_url: og_image_url,
-      all_commits: all_commits,
-      all_commits_project_id: project.id,
-      commits: all_commits,
-      commits_search: "",
-      commits_sort_key: "date",
-      commits_sort_dir: "desc",
-      commits_error: commits_error,
-      sessions_by_sha: sessions_by_sha,
+      translation_overview: translation_overview,
+      translations: [],
+      translations_search: "",
+      translations_sort_key: "inserted_at",
+      translations_sort_dir: "desc",
+      translations_page: 1,
+      translations_active_filters: [],
+      available_filters: translation_available_filters(),
+      active_filters: [],
       breadcrumb_items: [
         {project.handle, "/" <> socket.assigns.handle <> "/" <> project.handle},
         {gettext("Overview"), nil}
@@ -1172,7 +1175,9 @@ defmodule GlossiaWeb.DashboardLive do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
     end
 
-    assign(socket,
+    socket
+    |> subscribe_to_project_translation_sessions(project)
+    |> assign(
       page_title: gettext("Translations"),
       project: project,
       available_filters: available_filters,
@@ -1297,118 +1302,6 @@ defmodule GlossiaWeb.DashboardLive do
       summary_task_ref: nil,
       breadcrumb_items: Keyword.fetch!(opts, :breadcrumb_items)
     )
-  end
-
-  defp fetch_project_commits(project) do
-    if project.github_installation_id && project.github_repo_full_name do
-      installation =
-        Glossia.Repo.preload(project, :github_installation).github_installation
-
-      case Glossia.Github.App.installation_token(installation.github_installation_id) do
-        {:ok, token} ->
-          case Glossia.Github.Client.list_commits(project.github_repo_full_name, token,
-                 per_page: 30
-               ) do
-            {:ok, raw_commits} when is_list(raw_commits) ->
-              {Enum.map(raw_commits, &normalize_commit(&1, project.github_repo_full_name)), nil}
-
-            {:error, _reason} ->
-              if Application.get_env(:glossia, :dev_routes) do
-                {sample_commits(project.github_repo_full_name), nil}
-              else
-                {[], gettext("Could not load commits from GitHub.")}
-              end
-          end
-
-        {:error, _reason} ->
-          if Application.get_env(:glossia, :dev_routes) do
-            {sample_commits(project.github_repo_full_name), nil}
-          else
-            {[], gettext("Could not load commits from GitHub.")}
-          end
-      end
-    else
-      {[], nil}
-    end
-  end
-
-  defp fetch_or_reuse_project_commits(socket, project) do
-    if socket.assigns[:all_commits_project_id] == project.id do
-      {socket.assigns[:all_commits] || [], socket.assigns[:commits_error]}
-    else
-      fetch_project_commits(project)
-    end
-  end
-
-  defp normalize_commit(raw, repo_full_name) do
-    commit = raw["commit"] || %{}
-    author = raw["author"] || commit["author"] || %{}
-
-    %{
-      sha: raw["sha"] || "",
-      short_sha: String.slice(raw["sha"] || "", 0, 7),
-      message: commit["message"] || "",
-      author_name: author["login"] || get_in(commit, ["author", "name"]) || "",
-      author_avatar_url: author["avatar_url"],
-      date: parse_commit_date(get_in(commit, ["author", "date"])),
-      url: "https://github.com/#{repo_full_name}/commit/#{raw["sha"]}"
-    }
-  end
-
-  defp parse_commit_date(nil), do: nil
-
-  defp parse_commit_date(date_string) do
-    case DateTime.from_iso8601(date_string) do
-      {:ok, dt, _offset} -> dt
-      _ -> nil
-    end
-  end
-
-  defp sample_commits(repo_full_name) do
-    now = DateTime.utc_now()
-
-    messages = [
-      {"feat: add multilingual content support for blog posts",
-       "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0", -1200},
-      {"fix: resolve encoding issue with Japanese characters",
-       "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1", -3600},
-      {"chore: update translation terminology for Spanish locale",
-       "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2", -7200},
-      {"feat: implement automatic language detection on upload",
-       "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3", -14400},
-      {"fix: correct RTL layout for Arabic content pages",
-       "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4", -28800},
-      {"docs: add contributing guide for translators", "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5",
-       -86400},
-      {"feat: add voice consistency checks to CI pipeline",
-       "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6", -172_800},
-      {"refactor: extract content parser into dedicated module",
-       "b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7", -259_200},
-      {"fix: handle empty frontmatter in markdown files",
-       "c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8", -345_600},
-      {"feat: support .mdx files in content directory",
-       "d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9", -432_000}
-    ]
-
-    authors = [
-      {"pepicrft", "https://avatars.githubusercontent.com/u/663605?v=4"},
-      {"alexchen", nil},
-      {"mariarossi", nil}
-    ]
-
-    Enum.map(messages, fn {message, sha, offset_seconds} ->
-      {author_login, avatar_url} = Enum.random(authors)
-
-      %{
-        sha: sha,
-        short_sha: String.slice(sha, 0, 7),
-        message: message,
-        author_name: author_login,
-        author_avatar_url: avatar_url,
-        date: DateTime.add(now, offset_seconds, :second),
-        url: "https://github.com/#{repo_full_name}/commit/#{sha}"
-      }
-    end)
   end
 
   defp require_admin!(socket) do
@@ -2985,32 +2878,6 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  def handle_event("translate_commit", %{"sha" => sha, "message" => message}, socket) do
-    require_write!(socket)
-    account = socket.assigns.account
-    project = socket.assigns.project
-
-    {:ok, session} =
-      Glossia.TranslationSessions.create_session(account, project, %{
-        "commit_sha" => sha,
-        "commit_message" => first_line(message),
-        "status" => "pending",
-        "source_language" => "en",
-        "target_languages" => translation_target_languages(project)
-      })
-
-    %{session_id: session.id}
-    |> Glossia.TranslationSessions.TranslateWorker.new()
-    |> Oban.insert()
-
-    handle = socket.assigns.handle
-
-    {:noreply,
-     push_navigate(socket,
-       to: "/" <> handle <> "/" <> project.handle <> "/-/sessions/" <> session.id
-     )}
-  end
-
   defp put_model_form_value(form, value) do
     form.params
     |> Map.new(fn {key, field_value} -> {to_string(key), field_value} end)
@@ -3041,15 +2908,6 @@ defmodule GlossiaWeb.DashboardLive do
       String.trim(params["model"] || "") != String.trim(original["model"] || "") or
       String.trim(params["base_url"] || "") != String.trim(original["base_url"] || "") or
       String.trim(params["api_key"] || "") != ""
-  end
-
-  # A project's configured locales, falling back to a default so triggering a
-  # translation never silently produces an empty locale list (and thus no PR).
-  defp translation_target_languages(project) do
-    case project.setup_target_languages do
-      languages when is_list(languages) and languages != [] -> languages
-      _ -> ["es", "fr"]
-    end
   end
 
   defp selected_wizard_repo(socket) do
@@ -3307,6 +3165,27 @@ defmodule GlossiaWeb.DashboardLive do
     {:noreply, assign(socket, session: session)}
   end
 
+  def handle_info({:project_translation_sessions_changed, _session_id}, socket) do
+    socket =
+      case socket.assigns.live_action do
+        :project_translations ->
+          apply_url_params_translations(socket, socket.assigns[:settings_query_params] || %{})
+
+        :project ->
+          socket
+          |> assign(
+            translation_overview:
+              Glossia.TranslationSessions.project_overview(socket.assigns.project)
+          )
+          |> apply_url_params_activity(socket.assigns[:settings_query_params] || %{})
+
+        _ ->
+          socket
+      end
+
+    {:noreply, schedule_translation_refresh(socket)}
+  end
+
   # Translation jobs run in their own Kubernetes pod. Progress broadcasts are
   # delivered immediately when that pod is connected to this LiveView's PubSub
   # mesh, while this bounded refresh makes the status and durable progress
@@ -3330,6 +3209,14 @@ defmodule GlossiaWeb.DashboardLive do
 
         :project_translations ->
           apply_url_params_translations(socket, socket.assigns[:settings_query_params] || %{})
+
+        :project ->
+          socket
+          |> assign(
+            translation_overview:
+              Glossia.TranslationSessions.project_overview(socket.assigns.project)
+          )
+          |> apply_url_params_activity(socket.assigns[:settings_query_params] || %{})
 
         _ ->
           socket
@@ -3747,12 +3634,13 @@ defmodule GlossiaWeb.DashboardLive do
           project={assigns[:project]}
           project_name={@project_name}
           setup_events={assigns[:setup_events] || []}
-          commits={assigns[:commits] || []}
-          sessions_by_sha={assigns[:sessions_by_sha] || %{}}
-          commits_error={assigns[:commits_error]}
-          commits_search={assigns[:commits_search] || ""}
-          commits_sort_key={assigns[:commits_sort_key] || "date"}
-          commits_sort_dir={assigns[:commits_sort_dir] || "desc"}
+          translation_overview={assigns[:translation_overview] || empty_translation_overview()}
+          translations={assigns[:translations] || []}
+          translations_search={assigns[:translations_search] || ""}
+          translations_sort_key={assigns[:translations_sort_key] || "inserted_at"}
+          translations_sort_dir={assigns[:translations_sort_dir] || "desc"}
+          available_filters={assigns[:available_filters] || []}
+          active_filters={assigns[:active_filters] || []}
           can_write={@can_write}
         />
     <% end %>
@@ -6674,7 +6562,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp project_page(assigns) do
     ~H"""
-    <div class="dash-page">
+    <div id="project-overview" class="dash-page">
       <.page_header title={@project_name} />
 
       <%= if @project && @project.setup_status in ["pending", "running"] do %>
@@ -6700,13 +6588,13 @@ defmodule GlossiaWeb.DashboardLive do
           <.project_activity_card
             handle={@handle}
             project={@project}
-            commits={@commits}
-            sessions_by_sha={@sessions_by_sha}
-            commits_error={@commits_error}
-            commits_search={@commits_search}
-            commits_sort_key={@commits_sort_key}
-            commits_sort_dir={@commits_sort_dir}
-            can_write={@can_write}
+            overview={@translation_overview}
+            translations={@translations}
+            translations_search={@translations_search}
+            translations_sort_key={@translations_sort_key}
+            translations_sort_dir={@translations_sort_dir}
+            available_filters={@available_filters}
+            active_filters={@active_filters}
           />
         <% end %>
       <% end %>
@@ -7025,153 +6913,201 @@ defmodule GlossiaWeb.DashboardLive do
   defp upload_error_to_string(_), do: gettext("Upload error")
 
   defp project_activity_card(assigns) do
+    assigns =
+      assign(assigns,
+        chart_labels: Enum.map(assigns.overview.days, &Calendar.strftime(&1.date, "%b %-d")),
+        chart_values: Enum.map(assigns.overview.days, & &1.count)
+      )
+
     ~H"""
-    <%= if @commits_error do %>
-      <Noora.Alert.alert
-        id="project-activity-error"
-        type="secondary"
-        status="error"
-        size="medium"
-        title={gettext("Could not load activity from GitHub.")}
-      />
-    <% else %>
-      <Noora.Card.card_section class="noora-resource-table-card">
+    <div data-part="translation-overview">
+      <div data-part="widgets">
+        <.translation_metric
+          id="translation-runs-widget"
+          title={gettext("Translation runs")}
+          value={@overview.runs}
+          description={gettext("Runs started during the last 14 days.")}
+        />
+        <.translation_metric
+          id="translated-content-widget"
+          title={gettext("Translated content")}
+          value={@overview.translated}
+          description={gettext("Content items translated during the last 14 days.")}
+        />
+        <.translation_metric
+          id="content-hits-widget"
+          title={gettext("Content hits")}
+          value={@overview.content_hits}
+          description={
+            gettext("Content items already current and reused without another translation.")
+          }
+        />
+        <.translation_metric
+          id="superseded-runs-widget"
+          title={gettext("Superseded runs")}
+          value={@overview.superseded}
+          description={gettext("Runs stopped because newer content arrived.")}
+        />
+      </div>
+
+      <Noora.Card.card_section data-part="chart-card">
+        <div data-part="chart-header">
+          <div>
+            <h2>{gettext("Translations per day")}</h2>
+            <p>{gettext("Translation runs started during the last 14 days.")}</p>
+          </div>
+        </div>
+        <.chart
+          id="translations-per-day-chart"
+          type="bar"
+          labels={@chart_labels}
+          series={@chart_values}
+          show_legend={false}
+          colors={["var:noora-chart-primary"]}
+          extra_options={%{yAxis: %{minInterval: 1}}}
+        />
+      </Noora.Card.card_section>
+
+      <Noora.Card.card_section class="noora-resource-table-card" data-part="translations-card">
         <div data-part="header">
           <div data-part="title-group">
-            <h2>{gettext("Activity")}</h2>
-            <p>{gettext("Recent content activity for this project.")}</p>
+            <h2>{gettext("Translations")}</h2>
+            <p>{gettext("Recent translation activity for this project.")}</p>
           </div>
         </div>
 
-        <div class="noora-projects-toolbar">
+        <div class="noora-resource-toolbar">
           <.form for={%{}} phx-change="resource_search">
-            <input type="hidden" name="table_id" value="commits-table" />
+            <input type="hidden" name="table_id" value="translations-table" />
             <Noora.TextInput.text_input
-              id="commits-search"
+              id="overview-translations-search"
               name="search"
               type="search"
-              value={@commits_search}
-              placeholder={gettext("Search commits...")}
+              value={@translations_search}
+              placeholder={gettext("Search translations...")}
               show_suffix={false}
               phx-debounce="300"
             />
           </.form>
+
+          <.settings_filter_controls
+            id="overview-translations-filter-dropdown"
+            available_filters={@available_filters}
+            active_filters={@active_filters}
+          />
         </div>
 
         <Noora.Table.table
-          id="commits-table"
-          rows={@commits}
-          row_key={fn commit -> "commit-#{commit.sha}" end}
+          id="translations-table"
+          rows={@translations}
+          row_key={fn session -> "translation-session-#{session.id}" end}
+          row_navigate={fn session -> ~p"/#{@handle}/#{@project.handle}/-/sessions/#{session.id}" end}
         >
           <:col
-            :let={commit}
-            label={gettext("Commit")}
+            :let={session}
+            label={gettext("Outcome")}
             patch={
-              project_activity_sort_patch(
+              project_translations_sort_patch(
                 @handle,
                 @project.handle,
-                @commits_search,
-                @commits_sort_key,
-                @commits_sort_dir,
-                "message"
+                @translations_search,
+                @translations_sort_key,
+                @translations_sort_dir,
+                "outcome",
+                @active_filters,
+                :overview
               )
             }
-            sort_order={if(@commits_sort_key == "message", do: @commits_sort_dir)}
+            sort_order={if(@translations_sort_key == "outcome", do: @translations_sort_dir)}
           >
-            <Noora.Table.text_and_description_cell
-              label={first_line(commit.message)}
-              description={project_activity_session_description(@sessions_by_sha[commit.sha])}
+            <Noora.Table.status_badge_cell
+              status={translation_session_outcome_badge(session)}
+              label={translation_session_outcome_label(session)}
             />
           </:col>
           <:col
-            :let={commit}
-            label={gettext("Author")}
+            :let={session}
+            label={gettext("Content")}
             patch={
-              project_activity_sort_patch(
+              project_translations_sort_patch(
                 @handle,
                 @project.handle,
-                @commits_search,
-                @commits_sort_key,
-                @commits_sort_dir,
-                "author"
+                @translations_search,
+                @translations_sort_key,
+                @translations_sort_dir,
+                "translated_content_count",
+                @active_filters,
+                :overview
               )
             }
-            sort_order={if(@commits_sort_key == "author", do: @commits_sort_dir)}
+            sort_order={
+              if(@translations_sort_key == "translated_content_count",
+                do: @translations_sort_dir
+              )
+            }
           >
-            <Noora.Table.text_cell label={commit.author_name}>
-              <:image :if={commit.author_avatar_url}>
-                <Noora.Avatar.avatar
-                  id={"commit-#{commit.sha}-author-avatar"}
-                  name={commit.author_name}
-                  image_href={commit.author_avatar_url}
-                  size="2xsmall"
-                />
-              </:image>
-            </Noora.Table.text_cell>
+            <Noora.Table.text_cell label={translation_session_content_label(session)} />
+          </:col>
+          <:col :let={session} label={gettext("Commit")}>
+            <Noora.Table.text_and_description_cell
+              label={first_line(session.commit_message || gettext("Manual translation"))}
+              description={
+                if(session.commit_sha, do: String.slice(session.commit_sha, 0, 7), else: nil)
+              }
+            />
           </:col>
           <:col
-            :let={commit}
-            label={gettext("Date")}
+            :let={session}
+            label={gettext("Created")}
             patch={
-              project_activity_sort_patch(
+              project_translations_sort_patch(
                 @handle,
                 @project.handle,
-                @commits_search,
-                @commits_sort_key,
-                @commits_sort_dir,
-                "date"
+                @translations_search,
+                @translations_sort_key,
+                @translations_sort_dir,
+                "inserted_at",
+                @active_filters,
+                :overview
               )
             }
-            sort_order={if(@commits_sort_key == "date", do: @commits_sort_dir)}
+            sort_order={if(@translations_sort_key == "inserted_at", do: @translations_sort_dir)}
           >
-            <%= if commit.date do %>
-              <Noora.Table.time_cell time={commit.date} relative />
-            <% else %>
-              <Noora.Table.text_cell label="" />
-            <% end %>
-          </:col>
-          <:col :let={commit} label={gettext("Actions")}>
-            <Noora.Table.button_cell>
-              <:button :if={@can_write and !@sessions_by_sha[commit.sha]}>
-                <Noora.Button.button
-                  label={gettext("Translate")}
-                  variant="secondary"
-                  size="small"
-                  phx-click="translate_commit"
-                  phx-value-sha={commit.sha}
-                  phx-value-message={commit.message}
-                />
-              </:button>
-              <:button>
-                <Noora.Button.button
-                  href={commit.url}
-                  label={commit.short_sha}
-                  variant="secondary"
-                  size="small"
-                />
-              </:button>
-            </Noora.Table.button_cell>
+            <Noora.Table.time_cell time={session.inserted_at} relative />
           </:col>
           <:empty_state>
             <Noora.Table.table_empty_state>
               <.noora_empty_state
-                icon="git_commit"
-                title={gettext("No commits yet")}
-                subtitle={gettext("Project activity will show up here once commits are available.")}
+                icon="language"
+                title={gettext("No translations yet")}
+                subtitle={gettext("Translation activity will appear here after the first run.")}
               />
             </Noora.Table.table_empty_state>
           </:empty_state>
         </Noora.Table.table>
       </Noora.Card.card_section>
-    <% end %>
+    </div>
     """
   end
 
-  defp project_activity_session_description([session | _]) do
-    gettext("Translation session: %{status}", status: session.status)
+  attr(:id, :string, required: true)
+  attr(:title, :string, required: true)
+  attr(:value, :integer, required: true)
+  attr(:description, :string, required: true)
+
+  defp translation_metric(assigns) do
+    ~H"""
+    <Noora.Card.card_section id={@id} data-part="metric">
+      <span data-part="metric-title">{@title}</span>
+      <span data-part="metric-value">{@value}</span>
+      <span data-part="metric-description">{@description}</span>
+    </Noora.Card.card_section>
+    """
   end
 
-  defp project_activity_session_description(_), do: nil
+  defp empty_translation_overview do
+    %{runs: 0, translated: 0, content_hits: 0, superseded: 0, days: []}
+  end
 
   attr(:handle, :string, required: true)
   attr(:project, :any, required: true)
@@ -7227,7 +7163,7 @@ defmodule GlossiaWeb.DashboardLive do
         >
           <:col
             :let={session}
-            label={gettext("Status")}
+            label={gettext("Outcome")}
             patch={
               project_translations_sort_patch(
                 @handle,
@@ -7235,16 +7171,38 @@ defmodule GlossiaWeb.DashboardLive do
                 @translations_search,
                 @translations_sort_key,
                 @translations_sort_dir,
-                "status",
+                "outcome",
                 @active_filters
               )
             }
-            sort_order={if(@translations_sort_key == "status", do: @translations_sort_dir)}
+            sort_order={if(@translations_sort_key == "outcome", do: @translations_sort_dir)}
           >
             <Noora.Table.status_badge_cell
-              status={translation_session_status_badge(session.status)}
-              label={translation_session_status_label(session.status)}
+              status={translation_session_outcome_badge(session)}
+              label={translation_session_outcome_label(session)}
             />
+          </:col>
+          <:col
+            :let={session}
+            label={gettext("Content")}
+            patch={
+              project_translations_sort_patch(
+                @handle,
+                @project.handle,
+                @translations_search,
+                @translations_sort_key,
+                @translations_sort_dir,
+                "translated_content_count",
+                @active_filters
+              )
+            }
+            sort_order={
+              if(@translations_sort_key == "translated_content_count",
+                do: @translations_sort_dir
+              )
+            }
+          >
+            <Noora.Table.text_cell label={translation_session_content_label(session)} />
           </:col>
           <:col :let={session} label={gettext("Languages")}>
             <Noora.Table.text_cell
@@ -7301,7 +7259,8 @@ defmodule GlossiaWeb.DashboardLive do
          current_sort_key,
          current_sort_dir,
          sort_key,
-         active_filters
+         active_filters,
+         page \\ :translations
        ) do
     sort_dir =
       if current_sort_key == sort_key and current_sort_dir == "asc",
@@ -7310,7 +7269,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     settings_table_patch(
       handle,
-      "/" <> project_handle <> "/-/translations",
+      project_translations_path(project_handle, page),
       "translations-table",
       search,
       sort_key,
@@ -7318,6 +7277,64 @@ defmodule GlossiaWeb.DashboardLive do
       active_filters
     )
   end
+
+  defp project_translations_path(project_handle, :overview), do: "/" <> project_handle
+
+  defp project_translations_path(project_handle, _page),
+    do: "/" <> project_handle <> "/-/translations"
+
+  defp translation_session_outcome_badge(%{status: status}) when status in ["pending", "running"],
+    do: translation_session_status_badge(status)
+
+  defp translation_session_outcome_badge(%{outcome: "translated"}), do: "success"
+  defp translation_session_outcome_badge(%{outcome: "content_hit"}), do: "success"
+  defp translation_session_outcome_badge(%{outcome: "superseded"}), do: "disabled"
+  defp translation_session_outcome_badge(%{outcome: "failed"}), do: "error"
+
+  defp translation_session_outcome_badge(session),
+    do: translation_session_status_badge(session.status)
+
+  defp translation_session_outcome_label(%{status: "pending"}), do: gettext("Pending")
+  defp translation_session_outcome_label(%{status: "running"}), do: gettext("Running")
+  defp translation_session_outcome_label(%{outcome: "translated"}), do: gettext("Translated")
+  defp translation_session_outcome_label(%{outcome: "content_hit"}), do: gettext("Content hit")
+  defp translation_session_outcome_label(%{outcome: "superseded"}), do: gettext("Superseded")
+  defp translation_session_outcome_label(%{outcome: "cancelled"}), do: gettext("Cancelled")
+  defp translation_session_outcome_label(%{outcome: "failed"}), do: gettext("Failed")
+
+  defp translation_session_outcome_label(session),
+    do: translation_session_status_label(session.status)
+
+  defp translation_session_content_label(session) do
+    translated = session.translated_content_count || 0
+    hits = session.content_hit_count || 0
+
+    cond do
+      translated > 0 and hits > 0 ->
+        Enum.join(
+          [translated_content_label(translated), content_hits_label(hits)],
+          gettext(", ")
+        )
+
+      translated > 0 ->
+        translated_content_label(translated)
+
+      hits > 0 ->
+        content_hits_label(hits)
+
+      session.status in ["pending", "running"] ->
+        gettext("In progress")
+
+      true ->
+        gettext("No content translated")
+    end
+  end
+
+  defp translated_content_label(count),
+    do: ngettext("%{count} translated", "%{count} translated", count, count: count)
+
+  defp content_hits_label(count),
+    do: ngettext("%{count} content hit", "%{count} content hits", count, count: count)
 
   defp translation_session_languages_label(%{source_language: nil}), do: gettext("Not configured")
 
@@ -7374,8 +7391,8 @@ defmodule GlossiaWeb.DashboardLive do
           <div data-part="overview-primary">
             <Noora.Badge.status_badge
               data-part="status"
-              status={translation_session_status_badge(@session.status)}
-              label={translation_session_status_label(@session.status)}
+              status={translation_session_outcome_badge(@session)}
+              label={translation_session_outcome_label(@session)}
             />
             <%= if @session.source_language do %>
               <span data-part="languages">
@@ -7407,6 +7424,22 @@ defmodule GlossiaWeb.DashboardLive do
           <%= if @session.summary do %>
             <span>{@session.summary}</span>
           <% end %>
+          <span :if={@session.outcome == "superseded"}>
+            {gettext("Stopped because newer content arrived.")}
+          </span>
+          <.link
+            :if={@session.continued_from_session_id}
+            navigate={
+              ~p"/#{@handle}/#{@project.handle}/-/sessions/#{@session.continued_from_session_id}"
+            }
+          >
+            {gettext("View the translation this run continued")}
+          </.link>
+          <span :if={
+            (@session.translated_content_count || 0) > 0 or (@session.content_hit_count || 0) > 0
+          }>
+            {translation_session_content_label(@session)}
+          </span>
           <a
             :if={@session.pull_request_url}
             href={@session.pull_request_url}
@@ -7744,6 +7777,9 @@ defmodule GlossiaWeb.DashboardLive do
          assigns: %{live_action: :project_translations, translations: sessions}
        }),
        do: Enum.any?(sessions, &translation_session_in_flight?/1)
+
+  defp translation_refresh_active?(%{assigns: %{live_action: :project, translations: sessions}}),
+    do: Enum.any?(sessions, &translation_session_in_flight?/1)
 
   defp translation_refresh_active?(_socket), do: false
 
@@ -10788,11 +10824,28 @@ defmodule GlossiaWeb.DashboardLive do
         field: :status,
         display_name: gettext("Status"),
         type: :option,
-        options: ["pending", "running", "completed", "failed"],
+        options: ["pending", "running", "completed", "failed", "cancelled"],
         options_display_names: %{
           "pending" => gettext("Pending"),
           "running" => gettext("Running"),
           "completed" => gettext("Completed"),
+          "failed" => gettext("Failed"),
+          "cancelled" => gettext("Cancelled")
+        },
+        operator: :==,
+        value: nil
+      },
+      %Filter.Filter{
+        id: "outcome",
+        field: :outcome,
+        display_name: gettext("Outcome"),
+        type: :option,
+        options: ["translated", "content_hit", "superseded", "cancelled", "failed"],
+        options_display_names: %{
+          "translated" => gettext("Translated"),
+          "content_hit" => gettext("Content hit"),
+          "superseded" => gettext("Superseded"),
+          "cancelled" => gettext("Cancelled"),
           "failed" => gettext("Failed")
         },
         operator: :==,
@@ -10827,7 +10880,6 @@ defmodule GlossiaWeb.DashboardLive do
     "tokens-table" => "t",
     "oauth-apps-table" => "a",
     "translations-table" => "ts",
-    "commits-table" => "c",
     "models" => "md"
   }
 
@@ -10875,30 +10927,6 @@ defmodule GlossiaWeb.DashboardLive do
     else
       path <> "?" <> URI.encode_query(query_params)
     end
-  end
-
-  defp project_activity_sort_patch(
-         handle,
-         project_handle,
-         search,
-         current_sort_key,
-         current_sort_dir,
-         sort_key
-       ) do
-    sort_dir =
-      if current_sort_key == sort_key and current_sort_dir == "asc",
-        do: "desc",
-        else: "asc"
-
-    settings_table_patch(
-      handle,
-      "/" <> project_handle,
-      "commits-table",
-      search,
-      sort_key,
-      sort_dir,
-      []
-    )
   end
 
   defp push_table_params(socket, table_id, overrides) do
@@ -11117,16 +11145,6 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
-  defp current_table_state(socket, "commits-table") do
-    %{
-      search: socket.assigns[:commits_search] || "",
-      sort: socket.assigns[:commits_sort_key] || "date",
-      dir: socket.assigns[:commits_sort_dir] || "desc",
-      page: 1,
-      filters: %{}
-    }
-  end
-
   defp current_table_state(socket, "models") do
     %{
       search: socket.assigns[:models_search] || "",
@@ -11140,7 +11158,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp current_table_state(_socket, _id),
     do: %{search: "", sort: "", dir: "asc", page: 1, filters: %{}}
 
-  defp default_sort_key("commits-table"), do: "date"
   defp default_sort_key("projects-table"), do: "name"
   defp default_sort_key("members-table"), do: "name"
   defp default_sort_key("invitations-table"), do: "email"
@@ -11151,7 +11168,6 @@ defmodule GlossiaWeb.DashboardLive do
   defp default_sort_key(_), do: ""
 
   defp default_sort_dir("translations-table"), do: "desc"
-  defp default_sort_dir("commits-table"), do: "desc"
   defp default_sort_dir(_), do: "asc"
 
   defp current_sort(socket, "members-table"),
@@ -11175,9 +11191,6 @@ defmodule GlossiaWeb.DashboardLive do
       {socket.assigns[:translations_sort_key] || "inserted_at",
        socket.assigns[:translations_sort_dir] || "desc"}
 
-  defp current_sort(socket, "commits-table"),
-    do: {socket.assigns[:commits_sort_key] || "date", socket.assigns[:commits_sort_dir] || "desc"}
-
   defp current_sort(socket, "models"),
     do: {socket.assigns[:models_sort_key] || "handle", socket.assigns[:models_sort_dir] || "asc"}
 
@@ -11191,52 +11204,18 @@ defmodule GlossiaWeb.DashboardLive do
   defp current_filters(_socket, _), do: %{}
 
   defp apply_url_params_activity(socket, params) do
-    prefix = "c"
-    search = Map.get(params, prefix <> "q", "")
-    sort_key = Map.get(params, prefix <> "sort", "date")
-    sort_dir = Map.get(params, prefix <> "dir", "desc")
+    apply_project_translation_params(socket, params, "/" <> socket.assigns.project.handle)
+  end
 
-    all_commits = socket.assigns[:all_commits] || []
-
-    filtered =
-      if search == "" do
-        all_commits
-      else
-        needle = String.downcase(search)
-
-        Enum.filter(all_commits, fn commit ->
-          String.contains?(String.downcase(commit.message || ""), needle) ||
-            String.contains?(String.downcase(commit.author_name || ""), needle) ||
-            String.contains?(String.downcase(commit.short_sha || ""), needle)
-        end)
-      end
-
-    sorted = sort_commits(filtered, sort_key, sort_dir)
-
-    assign(socket,
-      commits_search: search,
-      commits_sort_key: sort_key,
-      commits_sort_dir: sort_dir,
-      commits: sorted
+  defp apply_url_params_translations(socket, params) do
+    apply_project_translation_params(
+      socket,
+      params,
+      "/" <> socket.assigns.project.handle <> "/-/translations"
     )
   end
 
-  defp sort_commits(commits, "author", dir) do
-    Enum.sort_by(commits, &String.downcase(&1.author_name || ""), sort_direction(dir))
-  end
-
-  defp sort_commits(commits, "message", dir) do
-    Enum.sort_by(commits, &String.downcase(&1.message || ""), sort_direction(dir))
-  end
-
-  defp sort_commits(commits, _key, dir) do
-    Enum.sort_by(commits, & &1.date, {sort_direction(dir), DateTime})
-  end
-
-  defp sort_direction("asc"), do: :asc
-  defp sort_direction(_), do: :desc
-
-  defp apply_url_params_translations(socket, params) do
+  defp apply_project_translation_params(socket, params, path) do
     prefix = "ts"
     handle = socket.assigns.handle
     search = Map.get(params, prefix <> "q", "")
@@ -11247,7 +11226,7 @@ defmodule GlossiaWeb.DashboardLive do
     active_filters = Filter.Operations.decode_filters_from_query(params, available_filters)
 
     order_dir = if sort_dir == "desc", do: :desc, else: :asc
-    order_by = if sort_key == "status", do: :status, else: :inserted_at
+    order_by = translation_order_field(sort_key)
 
     flop_params =
       %{
@@ -11256,16 +11235,12 @@ defmodule GlossiaWeb.DashboardLive do
         "order_by" => [Atom.to_string(order_by)],
         "order_directions" => [Atom.to_string(order_dir)]
       }
-      |> maybe_add_flop_filters(
-        if(search == "", do: %{}, else: %{"commit_sha" => search}),
-        %{"commit_sha" => "text"}
-      )
       |> add_noora_flop_filters(Filter.Operations.convert_filters_to_flop(active_filters))
 
     project = socket.assigns.project
 
     {sessions, total} =
-      case Glossia.TranslationSessions.list_project_sessions(project, flop_params) do
+      case list_project_translation_sessions(project, search, flop_params) do
         {:ok, {sessions, meta}} -> {sessions, meta.total_count}
         _ -> {[], 0}
       end
@@ -11281,9 +11256,21 @@ defmodule GlossiaWeb.DashboardLive do
       available_filters: available_filters,
       active_filters: active_filters,
       settings_query_params: params,
-      settings_filter_path: "/" <> handle <> "/" <> project.handle <> "/-/translations"
+      settings_filter_path: "/" <> handle <> path
     )
   end
+
+  defp list_project_translation_sessions(project, "", params),
+    do: Glossia.TranslationSessions.list_project_sessions(project, params)
+
+  defp list_project_translation_sessions(project, search, params),
+    do: Glossia.TranslationSessions.list_project_sessions(project, search, params)
+
+  defp translation_order_field("status"), do: :status
+  defp translation_order_field("outcome"), do: :outcome
+  defp translation_order_field("translated_content_count"), do: :translated_content_count
+  defp translation_order_field("content_hit_count"), do: :content_hit_count
+  defp translation_order_field(_), do: :inserted_at
 
   defp apply_url_params_project_new(socket, params) do
     step = Map.get(params, "step", "repo")
@@ -11331,6 +11318,17 @@ defmodule GlossiaWeb.DashboardLive do
     else
       Glossia.Projects.subscribe_setup_events(project)
       assign(socket, setup_events_project_id: project_id)
+    end
+  end
+
+  defp subscribe_to_project_translation_sessions(socket, project) do
+    project_id = to_string(project.id)
+
+    if connected?(socket) and socket.assigns[:translation_sessions_project_id] != project_id do
+      Glossia.TranslationSessions.subscribe_project_sessions(project)
+      assign(socket, translation_sessions_project_id: project_id)
+    else
+      socket
     end
   end
 
