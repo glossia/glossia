@@ -6964,151 +6964,156 @@ defmodule GlossiaWeb.DashboardLive do
         />
       </div>
 
-      <Noora.Card.card_section data-part="chart-card">
-        <div data-part="chart-header">
-          <div>
-            <h2>{gettext("Translations")}</h2>
-            <p>{gettext("Content outcomes from runs started during the last 14 days.")}</p>
-          </div>
-        </div>
-        <.chart
-          id="translations-per-day-chart"
-          type="bar"
-          labels={@chart_labels}
-          series={@chart_series}
-          show_legend
-          colors={["var:noora-chart-secondary", "var:noora-chart-destructive"]}
-          stacked
-          bar_width={8}
-          bar_radius={2}
-          extra_options={
-            %{
-              grid: %{left: 0, right: 0, top: "15%", bottom: 0, containLabel: true},
-              legend: %{itemGap: 32, itemHeight: 8, itemWidth: 16},
-              yAxis: %{minInterval: 1}
-            }
-          }
-        />
-      </Noora.Card.card_section>
-
-      <Noora.Card.card_section class="noora-resource-table-card" data-part="translations-card">
-        <div data-part="header">
-          <div data-part="title-group">
-            <h2>{gettext("Translations")}</h2>
-            <p>{gettext("Recent translation activity for this project.")}</p>
-          </div>
-        </div>
-
-        <div class="noora-resource-toolbar">
-          <.form for={%{}} phx-change="resource_search">
-            <input type="hidden" name="table_id" value="translations-table" />
-            <Noora.TextInput.text_input
-              id="overview-translations-search"
-              name="search"
-              type="search"
-              value={@translations_search}
-              placeholder={gettext("Search translations...")}
-              show_suffix={false}
-              phx-debounce="300"
-            />
-          </.form>
-
-          <.settings_filter_controls
-            id="overview-translations-filter-dropdown"
-            available_filters={@available_filters}
-            active_filters={@active_filters}
-          />
-        </div>
-
-        <Noora.Table.table
-          id="translations-table"
-          rows={@translations}
-          row_key={fn session -> "translation-session-#{session.id}" end}
-          row_navigate={fn session -> ~p"/#{@handle}/#{@project.handle}/-/sessions/#{session.id}" end}
-        >
-          <:col
-            :let={session}
-            label={gettext("Outcome")}
-            patch={
-              project_translations_sort_patch(
-                @handle,
-                @project.handle,
-                @translations_search,
-                @translations_sort_key,
-                @translations_sort_dir,
-                "outcome",
-                @active_filters,
-                :overview
-              )
-            }
-            sort_order={if(@translations_sort_key == "outcome", do: @translations_sort_dir)}
-          >
-            <Noora.Table.status_badge_cell
-              status={translation_session_outcome_badge(session)}
-              label={translation_session_outcome_label(session)}
-            />
-          </:col>
-          <:col
-            :let={session}
-            label={gettext("Content")}
-            patch={
-              project_translations_sort_patch(
-                @handle,
-                @project.handle,
-                @translations_search,
-                @translations_sort_key,
-                @translations_sort_dir,
-                "translated_content_count",
-                @active_filters,
-                :overview
-              )
-            }
-            sort_order={
-              if(@translations_sort_key == "translated_content_count",
-                do: @translations_sort_dir
-              )
-            }
-          >
-            <Noora.Table.text_cell label={translation_session_content_label(session)} />
-          </:col>
-          <:col :let={session} label={gettext("Commit")}>
-            <Noora.Table.text_and_description_cell
-              label={first_line(session.commit_message || gettext("Manual translation"))}
-              description={
-                if(session.commit_sha, do: String.slice(session.commit_sha, 0, 7), else: nil)
+      <Noora.Card.card
+        id="project-translations-card"
+        title={gettext("Translations")}
+        icon="language"
+        data-part="translations-history"
+      >
+        <Noora.Card.card_section data-part="chart-card">
+          <p data-part="chart-description">
+            {gettext("Content outcomes from runs started during the last 14 days.")}
+          </p>
+          <.chart
+            id="translations-per-day-chart"
+            type="bar"
+            labels={@chart_labels}
+            series={@chart_series}
+            show_legend={false}
+            colors={["var:noora-chart-secondary", "var:noora-chart-destructive"]}
+            stacked
+            bar_width={8}
+            bar_radius={2}
+            extra_options={
+              %{
+                grid: %{left: 0, right: 0, top: "5%", bottom: 0, containLabel: true},
+                yAxis: %{minInterval: 1}
               }
-            />
-          </:col>
-          <:col
-            :let={session}
-            label={gettext("Created")}
-            patch={
-              project_translations_sort_patch(
-                @handle,
-                @project.handle,
-                @translations_search,
-                @translations_sort_key,
-                @translations_sort_dir,
-                "inserted_at",
-                @active_filters,
-                :overview
-              )
             }
-            sort_order={if(@translations_sort_key == "inserted_at", do: @translations_sort_dir)}
-          >
-            <Noora.Table.time_cell time={session.inserted_at} relative />
-          </:col>
-          <:empty_state>
-            <Noora.Table.table_empty_state>
-              <.noora_empty_state
-                icon="language"
-                title={gettext("No translations yet")}
-                subtitle={gettext("Translation activity will appear here after the first run.")}
+          />
+        </Noora.Card.card_section>
+
+        <Noora.Card.card_section class="noora-resource-table-card" data-part="translations-card">
+          <div data-part="header">
+            <div data-part="title-group">
+              <h2>{gettext("Recent activity")}</h2>
+              <p>{gettext("Recent translation activity for this project.")}</p>
+            </div>
+          </div>
+
+          <div class="noora-resource-toolbar">
+            <.form for={%{}} phx-change="resource_search">
+              <input type="hidden" name="table_id" value="translations-table" />
+              <Noora.TextInput.text_input
+                id="overview-translations-search"
+                name="search"
+                type="search"
+                value={@translations_search}
+                placeholder={gettext("Search translations...")}
+                show_suffix={false}
+                phx-debounce="300"
               />
-            </Noora.Table.table_empty_state>
-          </:empty_state>
-        </Noora.Table.table>
-      </Noora.Card.card_section>
+            </.form>
+
+            <.settings_filter_controls
+              id="overview-translations-filter-dropdown"
+              available_filters={@available_filters}
+              active_filters={@active_filters}
+            />
+          </div>
+
+          <Noora.Table.table
+            id="translations-table"
+            rows={@translations}
+            row_key={fn session -> "translation-session-#{session.id}" end}
+            row_navigate={
+              fn session -> ~p"/#{@handle}/#{@project.handle}/-/sessions/#{session.id}" end
+            }
+          >
+            <:col
+              :let={session}
+              label={gettext("Outcome")}
+              patch={
+                project_translations_sort_patch(
+                  @handle,
+                  @project.handle,
+                  @translations_search,
+                  @translations_sort_key,
+                  @translations_sort_dir,
+                  "outcome",
+                  @active_filters,
+                  :overview
+                )
+              }
+              sort_order={if(@translations_sort_key == "outcome", do: @translations_sort_dir)}
+            >
+              <Noora.Table.status_badge_cell
+                status={translation_session_outcome_badge(session)}
+                label={translation_session_outcome_label(session)}
+              />
+            </:col>
+            <:col
+              :let={session}
+              label={gettext("Content")}
+              patch={
+                project_translations_sort_patch(
+                  @handle,
+                  @project.handle,
+                  @translations_search,
+                  @translations_sort_key,
+                  @translations_sort_dir,
+                  "translated_content_count",
+                  @active_filters,
+                  :overview
+                )
+              }
+              sort_order={
+                if(@translations_sort_key == "translated_content_count",
+                  do: @translations_sort_dir
+                )
+              }
+            >
+              <Noora.Table.text_cell label={translation_session_content_label(session)} />
+            </:col>
+            <:col :let={session} label={gettext("Commit")}>
+              <Noora.Table.text_and_description_cell
+                label={first_line(session.commit_message || gettext("Manual translation"))}
+                description={
+                  if(session.commit_sha, do: String.slice(session.commit_sha, 0, 7), else: nil)
+                }
+              />
+            </:col>
+            <:col
+              :let={session}
+              label={gettext("Created")}
+              patch={
+                project_translations_sort_patch(
+                  @handle,
+                  @project.handle,
+                  @translations_search,
+                  @translations_sort_key,
+                  @translations_sort_dir,
+                  "inserted_at",
+                  @active_filters,
+                  :overview
+                )
+              }
+              sort_order={if(@translations_sort_key == "inserted_at", do: @translations_sort_dir)}
+            >
+              <Noora.Table.time_cell time={session.inserted_at} relative />
+            </:col>
+            <:empty_state>
+              <Noora.Table.table_empty_state>
+                <.noora_empty_state
+                  icon="language"
+                  title={gettext("No translations yet")}
+                  subtitle={gettext("Translation activity will appear here after the first run.")}
+                />
+              </Noora.Table.table_empty_state>
+            </:empty_state>
+          </Noora.Table.table>
+        </Noora.Card.card_section>
+      </Noora.Card.card>
     </div>
     """
   end
