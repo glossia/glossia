@@ -1,0 +1,23 @@
+<article id="docs-article" class="prose">
+  <header data-part="article-header">
+    <nav data-part="breadcrumbs" aria-label={gettext("Breadcrumbs")}>
+      <a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a>
+      <span>/</span>
+      <a href={locale_path(~p"/docs/#{@current_category}")}>
+        {@categories[@current_category].title}
+      </a>
+      <%= if assigns[:current_subcategory] do %>
+        <span>/</span>
+        <a href={locale_path(~p"/docs/#{@current_category}/#{@current_subcategory}")}>
+          {@current_subcategory_meta.title}
+        </a>
+      <% end %>
+      <span>/</span>
+      <span>{@page.title}</span>
+    </nav>
+    <h1>{@page.title}</h1>
+    <p>{@page.summary}</p>
+  </header>
+
+  {raw(@page.body)}
+</article>

@@ -1,0 +1,2 @@
+--shell bash
+--default-path deploy/helm/glossia/e2e

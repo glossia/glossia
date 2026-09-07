@@ -1,0 +1,12 @@
+[package]
+name = "glossia"
+version = "0.0.0"
+edition = "2021"
+default-run = "glossia"
+
+[[bin]]
+name = "glossia"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"

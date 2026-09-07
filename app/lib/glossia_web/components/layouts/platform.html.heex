@@ -1,0 +1,310 @@
+<.app_shell
+  current_scope={assigns[:current_scope]}
+  current_user={@current_user}
+  data_sidebar={if assigns[:show_sidebar], do: "visible", else: "hidden"}
+  show_sidebar={assigns[:show_sidebar] || false}
+>
+  <:topbar_prepend :if={assigns[:show_sidebar]}>
+    <button
+      class="noora-shell__sidebar-toggle"
+      id="noora-shell-sidebar-toggle"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-controls="noora-shell-sidebar"
+      aria-label={gettext("Toggle sidebar")}
+    >
+      <Icon.menu />
+    </button>
+  </:topbar_prepend>
+
+  <:topbar_context>
+    <.breadcrumbs>
+      <.breadcrumb
+        id="organization-breadcrumb"
+        label={@handle}
+        href={"/#{@handle}"}
+        show_avatar={true}
+        avatar_color={account_avatar_color(@account)}
+      >
+        <.breadcrumb_item
+          :for={account <- assigns[:accounts] || []}
+          id={"organization-breadcrumb-#{account.handle}"}
+          value={account.handle}
+          label={account.handle}
+          href={"/#{account.handle}"}
+          selected={account.handle == @handle}
+          show_avatar={true}
+          avatar_color={account_avatar_color(account)}
+          badge_label={account_badge_label(account)}
+          badge_color={account_badge_color(account)}
+        />
+        <:footer :if={@current_user}>
+          <.dropdown_item
+            value="create-organization"
+            label={gettext("Create organization")}
+            href={~p"/organizations/new"}
+          >
+            <:left_icon><Icon.building_plus /></:left_icon>
+          </.dropdown_item>
+        </:footer>
+      </.breadcrumb>
+
+      <%= for {{label, path}, index} <- Enum.with_index(assigns[:breadcrumb_items] || []) do %>
+        <.breadcrumb
+          id={"platform-breadcrumb-#{index}"}
+          label={label}
+          href={path}
+        />
+      <% end %>
+    </.breadcrumbs>
+  </:topbar_context>
+
+  <:avatar_menu_extra>
+    <.dropdown_item
+      :if={@current_user && Glossia.Authz.authorize?(:ops_read, @current_user, nil)}
+      value="operations"
+      label={gettext("Operations")}
+      href={~p"/ops"}
+    >
+      <:left_icon><Icon.settings /></:left_icon>
+    </.dropdown_item>
+    <.dropdown_item
+      :if={@current_user && Glossia.Authz.authorize?(:admin_read, @current_user, nil)}
+      value="admin"
+      label={gettext("Admin")}
+      href={~p"/admin"}
+    >
+      <:left_icon><Icon.settings /></:left_icon>
+    </.dropdown_item>
+    <.dropdown_item
+      value="profile-settings"
+      label={gettext("Settings")}
+      href={~p"/-/settings/profile"}
+    >
+      <:left_icon><Icon.user /></:left_icon>
+    </.dropdown_item>
+  </:avatar_menu_extra>
+
+  <:extra_banner>
+    <%= if assigns[:impersonating_from] do %>
+      <div class="impersonation-banner">
+        <span>{gettext("You are impersonating %{email}", email: @current_user.email)}</span>
+        <form method="post" action={~p"/admin/impersonate"} style="display:inline">
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+          <input type="hidden" name="_method" value="delete" />
+          <button type="submit" class="impersonation-banner-stop">
+            {gettext("Stop impersonating")}
+          </button>
+        </form>
+      </div>
+    <% end %>
+  </:extra_banner>
+
+  <:sidebar>
+    <%= case assigns[:sidebar_context] || :account do %>
+      <% :project -> %>
+        <.sidebar id="platform-sidebar">
+          <.sidebar_item
+            label={gettext("Overview")}
+            icon="smart_home"
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}"}
+            selected={@live_action == :project}
+          />
+          <.sidebar_item
+            label={gettext("Translations")}
+            icon="language"
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/translations"}
+            selected={@live_action in [:project_translations, :project_session]}
+          />
+          <.sidebar_item
+            :if={Glossia.Analytics.Config.enabled?()}
+            label={gettext("Analytics")}
+            icon="chart_column"
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/analytics"}
+            selected={@live_action == :project_analytics}
+          />
+          <.sidebar_group
+            :if={assigns[:is_admin]}
+            id="project-settings-navigation"
+            label={gettext("Settings")}
+            icon="settings"
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings"}
+            default_open={
+              @live_action in [
+                :project_settings,
+                :project_analytics_settings
+              ]
+            }
+            selected={
+              @live_action in [
+                :project_settings,
+                :project_analytics_settings
+              ]
+            }
+          >
+            <.sidebar_item
+              :if={Glossia.Analytics.Config.enabled?()}
+              label={gettext("Analytics")}
+              icon="chart_column"
+              navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/settings/analytics"}
+              selected={@live_action == :project_analytics_settings}
+            />
+          </.sidebar_group>
+        </.sidebar>
+      <% _ -> %>
+        <.sidebar id="platform-sidebar">
+          <.sidebar_item
+            label={gettext("Projects")}
+            icon="folders"
+            navigate={"/#{@handle}"}
+            selected={@live_action == :account}
+          />
+          <.sidebar_item
+            :if={@can_voice_read or @can_voice_write or @can_voice_propose}
+            label={gettext("Voice")}
+            icon="volume_3"
+            navigate={assigns[:voice_back_path] || "/#{@handle}/-/voice"}
+            selected={@live_action in [:voice, :voice_suggestion_new, :voice_version]}
+          />
+          <.sidebar_item
+            :if={@can_glossary_read or @can_glossary_write or @can_glossary_propose}
+            label={gettext("Terminology")}
+            icon="file_text"
+            navigate={assigns[:glossary_back_path] || "/#{@handle}/-/terminology"}
+            selected={
+              @live_action in [
+                :glossary,
+                :glossary_entry,
+                :glossary_entry_new,
+                :glossary_suggestion_new,
+                :glossary_version
+              ]
+            }
+          />
+          <% account_sections =
+            [
+              %{
+                id: :organization,
+                label: account_management_label(@account),
+                icon: "user",
+                visible: false,
+                open: @live_action in [:members],
+                items:
+                  [
+                    assigns[:is_admin] &&
+                      %{
+                        label: gettext("Members"),
+                        navigate: "/#{@handle}/-/members",
+                        active: @live_action == :members,
+                        icon: "users"
+                      }
+                  ]
+                  |> Enum.filter(&is_map/1)
+              }
+            ]
+            |> Glossia.Extensions.account_nav_sections(assigns)
+            |> Enum.filter(&is_map/1)
+            |> Enum.map(fn section ->
+              items =
+                section
+                |> Map.get(:items, [])
+                |> Enum.filter(&is_map/1)
+                |> Enum.map(fn item ->
+                  item
+                  |> Map.update(:active, false, fn active -> active end)
+                  |> Map.put_new(:icon, Map.get(section, :icon, "settings"))
+                  |> Map.put_new(:navigate, nil)
+                  |> Map.put_new(:patch, nil)
+                  |> Map.put_new(:href, nil)
+                  |> Map.put_new(:external, false)
+                end)
+
+              section
+              |> Map.put(:items, items)
+              |> Map.put_new(:icon, "settings")
+              |> Map.update(:visible, items != [], fn visible -> visible or items != [] end)
+              |> Map.update(:open, Enum.any?(items, &Map.get(&1, :active, false)), fn open ->
+                open or Enum.any?(items, &Map.get(&1, :active, false))
+              end)
+            end) %>
+          <%= for section <- account_sections, section.visible do %>
+            <.sidebar_group
+              id={"account-section-#{section.id}"}
+              label={section.label}
+              icon={section.icon}
+              default_open={section.open}
+              selected={Enum.any?(section.items, &Map.get(&1, :active, false))}
+            >
+              <.sidebar_item
+                :for={item <- section.items}
+                label={item.label}
+                icon={item.icon}
+                navigate={item.navigate}
+                patch={item.patch}
+                href={item.href}
+                external={item.external}
+                selected={item.active}
+              />
+            </.sidebar_group>
+          <% end %>
+
+          <.sidebar_group
+            :if={assigns[:is_admin]}
+            id="organization-settings-navigation"
+            label={gettext("Settings")}
+            icon="settings"
+            default_open={
+              @live_action in [
+                :api_tokens,
+                :api_tokens_new,
+                :api_token_edit,
+                :api_apps,
+                :api_apps_new,
+                :api_app_edit,
+                :llm_models,
+                :llm_model_new,
+                :llm_model_edit
+              ]
+            }
+            selected={
+              @live_action in [
+                :api_tokens,
+                :api_tokens_new,
+                :api_token_edit,
+                :api_apps,
+                :api_apps_new,
+                :api_app_edit,
+                :llm_models,
+                :llm_model_new,
+                :llm_model_edit
+              ]
+            }
+          >
+            <.sidebar_item
+              label={gettext("Tokens")}
+              icon="lock_password"
+              navigate={"/#{@handle}/-/settings/tokens"}
+              selected={@live_action in [:api_tokens, :api_tokens_new, :api_token_edit]}
+            />
+            <.sidebar_item
+              label={gettext("OAuth apps")}
+              icon="apps"
+              navigate={"/#{@handle}/-/settings/apps"}
+              selected={@live_action in [:api_apps, :api_apps_new, :api_app_edit]}
+            />
+            <.sidebar_item
+              label={gettext("Models")}
+              icon="api"
+              navigate={~p"/#{@handle}/-/settings/models"}
+              selected={@live_action in [:llm_models, :llm_model_new, :llm_model_edit]}
+            />
+          </.sidebar_group>
+        </.sidebar>
+    <% end %>
+  </:sidebar>
+
+  <.flash_group :if={assigns[:flash]} flash={@flash} />
+  <main class="noora-shell__page-content dash-main">
+    {@inner_content}
+  </main>
+</.app_shell>

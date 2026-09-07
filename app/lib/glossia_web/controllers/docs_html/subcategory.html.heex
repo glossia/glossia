@@ -1,0 +1,28 @@
+<section id="docs-subcategory">
+  <header data-part="page-intro">
+    <nav data-part="breadcrumbs" aria-label={gettext("Breadcrumbs")}>
+      <a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a>
+      <span>/</span>
+      <a href={locale_path(~p"/docs/#{@category_key}")}>{@category_meta.title}</a>
+      <span>/</span>
+      <span>{@subcategory_meta.title}</span>
+    </nav>
+    <h1>{@subcategory_meta.title}</h1>
+    <p>{@subcategory_meta.summary}</p>
+  </header>
+
+  <div data-part="page-list" data-count={length(@pages)}>
+    <a
+      :for={page <- @pages}
+      id={page.id}
+      href={locale_path(~p"/docs/#{@category_key}/#{@subcategory_key}/#{page.slug}")}
+      data-part="page-card"
+    >
+      <.card icon={@category_meta.icon} title={page.title}>
+        <.card_section>
+          <p>{page.summary}</p>
+        </.card_section>
+      </.card>
+    </a>
+  </div>
+</section>

@@ -1,0 +1,56 @@
+defmodule Glossia.MCP.SaveGlossaryTool do
+  @moduledoc "Create a new terminology version for an account."
+
+  use Hermes.Server.Component, type: :tool
+  use GlossiaWeb, :verified_routes
+
+  alias Glossia.ChangesetErrors
+  alias Glossia.Glossaries
+  alias Glossia.MCP.Authorization, as: Auth
+  alias Hermes.Server.Response
+
+  schema do
+    field :handle, {:required, :string}, description: "Account handle to save terminology for."
+
+    field :change_note, :string,
+      description: "Optional note describing what changed in this version."
+
+    field :entries, {:required, {:array, :map}},
+      description:
+        "List of terminology entries. Each entry is an object with: term (required), definition (optional), case_sensitive (boolean, default false), translations (array of {locale, translation} objects)."
+  end
+
+  @impl true
+  def execute(params, frame) do
+    handle = params["handle"]
+
+    with {:ok, user, account} <- Auth.fetch_context(frame, handle),
+         :ok <- Auth.authorize(frame, :glossary_write, user, account) do
+      attrs = %{
+        change_note: params["change_note"],
+        entries: params["entries"] || []
+      }
+
+      case Glossaries.create_glossary(account, attrs, user, via: :mcp) do
+        {:ok, %{glossary: glossary, entries: entries}} ->
+          response =
+            Response.tool()
+            |> Response.text(
+              JSON.encode!(%{
+                version: glossary.version,
+                change_note: glossary.change_note,
+                entry_count: length(entries)
+              })
+            )
+
+          {:reply, response, frame}
+
+        {:error, _step, changeset, _changes} ->
+          errors = ChangesetErrors.to_inline_string(changeset)
+          {:error, Hermes.MCP.Error.execution("Validation failed: #{errors}"), frame}
+      end
+    else
+      {:error, error} -> {:error, error, frame}
+    end
+  end
+end

@@ -1,0 +1,76 @@
+defmodule Glossia.Accounts.User do
+  use Glossia.Schema
+  import Ecto.Changeset
+
+  schema "users" do
+    field :email, :string
+    field :name, :string
+    field :avatar_url, :string
+    field :bio, :string
+    field :github_url, :string
+    field :x_url, :string
+    field :linkedin_url, :string
+    field :mastodon_url, :string
+    field :locale, :string
+    field :super_admin, :boolean, default: false
+    field :temporary_access_grant_id, :binary_id, virtual: true
+
+    belongs_to :account, Glossia.Accounts.Account
+    has_many :identities, Glossia.Accounts.Identity
+    has_many :organization_memberships, Glossia.Accounts.OrganizationMembership
+    has_many :user_roles, Glossia.Accounts.UserRole
+
+    timestamps()
+  end
+
+  def changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :name, :avatar_url, :locale])
+    |> validate_locale()
+    |> validate_required([:email])
+    |> validate_format(:email, ~r/@/)
+    |> unique_constraint(:email)
+    |> unique_constraint(:account_id)
+  end
+
+  def profile_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:name, :avatar_url, :bio, :github_url, :x_url, :linkedin_url, :mastodon_url])
+    |> validate_length(:name, max: 100)
+    |> validate_length(:bio, max: 500)
+    |> validate_url(:github_url)
+    |> validate_url(:x_url)
+    |> validate_url(:linkedin_url)
+    |> validate_url(:mastodon_url)
+  end
+
+  def locale_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:locale])
+    |> validate_locale()
+  end
+
+  defp validate_locale(changeset) do
+    validate_change(changeset, :locale, fn _field, locale ->
+      if Glossia.I18n.supported?(locale) do
+        []
+      else
+        [locale: "is not a language Glossia is available in"]
+      end
+    end)
+  end
+
+  defp validate_url(changeset, field) do
+    validate_change(changeset, field, fn _, value ->
+      if value == "" or is_nil(value) do
+        []
+      else
+        if String.starts_with?(value, "https://") do
+          []
+        else
+          [{field, "must start with https://"}]
+        end
+      end
+    end)
+  end
+end

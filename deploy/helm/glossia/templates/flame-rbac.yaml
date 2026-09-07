@@ -1,0 +1,33 @@
+{{- if .Values.flame.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "glossia.fullname" . }}-flame
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "get", "list", "delete", "patch"]
+  # Translation sessions run as Jobs that deliberately have no owner, so a
+  # rolling update cannot garbage-collect one mid-translation. The app creates
+  # them, reads them back, and deletes them when a session is cancelled.
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "glossia.fullname" . }}-flame
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "glossia.flameServiceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "glossia.fullname" . }}-flame
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

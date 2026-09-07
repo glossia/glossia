@@ -1,0 +1,21 @@
+{{- if and .Values.pdb.enabled (gt (int .Values.replicaCount) 1) }}
+{{/*
+Only render the PDB with more than one replica. At replicaCount 1 a
+minAvailable of 1 makes the sole pod permanently unevictable, which
+deadlocks node drains - this exact combination froze the production cluster
+for over a day. Guarding it here means a stray replicaCount: 1 can never
+recreate that outage.
+*/}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "glossia.fullname" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "glossia.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: agent
+{{- end }}

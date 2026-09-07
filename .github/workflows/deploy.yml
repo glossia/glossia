@@ -1,0 +1,48 @@
+name: Publish Production Image
+
+on:
+  workflow_run:
+    workflows:
+      - App
+    branches:
+      - main
+    types:
+      - completed
+
+jobs:
+  publish:
+    name: Publish Image
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: publish-production-image
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: app
+          file: app/Dockerfile
+          build-contexts: |
+            cli=./cli
+            sdk=./sdk
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
+            ghcr.io/${{ github.repository }}:main
+            ghcr.io/${{ github.repository }}:main-${{ github.run_number }}-${{ github.event.workflow_run.head_sha }}

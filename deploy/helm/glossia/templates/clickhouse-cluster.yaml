@@ -1,0 +1,107 @@
+{{- if .Values.clickhouse.enabled }}
+apiVersion: clickhouse.com/v1alpha1
+kind: KeeperCluster
+metadata:
+  name: {{ .Values.clickhouse.keeperName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.clickhouse.keeperReplicas }}
+  dataVolumeClaimSpec:
+    storageClassName: {{ .Values.clickhouse.storage.storageClass | quote }}
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: {{ .Values.clickhouse.keeperStorageSize | quote }}
+  podTemplate:
+    {{- with .Values.clickhouse.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.topologySpreadConstraints }}
+    topologySpreadConstraints:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  containerTemplate:
+    resources:
+      {{- toYaml .Values.clickhouse.keeperResources | nindent 6 }}
+---
+apiVersion: clickhouse.com/v1alpha1
+kind: ClickHouseCluster
+metadata:
+  name: {{ .Values.clickhouse.clusterName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.clickhouse.replicas }}
+  dataVolumeClaimSpec:
+    storageClassName: {{ .Values.clickhouse.storage.storageClass | quote }}
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: {{ .Values.clickhouse.storage.size | quote }}
+  keeperClusterRef:
+    name: {{ .Values.clickhouse.keeperName }}
+  podTemplate:
+    {{- with .Values.clickhouse.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.topologySpreadConstraints }}
+    topologySpreadConstraints:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  containerTemplate:
+    resources:
+      {{- toYaml .Values.clickhouse.resources | nindent 6 }}
+    {{- if .Values.clickhouse.babelReadonly.enabled }}
+    env:
+      - name: GLOSSIA_BABEL_CLICKHOUSE_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.clickhouse.babelReadonly.passwordSecretName | quote }}
+            key: {{ .Values.clickhouse.babelReadonly.passwordSecretKey | quote }}
+    {{- end }}
+  {{- if .Values.clickhouse.babelReadonly.enabled }}
+  settings:
+    extraUsersConfig:
+      users:
+        {{ .Values.clickhouse.babelReadonly.username }}:
+          password:
+            - "@from_env": GLOSSIA_BABEL_CLICKHOUSE_PASSWORD
+          profile: {{ .Values.clickhouse.babelReadonly.profile | quote }}
+          networks:
+            ip:
+              {{- range .Values.clickhouse.babelReadonly.allowedNetworks }}
+              - {{ . | quote }}
+              {{- end }}
+          grants:
+            - query: {{ printf "GRANT SELECT ON %s.*" .Values.clickhouse.database | quote }}
+      profiles:
+        {{ .Values.clickhouse.babelReadonly.profile }}:
+          readonly: 1
+          allow_ddl: 0
+          allow_introspection_functions: 0
+          join_algorithm: direct,parallel_hash,hash
+          input_format_binary_read_json_as_string: 1
+          output_format_binary_write_json_as_string: 1
+          max_execution_time: {{ .Values.clickhouse.babelReadonly.maxExecutionTimeSeconds | int }}
+          max_result_rows: {{ .Values.clickhouse.babelReadonly.maxResultRows | int }}
+          result_overflow_mode: break
+          max_result_bytes: {{ .Values.clickhouse.babelReadonly.maxResultBytes | int }}
+          max_rows_to_read: {{ .Values.clickhouse.babelReadonly.maxRowsToRead | int }}
+          max_bytes_to_read: {{ .Values.clickhouse.babelReadonly.maxBytesToRead | int }}
+          max_memory_usage: {{ .Values.clickhouse.babelReadonly.maxMemoryBytes | int }}
+          max_concurrent_queries_for_user: {{ .Values.clickhouse.babelReadonly.maxConcurrentQueries | int }}
+  {{- end }}
+{{- end }}

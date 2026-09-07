@@ -1,0 +1,284 @@
+defmodule Glossia.Accounts do
+  require OpenTelemetry.Tracer, as: Tracer
+
+  alias Glossia.Repo
+  alias Glossia.Roles
+  alias Glossia.TemporaryAccess
+
+  alias Glossia.Accounts.{
+    Account,
+    Identity,
+    Organization,
+    OrganizationMembership,
+    User
+  }
+
+  import Ecto.Query
+
+  @personal_organization_name "Personal"
+
+  # ----------------------------------------------------------------------------
+  # Accounts
+  # ----------------------------------------------------------------------------
+
+  def get_account_by_handle(handle) when is_binary(handle) do
+    Account
+    |> where(handle: ^handle)
+    |> Repo.one()
+  end
+
+  def list_user_accounts(%User{} = user, params \\ %{}) do
+    Tracer.with_span "glossia.accounts.list_user_accounts" do
+      Tracer.set_attributes([{"glossia.user.id", to_string(user.id)}])
+
+      membership_account_ids =
+        OrganizationMembership
+        |> where(user_id: ^user.id)
+        |> join(:inner, [m], o in Organization, on: o.id == m.organization_id)
+        |> select([_m, o], o.account_id)
+
+      account_ids =
+        case TemporaryAccess.active_account_ids_query(user) do
+          nil -> membership_account_ids
+          temporary_account_ids -> membership_account_ids |> union_all(^temporary_account_ids)
+        end
+
+      query =
+        Account
+        |> where([a], a.id in subquery(account_ids))
+
+      Flop.validate_and_run(query, params, for: Account)
+    end
+  end
+
+  def personal_organization_name, do: @personal_organization_name
+
+  def ensure_personal_organization!(%User{} = user) do
+    organization =
+      Organization
+      |> where(account_id: ^user.account_id)
+      |> Repo.one()
+      |> case do
+        nil ->
+          %Organization{account_id: user.account_id}
+          |> Organization.changeset(%{name: @personal_organization_name})
+          |> Repo.insert!()
+
+        organization ->
+          organization
+      end
+
+    membership_exists? =
+      OrganizationMembership
+      |> where(user_id: ^user.id, organization_id: ^organization.id)
+      |> Repo.exists?()
+
+    unless membership_exists? do
+      %OrganizationMembership{user_id: user.id, organization_id: organization.id}
+      |> OrganizationMembership.changeset(%{role: "admin"})
+      |> Repo.insert!()
+    end
+
+    :ok = Roles.replace_organization_role(user, organization, "admin")
+
+    organization
+  end
+
+  # ----------------------------------------------------------------------------
+  # Users and identities
+  # ----------------------------------------------------------------------------
+
+  def get_user(id) do
+    User
+    |> preload([:account, user_roles: :role])
+    |> Repo.get(id)
+  end
+
+  def get_user_by_email(email) when is_binary(email) do
+    User
+    |> where(email: ^(email |> String.trim() |> String.downcase()))
+    |> preload([:account, user_roles: :role])
+    |> Repo.one()
+  end
+
+  def get_user_by_handle(handle) when is_binary(handle) do
+    User
+    |> join(:inner, [user], account in assoc(user, :account))
+    |> where([_user, account], account.handle == ^handle)
+    |> preload(:account)
+    |> Repo.one()
+  end
+
+  @doc """
+  Signs a user in through an OAuth provider, creating the account the first
+  time we see them.
+
+  `:locale` is the language the browser asked for during sign-up. It is only
+  applied on creation: returning users keep whatever they picked in their
+  settings.
+  """
+  def find_or_create_user_from_oauth(provider, %{user: user_info, token: token_info}, opts \\ []) do
+    Tracer.with_span "glossia.accounts.find_or_create_user_from_oauth" do
+      Tracer.set_attributes([{"glossia.oauth.provider", to_string(provider)}])
+
+      provider_uid = to_string(user_info["sub"])
+
+      case get_identity(provider, provider_uid) do
+        nil -> create_user_from_oauth(provider, user_info, token_info, opts)
+        identity -> update_identity_tokens(identity, token_info)
+      end
+    end
+  end
+
+  def update_user_locale(%User{} = user, locale) do
+    user
+    |> User.locale_changeset(%{locale: locale})
+    |> Repo.update()
+  end
+
+  def update_user_profile(%User{} = user, attrs) do
+    user
+    |> User.profile_changeset(attrs)
+    |> Repo.update()
+  end
+
+  def list_user_identities(user) do
+    Identity
+    |> where(user_id: ^user.id)
+    |> Repo.all()
+  end
+
+  defp get_identity(provider, provider_uid) do
+    Identity
+    |> where(provider: ^to_string(provider), provider_uid: ^provider_uid)
+    |> preload(user: :account)
+    |> Repo.one()
+  end
+
+  defp create_user_from_oauth(provider, user_info, token_info, opts) do
+    handle =
+      generate_handle(
+        user_info["preferred_username"] || user_info["nickname"] || user_info["name"]
+      )
+
+    account_attrs = %{handle: handle}
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, account_attrs))
+    |> Ecto.Multi.insert(:user, fn %{account: account} ->
+      %User{account_id: account.id}
+      |> User.changeset(%{
+        email: user_info["email"],
+        name: user_info["name"],
+        avatar_url: user_info["picture"],
+        locale: Glossia.I18n.normalize(opts[:locale])
+      })
+    end)
+    |> Ecto.Multi.insert(:organization, fn %{account: account} ->
+      %Organization{account_id: account.id}
+      |> Organization.changeset(%{name: @personal_organization_name})
+    end)
+    |> Ecto.Multi.insert(:membership, fn %{user: user, organization: organization} ->
+      %OrganizationMembership{user_id: user.id, organization_id: organization.id}
+      |> OrganizationMembership.changeset(%{role: "admin"})
+    end)
+    |> Ecto.Multi.insert(:identity, fn %{user: user} ->
+      %Identity{user_id: user.id}
+      |> Identity.changeset(%{
+        provider: to_string(provider),
+        provider_uid: to_string(user_info["sub"]),
+        provider_token: token_info["access_token"],
+        provider_refresh_token: token_info["refresh_token"]
+      })
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{user: user, account: account, organization: organization}} ->
+        :ok = Roles.replace_organization_role(user, organization, "admin")
+        {:ok, %{user | account: account}}
+
+      {:error, _step, changeset, _changes} ->
+        {:error, changeset}
+    end
+  end
+
+  defp update_identity_tokens(identity, token_info) do
+    identity
+    |> Identity.changeset(%{
+      provider_token: token_info["access_token"],
+      provider_refresh_token: token_info["refresh_token"]
+    })
+    |> Repo.update()
+    |> case do
+      {:ok, _identity} -> {:ok, identity.user}
+      {:error, changeset} -> {:error, changeset}
+    end
+  end
+
+  def get_github_token_for_user(user_id) do
+    Identity
+    |> where(user_id: ^user_id, provider: "github")
+    |> select([i], i.provider_token)
+    |> Repo.one()
+  end
+
+  # ----------------------------------------------------------------------------
+  # Handles
+  # ----------------------------------------------------------------------------
+
+  def generate_handle(nil), do: generate_random_handle()
+
+  def generate_handle(username) do
+    base =
+      username
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9-]/, "-")
+      |> String.replace(~r/-+/, "-")
+      |> String.trim("-")
+      |> String.slice(0, 35)
+
+    if base == "" do
+      generate_random_handle()
+    else
+      ensure_unique_handle(base)
+    end
+  end
+
+  defp ensure_unique_handle(base) do
+    if Repo.exists?(from a in Account, where: a.handle == ^base) do
+      suffix =
+        :crypto.strong_rand_bytes(3) |> Base.url_encode64(padding: false) |> String.downcase()
+
+      ensure_unique_handle("#{String.slice(base, 0, 31)}-#{suffix}")
+    else
+      base
+    end
+  end
+
+  defp generate_random_handle do
+    suffix =
+      :crypto.strong_rand_bytes(6) |> Base.url_encode64(padding: false) |> String.downcase()
+
+    "user-#{suffix}"
+  end
+
+  # ----------------------------------------------------------------------------
+  # Super admin
+  # ----------------------------------------------------------------------------
+
+  def set_super_admin(user_id, value \\ true) when is_boolean(value) do
+    case Repo.get(User, user_id) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        case Roles.set_super_admin(user, value) do
+          :ok -> {:ok, user}
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  end
+
+  def super_admin?(%User{} = user), do: Roles.super_admin?(user)
+  def super_admin?(_), do: false
+end

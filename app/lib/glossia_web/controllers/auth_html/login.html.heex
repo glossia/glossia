@@ -1,0 +1,95 @@
+<section id="login">
+  <div data-part="background" aria-hidden="true">
+    <div data-part="grid"></div>
+  </div>
+
+  <div data-part="frame">
+    <div data-part="content">
+      <img src={~p"/images/logo-rounded.png"} alt={gettext("Glossia logo")} data-part="logo" />
+      <div data-part="dots" aria-hidden="true"></div>
+
+      <div data-part="header">
+        <h1 data-part="title">{@title}</h1>
+        <span data-part="subtitle">
+          {@subtitle}
+        </span>
+      </div>
+
+      <Noora.Alert.alert
+        :if={Phoenix.Flash.get(@flash, :info)}
+        id="login-info"
+        type="secondary"
+        status="information"
+        size="small"
+        title={Phoenix.Flash.get(@flash, :info)}
+      />
+      <Noora.Alert.alert
+        :if={Phoenix.Flash.get(@flash, :error)}
+        id="login-error"
+        type="secondary"
+        status="error"
+        size="small"
+        title={Phoenix.Flash.get(@flash, :error)}
+      />
+
+      <div data-part="providers">
+        <Noora.Button.button
+          :if={:github in @providers}
+          href={~p"/auth/github"}
+          variant="secondary"
+          size="large"
+          label={gettext("Continue with GitHub")}
+          id="github-login-btn"
+        >
+          <:icon_left><Noora.Icon.brand_github /></:icon_left>
+        </Noora.Button.button>
+
+        <Noora.Button.button
+          :if={:gitlab in @providers}
+          href={~p"/auth/gitlab"}
+          variant="secondary"
+          size="large"
+          label={gettext("Continue with GitLab")}
+          id="gitlab-login-btn"
+        >
+          <:icon_left>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.452.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.92.92 0 00.33-1.024" />
+            </svg>
+          </:icon_left>
+        </Noora.Button.button>
+
+        <form :if={assigns[:dev_routes]} action={~p"/auth/dev-login"} method="post">
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+          <Noora.Button.button
+            variant="secondary"
+            size="large"
+            label={gettext("Sign in as test user")}
+            id="dev-login-btn"
+          >
+            <:icon_left><Noora.Icon.device_desktop /></:icon_left>
+          </Noora.Button.button>
+        </form>
+      </div>
+    </div>
+
+    <div data-part="bottom-link">
+      <span>{@switch_prompt}</span>
+      <Noora.Button.link_button
+        href={@switch_href}
+        variant="primary"
+        size="large"
+        label={@switch_label}
+      />
+    </div>
+  </div>
+
+  <div data-part="terms-notice">
+    <span>
+      {gettext("By continuing, you agree to Glossia's")}
+      <a href={locale_path(~p"/terms")}>{gettext("Terms of Service")}</a>
+      {gettext("and")}
+      <a href={locale_path(~p"/privacy")}>{gettext("Privacy Policy")}</a>.
+    </span>
+  </div>
+</section>

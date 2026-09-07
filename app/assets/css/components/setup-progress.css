@@ -1,0 +1,94 @@
+#setup-progress-card {
+  /* Spin the dashed-circle icon while setup is running so the "Running" badge
+     reads as active rather than static. */
+  & .noora-status-badge[data-status="in_progress"] [data-part="icon"] svg {
+    transform-origin: center;
+    animation: setup-progress-spin 1s linear infinite;
+  }
+
+  & .setup-progress-section {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  & [data-part="events"] {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  & .setup-event-row {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--space-2);
+    align-items: start;
+    padding: var(--space-3) 0;
+    border-bottom: var(--border);
+    font: var(--noora-font-body-small);
+  }
+
+  & .setup-event-row:last-child {
+    border-bottom: 0;
+  }
+
+  & .setup-event-row-content {
+    min-width: 0;
+  }
+
+  & .setup-event-row-no-badge {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  & .setup-event-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  & .setup-event-row-title {
+    font: var(--noora-font-body-small);
+    font-weight: var(--noora-font-weight-semibold);
+  }
+
+  & .setup-event-row-description {
+    margin: var(--space-1) 0 0;
+    font: var(--noora-font-body-small);
+    color: var(--color-muted);
+  }
+
+  & .setup-event-row-body {
+    margin-top: var(--space-2);
+    font: var(--noora-font-body-small);
+    color: var(--noora-font-color-secondary);
+  }
+
+  & .setup-event-row-body :is(h1, h2, h3, h4) {
+    margin: var(--space-2) 0 var(--space-1);
+    font: var(--noora-font-body-medium);
+    font-weight: var(--noora-font-weight-semibold);
+  }
+
+  & .setup-event-row-body :is(p, ul, ol) {
+    margin: var(--space-1) 0;
+  }
+
+  & .setup-event-row-body ul,
+  & .setup-event-row-body ol {
+    padding-inline-start: var(--space-4);
+  }
+}
+
+@keyframes setup-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #setup-progress-card
+    .noora-status-badge[data-status="in_progress"]
+    [data-part="icon"]
+    svg {
+    animation: none;
+  }
+}

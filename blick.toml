@@ -1,0 +1,17 @@
+[agent]
+kind = "opencode"
+model = "fireworks-ai/accounts/fireworks/models/kimi-k2p6"
+
+[defaults]
+base = "origin/main"
+max_concurrency = 2
+fail_on = "high"
+
+[learn]
+lookback_days = 7
+min_signal = 3
+team_reviewers = ["glossia/engineering"]
+labels = []
+base = "main"
+draft = true
+branch = "blick/learn"

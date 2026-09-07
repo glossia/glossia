@@ -1,0 +1,47 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+"Language: fr"
+"MIME-Version: 1.0"
+"Content-Type: text/plain; charset=UTF-8"
+"Content-Transfer-Encoding: 8bit"
+"Plural-Forms: nplurals=2; plural=n != 1;"
+
+#: lib/glossia_web/live/dashboard_live.ex:12420
+#, elixir-autogen, elixir-format
+msgid "At a glance"
+msgstr "Vue d'ensemble"
+
+#: lib/glossia_web/live/dashboard_live.ex:12664
+#, elixir-autogen, elixir-format
+msgid "Browser languages"
+msgstr "Langues du navigateur"
+
+#: lib/glossia_web/live/dashboard_live.ex:12633
+#, elixir-autogen, elixir-format
+msgid "Top countries"
+msgstr "Pays principaux"
+
+#: lib/glossia_web/live/dashboard_live.ex:12605
+#, elixir-autogen, elixir-format
+msgid "Top pages"
+msgstr "Pages principales"
+
+#: lib/glossia_web/live/dashboard_live.ex:12506
+#, elixir-autogen, elixir-format
+msgid "Where to translate next"
+msgstr "À traduire ensuite"
+
+#: lib/glossia_web/live/dashboard_live.ex:12585
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Traffic"
+msgstr "Trafic par heure"

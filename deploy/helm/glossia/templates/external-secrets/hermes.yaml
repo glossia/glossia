@@ -1,0 +1,56 @@
+{{- if and .Values.externalSecrets.enabled .Values.hermes.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.hermes.secretName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.hermes.secretName }}
+    creationPolicy: Owner
+  data:
+    - secretKey: {{ .Values.hermes.apiKeyKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.hermes.itemKey .Values.externalSecrets.hermes.apiKeyField | quote }}
+    - secretKey: {{ .Values.hermes.slackBotTokenKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.hermes.itemKey .Values.externalSecrets.hermes.slackBotTokenField | quote }}
+    - secretKey: {{ .Values.hermes.slackAppTokenKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.hermes.itemKey .Values.externalSecrets.hermes.slackAppTokenField | quote }}
+    - secretKey: {{ .Values.hermes.slackAllowedUsersKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.hermes.itemKey .Values.externalSecrets.hermes.slackAllowedUsersField | quote }}
+    {{- if .Values.hermes.slackHomeChannelEnabled }}
+    - secretKey: {{ .Values.hermes.slackHomeChannelKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.hermes.itemKey (required "externalSecrets.hermes.slackHomeChannelField is required when hermes.slackHomeChannelEnabled=true" .Values.externalSecrets.hermes.slackHomeChannelField) | quote }}
+    {{- end }}
+    - secretKey: {{ .Values.hermes.apiServerKeyKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.hermes.itemKey .Values.externalSecrets.hermes.apiServerKeyField | quote }}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.hermes.observability.secretName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.hermes.observability.secretName }}
+    creationPolicy: Owner
+  data:
+    - secretKey: {{ .Values.hermes.observability.serviceAccountTokenKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.grafanaMcp.itemKey .Values.externalSecrets.grafanaMcp.serviceAccountTokenField | quote }}
+{{- end }}

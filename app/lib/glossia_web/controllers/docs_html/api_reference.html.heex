@@ -1,0 +1,25 @@
+<section id="docs-api-reference">
+  <header data-part="page-intro">
+    <nav data-part="breadcrumbs" aria-label={gettext("Breadcrumbs")}>
+      <a href={locale_path(~p"/docs")}>{gettext("Documentation")}</a>
+      <span>/</span>
+      <a href={locale_path(~p"/docs/reference")}>{@categories["reference"].title}</a>
+      <span>/</span>
+      <a href={locale_path(~p"/docs/reference/apis")}>{@current_subcategory_meta.title}</a>
+      <span>/</span>
+      <span>{@page_title}</span>
+    </nav>
+    <h1>{@page.title}</h1>
+    <p>{@page.summary}</p>
+  </header>
+
+  <div id="api-reference-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference">
+  </script>
+  <script>
+    Scalar.createApiReference('#api-reference-container', {
+      url: '/api/openapi.json',
+      hideDownloadButton: false
+    })
+  </script>
+</section>

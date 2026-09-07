@@ -1,0 +1,4 @@
+[daemons.clickhouse]
+run = "clickhouse server -L .pitchfork/clickhouse.log -E .pitchfork/clickhouse.error.log -P .pitchfork/clickhouse.pid -- --http_port=8123 --path=.pitchfork/clickhouse-data/ --tmp_path=.pitchfork/clickhouse-tmp/ --user_files_path=.pitchfork/clickhouse-user-files/ --format_schema_path=.pitchfork/clickhouse-format-schemas/"
+auto = ["start", "stop"]
+ready = { type = "http", url = "http://127.0.0.1:8123/ping" }

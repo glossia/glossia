@@ -1,0 +1,104 @@
+<% admin_section_label =
+  case @live_action do
+    :home -> gettext("Overview")
+    :users -> gettext("Users")
+    :accounts -> gettext("Accounts")
+    :discussions -> gettext("Discussions")
+    :discussion_show -> gettext("Discussion")
+    _ -> nil
+  end %>
+
+<.app_shell
+  current_scope={assigns[:current_scope]}
+  current_user={@current_user}
+  data_sidebar="visible"
+  show_sidebar={true}
+>
+  <:topbar_prepend>
+    <button
+      class="noora-shell__sidebar-toggle"
+      id="noora-shell-sidebar-toggle"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-controls="noora-shell-sidebar"
+      aria-label={gettext("Toggle sidebar")}
+    >
+      <Icon.menu />
+    </button>
+  </:topbar_prepend>
+
+  <:topbar_context>
+    <.breadcrumbs>
+      <.breadcrumb id="admin-breadcrumb" label={gettext("Admin")} href={~p"/admin"} />
+      <.breadcrumb
+        :if={admin_section_label && @live_action != :home}
+        id="admin-section-breadcrumb"
+        label={admin_section_label}
+      />
+    </.breadcrumbs>
+  </:topbar_context>
+
+  <:avatar_menu_extra>
+    <.dropdown_item
+      value="profile-settings"
+      label={gettext("Settings")}
+      href={~p"/-/settings/profile"}
+    >
+      <:left_icon><Icon.user /></:left_icon>
+    </.dropdown_item>
+  </:avatar_menu_extra>
+
+  <:extra_banner>
+    <%= if assigns[:impersonating_from] do %>
+      <div class="impersonation-banner">
+        <span>{gettext("You are impersonating %{email}", email: @current_user.email)}</span>
+        <form method="post" action={~p"/admin/impersonate"} style="display:inline">
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+          <input type="hidden" name="_method" value="delete" />
+          <button type="submit" class="impersonation-banner-stop">
+            {gettext("Stop impersonating")}
+          </button>
+        </form>
+      </div>
+    <% end %>
+  </:extra_banner>
+
+  <:sidebar>
+    <.sidebar id="admin-sidebar">
+      <.sidebar_item
+        label={gettext("Overview")}
+        icon="dashboard"
+        patch={~p"/admin"}
+        selected={@live_action == :home}
+      />
+      <.sidebar_item
+        label={gettext("Users")}
+        icon="users"
+        patch={~p"/admin/users"}
+        selected={@live_action == :users}
+      />
+      <.sidebar_item
+        label={gettext("Accounts")}
+        icon="building"
+        patch={~p"/admin/accounts"}
+        selected={@live_action == :accounts}
+      />
+      <.sidebar_item
+        label={gettext("Discussions")}
+        icon="message_circle"
+        patch={~p"/admin/discussions"}
+        selected={@live_action in [:discussions, :discussion_show]}
+      />
+      <.sidebar_item
+        label={gettext("Back to app")}
+        icon="arrow_left"
+        href={~p"/dashboard"}
+      />
+    </.sidebar>
+  </:sidebar>
+
+  <.flash_group :if={assigns[:flash]} flash={@flash} />
+  <main class="noora-shell__page-content admin-main">
+    {@inner_content}
+  </main>
+</.app_shell>

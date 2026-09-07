@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang={assigns[:locale] || Glossia.I18n.default_locale()}>
+  <head>
+    <% social_title = social_title(assigns) %>
+    <% social_description = social_description(assigns) %>
+    <% social_image_url = social_image_url(assigns) %>
+    <% structured_data = structured_data(assigns) %>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <link :if={assigns[:canonical_url]} rel="canonical" href={@canonical_url} />
+    <link
+      :for={alternate <- assigns[:locale_alternates] || []}
+      rel="alternate"
+      hreflang={alternate.hreflang}
+      href={alternate.url}
+    />
+    <.live_title
+      default={gettext("Glossia")}
+      suffix={if(assigns[:page_title], do: " · Glossia", else: "")}
+    >
+      {assigns[:page_title]}
+    </.live_title>
+    <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
+    <meta name="description" content={social_description} />
+    <meta property="og:title" content={social_title} />
+    <meta property="og:description" content={social_description} />
+    <meta property="og:image" content={social_image_url} />
+    <meta property="og:site_name" content="Glossia" />
+    <meta property="og:type" content={assigns[:page_type] || "website"} />
+    <meta :if={assigns[:canonical_url]} property="og:url" content={@canonical_url} />
+    <meta property="og:locale" content={assigns[:locale] || Glossia.I18n.default_locale()} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@glossiaai" />
+    <meta name="twitter:title" content={social_title} />
+    <meta name="twitter:description" content={social_description} />
+    <meta name="twitter:image" content={social_image_url} />
+    <meta :if={assigns[:canonical_url]} name="twitter:url" content={@canonical_url} />
+    <script :for={data <- structured_data} type="application/ld+json">
+      <%= data %>
+    </script>
+    <%= if assigns[:author] do %>
+      <link rel="me" href={@author.mastodon} />
+      <meta
+        name="twitter:creator"
+        content={"@" <> String.trim_leading(URI.parse(@author.x).path, "/")}
+      />
+    <% end %>
+    <script>
+      (function() {
+        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.style.setProperty("color-scheme", dark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      })();
+    </script>
+    <link
+      phx-track-static
+      rel="stylesheet"
+      href={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:stylesheet] || "/assets/styles.css"
+        )
+      }
+    />
+    <link
+      phx-track-static
+      rel="stylesheet"
+      href={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:noora_stylesheet] ||
+            "/assets/noora.css"
+        )
+      }
+    />
+    <%= if sentry_dsn = Application.get_env(:glossia, :sentry_dsn_js) do %>
+      <meta name="sentry-dsn" content={sentry_dsn} />
+      <meta
+        name="sentry-environment"
+        content={to_string(Application.get_env(:sentry, :environment_name, "production"))}
+      />
+      <meta name="sentry-release" content={to_string(Application.spec(:glossia, :vsn))} />
+      <script
+        defer
+        src="https://browser.sentry-cdn.com/7.120.1/bundle.min.js"
+        crossorigin="anonymous"
+      >
+      </script>
+    <% end %>
+    <script
+      defer
+      phx-track-static
+      type="text/javascript"
+      src={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:javascript] || "/assets/js/app.js"
+        )
+      }
+    >
+    </script>
+    <!-- Privacy-friendly analytics by Plausible -->
+    <script async src="https://analytics.glossia.ai/js/pa-84qsYWfrw3GEhImM-L9G4.js">
+    </script>
+    <script>
+      window.plausible =
+        window.plausible ||
+          function () {
+            (plausible.q = plausible.q || []).push(arguments);
+          };
+      plausible.init =
+        plausible.init ||
+          function (i) {
+            plausible.o = i || {};
+          };
+      plausible.init();
+    </script>
+    {GlossiaWeb.WebAnalytics.snippet()}
+  </head>
+  <body>
+    {@inner_content}
+  </body>
+</html>

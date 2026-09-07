@@ -1,0 +1,405 @@
+/* Translation session live progress panel.
+ * Rendered by GlossiaWeb dashboard_live's translation_progress_panel/1. */
+#translation-progress {
+  --translation-progress-spinner-duration: 1s;
+  --translation-progress-status-width: calc(var(--space-16) + var(--space-8));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  & [data-part="summary"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    font-family: var(--font-family-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--noora-font-weight-semibold);
+    color: var(--color-text);
+  }
+
+  & [data-part="running"] {
+    color: var(--color-primary);
+  }
+
+  & [data-part="failed"] {
+    color: var(--color-error);
+  }
+
+  & [data-part="skipped"],
+  & [data-part="checking"],
+  & [data-part="up-to-date"] {
+    color: var(--color-text-muted);
+  }
+
+  & [data-part="items"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    list-style: none;
+    margin: var(--space-0);
+    padding: var(--space-0);
+  }
+
+  & [data-part="item"] {
+    padding: var(--space-3) var(--space-4);
+
+    &[data-status="running"] {
+      border-color: var(--color-primary);
+    }
+
+    &[data-status="done"] [data-part="status"] {
+      color: var(--color-success);
+    }
+
+    &[data-status="failed"] [data-part="status"] {
+      color: var(--color-error);
+    }
+  }
+
+  & [data-part="item-header"] {
+    display: grid;
+    grid-template-columns:
+      var(--translation-progress-status-width)
+      minmax(var(--space-0), 1fr)
+      max-content
+      max-content;
+    gap: var(--space-3);
+    align-items: center;
+    font-size: var(--text-sm);
+  }
+
+  & [data-part="status"] {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-weight: var(--noora-font-weight-semibold);
+    color: var(--color-text);
+  }
+
+  & [data-part="indicator"] {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: var(--space-4);
+    height: var(--space-4);
+    border: var(--space-0-5) solid currentColor;
+    border-right-color: transparent;
+    border-radius: var(--radius-full);
+    color: var(--color-primary);
+    transform-origin: center;
+    animation: translation-progress-spin var(--translation-progress-spinner-duration) linear infinite;
+  }
+
+  & [data-part="status-icon"] {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  & [data-part="status-icon"] svg,
+  & [data-part="failure-icon"] svg {
+    width: var(--space-4);
+    height: var(--space-4);
+  }
+
+  & [data-part="path"] {
+    min-width: var(--space-0);
+    font-family: var(--font-family-mono);
+    color: var(--color-text);
+    overflow-wrap: anywhere;
+  }
+
+  & a[data-part="path"] {
+    color: var(--color-primary);
+    text-decoration: none;
+    text-underline-offset: var(--space-1);
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-primary-hover);
+      text-decoration: underline;
+    }
+  }
+
+  & [data-part="locale"] {
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+  }
+
+  & [data-part="progress-meta"] {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    text-align: end;
+
+    & > span + span::before {
+      content: "·";
+      margin-right: var(--space-2);
+    }
+  }
+
+  & [data-part="failures"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  & [data-part="failure-summary"] {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    padding: var(--space-4);
+    border: var(--space-px) solid var(--color-error-mid);
+    border-radius: var(--radius-lg);
+    background: var(--color-error-soft);
+  }
+
+  & [data-part="failure-icon"] {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--color-error);
+  }
+
+  & [data-part="failure-content"] {
+    min-width: var(--space-0);
+  }
+
+  & [data-part="failure-title"],
+  & [data-part="failure-description"],
+  & [data-part="failure-count"] {
+    margin: var(--space-0);
+  }
+
+  & [data-part="failure-title"] {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--noora-font-weight-semibold);
+  }
+
+  & [data-part="failure-description"],
+  & [data-part="failure-count"] {
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  & [data-part="failure-description"] {
+    margin-top: var(--space-1);
+  }
+
+  & [data-part="failure-count"] {
+    color: var(--color-text-muted);
+  }
+
+  & [data-part="failure-action"] {
+    display: inline-block;
+    margin-top: var(--space-2);
+    color: var(--color-error);
+    font-size: var(--text-sm);
+    font-weight: var(--noora-font-weight-semibold);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-error-hover);
+      text-decoration: underline;
+    }
+  }
+
+  & [data-part="item-diagnostics"] {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+
+    & summary {
+      width: max-content;
+      cursor: pointer;
+      font-weight: var(--noora-font-weight-semibold);
+    }
+
+    & dl {
+      display: grid;
+      grid-template-columns: max-content minmax(var(--space-0), 1fr);
+      column-gap: var(--space-3);
+      row-gap: var(--space-2);
+      margin: var(--space-2) var(--space-0) var(--space-0);
+      padding: var(--space-3);
+      border: var(--space-px) solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+    }
+
+    & dl > div {
+      display: contents;
+    }
+
+    & dt {
+      color: var(--color-text-muted);
+      font-weight: var(--noora-font-weight-semibold);
+    }
+
+    & dd {
+      min-width: var(--space-0);
+      margin: var(--space-0);
+      overflow-wrap: anywhere;
+      color: var(--color-text);
+      font-family: var(--font-family-mono);
+    }
+  }
+
+  & [data-part="item-failure"] {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    padding-inline-start: calc(var(--translation-progress-status-width) + var(--space-3));
+    border-top: var(--space-px) solid var(--color-error-mid);
+  }
+
+  & [data-part="item-failure-content"] {
+    min-width: var(--space-0);
+  }
+
+  & [data-part="item-failure-title"],
+  & [data-part="item-failure-description"] {
+    margin: var(--space-0);
+  }
+
+  & [data-part="item-failure-title"] {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--noora-font-weight-semibold);
+  }
+
+  & [data-part="item-failure-description"] {
+    margin-top: var(--space-1);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+  }
+
+  & [data-part="live-output"],
+  & [data-part="partial-output"],
+  & [data-part="completed-output"],
+  & [data-part="completed-segments"] {
+    min-width: var(--space-0);
+    margin-top: var(--space-2);
+    /* Logical, so this lines up with the failure block's padding-inline-start
+     * in a right-to-left dashboard locale instead of indenting the other way. */
+    margin-inline-start: calc(var(--translation-progress-status-width) + var(--space-3));
+  }
+
+  & [data-part="partial-output"],
+  & [data-part="completed-output"] {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+
+    & summary {
+      width: max-content;
+      cursor: pointer;
+      font-weight: var(--noora-font-weight-semibold);
+    }
+  }
+
+  & [data-part="completed-segments"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  & [data-part="completed-segment"] {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+
+    & summary {
+      display: flex;
+      gap: var(--space-1);
+      align-items: center;
+      width: max-content;
+      cursor: pointer;
+      font-weight: var(--noora-font-weight-semibold);
+    }
+  }
+
+  & [data-part="completed-segment-icon"] {
+    display: inline-flex;
+    color: var(--color-success);
+
+    & svg {
+      width: var(--space-3);
+      height: var(--space-3);
+    }
+  }
+
+  & [data-part="stream"] {
+    box-sizing: border-box;
+    min-width: var(--space-0);
+    max-width: 100%;
+    margin: var(--space-2) var(--space-0) var(--space-0);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    font-family: var(--font-family-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: calc(var(--space-16) * 4);
+    overflow-y: auto;
+  }
+}
+
+@keyframes translation-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #translation-progress [data-part="indicator"] {
+    animation: none;
+  }
+}
+
+@media (width < 768px) {
+  #translation-progress {
+    --translation-progress-status-width: auto;
+
+    & [data-part="item-header"] {
+      grid-template-columns: minmax(var(--space-0), 1fr) max-content;
+    }
+
+    & [data-part="path"] {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    & [data-part="locale"] {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    & [data-part="progress-meta"] {
+      grid-column: 2;
+      grid-row: 3;
+    }
+
+    & [data-part="item-failure"] {
+      grid-template-columns: max-content minmax(var(--space-0), 1fr);
+      gap: var(--space-2);
+    }
+
+    & [data-part="item-diagnostics"] dl {
+      grid-template-columns: minmax(var(--space-0), 1fr);
+    }
+
+    & [data-part="live-output"],
+    & [data-part="partial-output"],
+    & [data-part="completed-output"],
+    & [data-part="completed-segments"] {
+      margin-inline-start: var(--space-4);
+    }
+  }
+}

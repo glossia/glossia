@@ -1,0 +1,45 @@
+:is(#model-model, #edit-model-model) {
+  --model-picker-trigger-offset: calc(var(--noora-spacing-9) + var(--noora-spacing-2));
+
+  width: 100%;
+
+  & > [data-part="trigger"] {
+    width: 100%;
+  }
+
+  & > [data-part="positioner"] {
+    position: absolute;
+    inset-block-start: var(--model-picker-trigger-offset);
+    inset-inline: var(--noora-spacing-0);
+    z-index: var(--noora-z-index-10);
+  }
+
+  & [data-part="items"] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  & [data-part="item"] {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    width: 100%;
+    text-align: start;
+
+    &[data-highlighted="true"] {
+      background: var(--noora-dropdown-hover-background);
+    }
+  }
+
+  & [data-part="search-status"] {
+    display: block;
+    padding: var(--noora-spacing-3) var(--noora-spacing-4);
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-body-small);
+    text-align: center;
+  }
+
+  & > template {
+    display: none;
+  }
+}

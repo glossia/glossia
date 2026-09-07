@@ -1,0 +1,76 @@
+#noora-shell {
+  & .noora-shell__page-content {
+    box-sizing: border-box;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    height: 100%;
+    margin: var(--noora-spacing-0);
+    max-width: none;
+    min-width: var(--noora-spacing-0);
+    overflow-y: auto;
+    background: var(--noora-surface-background-primary);
+    padding: var(--noora-spacing-9) var(--noora-spacing-8);
+    width: auto;
+
+    & > * {
+      box-sizing: border-box;
+      width: 100%;
+      max-width: none;
+    }
+  }
+
+  & .dash-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-8);
+    min-width: var(--noora-spacing-0);
+  }
+
+  & .noora-dropdown-item:hover {
+    text-decoration: none;
+  }
+
+  & .noora-shell__avatar {
+    display: block;
+    border-radius: var(--noora-radius-99);
+    width: var(--noora-spacing-6);
+    height: var(--noora-spacing-6);
+    object-fit: cover;
+  }
+
+  /* Noora's breadcrumb hover fill assumes the breadcrumb sits on the primary
+   * surface: it is `--noora-neutral-light-50` in light mode and
+   * `--noora-neutral-dark-1100` in dark. The header bar uses the tertiary
+   * surface, so that fill lands 1.8% of lightness away from the bar in light
+   * mode and exactly on it in dark, leaving an 8%-opacity ring as the only
+   * hover affordance the organization switcher has. Pair the trigger with a
+   * surface that differs from the bar it actually sits on, in both modes. */
+  & .noora-shell__context .noora-breadcrumb > [data-part="trigger"] {
+    &:hover,
+    &:active,
+    &[data-state="open"] {
+      background-color: var(--noora-surface-background-secondary);
+    }
+  }
+
+  & .noora-shell__user-menu .noora-dropdown > [data-part="trigger"][data-icon-only] {
+    padding: var(--noora-spacing-3);
+    width: var(--noora-spacing-6);
+    height: var(--noora-spacing-6);
+
+    & > [data-part="icon"] {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    & .noora-shell__page-content {
+      padding: var(--noora-spacing-6);
+    }
+  }
+}

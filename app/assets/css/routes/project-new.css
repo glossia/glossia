@@ -1,0 +1,79 @@
+#project-new {
+  & [data-part="wizard-progress"] {
+    width: 100%;
+  }
+
+  /* While setup is running, sweep a highlight across the filled portion of the
+     bar so a long-running, same-percentage step still reads as active. */
+  & [data-part="wizard-progress"] .noora-progress-bar[data-running] [data-part="value-bar"] {
+    position: relative;
+    overflow: hidden;
+  }
+
+  & [data-part="wizard-progress"]
+    .noora-progress-bar[data-running]
+    [data-part="value-bar"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: wizard-progress-shimmer 1.6s ease-in-out infinite;
+  }
+
+  & .project-setup-picker-section,
+  & .wizard-setup-container {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  & .project-setup-search-form {
+    width: 100%;
+  }
+
+  & #languages table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  & #languages th:nth-child(1),
+  & #languages td:nth-child(1) { width: 44%; }
+
+  & #languages th:nth-child(2),
+  & #languages td:nth-child(2) { width: 16%; }
+
+  & #languages th:nth-child(3),
+  & #languages td:nth-child(3) { width: 24%; }
+
+  & #languages th:nth-child(4),
+  & #languages td:nth-child(4) { width: 16%; }
+
+  & .wizard-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+@keyframes wizard-progress-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #project-new
+    [data-part="wizard-progress"]
+    .noora-progress-bar[data-running]
+    [data-part="value-bar"]::after {
+    animation: none;
+  }
+}

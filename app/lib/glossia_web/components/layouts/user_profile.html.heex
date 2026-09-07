@@ -1,0 +1,80 @@
+<.app_shell
+  current_scope={assigns[:current_scope]}
+  current_user={@current_user}
+  data_sidebar="visible"
+  show_sidebar={true}
+>
+  <:topbar_prepend>
+    <button
+      class="noora-shell__sidebar-toggle"
+      id="noora-shell-sidebar-toggle"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-controls="noora-shell-sidebar"
+      aria-label={gettext("Toggle sidebar")}
+    >
+      <Icon.menu />
+    </button>
+  </:topbar_prepend>
+
+  <:topbar_context>
+    <.breadcrumbs>
+      <.breadcrumb
+        id="settings-breadcrumb"
+        label={gettext("Settings")}
+        href={~p"/-/settings/profile"}
+      />
+      <.breadcrumb
+        :if={assigns[:breadcrumb_label]}
+        id="settings-section-breadcrumb"
+        label={@breadcrumb_label}
+      />
+    </.breadcrumbs>
+  </:topbar_context>
+
+  <:avatar_menu_extra>
+    <.dropdown_item
+      :if={@current_user && Glossia.Authz.authorize?(:admin_read, @current_user, nil)}
+      value="admin"
+      label={gettext("Admin")}
+      href={~p"/admin"}
+    >
+      <:left_icon><Icon.settings /></:left_icon>
+    </.dropdown_item>
+    <.dropdown_item
+      value="profile-settings"
+      label={gettext("Settings")}
+      href={~p"/-/settings/profile"}
+    >
+      <:left_icon><Icon.user /></:left_icon>
+    </.dropdown_item>
+  </:avatar_menu_extra>
+
+  <:sidebar>
+    <.sidebar id="profile-sidebar">
+      <.sidebar_item
+        label={gettext("Profile")}
+        icon="user"
+        navigate={~p"/-/settings/profile"}
+        selected={@live_action == :overview}
+      />
+      <.sidebar_item
+        label={gettext("Connections")}
+        icon="link_icon"
+        navigate={~p"/-/settings/connected-accounts"}
+        selected={@live_action == :connected_accounts}
+      />
+      <.sidebar_item
+        label={gettext("Preferences")}
+        icon="settings"
+        navigate={~p"/-/settings/preferences"}
+        selected={@live_action == :preferences}
+      />
+    </.sidebar>
+  </:sidebar>
+
+  <.flash_group :if={assigns[:flash]} flash={@flash} />
+  <main class="noora-shell__page-content profile-main">
+    {@inner_content}
+  </main>
+</.app_shell>

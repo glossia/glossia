@@ -1,0 +1,21 @@
+<section id="docs-overview">
+  <header data-part="hero">
+    <h1>{gettext("Documentation")}</h1>
+    <p>{gettext("Learn how to use Glossia to localize and improve your content.")}</p>
+  </header>
+
+  <div data-part="category-grid">
+    <a
+      :for={{key, meta} <- GlossiaWeb.DocsHTML.sorted_categories(@categories)}
+      id={"docs-category-#{key}"}
+      href={locale_path(~p"/docs/#{key}")}
+      data-part="category-card"
+    >
+      <.card icon={meta.icon} title={meta.title}>
+        <.card_section>
+          <p>{meta.summary}</p>
+        </.card_section>
+      </.card>
+    </a>
+  </div>
+</section>

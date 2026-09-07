@@ -1,0 +1,53 @@
+{{- if .Values.migrationJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "glossia.fullname" . }}-migrate
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrationJob.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.migrationJob.ttlSecondsAfterFinished }}
+  # Bound the migration. As a pre-upgrade hook a migration blocked on a lock
+  # would otherwise stall the whole deploy against the CI --timeout with no
+  # job-level limit. Fail it at 15 min so the deploy surfaces the error.
+  activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "glossia.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: {{ include "glossia.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/app/bin/migrate"]
+          resources:
+            {{- toYaml .Values.migrationJob.resources | nindent 12 }}
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- include "glossia.mailRelayEnv" . | nindent 12 }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.envSecretName }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

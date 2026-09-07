@@ -1,0 +1,31 @@
+/.glossia/tmp
+.env
+.infisical.json
+.pitchfork/
+access/
+preprocessed_configs/
+.DS_Store
+.claude/worktrees
+**/.blick/runs/
+
+# CLI build outputs
+/cli/target
+/cli/dist
+/cli/node_modules
+/release
+
+# Helm dependency outputs
+**/Chart.lock
+**/charts/
+
+# Dev instance scoping (fallback path; normally lives in the git dir)
+/.glossia-dev-instance
+
+/tmp
+
+# ClickHouse local data (created when starting clickhouse in the worktree)
+/data
+/metadata
+/status
+/store
+/uuid

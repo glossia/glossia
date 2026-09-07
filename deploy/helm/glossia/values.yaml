@@ -1,0 +1,701 @@
+# Default values for the Glossia Helm chart.
+# Override per-environment by passing -f my-values.yaml to `helm install`.
+# See README.md for the full list of prerequisites.
+
+fullnameOverride: ""
+
+replicaCount: 2
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+image:
+  repository: ghcr.io/glossia/glossia
+  tag: main
+  digest: ""
+  pullPolicy: IfNotPresent
+
+# Pod-level imagePullSecrets. When externalSecrets.imagePullSecret.enabled is
+# true, the chart creates the named Secret via ExternalSecret and you should
+# add it here too (or set it via --set imagePullSecrets[0].name=...).
+imagePullSecrets: []
+
+service:
+  port: 80
+  targetPort: 4050
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: glossia.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# A dedicated Pomerium-protected host used only for temporary staff access.
+# It reaches the same application service, but Pomerium forwards a signed
+# identity assertion that Glossia verifies before it activates a grant.
+pomeriumAccessIngress:
+  enabled: false
+  className: pomerium
+  annotations: {}
+  hosts:
+    - host: access.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Name of the Secret consumed by the app pod (envFrom). The chart either
+# creates it via ExternalSecret (see externalSecrets below) or expects you
+# to provision it out-of-band before installing.
+secrets:
+  envSecretName: glossia-app-env
+
+env:
+  GLOSSIA_PHX_SERVER: "true"
+  GLOSSIA_SANDBOX_ADAPTER: "cluster"
+
+# Babel's short-lived workload identity for the internal read-only database
+# interface. Enable only in an environment where the corresponding Babel
+# ServiceAccount is deployed.
+internalBabel:
+  enabled: false
+  databaseReadonlyRole: glossia_babel_ro
+  tls:
+    servicePort: 443
+    targetPort: 4051
+    certificateSecretName: glossia-babel-internal-tls
+    certificateIssuerName: ""
+    certificateServerName: ""
+  token:
+    issuer: ""
+    audience: glossia-internal
+    jwks: ""
+    maxLifetimeSeconds: 3600
+    namespace: babel
+    serviceAccount: babel
+
+flame:
+  backend: k8s
+  min: 0
+  max: 10
+  maxConcurrency: 1
+  idleShutdownAfterMs: 30000
+  timeoutMs: 300000
+  bootTimeoutMs: 120000
+  log: false
+  serviceAccount:
+    create: true
+    name: ""
+  rbac:
+    create: true
+  k8s:
+    appContainerName: web
+    runtimeClassName: ""
+    log: false
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    env: {}
+  child:
+    repoPoolSize: 1
+    clickhousePoolSize: 1
+
+# Translation sessions run as Kubernetes Jobs rather than inside the web pod.
+# A translation takes an hour or more, which is longer than any termination
+# grace period can cover, so it is given a workload whose lifetime is its own:
+# the Job carries no ownerReference, and a rolling update of the web tier
+# leaves it running. Each Job is built from the manifest of the pod that
+# created it, so it uses the image and environment that were live when the
+# session started and nothing has to be kept in step here.
+#
+# Placement and sizing come from `flame.k8s` — the same description of where a
+# translation belongs — so only the Job's own lifetime is configured below.
+translationJob:
+  # "kubernetes" schedules a detached Job; "inline" runs the translation in the
+  # web process, which is only appropriate outside a cluster. Empty lets the
+  # app decide from its environment.
+  backend: ""
+  # How long a finished Job sticks around for its logs to be read.
+  ttlSecondsAfterFinished: 3600
+  # A ceiling on one translation, so a run wedged against a model provider
+  # cannot hold a pod forever. A full day leaves large repositories enough
+  # time to finish while still bounding a genuinely stuck Job.
+  activeDeadlineSeconds: 86400
+  # Empty inherits flame.k8s.resources.
+  resources: {}
+
+mailRelay:
+  enabled: false
+  host: ""
+  port: 587
+  tls: never
+  auth: never
+
+# Documentation-only hybrid search. Typesense stores the docs index on a
+# persistent volume and creates embeddings locally with its built-in model.
+# It is deliberately private: the Glossia app queries it server-side so the
+# administrator key is never exposed to browsers.
+typesense:
+  enabled: false
+  image:
+    repository: typesense/typesense
+    tag: "30.2"
+    digest: ""
+    pullPolicy: IfNotPresent
+  port: 8108
+  secretName: glossia-typesense
+  apiKeyKey: TYPESENSE_API_KEY
+  persistence:
+    storageClass: ""
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Product analytics. smolanalytics is a single-writer service, so the chart
+# deliberately fixes it at one replica and uses a Recreate deployment strategy.
+smolanalytics:
+  enabled: false
+  image:
+    repository: ghcr.io/arjun0606/smolanalytics
+    tag: v0.9.11
+    digest: ""
+    pullPolicy: IfNotPresent
+  secretName: glossia-smolanalytics
+  writeKeyKey: SMOLANALYTICS_WRITE_KEY
+  readKeyKey: SMOLANALYTICS_READ_KEY
+  passwordKey: SMOLANALYTICS_PASSWORD
+  retentionDays: 365
+  maxEvents: "1000000"
+  persistence:
+    storageClass: ""
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: analytics.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Slack assistant with read-only analytics and observability tools exposed
+# through the Model Context Protocol.
+hermes:
+  enabled: false
+  image:
+    repository: nousresearch/hermes-agent
+    tag: v2026.7.20
+    digest: ""
+    pullPolicy: IfNotPresent
+  model:
+    provider: custom:together
+    default: MiniMaxAI/MiniMax-M3
+    baseURL: https://api.together.ai/v1
+    apiKeyEnvironmentVariable: TOGETHER_API_KEY
+  secretName: glossia-hermes
+  apiKeyKey: TOGETHER_API_KEY
+  slackBotTokenKey: SLACK_BOT_TOKEN
+  slackAppTokenKey: SLACK_APP_TOKEN
+  slackAllowedUsersKey: SLACK_ALLOWED_USERS
+  slackHomeChannelEnabled: false
+  slackHomeChannelKey: SLACK_HOME_CHANNEL
+  apiServerKeyKey: API_SERVER_KEY
+  persistence:
+    storageClass: ""
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  observability:
+    grafanaURL: http://observability-grafana.observability.svc.cluster.local
+    secretName: glossia-grafana-mcp
+    serviceAccountTokenKey: GRAFANA_SERVICE_ACCOUNT_TOKEN
+    image:
+      repository: grafana/mcp-grafana
+      tag: 0.17.2
+      digest: ""
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  babel:
+    # Leave empty outside the production cluster. When set, Hermes discovers
+    # Babel's public OAuth metadata but calls the protected server over this
+    # in-cluster service address.
+    mcpURL: ""
+  bootstrapImage: busybox:1.37.0
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Bifrost AI gateway. Exposes a single OpenAI-compatible endpoint that fronts
+# and governs access to the model providers used across the service. Zero-config
+# on first boot: after the pod is ready, open the web UI at "/" and configure
+# providers from the running gateway. Provider API keys are entered in the UI
+# and stored in the sqlite store under bifrost.appDir; set an encryption key to
+# encrypt them at rest (see externalSecrets.bifrost).
+bifrost:
+  enabled: false
+  image:
+    repository: docker.io/maximhq/bifrost
+    tag: v1.6.11
+    digest: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  # Store + config directory. The sqlite database and uploaded schemas live
+  # here; config.json is overlaid on top of it from a ConfigMap.
+  appDir: /app/data
+  port: 8080
+  logLevel: info
+  logStyle: dev
+  # Optional short label (max 10 chars) shown in the Bifrost UI sidebar.
+  envLabel: ""
+  # Optional bootstrap token written into config.json to drive the first-run
+  # admin setup. Leave empty for zero-config (create the admin account from
+  # the web UI on first visit). It is rendered into an unencrypted ConfigMap,
+  # Optional bootstrap token written into config.json to drive the first-run
+  # admin setup. Leave empty for zero-config (create the admin account from
+  # the web UI on first visit). It is rendered into an unencrypted ConfigMap,
+  # so prefer env secrets over this for anything shared across environments.
+  setupToken: ""
+  # Controls how the mounted config.json is reconciled with the gateway's
+  # database on startup. "config.json" (default, recommended) makes sections
+  # that appear in config.json authoritative and prunes database-only rows for
+  # them, so the gateway converges to the declarative config on every boot.
+  # "split" leaves file and database rows coexisting (the upstream default).
+  # Empty omits the field and Bifrost falls back to its own default.
+  sourceOfTruth: config.json
+  # Optional complete Bifrost config object. When provided, it is written
+  # verbatim as config.json (replacing every field the chart generates) and, with
+  # sourceOfTruth "config.json", is reconciled into the database on every start.
+  # Use it to manage providers, schemas, groups, and keys declaratively instead
+  # of through the web UI. Values are rendered with toPrettyJson, so use YAML/
+  # JSON maps (camelCase keys, matching the Bifrost schema).
+  config: {}
+  # Name of the Kubernetes Secret holding the encryption key. When the External
+  # Secrets integration is enabled, the chart creates it from the remote field
+  # below; otherwise provision it yourself with the bifrost.encryptionKeyKey key.
+  secretName: glossia-bifrost
+  encryptionKeyKey: BIFROST_ENCRYPTION_KEY
+  # Optional pre-provisioned administrator account. When enabled, the gateway
+  # seeds the admin from these two values on first startup and turns on its
+  # authentication. Credentials are read from bifrost.secretName (keys below),
+  # which the External Secret fills from externalSecrets.bifrost when enabled.
+  authConfig:
+    enabled: false
+    usernameKey: BIFROST_ADMIN_USERNAME
+    passwordKey: BIFROST_ADMIN_PASSWORD
+  persistence:
+    storageClass: ""
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: gateway.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# App object storage. By default the app expects the storage environment
+# variables to come from secrets.envSecretName. Enable the provider-neutral
+# configuration below to read credentials from a dedicated Kubernetes Secret.
+# The nested Rook configuration remains available for clusters that provision
+# an ObjectBucketClaim in-cluster.
+objectStorage:
+  enabled: false
+  endpointURL: ""
+  region: ""
+  bucketName: ""
+  secretName: glossia-object-storage
+  accessKeyIdKey: ACCESS_KEY_ID
+  secretAccessKeyKey: SECRET_ACCESS_KEY
+  rook:
+    enabled: false
+    # Endpoint used by the app for object storage requests. For in-cluster
+    # Rook, use the internal Rook Ceph Object Gateway service. Browser-facing
+    # uploads are served through app routes, not direct object gateway links.
+    endpointURL: ""
+    region: us-east-1
+    bucketName: ""
+    # Secret created by the ObjectBucketClaim. Rook stores keys as
+    # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+    bucketSecretName: glossia-s3
+    accessKeyIdKey: AWS_ACCESS_KEY_ID
+    secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+# Hard anti-affinity: the two replicas must land on different nodes. The
+# whole point of running two is drain survivability and PDB satisfiability; a
+# soft preference lets both share a node, at which point draining it must
+# evict both and a node loss is still a full outage. Safe at two replicas
+# across three workers, and the maxSurge:0 rollout never needs a third slot.
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: glossia
+            app.kubernetes.io/component: agent
+        topologyKey: kubernetes.io/hostname
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+migrationJob:
+  enabled: true
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  # Fail the pre-upgrade migration hook rather than hang the whole deploy if
+  # it blocks on a lock. Mirrors the GlitchTip migration job's bounds.
+  activeDeadlineSeconds: 900
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+  clickhouseInitImage: curlimages/curl:8.12.1
+
+# Postgres (CloudNativePG Cluster CR). Disable to BYO Postgres — set
+# postgres.host to your existing rw service / external endpoint and
+# provision postgres.appSecretName yourself (basic-auth Secret with
+# `username` + `password` keys).
+postgres:
+  enabled: true
+  clusterName: glossia-postgres
+  user: glossia
+  database: glossia_prod
+  # Empty → defaults to "<clusterName>-rw" (CNPG's read-write service in
+  # the release namespace). Override with FQDN for cross-namespace or
+  # external Postgres.
+  host: ""
+  appSecretName: glossia-postgres-app
+  instances: 3
+  storage:
+    storageClass: ""
+    size: 50Gi
+  storageAutoResize:
+    enabled: false
+    schedule: "*/15 * * * *"
+    image: alpine/k8s:1.34.1
+    thresholdPercent: 80
+    scaleFactorPercent: 150
+    minIncrementGi: 25
+    maxSize: 500Gi
+    mountPath: /var/lib/postgresql/data
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  enablePodAntiAffinity: true
+  topologyKey: kubernetes.io/hostname
+  nodeSelector: {}
+  tolerations: []
+
+# ClickHouse (official clickhouse.com/v1alpha1 operator — ClickHouseCluster
+# + KeeperCluster CRs). Disable to BYO ClickHouse.
+clickhouse:
+  enabled: true
+  clusterName: glossia-clickhouse
+  keeperName: glossia-keeper
+  database: glossia
+  # The private Babel endpoint executes through this distinct server-side
+  # ClickHouse account. Babel never receives its password.
+  babelReadonly:
+    enabled: false
+    username: glossia_babel_clickhouse_ro
+    passwordSecretName: glossia-clickhouse-babel
+    passwordSecretKey: password
+    profile: glossia_babel_readonly
+    allowedNetworks:
+      - 0.0.0.0/0
+    maxExecutionTimeSeconds: 5
+    maxResultRows: 201
+    maxResultBytes: 1048576
+    maxRowsToRead: 100000
+    maxBytesToRead: 52428800
+    maxMemoryBytes: 268435456
+    # Two web replicas each keep a pool of five ClickHouse connections. Leave
+    # room for an overlapping rollout while retaining a bounded per-user limit.
+    maxConcurrentQueries: 20
+  # Empty → defaults to "<clusterName>-clickhouse-headless" in the release
+  # namespace (the operator-managed headless service).
+  host: ""
+  port: 8123
+  replicas: 1
+  keeperReplicas: 1
+  storage:
+    storageClass: ""
+    size: 100Gi
+  keeperStorageSize: 10Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  keeperResources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+  nodeSelector: {}
+  tolerations: []
+
+# Off-cluster backups for the bundled Postgres + ClickHouse. Targets a
+# DEDICATED Amazon Simple Storage Service-compatible bucket with its OWN
+# credentials — keep this
+# separate from the app's object storage so a compromise or fat-fingered
+# policy on one can't take out the other. Postgres backups go through the
+# CNPG Barman Cloud plugin, which is installed by the infra platform
+# chart (cluster-level), not here. ClickHouse has no native backup, so a
+# clickhouse-backup CronJob handles it.
+backups:
+  enabled: false
+  s3:
+    # destinationPath becomes s3://<bucket>/<prefix>/postgres and the
+    # ClickHouse CronJob writes under <prefix>/clickhouse.
+    bucket: ""
+    prefix: glossia
+    # Blank → Amazon Simple Storage Service default endpoint. Set for R2 / B2 /
+    # Hetzner / MinIO.
+    endpointURL: ""
+    # S3 region. Feeds the ClickHouse job (S3_REGION) directly and the
+    # Postgres ObjectStore via a REGION key in backups.secretName (the
+    # CNPG plugin only accepts region as a secret ref). "auto" is the
+    # right value for Cloudflare R2 and harmless for most Amazon Simple Storage
+    # Service-compatible
+    # stores; set "" to omit it entirely.
+    region: auto
+  # Secret holding the bucket credentials. Created from the backend by
+  # ExternalSecret when externalSecrets.backup is set (see below);
+  # otherwise provision it yourself with keys ACCESS_KEY_ID and
+  # SECRET_ACCESS_KEY.
+  secretName: glossia-db-backup
+  postgres:
+    enabled: true
+    # CNPG ScheduledBackup cron — SIX fields (leading field is seconds),
+    # not the standard five.
+    schedule: "0 0 3 * * *"
+    # CNPG Barman retention grammar: XXu where u ∈ d|w|m.
+    retentionPolicy: "30d"
+  clickhouse:
+    enabled: true
+    image: altinity/clickhouse-backup:2.6.43
+    # Standard five-field Kubernetes CronJob cron.
+    schedule: "30 3 * * *"
+    # BACKUPS_TO_KEEP_REMOTE — remote backups to retain before pruning.
+    keepRemote: 30
+    # S3_FORCE_PATH_STYLE. Leave false for AWS. Set true for Cloudflare
+    # R2 and most non-AWS S3 (path-style addressing avoids bucket-in-
+    # hostname TLS/DNS issues against jurisdiction endpoints).
+    forcePathStyle: false
+    # Native protocol (TCP). Host defaults to the operator headless
+    # service (glossia.clickhouseHost); 9000 is the native port.
+    user: default
+    port: 9000
+    # Optional Secret for the ClickHouse user password. The default user
+    # on a fresh operator-managed cluster has none.
+    passwordSecret:
+      name: ""
+      key: ""
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+# External Secrets Operator integration. When enabled, the chart emits
+# ExternalSecret CRs that pull from the configured SecretStore. When
+# disabled, the chart consumes pre-existing Secrets by name (so you can
+# manage them with sealed-secrets, sops, kubectl create, etc.).
+#
+# Defaults assume the External Secrets Operator is installed cluster-wide
+# and a ClusterSecretStore named "default" exists. Override secretStoreRef
+# to point at your own SecretStore, such as Infisical or Vault.
+externalSecrets:
+  enabled: false
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: default
+  # ExternalSecret for the app environment Secret. `itemKey` is the remote
+  # folder path containing every secret listed in `fields`. The chart adds
+  # GLOSSIA_DATABASE_URL and
+  # GLOSSIA_CLICKHOUSE_URL automatically, computed from postgres/clickhouse
+  # values + the password fetched from the postgres item.
+  appEnv:
+    itemKey: /glossia
+    fields:
+      # Distribution cookie for the BEAM cluster. `mix release` bakes a fresh
+      # random cookie into every image, so without this the pods from two
+      # different builds cannot connect: during a rolling update the old and
+      # new replicas reject each other ("Invalid challenge reply") and
+      # Phoenix.PubSub splits in two for the length of the rollout. Detached
+      # translation jobs also need it to reach the web replicas at all. Set it
+      # once in the backend item and never rotate it without restarting every
+      # pod at the same time.
+      RELEASE_COOKIE: RELEASE_COOKIE
+      GLOSSIA_SECRET_KEY_BASE: SECRET_KEY_BASE
+      GLOSSIA_METRICS_BEARER_TOKEN: METRICS_BEARER_TOKEN
+      GLOSSIA_OPS_AUTH_PASSWORD: OPS_AUTH_PASSWORD
+      GLOSSIA_SMTP_HOST: SMTP_HOST
+      GLOSSIA_SMTP_PORT: SMTP_PORT
+      GLOSSIA_SMTP_USERNAME: SMTP_USERNAME
+      GLOSSIA_SMTP_PASSWORD: SMTP_PASSWORD
+  # The documentation indexer runs inside Glossia, so the Typesense API key is
+  # projected into both pods through a dedicated Secret rather than a public
+  # browser search key.
+  typesense:
+    itemKey: /glossia
+    apiKeyField: TYPESENSE_API_KEY
+  # ExternalSecret for the Postgres basic-auth Secret. Username comes from
+  # postgres.user (literal, set at chart-render time); password is fetched
+  # from `passwordField` of the item at `itemKey`.
+  postgres:
+    itemKey: /glossia
+    passwordField: POSTGRES_PASSWORD
+  # Password for the restricted ClickHouse user. It is made available only to
+  # the Glossia application and ClickHouse server, never to Babel.
+  clickhouseBabel:
+    itemKey: /glossia
+    passwordField: BABEL_CLICKHOUSE_PASSWORD
+  # ExternalSecret for provider-neutral app object storage credentials. Enable
+  # this together with objectStorage.enabled. The destination key names come
+  # from objectStorage.accessKeyIdKey and objectStorage.secretAccessKeyKey.
+  objectStorage:
+    enabled: false
+    itemKey: /glossia-object-storage
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+  # Credentials for event ingestion, report queries, and the protected
+  # smolanalytics dashboard.
+  smolanalytics:
+    itemKey: /glossia
+    writeKeyField: SMOLANALYTICS_WRITE_KEY
+    readKeyField: SMOLANALYTICS_READ_KEY
+    passwordField: SMOLANALYTICS_PASSWORD
+  # Model provider and Slack Socket Mode credentials for Hermes.
+  hermes:
+    itemKey: /glossia
+    apiKeyField: TOGETHER_API_KEY
+    slackBotTokenField: SLACK_BOT_TOKEN
+    slackAppTokenField: SLACK_APP_TOKEN
+    slackAllowedUsersField: SLACK_ALLOWED_USERS
+    slackHomeChannelField: ""
+    apiServerKeyField: HERMES_API_SERVER_KEY
+  # Read-only Grafana service account token used by the protocol sidecar.
+  grafanaMcp:
+    itemKey: /glossia
+    serviceAccountTokenField: GRAFANA_SERVICE_ACCOUNT_TOKEN
+  # Encryption key for the Bifrost gateway's stored provider credentials.
+  # Pulls from a SEPARATE backend item (not appEnv.itemKey) so gateway keys
+  # are not entangled with the app's secrets.
+  bifrost:
+    itemKey: /glossia-bifrost
+    encryptionKeyField: BIFROST_ENCRYPTION_KEY
+    adminUsernameField: BIFROST_ADMIN_USERNAME
+    adminPasswordField: BIFROST_ADMIN_PASSWORD
+  # ExternalSecret for the dedicated DB-backup bucket credentials. Pulls
+  # from a SEPARATE backend item (not appEnv.itemKey) so backup creds are
+  # not entangled with the app's secrets. Maps remote fields →
+  # ACCESS_KEY_ID / SECRET_ACCESS_KEY in backups.secretName.
+  backup:
+    itemKey: /glossia-db-backups-keys
+    accessKeyIdField: ACCESS_KEY_ID
+    secretAccessKeyField: SECRET_ACCESS_KEY
+  # ExternalSecret for the image pull Secret (kubernetes.io/dockerconfigjson).
+  # Disable if your registry doesn't need auth or you create the pull secret
+  # by other means.
+  imagePullSecret:
+    enabled: false
+    name: ghcr-pull-secret
+    registry: ghcr.io
+    itemKey: /glossia
+    usernameField: GHCR_PULL_USERNAME
+    passwordField: GHCR_PULL_TOKEN

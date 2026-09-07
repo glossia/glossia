@@ -1,0 +1,66 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.postgres.clusterName }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.postgres.instances }}
+
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgres.database | quote }}
+      owner: {{ .Values.postgres.user | quote }}
+      secret:
+        name: {{ .Values.postgres.appSecretName }}
+
+  storage:
+    storageClass: {{ .Values.postgres.storage.storageClass | quote }}
+    size: {{ .Values.postgres.storage.size | quote }}
+
+  resources:
+    {{- toYaml .Values.postgres.resources | nindent 4 }}
+
+  {{- if .Values.internalBabel.enabled }}
+  # Babel never receives this role's credentials. Glossia's owner role can
+  # switch to it for one internal request, and NOINHERIT prevents the web app
+  # from picking up its broad SELECT privilege for ordinary requests.
+  managed:
+    roles:
+      - name: {{ .Values.postgres.user | quote }}
+        ensure: present
+        login: true
+        inherit: false
+        inRoles:
+          - {{ .Values.internalBabel.databaseReadonlyRole | quote }}
+        passwordSecret:
+          name: {{ .Values.postgres.appSecretName | quote }}
+      - name: {{ .Values.internalBabel.databaseReadonlyRole | quote }}
+        ensure: present
+        login: false
+        inRoles:
+          - pg_read_all_data
+        comment: "Read-only role for Babel internal database queries"
+  {{- end }}
+
+  {{- if and .Values.backups.enabled .Values.backups.postgres.enabled }}
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: {{ printf "%s-backup" .Values.postgres.clusterName | quote }}
+  {{- end }}
+
+  affinity:
+    enablePodAntiAffinity: {{ .Values.postgres.enablePodAntiAffinity }}
+    topologyKey: {{ .Values.postgres.topologyKey | quote }}
+    {{- with .Values.postgres.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.postgres.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}

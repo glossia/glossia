@@ -1,0 +1,233 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "glossia.fullname" . }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 3
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "glossia.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "glossia.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: agent
+    spec:
+      serviceAccountName: {{ include "glossia.flameServiceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: {{ include "glossia.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+            {{- if .Values.internalBabel.enabled }}
+            - name: babel-https
+              containerPort: {{ .Values.internalBabel.tls.targetPort }}
+            {{- end }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: RELEASE_DISTRIBUTION
+              value: "name"
+            - name: RELEASE_NODE
+              value: "glossia@$(POD_IP)"
+            - name: GLOSSIA_FLAME_BACKEND
+              value: {{ .Values.flame.backend | quote }}
+            - name: GLOSSIA_FLAME_MIN
+              value: {{ .Values.flame.min | quote }}
+            - name: GLOSSIA_FLAME_MAX
+              value: {{ .Values.flame.max | quote }}
+            - name: GLOSSIA_FLAME_MAX_CONCURRENCY
+              value: {{ .Values.flame.maxConcurrency | quote }}
+            - name: GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS
+              value: {{ .Values.flame.idleShutdownAfterMs | quote }}
+            - name: GLOSSIA_FLAME_TIMEOUT_MS
+              value: {{ .Values.flame.timeoutMs | quote }}
+            - name: GLOSSIA_FLAME_BOOT_TIMEOUT_MS
+              value: {{ .Values.flame.bootTimeoutMs | quote }}
+            - name: GLOSSIA_FLAME_LOG
+              value: {{ .Values.flame.log | quote }}
+            - name: GLOSSIA_FLAME_APP_CONTAINER_NAME
+              value: {{ .Values.flame.k8s.appContainerName | quote }}
+            - name: GLOSSIA_FLAME_RUNTIME_CLASS_NAME
+              value: {{ .Values.flame.k8s.runtimeClassName | quote }}
+            - name: GLOSSIA_FLAME_RESOURCES_JSON
+              value: {{ .Values.flame.k8s.resources | toJson | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_BACKEND
+              value: {{ .Values.translationJob.backend | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED
+              value: {{ .Values.translationJob.ttlSecondsAfterFinished | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS
+              value: {{ .Values.translationJob.activeDeadlineSeconds | quote }}
+            - name: GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON
+              value: {{ (.Values.translationJob.resources | default .Values.flame.k8s.resources) | toJson | quote }}
+            - name: GLOSSIA_FLAME_NODE_SELECTOR_JSON
+              value: {{ .Values.flame.k8s.nodeSelector | toJson | quote }}
+            - name: GLOSSIA_FLAME_TOLERATIONS_JSON
+              value: {{ .Values.flame.k8s.tolerations | toJson | quote }}
+            - name: GLOSSIA_FLAME_AFFINITY_JSON
+              value: {{ .Values.flame.k8s.affinity | toJson | quote }}
+            - name: GLOSSIA_FLAME_ENV_JSON
+              value: {{ .Values.flame.k8s.env | toJson | quote }}
+            - name: GLOSSIA_FLAME_K8S_LOG
+              value: {{ .Values.flame.k8s.log | quote }}
+            - name: GLOSSIA_FLAME_REPO_POOL_SIZE
+              value: {{ .Values.flame.child.repoPoolSize | quote }}
+            - name: GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE
+              value: {{ .Values.flame.child.clickhousePoolSize | quote }}
+            {{- if .Values.internalBabel.enabled }}
+            - name: GLOSSIA_BABEL_DATABASE_READONLY_ROLE
+              value: {{ .Values.internalBabel.databaseReadonlyRole | quote }}
+            - name: GLOSSIA_BABEL_TOKEN_ISSUER
+              value: {{ required "internalBabel.token.issuer is required when internalBabel.enabled=true" .Values.internalBabel.token.issuer | quote }}
+            - name: GLOSSIA_BABEL_TOKEN_AUDIENCE
+              value: {{ .Values.internalBabel.token.audience | quote }}
+            - name: GLOSSIA_BABEL_TOKEN_JWKS
+              value: {{ required "internalBabel.token.jwks is required when internalBabel.enabled=true" .Values.internalBabel.token.jwks | quote }}
+            - name: GLOSSIA_BABEL_TOKEN_MAX_LIFETIME_SECONDS
+              value: {{ .Values.internalBabel.token.maxLifetimeSeconds | quote }}
+            - name: GLOSSIA_BABEL_TOKEN_NAMESPACE
+              value: {{ .Values.internalBabel.token.namespace | quote }}
+            - name: GLOSSIA_BABEL_TOKEN_SERVICE_ACCOUNT
+              value: {{ .Values.internalBabel.token.serviceAccount | quote }}
+            - name: GLOSSIA_BABEL_INTERNAL_TLS_CERT_PATH
+              value: /var/run/secrets/glossia-babel-internal/tls.crt
+            - name: GLOSSIA_BABEL_INTERNAL_TLS_KEY_PATH
+              value: /var/run/secrets/glossia-babel-internal/tls.key
+            {{- end }}
+            {{- range $key, $value := omit .Values.env "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_FLAME_BACKEND" "GLOSSIA_FLAME_MIN" "GLOSSIA_FLAME_MAX" "GLOSSIA_FLAME_MAX_CONCURRENCY" "GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS" "GLOSSIA_FLAME_TIMEOUT_MS" "GLOSSIA_FLAME_BOOT_TIMEOUT_MS" "GLOSSIA_FLAME_LOG" "GLOSSIA_FLAME_APP_CONTAINER_NAME" "GLOSSIA_FLAME_RUNTIME_CLASS_NAME" "GLOSSIA_FLAME_RESOURCES_JSON" "GLOSSIA_FLAME_NODE_SELECTOR_JSON" "GLOSSIA_FLAME_TOLERATIONS_JSON" "GLOSSIA_FLAME_AFFINITY_JSON" "GLOSSIA_FLAME_ENV_JSON" "GLOSSIA_FLAME_K8S_LOG" "GLOSSIA_FLAME_REPO_POOL_SIZE" "GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE" "GLOSSIA_TRANSLATION_JOB_BACKEND" "GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED" "GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS" "GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON" }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- include "glossia.mailRelayEnv" . | nindent 12 }}
+            {{- if and .Values.objectStorage.enabled .Values.objectStorage.rook.enabled }}
+            {{- fail "objectStorage.enabled and objectStorage.rook.enabled cannot both be true" }}
+            {{- end }}
+            {{- if .Values.objectStorage.enabled }}
+            - name: GLOSSIA_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.secretName | quote }}
+                  key: {{ .Values.objectStorage.accessKeyIdKey | quote }}
+            - name: GLOSSIA_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.secretName | quote }}
+                  key: {{ .Values.objectStorage.secretAccessKeyKey | quote }}
+            - name: GLOSSIA_S3_ENDPOINT
+              value: {{ required "objectStorage.endpointURL is required when objectStorage.enabled=true" .Values.objectStorage.endpointURL | quote }}
+            - name: GLOSSIA_S3_REGION
+              value: {{ required "objectStorage.region is required when objectStorage.enabled=true" .Values.objectStorage.region | quote }}
+            - name: GLOSSIA_S3_BUCKET
+              value: {{ required "objectStorage.bucketName is required when objectStorage.enabled=true" .Values.objectStorage.bucketName | quote }}
+            {{- else if .Values.objectStorage.rook.enabled }}
+            - name: GLOSSIA_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.rook.bucketSecretName | quote }}
+                  key: {{ .Values.objectStorage.rook.accessKeyIdKey | quote }}
+            - name: GLOSSIA_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.objectStorage.rook.bucketSecretName | quote }}
+                  key: {{ .Values.objectStorage.rook.secretAccessKeyKey | quote }}
+            - name: GLOSSIA_S3_ENDPOINT
+              value: {{ required "objectStorage.rook.endpointURL is required when objectStorage.rook.enabled=true" .Values.objectStorage.rook.endpointURL | quote }}
+            - name: GLOSSIA_S3_REGION
+              value: {{ .Values.objectStorage.rook.region | quote }}
+            - name: GLOSSIA_S3_BUCKET
+              value: {{ required "objectStorage.rook.bucketName is required when objectStorage.rook.enabled=true" .Values.objectStorage.rook.bucketName | quote }}
+            {{- end }}
+            {{- if .Values.smolanalytics.enabled }}
+            - name: GLOSSIA_SMOLANALYTICS_URL
+              value: {{ printf "http://%s:8080" (include "glossia.smolanalyticsName" .) | quote }}
+            - name: GLOSSIA_SMOLANALYTICS_WRITE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smolanalytics.secretName | quote }}
+                  key: {{ .Values.smolanalytics.writeKeyKey | quote }}
+            {{- end }}
+            {{- if .Values.typesense.enabled }}
+            - name: GLOSSIA_TYPESENSE_URL
+              value: {{ printf "http://%s:%v" (include "glossia.typesenseName" .) .Values.typesense.port | quote }}
+            - name: GLOSSIA_TYPESENSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.typesense.secretName | quote }}
+                  key: {{ .Values.typesense.apiKeyKey | quote }}
+            {{- end }}
+            - name: GLOSSIA_DNS_CLUSTER_QUERY
+              value: {{ include "glossia.headlessServiceFQDN" . | quote }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.envSecretName }}
+          {{- if .Values.internalBabel.enabled }}
+          volumeMounts:
+            - name: babel-internal-tls
+              mountPath: /var/run/secrets/glossia-babel-internal
+              readOnly: true
+          {{- end }}
+          # Guard the boot separately from liveness. A cold BEAM start behind
+          # an image pull, DB connect and migration wait can exceed the
+          # liveness initialDelay, and without a startupProbe liveness then
+          # restarts the pod mid-boot into a crash loop - worst during a node
+          # rollout when both replicas are cold. 30 x 5s = 150s of boot budget.
+          startupProbe:
+            httpGet:
+              path: /up
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.internalBabel.enabled }}
+      volumes:
+        - name: babel-internal-tls
+          secret:
+            secretName: {{ .Values.internalBabel.tls.certificateSecretName | quote }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

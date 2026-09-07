@@ -1,0 +1,69 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src={~p"/images/logo-rounded.png"} alt="" class="auth-logo" />
+      <h1>{gettext("Authorize a device")}</h1>
+      <p class="auth-subtitle">
+        {gettext("Enter the code shown in your mobile app to continue.")}
+      </p>
+    </div>
+
+    <.form for={%{}} action={~p"/oauth/device"} method="post">
+      <input
+        type="text"
+        name="user_code"
+        placeholder="ABCD-EFGH"
+        value={@verification && @verification[:user_code]}
+        autocomplete="off"
+        autocapitalize="characters"
+      />
+      <button type="submit" class="button primary">{gettext("Continue")}</button>
+    </.form>
+
+    <%= cond do %>
+      <% @verification == nil -> %>
+      <% @verification.status == :invalid_user_code -> %>
+        <p class="auth-terms">{gettext("Invalid user code.")}</p>
+      <% @verification.status == :expired -> %>
+        <p class="auth-terms">{gettext("This code has expired. Start again from the app.")}</p>
+      <% @verification.status == :denied -> %>
+        <p class="auth-terms">{gettext("This request was denied.")}</p>
+      <% @verification.status == :consumed -> %>
+        <p class="auth-terms">{gettext("This device is already authorized.")}</p>
+      <% @verification.status in [:pending, :approved] -> %>
+        <div class="consent-scopes">
+          <p class="consent-scopes-label">
+            {gettext("App: %{name}", name: @verification.client_name || "Unknown client")}
+          </p>
+          <p class="consent-scopes-label">
+            {gettext("Requested permissions:")}
+          </p>
+          <ul class="consent-scopes-list">
+            <%= for scope <- @verification.scopes do %>
+              <li>{scope}</li>
+            <% end %>
+          </ul>
+        </div>
+
+        <%= if @verification.status == :pending do %>
+          <div class="consent-actions">
+            <.form for={%{}} action={~p"/oauth/device/confirm"} method="post">
+              <input type="hidden" name="user_code" value={@verification.user_code} />
+              <input type="hidden" name="decision" value="approve" />
+              <button type="submit" class="button primary">{gettext("Authorize device")}</button>
+            </.form>
+
+            <.form for={%{}} action={~p"/oauth/device/confirm"} method="post">
+              <input type="hidden" name="user_code" value={@verification.user_code} />
+              <input type="hidden" name="decision" value="deny" />
+              <button type="submit" class="button">{gettext("Deny")}</button>
+            </.form>
+          </div>
+        <% else %>
+          <p class="auth-terms">{gettext("This device has already been authorized.")}</p>
+        <% end %>
+      <% true -> %>
+        <p class="auth-terms">{gettext("This code is not active.")}</p>
+    <% end %>
+  </div>
+</section>
