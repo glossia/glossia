@@ -96,15 +96,11 @@
     }
   },
   "model": "",
-  "output_hash": "e4b24aedaf2beaa8fdc88d84997803868a7212f9536e46efdab2d899bb450e49",
+  "output_hash": "8ec90f1934a3bb216bf6ccdbdd586e30a6996be32b07ce6f25050d74d8c462fc",
   "output_path": "app/priv/i18n/pt-BR/docs/how-to/login-with-glossia.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/how-to/login-with-glossia.md",
-  "translated_at": "2026-09-05T09:12:14.929396Z"
+  "translated_at": "2026-09-07T07:08:32.155898Z"
 }
