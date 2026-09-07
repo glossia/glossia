@@ -1391,7 +1391,7 @@ defmodule GlossiaWeb.DashboardLive do
     ]
 
     authors = [
-      {"pepicrft", "https://avatars.githubusercontent.com/u/663605?v=4"},
+      {"jordanwriter", nil},
       {"alexchen", nil},
       {"mariarossi", nil}
     ]
