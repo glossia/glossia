@@ -39,6 +39,10 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.Auth
     plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.OtelAttributes
+    # Tags responses so the Cloudflare rate-limit CRs can key on
+    # "public page traffic" without maintaining a URL allow-list at
+    # the edge. See ops/infra/k8s/workload-platforms/glossia-production/cloudflare.
+    plug GlossiaWeb.Plugs.PublicPageHeader
   end
 
   # The marketing site is the only surface where the locale lives in the URL,
@@ -127,6 +131,7 @@ defmodule GlossiaWeb.Router do
     get "/pomerium", PomeriumAccessController, :create
     delete "/logout", AuthController, :logout
     get "/logout", AuthController, :logout
+    post "/gate/:provider", AuthController, :verify_signup_gate
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
   end

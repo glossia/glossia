@@ -179,6 +179,10 @@ spec:
             {{- end }}
             - name: GLOSSIA_DNS_CLUSTER_QUERY
               value: {{ include "glossia.headlessServiceFQDN" . | quote }}
+            {{- if .Values.turnstile.enabled }}
+            - name: GLOSSIA_TURNSTILE_ENABLED
+              value: "1"
+            {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.envSecretName }}

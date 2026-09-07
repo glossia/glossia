@@ -148,7 +148,12 @@ defmodule Glossia.Accounts do
     |> Repo.all()
   end
 
-  defp get_identity(provider, provider_uid) do
+  @doc """
+  Look up an OAuth identity by provider + provider-side uid. Used by the
+  sign-up gate to decide whether an incoming OAuth callback would create
+  a new account (identity missing) or sign an existing user in.
+  """
+  def get_identity(provider, provider_uid) do
     Identity
     |> where(provider: ^to_string(provider), provider_uid: ^provider_uid)
     |> preload(user: :account)

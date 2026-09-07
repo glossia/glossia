@@ -33,34 +33,103 @@
       />
 
       <div data-part="providers">
-        <Noora.Button.button
-          :if={:github in @providers}
-          href={~p"/auth/github"}
-          variant="secondary"
-          size="large"
-          label={gettext("Continue with GitHub")}
-          id="github-login-btn"
-        >
-          <:icon_left><Noora.Icon.brand_github /></:icon_left>
-        </Noora.Button.button>
+        <%= if @mode == :signup do %>
+          <div
+            :if={@turnstile_required? and is_binary(@turnstile_site_key)}
+            id="signup-turnstile"
+            data-part="turnstile"
+            data-signup-turnstile
+            data-action="signup"
+            data-sitekey={@turnstile_site_key}
+          >
+            <span data-part="turnstile-status" data-signup-turnstile-status aria-live="polite"></span>
+          </div>
 
-        <Noora.Button.button
-          :if={:gitlab in @providers}
-          href={~p"/auth/gitlab"}
-          variant="secondary"
-          size="large"
-          label={gettext("Continue with GitLab")}
-          id="gitlab-login-btn"
-        >
-          <:icon_left>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.452.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.92.92 0 00.33-1.024" />
-            </svg>
-          </:icon_left>
-        </Noora.Button.button>
+          <form
+            :if={:github in @providers}
+            action={~p"/auth/gate/github"}
+            method="post"
+            data-part="provider-form"
+          >
+            <input type="hidden" name="_csrf_token" value={@csrf_token} />
+            <input
+              :if={@turnstile_required?}
+              type="hidden"
+              name="cf-turnstile-response"
+              data-turnstile-response-mirror
+            />
+            <Noora.Button.button
+              variant="secondary"
+              size="large"
+              label={gettext("Continue with GitHub")}
+              id="github-signup-btn"
+            >
+              <:icon_left><Noora.Icon.brand_github /></:icon_left>
+            </Noora.Button.button>
+          </form>
+
+          <form
+            :if={:gitlab in @providers}
+            action={~p"/auth/gate/gitlab"}
+            method="post"
+            data-part="provider-form"
+          >
+            <input type="hidden" name="_csrf_token" value={@csrf_token} />
+            <input
+              :if={@turnstile_required?}
+              type="hidden"
+              name="cf-turnstile-response"
+              data-turnstile-response-mirror
+            />
+            <Noora.Button.button
+              variant="secondary"
+              size="large"
+              label={gettext("Continue with GitLab")}
+              id="gitlab-signup-btn"
+            >
+              <:icon_left>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.452.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.92.92 0 00.33-1.024" />
+                </svg>
+              </:icon_left>
+            </Noora.Button.button>
+          </form>
+        <% else %>
+          <Noora.Button.button
+            :if={:github in @providers}
+            href={~p"/auth/github"}
+            variant="secondary"
+            size="large"
+            label={gettext("Continue with GitHub")}
+            id="github-login-btn"
+          >
+            <:icon_left><Noora.Icon.brand_github /></:icon_left>
+          </Noora.Button.button>
+
+          <Noora.Button.button
+            :if={:gitlab in @providers}
+            href={~p"/auth/gitlab"}
+            variant="secondary"
+            size="large"
+            label={gettext("Continue with GitLab")}
+            id="gitlab-login-btn"
+          >
+            <:icon_left>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.452.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.92.92 0 00.33-1.024" />
+              </svg>
+            </:icon_left>
+          </Noora.Button.button>
+        <% end %>
 
         <form :if={assigns[:dev_routes]} action={~p"/auth/dev-login"} method="post">
-          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+          <input type="hidden" name="_csrf_token" value={@csrf_token} />
           <Noora.Button.button
             variant="secondary"
             size="large"

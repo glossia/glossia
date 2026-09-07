@@ -598,6 +598,19 @@ backups:
 # Defaults assume the External Secrets Operator is installed cluster-wide
 # and a ClusterSecretStore named "default" exists. Override secretStoreRef
 # to point at your own SecretStore, such as Infisical or Vault.
+# Cloudflare Turnstile enforcement for the sign-up surface. When
+# enabled, the deployment sets GLOSSIA_TURNSTILE_ENABLED=1, and the
+# app-env ExternalSecret projects GLOSSIA_TURNSTILE_SITE_KEY and
+# GLOSSIA_TURNSTILE_SECRET_KEY from the Infisical fields named below
+# (in the /glossia item). Leave enabled=false in the base chart and
+# flip it on in the environment overlay; the paired fields must be
+# populated in Infisical before the overlay switches on or the pod
+# will crash on boot.
+turnstile:
+  enabled: false
+  siteKeyField: TURNSTILE_SITE_KEY
+  secretKeyField: TURNSTILE_SECRET_KEY
+
 externalSecrets:
   enabled: false
   refreshInterval: 1h

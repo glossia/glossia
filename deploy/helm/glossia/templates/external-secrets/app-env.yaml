@@ -25,6 +25,10 @@ spec:
         {{ $key }}: {{ printf "{{ .%s }}" $remoteKey | quote }}
         {{- end }}
         {{- end }}
+        {{- if .Values.turnstile.enabled }}
+        GLOSSIA_TURNSTILE_SITE_KEY: {{ printf "{{ .%s }}" .Values.turnstile.siteKeyField | quote }}
+        GLOSSIA_TURNSTILE_SECRET_KEY: {{ printf "{{ .%s }}" .Values.turnstile.secretKeyField | quote }}
+        {{- end }}
   data:
     {{- range $remoteKey := values .Values.externalSecrets.appEnv.fields | uniq | sortAlpha }}
     {{- if $remoteKey }}
@@ -32,6 +36,14 @@ spec:
       remoteRef:
         key: {{ printf "%s/%s" $.Values.externalSecrets.appEnv.itemKey $remoteKey | quote }}
     {{- end }}
+    {{- end }}
+    {{- if .Values.turnstile.enabled }}
+    - secretKey: {{ .Values.turnstile.siteKeyField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.appEnv.itemKey .Values.turnstile.siteKeyField | quote }}
+    - secretKey: {{ .Values.turnstile.secretKeyField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.appEnv.itemKey .Values.turnstile.secretKeyField | quote }}
     {{- end }}
     - secretKey: {{ .Values.externalSecrets.postgres.passwordField }}
       remoteRef:
