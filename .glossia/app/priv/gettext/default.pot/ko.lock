@@ -96,15 +96,11 @@
     }
   },
   "model": "",
-  "output_hash": "70b3367de18676856f4f5918597d50bb47000da4e94b80d2d43c3578b60802b0",
+  "output_hash": "ec68386e62de0ca5f27e31e5f75c99eaf3d7cebd500d1e41dcf81ec2d824b1dc",
   "output_path": "app/priv/gettext/ko/LC_MESSAGES/default.po",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/gettext/default.pot",
-  "translated_at": "2026-09-05T09:35:24.896355Z"
+  "translated_at": "2026-09-07T07:47:30.046044Z"
 }
