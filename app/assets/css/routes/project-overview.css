@@ -28,6 +28,25 @@
     font: var(--noora-font-weight-medium) var(--noora-font-body-small);
   }
 
+  & [data-part="metric-legend"] {
+    margin-right: var(--noora-spacing-3);
+    border-radius: var(--noora-radius-1);
+    width: var(--noora-spacing-3);
+    height: var(--noora-icon-size-medium);
+
+    &[data-color="primary"] {
+      background-color: var(--noora-chart-primary);
+    }
+
+    &[data-color="secondary"] {
+      background-color: var(--noora-chart-secondary);
+    }
+
+    &[data-color="destructive"] {
+      background-color: var(--noora-chart-destructive);
+    }
+  }
+
   & [data-part="metric-header"] > .noora-tooltip {
     display: inline-block;
     width: var(--noora-icon-size-medium);

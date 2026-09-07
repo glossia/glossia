@@ -52,18 +52,22 @@ defmodule Glossia.TranslationSessions do
         where: s.project_id == ^project.id and s.inserted_at >= ^first_moment,
         select: %{
           runs: count(s.id),
-          translated: coalesce(sum(s.translated_content_count), 0),
-          content_hits: coalesce(sum(s.content_hit_count), 0),
-          superseded: filter(count(s.id), s.outcome == "superseded")
+          content_misses: coalesce(sum(s.translated_content_count), 0),
+          content_hits: coalesce(sum(s.content_hit_count), 0)
         }
       )
       |> Repo.one!()
 
-    daily_counts =
+    daily_content =
       from(s in TranslationSession,
         where: s.project_id == ^project.id and s.inserted_at >= ^first_moment,
         group_by: fragment("date(?)", s.inserted_at),
-        select: {fragment("date(?)", s.inserted_at), count(s.id)}
+        select:
+          {fragment("date(?)", s.inserted_at),
+           %{
+             hits: coalesce(sum(s.content_hit_count), 0),
+             misses: coalesce(sum(s.translated_content_count), 0)
+           }}
       )
       |> Repo.all()
       |> Map.new()
@@ -71,10 +75,19 @@ defmodule Glossia.TranslationSessions do
     days =
       for offset <- 0..(days - 1) do
         date = Date.add(first_day, offset)
-        %{date: date, count: Map.get(daily_counts, date, 0)}
+        Map.merge(%{date: date, hits: 0, misses: 0}, Map.get(daily_content, date, %{}))
       end
 
-    Map.put(totals, :days, days)
+    checked_content = totals.content_hits + totals.content_misses
+
+    hit_rate =
+      if checked_content == 0,
+        do: 0.0,
+        else: Float.round(totals.content_hits * 100 / checked_content, 1)
+
+    totals
+    |> Map.put(:hit_rate, hit_rate)
+    |> Map.put(:days, days)
   end
 
   def sessions_by_commit_sha(%Project{} = project) do

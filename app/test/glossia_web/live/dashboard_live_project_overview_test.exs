@@ -62,11 +62,19 @@ defmodule GlossiaWeb.DashboardLiveProjectOverviewTest do
     {:ok, view, _html} = live(conn, "/#{user.account.handle}/#{project.handle}")
 
     assert has_element?(view, "#translation-runs-widget", "2")
-    assert has_element?(view, "#translated-content-widget", "4")
+    assert has_element?(view, "#content-hit-rate-widget", "69.2%")
     assert has_element?(view, "#content-hits-widget", "9")
-    assert has_element?(view, "#superseded-runs-widget", "0")
+    assert has_element?(view, "#content-misses-widget", "4")
     assert has_element?(view, "#translation-runs-widget-tooltip")
     assert has_element?(view, "#translations-per-day-chart[phx-hook='NooraChart']")
+
+    chart_data =
+      view
+      |> element("#translations-per-day-chart [data-part='data']")
+      |> render()
+
+    assert chart_data =~ "&quot;name&quot;:&quot;Content hits&quot;"
+    assert chart_data =~ "&quot;name&quot;:&quot;Content misses&quot;"
     assert has_element?(view, "#translations-table", "Translated")
     assert has_element?(view, "#translations-table", "Content hit")
     assert has_element?(view, "#translations-table", "4 translated, 2 content hits")
@@ -160,5 +168,6 @@ defmodule GlossiaWeb.DashboardLiveProjectOverviewTest do
 
     assert has_element?(view, "#translations-table", "Translate newly pushed content")
     assert has_element?(view, "#translation-runs-widget", "3")
+    assert has_element?(view, "#content-hit-rate-widget", "69.2%")
   end
 end

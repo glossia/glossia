@@ -6916,7 +6916,16 @@ defmodule GlossiaWeb.DashboardLive do
     assigns =
       assign(assigns,
         chart_labels: Enum.map(assigns.overview.days, &Calendar.strftime(&1.date, "%b %-d")),
-        chart_values: Enum.map(assigns.overview.days, & &1.count)
+        chart_series: [
+          %{
+            name: gettext("Content hits"),
+            values: Enum.map(assigns.overview.days, & &1.hits)
+          },
+          %{
+            name: gettext("Content misses"),
+            values: Enum.map(assigns.overview.days, & &1.misses)
+          }
+        ]
       )
 
     ~H"""
@@ -6929,10 +6938,13 @@ defmodule GlossiaWeb.DashboardLive do
           description={gettext("Runs started during the last 14 days.")}
         />
         <.translation_metric
-          id="translated-content-widget"
-          title={gettext("Translated content")}
-          value={@overview.translated}
-          description={gettext("Content items translated during the last 14 days.")}
+          id="content-hit-rate-widget"
+          title={gettext("Content hit rate")}
+          value={format_content_hit_rate(@overview.hit_rate)}
+          description={
+            gettext("The percentage of checked content reused without another translation.")
+          }
+          legend_color="primary"
         />
         <.translation_metric
           id="content-hits-widget"
@@ -6941,34 +6953,37 @@ defmodule GlossiaWeb.DashboardLive do
           description={
             gettext("Content items already current and reused without another translation.")
           }
+          legend_color="secondary"
         />
         <.translation_metric
-          id="superseded-runs-widget"
-          title={gettext("Superseded runs")}
-          value={@overview.superseded}
-          description={gettext("Runs stopped because newer content arrived.")}
+          id="content-misses-widget"
+          title={gettext("Content misses")}
+          value={@overview.content_misses}
+          description={gettext("Content items that required translation.")}
+          legend_color="destructive"
         />
       </div>
 
       <Noora.Card.card_section data-part="chart-card">
         <div data-part="chart-header">
           <div>
-            <h2>{gettext("Translations per day")}</h2>
-            <p>{gettext("Translation runs started during the last 14 days.")}</p>
+            <h2>{gettext("Content hits and misses per day")}</h2>
+            <p>{gettext("Content outcomes from runs started during the last 14 days.")}</p>
           </div>
         </div>
         <.chart
           id="translations-per-day-chart"
           type="bar"
           labels={@chart_labels}
-          series={@chart_values}
-          show_legend={false}
-          colors={["var:noora-chart-primary"]}
+          series={@chart_series}
+          show_legend
+          colors={["var:noora-chart-secondary", "var:noora-chart-destructive"]}
+          stacked
           bar_width={8}
           bar_radius={2}
           extra_options={
             %{
-              grid: %{left: 0, right: 0, top: 0, bottom: 0, containLabel: true},
+              grid: %{left: 0, right: 0, top: "15%", bottom: 0, containLabel: true},
               yAxis: %{minInterval: 1}
             }
           }
@@ -7099,13 +7114,15 @@ defmodule GlossiaWeb.DashboardLive do
 
   attr(:id, :string, required: true)
   attr(:title, :string, required: true)
-  attr(:value, :integer, required: true)
+  attr(:value, :any, required: true)
   attr(:description, :string, required: true)
+  attr(:legend_color, :string, default: nil)
 
   defp translation_metric(assigns) do
     ~H"""
     <Noora.Card.card_section id={@id} data-part="metric">
       <div data-part="metric-header">
+        <span :if={@legend_color} data-part="metric-legend" data-color={@legend_color}></span>
         <span data-part="metric-title">{@title}</span>
         <.tooltip
           id={@id <> "-tooltip"}
@@ -7126,8 +7143,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp empty_translation_overview do
-    %{runs: 0, translated: 0, content_hits: 0, superseded: 0, days: []}
+    %{runs: 0, hit_rate: 0.0, content_hits: 0, content_misses: 0, days: []}
   end
+
+  defp format_content_hit_rate(hit_rate),
+    do: :erlang.float_to_binary(hit_rate / 1, decimals: 1) <> "%"
 
   attr(:handle, :string, required: true)
   attr(:project, :any, required: true)
