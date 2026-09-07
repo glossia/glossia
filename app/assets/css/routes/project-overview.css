@@ -1,0 +1,163 @@
+#project-overview {
+  & [data-part="translation-overview"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-6);
+  }
+
+  & [data-part="widgets"] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(var(--noora-spacing-0), 1fr));
+    gap: var(--noora-spacing-4);
+  }
+
+  & [data-part="metric"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+  }
+
+  & [data-part="metric-header"] {
+    display: flex;
+    align-items: center;
+  }
+
+  & [data-part="metric-title"] {
+    flex-grow: 1;
+    color: var(--noora-surface-label-primary);
+    font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+  }
+
+  & [data-part="metric-legend"] {
+    margin-right: var(--noora-spacing-3);
+    border-radius: var(--noora-radius-1);
+    width: var(--noora-spacing-3);
+    height: var(--noora-icon-size-medium);
+
+    &[data-color="primary"] {
+      background-color: var(--noora-chart-primary);
+    }
+
+    &[data-color="secondary"] {
+      background-color: var(--noora-chart-secondary);
+    }
+
+    &[data-color="p50"] {
+      background-color: var(--noora-chart-p50);
+    }
+  }
+
+  & [data-part="metric-header"] > .noora-tooltip {
+    display: inline-block;
+    width: var(--noora-icon-size-medium);
+    height: var(--noora-icon-size-medium);
+    color: var(--noora-surface-label-secondary);
+
+    & svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  & [data-part="metric-value"] {
+    color: var(--noora-surface-label-primary);
+    font: var(--noora-font-weight-medium) var(--noora-font-heading-xlarge);
+  }
+
+  & [data-part="chart-card"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+    padding: var(--noora-spacing-5);
+    overflow: hidden;
+  }
+
+  & [data-part="chart-description"] {
+    margin: var(--noora-spacing-0);
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-weight-regular) var(--noora-font-body-small);
+  }
+
+  & [data-part="translations-history"] {
+    min-width: var(--noora-spacing-0);
+  }
+
+  & [data-part="chart-legend"] {
+    display: flex;
+    align-items: center;
+    gap: var(--noora-spacing-6);
+  }
+
+  & [data-part="chart-legend-item"] {
+    display: flex;
+    align-items: center;
+    gap: var(--noora-spacing-3);
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-weight-medium) var(--noora-font-body-small);
+
+    & > [data-part="indicator"] {
+      border-radius: var(--noora-radius-1);
+      width: var(--noora-spacing-3);
+      height: var(--noora-icon-size-medium);
+    }
+
+    &[data-color="secondary"] > [data-part="indicator"] {
+      background-color: var(--noora-chart-secondary);
+    }
+
+    &[data-color="p50"] > [data-part="indicator"] {
+      background-color: var(--noora-chart-p50);
+    }
+  }
+
+  & #translations-per-day-chart {
+    width: 100%;
+    height: calc(var(--noora-spacing-16) * 2);
+  }
+
+  & [data-part="translations-card"] {
+    min-width: var(--noora-spacing-0);
+
+    & .noora-resource-toolbar {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    & .noora-resource-toolbar form {
+      flex: 1;
+      min-width: var(--noora-spacing-0);
+      width: auto;
+    }
+
+    & .noora-resource-toolbar > [data-part="filters"] {
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+
+    & .noora-resource-toolbar > [data-part="active-filters"] {
+      flex: 1 0 100%;
+    }
+  }
+
+  @media (max-width: 960px) {
+    & [data-part="widgets"] {
+      grid-template-columns: repeat(2, minmax(var(--noora-spacing-0), 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    & [data-part="widgets"] {
+      grid-template-columns: 1fr;
+    }
+
+    & [data-part="translations-card"] .noora-resource-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    & [data-part="translations-card"] .noora-resource-toolbar > [data-part="filters"] {
+      margin-left: var(--noora-spacing-0);
+    }
+  }
+}

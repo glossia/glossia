@@ -4,17 +4,21 @@ defmodule Glossia.TranslationSessions.TranslationSession do
 
   @derive {
     Flop.Schema,
-    filterable: [:status, :commit_sha, :source_language],
-    sortable: [:inserted_at, :status],
+    filterable: [:status, :outcome, :commit_sha, :commit_message, :source_language],
+    sortable: [:inserted_at, :status, :outcome, :translated_content_count, :content_hit_count],
     default_order: %{order_by: [:inserted_at], order_directions: [:desc]}
   }
 
   @statuses ~w(pending running completed failed cancelled)
+  @outcomes ~w(translated content_hit superseded cancelled failed)
 
   schema "translation_sessions" do
     field :commit_sha, :string
     field :commit_message, :string
     field :status, :string, default: "pending"
+    field :outcome, :string
+    field :translated_content_count, :integer, default: 0
+    field :content_hit_count, :integer, default: 0
     field :source_language, :string
     field :target_languages, {:array, :string}, default: []
     field :summary, :string
@@ -39,6 +43,9 @@ defmodule Glossia.TranslationSessions.TranslationSession do
       :commit_sha,
       :commit_message,
       :status,
+      :outcome,
+      :translated_content_count,
+      :content_hit_count,
       :source_language,
       :target_languages,
       :summary,
@@ -53,5 +60,6 @@ defmodule Glossia.TranslationSessions.TranslationSession do
     ])
     |> validate_required([:status])
     |> validate_inclusion(:status, @statuses)
+    |> validate_inclusion(:outcome, @outcomes)
   end
 end

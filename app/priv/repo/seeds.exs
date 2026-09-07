@@ -1310,7 +1310,10 @@ defmodule Glossia.Seeds do
           select: count(s.id)
       )
 
-    if existing > 0, do: :ok, else: seed_translation_sessions!(project, user)
+    if existing == 0, do: seed_translation_sessions!(project, user)
+
+    refresh_seeded_translation_outcomes!(project)
+    ensure_translation_dashboard_history!(project, user)
   end
 
   defp seed_translation_sessions!(%Project{} = project, %User{} = user) do
@@ -1324,6 +1327,9 @@ defmodule Glossia.Seeds do
         commit_sha: "a1b2c3d",
         commit_message: "Update blog post: Getting started with Glossia",
         status: "completed",
+        outcome: "translated",
+        translated_content_count: 3,
+        content_hit_count: 2,
         source_language: "en",
         target_languages: ["es", "fr"],
         publication_branch: "glossia/translate-a1b2c3d",
@@ -1400,6 +1406,8 @@ defmodule Glossia.Seeds do
         commit_sha: "d3e4f5a",
         commit_message: "Add new blog post: Advanced localization patterns",
         status: "cancelled",
+        outcome: "superseded",
+        translated_content_count: 1,
         source_language: "en",
         target_languages: ["ja", "de"],
         publication_branch: "glossia/translate-d3e4f5a",
@@ -1463,6 +1471,95 @@ defmodule Glossia.Seeds do
     # Wait for buffer flush
     Process.sleep(2_000)
   end
+
+  defp refresh_seeded_translation_outcomes!(%Project{} = project) do
+    now = DateTime.utc_now()
+
+    updates = [
+      {"a1b2c3d", %{outcome: "translated", translated_content_count: 3, content_hit_count: 2}},
+      {"d3e4f5a", %{outcome: "superseded", translated_content_count: 1, content_hit_count: 0}},
+      {"e4f5g6h",
+       %{
+         status: "running",
+         outcome: nil,
+         translated_content_count: 0,
+         content_hit_count: 0,
+         completed_at: nil,
+         updated_at: now
+       }}
+    ]
+
+    Enum.each(updates, fn {commit_sha, attrs} ->
+      from(s in TranslationSession,
+        where: s.project_id == ^project.id and s.commit_sha == ^commit_sha
+      )
+      |> Repo.update_all(set: Map.to_list(attrs))
+    end)
+  end
+
+  defp ensure_translation_dashboard_history!(%Project{} = project, %User{} = user) do
+    now = DateTime.utc_now()
+
+    history = [
+      {"seed001", "Publish the summer product guide", 13, "translated", 4, 2},
+      {"seed002", "Refresh the pricing page metadata", 12, "content_hit", 0, 7},
+      {"seed003", "Add onboarding examples", 10, "translated", 3, 1},
+      {"seed004", "Draft the partner announcement", 9, "superseded", 2, 0},
+      {"seed005", "Update the developer guide", 7, "translated", 5, 4},
+      {"seed006", "Correct a navigation link", 6, "content_hit", 0, 6},
+      {"seed007", "Launch the localization handbook", 4, "translated", 8, 2},
+      {"seed008", "Revise the release announcement", 3, "cancelled", 1, 0},
+      {"seed009", "Document the translation workflow", 2, "translated", 2, 5},
+      {"seed010", "Reorder the documentation sidebar", 1, "content_hit", 0, 9}
+    ]
+
+    Enum.each(history, fn {sha, message, days_ago, outcome, translated, hits} ->
+      happened_at = DateTime.add(now, -days_ago * 86_400, :second)
+      status = if outcome in ["superseded", "cancelled"], do: "cancelled", else: "completed"
+
+      attrs = %{
+        commit_sha: sha,
+        commit_message: message,
+        status: status,
+        outcome: outcome,
+        translated_content_count: translated,
+        content_hit_count: hits,
+        source_language: "en",
+        target_languages: ["es", "fr"],
+        summary: translation_seed_summary(outcome, translated, hits),
+        started_at: happened_at,
+        completed_at: DateTime.add(happened_at, 240, :second)
+      }
+
+      session =
+        case Repo.get_by(TranslationSession, project_id: project.id, commit_sha: sha) do
+          nil ->
+            {:ok, session} = TranslationSessions.create_session(user.account, project, attrs)
+            session
+
+          session ->
+            session
+            |> TranslationSession.changeset(attrs)
+            |> Repo.update!()
+        end
+
+      session
+      |> Ecto.Changeset.change(inserted_at: happened_at, updated_at: happened_at)
+      |> Repo.update!()
+    end)
+  end
+
+  defp translation_seed_summary("content_hit", _translated, hits),
+    do: "#{hits} content items were already current."
+
+  defp translation_seed_summary("superseded", translated, _hits),
+    do: "Reused #{translated} translated content items in the replacement run."
+
+  defp translation_seed_summary("cancelled", translated, _hits),
+    do: "Cancelled after translating #{translated} content item."
+
+  defp translation_seed_summary(_outcome, translated, hits),
+    do: "Translated #{translated} content items and reused #{hits} content hits."
 
   # ----------------------------------------------------------------------------
   # Sandboxes

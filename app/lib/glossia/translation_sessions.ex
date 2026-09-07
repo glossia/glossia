@@ -28,6 +28,68 @@ defmodule Glossia.TranslationSessions do
     |> Flop.validate_and_run(params, for: TranslationSession)
   end
 
+  def list_project_sessions(%Project{} = project, search, params) do
+    pattern = "%#{escape_like_pattern(search)}%"
+
+    query =
+      from(s in TranslationSession,
+        where: s.project_id == ^project.id,
+        where:
+          ilike(s.commit_sha, ^pattern) or
+            ilike(s.commit_message, ^pattern)
+      )
+
+    Flop.validate_and_run(query, params, for: TranslationSession)
+  end
+
+  def project_overview(%Project{} = project, days \\ 14) do
+    today = Date.utc_today()
+    first_day = Date.add(today, -(days - 1))
+    first_moment = DateTime.new!(first_day, ~T[00:00:00], "Etc/UTC")
+
+    totals =
+      from(s in TranslationSession,
+        where: s.project_id == ^project.id and s.inserted_at >= ^first_moment,
+        select: %{
+          runs: count(s.id),
+          content_misses: coalesce(sum(s.translated_content_count), 0),
+          content_hits: coalesce(sum(s.content_hit_count), 0)
+        }
+      )
+      |> Repo.one!()
+
+    daily_content =
+      from(s in TranslationSession,
+        where: s.project_id == ^project.id and s.inserted_at >= ^first_moment,
+        group_by: fragment("date(?)", s.inserted_at),
+        select:
+          {fragment("date(?)", s.inserted_at),
+           %{
+             hits: coalesce(sum(s.content_hit_count), 0),
+             misses: coalesce(sum(s.translated_content_count), 0)
+           }}
+      )
+      |> Repo.all()
+      |> Map.new()
+
+    days =
+      for offset <- 0..(days - 1) do
+        date = Date.add(first_day, offset)
+        Map.merge(%{date: date, hits: 0, misses: 0}, Map.get(daily_content, date, %{}))
+      end
+
+    checked_content = totals.content_hits + totals.content_misses
+
+    hit_rate =
+      if checked_content == 0,
+        do: 0.0,
+        else: Float.round(totals.content_hits * 100 / checked_content, 1)
+
+    totals
+    |> Map.put(:hit_rate, hit_rate)
+    |> Map.put(:days, days)
+  end
+
   def sessions_by_commit_sha(%Project{} = project) do
     from(s in TranslationSession,
       where: s.project_id == ^project.id,
@@ -79,6 +141,14 @@ defmodule Glossia.TranslationSessions do
     %TranslationSession{account_id: account.id, project_id: project.id}
     |> TranslationSession.changeset(attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, session} ->
+        notify_project_sessions_changed(session)
+        {:ok, session}
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -105,6 +175,7 @@ defmodule Glossia.TranslationSessions do
 
       {:ok, session, superseded_sessions} ->
         Enum.each(superseded_sessions, &stop_superseded_session/1)
+        notify_project_sessions_changed(session)
         {:ok, session}
 
       {:enqueue_error, reason, superseded_sessions} ->
@@ -159,9 +230,14 @@ defmodule Glossia.TranslationSessions do
 
         superseded_sessions =
           Enum.map(active_sessions, fn session ->
+            counts = progress_counts(session.id)
+
             session
             |> Ecto.Changeset.change(%{
               status: "cancelled",
+              outcome: "superseded",
+              translated_content_count: counts.translated,
+              content_hit_count: counts.content_hits,
               completed_at: now
             })
             |> Repo.update!()
@@ -290,6 +366,7 @@ defmodule Glossia.TranslationSessions do
         "pending" ->
           %{
             status: status,
+            outcome: nil,
             started_at: nil,
             completed_at: nil,
             error: nil,
@@ -299,6 +376,7 @@ defmodule Glossia.TranslationSessions do
         "running" ->
           %{
             status: status,
+            outcome: nil,
             started_at: now,
             completed_at: nil,
             error: nil,
@@ -306,13 +384,32 @@ defmodule Glossia.TranslationSessions do
           }
 
         "completed" ->
-          %{status: status, completed_at: now, error: nil}
+          counts = progress_counts(session.id)
+
+          %{
+            status: status,
+            outcome: completed_outcome(counts, opts),
+            translated_content_count: counts.translated,
+            content_hit_count: counts.content_hits,
+            completed_at: now,
+            error: nil
+          }
 
         "failed" ->
-          %{status: status, completed_at: now, summary: nil}
+          %{status: status, outcome: "failed", completed_at: now, summary: nil}
 
         "cancelled" ->
-          %{status: status, completed_at: now, error: nil, summary: nil}
+          counts = progress_counts(session.id)
+
+          %{
+            status: status,
+            outcome: "cancelled",
+            translated_content_count: counts.translated,
+            content_hit_count: counts.content_hits,
+            completed_at: now,
+            error: nil,
+            summary: nil
+          }
 
         _ ->
           %{status: status}
@@ -357,6 +454,9 @@ defmodule Glossia.TranslationSessions do
         update: [
           set: [
             status: "running",
+            outcome: nil,
+            translated_content_count: 0,
+            content_hit_count: 0,
             started_at: fragment("COALESCE(?, ?)", s.started_at, ^now),
             completed_at: nil,
             error: nil,
@@ -382,11 +482,29 @@ defmodule Glossia.TranslationSessions do
   def finish_session(%TranslationSession{id: session_id}, status, opts \\ [])
       when status in ["completed", "failed"] do
     now = DateTime.utc_now()
+    counts = progress_counts(session_id)
 
     changes =
       case status do
-        "completed" -> %{status: status, completed_at: now, error: nil}
-        "failed" -> %{status: status, completed_at: now, summary: nil}
+        "completed" ->
+          %{
+            status: status,
+            outcome: completed_outcome(counts, opts),
+            translated_content_count: counts.translated,
+            content_hit_count: counts.content_hits,
+            completed_at: now,
+            error: nil
+          }
+
+        "failed" ->
+          %{
+            status: status,
+            outcome: "failed",
+            translated_content_count: counts.translated,
+            content_hit_count: counts.content_hits,
+            completed_at: now,
+            summary: nil
+          }
       end
 
     changes =
@@ -527,6 +645,10 @@ defmodule Glossia.TranslationSessions do
     Phoenix.PubSub.subscribe(Glossia.PubSub, "translation_session:#{id}")
   end
 
+  def subscribe_project_sessions(%Project{id: id}) do
+    Phoenix.PubSub.subscribe(Glossia.PubSub, "translation_sessions:project:#{id}")
+  end
+
   @doc """
   Persists a progress event when it shapes the panel, then fans it out.
 
@@ -574,6 +696,45 @@ defmodule Glossia.TranslationSessions do
   defp list_progress_events(session_id) do
     from(e in ProgressEvent, where: e.session_id == ^session_id, order_by: [asc: e.seq])
     |> Repo.all()
+  end
+
+  defp progress_counts(session_id) do
+    latest_run_seq =
+      from(e in ProgressEvent,
+        where: e.session_id == ^session_id,
+        where: fragment("?->>'type' = 'run_started'", e.payload),
+        select: max(e.seq)
+      )
+      |> Repo.one() || 0
+
+    from(e in ProgressEvent,
+      where: e.session_id == ^session_id and e.seq > ^latest_run_seq,
+      select: %{
+        translated:
+          fragment(
+            "COALESCE(COUNT(DISTINCT (?->>'index')) FILTER (WHERE ?->>'type' = 'item_completed'), 0)::integer",
+            e.payload,
+            e.payload
+          ),
+        content_hits:
+          fragment(
+            "COALESCE(MAX((?->>'up_to_date')::integer) FILTER (WHERE ?->>'type' = 'plan_assessed'), COUNT(*) FILTER (WHERE ?->>'type' = 'item_skipped'), 0)::integer",
+            e.payload,
+            e.payload,
+            e.payload
+          )
+      }
+    )
+    |> Repo.one!()
+  end
+
+  defp completed_outcome(%{translated: translated}, opts) do
+    cond do
+      Keyword.get(opts, :outcome) == "content_hit" -> "content_hit"
+      translated > 0 -> "translated"
+      Keyword.get(opts, :summary) == "No translations needed." -> "content_hit"
+      true -> "translated"
+    end
   end
 
   defp record_progress_event(session_id, event) do
@@ -646,11 +807,28 @@ defmodule Glossia.TranslationSessions do
     end
   end
 
-  def broadcast_session_status(%TranslationSession{id: id}, status) do
+  def broadcast_session_status(%TranslationSession{id: id} = session, status) do
     Phoenix.PubSub.broadcast(
       Glossia.PubSub,
       "translation_session:#{id}",
       {:translation_session_status, status}
     )
+
+    notify_project_sessions_changed(session)
+  end
+
+  defp notify_project_sessions_changed(%TranslationSession{project_id: project_id, id: id}) do
+    Phoenix.PubSub.broadcast(
+      Glossia.PubSub,
+      "translation_sessions:project:#{project_id}",
+      {:project_translation_sessions_changed, id}
+    )
+  end
+
+  defp escape_like_pattern(search) do
+    search
+    |> String.replace("\\", "\\\\")
+    |> String.replace("%", "\\%")
+    |> String.replace("_", "\\_")
   end
 end

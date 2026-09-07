@@ -36,6 +36,30 @@ defmodule Glossia.TranslationSessions.ContinuousTest do
         pull_request_number: 12
       })
 
+    TranslationSessions.broadcast_session_event(active_session, %{
+      type: "plan_assessed",
+      seq: 1,
+      total: 2,
+      needs_translation: 1,
+      up_to_date: 1
+    })
+
+    TranslationSessions.broadcast_session_event(active_session, %{
+      type: "item_started",
+      seq: 2,
+      index: 0,
+      output_path: "docs/es/guide.md",
+      locale: "es"
+    })
+
+    TranslationSessions.broadcast_session_event(active_session, %{
+      type: "item_completed",
+      seq: 3,
+      index: 0,
+      output_path: "docs/es/guide.md",
+      locale: "es"
+    })
+
     assert {:ok, replacement} =
              TranslationSessions.start_continuous_session(
                project,
@@ -50,6 +74,9 @@ defmodule Glossia.TranslationSessions.ContinuousTest do
 
     cancelled = Repo.get!(TranslationSession, active_session.id)
     assert cancelled.status == "cancelled"
+    assert cancelled.outcome == "superseded"
+    assert cancelled.translated_content_count == 1
+    assert cancelled.content_hit_count == 1
     assert cancelled.completed_at
     assert cancelled.summary == "Translated three files before supersession."
     assert cancelled.error == "One file was waiting for a retry."

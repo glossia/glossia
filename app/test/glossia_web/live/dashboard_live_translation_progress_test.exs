@@ -103,7 +103,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(
              view,
              "#translation-session [data-part='status'][data-status='success']",
-             "Completed"
+             "Translated"
            )
   end
 
@@ -134,7 +134,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     {:ok, _completed} = TranslationSessions.update_session_status(session, "completed")
     send(view.pid, :refresh_translation_session)
 
-    assert has_element?(view, "#translations-table [data-status='success']", "Completed")
+    assert has_element?(view, "#translations-table [data-status='success']", "Translated")
   end
 
   test "opens a translation session by clicking its row", %{conn: conn} do
