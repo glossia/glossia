@@ -1,32 +1,32 @@
 %{
   title: "Mit Glossia anmelden",
   summary:
-    "Ermöglicht Nutzern, sich mit ihrem Glossia-Konto über OAuth 2.1 in Ihrer App anzumelden.",
-  category: "how-to",
+    "Ermöglicht Benutzern, sich in Ihrer App mit ihrem Glossia-Konto über OAuth 2.1 anzumelden.",
+  category: "Anleitungen",
   order: 2
 }
 ---
-Diese Anleitung führt Sie durch das Hinzufügen von "Login mit Glossia" zu Ihrer Anwendung. Zum Ende können Ihre Nutzer sich mit ihrem Glossia-Konto anmelden und Ihre App verfügt über einen Zugriffstoken, um die Glossia API im Namen der Nutzer aufzurufen.
+Diese Anleitung führt Sie durch die Hinzufügung von "Login with Glossia" zu Ihrer Anwendung. Am Ende können Ihre Benutzer sich mit ihrem Glossia-Konto anmelden und Ihre Anwendung verfügt über einen Zugriffstoken, um im Namen der Benutzer die Glossia API aufzurufen.
 
 Glossia verwendet **OAuth 2.1 mit PKCE** (Proof Key for Code Exchange). PKCE ist für alle Clients erforderlich, einschließlich serverseitiger Anwendungen.
 
 ## 1\. Registrieren Sie Ihre OAuth-Anwendung
 
-Sie haben zwei Optionen zur Registrierung Ihrer Anwendung:
+Sie haben zwei Optionen für die Registrierung Ihrer Anwendung:
 
 ### Option A: Über das Dashboard (empfohlen)
 
-1. Melden Sie sich bei Glossia an und gehen Sie zu Ihrem Account-Dashboard.
-2. Öffnen Sie den **API** Bereich aus der Seitenleiste und klicken Sie **OAuth-Anwendungen**.
-3. Klicken Sie **Neue Anwendung**.
-4. Geben Sie die Anwendung **Name** und **Callback-URL** (auch als Umleitungs-URI bekannt).
+1. Melden Sie sich bei Glossia an und gehen Sie zu Ihrem Kontodashboard.
+2. Öffnen Sie die **API** Bereich in der Seitenleiste und klicken **OAuth-Anwendungen**.
+3. Klicken **Neue Anwendung**.
+4. Geben Sie die Anwendung **Name** und **Callback-URL** (auch Umleitungs-URI genannt.).
 5. Klicken **Anwendung erstellen**.
 
-Nach der Erstellung, notieren Sie **Client-ID** und **Client-Schlüssel**. Der Schlüssel wird nur einmal angezeigt, speichern Sie ihn sicher.
+Nach der Erstellung, notieren Sie **Client ID** und **Client Secret**. Der Secret wird einmal angezeigt, speichern Sie ihn sicher.
 
 ### Option B: Dynamische Client-Registrierung
 
-Senden Sie eine `POST` Anfrage an `/oauth/register`:
+Senden Sie `POST` eine Anfrage an `/oauth/register`:
 
 ```bash
 curl -X POST https://glossia.ai/oauth/register \
@@ -40,9 +40,9 @@ curl -X POST https://glossia.ai/oauth/register \
 
 Die Antwort enthält `client_id` und `client_secret`.
 
-## 2\. Generieren Sie eine PKCE-Code-Challenge
+## 2\. Generieren Sie eine PKCE-Code-Herausforderung
 
-Bevor Sie den Benutzer umleiten, generieren Sie einen PKCE-Code-Verifier und eine Code-Challenge:
+Bevor Sie den Benutzer weiterleiten, generieren Sie einen PKCE-Code-Prüfwert und eine Code-Herausforderung:
 
 ```javascript
 function generateCodeVerifier() {
@@ -71,7 +71,7 @@ const codeChallenge = await generateCodeChallenge(codeVerifier);
 
 ## 3\. Leiten Sie den Benutzer zu Glossia weiter
 
-Erstellen Sie die Autorisierungs-URL und leiten Sie den Browser des Benutzers weiter:
+Erstellen Sie die Autorisierungs-URL und leiten Sie den Browser des Nutzers weiter:
 
     https://glossia.ai/oauth/authorize?
       response_type=code
@@ -87,22 +87,22 @@ Erstellen Sie die Autorisierungs-URL und leiten Sie den Browser des Benutzers we
 | Parameter | Erforderlich | Beschreibung |
 |-----------|----------|-------------|
 | `response_type` | Ja | Immer `code` |
-| `client_id` | Ja | Client-Id Ihrer Anwendung |
+| `client_id` | Ja | Die Client-ID Ihrer Anwendung |
 | `redirect_uri` | Ja | Muss einer registrierten Callback-URL entsprechen |
 | `code_challenge` | Ja | Die PKCE-Code-Challenge (S256) |
 | `code_challenge_method` | Ja | Immer `S256` |
-| `scope` | Nr. | Leerzeichengetrennte Liste der [Bereiche](/docs/reference/apis/authentication). Wird auf den minimalen Zugriff festgelegt, wenn nicht angegeben |
-| `state` | Empfohlen | Eine zufällige Zeichenkette, um CSRF-Angriffe zu verhindern. Prüfen Sie, ob diese übereinstimmt, wenn der Benutzer zurückkehrt |
+| `scope` | Name | Durch Leerzeichen getrennte Liste von [Bereiche](/docs/reference/apis/authentication). Standardmäßig auf minimalen Zugriff gesetzt, wenn weggelassen. |
+| `state` | Empfohlen | Eine zufällige Zeichenfolge, um CSRF-Angriffe zu verhindern. Überprüfen Sie, ob diese übereinstimmen, wenn der Benutzer zurückkehrt |
 
-Der Benutzer wird eine Einwilligungsseite sehen, die Ihren Anwendungsname und die angeforderten Bereiche anzeigt. Nach ihrer Genehmigung leitet Glossia zurück auf Ihre Callback-URL mit einem Autorisierungscode.
+Der Benutzer sieht einen Einwilligungsbildschirm, der Ihren Anwendungsname und die angeforderten Bereiche anzeigt. Nach der Genehmigung leitet Glossia zur Callback-URL mit einem Autorisierungscode weiter.
 
-## 4\. Tauschen Sie den Code gegen Token ein
+## 4\. Tauschen Sie den Code gegen Tokens aus
 
-Wenn der Benutzer auf Ihre Callback-URL umgeleitet wird, enthält die URL einen `code` Parameter:
+Wenn der Benutzer an Ihre Callback-URL weitergeleitet wird, enthält die URL einen `code` Parameter:
 
     https://myapp.com/auth/callback?code=AUTHORIZATION_CODE&state=RANDOM_STATE_VALUE
 
-Zuerst prüfen Sie, dass `state` entspricht dem, was Sie in Schritt 3 gesendet haben. Tauschen Sie dann den Code gegen Tokens ein:
+Prüfen Sie zunächst, dass `state` es dem entspricht, was Sie in Schritt 3 gesendet haben. Tauschen Sie anschließend den Code gegen Tokens ein:
 
 ```bash
 curl -X POST https://glossia.ai/oauth/token \
@@ -126,22 +126,22 @@ Die Antwort:
 }
 ```
 
-Speichern Sie beide Tokens sicher. Das Zugriffstoken wird für API-Anfragen verwendet. Das Auffrischungstoken dient dazu, ein neues Zugriffstoken zu erhalten, wenn das aktuelle abläuft.
+Speichern Sie beide Tokens sicher. Der Access-Token wird für API-Anfragen verwendet. Der Refresh-Token wird verwendet, um ein neues Access-Token zu erhalten, wenn das aktuelle Token abläuft.
 
-## 5\. Rufen Sie die API im Namen des Benutzers auf
+## 5\. API im Namen des Benutzers aufrufen
 
-Verwenden Sie das Zugriffstoken, um authentifizierte API-Anfragen zu stellen:
+Verwenden Sie den Access-Token, um authentifizierte API-Anfragen zu stellen:
 
 ```bash
 curl -H "Authorization: Bearer eyJhbGciOiJSUzI1..." \
   https://glossia.ai/api/projects
 ```
 
-Die Scopes des Tokens begrenzen, auf welche Endpunkte Sie zugreifen können. Die Autorisierung auf Ressourcenebene gilt weiterhin - zum Beispiel ein Token mit `project:read` nur Projekte lesen kann, auf die der Benutzer Zugriff hat.
+Die Token-Bereiche begrenzen, welche Endpunkte Sie erreichen können. Ressourcenlevel-Autorisierung gilt weiterhin - zum Beispiel, ein Token mit `project:read` kann nur Projekte lesen, auf die der Benutzer Zugriff hat.
 
-## 6\. Erfrischen Sie das Token
+## 6\. Token erneuern
 
-Wenn das Zugriffstoken abläuft, verwenden Sie das Auffrischungstoken, um ein neues zu erhalten, ohne den Benutzer erneut durch den Einwilligungsablauf zu schicken:
+When the access token expires, use the refresh token to get a new one without sending the user through the consent flow again: -\> Wenn der Access-Token abläuft, verwenden Sie den Refresh-Token, um ein neues zu erhalten, ohne den Benutzer erneut durch den Einwilligungsablauf zu senden:
 
 ```bash
 curl -X POST https://glossia.ai/oauth/token \
@@ -152,9 +152,9 @@ curl -X POST https://glossia.ai/oauth/token \
   -d "client_secret=YOUR_CLIENT_SECRET"
 ```
 
-## 7\. Token widerrufen
+## 7\. Ein Token widerrufen
 
-Wenn ein Nutzer die Verbindung zu Ihrer App unterbricht oder Sie keinen Zugriff mehr benötigen, widerrufen Sie das Token:
+Wenn ein Benutzer sich aus Ihrer App abmeldet oder Sie keinen Zugriff mehr benötigen, widerrufen Sie das Token:
 
 ```bash
 curl -X POST https://glossia.ai/oauth/revoke \
@@ -171,27 +171,27 @@ Fordern Sie nur die Bereiche an, die Ihre Anwendung benötigt. Hier sind einige 
 | Anwendungsfall | Bereiche |
 |----------|--------|
 | Benutzerprofil lesen | `user:read` |
-| Projekte und Inhalt lesen | `user:read project:read voice:read` |
+| Projekte und Inhalte lesen | `user:read project:read voice:read` |
 | Projekte verwalten | `user:read project:read project:write` |
-| Vollständiger Zugriff auf die Organisation | `user:read organization:read organization:write members:read members:write project:read project:write` |
+| Voller Organisationszugriff | `user:read organization:read organization:write members:read members:write project:read project:write` |
 
-Siehe die [vollständige Bereiche-Referenz](/docs/reference/apis/authentication) für alle verfügbaren Bereiche.
+Sehen Sie die [Referenz für volle Berechtigungen](/docs/reference/apis/authentication) für alle verfügbaren Bereiche.
 
 ## Discovery-Endpunkte
 
-Ihre Anwendung kann die OAuth-Endpunkte von Glossia automatisch entdecken, indem es die Server-Metadaten abruft:
+Ihre Anwendung kann die OAuth-Endpunkte von Glossia automatisch entdecken, indem sie die Server-Metadaten abrufen:
 
 ```bash
 curl https://glossia.ai/.well-known/oauth-authorization-server
 ```
 
-Dies liefert ein JSON-Dokument mit dem `authorization_endpoint`, `token_endpoint`, `revocation_endpoint`\`, und weitere Details. Die Nutzung der Erkennung macht Ihre Integration widerstandsfähig gegenüber Änderungen an Endpunkten.
+Dies gibt ein JSON-Dokument mit dem `authorization_endpoint`, `token_endpoint`, `revocation_endpoint`, und weitere Details. Die Verwendung von Discovery macht Ihre Integration gegenüber Änderungen an Endpunkten widerstandsfähig.
 
 ## Fehlerbehandlung
 
 ### Autorisierungsfehler
 
-Wenn der Benutzer die Einwilligung verweigert oder etwas während der Autorisierung schiefgeht, leitet Glossia zu Ihrer Callback-URL mit einem `error` Parameter:
+Wenn der Benutzer die Einwilligung verweigert oder während der Autorisierung ein Fehler auftritt, leitet Glossia Sie an Ihre callback URL weiter mit einem `error` Parameter:
 
     https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
 
@@ -199,13 +199,13 @@ Häufige Fehlercodes:
 
 | Fehler | Bedeutung |
 |-------|---------|
-| `access_denied` | Der Benutzer hat die Autorisierung abgelehnt |
+| `access_denied` | Der Benutzer hat die Autorisierungsanfrage abgelehnt |
 | `invalid_request` | Der Anfrage fehlt ein erforderlicher Parameter |
-| `invalid_scope` | Eine oder mehrere angeforderte Berechtigungen sind ungültig |
+| `invalid_scope` | Eine oder mehrere angeforderte Bereiche sind ungültig |
 
-### Tokenfehler
+### Token-Fehler
 
-Der Token-Endpunkt gibt HTTP 400 mit einem JSON-Fehlerkörper zurück:
+Der Token-Endpunkt gibt HTTP 400 mit einem JSON-Fehlerinhalt zurück:
 
 ```json
 {
@@ -214,18 +214,18 @@ Der Token-Endpunkt gibt HTTP 400 mit einem JSON-Fehlerkörper zurück:
 }
 ```
 
-### Ratenbeschränkungen
+### Ratenlimits
 
-OAuth-Endpunkte sind pro IP beschränkt. Wenn Sie das Limit erreichen, erhalten Sie HTTP 429. Sehen Sie die [Referenz zur Rate Limiting](/docs/reference/apis/authentication) für Details.
+OAuth-Endpunkte sind pro IP Ratenlimitiert. Wenn Sie das Limit erreichen, erhalten Sie HTTP 429. Sehen Sie das [Referenz zur Ratenbegrenzung](/docs/reference/apis/authentication) für Details.
 
-## Sicherheits-Checkliste
+## Sicherheitscheckliste
 
-Bevor Sie zur Produktion gehen, überprüfen Sie, dass Ihre Implementierung diese Praktiken einhält.
+Bevor Sie in die Produktion gehen, überprüfen Sie, dass Ihre Implementierung diese Praktiken einhält:
 
-- Verwenden Sie für Callback-URLs in der Produktion immer HTTPS
-- Validieren Sie den `state` Parameter am Callback, um CSRF zu verhindern
-- Speichern Sie Tokens im Ruhezustand verschlüsselt
-- Legen Sie Tokens niemals in client-side JavaScript oder Browser-URLs offen
-- Verwenden Sie das minimale Set an benötigten Scopes
-- Verwalten Sie Token-Abläufe sanft mit Refresh Tokens
-- Entziehen Sie Tokens, wenn Benutzer sich abmelden oder ihr Account löschen
+- Verwenden Sie in der Produktion immer HTTPS für Callback-URLs
+- Validieren Sie den `state` Parameter auf dem Callback, um CSRF zu verhindern
+- Speichern Sie Tokens verschlüsselt im Ruhezustand
+- Token niemals in clientseitigem JavaScript oder Browser-URLs offenlegen
+- Verwenden Sie die minimal notwendigen Berechtigungen
+- Verwalten Sie Token-Abläufe nahtlos mit Refresh-Tokens
+- Widerrufen Sie Tokens, wenn sich Benutzer abmelden oder ihr Konto löschen
