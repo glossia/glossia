@@ -479,7 +479,7 @@ defmodule Glossia.Translations.RepositoryRun do
   defp http_pool_size, do: Application.get_env(:glossia, :http_pool_size, 50)
 
   # Plan the whole repository once (walking the filesystem and parsing the
-  # GLOSSIA.md chains a single time) and filter to the requested locales in
+  # L10N.md chains a single time) and filter to the requested locales in
   # memory, rather than re-planning per locale on the hot runner path.
   defp build_items(repo_path, locales) do
     case Planner.build_plan(repo_path) do

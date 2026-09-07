@@ -12,7 +12,7 @@ defmodule Glossia.Translations.ChainTest do
 
   @tag :tmp_dir
   test "resolves an inherited model identifier and merges bodies", %{tmp_dir: root} do
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5
@@ -23,7 +23,7 @@ defmodule Glossia.Translations.ChainTest do
 
     File.mkdir_p!(Path.join(root, "docs"))
 
-    File.write!(Path.join([root, "docs", "GLOSSIA.md"]), """
+    File.write!(Path.join([root, "docs", "L10N.md"]), """
     ---
     model: openai/gpt-5-mini
     sources:
@@ -39,16 +39,16 @@ defmodule Glossia.Translations.ChainTest do
   end
 
   @tag :tmp_dir
-  test "finds only directories whose GLOSSIA.md declares sources", %{tmp_dir: root} do
+  test "finds only directories whose L10N.md declares sources", %{tmp_dir: root} do
     File.write!(
-      Path.join(root, "GLOSSIA.md"),
+      Path.join(root, "L10N.md"),
       "---\nsource_language: en\nmodel: openai/gpt-5\n---\nroot"
     )
 
     File.mkdir_p!(Path.join(root, "server"))
 
     File.write!(
-      Path.join([root, "server", "GLOSSIA.md"]),
+      Path.join([root, "server", "L10N.md"]),
       "---\nsources:\n  \"priv/gettext/*.pot\": \"priv/gettext/{locale}/LC_MESSAGES\"\n---\nserver"
     )
 
@@ -62,7 +62,7 @@ defmodule Glossia.Translations.ChainTest do
 
     File.write!(Path.join(root, ".gitignore"), "/tmp\n")
 
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     sources:
@@ -77,7 +77,7 @@ defmodule Glossia.Translations.ChainTest do
 
     File.mkdir_p!(Path.join([root, "tmp", "nested", "docs"]))
 
-    File.write!(Path.join([root, "tmp", "nested", "GLOSSIA.md"]), """
+    File.write!(Path.join([root, "tmp", "nested", "L10N.md"]), """
     ---
     source_language: en
     sources:
@@ -96,26 +96,26 @@ defmodule Glossia.Translations.ChainTest do
   @tag :tmp_dir
   test "resolves the effective validation from the deepest scope", %{tmp_dir: root} do
     File.write!(
-      Path.join(root, "GLOSSIA.md"),
+      Path.join(root, "L10N.md"),
       "---\nsource_language: en\nvalidation:\n  - ./root-check.sh\n---\nroot"
     )
 
     File.mkdir_p!(Path.join(root, "docs"))
 
     File.write!(
-      Path.join([root, "docs", "GLOSSIA.md"]),
+      Path.join([root, "docs", "L10N.md"]),
       "---\nvalidation:\n  - ./docs-check.sh\n---\ndocs"
     )
 
     assert {:ok, resolved} = Chain.resolve_chain(Path.join(root, "docs"), root)
-    assert resolved.validation.relative_path == "docs/GLOSSIA.md"
+    assert resolved.validation.relative_path == "docs/L10N.md"
     assert resolved.validation.argv == ["./docs-check.sh"]
   end
 
   @tag :tmp_dir
   test "loads a locale overlay and captures its model override", %{tmp_dir: root} do
     File.write!(
-      Path.join(root, "GLOSSIA.md"),
+      Path.join(root, "L10N.md"),
       "---\nsource_language: en\nmodel: openai/gpt-5\n---\nglobal"
     )
 
@@ -134,7 +134,7 @@ defmodule Glossia.Translations.ChainTest do
   @tag :tmp_dir
   test "rejects a locale overlay that declares a mismatched locale", %{tmp_dir: root} do
     File.write!(
-      Path.join(root, "GLOSSIA.md"),
+      Path.join(root, "L10N.md"),
       "---\nsource_language: en\nmodel: openai/gpt-5\n---\nglobal"
     )
 

@@ -1,12 +1,12 @@
 %{
-  title: "GLOSSIA.md",
+  title: "L10N.md",
   summary: "Reference for repository translation settings and context.",
   category: "reference",
   order: 1
 }
 ---
 
-`GLOSSIA.md` tells Glossia which files to translate, where translated files belong, which languages to target, and what context should guide the result. A repository can have a root file and additional scoped files in subdirectories.
+`L10N.md` tells Glossia which files to translate, where translated files belong, which languages to target, and what context should guide the result. A repository can have a root file and additional scoped files in subdirectories.
 
 ## Structure
 
@@ -36,7 +36,7 @@ preserve:
 Write for software developers. Keep product names and code samples unchanged.
 ```
 
-Provider credentials belong in account settings, never in `GLOSSIA.md`. The optional `model` value is an account model handle.
+Provider credentials belong in account settings, never in `L10N.md`. The optional `model` value is an account model handle.
 
 ## Frontmatter fields
 
@@ -63,7 +63,7 @@ Unknown frontmatter fields are ignored.
 
 ## File formats
 
-Glossia has built-in handling for Markdown, JavaScript Object Notation, YAML Ain't Markup Language, portable object, and plain text files. Other file extensions fail planning unless the applicable `GLOSSIA.md` declares a `validation` command. This avoids silently treating a proprietary structured format as unconstrained text.
+Glossia has built-in handling for Markdown, JavaScript Object Notation, YAML Ain't Markup Language, portable object, and plain text files. Other file extensions fail planning unless the applicable `L10N.md` declares a `validation` command. This avoids silently treating a proprietary structured format as unconstrained text.
 
 The validation command runs after the candidate has been written temporarily to its real target path. It can invoke the repository's native parser, compiler, or build command. Glossia restores the previous target after each validation attempt and only writes the accepted candidate afterward.
 
@@ -134,11 +134,11 @@ Rule values override values inherited from the surrounding file.
 
 ## Scoped context
 
-Glossia reads `GLOSSIA.md` files from the repository root toward the source file:
+Glossia reads `L10N.md` files from the repository root toward the source file:
 
 - Parent settings provide defaults.
 - A deeper file overrides fields for its directory.
 - Markdown context is accumulated from parent to child.
-- Locale-specific guidance and a locale-specific model handle can live in `GLOSSIA/<locale>.md`.
+- Locale-specific guidance and a locale-specific model handle can live in `L10N/<locale>.md`.
 
 This lets a repository keep broad voice guidance at the root while placing product-area or language-specific guidance close to the content it affects.

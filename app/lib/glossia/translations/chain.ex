@@ -1,6 +1,6 @@
 defmodule Glossia.Translations.Chain do
   @moduledoc """
-  Reads and resolves the `GLOSSIA.md` document tree from a checked-out repository.
+  Reads and resolves the `L10N.md` document tree from a checked-out repository.
 
   Ported from the CLI (`cli/src/config.rs`): discovers translation roots, resolves
   the frontmatter inheritance chain from the repo root down to a directory, and
@@ -13,7 +13,7 @@ defmodule Glossia.Translations.Chain do
   alias Glossia.Translations.DocumentSpec
   alias Glossia.Translations.Frontmatter
 
-  @doc "Reads, parses, and validates a `GLOSSIA.md`-style document at `path`."
+  @doc "Reads, parses, and validates a `L10N.md`-style document at `path`."
   def parse_glossia_document(path, repo_root) do
     with {:ok, raw} <- File.read(path),
          {:ok, %{frontmatter: frontmatter, body: body}} <- Frontmatter.parse_content(raw) do
@@ -35,7 +35,7 @@ defmodule Glossia.Translations.Chain do
   Resolves the frontmatter chain from the repo root down to `start_dir`.
 
   Returns `{:ok, %{merged_frontmatter, merged_body, files, validation}}` where
-  deeper `GLOSSIA.md` files override shallower ones and `validation` is the
+  deeper `L10N.md` files override shallower ones and `validation` is the
   deepest declared validation command.
   """
   def resolve_chain(start_dir, repo_root) do
@@ -45,7 +45,7 @@ defmodule Glossia.Translations.Chain do
       |> Enum.reduce_while(
         {:ok, %{files: [], merged: %Frontmatter{}, bodies: [], validation: nil}},
         fn dir, {:ok, acc} ->
-          path = Path.join(dir, "GLOSSIA.md")
+          path = Path.join(dir, "L10N.md")
 
           if File.exists?(path) do
             case parse_glossia_document(path, repo_root) do
@@ -80,7 +80,7 @@ defmodule Glossia.Translations.Chain do
   end
 
   @doc """
-  Loads the `GLOSSIA/<locale>.md` overlay chain for `locale`.
+  Loads the `L10N/<locale>.md` overlay chain for `locale`.
 
   Returns `{:ok, %{merged_body, files, model, validation}}`. A `model` declared in
   a deeper overlay wins; an overlay that declares a mismatched locale is an error.
@@ -153,7 +153,7 @@ defmodule Glossia.Translations.Chain do
   end
 
   @doc """
-  Finds directories whose `GLOSSIA.md` declares sources or translate rules.
+  Finds directories whose `L10N.md` declares sources or translate rules.
 
   Returns `{:ok, [dir]}` sorted by path. Skips dot-directories (e.g. `.git`).
   """
@@ -203,7 +203,7 @@ defmodule Glossia.Translations.Chain do
                "--others",
                "--exclude-standard",
                "--",
-               ":(glob)**/GLOSSIA.md"
+               ":(glob)**/L10N.md"
              ],
              stderr_to_stdout: true,
              into: ""
@@ -215,8 +215,8 @@ defmodule Glossia.Translations.Chain do
     else
       _ ->
         [
-          Path.join(repo_root, "GLOSSIA.md")
-          | Path.wildcard(Path.join(repo_root, "**/GLOSSIA.md"))
+          Path.join(repo_root, "L10N.md")
+          | Path.wildcard(Path.join(repo_root, "**/L10N.md"))
         ]
         |> Enum.filter(&File.regular?/1)
         |> Enum.uniq()

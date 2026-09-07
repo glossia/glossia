@@ -36,7 +36,7 @@ defmodule Glossia.Translations.LiveTranslationTest do
     git!(root, ["config", "user.email", "t@example.com"])
     git!(root, ["config", "user.name", "Tester"])
 
-    File.write!(Path.join(root, "GLOSSIA.md"), """
+    File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5
@@ -91,7 +91,7 @@ defmodule Glossia.Translations.LiveTranslationTest do
     git!(remote, ["config", "user.email", "t@example.com"])
     git!(remote, ["config", "user.name", "Tester"])
 
-    File.write!(Path.join(remote, "GLOSSIA.md"), """
+    File.write!(Path.join(remote, "L10N.md"), """
     ---
     source_language: en
     model: openai/gpt-5

@@ -824,7 +824,7 @@ defmodule Glossia.TranslationSessions.Translate do
   defp pull_request_body(session) do
     languages =
       case session.target_languages || [] do
-        [] -> "The translation run used the targets declared in `GLOSSIA.md`."
+        [] -> "The translation run used the targets declared in `L10N.md`."
         targets -> "Target languages: " <> Enum.join(targets, ", ") <> "."
       end
 
@@ -846,7 +846,7 @@ defmodule Glossia.TranslationSessions.Translate do
 
     ## Approach
 
-    The translation harness runs inside a sandbox, uses `GLOSSIA.md` to build the translation plan, and lets the lockfiles decide which outputs need work. The branch is updated incrementally while the session is running.
+    The translation harness runs inside a sandbox, uses `L10N.md` to build the translation plan, and lets the lockfiles decide which outputs need work. The branch is updated incrementally while the session is running.
 
     ## Impact
 

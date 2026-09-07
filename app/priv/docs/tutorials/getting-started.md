@@ -53,11 +53,11 @@ You can leave the page and return to the project overview without losing the set
 
 When setup completes, open the project overview and review the pull request created for the repository. The proposed baseline normally includes:
 
-- A root `GLOSSIA.md` file with source language, source paths, and target languages.
+- A root `L10N.md` file with source language, source paths, and target languages.
 - The smallest application or content changes needed to load localized files.
 - Any lightweight validation that was already available in the repository.
 
-Review and merge the pull request through your normal GitHub workflow. Future translation runs use the merged `GLOSSIA.md` context.
+Review and merge the pull request through your normal GitHub workflow. Future translation runs use the merged `L10N.md` context.
 
 The project overview keeps the setup pull request visible until it is merged. If it is closed without being merged, reopen it from the link in the setup notice.
 

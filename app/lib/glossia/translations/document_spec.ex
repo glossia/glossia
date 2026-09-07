@@ -1,10 +1,10 @@
 defmodule Glossia.Translations.DocumentSpec do
   @moduledoc """
-  Validates a parsed `GLOSSIA.md` document against its structural rules.
+  Validates a parsed `L10N.md` document against its structural rules.
 
   Ported from the CLI (`cli/src/config/spec.rs`). A document is classified by its
-  repo-relative path — the root `GLOSSIA.md` (global), a nested `.../GLOSSIA.md`
-  (scoped), or a `.../GLOSSIA/<locale>.md` overlay — and validated accordingly.
+  repo-relative path — the root `L10N.md` (global), a nested `.../L10N.md`
+  (scoped), or a `.../L10N/<locale>.md` overlay — and validated accordingly.
   """
 
   alias Glossia.Translations.Frontmatter
@@ -23,18 +23,18 @@ defmodule Glossia.Translations.DocumentSpec do
   end
 
   @doc false
-  def classify("GLOSSIA.md"), do: {:ok, :global}
+  def classify("L10N.md"), do: {:ok, :global}
 
   def classify(path) do
     cond do
-      String.starts_with?(path, "GLOSSIA/") ->
-        classify_overlay(String.replace_prefix(path, "GLOSSIA/", ""))
+      String.starts_with?(path, "L10N/") ->
+        classify_overlay(String.replace_prefix(path, "L10N/", ""))
 
-      String.starts_with?(path, "./GLOSSIA/") ->
-        classify_overlay(String.replace_prefix(path, "./GLOSSIA/", ""))
+      String.starts_with?(path, "./L10N/") ->
+        classify_overlay(String.replace_prefix(path, "./L10N/", ""))
 
-      String.contains?(path, "/GLOSSIA/") ->
-        case rsplit_once(path, "/GLOSSIA/") do
+      String.contains?(path, "/L10N/") ->
+        case rsplit_once(path, "/L10N/") do
           {dir, filename} when dir != "" -> classify_overlay(filename)
           _ -> scoped_or_error(path)
         end
@@ -45,7 +45,7 @@ defmodule Glossia.Translations.DocumentSpec do
   end
 
   defp scoped_or_error(path) do
-    if String.ends_with?(path, "/GLOSSIA.md") do
+    if String.ends_with?(path, "/L10N.md") do
       {:ok, :scoped}
     else
       {:error, "unsupported Glossia document path #{path}"}
@@ -67,12 +67,12 @@ defmodule Glossia.Translations.DocumentSpec do
           {:ok, {:locale_overlay, locale}}
       end
     else
-      {:error, "unsupported locale overlay path GLOSSIA/#{filename}"}
+      {:error, "unsupported locale overlay path L10N/#{filename}"}
     end
   end
 
   defp validate_global(%Frontmatter{source_language: nil}),
-    do: {:error, "GLOSSIA.md must declare source_language"}
+    do: {:error, "L10N.md must declare source_language"}
 
   defp validate_global(%Frontmatter{source_language: source_language} = frontmatter) do
     with :ok <- validate_locale_identifier("source_language", source_language) do
