@@ -187,10 +187,13 @@
   <div class="geo geo-3"></div>
 
   <div class="main">
-    <%= if author_avatar != "" do %>
-      <img class="avatar-img" src="<%= author_avatar %>" alt="" />
-    <% else %>
-      <img class="logo-img" src="data:image/png;base64,<%= Base.encode64(File.read!(Path.join(:code.priv_dir(:glossia), "static/images/logo-rounded.png"))) %>" alt="" />
+    <%= cond do %>
+      <% project_avatar != "" -> %>
+        <img class="logo-img" src="<%= project_avatar %>" alt="" />
+      <% author_avatar != "" -> %>
+        <img class="avatar-img" src="<%= author_avatar %>" alt="" />
+      <% true -> %>
+        <img class="logo-img" src="data:image/png;base64,<%= Base.encode64(File.read!(Path.join(:code.priv_dir(:glossia), "static/images/logo-rounded.png"))) %>" alt="" />
     <% end %>
     <%= cond do %>
       <% author_name != "" -> %>

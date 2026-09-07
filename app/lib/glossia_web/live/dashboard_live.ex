@@ -994,11 +994,13 @@ defmodule GlossiaWeb.DashboardLive do
 
     og_image_url =
       if account.visibility == "public" do
-        og_attrs = %{
-          title: project.name,
-          description: socket.assigns.handle <> "/" <> project.handle,
-          category: "project"
-        }
+        og_attrs =
+          %{
+            title: project.name,
+            description: socket.assigns.handle <> "/" <> project.handle,
+            category: "project"
+          }
+          |> maybe_put_project_avatar(socket.assigns.handle, project)
 
         Glossia.OgImage.project_url(socket.assigns.handle, project.handle, og_attrs)
       end
@@ -6849,6 +6851,25 @@ defmodule GlossiaWeb.DashboardLive do
       _ -> nil
     end
   end
+
+  defp maybe_put_project_avatar(attrs, handle, %{
+         avatar_url: avatar_url,
+         handle: project_handle,
+         updated_at: updated_at
+       })
+       when is_binary(avatar_url) and avatar_url != "" do
+    url =
+      Phoenix.VerifiedRoutes.url(
+        GlossiaWeb.Endpoint,
+        ~p"/avatars/#{handle}/projects/#{project_handle}"
+      )
+
+    attrs
+    |> Map.put(:project_avatar, url)
+    |> Map.put(:project_avatar_v, DateTime.to_unix(updated_at))
+  end
+
+  defp maybe_put_project_avatar(attrs, _handle, _project), do: attrs
 
   attr(:project, :map, required: true)
 
