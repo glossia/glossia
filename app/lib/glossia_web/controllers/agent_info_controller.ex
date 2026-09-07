@@ -11,10 +11,10 @@ defmodule GlossiaWeb.AgentInfoController do
       [
         "# Glossia",
         "",
-        "> Glossia is a language platform for teams that need consistent content across languages and surfaces.",
+        "> Glossia is an open source language OS for teams that need consistent content across languages and surfaces.",
         "",
         "## Product",
-        link(base_url, ~p"/features", "Features", "Explore the language platform."),
+        link(base_url, ~p"/features", "Features", "Explore the language OS."),
         link(
           base_url,
           ~p"/blog",
