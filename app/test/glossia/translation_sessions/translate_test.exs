@@ -454,6 +454,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "completed"
+    assert updated.outcome == "content_hit"
     assert updated.summary == "No translations needed."
   end
 
@@ -475,6 +476,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "failed"
+    assert updated.outcome == "failed"
   end
 
   test "passes an existing publication branch to a resumed repository run" do

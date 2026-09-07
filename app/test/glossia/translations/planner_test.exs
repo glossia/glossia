@@ -44,12 +44,12 @@ defmodule Glossia.Translations.PlannerTest do
     Root context
     """)
 
-    File.mkdir_p!(Path.join([root, "docs", "admin", "GLOSSIA"]))
+    File.mkdir_p!(Path.join([root, "docs", "admin", "L10N"]))
     File.write!(Path.join([root, "docs", "L10N.md"]), "Docs context\n")
     File.write!(Path.join([root, "docs", "admin", "L10N.md"]), "Admin context\n")
 
     File.write!(
-      Path.join([root, "docs", "admin", "GLOSSIA", "es.md"]),
+      Path.join([root, "docs", "admin", "L10N", "es.md"]),
       "---\nmodel: gpt-5-mini\n---\nAdmin Spanish\n"
     )
 
@@ -63,7 +63,7 @@ defmodule Glossia.Translations.PlannerTest do
   end
 
   @tag :tmp_dir
-  test "excludes matched files and skips GLOSSIA documents", %{tmp_dir: root} do
+  test "excludes matched files and skips L10N documents", %{tmp_dir: root} do
     File.write!(Path.join(root, "L10N.md"), """
     ---
     source_language: en

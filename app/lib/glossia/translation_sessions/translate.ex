@@ -652,7 +652,10 @@ defmodule Glossia.TranslationSessions.Translate do
     summary = "No translations needed."
 
     with {:ok, _session} <-
-           TranslationSessions.finish_session(session, "completed", summary: summary) do
+           TranslationSessions.finish_session(session, "completed",
+             summary: summary,
+             outcome: "content_hit"
+           ) do
       record_translation_event(session, %{
         "event_type" => "status",
         "content" => summary,

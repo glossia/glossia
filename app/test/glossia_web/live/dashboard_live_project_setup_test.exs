@@ -169,7 +169,7 @@ defmodule GlossiaWeb.DashboardLiveProjectSetupTest do
     Projects.broadcast_setup_pull_request(merged)
 
     refute has_element?(view, "#setup-pull-request-notice")
-    assert has_element?(view, "#commits-table")
+    assert has_element?(view, "#translations-table")
   end
 
   test "project overview explains when the setup pull request was closed", %{conn: conn} do

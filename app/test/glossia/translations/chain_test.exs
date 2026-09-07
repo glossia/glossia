@@ -119,10 +119,10 @@ defmodule Glossia.Translations.ChainTest do
       "---\nsource_language: en\nmodel: openai/gpt-5\n---\nglobal"
     )
 
-    File.mkdir_p!(Path.join(root, "GLOSSIA"))
+    File.mkdir_p!(Path.join(root, "L10N"))
 
     File.write!(
-      Path.join([root, "GLOSSIA", "es.md"]),
+      Path.join([root, "L10N", "es.md"]),
       "---\nlocale: es\nmodel: openai/gpt-5-mini\n---\nSpanish overlay"
     )
 
@@ -138,8 +138,8 @@ defmodule Glossia.Translations.ChainTest do
       "---\nsource_language: en\nmodel: openai/gpt-5\n---\nglobal"
     )
 
-    File.mkdir_p!(Path.join(root, "GLOSSIA"))
-    File.write!(Path.join([root, "GLOSSIA", "es.md"]), "---\nlocale: ja\n---\noops")
+    File.mkdir_p!(Path.join(root, "L10N"))
+    File.write!(Path.join([root, "L10N", "es.md"]), "---\nlocale: ja\n---\noops")
 
     assert {:error, msg} = Chain.load_locale_override(root, root, "es")
     assert msg =~ "expected es"
