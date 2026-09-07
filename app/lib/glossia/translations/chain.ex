@@ -95,7 +95,7 @@ defmodule Glossia.Translations.Chain do
         |> Enum.reduce_while(
           {:ok, %{files: [], model: nil, validation: nil}},
           fn dir, {:ok, acc} ->
-            path = Path.join([dir, "GLOSSIA", "#{locale}.md"])
+            path = Path.join([dir, "L10N", "#{locale}.md"])
 
             if File.exists?(path) do
               reduce_overlay(acc, path, repo_root, locale)
