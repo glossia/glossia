@@ -118,7 +118,11 @@ jobs:
             "http://localhost:8123/" \
             --data-binary "CREATE DATABASE IF NOT EXISTS glossia_test"
       - name: Run test suite
-        run: mix test
+        # Social-image template tests embed the compiled Noora stylesheet.
+        # Build only that bundle; the test suite does not need the browser scripts.
+        run: |
+          mix esbuild noora
+          mix test
 
   lint:
     if: github.event.pull_request.draft != true
