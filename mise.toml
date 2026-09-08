@@ -4,7 +4,17 @@ elixir = "latest"
 go = "1.22.0"
 rust = "stable"
 node = "22"
-"github:aubepkg/aube" = "latest"
+# aube is installed via the github backend against the real repo
+# owner because the aqua registry entry for `aube` still expects the
+# release-workflow identity `jdx/aube/.github/workflows/release.yml`,
+# and upstream moved it to `aubepkg/aube`. SLSA verification against
+# the stale expected identity fails on every fresh runner:
+#   Failed to install aqua:jdx/aube@latest: GitHub artifact
+#   attestations verification failed: expected
+#   'jdx/aube/.github/workflows/release.yml', found certificate
+#   identity: 'https://github.com/aubepkg/aube/.github/workflows/release.yml'
+# The github backend attests against the actual repo, which matches.
+"github:aubepkg/aube" = "2.2.12"
 aws-cli = "2"
 terraform = "1"
 packer = "1"
