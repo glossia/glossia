@@ -179,6 +179,29 @@ spec:
             {{- end }}
             - name: GLOSSIA_DNS_CLUSTER_QUERY
               value: {{ include "glossia.headlessServiceFQDN" . | quote }}
+            {{- if .Values.turnstile.enabled }}
+            - name: GLOSSIA_TURNSTILE_ENABLED
+              value: "1"
+            # GLOSSIA_TURNSTILE_SITE_KEY + GLOSSIA_TURNSTILE_SECRET_KEY
+            # come from the operator-materialized Secret created by the
+            # CloudflareTurnstileWidget CR in glossia/infra. Explicit
+            # valueFrom (not envFrom) so the operator's Secret data
+            # keys stay decoupled from the app's env-var naming - the
+            # CR names the keys, the deployment renames them into the
+            # GLOSSIA_ prefix its runtime.exs expects. No Infisical
+            # round-trip because the ESO Infisical provider does not
+            # implement PushSecret.
+            - name: GLOSSIA_TURNSTILE_SITE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.turnstile.secretName | default "turnstile-signup" }}
+                  key: {{ .Values.turnstile.siteKeyKey | default "TURNSTILE_SITE_KEY" }}
+            - name: GLOSSIA_TURNSTILE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.turnstile.secretName | default "turnstile-signup" }}
+                  key: {{ .Values.turnstile.secretKeyKey | default "TURNSTILE_SECRET_KEY" }}
+            {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.envSecretName }}

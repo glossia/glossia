@@ -28,6 +28,7 @@ import Noora from "noora"
 import ModelPicker from "./model_picker"
 import LocalizationPriorityMap from "./analytics_map"
 import AnalyticsTraffic from "./analytics_traffic"
+import initSignupTurnstile from "./signup_turnstile"
 
 function initSentry() {
   const dsn = document.querySelector("meta[name='sentry-dsn']")?.getAttribute("content")
@@ -302,10 +303,12 @@ function initDocsPortals(layout) {
 // Run on initial page load and on LiveView page navigations
 initCodeCopyButtons()
 initDocsLayout()
+initSignupTurnstile()
 window.addEventListener("phx:page-loading-stop", () => {
   setTimeout(() => {
     initCodeCopyButtons()
     initDocsLayout()
+    initSignupTurnstile()
   }, 100)
 })
 

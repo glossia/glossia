@@ -598,6 +598,22 @@ backups:
 # Defaults assume the External Secrets Operator is installed cluster-wide
 # and a ClusterSecretStore named "default" exists. Override secretStoreRef
 # to point at your own SecretStore, such as Infisical or Vault.
+# Cloudflare Turnstile enforcement for the sign-up surface. When
+# enabled, the deployment sets GLOSSIA_TURNSTILE_ENABLED=1 and
+# envFroms the Secret named below (default `turnstile-signup`),
+# which is expected to expose GLOSSIA_TURNSTILE_SITE_KEY and
+# GLOSSIA_TURNSTILE_SECRET_KEY as its keys.
+#
+# The Secret is materialized by the CloudflareTurnstileWidget CR in
+# glossia/infra (spec.secretRef.name = this same name in this same
+# namespace; spec.secretRef.siteKeyKey / secretKeyKey MUST match the
+# GLOSSIA_ prefix so envFrom projects them as the right env vars).
+# The bytes never round-trip through Infisical because the ESO
+# Infisical provider does not implement PushSecret.
+turnstile:
+  enabled: false
+  secretName: turnstile-signup
+
 externalSecrets:
   enabled: false
   refreshInterval: 1h

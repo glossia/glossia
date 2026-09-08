@@ -96,6 +96,14 @@ config :glossia, :flame,
 # extras in Finch's checkout queue until they time out.
 config :glossia, :http_pool_size, integer_env.("GLOSSIA_HTTP_POOL_SIZE", 50)
 
+# Cloudflare Turnstile enforcement for the sign-up surface. Single
+# per-environment toggle; site + secret keys are projected from the
+# operator-materialized Secret in the workload cluster.
+config :glossia, Glossia.Cloudflare.Turnstile,
+  enabled?: truthy?.(System.get_env("GLOSSIA_TURNSTILE_ENABLED", "0")),
+  site_key: System.get_env("GLOSSIA_TURNSTILE_SITE_KEY"),
+  secret_key: System.get_env("GLOSSIA_TURNSTILE_SECRET_KEY")
+
 # Detached translation jobs make concurrent requests to the shared model gateway.
 # Files are independent after planning and a translation call is almost entirely
 # idle waiting on the gateway, so a fan-out ceiling only decides how long a run
