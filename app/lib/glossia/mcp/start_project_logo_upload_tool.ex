@@ -21,8 +21,7 @@ defmodule Glossia.MCP.StartProjectLogoUploadTool do
   schema do
     field :handle, {:required, :string}, description: "Account handle that owns the project."
 
-    field :project_handle, {:required, :string},
-      description: "Project handle within the account."
+    field :project_handle, {:required, :string}, description: "Project handle within the account."
 
     field :content_type, {:required, :string},
       description:
@@ -60,9 +59,14 @@ defmodule Glossia.MCP.StartProjectLogoUploadTool do
 
       {:reply, response, frame}
     else
-      {:error, %Error{} = error} -> {:error, error, frame}
-      {:error, :unsupported_content_type} -> {:error, unsupported_content_type_error(), frame}
-      {:error, reason} -> {:error, Error.execution("Could not start upload: #{inspect(reason)}"), frame}
+      {:error, %Error{} = error} ->
+        {:error, error, frame}
+
+      {:error, :unsupported_content_type} ->
+        {:error, unsupported_content_type_error(), frame}
+
+      {:error, reason} ->
+        {:error, Error.execution("Could not start upload: #{inspect(reason)}"), frame}
     end
   end
 

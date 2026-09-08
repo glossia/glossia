@@ -66,7 +66,8 @@ defmodule GlossiaWeb.Layouts do
   @doc false
   def social_description(assigns) do
     description =
-      assigns[:page_description] || "Open source language OS for multi-lingual and mono-lingual content."
+      assigns[:page_description] ||
+        "Open source language OS for multi-lingual and mono-lingual content."
 
     description
     |> String.trim()
