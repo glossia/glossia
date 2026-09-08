@@ -63,6 +63,31 @@ rollout, and detached translation jobs cannot reach the web replicas at all.
 Set it once, keep it stable, and only rotate it while restarting every pod
 together.
 
+## LiveView socket affinity
+
+A LiveView connection is state on one replica. The long-poll transport keeps
+its session in a process on the node that opened it, so a poll answered by a
+different pod finds nothing and the join never completes. The browser is left
+sitting on the dead server render: the page looks correct, but no hook ever
+mounts, so dropdowns, collapsibles and live updates are all inert. Reloading
+does not recover it, because Phoenix remembers the long-poll downgrade in
+`sessionStorage` for the life of the tab.
+
+Browsers only reach long polling when the websocket fails to come up within
+`longPollFallbackMs`, which is routine during a rolling update, so any install
+with `replicaCount` above one will hit this eventually.
+
+`ingress.liveSocket.affinity` (default `true`) renders a second Ingress that
+pins `/live` to one replica with a cookie. It is a separate Ingress rather than
+an annotation on the main one so the cookie only rides on the socket path,
+leaving public pages and digested assets cookie-free and cacheable. The
+annotations are ingress-nginx specific and inert behind other controllers; a
+single-replica install can set it to `false`.
+
+This is a workaround for the replicas not forming an Erlang cluster. If
+distribution between pods is open, a poll can be served by any replica and
+`Phoenix.PubSub` spans them too; check with `Node.list()` on a running pod.
+
 ## Translation jobs
 
 A translation session runs for an hour or more. Anything whose lifetime is tied

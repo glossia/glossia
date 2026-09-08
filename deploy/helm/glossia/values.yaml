@@ -37,6 +37,17 @@ ingress:
         - path: /
           pathType: Prefix
   tls: []
+  # A LiveView connection is state on one replica, and the replicas do not form
+  # an Erlang cluster, so a client that is load balanced across them mid-session
+  # never finishes joining and its page is left with no hooks mounted. Render a
+  # second Ingress that pins the socket path to a replica with a cookie. Only
+  # meaningful behind ingress-nginx with more than one replica; the annotations
+  # are inert elsewhere, and single-replica installs can turn it off.
+  liveSocket:
+    affinity: true
+    path: /live
+    cookieName: glossia_live
+    annotations: {}
 
 # A dedicated Pomerium-protected host used only for temporary staff access.
 # It reaches the same application service, but Pomerium forwards a signed
