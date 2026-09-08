@@ -5,10 +5,9 @@ defmodule Glossia.Cloudflare.Turnstile do
   Called from the sign-up surface via `GlossiaWeb.SignupProtection` so a
   bot that never solved the widget cannot reach `Glossia.Accounts.find_or_create_user_from_oauth/3`.
 
-  The site + secret keys come from environment variables, and enforcement
-  is composed via `Glossia.FeatureFlags.turnstile_enabled?/0` so a
-  FunWithFlags kill switch can turn the gate off globally without a
-  redeploy.
+  Enforcement is a single per-environment toggle (`GLOSSIA_TURNSTILE_ENABLED`).
+  Turning it off is a values overlay change plus a Flux reconcile;
+  there is no runtime override.
 
   [Cloudflare Turnstile]: https://developers.cloudflare.com/turnstile/
   """
@@ -17,21 +16,8 @@ defmodule Glossia.Cloudflare.Turnstile do
 
   @endpoint "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
-  @doc """
-  True when Turnstile enforcement is on for this environment and the kill
-  switch is off.
-  """
+  @doc "True when Turnstile enforcement is on for this environment."
   def required? do
-    Glossia.FeatureFlags.turnstile_enabled?()
-  end
-
-  @doc """
-  True when the runtime env toggle is set. Kept separate from
-  `required?/0` so callers that must not hit the FunWithFlags store
-  (e.g. hot-path plugs that need to answer without a Postgres round
-  trip on a cold cache) have a raw-env fallback.
-  """
-  def env_enabled? do
     config(:enabled?, false)
   end
 

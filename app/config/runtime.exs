@@ -96,12 +96,9 @@ config :glossia, :flame,
 # extras in Finch's checkout queue until they time out.
 config :glossia, :http_pool_size, integer_env.("GLOSSIA_HTTP_POOL_SIZE", 50)
 
-# Cloudflare Turnstile enforcement for the sign-up surface.
-#
-# GLOSSIA_TURNSTILE_ENABLED is the environment-level toggle; the
-# `:turnstile_kill_switch` FunWithFlags flag is a runtime override that
-# turns the gate off globally without a redeploy. Site/secret keys come
-# from the Turnstile widget provisioned in Cloudflare's dashboard.
+# Cloudflare Turnstile enforcement for the sign-up surface. Single
+# per-environment toggle; site + secret keys are projected from the
+# operator-materialized Secret in the workload cluster.
 config :glossia, Glossia.Cloudflare.Turnstile,
   enabled?: truthy?.(System.get_env("GLOSSIA_TURNSTILE_ENABLED", "0")),
   site_key: System.get_env("GLOSSIA_TURNSTILE_SITE_KEY"),
