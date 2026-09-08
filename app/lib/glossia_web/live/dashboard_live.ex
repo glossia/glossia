@@ -17,6 +17,7 @@ defmodule GlossiaWeb.DashboardLive do
   alias Glossia.Organizations
   alias Glossia.Discussions
   alias Glossia.LLMModels
+  alias Glossia.TranslationRouting
   alias Glossia.TranslationSessions.Progress
   alias Glossia.Translations.Failure
   alias Glossia.Voices
@@ -816,6 +817,41 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
+  defp apply_action(socket, :llm_routing, _params) do
+    require_admin!(socket)
+    account = socket.assigns.account
+    handle = socket.assigns.handle
+
+    rules = TranslationRouting.list_rules(account)
+    {:ok, {available_models, _meta}} = LLMModels.list_models(account)
+
+    assign(socket,
+      page_title: gettext("Routing"),
+      routing_rules: rules,
+      routing_available_models: available_models,
+      routing_locale_options:
+        Enum.sort_by(Glossia.I18n.common_translation_targets(), fn {_code, name} -> name end),
+      editing_routing_rule_id: nil,
+      routing_form:
+        to_form(
+          %{
+            "target_locale" => "",
+            "llm_model_id" =>
+              case available_models do
+                [] -> ""
+                [first | _] -> first.id
+              end
+          },
+          as: :routing
+        ),
+      breadcrumb_items: [
+        {gettext("Settings"), nil},
+        {gettext("Models"), "/" <> handle <> "/-/settings/models"},
+        {gettext("Routing"), "/" <> handle <> "/-/settings/models/routing"}
+      ]
+    )
+  end
+
   defp apply_action(socket, :llm_model_edit, %{"model_id" => model_id}) do
     require_admin!(socket)
     account = socket.assigns.account
@@ -1557,6 +1593,230 @@ defmodule GlossiaWeb.DashboardLive do
             {:error, _} ->
               {:noreply, put_flash(socket, :error, gettext("Could not delete model."))}
           end
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Translation routing events
+  # ---------------------------------------------------------------------------
+
+  def handle_event("create_routing_rule", %{"routing" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      model_id = params["llm_model_id"]
+
+      case model_id && LLMModels.get_model(model_id, account.id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Select a model before adding a rule."))}
+
+        model ->
+          attrs = %{
+            "target_locale" =>
+              case params["target_locale"] do
+                "__any__" -> nil
+                "" -> nil
+                nil -> nil
+                value when is_binary(value) -> value
+              end
+          }
+
+          case TranslationRouting.create_rule(account, user, model, attrs) do
+            {:ok, _rule} ->
+              {:noreply,
+               socket
+               |> push_event("close-modal", %{id: "add-routing-rule-modal"})
+               |> put_flash(:info, gettext("Routing rule added."))
+               |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models/routing")}
+
+            {:error, %Ecto.Changeset{} = changeset} ->
+              {:noreply,
+               socket
+               |> assign(routing_form: to_form(changeset, as: :routing))
+               |> put_flash(:error, gettext("Could not add routing rule."))}
+          end
+      end
+    end
+  end
+
+  def handle_event("close-add-routing-rule-modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       editing_routing_rule_id: nil,
+       routing_form:
+         to_form(
+           %{
+             "target_locale" => "",
+             "llm_model_id" =>
+               case socket.assigns[:routing_available_models] || [] do
+                 [] -> ""
+                 [first | _] -> first.id
+               end
+           },
+           as: :routing
+         )
+     )
+     |> push_event("close-modal", %{id: "add-routing-rule-modal"})}
+  end
+
+  def handle_event("edit_routing_rule", %{"id" => rule_id}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+
+      case TranslationRouting.get_rule(rule_id, account.id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Rule not found."))}
+
+        rule ->
+          {:noreply,
+           socket
+           |> assign(
+             editing_routing_rule_id: rule.id,
+             routing_form:
+               to_form(
+                 %{
+                   "target_locale" => rule.target_locale || "",
+                   "llm_model_id" => rule.llm_model_id
+                 },
+                 as: :routing
+               )
+           )
+           |> push_event("open-modal", %{id: "add-routing-rule-modal"})}
+      end
+    end
+  end
+
+  def handle_event("update_routing_rule", %{"routing" => params}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+      rule_id = socket.assigns.editing_routing_rule_id
+
+      with rule when not is_nil(rule) <- TranslationRouting.get_rule(rule_id, account.id),
+           attrs = %{
+             "target_locale" =>
+               case params["target_locale"] do
+                 "__any__" -> nil
+                 "" -> nil
+                 nil -> nil
+                 value when is_binary(value) -> value
+               end,
+             "llm_model_id" => params["llm_model_id"]
+           },
+           {:ok, _updated} <- TranslationRouting.update_rule(account, user, rule, attrs) do
+        {:noreply,
+         socket
+         |> assign(
+           editing_routing_rule_id: nil,
+           routing_form:
+             to_form(
+               %{
+                 "target_locale" => "",
+                 "llm_model_id" =>
+                   case socket.assigns[:routing_available_models] || [] do
+                     [] -> ""
+                     [first | _] -> first.id
+                   end
+               },
+               as: :routing
+             )
+         )
+         |> push_event("close-modal", %{id: "add-routing-rule-modal"})
+         |> put_flash(:info, gettext("Routing rule updated."))
+         |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models/routing")}
+      else
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Rule not found."))}
+
+        {:error, %Ecto.Changeset{} = changeset} ->
+          {:noreply,
+           socket
+           |> assign(routing_form: to_form(changeset, as: :routing))
+           |> put_flash(:error, gettext("Could not update routing rule."))}
+      end
+    end
+  end
+
+  def handle_event("quick_add_catch_all", _params, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case LLMModels.default_model(account) ||
+             List.first(socket.assigns.routing_available_models) do
+        nil ->
+          {:noreply,
+           put_flash(socket, :error, gettext("Add a model before adding routing rules."))}
+
+        model ->
+          case TranslationRouting.create_rule(account, user, model, %{"target_locale" => nil}) do
+            {:ok, _rule} ->
+              {:noreply,
+               socket
+               |> put_flash(:info, gettext("Catch-all rule added."))
+               |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models/routing")}
+
+            {:error, _changeset} ->
+              {:noreply, put_flash(socket, :error, gettext("Could not add catch-all rule."))}
+          end
+      end
+    end
+  end
+
+  def handle_event("delete_routing_rule", %{"id" => rule_id}, socket) do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case TranslationRouting.get_rule(rule_id, account.id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Rule not found."))}
+
+        rule ->
+          case TranslationRouting.delete_rule(account, user, rule) do
+            {:ok, _} ->
+              {:noreply,
+               socket
+               |> put_flash(:info, gettext("Routing rule removed."))
+               |> push_patch(to: ~p"/#{socket.assigns.handle}/-/settings/models/routing")}
+
+            {:error, _} ->
+              {:noreply, put_flash(socket, :error, gettext("Could not remove routing rule."))}
+          end
+      end
+    end
+  end
+
+  def handle_event("move_routing_rule", %{"id" => rule_id, "direction" => direction}, socket)
+      when direction in ["up", "down"] do
+    unless socket.assigns.is_admin do
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
+    else
+      account = socket.assigns.account
+      user = socket.assigns.current_user
+
+      case TranslationRouting.get_rule(rule_id, account.id) do
+        nil ->
+          {:noreply, put_flash(socket, :error, gettext("Rule not found."))}
+
+        rule ->
+          _ =
+            TranslationRouting.move_rule(account, user, rule, String.to_existing_atom(direction))
+
+          {:noreply,
+           push_patch(socket, to: ~p"/#{socket.assigns.handle}/-/settings/models/routing")}
       end
     end
   end
@@ -3542,6 +3802,15 @@ defmodule GlossiaWeb.DashboardLive do
           apps_sort_dir={assigns[:apps_sort_dir] || "desc"}
           available_filters={assigns[:available_filters] || []}
           active_filters={assigns[:active_filters] || []}
+        />
+      <% :llm_routing -> %>
+        <.llm_routing_page
+          handle={@handle}
+          rules={assigns[:routing_rules] || []}
+          available_models={assigns[:routing_available_models] || []}
+          routing_form={assigns[:routing_form]}
+          locale_options={assigns[:routing_locale_options] || []}
+          editing_routing_rule_id={assigns[:editing_routing_rule_id]}
         />
       <% action when action in [:llm_models, :llm_model_new, :llm_model_edit] -> %>
         <.llm_models_page
@@ -12431,12 +12700,10 @@ defmodule GlossiaWeb.DashboardLive do
               </Noora.Card.card_section>
             </div>
 
-            <div class="voice-section-divider"></div>
-
-            <div class="api-action-section">
-              <div class="api-action-info">
-                <h2>{gettext("Account default")}</h2>
-                <p>
+            <Noora.Card.card_section data-part="account-default-card-section">
+              <div data-part="header">
+                <span data-part="title">{gettext("Account default")}</span>
+                <span data-part="subtitle">
                   <%= if @editing_model.default do %>
                     {gettext(
                       "This model is used for project setup and translations whose L10N.md configuration does not name a model handle."
@@ -12446,44 +12713,46 @@ defmodule GlossiaWeb.DashboardLive do
                       "Make this the fallback for project setup and translations whose L10N.md configuration does not name a model handle."
                     )}
                   <% end %>
-                </p>
+                </span>
               </div>
-              <Noora.Badge.badge
-                :if={@editing_model.default}
-                label={gettext("Default")}
-                color="primary"
-                style="light-fill"
-              />
-              <Noora.Button.button
-                :if={not @editing_model.default}
-                type="button"
-                label={gettext("Make default")}
-                variant="secondary"
-                size="medium"
-                phx-click="set_default_model"
-                phx-value-id={@editing_model.id}
-              />
-            </div>
+              <div data-part="content">
+                <Noora.Badge.badge
+                  :if={@editing_model.default}
+                  label={gettext("Default")}
+                  color="primary"
+                  style="light-fill"
+                />
+                <Noora.Button.button
+                  :if={not @editing_model.default}
+                  type="button"
+                  label={gettext("Make default")}
+                  variant="secondary"
+                  size="medium"
+                  phx-click="set_default_model"
+                  phx-value-id={@editing_model.id}
+                />
+              </div>
+            </Noora.Card.card_section>
 
-            <div class="voice-section-divider"></div>
-
-            <div class="api-action-section api-action-danger">
-              <div class="api-action-info">
-                <h2>{gettext("Delete model")}</h2>
-                <p>
+            <Noora.Card.card_section data-part="delete-model-card-section">
+              <div data-part="header">
+                <span data-part="title">{gettext("Delete model")}</span>
+                <span data-part="subtitle">
                   {gettext("Permanently remove this model configuration. This cannot be undone.")}
-                </p>
+                </span>
               </div>
-              <Noora.Button.button
-                type="button"
-                label={gettext("Delete model")}
-                variant="destructive"
-                size="medium"
-                phx-click="delete_model"
-                phx-value-id={@editing_model.id}
-                data-confirm={gettext("Are you sure you want to delete this model?")}
-              />
-            </div>
+              <div data-part="content">
+                <Noora.Button.button
+                  type="button"
+                  label={gettext("Delete model")}
+                  variant="destructive"
+                  size="medium"
+                  phx-click="delete_model"
+                  phx-value-id={@editing_model.id}
+                  data-confirm={gettext("Are you sure you want to delete this model?")}
+                />
+              </div>
+            </Noora.Card.card_section>
 
             <.form_save_bar
               id="model-edit-save-bar"
@@ -12589,6 +12858,266 @@ defmodule GlossiaWeb.DashboardLive do
           </div>
       <% end %>
     </div>
+    """
+  end
+
+  attr(:handle, :string, required: true)
+  attr(:rules, :list, default: [])
+  attr(:available_models, :list, default: [])
+  attr(:routing_form, :any, default: nil)
+  attr(:locale_options, :list, default: [])
+  attr(:editing_routing_rule_id, :any, default: nil)
+
+  defp llm_routing_page(assigns) do
+    ~H"""
+    <div id="llm-routing-page" class="dash-page">
+      <div class="noora-settings-list-page">
+        <div data-part="page-header">
+          <div data-part="heading">
+            <h1 data-part="title">{gettext("Routing")}</h1>
+            <span data-part="subtitle">
+              {gettext(
+                "Route translations to different models based on the target locale. Rules run top to bottom; the first match wins. A translation that hits no rule uses the account default."
+              )}
+            </span>
+          </div>
+          <div :if={@available_models != []} data-part="actions">
+            <Noora.ButtonDropdown.button_dropdown
+              id="add-routing-rule-button"
+              label={gettext("Add rule")}
+              size="medium"
+              align="end"
+              phx-click={
+                Phoenix.LiveView.JS.dispatch("phx:open-modal",
+                  detail: %{id: "add-routing-rule-modal"}
+                )
+              }
+            >
+              <:icon_left><Noora.Icon.plus /></:icon_left>
+              <Noora.Dropdown.dropdown_item
+                value="add-catch-all"
+                label={gettext("Add catch-all rule")}
+                on_click="quick_add_catch_all"
+              >
+                <:left_icon><Noora.Icon.world /></:left_icon>
+              </Noora.Dropdown.dropdown_item>
+            </Noora.ButtonDropdown.button_dropdown>
+          </div>
+        </div>
+
+        <.add_routing_rule_modal
+          :if={@available_models != []}
+          routing_form={@routing_form}
+          available_models={@available_models}
+          locale_options={@locale_options}
+          editing_rule_id={@editing_routing_rule_id}
+        />
+
+        <%= if @available_models == [] do %>
+          <Noora.Card.card_section class="noora-settings-list-card">
+            <Noora.Table.table_empty_state>
+              <.noora_empty_state
+                icon="git_branch"
+                title={gettext("Add a model first")}
+                subtitle={
+                  gettext(
+                    "Routing rules point at configured models. Add one under Models to get started."
+                  )
+                }
+              />
+            </Noora.Table.table_empty_state>
+          </Noora.Card.card_section>
+        <% else %>
+          <Noora.Card.card_section class="noora-settings-list-card">
+            <Noora.Table.table
+              id="routing-rules"
+              rows={Enum.with_index(@rules)}
+              row_key={fn {rule, _idx} -> "routing-rule-#{rule.id}" end}
+            >
+              <:col :let={{_rule, index}} label={gettext("Order")}>
+                <Noora.Table.text_cell label={to_string(index + 1)} />
+              </:col>
+              <:col :let={{rule, _idx}} label={gettext("Target locale")}>
+                <%= if rule.target_locale in [nil, ""] do %>
+                  <Noora.Badge.badge label={gettext("Any locale")} color="neutral" style="light-fill" />
+                <% else %>
+                  <Noora.Table.text_cell label={rule.target_locale} />
+                <% end %>
+              </:col>
+              <:col :let={{rule, _idx}} label={gettext("Model")}>
+                <Noora.Table.text_cell icon="api" label={rule.llm_model.handle} />
+              </:col>
+              <:col :let={{rule, _idx}} label={gettext("Provider model")}>
+                <Noora.Table.text_cell label={rule.llm_model.model} />
+              </:col>
+              <:col :let={{rule, index}} label="">
+                <Noora.Table.button_cell>
+                  <:button>
+                    <Noora.Dropdown.dropdown
+                      id={"routing-rule-actions-#{rule.id}"}
+                      icon_only={true}
+                      size="medium"
+                    >
+                      <:icon><Noora.Icon.dots_vertical /></:icon>
+                      <Noora.Dropdown.dropdown_item
+                        value="edit"
+                        label={gettext("Edit")}
+                        on_click="edit_routing_rule"
+                        phx-value-id={rule.id}
+                      >
+                        <:left_icon><Noora.Icon.pencil /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
+                      <Noora.LineDivider.line_divider />
+                      <Noora.Dropdown.dropdown_item
+                        :if={index > 0}
+                        value="move-up"
+                        label={gettext("Move up")}
+                        on_click="move_routing_rule"
+                        phx-value-id={rule.id}
+                        phx-value-direction="up"
+                      >
+                        <:left_icon><Noora.Icon.chevron_up /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
+                      <Noora.Dropdown.dropdown_item
+                        :if={index < length(@rules) - 1}
+                        value="move-down"
+                        label={gettext("Move down")}
+                        on_click="move_routing_rule"
+                        phx-value-id={rule.id}
+                        phx-value-direction="down"
+                      >
+                        <:left_icon><Noora.Icon.chevron_down /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
+                      <Noora.LineDivider.line_divider />
+                      <Noora.Dropdown.dropdown_item
+                        value="delete"
+                        label={gettext("Delete")}
+                        on_click="delete_routing_rule"
+                        phx-value-id={rule.id}
+                        data-confirm={gettext("Remove this routing rule?")}
+                      >
+                        <:left_icon><Noora.Icon.trash /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
+                    </Noora.Dropdown.dropdown>
+                  </:button>
+                </Noora.Table.button_cell>
+              </:col>
+              <:empty_state>
+                <Noora.Table.table_empty_state>
+                  <.noora_empty_state
+                    icon="git_branch"
+                    title={gettext("No routing rules yet")}
+                    subtitle={
+                      gettext("Add a rule below to route certain locales to a specific model.")
+                    }
+                  />
+                </Noora.Table.table_empty_state>
+              </:empty_state>
+            </Noora.Table.table>
+          </Noora.Card.card_section>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  attr(:routing_form, :any, required: true)
+  attr(:available_models, :list, required: true)
+  attr(:locale_options, :list, required: true)
+  attr(:editing_rule_id, :any, default: nil)
+
+  defp add_routing_rule_modal(assigns) do
+    ~H"""
+    <.form
+      for={@routing_form}
+      id="routing-rule-form"
+      phx-submit={if @editing_rule_id, do: "update_routing_rule", else: "create_routing_rule"}
+    >
+      <input
+        :if={@editing_rule_id}
+        type="hidden"
+        name="routing[id]"
+        value={@editing_rule_id}
+      />
+      <Noora.Modal.modal
+        id="add-routing-rule-modal"
+        title={
+          if @editing_rule_id,
+            do: gettext("Edit routing rule"),
+            else: gettext("Add routing rule")
+        }
+        header_size="large"
+        on_dismiss="close-add-routing-rule-modal"
+      >
+        <:trigger :let={attrs}>
+          <span {attrs} hidden aria-hidden="true"></span>
+        </:trigger>
+        <div data-part="fields">
+          <div class="voice-field">
+            <Noora.Label.label label={gettext("Target locale")} />
+            <Noora.Select.select
+              id="routing-target-locale-select"
+              name="routing[target_locale]"
+              label={gettext("Any locale")}
+              value={
+                case to_string(@routing_form[:target_locale].value || "") do
+                  "" -> "__any__"
+                  code -> code
+                end
+              }
+            >
+              <:item value="__any__" label={gettext("Any locale")} icon="world" />
+              <:item
+                :for={{code, name} <- @locale_options}
+                value={code}
+                label={"#{name} (#{code})"}
+                icon="language"
+              />
+            </Noora.Select.select>
+            <Noora.HintText.hint_text label={gettext("Leave unset to make this a catch-all rule.")} />
+          </div>
+          <div class="voice-field">
+            <Noora.Label.label label={gettext("Model")} required />
+            <Noora.Select.select
+              id="routing-model-select"
+              name="routing[llm_model_id]"
+              label={gettext("Choose a model")}
+              value={to_string(@routing_form[:llm_model_id].value || "")}
+            >
+              <:item
+                :for={model <- @available_models}
+                value={model.id}
+                label={"#{model.handle} — #{model.model}"}
+                icon="api"
+              />
+            </Noora.Select.select>
+          </div>
+        </div>
+        <:footer>
+          <Noora.Modal.modal_footer>
+            <:action>
+              <Noora.Button.button
+                type="button"
+                label={gettext("Cancel")}
+                variant="secondary"
+                phx-click="close-add-routing-rule-modal"
+              />
+            </:action>
+            <:action>
+              <Noora.Button.button
+                type="submit"
+                label={
+                  if @editing_rule_id,
+                    do: gettext("Save changes"),
+                    else: gettext("Add rule")
+                }
+                variant="primary"
+              />
+            </:action>
+          </Noora.Modal.modal_footer>
+        </:footer>
+      </Noora.Modal.modal>
+    </.form>
     """
   end
 

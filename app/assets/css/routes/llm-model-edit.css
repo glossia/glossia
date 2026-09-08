@@ -1,0 +1,55 @@
+/*
+ * Model edit action cards ("Account default", "Delete model"). Mirrors the
+ * Tuist account_settings layout: each card_section is a flex row with a
+ * title/subtitle header on the left and the action on the right.
+ *
+ * `.noora-card__section` already ships the surface, border-radius, box-shadow,
+ * and default padding; override only the layout (row instead of column) and
+ * move the padding down to the two inner parts so the row aligns cleanly.
+ */
+#model-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+
+  & > [data-part="account-default-card-section"],
+  & > [data-part="delete-model-card-section"] {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--noora-spacing-6);
+    padding: var(--noora-spacing-0);
+
+    & > [data-part="header"] {
+      display: flex;
+      flex-grow: 1;
+      flex-direction: column;
+      gap: var(--noora-spacing-2);
+      padding: var(--noora-spacing-7);
+
+      & > [data-part="title"] {
+        color: var(--noora-surface-label-primary);
+        font: var(--noora-font-weight-medium) var(--noora-font-heading-medium);
+      }
+
+      & > [data-part="subtitle"] {
+        color: var(--noora-surface-label-secondary);
+        font: var(--noora-font-body-medium);
+      }
+    }
+
+    & > [data-part="content"] {
+      display: flex;
+      align-items: center;
+      gap: var(--noora-spacing-3);
+      padding: var(--noora-spacing-7);
+    }
+  }
+
+  & > [data-part="delete-model-card-section"] {
+    box-shadow: 0 0 0 var(--space-px) var(--color-error);
+
+    & > [data-part="header"] > [data-part="title"] {
+      color: var(--color-error);
+    }
+  }
+}

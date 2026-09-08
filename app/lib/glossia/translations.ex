@@ -178,7 +178,7 @@ defmodule Glossia.Translations do
 
   defp prepare(account, payload, opts \\ []) do
     with {:ok, input} <- normalize(payload),
-         {:ok, credential} <- resolve_credential(account, input.model, opts) do
+         {:ok, credential} <- resolve_credential(account, input.model, input.locale, opts) do
       system_prompt = Prompt.build_system_prompt(input)
 
       user_prompt =
@@ -199,10 +199,15 @@ defmodule Glossia.Translations do
     end
   end
 
-  defp resolve_credential(account, model_handle, opts) do
+  defp resolve_credential(account, model_handle, target_locale, opts) do
+    resolver_opts = [target_locale: target_locale]
+
     case Keyword.fetch(opts, :credential_node) do
-      {:ok, credential_node} -> Credentials.resolve_on(credential_node, account, model_handle)
-      :error -> Credentials.resolve(account, model_handle)
+      {:ok, credential_node} ->
+        Credentials.resolve_on(credential_node, account, model_handle, resolver_opts)
+
+      :error ->
+        Credentials.resolve(account, model_handle, resolver_opts)
     end
   end
 

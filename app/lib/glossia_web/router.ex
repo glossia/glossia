@@ -476,6 +476,7 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/settings/apps/:app_id", DashboardLive, :api_app_edit
       live "/:handle/-/settings/models", DashboardLive, :llm_models
       live "/:handle/-/settings/models/new", DashboardLive, :llm_model_new
+      live "/:handle/-/settings/models/routing", DashboardLive, :llm_routing
       live "/:handle/-/settings/models/:model_id", DashboardLive, :llm_model_edit
       live "/:handle/:project/-/settings", DashboardLive, :project_settings
       live "/:handle/:project/-/settings/analytics", DashboardLive, :project_analytics_settings

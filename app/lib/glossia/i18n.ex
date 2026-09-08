@@ -90,9 +90,50 @@ defmodule Glossia.I18n do
     li mh na ng oj sm tl tw ty
   )
 
+  # Curated common translation-target locales for pickers (routing rules, etc.).
+  # Not the same set as `@locales` (which is the locales our own surfaces are
+  # localized in). This is the pragmatic subset teams actually translate their
+  # content into: the eight Glossia locales plus the next twenty or so most
+  # common targets, presented with their English name for a UI dropdown.
+  @common_translation_targets [
+    {"en", "English"},
+    {"es", "Spanish"},
+    {"es-419", "Spanish (Latin America)"},
+    {"fr", "French"},
+    {"fr-CA", "French (Canada)"},
+    {"de", "German"},
+    {"it", "Italian"},
+    {"pt-BR", "Portuguese (Brazil)"},
+    {"pt-PT", "Portuguese (Portugal)"},
+    {"nl", "Dutch"},
+    {"pl", "Polish"},
+    {"sv", "Swedish"},
+    {"da", "Danish"},
+    {"no", "Norwegian"},
+    {"fi", "Finnish"},
+    {"cs", "Czech"},
+    {"hu", "Hungarian"},
+    {"ro", "Romanian"},
+    {"tr", "Turkish"},
+    {"ru", "Russian"},
+    {"uk", "Ukrainian"},
+    {"ar", "Arabic"},
+    {"he", "Hebrew"},
+    {"hi", "Hindi"},
+    {"th", "Thai"},
+    {"vi", "Vietnamese"},
+    {"id", "Indonesian"},
+    {"ja", "Japanese"},
+    {"ko", "Korean"},
+    {"zh-Hans", "Chinese (Simplified)"},
+    {"zh-Hant", "Chinese (Traditional)"}
+  ]
+
   def default_locale, do: @default_locale
 
   def locales, do: Enum.map(@locales, & &1.locale)
+
+  def common_translation_targets, do: @common_translation_targets
 
   @doc """
   Every language identifier that must never become an account handle, because
