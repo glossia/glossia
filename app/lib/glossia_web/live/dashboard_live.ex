@@ -39,7 +39,8 @@ defmodule GlossiaWeb.DashboardLive do
   # Handle params (dispatches per live_action)
   # ---------------------------------------------------------------------------
 
-  def handle_params(params, _uri, socket) do
+  def handle_params(params, uri, socket) do
+    socket = assign(socket, :uri, URI.parse(uri))
     socket = apply_action(socket, socket.assigns.live_action, params)
 
     socket =
@@ -1027,6 +1028,9 @@ defmodule GlossiaWeb.DashboardLive do
       og_image_url: og_image_url,
       translation_overview: translation_overview,
       translations: [],
+      translations_meta: empty_translations_meta(),
+      translations_total: 0,
+      translations_total_pages: 1,
       translations_search: "",
       translations_sort_key: "inserted_at",
       translations_sort_dir: "desc",
@@ -3605,12 +3609,15 @@ defmodule GlossiaWeb.DashboardLive do
         <.project_translations_page
           handle={@handle}
           project={@project}
+          uri={@uri}
           translations={assigns[:translations] || []}
+          translations_meta={assigns[:translations_meta] || empty_translations_meta()}
           translations_total={assigns[:translations_total] || 0}
+          translations_total_pages={assigns[:translations_total_pages] || 1}
+          translations_page={assigns[:translations_page] || 1}
           translations_search={assigns[:translations_search] || ""}
           translations_sort_key={assigns[:translations_sort_key] || "inserted_at"}
           translations_sort_dir={assigns[:translations_sort_dir] || "desc"}
-          translations_page={assigns[:translations_page] || 1}
           translations_active_filters={assigns[:translations_active_filters] || []}
           available_filters={assigns[:available_filters] || []}
           active_filters={assigns[:active_filters] || []}
@@ -3635,9 +3642,13 @@ defmodule GlossiaWeb.DashboardLive do
           account={@account}
           project={assigns[:project]}
           project_name={@project_name}
+          uri={@uri}
           setup_events={assigns[:setup_events] || []}
           translation_overview={assigns[:translation_overview] || empty_translation_overview()}
           translations={assigns[:translations] || []}
+          translations_meta={assigns[:translations_meta] || empty_translations_meta()}
+          translations_total_pages={assigns[:translations_total_pages] || 1}
+          translations_page={assigns[:translations_page] || 1}
           translations_search={assigns[:translations_search] || ""}
           translations_sort_key={assigns[:translations_sort_key] || "inserted_at"}
           translations_sort_dir={assigns[:translations_sort_dir] || "desc"}
@@ -6590,8 +6601,12 @@ defmodule GlossiaWeb.DashboardLive do
           <.project_activity_card
             handle={@handle}
             project={@project}
+            uri={@uri}
             overview={@translation_overview}
             translations={@translations}
+            translations_meta={@translations_meta}
+            translations_total_pages={@translations_total_pages}
+            translations_page={@translations_page}
             translations_search={@translations_search}
             translations_sort_key={@translations_sort_key}
             translations_sort_dir={@translations_sort_dir}
@@ -7155,6 +7170,26 @@ defmodule GlossiaWeb.DashboardLive do
               </Noora.Table.table_empty_state>
             </:empty_state>
           </Noora.Table.table>
+          <div :if={@translations_total_pages > 1} class="glossia-pagination">
+            <Noora.PaginationGroup.pagination_group
+              current_page={@translations_page}
+              number_of_pages={@translations_total_pages}
+              page_patch={
+                fn page ->
+                  project_translations_page_patch(
+                    @handle,
+                    @project.handle,
+                    @translations_search,
+                    @translations_sort_key,
+                    @translations_sort_dir,
+                    @active_filters,
+                    page,
+                    :overview
+                  )
+                end
+              }
+            />
+          </div>
         </Noora.Card.card_section>
       </Noora.Card.card>
     </div>
@@ -7206,17 +7241,32 @@ defmodule GlossiaWeb.DashboardLive do
     %{runs: 0, hit_rate: 0.0, content_hits: 0, content_misses: 0, days: []}
   end
 
+  defp empty_translations_meta do
+    %Flop.Meta{
+      flop: %Flop{},
+      schema: Glossia.TranslationSessions.TranslationSession,
+      current_page: 1,
+      total_count: 0,
+      total_pages: 0,
+      has_next_page?: false,
+      has_previous_page?: false
+    }
+  end
+
   defp format_content_hit_rate(hit_rate),
     do: :erlang.float_to_binary(hit_rate / 1, decimals: 1) <> "%"
 
   attr(:handle, :string, required: true)
   attr(:project, :any, required: true)
+  attr(:uri, :any, required: true)
   attr(:translations, :list, default: [])
+  attr(:translations_meta, :any, default: nil)
   attr(:translations_total, :integer, default: 0)
+  attr(:translations_total_pages, :integer, default: 1)
+  attr(:translations_page, :integer, default: 1)
   attr(:translations_search, :string, default: "")
   attr(:translations_sort_key, :string, default: "inserted_at")
   attr(:translations_sort_dir, :string, default: "desc")
-  attr(:translations_page, :integer, default: 1)
   attr(:translations_active_filters, :any, default: [])
   attr(:available_filters, :list, default: [])
   attr(:active_filters, :list, default: [])
@@ -7347,6 +7397,26 @@ defmodule GlossiaWeb.DashboardLive do
             </Noora.Table.table_empty_state>
           </:empty_state>
         </Noora.Table.table>
+        <div :if={@translations_total_pages > 1} class="glossia-pagination">
+          <Noora.PaginationGroup.pagination_group
+            current_page={@translations_page}
+            number_of_pages={@translations_total_pages}
+            page_patch={
+              fn page ->
+                project_translations_page_patch(
+                  @handle,
+                  @project.handle,
+                  @translations_search,
+                  @translations_sort_key,
+                  @translations_sort_dir,
+                  @active_filters,
+                  page,
+                  :translations
+                )
+              end
+            }
+          />
+        </div>
       </Noora.Card.card_section>
     </div>
     """
@@ -7382,6 +7452,36 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp project_translations_path(project_handle, _page),
     do: "/" <> project_handle <> "/-/translations"
+
+  defp project_translations_page_patch(
+         handle,
+         project_handle,
+         search,
+         sort_key,
+         sort_dir,
+         active_filters,
+         page,
+         section
+       ) do
+    prefix = "ts"
+
+    query_params =
+      []
+      |> maybe_add_param(prefix <> "q", search, "")
+      |> maybe_add_param(prefix <> "sort", sort_key, "inserted_at")
+      |> maybe_add_param(prefix <> "dir", sort_dir, "desc")
+      |> maybe_add_param(prefix <> "page", page, 1)
+      |> Map.new()
+      |> Map.merge(Filter.Operations.encode_filters_to_query(active_filters))
+
+    path = "/" <> handle <> project_translations_path(project_handle, section)
+
+    if map_size(query_params) == 0 do
+      path
+    else
+      path <> "?" <> URI.encode_query(query_params)
+    end
+  end
 
   defp translation_session_outcome_badge(%{status: status}) when status in ["pending", "running"],
     do: translation_session_status_badge(status)
@@ -11317,6 +11417,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp apply_project_translation_params(socket, params, path) do
     prefix = "ts"
+    page_size = 25
     handle = socket.assigns.handle
     search = Map.get(params, prefix <> "q", "")
     sort_key = Map.get(params, prefix <> "sort", "inserted_at")
@@ -11331,7 +11432,7 @@ defmodule GlossiaWeb.DashboardLive do
     flop_params =
       %{
         "page" => page,
-        "page_size" => 25,
+        "page_size" => page_size,
         "order_by" => [Atom.to_string(order_by)],
         "order_directions" => [Atom.to_string(order_dir)]
       }
@@ -11339,15 +11440,23 @@ defmodule GlossiaWeb.DashboardLive do
 
     project = socket.assigns.project
 
-    {sessions, total} =
+    {sessions, meta} =
       case list_project_translation_sessions(project, search, flop_params) do
-        {:ok, {sessions, meta}} -> {sessions, meta.total_count}
-        _ -> {[], 0}
+        {:ok, {sessions, meta}} ->
+          {sessions, meta}
+
+        _ ->
+          {[], empty_translations_meta()}
       end
+
+    total = meta.total_count || length(sessions)
+    total_pages = max(meta.total_pages || div(total + page_size - 1, page_size), 1)
 
     assign(socket,
       translations: sessions,
+      translations_meta: meta,
       translations_total: total,
+      translations_total_pages: total_pages,
       translations_search: search,
       translations_sort_key: sort_key,
       translations_sort_dir: sort_dir,

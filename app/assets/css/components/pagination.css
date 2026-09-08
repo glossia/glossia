@@ -1,0 +1,5 @@
+.glossia-pagination {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--noora-spacing-4);
+}

@@ -1314,6 +1314,7 @@ defmodule Glossia.Seeds do
 
     refresh_seeded_translation_outcomes!(project)
     ensure_translation_dashboard_history!(project, user)
+    ensure_translation_pagination_history!(project, user)
   end
 
   defp seed_translation_sessions!(%Project{} = project, %User{} = user) do
@@ -1560,6 +1561,93 @@ defmodule Glossia.Seeds do
 
   defp translation_seed_summary(_outcome, translated, hits),
     do: "Translated #{translated} content items and reused #{hits} content hits."
+
+  # Seeds enough rows to exercise the cursor pagination on the Recent activity
+  # table. The page size is 25 — 120 rows gives a healthy 5 pages of history.
+  defp ensure_translation_pagination_history!(%Project{} = project, %User{} = user) do
+    total = 120
+
+    inserted =
+      Repo.one(
+        from s in TranslationSession,
+          where: s.project_id == ^project.id and like(s.commit_sha, "page%"),
+          select: count(s.id)
+      )
+
+    if inserted < total do
+      seed_translation_pagination_history!(project, user, total)
+    end
+  end
+
+  defp seed_translation_pagination_history!(%Project{} = project, %User{} = user, total) do
+    now = DateTime.utc_now()
+
+    outcomes = [
+      {"translated", "completed"},
+      {"content_hit", "completed"},
+      {"translated", "completed"},
+      {"failed", "failed"},
+      {"cancelled", "cancelled"},
+      {"superseded", "cancelled"}
+    ]
+
+    messages = [
+      "Refresh the pricing page",
+      "Ship the winter blog series",
+      "Localize the onboarding wizard",
+      "Update the terminology handbook",
+      "Publish the release notes",
+      "Rework the getting started guide",
+      "Localize the settings screens",
+      "Translate the changelog",
+      "Update the docs sidebar",
+      "Localize the new billing FAQ",
+      "Refresh the marketing homepage",
+      "Correct translation of a button label",
+      "Publish the roadmap page",
+      "Ship the developer changelog",
+      "Localize the docs quickstart"
+    ]
+
+    Enum.each(1..total, fn i ->
+      commit_sha = "page" <> String.pad_leading(Integer.to_string(i), 4, "0")
+
+      case Repo.get_by(TranslationSession, project_id: project.id, commit_sha: commit_sha) do
+        %TranslationSession{} ->
+          :ok
+
+        nil ->
+          {outcome, status} = Enum.at(outcomes, rem(i, length(outcomes)))
+          message = Enum.at(messages, rem(i, length(messages))) <> " (##{i})"
+
+          translated = rem(i * 7, 9)
+          hits = rem(i * 3, 11)
+          minutes_ago = i * 37 + 20
+          happened_at = DateTime.add(now, -minutes_ago * 60, :second)
+          runtime_seconds = 90 + rem(i * 13, 300)
+
+          attrs = %{
+            commit_sha: commit_sha,
+            commit_message: message,
+            status: status,
+            outcome: outcome,
+            translated_content_count: translated,
+            content_hit_count: hits,
+            source_language: "en",
+            target_languages: Enum.take(["es", "fr", "de", "ja", "pt", "it"], 1 + rem(i, 4)),
+            summary: translation_seed_summary(outcome, translated, hits),
+            started_at: happened_at,
+            completed_at: DateTime.add(happened_at, runtime_seconds, :second)
+          }
+
+          {:ok, session} = TranslationSessions.create_session(user.account, project, attrs)
+
+          session
+          |> Ecto.Changeset.change(inserted_at: happened_at, updated_at: happened_at)
+          |> Repo.update!()
+      end
+    end)
+  end
 
   # ----------------------------------------------------------------------------
   # Sandboxes
