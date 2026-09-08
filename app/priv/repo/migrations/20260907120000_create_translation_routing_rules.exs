@@ -7,8 +7,7 @@ defmodule Glossia.Repo.Migrations.CreateTranslationRoutingRules do
 
       add :account_id, references(:accounts, type: :uuid, on_delete: :delete_all), null: false
 
-      add :llm_model_id, references(:llm_models, type: :uuid, on_delete: :delete_all),
-        null: false
+      add :llm_model_id, references(:llm_models, type: :uuid, on_delete: :delete_all), null: false
 
       add :position, :integer, null: false
       add :target_locale, :string

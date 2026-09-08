@@ -1605,17 +1605,18 @@ defmodule GlossiaWeb.DashboardLive do
 
       case model_id && LLMModels.get_model(model_id, account.id) do
         nil ->
-          {:noreply,
-           put_flash(socket, :error, gettext("Select a model before adding a rule."))}
+          {:noreply, put_flash(socket, :error, gettext("Select a model before adding a rule."))}
 
         model ->
-          attrs = %{"target_locale" =>
-             case params["target_locale"] do
-               "__any__" -> nil
-               "" -> nil
-               nil -> nil
-               value when is_binary(value) -> value
-             end}
+          attrs = %{
+            "target_locale" =>
+              case params["target_locale"] do
+                "__any__" -> nil
+                "" -> nil
+                nil -> nil
+                value when is_binary(value) -> value
+              end
+          }
 
           case TranslationRouting.create_rule(account, user, model, attrs) do
             {:ok, _rule} ->
@@ -1805,7 +1806,8 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply, put_flash(socket, :error, gettext("Rule not found."))}
 
         rule ->
-          _ = TranslationRouting.move_rule(account, user, rule, String.to_existing_atom(direction))
+          _ =
+            TranslationRouting.move_rule(account, user, rule, String.to_existing_atom(direction))
 
           {:noreply,
            push_patch(socket, to: ~p"/#{socket.assigns.handle}/-/settings/models/routing")}
@@ -12872,7 +12874,6 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-
   attr(:handle, :string, required: true)
   attr(:rules, :list, default: [])
   attr(:available_models, :list, default: [])
@@ -12932,7 +12933,9 @@ defmodule GlossiaWeb.DashboardLive do
                 icon="git_branch"
                 title={gettext("Add a model first")}
                 subtitle={
-                  gettext("Routing rules point at configured models. Add one under Models to get started.")
+                  gettext(
+                    "Routing rules point at configured models. Add one under Models to get started."
+                  )
                 }
               />
             </Noora.Table.table_empty_state>
@@ -12968,46 +12971,46 @@ defmodule GlossiaWeb.DashboardLive do
                       icon_only={true}
                       size="medium"
                     >
-                    <:icon><Noora.Icon.dots_vertical /></:icon>
-                    <Noora.Dropdown.dropdown_item
-                      value="edit"
-                      label={gettext("Edit")}
-                      on_click="edit_routing_rule"
-                      phx-value-id={rule.id}
-                    >
-                      <:left_icon><Noora.Icon.pencil /></:left_icon>
-                    </Noora.Dropdown.dropdown_item>
-                    <Noora.LineDivider.line_divider />
-                    <Noora.Dropdown.dropdown_item
-                      :if={index > 0}
-                      value="move-up"
-                      label={gettext("Move up")}
-                      on_click="move_routing_rule"
-                      phx-value-id={rule.id}
-                      phx-value-direction="up"
-                    >
-                      <:left_icon><Noora.Icon.chevron_up /></:left_icon>
-                    </Noora.Dropdown.dropdown_item>
-                    <Noora.Dropdown.dropdown_item
-                      :if={index < length(@rules) - 1}
-                      value="move-down"
-                      label={gettext("Move down")}
-                      on_click="move_routing_rule"
-                      phx-value-id={rule.id}
-                      phx-value-direction="down"
-                    >
-                      <:left_icon><Noora.Icon.chevron_down /></:left_icon>
-                    </Noora.Dropdown.dropdown_item>
-                    <Noora.LineDivider.line_divider />
-                    <Noora.Dropdown.dropdown_item
-                      value="delete"
-                      label={gettext("Delete")}
-                      on_click="delete_routing_rule"
-                      phx-value-id={rule.id}
-                      data-confirm={gettext("Remove this routing rule?")}
-                    >
-                      <:left_icon><Noora.Icon.trash /></:left_icon>
-                    </Noora.Dropdown.dropdown_item>
+                      <:icon><Noora.Icon.dots_vertical /></:icon>
+                      <Noora.Dropdown.dropdown_item
+                        value="edit"
+                        label={gettext("Edit")}
+                        on_click="edit_routing_rule"
+                        phx-value-id={rule.id}
+                      >
+                        <:left_icon><Noora.Icon.pencil /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
+                      <Noora.LineDivider.line_divider />
+                      <Noora.Dropdown.dropdown_item
+                        :if={index > 0}
+                        value="move-up"
+                        label={gettext("Move up")}
+                        on_click="move_routing_rule"
+                        phx-value-id={rule.id}
+                        phx-value-direction="up"
+                      >
+                        <:left_icon><Noora.Icon.chevron_up /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
+                      <Noora.Dropdown.dropdown_item
+                        :if={index < length(@rules) - 1}
+                        value="move-down"
+                        label={gettext("Move down")}
+                        on_click="move_routing_rule"
+                        phx-value-id={rule.id}
+                        phx-value-direction="down"
+                      >
+                        <:left_icon><Noora.Icon.chevron_down /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
+                      <Noora.LineDivider.line_divider />
+                      <Noora.Dropdown.dropdown_item
+                        value="delete"
+                        label={gettext("Delete")}
+                        on_click="delete_routing_rule"
+                        phx-value-id={rule.id}
+                        data-confirm={gettext("Remove this routing rule?")}
+                      >
+                        <:left_icon><Noora.Icon.trash /></:left_icon>
+                      </Noora.Dropdown.dropdown_item>
                     </Noora.Dropdown.dropdown>
                   </:button>
                 </Noora.Table.button_cell>
@@ -13025,7 +13028,6 @@ defmodule GlossiaWeb.DashboardLive do
               </:empty_state>
             </Noora.Table.table>
           </Noora.Card.card_section>
-
         <% end %>
       </div>
     </div>
@@ -13059,7 +13061,6 @@ defmodule GlossiaWeb.DashboardLive do
         }
         header_size="large"
         on_dismiss="close-add-routing-rule-modal"
-        close_on_interact_outside={false}
       >
         <:trigger :let={attrs}>
           <span {attrs} hidden aria-hidden="true"></span>
@@ -13086,9 +13087,7 @@ defmodule GlossiaWeb.DashboardLive do
                 icon="language"
               />
             </Noora.Select.select>
-            <Noora.HintText.hint_text label={
-              gettext("Leave unset to make this a catch-all rule.")
-            } />
+            <Noora.HintText.hint_text label={gettext("Leave unset to make this a catch-all rule.")} />
           </div>
           <div class="voice-field">
             <Noora.Label.label label={gettext("Model")} required />

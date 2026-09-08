@@ -202,9 +202,18 @@ defmodule Glossia.TranslationRouting do
     a_position = a.position
     b_position = b.position
 
-    Repo.update_all(from(r in TranslationRoutingRule, where: r.id == ^a.id), set: [position: sentinel])
-    Repo.update_all(from(r in TranslationRoutingRule, where: r.id == ^b.id), set: [position: a_position])
-    Repo.update_all(from(r in TranslationRoutingRule, where: r.id == ^a.id), set: [position: b_position])
+    Repo.update_all(from(r in TranslationRoutingRule, where: r.id == ^a.id),
+      set: [position: sentinel]
+    )
+
+    Repo.update_all(from(r in TranslationRoutingRule, where: r.id == ^b.id),
+      set: [position: a_position]
+    )
+
+    Repo.update_all(from(r in TranslationRoutingRule, where: r.id == ^a.id),
+      set: [position: b_position]
+    )
+
     :ok
   end
 
