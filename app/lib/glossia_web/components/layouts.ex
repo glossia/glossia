@@ -78,11 +78,21 @@ defmodule GlossiaWeb.Layouts do
   @doc false
   def social_image_url(assigns) do
     assigns[:og_image_url] ||
+      private_social_image(assigns) ||
       Glossia.OgImage.marketing_url(%{
         category: assigns[:og_image_category] || "page",
         summary: assigns[:page_description] || "",
         title: assigns[:page_title] || "Glossia"
       }) || Glossia.OgImage.fallback_url()
+  end
+
+  defp private_social_image(assigns) do
+    if assigns[:current_user] do
+      Glossia.OgImage.marketing_url(%{
+        title: "Your words. Every language.",
+        category: "Workspace"
+      })
+    end
   end
 
   @doc false

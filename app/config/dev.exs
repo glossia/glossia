@@ -125,8 +125,7 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# Keep local Chrome usable while running `mix phx.server`.
-# ChromicPDF runs a persistent headless Google Chrome process.
+# Enable the dedicated Carta browser pool with GLOSSIA_OG_IMAGES=true.
 config :glossia, Glossia.OgImage, enabled: false
 
 # Cloak encryption vault (deterministic dev key)

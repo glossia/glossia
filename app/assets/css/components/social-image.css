@@ -1,0 +1,72 @@
+#social-image {
+  --social-width: 1200px;
+  --social-height: 630px;
+  --social-title: 56px;
+  --social-body: 24px;
+  --social-logo: 160px;
+  --social-brand: 40px;
+  width: var(--social-width);
+  height: var(--social-height);
+  margin: var(--space-0);
+  padding: var(--space-12);
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: "Social Inter", sans-serif;
+  --noora-font-body: "Social Inter", sans-serif;
+  --noora-font-heading: "Social Inter", sans-serif;
+  --noora-font-body-small: var(--font-size-lg)/var(--leading-snug) "Social Inter", sans-serif;
+  --noora-font-body-xsmall: var(--font-size-sm)/var(--leading-snug) "Social Inter", sans-serif;
+
+  & [data-part="brand"] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--social-body);
+    font-weight: var(--weight-semibold);
+    & img { width: var(--social-brand); height: var(--social-brand); }
+  }
+  & [data-part="domain"] { margin-left: auto; color: var(--color-text-muted); font-size: var(--font-size-lg); }
+  & main { flex: 1; min-height: var(--space-0); display: flex; }
+  & .noora-card {
+    flex: 1;
+    overflow: hidden;
+    border-top: var(--space-1) solid var(--color-primary);
+    background: var(--color-surface);
+    & > [data-part="header"] { padding: var(--space-6) var(--space-8); }
+    & [data-part="title"] { text-transform: capitalize; font-size: var(--font-size-lg); }
+    & [data-part="icon"] { box-sizing: content-box; padding: var(--space-2); }
+  }
+  & .noora-card__section { flex: 1; display: flex; flex-direction: row; align-items: center; gap: var(--space-8); padding: var(--space-8); box-shadow: none; }
+  & [data-part="copy"] { flex: 1; min-width: var(--space-0); text-align: left; }
+  & h1 {
+    font-family: "Social Inter", sans-serif;
+    font-size: var(--social-title);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    margin: var(--space-0) var(--space-0) var(--space-6);
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  & p {
+    font-size: var(--social-body);
+    line-height: var(--leading-snug);
+    color: var(--color-text-muted);
+    margin: var(--space-0);
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  & [data-part="project-logo"] { width: var(--social-logo); height: var(--social-logo); object-fit: contain; border-radius: var(--radius-lg); }
+  & footer { display: flex; justify-content: space-between; font-size: var(--font-size-lg); color: var(--color-primary); }
+  & [data-part="languages"] { color: var(--color-text-muted); }
+}

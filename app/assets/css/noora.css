@@ -5,6 +5,7 @@
  * this file stays a thin manifest rather than a monolith. Because each block is
  * scoped to a unique #id, import order does not affect the cascade. */
 @import "./components/translation-progress.css";
+@import "./components/social-image.css";
 @import "./components/setup-progress.css";
 @import "./components/app-shell.css";
 @import "./components/model-picker.css";

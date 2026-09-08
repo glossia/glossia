@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1200" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:"
+    />
+    <style>
+      <%= Phoenix.HTML.raw(@styles) %>
+    </style>
+    <style>
+      <%= Phoenix.HTML.raw(@noora) %>
+    </style>
+    <style>
+      @font-face { font-family: "Social Inter"; src: url("<%= Phoenix.HTML.raw(@font) %>"); font-weight: 100 900; }
+    </style>
+  </head>
+  <body id="social-image">
+    <header data-part="brand">
+      <img src={@brand} alt="" />
+      <span>Glossia</span>
+      <span data-part="domain">glossia.ai</span>
+    </header>
+    <main>
+      <.card title={@category} icon="language">
+        <:actions><.badge label="Made for a world of words" color="primary" /></:actions>
+        <.card_section>
+          <div data-part="copy">
+            <h1>{@title}</h1>
+            <p>{@description}</p>
+          </div>
+          <img data-part="project-logo" src={@logo || @brand} alt="" />
+        </.card_section>
+      </.card>
+    </main>
+    <footer>
+      <span>Speak everyone's language.</span>
+      <span data-part="languages">Hello. Hola. Hallo. Bonjour. Ciao.</span>
+    </footer>
+  </body>
+</html>

@@ -360,6 +360,10 @@ s3_endpoint = System.get_env("GLOSSIA_S3_ENDPOINT")
 s3_region = System.get_env("GLOSSIA_S3_REGION", "auto")
 s3_bucket = System.get_env("GLOSSIA_S3_BUCKET", "glossia")
 
+if System.get_env("GLOSSIA_OG_IMAGES") in ["true", "false"] do
+  config :glossia, Glossia.OgImage, enabled: System.get_env("GLOSSIA_OG_IMAGES") == "true"
+end
+
 if is_binary(s3_access_key) and s3_access_key != "" do
   config :ex_aws,
     access_key_id: s3_access_key,

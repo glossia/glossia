@@ -97,7 +97,6 @@ RUN apt-get update -y && \
   && npm cache clean --force \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
-ENV CHROMIC_PDF_CHROME_EXECUTABLE=/usr/bin/chromium
 ENV XDG_CONFIG_HOME=/tmp/.chromium
 ENV XDG_CACHE_HOME=/tmp/.chromium
 

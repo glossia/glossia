@@ -98,6 +98,8 @@ defmodule Glossia.Application do
           id: Glossia.Analytics.EventBuffer
         ),
         Glossia.Analytics.SettingsCache,
+        Glossia.OgImage.Cache,
+        {Task.Supervisor, name: Glossia.OgImage.Tasks},
         Glossia.Analytics.Geolocation.Ipapi.Cache,
         Glossia.Github.InstallationTokens,
         Glossia.Pomerium.JWKSCache
@@ -114,8 +116,10 @@ defmodule Glossia.Application do
         List.insert_at(
           children,
           -2,
-          {ChromicPDF,
-           no_sandbox: true, discard_stderr: false, chrome_args: "--disable-dev-shm-usage"}
+          Browse.child_spec(Glossia.OgImage.BrowserPool,
+            implementation: BrowseChrome.Browser,
+            pool_size: 2
+          )
         )
       else
         children

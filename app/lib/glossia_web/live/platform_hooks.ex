@@ -18,7 +18,6 @@ defmodule GlossiaWeb.PlatformHooks do
 
   alias Glossia.Accounts
   alias Glossia.Accounts.Scope
-  alias Glossia.OgImage
   alias Glossia.TemporaryAccess
 
   def on_mount(:load_user, _params, session, socket) do
@@ -58,23 +57,11 @@ defmodule GlossiaWeb.PlatformHooks do
               []
             end
 
-          og_image_url =
-            if account.visibility == "public" do
-              og_attrs = %{
-                title: account.handle,
-                description: account.handle,
-                category: "account"
-              }
-
-              OgImage.account_url(handle, og_attrs)
-            end
-
           {:cont,
            socket
            |> assign(:account, account)
            |> assign(:handle, handle)
-           |> assign(:accounts, accounts)
-           |> assign(:og_image_url, og_image_url)}
+           |> assign(:accounts, accounts)}
         else
           # For anonymous users on private accounts, show 404 (not login redirect).
           # Authenticated users who lack access also get 404.

@@ -1,9 +1,8 @@
 defmodule GlossiaWeb.OgImageController do
   use GlossiaWeb, :controller
-
-  require Logger
-
   alias Glossia.OgImage
+
+  plug :uncacheable
 
   plug GlossiaWeb.Plugs.RateLimit,
     key_prefix: "og_image",
@@ -12,86 +11,47 @@ defmodule GlossiaWeb.OgImageController do
     by: :ip,
     format: :text
 
-  def marketing(conn, %{"category" => category, "hash" => hash} = params) do
-    s3_path = "og/marketing/#{category}/#{hash}"
+  def marketing(conn, params), do: serve(conn, params)
+  def account(conn, params), do: serve(conn, params)
+  def project(conn, params), do: serve(conn, params)
 
-    with {:ok, attrs} <- decode_attrs(params),
-         :ok <- validate_hash(attrs, hash) do
-      serve_og_image(conn, s3_path, attrs)
+  defp serve(conn, %{"hash" => filename, "d" => token}) do
+    with {:ok, %{attrs: attrs, day: day}} <- OgImage.verify_attrs(token),
+         true <- filename == OgImage.hash(attrs, day) <> ".jpg" do
+      # The verified hash is the entire object identity. Arbitrary route aliases
+      # or query parameters cannot multiply stored objects or browser renders.
+      key = "og/images/#{filename}"
+
+      case OgImage.fetch_or_generate(key, attrs, day) do
+        {:ok, bytes} when byte_size(bytes) > 0 ->
+          conn
+          |> put_resp_content_type("image/jpeg", nil)
+          |> put_resp_header("cache-control", "public, max-age=86400, immutable")
+          |> put_resp_header("etag", ~s("#{filename}"))
+          |> put_resp_header("x-content-type-options", "nosniff")
+          |> send_resp(200, bytes)
+
+        {:error, :expired} ->
+          invalid(conn)
+
+        _ ->
+          conn
+          |> put_resp_header("cache-control", "no-store")
+          |> put_resp_header("retry-after", "60")
+          |> send_resp(503, "Image temporarily unavailable")
+      end
     else
-      _ -> fallback_redirect(conn)
+      _ -> invalid(conn)
     end
   end
 
-  def account(conn, %{"handle" => handle, "hash" => hash} = params) do
-    s3_path = "og/app/#{handle}/#{hash}"
+  defp serve(conn, _), do: invalid(conn)
 
-    with {:ok, attrs} <- decode_attrs(params),
-         :ok <- validate_hash(attrs, hash) do
-      serve_og_image(conn, s3_path, attrs)
-    else
-      _ -> fallback_redirect(conn)
-    end
-  end
-
-  def project(conn, %{"handle" => handle, "project" => project, "hash" => hash} = params) do
-    s3_path = "og/app/#{handle}/#{project}/#{hash}"
-
-    with {:ok, attrs} <- decode_attrs(params),
-         :ok <- validate_hash(attrs, hash) do
-      serve_og_image(conn, s3_path, attrs)
-    else
-      _ -> fallback_redirect(conn)
-    end
-  end
-
-  defp decode_attrs(%{"d" => token}) when is_binary(token) do
-    case OgImage.verify_attrs(token) do
-      {:ok, attrs} -> {:ok, attrs}
-      _ -> {:error, :invalid_token}
-    end
-  end
-
-  defp decode_attrs(_params), do: {:error, :missing_token}
-
-  defp validate_hash(attrs, route_hash) do
-    expected_hash = OgImage.hash(attrs)
-    actual_hash = normalize_hash(route_hash)
-
-    if actual_hash == expected_hash do
-      :ok
-    else
-      {:error, :invalid_hash}
-    end
-  end
-
-  defp normalize_hash(hash) when is_binary(hash) do
-    hash
-    |> String.split(".", parts: 2)
-    |> List.first()
-  end
-
-  defp serve_og_image(conn, s3_path, attrs) do
-    case OgImage.fetch_or_generate(s3_path, attrs) do
-      {:ok, bytes} when byte_size(bytes) > 0 ->
-        conn
-        |> put_resp_content_type("image/jpeg")
-        |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
-        |> send_resp(200, bytes)
-
-      {:ok, _empty} ->
-        Logger.error("OG image generation returned empty bytes for: #{s3_path}")
-        fallback_redirect(conn)
-
-      {:error, reason} ->
-        Logger.error("OG image serve failed for #{s3_path}: #{inspect(reason)}")
-        fallback_redirect(conn)
-    end
-  end
-
-  defp fallback_redirect(conn) do
+  defp invalid(conn) do
     conn
-    |> put_resp_header("cache-control", "no-cache")
-    |> redirect(to: ~p"/images/logo-squared.jpg")
+    |> put_resp_header("cache-control", "no-store")
+    |> send_resp(404, "Image not found")
   end
+
+  defp uncacheable(conn, _opts), do: put_resp_header(conn, "cache-control", "no-store")
 end

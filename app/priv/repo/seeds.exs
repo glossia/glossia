@@ -168,6 +168,9 @@ defmodule Glossia.Seeds do
       setup_target_languages: ["es", "fr", "de"]
     )
 
+    # Exercise branded social images when a local object store is configured.
+    ensure_project_logo!(dev.account, "glossia")
+
     # Setup events for the "blog" project to exercise the agent session UI
     blog_project = Projects.get_project(dev.account, "blog")
     if blog_project, do: ensure_setup_events!(blog_project)
@@ -854,6 +857,21 @@ defmodule Glossia.Seeds do
         end
 
         :ok
+    end
+  end
+
+  defp ensure_project_logo!(account, handle) do
+    project = Projects.get_project(account, handle)
+    bucket = Application.get_env(:glossia, Glossia.Storage, [])[:bucket]
+
+    if project && is_nil(project.avatar_url) && is_binary(bucket) do
+      key = "avatars/#{account.handle}/projects/#{handle}.png"
+      bytes = File.read!(Path.join(:code.priv_dir(:glossia), "static/images/logo-rounded.png"))
+
+      case Glossia.Storage.upload(key, bytes, content_type: "image/png") do
+        {:ok, _} -> Projects.update_project(project, %{avatar_url: key})
+        {:error, _} -> IO.puts("Skipping seed project logo: object storage is unavailable.")
+      end
     end
   end
 
