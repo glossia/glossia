@@ -26,6 +26,7 @@ defmodule Glossia.Translations.Credentials do
   alias Glossia.Accounts.Account
   alias Glossia.LLMModels
   alias Glossia.Models.ModelIdentifier
+  alias Glossia.TranslationRouting
 
   @default_local_model "anthropic/claude-haiku-4-5"
   @default_pi_model "openrouter/anthropic/claude-sonnet-4.6"
@@ -45,9 +46,20 @@ defmodule Glossia.Translations.Credentials do
 
   @spec resolve(Account.t(), String.t() | nil) ::
           {:ok, credential()} | {:error, {:model_not_found, String.t() | nil}}
-  def resolve(%Account{} = account, model_handle) do
+  def resolve(%Account{} = account, model_handle), do: resolve(account, model_handle, [])
+
+  @doc """
+  Resolves a credential using optional routing hints.
+
+  Accepts `:target_locale` in `opts`. When the caller does not name a model
+  handle and a routing rule matches the target locale, the rule's model wins
+  over the account default. Explicit handles skip routing entirely.
+  """
+  @spec resolve(Account.t(), String.t() | nil, keyword()) ::
+          {:ok, credential()} | {:error, {:model_not_found, String.t() | nil}}
+  def resolve(%Account{} = account, model_handle, opts) when is_list(opts) do
     case normalized_handle(model_handle) do
-      nil -> resolve_default(account, model_handle)
+      nil -> resolve_default(account, model_handle, opts)
       handle -> resolve_explicit(account, handle)
     end
   end
@@ -63,14 +75,17 @@ defmodule Glossia.Translations.Credentials do
           {:ok, credential()}
           | {:error, {:model_not_found, String.t() | nil}}
           | {:error, {:credential_relay_failed, term()}}
-  def resolve_on(target_node, %Account{} = account, model_handle)
-      when target_node == node() do
-    resolve(account, model_handle)
+  def resolve_on(target_node, %Account{} = account, model_handle),
+    do: resolve_on(target_node, account, model_handle, [])
+
+  def resolve_on(target_node, %Account{} = account, model_handle, opts)
+      when target_node == node() and is_list(opts) do
+    resolve(account, model_handle, opts)
   end
 
-  def resolve_on(target_node, %Account{} = account, model_handle)
-      when is_atom(target_node) do
-    case :rpc.call(target_node, __MODULE__, :resolve, [account, model_handle], 5_000) do
+  def resolve_on(target_node, %Account{} = account, model_handle, opts)
+      when is_atom(target_node) and is_list(opts) do
+    case :rpc.call(target_node, __MODULE__, :resolve, [account, model_handle, opts], 5_000) do
       {:badrpc, reason} -> {:error, {:credential_relay_failed, reason}}
       result -> result
     end
@@ -121,8 +136,13 @@ defmodule Glossia.Translations.Credentials do
     end
   end
 
-  defp resolve_default(account, requested_handle) do
+  defp resolve_default(account, requested_handle, opts) do
+    target_locale = Keyword.get(opts, :target_locale)
+
     cond do
+      credential = routed_model_credential(account, target_locale) ->
+        {:ok, credential}
+
       credential = account |> LLMModels.default_model() |> account_model_credential() ->
         {:ok, credential}
 
@@ -135,6 +155,18 @@ defmodule Glossia.Translations.Credentials do
       true ->
         {:error, {:model_not_found, requested_handle}}
     end
+  end
+
+  # Consult the account's ordered routing rules. A matching rule's model wins
+  # over the flat default; an account with no rules or no match returns nil so
+  # the default path takes over.
+  defp routed_model_credential(_account, nil), do: nil
+  defp routed_model_credential(_account, ""), do: nil
+
+  defp routed_model_credential(account, target_locale) when is_binary(target_locale) do
+    account
+    |> TranslationRouting.resolve_model(target_locale)
+    |> account_model_credential()
   end
 
   # 1. Per-account model with its own provider key.

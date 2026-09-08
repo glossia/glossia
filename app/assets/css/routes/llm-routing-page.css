@@ -1,0 +1,48 @@
+#llm-routing-page {
+  & [data-part="submit-row"] {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--space-2);
+  }
+}
+
+/*
+ * Routing rule modal — mirrors the Tuist account_settings modal sizing
+ * (Tuist server/assets/app/css/pages/account_settings.css:44-64): a
+ * near-fixed 480px body on desktop that collapses to 80vw on mobile, with
+ * spacing 8 gaps between fields and 8/9 top/bottom padding on the content.
+ */
+/*
+ * Add / edit rule modal. Noora's `.noora-modal [data-part="body"]` already
+ * ships `padding: var(--noora-spacing-2) var(--noora-spacing-7)` (see
+ * `deps/noora/priv/static/noora.css`), so we only add: a min-width so a lone
+ * title-only header doesn't collapse the modal, and vertical rhythm between
+ * body sections (line divider, content, second line divider).
+ */
+#add-routing-rule-modal {
+  & [data-part="body"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+    min-width: 392px;
+
+    @media (max-width: 768px) {
+      & {
+        min-width: 80vw;
+      }
+    }
+
+    & > [data-part="content"] {
+      display: flex;
+      flex-direction: column;
+      gap: var(--noora-spacing-7);
+
+      /* Within a field: label + input + optional hint. Tight enough that the
+       * three elements read as one grouped block, while the between-field gap
+       * (--noora-spacing-7 above) stays visibly larger. */
+      & > .voice-field {
+        gap: var(--noora-spacing-2);
+      }
+    }
+  }
+}

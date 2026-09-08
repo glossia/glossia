@@ -276,7 +276,8 @@
                 :api_app_edit,
                 :llm_models,
                 :llm_model_new,
-                :llm_model_edit
+                :llm_model_edit,
+                :llm_routing
               ]
             }
           >
@@ -297,6 +298,12 @@
               icon="api"
               navigate={~p"/#{@handle}/-/settings/models"}
               selected={@live_action in [:llm_models, :llm_model_new, :llm_model_edit]}
+            />
+            <.sidebar_item
+              label={gettext("Routing")}
+              icon="git_branch"
+              navigate={~p"/#{@handle}/-/settings/models/routing"}
+              selected={@live_action == :llm_routing}
             />
           </.sidebar_group>
         </.sidebar>
