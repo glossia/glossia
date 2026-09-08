@@ -809,7 +809,8 @@ defmodule GlossiaWeb.DashboardLive do
       page_title: gettext("Routing"),
       routing_rules: rules,
       routing_available_models: available_models,
-      routing_locale_options: Glossia.I18n.common_translation_targets(),
+      routing_locale_options:
+        Enum.sort_by(Glossia.I18n.common_translation_targets(), fn {_code, name} -> name end),
       editing_routing_rule_id: nil,
       routing_form:
         to_form(
@@ -13063,7 +13064,7 @@ defmodule GlossiaWeb.DashboardLive do
         <:trigger :let={attrs}>
           <span {attrs} hidden aria-hidden="true"></span>
         </:trigger>
-        <div data-part="content">
+        <div data-part="fields">
           <div class="voice-field">
             <Noora.Label.label label={gettext("Target locale")} />
             <Noora.Select.select

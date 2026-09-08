@@ -7,20 +7,19 @@
 }
 
 /*
- * Routing rule modal — mirrors the Tuist account_settings modal sizing
- * (Tuist server/assets/app/css/pages/account_settings.css:44-64): a
- * near-fixed 480px body on desktop that collapses to 80vw on mobile, with
- * spacing 8 gaps between fields and 8/9 top/bottom padding on the content.
- */
-/*
  * Add / edit rule modal. Noora's `.noora-modal [data-part="body"]` already
  * ships `padding: var(--noora-spacing-2) var(--noora-spacing-7)` (see
- * `deps/noora/priv/static/noora.css`), so we only add: a min-width so a lone
- * title-only header doesn't collapse the modal, and vertical rhythm between
- * body sections (line divider, content, second line divider).
+ * `deps/noora/priv/static/noora.css`). Keep field spacing independent of the
+ * wrapper LiveView inserts when moving the modal content into its portal.
  */
 #add-routing-rule-modal {
-  & [data-part="body"] {
+  & .noora-dropdown-content {
+    max-height: min(var(--available-height, 100dvh), calc(var(--noora-spacing-16) * 3));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  & > [data-part="positioner"] > [data-part="content"] > [data-part="body"] {
     display: flex;
     flex-direction: column;
     gap: var(--noora-spacing-5);
@@ -32,15 +31,14 @@
       }
     }
 
-    & > [data-part="content"] {
+    & [data-part="fields"] {
       display: flex;
       flex-direction: column;
-      gap: var(--noora-spacing-7);
+      gap: var(--noora-spacing-8);
 
-      /* Within a field: label + input + optional hint. Tight enough that the
-       * three elements read as one grouped block, while the between-field gap
-       * (--noora-spacing-7 above) stays visibly larger. */
       & > .voice-field {
+        display: flex;
+        flex-direction: column;
         gap: var(--noora-spacing-2);
       }
     }
