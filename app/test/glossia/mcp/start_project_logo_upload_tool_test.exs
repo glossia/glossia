@@ -74,7 +74,9 @@ defmodule Glossia.MCP.StartProjectLogoUploadToolTest do
       account: account,
       project: project
     } do
-      stub(Glossia.Storage, :presigned_url, fn key, _opts -> {:ok, "https://s3.example/#{key}"} end)
+      stub(Glossia.Storage, :presigned_url, fn key, _opts ->
+        {:ok, "https://s3.example/#{key}"}
+      end)
 
       assert {:reply, r1, _} =
                StartProjectLogoUploadTool.execute(params(account, project), frame_for(user))
@@ -130,7 +132,9 @@ defmodule Glossia.MCP.StartProjectLogoUploadToolTest do
       project: project
     } do
       frame = frame_for(user, ["project:read"])
-      assert {:error, _error, _} = StartProjectLogoUploadTool.execute(params(account, project), frame)
+
+      assert {:error, _error, _} =
+               StartProjectLogoUploadTool.execute(params(account, project), frame)
     end
   end
 end

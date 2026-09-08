@@ -106,7 +106,7 @@ defmodule Glossia.MixProject do
       {:req_llm, "~> 1.17"},
       {:yaml_elixir, "~> 2.12"},
       {:toml, "~> 0.7"},
-      {:noora, "~> 0.81"},
+      {:noora, "~> 0.86"},
       {:cloak_ecto, "~> 1.3"},
       {:condukt, "~> 1.12"},
       {:cloak, "~> 1.1"},

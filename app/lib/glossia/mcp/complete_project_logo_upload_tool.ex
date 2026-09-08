@@ -27,8 +27,7 @@ defmodule Glossia.MCP.CompleteProjectLogoUploadTool do
   schema do
     field :handle, {:required, :string}, description: "Account handle that owns the project."
 
-    field :project_handle, {:required, :string},
-      description: "Project handle within the account."
+    field :project_handle, {:required, :string}, description: "Project handle within the account."
 
     field :key, {:required, :string},
       description:
@@ -95,12 +94,12 @@ defmodule Glossia.MCP.CompleteProjectLogoUploadTool do
          frame}
 
       {:error, :too_large} ->
-        {:error,
-         Error.execution("Uploaded file exceeds the #{@max_size_bytes} byte limit."), frame}
+        {:error, Error.execution("Uploaded file exceeds the #{@max_size_bytes} byte limit."),
+         frame}
 
       {:error, :missing_content_type} ->
-        {:error,
-         Error.execution("Storage did not report a content type for the uploaded file."), frame}
+        {:error, Error.execution("Storage did not report a content type for the uploaded file."),
+         frame}
 
       {:error, :content_type_mismatch} ->
         {:error,
@@ -197,18 +196,28 @@ defmodule Glossia.MCP.CompleteProjectLogoUploadTool do
 
   defp copy_object(source, destination) do
     case Glossia.Storage.copy(source, destination) do
-      {:ok, _} -> :ok
+      {:ok, _} ->
+        :ok
+
       {:error, reason} ->
-        Logger.warning("Project logo copy failed source=#{source} dest=#{destination}: #{inspect(reason)}")
+        Logger.warning(
+          "Project logo copy failed source=#{source} dest=#{destination}: #{inspect(reason)}"
+        )
+
         {:error, :copy_failed}
     end
   end
 
   defp cleanup_staging(staging_key) do
     case Glossia.Storage.delete(staging_key) do
-      {:ok, _} -> :ok
+      {:ok, _} ->
+        :ok
+
       {:error, reason} ->
-        Logger.warning("Project logo staging cleanup failed key=#{staging_key}: #{inspect(reason)}")
+        Logger.warning(
+          "Project logo staging cleanup failed key=#{staging_key}: #{inspect(reason)}"
+        )
+
         :ok
     end
   end

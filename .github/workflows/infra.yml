@@ -41,6 +41,7 @@ jobs:
 
       - uses: jdx/mise-action@v2
         with:
+          version: 2026.9.2
           cache: true
 
       - name: Install tools
@@ -317,6 +318,7 @@ jobs:
 
       - uses: jdx/mise-action@v2
         with:
+          version: 2026.9.2
           cache: true
           install_args: kubectl
 
