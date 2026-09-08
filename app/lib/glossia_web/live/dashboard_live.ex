@@ -1594,15 +1594,6 @@ defmodule GlossiaWeb.DashboardLive do
   # Translation routing events
   # ---------------------------------------------------------------------------
 
-  # The "Any locale" option needs a non-empty value in the DOM because Zag's
-  # Noora.Select renderItems() bails out of its entire loop the moment it hits
-  # an item with an empty data-value, leaving no items with click handlers.
-  # Translate the sentinel back to nil at the server boundary.
-  defp normalize_target_locale("__any__"), do: nil
-  defp normalize_target_locale(""), do: nil
-  defp normalize_target_locale(nil), do: nil
-  defp normalize_target_locale(value) when is_binary(value), do: value
-
   def handle_event("create_routing_rule", %{"routing" => params}, socket) do
     unless socket.assigns.is_admin do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
@@ -1617,7 +1608,13 @@ defmodule GlossiaWeb.DashboardLive do
            put_flash(socket, :error, gettext("Select a model before adding a rule."))}
 
         model ->
-          attrs = %{"target_locale" => normalize_target_locale(params["target_locale"])}
+          attrs = %{"target_locale" =>
+             case params["target_locale"] do
+               "__any__" -> nil
+               "" -> nil
+               nil -> nil
+               value when is_binary(value) -> value
+             end}
 
           case TranslationRouting.create_rule(account, user, model, attrs) do
             {:ok, _rule} ->
@@ -1697,7 +1694,13 @@ defmodule GlossiaWeb.DashboardLive do
 
       with rule when not is_nil(rule) <- TranslationRouting.get_rule(rule_id, account.id),
            attrs = %{
-             "target_locale" => normalize_target_locale(params["target_locale"]),
+             "target_locale" =>
+               case params["target_locale"] do
+                 "__any__" -> nil
+                 "" -> nil
+                 nil -> nil
+                 value when is_binary(value) -> value
+               end,
              "llm_model_id" => params["llm_model_id"]
            },
            {:ok, _updated} <- TranslationRouting.update_rule(account, user, rule, attrs) do
