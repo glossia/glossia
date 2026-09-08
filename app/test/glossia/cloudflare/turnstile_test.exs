@@ -39,7 +39,12 @@ defmodule Glossia.Cloudflare.TurnstileTest do
     end
 
     test "returns :ok when Cloudflare accepts the token" do
-      request = fn _url, form: %{secret: "secret", response: "token"}, connect_options: _, receive_timeout: _ ->
+      request = fn _url,
+                   [
+                     form: %{secret: "secret", response: "token"},
+                     connect_options: _,
+                     receive_timeout: _
+                   ] ->
         {:ok,
          %Req.Response{
            status: 200,

@@ -15,32 +15,32 @@ msgstr ""
 ## 最新の状態に保ってください。"msgstr" は変更しないままに放置してください。
 ## または変更するとここに影響はないため、PO (.po) ファイルで直接編集してください。
 #
-#: lib/glossia_web/live/dashboard_live.ex:12518
+#: lib/glossia_web/live/dashboard_live.ex:12497
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr "概要"
 
-#: lib/glossia_web/live/dashboard_live.ex:12762
+#: lib/glossia_web/live/dashboard_live.ex:12741
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr "ブラウザ言語"
 
-#: lib/glossia_web/live/dashboard_live.ex:12731
+#: lib/glossia_web/live/dashboard_live.ex:12710
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr "上位国"
 
-#: lib/glossia_web/live/dashboard_live.ex:12703
+#: lib/glossia_web/live/dashboard_live.ex:12682
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr "上位ページ"
 
-#: lib/glossia_web/live/dashboard_live.ex:12604
+#: lib/glossia_web/live/dashboard_live.ex:12583
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr "次回の翻訳先"
 
-#: lib/glossia_web/live/dashboard_live.ex:12683
+#: lib/glossia_web/live/dashboard_live.ex:12662
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Traffic"
 msgstr "時間別トラフィック"

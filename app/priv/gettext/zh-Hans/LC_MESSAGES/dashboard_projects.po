@@ -6,32 +6,32 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: lib/glossia_web/live/dashboard_live.ex:12518
+#: lib/glossia_web/live/dashboard_live.ex:12497
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr "概览"
 
-#: lib/glossia_web/live/dashboard_live.ex:12762
+#: lib/glossia_web/live/dashboard_live.ex:12741
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr "浏览器语言"
 
-#: lib/glossia_web/live/dashboard_live.ex:12731
+#: lib/glossia_web/live/dashboard_live.ex:12710
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr "主要国家"
 
-#: lib/glossia_web/live/dashboard_live.ex:12703
+#: lib/glossia_web/live/dashboard_live.ex:12682
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr "热门页面"
 
-#: lib/glossia_web/live/dashboard_live.ex:12604
+#: lib/glossia_web/live/dashboard_live.ex:12583
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr "下一步翻译哪里"
 
-#: lib/glossia_web/live/dashboard_live.ex:12683
+#: lib/glossia_web/live/dashboard_live.ex:12662
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Traffic"
 msgstr "每小时流量"
