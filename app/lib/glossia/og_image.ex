@@ -14,6 +14,7 @@ defmodule Glossia.OgImage do
                     "lib/glossia_web/controllers/og_image_html.ex",
                     "priv/static/assets/styles.css",
                     "priv/static/fonts/inter.woff2",
+                    "priv/static/fonts/source-serif-4.woff2",
                     "priv/static/images/logo-rounded.png",
                     "mix.lock"
                   ]

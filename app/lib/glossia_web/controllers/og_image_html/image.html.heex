@@ -15,29 +15,23 @@
     </style>
     <style>
       @font-face { font-family: "Social Inter"; src: url("<%= Phoenix.HTML.raw(@font) %>"); font-weight: 100 900; }
+      @font-face { font-family: "Source Serif 4"; src: url("<%= Phoenix.HTML.raw(@serif_font) %>"); font-weight: 200 900; }
     </style>
   </head>
   <body id="social-image">
-    <header data-part="brand">
-      <img src={@brand} alt="" />
-      <span>Glossia</span>
-      <span data-part="domain">glossia.ai</span>
-    </header>
+    <div data-part="geometry" aria-hidden="true"><span></span><span></span><span></span></div>
     <main>
-      <.card title={@category} icon="language">
-        <:actions><.badge label="Made for a world of words" color="primary" /></:actions>
-        <.card_section>
-          <div data-part="copy">
-            <h1>{@title}</h1>
-            <p>{@description}</p>
-          </div>
-          <img data-part="project-logo" src={@logo || @brand} alt="" />
-        </.card_section>
-      </.card>
+      <img data-part="project-logo" src={@logo || @brand} alt="" />
+      <.badge label={@category} color="primary" style="light-fill" size="large" />
+      <h1>{@title}</h1>
+      <p :if={@description != ""}>{@description}</p>
     </main>
     <footer>
-      <span>Speak everyone's language.</span>
-      <span data-part="languages">Hello. Hola. Hallo. Bonjour. Ciao.</span>
+      <div data-part="brand">
+        <img src={@brand} alt="" />
+        <span>Glossia</span>
+      </div>
+      <span data-part="domain">glossia.ai</span>
     </footer>
   </body>
 </html>

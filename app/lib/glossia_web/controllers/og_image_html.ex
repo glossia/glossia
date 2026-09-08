@@ -1,6 +1,5 @@
 defmodule GlossiaWeb.OgImageHTML do
   use GlossiaWeb, :html
-  import Noora.Card
   import Noora.Badge
 
   embed_templates "og_image_html/*"
@@ -13,6 +12,7 @@ defmodule GlossiaWeb.OgImageHTML do
       logo: project_logo,
       brand: asset("images/logo-rounded.png", "image/png"),
       font: asset("fonts/inter.woff2", "font/woff2"),
+      serif_font: asset("fonts/source-serif-4.woff2", "font/woff2"),
       styles: File.read!(static_path("assets/styles.css")),
       noora: File.read!(static_path("assets/noora.css"))
     })

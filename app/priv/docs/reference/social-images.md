@@ -41,7 +41,9 @@ images for five minutes. A nonblocking PostgreSQL advisory lock prevents
 different application replicas from rendering the same image simultaneously.
 Other replicas receive a temporary failure and can retry once the object exists.
 
-The template uses Noora components and Glossia's design tokens. Fonts and raster
+The template pairs a Noora section badge with Glossia's warm background, serif
+heading, gradient accent, and understated footer. Source Serif 4 and Inter are
+bundled locally so previews do not depend on a font service. Fonts and raster
 logos are embedded. The document's content security policy blocks scripts and
 external resources. Logos are loaded only from the application's avatar storage
 prefix and are limited to five million bytes, matching project uploads.
