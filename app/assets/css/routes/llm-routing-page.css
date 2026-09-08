@@ -1,0 +1,46 @@
+#llm-routing-page {
+  & [data-part="submit-row"] {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--space-2);
+  }
+}
+
+/*
+ * Add / edit rule modal. Noora's `.noora-modal [data-part="body"]` already
+ * ships `padding: var(--noora-spacing-2) var(--noora-spacing-7)` (see
+ * `deps/noora/priv/static/noora.css`). Keep field spacing independent of the
+ * wrapper LiveView inserts when moving the modal content into its portal.
+ */
+#add-routing-rule-modal {
+  & .noora-dropdown-content {
+    max-height: min(var(--available-height, 100dvh), calc(var(--noora-spacing-16) * 3));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  & > [data-part="positioner"] > [data-part="content"] > [data-part="body"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+    min-width: 392px;
+
+    @media (max-width: 768px) {
+      & {
+        min-width: 80vw;
+      }
+    }
+
+    & [data-part="fields"] {
+      display: flex;
+      flex-direction: column;
+      gap: var(--noora-spacing-8);
+
+      & > .voice-field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--noora-spacing-2);
+      }
+    }
+  }
+}

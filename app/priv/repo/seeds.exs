@@ -25,6 +25,7 @@ defmodule Glossia.Seeds do
 
   alias Glossia.AccountTokens
   alias Glossia.LLMModels
+  alias Glossia.TranslationRouting
   alias Glossia.Github.Installations
   alias Glossia.Glossaries
   alias Glossia.OAuth.FirstPartyClient
@@ -639,6 +640,19 @@ defmodule Glossia.Seeds do
       api_key: "fw-acme-placeholder-key",
       default: false
     )
+
+    # Translation routing rules: pick a model per target locale, first match
+    # wins, fallback to the account default when no rule matches.
+    reset_routing_rules!(dev.account)
+
+    ensure_routing_rule!(dev.account, dev, "ja", "long-form-guides")
+    ensure_routing_rule!(dev.account, dev, "ko", "long-form-guides")
+    ensure_routing_rule!(dev.account, dev, "zh-Hans", "long-form-guides")
+    ensure_routing_rule!(dev.account, dev, "es", "gpt-4o")
+    ensure_routing_rule!(dev.account, dev, nil, "fast-drafts")
+
+    reset_routing_rules!(acme.account)
+    ensure_routing_rule!(acme.account, dev, "es", "acme-fast-drafts")
 
     :ok
   end
@@ -1709,6 +1723,23 @@ defmodule Glossia.Seeds do
     else
       {:ok, comment} = Discussions.add_comment(ticket, user, %{"body" => body})
       comment
+    end
+  end
+
+  defp reset_routing_rules!(account) do
+    Repo.delete_all(
+      from r in Glossia.Accounts.TranslationRoutingRule, where: r.account_id == ^account.id
+    )
+  end
+
+  defp ensure_routing_rule!(account, user, target_locale, model_handle) do
+    model = LLMModels.get_model_by_handle(model_handle, account.id)
+
+    if model do
+      {:ok, _rule} =
+        TranslationRouting.create_rule(account, user, model, %{
+          "target_locale" => target_locale
+        })
     end
   end
 
