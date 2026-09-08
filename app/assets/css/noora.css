@@ -9,6 +9,7 @@
 @import "./components/app-shell.css";
 @import "./components/model-picker.css";
 @import "./components/project-analytics-page.css";
+@import "./components/pagination.css";
 @import "./routes/login.css";
 @import "./routes/docs.css";
 @import "./routes/members.css";
