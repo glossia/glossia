@@ -63,30 +63,33 @@ rollout, and detached translation jobs cannot reach the web replicas at all.
 Set it once, keep it stable, and only rotate it while restarting every pod
 together.
 
-## LiveView socket affinity
+## Clustering
 
-A LiveView connection is state on one replica. The long-poll transport keeps
-its session in a process on the node that opened it, so a poll answered by a
-different pod finds nothing and the join never completes. The browser is left
-sitting on the dead server render: the page looks correct, but no hook ever
-mounts, so dropdowns, collapsibles and live updates are all inert. Reloading
-does not recover it, because Phoenix remembers the long-poll downgrade in
-`sessionStorage` for the life of the tab.
+The replicas form an Erlang cluster over `GLOSSIA_DNS_CLUSTER_QUERY` and the
+headless Service. Two things depend on it that are easy to miss:
 
-Browsers only reach long polling when the websocket fails to come up within
-`longPollFallbackMs`, which is routine during a rolling update, so any install
-with `replicaCount` above one will hit this eventually.
+- `Phoenix.PubSub` only spans replicas while they are connected. Without it a
+  translation job's progress reaches only the viewers that happen to be served
+  by the publishing pod.
+- A LiveView long-poll session lives in a process on the node that opened it.
+  If another replica answers the next poll and cannot reach that node, the join
+  never completes and the browser is left on the dead server render: the page
+  looks correct while every hook-driven control is inert. Reloading does not
+  recover it, because Phoenix remembers the long-poll downgrade in
+  `sessionStorage` for the life of the tab.
 
-`ingress.liveSocket.affinity` (default `true`) renders a second Ingress that
-pins `/live` to one replica with a cookie. It is a separate Ingress rather than
-an annotation on the main one so the cookie only rides on the socket path,
-leaving public pages and digested assets cookie-free and cacheable. The
-annotations are ingress-nginx specific and inert behind other controllers; a
-single-replica install can set it to `false`.
+Because distribution otherwise binds a random port on every boot,
+`clustering.distributionPortMin`/`Max` (default `9100`-`9104`) pin it through
+`ERL_AFLAGS`, and `templates/network-policy.yaml` opens that range plus EPMD on
+`4369` between the pods of the release. Change the two together; a policy that
+names a port the VM is not listening on silently de-clusters the deployment.
 
-This is a workaround for the replicas not forming an Erlang cluster. If
-distribution between pods is open, a poll can be served by any replica and
-`Phoenix.PubSub` spans them too; check with `Node.list()` on a running pod.
+It has to be a range rather than one port. `bin/glossia rpc` and
+`bin/glossia remote` start a second node inside the same pod, so a single
+pinned port makes them fail with `register/listen error: eaddrinuse`.
+
+Check it with `Node.list()` on a running pod. An empty list on a multi-replica
+install means the cluster is broken, whatever the UI looks like.
 
 ## Translation jobs
 

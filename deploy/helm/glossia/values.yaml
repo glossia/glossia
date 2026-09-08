@@ -6,6 +6,20 @@ fullnameOverride: ""
 
 replicaCount: 2
 
+# The replicas form an Erlang cluster, which is what lets Phoenix.PubSub span
+# them and lets any replica serve a LiveView long-poll session that another one
+# opened. Distribution otherwise listens on a random port each boot, which no
+# network policy can name, so pin it and open exactly that port between the
+# pods of this release (see templates/network-policy.yaml).
+clustering:
+  # A range, not a single port. `bin/glossia rpc` and `bin/glossia remote`
+  # start a second node inside the same pod, and pinning distribution to one
+  # port makes them die with `register/listen error: eaddrinuse`, which would
+  # take away the tool used to debug the cluster in the first place. The main
+  # node takes the first port and each attached session takes the next.
+  distributionPortMin: 9100
+  distributionPortMax: 9104
+
 strategy:
   type: RollingUpdate
   rollingUpdate:
@@ -37,17 +51,6 @@ ingress:
         - path: /
           pathType: Prefix
   tls: []
-  # A LiveView connection is state on one replica, and the replicas do not form
-  # an Erlang cluster, so a client that is load balanced across them mid-session
-  # never finishes joining and its page is left with no hooks mounted. Render a
-  # second Ingress that pins the socket path to a replica with a cookie. Only
-  # meaningful behind ingress-nginx with more than one replica; the annotations
-  # are inert elsewhere, and single-replica installs can turn it off.
-  liveSocket:
-    affinity: true
-    path: /live
-    cookieName: glossia_live
-    annotations: {}
 
 # A dedicated Pomerium-protected host used only for temporary staff access.
 # It reaches the same application service, but Pomerium forwards a signed

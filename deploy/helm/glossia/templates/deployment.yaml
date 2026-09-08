@@ -52,6 +52,16 @@ spec:
               value: "name"
             - name: RELEASE_NODE
               value: "glossia@$(POD_IP)"
+            {{- /*
+              Erlang distribution picks a random listen port on every boot,
+              which no firewall or network policy can name. Pin it so the
+              policy below can allow exactly this port between the pods that
+              make up the cluster. Set here rather than in the release's
+              env.sh so the port and the policy that opens it move together in
+              a single chart upgrade.
+            */}}
+            - name: ERL_AFLAGS
+              value: "-kernel inet_dist_listen_min {{ .Values.clustering.distributionPortMin }} inet_dist_listen_max {{ .Values.clustering.distributionPortMax }}"
             - name: GLOSSIA_FLAME_BACKEND
               value: {{ .Values.flame.backend | quote }}
             - name: GLOSSIA_FLAME_MIN
@@ -116,7 +126,7 @@ spec:
             - name: GLOSSIA_BABEL_INTERNAL_TLS_KEY_PATH
               value: /var/run/secrets/glossia-babel-internal/tls.key
             {{- end }}
-            {{- range $key, $value := omit .Values.env "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_FLAME_BACKEND" "GLOSSIA_FLAME_MIN" "GLOSSIA_FLAME_MAX" "GLOSSIA_FLAME_MAX_CONCURRENCY" "GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS" "GLOSSIA_FLAME_TIMEOUT_MS" "GLOSSIA_FLAME_BOOT_TIMEOUT_MS" "GLOSSIA_FLAME_LOG" "GLOSSIA_FLAME_APP_CONTAINER_NAME" "GLOSSIA_FLAME_RUNTIME_CLASS_NAME" "GLOSSIA_FLAME_RESOURCES_JSON" "GLOSSIA_FLAME_NODE_SELECTOR_JSON" "GLOSSIA_FLAME_TOLERATIONS_JSON" "GLOSSIA_FLAME_AFFINITY_JSON" "GLOSSIA_FLAME_ENV_JSON" "GLOSSIA_FLAME_K8S_LOG" "GLOSSIA_FLAME_REPO_POOL_SIZE" "GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE" "GLOSSIA_TRANSLATION_JOB_BACKEND" "GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED" "GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS" "GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON" }}
+            {{- range $key, $value := omit .Values.env "ERL_AFLAGS" "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_FLAME_BACKEND" "GLOSSIA_FLAME_MIN" "GLOSSIA_FLAME_MAX" "GLOSSIA_FLAME_MAX_CONCURRENCY" "GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS" "GLOSSIA_FLAME_TIMEOUT_MS" "GLOSSIA_FLAME_BOOT_TIMEOUT_MS" "GLOSSIA_FLAME_LOG" "GLOSSIA_FLAME_APP_CONTAINER_NAME" "GLOSSIA_FLAME_RUNTIME_CLASS_NAME" "GLOSSIA_FLAME_RESOURCES_JSON" "GLOSSIA_FLAME_NODE_SELECTOR_JSON" "GLOSSIA_FLAME_TOLERATIONS_JSON" "GLOSSIA_FLAME_AFFINITY_JSON" "GLOSSIA_FLAME_ENV_JSON" "GLOSSIA_FLAME_K8S_LOG" "GLOSSIA_FLAME_REPO_POOL_SIZE" "GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE" "GLOSSIA_TRANSLATION_JOB_BACKEND" "GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED" "GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS" "GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON" }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}

@@ -1,0 +1,79 @@
+{{- if .Values.internalBabel.enabled }}
+{{- /*
+  This is the app pods' entire ingress allowlist, not just a Babel rule.
+
+  Cilium switches an endpoint to ingress default-deny as soon as any policy
+  with an `ingress` section selects it, so every port the app needs has to be
+  enumerated here. It was added to restrict the internal Babel listener, and
+  in doing so it silently stopped the replicas from clustering: Erlang
+  distribution was never listed, so EPMD and the distribution port were
+  dropped between pods.
+
+  What that broke was not obvious from the outside. `Phoenix.PubSub` stopped
+  spanning replicas, so a translation job's progress only reached viewers that
+  happened to land on the publishing pod. And a LiveView long-poll session,
+  which lives in a process on the node that opened it, could not be served by
+  the other replica, so the join never completed and the browser was left on
+  the dead server render with no hook mounted: the page looked correct while
+  every dropdown and live update was inert.
+
+  Anything added to this policy from now on is additive. Anything the app
+  needs and that is not listed here is dropped.
+*/}}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ include "glossia.fullname" . }}-babel-internal
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: babel-internal
+spec:
+  endpointSelector:
+    matchLabels:
+      "k8s:app.kubernetes.io/name": {{ include "glossia.name" . | quote }}
+      "k8s:app.kubernetes.io/instance": {{ .Release.Name | quote }}
+      "k8s:app.kubernetes.io/component": agent
+  ingress:
+    # Preserve the existing public listener while restricting the separate
+    # Babel listener to the dedicated workload identity.
+    - toPorts:
+        - ports:
+            - port: {{ .Values.service.targetPort | quote }}
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": {{ .Values.internalBabel.token.namespace | quote }}
+            "k8s:io.cilium.k8s.policy.serviceaccount": {{ .Values.internalBabel.token.serviceAccount | quote }}
+      toPorts:
+        - ports:
+            - port: {{ .Values.internalBabel.tls.targetPort | quote }}
+              protocol: TCP
+    {{- /*
+      Erlang distribution between the pods that form the cluster: EPMD for the
+      port lookup and the pinned distribution port for the connection itself.
+      The participants are listed one by one because they do not share a label
+      set. Web replicas carry the full chart labels; translation Jobs are
+      created at runtime with `name` and `component: translation` but no
+      `instance`; FLAME runners are labelled only `component: runner`. A
+      selector narrow enough to match the replicas alone would silently leave
+      detached jobs unable to publish progress back, which is the same class
+      of bug this rule exists to fix. `fromEndpoints` is namespace-scoped, so
+      these stay confined to this release's own namespace.
+    */}}
+    - fromEndpoints:
+        - matchLabels:
+            "k8s:app.kubernetes.io/name": {{ include "glossia.name" . | quote }}
+            "k8s:app.kubernetes.io/instance": {{ .Release.Name | quote }}
+        - matchLabels:
+            "k8s:app.kubernetes.io/name": {{ include "glossia.name" . | quote }}
+            "k8s:app.kubernetes.io/component": translation
+        - matchLabels:
+            "k8s:app.kubernetes.io/component": runner
+      toPorts:
+        - ports:
+            - port: "4369"
+              protocol: TCP
+            - port: {{ .Values.clustering.distributionPortMin | quote }}
+              endPort: {{ .Values.clustering.distributionPortMax }}
+              protocol: TCP
+{{- end }}
