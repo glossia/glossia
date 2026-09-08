@@ -1,4 +1,5 @@
 defmodule GlossiaWeb.Plugs.PublicPageHeader do
+
   @moduledoc """
   Stamp the `x-glossia-public: 1` response header on every response
   flowing through the `:public` pipeline.
