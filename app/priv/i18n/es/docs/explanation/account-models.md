@@ -1,48 +1,48 @@
 %{
   title: "Modelos de cuenta",
   summary:
-    "Por qué los proveedores de modelos se configuran una vez por cuenta y se referencian mediante el handle.",
+    "Por qué los proveedores de modelos se configuran una vez por cuenta y se referencian por handle.",
   category: "explicación",
   order: 2
 }
 ---
-Glossia separa las instrucciones del repositorio de las credenciales del proveedor de modelos. Los repositorios describen lo que debe traducirse, mientras que las cuentas deciden qué [modelo de lenguaje grande](https://en.wikipedia.org/wiki/Large_language_model) realiza el trabajo.
+Glossia separa las instrucciones del repositorio de las credenciales del proveedor de modelos. Los repositorios describen lo que debe ser traducido, mientras que las cuentas deciden qué [modelo de lenguaje grande](https://en.wikipedia.org/wiki/Large_language_model) realiza el trabajo.
 
 ## Por qué los modelos pertenecen a las cuentas
 
-Un equipo a menudo traduce varios repositorios con la misma relación con el proveedor. Los modelos de alcance de cuenta permiten a los administradores rotar una clave del proveedor o cambiar el modelo subyacente una vez sin editar cada repositorio.
+Un equipo a menudo traduce varios repositorios con la misma relación con un proveedor. Los modelos con ámbito de cuenta permiten a los administradores rotar una clave del proveedor o cambiar el modelo subyacente una vez sin editar todos los repositorios.
 
-Este límite también mantiene las credenciales fuera del control de código fuente. Un repositorio contiene un manejador legible como `translation-default`, y no la clave del proveedor.
+Este límite también mantiene las credenciales fuera del control de versiones. Un repositorio contiene un manejador legible, como `translation-default`, y no la clave del proveedor.
 
 ## Los manejadores proporcionan intención estable
 
-El campo `model` en `GLOSSIA.md` se refiere a un manejador de modelo de cuenta:
+El campo `model` en `L10N.md` se refiere a un manejador de modelo de cuenta:
 
 ```yaml
 model: translation-default
 ```
 
-El manejador expresa la intención del repositorio. Un administrador puede actualizar posteriormente qué modelo del proveedor selecciona ese manejador mientras la configuración del repositorio permanece estable.
+El manejador expresa la intención del repositorio. Un administrador puede actualizar posteriormente qué modelo del proveedor elige ese manejador mientras la configuración del repositorio se mantiene estable.
 
-## Cómo se usan varios modelos
+## Cómo se utilizan varios modelos
 
-Glossia usa un modelo configurado para cada traducción de documento. Agregar varios modelos no crea un conjunto, una cadena de respaldo o un nivel de calidad automático. El autor del repositorio elige su propósito a través de manejadores estables como `translation-default`, `long-form` o `japanese-specialist`.
+Glossia utiliza un modelo configurado para cada traducción de documentos. Agregar varios modelos no crea un ensamble, una cadena de respaldo o un nivel de calidad automático. El autor del repositorio elige su propósito a través de manejadores estables como `translation-default`, `long-form` o `japanese-specialist`.
 
-La selección sigue la jerarquía de contexto para el documento y el idioma local:
+La selección sigue la jerarquía del contexto para el documento y la localización objetivo:
 
-1. El archivo `GLOSSIA/<locale>.md` más cercano que declara `model` prevalece para esa localización.
-2. De otro modo, el archivo `GLOSSIA.md` más cercano que declara `model` prevalece para su directorio.
-3. Los ajustes del `GLOSSIA.md` padre se heredan cuando un archivo más cercano no declara un modelo.
-4. Cuando ningún archivo de contexto aplicable declara un manejador, Glossia usa la predeterminación de la cuenta.
+1. El archivo `L10N/<locale>.md` más cercano que declare `model` prevalece para esa localización.
+2. En otro caso, el archivo `L10N.md` más cercano que declare `model` prevalece para su directorio.
+3. La configuración del `L10N.md` padre se hereda cuando un archivo más cercano no declara un modelo.
+4. Cuando ningún archivo de contexto aplicable declare un manejador, Glossia utiliza el predeterminado de la cuenta.
 
-Debe existir un manejador configurado explícitamente. Glossia reporta un error para un manejador desconocido en lugar de cambiar silenciosamente a la predeterminación de la cuenta.
+Debe existir un manejador configurado explícitamente. Glossia reporta un error para un manejador desconocido en lugar de cambiar silenciosamente al predeterminado de la cuenta.
 
 ## Selección predeterminada
 
-La configuración del proyecto necesita un modelo antes de que un repositorio tenga su propio `GLOSSIA.md`. Por lo tanto, Glossia selecciona la predeterminación de la cuenta. El primer modelo agregado a una cuenta se convierte en el predeterminado, y un administrador puede establecer otro modelo como el predeterminado desde su página de configuración.
+La configuración del proyecto necesita un modelo antes de que un repositorio tenga su propio `L10N.md`. Por lo tanto, Glossia selecciona el predeterminado de la cuenta. El primer modelo agregado a una cuenta se convierte en el predeterminado, y un administrador puede hacer que otro modelo sea el predeterminado desde su página de configuración.
 
-Una vez que un repositorio tiene `GLOSSIA.md`, usar un manejador explícito hace que su elección sea clara para los revisores. Omite `model` mantiene el repositorio en la predeterminación de la cuenta.
+Una vez que un repositorio tiene `L10N.md`, usar un manejador explícito hace que su elección sea clara para los revisores. Omitir `model` mantiene el repositorio en el predeterminado de la cuenta.
 
 ## El límite de revisión humana
 
-La salida del modelo es trabajo propuesto, no una fusión automática. La actividad de configuración y traducción permanece visible en Glossia, mientras que los cambios del repositorio se publican a través de una solicitud de extracción para que el equipo la revise. Esto preserva el mismo límite de calidad y propiedad que los equipos ya utilizan para el código.
+La salida del modelo es trabajo propuesto, no una fusión automática. La actividad de configuración y traducción se mantiene visible en Glossia, mientras que los cambios del repositorio se publican mediante una solicitud de extracción para que el equipo la revise. Esto preserva el mismo límite de calidad y propiedad que los equipos ya utilizan para el código.
