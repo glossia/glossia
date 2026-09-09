@@ -6,43 +6,43 @@
   order: 2
 }
 ---
-Glossia trennt die Anweisungen für Repositories von den Anmeldeinformationen der Modellanbieter. Repositorien beschreiben, was übersetzt werden soll, während Konten entscheiden, welches [großes Sprachmodell](https://en.wikipedia.org/wiki/Large_language_model) die Arbeit leistet.
+Glossia trennt Repository-Anweisungen von Modellanbieter-Zugangsdaten. Repositories beschreiben, was übersetzt werden soll, während Konten festlegen, welches [großes Sprachmodell](https://en.wikipedia.org/wiki/Large_language_model) die Arbeit ausführt.
 
-## Warum Modelle Konten zugeordnet sind
+## Warum Modelle zu Konten gehören
 
-Ein Team übersetzt oft mehrere Repositorien mit dem selben Provider. Modelle, die dem Konto zugeordnet sind, ermöglichen Administratoren, einen Provider-Schlüssel zu rotieren oder das zugrundeliegende Modell einmal zu wechseln, ohne jedes Repository zu bearbeiten.
+Ein Team übersetzt oft mehrere Repositories mit derselben Provider-Beziehung. Account-Modelle ermöglichen es Administratoren, einen Provider-Schlüssel zu rotieren oder das zugrunde liegende Modell einmal zu wechseln, ohne jedes Repository zu bearbeiten.
 
-Diese Grenze hält Anmeldeinformationen zudem aus der Versionskontrolle heraus. Ein Repository enthält eine lesbare Kennung wie `translation-default`, nicht den Provider-Schlüssel.
+Diese Grenze hält Credentials ebenfalls aus der Versionskontrolle heraus. Ein Repository enthält einen lesbaren Handle wie `translation-default`, nicht der Provider-Schlüssel.
 
-## Handles sorgen für stabile Absicht
+## Handles bieten stabile Absicht.
 
-Das Feld `model` in `GLOSSIA.md` verweist auf eine für das Konto zugewiesene Modell-Kennung:
+Das `model` Feld `L10N.md` bezieht sich auf einen Account-Modell-Handle:
 
 ```yaml
 model: translation-default
 ```
 
-Die Kennung drückt die Absicht des Repositoriums aus. Ein Administrator kann später aktualisieren, welches Angebot-Modell diese Kennung auswählt, während die Repository-Konfiguration stabil bleibt.
+Der Handle drückt die Absicht des Repositories aus. Ein Administrator kann später anpassen, welches Provider-Modell dieser Handle auswählt, während die Repository-Konfiguration stabil bleibt.
 
 ## Wie mehrere Modelle verwendet werden
 
-Glossia verwendet für jedes Dokument eine konfigurierte Übersetzung ein Modell. Das Hinzufügen mehrerer Modelle erzeugt kein Ensemble, keine Fallback-Kette oder eine automatische Qualitätsebene. Der Repository-Autor wählt den Zweck durch stabile Kennungen wie `translation-default`, `long-form` oder `japanese-specialist` aus.
+Glossia verwendet für jede Dokumentübersetzung ein konfiguriertes Modell. Das Hinzufügen mehrerer Modelle erzeugt kein Ensemble, keine Fallback-Kette oder eine automatische Qualitätsstufe. Der Repository-Autor wählt seinen Zweck durch stabile Handles wie `translation-default`, `long-form`, oder `japanese-specialist`.
 
-Die Auswahl folgt der Kontext-Hierarchie für die Zuordnung der Datei und die Zielsprache:
+Die Auswahl folgt der Kontexthierarchie für das Dokument und das Ziellokal:
 
-1. Die naheliegendste `GLOSSIA/<locale>.md`-Datei, die `model` definiert, gewinnt für diese Lokalisierung.
-2. Andernfalls gewinnt die naheliegendste `GLOSSIA.md`-Datei, die `model` definiert, für ihr Verzeichnis.
-3. Elterneinstellungen von `GLOSSIA.md` werden vererbt, wenn eine näherliegende Datei kein Modell definiert.
-4. Wenn keine anwendbare Kontextdatei eine Kennung definiert, verwendet Glossia die Standardeinstellung des Kontos.
+1. Die nächste `L10N/<locale>.md` Datei, die angibt `model` gewinnt für dieses Ziellokal.
+2. Ansonsten, die nächste `L10N.md` Datei, die angibt `model` gewinnt für das Verzeichnis.
+3. Eltern `L10N.md` Einstellungen werden vererbt, wenn eine nähere Datei kein Modell deklariert.
+4. Wenn keine anwendbare Kontextdatei ein Handle deklariert, verwendet Glossia den Standard des Kontos.
 
-Eine explizit konfigurierte Kennung muss existieren. Glossia meldet einen Fehler bei einer unbekannten Kennung anstatt stillschweigend auf die Standardeinstellung des Kontos zu wechseln.
+Ein explizit konfiguriertes Handle muss existieren. Glossia meldet einen Fehler bei einem unbekannten Handle, anstatt stillschweigend auf den Standard des Kontos zu wechseln.
 
 ## Standardauswahl
 
-Die Projekt-Einrichtung benötigt ein Modell, bevor ein Repository sein eigenes `GLOSSIA.md` hat. Glossia wählt daher die Kontostandardauswahl. Das erste Modell, das einem Konto hinzugefügt wird, wird Standard, und ein Administrator kann von seiner Einstellungsseite ein anderes Modell zum Standard machen.
+Das Projektsetup benötigt ein Modell, bevor ein Repository über ein eigenes Modell verfügt. `L10N.md`. Glossia wählt daher den Konto-Standard aus. Das zuerst einem Konto hinzugefügte Modell wird zum Standard, und ein Administrator kann ein anderes Modell als Standard auf dessen Einstellungsseite festlegen.
 
-Sobald ein Repository `GLOSSIA.md` besitzt, macht die Verwendung einer expliziten Kennung die Auswahl für Prüfer klar. Das Weglassen von `model` hält das Repository auf der Konto-Standardauswahl.
+Sobald ein Repository verfügt `L10N.md`, macht eine explizite Handle die getroffene Entscheidung für die Rezensenten deutlich. Das Weglassen `model` belässt das Repository im Kontostandard.
 
-## Die Grenze der menschlichen Prüfung
+## Die Grenze der manuellen Prüfung
 
-Die Modellausgabe ist vorgeschlagene Arbeit, keine automatische Zusammenführung. Setup- und Übersetzungsaktivitäten bleiben in Glossia sichtbar, während Repository-Änderungen über einen Pull Request für das Team zur Prüfung veröffentlicht werden. Dies bewahrt die gleiche Qualitäts- und Verantwortungsgrenze, die Teams bereits für Code nutzen.
+Die Modellausgabe ist vorgesehene Arbeit, keine automatische Zusammenführung. Einrichtungs- und Übersetzungsaktivität bleibt in Glossia sichtbar, während Repository-Änderungen über einen Pull-Request für das Team zur Überprüfung veröffentlicht werden. Dies bewahrt den gleichen Qualitäts- und Verantwortungsbereich, den Teams bereits für Code verwenden.
