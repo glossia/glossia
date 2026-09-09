@@ -1,67 +1,67 @@
 %{
-  title: "Prise en main",
-  summary: "Connecter un dépôt et préparer sa première configuration de localisation.",
+  title: "Démarrage",
+  summary: "Connectez un dépôt et préparez son premier paramétrage de localisation.",
   category: "Tutoriels",
   order: 1
 }
 ---
-Ce tutoriel connecte un dépôt GitHub à Glossia, choisit ses premières langues cibles et prépare une base de localisation pour que votre équipe puisse l'examiner.
+Ce tutoriel connecte un dépôt GitHub à Glossia, choisit ses premières langues cibles et prépare une base de localisation pour que votre équipe puisse la réviser.
 
-## AVANT DE COMMENCER
+## Avant de commencer
 
-Vous avez besoin de :
+Ce dont vous avez besoin :
 
-- Un compte Glossia où vous pouvez gérer les paramètres et les projets.
-- Un dépôt GitHub auquel vous attribuez à l'application GitHub de Glossia la permission de lecture et de mise à jour.
-- Une clé de fournisseur pour un [modèle de langage à grande échelle](https://en.wikipedia.org/wiki/Large_language_model) pris en charge.
+- Un compte Glossia sur lequel vous pouvez gérer les paramètres et les projets.
+- Un dépôt GitHub pour lequel vous pouvez accorder à l'application GitHub de Glossia les permissions de lecture et de mise à jour.
+- Une clé de fournisseur pour un supporté [modèle de langage à grande échelle](https://en.wikipedia.org/wiki/Large_language_model).
 
-## 1\. Configurer un modèle de compte
+## 1\. Configurez un modèle de compte
 
 Ouvrez **Paramètres**, puis **Modèles**, et sélectionnez **Nouveau modèle**.
 
 1. Donnez au modèle un identifiant court, tel que `translation-default`.
 2. Ouvrez le sélecteur de modèle et tapez une partie du nom du fournisseur ou du modèle pour filtrer la liste.
 3. Sélectionnez le modèle que vous souhaitez que Glossia utilise.
-4. Saisissez la clé de fournisseur et enregistrez le modèle.
+4. Entrez la clé du fournisseur et enregistrez le modèle.
 
-L'identifiant permet aux dépôts de référence ce modèle de compte sans placer les identifiants de fournisseur dans le contrôle de version. Consultez [Configurer un modèle de fournisseur](/docs/how-to/configure-a-model-provider) pour plus de détails.
+Cet identifiant permet aux dépôts de faire référence à ce modèle de compte sans placer les identifiants du fournisseur dans le contrôle de version. Voir [Configurer un fournisseur de modèle](/docs/how-to/configure-a-model-provider) pour plus de détails.
 
-## 2\. Démarrer un projet
+## 2\. Commencez un projet
 
-Retournez à **Projets** et sélectionnez **Nouveau projet**.
+Revenez à **Projets** et sélectionnez **Nouveau projet**.
 
-Si Glossia demande l'accès au dépôt, suivez le lien vers GitHub et accordez à l'application GitHub de Glossia l'accès au dépôt. Après retour à Glossia, rouvrez **Nouveau projet** si nécessaire.
+Si Glossia demande un accès au dépôt, suivez le lien vers GitHub et accordez l'accès à l'application Glossia GitHub au dépôt. Une fois de retour à Glossia, réouvrez **Nouveau projet** si nécessaire.
 
 ## 3\. Choisir un dépôt
 
-Sélectionnez le dépôt que vous souhaitez localiser. Glossia ne liste que les dépôts disponibles via l'installation de l'application GitHub du compte actuel.
+Sélectionnez le dépôt que vous souhaitez traduire. Glossia affiche uniquement les dépôts disponibles via l'installation de l'application GitHub du compte actuel.
 
-Continuez à l'étape des langues.
+Passer à l'étape de la langue.
 
 ## 4\. Choisir les langues cibles
 
-Sélectionnez une ou plusieurs langues qui doivent être produites à partir du contenu source du dépôt, puis lancez la configuration.
+Sélectionnez une ou plusieurs langues à générer à partir du contenu source du dépôt, puis lancez la configuration.
 
-## 5\. Suivre la progression de la configuration
+## 5\. Suivre les étapes de configuration
 
-Gardez la page de configuration ouverte pendant que Glossia prépare le projet. La carte de progression affiche l'état actuel et les activités récentes, y compris la préparation du dépôt, l'examen des fichiers, les modifications, les vérifications et la terminaison.
+Gardez la page de configuration ouverte pendant que Glossia prépare le projet. La carte de progression affiche l'état actuel et les activités récentes, y compris la préparation du dépôt, l'inspection des fichiers, les modifications, les contrôles et la fin.
 
-Vous pouvez quitter la page et retourner à la vue d'ensemble du projet sans perdre l'état de configuration. Si la configuration échoue, la même carte explique ce qui demande de l'attention et propose **Retenter la configuration**.
+Vous pouvez quitter la page et revenir à l'aperçu du projet sans perdre l'état de configuration. Si la configuration échoue, la même carte explique ce qui nécessite une attention et offre **Réessayer la configuration**.
 
 ## 6\. Examiner le résultat
 
-Lorsque la configuration est terminée, ouvrez la vue d'ensemble du projet et examinez la pull request créée pour le dépôt. La base proposée comprend normalement :
+Lorsque la configuration est terminée, ouvrez l'aperçu du projet et examinez la demande de tirage de code créée pour le dépôt. La ligne de base proposée comprend habituellement :
 
-- Un fichier racine `GLOSSIA.md` avec la langue source, les chemins source et les langues cibles.
-- Les modifications d'application ou de contenu minimales nécessaires pour charger les fichiers localisés.
-- Toute validation légère déjà disponible dans le dépôt.
+- Une racine `L10N.md` fichier avec langue source, chemins de source et langues cibles.
+- Les plus petites modifications d'application ou de contenu nécessaires pour charger les fichiers localisés.
+- Toute validation légère qui était déjà disponible dans le référentiel.
 
-Examinez et fusionnez la pull request via votre flux de travail GitHub normal. Les futures exécutions de traduction utilisent le contexte `GLOSSIA.md` fusionné.
+Revuez et fusionnez la demande d'extraction via votre flux de travail GitHub habituel. Les exécutions de traduction futures utilisent le fusionné `L10N.md` contexte.
 
-La vue d'ensemble du projet conserve la pull request de configuration visible jusqu'à ce qu'elle soit fusionnée. Si elle est fermée sans être fusionnée, rouvrez-la depuis le lien dans le message de configuration.
+L'aperçu du projet maintient la demande d'extraction de configuration visible tant qu'elle n'est pas fusionnée. Si elle est fermée sans être fusionnée, réouvrez-la depuis le lien dans l'avis de configuration.
 
 ## Prochaines étapes
 
 - [Ajouter une nouvelle langue](/docs/how-to/add-a-new-language)
 - [Comprendre les états de configuration du projet](/docs/reference/project-setup)
-- [Apprendre le fonctionnement des modèles de compte](/docs/explanation/account-models)
+- [Apprendre comment les modèles de compte fonctionnent](/docs/explanation/account-models)
