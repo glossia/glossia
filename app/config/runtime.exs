@@ -69,6 +69,26 @@ flame_backend =
       raise "unsupported GLOSSIA_FLAME_BACKEND=#{inspect(value)}"
   end
 
+# A downstream wrapper (for example, glossia_enterprise) can pin the runner
+# impl at compile time in its own config.exs. In that case an unset env var
+# should leave the compile-time value in place rather than silently reverting
+# to the OSS default at boot.
+runners_module =
+  case System.get_env("GLOSSIA_RUNNERS_MODULE") do
+    empty when empty in [nil, ""] ->
+      :glossia
+      |> Application.get_env(:runners, [])
+      |> Keyword.get(:module, Glossia.Runners.Default)
+
+    "Elixir." <> _rest = name ->
+      String.to_atom(name)
+
+    name ->
+      String.to_atom("Elixir." <> name)
+  end
+
+config :glossia, :runners, module: runners_module
+
 config :glossia, :flame,
   backend: flame_backend,
   min: String.to_integer(System.get_env("GLOSSIA_FLAME_MIN") || "0"),

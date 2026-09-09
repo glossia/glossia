@@ -106,7 +106,7 @@ defmodule Glossia.Application do
       ] ++
         setup_recovery_children() ++
         [
-          Glossia.Flame.pool_child_spec(),
+          Glossia.Runners.pool_child_spec(),
           # Start to serve requests, typically the last entry
           GlossiaWeb.Endpoint
         ] ++ internal_babel_endpoint_children()
@@ -142,7 +142,7 @@ defmodule Glossia.Application do
 
   defp role do
     cond do
-      Glossia.Flame.child?() -> :isolated_child
+      Glossia.Runners.child?() -> :isolated_child
       Glossia.TranslationSessions.Job.current?() -> :translation_job
       true -> :parent
     end

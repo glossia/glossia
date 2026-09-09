@@ -97,8 +97,7 @@ defmodule Glossia.Translations.RepositoryRun do
     {runner_pid, monitor_ref} =
       spawn_monitor(fn ->
         result =
-          FLAME.call(
-            Glossia.Flame.pool_name(),
+          Glossia.Runners.call(
             fn ->
               case clone(repository) do
                 {:ok, repo_path} ->

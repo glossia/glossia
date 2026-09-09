@@ -15,21 +15,18 @@ defmodule Glossia.Sandbox.ClusterAdapter do
 
   @impl true
   def create(params) when is_map(params) do
-    create(params, &FLAME.place_child/3)
+    create(params, &Glossia.Runners.place_child/2)
   end
 
   @doc false
-  def create(params, place_child) when is_map(params) and is_function(place_child, 3) do
+  def create(params, place_child) when is_map(params) and is_function(place_child, 2) do
     sandbox_id = to_string(params[:id] || params["id"] || Ecto.UUID.generate())
 
     child_spec =
       {Glossia.Sandbox.Runner,
        sandbox_id: sandbox_id, root_path: params[:root_path] || params["root_path"]}
 
-    case place_child.(Glossia.Flame.pool_name(), child_spec,
-           timeout: boot_timeout(),
-           link: false
-         ) do
+    case place_child.(child_spec, timeout: boot_timeout(), link: false) do
       {:ok, pid} ->
         :ok = ProcessRegistry.put(sandbox_id, pid)
         {:ok, owner_ref()}
