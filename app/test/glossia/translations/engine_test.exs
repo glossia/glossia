@@ -1013,12 +1013,19 @@ defmodule Glossia.Translations.EngineTest do
         end
       end)
 
-      assert {:error, {:validation_failed, _message}} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ -> :ok end
-               )
+      log =
+        capture_log(fn ->
+          assert {:error, {:validation_failed, _message}} =
+                   Engine.apply_item(
+                     work_item(%{source_abs: source, retries: 0}),
+                     %Account{id: 1},
+                     fn _ -> :ok end
+                   )
+        end)
+
+      assert log =~ ~s("validation_stage":"segment_recovery")
+      assert log =~ ~s("retrying":false)
+      refute log =~ "Sentence 1"
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
       refute Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
@@ -1239,10 +1246,24 @@ defmodule Glossia.Translations.EngineTest do
       item =
         work_item(%{source_abs: source, format: "text", frontmatter_mode: :translate, retries: 1})
 
-      assert {:error, {:validation_failed, "nope"}} =
-               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, fn _, _ ->
-                 {:error, "nope"}
-               end)
+      message = "invalid JSON: private output"
+
+      log =
+        capture_log(fn ->
+          assert {:error, {:validation_failed, ^message}} =
+                   Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, fn _, _ ->
+                     {:error, message}
+                   end)
+        end)
+
+      assert log =~ ~s("validation_code":"json-syntax")
+      assert log =~ ~s("validation_stage":"output_validation")
+      assert log =~ ~s("document_attempt":1)
+      assert log =~ ~s("document_attempt":2)
+      assert log =~ ~s("document_attempt_limit":2)
+      assert log =~ ~s("retrying":true)
+      assert log =~ ~s("retrying":false)
+      refute log =~ "private output"
     end
 
     @tag :tmp_dir

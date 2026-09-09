@@ -738,6 +738,8 @@ defmodule Glossia.TranslationSessions.TranslateTest do
             locale: "ja",
             reason: %{
               kind: "validation-empty-output",
+              validation_code: "markdown-literal-empty",
+              validation_message: "private source content",
               scope: "item",
               raw: "private source content"
             },
@@ -762,7 +764,14 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert log =~ ~s("source_path":"app/priv/blog/why-glossia.md")
     assert log =~ ~s("output_path":"app/priv/i18n/ja/blog/why-glossia.md")
     assert log =~ ~s("failure_kind":"validation-empty-output")
+    assert log =~ ~s("validation_code":"markdown-literal-empty")
+    assert log =~ "Markdown text-node recovery produced an empty translation"
     refute log =~ "private source content"
+
+    [event] = Glossia.Ingestion.list_translation_session_events(session.id)
+    metadata = JSON.decode!(event.metadata)
+    assert hd(metadata["items"])["validation_code"] == "markdown-literal-empty"
+    refute event.metadata =~ "private source content"
   end
 
   test "fails the session when the isolated repository run returns an exit" do
