@@ -1,67 +1,67 @@
 %{
   title: "REST API",
   summary:
-    "Eine für Entwickler erstellte REST API mit OpenAPI-Dokumentation, OAuth 2.1-Authentifizierung und feingranularer Autorisierung. Alles, was Sie im Dashboard tun können, können Sie auch über die API tun.",
+    "Eine REST API für Entwickler mit OpenAPI-Dokumentation, OAuth 2.1-Authentifizierung und granularer Autorisierung. Alles, was Sie im Dashboard tun können, können Sie auch über die API erledigen.",
   order: 4,
-  icon: "terminal",
-  hero_cta_text: "Starten",
+  icon: "Befehlszeile",
+  hero_cta_text: "Loslegen",
   hero_cta_url: "/signup",
   highlights: [
     %{
       title: "OpenAPI dokumentiert",
       description:
         "Eine vollständige OpenAPI 3.1-Spezifikation ermöglicht interaktive Dokumentation über Scalar. Erkunden Sie Endpunkte, testen Sie Anfragen und generieren Sie Client-Code aus einer einzigen Spezifikationsdatei.",
-      icon: "book-open"
+      icon: "Offenes Buch"
     },
     %{
       title: "OAuth 2.1 mit PKCE",
       description:
-        "Dynamische Client-Registrierung, Authorization-Code-Flow mit PKCE, Token-Introspektion und Widerruf. Drittanbieter-Clients authentifizieren sich sicher, ohne Geheimnisse zu teilen.",
-      icon: "key-round"
+        "Dynamische Client-Registrierung, Authorization-Code-Flow mit PKCE, Token-Introspektion und Widerruf. Drittanbieter-Client authentifizieren sich sicher, ohne Geheimnisse zu teilen.",
+      icon: "Schlüssel"
     },
     %{
       title: "Paginierung und Filterung",
       description:
-        "Alle Listen-Endpoints unterstützen standardmäßig seitenbasierte Paginierung, Feldfilterung und Sortierung. Vorhersagbare Antwortmetadaten erleichtern die Erstellung von Clients.",
-      icon: "code"
+        "Jeder Listen-Endpunkt unterstützt seitenbasierte Paginierung, Feld-Filterung und Sortierung standardmäßig. Vorhersehbare Antwortmetadaten machen das Erstellen von Clients unkompliziert.",
+      icon: "Code"
     }
   ]
 }
 ---
 ## Entwickler zuerst
 
-Die REST API ist das Rückgrat von Glossia. Das Dashboard, die CLI, und der [MCP server](/features/mcp-server) nutzen alle dieselben Endpunkte. Wenn wir eine Funktion hinzufügen, landet sie zuerst in der API und ist von dort aus für alle anderen Stellen verfügbar.
+Die REST API ist das Rückgrat von Glossia. Das Dashboard, die CLI und der [MCP-Server](/features/mcp-server) alle nutzen dieselben Endpunkte. Wenn wir eine Funktion hinzufügen, landet diese zuerst in der API und steht von dort aus überall zur Verfügung.
 
-Das bedeutet, Sie sind nie durch die Benutzeroberfläche eingeschränkt. Jeder Workflow, den Sie sich vorstellen können, von CI/CD-Integrationen bis hin zu benutzerdefinierten Dashboards, kann auf derselben stabilen, dokumentierten Schnittstelle aufgebaut werden.
+Das bedeutet, Sie werden nie durch die Benutzeroberfläche eingeschränkt. Jeder Workflow, den Sie sich vorstellen können, von CI/CD-Integrationen bis hin zu benutzerdefinierten Dashboards, kann auf dieser stabilen, dokumentierten Schnittstelle aufgebaut werden.
 
 ## Authentifizierung
 
-Glossia verwendet OAuth 2.1 mit PKCE für alle API-Authentifizierungen. Der Ablauf unterstützt sowohl First-Party- als auch Third-Party-Clienten. Siehe die [Dokumente zu Authentifizierung und Autorisierung](/docs/reference/apis/authentication) für den vollständigen Durchlauf.
+Glossia verwendet OAuth 2.1 mit PKCE für die API-Authentifizierung. Der Ablauf unterstützt sowohl Erst- als auch Drittanbieter-Klenten. Siehe die [Authentifizierungs- und Autorisierungsdokumentation](/docs/reference/apis/authentication) für die vollständige Anleitung.
 
-**Dynamische Client-Registrierung** -- Clients registrieren sich programmatisch unter `/oauth/register` mit ihren Redirect URIs und Grant Types. Kein manueller Genehmigungsschritt, kein Portal, durch das geklickt werden muss.
+**Dynamische Clienten-Registrierung** -- Clienten registrieren sich programmatisch unter `/oauth/register` mit ihren Redirect-URIs und Grant-Typen. Kein manueller Genehmigungs-Schritt, kein Portal zum Durchklicken.
 
-**Autorisierungscode mit PKCE** -- Benutzer autorisieren Clients über ein browserbasiertes Einwilligungsbildschirm. Die PKCE-Extension sorgt dafür, dass Tokens auch für öffentliche Clients sicher bleiben, die kein Geheimnis speichern können.
+**Autorisierungscode mit PKCE** -- Benutzer autorisieren Clienten über einen browserbasierten Einwilligungs-Bildschirm. Die PKCE-Erweiterung stellt sicher, dass Tokens auch für öffentliche Clienten, die kein Geheimnis speichern können, sicher bleiben.
 
-**Token-Lebenszyklus** -- Zugriffstokens können via Standard-OAuth-Endpunktes ausgetauscht, introspektiert und widerrufen werden. Die Rate Limitierung an den Token-Endpunkten schützt vor Brute-Force-Attacken.
+**Token-Lebenszyklus** -- Zugriffstokens können über Standard-OAuth-Endpunkte ausgetauscht, abgefragt und widerrufen werden. Ratenbegrenzung an den Token-Endpunkten schützt vor Brute-Force-Angriffen.
 
 ## Autorisierung
 
-Die Zugriffskontrolle nutzt zwei Ebenen. Die [Authentifizierungsdokumente](/docs/reference/apis/authentication) erläutern Scopes, Rollen und die vollständige Berechtigungs-Matrix im Detail.
+Zugriffskontrolle nutzt zwei Ebenen. Die [Authentifizierungsdokumente](/docs/reference/apis/authentication) beschreiben Bereiche, Rollen und die vollständige Berechtigungs-Matrix im Detail.
 
-**Scopes** definieren, welche Ressourcenkategorien ein Token zugreifen kann. Ein Token mit `voice:read` kann Voice-Konfigurationen lesen, darf sie aber nicht ändern. Scopes folgen dem `resource:action`-Muster: `account:read`, `organization:write`, `glossary:admin` für Terminologieverwaltung, und so weiter.
+**Bereiche** definieren, welche Ressourcentypen ein Token zugreifen kann. Ein Token mit `voice:read` kann Stimmen-Konfigurationen lesen, darf sie aber nicht ändern. Bereiche folgen dem `resource:action` Muster: `account:read`Das neu zusammengesetzte Dokument hat zuvor die Validierung nicht bestanden: Die Wiederherstellung von Markdown-Textliterals muss ein JSON-String-Array mit gleicher Länge zurückgeben. `organization:write`Das rekonstruierte Dokument hat die Validierung zuvor nicht bestanden: Die Wiederherstellung von Markdown-Text-Literalen muss ein JSON-String-Array mit übereinstimmender Länge zurückgeben `glossary:admin` für Terminologieverwaltung und so weiter.
 
-**Policies** überprüfen die Beziehung zwischen dem Benutzer und der spezifischen Ressource. Ein gültiges Token mit dem richtigen Scope kann immer noch nicht auf eine Organisation zugreifen, der der Benutzer nicht angehört. Jede Anfrage wird gegen beide Ebenen geprüft.
+**Richtlinien** Verifizieren Sie die Beziehung zwischen dem Benutzer und der spezifischen Ressource. Ein gültiges Token mit dem richtigen Berechtigungs­bereich kann dennoch nicht auf eine Organisation zugreifen, zu der der Benutzer nicht gehört. Jede Anfrage wird gegen beide Ebenen geprüft.
 
 ## Paginierung, Filterung und Sortierung
 
-Alle List-Endpunkte geben paginierte Ergebnisse mit konsistenten Metadaten zurück:
+Alle Listenendpunkte geben paginierte Ergebnisse mit konsistenten Metadaten zurück:
 
-Jede Antwort enthält `total_count`, `total_pages`, `current_page`, `page_size`, `has_next_page?` und `has_previous_page?`, sodass Clients Paginierungssteuerungen ohne Vermutungen erstellen können.
+Jede Antwort enthält `total_count`Das neu zusammengesetzte Dokument hat frühere Validierungsfehler aufgewiesen: Die Wiederherstellung von Markdwntextknoten erzeugte eine leere Übersetzung. `total_pages`Das neu zusammengesetzte Dokument hat die Validierung zuvor nicht bestanden: Die Wiederherstellung von Markdown-Textknoten ergab eine leere Übersetzung. `current_page`Das zuvor rekonstruierte Dokument hat die Validierung nicht bestanden: Die Wiederherstellung der Markdown-Textliteralwerte muss ein JSON-String-Array mit passender Länge zurückgeben. `page_size`, `has_next_page?`, und `has_previous_page?` so Klienten Paginierungssteuerelemente ohne Vermutungen erstellen können.
 
-Filtern Sie nach beliebigen indizierten Feldern mit den Abfrageparametern `filters[field]=value`. Sortieren Sie aufsteigend oder absteigend mit den Parametern `order_by[]`. Die Oberfläche ist bei jeder Ressource identisch.
+Filtern Sie nach jedem indexierten Feld unter Verwendung von `filters[field]=value` Abfrageparametern. Sortieren Sie aufsteigend oder absteigend mit `order_by[]` Parameter. Die Schnittstelle ist für jede Ressource identisch.
 
 ## OpenAPI und interaktive Dokumentation
 
-Die vollständige OpenAPI 3.1-Spezifikation ist unter `/api/openapi.json` verfügbar. Die [interaktive API-Referenz](/docs/reference/apis/rest) wird von Scalar angetrieben und ermöglicht die Erkundung von Endpunkten, den Abusus von Schemata und das Senden von Testanfragen direkt aus dem Browser.
+Die vollständige OpenAPI 3.1-Spezifikation steht unter `/api/openapi.json`. Die [interaktive API-Referenz](/docs/reference/apis/rest) wird von Scalar angetrieben und ermöglicht es, Endpunkte zu erkunden, Schemas zu inspizieren und Testanfragen direkt aus dem Browser zu stellen.
 
-Client-Bibliotheken in beliebigen Programmiersprachen können aus der Spezifikation generiert werden. Der Vertrag ist versioniert und stabil, sodass Ihre Integrationen nicht brechen, wenn wir neue Funktionen veröffentlichen.
+Client-Bibliotheken jeder Sprache können aus der Spezifikation generiert werden. Der Vertrag ist versioniert und stabil, sodass Ihre Integrationen nicht ausfallen, wenn wir neue Funktionen bereitstellen.
