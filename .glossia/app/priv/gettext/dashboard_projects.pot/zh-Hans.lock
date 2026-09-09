@@ -1,15 +1,15 @@
 {
-  "hash": "46dab9355094d6b4bf22f6954ac943cd5a5a4ddce9d22a0827fc11a4618bb3a4",
+  "hash": "33fe801588983f6efe8d6fc77ea3579516d8a05d7e1f7a3e69bb4358c82f3469",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "0f2c8222ae7b960c08d3af9e39c4739e99e2a78b1063e2a1cdbcbb606c7a021c",
+          "hash": "9affc1ed9eda51592bae39f94221bc5faec11d2dcebdb62458b62ebbb60f8e8f",
           "kind": "source",
           "label": "app/priv/gettext/dashboard_projects.pot",
           "metadata": {
-            "content_hash": "e3c4fe5043117e5992802e718213bac2fe18d336996b6a3355927f1f67233ea8"
+            "content_hash": "d870644dd249b8cab87c415b1342e0a3409539f4d11ca38895346fbdde11d0c2"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "2e7c82be99482ca4aaa43ac06a6ce52d03a591e6057c49e34ea8715a4f2633f1",
+          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "46dab9355094d6b4bf22f6954ac943cd5a5a4ddce9d22a0827fc11a4618bb3a4",
+      "hash": "33fe801588983f6efe8d6fc77ea3579516d8a05d7e1f7a3e69bb4358c82f3469",
       "kind": "translation_input",
       "label": "app/priv/gettext/dashboard_projects.pot",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "c54e00116ec82016cc594635fa804b7ee19ab75fd3396c4891a84c7fa61dbcd9",
+  "output_hash": "a49017fe40a3bddbd314fb08828dab9ff2e5327c001f3265e65635328f34bb8b",
   "output_path": "app/priv/gettext/zh-Hans/LC_MESSAGES/dashboard_projects.po",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/gettext/dashboard_projects.pot",
-  "translated_at": "2026-09-01T12:56:10.574337Z"
+  "translated_at": "2026-09-09T14:38:16.984114Z"
 }
