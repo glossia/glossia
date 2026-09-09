@@ -26,6 +26,18 @@
     <meta property="og:title" content={social_title} />
     <meta property="og:description" content={social_description} />
     <meta property="og:image" content={social_image_url} />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta
+      :if={social_image_url != Glossia.OgImage.fallback_url()}
+      property="og:image:width"
+      content="1200"
+    />
+    <meta
+      :if={social_image_url != Glossia.OgImage.fallback_url()}
+      property="og:image:height"
+      content="630"
+    />
+    <meta property="og:image:alt" content="Glossia · Speak everyone's language." />
     <meta property="og:site_name" content="Glossia" />
     <meta property="og:type" content={assigns[:page_type] || "website"} />
     <meta :if={assigns[:canonical_url]} property="og:url" content={@canonical_url} />
@@ -35,6 +47,7 @@
     <meta name="twitter:title" content={social_title} />
     <meta name="twitter:description" content={social_description} />
     <meta name="twitter:image" content={social_image_url} />
+    <meta name="twitter:image:alt" content="Glossia · Speak everyone's language." />
     <meta :if={assigns[:canonical_url]} name="twitter:url" content={@canonical_url} />
     <script :for={data <- structured_data} type="application/ld+json">
       <%= data %>

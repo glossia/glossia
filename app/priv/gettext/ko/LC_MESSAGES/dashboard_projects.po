@@ -9,32 +9,32 @@ msgstr ""
 "Content-Location: http://www.gnu.org/software/gettext/\n"
 "POT-Creation-Date: 2024-01-01 00:00+0000\n"
 
-#: lib/glossia_web/live/dashboard_live.ex:13156
+#: lib/glossia_web/live/dashboard_live.ex:13143
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr "한눈에 보기"
 
-#: lib/glossia_web/live/dashboard_live.ex:13400
+#: lib/glossia_web/live/dashboard_live.ex:13387
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr "브라우저 언어"
 
-#: lib/glossia_web/live/dashboard_live.ex:13369
+#: lib/glossia_web/live/dashboard_live.ex:13356
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr "최상위 국가"
 
-#: lib/glossia_web/live/dashboard_live.ex:13341
+#: lib/glossia_web/live/dashboard_live.ex:13328
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr "최상위 페이지"
 
-#: lib/glossia_web/live/dashboard_live.ex:13242
+#: lib/glossia_web/live/dashboard_live.ex:13229
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr "다음 번역 작업처"
 
-#: lib/glossia_web/live/dashboard_live.ex:13321
+#: lib/glossia_web/live/dashboard_live.ex:13308
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Traffic"
 msgstr "시간별 트래픽"

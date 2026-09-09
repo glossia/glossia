@@ -77,6 +77,26 @@ defmodule GlossiaWeb.DashboardLive do
     socket = maybe_redirect_to_suggestion_finalize(socket, params)
     socket = schedule_translation_refresh(socket)
 
+    project = if params["project"], do: socket.assigns[:project]
+
+    socket =
+      assign(
+        socket,
+        :og_image_url,
+        GlossiaWeb.DashboardSocial.image_url(
+          socket.assigns.account,
+          project,
+          socket.assigns.live_action
+        )
+      )
+
+    canonical_url =
+      GlossiaWeb.Endpoint.url()
+      |> URI.merge(socket.assigns.uri.path)
+      |> URI.to_string()
+
+    socket = assign(socket, :canonical_url, canonical_url)
+
     {:noreply, socket}
   end
 
@@ -1029,19 +1049,6 @@ defmodule GlossiaWeb.DashboardLive do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
     end
 
-    og_image_url =
-      if account.visibility == "public" do
-        og_attrs =
-          %{
-            title: project.name,
-            description: socket.assigns.handle <> "/" <> project.handle,
-            category: "project"
-          }
-          |> maybe_put_project_avatar(socket.assigns.handle, project)
-
-        Glossia.OgImage.project_url(socket.assigns.handle, project.handle, og_attrs)
-      end
-
     setup_events = Glossia.Ingestion.list_setup_events(project.id)
     project = maybe_backfill_setup_pull_request(project, setup_events)
     translation_overview = Glossia.TranslationSessions.project_overview(project)
@@ -1061,7 +1068,6 @@ defmodule GlossiaWeb.DashboardLive do
       page_title: project.name,
       project: project,
       project_name: project.name,
-      og_image_url: og_image_url,
       translation_overview: translation_overview,
       translations: [],
       translations_meta: empty_translations_meta(),
@@ -7135,25 +7141,6 @@ defmodule GlossiaWeb.DashboardLive do
       _ -> nil
     end
   end
-
-  defp maybe_put_project_avatar(attrs, handle, %{
-         avatar_url: avatar_url,
-         handle: project_handle,
-         updated_at: updated_at
-       })
-       when is_binary(avatar_url) and avatar_url != "" do
-    url =
-      Phoenix.VerifiedRoutes.url(
-        GlossiaWeb.Endpoint,
-        ~p"/avatars/#{handle}/projects/#{project_handle}"
-      )
-
-    attrs
-    |> Map.put(:project_avatar, url)
-    |> Map.put(:project_avatar_v, DateTime.to_unix(updated_at))
-  end
-
-  defp maybe_put_project_avatar(attrs, _handle, _project), do: attrs
 
   attr(:project, :map, required: true)
 

@@ -81,6 +81,10 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.AnalyticsCors
   end
 
+  pipeline :social_image do
+    plug :accepts, ["jpeg", "html"]
+  end
+
   pipeline :upload_proxy do
     plug :fetch_session
     plug :put_secure_browser_headers
@@ -218,7 +222,7 @@ defmodule GlossiaWeb.Router do
   end
 
   scope "/og", GlossiaWeb do
-    pipe_through :api
+    pipe_through :social_image
 
     get "/marketing/:category/:hash", OgImageController, :marketing
     get "/app/:handle/:hash", OgImageController, :account
