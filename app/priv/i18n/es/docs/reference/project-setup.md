@@ -1,11 +1,12 @@
 %{
   title: "Configuración del proyecto",
-  summary: "Estados, información de progreso y resultados de la configuración del repositorio.",
-  category: "Referencia",
+  summary:
+    "Estados, información sobre el progreso y resultados de la configuración del repositorio.",
+  category: "referencia",
   order: 2
 }
 ---
-La configuración del proyecto prepara un repositorio conectado para Glossia. Comienza después de que un usuario seleccione un repositorio y al menos un idioma objetivo en el flujo de **Nuevo proyecto**.
+La configuración del proyecto prepara un repositorio conectado para Glossia. Comienza después de que un usuario selecciona un repositorio y al menos un idioma objetivo en el **Nuevo proyecto** flujo.
 
 ## Prerrequisitos
 
@@ -16,31 +17,31 @@ La configuración del proyecto prepara un repositorio conectado para Glossia. Co
 
 ## Estados
 
-| Estado | Descripción | Acción disponible |
-|---|---|---|
-| **Pendiente** | El proyecto ha sido aceptado y está esperando para comenzar. | Seguir el progreso o salir de la página y volver más tarde. |
-| **En ejecución** | Glossia está inspeccionando y actualizando el repositorio. | Seguir la actividad en vivo. |
-| **Completado** | La base de localización se preparó y se publicó para revisión. | Abrir, revisar y fusionar la solicitud de extracción. |
+| Estado | Significado | Acción disponible |
+|---|---|
+| **Pendiente** | El proyecto ha sido aceptado y está a la espera de comenzar. | Siga el progreso o salga de la página y regrese más tarde. |
+| **Ejecutando** | Glossia está inspeccionando y actualizando el repositorio. | Observa la actividad en vivo. |
+| **Completado** | La línea base de localización fue preparada y publicada para revisión. | Abre, revisa y fusiona el pull request. |
 
-Los proyectos son provisionales mientras la configuración esté en estado **Pendiente** o **En ejecución**. Si la configuración no puede finalizar o publicar un cambio útil, Glossia limpia el entorno de configuración y elimina el proyecto provisional. El repositorio queda entonces disponible en el flujo de **Nuevo proyecto** para que la configuración pueda intentarse nuevamente.
+Los proyectos son provisionales mientras la configuración está **Pendiente** o **En ejecución**. Sin embargo, si la configuración no puede terminar o publicar un cambio util, Glossia limpia el entorno de configuracion y elimina el proyecto provisional. El repositorio entonces queda disponible en el **Nuevo proyecto** flujo para que pueda intentarse nuevamente la configuracion.
 
 ## Progreso visible
 
-La tarjeta de configuración sigue disponible en el flujo de nuevo proyecto y en la vista general del proyecto. Incluye:
+La tarjeta de configuracion sigue disponible en el flujo de nuevo proyecto y en la vista general del proyecto. Incluye:
 
-- Un distintivo de estado y una barra de progreso.
-- Una explicación breve del estado actual.
-- Actividad reciente de preparación, inspección, cambios en archivos, verificación y finalización del repositorio.
-- Un mensaje de fallo claro cuando la configuración no puede completarse.
+- Una insignia de estado y una barra de progreso.
+- Una breve explicacion del estado actual.
+- Actividad reciente de preparacion del repositorio, inspeccion, cambio de archivo, verificacion y finalizacion.
+- Un mensaje de error claro cuando la configuración no pueda completarse.
 
-El progreso se almacena mientras existe el proyecto provisional. Un fallo terminal descarta tanto el proyecto como su progreso de configuración visible.
+El progreso se almacena mientras exista el proyecto provisional. Un fallo terminal descarta tanto el proyecto como su progreso visible de la configuración.
 
 ## Resultado completado
 
-Una configuración conectada exitosa crea una rama dedicada y una solicitud de extracción contra la rama predeterminada del repositorio. La solicitud de extracción contiene la base de localización generada, incluyendo el contexto de `GLOSSIA.md` y los cambios prácticos más pequeños necesarios para cargar el contenido localizado.
+Una configuración conectada exitosa crea una rama dedicada y una solicitud de extracción contra la rama por defecto del repositorio. La solicitud de extracción contiene la línea base de localización generada, incluyendo `L10N.md` contexto y los cambios prácticos mínimos necesarios para cargar el contenido localizado.
 
-La configuración no publica catálogos de destino únicamente con encabezados. Cuando un marco de localización requiere catálogos de destino antes de la traducción, los catálogos contienen las entradas de mensajes de fuente extraídas con valores de traducción vacíos. Cuando los catálogos de destino no son requeridos aún, la configuración los deja para la primera ejecución de traducción.
+La configuración no publica catálogos de destino solo con encabezados. Cuando un framework de localización requiere catálogos de destino antes de la traducción, estos contienen las entradas de mensajes fuente extraídas con valores de traducción vacíos. Cuando los catálogos de destino no son necesarios todavía, la configuración los deja para la primera ejecución de traducción.
 
-Glossia no fusiona la solicitud de extracción. Los mantenedores del repositorio la revisan y la fusionan mediante su proceso normal de GitHub.
+Glossia no fusiona la solicitud de extracción. Los mantenedores del repositorio la revisan y la fusionan a través de su proceso normal de GitHub.
 
-La vista general del proyecto muestra un aviso de configuración mientras esta solicitud de extracción esté abierta. El aviso se elimina después de que la solicitud de extracción se haya fusionado. Si la solicitud de extracción se cierra sin fusionarse, la vista general explica que debe reabrirse antes de que la configuración pueda considerarse finalizada.
+El resumen del proyecto muestra un aviso de configuración mientras se mantiene abierta esta solicitud de extracción. El aviso se elimina después de que se fusione la solicitud de extracción. Si la solicitud de extracción se cierra sin fusionarse, el resumen explica que debe volver a abrirse antes de que la configuración pueda considerarse finalizada.
