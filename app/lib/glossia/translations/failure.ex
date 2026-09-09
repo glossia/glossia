@@ -7,15 +7,42 @@ defmodule Glossia.Translations.Failure do
   useful to show to an account member.
   """
 
-  @type t :: %{
-          kind: String.t(),
-          scope: String.t(),
-          provider: String.t() | nil,
-          status: pos_integer() | nil,
-          code: String.t() | nil,
-          request_id: String.t() | nil,
-          retry_after_ms: pos_integer() | nil
-        }
+  # Match only the validator-owned prefix, and emit that constant rather than
+  # the original message. Suffixes can contain source text, tokens, parser
+  # excerpts, or arbitrary repository command output.
+  @validation_reasons [
+    {"markdown-literal-array-shape",
+     "Markdown text-literal recovery must return a JSON string array of matching length"},
+    {"markdown-literal-array-syntax", "Markdown text-literal recovery returned invalid JSON"},
+    {"markdown-literal-empty", "Markdown text-node recovery produced an empty translation"},
+    {"markdown-literal-changed",
+     "Markdown text-node recovery changed or emptied a source literal"},
+    {"markdown-literal-count", "Markdown text-node recovery did not match the source text nodes"},
+    {"markdown-recovery-prepare", "Markdown could not be prepared for recovery"},
+    {"markdown-recovery-assemble", "Markdown could not be reassembled"},
+    {"markdown-source-parse", "source Markdown could not be parsed"},
+    {"markdown-translation-parse", "translation Markdown could not be parsed"},
+    {"markdown-recovery-no-text", "Markdown source had no text nodes for marker recovery"},
+    {"markdown-recovery-empty", "Markdown recovery marker had an empty translation"},
+    {"markdown-recovery-markers",
+     "Markdown recovery markers were missing, duplicated, or reordered"},
+    {"markdown-structure", "translated Markdown changed the document structure"},
+    {"frontmatter-syntax", "markdown frontmatter invalid"},
+    {"json-syntax", "invalid JSON"},
+    {"yaml-syntax", "invalid YAML"},
+    {"empty-output", "translated output was empty"},
+    {"missing-preserved-tokens", "preserved tokens missing from output"},
+    {"unexpected-preserved-tokens", "unexpected preserved tokens in output"},
+    {"protected-marker-count", "protected token marker occurred"},
+    {"protected-values-changed",
+     "these protected token markers and web addresses must be copied byte-for-byte exactly once"},
+    {"external-check-exit", "external check failed: exit"},
+    {"validation-command-exit", "validation failed: exit"},
+    {"catalog-source-entries", "po entries must preserve every source msgid exactly once"},
+    {"catalog-missing-translation", "po entry missing msgstr"},
+    {"catalog-syntax", "po invalid line"},
+    {"catalog-format-string", "po format string"}
+  ]
 
   @known_kinds ~w(
     provider-credit
@@ -59,13 +86,15 @@ defmodule Glossia.Translations.Failure do
   @max_retry_after_ms :timer.minutes(5)
 
   @doc "Builds a safe failure from an engine error."
-  @spec from(term(), term()) :: t()
   def from(reason, provider \\ nil)
 
   def from({:llm_failed, reason}, provider), do: provider_failure(reason, provider)
 
   def from({:validation_failed, reason}, _provider) do
-    failure(validation_kind(searchable_text(reason)), "item")
+    text = searchable_text(reason)
+
+    failure(validation_kind(text), "item")
+    |> Map.merge(validation_diagnostics(text))
   end
 
   def from(:source_invalid_encoding, _provider),
@@ -85,7 +114,7 @@ defmodule Glossia.Translations.Failure do
         provider_failure(reason, provider)
 
       validation_signal?(normalized) ->
-        failure(validation_kind(normalized), "item")
+        from({:validation_failed, reason})
 
       true ->
         failure("translation-failed", "item")
@@ -99,7 +128,6 @@ defmodule Glossia.Translations.Failure do
 
   Legacy string reasons are classified but never retained.
   """
-  @spec normalize(term()) :: t()
   def normalize(reason)
 
   def normalize(%{} = failure) do
@@ -120,6 +148,7 @@ defmodule Glossia.Translations.Failure do
       request_id: safe_identifier(map_value(failure, :request_id), 200),
       retry_after_ms: safe_retry_after_ms(map_value(failure, :retry_after_ms))
     )
+    |> Map.merge(normalize_validation_diagnostics(failure, kind))
   end
 
   def normalize(reason), do: from(reason)
@@ -144,7 +173,6 @@ defmodule Glossia.Translations.Failure do
   defp permanent_status?(_status), do: false
 
   @doc "Whether a failure should also have a session-level summary."
-  @spec session_level?(t()) :: boolean()
   def session_level?(%{scope: "session"}), do: true
   def session_level?(_failure), do: false
 
@@ -156,7 +184,6 @@ defmodule Glossia.Translations.Failure do
   failures - rate limits, timeouts, 5xx - are excluded, because another file or
   another attempt can still succeed.
   """
-  @spec run_stopping?(t()) :: boolean()
   def run_stopping?(failure), do: session_level?(failure) and not retryable?(failure)
 
   @doc """
@@ -167,7 +194,6 @@ defmodule Glossia.Translations.Failure do
   provider failure: "Translation failed for 1 file" sends a member to inspect a
   file that is perfectly fine, when the account is simply out of credit.
   """
-  @spec describe(t()) :: String.t()
   def describe(failure) do
     failure = normalize(failure)
 
@@ -297,6 +323,72 @@ defmodule Glossia.Translations.Failure do
       true ->
         "validation"
     end
+  end
+
+  defp validation_diagnostics(text) do
+    normalized =
+      text
+      |> String.downcase()
+      |> then(
+        &Regex.replace(
+          ~r/\Amarkdown recovery marker [0-9]+ had an empty translation/,
+          &1,
+          "markdown recovery marker had an empty translation"
+        )
+      )
+
+    case Enum.find(@validation_reasons, fn {_code, prefix} ->
+           String.starts_with?(normalized, String.downcase(prefix))
+         end) do
+      {code, message} ->
+        %{validation_code: code, validation_message: message}
+        |> Map.merge(command_exit_diagnostics(code, command_exit_status(text)))
+
+      nil ->
+        unknown_validation_diagnostics()
+    end
+  end
+
+  # Reconstruct the explanation from the code at every messaging boundary.
+  # Never trust a caller-supplied validation_message, even for a known code.
+  defp normalize_validation_diagnostics(value, "validation" <> _) do
+    code = map_value(value, :validation_code)
+
+    case List.keyfind(@validation_reasons, code, 0) do
+      {code, message} ->
+        %{validation_code: code, validation_message: message}
+        |> Map.merge(command_exit_diagnostics(code, map_value(value, :validation_exit_status)))
+
+      nil ->
+        unknown_validation_diagnostics()
+    end
+  end
+
+  defp normalize_validation_diagnostics(_value, _kind), do: %{}
+
+  defp command_exit_status(text) do
+    case Regex.run(
+           ~r/\A(?:external check failed|validation failed): exit ([0-9]{1,3})(?:\n|$)/,
+           text
+         ) do
+      [_, status] -> String.to_integer(status)
+      _ -> nil
+    end
+  end
+
+  defp command_exit_diagnostics(code, status)
+       when code in ["external-check-exit", "validation-command-exit"] and
+              is_integer(status) and status in 0..255,
+       do: %{validation_exit_status: status}
+
+  defp command_exit_diagnostics(_code, _status), do: %{}
+
+  defp unknown_validation_diagnostics do
+    %{
+      validation_code: "unclassified",
+      validation_message:
+        "Unrecognized validation failure; add a safe diagnostic for this validator"
+    }
   end
 
   defp validation_signal?(text) do

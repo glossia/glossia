@@ -192,8 +192,93 @@ defmodule Glossia.Translations.FailureTest do
 
     assert failure.kind == "validation-command"
     assert failure.scope == "item"
+    assert failure.validation_code == "validation-command-exit"
+    assert failure.validation_message == "validation failed: exit"
+    assert failure.validation_exit_status == 1
+    assert failure |> JSON.encode!() |> JSON.decode!() |> Failure.normalize() == failure
     refute inspect(failure) =~ "repository-secret"
     refute inspect(failure) =~ "full translated document"
+  end
+
+  test "retains distinct safe Markdown recovery reasons through serialization" do
+    for {message, code} <- [
+          {"Markdown text-literal recovery must return a JSON string array of matching length",
+           "markdown-literal-array-shape"},
+          {"Markdown text-literal recovery returned invalid JSON",
+           "markdown-literal-array-syntax"},
+          {"Markdown text-node recovery produced an empty translation", "markdown-literal-empty"},
+          {"Markdown text-node recovery changed or emptied a source literal",
+           "markdown-literal-changed"},
+          {"Markdown text-node recovery did not match the source text nodes",
+           "markdown-literal-count"},
+          {"Markdown recovery markers were missing, duplicated, or reordered",
+           "markdown-recovery-markers"}
+        ] do
+      failure = Failure.from({:validation_failed, message <> ": private source content"})
+      assert failure.validation_code == code
+      assert failure.validation_message == message
+      assert failure |> JSON.encode!() |> JSON.decode!() |> Failure.normalize() == failure
+      refute inspect(failure) =~ "private source content"
+    end
+  end
+
+  test "removes the dynamic marker index while identifying an empty recovery marker" do
+    failure =
+      Failure.from({:validation_failed, "Markdown recovery marker 12 had an empty translation"})
+
+    assert failure.validation_code == "markdown-recovery-empty"
+    assert failure.validation_message == "Markdown recovery marker had an empty translation"
+  end
+
+  test "retains diagnostics when rebuilding a failed item from durable progress" do
+    event = %{
+      type: "item_failed",
+      index: 0,
+      model_calls: 14,
+      reason:
+        Failure.from({:validation_failed, "Markdown text-literal recovery returned invalid JSON"})
+    }
+
+    decoded =
+      event |> JSON.encode!() |> JSON.decode!() |> Glossia.TranslationSessions.Progress.decode()
+
+    state =
+      Glossia.TranslationSessions.Progress.fold([
+        %{type: "item_started", index: 0, output_path: "fr/commands.md", locale: "fr"},
+        decoded
+      ])
+
+    assert state.items[0].reason.validation_code == "markdown-literal-array-syntax"
+    assert state.items[0].turns == 14
+  end
+
+  test "does not trust diagnostic messages or unknown codes from progress events" do
+    for code <- ["markdown-literal-array-shape", "private-code", nil] do
+      failure =
+        Failure.normalize(%{
+          "kind" => "validation",
+          "validation_code" => code,
+          "validation_message" => "repository-secret"
+        })
+
+      refute inspect(failure) =~ "repository-secret"
+      refute inspect(failure) =~ "private-code"
+    end
+
+    failure = Failure.from({:validation_failed, "unknown error: repository-secret"})
+    assert failure.validation_code == "unclassified"
+    refute inspect(failure) =~ "repository-secret"
+
+    for status <- ["repository-secret", 999, -1, %{}] do
+      failure =
+        Failure.normalize(%{
+          kind: "validation-command",
+          validation_code: "validation-command-exit",
+          validation_exit_status: status
+        })
+
+      refute Map.has_key?(failure, :validation_exit_status)
+    end
   end
 
   test "classifies a changed protected marker as preserved content" do

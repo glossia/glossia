@@ -30,6 +30,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations.Context
   alias Glossia.Translations
   alias Glossia.Translations.Format
+  alias Glossia.Translations.Failure
   alias Glossia.Translations.Frontmatter
   alias Glossia.Translations.JsonArray
   alias Glossia.Translations.Markdown
@@ -129,17 +130,18 @@ defmodule Glossia.Translations.Engine do
                  }}
 
               {:error, message} ->
-                retry_validation(state, message)
+                retry_validation(state, message, "output_validation")
             end
 
           {:error, message} ->
-            retry_validation(state, message)
+            retry_validation(state, message, "restore_protections")
         end
 
       {:validation_error, message} ->
-        retry_validation(state, message)
+        retry_validation(state, message, "segment_translation")
 
       {:preservation_error, message} ->
+        log_validation_failure(state, message, "segment_recovery", false)
         {:error, {:validation_failed, message}}
 
       {:error, reason} ->
@@ -857,8 +859,9 @@ defmodule Glossia.Translations.Engine do
     Translations.translate_stream(account, payload, on_event, opts)
   end
 
-  defp retry_validation(state, message) do
+  defp retry_validation(state, message, stage) do
     message = to_string(message)
+    log_validation_failure(state, message, stage, state.attempt < state.max_attempt)
     state.on_event.({:validation_error, message})
 
     state =
@@ -869,6 +872,29 @@ defmodule Glossia.Translations.Engine do
       end
 
     run_attempt(%{state | attempt: state.attempt + 1, last_error: message})
+  end
+
+  defp log_validation_failure(state, message, stage, retrying) do
+    failure = Failure.from({:validation_failed, message})
+    item = state.work_item
+
+    details = %{
+      "event" => "translation.validation_failed",
+      "translation_session_id" => Map.get(item, :translation_session_id),
+      "source_path" => Map.get(item, :source_path),
+      "output_path" => item.output_path,
+      "locale" => item.locale,
+      "format" => item.format,
+      "validation_stage" => stage,
+      "validation_code" => failure.validation_code,
+      "validation_message" => failure.validation_message,
+      "validation_exit_status" => Map.get(failure, :validation_exit_status),
+      "document_attempt" => state.attempt + 1,
+      "document_attempt_limit" => state.max_attempt + 1,
+      "retrying" => retrying
+    }
+
+    Logger.warning("Translation validation failed: #{JSON.encode!(details)}")
   end
 
   # A model occasionally combines or drops Markdown blocks even after an

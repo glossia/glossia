@@ -8,6 +8,8 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   use ExUnit.Case, async: true
   use Mimic
 
+  import ExUnit.CaptureLog
+
   alias Glossia.Accounts.Account
   alias Glossia.Translations
   alias Glossia.Translations.Context
@@ -263,12 +265,22 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
        }}
     end)
 
-    assert {:error, {:translation_items_failed, [failure]}} =
-             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
-               context_snapshot: Context.empty_snapshot()
-             )
+    log =
+      capture_log(fn ->
+        assert {:error, {:translation_items_failed, [failure]}} =
+                 RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+                   context_snapshot: Context.empty_snapshot()
+                 )
 
-    assert failure.reason.kind == "validation-empty-output"
+        assert failure.reason.kind == "validation-empty-output"
+        assert failure.reason.validation_code == "empty-output"
+      end)
+
+    item_log =
+      log |> String.split("\n") |> Enum.find(&String.contains?(&1, "Translation item failed:"))
+
+    assert item_log =~ ~s("validation_code":"empty-output")
+    assert item_log =~ ~s("translation_session_id":"#{session.id}")
     refute File.exists?(Path.join([root, "docs", "i18n", "es", "guide.md"]))
   end
 

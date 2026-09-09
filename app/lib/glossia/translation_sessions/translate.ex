@@ -786,6 +786,9 @@ defmodule Glossia.TranslationSessions.Translate do
       "provider" => failure.provider || Map.get(diagnostics, :provider),
       "failure_kind" => failure.kind,
       "failure_scope" => failure.scope,
+      "validation_code" => Map.get(failure, :validation_code),
+      "validation_message" => Map.get(failure, :validation_message),
+      "validation_exit_status" => Map.get(failure, :validation_exit_status),
       "provider_status" => failure.status,
       "provider_error_code" => failure.code,
       "provider_request_id" => failure.request_id
