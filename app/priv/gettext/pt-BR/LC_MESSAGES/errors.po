@@ -15,13 +15,12 @@ msgstr ""
 ## Run `mix gettext.extract` to bring this file up to
 ## date. Leave `msgstr`s empty as changing them here has no
 ## effect: edit them in PO (`.po`) files instead.
-## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr "não pode estar vazio"
+msgstr "não pode ser vazio"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "já foi utilizado"
+msgstr "já está em uso"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
@@ -29,15 +28,15 @@ msgstr "é inválido"
 
 ## From Ecto.Changeset.validate_acceptance/3
 msgid "must be accepted"
-msgstr "deve ser aceita"
+msgstr "deve ser aceito"
 
 ## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
-msgstr "tem formato inválido"
+msgstr "possui formato inválido"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr "tem uma entrada inválida"
+msgstr "possui uma entrada inválida"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
@@ -45,7 +44,7 @@ msgstr "está reservado"
 
 ## From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
-msgstr "não coincide com a confirmação"
+msgstr "não corresponde à confirmação"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
@@ -62,7 +61,7 @@ msgstr[1] "deve ter %{count} itens"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] "deve ter %{count} caractere"
+msgstr[0] "deve ter %{count} caracter"
 msgstr[1] "deve ter %{count} caracteres"
 
 msgid "should be %{count} byte(s)"
@@ -70,31 +69,37 @@ msgid_plural "should be %{count} byte(s)"
 msgstr[0] "deve ter %{count} byte"
 msgstr[1] "deve ter %{count} bytes"
 
+## From Ecto.Changeset.validate_length/3
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
 msgstr[0] "deve ter pelo menos %{count} item"
 msgstr[1] "deve ter pelo menos %{count} itens"
 
+## From Ecto.Changeset.validate_length/3
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "deve ter pelo menos %{count} caractere"
+msgstr[0] "deve ter pelo menos %{count} caracter"
 msgstr[1] "deve ter pelo menos %{count} caracteres"
 
+## From Ecto.Changeset.validate_length/3
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
 msgstr[0] "deve ter pelo menos %{count} byte"
 msgstr[1] "deve ter pelo menos %{count} bytes"
 
+## From Ecto.Changeset.validate_length/3
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
 msgstr[0] "deve ter no máximo %{count} item"
 msgstr[1] "deve ter no máximo %{count} itens"
 
+## From Ecto.Changeset.validate_length/3
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "deve ter no máximo %{count} caractere"
+msgstr[0] "deve ter no máximo %{count} caracter"
 msgstr[1] "deve ter no máximo %{count} caracteres"
 
+## From Ecto.Changeset.validate_length/3
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
 msgstr[0] "deve ter no máximo %{count} byte"
@@ -115,3 +120,5 @@ msgstr "deve ser maior ou igual a %{number}"
 
 msgid "must be equal to %{number}"
 msgstr "deve ser igual a %{number}"
+
+## O documento reunido anteriormente falhou na validação: arquivo po faltando entrada de cabeçalho (msgid "" com Content-Type)
