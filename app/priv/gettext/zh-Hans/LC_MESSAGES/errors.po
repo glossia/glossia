@@ -1,12 +1,3 @@
-## This is a PO Template file.
-##
-## `msgid`s here are often extracted from source code.
-## Add new translations manually only if they're dynamic
-## translations that can't be statically extracted.
-##
-## Run `mix gettext.extract` to bring this file up to
-## date. Leave `msgstr`s empty as changing them here has no
-## effect: edit them in PO (`.po`) files instead.
 msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -14,6 +5,8 @@ msgstr ""
 "Language: zh-Hans\n"
 "MIME-Version: 1.0\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"PO-Revision-Date: 2023-01-01 00:00+0000\n"
+"Last-Translator: glossia\n"
 
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
@@ -29,7 +22,7 @@ msgstr "无效"
 
 ## From Ecto.Changeset.validate_acceptance/3
 msgid "must be accepted"
-msgstr "必须接受"
+msgstr "必须同意"
 
 ## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
@@ -37,15 +30,15 @@ msgstr "格式无效"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr "包含无效条目"
+msgstr "条目无效"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
-msgstr "已保留"
+msgstr "已被保留"
 
 ## From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
-msgstr "与确认值不符"
+msgstr "与确认不匹配"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
@@ -72,33 +65,33 @@ msgstr[1] "应为 %{count} 字节"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "至少应包含 %{count} 个项目"
-msgstr[1] "至少应包含 %{count} 个项目"
+msgstr[0] "应至少包含 %{count} 个项目"
+msgstr[1] "应至少包含 %{count} 个项目"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "至少应为 %{count} 个字符"
-msgstr[1] "至少应为 %{count} 个字符"
+msgstr[0] "应至少有 %{count} 个字符"
+msgstr[1] "应至少有 %{count} 个字符"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "至少应为 %{count} 字节"
-msgstr[1] "至少应为 %{count} 字节"
+msgstr[0] "应至少有 %{count} 字节"
+msgstr[1] "应至少有 %{count} 字节"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "最多应包含 %{count} 个项目"
-msgstr[1] "最多应包含 %{count} 个项目"
+msgstr[0] "应最多包含 %{count} 个项目"
+msgstr[1] "应最多包含 %{count} 个项目"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "最多应为 %{count} 个字符"
-msgstr[1] "最多应为 %{count} 个字符"
+msgstr[0] "应最多为 %{count} 个字符"
+msgstr[1] "应最多为 %{count} 个字符"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "最多应为 %{count} 字节"
-msgstr[1] "最多应为 %{count} 字节"
+msgstr[0] "应最多为 %{count} 字节"
+msgstr[1] "应最多为 %{count} 字节"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
