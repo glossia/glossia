@@ -1,5 +1,5 @@
 %{
-  title: "Versionen",
+  title: "Veröffentlichungen",
   summary: "Historie der CLI-Veröffentlichungen.",
   category: "Referenz",
   subcategory: "CLI",
@@ -12,14 +12,14 @@
 
 #### Fehlerbehebungen
 
-- Umbenennen der Binärdatei in den Releasearchiven vom plattformspezifischen Namen zu bloß `glossia`.
-- Entfernen der macOS-Quarantäne-xattr aus den Binärdateien vor der Verpackung.
+- Umbenennung der Binärdatei in Release-Archiven von plattformspezifischem Namen lediglich auf `glossia`.
+- Entfernung des macOS Quarantäne-xattr von Binärdateien vor der Verpackung.
 
 ## 0.14.0
 
 *2026-02-14*
 
-#### Neue Funktionen
+#### Funktionen
 
 - Hinzufügen eines lokalen Release-Skripts und eines manuell gepflegten Changelog-Workflows.
 
@@ -27,16 +27,16 @@
 
 *2026-02-14*
 
-#### Fehlerbehebungen
+#### Bugbehebungen
 
-- Machen Sie die OAuth-Provider-Konfiguration in der Produktion optional. Die App sollte auch ohne GitHub/GitLab OAuth-Credentials starten. Konfigurieren Sie Provider nur, wenn die Umgebungsvariablen vorhanden sind.
-- Setzen Sie für die Produktion standardmäßig den Port 4000 und behalten Sie 4050 für die Entwicklung bei. Der Produktionsproxy erwartet die App am Port 4000. Der `runtime.exs` Standardwert war 4050, was zu fehlgeschlagenen Health Checks während der Bereitstellung führte.
+- Machen Sie die OAuth-Anbieterkonfiguration im Produktionsbetrieb optional. Die App sollte auch ohne festgelegte GitHub/GitLab OAuth-Zugangsdaten starten. Konfigurieren Sie Provider nur, wenn die Umgebungsvariablen gesetzt sind.
+- Standardmäßig Port 4000 für die Produktion und 4050 für die Entwicklung verwenden. Der `runtime.exs` Standardwert war 4050, was dazu führte, dass Health-Checks während des Deployments fehlgeschlagen.
 
 #### Funktionen
 
-- Hinzufügen einer Phoenix-App mit OAuth-Login, Verbesserungen der Dokumentation und UI-Verbesserungen.
+- Hinzufügen einer Phoenix-App mit OAuth-Anmeldung, Dokumentationsverbesserungen und UI-Verbesserungen.
 - Verwenden Sie das abgerundete Logo als Favicon.
-- CLI in Bun migrieren und CI-ausführbare Builds aktualisieren.
+- CLI auf Bun migrieren und CI-Executable-Builds aktualisieren.
 
 ## 0.1.0
 
@@ -44,38 +44,38 @@
 
 #### Fehlerbehebungen
 
-- Verhindern Sie horizontalen Überlauf bei Codeausschnitten auf mobilen Geräten.
-- Füge Codeabschnitten auf mobilen Geräten einen passenden rechten Rand hinzu.
-- Verbessere das responsive Layout für mobile Geräte, um horizontalen Überlauf zu verhindern.
-- Wende biome-Formatierung an.
-- Füge Gruppenüberschriften zur Release-Notes-Vorlage hinzu.
-- Aktualisiere den Übersetzungsworkflow von Bun auf Rust.
-- Richte den Beitragsinhalt mit dem Hero-Layout aus und verbessere Blog-Beiträge.
-- Zentriere den Blog-Beitragsinhalt horizontal.
-- Behebe Panic beim Abschneiden mehrbyte UTF-8 Tool-Ergebnisse.
+- Horizontalen Überlauf von Code-Snippets auf Mobilgeräten verhindern.
+- Füge auf Mobilgeräten einen passenden rechten Rand für Codeausschnitte hinzu.
+- Verbessere das responsive Layout für Mobilgeräte, um horizontale Überläufe zu verhindern.
+- Biome-Formatierung anwenden.
+- Füge Gruppenüberschriften zur Release-Notizen-Vorlage hinzu.
+- Aktualisiere den Übersetzungs-Workflow von Bun auf Rust.
+- Richte den Beitragstext nach dem Hero-Layout aus und verbessere den Blogbeitrag.
+- Zentriere den Blogbeitrag horizontal.
+- Behebe den Panic beim Beschneiden von Mehrbyte UTF-8-Werkzeug-Ergebnissen.
 
 #### Funktionen
 
-- Füge die Sektion für eigene Tools und Website hinzu.
-- Stelle Tool-Verifizierungsschritte hervor.
-- Vereinfache die Fortschrittsausgabe.
-- Fortschrittslinien einfärben.
+- first-party Tools und Website-Section hinzufügen.
+- Werkzeug-Verifikationsschritte ans Licht führen.
+- Fortschrittsausgabe vereinfachen.
+- Fortschrittszeilen färben.
 - Übersetzungs- und Validierungsaktivitäten anzeigen.
-- Werkzeuglinien formatieren.
-- Website responsiv gestalten mit Mobile-Menü und Multi-Breakpoint-Layout.
-- CLI in Bun/TypeScript neu implementieren.
+- Werkzeugzeilen formatieren.
+- Website responsive gestalten mit Mobile-Menü und Multi-Breakpoint-Layout.
+- CLI in Bun/TypeScript neuimplementieren.
 - CI-Workflow und Tests hinzufügen.
 - Formatprüfung mit Biome hinzufügen.
-- Progressive-Verfeinerungssektion zur Startseite hinzufügen.
-- Blog-Bereich mit SEO-Unterstützung und erstem Beitrag hinzufügen.
-- CLI-Ausgabe auf rechtsausgerichtetes Verb-Format vereinheitlichen.
-- CLI-Ausgabe mit reichhaltigerer Nachrichtenformatierung farbig gestalten.
-- Quadratische OG-Bilder und Twitter-Card-Meta-Tags hinzufügen.
-- Koordinations-Agent mit Werkzeugnutzung agentisch machen.
+- Abschnitt Progressive Refinement zur Startseite hinzufügen.
+- Blog-Bereich mit SEO-Unterstützung und erstem Blogbeitrag hinzufügen.
+- CLI-Ausgabe mit rechtsbündigem Verbformat vereinheitlichen.
+- CLI-Ausgabe mit farbiger Nachrichtenformatierung versehen.
+- Quadratisches OG-Bild und Twitter-Karten-Metadaten hinzufügen.
+- Machen Sie den Koordinationsagenten mit Tool-Nutzung autonom.
 - Umschreiben `glossia init` mit Agent Client Protocol (ACP).
-- Gemini-Unterstützung, automatische Validierung, Tokenverfolgung und Zuverlässigkeitsverbesserungen hinzufügen.
+- Fügen Sie Unterstützung für Gemini, automatische Validierung, Token-Tracking und Zuverlässigkeitsverbesserungen hinzu.
 
-#### Refaktorisierungen
+#### Refaktorisierung
 
-- CI in getrennte Format-, Typenprüfungs-, Test- und Build-Jobs aufteilen.
-- CLI von TypeScript/Bun nach Rust umschreiben.
+- Teilen Sie CI in getrennte Format-, Typenprüfung-, Test- und Build-Jobs auf.
+- Umschreiben CLI von TypeScript/Bun zu Rust.
