@@ -41,7 +41,16 @@ defmodule Glossia.Translations.Failure do
     {"catalog-source-entries", "po entries must preserve every source msgid exactly once"},
     {"catalog-missing-translation", "po entry missing msgstr"},
     {"catalog-syntax", "po invalid line"},
-    {"catalog-format-string", "po format string"}
+    {"catalog-format-string", "po format string"},
+    # Additional po validator error prefixes. Without these the classifier
+    # falls back to `unclassified`, which surfaces as an opaque "add a safe
+    # diagnostic for this validator" message on the failed-file event.
+    {"catalog-missing-header", "po file missing header entry"},
+    {"catalog-orphan-plural", "po msgid_plural without msgid"},
+    {"catalog-orphan-msgstr", "po msgstr without msgid"},
+    {"catalog-stray-string", "po stray quoted string"},
+    {"catalog-plural-forms", "po plural forms mismatch"},
+    {"catalog-untranslated", "po has "}
   ]
 
   @known_kinds ~w(
