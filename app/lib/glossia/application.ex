@@ -17,7 +17,7 @@ defmodule Glossia.Application do
 
     Logger.info("Starting Glossia")
 
-    children = parent_children()
+    children = children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -25,11 +25,33 @@ defmodule Glossia.Application do
     Supervisor.start_link(children, opts)
   end
 
+  # `Glossia.Application` starts the same `parent_children/0` tree in every
+  # environment. A downstream build that boots the same release into other
+  # roles (a detached translation-job pod, a runner child) provides a
+  # `children/0` override through:
+  #
+  #     config :glossia, :application, children: {MyApp.Boot, :children, []}
+  #
+  # The MFA returns the child list this process should start. The default
+  # points back at `parent_children/0`.
+  defp children do
+    case Application.get_env(:glossia, :application, [])[:children] do
+      {module, function, args} -> apply(module, function, args)
+      nil -> parent_children()
+    end
+  end
+
   # Stated rather than inherited from Finch's default, because the translation
   # fan-out is derived from it: see `RepositoryRun.translation_concurrency/2`.
   defp http_pool_size, do: Application.get_env(:glossia, :http_pool_size, 50)
 
-  defp parent_children do
+  @doc """
+  The default supervision tree for the open-source parent process.
+
+  Public so a downstream `:application` `children:` override can start these
+  and add its own on top, keeping one description of the tree here.
+  """
+  def parent_children do
     children =
       [
         Glossia.Vault,
