@@ -1,15 +1,15 @@
 %{
   title: "Ajouter une nouvelle langue",
   summary: "Comment ajouter une langue cible à une configuration Glossia existante.",
-  category: "how-to",
+  category: "guide",
   order: 1
 }
 ---
-Si vous avez déjà configuré Glossia et souhaitez ajouter une autre langue cible, suivez ces étapes.
+Si vous avez déjà Glossia configuré et souhaitez ajouter une autre langue cible, suivez ces étapes.
 
-## 1\. Mettre à jour GLOSSIA.md
+## 1\. Mettre à jour L10N.md
 
-Ouvrez votre `GLOSSIA.md` et ajoutez le nouveau code de langue à la `targets` tableau :
+Ouvrez votre `L10N.md` et ajoutez le nouveau code de langue dans le `targets` tableau :
 
 ```yaml
 targets:
@@ -19,25 +19,25 @@ targets:
   - ja
 ```
 
-## 2\. Ajouter un contexte spécifique à la langue (facultatif)
+## 2\. Ajouter un contexte spécifique à la langue (optionnel)
 
-Si la nouvelle langue nécessite des instructions particulières, telles que le niveau de formalité ou les considérations du jeu de caractères, créez un fichier de surcharge de contexte :
+Si la nouvelle langue nécessite des instructions spécifiques, telles que le niveau de formalité ou des considérations concernant l'ensemble de caractères, créez un fichier de surcharge de contexte :
 
-    GLOSSIA/
+    L10N/
       ja.md
 
-Écrivez toute orientation spécifique à la langue dans ce fichier. Glossia l'intègre au contexte de base pour les traductions en japonais.
+Écrivez toute consigne spécifique à la langue dans ce fichier. Glossia le combine avec le contexte de base pour les traductions en japonais.
 
 ## 3\. Publier le changement de configuration
 
-Validez et envoyez la configuration mise à jour. Si le dépôt est connecté à
+Valider et pousser la configuration mise à jour. Si le référentiel est connecté à
 Glossia, le serveur détecte la nouvelle langue cible et lance une traduction
 session.
 
-Les traductions existantes pour d'autres langues restent inchangées lorsque leurs entrées
-et leurs contextes effectifs n'ont pas changé.
+Les traductions existantes pour les autres langues restent inchangées lorsque leurs entrées
+et contexte effectif n'ont pas changé.
 
-## 4\. Examiner la demande de fusion de traduction
+## 4\. Examiner la demande de traduction
 
-Suivez la session de traduction dans Glossia, puis examinez le langage généré
-fichiers dans la demande de fusion ouverte par le serveur.
+Suivez la session de traduction dans Glossia, puis révisez la langue générée
+fichiers de la demande de fusion ouverts par le serveur.
