@@ -17,11 +17,11 @@ msgstr ""
 ## effect: edit them in PO (`.po`) files instead.
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr "não pode estar vazio"
+msgstr "não pode ficar em branco"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "já foi utilizado"
+msgstr "já está em uso"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
@@ -29,7 +29,7 @@ msgstr "é inválido"
 
 ## From Ecto.Changeset.validate_acceptance/3
 msgid "must be accepted"
-msgstr "deve ser aceita"
+msgstr "deve ser aceito"
 
 ## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
@@ -37,7 +37,7 @@ msgstr "tem formato inválido"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr "tem uma entrada inválida"
+msgstr "possui uma entrada inválida"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
@@ -49,7 +49,7 @@ msgstr "não coincide com a confirmação"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr "ainda está associado a esta entrada"
+msgstr "ainda está associada a esta entrada"
 
 msgid "are still associated with this entry"
 msgstr "ainda estão associados a esta entrada"
