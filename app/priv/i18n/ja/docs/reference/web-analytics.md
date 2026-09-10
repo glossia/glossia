@@ -1,6 +1,6 @@
 %{
   title: "分析 SDK",
-  summary: "収集フィールド、イベント エンドポイント、および Glossia ウェブ分析の背後にあるプライバシーモデル。",
+  summary: "収集フィールド、イベントエンドポイント、そして Glossia ウェブ分析の背景にあるプライバシーモデル。",
   category: "参照",
   order: 1
 }
@@ -9,46 +9,46 @@
 
 `POST /api/analytics/events`
 
-\[省略\] より JSON イベントを受け付ける `@glossia/web` SDK は常に応答します。 `202 Accepted`、未知のドメインや破損したペイロードについても同様であり、SDK は分析データを収集するプロジェクトがどのものかという情報が漏洩することはありません。
+JSON イベントを受け取る、 `@glossia/web` SDK。常に応答します `202 Accepted`、不明なドメインや破損ペイロードの場合も含め、どのプロジェクトが分析データを収集しているかを漏洩しません。
 
-プロジェクトは、スニペットが宣言するサイトドメインによって解決されます。 `d` 優先されます；存在しない場合、サーバーはフォールバックするホストの `u` （ページの URL）および、その後リクエスト `Origin`/`Referer`.
+スニペットが宣言するサイトドメインによってプロジェクトが解決されます。 `d` 優先されます; 存在しない場合、サーバーはホストの `u` （ページ URL）とその後リクエスト、 `Origin`/`Referer`.
 
-### リクエスト本文
+### リクエストボディ
 
-| フィールド | タイプ   | 説明                                                  |
+| 項目 | タイプ   | 説明                                                  |
 |-------|--------|--------------------------------------------------------------|
-| `d`   | 文字列 | プロジェクトを特定するサイトドメイン（例えば、| `example.com`"\!、必須です。 |
-| `n`   | string | イベント名。デフォルトは `pageview`.                          |
-| `u`   | string | ページ URL (`location.href`)                                  |
-| `r`   | string | 元の URL (`document.referrer`)                              |
-| `l`   | string | ブラウザ言語 (`navigator.languages.join(",")`)         |
-| `tz`  | 文字列 | IANA タイムゾーン (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
-| `sw`  | number | 画面幅（CSS ピクセル）。|
-| `sid` | string | タブ毎のセッション ID (sessionStorage、閉じ時にクリア)       |
+| `d`   | 文字列 | プロジェクトを識別するサイトドメイン（例： `example.com`)。必須。|
+| `n`   | string | イベント名．デフォルト値は `pageview`.                          |
+| `u`   | string | ページ URL (`location.href`).                                  |
+| `r`   | string | リファラー (`document.referrer`).                              |
+| `l`   | string | ブラウザ言語 (`navigator.languages.join(",")`).         |
+| `tz`  | string | IANA タイムゾーン (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
+| `sw`  | number | 画面の CSS ピクセル幅                                  |
+| `sid` | string | タブごとのセッション ID (sessionStorage、クローズ時に破棄).       |
 
-CORS は有効 (`Access-Control-Allow-Origin: *`" ) クレデンシャルは受け付けません。
+CORS は開いています (`Access-Control-Allow-Origin: *`) エンドポイントが認証情報を許可していないためです。
 
-## サーバー由来フィールド
+## サーバー派生フィールド
 
-データ取り込み時に計算されサーバー側に保存されます。元の IP アドレスと User-Agent は一切保存されません。
+取り込み時に計算され、サーバー側で保存されます。生の IP アドレスと User-Agent は保存されません。
 
-| フィールド | ソース | 説明 |
+| フィールド             | ソース        | 説明                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
-| `visitor_id`      | HMAC          | IP + UA + プロジェクトの日替わりハッシュ。日を超えてリンク不可。  |
-| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 コード。GeoIP が設定されていない場合は空白です。        |
-| `device`          | ユーザーエージェント    | `desktop`, `mobile`, `tablet`, `bot`または `unknown`.                 |
-| `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`組み立てられたドキュメントが以前に検証に失敗しました：マークダウン文字列リテラルの復元は、一致する長さの JSON 文字列配列を返す必要があります `opera`, または `unknown`|
-| `os`              | User-Agent    | `windows`, `macos`以前に再構成されたドキュメントの検証が失敗しました：Markdown テキストリテラル回復は、一致する長さの JSON 文字列配列を返す必要があります。 `ios`組み立てられたドキュメントは以前検証に失敗しました：Markdown テキストリテラルの回復は、一致する長さの JSON 文字列配列を返す必要があります `android`, `linux`、または `unknown`.        |
+| `visitor_id`      | HMAC          | IP + ユーザーエージェント + プロジェクトの毎日ローテーション hashed. 日＝横連携不可.
+| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 コード。GeoIP が設定されていない場合は空になります。|
+| `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot`, または `unknown`.                 |
+| `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera`, または `unknown`.       |
+| `os`              | ユーザーエージェント    | `windows`, `macos`, `ios`, `android`, `linux`,、または `unknown`。        |
 | `hostname`        | ページ URL      | 小文字のホスト。                                                    |
-| `pathname`        | ページ URL      | パス成分。                                                     |
-| `referrer_source` | リファラ              | リファラホスト、先頭 `www.`/`m.` 削除。                        |
-| `browser_language`| 言語              | 最も優先度の高い正規化されたロケール（例: `pt-BR`"）                    |
-| `served_locale`   | 計算              | 優先言語に合致する最初の対応ターゲット、そうでなければ空。   |
-| `has_locale_gap`  | 計算済み      | `1` 訪問者がプロジェクトが提供していない言語を好む場合に、 |
+| `pathname`        | ページ URL      | パス要素。                                                     |
+| `referrer_source` | リファラー      | 送信元ホスト、先頭 `www.`/`m.` 削除された。                        |
+| `browser_language`| 言語 | 最も優先された正規化されたロケール（例 `pt-BR`).                    |
+| `served_locale`   | 計算         | 優先言語に一致した最初の対応ターゲット、それ以外の場合は空。   |
+| `has_locale_gap`  | 算出済み      | `1` 訪問者がプロジェクトがサポートしていない言語を好む場合 |
 
-## Privacy model
+## プライバシーモデル
 
-- **クライアントサイドでの格納はありません。** SDK はクッキーをセットせず、タブ単位のセッション ID だけを `sessionStorage`、ブラウザが閉じるとクリアされる
-- **フィンガープリンティングは行われません。** キャンバス、WebGL、フォント、およびオーディオ指紋は収集されません。毎日更新されるサーバーハッシュは、それらなしで一意な識別子を提供します。
-- **生識別子は保持されません。** IP アドレスおよび User-Agent は 1 回のみ読み取りされ、サーバーシークレットと日次ソルトでハッシュ化され、その後破棄されます。
-- **プロジェクトごとのスコープ。** 同じブラウザを 2 つのプロジェクトで使用しても、無関係な訪問者 ID が生成されるため、異なる Glossia 顧客間で訪問者は追跡されません。
+- **クライアントサイドでの保存は行われません。** SDK はクッキーを設定せず、タブごとにセッション ID を `sessionStorage`, ブラウザが閉じるとクリアされます。
+- **フィンガープリンティングは行いません。** キャンバス、WebGL、フォント、およびオーディオのフィンガープリントは収集されません。日替わりのサーバーハッシュはそれらの収集を要さず一意識別を提供します。
+- **生識別子は永続化されません。** IP アドレスと User-Agent は一度だけ読み取り、サーバーシークレットと日替わりのソルトでハッシュ化され、その後破棄されます。
+- **プロジェクトごとのスコープ。** 2 つのプロジェクトで同じブラウザを使用しても、無関係な訪問者 ID が生成されるため、Glossia の顧客間で訪問者を追跡することはできません。

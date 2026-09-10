@@ -1,6 +1,6 @@
 %{
   title: "Comandos",
-  summary: "Referência para todos os comandos de linha de comando da Glossia e suas opções.",
+  summary: "Referência para todos os comandos de linha de comando do Glossia e suas bandeiras.",
   category: "Referência",
   subcategory: "CLI",
   order: 1
@@ -8,40 +8,40 @@
 ---
 ## `glossia init`
 
-Crie um modelo inicial`GLOSSIA.md` de configuração no repositório atual.
+Crie um arquivo `L10N.md` de configuração no repositório atual.
 
 ```bash
 glossia init
 ```
 
-Falha se`GLOSSIA.md` já existir.
+Falla se `L10N.md` já existe.
 
-## A tradução ocorre no servidor
+## Tradução é feita no servidor
 
-A tradução execute no servidor da Glossia, não na interface de linha de comando. Quando um commit é realizado,
-a Glossia planeja o trabalho a partir dos seus`GLOSSIA.md` arquivos, traduz cada arquivo com
-modelo de configuração da sua conta, e abre um pull request com os resultados. Você
-pode acompanhar cada arquivo e os movimentos do modelo em tempo real na página de sessão de tradução.
+A tradução é executada no servidor Glossia, não na interface de linha de comando. Quando um commit é enviado,
+Glossia planeja o trabalho a partir do seu `L10N.md` arquivos, traduz cada arquivo com
+modelo configurado na sua conta e abre um pull request com os resultados. Você
+pode acompanhar cada arquivo e as alterações do modelo ao vivo na página da sessão de tradução.
 
-O modelo é escolhido por documento: um`GLOSSIA.md` `model:` nomeando um dos seus
- o modelo de configuração da sua conta será selecionado; caso contrário, o modelo padrão da sua conta será usado.
+O modelo é escolhido por documento: um `L10N.md` `model:` na sua
+conta seleciona; caso contrário, o modelo padrão da sua conta é usado.
 
-A interface de linha de comando intencionalmente não planeja, traduz, valida,
-inspeciona ou exclui traduções geradas. Também não lê os
-arquivos de bloqueio de tradução.
+A interface de linha de comando não planeja, traduz, valida,
+inspeciona ou exclui intencionalmente as traduções geradas. Também não lê os
+lockfiles de tradução.
 
 ## `glossia revisit`
 
-Reservado para uma futura revisão de revisão de origem. A interface de linha de comando
-em Rust atualmente retornará um erro de não implementado para este comando.
+Reservado para uma futura passada de revisão da língua de origem. A interface de linha de comando
+em Rust atualmente retorna um erro de não implementado para este comando.
 
 ```bash
 glossia revisit
 ```
 
-## Bandas globais
+## Flags globais
 
 | Flag | Descrição |
 |---|---|
-| `--path <PATH>` | Substituir o diretório raiz do projeto |
-| `--no-color` | Desativar saída colorida |
+| `--path <PATH>` | Substitua o diretório raiz do projeto |
+| `--no-color` | Desative a saída colorida |
