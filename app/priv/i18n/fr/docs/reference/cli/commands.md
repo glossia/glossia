@@ -1,47 +1,47 @@
 %{
   title: "Commandes",
   summary: "Référence pour toutes les commandes en ligne de commande Glossia et leurs options.",
-  category: "reference",
+  category: "référence",
   subcategory: "cli",
   order: 1
 }
 ---
 ## `glossia init`
 
-Créez un`GLOSSIA.md` fichier de configuration dans le dépôt actuel.
+Créer un`L10N.md` fichier de configuration dans le dépôt actuel.
 
 ```bash
 glossia init
 ```
 
-Échoue si`GLOSSIA.md` existe déjà.
+échoue si`L10N.md`déjà existe.
 
-## La traduction est côté serveur
+## Traduction côté serveur
 
-La traduction s'exécute sur le serveur Glossia, pas dans l'interface en ligne de commande. Lorsqu'un commit parvient,
-Glossia planifie le travail à partir de vos`GLOSSIA.md` fichiers, traduit chaque fichier avec
-le modèle configuré de votre compte, et ouvre une pull request avec les résultats. Vous
-pouvez surveiller
+La traduction s'exécute sur le serveur Glossia, pas dans l'interface en ligne de commande. Lorsqu'un engagement arrive,
+Glossia planifie le travail à partir de vos`L10N.md` fichiers, traduit chaque fichier avec
+le modèle configuré de votre compte, et ouvre une pull request avec les résultats.
+ pouvez surveiller chaque fichier et les tours du modèle en direct sur la page de session de traduction.
 
-un`GLOSSIA.md` `model:` un de vos
- modèle de gestion est sélectionné ; sinon le modèle par défaut de votre compte est utilisé.
+Le modèle est choisi par document: un`L10N.md` `model:` nommant l'un de vos
+modèle de compte sélectionné le gère; sinon, le modèle par défaut de votre compte est utilisé.
 
-L'interface en ligne de commande intentionnellement ne planifie pas, ne traduit pas, ne valide pas,
- du serveur
- fichiers de verrouillage de traduction.
+La CLI ne planifie, ne traduit, ne valide,
+ examine, ni supprime les traductions générées. Elle ne lit pas non plus
+ les verrous de traduction du serveur.
 
 ## `glossia revisit`
 
-Réservé pour une nouvelle passe de révision de la langue source.
-l'interface renvoie actuellement une erreur non implémentée pour cette commande.
+Réserver
+ en Rust
 
 ```bash
 glossia revisit
 ```
 
-## Drapeaux globaux
+## Paramètres globaux
 
-| Drapeau | Description |
+| Flag | Description |
 |---|---|
-||`--path <PATH>` | Remplacer le répertoire racine du projet |
-| `--no-color` | Désactiver la sortie colorée |
+| `--path <PATH>` | Surcharger le répertoire racine du projet |
+| `--no-color` | Désactiver la coloration de la sortie |
