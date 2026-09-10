@@ -466,7 +466,8 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "segments large Gettext catalogs without splitting entries", %{tmp_dir: dir} do
+    test "translates every msgid in a large catalog as a single JSON-array call",
+         %{tmp_dir: dir} do
       source = Path.join(dir, "default.pot")
 
       header =
@@ -492,14 +493,28 @@ defmodule Glossia.Translations.EngineTest do
       assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert length(calls) > 1
-      assert Enum.all?(calls, &(&1["segment_count"] == length(calls)))
-      assert Enum.all?(calls, &String.ends_with?(&1["source_content"], ~s(msgstr "")))
-      assert result.text == String.trim(content)
+      # The `.po` path collapses to a single call carrying a JSON array of all
+      # translatable strings. The array's element count equals the number of
+      # source msgids plus the header msgstr entry.
+      assert length(calls) == 1
+      [payload] = calls
+      assert payload["segment_kind"] == "po_text_literals"
+      assert {:ok, literals} = JSON.decode(payload["source_content"])
+      # header msgstr literal + 400 message msgids = 401 strings
+      assert length(literals) == 401
+      assert Enum.any?(literals, &(&1 == "Message 1"))
+      assert Enum.any?(literals, &(&1 == "Message 400"))
+
+      # With an echo model the output preserves every source msgid and puts
+      # the msgid string into its msgstr (the common template-catalog case).
+      assert result.text =~ ~s(msgid "Message 1")
+      assert result.text =~ ~s(msgstr "Message 1")
+      assert result.text =~ ~s(msgid "Message 400")
     end
 
     @tag :tmp_dir
-    test "leaves Gettext identifiers visible for format validation", %{tmp_dir: dir} do
+    test "sends msgids intact (including Gettext placeholders) to the model",
+         %{tmp_dir: dir} do
       source = Path.join(dir, "default.pot")
 
       content =
@@ -508,6 +523,9 @@ defmodule Glossia.Translations.EngineTest do
       File.write!(source, content)
 
       stub_stream(fn _account, payload, _on_event ->
+        # The array of strings sent to the model still shows placeholders
+        # verbatim so the target-language string can reference them.
+        assert payload["segment_kind"] == "po_text_literals"
         assert payload["source_content"] =~ "%{client_name}"
         refute payload["source_content"] =~ "glossia.invalid/protected-token"
         translated(payload["source_content"])
@@ -515,7 +533,10 @@ defmodule Glossia.Translations.EngineTest do
 
       item = work_item(%{source_abs: source, format: "po"})
       assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-      assert result.text == String.trim(content)
+      # The rebuilt output preserves the source msgid and populates its msgstr
+      # with the translated string (echo → same content).
+      assert result.text =~ ~s(msgid "Hello %{client_name}")
+      assert result.text =~ ~s(msgstr "Hello %{client_name}")
     end
 
     @tag :tmp_dir

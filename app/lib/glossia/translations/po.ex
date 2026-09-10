@@ -1,29 +1,31 @@
 defmodule Glossia.Translations.Po do
   @moduledoc """
-  Parse-and-rebuild pipeline for Gettext catalogs.
+  Structural helpers for translating Gettext catalogs.
 
-  Directly translating a `.po` source is unreliable: the model regularly
-  emits invalid `.po` syntax, drops or reorders `msgid` entries, or loses
-  plural forms. This module extracts the translatable strings from a source
-  catalog, hands only the strings to the model, and rebuilds the catalog
-  from the parsed source tree so the output is always syntactically valid
-  and structurally identical to the source.
+  Two independent concerns live here:
 
-  Public API mirrors `Glossia.Translations.Markdown`:
+  1. **Parse-and-rebuild pipeline** (`text_literals/1`, `rebuild_text_literals/2`).
+     Directly translating a `.po` source is unreliable — the model regularly
+     emits invalid syntax, drops `msgid` entries, or loses plural forms. The
+     pipeline extracts the translatable strings, sends only the strings to
+     the model, and rebuilds the catalog from the parsed source tree so the
+     output is always syntactically valid and structurally identical to the
+     source. Comments (`# translator`, `#. extractor`, `#: references`,
+     `#, flags`), `msgctxt`, and obsolete entries (`#~`) are preserved.
 
-    * `text_literals/1` returns the ordered list of translatable strings the
-      catalog exposes, in the order the catalog visits them. The empty-msgid
-      header entry is included as its own literal so the model can translate
-      the "Language: xx" line and other header fields when relevant.
+  2. **Plural-form normalization** (`normalize_plural_forms/2`). A source
+     template in English carries two plural forms, but a Japanese or Korean
+     catalog declares one. Collapsing the extra `msgstr[N]` entries down to
+     the target locale's declared `nplurals` count is a deterministic
+     rewrite that the model gets wrong on nearly every entry; do it here
+     after the string set is stitched back in.
 
-    * `rebuild_text_literals/2` re-parses the source and emits a fully valid
-      `.po` file whose translatable strings have been replaced by the
-      corresponding entries from the translated list.
-
-  Comments (`# translator`, `#. extractor`, `#: references`, `#, flags`) and
-  `msgctxt` are preserved verbatim. Obsolete entries (`#~` prefix) are kept
-  in the output unchanged; their strings are never sent to the model.
+  `text_literals/1` and `rebuild_text_literals/2` are the primary path
+  invoked by `Glossia.Translations.Engine`; `normalize_plural_forms/2` runs
+  as the last post-processing step.
   """
+
+  @plural_forms_regex ~r/nplurals\s*=\s*(\d+)/
 
   # Parsed entry shape:
   #   %{
@@ -397,5 +399,131 @@ defmodule Glossia.Translations.Po do
   # (JSON.encode! produces valid PO-quoted string form for standard escapes).
   defp emit_quoted(keyword, value) when is_binary(value) do
     [~s(#{keyword} #{JSON.encode!(value)})]
+  end
+
+  # ── plural-form normalization ─────────────────────────────────────────────
+
+  @doc """
+  Trims or pads every plural entry to the number of forms the catalog declares.
+
+  The declared count wins over the locale's own count, so a catalog stays
+  internally consistent with the header it carries. `locale` only supplies a
+  count when the header has no `Plural-Forms`.
+  """
+  @spec normalize_plural_forms(String.t(), String.t() | nil) :: String.t()
+  def normalize_plural_forms(content, locale) when is_binary(content) do
+    case plural_count(content, locale) do
+      nil -> content
+      count -> content |> split_lines() |> rewrite_blocks(count) |> Enum.join("\n")
+    end
+  end
+
+  defp plural_count(content, locale) do
+    case Regex.run(@plural_forms_regex, content) do
+      [_, declared] -> String.to_integer(declared)
+      _ -> locale_plural_count(locale)
+    end
+  end
+
+  defp locale_plural_count(nil), do: nil
+
+  defp locale_plural_count(locale) do
+    Gettext.Plural.nplurals(String.replace(locale, "-", "_"))
+  rescue
+    _ -> nil
+  end
+
+  # Keeping the original line endings out of the transformation means comments,
+  # references and blank lines survive it untouched.
+  defp split_lines(content), do: String.split(content, "\n")
+
+  defp rewrite_blocks(lines, count) do
+    lines
+    |> Enum.chunk_by(&(String.trim(&1) == ""))
+    |> Enum.flat_map(&rewrite_block(&1, count))
+  end
+
+  defp rewrite_block(block, count) do
+    if Enum.any?(block, &plural_msgstr_line?/1) do
+      block
+      |> group_lines()
+      |> apply_plural_count(count)
+      |> Enum.flat_map(fn {_index, lines} -> lines end)
+    else
+      block
+    end
+  end
+
+  # Each `msgstr[n]` owns the quoted continuation lines that follow it, so the
+  # groups can be dropped or duplicated whole.
+  defp group_lines(block) do
+    block
+    |> Enum.reduce([], fn line, groups ->
+      cond do
+        plural_msgstr_line?(line) -> [{plural_index_line(line), [line]} | groups]
+        continuation?(line) and groups != [] -> prepend_to_head(groups, line)
+        true -> [{nil, [line]} | groups]
+      end
+    end)
+    |> Enum.reverse()
+    |> Enum.map(fn {index, lines} -> {index, Enum.reverse(lines)} end)
+  end
+
+  defp prepend_to_head([{index, lines} | rest], line), do: [{index, [line | lines]} | rest]
+
+  defp apply_plural_count(groups, count) do
+    {plural_groups, other} = Enum.split_with(groups, fn {index, _lines} -> is_integer(index) end)
+
+    kept =
+      plural_groups
+      |> Enum.filter(fn {index, _lines} -> index < count end)
+      |> Enum.sort_by(fn {index, _lines} -> index end)
+
+    padded = kept ++ padding(kept, count)
+
+    merge_in_order(groups, other, padded)
+  end
+
+  defp padding([], _count), do: []
+
+  defp padding(kept, count) do
+    {_index, template} = List.last(kept)
+    highest = kept |> List.last() |> elem(0)
+
+    for index <- (highest + 1)..(count - 1)//1 do
+      {index, Enum.map(template, &reindex(&1, index))}
+    end
+  end
+
+  defp reindex(line, index) do
+    if plural_msgstr_line?(line) do
+      String.replace(line, ~r/msgstr\[\d+\]/, "msgstr[#{index}]", global: false)
+    else
+      line
+    end
+  end
+
+  # The rebuilt plural run goes back where the first one was, so a trailing
+  # comment or any other line in the block keeps its position.
+  defp merge_in_order(groups, other, plural_groups) do
+    first_plural = Enum.find_index(groups, fn {index, _lines} -> is_integer(index) end)
+    before = Enum.take(other, count_before(groups, first_plural))
+
+    before ++ plural_groups ++ Enum.drop(other, length(before))
+  end
+
+  defp count_before(groups, first_plural) do
+    groups
+    |> Enum.take(first_plural)
+    |> Enum.count(fn {index, _lines} -> not is_integer(index) end)
+  end
+
+  defp plural_msgstr_line?(line), do: String.match?(line, ~r/^\s*msgstr\[\d+\]/)
+
+  defp continuation?(line), do: String.match?(line, ~r/^\s*"/)
+
+  defp plural_index_line(line) do
+    [_, index] = Regex.run(~r/^\s*msgstr\[(\d+)\]/, line)
+    String.to_integer(index)
   end
 end
