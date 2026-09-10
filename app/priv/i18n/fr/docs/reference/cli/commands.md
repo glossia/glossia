@@ -1,47 +1,47 @@
 %{
   title: "Commandes",
-  summary: "Référence pour toutes les commandes en ligne de commande Glossia et leurs options.",
-  category: "reference",
-  subcategory: "cli",
+  summary: "Référence pour toutes les commandes en ligne de commande Glossia et leurs drapeaux.",
+  category: "Référence",
+  subcategory: "CLI",
   order: 1
 }
 ---
 ## `glossia init`
 
-Créez un`GLOSSIA.md` fichier de configuration dans le dépôt actuel.
+Créer un fichier de démarrage `L10N.md` configuration file
 
 ```bash
 glossia init
 ```
 
-Échoue si`GLOSSIA.md` existe déjà.
+Echoue si `L10N.md` existe déjà.
 
-## La traduction est côté serveur
+## La traduction se fait côté serveur
 
-La traduction s'exécute sur le serveur Glossia, pas dans l'interface en ligne de commande. Lorsqu'un commit parvient,
-Glossia planifie le travail à partir de vos`GLOSSIA.md` fichiers, traduit chaque fichier avec
-le modèle configuré de votre compte, et ouvre une pull request avec les résultats. Vous
-pouvez surveiller
+La traduction s'exécute sur le serveur Glossia, pas dans l'interface en ligne de commande. Lorsqu'un commit arrive,
+Glossia planifie le travail à partir de votre `L10N.md` files,
+traduit chaque fichier avec
+le modèle configuré de votre compte, et ouvre une pull request avec les résultats. Vous pouvez surveiller chaque fichier et les tours du modèle en temps réel sur la page de session de traduction.
 
-un`GLOSSIA.md` `model:` un de vos
- modèle de gestion est sélectionné ; sinon le modèle par défaut de votre compte est utilisé.
+Le modèle est choisi par document : a `L10N.md` `model:` nommant l'un de vos
+modèle de gestion du compte sélectionne celui-ci ; sinon le modèle par défaut du compte est utilisé.
 
-L'interface en ligne de commande intentionnellement ne planifie pas, ne traduit pas, ne valide pas,
- du serveur
- fichiers de verrouillage de traduction.
+L'interface en ligne de commande ne planifie, ne traduit, ne valide,
+inspecte, ou supprime les traductions générées. Elle ne lit pas non plus les
+fichiers de verrouillage de traduction.
 
 ## `glossia revisit`
 
-Réservé pour une nouvelle passe de révision de la langue source.
-l'interface renvoie actuellement une erreur non implémentée pour cette commande.
+Réservé pour un future passage de révision de la langue source.
+L'interface en ligne de commande en Rust retourne actuellement une erreur non implémentée pour cette commande.
 
 ```bash
 glossia revisit
 ```
 
-## Drapeaux globaux
+## Paramètres globaux
 
-| Drapeau | Description |
+| Paramètre | Description |
 |---|---|
-||`--path <PATH>` | Remplacer le répertoire racine du projet |
+| `--path <PATH>` | Remplacer le répertoire racine du projet |
 | `--no-color` | Désactiver la sortie colorée |
