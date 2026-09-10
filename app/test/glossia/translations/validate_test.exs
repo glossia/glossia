@@ -324,6 +324,141 @@ defmodule Glossia.Translations.ValidateTest do
     end
   end
 
+  describe "Locks.po_status/3" do
+    setup do
+      source = """
+      msgid ""
+      msgstr ""
+
+      msgid "Hello"
+      msgstr ""
+
+      msgid "Goodbye"
+      msgstr ""
+      """
+
+      output = """
+      msgid ""
+      msgstr "Language: es\\n"
+
+      msgid "Hello"
+      msgstr "Hola"
+
+      msgid "Goodbye"
+      msgstr "Adiós"
+      """
+
+      %{source: source, output: output, po_units: Locks.po_units_map(source)}
+    end
+
+    test "returns :fresh when every msgid's source hash still matches the lock",
+         %{source: source, output: output, po_units: po_units} do
+      lock = %{"po_units" => po_units}
+      assert Locks.po_status(lock, source, output) == :fresh
+    end
+
+    test "returns :full when the lock has no per-unit map (legacy layout)",
+         %{source: source, output: output} do
+      assert Locks.po_status(%{"hash" => "old"}, source, output) == :full
+      assert Locks.po_status(nil, source, output) == :full
+    end
+
+    test "returns :partial with only the changed msgids in stale_keys",
+         %{source: source, output: output, po_units: po_units} do
+      changed_source = String.replace(source, ~s(msgid "Hello"), ~s(msgid "Hi"))
+      lock = %{"po_units" => po_units}
+
+      {:ok, [_header, _old_hello, goodbye_unit]} = Glossia.Translations.Po.translation_units(source)
+
+      assert {:partial, %{stale_keys: [changed_key], preserved: preserved}} =
+               Locks.po_status(lock, changed_source, output)
+
+      # The changed msgid is a new unit key (its identity changed with the msgid).
+      # The unchanged "Goodbye" msgid keeps its preserved msgstr.
+      refute changed_key == goodbye_unit.key
+      assert preserved[goodbye_unit.key] == ["Adiós"]
+    end
+
+    test "flags a msgid as stale when the output is missing its translation",
+         %{source: source, po_units: po_units} do
+      output_without_hello = """
+      msgid ""
+      msgstr "Language: es\\n"
+
+      msgid "Goodbye"
+      msgstr "Adiós"
+      """
+
+      lock = %{"po_units" => po_units}
+
+      assert {:partial, %{stale_keys: stale_keys}} =
+               Locks.po_status(lock, source, output_without_hello)
+
+      {:ok, [_header, hello_unit, _goodbye_unit]} = Glossia.Translations.Po.translation_units(source)
+      assert hello_unit.key in stale_keys
+    end
+
+    test "flags a msgid as stale when the output has an empty msgstr for it",
+         %{source: source, po_units: po_units} do
+      output_with_blank_hello = """
+      msgid ""
+      msgstr "Language: es\\n"
+
+      msgid "Hello"
+      msgstr ""
+
+      msgid "Goodbye"
+      msgstr "Adiós"
+      """
+
+      lock = %{"po_units" => po_units}
+
+      assert {:partial, %{stale_keys: stale_keys}} =
+               Locks.po_status(lock, source, output_with_blank_hello)
+
+      {:ok, [_header, hello_unit, _goodbye_unit]} = Glossia.Translations.Po.translation_units(source)
+      assert hello_unit.key in stale_keys
+    end
+  end
+
+  describe "Locks.build_lock/9" do
+    test "carries a po_units map into the persisted lock" do
+      po_units = %{"key-1" => "hash-1", "key-2" => "hash-2"}
+
+      lock =
+        Locks.build_lock(
+          "openai",
+          "gpt-5",
+          "app/priv/gettext/default.pot",
+          "app/priv/gettext/es/LC_MESSAGES/default.po",
+          "output text",
+          "root-hash",
+          %{"root" => %{}},
+          %{compiler_version: 3},
+          po_units
+        )
+
+      assert lock["po_units"] == po_units
+    end
+
+    test "omits po_units for non-PO items so nothing regresses for markdown" do
+      lock =
+        Locks.build_lock(
+          "openai",
+          "gpt-5",
+          "docs/g.md",
+          "docs/es/g.md",
+          "salida",
+          "hash-1",
+          %{"root" => %{}},
+          %{compiler_version: 3},
+          nil
+        )
+
+      refute Map.has_key?(lock, "po_units")
+    end
+  end
+
   defp hash_state_input do
     %{
       format: "markdown",

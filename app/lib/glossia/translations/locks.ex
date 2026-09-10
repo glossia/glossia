@@ -8,10 +8,17 @@ defmodule Glossia.Translations.Locks do
   SHA-256 over the source content, provider, model, and resolved context — rather
   than the CLI's snapshot Merkle tree — while keeping the PO reference-line
   normalization so line-number churn does not force re-translation.
+
+  PO catalogs additionally get a per-msgid map (`po_units`) alongside the
+  whole-file hash. A `.pot` refresh that only changes a handful of msgids
+  invalidates just those msgids' translations; every other locale keeps its
+  existing msgstrs from the output file and the engine only ships the changed
+  strings to the model.
   """
 
   alias Glossia.Translations.Context
   alias Glossia.Translations.Format
+  alias Glossia.Translations.Po
   alias Glossia.Translations.Prompt
 
   @doc "Path to the lockfile for a source/locale under the repo root."
@@ -58,6 +65,82 @@ defmodule Glossia.Translations.Locks do
       lock["output_hash"] != output_hash
   end
 
+  @doc """
+  Classifies a PO source against a lock and its current output.
+
+  Returns one of:
+
+    * `:fresh` — every unit's source hash matches the lock and the output
+      carries a translation for it. Nothing to do.
+    * `{:partial, %{stale_keys: [...], preserved: %{...}}}` — a subset of
+      msgids need re-translation. The unchanged units' translations survive
+      as `preserved`, keyed by unit key.
+    * `:full` — no per-unit information (old lock, missing output, structural
+      lock mismatch). Every msgid must be re-translated from scratch.
+
+  Only used for PO items; other formats keep the whole-file `stale?/4` path.
+  """
+  def po_status(lock, source_content, output_content)
+      when is_binary(source_content) do
+    with {:ok, units} <- Po.translation_units(source_content),
+         true <- has_po_units?(lock),
+         true <- is_binary(output_content),
+         {:ok, output_translations} <- Po.output_translations(output_content) do
+      stored = Map.get(lock, "po_units") || %{}
+
+      {stale, preserved} =
+        Enum.reduce(units, {[], %{}}, fn unit, {stale, preserved} ->
+          cond do
+            Map.get(stored, unit.key) != unit.source_hash ->
+              {[unit.key | stale], preserved}
+
+            not Map.has_key?(output_translations, unit.key) ->
+              {[unit.key | stale], preserved}
+
+            missing_output_translation?(unit, output_translations) ->
+              {[unit.key | stale], preserved}
+
+            true ->
+              {stale, Map.put(preserved, unit.key, Map.fetch!(output_translations, unit.key))}
+          end
+        end)
+
+      cond do
+        stale == [] -> :fresh
+        true -> {:partial, %{stale_keys: Enum.reverse(stale), preserved: preserved}}
+      end
+    else
+      _ -> :full
+    end
+  end
+
+  defp has_po_units?(lock) when is_map(lock) do
+    is_map(Map.get(lock, "po_units"))
+  end
+
+  defp has_po_units?(_lock), do: false
+
+  # A msgid whose source string carries content but whose output translation
+  # is the empty string is treated as never translated. Otherwise a member
+  # hand-clearing a msgstr in a review would stick because per-unit checks
+  # would blindly preserve the empty string forever.
+  defp missing_output_translation?(unit, output_translations) do
+    translations = Map.fetch!(output_translations, unit.key)
+
+    Enum.any?(Enum.zip(unit.sources, translations), fn {source, translation} ->
+      source != "" and translation == ""
+    end)
+  end
+
+  @doc """
+  Builds `%{unit_key => source_hash}` from PO source content, or `nil` on
+  parse failure.
+  """
+  def po_units_map(source_content) when is_binary(source_content) do
+    {:ok, units} = Po.translation_units(source_content)
+    Map.new(units, fn unit -> {unit.key, unit.source_hash} end)
+  end
+
   @doc "Builds a lockfile map for a completed translation."
   def build_lock(provider, model, source_path, output_path, output_text, hash) do
     build_lock(provider, model, source_path, output_path, output_text, hash, nil, nil)
@@ -77,7 +160,31 @@ defmodule Glossia.Translations.Locks do
         hash_tree,
         context_provenance
       ) do
-    %{
+    build_lock(
+      provider,
+      model,
+      source_path,
+      output_path,
+      output_text,
+      hash,
+      hash_tree,
+      context_provenance,
+      nil
+    )
+  end
+
+  def build_lock(
+        provider,
+        model,
+        source_path,
+        output_path,
+        output_text,
+        hash,
+        hash_tree,
+        context_provenance,
+        po_units
+      ) do
+    base = %{
       "hash" => hash,
       "provider" => provider,
       "model" => model,
@@ -88,6 +195,8 @@ defmodule Glossia.Translations.Locks do
       "hash_tree" => hash_tree,
       "server_context" => context_provenance
     }
+
+    if po_units, do: Map.put(base, "po_units", po_units), else: base
   end
 
   @doc """
