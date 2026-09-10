@@ -1,63 +1,63 @@
 %{
   title:
-    "Lokalisierung steckte in der Vergangenheit fest. Wir haben Glossia entwickelt, um sie voranzutreiben.",
+    "Die Lokalisierung war in der Vergangenheit festgefahren. Wir haben Glossia entwickelt, um sie vorwärts zu bringen.",
   summary:
-    "Traditionelle Lokalisierungstools verursachen Overhead, unterbrechen CI und binden Sie an Anbieter-Ökosysteme. Wir erforschen, wie ein agenter Lokalisierungs-Workflow aussehen könnte.",
+    "Herkömmliche Lokalisierungstools verursachen Overhead, unterbrechen CI und binden Sie an Anbieter-Ökosysteme. Wir erforschen, wie ein agentenbasierter Lokalisierungsworkflow aussehen kann.",
   date: ~D[2026-02-03],
   slug: "2026-02-03-why-glossia",
   author: "pedro"
 }
 ---
-Wenn Sie jemals Software in mehreren Sprachen ausgeliefert haben, kennen Sie die Routine. Man wählt eine Lokalisierungsplattform aus, verbindet sie mit dem Repository und verbringt den Rest seiner Zeit mit der Verwaltung der Synchronisation. Inhalte gehen raus, Übersetzungen kommen zurück, und irgendwo dazwischen geht etwas schief.
+Wenn Sie jemals Software in mehreren Sprachen ausgeliefert haben, kennen Sie das Spiel. Sie wählen eine Lokalisierungsplattform, verbinden diese mit Ihrem Repository und verbringen den Rest der Zeit mit dem Synchronisieren. Inhalte gehen raus, Übersetzungen kommen zurück, und irgendwo dazwischen gehen die Dinge schief.
 
-Dieser Aufwand, der ständige Hin- und Herzverkehr von Inhalten aus und in das Repository, ist die Gebühr, die jedes Team für den Einsatz heutiger Lokalisierungstools zahlt. Es klingt unwichtig, bis Sie selbst derjenige sind, der am Freitag um 18 Uhr debuggt, warum ein Übersetzungs-Pull Request Ihren Build Ihrer Website zerstört hat.
+Dieser Overhead, der ständige Hin- und Her-Versand von Inhalten zu und von Ihrem Repository, ist die Steuer, die jedes Team für den Einsatz heutiger Lokalisierungstools entrichtet. Es klingt bagatell, bis Sie selbst debuggen müssen, warum ein Übersetzungs-Pull Request den Build Ihrer Website um 18 Uhr am Freitag zerstört hat.
 
 ## Ein Design aus der Zeit vor dem Internet
 
-Viele Lokalisierungsplattformen wurden nach Konzepten herum entwickelt, die dem modernen Entwicklungsworkflow vorangegangen sind. Übersetzungsspeicher. Fuzzy-Matching. Menschliche Übersetzer, die in proprietären Editoren arbeiten, unterstützt durch Tools, die ähnliche Zeichenketten aus einer Datenbank vorschlagen.
+Die meisten Lokalisierungsplattformen wurden um Konzepte herum entwickelt, die dem modernen Entwicklungsworkflow vorausgingen. Übersetzungsgedächtnisse. Fuzzy Matching. Menschliche Übersetzer, die in proprietären Editoren arbeiten, unterstützt durch Tools, die ähnliche Strings aus einer Datenbank vorschlagen.
 
-Diese Ideen machten Sinn, als Übersetzungen ein manueller, offline Prozess waren. Aber Unternehmen verwandelten Übersetzungsspeicher in einen Lock-in-Mechanismus. Ihre früheren Übersetzungen, das institutionelle Wissen, das Sie bezahlt haben, leben in ihrer Plattform. Ein Wechsel zu einem anderen Anbieter bedeutet, von vorne anzufangen oder für einen Export zu zahlen, der nie wirklich funktioniert.
+Diese Ideen machten Sinn, als Übersetzung ein manueller, offline-Prozess war. Doch Unternehmen wandelten Übersetzungsgedächtnisse in einen Lock-in-Mechanismus. Ihre vergangenen Übersetzungen, das institutionelle Wissen, für das Sie bezahlt haben, leben in ihrer Plattform. Der Wechsel zu einem anderen Anbieter bedeutet, von vorne beginnen oder für einen Export zu zahlen, der nie ganz funktioniert.
 
-Das Ergebnis ist eine Branche, die auf künstliche Reibung basiert. Ihr Inhalt verlässt Ihr Repo, fällt in eine schwarzen Box und kommt auf einem Zeitplan zurück, der von jemand anderem bestimmt ist.
+Das Ergebnis ist eine Branche, die auf künstliche Reibung gebaut ist. Ihr Inhalt verlässt Ihr Repository, fällt in eine Black Box und kehrt auf einem fremden Zeitplan zurück.
 
-## Der unterbrochene Feedback-Loop
+## Der gebrochene Feedback-Loop
 
-Das Problem ist strukturell: Externe Lokalisierungstools können Ihre CI-Pipeline nicht ausführen. Sie wissen nichts über Ihre Linter, Ihre Build-Schritte, Ihren Link-Checker oder Ihr Frontmatter-Schema. Sie drücken Übersetzungs-Inhalte zurück in Ihr Repo und hoffen auf das Beste. Wenn es kaputt geht, und es kaputt geht, muss jemand im Team stoppen, was er tut, um Formatierungsprobleme, kaputte Syntaxen oder ungültiges Markup zu beheben, das das Übersetzungs-Tool eingeführt hat.
+Das Problem ist strukturell: Externe Lokalisierungstools können Ihre CI-Pipeline nicht ausführen. Sie wissen nichts über Ihre Linter, Ihren Build-Schritt, Ihren Link-Checker oder Ihre frontmatter-Schema. Sie schieben übersetzten Inhalt zurück in Ihr Repository und hoffen auf das Beste. Wenn es bricht, und es passiert, muss jemand im Team seine Arbeit unterbrechen, um Formatierungsprobleme, fehlerhafte Syntax oder ungültiges Markup zu beheben, das das Übersetzungstool eingeführt hat.
 
-LLMs und agentische Erlebnisse bieten uns neue Möglichkeiten, diese Workflows komplett neu zu überdenken. Ein Agent, der eine Übersetzung generiert, Ihre Prüfungen ausführt, den Fehler sieht und erneut versucht, bis die Ausgabe gültig ist. Solch eine enge Rückmeldeschleife ändert alles.
+LLMs und agentische Erfahrungen bieten uns neue Möglichkeiten, diese Workflows gänzlich neu zu denken. Ein Agent, der eine Übersetzung generiert, Ihre Prüfungen durchführt, den Fehler erkennt und erneut versucht, bis die Ausgabe gültig ist. Ein solcher enger Feedback-Loop verändert alles.
 
-Aber es funktioniert nur, wenn der Inhalt dort bleibt, wo er lebt: in Ihrem Repository. Sobald Sie es zu einer externen Plattform senden, kehren Übersetzungen auf einem Zeitplan eines anderen zurück, und die Integration bricht. Die Rückmeldung, die hätte sofort sein können, dauert jetzt Stunden oder Tage. Der Kontext, der es nützlich gemacht hat, ist längst interessiert. Sie verlieren die Schleife und damit den gesamten Vorteil, den agentische Workflows geben sollten.
+Aber es funktioniert nur, wenn der Inhalt dort bleibt, wo er liegt: in Ihrem Repository. Sobald Sie ihn auf eine externe Plattform senden, kehren Übersetzungen auf einem fremden Zeitplan zurück und die Integration bricht. Das Feedback, das hätte sofort sein können, dauert nun Stunden oder Tage. Der Kontext, der es nützlich machte, ist längst verschwunden. Sie verlieren den Loop, und mit ihm den gesamten Vorteil, den Ihnen agentische Workflows eigentlich gewähren sollten.
 
-## Beobachtungen, die Glossia geformt haben
+## Beobachtungen, die Glossia prägten.
 
-Diese Frustrationen wurden nicht von selbst zu Glossia. Das Projekt entstand aus tiefer Erfahrung in Entwicklung und Lokalisierung, was Klarheit zu Problemen brachte, die von nur einer Seite schwer zu sehen sind. Das Verständnis der linguistischen Workflows, der menschlichen Dynamik von Übersetzungsteams und die Gründe, warum bestehende Tools so geworden sind, war entscheidend.
+Aus diesen Frustrationen wurde Glossia nicht von selbst. Das Projekt entstand aus tiefer Erfahrung in Entwicklung und Lokalisierung, die Klarheit für Probleme brachte, die von einer Seite aus schwer zu erkennen sind. Das Verständnis der linguistischen Workflows, der menschlichen Dynamiken in Übersetzungsteams und der Gründe dafür, warum bestehende Tools so endeten, war essenziell.
 
-Zusammen kamen wir immer wieder zu denselben Schlüssen: Lokalisierungstools wurden für eine Welt ohne LLMs, ohne Code-Agenten und ohne CI-Pipelines entwickelt. Das gesamte Modell ging davon aus, dass Übersetzung etwas ist, das außerhalb des Entwicklungsworkflows passiert und in diesen zurückgeschoben wird. Das machte vor zehn Jahren Sinn. Es tut das nicht mehr.
+Gemeinsam gelangten wir immer wieder zu denselben Beobachtungen: Lokalisierungswerkzeuge waren für eine Welt ohne LLMs, ohne Coding-Agenten und ohne CI-Pipelines konzipiert. Das gesamte Modell ging davon aus, dass Übersetzung etwas ist, das außerhalb des Entwicklungs-Workflows geschieht und zurückgespielt wird. Das machte vor zehn Jahren Sinn. Heute nicht mehr.
 
-Wir begannen zu fragen: **was wäre, wenn Lokalisierungsagenten genauso arbeiten könnten wie Code-Agenten?**
+Wir begannen uns zu fragen: **Was wäre, wenn Lokalisierungsagenten genauso arbeiten könnten wie Coding-Agenten?**
 
-Wir haben Aufmerksamkeit dafür bezahlt, wie [Anthropic](https://anthropic.com) bei agentischen Workflows mit Claude denkt. Das Muster, bei dem einem Agent Zugriff auf Werkzeuge gegeben wird, aufgefordert wird, eine Aufgabe durchzudenken, seine eigene Ausgabe zu validieren und zu iterieren, wenn etwas nicht stimmt, passt erstaunlich gut zur Lokalisierung. Ein Übersetzungs-Agent, der Ihre Quelldateien lesen kann, den Projekt-Kontext versteht, Übersetzungen generieren kann, Ihren Linters ausführt und Probleme behebt, bevor ein Pull Request erstellt wird. Das ist keine Fantasie. Das ist der Workflow, den wir aufbauen.
+Wir verfolgen genau, wie [Anthropic](https://anthropic.com) denkt über agentische Arbeitsabläufe mit Claude nach. Das Muster, einem Agenten Zugriff auf Tools zu gewähren, es über eine Aufgabe nachzudenken, seine eigene Ausgabe zu validieren und zu iterieren, wenn etwas nicht stimmt, lässt sich erstaunlich gut auf die Lokalisierung übertragen. Ein Übersetzungsagent, der Ihre Quelldateien lesen, den Projekt-Kontext verstehen, Übersetzungen generieren, Ihren Linter ausführen und Probleme beheben kann, bevor er einen Pull Request öffnet. Das ist keine Fantasie. Das ist der Workflow, den wir aufbauen.
 
 ## Glossia ist unser Geschenk an die Softwareindustrie
 
-Wir haben Glossia gebaut, weil wir wollen, dass mehr Software lokalisiert wird, nicht weniger.
+Wir haben Glossia entwickelt, weil wir wollen, dass mehr Software lokalisiert wird, nicht weniger.
 
-Komplizierte Prozesse und teure Plattformen machen Lokalisierung für kleine Teams, Indie-Entwickler und Nebenprojekte unzugänglich. Wenn Ihr Übersetzungsworkflow einen Beschaffungsprozess, eine Preisverhandlung pro Wort und einen Projektleiter zur Koordination der Übergabe erfordert, werden die meisten Teams einfach auf Englisch ausliefern und den Tag als erledigt betrachten.
+Komplizierte Abläufe und teure Plattformen machen die Lokalisierung für kleine Teams, Indie-Entwickler und Nebenprojekte unzugänglich. Wenn Ihr Übersetzungsworkflow einen Beschaffungsprozess, eine Preisverhandlung pro Wort und einen Projektmanager für die Koordinierung von Übergaben erfordert, veröffentlichen die meisten Teams einfach auf Englisch und machen damit Schluss.
 
-Glossia nutzt Modelle, auf die Sie bereits Zugriff haben. Und es validiert die Ausgabe mit Ihren eigenen Werkzeugen, nicht mit unseren.
+Glossia nutzt Modelle, auf die Sie bereits Zugriff haben. Und es validiert den Output mit Ihren eigenen Tools, nicht mit unseren.
 
-Wir glauben, dass Lokalisierung so natürlich sein sollte wie das Ausführen Ihrer Testsuite.
+Wir glauben, Lokalisierung sollte so natürlich sein wie das Ausführen Ihrer Testsuite.
 
-## Ein Agent zuerst, Schnittstellen sekundär
+## Ein Agent zunächst, Schnittstellen später
 
-Im Kern ist Glossia ein Agent. Wir beginnen mit dem Terminal als primäre Schnittstelle, weil dort die schwierigsten Probleme zuerst gelöst werden: das Lesen Ihrer Quelldateien, die Generierung von Übersetzungen, das Ausführen Ihrer Prüfungen sowie das Iterieren, bis die Ausgabe gültig ist. Dies ist derselbe Ansatz, den [OpenAI](https://openai.com) mit [Codex](https://openai.com/index/openai-codex/) und [Anthropic](https://anthropic.com) mit [Claude Code](https://docs.anthropic.com/en/docs/claude-code) verfolgen. Sie bauen den Agenten, statten ihn mit einem Terminal aus und lassen ihn arbeiten.
+Im Kern ist Glossia ein Agent. Wir starten mit dem Terminal als primärer Schnittstelle, denn dort werden die schwierigsten Probleme zuerst gelöst: das Lesen Ihrer Quelldateien, das Generieren von Übersetzungen, das Ausführen Ihrer Prüfungen und das Iterieren, bis der Output gültig ist. Dies ist das gleiche Muster, das [OpenAI](https://openai.com) folgte mit [Codex](https://openai.com/index/openai-codex/) und [Anthropic](https://anthropic.com) mit [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Sie bauen den Agenten, geben ihm ein Terminal und lassen ihn arbeiten.
 
-Das Terminal ist jedoch nur die erste Schnittstelle, nicht die einzige. Wir wissen, dass nicht jeder, der an der Qualität der Lokalisierung mitwirkt, ein Entwickler ist. Über dieses Thema sprechen wir viel intern. Diejenigen, denen Übersetzungsgenauigkeit, Ton und kulturelle Nuancen am meisten am Herzen liegen, sind oft Linguisten und Content-Spezialisten, die nicht in Kategorien wie Zweige, Kompilierung oder JSON denken.
+Doch das Terminal ist nur die erste Schnittstelle, nicht die einzige. Wir wissen, dass nicht jeder, der zur Qualität der Lokalisierung beiträgt, ein Entwickler ist. Wir sprechen dies oft intern an. Diejenigen, die sich am meisten um Übersetzungspräzision, Tonfall und kulturelle Nuance kümmern, sind oft Linguisten und Content-Spezialisten, die nicht in Begriffen wie Zweig, Kompilierung oder JSON denken.
 
-Deshalb wollen wir neue Schnittstellen auf Basis dieses Agenten aufbauen. Etwas, bei dem ein Linguist den Inhalt, den Kontext und die Übersetzung nebeneinander sieht. Sie bringen das menschliche Urteil, das kein Modell ersetzen kann. Sie verfeinern, was verfeinert werden muss. Und der Agent übernimmt den Rest: Commit-Anweisungen ausführen, Validieren und Pull-Request eröffnen.
+Deshalb wollen wir neue Schnittstellen über denselben Agenten aufbauen, bei dem ein Linguist Inhalt, Kontext und Übersetzung nebeneinander sieht. Sie bringen das menschliche Urteil, das kein Modell ersetzen kann. Sie verfeinern, was verfeinert werden muss. Und der Agent übernimmt alles andere: das Erstellen von Commits, das Validieren und das Öffnen eines Pull-Requests.
 
-Wir haben noch nicht alle Antworten, und das ist beabsichtigt. Wir würden es lieber sorgfältig entwickeln als in eine Benutzeroberfläche eilen, die den eigentlichen Zweck verfehlt. Doch die Richtung ist klar: Glossia möchte alle willkommen heißen, die sich für die Aufgabe interessieren, Software in jeder möglichen Sprache sprechen zu lassen.
+Wir würden es lieber mit Bedacht aufbauen, als in ein UI zu eilen, das den Punkt verfehlt. Noch haben wir nicht alle Antworten, und das ist beabsichtigt. Doch die Richtung ist klar: Glossia soll alle willkommen heißen, die dafür sorgen wollen, dass Software jede Sprache spricht.
 
-## Bleiben Sie dran
+## Bleib dran
 
-Glossia befindet sich noch am Anfang, und wir entwickeln es öffentlich. Wenn dies mit Ihrem Ansatz zur Lokalisierung übereinstimmt, behalten Sie das Projekt im Auge. Wir werden mehr teilen, wie wir voranschreiten.
+Glossia befindet sich noch in der Frühphase, und wir entwickeln es im offenen Prozess. Wenn dies mit deiner Vorstellung von Lokalisierung übereinstimmt, halte das Projekt im Auge. Wir werden mehr teilen, während wir vorankommen.
