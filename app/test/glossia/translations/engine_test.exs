@@ -513,6 +513,53 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "ships only stale msgids to the model when a po_diff is present",
+         %{tmp_dir: dir} do
+      source_path = Path.join(dir, "default.pot")
+
+      content =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello"\nmsgstr ""\n\nmsgid "Goodbye"\nmsgstr ""\n)
+
+      File.write!(source_path, content)
+
+      {:ok, [header_unit, hello_unit, goodbye_unit]} =
+        Glossia.Translations.Po.translation_units(content)
+
+      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
+
+      stub_stream(fn _account, payload, _on_event ->
+        Elixir.Agent.update(payloads, &[payload | &1])
+        translated(payload["source_content"])
+      end)
+
+      # The planner's `po_diff` covers every unit: stale keys carry sources to
+      # ship, and preserved carries msgstrs the previous output already has.
+      po_diff = %{
+        stale_keys: [hello_unit.key],
+        preserved: %{
+          header_unit.key => ["Language: es\n"],
+          goodbye_unit.key => ["Adiós"]
+        }
+      }
+
+      item = work_item(%{source_abs: source_path, format: "po", po_diff: po_diff})
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      [payload] = Elixir.Agent.get(payloads, &Enum.reverse/1)
+      assert payload["segment_kind"] == "po_text_literals"
+      # Only the changed msgid's source is shipped — the header and the
+      # unchanged "Goodbye" are not.
+      assert {:ok, ["Hello"]} = JSON.decode(payload["source_content"])
+
+      # The rebuilt output carries the preserved "Goodbye" translation and the
+      # freshly translated "Hello" msgstr (echo model gives back "Hello").
+      assert result.text =~ ~s(msgid "Hello")
+      assert result.text =~ ~s(msgstr "Hello")
+      assert result.text =~ ~s(msgid "Goodbye")
+      assert result.text =~ ~s(msgstr "Adiós")
+    end
+
+    @tag :tmp_dir
     test "sends msgids intact (including Gettext placeholders) to the model",
          %{tmp_dir: dir} do
       source = Path.join(dir, "default.pot")

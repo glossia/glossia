@@ -165,4 +165,133 @@ defmodule Glossia.Translations.PoTest do
       assert output =~ ~s(msgstr "He said \\"hello\\"\\n")
     end
   end
+
+  describe "translation_units/1" do
+    test "returns one unit per translatable entry, keyed by msgid identity" do
+      source = """
+      msgid ""
+      msgstr "Language: es\\n"
+
+      msgid "Hello"
+      msgstr ""
+
+      msgid "Goodbye"
+      msgstr ""
+      """
+
+      assert {:ok, [header, hello, goodbye]} = Po.translation_units(source)
+
+      assert header.sources == ["Language: es\n"]
+      assert header.literal_offset == 0
+
+      assert hello.sources == ["Hello"]
+      assert hello.literal_offset == 1
+
+      assert goodbye.sources == ["Goodbye"]
+      assert goodbye.literal_offset == 2
+
+      # Every unit's key is a stable hex digest.
+      for unit <- [header, hello, goodbye] do
+        assert is_binary(unit.key) and String.length(unit.key) == 64
+        assert is_binary(unit.source_hash) and String.length(unit.source_hash) == 64
+      end
+
+      assert hello.key != goodbye.key
+    end
+
+    test "one unit per plural entry, with one source per plural form" do
+      source = """
+      msgid ""
+      msgstr ""
+
+      msgid "%d file"
+      msgid_plural "%d files"
+      msgstr[0] ""
+      msgstr[1] ""
+      """
+
+      assert {:ok, [_header, plural]} = Po.translation_units(source)
+      assert plural.sources == ["%d file", "%d files"]
+    end
+
+    test "source_hash only tracks the strings we translate" do
+      base = """
+      msgid ""
+      msgstr ""
+
+      msgid "Hello"
+      msgstr ""
+      """
+
+      referenced = """
+      msgid ""
+      msgstr ""
+
+      #: lib/a.ex:12 lib/b.ex:900
+      msgid "Hello"
+      msgstr ""
+      """
+
+      {:ok, [_, base_hello]} = Po.translation_units(base)
+      {:ok, [_, ref_hello]} = Po.translation_units(referenced)
+
+      # References/comments do not affect the source hash. This is what lets
+      # a `.pot` regeneration that only shifts references skip re-translation.
+      assert base_hello.source_hash == ref_hello.source_hash
+      assert base_hello.key == ref_hello.key
+    end
+
+    test "skips obsolete entries" do
+      source = """
+      msgid ""
+      msgstr ""
+
+      msgid "Hello"
+      msgstr ""
+
+      #~ msgid "Removed"
+      #~ msgstr ""
+      """
+
+      assert {:ok, [_header, hello]} = Po.translation_units(source)
+      assert hello.sources == ["Hello"]
+    end
+  end
+
+  describe "output_translations/1" do
+    test "maps unit keys to their existing msgstrs" do
+      source = """
+      msgid ""
+      msgstr ""
+
+      msgid "Hello"
+      msgstr ""
+
+      msgid "%d file"
+      msgid_plural "%d files"
+      msgstr[0] ""
+      msgstr[1] ""
+      """
+
+      output = """
+      msgid ""
+      msgstr "Language: es\\n"
+
+      msgid "Hello"
+      msgstr "Hola"
+
+      msgid "%d file"
+      msgid_plural "%d files"
+      msgstr[0] "%d archivo"
+      msgstr[1] "%d archivos"
+      """
+
+      {:ok, [header_unit, hello_unit, plural_unit]} = Po.translation_units(source)
+      {:ok, output_translations} = Po.output_translations(output)
+
+      assert output_translations[header_unit.key] == ["Language: es\n"]
+      assert output_translations[hello_unit.key] == ["Hola"]
+      assert output_translations[plural_unit.key] == ["%d archivo", "%d archivos"]
+    end
+  end
 end

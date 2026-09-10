@@ -62,6 +62,107 @@ defmodule Glossia.Translations.Po do
   end
 
   @doc """
+  Returns `{:ok, units}` where each unit represents one translatable PO entry
+  and carries enough information to key a lockfile on it.
+
+  A unit is a map with:
+
+    * `:key` — SHA-256 identity hash of `msgctxt` plus `msgid` plus
+      `msgid_plural`. Stable across `.po` regenerations that only change
+      reference lines or reorder entries, and unique per entry.
+    * `:source_hash` — SHA-256 over the flat list of source strings this
+      unit contributes to `text_literals/1`. A lock stores this so a source
+      edit that touches only one msgid invalidates only that unit.
+    * `:sources` — the source strings themselves, in the same order
+      `text_literals/1` returns them. One string for the header and simple
+      entries; N strings for plurals.
+    * `:literal_offset` — the index into `text_literals/1`'s flat list at
+      which this unit's sources begin.
+
+  Obsolete entries (`#~`) and comment-only trailing blocks are skipped, the
+  same way `text_literals/1` skips them.
+  """
+  def translation_units(source) when is_binary(source) do
+    entries = parse(source)
+
+    {units, _offset} =
+      Enum.map_reduce(entries, 0, fn entry, offset ->
+        case entry_literals(entry) do
+          [] ->
+            {nil, offset}
+
+          sources ->
+            unit = %{
+              key: unit_key(entry),
+              source_hash: source_hash(sources),
+              sources: sources,
+              literal_offset: offset
+            }
+
+            {unit, offset + length(sources)}
+        end
+      end)
+
+    {:ok, Enum.reject(units, &is_nil/1)}
+  end
+
+  @doc """
+  Returns `{:ok, translations}` where `translations` maps `unit_key` to the
+  list of msgstr(s) recorded in `output` (an already-translated `.po`).
+
+  The output uses the same `msgctxt`/`msgid`/`msgid_plural` as the source, so
+  the unit keys line up and unchanged entries can carry their previous
+  translation forward. Obsolete entries and comment-only blocks are skipped.
+  """
+  def output_translations(output) when is_binary(output) do
+    entries = parse(output)
+
+    translations =
+      entries
+      |> Enum.flat_map(fn entry ->
+        case entry_msgstrs(entry) do
+          nil -> []
+          msgstrs -> [{unit_key(entry), msgstrs}]
+        end
+      end)
+      |> Map.new()
+
+    {:ok, translations}
+  end
+
+  defp entry_msgstrs(%{obsolete: true}), do: nil
+
+  defp entry_msgstrs(%{header?: true, msgstr: msgstr}), do: [msgstr]
+
+  defp entry_msgstrs(%{msgid_plural: nil, msgstr: msgstr}), do: [msgstr]
+
+  defp entry_msgstrs(%{plural_msgstr: plurals}) when map_size(plurals) == 0, do: nil
+
+  defp entry_msgstrs(%{plural_msgstr: plurals}) do
+    plurals
+    |> Map.keys()
+    |> Enum.sort()
+    |> Enum.map(&Map.fetch!(plurals, &1))
+  end
+
+  defp unit_key(entry) do
+    canonical =
+      JSON.encode!(%{
+        "msgctxt" => entry.msgctxt,
+        "msgid" => entry.msgid,
+        "msgid_plural" => entry.msgid_plural,
+        "header" => entry.header?
+      })
+
+    :crypto.hash(:sha256, canonical) |> Base.encode16(case: :lower)
+  end
+
+  defp source_hash(sources) do
+    canonical = JSON.encode!(sources)
+    :crypto.hash(:sha256, canonical) |> Base.encode16(case: :lower)
+  end
+
+  @doc """
   Re-parses `source` and returns `{:ok, output}` where `output` is a
   canonical `.po` file whose translatable strings have been replaced by
   the entries in `translated`, in the same order `text_literals/1` returned.

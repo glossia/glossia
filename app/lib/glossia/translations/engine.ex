@@ -983,16 +983,21 @@ defmodule Glossia.Translations.Engine do
   # Instead, extract the translatable strings from the source catalog, hand
   # the model only the string set as a JSON array, and rebuild the catalog
   # from the parsed source tree in `reconcile_markdown_segment/3`.
-  defp prepare_translation(%{format: "po"} = _work_item, source_text, _preserve_kinds) do
-    {:ok, literals} = Po.text_literals(source_text)
+  #
+  # A `po_diff` on the work item means the planner detected some msgids as
+  # already translated in the current output. Only the stale msgids' sources
+  # are sent to the model; the rest are carried through as preserved msgstrs
+  # from the existing output PO.
+  defp prepare_translation(%{format: "po"} = work_item, source_text, _preserve_kinds) do
+    {:ok, units} = Po.translation_units(source_text)
 
-    segment = %{
-      kind: "po_text_literals",
-      content: JSON.encode!(literals),
-      po_source: source_text
-    }
+    case Map.get(work_item, :po_diff) do
+      %{stale_keys: stale_keys, preserved: preserved} when stale_keys != [] ->
+        prepare_po_partial_segment(source_text, units, stale_keys, preserved)
 
-    %{preserved_frontmatter: nil, segments: [segment], protections: []}
+      _ ->
+        prepare_po_full_segment(source_text, units)
+    end
   end
 
   defp prepare_translation(work_item, source_text, preserve_kinds) do
@@ -1000,6 +1005,45 @@ defmodule Glossia.Translations.Engine do
       planned_content_segments(source_text, work_item.format, preserve_kinds, "document")
 
     %{preserved_frontmatter: nil, segments: segments, protections: protections}
+  end
+
+  defp prepare_po_full_segment(source_text, units) do
+    literals = Enum.flat_map(units, & &1.sources)
+
+    segment = %{
+      kind: "po_text_literals",
+      content: JSON.encode!(literals),
+      po_source: source_text,
+      po_units: units,
+      po_preserved: %{}
+    }
+
+    %{preserved_frontmatter: nil, segments: [segment], protections: []}
+  end
+
+  defp prepare_po_partial_segment(source_text, units, stale_keys, preserved) do
+    units_by_key = Map.new(units, &{&1.key, &1})
+
+    # Preserve stale_keys' order for a deterministic segment payload; a stale
+    # key that no longer appears in the current source (e.g., the msgid was
+    # deleted between runs) is dropped rather than sent to the model.
+    stale_units =
+      stale_keys
+      |> Enum.map(&Map.get(units_by_key, &1))
+      |> Enum.reject(&is_nil/1)
+
+    literals = Enum.flat_map(stale_units, & &1.sources)
+
+    segment = %{
+      kind: "po_text_literals",
+      content: JSON.encode!(literals),
+      po_source: source_text,
+      po_units: units,
+      po_stale_units: stale_units,
+      po_preserved: preserved
+    }
+
+    %{preserved_frontmatter: nil, segments: [segment], protections: []}
   end
 
   # Markdown source structure is reassembled after translation. Link
@@ -1044,14 +1088,20 @@ defmodule Glossia.Translations.Engine do
   defp reconcile_markdown_segment(text, %{kind: "markdown_text_literals"}, "markdown"),
     do: {:ok, text}
 
-  # Model returns a JSON array of translated strings (one per source literal
-  # extracted by `Po.text_literals/1`). Decode the array, then reassemble the
-  # canonical `.po` from the source tree so the output is guaranteed valid
-  # Gettext syntax with every source msgid and plural form preserved.
-  defp reconcile_markdown_segment(text, %{kind: "po_text_literals", po_source: source}, "po") do
+  # Model returns a JSON array of translated strings — one per source literal
+  # in the shipped payload. In the full-file case the array covers every unit
+  # in order. In the partial case the array only covers stale msgids; the
+  # unchanged units' msgstrs are merged in from the previous output before
+  # rebuilding the canonical `.po` from the source tree.
+  defp reconcile_markdown_segment(
+         text,
+         %{kind: "po_text_literals", po_source: source} = segment,
+         "po"
+       ) do
     with {:ok, decoded} <- JsonArray.decode(text),
          true <- Enum.all?(decoded, &is_binary/1),
-         {:ok, rebuilt} <- Po.rebuild_text_literals(source, decoded) do
+         {:ok, translations} <- assemble_po_translations(decoded, segment),
+         {:ok, rebuilt} <- Po.rebuild_text_literals(source, translations) do
       {:ok, rebuilt}
     else
       false ->
@@ -1074,6 +1124,52 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp reconcile_markdown_segment(text, _segment, _format), do: {:ok, text}
+
+  # Rebuild the flat, in-source-order translation list from either the
+  # stale-only model response plus preserved msgstrs, or from the whole-file
+  # model response directly.
+  defp assemble_po_translations(decoded, %{
+         po_units: units,
+         po_stale_units: stale_units,
+         po_preserved: preserved
+       }) do
+    with {:ok, translated_by_key} <- distribute_po_translations(stale_units, decoded) do
+      merged = Map.merge(preserved, translated_by_key)
+      units_translations_in_order(units, merged)
+    end
+  end
+
+  defp assemble_po_translations(decoded, _segment), do: {:ok, decoded}
+
+  defp distribute_po_translations(stale_units, decoded) do
+    expected = Enum.reduce(stale_units, 0, fn unit, acc -> acc + length(unit.sources) end)
+
+    if length(decoded) != expected do
+      {:error,
+       "po text-literal response length #{length(decoded)} did not match stale-msgid literal count #{expected}"}
+    else
+      {by_key, []} =
+        Enum.map_reduce(stale_units, decoded, fn unit, remaining ->
+          {take, rest} = Enum.split(remaining, length(unit.sources))
+          {{unit.key, take}, rest}
+        end)
+
+      {:ok, Map.new(by_key)}
+    end
+  end
+
+  defp units_translations_in_order(units, translations_by_key) do
+    Enum.reduce_while(units, {:ok, []}, fn unit, {:ok, acc} ->
+      case Map.fetch(translations_by_key, unit.key) do
+        {:ok, translations} when is_list(translations) ->
+          {:cont, {:ok, acc ++ translations}}
+
+        _ ->
+          {:halt,
+           {:error, "po text-literal response was missing translations for msgid #{unit.key}"}}
+      end
+    end)
+  end
 
   defp content_segments(content, format) do
     case Format.segmentation(format) do

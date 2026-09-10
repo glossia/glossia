@@ -590,30 +590,49 @@ defmodule Glossia.Translations.RepositoryRun do
           server_context: item.server_context
         })
 
+      output_content = if File.exists?(item.output_abs), do: File.read!(item.output_abs), else: ""
+
       current_output_hash =
-        if File.exists?(item.output_abs),
-          do: Locks.output_hash(File.read!(item.output_abs)),
-          else: ""
+        if output_content == "", do: "", else: Locks.output_hash(output_content)
 
       lock = Locks.read_lock(repo_path, item.source_path, item.locale)
+      po_status = po_status_for(item.format, lock, source_content, output_content)
+      item = attach_po_diff(item, po_status)
 
-      if Locks.stale?(lock, hash_state, item.output_path, current_output_hash) do
-        %{
-          index: index,
-          item: item,
-          provider: provider,
-          hash_state: hash_state,
-          status: :translation_needed
-        }
-      else
-        # Only the count is read for an up-to-date file, so its context bundle
-        # is dropped here instead of being held for the whole run.
-        %{index: index, status: :up_to_date}
+      cond do
+        po_status == :fresh ->
+          %{index: index, status: :up_to_date}
+
+        Locks.stale?(lock, hash_state, item.output_path, current_output_hash) ->
+          %{
+            index: index,
+            item: item,
+            provider: provider,
+            hash_state: hash_state,
+            status: :translation_needed
+          }
+
+        true ->
+          # Only the count is read for an up-to-date file, so its context bundle
+          # is dropped here instead of being held for the whole run.
+          %{index: index, status: :up_to_date}
       end
     else
       failed_item(item, index, Failure.from(:source_invalid_encoding))
     end
   end
+
+  # `:fresh` here means the whole-file `stale?/4` check would otherwise trigger
+  # (a `.pot` refresh churning references or one msgid), but per-msgid inspection
+  # shows every translatable string is already up to date. Non-PO items keep the
+  # whole-file behavior unchanged.
+  defp po_status_for("po", lock, source_content, output_content),
+    do: Locks.po_status(lock, source_content, output_content)
+
+  defp po_status_for(_format, _lock, _source_content, _output_content), do: :not_applicable
+
+  defp attach_po_diff(item, {:partial, diff}), do: Map.put(item, :po_diff, diff)
+  defp attach_po_diff(item, _po_status), do: item
 
   defp failed_item(item, index, reason),
     do: %{index: index, item: item, reason: reason, status: :failed}
@@ -903,11 +922,25 @@ defmodule Glossia.Translations.RepositoryRun do
         text,
         hash_state.hash,
         hash_state.tree,
-        Context.provenance(item.server_context)
+        Context.provenance(item.server_context),
+        po_units_for(item, text)
       )
 
     Locks.write_lock(repo_path, item.source_path, item.locale, lock)
   end
+
+  # PO locks carry a per-msgid source-hash map so a later run only re-translates
+  # msgids whose source strings actually changed. The map is computed from the
+  # translated output because the source and output share unit keys; the output
+  # is what the next run will read back to preserve unchanged msgstrs.
+  defp po_units_for(%{format: "po", source_abs: source_abs}, _text) do
+    case File.read(source_abs) do
+      {:ok, source_content} -> Locks.po_units_map(source_content)
+      _ -> nil
+    end
+  end
+
+  defp po_units_for(_item, _text), do: nil
 
   # The local checkout remains on the source commit for the whole run, so its
   # status contains every earlier translation. Select just the current output
