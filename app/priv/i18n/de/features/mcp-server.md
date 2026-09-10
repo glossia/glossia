@@ -1,28 +1,28 @@
 %{
   title: "MCP-Server",
   summary:
-    "Schließen Sie KI-Agenten und Programmierungsassistenten an Glossia über das Model Context Protocol an. Verwalten Sie Stimmen, Terminologie, Organisationen und mehr mithilfe von natürlicher Sprache von jedem MCP-kompatiblen Client.",
+    "Verbinden Sie KI-Agenten und Coding-Assistenten mit Glossia über das Model Context Protocol. Verwalten Sie Stimmen, Terminologien, Organisationen und vieles mehr mithilfe natürlicher Sprache über jeden MCP-kompatiblen Client.",
   order: 3,
   icon: "cpu",
   hero_cta_text: "Loslegen",
   hero_cta_url: "/signup",
   highlights: [
     %{
-      title: "Natürliche-Sprache-Schnittstelle",
+      title: "Natürlichsprachige Schnittstelle",
       description:
-        "Interagieren Sie mit Glossias linguistischer Engine durch einfachen Text. KI-Agenten rufen MCP-Werkzeuge auf, um Stimmen, Terminologie und Organisationen zu verwalten, ohne Code zu schreiben.",
+        "Interagieren Sie mit der linguistischen Engine von Glossia über einfachen Text. KI-Agenten nutzen MCP-Werkzeuge zum Verwalten von Stimmen, Terminologien und Organisationen ohne Programmierung.",
       icon: "message-square-text"
     },
     %{
-      title: "An jeden Agenten anschließen",
+      title: "Verbinden Sie mit jedem Agenten",
       description:
-        "Funktioniert mit Claude, Cursor, Windsurf und jedem MCP-kompatiblen Client. Integrieren Sie den Glossia-Server in Ihren bestehenden Agenten-Arbeitsablauf und beginnen Sie sofort damit.",
+        "Unterstützt Claude, Cursor, Windsurf und jeden MCP-kompatiblen Client. Ziehen Sie den Glossia-Server in Ihren bestehenden Agenten-Workflow und nutzen Sie ihn sofort.",
       icon: "puzzle"
     },
     %{
       title: "Standardmäßig sicher",
       description:
-        "Jede MCP-Anfrage wird mit OAuth 2.1-Bearer-Token authentifiziert und gemäß feingranularer Berechtigungen autorisiert. Das gleiche Sicherheitsmodell wie die REST API.",
+        "Jede MCP-Anfrage wird mit OAuth 2.1 Bearer-Tokens authentifiziert und an feingranulare Berechtigungen autorisiert. Dasselbe Sicherheitsmodell wie die REST API.",
       icon: "shield-check"
     }
   ]
@@ -30,30 +30,30 @@
 ---
 ## Was ist MCP?
 
-Das [Model Context Protocol](https://modelcontextprotocol.io) ist ein offener Standard zum Verbinden von KI-Assistenten mit externen Tools und Datenquellen. Anstatt individuelle Integrationen für jeden Coding-Assistenten zu erstellen, stellen Sie einen einzigen MCP-Server bereit, und jeder kompatible Client kann ihn nutzen.
+Das [Model Context Protocol](https://modelcontextprotocol.io) ist ein offener Standard zur Verbindung von KI-Assistenten mit externen Tools und Datenquellen. Statt für jeden Coding-Assistenten individuelle Integrationen zu erstellen, stellen Sie einen einzelnen MCP-Server bereit, den jeder kompatible Client nutzen kann.
 
-Der MCP-Server von Glossia bietet Agenten direkten Zugriff auf den sprachlichen Kern der Plattform: Stimmeinstellungen, Terminologieverwaltung, Organsisationsadministration und Projektauflistung.
+Der MCP-Server von Glossia bietet Agenten direkten Zugriff auf den linguistischen Kern der Plattform: Stimme-Konfiguration, Terminologieverwaltung, Organisationsverwaltung und Projektliste.
 
 ## Verfügbare Tools
 
-Der MCP-Server stellt 16 Werkzeuge bereit, die um die Ressourcen herum organisiert sind, mit denen Sie täglich arbeiten. Zur Parameterliste und Nutzungsdetails siehe die [vollständige Tool-Referenz](/docs/reference/mcp/tools).
+Der MCP-Server stellt 16 Tools bereit, die nach den Ressourcen organisiert sind, die Sie täglich nutzen. Sehen Sie die [vollständige Tool-Referenz](/docs/reference/mcp/tools) für Parameter und Nutzungsdetails.
 
-**Konten und Organisationen** -- Listen Sie Ihre Konten auf, erstellen und verwalten Sie Organisationen, laden Sie Mitglieder ein und steuern Sie den Zugriff. Agenten können gesamte Teamstrukturen durch Konversionen einrichten.
+**Konten und Organisationen** -- Ihre Konten auflisten, Organisationen erstellen und verwalten, Mitglieder einladen und Zugriff steuern. Agenten können komplette Teamstrukturen über Konversation einrichten.
 
-**Stimmeinstellungen** -- Lesen und aktualisieren Sie die Stimmenteinstellungen, die steuern, wie Glossia Inhalte generiert und überarbeitet. Passen Sie Sprache, Formalität, Zielgruppe und Locale-Überschreibungen an, ohne Ihren Editor verlassen zu müssen.
+**Stimmenkonfiguration** -- Stimmen-Einstellungen einsehen und aktualisieren, die steuern, wie Glossia Inhalte erstellt und überarbeitet. Passen Sie Ton, Formalität, Zielgruppe und Überschreibungen pro Locale an, ohne den Editor zu verlassen.
 
-**Terminologieverwaltung** -- Stellen Sie die Terminologiekonsistenz in Ihrem gesamten Inhalt sicher. Fügen, update, und versionieren Sie Terminologiepfeile, damit Agenten immer die richtigen Begriffe verwenden.
+**Terminologieverwaltung** -- Wahren Sie die Terminologiekonsistenz über alle Inhalte hinweg. Terminologieneinträge hinzufügen, aktualisieren und versionieren, damit Agenten stets die richtigen Begriffe verwenden.
 
-**Projekte** -- Listen und überprüfen Sie Projekte über Organisationen hinweg.
+**Projekte** -- Listen und inspizieren Sie Projekte über Organisationen.
 
-## Funktionsweise
+## So funktioniert es
 
-Richten Sie Ihren MCP-Client auf `https://your-glossia-instance/mcp` aus und authentifizieren Sie sich mit einem OAuth-Bearer-Token. Der [MCP Setup-Guide](/docs/reference/mcp/overview) führt durch den gesamten Verbindungsablauf, einschließlich dynamischer Client-Registrierung und PKCE. Der Server nutzt dasselbe Authentifizierungs- und Autorisierungssystem wie die [REST API](/features/rest-api), sodass jedes Token, das für die API funktioniert, auch für MCP funktioniert.
+Richten Sie Ihren MCP-Client auf `https://your-glossia-instance/mcp` und authentifizieren Sie sich mit einem OAuth-Bearer-Token. Die [MCP-Einrichtungsanleitung](/docs/reference/mcp/overview) geht den gesamten Verbindungsablauf durch, einschließlich dynamischer Client-Registrierung und PKCE. Die [REST API](/features/rest-api), sodass jeder Token, der für die API funktioniert, auch für MCP funktioniert.
 
-Von dort aus kann Ihr KI-Assistent eines der 16 Tools aufrufen. Fordern Sie es auf, "eine Organisation namens Acme zu erstellen" oder "meinen Sprachton auf professionell zu aktualisieren", und der Agent übersetzt Ihre Absicht in die richtige Tool-Aufruferfassung.
+Von dort aus kann Ihr KI-Assistent jedes der 16 Werkzeuge aufrufen. Bitten Sie es, "eine Organisation namens Acme zu erstellen" oder "meinen Stimmenton auf professionell zu aktualisieren", und der Agent übersetzt Ihre Absicht in den passenden Werkzeugaufruf.
 
-## Für agentische Workflows optimiert
+## Entwickelt für Agenten-Arbeitsabläufe
 
-MCP ist nicht nur eine Conan-Schicht. Es ist die Basis, um Glossia in größere agentische Pipelines zu integrieren. Ein Coding-Assistent kann Ihre Codebasis lesen, unübersetzten Inhalt erkennen, die Terminologie mit neuen Begriffen aktualisieren, die Stimmeinstellungen für ein bestimmtes Locale anpassen und einen Lokalisierungs-Lauf auslösen, alles in einer einzigen Konversation.
+MCP ist nicht nur eine Komfortschicht. Es ist das Fundament, um Glossia in größere Agenten-Pipelines zu integrieren. Ein Code-Assistent kann Ihre Codebasis lesen, nicht lokalisierte Inhalte erkennen, die Terminologie mit neuen Begriffen aktualisieren, die Stimmeinstellungen für eine bestimmte Lokalisierung anpassen und einen Lokalisierungsvorgang auslösen, alles in einer einzigen Unterhaltung.
 
-Da das Protokoll standardisiert ist, sind Sie keinem einzigen Client gefesselt. Wechseln Sie zwischen Claude, Cursor oder Ihrem eigenen benutzerdefinierten Agenten, ohne eine Zeile Konfiguration zu ändern.
+Da das Protokoll standardisiert ist, sind Sie nicht an einen einzelnen Client gebunden. Wechseln Sie zwischen Claude, Cursor oder Ihrem eigenen benutzerdefinierten Agenten ohne eine einzige Konfigurationszeile ändern zu müssen.

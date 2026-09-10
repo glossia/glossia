@@ -42,6 +42,6 @@ msgid "Where to translate next"
 msgstr "Nächste Übersetzung"
 
 #: lib/glossia_web/live/dashboard_live.ex:13308
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Traffic"
-msgstr "Verkehr pro Stunde"
+msgstr "Zugriffe"

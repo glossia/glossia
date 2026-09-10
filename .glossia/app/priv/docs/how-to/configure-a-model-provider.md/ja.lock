@@ -1,15 +1,15 @@
 {
-  "hash": "319462ad750e44f89e9ad44c5f48a84b203b968487213203a25386649da38859",
+  "hash": "f1a2bcc417345696dfcf7f6ff0f129a882d67e2f22b3ec5202a7383ea62a1d3d",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "4285ecbccd082887e5ecd8401a4996716d73f8689b10fac92e73dc5804395895",
+          "hash": "09e8309cc212a33942e6b7b9fe34e4442993f71ef6564ca53c1dac9e17fec7b1",
           "kind": "source",
           "label": "app/priv/docs/how-to/configure-a-model-provider.md",
           "metadata": {
-            "content_hash": "39f7f6338a1c3a4ac6b45d5393d982ca7fd8500762309b432a67b37014edef26"
+            "content_hash": "cba272636eea1e44d148cf2affc61465a22bcebc6a2415caa371b1da623cc6b7"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "2e7c82be99482ca4aaa43ac06a6ce52d03a591e6057c49e34ea8715a4f2633f1",
+          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "319462ad750e44f89e9ad44c5f48a84b203b968487213203a25386649da38859",
+      "hash": "f1a2bcc417345696dfcf7f6ff0f129a882d67e2f22b3ec5202a7383ea62a1d3d",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/configure-a-model-provider.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "2684fa78bd6e39a88b11ce708128fa244f6d47c6a0c1ff4790e146974243d94b",
+  "output_hash": "67bb856e016a3f6dbf97c01ece3b413fe104e66f0508e9f5ddb0ac5e2a577847",
   "output_path": "app/priv/i18n/ja/docs/how-to/configure-a-model-provider.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/how-to/configure-a-model-provider.md",
-  "translated_at": "2026-09-01T23:49:54.353401Z"
+  "translated_at": "2026-09-10T12:26:37.492252Z"
 }

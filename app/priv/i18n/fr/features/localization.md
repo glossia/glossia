@@ -1,41 +1,41 @@
 %{
   title: "Localisation",
   summary:
-    "Localisez votre contenu dans n'importe quelle langue tout en préservant la structure, les blocs de code et le formatage. Les agents Glossia gèrent les tâches lourdes afin que votre équipe puisse se concentrer sur la révision.",
+    "Localisez votre contenu dans n'importe quelle langue tout en préservant la structure, les blocs de code et le formatage. Les agents Glossia gèrent le gros du travail pour que votre équipe puisse se concentrer sur la relecture.",
   order: 1,
-  icon: "langues",
+  icon: "Langues",
   hero_cta_text: "Commencer",
   hero_cta_url: "/signup",
   highlights: [
     %{
-      title: "Prise en compte structurelle",
+      title: "Sensible à la structure",
       description:
-        "Les blocs de code, le frontmatter et le formatage survivent à la localisation. Aucun nettoyage manuel requis.",
-      icon: "code"
+        "Les blocs de code, le frontmatter et le formatage sont préservés intacts après la localisation. Aucun nettoyage manuel requis.",
+      icon: "Code"
     },
     %{
       title: "N'importe quelle paire de langues",
       description:
-        "Localisez entre n'importe quelle combinaison de langues. Ajoutez de nouvelles cibles en modifiant une seule ligne dans votre config.",
-      icon: "mondial"
+        "Localisez toute combinaison de langues. Ajoutez de nouvelles cibles en modifiant une seule ligne dans votre configuration.",
+      icon: "Monde"
     },
     %{
-      title: "Mises à jour incrémentales",
+      title: "Mises à jour incrémentaires",
       description:
-        "Seul le contenu modifié est relocalisé. Les lockfiles suivent ce qui a déjà été traité, économisant du temps et des coûts.",
-      icon: "éclair"
+        "Seul le contenu modifié est relocalisé. Les fichiers de verrouillage permettent de suivre ce qui a déjà été traité, économisant du temps et des coûts.",
+      icon: "Supprimer"
     }
   ]
 }
 ---
 ## Comment fonctionne la localisation
 
-Glossia lit le contenu de votre dépôt ainsi que les fichiers de verrouillage qui enregistrent ce qui a déjà été traité. Elle fusionne ensuite votre contexte local (les fichiers `GLOSSIA.md` à la racine ou dans des sous-répertoires) avec le contexte global (voix, terminologie et paramètres de compte) pour bâtir une vision complète de la façon dont votre contenu doit se présenter dans chaque langue cible. Avec ce contexte assemblé, un flux de travail agentique localise le contenu modifié tout en préservant la structure, les blocs de code et la mise en forme. Une fois l'exécution terminée, les résultats sont renvoyés vers votre dépôt sous forme d'une pull request prête à être révisée.
+Glossia lit le contenu de votre dépôt aux côtés des lockfiles qui suivent ce qui a déjà été traité. Il fusionne ensuite votre contexte local (\``L10N.md` fichiers au niveau de l'enracinement ou dans des sous-répertoires) avec le contexte global (ton, terminologie et paramètres au niveau du compte) afin de construire une image claire de la manière dont votre contenu doit se présenter dans chaque langue cible. Avec ce contexte assemblé, un flux de travail agentique localise le contenu modifié tout en conservant la structure, les blocs de code et la mise en forme. Une fois l'exécution terminée, les résultats sont envoyés de retour à votre dépôt sous la forme d'une pull request prête pour examen.
 
-## Qualité guidée par le contexte
+## Qualité pilotée par le contexte
 
-Chaque localisation bénéficie du contexte que vous fournissez. La terminologie, les notes de style et les instructions spécifiques au domaine alimentent le prompt afin que l'agent génère un contenu qui correspond à la voix de votre produit.
+Chaque localisation bénéficie du contexte que vous fournissez. Les notes de terminologie, les annotations de style et les instructions spécifiques au domaine alimentent toutes le prompt de sorte que l'agent produise une sortie qui correspond au ton de votre produit.
 
-## Revue avec confiance
+## Examen en toute confiance
 
-Les résultats se matérialisent sous forme de pull requests ou de fichiers brouillon, prêts pour l'examen par votre équipe. Les réviseurs signalent les problèmes, mettent à jour les fichiers de contexte, et le prochain lancement intègre automatiquement ces corrections.
+Les résultats deviennent des pull requests ou des fichiers de brouillon, prêts pour que votre équipe examine. Les examinateurs signalent les problèmes, mettent à jour les fichiers de contexte et le prochain exécution incorpore automatiquement ces corrections.

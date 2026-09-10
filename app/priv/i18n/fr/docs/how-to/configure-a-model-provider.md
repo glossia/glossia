@@ -1,7 +1,7 @@
 %{
   title: "Configurer un fournisseur de modèle",
   summary: "Ajouter un modèle de compte et le référencer en toute sécurité depuis les dépôts.",
-  category: "tutoriel",
+  category: "Tutoriel",
   order: 3
 }
 ---
@@ -9,18 +9,18 @@ La configuration du projet et les exécutions de traduction utilisent les modèl
 
 ## Ajouter un modèle
 
-1. Ouvrez **Paramètres** et sélectionnez **Modèles**.
-2. Sélectionnez **Nouveau modèle**.
-3. Saisissez un identifiant unique, tel que `translation-default`.
-4. Ouvrez le sélecteur de modèle et tapez une partie du nom du fournisseur ou du modèle pour filtrer la liste.
+1. Ouvrir **Paramètres** et sélectionner **Modèles**.
+2. Sélectionner **Nouveau modèle**.
+3. Entrez un identifiant unique, tel que `translation-default`.
+4. Ouvrez le sélecteur de modèle et saisissez une partie du nom du fournisseur ou du modèle pour filtrer la liste.
 5. Sélectionnez un modèle et entrez sa clé de fournisseur.
-6. Sauvegardez le modèle.
+6. Enregistrez le modèle.
 
-L'identifiant reste stable même lorsque vous modifiez plus tard le modèle fournisseur sous-jacent. Le premier modèle ajouté à un compte devient son modèle par défaut.
+L'identifiant est stable même si vous modifiez plus tard le modèle fournisseur sous-jacent. Le premier modèle ajouté à un compte devient son modèle par défaut.
 
-## Référencer le modèle depuis un dépôt
+## Faire référence au modèle depuis un dépôt
 
-Définissez `model` dans le frontmatter du `GLOSSIA.md` pertinent :
+Définir `model` dans le pertinent `L10N.md` frontmatter:
 
 ```yaml
 ---
@@ -28,20 +28,20 @@ model: translation-default
 ---
 ```
 
-Le dépôt ne stocke que l'identifiant. La clé de fournisseur reste dans les paramètres du compte.
+Le dépôt ne stocke que le handle. La clé du fournisseur reste dans les paramètres de compte.
 
-## Choisir quel modèle est utilisé par défaut
+## Choisissez quel modèle est utilisé par défaut
 
-Lorsque `GLOSSIA.md` omet `model`, Glossia utilise le modèle par défaut du compte. Pour le modifier, ouvrez le modèle qui devrait devenir par défaut et sélectionnez **Définir comme par défaut**.
+Lorsque `L10N.md` omet `model`, Glossia utilise le modèle par défaut du compte. Pour le modifier, ouvrez le modèle qui doit devenir le par défaut et sélectionnez **Rendre par défaut**.
 
-Pour un comportement prévisible entre plusieurs modèles, référez un identifiant explicitement dans `GLOSSIA.md`.
+Pour un comportement prédictible à travers plusieurs modèles, référez explicitement un handle dans `L10N.md`.
 
-Vous pouvez placer un identifiant `model` différent dans un `GLOSSIA.md` imbriqué pour une zone de contenu donnée, ou dans `GLOSSIA/<locale>.md` pour une locale cible donnée. Glossia utilise le paramétrage le plus pertinent pour chaque document et locale. Il ne répartit pas automatiquement le travail entre les modèles configurés.
+Vous pouvez placer un handle différent `model` handle dans un imbriqué `L10N.md` pour une zone de contenu, ou dans `L10N/<locale>.md` pour une seule locale cible. Glossia utilise le paramètre applicable le plus pertinent pour chaque document et locale. Il ne répartit pas automatiquement le travail parmi les modèles configurés.
 
-Si un identifiant explicite n'existe pas dans le compte, la traduction s'arrête avec une erreur. Il ne bascule pas sur un autre modèle.
+Si un handle explicite n'existe pas dans le compte, la traduction s'arrête avec une erreur. Elle ne recourt pas à un autre modèle.
 
 ## Modifier ou renouveler une clé de fournisseur
 
-Ouvrez **Paramètres**, sélectionnez **Modèles**, puis ouvrez l'identifiant du modèle. Saisissez une nouvelle clé de fournisseur et sauvegardez. Laisser le champ de clé vide conserve la clé actuelle.
+Ouvrir **Paramètres**, sélectionner **Modèles**, et ouvrez le handle du modèle. Entrez une nouvelle clé de fournisseur et enregistrez. Laisser le champ de clé vide conserve la clé actuelle.
 
-Les dépôts qui référencent l'identifiant ne nécessitent aucune modification.
+Les dépôts qui font référence au handle n'ont pas besoin de changer.

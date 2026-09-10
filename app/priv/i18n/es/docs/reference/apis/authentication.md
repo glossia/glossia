@@ -8,23 +8,23 @@
 ---
 ## Métodos de autenticación
 
-Glossia admite dos métodos de autenticación dependiendo del contexto.
+Glossia soporta dos métodos de autenticación dependiendo del contexto.
 
 ### Sesiones del navegador
 
-Cuando inicias sesión a través de la interfaz web, Glossia utiliza autenticación basada en sesión. Te autenticas mediante un proveedor externo (GitHub o GitLab) usando el [Consentimiento](https://github.com/pow-auth/assent) Biblioteca. Después de un inicio de sesión exitoso, una cookie de sesión se establece y se utiliza para solicitudes posteriores.
+Cuando inicias sesión a través de la interfaz web, Glossia utiliza autenticación basada en sesiones. Te autenticas mediante un proveedor de terceros (GitHub o GitLab) usando la [Assent](https://github.com/pow-auth/assent) biblioteca. Después de un inicio de sesión exitoso, se establece una cookie de sesión y se utiliza en las solicitudes posteriores.
 
 ### Tokens Bearer (OAuth 2.1)
 
-Para el acceso a la API (como desde el CLI u otras herramientas), Glossia implementa OAuth 2.1 con el flujo de autorización con código y PKCE. Los clientes obtienen un token Bearer y lo incluyen en el `Authorization` encabezado:
+Para el acceso a la API (ya sea desde la CLI u otras herramientas), Glossia implementa OAuth 2.1 con el flujo de código de autorización y PKCE. Los clientes obtienen un token Bearer y lo incluyen en el `Authorization` Encabezado:
 
     Authorization: Bearer <access_token>
 
-## Flujo OAuth 2.1
+## Flujo de OAuth 2.1
 
 ### 1\. Registro dinámico de clientes
 
-Los clientes se registran al invocar `POST /oauth/register` con sus metadatos. Esto sigue [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+Los clientes se registran llamando `POST /oauth/register` con sus metadatos. Esto sigue [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 
 ```json
 {
@@ -42,7 +42,7 @@ El cliente redirige al usuario a `/oauth/authorize` con parámetros PKCE:
 
     GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
 
-**PKCE es obligatorio para todos los clientes.** Solo el `S256` método de desafío está soportado.
+**PKCE es requerido para todos los clientes.** Solo el `S256` método de desafío está soportado.
 
 ### 3\. Intercambio de tokens
 
@@ -53,32 +53,32 @@ Después de que el usuario aprueba, el cliente intercambia el código de autoriz
     
     grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
 
-La respuesta incluye un token de acceso y opcionalmente un token de actualización.
+La respuesta incluye un token de acceso y opcionalmente un token de refresco.
 
-### 4\. Actualización de tokens
+### 4\. Refresco de tokens
 
-Cuando un token de acceso caduca, utilice el token de actualización:
+Cuando un token de acceso expira, utilice el token de refresco:
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
     
     grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
 
-## Alcances
+## Ámbitos
 
-Los alcances controlan las acciones que puede realizar un token. Siguen el `object:action` patrón.
+Los ámbitos controlan qué acciones puede realizar un token. Siguen la `object:action` patrón.
 
 | Alcance | Descripción |
 |-------|-------------|
 | `user:read` | Leer información del perfil de usuario |
 | `user:write` | Actualizar perfil de usuario |
-| `account:read` | Listar las cuentas de organización a las que tienes acceso |
-| `organization:read` | Ver los detalles de la organización (y listar tus organizaciones) |
+| `account:read` | Listar cuentas de organización a las que tienes acceso |
+| `organization:read` | Ver detalles de la organización (y listar tus organizaciones) |
 | `organization:write` | Crear o actualizar organizaciones |
 | `organization:delete` | Eliminar organizaciones |
 | `organization:admin` | Acciones administrativas de la organización |
-| `members:read` | Ver miembros y invitaciones de la organización |
-| `members:write` | Gestionar miembros y invitaciones de la organización |
+| `members:read` | Ver miembros e invitaciones de la organización |
+| `members:write` | Gestionar miembros e invitaciones de la organización |
 | `project:read` | Ver proyectos |
 | `project:write` | Crear o actualizar proyectos |
 | `project:admin` | Acciones administrativas del proyecto |
@@ -88,16 +88,16 @@ Los alcances controlan las acciones que puede realizar un token. Siguen el `obje
 | `voice:admin` | Acciones administrativas de voz |
 | `glossary:read` | Leer entradas de terminología |
 | `glossary:write` | Crear o actualizar entradas de terminología |
-| `glossary:admin` | Administrar la terminología |
+| `glossary:admin` | Administrar configuración de terminología |
 
 ## Modelo de autorización
 
-Glossia impone **dos capas** para el REST API y el MCP server:
+Glossia aplica **dos capas** para la API REST y el servidor MCP:
 
-1. **Comprobación de alcance**: el token de acceso debe incluir el requerido `object:action` alcance.
-2. **Política a nivel de recurso**: el usuario actual debe estar autorizado para el recurso específico a través de `Glossia.Policy`.
+1. **Verificación de alcance**: el token de acceso debe incluir el `object:action` alcance.
+2. **Política a nivel de recurso**: el usuario actual debe estar autorizado para el recurso específico mediante `Glossia.Policy`.
 
-Los ámbitos representan la *máxima* capacidad de un token. El sistema de políticas aplica el *real* permiso para un recurso específico.
+Ámbitos representan el *máximo* capacidad de un token. El sistema de política impone el *efectivo* permiso para un recurso específico.
 
 ### Roles
 
@@ -105,8 +105,8 @@ Los ámbitos representan la *máxima* capacidad de un token. El sistema de polí
 |------|-------------|
 | `self` | El usuario que accede a sus propios recursos |
 | `organization_member` | Un miembro de la organización que posee el recurso |
-| `organization_admin` \\| Un administrador de la organización que posee el recurso \\
-\\| `public_account` \\| La cuenta es pública (solo lectura) \\|
+| `organization_admin` | Un administrador de la organización que posee el recurso |
+| `public_account` | La cuenta es pública (solo lectura) |
 
 ### Permisos de rol
 
@@ -134,29 +134,29 @@ Los ámbitos representan la *máxima* capacidad de un token. El sistema de polí
 
 ## Endpoints de descubrimiento
 
-Glossia publica metadatos en URLs estándar y bien conocidas para que los clientes puedan descubrir automáticamente los endpoints.
+Glossia publica metadatos en URLs estándar y bien conocidas para que los clientes descubran endpoints automáticamente.
 
-### Metadatos del servidor de autorización OAuth (RFC 8414)
+### Metadatos del Servidor de Autorización OAuth (RFC 8414)
 
     GET /.well-known/oauth-authorization-server
 
-Devuelve el emisor, endpoints, alcances admitidos, tipos de concesión y métodos de desafío de código.
+Devuelve el emisor, los endpoints, los alcances soportados, los tipos de concesión y los métodos de desafío de código.
 
-### Metadatos de recursos protegidos (RFC 9728)
+### Metadatos del Recurso Protegido (RFC 9728)
 
     GET /.well-known/oauth-protected-resource
 
-Devuelve el identificador de recurso, servidores de autorización, alcances admitidos y métodos de portador.
+Devuelve el identificador del recurso, los servidores de autorización, los alcances soportados y los métodos del portador.
 
 ## Limitación de tasa
 
-Los puntos finales OAuth están limitados por tasa por dirección IP:
+Los endpoints de OAuth están limitados por tasa por dirección IP:
 
-| Punto final | Límite |
+| Endpoint | Límite |
 |----------|-------|
 | `POST /oauth/register` | 5 solicitudes por minuto |
 | `POST /oauth/token` | 30 solicitudes por minuto |
-| `POST /oauth/revoke` | 30 solicitudes por minuto |
-| `POST /oauth/introspect` | 30 solicitudes por minuto |
+| `POST /oauth/revoke` | 30 peticiones por minuto |
+| `POST /oauth/introspect` | 30 peticiones por minuto |
 
-Cuando se excede el límite de tasa, el servidor devuelve HTTP 429 (Demasiadas solicitudes).
+Cuando se aplica limitación de tasa, el servidor devuelve HTTP 429 (Solicitudes Excesivas).
