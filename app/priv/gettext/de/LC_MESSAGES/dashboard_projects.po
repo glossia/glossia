@@ -16,32 +16,32 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: lib/glossia_web/live/dashboard_live.ex:13143
+#: lib/glossia_web/live/dashboard_live.ex:13144
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr "Übersicht"
 
-#: lib/glossia_web/live/dashboard_live.ex:13387
+#: lib/glossia_web/live/dashboard_live.ex:13388
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr "Browser-Sprachen"
 
-#: lib/glossia_web/live/dashboard_live.ex:13356
+#: lib/glossia_web/live/dashboard_live.ex:13357
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr "Top-Länder"
 
-#: lib/glossia_web/live/dashboard_live.ex:13328
+#: lib/glossia_web/live/dashboard_live.ex:13329
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr "Top-Seiten"
 
-#: lib/glossia_web/live/dashboard_live.ex:13229
+#: lib/glossia_web/live/dashboard_live.ex:13230
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr "Nächste Übersetzung"
 
-#: lib/glossia_web/live/dashboard_live.ex:13308
+#: lib/glossia_web/live/dashboard_live.ex:13309
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Traffic"
 msgstr "Verkehr pro Stunde"

@@ -27,7 +27,7 @@ defmodule Glossia.TranslationSessions.Progress do
   # Text chunks arrive thousands of times per file and are left to the live
   # stream: a viewer who joins late sees the file as running with the text it
   # has produced since they arrived, rather than a replayed transcript.
-  @durable_types ~w(run_started plan plan_progress plan_assessed item_started item_completed item_failed item_skipped)
+  @durable_types ~w(run_started plan plan_progress plan_assessed item_started item_completed item_failed item_cancelled item_skipped)
 
   @doc "Whether `event` is worth persisting so a later viewer can rebuild the panel."
   def durable_event?(%{type: type}), do: type in @durable_types
@@ -160,6 +160,22 @@ defmodule Glossia.TranslationSessions.Progress do
     end)
   end
 
+  # A superseded or user-cancelled run leaves in-flight items in :running with no
+  # more events coming from the pod behind it, so they stay running forever in
+  # the fold. The session context emits one of these per running item at the
+  # moment it cancels so the panel closes them out with a distinct status.
+  defp do_apply_event(state, %{type: "item_cancelled", index: index} = event) do
+    state
+    |> put_new_item(index, event)
+    |> update_item(index, fn item ->
+      if item.status == :done or item.status == :failed do
+        item
+      else
+        %{item | status: :cancelled, reason: event[:reason] || item.reason}
+      end
+    end)
+  end
+
   defp do_apply_event(state, _event), do: state
 
   @doc "Folds a list of events into a fresh state."
@@ -183,6 +199,7 @@ defmodule Glossia.TranslationSessions.Progress do
       skipped: state.skipped,
       done: Enum.count(items, &(&1.status == :done)),
       failed: Enum.count(items, &(&1.status == :failed)),
+      cancelled: Enum.count(items, &(&1.status == :cancelled)),
       running: Enum.count(items, &(&1.status == :running))
     }
   end
