@@ -1,3 +1,13 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
 msgid ""
 msgstr ""
 "Language: zh-Hans\n"
@@ -29,9 +39,9 @@ msgstr "热门页面"
 #: lib/glossia_web/live/dashboard_live.ex:13229
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
-msgstr "下一步翻译哪里"
+msgstr "下一步翻译"
 
 #: lib/glossia_web/live/dashboard_live.ex:13308
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Traffic"
-msgstr "每小时流量"
+msgstr "流量"
