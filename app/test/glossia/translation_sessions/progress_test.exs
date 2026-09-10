@@ -205,7 +205,13 @@ defmodule Glossia.TranslationSessions.ProgressTest do
           model_calls: 1
         },
         %{type: "item_cancelled", index: 1, reason: "superseded"},
-        %{type: "item_cancelled", index: 2, output_path: "de/a.md", locale: "de", reason: "superseded"}
+        %{
+          type: "item_cancelled",
+          index: 2,
+          output_path: "de/a.md",
+          locale: "de",
+          reason: "superseded"
+        }
       ])
 
     [first, second, third] = Progress.items(state)
