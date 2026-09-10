@@ -3,8 +3,9 @@ defmodule Glossia.Git.PorcelainStatus do
   Parses `git status --porcelain` output into `%{path, status}` entries, where
   `status` is `"added" | "modified" | "deleted"`.
 
-  Shared by `Glossia.Translations.RepositoryRun` and
-  `Glossia.Projects.SetupHarness` so classification lives in one place.
+  Used by `Glossia.Translations.RepositoryRun` (and any downstream build that
+  wants the same classification logic — the setup harness has moved out of the
+  open-source tree).
 
   A rename (`R  old -> new`) expands into two entries — the old path deleted and
   the new path added — so callers building a tree don't leave the original file

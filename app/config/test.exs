@@ -77,10 +77,6 @@ config :glossia, :translation_concurrency, 1
 
 config :glossia, Glossia.OgImage, enabled: false
 
-config :glossia, Glossia.Sandbox, reaper_enabled: false
-
-config :glossia, Glossia.Projects.SetupRecovery, enabled: false
-
 config :fun_with_flags, :cache, enabled: false
 
 # Cloak encryption vault (deterministic test key)

@@ -66,10 +66,6 @@ defmodule Glossia.Application do
         {Phoenix.PubSub, name: Glossia.PubSub},
         FunWithFlags.Supervisor,
         Glossia.Docs.SearchIndexer,
-        Glossia.Sandbox.ProcessRegistry,
-        Glossia.Sandbox.Reaper,
-        # Start a worker by calling: Glossia.Worker.start_link(arg)
-        # {Glossia.Worker, arg},
         Glossia.RateLimiter,
         Hermes.Server.Registry,
         %{
@@ -89,14 +85,6 @@ defmodule Glossia.Application do
            (Glossia.Ingestion.Event.buffer_opts()
             |> Map.take([:insert_sql, :insert_opts, :header])
             |> Map.to_list())},
-        Supervisor.child_spec(
-          {Glossia.Ingestion.Buffer,
-           [name: Glossia.Ingestion.SetupEventBuffer, flush_interval_ms: 1_000] ++
-             (Glossia.Ingestion.SetupEvent.buffer_opts()
-              |> Map.take([:insert_sql, :insert_opts, :header])
-              |> Map.to_list())},
-          id: Glossia.Ingestion.SetupEventBuffer
-        ),
         Supervisor.child_spec(
           {Glossia.Ingestion.Buffer,
            [name: Glossia.Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
@@ -120,7 +108,6 @@ defmodule Glossia.Application do
         Glossia.Github.InstallationTokens,
         Glossia.Pomerium.JWKSCache
       ] ++
-        setup_recovery_children() ++
         [
           Glossia.Runners.pool_child_spec(),
           # Start to serve requests, typically the last entry
@@ -142,14 +129,6 @@ defmodule Glossia.Application do
       end
 
     children
-  end
-
-  defp setup_recovery_children do
-    if Application.get_env(:glossia, Glossia.Projects.SetupRecovery, [])[:enabled] == false do
-      []
-    else
-      [Glossia.Projects.SetupRecovery]
-    end
   end
 
   defp internal_babel_endpoint_children do

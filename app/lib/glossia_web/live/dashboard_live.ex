@@ -1049,7 +1049,7 @@ defmodule GlossiaWeb.DashboardLive do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Project
     end
 
-    setup_events = Glossia.Ingestion.list_setup_events(project.id)
+    setup_events = []
     project = maybe_backfill_setup_pull_request(project, setup_events)
     translation_overview = Glossia.TranslationSessions.project_overview(project)
 
@@ -2910,19 +2910,17 @@ defmodule GlossiaWeb.DashboardLive do
         {:ok, project} ->
           socket = subscribe_to_setup_events(socket, project)
 
-          case %{project_id: project.id}
-               |> Glossia.Projects.SetupWorker.new()
-               |> Oban.insert() do
-            {:ok, _job} ->
+          case Glossia.ProjectSetup.start(project) do
+            :ok ->
               {:noreply,
                socket
                |> assign(wizard_project: project)
                |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
 
             {:error, reason} ->
-              error = gettext("Project setup could not be queued.")
+              error = gettext("Project setup could not be started.")
               _ = Glossia.Projects.discard_pending_project_setup(project)
-              Logger.warning("Failed to enqueue project setup", reason: inspect(reason))
+              Logger.warning("Failed to start project setup", reason: inspect(reason))
 
               {:noreply,
                socket
@@ -2958,8 +2956,8 @@ defmodule GlossiaWeb.DashboardLive do
     if socket.assigns.can_write and project do
       case Glossia.Projects.retry_project_setup(project) do
         {:ok, pending_project} ->
-          case Glossia.Projects.SetupWorker.retry_now(pending_project.id) do
-            {:ok, _job} ->
+          case Glossia.ProjectSetup.retry(pending_project.id) do
+            :ok ->
               socket =
                 socket
                 |> subscribe_to_setup_events(pending_project)
@@ -11754,7 +11752,7 @@ defmodule GlossiaWeb.DashboardLive do
         if project do
           # Re-fetch from DB to get current setup_status (may have changed via Oban worker)
           project = Glossia.Repo.get(Glossia.Accounts.Project, project.id) || project
-          setup_events = Glossia.Ingestion.list_setup_events(project.id)
+          setup_events = []
 
           socket =
             if connected?(socket) and project.setup_status in ["pending", "running"] do

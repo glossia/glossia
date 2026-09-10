@@ -79,10 +79,24 @@ translation_launcher_module =
 
 config :glossia, :translation_launcher, module: translation_launcher_module
 
-# Sandbox boot timeout in milliseconds. Ceiling on how long we wait for a
-# newly-started sandbox to become responsive; a repeatedly-timing-out sandbox
-# means the host that hosts them is under-provisioned rather than misconfigured.
-config :glossia, :sandbox, boot_timeout: integer_env.("GLOSSIA_SANDBOX_BOOT_TIMEOUT_MS", 120_000)
+# Same swap shape: automated project setup (a downstream build's Kata-backed
+# adapter) is picked up here; the open-source default marks new projects as
+# ready without any agent-in-a-sandbox work.
+project_setup_module =
+  case System.get_env("GLOSSIA_PROJECT_SETUP_MODULE") do
+    empty when empty in [nil, ""] ->
+      :glossia
+      |> Application.get_env(:project_setup, [])
+      |> Keyword.get(:module, Glossia.ProjectSetup.Default)
+
+    "Elixir." <> _rest = name ->
+      String.to_atom(name)
+
+    name ->
+      String.to_atom("Elixir." <> name)
+  end
+
+config :glossia, :project_setup, module: project_setup_module
 
 # How many HTTP connections the node holds open per host. Translation is the
 # heaviest user: every concurrent file is one long-lived connection to the model
@@ -107,74 +121,6 @@ config :glossia, Glossia.Cloudflare.Turnstile,
 # the provider names. Unset means "translate every planned file at once", capped
 # by the pool.
 config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 0)
-
-sandbox_adapter =
-  case System.get_env("GLOSSIA_SANDBOX_ADAPTER", "microsandbox") do
-    "microsandbox" -> Glossia.Sandbox.MicrosandboxAdapter
-    value -> raise "unsupported GLOSSIA_SANDBOX_ADAPTER=#{inspect(value)}"
-  end
-
-microsandbox_image_default =
-  case {config_env(), System.get_env("GLOSSIA_DEV_INSTANCE")} do
-    {:dev, instance} when is_binary(instance) and instance != "" -> "glossia-local:#{instance}"
-    _ -> "glossia-local:dev"
-  end
-
-config :glossia, Glossia.Sandbox,
-  adapter: sandbox_adapter,
-  enabled: System.get_env("GLOSSIA_SANDBOX_ENABLED", "true") not in ["false", "0"],
-  max_active_per_account:
-    String.to_integer(System.get_env("GLOSSIA_SANDBOX_MAX_ACTIVE_PER_ACCOUNT") || "3"),
-  default_ttl_seconds:
-    String.to_integer(System.get_env("GLOSSIA_SANDBOX_DEFAULT_TTL_SECONDS") || "3600"),
-  command_timeout_ms:
-    String.to_integer(System.get_env("GLOSSIA_SANDBOX_COMMAND_TIMEOUT_MS") || "120000"),
-  output_limit_bytes:
-    String.to_integer(System.get_env("GLOSSIA_SANDBOX_OUTPUT_LIMIT_BYTES") || "256000"),
-  file_transfer_limit_bytes:
-    String.to_integer(System.get_env("GLOSSIA_SANDBOX_FILE_TRANSFER_LIMIT_BYTES") || "16777216"),
-  reaper_enabled:
-    System.get_env(
-      "GLOSSIA_SANDBOX_REAPER_ENABLED",
-      if(config_env() == :test, do: "false", else: "true")
-    ) not in ["false", "0"],
-  reaper_interval_ms:
-    String.to_integer(System.get_env("GLOSSIA_SANDBOX_REAPER_INTERVAL_MS") || "60000"),
-  delete_retry_after_ms:
-    String.to_integer(System.get_env("GLOSSIA_SANDBOX_DELETE_RETRY_AFTER_MS") || "60000"),
-  microsandbox_command: System.get_env("GLOSSIA_MICROSANDBOX_COMMAND") || "msb",
-  microsandbox_image: System.get_env("GLOSSIA_MICROSANDBOX_IMAGE") || microsandbox_image_default,
-  microsandbox_cpus: String.to_integer(System.get_env("GLOSSIA_MICROSANDBOX_CPUS") || "2"),
-  microsandbox_memory: System.get_env("GLOSSIA_MICROSANDBOX_MEMORY") || "2G",
-  microsandbox_repo_path: System.get_env("GLOSSIA_MICROSANDBOX_REPO_PATH") || "/tmp/glossia/repo",
-  microsandbox_mounts:
-    if(config_env() == :dev,
-      do: [
-        %{
-          source: Path.expand("../tmp/dev-remotes", __DIR__),
-          destination: "/mnt/glossia-remotes",
-          read_only: true
-        }
-      ],
-      else: []
-    )
-
-config :glossia, Glossia.Projects.Setup,
-  harness_timeout_ms:
-    String.to_integer(System.get_env("GLOSSIA_SETUP_HARNESS_TIMEOUT_MS") || "660000"),
-  harness: System.get_env("GLOSSIA_SETUP_HARNESS") || "opencode",
-  harness_command: System.get_env("GLOSSIA_SETUP_HARNESS_COMMAND") || "opencode",
-  harness_model: System.get_env("GLOSSIA_SETUP_HARNESS_MODEL"),
-  harness_agent: System.get_env("GLOSSIA_SETUP_HARNESS_AGENT"),
-  harness_pure: System.get_env("GLOSSIA_SETUP_HARNESS_PURE", "true") not in ["false", "0"],
-  harness_env: json_env.("GLOSSIA_SETUP_HARNESS_ENV_JSON", %{}),
-  harness_context_path: System.get_env("GLOSSIA_SETUP_HARNESS_CONTEXT_PATH"),
-  opencode_config: json_env.("GLOSSIA_SETUP_OPENCODE_CONFIG_JSON", %{}),
-  minimax_api_key:
-    System.get_env("GLOSSIA_SETUP_MINIMAX_API_KEY") || System.get_env("MINIMAX_API_KEY"),
-  model: System.get_env("GLOSSIA_SETUP_MODEL"),
-  local_remotes_dir: if(config_env() == :dev, do: Path.expand("../tmp/dev-remotes", __DIR__)),
-  local_remotes_guest_dir: if(config_env() == :dev, do: "/mnt/glossia-remotes")
 
 # Translation LLM credential. Precedence at resolve time: the account's own model
 # key, then this globally configured inference provider (token + URL), then — in
