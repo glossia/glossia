@@ -368,7 +368,8 @@ defmodule Glossia.Translations.ValidateTest do
       changed_source = String.replace(source, ~s(msgid "Hello"), ~s(msgid "Hi"))
       lock = %{"po_units" => po_units}
 
-      {:ok, [_header, _old_hello, goodbye_unit]} = Glossia.Translations.Po.translation_units(source)
+      {:ok, [_header, _old_hello, goodbye_unit]} =
+        Glossia.Translations.Po.translation_units(source)
 
       assert {:partial, %{stale_keys: [changed_key], preserved: preserved}} =
                Locks.po_status(lock, changed_source, output)
@@ -394,7 +395,9 @@ defmodule Glossia.Translations.ValidateTest do
       assert {:partial, %{stale_keys: stale_keys}} =
                Locks.po_status(lock, source, output_without_hello)
 
-      {:ok, [_header, hello_unit, _goodbye_unit]} = Glossia.Translations.Po.translation_units(source)
+      {:ok, [_header, hello_unit, _goodbye_unit]} =
+        Glossia.Translations.Po.translation_units(source)
+
       assert hello_unit.key in stale_keys
     end
 
@@ -416,7 +419,9 @@ defmodule Glossia.Translations.ValidateTest do
       assert {:partial, %{stale_keys: stale_keys}} =
                Locks.po_status(lock, source, output_with_blank_hello)
 
-      {:ok, [_header, hello_unit, _goodbye_unit]} = Glossia.Translations.Po.translation_units(source)
+      {:ok, [_header, hello_unit, _goodbye_unit]} =
+        Glossia.Translations.Po.translation_units(source)
+
       assert hello_unit.key in stale_keys
     end
   end

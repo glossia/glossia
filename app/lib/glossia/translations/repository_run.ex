@@ -591,7 +591,9 @@ defmodule Glossia.Translations.RepositoryRun do
         })
 
       output_content = if File.exists?(item.output_abs), do: File.read!(item.output_abs), else: ""
-      current_output_hash = if output_content == "", do: "", else: Locks.output_hash(output_content)
+
+      current_output_hash =
+        if output_content == "", do: "", else: Locks.output_hash(output_content)
 
       lock = Locks.read_lock(repo_path, item.source_path, item.locale)
       po_status = po_status_for(item.format, lock, source_content, output_content)
