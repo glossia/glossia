@@ -1,23 +1,18 @@
 defmodule Glossia.Translations.RepositoryRun do
   @moduledoc """
-  Runs a repository translation natively in Elixir — no CLI.
+  Runs a repository translation natively in Elixir.
 
-  Where it runs depends on who is calling. Inside the detached translation Job
-  the work happens in that pod directly: it is already the isolated compute, and
-  placing a FLAME runner from there would re-attach the translation to a pod's
-  lifetime, which is what made translations die on every deploy. Everywhere
-  else — a development machine, a test — it still goes through a FLAME runner.
+  The open-source build runs every translation in the calling process. `run/5`
+  clones the repo, plans the work with `Glossia.Translations.Planner`,
+  translates each stale item with `Glossia.Translations.Engine` (streaming
+  every LLM turn to the translation session's PubSub topic and validating
+  with `Glossia.Translations.Validate`), writes outputs and lockfiles, and
+  collects the changed files via `git status`. Callers can provide an
+  `:after_item_completed` callback, which receives the output and lockfile
+  for the completed item after they have been written.
 
-  `run/5` clones the repo, plans the work with
-  `Glossia.Translations.Planner`, translates each stale item with
-  `Glossia.Translations.Engine` (streaming every LLM turn to the translation
-  session's PubSub topic and validating with `Glossia.Translations.Validate`),
-  writes outputs and lockfiles, and collects the changed files via `git status`.
-  Callers can provide an `:after_item_completed` callback, which receives the
-  output and lockfile for the completed item after they have been written.
-
-  `translate_repository/4` is the same orchestration without the FLAME hop or the
-  clone, so it can be driven directly against a working directory in tests.
+  `translate_repository/4` is the same orchestration without the clone, so
+  it can be driven directly against a working directory in tests.
   """
 
   require Logger
@@ -32,7 +27,6 @@ defmodule Glossia.Translations.RepositoryRun do
   alias Glossia.TranslationSessions
 
   @git_timeout_ms 600_000
-  @runner_timeout :infinity
   @assessment_progress_interval 25
   @completed_output_preview_length 2_000
   @completed_output_preview_bytes 8_000
@@ -66,16 +60,9 @@ defmodule Glossia.Translations.RepositoryRun do
       after_item_completed: Keyword.get(run_opts, :after_item_completed)
     ]
 
-    if Glossia.TranslationSessions.Job.current?() do
-      run_here(session, account, repository, locales, opts)
-    else
-      run_in_flame(session, account, repository, locales, opts)
-    end
+    run_here(session, account, repository, locales, opts)
   end
 
-  # A detached translation pod is already the isolated compute: it has no FLAME
-  # pool to place work onto, and adding one would recreate the ownership that
-  # made translations die with the pod that started them.
   defp run_here(session, account, repository, locales, opts) do
     case clone(repository) do
       {:ok, repo_path} ->
@@ -87,48 +74,6 @@ defmodule Glossia.Translations.RepositoryRun do
 
       {:error, _reason} = error ->
         error
-    end
-  end
-
-  defp run_in_flame(session, account, repository, locales, opts) do
-    caller = self()
-    result_ref = make_ref()
-
-    {runner_pid, monitor_ref} =
-      spawn_monitor(fn ->
-        result =
-          Glossia.Runners.call(
-            fn ->
-              case clone(repository) do
-                {:ok, repo_path} ->
-                  try do
-                    translate_repository(session, account, repo_path, locales, opts)
-                  after
-                    File.rm_rf(repo_path)
-                  end
-
-                {:error, _reason} = error ->
-                  error
-              end
-            end,
-            timeout: @runner_timeout
-          )
-
-        send(caller, {result_ref, result})
-      end)
-
-    receive do
-      {^result_ref, result} ->
-        Process.demonitor(monitor_ref, [:flush])
-        result
-
-      {:DOWN, ^monitor_ref, :process, ^runner_pid, reason} ->
-        {:error, {:runner_exit, reason}}
-    after
-      @runner_timeout ->
-        Process.exit(runner_pid, :kill)
-        Process.demonitor(monitor_ref, [:flush])
-        {:error, :runner_timeout}
     end
   end
 

@@ -1,7 +1,6 @@
 defmodule Glossia.SandboxesTest do
   use Glossia.DataCase, async: false
 
-  alias Glossia.Projects
   alias Glossia.Repo
   alias Glossia.Sandboxes
   alias Glossia.Sandboxes.{Sandbox, SandboxSession}
@@ -48,52 +47,6 @@ defmodule Glossia.SandboxesTest do
     def delete_file(_sandbox_id, _path), do: :ok
     def repo_path(_sandbox_id), do: {:ok, "/repo"}
     def start_agent_session(_sandbox_id, _caller, _opts), do: {:ok, self()}
-  end
-
-  test "creates a sandbox, executes commands, manages files, and destroys it" do
-    user = TestHelpers.create_user("sandbox-context@test.com", "sandbox-context")
-
-    {:ok, project} =
-      Projects.create_project(user.account, %{
-        handle: "sandbox-project",
-        name: "Sandbox Project"
-      })
-
-    assert {:ok, sandbox} =
-             Sandboxes.create_sandbox(user.account, project, %{
-               purpose: "translation",
-               labels: %{"workflow" => "translate"}
-             })
-
-    assert sandbox.status == "ready"
-    assert sandbox.project_id == project.id
-    assert sandbox.backend_ref == "cluster:#{node()}"
-    assert sandbox.labels["workflow"] == "translate"
-
-    assert %SandboxSession{status: "open"} =
-             Repo.one!(from s in SandboxSession, where: s.sandbox_id == ^sandbox.id)
-
-    assert {:ok, %{"exitCode" => 0, "stdout" => "hello"}} =
-             Sandboxes.execute_sandbox(sandbox, "printf hello")
-
-    assert :ok = Sandboxes.write_file(sandbox, "notes/output.txt", "ciao")
-    assert {:ok, "ciao"} = Sandboxes.read_file(sandbox, "notes/output.txt")
-    assert {:error, :path_outside_sandbox} = Sandboxes.read_file(sandbox, "../secret.txt")
-
-    {:ok, repo_path} = Glossia.Sandbox.ClusterAdapter.repo_path(to_string(sandbox.id))
-    outside_path = Path.join(System.tmp_dir!(), "glossia-secret-#{System.unique_integer()}")
-    File.write!(outside_path, "secret")
-    File.ln_s!(outside_path, Path.join(repo_path, "leak"))
-
-    assert {:error, :path_outside_sandbox} = Sandboxes.read_file(sandbox, "repo/leak")
-
-    File.rm(outside_path)
-
-    assert {:ok, terminated} = Sandboxes.destroy_sandbox(sandbox, reason: "test_done")
-    assert terminated.status == "terminated"
-
-    assert %SandboxSession{status: "closed", close_reason: "test_done"} =
-             Repo.one!(from s in SandboxSession, where: s.sandbox_id == ^sandbox.id)
   end
 
   test "enforces account ownership when fetching sandboxes" do
@@ -358,33 +311,6 @@ defmodule Glossia.SandboxesTest do
     assert terminated.status == "terminated"
 
     assert %SandboxSession{status: "closed", close_reason: "already_deleted"} =
-             Repo.one!(from s in SandboxSession, where: s.sandbox_id == ^sandbox.id)
-  end
-
-  test "treats sandboxes owned by stale cluster nodes as missing backends" do
-    user = TestHelpers.create_user("sandbox-stale-owner@test.com", "sandbox-stale-owner")
-
-    assert {:ok, sandbox} =
-             Sandboxes.create_sandbox(user.account, nil, %{purpose: "stale_owner"},
-               adapter: FakeAdapter
-             )
-
-    stale_owner = "cluster:stale-node-#{System.unique_integer([:positive])}@127.0.0.1"
-
-    sandbox =
-      sandbox
-      |> Sandbox.changeset(%{backend_ref: stale_owner})
-      |> Repo.update!()
-
-    assert {:ok, terminated} =
-             Sandboxes.destroy_sandbox(sandbox,
-               adapter: Glossia.Sandbox.ClusterAdapter,
-               reason: "stale_owner"
-             )
-
-    assert terminated.status == "terminated"
-
-    assert %SandboxSession{status: "closed", close_reason: "stale_owner"} =
              Repo.one!(from s in SandboxSession, where: s.sandbox_id == ^sandbox.id)
   end
 end

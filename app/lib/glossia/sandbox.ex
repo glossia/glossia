@@ -17,7 +17,7 @@ defmodule Glossia.Sandbox do
   def adapter do
     :glossia
     |> Application.get_env(__MODULE__, [])
-    |> Keyword.get(:adapter, Glossia.Sandbox.ClusterAdapter)
+    |> Keyword.get(:adapter, Glossia.Sandbox.MicrosandboxAdapter)
   end
 
   def start_agent_session(adapter, sandbox_id, caller, opts) do

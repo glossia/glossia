@@ -349,28 +349,22 @@ defmodule Glossia.Sandboxes do
     %{
       "status" => "pending",
       "purpose" => attrs["purpose"] || "manual",
-      "backend" => attrs["backend"] || "flame",
+      "backend" => attrs["backend"] || "microsandbox",
       "labels" => attrs["labels"] || %{},
       "deadline_at" => attrs["deadline_at"] || DateTime.add(now, ttl_seconds, :second),
       "project_id" => project && project.id
     }
   end
 
-  defp put_backend(attrs, adapter) do
+  defp put_backend(attrs, _adapter) do
     if Map.has_key?(attrs, :backend) or Map.has_key?(attrs, "backend") do
       attrs
     else
-      backend =
-        if adapter == Glossia.Sandbox.MicrosandboxAdapter,
-          do: "microsandbox",
-          else: "flame"
-
-      Map.put(attrs, :backend, backend)
+      Map.put(attrs, :backend, "microsandbox")
     end
   end
 
-  defp adapter_for_backend("microsandbox"), do: Glossia.Sandbox.MicrosandboxAdapter
-  defp adapter_for_backend(_backend), do: Glossia.Sandbox.ClusterAdapter
+  defp adapter_for_backend(_backend), do: Glossia.Sandbox.MicrosandboxAdapter
 
   defp ensure_enabled do
     if configured(:enabled, true), do: :ok, else: {:error, :sandboxes_disabled}

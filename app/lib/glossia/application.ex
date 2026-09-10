@@ -15,15 +15,9 @@ defmodule Glossia.Application do
     Logger.add_handlers(:glossia)
     {:ok, _} = LLMDB.load()
 
-    role = role()
-    Logger.info("Starting Glossia as #{role}")
+    Logger.info("Starting Glossia")
 
-    children =
-      case role do
-        :isolated_child -> flame_child_children()
-        :translation_job -> translation_job_children()
-        :parent -> parent_children()
-      end
+    children = parent_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -138,60 +132,6 @@ defmodule Glossia.Application do
 
   defp internal_babel_endpoint_children do
     [GlossiaWeb.BabelInternalEndpoint]
-  end
-
-  defp role do
-    cond do
-      Glossia.Runners.child?() -> :isolated_child
-      Glossia.TranslationSessions.Job.current?() -> :translation_job
-      true -> :parent
-    end
-  end
-
-  defp flame_child_children do
-    []
-  end
-
-  # A detached translation pod: everything a translation touches, and nothing
-  # that serves. No Endpoint, since it answers no requests, and no FLAME pool,
-  # since it is already the isolated compute. Oban is present but consumes
-  # nothing: domain events are recorded by enqueueing them, and this pod exits
-  # when its translation ends, so running queues here would have it pick up
-  # other accounts' work and abandon it half-done.
-  defp translation_job_children do
-    oban_config =
-      :glossia
-      |> Application.fetch_env!(Oban)
-      |> Keyword.merge(queues: false, plugins: false)
-
-    [
-      Glossia.Vault,
-      {Finch, name: Glossia.Finch, pools: %{default: [size: http_pool_size()]}},
-      Glossia.Repo,
-      Glossia.ClickHouseRepo,
-      Glossia.IngestRepo,
-      {Oban, oban_config},
-      {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Glossia.PubSub},
-      FunWithFlags.Supervisor,
-      Glossia.RateLimiter,
-      {Glossia.Ingestion.Buffer,
-       [name: Glossia.Ingestion.EventBuffer] ++
-         (Glossia.Ingestion.Event.buffer_opts()
-          |> Map.take([:insert_sql, :insert_opts, :header])
-          |> Map.to_list())},
-      Supervisor.child_spec(
-        {Glossia.Ingestion.Buffer,
-         [name: Glossia.Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
-           (Glossia.Ingestion.TranslationSessionEvent.buffer_opts()
-            |> Map.take([:insert_sql, :insert_opts, :header])
-            |> Map.to_list())},
-        id: Glossia.Ingestion.TranslationSessionEventBuffer
-      ),
-      Glossia.Github.InstallationTokens,
-      # Last, so the translation only starts once everything it depends on is up.
-      Glossia.TranslationSessions.Job
-    ]
   end
 
   # Tell Phoenix to update the endpoint configuration

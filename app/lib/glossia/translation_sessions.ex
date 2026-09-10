@@ -302,18 +302,7 @@ defmodule Glossia.TranslationSessions do
     cancel_in_flight_items(session, "superseded")
 
     cancel_superseded_jobs(session.id)
-
-    case Glossia.TranslationSessions.Launcher.cancel(session.id) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Could not stop superseded translation runner",
-          translation_session_id: session.id,
-          reason: inspect(reason)
-        )
-    end
-
+    Glossia.TranslationSessions.Launcher.cancel(session.id)
     broadcast_session_status(session, "cancelled")
   end
 
@@ -633,9 +622,10 @@ defmodule Glossia.TranslationSessions do
       when status in ["pending", "running"] do
     with {:ok, _count} <- cancel_queued_jobs(session.id) do
       # Cancelling the Oban job only stops a launch that has not happened yet.
-      # Once the translation is detached it is the Kubernetes Job that has to
-      # go, or it keeps translating and opens a pull request for a session the
-      # member already cancelled.
+      # A translation already under way is signalled through Launcher.cancel/1,
+      # which the OSS build treats as a no-op — a downstream launcher plugs in
+      # a real cancellation path (a Kubernetes Job deletion, a queue tombstone,
+      # whatever the swap points to).
       Glossia.TranslationSessions.Launcher.cancel(session.id)
       cancel_in_flight_items(session, "cancelled")
       update_session_status(session, "cancelled")

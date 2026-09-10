@@ -2,14 +2,12 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
   @moduledoc """
   Oban worker that starts a translation session.
 
-  It launches the work rather than performing it. In a cluster that means
-  creating a Job that owns its own lifetime, so this returns in a second or two
-  and the hour of translating happens somewhere a deploy cannot reach. Outside
-  a cluster there is nowhere to schedule onto and the translation runs here.
-
-  `max_attempts: 1` still applies, and now means what it says: launching is
-  cheap and idempotent, and a translation that has already started is not
-  something this worker should start again.
+  In the open-source build the translation runs synchronously in this worker
+  process — `Launcher.launch/1` is a straight call into
+  `TranslationSessions.Translate.run/1`. `max_attempts: 1` still applies:
+  a translation that already started is not something this worker should
+  start again, and the launcher writes its own status so a partial run is
+  visible without being retried.
   """
 
   use Oban.Worker,
@@ -19,9 +17,7 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"session_id" => session_id}}) do
-    case Glossia.TranslationSessions.Launcher.launch(session_id) do
-      :ok -> :ok
-      {:error, reason} -> {:error, reason}
-    end
+    Glossia.TranslationSessions.Launcher.launch(session_id)
+    :ok
   end
 end
