@@ -125,14 +125,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
-{{- define "glossia.flameServiceAccountName" -}}
-{{- if .Values.flame.serviceAccount.create -}}
-{{- default (include "glossia.fullname" .) .Values.flame.serviceAccount.name -}}
-{{- else -}}
-{{- default "default" .Values.flame.serviceAccount.name -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "glossia.mailRelayEnv" -}}
 {{- if .Values.mailRelay.enabled -}}
 - name: GLOSSIA_SMTP_HOST

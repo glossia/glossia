@@ -91,99 +91,24 @@ pinned port makes them fail with `register/listen error: eaddrinuse`.
 Check it with `Node.list()` on a running pod. An empty list on a multi-replica
 install means the cluster is broken, whatever the UI looks like.
 
-## Translation jobs
+## Translations
 
-A translation session runs for an hour or more. Anything whose lifetime is tied
-to a web pod — a FLAME runner, a placed sandbox child, an Oban job executing in
-the web process — dies with that pod, and a web pod is replaced on every
-deploy, every node drain and every eviction. No `terminationGracePeriodSeconds`
-can cover work that long, and FLAME has no mechanism for a runner to outlive
-its parent: `place_child(link: false)` is documented to allow it, but
-`FLAME.Terminator` calls `system_stop` as soon as the parent goes down
-([phoenixframework/flame#86](https://github.com/phoenixframework/flame/issues/86)),
-and `FLAMEK8sBackend` sets an `ownerReference` that has Kubernetes collect the
-runner pod regardless.
+The open-source build runs every translation in the web process that received
+the request. A session lives and dies with its host pod: a deploy, a crash, a
+node drain or an eviction ends the translation, and a member has to resubmit
+the session. That's the trade-off for a chart that doesn't need runner pods,
+service accounts, RBAC rules, or a Job controller.
 
-So translations are scheduled as Kubernetes Jobs instead. The app creates the
-Job **without an `ownerReference`**, which is the property that matters: nothing
-garbage-collects it when the pod that created it is replaced, and a rolling
-update of the web tier leaves a running translation alone.
-
-Each Job is built from the manifest of the pod that creates it, so it inherits
-the image, environment, `envFrom` secrets and pull secrets that are live at that
-moment. Nothing has to be kept in step by hand, and no long-lived worker sits
-around running last month's code. Sizing and placement come from `flame.k8s`,
-which already describes where a translation belongs; only the Job's own lifetime
-is configured separately:
-
-```yaml
-translationJob:
-  backend: ""            # "kubernetes", "inline", or empty to detect
-  ttlSecondsAfterFinished: 3600
-  activeDeadlineSeconds: 86400
-  resources: {}          # empty inherits flame.k8s.resources
-```
-
-The Job pod runs the release image in a translation role: database, vault,
-PubSub and ingestion buffers, but no HTTP endpoint, no FLAME pool, and Oban
-started with `queues: false` so it can record domain events without picking up
-work it would abandon when it exits. It joins the same BEAM cluster as the web
-replicas, which is how progress reaches connected LiveViews — and why
-`RELEASE_COOKIE` has to be stable across the image.
-
-`backoffLimit` is 0. Without checkpointing, a retry would re-translate every
-file and pay the model for it a second time, so a lost pod is surfaced by the
-session reaper (`Glossia.TranslationSessions.SessionRecoveryWorker`, every five
-minutes) rather than retried blindly. The reaper ends sessions that stop
-heartbeating, which is the only signal anything has that a detached run died.
-
-This needs `create`, `get`, `list` and `delete` on `batch/jobs`, which
-`flame.rbac.create` grants alongside the pod permissions.
-
-## FLAME runners
-
-Glossia uses [FLAME, Fleeting Lambda Application for Modular Execution](https://hexdocs.pm/flame/FLAME.html),
-to start short-lived runner pods from the same release image as the parent
-deployment. The parent pod starts a `FLAME.Pool`; when a runner boots, the
-application detects it with `FLAME.Parent.get/0` and starts only the process
-tree needed by runner work. There is no separate image or explicit mode flag.
-
-The chart configures the parent pod with the service account, pod metadata, and
-distributed Erlang settings that the [FLAME Kubernetes backend](https://hexdocs.pm/flame_k8s_backend/FLAMEK8sBackend.html)
-requires. Runner pods inherit the parent image and pull secrets, but Glossia
-does not mount the service account token in runner pods, scrubs application
-secrets from the runner environment, and uses distinct labels so Glossia
-services only route traffic to the parent pods.
-
-Configure runner capacity and isolation under `flame`:
-
-```yaml
-flame:
-  min: 0
-  max: 10
-  maxConcurrency: 1
-  k8s:
-    runtimeClassName: kata-qemu
-    resources:
-      requests:
-        cpu: 500m
-        memory: 1Gi
-      limits:
-        cpu: "2"
-        memory: 4Gi
-```
-
-`flame.k8s.runtimeClassName` is optional and should match the runtime class
-installed in the cluster for [Kata Containers](https://katacontainers.io/). Set
-`flame.serviceAccount.create=false` and `flame.rbac.create=false` only when you
-provide an equivalent service account with pod management permissions in the
-release namespace.
+Long-lived, deploy-surviving translations are provided by the enterprise build
+through the `Glossia.Runners` and `Glossia.TranslationSessions.Launcher` seams
+(see `app/lib/glossia/runners.ex` and `.../launcher.ex`). No configuration in
+this chart wires that up.
 
 ### Local end-to-end test
 
 Run the lightweight [kind, Kubernetes in Docker](https://kind.sigs.k8s.io/)
-chart test with [ShellSpec](https://shellspec.info/) before changing
-runner-related templates:
+chart test with [ShellSpec](https://shellspec.info/) before changing chart
+templates:
 
 ```bash
 bash deploy/helm/glossia/e2e/kind.sh
@@ -192,8 +117,7 @@ bash deploy/helm/glossia/e2e/kind.sh
 The runner creates one shared local cluster, runs the ShellSpec files under
 `deploy/helm/glossia/e2e` in parallel, and gives each spec file its own
 namespace and Helm release. The tests install the chart with `values-e2e.yaml`,
-verify the FLAME runner permissions and service selectors, and then delete the
-cluster.
+verify the deployment shape and service selectors, and then delete the cluster.
 
 ## External Secrets Operator
 

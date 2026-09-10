@@ -96,63 +96,6 @@ internalBabel:
     namespace: babel
     serviceAccount: babel
 
-flame:
-  backend: k8s
-  min: 0
-  max: 10
-  maxConcurrency: 1
-  idleShutdownAfterMs: 30000
-  timeoutMs: 300000
-  bootTimeoutMs: 120000
-  log: false
-  serviceAccount:
-    create: true
-    name: ""
-  rbac:
-    create: true
-  k8s:
-    appContainerName: web
-    runtimeClassName: ""
-    log: false
-    resources:
-      requests:
-        cpu: 500m
-        memory: 1Gi
-      limits:
-        cpu: "2"
-        memory: 4Gi
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-    env: {}
-  child:
-    repoPoolSize: 1
-    clickhousePoolSize: 1
-
-# Translation sessions run as Kubernetes Jobs rather than inside the web pod.
-# A translation takes an hour or more, which is longer than any termination
-# grace period can cover, so it is given a workload whose lifetime is its own:
-# the Job carries no ownerReference, and a rolling update of the web tier
-# leaves it running. Each Job is built from the manifest of the pod that
-# created it, so it uses the image and environment that were live when the
-# session started and nothing has to be kept in step here.
-#
-# Placement and sizing come from `flame.k8s` — the same description of where a
-# translation belongs — so only the Job's own lifetime is configured below.
-translationJob:
-  # "kubernetes" schedules a detached Job; "inline" runs the translation in the
-  # web process, which is only appropriate outside a cluster. Empty lets the
-  # app decide from its environment.
-  backend: ""
-  # How long a finished Job sticks around for its logs to be read.
-  ttlSecondsAfterFinished: 3600
-  # A ceiling on one translation, so a run wedged against a model provider
-  # cannot hold a pod forever. A full day leaves large repositories enough
-  # time to finish while still bounding a genuinely stuck Job.
-  activeDeadlineSeconds: 86400
-  # Empty inherits flame.k8s.resources.
-  resources: {}
-
 mailRelay:
   enabled: false
   host: ""

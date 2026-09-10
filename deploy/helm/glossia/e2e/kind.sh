@@ -154,21 +154,6 @@ glossia_e2e_assert_deployment() {
   echo "deployment ok"
 }
 
-glossia_e2e_assert_runner_permissions() {
-  glossia_e2e_kubectl -n "${GLOSSIA_E2E_NAMESPACE}" get role "${GLOSSIA_E2E_RESOURCE_NAME}-flame" >/dev/null
-  glossia_e2e_kubectl -n "${GLOSSIA_E2E_NAMESPACE}" get rolebinding "${GLOSSIA_E2E_RESOURCE_NAME}-flame" >/dev/null
-
-  for verb in create get list delete patch; do
-    glossia_e2e_assert_equals "yes" \
-      "$(glossia_e2e_kubectl auth can-i "${verb}" pods \
-        --namespace "${GLOSSIA_E2E_NAMESPACE}" \
-        --as "system:serviceaccount:${GLOSSIA_E2E_NAMESPACE}:${GLOSSIA_E2E_RESOURCE_NAME}")" \
-      "service account can ${verb} pods" || return 1
-  done
-
-  echo "runner permissions ok"
-}
-
 glossia_e2e_assert_service_selectors() {
   glossia_e2e_assert_equals "agent" \
     "$(glossia_e2e_kubectl -n "${GLOSSIA_E2E_NAMESPACE}" get service "${GLOSSIA_E2E_RESOURCE_NAME}" -o jsonpath='{.spec.selector.app\.kubernetes\.io/component}')" \
@@ -179,17 +164,6 @@ glossia_e2e_assert_service_selectors() {
     "headless service component selector" || return 1
 
   echo "service selectors ok"
-}
-
-glossia_e2e_assert_runner_configuration() {
-  glossia_e2e_assert_equals "cluster" "$(glossia_e2e_deployment_env_value GLOSSIA_SANDBOX_ADAPTER)" "sandbox adapter" || return 1
-  glossia_e2e_assert_equals "k8s" "$(glossia_e2e_deployment_env_value GLOSSIA_FLAME_BACKEND)" "runner backend" || return 1
-  glossia_e2e_assert_equals "2" "$(glossia_e2e_deployment_env_value GLOSSIA_FLAME_MAX)" "maximum runners" || return 1
-  glossia_e2e_assert_equals "kata-qemu" \
-    "$(glossia_e2e_deployment_env_value GLOSSIA_FLAME_RUNTIME_CLASS_NAME)" \
-    "runner runtime class" || return 1
-
-  echo "runner configuration ok"
 }
 
 glossia_e2e_main() {

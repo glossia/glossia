@@ -15,8 +15,3 @@ migrationJob:
 
 pdb:
   enabled: false
-
-flame:
-  max: 2
-  k8s:
-    runtimeClassName: kata-qemu
