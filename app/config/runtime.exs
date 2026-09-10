@@ -60,6 +60,25 @@ runners_module =
 
 config :glossia, :runners, module: runners_module
 
+# Same swap shape as `:runners`: a downstream wrapper points this at its own
+# translation launcher (Kubernetes Job, external queue, whatever) so glossia's
+# `TranslationSessions.Launcher.launch/1` reaches the right implementation.
+translation_launcher_module =
+  case System.get_env("GLOSSIA_TRANSLATION_LAUNCHER_MODULE") do
+    empty when empty in [nil, ""] ->
+      :glossia
+      |> Application.get_env(:translation_launcher, [])
+      |> Keyword.get(:module, Glossia.TranslationSessions.Launcher.Default)
+
+    "Elixir." <> _rest = name ->
+      String.to_atom(name)
+
+    name ->
+      String.to_atom("Elixir." <> name)
+  end
+
+config :glossia, :translation_launcher, module: translation_launcher_module
+
 # Sandbox boot timeout in milliseconds. Ceiling on how long we wait for a
 # newly-started sandbox to become responsive; a repeatedly-timing-out sandbox
 # means the host that hosts them is under-provisioned rather than misconfigured.

@@ -1,33 +1,31 @@
 defmodule Glossia.TranslationSessions.Launcher do
   @moduledoc """
-  Starts a translation session in the calling process.
+  Placement seam for the compute a translation session runs on.
 
   In the open-source build a translation runs in whatever OS process asked
   for it, so `launch/1` calls `Glossia.TranslationSessions.Translate.run/1`
-  directly. That means a translation lives and dies with its host: any
-  restart of the pod that started it — a deploy, a crash, a node drain —
-  ends the translation, and a member has to resubmit the session.
+  directly and `cancel/1` is a no-op. A translation lives and dies with its
+  host: any restart of the pod that started it — a deploy, a crash, a node
+  drain — ends the translation, and a member has to resubmit the session.
 
-  A downstream build that wants translations to survive its host swaps
-  this module (through the ordinary Elixir module boundary) for one that
-  hands the work to a scheduler owning the lifetime itself. `cancel/1`
-  stays as the cooperative signal such a scheduler can hook into.
+  Downstream builds swap this behaviour for a scheduler that owns the
+  translation's lifetime (detached Kubernetes Job, external queue, whatever
+  the operator provides) through:
+
+      config :glossia, :translation_launcher, module: MyApp.Translations.Launcher
+
+  or by setting `GLOSSIA_TRANSLATION_LAUNCHER_MODULE` at runtime.
   """
 
-  alias Glossia.TranslationSessions
+  @callback launch(session_id :: String.t()) :: :ok | {:error, term()}
+  @callback cancel(session_id :: String.t()) :: :ok | {:error, term()}
 
-  @doc """
-  Runs the session in the calling process.
-
-  Returns `:ok` once the translation finishes, whatever the outcome. The
-  return value is meant for logging and testability; session status is
-  written by `Translate.run/1` itself.
-  """
-  def launch(session_id) do
-    TranslationSessions.Translate.run(session_id)
-    :ok
+  def impl do
+    :glossia
+    |> Application.get_env(:translation_launcher, [])
+    |> Keyword.get(:module, Glossia.TranslationSessions.Launcher.Default)
   end
 
-  @doc "Cooperative cancellation hook. In the OSS build there is nothing to signal."
-  def cancel(_session_id), do: :ok
+  def launch(session_id), do: impl().launch(session_id)
+  def cancel(session_id), do: impl().cancel(session_id)
 end
