@@ -1,15 +1,15 @@
 %{
-  title: "Agregar un nuevo idioma",
-  summary: "Cómo añadir un idioma objetivo a una configuración existente de Glossia.",
-  category: "guía",
+  title: "Añadir un nuevo idioma",
+  summary: "Cómo añadir un idioma de destino a una configuración de Glossia existente.",
+  category: "Guías",
   order: 1
 }
 ---
-Si ya tiene Glossia configurado y desea añadir otro idioma de destino, siga estos pasos.
+Si ya tiene Glossia configurado y desea agregar otro idioma de destino, siga estos pasos.
 
-## 1\. Actualizar GLOSSIA.md
+## 1\. Actualice L10N.md
 
-Abrir su `GLOSSIA.md` y añadir el código del nuevo idioma a la `targets` lista:
+Abra su `L10N.md` y agregue el nuevo código de idioma al `targets` arreglo:
 
 ```yaml
 targets:
@@ -19,25 +19,25 @@ targets:
   - ja
 ```
 
-## 2\. Añadir contexto específico del idioma (opcional)
+## 2\. Agregue contexto específico del idioma (opcional)
 
-Si el nuevo idioma necesita instrucciones especiales, como nivel de formalidad o consideraciones del conjunto de caracteres, cree un archivo de sobrescritura de contexto:
+Si el nuevo idioma requiere instrucciones especiales, como nivel de formalidad o consideraciones de conjunto de caracteres, cree un archivo de sobrescritura de contexto:
 
-    GLOSSIA/
+    L10N/
       ja.md
 
-Escriba cualquier orientación específica del idioma en ese archivo. Glossia lo combina con el contexto base para las traducciones al japonés.
+Escriba cualquier orientación específica del idioma en ese archivo. Glossia fusiona esto con el contexto base para las traducciones al japonés.
 
 ## 3\. Publicar el cambio de configuración
 
-Realizar commit y push la configuración actualizada. Si el repositorio está conectado a
-Glossia, el servidor detecta el nuevo idioma de destino y comienza una traducción
-sesión.
+Realiza un commit y empuja la configuración actualizada. Si el repositorio está conectado a
+Glossia, el servidor detecta el nuevo idioma objetivo y inicia una
+sesión de traducción.
 
 Las traducciones existentes para otros idiomas permanecen sin cambios cuando sus entradas
 y el contexto efectivo no han cambiado.
 
 ## 4\. Revisar la solicitud de extracción de traducción
 
-Siga la sesión de traducción en Glossia, luego revise el idioma generado
+Sigue la sesión de traducción en Glossia y luego revisa el idioma generado
 archivos en la solicitud de extracción abierta por el servidor.
