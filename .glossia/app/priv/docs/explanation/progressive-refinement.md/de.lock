@@ -1,15 +1,15 @@
 {
-  "hash": "2b974197b9f25bafa798807ebd69835a41aeea1636aa2c3a9cf658f0d4ca14ac",
+  "hash": "d5f317e089440cc6b42d60d7d63ffabe89174f97537a38039c4905fc453fa690",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "d5fa75c39f7a0547a6b5664537228c5597233a561938ac4b7dd1fadc80647c36",
+          "hash": "c1f17316d7e328a5a6ed30cc7d7540d4734bba7d47803674e7fee3707276cf75",
           "kind": "source",
           "label": "app/priv/docs/explanation/progressive-refinement.md",
           "metadata": {
-            "content_hash": "edf7f3d553c5edf1543a8d01ed3e5d1d6a7db3fa1dabc140dbb8a142ca196ed0"
+            "content_hash": "2e99183505bbcbb55283cee6d8e6359c915e7189ab3ffc4f524c0d0c89ab9c66"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "2e7c82be99482ca4aaa43ac06a6ce52d03a591e6057c49e34ea8715a4f2633f1",
+          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "2b974197b9f25bafa798807ebd69835a41aeea1636aa2c3a9cf658f0d4ca14ac",
+      "hash": "d5f317e089440cc6b42d60d7d63ffabe89174f97537a38039c4905fc453fa690",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/progressive-refinement.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "06b60fe4852fcd7455f68d8e6e85ac127ab6081a1bc53c412fba8fa7ffb8cdea",
+  "output_hash": "c8ceb4d7e5cfe1438cd637b6479f73273226407e3342ce3cf5929c5ef28c0814",
   "output_path": "app/priv/i18n/de/docs/explanation/progressive-refinement.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/explanation/progressive-refinement.md",
-  "translated_at": "2026-09-01T07:48:25.985170Z"
+  "translated_at": "2026-09-10T12:00:06.984784Z"
 }

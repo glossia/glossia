@@ -1,29 +1,29 @@
 %{
   title: "Progressive Verfeinerung",
   summary:
-    "Warum sich die Inhaltsqualität im Laufe der Zeit verbessert, nicht in einem einzigen Durchlauf.",
-  category: "Erläuterung",
+    "Warum sich die Inhaltsqualität mit der Zeit angleicht und nicht in einem einzigen Durchlauf.",
+  category: "Erklärung",
   order: 1
 }
 ---
-Erste Entwürfe von[großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind zwar strukturell korrekt, können aber Nuancierungen, Ton oder domänenspezifische Formulierung verpassen. Das ist beabsichtigt. Glossia behandelt die Inhaltsgenerierung genauso wie Softwareteams Code: veröffentlichen Sie eine funktionierende Version, überprüfen Sie diese und verbessern Sie sie iterativ.
+Erste Entwürfe von [großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind strukturell korrekt, können jedoch Nuancen, Ton oder domänenspezifische Formulierungen übersehen. Das ist absichtlich so. Glossia behandelt die Inhaltserstellung genauso wie Softwareteams Code: Veröffentlichen Sie eine funktionierende Version, prüfen Sie diese und verbessern Sie sie iterativ.
 
-## Der Verfeinerungszyklus
+## Die Verfeinerungsschleife
 
-1. **Entwurf**: Glossia generiert einen ersten, strukturell gültigen Entwurf basierend auf Ihren Quelldateien und dem Kontext in `GLOSSIA.md`.
-2. **Überprüfung**: Ihr Team meldet Probleme über Pull Requests und Diffs, den Workflow, den Sie bereits für Code verwenden.
-3. **Verfeinern**: Aktualisierte Kontextdateien, Terminologiekorrekturen und Feedback aus der Überprüfung fließen in den nächsten Durchlauf ein.
-4. **Konvergenz**: Jeder Zyklus verringert die Distanz zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts aus dem bereitgestellten Kontext.
+1. **Entwurf**: Glossia generiert einen strukturell gültigen ersten Entwurf basierend auf Ihren Quelldateien und dem Kontext in `L10N.md`.
+2. **Überprüfung**: Ihr Team meldet Probleme über Pull-Requests und Diffs, genau den Workflow, den Sie bereits für Code nutzen.
+3. **Verfeinern**: Aktualisierte Kontextdateien, Terminologiekorrekturen und Review-Feedback fließen in den nächsten Durchlauf ein.
+4. **Konvergieren**: Jeder Zyklus verringert den Abstand zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts durch den Kontext, den Sie bereitstellen.
 
 ## Warum dies funktioniert
 
-Der Schlüssel liegt darin, dass sich Kontext ansammelt.`GLOSSIA.md` oder ein korrigierter Terminologieu verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Überprüfung ausgelöst hat.
+Die wichtigste Erkenntnis ist, dass sich Kontext aufbaut. Jeder Review-Kommentar, der zu einer aktualisierten `L10N.md` oder ein korrigierter Terminologeeintrag verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die den Review ausgelöst hat.
 
-Dies basiert auf demselben Prinzip von Kaizen in der Fertigung und successive approximation im Ingenieurwesen: Starten Sie mit einer ausreHow guten Basislinien und verbessern Sie diese systematisch durch menschliches Urteil im Loop.
+Dies folgt demselben Prinzip wie Kaizen in der Fertigung und sukzessive Approximation im Ingenieurwesen: Beginnen Sie mit einer akzeptablen Baseline und verbessern Sie diese systematisch mit menschlichem Urteilsvermögen im Prozess.
 
 ## Praktische Implikationen
 
-- Erwarten Sie im ersten Durchlauf keine Perfektion. Planen Sie einen oder zwei Prüfungszyklen ein.
-- Investieren Sie Zeit in das Erstellen klarer Kontextdateien. Dies ist die hebelstärkste Verbesserung, die Sie vornehmen können.
-- Verwenden Sie die Serverübersetzungssitzung, um zu verfolgen, welche Dateien übersetzt wurden,
-  übersprungen oder fehlgeschlagen.
+- Erwarten Sie keine Perfektion beim ersten Durchlauf. Planen Sie einen oder zwei Überprüfungsrunden ein.
+- Investieren Sie Zeit in das Schreiben klarer Kontextdateien. Sie sind die Verbesserung mit der höchsten Hebelwirkung, die Sie vornehmen können.
+- Verwenden Sie die Server-Übersetzungssitzung, um zu verfolgen, welche Dateien übersetzt wurden,
+  übersprungen, oder fehlgeschlagen.
