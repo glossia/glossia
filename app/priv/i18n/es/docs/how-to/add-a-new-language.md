@@ -1,15 +1,15 @@
 %{
-  title: "Agregar un nuevo idioma",
-  summary: "Cómo añadir un idioma objetivo a una configuración existente de Glossia.",
-  category: "guía",
+  title: "Añadir un nuevo idioma",
+  summary: "Cómo añadir un idioma objetivo a una configuración de Glossia existente.",
+  category: "Guías",
   order: 1
 }
 ---
-Si ya tiene Glossia configurado y desea añadir otro idioma de destino, siga estos pasos.
+Si ya tienes Glossia configurado y quieres añadir otro idioma de destino, sigue estos pasos.
 
-## 1\. Actualizar GLOSSIA.md
+## 1\. Actualizar L10N.md
 
-Abrir su `GLOSSIA.md` y añadir el código del nuevo idioma a la `targets` lista:
+Abre tu `L10N.md` y añade el nuevo código de idioma al `targets` array:
 
 ```yaml
 targets:
@@ -21,17 +21,17 @@ targets:
 
 ## 2\. Añadir contexto específico del idioma (opcional)
 
-Si el nuevo idioma necesita instrucciones especiales, como nivel de formalidad o consideraciones del conjunto de caracteres, cree un archivo de sobrescritura de contexto:
+Si el nuevo idioma necesita instrucciones especiales, como el nivel de formalidad o las consideraciones del conjunto de caracteres, cree un archivo de sobrescritura de contexto:
 
-    GLOSSIA/
+    L10N/
       ja.md
 
-Escriba cualquier orientación específica del idioma en ese archivo. Glossia lo combina con el contexto base para las traducciones al japonés.
+Escriba cualquier orientación específica del idioma en ese archivo. Glossia la fusiona con el contexto base para las traducciones al japonés.
 
 ## 3\. Publicar el cambio de configuración
 
-Realizar commit y push la configuración actualizada. Si el repositorio está conectado a
-Glossia, el servidor detecta el nuevo idioma de destino y comienza una traducción
+Realice el commit y el push de la configuración actualizada. Si el repositorio está conectado a
+Glossia, el servidor detecta el nuevo idioma objetivo e inicia una traducción
 sesión.
 
 Las traducciones existentes para otros idiomas permanecen sin cambios cuando sus entradas
