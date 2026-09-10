@@ -977,11 +977,22 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
-  defp prepare_translation(%{format: "po"} = work_item, source_text, _preserve_kinds) do
-    {segments, protections} =
-      planned_content_segments(source_text, work_item.format, [], "document")
+  # `.po` catalogs use a strict Gettext syntax the model regularly gets wrong
+  # when asked to output raw catalog text (`catalog-syntax`,
+  # `catalog-source-entries`, orphan-msgstr, plural-forms mismatch, etc.).
+  # Instead, extract the translatable strings from the source catalog, hand
+  # the model only the string set as a JSON array, and rebuild the catalog
+  # from the parsed source tree in `reconcile_markdown_segment/3`.
+  defp prepare_translation(%{format: "po"} = _work_item, source_text, _preserve_kinds) do
+    {:ok, literals} = Po.text_literals(source_text)
 
-    %{preserved_frontmatter: nil, segments: segments, protections: protections}
+    segment = %{
+      kind: "po_text_literals",
+      content: JSON.encode!(literals),
+      po_source: source_text
+    }
+
+    %{preserved_frontmatter: nil, segments: [segment], protections: []}
   end
 
   defp prepare_translation(work_item, source_text, preserve_kinds) do
@@ -1032,6 +1043,27 @@ defmodule Glossia.Translations.Engine do
 
   defp reconcile_markdown_segment(text, %{kind: "markdown_text_literals"}, "markdown"),
     do: {:ok, text}
+
+  # Model returns a JSON array of translated strings (one per source literal
+  # extracted by `Po.text_literals/1`). Decode the array, then reassemble the
+  # canonical `.po` from the source tree so the output is guaranteed valid
+  # Gettext syntax with every source msgid and plural form preserved.
+  defp reconcile_markdown_segment(text, %{kind: "po_text_literals", po_source: source}, "po") do
+    with {:ok, decoded} <- JsonArray.decode(text),
+         true <- Enum.all?(decoded, &is_binary/1),
+         {:ok, rebuilt} <- Po.rebuild_text_literals(source, decoded) do
+      {:ok, rebuilt}
+    else
+      false ->
+        {:error, "po text-literal response must be a JSON array of strings"}
+
+      {:error, reason} when is_binary(reason) ->
+        {:error, reason}
+
+      _ ->
+        {:error, "po text-literal response was not a valid JSON array"}
+    end
+  end
 
   defp reconcile_markdown_segment(text, segment, "markdown") do
     if Markdown.requires_reconciliation?(segment.content) do
