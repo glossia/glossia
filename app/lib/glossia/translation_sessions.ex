@@ -295,6 +295,12 @@ defmodule Glossia.TranslationSessions do
   end
 
   defp stop_superseded_session(session) do
+    # Close out in-flight items in the fold before we broadcast the session
+    # cancellation. The pod owning the run may already be gone (or die between
+    # here and its next heartbeat), so a viewer joining after this moment would
+    # otherwise keep seeing "Translating" for every item that was mid-flight.
+    cancel_in_flight_items(session, "superseded")
+
     cancel_superseded_jobs(session.id)
 
     case Glossia.TranslationSessions.Launcher.cancel(session.id) do
@@ -309,6 +315,41 @@ defmodule Glossia.TranslationSessions do
     end
 
     broadcast_session_status(session, "cancelled")
+  end
+
+  # Every running item is turned into a persistent `item_cancelled` event so the
+  # fold reaches a terminal state whether the viewer arrives live or later. The
+  # session's stored counts (`translated`, `content_hit`) are unchanged: an
+  # in-flight file that never completed does not count as translated.
+  defp cancel_in_flight_items(%TranslationSession{id: id} = session, reason) do
+    session
+    |> in_flight_items()
+    |> Enum.each(fn item ->
+      broadcast_session_event(session, %{
+        type: "item_cancelled",
+        index: item.index,
+        output_path: item.output_path,
+        locale: item.locale,
+        reason: reason
+      })
+    end)
+
+    :ok
+  rescue
+    error ->
+      Logger.warning("Could not cancel in-flight items for superseded session",
+        translation_session_id: id,
+        reason: Exception.message(error)
+      )
+
+      :ok
+  end
+
+  defp in_flight_items(%TranslationSession{id: id}) do
+    id
+    |> session_progress()
+    |> Progress.items()
+    |> Enum.filter(&(&1.status == :running))
   end
 
   defp cancel_superseded_jobs(session_id) do
@@ -596,6 +637,7 @@ defmodule Glossia.TranslationSessions do
       # go, or it keeps translating and opens a pull request for a session the
       # member already cancelled.
       Glossia.TranslationSessions.Launcher.cancel(session.id)
+      cancel_in_flight_items(session, "cancelled")
       update_session_status(session, "cancelled")
     end
   end

@@ -60,6 +60,16 @@ defmodule Glossia.TranslationSessions.ContinuousTest do
       locale: "es"
     })
 
+    # A second file is mid-flight when the newer commit lands: its start event
+    # has been persisted but no terminating event ever arrives from the pod.
+    TranslationSessions.broadcast_session_event(active_session, %{
+      type: "item_started",
+      seq: 4,
+      index: 1,
+      output_path: "docs/es/tutorial.md",
+      locale: "es"
+    })
+
     assert {:ok, replacement} =
              TranslationSessions.start_continuous_session(
                project,
@@ -88,6 +98,16 @@ defmodule Glossia.TranslationSessions.ContinuousTest do
     assert replacement.publication_commit_sha == "translated-checkpoint"
     assert replacement.pull_request_url == "https://github.com/example/continuous/pull/12"
     assert replacement.pull_request_number == 12
+
+    # Every in-flight file the superseded session had running is closed out so
+    # a viewer folding its history no longer sees them as "Translating" forever.
+    progress = TranslationSessions.session_progress(active_session.id)
+    items = Glossia.TranslationSessions.Progress.items(progress)
+
+    assert [
+             %{index: 0, status: :done},
+             %{index: 1, status: :cancelled, reason: "superseded"}
+           ] = items
   end
 
   test "redelivery of the same commit does not create another session" do

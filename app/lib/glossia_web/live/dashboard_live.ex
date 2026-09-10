@@ -8242,6 +8242,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_item_status_label(:running), do: gettext("Translating")
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
+  defp translation_item_status_label(:cancelled), do: gettext("Cancelled")
 
   defp translation_file_url(
          %{github_repo_full_name: repository},

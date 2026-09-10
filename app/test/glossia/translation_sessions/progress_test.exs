@@ -53,6 +53,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              skipped: 0,
              done: 1,
              failed: 1,
+             cancelled: 0,
              running: 0
            }
   end
@@ -161,6 +162,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              skipped: 0,
              done: 0,
              failed: 0,
+             cancelled: 0,
              running: 2
            }
   end
@@ -188,6 +190,53 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     assert summary.checked == 50
     assert summary.total == 231
     refute summary.assessed?
+  end
+
+  test "closes running items out when the session is cancelled or superseded" do
+    state =
+      Progress.fold([
+        %{type: "plan", total: 3},
+        %{type: "item_started", index: 0, output_path: "es/a.md", locale: "es"},
+        %{type: "item_started", index: 1, output_path: "fr/a.md", locale: "fr"},
+        %{
+          type: "item_completed",
+          index: 0,
+          output_preview: "hola",
+          model_calls: 1
+        },
+        %{type: "item_cancelled", index: 1, reason: "superseded"},
+        %{type: "item_cancelled", index: 2, output_path: "de/a.md", locale: "de", reason: "superseded"}
+      ])
+
+    [first, second, third] = Progress.items(state)
+
+    assert first.status == :done
+    assert second.status == :cancelled
+    assert second.reason == "superseded"
+    assert third.status == :cancelled
+    assert third.output_path == "de/a.md"
+
+    summary = Progress.summary(state)
+    assert summary.done == 1
+    assert summary.cancelled == 2
+    assert summary.running == 0
+  end
+
+  test "item_cancelled does not overwrite a terminal status" do
+    state =
+      Progress.fold([
+        %{type: "plan", total: 2},
+        %{type: "item_started", index: 0, output_path: "es/a.md", locale: "es"},
+        %{type: "item_completed", index: 0, output_preview: "hola", model_calls: 1},
+        %{type: "item_cancelled", index: 0, reason: "superseded"},
+        %{type: "item_started", index: 1, output_path: "fr/a.md", locale: "fr"},
+        %{type: "item_failed", index: 1, reason: "boom"},
+        %{type: "item_cancelled", index: 1, reason: "superseded"}
+      ])
+
+    [done, failed] = Progress.items(state)
+    assert done.status == :done
+    assert failed.status == :failed
   end
 
   test "shows a file that failed before it started" do
@@ -230,6 +279,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              skipped: 0,
              done: 0,
              failed: 0,
+             cancelled: 0,
              running: 1
            }
   end
@@ -249,6 +299,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              skipped: 230,
              done: 0,
              failed: 0,
+             cancelled: 0,
              running: 0
            }
   end
@@ -334,6 +385,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
       assert Progress.durable_event?(%{type: "item_started", index: 0})
       assert Progress.durable_event?(%{type: "item_completed", index: 0})
       assert Progress.durable_event?(%{type: "item_failed", index: 0})
+      assert Progress.durable_event?(%{type: "item_cancelled", index: 0})
 
       # A re-run's reset has to be written down too, or a viewer folding the
       # whole history would merge both attempts into one panel.
