@@ -75,12 +75,12 @@ defmodule Glossia.Translations.LiveTranslationTest do
   end
 
   @tag :tmp_dir
-  test "runs the whole thing through FLAME.call, cloning a local seeded remote", %{tmp_dir: root} do
+  test "runs the whole thing in-process, cloning a local seeded remote", %{tmp_dir: root} do
     if is_nil(Credentials.claude_session()) do
       flunk("No valid local Claude session found — log in to Claude Code first.")
     end
 
-    # Share the sandbox connection so the FLAME.call'd process can query the DB.
+    # Share the sandbox connection so the translation can query the DB.
     Ecto.Adapters.SQL.Sandbox.mode(Glossia.Repo, {:shared, self()})
 
     # A local "remote" that stands in for GitHub (what seeds.exs sets up in dev).
@@ -124,7 +124,7 @@ defmodule Glossia.Translations.LiveTranslationTest do
     assert output
 
     IO.puts(
-      "\n--- FLAME.call e2e: docs/i18n/es/guide.md ---\n#{output.content}\n---------------------------------------------"
+      "\n--- e2e: docs/i18n/es/guide.md ---\n#{output.content}\n-----------------------------------"
     )
 
     assert output.content =~ ~r/hola/i

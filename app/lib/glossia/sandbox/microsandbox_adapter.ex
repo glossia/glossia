@@ -531,7 +531,7 @@ defmodule Glossia.Sandbox.MicrosandboxAdapter do
 
   defp boot_timeout do
     :glossia
-    |> Application.get_env(:flame, [])
+    |> Application.get_env(:sandbox, [])
     |> Keyword.get(:boot_timeout, 120_000)
   end
 

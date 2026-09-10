@@ -196,7 +196,7 @@ config :flop, repo: Glossia.Repo
 config :glossia, Glossia.OgImage, enabled: true
 
 config :glossia, Glossia.Sandbox,
-  adapter: Glossia.Sandbox.ClusterAdapter,
+  adapter: Glossia.Sandbox.MicrosandboxAdapter,
   enabled: true,
   max_active_per_account: 3,
   default_ttl_seconds: 3600,

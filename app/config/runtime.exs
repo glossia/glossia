@@ -2,15 +2,11 @@ import Config
 
 truthy? = fn value -> value in ["true", "1"] end
 
-flame_child? = not is_nil(FLAME.Parent.get())
-isolated_child? = truthy?.(System.get_env("GLOSSIA_ISOLATED_CHILD"))
-runner_child? = flame_child? or isolated_child?
-
-# A detached translation pod is not a runner. It owns its work rather than
-# being placed into, so it needs the full configuration a parent gets: its own
-# database and ClickHouse pools, the vault, GitHub credentials and the model
-# gateway. Only the web-serving parts are left out.
-translation_job? = truthy?.(System.get_env("GLOSSIA_TRANSLATION_JOB"))
+# Runtime roles the enterprise build distinguishes (FLAME runner children,
+# detached translation Job pods) collapse to `false` in the open-source build:
+# there is only one role, the parent process.
+runner_child? = false
+translation_job? = false
 
 json_env = fn name, default ->
   case System.get_env(name) do
@@ -44,31 +40,6 @@ float_env = fn name, default ->
   end
 end
 
-default_flame_backend =
-  cond do
-    config_env() == :test -> :local
-    System.get_env("KUBERNETES_SERVICE_HOST") -> :k8s
-    true -> :local
-  end
-
-flame_backend =
-  case System.get_env("GLOSSIA_FLAME_BACKEND") do
-    nil ->
-      default_flame_backend
-
-    "" ->
-      default_flame_backend
-
-    "local" ->
-      :local
-
-    "k8s" ->
-      :k8s
-
-    value ->
-      raise "unsupported GLOSSIA_FLAME_BACKEND=#{inspect(value)}"
-  end
-
 # A downstream wrapper (for example, glossia_enterprise) can pin the runner
 # impl at compile time in its own config.exs. In that case an unset env var
 # should leave the compile-time value in place rather than silently reverting
@@ -89,26 +60,10 @@ runners_module =
 
 config :glossia, :runners, module: runners_module
 
-config :glossia, :flame,
-  backend: flame_backend,
-  min: String.to_integer(System.get_env("GLOSSIA_FLAME_MIN") || "0"),
-  max: String.to_integer(System.get_env("GLOSSIA_FLAME_MAX") || "10"),
-  max_concurrency: String.to_integer(System.get_env("GLOSSIA_FLAME_MAX_CONCURRENCY") || "1"),
-  idle_shutdown_after:
-    String.to_integer(System.get_env("GLOSSIA_FLAME_IDLE_SHUTDOWN_AFTER_MS") || "30000"),
-  timeout: String.to_integer(System.get_env("GLOSSIA_FLAME_TIMEOUT_MS") || "300000"),
-  boot_timeout: String.to_integer(System.get_env("GLOSSIA_FLAME_BOOT_TIMEOUT_MS") || "120000"),
-  log: truthy?.(System.get_env("GLOSSIA_FLAME_LOG")),
-  k8s: [
-    app_container_name: System.get_env("GLOSSIA_FLAME_APP_CONTAINER_NAME") || "web",
-    runtime_class_name: System.get_env("GLOSSIA_FLAME_RUNTIME_CLASS_NAME"),
-    resources: json_env.("GLOSSIA_FLAME_RESOURCES_JSON", %{}),
-    node_selector: json_env.("GLOSSIA_FLAME_NODE_SELECTOR_JSON", %{}),
-    tolerations: json_env.("GLOSSIA_FLAME_TOLERATIONS_JSON", []),
-    affinity: json_env.("GLOSSIA_FLAME_AFFINITY_JSON", %{}),
-    env: json_env.("GLOSSIA_FLAME_ENV_JSON", %{}),
-    log: truthy?.(System.get_env("GLOSSIA_FLAME_K8S_LOG"))
-  ]
+# Sandbox boot timeout in milliseconds. Ceiling on how long we wait for a
+# newly-started sandbox to become responsive; a repeatedly-timing-out sandbox
+# means the host that hosts them is under-provisioned rather than misconfigured.
+config :glossia, :sandbox, boot_timeout: integer_env.("GLOSSIA_SANDBOX_BOOT_TIMEOUT_MS", 120_000)
 
 # How many HTTP connections the node holds open per host. Translation is the
 # heaviest user: every concurrent file is one long-lived connection to the model
@@ -134,35 +89,8 @@ config :glossia, Glossia.Cloudflare.Turnstile,
 # by the pool.
 config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 0)
 
-# Where a translation session runs. `:kubernetes` schedules a Job that outlives
-# the pod that created it; `:inline` runs it in the calling process, which is
-# what development and tests want. Defaults to whichever the environment can
-# support, so no configuration is needed in either place.
-translation_job_backend =
-  case System.get_env("GLOSSIA_TRANSLATION_JOB_BACKEND") do
-    value when value in [nil, ""] -> if config_env() == :test, do: :inline, else: nil
-    "kubernetes" -> :kubernetes
-    "inline" -> :inline
-    value -> raise "unsupported GLOSSIA_TRANSLATION_JOB_BACKEND=#{inspect(value)}"
-  end
-
-config :glossia, Glossia.TranslationSessions.Launcher,
-  backend: translation_job_backend,
-  # Long enough to read the logs of a finished translation, short enough that
-  # completed Jobs do not accumulate.
-  ttl_seconds_after_finished:
-    integer_env.("GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED", 3_600),
-  # A ceiling on one translation. Large repositories can require more than six
-  # hours even with concurrent workers, so this must leave room for a complete
-  # session while still bounding a wedged provider request.
-  active_deadline_seconds:
-    integer_env.("GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS", 86_400),
-  resources: json_env.("GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON", %{})
-
 sandbox_adapter =
-  case System.get_env("GLOSSIA_SANDBOX_ADAPTER") ||
-         if(config_env() == :dev, do: "microsandbox", else: "cluster") do
-    "cluster" -> Glossia.Sandbox.ClusterAdapter
+  case System.get_env("GLOSSIA_SANDBOX_ADAPTER", "microsandbox") do
     "microsandbox" -> Glossia.Sandbox.MicrosandboxAdapter
     value -> raise "unsupported GLOSSIA_SANDBOX_ADAPTER=#{inspect(value)}"
   end
@@ -528,12 +456,7 @@ if config_env() == :prod and not runner_child? do
     config :glossia, :sentry_dsn_js, sentry_dsn_js
   end
 
-  repo_pool_size =
-    if runner_child? do
-      String.to_integer(System.get_env("GLOSSIA_FLAME_REPO_POOL_SIZE") || "1")
-    else
-      String.to_integer(System.get_env("GLOSSIA_POOL_SIZE") || "10")
-    end
+  repo_pool_size = String.to_integer(System.get_env("GLOSSIA_POOL_SIZE") || "10")
 
   config :glossia, Glossia.Repo,
     url: database_url,
@@ -551,12 +474,7 @@ if config_env() == :prod and not runner_child? do
   # Local development and tests keep using the standard local URL.
   clickhouse_readonly_url = System.get_env("GLOSSIA_CLICKHOUSE_READONLY_URL") || clickhouse_url
 
-  clickhouse_pool_size =
-    if runner_child? do
-      String.to_integer(System.get_env("GLOSSIA_FLAME_CLICKHOUSE_POOL_SIZE") || "1")
-    else
-      String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_POOL_SIZE") || "5")
-    end
+  clickhouse_pool_size = String.to_integer(System.get_env("GLOSSIA_CLICKHOUSE_POOL_SIZE") || "5")
 
   config :glossia, Glossia.ClickHouseRepo,
     url: clickhouse_readonly_url,

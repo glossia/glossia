@@ -3458,10 +3458,9 @@ defmodule GlossiaWeb.DashboardLive do
     {:noreply, schedule_translation_refresh(socket)}
   end
 
-  # Translation jobs run in their own Kubernetes pod. Progress broadcasts are
-  # delivered immediately when that pod is connected to this LiveView's PubSub
-  # mesh, while this bounded refresh makes the status and durable progress
-  # reliable when a pod joins late or the mesh is being restarted.
+  # Progress broadcasts arrive on this LiveView's PubSub topic as they happen;
+  # this bounded refresh backfills status and durable progress for cases where
+  # the mesh is being restarted or the subscriber joined late.
   def handle_info(:refresh_translation_session, socket) do
     socket =
       case socket.assigns.live_action do
