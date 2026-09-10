@@ -49,26 +49,15 @@ spec:
             - port: {{ .Values.internalBabel.tls.targetPort | quote }}
               protocol: TCP
     {{- /*
-      Erlang distribution between the pods that form the cluster: EPMD for the
-      port lookup and the pinned distribution port for the connection itself.
-      The participants are listed one by one because they do not share a label
-      set. Web replicas carry the full chart labels; translation Jobs are
-      created at runtime with `name` and `component: translation` but no
-      `instance`; FLAME runners are labelled only `component: runner`. A
-      selector narrow enough to match the replicas alone would silently leave
-      detached jobs unable to publish progress back, which is the same class
-      of bug this rule exists to fix. `fromEndpoints` is namespace-scoped, so
-      these stay confined to this release's own namespace.
+      Erlang distribution between the web replicas that form the cluster: EPMD
+      for the port lookup and the pinned distribution port for the connection
+      itself. `fromEndpoints` is namespace-scoped, so these stay confined to
+      this release's own namespace.
     */}}
     - fromEndpoints:
         - matchLabels:
             "k8s:app.kubernetes.io/name": {{ include "glossia.name" . | quote }}
             "k8s:app.kubernetes.io/instance": {{ .Release.Name | quote }}
-        - matchLabels:
-            "k8s:app.kubernetes.io/name": {{ include "glossia.name" . | quote }}
-            "k8s:app.kubernetes.io/component": translation
-        - matchLabels:
-            "k8s:app.kubernetes.io/component": runner
       toPorts:
         - ports:
             - port: "4369"

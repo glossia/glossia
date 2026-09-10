@@ -53,12 +53,14 @@ defmodule Glossia.SandboxesTest do
     owner = TestHelpers.create_user("sandbox-owner@test.com", "sandbox-owner")
     outsider = TestHelpers.create_user("sandbox-outsider@test.com", "sandbox-outsider")
 
-    assert {:ok, sandbox} = Sandboxes.create_sandbox(owner.account)
+    assert {:ok, sandbox} =
+             Sandboxes.create_sandbox(owner.account, nil, %{}, adapter: FakeAdapter)
 
     assert Sandboxes.get_sandbox(owner.account, to_string(sandbox.id)).id == sandbox.id
     assert Sandboxes.get_sandbox(outsider.account, to_string(sandbox.id)) == nil
 
-    assert {:ok, _terminated} = Sandboxes.destroy_sandbox(sandbox, reason: "test_done")
+    assert {:ok, _terminated} =
+             Sandboxes.destroy_sandbox(sandbox, adapter: FakeAdapter, reason: "test_done")
   end
 
   test "returns changeset errors for invalid sandbox attributes" do
