@@ -1,26 +1,26 @@
 %{
-  title: "Modellanbieter konfigurieren",
-  summary: "Fügen Sie ein Kontomodell hinzu und beziehen Sie es sicher aus Repositories.",
-  category: "Anleitung",
+  title: "Konfigurieren Sie einen Modellanbieter",
+  summary: "Fügen Sie ein Account-Modell hinzu und beziehen Sie es sicher aus Repositorien.",
+  category: "Tutorials",
   order: 3
 }
 ---
-Para die Projekteinrichtung und Translationen werden Modelle verwendet, die für das aktuelle Glossia-Konto konfiguriert sind. Konfigurieren Sie mindestens ein Modell, bevor Sie ein Projekt erstellen.
+Projekt-Einrichtung und Übersetzungsabläufe verwenden Modelle, die für das aktuelle Glossia-Konto konfiguriert sind. Konfigurieren Sie mindestens ein Modell, bevor Sie ein Projekt erstellen.
 
-## Ein Modell hinzufügen
+## Modell hinzufügen
 
-1. Öffnen Sie **Einstellungen** und wählen Sie **Modelle**.
-2. Wählen Sie **Neues Modell**.
-3. Geben Sie einen eindeutigen Handle ein, beispielsweise `translation-default`.
-4. Öffnen Sie die Modellauswahl und geben Sie einen Teil des Anbieters- oder Modellnamens ein, um die Liste zu filtern.
-5. Wählen Sie ein Modell und geben Sie dessen Anbieter-Schlüssel ein.
+1. Öffnen **Einstellungen** und wählen Sie **Modelle**.
+2. Auswählen **Neues Modell**.
+3. Geben Sie eine eindeutige Kennung ein, wie `translation-default`.
+4. Öffnen Sie den Modell-Selector und geben Sie einen Teil des Provider- oder Modellnamens ein, um die Liste zu filtern.
+5. Wählen Sie ein Modell aus und geben Sie seinen Provider-Schlüssel ein.
 6. Speichern Sie das Modell.
 
-Der Handle bleibt stabil, auch wenn Sie später das dahinterliegende Anbieter-Modell ändern. Das erste hinzugefügte Modell auf einem Konto wird dessen Standardmodell.
+Die Kennung bleibt stabil, auch wenn Sie das dahinterliegende Provider-Modell später ändern. Das zuerst einem Konto hinzugefügte Modell wird dessen Standardmodell.
 
-## Verweisen Sie auf das Modell aus einem Repository
+## Referenzieren Sie das Modell aus einem Repository
 
-Setzen Sie `model` im relevanten `GLOSSIA.md` Frontmatter:
+Legen Sie `model` in den relevanten `L10N.md` frontmatter:
 
 ```yaml
 ---
@@ -28,20 +28,20 @@ model: translation-default
 ---
 ```
 
-Das Repository speichert nur den Handle. Der Anbieter-Schlüssel verbleibt in den Kontoeinstellungen.
+Das Repository speichert nur den Handle. Der Provider-Schlüssel bleibt in den Kontoeinstellungen.
 
-## Wählen Sie aus, welches Modell standardmäßig verwendet wird
+## Wählen Sie das Standardmodell aus
 
-Wenn `GLOSSIA.md` den Wert für `model` weglässt, verwendet Glossia das Standardmodell des Kontos. Um dies zu ändern, öffnen Sie das Modell, das als Standard werden soll, und wählen Sie **Als Standard festlegen**.
+Wenn `L10N.md` überspringt `model`Glossia verwendet das Standardmodell des Kontos. Um es zu ändern, öffnen Sie das Modell, das standardmäßig werden soll, und wählen Sie **Als Standard festlegen**.
 
-Für vorhersehbares Verhalten über mehrere Modelle hinweg verweisen Sie auf einen Handle explizit in `GLOSSIA.md`.
+Für ein vorhersehbares Verhalten über mehrere Modelle hinweg verweisen Sie auf ein Handle explizit in `L10N.md`.
 
-Sie können einen anderen `model`-Handle in einem verschachtelten `GLOSSIA.md` für einen Inhaltsbereich oder in `GLOSSIA/<locale>.md` für eine Zielsprache platzieren. Glossia verwendet für jedes Dokument und jedes Zielsprachen die nächstgelegene zutreffende Einstellung. Es teilt die Arbeit nicht automatisch zwischen den konfigurierten Modellen auf.
+Sie können einen anderen `model` Handle in einem verschachtelten `L10N.md` für einen Inhaltsbereich oder in `L10N/<locale>.md` Für eine Ziel-Lokale verwendet. Glossia verwendet die passendste Einstellung für jedes Dokument und jede Lokale. Es teilt die Arbeit nicht automatisch zwischen den konfigurierten Modellen auf.
 
-Wenn ein expliziter Handle im Konto nicht existiert, wird der Übersetzungsvorgang bei einem Fehler abgebrochen. Es greift nicht auf ein anderes Modell zurück.
+Wenn kein explizites Handle im Konto existiert, stoppt die Übersetzung mit einem Fehler. Es wird nicht auf ein anderes Modell zurückgegriffen.
 
-## Ändern oder erneuern Sie einen Anbieter-Schlüssel
+## Provider-Schlüssel ändern oder rotieren
 
-Öffnen Sie **Einstellungen**, wählen Sie **Modelle**, und öffnen Sie den Modell-Handle. Geben Sie einen neuen Anbieter-Schlüssel ein und speichern Sie. Ein leerer Schlüssel behält den aktuellen Schlüssel.
+Öffnen **Einstellungen**, auswählen **Modelle**, und öffnen Sie das Modell-Handle. Geben Sie einen neuen Provider-Schlüssel ein und speichern. Lassen Sie das Schlüsselfeld leer, um den aktuellen Schlüssel beizubehalten.
 
-Repositorien, die auf den Handle verweisen, müssen sich nicht ändern.
+Repositorien, die auf den Handle verweisen, müssen nicht geändert werden.
