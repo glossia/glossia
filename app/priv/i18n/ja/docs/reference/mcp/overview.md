@@ -1,56 +1,56 @@
 %{
   title: "概要",
-  summary: "Model Context Protocol を介してコーディングエージェントを Glossia プロジェクトに接続できます。",
-  category: "リファレンス",
+  summary: "Model Context Protocol を通じて、コーディングエージェントを Glossia プロジェクトに接続できます。",
+  category: "参照",
   subcategory: "mcp",
   order: 1
 }
 ---
-Glossia は [Model Context Protocol](https://modelcontextprotocol.io) (MCP) サーバーはコーディングエージェントがローカライゼーションプロジェクトと対話できるようにします。このサーバーは OAuth 2.1、PKCE および動的クライアント登録 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), そのため、MCP 互換のクライアントは手動の認証設定なしで認証できます。
+Glossia は [モデルコンテキストプロトコル](https://modelcontextprotocol.io) (MCP) サーバーによりコーディングエージェントはローカライズプロジェクトと連携できます。サーバーは OAuth 2.1（PKCE および Dynamic Client Registration ([RFC 7591"）](https://datatracker.ietf.org/doc/html/rfc7591)）、MCP 互換のクライアントは手動の資格設定なしに認証できます。
 
-## MCP サーバーが提供するもの
+## MCP サーバーが提供する機能
 
-接続後、コーディングエージェントは次のことができます：
+接続後、コーディングエージェントは以下のことができます:
 
-- 各プロジェクトの翻訳ステータスを照会する
-- 翻訳と改訂を開始
-- 設定とコンテンツエントリを確認
-- よりスマートなコードの提案のためにプロジェクトコンテキストにアクセス
+- プロジェクト全体の翻訳ステータスを照会する
+- 翻訳と修正をトリガーする
+- 構成とコンテンツエントリを確認する
+- プロジェクトのコンテキストを参照して、より賢いコード提案を行う
 
 ## サーバー URL
 
 | 環境 | URL |
 |---|---|
-| 本番環境 | `https://glossia.ai/mcp` |
+| 本番環境 | `https://glossia.ai/mcp` |\]
 | ローカル開発 | `http://localhost:4050/mcp` |
 
 ## 認証フロー
 
-MCP サーバーは、PKCE を含む標準の OAuth 2.1 認証コードフローを使用します。手動で OAuth クライアントを作成する必要はありません。フローは以下の通りです:
+MCP サーバーは PKCE を使用した標準の OAuth 2.1 認証コードフローを使用します。手動で OAuth クライアントを作成する必要はありません。このフローの動作は次の通りです：
 
-1. エージェントはあなたのサーバーを通じて検出します `/.well-known/oauth-authorization-server`
-2. エージェントはダイナミック登録エンドポイントを介して OAuth クライアントとして登録します
-3. エージェントは、ログインと同意のために、あなたのブラウザを開きます
-4. あなたが承認した後、エージェントはアクセストークンを取得し、すべての MCP リクエストに追加します
+1. エージェントはサーバーを発見します `/.well-known/oauth-authorization-server`
+2. 動的登録エンドポイントを介して OAuth クライアントとして自らを登録します
+3. ログインと同意を得るためにあなたのブラウザを開きます
+4. 承認すると、エージェントはアクセストークンを取得し、すべての MCP リクエストに添付します
 
 ## コーディングエージェントに Glossia を追加
 
 ### OpenAI Codex
 
-サーバーを Codex 設定ファイルに追加し、以下 `~/.codex/config.toml`:
+サーバーを Codex の設定ファイルに追加し、以下 `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.glossia]
 url = "https://glossia.ai/mcp"
 ```
 
-次に OAuth ログインを実行してください:
+次に OAuth ログインを実行します:
 
 ```bash
 codex mcp login glossia
 ```
 
-ブラウザが認証のために開きます。承認後、Codex はトークンをローカルに保存し、今後のセッションで使用します。
+ブラウザが認証のために開きます。承認後、Codex はトークンをローカルに保存し、以降のセッションで使用します。
 
 接続を確認するには:
 
@@ -58,7 +58,7 @@ codex mcp login glossia
 codex mcp list
 ```
 
-ローカル開発の場合、URL を置換してください:
+ローカル開発の場合は、URL を書き換えてください:
 
 ```toml
 [mcp_servers.glossia-local]
@@ -67,7 +67,7 @@ url = "http://localhost:4050/mcp"
 
 ### Claude Code
 
-サーバーを Claude Code MCP 設定に追加 (`.claude/settings.json` またはグローバル設定ファイル):
+サーバーをあなたの Claude Code の MCP 設定に追加(`.claude/settings.json` または、グローバルの設定ファイル）：
 
 ```json
 {
@@ -80,55 +80,55 @@ url = "http://localhost:4050/mcp"
 }
 ```
 
-Claude Code は最初に接続する際に OAuth フローを自動的に処理します。
+Claude Code は初回接続時に OAuth フローを自動的に処理します。
 
 ### 他の MCP クライアント
 
-MCP 認証仕様に対応する [MCP authorization spec](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) 動作します。主な要件は次の通りです：
+MCP 認証仕様に対応する任意のクライアントは [MCP 認証仕様](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) 動作します。主な要件は：
 
-- **トランスポート**: ストリーム可能 HTTP
+- **トランスポート**: ストリーミング対応 HTTP
 - **ディスカバリー**: クライアントは OAuth 2.0 保護されたリソースメタデータをサポートする必要があります ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728))
-- **登録**: ダイナミック クライアント登録 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) または クライアント ID メタデータドキュメント
-- **認証フロー**: PKCE (S256) を使用した認証コード
+- **レジストレーション**: ダイナミッククライアント登録 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) または クライアント ID メタデータ文書
+- **認証フロー**PKCE (S256) を使用した認証コード
 
-Glossia MCP サーバー URL にクライアントを指定し、発見と登録を自動的に処理します。
+あなたの Glossia MCP サーバー URL を設定し、ディスカバリーと登録を自動的に処理します。
 
-## 発見エンドポイント
+## ディスカバリーエンドポイント
 
-サーバーは二つのメタデータドキュメントを公開しており、MCP クライアントが OAuth フローを初期化するためにこれらを使用します。
+サーバーは、MCP クライアントが OAuth フローを初期化するための 2 つのメタデータドキュメントを公開します:
 
 | エンドポイント | 説明 |
 |---|---|
-| `/.well-known/oauth-authorization-server` | 認証サーバーメタデータ (エンドポイント、サポートされる 権限付与タイプ、PKCE メソッド) |
-| `/.well-known/oauth-protected-resource` | 保護リソースメタデータ (スコープ、認証サーバー) |
+| `/.well-known/oauth-authorization-server` | 認証サーバーメタデータ (エンドポイント、サポートされる認可種別、PKCE メソッド) |
+| `/.well-known/oauth-protected-resource` | 保護対象リソースメタデータ (スコープ、認証サーバー) |
 
 ## レート制限
 
-OAuth エンドポイントは、悪用防止のためにレート制限を適用します:
+OAuth エンドポイントは悪用の防止のためにレート制限を適用します:
 
 | エンドポイント | 制限 |
 |---|---|
-| `POST /oauth/register` | 5 リクエスト/分 |
-| `POST /oauth/token` | 30 リクエスト/分 |
-| `POST /oauth/introspect` | 30 リクエスト/分 |
-| `POST /oauth/revoke` | 1 分あたり 30 件のリクエスト |
+| `POST /oauth/register` | 1 分あたり 5 リクエスト |
+| `POST /oauth/token` | 1 分あたり 30 リクエスト |
+| `POST /oauth/introspect` | 1 分あたり 30 リクエスト |
+| `POST /oauth/revoke` | 分あたり 30 回のリクエスト |
 
-レート制限を超えると、サーバーは HTTP 429 を、 `Retry-After` ヘッダーを返します。
+レート制限を超えると、サーバーは HTTP 429 と `Retry-After` ヘッダー。
 
 ## トラブルシューティング
 
-### 登録が "invalid\_client\_metadata" のエラーで失敗しました。
+### 「invalid\_client\_metadata」で登録に失敗しました。
 
-動的登録エンドポイントでは、特定の `token_endpoint_auth_method` 値のみを受け付けます。パブリック クライアント（多くのコーディング エージェント）は送信し、 `"none"`, Glossia は自動的にデフォルト認証方式へのフォールバックを行い、PKCE 強制を適用します。
+ダイナミック登録エンドポイントでは特定の `token_endpoint_auth_method` 値のみを受け入れます。パブリッククライアント（多くのコーディングエージェント）は送らなければなりません。 `"none"`、Glossia は PKCE 強制付きのデフォルト認証方式に自動的にフォールバックすることによって処理します。
 
-### 「無効な OAuth コールバック」 承認後
+### 承認後の「無効な OAuth コールバック」
 
-設定した URL で Glossia サーバーが実行中かつアクセス可能であることを確認してください。コールバックは、コーディングエージェントが一時的に使用するローカルポートで発生します。ファイアウォールまたは VPN がこれをブロックすることがあります。
+Glossia サーバーが起動しており、設定した URL で到達可能であることを確認してください。コールバックはコーディングエージェントが一時的に開くローカルポートで発生します。ファイアウォールや VPN がこれをブロックすることがあります。
 
-### トークン交換が失敗
+### トークンの交換に失敗
 
-認証サーバーのメタデータに `code_challenge_methods_supported` フィールドが存在しているか確認してください。PKCE が動作するには、サーバーは S256 サポートを明示している必要があります。Glossia はこれをデフォルトで提供しています。
+認証サーバーのメタデータに `code_challenge_methods_supported` フィールドが含まれていることを確認してください。PKCE が機能するためには、サーバーが S256 のサポートを示す必要があります。Glossia ではこれはデフォルトで含まれています。
 
-### エージェントがサーバーにアクセスできない
+### エージェントがサーバーに到達できません
 
-ローカル開発では、Phoenix サーバーが実行中 (`mix phx.server`) かつ指定されたポートでリスニングしていることを確認してください（デフォルト：4050）。MCP エンドポイントがエージェントプロセスからアクセス可能である必要があります。
+ローカル開発では、Phoenix サーバーが起動していることを確認してください (`mix phx.server`)。期待的なポート (デフォルト：4050) でリスニングしている必要があります。MCP エンドポイントはエージェントプロセスからアクセス可能である必要があります。
