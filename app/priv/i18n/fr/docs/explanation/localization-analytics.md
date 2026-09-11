@@ -1,31 +1,31 @@
 %{
-  title: "Pourquoi l'analyse de localisation",
+  title: "Pourquoi les analyses de localisation",
   summary:
     "Comment les signaux collectés se traduisent en décisions de localisation, et pourquoi la métrique d'écart est importante.",
   category: "explication",
   order: 2
 }
 ---
-Choisir la langue cible suivante est un pari : il coûte du temps et de l'argent, et le retour dépend d'une demande que vous ne voyez généralement pas. L'analyse de localisation rend cette demande visible.
+Choisir dans quelle langue traduire ensuite est un pari : cela coûte du temps et de l'argent, et le gain dépend d'une demande que vous ne voyez généralement pas.
 
 ## La décision, pas le tableau de bord
 
-Le but de collecter des analyses ici est limité et délibéré : répondre à « devrions-nous localiser dans la langue X ? ». Les signaux sont choisis pour alimenter cette question, pas pour constituer une suite d'analyse générique.
+L'objectif de collecter des analyses ici est précis et délibéré : répondre à la question "devrions-nous traduire dans la langue X ?" Les signaux sont choisis pour nourrir cette question, pas pour être une suite analytique à usage général.
 
-Trois entrées pilotent la décision :
+Trois éléments pilotent la décision :
 
-1. **Demande.** Combien de visiteurs veulent cette langue ? La langue du navigateur et le pays indiquent où se situe l'intérêt.
-2. **L'écart.** Cette demande est-elle déjà couverte ? La comparaison des langues préférées contre les langues cibles de votre projet révèle la part du trafic qui rencontre une barrière.
-3. **Valeur.** La localisation se rentabiliserait-elle ? L'engagement par écart de localisation, les pages où s'arrête le trafic sous-servi, et d'où provient ce trafic indiquent si une nouvelle localisation se rentabilise.
+1. **Demande.** Combien de visiteurs souhaitent cette langue ? La langue du navigateur et le pays vous indiquent où réside l'intérêt.
+2. **Le fossé.** Cette demande est-elle déjà satisfaite ? Comparer les langues préférées aux langues cibles de votre projet révèle la part du trafic qui rencontre un mur.
+3. **Valeur.** La localisation en vaut-elle la peine ? L'écart d'engagement par localisation, les pages sur lesquelles atterrit le trafic non desservi, et la source de ce trafic indiquent si une nouvelle localisation génère des conversions.
 
-## Pourquoi l'écart est calculé au moment de l'ingestion
+## Pourquoi le calcul de l'écart est effectué au moment de l'ingestion
 
-`served_locale` et `has_locale_gap` sont stockés par événement, calculés par rapport à vos langues cibles telles qu'elles étaient au moment de la visite. Cela signifie que les données historiques reflètent l'opportunité que vous avez alors rencontrée, pas un recalcul par rapport aux cibles d'aujourd'hui. Si vous ajoutez le portugais le mois prochain, l'écart du mois dernier ne rétrécit pas rétroactivement ; vous conservez un enregistrement honnête de combien de demande restait non couverte.
+`served_locale` et `has_locale_gap` et stockés par événement, calculés par rapport à vos langues cibles telles qu'elles étaient au moment de la visite. Cela signifie que les données historiques reflètent l'opportunité à laquelle vous étiez confronté à l'époque, et non un recalcul par rapport aux cibles d'aujourd'hui. Si vous ajoutez le portugais le mois prochain, l'écart du mois dernier ne diminue pas rétroactivement ; vous gardez une trace honnête de la part de la demande qui restait insatisfaite.
 
-## Pourquoi sans cookie, spécifiquement
+## Pourquoi, spécifiquement, sans cookie
 
-L'instinct lorsque vous souhaitez des « visiteurs uniques » est de définir un cookie ou d'identifier l'empreinte du navigateur. Les deux créent des identifiants à longue durée de vie, et l'identification par empreinte est, sous la plupart des régimes de confidentialité, plus difficile à effacer qu'un cookie. Aucun n'est nécessaire ici.
+Le réflexe lorsque vous souhaitez des \\"visiteurs uniques\\" est de définir un cookie ou de prendre l'empreinte du navigateur. Les deux créent des identifiants à longue durée de vie, et l'empreinte est, selon la majorité des régimes de protection des données, plus difficile à effacer qu'un cookie. Ni l'un ni l'autre n'est nécessaire ici.
 
-Les visiteurs uniques pour un jour ne nécessitent qu'un identifiant stable *au cours de la journée*. Un hachage de l'IP et du User-Agent, pivoté quotidiennement et limité par projet, permet des uniques quotidiens et hebdomadaires précis tout en rendant impossible de relier un visiteur d'un jour à l'autre ou d'un site à l'autre. Vous renoncez au suivi des visiteurs de retour à long terme, ce qui est exactement la fonctionnalité qui crée l'exposition aux risques de confidentialité dont vous auriez autrement besoin d'une bannière de consentement pour opérer légalement.
+Les visiteurs uniques pour une journée nécessitent uniquement un identifiant stable *dans la journée*. Un hachage de l'IP et de l'User-Agent, roté quotidiennement et restreint par projet, offre des uniques quotidiens et hebdomadaires précis tout en rendant impossible le lien d'un visiteur entre les jours ou entre les sites. Vous renoncez au suivi à long terme des visiteurs récurrents, ce qui est exactement la fonctionnalité qui crée l'exposition aux risques de confidentialité pour laquelle vous auriez autrement besoin d'un bandeau de consentement pour opérer légalement.
 
-Le compromis est intentionnel : l'analyse de localisation doit être quelque chose que vous pouvez déployer partout, vers chaque visiteur, sans frottement juridique.
+Ce compromis est intentionnel : les analyses de localisation devraient être quelque chose que vous puissiez déployer partout, à chaque visiteur, sans friction juridique.
