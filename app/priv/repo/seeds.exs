@@ -35,7 +35,6 @@ defmodule Glossia.Seeds do
   alias Glossia.Discussions.{Discussion, DiscussionComment}
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
-  alias Glossia.Sandboxes.{Sandbox, SandboxSession}
   alias Glossia.Voices
 
   import Ecto.Query
@@ -172,9 +171,7 @@ defmodule Glossia.Seeds do
     # Exercise branded social images when a local object store is configured.
     ensure_project_logo!(dev.account, "glossia")
 
-    # Setup events for the "blog" project to exercise the agent session UI
     blog_project = Projects.get_project(dev.account, "blog")
-    if blog_project, do: ensure_setup_events!(blog_project)
 
     # Analytics domain for the "blog" project, used to dogfood the @glossia/web
     # SDK on the dev site (see :web_analytics in config/dev.exs). We mark it
@@ -232,9 +229,6 @@ defmodule Glossia.Seeds do
         {"docs/guide.md", "# Guide\n\nUse this guide to verify isolated localization setup.\n"}
       ]
     )
-
-    # Historical sandbox lifecycle records for workflow execution APIs.
-    if blog_project, do: ensure_sandbox_history!(blog_project)
 
     # Voice configs: create a couple of versions to exercise history and diff UX.
     ensure_voice_versions!(
@@ -600,7 +594,10 @@ defmodule Glossia.Seeds do
       handle: "local-codex",
       model: "openai/gpt-5.4",
       api_key: Glossia.Translations.Credentials.development_session_api_key(:codex),
-      default: true
+      default: true,
+      # Local Codex sessions have no per-model quota — leave the cap
+      # unset so a run fans out as wide as the repository plan.
+      translation_concurrency: nil
     )
 
     ensure_llm_model!(dev.account, dev,
@@ -620,14 +617,22 @@ defmodule Glossia.Seeds do
       handle: "fast-drafts",
       model: "fireworks_ai/accounts/fireworks/models/glm-4p5-air",
       api_key: "fw-dev-placeholder-key",
-      default: false
+      default: false,
+      # Fireworks' serverless models rate-limit around a handful of
+      # concurrent requests per model. Cap the run so a repository plan
+      # cannot walk into a wall of 429s the moment it fans out.
+      translation_concurrency: 5
     )
 
     ensure_llm_model!(dev.account, dev,
       handle: "long-form-guides",
       model: "fireworks_ai/accounts/fireworks/models/kimi-k2p5",
       api_key: "fw-dev-placeholder-key",
-      default: false
+      default: false,
+      # Larger reasoning models are typically metered more tightly by the
+      # provider than the smaller drafts model above — a lower cap gives
+      # every planned locale a fair chance to progress.
+      translation_concurrency: 3
     )
 
     ensure_llm_model!(acme.account, dev,
@@ -882,9 +887,15 @@ defmodule Glossia.Seeds do
       key = "avatars/#{account.handle}/projects/#{handle}.png"
       bytes = File.read!(Path.join(:code.priv_dir(:glossia), "static/images/logo-rounded.png"))
 
-      case Glossia.Storage.upload(key, bytes, content_type: "image/png") do
-        {:ok, _} -> Projects.update_project(project, %{avatar_url: key})
-        {:error, _} -> IO.puts("Skipping seed project logo: object storage is unavailable.")
+      try do
+        case Glossia.Storage.upload(key, bytes, content_type: "image/png") do
+          {:ok, _} -> Projects.update_project(project, %{avatar_url: key})
+          {:error, _} -> IO.puts("Skipping seed project logo: object storage is unavailable.")
+        end
+      rescue
+        _ -> IO.puts("Skipping seed project logo: object storage is unavailable.")
+      catch
+        _, _ -> IO.puts("Skipping seed project logo: object storage is unavailable.")
       end
     end
   end
@@ -1286,50 +1297,6 @@ defmodule Glossia.Seeds do
     end
   end
 
-  defp ensure_setup_events!(%Project{} = project) do
-    existing = Glossia.Ingestion.list_setup_events(project.id)
-
-    if existing == [] do
-      events = [
-        {0, "agent_start", "", "{}"},
-        {1, "turn_start", "", "{}"},
-        {2, "message_start", "Analyzing repository structure...", "{}"},
-        {3, "message_update",
-         "I can see this is a blog built with Astro. Let me examine the content directory and configuration files.",
-         "{}"},
-        {4, "message_end", "", "{}"},
-        {5, "tool_execution_start", "ls -la src/content/", ~s({"tool_name":"shell"})},
-        {6, "tool_execution_end", "blog/\nen/\nes/\nfr/", ~s({"tool_name":"shell"})},
-        {7, "message_start",
-         "The repository has content organized by language in src/content/. I can see English, Spanish, and French directories.",
-         "{}"},
-        {8, "message_end", "", "{}"},
-        {9, "tool_execution_start", "cat astro.config.mjs", ~s({"tool_name":"shell"})},
-        {10, "tool_execution_end",
-         "export default defineConfig({ integrations: [mdx()], i18n: { defaultLocale: 'en', locales: ['en', 'es', 'fr'] } })",
-         ~s({"tool_name":"shell"})},
-        {11, "message_start",
-         "The Astro config confirms i18n support with English as the default locale and Spanish and French as additional locales. Now let me create the L10N.md file.",
-         "{}"},
-        {12, "message_end", "", "{}"},
-        {13, "tool_execution_start", "Writing L10N.md", ~s({"tool_name":"file_write"})},
-        {14, "tool_execution_end", "File written successfully", ~s({"tool_name":"file_write"})},
-        {15, "message_start",
-         "I have created L10N.md with the localization configuration for this Astro blog. The file describes the content structure, supported languages, and recommended translation workflow.",
-         "{}"},
-        {16, "message_end", "", "{}"},
-        {17, "turn_end", "", "{}"},
-        {18, "agent_end", "", "{}"}
-      ]
-
-      for {seq, type, content, metadata} <- events do
-        Glossia.Ingestion.record_setup_event(project.id, seq, type, content, metadata)
-      end
-
-      Process.sleep(2_000)
-    end
-  end
-
   # ----------------------------------------------------------------------------
   # Translation Sessions
   # ----------------------------------------------------------------------------
@@ -1681,50 +1648,6 @@ defmodule Glossia.Seeds do
     end)
   end
 
-  # ----------------------------------------------------------------------------
-  # Sandboxes
-  # ----------------------------------------------------------------------------
-
-  defp ensure_sandbox_history!(%Project{} = project) do
-    case Repo.get_by(Sandbox, project_id: project.id, backend_ref: "seed-project-setup") do
-      %Sandbox{} ->
-        :ok
-
-      nil ->
-        now = DateTime.utc_now()
-        ready_at = DateTime.add(now, -5400, :second)
-        terminated_at = DateTime.add(now, -4800, :second)
-
-        {:ok, sandbox} =
-          %Sandbox{account_id: project.account_id, project_id: project.id}
-          |> Sandbox.changeset(%{
-            status: "terminated",
-            purpose: "project_setup",
-            backend: "flame",
-            backend_ref: "seed-project-setup",
-            labels: %{"workflow" => "setup", "project_id" => to_string(project.id)},
-            ready_at: ready_at,
-            deadline_at: DateTime.add(ready_at, 3600, :second),
-            terminated_at: terminated_at
-          })
-          |> Repo.insert()
-
-        %SandboxSession{}
-        |> SandboxSession.changeset(%{
-          sandbox_id: sandbox.id,
-          account_id: sandbox.account_id,
-          project_id: sandbox.project_id,
-          status: "closed",
-          opened_at: ready_at,
-          closed_at: terminated_at,
-          close_reason: "setup_completed"
-        })
-        |> Repo.insert!()
-
-        :ok
-    end
-  end
-
   defp ensure_discussion_comment!(ticket, user, opts) do
     body = Keyword.fetch!(opts, :body)
 
@@ -1764,6 +1687,7 @@ defmodule Glossia.Seeds do
   defp ensure_llm_model!(account, user, opts) do
     handle = Keyword.fetch!(opts, :handle)
     requested_default = Keyword.get(opts, :default, :unspecified)
+    requested_concurrency = Keyword.get(opts, :translation_concurrency, :unspecified)
 
     attrs =
       %{
@@ -1776,6 +1700,11 @@ defmodule Glossia.Seeds do
           do: attrs,
           else: Map.put(attrs, "default", requested_default)
       end)
+      |> then(fn attrs ->
+        if requested_concurrency == :unspecified,
+          do: attrs,
+          else: Map.put(attrs, "translation_concurrency", requested_concurrency)
+      end)
 
     case LLMModels.get_model_by_handle(handle, account.id) do
       nil ->
@@ -1783,14 +1712,29 @@ defmodule Glossia.Seeds do
         model
 
       existing ->
-        if existing.model != attrs["model"] or existing.api_key != attrs["api_key"] or
-             (requested_default != :unspecified and existing.default != requested_default) do
-          {:ok, model} = LLMModels.update_model(account, user, existing, attrs)
-          model
-        else
-          existing
+        cond do
+          existing.model != attrs["model"] ->
+            do_update_llm_model!(account, user, existing, attrs)
+
+          existing.api_key != attrs["api_key"] ->
+            do_update_llm_model!(account, user, existing, attrs)
+
+          requested_default != :unspecified and existing.default != requested_default ->
+            do_update_llm_model!(account, user, existing, attrs)
+
+          requested_concurrency != :unspecified and
+              existing.translation_concurrency != requested_concurrency ->
+            do_update_llm_model!(account, user, existing, attrs)
+
+          true ->
+            existing
         end
     end
+  end
+
+  defp do_update_llm_model!(account, user, existing, attrs) do
+    {:ok, model} = LLMModels.update_model(account, user, existing, attrs)
+    model
   end
 end
 

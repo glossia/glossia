@@ -112,16 +112,6 @@ config :glossia, Glossia.Cloudflare.Turnstile,
   site_key: System.get_env("GLOSSIA_TURNSTILE_SITE_KEY"),
   secret_key: System.get_env("GLOSSIA_TURNSTILE_SECRET_KEY")
 
-# Detached translation jobs make concurrent requests to the shared model gateway.
-# Files are independent after planning and a translation call is almost entirely
-# idle waiting on the gateway, so a fan-out ceiling only decides how long a run
-# takes: wall clock is total calls divided by it. Two things genuinely bound it,
-# and neither is a guess - the connection pool above, and the provider's own rate
-# limit, which is handled where it is observed by retrying a 429 for the interval
-# the provider names. Unset means "translate every planned file at once", capped
-# by the pool.
-config :glossia, :translation_concurrency, integer_env.("GLOSSIA_TRANSLATION_CONCURRENCY", 0)
-
 # Translation LLM credential. Precedence at resolve time: the account's own model
 # key, then this globally configured inference provider (token + URL), then — in
 # dev only — the local Claude/Codex session.
