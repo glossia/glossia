@@ -1,5 +1,5 @@
 {
-  "hash": "86e96203453d0c0a9fda964aa83618d002617b0afac03262d01da1e53a7ae0cf",
+  "hash": "25c7e1b0fa7c86f780b3ea30c11c76193768f339e4103d022a6fcddc73109bd7",
   "hash_tree": {
     "root": {
       "children": [
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "2e7c82be99482ca4aaa43ac06a6ce52d03a591e6057c49e34ea8715a4f2633f1",
+          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "86e96203453d0c0a9fda964aa83618d002617b0afac03262d01da1e53a7ae0cf",
+      "hash": "25c7e1b0fa7c86f780b3ea30c11c76193768f339e4103d022a6fcddc73109bd7",
       "kind": "translation_input",
       "label": "app/priv/blog/2026-02-03-why-glossia.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "6329f9b67d2e60da682727e5e0b03517f4086100e6cf41147fda25b8e3cfdd85",
+  "output_hash": "a7bf9203137a1ca1ba3a7658690c02c75368533ecbdf15d035a468d59a2b80bf",
   "output_path": "app/priv/i18n/ja/blog/2026-02-03-why-glossia.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/blog/2026-02-03-why-glossia.md",
-  "translated_at": "2026-08-31T16:54:36.997244Z"
+  "translated_at": "2026-09-11T13:48:23.360087Z"
 }
