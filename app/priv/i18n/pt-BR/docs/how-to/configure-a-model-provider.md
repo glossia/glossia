@@ -1,26 +1,26 @@
 %{
-  title: "Configure um provedor de modelos",
-  summary: "Adicione um modelo de conta e referencie-o com segurança a partir de repositórios.",
-  category: "tutorial",
+  title: "Configurar um provedor de modelo",
+  summary: "Adicionar um modelo de conta e referenciá-lo com segurança em repositórios.",
+  category: "Tutorial",
   order: 3
 }
 ---
-A configuração do projeto e as execuções de tradução usam modelos configurados para a conta atual do Glossia. Configure pelo menos um modelo antes de criar um projeto.
+A configuração do projeto e as execuções de tradução utilizam modelos configurados para a conta atual da Glossia. Configure pelo menos um modelo antes de criar um projeto.
 
 ## Adicionar um modelo
 
-1. Abra **Configurações** e selecione **Modelos**.
-2. Selecione **Novo modelo**.
-3. Insira um identificador único, como `translation-default`.
-4. Abra o seletor de modelos e digite parte do nome do provedor ou do modelo para filtrar a lista.
-5. Selecione um modelo e insira sua chave do provedor.
+1. Abrir **Configurações** e selecione **Modelos**.
+2. Selecionar **Novo modelo**.
+3. Digite um handle único, como `translation-default`.
+4. Abra o seletor de modelos e digite parte do nome de um provedor ou modelo para filtrar a lista.
+5. Selecione um modelo e insira sua chave de provedor.
 6. Salve o modelo.
 
-O identificador permanece estável mesmo que você altere posteriormente o modelo do provedor por trás dele. O primeiro modelo adicionado à conta torna-se o padrão.
+O handle permanece estável mesmo quando você altera posteriormente o modelo do provedor por trás dele. O primeiro modelo adicionado a uma conta se torna seu padrão.
 
-## Referencie o modelo a partir de um repositório
+## Referenciar o modelo de um repositório
 
-Defina `model` no frontmatter do `GLOSSIA.md` relevante:
+Definir `model` no relevante `L10N.md` frontmatter:
 
 ```yaml
 ---
@@ -28,20 +28,20 @@ model: translation-default
 ---
 ```
 
-O repositório guarda apenas o identificador. A chave do provedor permanece nas configurações da conta.
+O repositório armazena apenas o handle. A chave do provedor permanece nas configurações da conta.
 
-## Escolha qual modelo será usado por padrão
+## Escolha qual modelo é usado por padrão
 
-Quando `GLOSSIA.md` omite `model`, o Glossia usa o modelo padrão da conta. Para alterá-lo, abra o modelo que deve se tornar o padrão e selecione **Tornar padrão**.
+Quando `L10N.md` omite `model`, Glossia usa o modelo padrão da conta. Para alterá-lo, abra o modelo que deve se tornar o padrão e selecione **Definir como padrão**.
 
-Para comportamento previsível entre vários modelos, referencie um identificador explicitamente em `GLOSSIA.md`.
+, Para comportamento previsível entre vários modelos, referencie um handle explicitamente em `L10N.md`.
 
-Você pode colocar um identificador `model` diferente em um `GLOSSIA.md` aninhado para uma área de conteúdo, ou em `GLOSSIA/<locale>.md` para um locale de destino. O Glossia usa a configuração mais próxima aplicável para cada documento e locale. Ele não divide automaticamente o trabalho entre os modelos configurados.
+, Você pode colocar um diferente `model` handle em uma aninhada `L10N.md` para uma área de conteúdo, ou em `L10N/<locale>.md` para uma única local de destino. O Glossia utiliza a configuração mais aplicável para cada documento e localidade. Ele não divide automaticamente o trabalho entre os modelos configurados.
 
-Se um identificador explícito não existir na conta, a tradução encerra com um erro. Não há retorno automático para outro modelo.
+Se um handle explícito não existir na conta, a tradução termina com um erro. Ela não recorre a outro modelo.
 
-## Alterar ou rotacionar uma chave do provedor
+## Alterar ou rotacionar uma chave de provedor
 
-Abra **Configurações**, selecione **Modelos** e abra o identificador do modelo. Digite uma nova chave do provedor e salve. Deixar o campo de chave em branco mantém a chave atual.
+Abrir **Configurações**, selecione **Modelos**, e abra o handle do modelo. Insira uma nova chave de provedor e salve. Deixar o campo da chave em branco mantém a chave atual.
 
-Repositórios que referenciam o identificador não precisam de alteração.
+Repositórios que referenciam o handle não precisam ser alterados.

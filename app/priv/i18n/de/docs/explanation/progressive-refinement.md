@@ -1,29 +1,29 @@
 %{
-  title: "Progressive Verfeinerung",
+  title: "Schrittweise Verfeinerung",
   summary:
-    "Warum sich die Inhaltsqualität im Laufe der Zeit verbessert, nicht in einem einzigen Durchlauf.",
-  category: "Erläuterung",
+    "Warum sich die Inhaltsqualität im Laufe der Zeit einpendelt, nicht in einem einzelnen Durchlauf.",
+  category: "Erklärung",
   order: 1
 }
 ---
-Erste Entwürfe von[großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind zwar strukturell korrekt, können aber Nuancierungen, Ton oder domänenspezifische Formulierung verpassen. Das ist beabsichtigt. Glossia behandelt die Inhaltsgenerierung genauso wie Softwareteams Code: veröffentlichen Sie eine funktionierende Version, überprüfen Sie diese und verbessern Sie sie iterativ.
+Erste Entwürfe von [große Sprachmodelle](https://en.wikipedia.org/wiki/Large_language_model) sind strukturell korrekt, können aber Nuancen, Ton oder domänenspezifische Wortwahl übersehen. Das ist beabsichtigt. Glossia behandelt die Inhaltserstellung genauso wie Softwareteams Code: stellen Sie eine funktionierende Version bereit, überprüfen Sie diese und verbessern Sie diese iterativ.
 
 ## Der Verfeinerungszyklus
 
-1. **Entwurf**: Glossia generiert einen ersten, strukturell gültigen Entwurf basierend auf Ihren Quelldateien und dem Kontext in `GLOSSIA.md`.
-2. **Überprüfung**: Ihr Team meldet Probleme über Pull Requests und Diffs, den Workflow, den Sie bereits für Code verwenden.
-3. **Verfeinern**: Aktualisierte Kontextdateien, Terminologiekorrekturen und Feedback aus der Überprüfung fließen in den nächsten Durchlauf ein.
-4. **Konvergenz**: Jeder Zyklus verringert die Distanz zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts aus dem bereitgestellten Kontext.
+1. **Entwurf**: Glossia generiert einen ersten strukturell gültigen Entwurf basierend auf Ihren Quelldateien und dem Kontext in `L10N.md`.
+2. **Überprüfung**: Ihr Team markiert Probleme über Pull-Requests und Diffs, denselben Workflow, den Sie bereits für Code verwenden.
+3. **Verfeinerung**: Aktualisierte Kontextdateien, Terminologiekorrekturen und Review-Feedback fließen in den nächsten Durchlauf ein.
+4. **Annäherung**: Mit jedem Zyklus verringert sich die Distanz zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts durch den bereitgestellten Kontext kennen.
 
 ## Warum dies funktioniert
 
-Der Schlüssel liegt darin, dass sich Kontext ansammelt.`GLOSSIA.md` oder ein korrigierter Terminologieu verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Überprüfung ausgelöst hat.
+Der wichtige Einblick besteht darin, dass sich der Kontext ansammelt. Jeder Review-Kommentar, der zu einer aktualisierten `L10N.md` oder einem korrigierten Terminiologie-Eintrag führt, verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Review ausgelöst hat.
 
-Dies basiert auf demselben Prinzip von Kaizen in der Fertigung und successive approximation im Ingenieurwesen: Starten Sie mit einer ausreHow guten Basislinien und verbessern Sie diese systematisch durch menschliches Urteil im Loop.
+Dies folgt dem gleichen Prinzip wie Kaizen in der Fertigung und der sukzessiven Approximation im Ingenieurwesen: Starten Sie mit einer mehr als ausreichenden Baseline und verbessern Sie diese systematisch durch menschliches Urteil in der Schleife.
 
 ## Praktische Implikationen
 
-- Erwarten Sie im ersten Durchlauf keine Perfektion. Planen Sie einen oder zwei Prüfungszyklen ein.
-- Investieren Sie Zeit in das Erstellen klarer Kontextdateien. Dies ist die hebelstärkste Verbesserung, die Sie vornehmen können.
-- Verwenden Sie die Serverübersetzungssitzung, um zu verfolgen, welche Dateien übersetzt wurden,
+- Erwarten Sie keine Perfektion beim ersten Durchlauf. Planen Sie ein oder zwei Review-Kreisläufe ein.
+- Investieren Sie Zeit in das Schreiben klarer Kontextdateien. Sie bieten die höchste Hebelwirkung, die Sie vornehmen können.
+- Verwenden Sie die Server-Übersetzungssitzung, um zu verfolgen, welche Dateien wurden 
   übersprungen oder fehlgeschlagen.

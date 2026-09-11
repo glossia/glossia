@@ -1,5 +1,5 @@
 {
-  "hash": "9347e400ed821c7e679eaf2212fde723519b00793932b86b9736fe62f5439a4b",
+  "hash": "807be5a0849aa453cc46f8aa6a8341a6505700b04e90a45947c452a1c32c7dd2",
   "hash_tree": {
     "root": {
       "children": [
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "464364e28833a2f035959b4593288f9178e6d42c43f95a23844f20a870064884",
+          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "9347e400ed821c7e679eaf2212fde723519b00793932b86b9736fe62f5439a4b",
+      "hash": "807be5a0849aa453cc46f8aa6a8341a6505700b04e90a45947c452a1c32c7dd2",
       "kind": "translation_input",
       "label": "app/priv/blog/2026-02-15-context-graph.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "c87eb394d7d4d5c4e2b4c59457dc9a97b16088eceec62c5c7b0e9f87dbc6ac64",
+  "output_hash": "2f5371ff563bbde324a48247556483f5302511fb9b6922d0ad2d6527d2085a75",
   "output_path": "app/priv/i18n/es/blog/2026-02-15-context-graph.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/blog/2026-02-15-context-graph.md",
-  "translated_at": "2026-09-01T05:55:59.992771Z"
+  "translated_at": "2026-09-10T17:38:17.580585Z"
 }
