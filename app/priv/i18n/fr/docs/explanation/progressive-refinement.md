@@ -1,28 +1,28 @@
 %{
   title: "Affinement progressif",
-  summary: "Pourquoi la qualité du contenu converge au fil du temps, et non en une seule passe.",
-  category: "explication",
+  summary: "Pourquoi la qualité du contenu converge avec le temps, et non en un seul passage.",
+  category: "Explication",
   order: 1
 }
 ---
-Premiers jets de[gros modèles de langage](https://en.wikipedia.org/wiki/Large_language_model) sont corrects structurellement mais peuvent manquer de nuances, de ton ou de formulations spécifiques au domaine. C'est par conception. Glossia traite la génération de contenu de la même façon que les équipes logiciels traitent le code : déployer une version fonctionnelle, la revoir et l'améliorer de manière itérative.
+Premiers brouillons de [grands modèles de langage](https://en.wikipedia.org/wiki/Large_language_model) sont structurellement corrects, mais peuvent manquer de nuances, de ton ou de formulations spécifiques au domaine. C'est par conception. Glossia traite la génération de contenu de la même manière que les équipes logicielles traitent le code : livrer une version fonctionnelle, la réviser et l'améliorer de manière itérative.
 
-## La boucle d'affinement
+## Boucle d'affinement
 
-1. **Brouillon**: Glossia génère un premier jet structurellement valide basé sur vos fichiers sources et le contexte de`GLOSSIA.md`.
-2. **Examen**: Votre équipe signale les problèmes via des pull requests et des diffs, le même flux de travail que vous utilisez déjà pour le code.
-3. **Affiner**: Les fichiers de contexte mis à jour, les corrections de terminologie et les commentaires d'examen alimentent la prochaine exécution.
-4. **Convergence**: Chaque cycle réduit l'écart avec la qualité de production. Le système apprend la voix de votre produit grâce au contexte que vous fournissez.
+1. **Brouillon**: Glossia génère une première passe structurellement valide basée sur vos fichiers sources et le contexte dans `L10N.md`.
+2. **Revue**: Votre équipe signale des problèmes via les pull requests et les diffs, le même flux de travail que vous utilisez déjà pour le code.
+3. **Affiner**: Les fichiers de contexte mis à jour, les corrections de terminologie et les retours de révision contribuent à la prochaine exécution.
+4. **Converger**: Chaque cycle réduit la distance à la qualité de production. Le système apprend la voix de votre produit grâce au contexte que vous fournissez.
 
 ## Pourquoi cela fonctionne
 
-La clé de l'intuition est que le contexte s'accumule. Chaque commentaire d'examen qui conduit à une`GLOSSIA.md` ou une entrée de terminologie corrigée améliore toutes les exécutions futures, pas seulement le fichier qui a déclenché l'examen.
+Le principe clé est que le contexte s'accumule. Chaque commentaire de révision qui conduit à une mise à jour `L10N.md` ou une entrée terminologique rectifiée améliore toutes les exécutions futures, pas seulement le fichier ayant déclenché la révision.
 
-Cela suit le même principe derrière le Kaizen dans la fabrication et l'approximation successive en génie : commencer par une base suffisante et l'améliorer systématiquement avec le jugement humain dans la boucle.
+Ceci suit le même principe que le Kaizen dans la fabrication et l'approximation successive en ingénierie : commencez avec une base jugée suffisante et améliorez-la systématiquement avec le jugement humain en boucle.
 
-## Conséquences pratiques
+## Implications pratiques
 
-- Ne pas attendre la perfection lors de la première exécution. Planifiez avec un ou deux cycles d'examen.
-- Investissez du temps pour écrire des fichiers de contexte clairs. Ils constituent l'amélioration la plus rentable que vous puissiez apporter.
-- Utilisez la session de traduction du serveur pour suivre les fichiers traduits,
-  ignorés ou ayant échoué.
+- Ne comptez pas sur la perfection lors de la première exécution. Prévoyez un ou deux cycles de révision.
+- Prenez le temps d'écrire des fichiers de contexte clairs. Ils constituent l'amélioration la plus rentable que vous puissiez apporter.
+- Utilisez la session de traduction du serveur pour suivre quels fichiers ont été traduits,
+  ignorés, ou échoués.
