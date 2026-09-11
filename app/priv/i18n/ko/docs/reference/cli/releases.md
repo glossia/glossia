@@ -6,8 +6,8 @@
 
 #### 버그 수정
 
-- 릴리스 아카이브 내부의 바이너리 이름을 플랫폼 특정 이름에서 단순히`glossia`.
-- 패키징 전 바이너리에서 macOS 격리 속성 제거
+- 릴리스 아카이브 내의 바이너리를 플랫폼별 이름에서 단순히 `glossia`.
+- 패키징 전 바이너리에서 macOS 격리 xattr 속성을 제거합니다.
 
 ## 0.14.0
 
@@ -15,22 +15,22 @@
 
 #### 기능
 
-- 로컬 릴리스 스크립트 및 수동 유지 관리 변경 로그 워크플로우 추가
+- Add local release script and manually-maintained changelog workflow.
 
 ## 0.2.0
 
 *2026-02-14*
 
-#### 버그 수정
+#### Bug Fixes
 
-- 프로덕션에서 OAuth 제공자 구성을 선택적으로 만듭니다. GitHub/GitLab OAuth 인증이 설정되지 않았더라도 앱이 시작될 수 있습니다. 환경 변수가 존재할 때만 제공자를 구성합니다.
-- 프로덕션에서는 4000 포트를 기본으로, 개발에서는 4050 포트를 유지합니다. 프로덕션 프록시는 4000 포트에서 앱을 기대합니다. 이`runtime.exs`기본 값이 4050 이었기 때문에 배포 도중 건강 상태 확인이 실패했습니다.
+- Make OAuth provider config optional in production. The app should boot even without GitHub/GitLab OAuth credentials set. Only configure providers when the env vars are present.
+- Default to port 4000 for production and keep 4050 for development. The production proxy expects the app on port 4000. The `runtime.exs` default was 4050, which caused health checks to fail during deployment.
 
 #### 기능
 
-- OAuth 로그인을 갖춘 Phoenix 앱 및 문서 및 UI 개선 추가
-- 둥근 로고를 favicon 으로 사용합니다.
-- CLI 를 Bun 으로 마이그레이션하고 CI 실행 가능 빌드를 업데이트합니다.
+- OAuth 로그인을 포함한 Phoenix 앱 추가, 문서 개선 및 UI 개선.
+- 둥근 로고를 favicon 으로 사용.
+- CLI 를 Bun 으로 마이그레이션하고 CI 실행 가능 빌드를 업데이트.
 
 ## 0.1.0
 
@@ -38,38 +38,38 @@
 
 #### 버그 수정
 
-- 모바일에서 코드 스니펫 가로 오버플로우 방지
-- 모바일에서 코드 스니펫에 적절한 오른쪽 여백 추가
-- 가로 오버플로우 방지를 위해 모바일 반응형 레이아웃 개선
-- Biome 포맷 적용
-- 릴리스 노트 템플릿에 그룹 제목 추가
-- 번역 워크플로우를 Bun 에서 Rust 로 업데이트
-- 게시물 본문을 Hero 레이아웃과 정렬하고 블로그 내용을 개선
-- 블로그 게시물 콘텐츠를 수평으로 중앙 정렬
-- 다바이트 UTF-8 도구 결과 잘라낼 때 패닉 방지
+- 모바일 환경에서 코드 스니펫 가로 넘침 방지.
+- 모바일에서 코드 스니펫에 올바른 오른쪽 여백을 추가합니다.
+- 가로 오버플로우를 방지하기 위해 모바일 반응형 레이아웃을 개선합니다.
+- biome 포맷팅을 적용합니다.
+- 릴리스 노트 템플릿에 그룹 제목을 추가합니다.
+- 번역 워크플로우를 Bun에서 Rust로 업데이트합니다.
+- 게시글 본문을 히어로 레이아웃과 정렬하고 블로그 콘텐츠를 개선합니다.
+- 블로그 콘텐츠를 가로로 중앙 정렬합니다.
+- 다중 바이트 UTF-8 도구 결과 절단 시 발생하는 패닉을 수정합니다.
 
 #### 기능
 
-- 1 차 도구를 추가하고 웹사이트 섹션 추가
-- 도구 검증 단계 공개
-- 진행 출력 단순화
-- 진행 라인 채색
-- 번역 및 검증 활동 표시
-- 도구 라인 포맷팅
-- 모바일 메뉴와 멀티 브레이크포인트 레이아웃으로 웹사이트 반응형으로
-- CLI 를 Bun/TypeScript 에서 재구현
-- CI 워크플로 및 테스트 추가
-- Biome 와 포맷 검사 추가
-- 홈페이지에 Progressive Refinement 섹션 추가
-- SEO 지원과 첫 번째 블로그 게시물과 함께 블로그 섹션 추가
-- CLI 출력을 오른쪽 정렬 동사 형식으로 통합
-- CLI 출력을 더 풍부한 메시지 포맷팅으로 색감 적용
-- 스퀘어 OG 이미지 및 트위터 카드 메타 태그 추가
-- 도구 사용으로 조정자 에이전트를 에이전틱하게
-- 재작성 `glossia init` 에이전트 클라이언트 프로토콜 (ACP).
-- Gemini 지원, 자동 검증, 토큰 추적 및 신뢰성 개선 추가
+- 제 1 파티 도구 및 웹사이트 섹션 추가.
+- 도구 검증 단계 표시.
+- 진척 출력 간소화.
+- 진척 줄 색조 적용.
+- 번역 및 검증 작업 표시.
+- 도구 줄 서식화.
+- 모바일 메뉴 및 다중 브레이크포인트 레이아웃을 갖춘 반응형 웹사이트 제작.
+- Bun/TypeScript 로 CLI 재구현하기.
+- CI 워크플로우 및 테스트 추가하기.
+- Biome 를 이용한 형식 검사 추가하기.
+- 홈페이지에 Progressive Refinement 섹션 추가하기.
+- SEO 지원 및 첫 번째 블로그 게시글을 포함한 블로그 섹션 추가하기.
+- CLI 출력을 오른쪽 정렬 동사 형식으로 통일하기.
+- CLI 출력을 더 풍부한 메시지 포맷팅으로 색칠하기.
+- 정사각형 OG 이미지 및 트위터 카드 메타 태그 추가하기.
+- 도구 사용을 활용한 코디네이터 에이전트 기능 강화.
+- 재구현 `glossia init` Agent Client Protocol (ACP) 를 통해.
+- 제미니 지원, 자동 검증, 토큰 추적 및 신뢰성 개선 추가.
 
 #### 리팩토링
 
-- CI 를 개별 포맷, 타입 체크, 테스트, 빌드 작업으로 분리
-- CLI 를 TypeScript/Bun 에서 Rust 로 재작성
+- CI 를 별도의 형식, 타입 검사, 테스트, 빌드 작업으로 분리.
+- TypeScript/Bun 에서 Rust 로 CLI 재구현.
