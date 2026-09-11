@@ -1,39 +1,39 @@
 %{
   title: "Comandos",
-  summary: "Referencia para todos los comandos de línea de comandos de Glossia y sus banderas.",
-  category: "referencia",
+  summary: "Referencia de todos los comandos de línea de comandos de Glossia y sus opciones.",
+  category: "Referencia",
   subcategory: "CLI",
   order: 1
 }
 ---
 ## `glossia init`
 
-Crea una plantilla`GLOSSIA.md` archivo de configuración en el repositorio actual.
+Cree una plantilla`L10N.md`archivo de configuración L10N.md en el repositorio actual.
 
 ```bash
 glossia init
 ```
 
-Falla si `GLOSSIA.md` ya existe.
+Resulta en error si`L10N.md`L10N.md
 
-## La traducción es de lado del servidor
+## La traducción se realiza en el servidor
 
-La traducción se ejecuta en el servidor Glossia, no en la interfaz de línea de comandos. Cuando se realiza un commit,
-Glossia planifica el trabajo desde tu `GLOSSIA.md` archivos, traduce cada archivo con
-el modelo configurado de tu cuenta, y abre una solicitud de extracción con los resultados. Puedes
-supervisar cada archivo y los turnos del modelo en vivo en la página de sesión de traducción.
+La traducción se ejecuta en el servidor de Glossia, no en la interfaz de línea de comandos.A cuando un commit se envía,
+Glossia planea el trabajo a partir de sus`L10N.md`archivos L10N.md
+y traduce cada archivo con el modelo configurado de su cuenta, y abre una solicitud de extracción con los resultados. Usted
+puede observar cada archivo y los giros del modelo en vivo en la página de sesion de traduccion.
 
-El modelo se elige por documento: un`GLOSSIA.md` `model:` nombra uno de tus
-modelo de cuenta maneja la selección; de lo contrario, se usa el modelo por defecto de tu cuenta.
+El modelo se elige por documento: un`L10N.md`modelo:`model:`naming one of your
+account model handles selects it; otherwise your account's default model is used.
 
-La interfaz de línea de comandos no planea, traduce, valida,
-inspecciona, ni elimina traducciones generadas. También no lee los
-archivos de bloqueo de traducción.
+La interfaz de línea de comandos no planifica, traduce, valida,
+inspecciona, ni elimina traducciones generadas. tampoco lee los
+archivos de bloqueo de traducción del servidor.
 
 ## `glossia revisit`
 
-Reservado para una pasada futura de revisión de idioma de origen. La interfaz de línea de comandos de Rust
-actualmente devuelve un error de no implementado para este comando.
+Reservado para una revisión futura del idioma fuente. La interfaz de línea de comandos en Rust
+ actualmente devuelve un error no implementado para este comando.
 
 ```bash
 glossia revisit
@@ -41,7 +41,7 @@ glossia revisit
 
 ## Banderas globales
 
-| Banderas | Descripción |
+| Flag | Descripción |
 |---|---|
-|`--path <PATH>` | Anula el directorio raíz del proyecto |
-|`--no-color` | Desactiva el Output Coloreado |
+| `--path <PATH>` | Sobrescribir el directorio raíz del proyecto |
+| `--no-color` | Desactivar salida coloreada |

@@ -1,15 +1,15 @@
 {
-  "hash": "9015444b370b38a55eecc0803152a055af516261191a33faf1da1eb4a7151b52",
+  "hash": "f32b8dfe62bc5dda88ac5dd61cef224c0d5be7ad4ecee3eb62c988bea8568ab7",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "854b2d2ffa1e28d29b939df2cf3979cadad27f2532c5bdb8669053cc52b277df",
+          "hash": "60672108883bed1b7e7195f6c5a86223ae5d5e95fd480d9ee3d1d08780ef5adc",
           "kind": "source",
           "label": "app/priv/docs/explanation/account-models.md",
           "metadata": {
-            "content_hash": "5626f0ee4da1fe7dd9eef26b462780665c9dfd8e45dbc005202dcfdcc10983e5"
+            "content_hash": "031c530883942913439c4ceef16b55a3ebff091d40aef70b94781ad434b6ef42"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "2e7c82be99482ca4aaa43ac06a6ce52d03a591e6057c49e34ea8715a4f2633f1",
+          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "9015444b370b38a55eecc0803152a055af516261191a33faf1da1eb4a7151b52",
+      "hash": "f32b8dfe62bc5dda88ac5dd61cef224c0d5be7ad4ecee3eb62c988bea8568ab7",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/account-models.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "bbb60aff4c92643ad10039c0156230540aa3651205e08b6230efca737e329cdf",
+  "output_hash": "a23ff274fb06515be803242c76af9c3121c88f315b61f91adff03608f0126b15",
   "output_path": "app/priv/i18n/pt-BR/docs/explanation/account-models.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/explanation/account-models.md",
-  "translated_at": "2026-09-01T06:46:17.408174Z"
+  "translated_at": "2026-09-11T09:03:12.106607Z"
 }

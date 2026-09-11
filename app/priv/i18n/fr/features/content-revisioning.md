@@ -1,7 +1,7 @@
 %{
-  title: "Révision du contenu",
+  title: "Révision de contenu",
   summary:
-    "Améliorez votre contenu existant sur place. Glossia examine les fichiers sources pour la clarté, la précision et le ton en utilisant le contexte que vous fournissez, puis génère des versions révisées prêtes pour relecture.",
+    "Améliorez votre contenu existant sur place. Glossia examine les fichiers source pour la clarté, l'exactitude et le ton grâce au contexte que vous fournissez, puis génère des versions révisées prêtes pour examen.",
   order: 2,
   icon: "pencil",
   hero_cta_text: "Commencer",
@@ -10,13 +10,13 @@
     %{
       title: "Ton et clarté",
       description:
-        "Les agents examinent votre texte pour la lisibilité, le jargon et la cohérence avec votre voix de marque.",
+        "Les agents examinent votre rédaction pour la lisibilité, le jargon et la cohérence avec votre ton de marque.",
       icon: "message-circle"
     },
     %{
       title: "Non-destructif",
       description:
-        "Le contenu révisé peut écraser l'original ou être écrit vers un chemin séparé. Vous contrôlez toujours la destination de sortie.",
+        "Le contenu révisé peut écraser l'original ou écrire vers un chemin séparé. Vous contrôlez toujours la destination de sortie.",
       icon: "shield-check"
     },
     %{
@@ -30,12 +30,12 @@
 ---
 ## Comment fonctionne la révision
 
-L'agent lit vos fichiers sources et le graphe de contexte, fusionnant les instructions locales (`GLOSSIA.md` à la racine ou dans des sous-dossiers) avec le contexte distant (vos paramètres de voix, de terminologie et de style au niveau du compte). Une fois le panorama complet assemblé, il réécrit le contenu pour la clarté, la précision et le ton, puis génère la version révisée prête à être revue.
+L'agent lit vos fichiers sources et le graphe de contexte, fusionnant les instructions locales (les fichiers `L10N.md` à la racine ou dans les sous-dossiers) avec le contexte distant (vos paramètres de ton, de terminologie et de style au niveau du compte). Une fois l'ensemble complet assemblé, il réécrit le contenu pour la clarté, la précision et le ton, puis produit la version révisée prête pour examen.
 
 ## Graphe de contexte
 
-Le contexte dans Glossia est un graphe qui s'étend sur votre compte et votre dépôt. Les paramètres de compte, comme la voix et la terminologie, définissent une base globale, tandis que les fichiers `GLOSSIA.md` placés à proximité de votre contenu ajoutent des ajustements locaux. L'agent résout ce graphe à chaque exécution, afin que vos instructions restent cohérentes entre les fichiers sans avoir à les répéter. Les relectures sont incrémentales grâce aux fichiers de verrouillage qui suivent ce qui a déjà été traité, de sorte que seules les modifications ou le nouveau contenu sont re-traités.
+Le contexte dans Glossia est un graphe qui s'étend sur votre compte et votre dépôt. Les paramètres au niveau du compte, comme le ton et la terminologie, fournissent une ligne de base globale, tandis que les fichiers `L10N.md` placés en marge de votre contenu ajoutent des ajustements locaux. L'agent résout ce graphe à chaque exécution, de sorte que vos instructions restent cohérentes entre les fichiers sans que vous ayez à les répéter. Les revues sont incrémentales grâce aux fichiers de verrouillage qui suivent ce qui a déjà été traité, de sorte que seul le contenu modifié ou nouveau est réexaminé.
 
-## Affinement progressif
+## Raffinement progressif
 
-Chaque cycle de relecture améliore le résultat. Les corrections sont réinjectées dans les fichiers de contexte, de sorte que les erreurs répétes disparaissent et le résultat converge vers le standard de votre équipe au fil du temps.
+Chaque cycle de revue améliore le résultat. Les corrections s'intègrent dans les fichiers de contexte, de sorte que les erreurs répétées disparaissent et le résultat converge vers le standard de votre équipe au fil du temps.

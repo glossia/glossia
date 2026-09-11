@@ -1,33 +1,33 @@
 %{
-  title: "Projekt einrichten wiederholen",
-  summary: "Projekt nach fehlgeschlagener Einrichtung wiederherstellen.",
+  title: "Projekt-Einrichtung erneut versuchen",
+  summary: "Projekt nach Einrichtung-Fehler wiederherstellen.",
   category: "Anleitung",
   order: 4
 }
 ---
-Verwenden Sie **Wiederherstellen des Setups** nach Behebung des Fehlers, der einen Projektaufbau verhindern hat.
+Verwende **Einrichtung erneut versuchen** nach Behebung der Ursache, die den Projekteinrichtungsversuch gescheitert hat.
 
-## Lesen Sie den Fehler
+## 1\. Fehler lesen
 
-Öffnen Sie die Projektübersicht. Die Karte des Durchführungsfortschritts zeigt den Fehler und die neueste Aktivität der Einrichtung.
+Öffne die Projektübersicht. Die Einrichtung-Fortschrittskarte zeigt den Fehler und die neueste Einrichtungstätigkeit an.
 
 Häufige Ursachen sind:
 
-- Das Konto verfügt über kein konfiguriertes Modell.
-- Der Provider-Key fehlt oder ist nicht mehr gültig.
-- Die Glossia GitHub App kann das Repository nicht erreichen.
+- Das Konto hat kein konfiguriertes Modell.
+- Der Provider-Schlüssel fehlt oder ist ungültig.
+- Die Glossia GitHub App kann nicht auf das Repository zugreifen.
 - Das Repository konnte nicht vorbereitet oder überprüft werden.
 
-## Beheben Sie die Voraussetzung
+## 2\. Beheben Sie die Voraussetzung
 
-Für Modellprobleme öffnen Sie **Einstellungen** und **Modelle**. Bei Repository-Zugangsproblemen aktualisieren Sie die Glossia GitHub App-Installation in GitHub und gewähren Sie ihr den Zugriff auf das Repository.
+Für Modellprobleme öffnen Sie **Einstellungen** und **Modelle**. Für Probleme mit dem Repository-Zugriff aktualisieren Sie die Glossia GitHub App-Installation in GitHub und gewähren Sie ihr Zugriff auf das Repository.
 
-## Wiederholen
+## 3\. Neuversuchen
 
-Kehren Sie zur Projektübersicht zurück und wählen **Wiederherstellen des Setups**.
+Zurück zur Projektübersicht und auswählen **Setup neuversuchen**.
 
-Die Karte kehrt zu **In Wartestellung**, dann **Läuft**, und zeigt neue Aktivitäten, während die Arbeit fortschreitet. Wiederholen ist nur verfügbar, solange sich das Projekt im **Gescheitert** Zustand befindet, was verhindert, dass zwei Einrichtungsvorgänge gleichzeitig ausgeführt werden.
+Die Karte kehrt zurück zu **Ausstehend**, dann **Läuft**, und zeigt neue Aktivitäten an, während die Arbeit weitergeht. Die Wiederholung ist nur verfügbar, solange sich das Projekt im **Fehlgeschlagen** Zustand, der verhindert, dass zwei Setup-Versuche gleichzeitig ausgeführt werden.
 
-## Überprüfung der Vervollständigung
+## 4\. Überprüfung der Fertigstellung
 
-Wenn sich der Zustand in **Vollendet** ändert, überprüfen Sie den daraus resultierenden Pull Request in GitHub. Wenn dieser erneut fehlschlägt, verwenden Sie die neue Aktivität in der Karte anstelle des vorherigen Versuchs, um die nächste Aktion zu identifizieren.
+Wenn der Status auf **Abgeschlossen**, prüfen Sie den resultierenden Pull Request in GitHub. Falls dies erneut fehlschlägt, verwenden Sie die neue Aktivität in der Karte anstelle des vorherigen Versuchs, um die nächste Aktion zu identifizieren.
