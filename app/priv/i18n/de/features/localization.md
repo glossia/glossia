@@ -1,41 +1,41 @@
 %{
   title: "Lokalisierung",
   summary:
-    "Lokalisieren Sie Ihren Inhalt in jede beliebige Sprache, wobei Struktur, Code-Blöcke und Formatierung intakt bleiben. Glossia-Agenten übernehmen die schwereren Aufgaben, damit Ihr Team sich auf die Überprüfung konzentrieren kann.",
+    "Lokalisieren Sie Ihren Inhalt in jede Sprache, während Struktur, Codeblöcke und Formatierung erhalten bleiben. Glossia-Agenten übernehmen die Schwerarbeit, damit Ihr Team sich auf die Überprüfung konzentrieren kann.",
   order: 1,
   icon: "Sprachen",
-  hero_cta_text: "Loslegen",
+  hero_cta_text: "Starten",
   hero_cta_url: "/signup",
   highlights: [
     %{
       title: "Strukturbewusst",
       description:
-        "Code-Blöcke, Frontmatter und Formatierung überstehen die Lokalisierung intakt. Keine manuelle Bereinigung erforderlich.",
+        "Codeblöcke, Frontmatter und Formatierung bleiben während der Lokalisierung intakt. Keine manuelle Bereinigung erforderlich.",
       icon: "Code"
     },
     %{
-      title: "Jede Sprachkombination",
+      title: "Beliebige Sprachpaare",
       description:
         "Lokalisieren Sie zwischen beliebigen Sprachkombinationen. Fügen Sie neue Ziele hinzu, indem Sie eine einzelne Zeile in Ihrer Konfiguration bearbeiten.",
-      icon: "Welt"
+      icon: "Weltkugel"
     },
     %{
-      title: "Inkrementelle Updates",
+      title: "Inkrementelle Aktualisierungen",
       description:
-        "Nur geänderte Inhalte werden neu lokalisiert. Lockdateien erfassen, was bereits verarbeitet wurde, und sparen Zeit und Kosten.",
-      icon: "Schnell"
+        "Nur geänderter Inhalt wird erneut lokalisiert. Sperrdateien verwalten, was bereits verarbeitet wurde, und sparen Zeit und Kosten.",
+      icon: "Löschen"
     }
   ]
 }
 ---
-## So funktioniert Lokalisierung
+## Wie Lokalisierung funktioniert
 
-Glossia liest den Inhalt aus deinem Repository sowie Lockdateien, die verfolgen, was bereits verarbeitet wurde. Dann verschmilzt es deinen lokalen Kontext (`GLOSSIA.md`-Dateien im Root-Verzeichnis oder in Unterordnern) mit globalem Kontext (Stimme, Terminologie und Einstellungen auf Kontoebene), um ein vollständiges Bild davon zu erhalten, wie dein Inhalt in jeder Zielsprache klingen sollte. Mit diesem Kontext lokalisiert ein agentenbasierter Workflow den geänderten Inhalt, während Struktur, Code-Blöcke und Formatierung erhalten bleiben. Sobald der Lauf abgeschlossen ist, werden die Ergebnisse als Pull Request zurück in dein Repository gesendet, der zur Überprüfung bereitsteht.
+Glossia liest den Inhalt aus deinem Repository zusammen mit Lockfiles, die verfolgen, was bereits verarbeitet wurde. Es kombiniert deinen lokalen Kontext (`L10N.md`-Dateien im Root oder in Unterverzeichnissen) mit globalem Kontext (Stimme, Terminologie und Account-Level-Einstellungen), um ein vollständiges Bild davon zu erstellen, wie dein Inhalt in jeder Zielsprache klingen sollte. Sobald dieser Kontext zusammengestellt ist, lokalisiert ein Agenten-Workflow den geänderten Inhalt, während Struktur, Code-Blöcke und Formatierung erhalten bleiben. Sobald der Durchlauf abgeschlossen ist, werden Ergebnisse als eine Pull Request an dein Repository zurückgesendet, bereit zur Überprüfung.
 
-## Kontextgestützte Qualität
+## Kontextgetriebene Qualität
 
-Jede Lokalisierung profitiert vom von dir bereitgestellten Kontext. Terminologie, Stilhinweise und domänenspezifische Anweisungen fließen alle in den Prompt ein, sodass der Agent eine Ausgabe generiert, die der Stimme deines Produkts entspricht.
+Jede Lokalisierung profitiert vom bereitgestellten Kontext. Terminologie, Stilhinweise und domänenspezifische Anweisungen fließen alle in den Prompt ein, damit der Agent Ergebnisse erstellt, die mit der Stimme deines Produkts übereinstimmen.
 
 ## Überprüfung mit Zuversicht
 
-Die Ausgaben landen als Pull Requests oder Entwurfsdateien, bereit für die Prüfung deines Teams. Prüfer markieren Probleme, aktualisieren Kontextdateien und der nächste Lauf integriert diese Korrekturen automatisch.
+Ergebnisse landen als Pull Requests oder Entwurfsdateien, bereit für die Überprüfung durch dein Team. Prüfer melden Probleme, aktualisieren Kontextdateien und der nächste Durchlauf integriert diese Korrekturen automatisch.
