@@ -1,109 +1,83 @@
 %{
   title:
-    "Construyendo una empresa centrada en la IA para desafiar una industria que no puede reinventarse.",
+    "Construyendo una empresa centrada en la IA para desafiar a una industria que no puede reinventarse",
   summary:
-    "Las empresas de localización establecidas tienen el capital pero no la libertad de innovar. Estamos diseñando Glossia desde cero en torno a la IA y los agentes, no solo en el producto, sino en cómo gestionamos todo el negocio.",
+    "Las empresas de localización establecidas tienen el capital pero no la libertad para innovar. Diseñamos Glossia desde cero en torno a la IA y los agentes, no solo en el producto, sino en cómo gestionamos todo el negocio.",
   date: ~D[2026-02-14],
   slug: "2026-02-14-ai-centric-company",
   author: "pedro"
 }
 ---
-Los LLMs y los agentes están transformando todo. No solo qué puede hacer el software, sino cómo se construyen las empresas para hacer ese software.[Glossia](https://glossia.ai), vemos esto como una oportunidad única en una generación para replantear cómo el contenido llega a cada idioma. Pero también sabemos que tener una buena idea de producto no es suficiente. Necesitas una organización que pueda moverse lo suficientemente rápido como para importara.
+Los grandes modelos de lenguaje y los agentes están transformando todo. No solo qué puede hacer el software, sino cómo se construyen las empresas para hacerlo. En [Glossia](https://glossia.ai), vemos esto como una oportunidad única de una generación para repensar cómo el contenido llega a cada idioma. Pero también sabemos que tener una buena idea de producto no es suficiente. Necesitas una organización que pueda avanzar lo suficientemente rápido para importar.
 
-Esa segunda parte es de lo que trata este post.
+Esa segunda parte es de lo que trata esta entrada.
 
-## El dilema del innovador, desplegándose en tiempo real
+## El dilema del innovador, desarrollándose en tiempo real
 
-La industria de la localización es grande y bien financiada. Empresas como Smartling, Phrase, Crowdin, y Lokalise han estado construyendo herramientas y servicios durante años. Tienen clientes, ingresos, flujos de trabajo establecidos, y equipos que saben cómo vender y apoyar sus productos.
+La industria de la localización es grande y bien financiada. Empresas como Smartling, Phrase, Crowdin y Lokalise han estado construyendo herramientas y servicios durante años. Tienen clientes, ingresos, flujos de trabajo establecidos y equipos que saben cómo vender y apoyar sus productos.
 
-¿Entonces por qué un equipo de dos personas incluso intentaría?
+Entonces, ¿por qué un equipo pequeño y enfocado incluso lo intentarían?
 
-Debido a algo que Clayton Christensen describió en [El Dilema del Innovador](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma): las empresas establecidas luchan por adoptar la innovación disruptiva, no porque carezcan de recursos, sino porque sus modelos de negocio existentes, expectativas de los clientes y estructuras organizativas les impiden hacerlo.
+Por algo que Clayton Christensen describió en [El Dilema del Innovador](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma): las empresas establecidas luchan por adoptar innovación disruptiva, no porque carezcan de recursos, sino porque sus modelos de negocio existentes, las expectativas de los clientes y las estructuras organizativas les impiden hacerlo.
 
-Estas empresas construyeron sus productos alrededor de memorias de traducción, precios por palabra y flujos de trabajo de traductores humanos. Sus clientes han construido modelos mentales y procesos alrededor de esos bloques fundamentales. Cambiar los fundamentos significa romper promesas a clientes existentes, reentrenar a los equipos y replantear los modelos de ingresos. Incluso con las mejores intenciones y el capital para invertir, la inercia organizativa es enorme.
+Estas empresas construyeron sus productos en torno a las memorias de traducción, precios por palabra y flujos de trabajo de traductores humanos. Sus clientes han construido modelos mentales y procesos en torno a esos bloques de construcción. Cambiar la base significa romper las promesas a los clientes existentes, capacitar a los equipos y replantear los modelos de ingresos. Incluso con las mejores intenciones y el capital para invertir, la inercia organizativa es enorme.
 
-Necesitan capacidad de innovación y compromiso de su fuerza laboral para acoger nuevas ideas. Pero aún más difícil aún, necesitan a sus clientes existentes para irse con eso. Y esos clientes están invertidos en el modelo antiguo.
+Necesitan capacidad de innovación y compromiso de su fuerza laboral para adoptar nuevas ideas. Pero aún más difícil que eso, necesitan que sus clientes existentes los acompañen en el viaje. Y esos clientes están comprometidos con el modelo antiguo.
 
-Esta es la apertura que vemos. No a pesar de tener menos recursos, sino debido a eso. No tenemos un legado que proteger, ni flujos de trabajo que preservar, ni clientes para migrar. Todo lo podemos diseñar desde cero.
+Esta es la oportunidad que vemos. No a pesar de tener menos recursos, sino gracias a ello. No tenemos legado que proteger, flujos de trabajo que preservar, ni clientes que migrar. Podemos diseñar todo desde cero.
 
 > \[\!NOTA\]
-> El dilema del innovador no se trata de tecnología. Se trata de incentivos. Las empresas establecidas optimizan para lo que quieren sus clientes actuales, lo que hace casi imposible perseguir algo fundamentalmente diferente.
+> El Dilema del Innovador no trata de tecnología. Trata de incentivos. Las empresas establecidas optimizan para lo que quieren sus clientes actuales, lo que hace casi imposible perseguir algo fundamentalmente diferente.
 
-## IA en el centro, no en los bordes
+## La IA en el centro, no en los bordes
 
-La mayoría de las empresas adoptan la IA ensamblando sobre procesos existentes. Un chatbot aquí, un motor de sugerencias allí. Vamos en la dirección opuesta: diseñamos la empresa entera para ser centralizada en IA desde el día uno.
+La mayoría de las empresas adopta la IA enganchándola a procesos existentes. Un chatbot aquí, un motor de sugerencias allá. Vamos hacia la otra dirección: diseñamos toda la empresa para ser centrada en la IA desde el primer día.
 
-Esto significa que la IA no es una característica del producto. Moldea cómo construimos, vendemos, apoyamos y operamos. Cada decisión que tomamos empieza con una pregunta: ¿puede un agente hacer esto?
+Esto significa que la IA no es una característica del producto. Moldea cómo construimos, vendemos, apoyamos y operamos. Cada decisión que tomamos comienza con una pregunta: ¿puede un agente hacer esto?
 
-El propio producto es un agente que vive en su terminal, lee sus archivos de origen, genera traducciones, ejecuta sus verificaciones de CI, e itera hasta que el output pasa. Eso es lo que la gente ve. Pero detrás de ello, la misma filosofía impulsa el negocio.
+El producto en sí es un agente que reside en tu terminal, lee tus archivos fuente, genera traducciones, ejecuta tus comprobaciones CI y se repite hasta que la salida pasa. Esa es la parte que la gente ve. Pero detrás de esto, la misma filosofía dirige el negocio.
 
-## Dos personas, cero sobrecarga organizativa
+## Un equipo pequeño, delegando todo lo demás en agentes
 
-Deliberadamente mantenemos el equipo lo más pequeño posible. Ahora mismo somos solo dos. Nuestro objetivo es mantenernos en dos o tres personas por el tiempo que podamos.
+Estamos deliberadamente manteniendo el equipo pequeño y quedándonos así por tanto tiempo como tenga sentido.
 
-Esto no es para ahorrar dinero (aunque ayuda). Se trata de eliminar toda una categoría de trabajo que no produce valor para los usuarios.
+Esto no se trata de ahorrar dinero. Se trata de eliminar una categoría entera de trabajo que no produce valor para los usuarios.
 
-Cuantos más humanos añadas, más coordinación necesitas. Construyes sistemas de confianza, modelos de permisos, cadenas de aprobación. Gestionas conflictos, alineas prioridades, programas reuniones. Todo eso es energía creativa que va en mantener una organización humana en lugar de construir un producto.
+Cuanto más personas añadas, más coordinación necesitarás. Construyes sistemas de confianza, modelos de permisos, cadenas de aprobación. Gestionas conflictos, alineas prioridades, programas reuniones. Todo eso es energía creativa que va a mantener una organización humana en lugar de construir un producto.
 
-Con dos personas, lo saltamos todo. Nos confiamos plenamente. Tenemos acceso a todo. No hay sobrecarga, no hay política, no hay proceso por el hecho de tener un proceso.
-
-La forma en que hacemos que esto funcione a escala es delegando todo lo demás a agentes.
-
-## Discord, un agente de IA y una única línea de comandos
-
-Aquí está algo que podría sonar inusual: nuestra interfaz de negocio principal es una[Discord](https://discord.com)servidor.
-
-Tenemos un agente IA conectado a ello, impulsado por [OpenAI](https://openai.com), con acceso a todas las herramientas que necesitamos para operar el negocio. En lugar de cambiar entre paneles de control web, plataformas de análisis y paneles de administración, hablamos con el agente. El texto y la voz son la unidad de interacción.
-
-A través del agente, cualquiera de nosotros puede:
-
-- Consultar el análisis de marketing y productos
-- Inspectar los servidores de producción
-- Realizar investigación de mercado
-- Recopilar comentarios de los clientes
-- Realizar análisis competitivo mediante navegación web
-- Redactar contenido, revisar manuscritos y publicar
-
-Ninguno de nosotros depende del otro para realizar ninguna de estas tareas. El agente tiene acceso a nuestras APIs, bases de datos y herramientas de monitorización. Puede navegar por la web, leer documentación y sintetizar información. Es un servidor de Discord, una instancia de OpenAI y una clave de LLM. Ese es el sistema operativo de la empresa.
-
-> \[\!TIP\]
-> Si estás construyendo un equipo pequeño y quieres reducir la sobrecarga de coordinación, considera usar el texto y la voz como tu interfaz principal para las operaciones comerciales. Un agente compartido en un canal de chat puede reemplazar a docenas de paneles de control y eliminar la necesidad de la mayoría de las herramientas internas.
+La forma en que hacemos que esto funcione es delegando todo lo demás a agentes. Análisis de marketing, síntesis de comentarios del cliente, investigación competitiva, redacción de contenido, supervisión operativa: el trabajo rutinario de gestionar el negocio se hace cada vez más por agentes que modelamos, revisamos y mejoramos.
 
 ## Elecciones deliberadas de tecnología
 
-Somos muy intencionales con nuestro stack porque afecta directamente a qué velocidad podemos movernos y a qué costo podemos operar.
+Mantendemos una clara intencionalidad con nuestra pila tecnológica, ya que afecta directamente la rapidez a la que podemos avanzar y cómo se comporta el software para los equipos que lo autoalojan.
 
-**Para el agente (CLI):** Elegimos Go. Se compila en binarios únicos y portables para todas las plataformas sin dependencias de tiempo de ejecución para el usuario.
+**Para el agente (CLI):** Elegimos Rust. Se compila en binarios únicos y portables entre plataformas sin dependencias del tiempo de ejecución para el usuario.
 
-**Para el servidor:** Elegimos [Elixir](https://elixir-lang.org) y el runtime de [Erlang](https://www.erlang.org). La naturaleza funcional de Elixir lo hace un gran ajuste para cargas de trabajo agénticas. La máquina virtual de Erlang está validada para concurrencia y tolerancia a fallos. Y aquí hay un bonus: un agente de IA puede introspectar el sistema de Erlang en ejecución para comprender qué está pasando, obtener conocimientos e incluso corregir problemas en producción.
+**Para el servidor:** Elegimos [Elixir](https://elixir-lang.org) y el [Erlang](https://www.erlang.org) tiempo de ejecución. La naturaleza funcional de Elixir es una gran opción para cargas de trabajo agénticas. La máquina virtual de Erlang ha sido probada en batalla para concurrencia y tolerancia a fallos. Y aquí hay un extra: un agente de IA puede introspeccionar el sistema Erlang en ejecución para entender qué está ocurriendo, recopilar conocimientos y hasta resolver incidencias en producción.
 
-**Para la infraestructura:** Todo corre en un único servidor VPS. No solo el servidor de producción de Glossia, sino también todos los servicios periféricos: [PostgreSQL](https://www.postgresql.org/) para la base de datos, [Plausible](https://plausible.io) para analítica respetuosa de la privacidad, [Grafana](https://grafana.com) para telemetría y observabilidad. Se despliega todo desde definiciones de infraestructura controladas por versión que describen qué va a dónde.
-
-Esto mantiene los costos extremadamente bajos. No dependemos de servicios de nube de terceros, bases de datos gestionadas o proveedores de plataforma como servicio. Tenemos algunas dependencias externas, pero solo para cosas que nos tomarían mucho tiempo replicar y donde el costo tiene sentido.
-
-Cuando llegue el momento de escalar sobre servidores, evolucionaremos el modelo. Pero creemos que podemos llegar muy lejos con esta configuración. Y que ir rápido tiene más importancia que ir en grande actualmente.
+**Para distribución:** Glossia es de código abierto bajo la [O'Saasy License](https://github.com/glossia/glossia/blob/main/LICENSE.md). Los equipos que quieran ejecutarlo ellos mismos pueden instalar el diagrama Helm en el repositorio en cualquier clúster de Kubernetes. El mismo código impulsa el servicio alojado en glossia.ai y cualquier despliegue autoalojado.
 
 > \[\!IMPORTANT\]
-> Somos muy deliberados al omitir la complejidad técnica a la que los ingenieros suelen recurrir al principio. Kubernetes, microservicios, despliegues en múltiples regiones. No es necesario ninguno de eso en esta etapa, y todo eso nos frenaría.
+> Deliberadamente omitimos complejidad técnica que los ingenieros tienden a buscar temprano cuando no es justificada. Cada dependencia y cada capa de infraestructura debe justificar su peso.
 
 ## Lo que esto desbloquea
 
-Gestionar la empresa de esta manera no es solo una estrategia de eficiencia. Cambia lo que podemos ofrecer y qué tan rápido podemos aprender.
+Operar la compañía de esta manera no es solo una jugada de eficiencia. Cambia lo que podemos ofrecer y la velocidad con que podemos aprender.
 
-**Más económico para los usuarios.** La industria de localización ha hecho que sus herramientas sean inaccesibles a través de precios complejos, tarifas por palabra y ciclos de ventas empresariales. Si tu flujo de trabajo de traducción requiere adquisiciones, negociaciones de precios y un gestor de proyecto, la mayoría de los equipos pequeños simplemente lanzarán en inglés. Al mantener nuestros costos operativos cerca de cero, podemos ofrecer algo que verdaderamente sea accesible.
+**Accesible para más equipos.** La industria de la localización ha hecho que sus herramientas sean inaccesibles mediante precios complejos, tarifas por palabra y ciclos de ventas empresariales. Si tu flujo de trabajo de traducción requiere adquisiciones, negociaciones de precios y un director de proyecto, la mayoría de los equipos pequeños solo publicará en inglés. Al construir una organización eficiente y distribuir el software de código abierto para que los equipos puedan autoalojarlo, podemos hacer que Glossia sea verdaderamente accesible.
 
-**Innovación más rápida.** Queremos explorar muchas ideas. Nuevas interfaces para el agente, mejores bucles de retroalimentación, nuevas formas de incorporar lingüistas en el flujo de trabajo. Una empresa tradicional necesitaría reforzar el personal, alinear equipos y programar revisiones del plan de ruta. Solo probamos cosas. La distancia entre una idea y un experimento desplegado se mide en horas, no en trimestres.
+**Una innovación más rápida.** Queremos explorar muchas ideas. Nuevas interfaces para el agente, mejores bucles de retroalimentación, nuevas formas de integrar lingüistas en el flujo de trabajo. Una empresa tradicional necesitaría ampliar la plantilla, alinear equipos y programar revisiones de hoja de ruta. Solo probamos cosas. La distancia entre una idea y un experimento desplegado se mide en horas, no en trimestres.
 
 ## Desafiando cómo trabajamos, no solo lo que construimos
 
-No estamos emocionalmente atados a las viejas formas de hacer las cosas. Estamos cuestionando activamente qué significa la revisión de código cuando un agente escribe la mayor parte del código. Cómo funciona la colaboración cuando solo hay dos personas. Cómo se arregla un error cuando el agente puede inspeccionar el sistema en ejecución.
+No estamos emocionalmente apegados a las viejas formas de hacer las cosas. Estamos cuestionando activamente qué significa la revisión de código cuando un agente escribe la mayor parte del código. Cómo funciona la colaboración cuando el equipo humano es pequeño y los agentes realizan el trabajo rutinario. Cómo solucionas un error cuando el agente puede inspeccionar el sistema en ejecución.
 
-Cometemos errores. Seguiremos cometiéndolos. Pero al mantenernos abiertos a la forma en que diseñamos y operamos el negocio, seguimos descubriendo ideas que influyen en el producto. La forma en que operamos no está separada de lo que construimos. Son la misma cosa.
+Cometemos errores. Seguiremos cometiendo. Pero manteniendo una mente abierta sobre cómo diseñamos y gestionamos la empresa, seguimos descubriendo ideas que influyen en el producto. La forma en que operamos no está separada de lo que construimos. Son la misma cosa.
 
-[McKinsey describió recientemente](https://www.mckinsey.com/capabilities/people-and-organizational-performance/our-insights/the-agentic-organization-contours-of-the-next-paradigm-for-the-ai-era) lo que llaman "la organización agéntica," un nuevo modelo operativo donde los agentes de IA se convierten en participantes de primera clase en el funcionamiento de una empresa. No lo consideramos un modelo. Solo es la forma en que trabajamos.
+[McKinsey describió recientemente](https://www.mckinsey.com/capabilities/people-and-organizational-performance/our-insights/the-agentic-organization-contours-of-the-next-paradigm-for-the-ai-era) lo que llaman "la organización de agentes," un nuevo modelo operativo donde los agentes de IA se convierten en participantes de primer nivel en el funcionamiento de una empresa. No lo consideramos un modelo. Es simplemente cómo trabajamos.
 
 ## La apuesta
 
-Estamos apostando a que un equipo de dos personas con las herramientas adecuadas, la mentalidad correcta y sin cargas organizativas pueda superar a empresas con cientos de empleados y millones en financiación. No en todo el frente, sino en el que importa: ofrecer una experiencia de localización fundamentalmente mejor.
+Apuestamos a que un pequeño equipo con las herramientas adecuadas, la mentalidad correcta y sin lastre organizacional puede superar a empresas con cientos de empleados y millones en financiación. No en todos los frentes, sino en el que importa: ofrecer una experiencia de localización fundamentalmente mejor.
 
-La industria no puede reinventarse. Nosotros sí.
+La industria no puede reinventarse. Nosotros sí podemos.

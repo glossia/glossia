@@ -1,55 +1,55 @@
 %{
   title: "SDK d'analyse",
   summary:
-    "Les champs collectés, l'endpoint des événements et le modèle de confidentialité derrière l'analyse web de Glossia.",
-  category: "référence",
+    "Les champs collectés, le point de terminaison des événements et le modèle de confidentialité sous-jacent à l'analyse web de Glossia.",
+  category: "Référence",
   order: 1
 }
 ---
-## Point de terminaison d'événements
+## Point de terminaison des événements
 
 `POST /api/analytics/events`
 
-Accepte un événement JSON à partir du`@glossia/web` SDK. Always responds `202 Accepted`, including for unknown domains or malformed payloads, so the SDK never leaks which projects collect analytics.
+Accepte un événement JSON de `@glossia/web` SDK. Répond toujours `202 Accepted`, y compris pour les domaines inconnus ou les charges utiles malformées, afin que le SDK ne révèle jamais quels projets collectent des données d'analyse.
 
-Le projet est résolu par le domaine du site que l'extrait déclare.`d` est prépondérant ; lorsqu'il est absent, le serveur se rabat sur l'hôte de `u` (l'URL de la page) puis la requête `Origin`/`Referer`.
+Le projet est résolu par le nom de domaine du site déclaré par le snippet. `d` est autoritaire ; en son absence, le serveur se rabat sur le hôte de `u` (l'URL de la page) puis la requête `Origin`/`Referer`.
 
 ### Corps de la requête
 
-| Libellé | Type   | Description                                                  |
+| Champ | Type   | Description                                                  |
 |-------|--------|--------------------------------------------------------------|
-|`d`   | chaîne de caractères | Site du réseau qui identifie le projet (par ex. `example.com`). Requis. |
+| `d`   | string | Nom de domaine du site qui identifie le projet (e.g.," `example.com`. Requis. |
 | `n`   | string | Nom de l'événement. Valeur par défaut `pageview`.                          |
 | `u`   | string | URL de la page (`location.href`).                                  |
-| `r`   | string | Origine (`document.referrer`).                              |
-| `l`   | string | Langues du navigateur (`navigator.languages.join(",")`).         |
+| `r`   | string | Référent (`document.referrer`).                              |
+| `l`   | string | Langues de navigateur (`navigator.languages.join(",")`).         |
 | `tz`  | string | Fuseau horaire IANA (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
 | `sw`  | number | Largeur de l'écran en pixels CSS.                                  |
-| `sid` | string | ID de session par onglet (sessionStorage, effacé à la fermeture).       |
+| `sid` | Chaîne | ID de session par onglet (sessionStorage, effacé à la fermeture).       |
 
-Les CORS sont ouverts (`Access-Control-Allow-Origin: *`) car l'endpoint n'accepte aucune authentification.
+CORS est ouvert (`Access-Control-Allow-Origin: *`) parce que l'endpoint n'accepte aucun identifiant.
 
-## Champs dérivés du serveur
+## Champs dérivés par le serveur
 
-Ils sont calculés à l'ingestion et stockés côté serveur. L'IP brute et l'Utilisateur-Utilisateur ne sont jamais stockés.
+Ces champs sont calculés lors de l'ingestion et stockés côté serveur. L'IP brute et le User-Agent ne sont jamais stockés.
 
-| Champs                                                          | Source    | Description                                                         |
-|-----------------|-----------|---------------------------------------------------------------------|
-| `visitor_id`      | HMAC      | Hachage quotidien pivoté de IP + UA + projet. Non joignable entre jours.  |
-| `country_code`    | GeoIP     | Code ISO 3166-1 alpha-2. Vide si GeoIP n'est pas configuré.        |
-| `device`          | Utilisateur-Agent    | `desktop`, `mobile`, `tablet`, `bot`, ou `unknown`.                 |
-| `browser`         | Utilisateur-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera`, ou `unknown`.       |
-| `os`              | Utilisateur-Agent    | `windows`, `macos`, `ios`, `android`, `linux`, ou `unknown`.        |
-| `hostname`        | URL de la page      | Hôte minuscules.                                                    |
-| `pathname`        | URL de la page      | Composant de chemin.                                                     |
-| `referrer_source` | Origine      | Hôte de l'Origine, `www.`/`m.` retirés.                        |
-| `browser_language`| Langues     | Langue locale normalisée préférée (par ex. `pt-BR`).                    |
-| `served_locale`   | Calculé      | Première cible cible compatible une langue préférée, sinon vide.   |
-| `has_locale_gap`  | Calculé      | `1` lorsque le visiteur privilégie une langue que le projet ne diffuse pas. |
+| Champ             | Source        | Description                                                         |
+|-------------------|---------------|---------------------------------------------------------------------|
+| `visitor_id`      | HMAC          | Hash journalier basé sur l'IP + UA + projet. Non corrélable entre les jours.  |
+| `country_code`    | GeoIP         | Code ISO 3166-1 alpha-2. Vide lorsque GeoIP n'est pas configuré.        |
+| `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot`, ou `unknown`.                 |
+| `browser`         | Agent utilisateur    | `chrome`, `safari`, `firefox`Le document réassemblé a précédemment échoué la validation : la récupération de texte littéral Markdown doit retourner un tableau de chaînes JSON de longueur correspondante `edge`, `opera`, ou `unknown`.       |
+| `os`              | User-Agent    | `windows`, `macos`, `ios`, `android`Le document reconstitué a précédemment échoué la validation : la récupération de texte Markdown doit retourner un tableau de chaînes JSON de longueur correspondante. `linux`Le document réassemblé a précédemment échoué la validation : la récupération de texte littéral Markdown a retourné un JSON invalide `unknown`.        |
+| `hostname`        | URL de la page      | Hôte en minuscules.                                                    |
+| `pathname`        | URL de la page      | Composant du chemin.                                                     |
+| `referrer_source` | Referrer      | Hôte du référent `www.`/`m.` éliminée.                        |
+| `browser_language`| Langues     | Emplacement locale normalisé le plus préféré (par ex. `pt-BR`).                    |
+| `served_locale`   | Calculé      | première cible supportée correspondante à une langue préférée, sinon vide.   |
+| `has_locale_gap`  | Calculé       | `1` lorsque le visiteur privilégie une langue non prise en charge par le projet. |
 
 ## Modèle de confidentialité
 
-- **Aucun stockage côté client.** Le SDK ne définit pas de cookies et stocke uniquement un ID de session par onglet dans `sessionStorage`, qu'il efface le navigateur lors de la fermeture.
-- **Aucune empreinte numérique.** Empreintes de Canvas, WebGL, polices et audio ne sont pas collectées. Le hash serveur tourné quotidiennement fournit des uniques sans elles.
-- **Aucune identifiant brut persisté.** IP et Utilisateur-Agent sont lus une fois, hachés avec un secret serveur et un sel journalier, puis éliminés.
-- **Portage par projet.** Le même navigateur sur deux projets donne des ID de visiteur non liés, donc les visiteurs ne peuvent pas être tracés parmi les clients de Glossia.
+- **Aucun stockage côté client.** L'SDK ne place aucun cookie et ne stocke qu'un identifiant de session par onglet dans `sessionStorage`, ce que le navigateur efface à la fermeture.
+- **Aucune empreinte numérique.** Les empreintes Canvas, WebGL, de police et audio ne sont pas collectées. Le hachage de serveur, roté quotidiennement, fournit des identifiants uniques sans elles.
+- **Aucun identifiant brut n'est conservé.** L'IP et l'User-Agent sont lus une fois, hachés avec un secret de serveur et un sel quotidien, puis effacés.
+- **Portée par projet.** Le même navigateur sur deux projets génère des identifiants de visiteur non apparentés, de sorte que les visiteurs ne peuvent pas être suivis entre les clients Glossia.

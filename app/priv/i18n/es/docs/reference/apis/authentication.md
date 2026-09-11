@@ -8,15 +8,15 @@
 ---
 ## Métodos de autenticación
 
-Glossia admite dos métodos de autenticación dependiendo del contexto.
+Glossia soporta dos métodos de autenticación según el contexto.
 
 ### Sesiones del navegador
 
-Cuando inicias sesión a través de la interfaz web, Glossia utiliza autenticación basada en sesión. Te autenticas mediante un proveedor externo (GitHub o GitLab) usando el [Consentimiento](https://github.com/pow-auth/assent) Biblioteca. Después de un inicio de sesión exitoso, una cookie de sesión se establece y se utiliza para solicitudes posteriores.
+Cuando inicias sesión a través de la interfaz web, Glossia utiliza autenticación basada en sesiones. Te autenticas a través de un proveedor de terceros (GitHub o GitLab) usando el [Assent](https://github.com/pow-auth/assent) librería. Después de un inicio de sesión exitoso, se establece una cookie de sesión y se utiliza para las solicitudes posteriores.
 
 ### Tokens Bearer (OAuth 2.1)
 
-Para el acceso a la API (como desde el CLI u otras herramientas), Glossia implementa OAuth 2.1 con el flujo de autorización con código y PKCE. Los clientes obtienen un token Bearer y lo incluyen en el `Authorization` encabezado:
+Para el acceso a la API (como desde la CLI u otras herramientas), Glossia implementa OAuth 2.1 con el flujo de código de autorización y PKCE. Los clientes obtienen un token Bearer y lo incluyen en el `Authorization` encabezado:
 
     Authorization: Bearer <access_token>
 
@@ -24,7 +24,7 @@ Para el acceso a la API (como desde el CLI u otras herramientas), Glossia implem
 
 ### 1\. Registro dinámico de clientes
 
-Los clientes se registran al invocar `POST /oauth/register` con sus metadatos. Esto sigue [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+Los clientes se registran llamando `POST /oauth/register` con sus metadatos. Esto sigue [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 
 ```json
 {
@@ -38,26 +38,26 @@ El servidor devuelve `client_id` y `client_secret`.
 
 ### 2\. Solicitud de autorización
 
-El cliente redirige al usuario a `/oauth/authorize` con parámetros PKCE:
+El cliente redirige al usuario a `/oauth/authorize` con los parámetros de PKCE:
 
     GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
 
-**PKCE es obligatorio para todos los clientes.** Solo el `S256` método de desafío está soportado.
+**PKCE se requiere para todos los clientes.** Solo el `S256` método de desafío está soportado.
 
 ### 3\. Intercambio de tokens
 
-Después de que el usuario aprueba, el cliente intercambia el código de autorización por tokens en `POST /oauth/token`:
+Tras la aprobación del usuario, el cliente intercambia el código de autorización por tokens en `POST /oauth/token`:
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
     
     grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
 
-La respuesta incluye un token de acceso y opcionalmente un token de actualización.
+La respuesta incluye un token de acceso y opcionalmente un token de renovación.
 
-### 4\. Actualización de tokens
+### 4\. Renovación de tokens
 
-Cuando un token de acceso caduca, utilice el token de actualización:
+Cuando un token de acceso caduca, utilice el token de renovación:
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
@@ -66,38 +66,38 @@ Cuando un token de acceso caduca, utilice el token de actualización:
 
 ## Alcances
 
-Los alcances controlan las acciones que puede realizar un token. Siguen el `object:action` patrón.
+Los alcances controlan qué acciones puede realizar un token. Siguen la `object:action` patrón.
 
 | Alcance | Descripción |
 |-------|-------------|
-| `user:read` | Leer información del perfil de usuario |
+| `user:read` | Leer información de perfil de usuario |
 | `user:write` | Actualizar perfil de usuario |
-| `account:read` | Listar las cuentas de organización a las que tienes acceso |
+| `account:read` | Lista las cuentas de organización a las que puedes acceder |
 | `organization:read` | Ver los detalles de la organización (y listar tus organizaciones) |
 | `organization:write` | Crear o actualizar organizaciones |
 | `organization:delete` | Eliminar organizaciones |
 | `organization:admin` | Acciones administrativas de la organización |
-| `members:read` | Ver miembros y invitaciones de la organización |
-| `members:write` | Gestionar miembros y invitaciones de la organización |
+| `members:read` | Ver miembros de la organización y invitaciones |
+| `members:write` | Gestionar miembros de la organización y invitaciones |
 | `project:read` | Ver proyectos |
 | `project:write` | Crear o actualizar proyectos |
-| `project:admin` | Acciones administrativas del proyecto |
+| `project:admin` | Acciones administrativas de proyectos |
 | `project:delete` | Eliminar proyectos |
-| `voice:read` | Leer configuración de voz |
+| `voice:read` | Ver configuración de voz |
 | `voice:write` | Crear o actualizar configuración de voz |
 | `voice:admin` | Acciones administrativas de voz |
 | `glossary:read` | Leer entradas de terminología |
 | `glossary:write` | Crear o actualizar entradas de terminología |
-| `glossary:admin` | Administrar la terminología |
+| `glossary:admin` | Gestionar configuraciones de terminología |
 
 ## Modelo de autorización
 
-Glossia impone **dos capas** para el REST API y el MCP server:
+Glossia aplica **dos capas** para la REST API y el servidor MCP:
 
-1. **Comprobación de alcance**: el token de acceso debe incluir el requerido `object:action` alcance.
-2. **Política a nivel de recurso**: el usuario actual debe estar autorizado para el recurso específico a través de `Glossia.Policy`.
+1. **Verificación de alcance**: el token de acceso debe incluir el requerido `object:action` alcance.\]
+2. **Política a nivel de recurso**: el usuario actual debe estar autorizado para el recurso específico a través `Glossia.Policy`.
 
-Los ámbitos representan la *máxima* capacidad de un token. El sistema de políticas aplica el *real* permiso para un recurso específico.
+Los alcances representan el *máximo* capacidad de un token. El sistema de políticas aplica el *efectivo* permiso para un recurso específico.
 
 ### Roles
 
@@ -105,8 +105,8 @@ Los ámbitos representan la *máxima* capacidad de un token. El sistema de polí
 |------|-------------|
 | `self` | El usuario que accede a sus propios recursos |
 | `organization_member` | Un miembro de la organización que posee el recurso |
-| `organization_admin` \\| Un administrador de la organización que posee el recurso \\
-\\| `public_account` \\| La cuenta es pública (solo lectura) \\|
+| `organization_admin` | Un administrador de la organización que posee el recurso |
+| `public_account` | La cuenta es pública (solo lectura) |
 
 ### Permisos de rol
 
@@ -114,7 +114,7 @@ Los ámbitos representan la *máxima* capacidad de un token. El sistema de polí
 |-------|------|----------------------|--------------------|----------------|
 | `user:read` | Sí | Sí | | |
 | `user:write` | Sí | | | |
-| `account:read` | | Sí | Sí |
+| `account:read` | | Sí | Sí | Sí |
 | `organization:read` | | Sí | Sí | |
 | `organization:write` | | | Sí | |
 | `organization:delete` | | | Sí | |
@@ -134,29 +134,29 @@ Los ámbitos representan la *máxima* capacidad de un token. El sistema de polí
 
 ## Endpoints de descubrimiento
 
-Glossia publica metadatos en URLs estándar y bien conocidas para que los clientes puedan descubrir automáticamente los endpoints.
+Glossia publica metadatos en URLs estándar bien conocidas para que los clientes puedan descubrir endpoints automáticamente.
 
-### Metadatos del servidor de autorización OAuth (RFC 8414)
+### Metadata del Servidor de Autorización OAuth (RFC 8414)
 
     GET /.well-known/oauth-authorization-server
 
-Devuelve el emisor, endpoints, alcances admitidos, tipos de concesión y métodos de desafío de código.
+Devuelve el emisor, endpoints, alcances soportados, tipos de concesión y métodos de desafío de código.
 
-### Metadatos de recursos protegidos (RFC 9728)
+### Metadata de Recursos Protegidos (RFC 9728)
 
     GET /.well-known/oauth-protected-resource
 
-Devuelve el identificador de recurso, servidores de autorización, alcances admitidos y métodos de portador.
+Devuelve el identificador del recurso, servidores de autorización, alcances soportados y métodos de portador.
 
 ## Limitación de tasa
 
-Los puntos finales OAuth están limitados por tasa por dirección IP:
+Los puntos finales de OAuth están limitados por tasa por dirección IP:
 
 | Punto final | Límite |
 |----------|-------|
-| `POST /oauth/register` | 5 solicitudes por minuto |
-| `POST /oauth/token` | 30 solicitudes por minuto |
+| `POST /oauth/register` | 5 peticiones por minuto |
+| `POST /oauth/token` | 30 peticiones por minuto |
 | `POST /oauth/revoke` | 30 solicitudes por minuto |
 | `POST /oauth/introspect` | 30 solicitudes por minuto |
 
-Cuando se excede el límite de tasa, el servidor devuelve HTTP 429 (Demasiadas solicitudes).
+Cuando está limitado por la tasa, el servidor devuelve HTTP 429 (Demasiadas Solicitudes).
