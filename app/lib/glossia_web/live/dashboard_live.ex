@@ -802,7 +802,13 @@ defmodule GlossiaWeb.DashboardLive do
       page_title: gettext("New model"),
       model_form:
         to_form(
-          %{"handle" => "", "model" => "", "api_key" => ""},
+          %{
+            "handle" => "",
+            "model" => "",
+            "api_key" => "",
+            "base_url" => "",
+            "translation_concurrency" => ""
+          },
           as: :model
         ),
       model_form_valid?: false,
@@ -867,13 +873,19 @@ defmodule GlossiaWeb.DashboardLive do
           %{
             "handle" => model.handle,
             "model" => model.model,
+            "base_url" => model.base_url,
+            "translation_concurrency" =>
+              (model.translation_concurrency && to_string(model.translation_concurrency)) || "",
             "api_key" => ""
           },
           as: :model
         ),
       model_edit_original: %{
         "handle" => model.handle,
-        "model" => model.model
+        "model" => model.model,
+        "base_url" => model.base_url || "",
+        "translation_concurrency" =>
+          (model.translation_concurrency && to_string(model.translation_concurrency)) || ""
       },
       model_edit_changed?: false,
       model_picker_options_json: JSON.encode!(model_picker_options),
@@ -3177,6 +3189,8 @@ defmodule GlossiaWeb.DashboardLive do
     String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
       String.trim(params["model"] || "") != String.trim(original["model"] || "") or
       String.trim(params["base_url"] || "") != String.trim(original["base_url"] || "") or
+      String.trim(params["translation_concurrency"] || "") !=
+        String.trim(original["translation_concurrency"] || "") or
       String.trim(params["api_key"] || "") != ""
   end
 
@@ -12645,6 +12659,18 @@ defmodule GlossiaWeb.DashboardLive do
                       )
                     }
                   />
+                  <Noora.TextInput.text_input
+                    id="model-translation-concurrency"
+                    field={@model_form[:translation_concurrency]}
+                    error={model_field_error(@model_form[:translation_concurrency])}
+                    label={gettext("Translation concurrency")}
+                    placeholder={gettext("e.g. 5")}
+                    hint={
+                      gettext(
+                        "Optional. Cap on concurrent translations sent to this model in a run. Leave empty to fan out as wide as the repository. Lower this if the provider's per-model rate limit rejects a large parallel run."
+                      )
+                    }
+                  />
                 </div>
               </Noora.Card.card_section>
             </div>
@@ -12710,6 +12736,18 @@ defmodule GlossiaWeb.DashboardLive do
                     hint={
                       gettext(
                         "Route this model through a custom gateway endpoint. Leave empty to use the provider default."
+                      )
+                    }
+                  />
+                  <Noora.TextInput.text_input
+                    id="edit-model-translation-concurrency"
+                    field={@model_edit_form[:translation_concurrency]}
+                    error={model_field_error(@model_edit_form[:translation_concurrency])}
+                    label={gettext("Translation concurrency")}
+                    placeholder={gettext("e.g. 5")}
+                    hint={
+                      gettext(
+                        "Cap on concurrent translations sent to this model in a run. Leave empty to fan out as wide as the repository. Lower this if the provider's per-model rate limit rejects a large parallel run."
                       )
                     }
                   />
