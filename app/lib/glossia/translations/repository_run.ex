@@ -30,9 +30,6 @@ defmodule Glossia.Translations.RepositoryRun do
   @assessment_progress_interval 25
   @completed_output_preview_length 2_000
   @completed_output_preview_bytes 8_000
-  # No fixed default: the fan-out follows the size of the planned work unless an
-  # operator caps it explicitly. See `translation_concurrency/2`.
-  @default_translation_concurrency 0
   @seq_key :translation_progress_seq
 
   @doc """
@@ -57,10 +54,23 @@ defmodule Glossia.Translations.RepositoryRun do
       context_node: progress_node,
       context_snapshot: context_snapshot,
       seq_start: seq_start,
-      after_item_completed: Keyword.get(run_opts, :after_item_completed)
+      after_item_completed: Keyword.get(run_opts, :after_item_completed),
+      # Cap the run's fan-out at whatever the account's default LLM model
+      # declares in its `translation_concurrency` column. This is what lets a
+      # person who brings a rate-limited inference provider dial the run
+      # down to something the provider will tolerate. `nil` means "no cap on
+      # this account", and the global env / default takes over.
+      translation_concurrency: account_translation_concurrency(account)
     ]
 
     run_here(session, account, repository, locales, opts)
+  end
+
+  defp account_translation_concurrency(account) do
+    case Glossia.Translations.Credentials.resolve(account, nil) do
+      {:ok, %{translation_concurrency: cap}} when is_integer(cap) and cap > 0 -> cap
+      _ -> nil
+    end
   end
 
   defp run_here(session, account, repository, locales, opts) do
@@ -401,19 +411,19 @@ defmodule Glossia.Translations.RepositoryRun do
   # A configured value caps the fan-out; anything else means "as wide as the
   # work", which is what makes a run take as long as its slowest file rather
   # than as long as the sum of every file divided by a guessed constant.
+  #
+  # The cap comes from the resolved LLM model's `translation_concurrency`
+  # column — every inference provider has its own per-model quota, and that
+  # is where the operator declares it. Whichever value wins is still clamped
+  # to the HTTP pool and to the item count so we do not queue past what the
+  # connection pool can actually service.
   defp translation_concurrency(opts, item_count) do
-    configured =
-      Keyword.get(
-        opts,
-        :translation_concurrency,
-        Application.get_env(:glossia, :translation_concurrency, @default_translation_concurrency)
-      )
-
     ceiling = min(max(item_count, 1), http_pool_size())
 
-    if is_integer(configured) and configured > 0,
-      do: min(configured, ceiling),
-      else: ceiling
+    case Keyword.get(opts, :translation_concurrency) do
+      value when is_integer(value) and value > 0 -> min(value, ceiling)
+      _ -> ceiling
+    end
   end
 
   # Every concurrent file holds one connection to the gateway for the length of
