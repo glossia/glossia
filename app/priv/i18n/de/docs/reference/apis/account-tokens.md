@@ -1,89 +1,89 @@
 %{
-  title: "Account-Token",
+  title: "Account-Tokene",
   summary: "Erstellen und Verwalten von Account-Token zur Authentifizierung mit der Glossia API.",
   category: "Referenz",
   subcategory: "APIs",
   order: 2
 }
 ---
-Account-Tokens bieten einen einfachen Weg, API-Anfragen zu authentifizieren, ohne den vollständigen OAuth-Flow zu durchlaufen. Sie sind ideal für Skripte, CI/CD-Pipelines und persönliche Automatisierung.
+Kontotoken bieten einen einfachen Weg, API-Anfragen zu authentifizieren, ohne den vollständigen OAuth-Workflow durchlaufen zu müssen. Sie eignen sich ideal für Skripte, CI/CD-Pipelines und persönliche Automatisierung.
 
 ## Token erstellen
 
-1. Melden Sie sich bei Glossia an und navigieren Sie zu Ihrem Account-Dashboard.
-2. Öffnen Sie den **API** Abschnitt aus der Seitenleiste.
-3. Klicken Sie **Account-Tokens**, dann **Neues Token**.
-4. Geben Sie dem Token einen beschreibenden **Namen** (beispielsweise "CI-Bereitstellung" oder "CLI-Zugriff").
-5. Wählen Sie die **Bereiche** das Token benötigt. Gewähren Sie nur die minimal erforderlichen Berechtigungen.
-6. Legen Sie ein **Ablaufdatum** oder lassen Sie es leer für ein Token, das niemals abläuft.
+1. Melden Sie sich bei Glossia an und navigieren Sie zu Ihrem Kontodashboard.
+2. Öffnen Sie die **API** Sektion in der Seitenleiste.
+3. Klicken Sie **Kontotoken**, dann **Neuer Token**.
+4. Geben Sie dem Token einen aussagekräftigen **Name** (beispielsweise "CI deploy" oder "CLI access").
+5. Wählen Sie die **Bereiche** die der Token benötigt. Gewähren Sie nur die erforderlichen Mindestberechtigungen.
+6. Legen Sie ein **Ablaufdatum** oder lassen Sie es leer für einen Token, der nie abläuft.
 7. Klicken **Token erstellen**.
 
-Nach der Erstellung wird der vollständige Token-Wert angezeigt. **einmal**. Kopieren Sie ihn sofort und speichern Sie ihn sicher. Sie werden den vollständigen Wert nicht wieder einsehen können.
+Nach der Erstellung wird der vollständige Token-Wert angezeigt. **einmal**. Kopieren Sie es sofort und speichern Sie es sicher. Sie werden den vollen Wert nicht mehr sehen können.
 
-## Verwendung eines Tokens
+## Token verwenden
 
-Fügen Sie den Token in den `Authorization` Header Ihrer HTTP-Anfragen:
+Fügen Sie das Token in den `Authorization` Header Ihrer HTTP-Anfragen:
 
     Authorization: Bearer glsa_abc123def456...
 
-Beispielsweise verwenden `curl`:
+Zum Beispiel, mit `curl`:
 
 ```bash
 curl -H "Authorization: Bearer glsa_abc123def456..." \
   https://glossia.ai/api/projects
 ```
 
-Account-Tokens folgen demselben [Autorisierungsmodell](/docs/reference/apis/authentication) als OAuth-Token. Die Token-Bereiche definieren die maximalen Aktionen, die es ausführen kann, und Richtlinien auf Ressourcenebene gelten weiterhin basierend auf den Beziehungen Ihres Kontos.
+Konto-Token folgen demselben [Autorisierungsmodell](/docs/reference/apis/authentication) als OAuth-Tokens. Die Berechtigungen des Tokens definieren den maximalen Satz an Aktionen, die er ausführen kann, und Richtlinien auf Ressourcenlevel-Richtlinien gelten weiterhin basierend auf den Beziehungen Ihres Kontos.
 
 ## Token-Format
 
-Alle Kontotoken beginnen mit dem `glsa_` Prefix, gefolgt von einem zufälligen Hex-String. Dieser Prefix erleichtert die Identifizierung von Glossia-Token in Logs und Secret Scannern.
+Alle Kontotoken beginnen mit dem `glsa_` Präfix gefolgt von einer zufälligen Hex-Zeichenfolge. Dieses Präfix erleichtert die Identifizierung von Glossia-Token in Protokollen und Secret-Scannern.
 
-## Bereiche
+## Berechtigungen
 
-Kontotoken unterstützen die gleichen Bereiche wie OAuth-Token. Siehe die [Bereiche-Referenz](/docs/reference/apis/authentication) für die vollständige Liste.
+Kontotoken unterstützen die gleichen Berechtigungen wie OAuth-Tokens. Siehe die [Berechtigungsreferenz](/docs/reference/apis/authentication) für die vollständige Liste.
 
-Bei der Erstellung eines Tokens wählen Sie nur die Bereiche aus, die Ihr Anwendungsfall benötigt. Zum Beispiel:
+Beim Erstellen eines Tokens wählen Sie nur die Scopes aus, die Ihr Anwendungsfall benötigt. Zum Beispiel:
 
 - Eine schreibgeschützte Integration benötigt `project:read` und `voice:read`.
 - Eine CI-Pipeline, die Projekte erstellt, benötigt `project:read` und `project:write`.
-- Ein Script, das Organisationsmitglieder verwaltet, benötigt `members:read` und `members:write`.
+- Ein Skript, das Organisationsmitglieder verwaltet, benötigt `members:read` und `members:write`.
 
 ## Token verwalten
 
 ### Token ansehen
 
-Die **Konto-Token** Seite listet alle aktiven Token mit deren Namen, Berechtigungen, letztem Nutzungsdatum und Ablaufdatum auf. Token, die noch nie verwendet wurden, zeigen "Niemals" in der Spalte für letzte Nutzung.
+Die **Account-Token** Seite listet alle aktiven Token mit Name, Bereichen, Datum der letzten Nutzung und Ablaufdatum auf. Token, die noch nie verwendet wurden, zeigen "Nie" in der Spalte "Zuletzt verwendet".
 
-### Tokens bearbeiten
+### Token bearbeiten
 
-Klicken Sie auf den Namen eines Tokens, um dessen **Namen** und **die Beschreibung**. Bereiche und Laufzeit können nach der Erstellung nicht geändert werden. Wenn Sie andere Bereiche benötigen, erstellen Sie einen neuen Token und widerrufen Sie den alten.
+Klicken Sie auf den Token-Namen, um dessen **Namen** und **Beschreibung**. Bereiche und Ablauf können nach der Erstellung nicht geändert werden. Wenn Sie verschiedene Bereiche benötigen, erstellen Sie ein neues Token und widerrufen Sie das alte.
 
-### Tokens widerrufen
+### Token widerrufen
 
-Um einen Token zu widerrufen, klicken Sie **Widerrufen** in der Tokenliste oder öffnen Sie die Bearbeitungsseite des Tokens und verwenden Sie die **Token widerrufen** Schaltfläche im Warnbereich. Widerrufene Tokens funktionieren sofort nicht mehr und können nicht wiederhergestellt werden.
+Um ein Token zu widerrufen, klicken **Widerrufen** auf der Tokenliste oder öffnen Sie die Bearbeitungsseite des Tokens und verwenden Sie die **Token widerrufen** Schaltfläche in der Gefahrenzone. Widerrufene Tokens funktionieren sofort nicht mehr und können nicht wiederhergestellt werden.
 
-## Beste Sicherheitspraktiken
+## Sicherheitsempfehlungen
 
-- **Bewahren Sie Tokens sicher auf.** Verwenden Sie Umgebungsvariablen oder einen Secrets Manager. Vermeiden Sie das Speichern von Tokens in der Versionskontrolle.
-- **Verwenden Sie kurzlebige Tokens.** Legen Sie ein Ablaufdatum fest, falls möglich.
-- **Minimieren Sie die Scopes.** Erteilen Sie nur die Berechtigungen, die das Token tatsächlich benötigt.
-- **Rotieren Sie regelmäßig.** Erstellen Sie neue Tokens und widerrufen Sie die alten nach Zeitplan.
-- **Überwachen Sie die Token-Nutzung.** Überprüfen Sie das Datum "Zuletzt verwendet" regelmäßig. Widerrufen Sie Tokens, die nicht mehr genutzt werden.
-- **Verwenden Sie ein Token pro Integration.** Auf diese Weise beeinträchtigt das Widerrufen eines Tokens keine anderen Arbeitsabläufe.
+- **Speichern Sie Tokens sicher.** Verwenden Sie Umgebungsvariablen oder einen Secrets-Manager. Laden Sie Token niemals in die Versionskontrolle hoch.
+- **Verwenden Sie kurzlebige Tokens.** Legen Sie ein Ablaufdatum fest, wann immer möglich.
+- **Minimieren Sie die Berechtigungsbereiche.** Gewähren Sie nur die Berechtigungen, die dem Token tatsächlich benötigt werden.
+- **Rotieren Sie Token regelmäßig.** Erstellen Sie neue Token und widerrufen Sie alte Token nach einem Zeitplan.
+- **Überwachen Sie die Nutzung.** Prüfen Sie das Datum "zuletzt verwendet" regelmäßig. Widerrufen Sie Token, die nicht mehr genutzt werden.
+- **Verwenden Sie ein Token pro Integration.** Auf diese Weise beeinträchtigt das Widerrufen eines Tokens andere Workflows nicht.
 
-## API-Verwaltung
+## API-Management
 
-Sie können auch Account-Tokens über die REST API und den MCP-Server verwalten.
+Sie können auch Kontotoken über die REST API und den MCP-Server verwalten.
 
 ### REST API
 
 | Methode | Endpunkt | Beschreibung |
 |--------|----------|-------------|
-| `GET` | `/api/tokens` | Aktive Tokene auflisten |
-| `POST` | `/api/tokens` | Einen neuen Token erstellen |
-| `DELETE` | `/api/tokens/:id` | Ein Token widerrufen |
+| `GET` | `/api/tokens` | Aktive Tokens auflisten |
+| `POST` | `/api/tokens` | Neuen Token erstellen |
+| `DELETE` | `/api/tokens/:id` | Token widerrufen |
 
 ### MCP
 
-Der MCP-Server bietet `list_tokens`, `create_token`, und `revoke_token` Werkzeuge, die die REST-API abbilden.
+Der MCP-Server bietet `list_tokens`, `create_token`, und `revoke_token` Werkzeuge, die die REST-API spiegeln.
