@@ -1,15 +1,15 @@
 {
-  "hash": "b5e52cc802a479718d894ebfc50b94b9032902e6b289471bf8dcc290092dfa3b",
+  "hash": "1e4edc63c2e29a84781ca95913deeabc449e75115cb90775b78e3d14d6c874c5",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "4577d4b525ffb3b26b22c5a7f3b4eef1b40140495ca382595a1130777670991a",
+          "hash": "6f87f68b48606e23b0938f2707c5959b5e4379233411491cd20658310668a7d1",
           "kind": "source",
           "label": "app/priv/docs/reference/project-setup.md",
           "metadata": {
-            "content_hash": "7aca32358431d10d917aee15dd7de4934879aab2863230383eb560d50097d59b"
+            "content_hash": "7c1a8527293b1c32c7432e0726eb753bfda7769d09a0c2880367dbc9dd39207e"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "464364e28833a2f035959b4593288f9178e6d42c43f95a23844f20a870064884",
+          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "b5e52cc802a479718d894ebfc50b94b9032902e6b289471bf8dcc290092dfa3b",
+      "hash": "1e4edc63c2e29a84781ca95913deeabc449e75115cb90775b78e3d14d6c874c5",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/project-setup.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "7ae3a39f7ad807dd22406ac4697f39bdafcf9cb04e515ed269cb6e0adc6a6d31",
+  "output_hash": "6a167b8d781bb8e9b51ba15017cd373de8a5905f0c67ab43ed830c67f1fd696d",
   "output_path": "app/priv/i18n/es/docs/reference/project-setup.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/reference/project-setup.md",
-  "translated_at": "2026-09-01T11:48:48.590784Z"
+  "translated_at": "2026-09-11T16:51:31.410272Z"
 }
