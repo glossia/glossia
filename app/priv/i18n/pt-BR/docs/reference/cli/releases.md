@@ -1,6 +1,6 @@
 %{
   title: "Lançamentos",
-  summary: "Histórico de lançamentos do CLI.",
+  summary: "Histórico de lançamentos da CLI.",
   category: "Referência",
   subcategory: "CLI",
   order: 2
@@ -10,10 +10,10 @@
 
 *2026-02-14*
 
-#### Correções de Bug
+#### Correções de bugs
 
-- Renomeia o binário dentro dos arquivos de lançamento do nome específico da plataforma apenas para `glossia`.
-- Remove o atributo xattr de quarentena do macOS dos binários antes do empacotamento.
+- Renomeie o binário dentro dos arquivos de release do nome específico da plataforma para apenas `glossia`.
+- Remova o xattr de quarentena do macOS dos binários antes de empacotar.
 
 ## 0.14.0
 
@@ -21,61 +21,61 @@
 
 #### Funcionalidades
 
-- Adiciona script de lançamento local e fluxo de trabalho de registro de alterações mantido manualmente.
+- Adicione script de liberação local e fluxo de trabalho de registro de alterações mantido manualmente.
 
 ## 0.2.0
 
 *2026-02-14*
 
-#### Correções de Bug
+#### Correções de Bugs
 
-- Torna a configuração do provedor OAuth opcional na produção. O aplicativo deve iniciar mesmo sem as credenciais OAuth do GitHub/GitLab definidas. Configure os provedores apenas quando as variáveis de ambiente estiverem presentes.
-- Padrão na porta 4000 para produção e mantenha 4050 para desenvolvimento. O proxy de produção espera o aplicativo na porta 4000. O padrão em `runtime.exs` era 4050, o que causou falha nas verificações de saúde durante a implantação.
+- Torne a configuração do provedor OAuth opcional na produção. O aplicativo deve iniciar mesmo sem credenciais OAuth do GitHub/GitLab configuradas. Configure provedores apenas quando as variáveis de ambiente estiverem presentes.
+- Use a porta 4000 por padrão na produção e mantenha o 4050 no desenvolvimento. O proxy de produção espera o aplicativo na porta 4000. O `runtime.exs` o padrão era 4050, o que fez com que as verificações de saúde falhassem durante o deployment.
 
 #### Funcionalidades
 
-- Adiciona aplicativo Phoenix com login OAuth, melhorias de documentação e aprimoramentos de interface.
-- Utiliza o logomarca arredondado como favicon.
-- Migra CLI para Bun e atualiza builds executáveis de CI.
+- Adicionar app Phoenix com login OAuth, melhorias na documentação e na interface.
+- Usar logotipo arredondado como favicon.
+- Migrar CLI para Bun e atualizar builds executáveis da CI.
 
 ## 0.1.0
 
 *2026-02-12*
 
-#### Correções de Bug
+#### Correções de bugs
 
-- Impede o desbordamento horizontal de trecho de código no mobile.
-- Adiciona margem direita adequada aos trechos de código no mobile.
-- Melhora o layout responsivo do mobile para evitar desbordamento horizontal.
-- Aplica formatação Biome.
-- Adiciona títulos de grupo ao modelo de notas de lançamento.
-- Atualiza fluxo de trabalho de tradução de Bun para Rust.
-- Alinha o corpo do post com o layout de destaque e melhora o conteúdo do post do blog.
-- Centraliza o conteúdo do post do blog horizontalmente.
-- Corrige o panic ao truncar resultados de ferramentas UTF-8 de múltiplos bytes.
+- Evitar desbordamento horizontal de snippets de código no mobile.
+- Adicione margem direita adequada aos trechos de código no mobile.
+- Melhore o layout responsivo para mobile para evitar desbordamento horizontal.
+- Aplique a formatação do Biome.
+- Adicione títulos de grupo ao modelo de notas de versão.
+- Atualize o fluxo de trabalho de tradução do Bun para Rust.
+- Alinhe o corpo do post com o layout de destaque e melhore o conteúdo do post do blog.
+- Centralize horizontalmente o conteúdo do post do blog.
+- Corrija o pânico ao truncar resultados de ferramentas em UTF-8 de múltiplos bytes.
 
 #### Funcionalidades
 
-- Adiciona seção de ferramentas próprias e site.
-- Exibe as etapas de verificação das ferramentas.
-- Simplifica a saída de progresso.
-- Aplica um tom às linhas de progresso.
-- Mostra atividade de tradução e validação.
-- Formata as linhas de ferramentas.
-- Deixa o site responsivo com menu mobile e layout de múltiplos pontos de quebra.
-- Reimplementa CLI em Bun/TypeScript.
-- Adiciona fluxo de trabalho CI e testes.
-- Adiciona verificação de formatação com Biome.
-- Adiciona seção de Refinamento Progressivo à página inicial.
-- Adiciona seção de blog com suporte para SEO e primeiro post do blog.
-- Unifica saída CLI com formato de verbo alinhado à direita.
-- Adiciona cores à saída CLI com formatação de mensagens mais rica.
-- Adiciona imagem quadrada de OG e etiquetas meta de cartão do Twitter.
-- Torna o agente coordenador agêntrico com uso de ferramentas.
-- Reescreve `glossia init` com Protocolo de Cliente de Agente (ACP).
+- Adicionar ferramentas próprias e seção do site.
+- Evidenciar etapas de verificação de ferramentas.
+- Simplificar a saída de progresso.
+- Colorir linhas de progresso.
+- Exibir atividade de tradução e validação.
+- Formatar linhas de ferramentas.
+- Tornar o site responsivo com menu mobile e layout de múltiplos pontos de quebra.
+- Reimplemente o CLI no Bun/TypeScript.
+- Adicione workflow de CI e testes.
+- Adicione verificação de formato com Biome.
+- Adicione a seção Refinamento Progressivo à página inicial.
+- Adicione a seção de blog com suporte a SEO e o primeiro post.
+- Unifique a saída do CLI com formato de verbos alinhados à direita.
+- Adicione cores à saída do CLI com formatação de mensagens mais rica.
+- Adicione a imagem quadrada OG e as tags meta de cartão Twitter.
+- Torna o agente coordenador autônomo com uso de ferramentas.
+- Reescrita `glossia init` com o Protocolo do Cliente Agente (ACP).
 - Adiciona suporte ao Gemini, validação automática, rastreamento de tokens e melhorias de confiabilidade.
 
 #### Refatorações
 
-- Divide CI em trabalhos de formatação, typecheck, teste e build separados.
-- Reescreve CLI de TypeScript/Bun para Rust.
+- Separa o CI em tarefas separadas de formatação, verificação de tipos, testes e compilação.
+- Reescreve o CLI do TypeScript/Bun para Rust.

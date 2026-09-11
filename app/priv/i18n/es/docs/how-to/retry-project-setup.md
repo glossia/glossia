@@ -1,33 +1,33 @@
 %{
   title: "Reintentar la configuración del proyecto",
-  summary: "Recuperar un proyecto después de que la configuración reporte un fallo.",
-  category: "Guía",
+  summary: "Recuperar un proyecto tras un fallo en la configuración.",
+  category: "Cómo",
   order: 4
 }
 ---
-Utilice **Reintentar configuración** después de corregir la condición que provocó que la configuración del proyecto fallara.
+Usa **Reintentar configuración** después de corregir la condición que provocó el fallo de la configuración del proyecto.
 
-## 1\. Lea el fallo
+## 1\. Leer el fallo
 
-Abra la vista general del proyecto. La tarjeta de progreso de configuración muestra el fallo y la actividad de configuración más reciente.
+Abre el resumen del proyecto. La tarjeta de progreso de configuración muestra el fallo y la actividad de configuración más reciente.
 
 Las causas comunes incluyen:
 
 - La cuenta no tiene un modelo configurado.
 - La clave del proveedor falta o ya no es válida.
 - La aplicación de GitHub de Glossia no puede acceder al repositorio.
-- El repositorio no pudo prepararse o verificarse.
+- El repositorio no pudo prepararse ni verificarse.
 
-## 2\. Corregir el prerrequisito
+## 2\. Solucione el prerrequisito
 
-Para problemas de modelos, abra **Configuración** y **Modelos**. Para problemas de acceso al repositorio, actualice la instalación de la aplicación de GitHub de Glossia en GitHub y otorganle acceso al repositorio.
+Para problemas de modelo, abra **Ajustes** y **Modelos**. Para problemas de acceso al repositorio, actualice la instalación de la aplicación de GitHub de Glossia en GitHub y otórquele acceso al repositorio.
 
 ## 3\. Reintentar
 
-Vuelva a la vista general del proyecto y seleccione **Reintentar configuración**.
+Volver al resumen del proyecto y seleccionar **Reintentar configuración**.
 
-La tarjeta vuelve a **Pendiente**, luego **En ejecución**, y muestra nueva actividad a medida que avanza el trabajo. Reintentar está disponible solo mientras el proyecto se encuentra en estado **Fallido**, lo que impide que dos intentos de configuración se ejecuten al mismo tiempo.
+La tarjeta vuelve a **Pendiente**, luego **En ejecución**, y muestra nueva actividad a medida que avanza el trabajo. El reintento solo está disponible mientras el proyecto se encuentra en **Fallido** estado, lo que evita que dos intentos de configuración se ejecuten al mismo tiempo.
 
-## 4\. Revisar la finalización
+## 4\. Revisión de la finalización
 
-Cuando el estado cambie a **Completado**, revise la solicitud de extracción resultante en GitHub. Si falla nuevamente, utilice la nueva actividad en la tarjeta en lugar del intento anterior para identificar la siguiente acción.
+Cuando el estado cambia a **Completado**, revisa la solicitud de extracción resultante en GitHub. Si falla de nuevo, utiliza la nueva actividad en la tarjeta en lugar del intento anterior para identificar la siguiente acción.

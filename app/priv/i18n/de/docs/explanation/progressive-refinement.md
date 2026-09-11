@@ -1,29 +1,29 @@
 %{
   title: "Progressive Verfeinerung",
   summary:
-    "Warum sich die Inhaltsqualität im Laufe der Zeit verbessert, nicht in einem einzigen Durchlauf.",
-  category: "Erläuterung",
+    "Warum sich die Inhaltsqualität im Laufe der Zeit verbessert, nicht in einem Druchlauf.",
+  category: "Erklärung",
   order: 1
 }
 ---
-Erste Entwürfe von[großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind zwar strukturell korrekt, können aber Nuancierungen, Ton oder domänenspezifische Formulierung verpassen. Das ist beabsichtigt. Glossia behandelt die Inhaltsgenerierung genauso wie Softwareteams Code: veröffentlichen Sie eine funktionierende Version, überprüfen Sie diese und verbessern Sie sie iterativ.
+Erste Entwürfe von [große Sprachmodelle](https://en.wikipedia.org/wiki/Large_language_model) sind strukturell korrekt, können jedoch Nuancen, Ton oder branchenspezifische Formulierungen übersehen. Das ist absichtlich so konzipiert. Glossia behandelt die Inhaltsgenerierung genauso, wie Software-Teams Code behandeln: Veröffentlichen Sie eine funktionierende Version, überprüfen Sie sie und verbessern Sie sie iterativ.
 
-## Der Verfeinerungszyklus
+## Der Verfeinerungsloop
 
-1. **Entwurf**: Glossia generiert einen ersten, strukturell gültigen Entwurf basierend auf Ihren Quelldateien und dem Kontext in `GLOSSIA.md`.
-2. **Überprüfung**: Ihr Team meldet Probleme über Pull Requests und Diffs, den Workflow, den Sie bereits für Code verwenden.
-3. **Verfeinern**: Aktualisierte Kontextdateien, Terminologiekorrekturen und Feedback aus der Überprüfung fließen in den nächsten Durchlauf ein.
-4. **Konvergenz**: Jeder Zyklus verringert die Distanz zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts aus dem bereitgestellten Kontext.
+1. **Entwurf**: Glossia erstellt einen strukturell korrekten ersten Entwurf basierend auf Ihren Quelldateien und dem Kontext in `L10N.md`.
+2. **Überprüfung**: Ihr Team meldet Probleme über Pull-Requests und Diffs, den gleichen Workflow, den ihr bereits für Code nutzt.
+3. **Verfeinern**: Aktualisierte Kontextdateien, Terminologie-Korrekturen und Rückmeldungen aus der Prüfung fließen in den nächsten Durchlauf ein.
+4. **Konvergenz**: Jeder Durchlauf verringert den Abstand zur Produktionsqualität. Das System lernt die Stimme eures Produkts aus dem Kontext, den ihr bereitstellt.
 
-## Warum dies funktioniert
+## Warum das funktioniert
 
-Der Schlüssel liegt darin, dass sich Kontext ansammelt.`GLOSSIA.md` oder ein korrigierter Terminologieu verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Überprüfung ausgelöst hat.
+Die wesentliche Erkenntnis ist, dass Kontext anhäuft. Jeder Prüfkommentar, der zu einer aktualisierten `L10N.md` oder ein korrigierter Terminologie-Eintrag verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Prüfung ausgelöst hat.
 
-Dies basiert auf demselben Prinzip von Kaizen in der Fertigung und successive approximation im Ingenieurwesen: Starten Sie mit einer ausreHow guten Basislinien und verbessern Sie diese systematisch durch menschliches Urteil im Loop.
+Dies folgt demselben Prinzip wie Kaizen in der Fertigung und der sukzessiven Annäherung im Ingenieurwesen: Starten Sie mit einer brauchbaren Basis und verbessern Sie diese systematisch durch menschliches Urteilsvermögen im Prozess.
 
 ## Praktische Implikationen
 
-- Erwarten Sie im ersten Durchlauf keine Perfektion. Planen Sie einen oder zwei Prüfungszyklen ein.
-- Investieren Sie Zeit in das Erstellen klarer Kontextdateien. Dies ist die hebelstärkste Verbesserung, die Sie vornehmen können.
-- Verwenden Sie die Serverübersetzungssitzung, um zu verfolgen, welche Dateien übersetzt wurden,
-  übersprungen oder fehlgeschlagen.
+- Erwarten Sie keine Perfektion beim ersten Durchlauf. Planen Sie ein oder zwei Überprüfungszyklen ein.
+- Investieren Sie Zeit beim Schreiben klarer Kontextdateien. Sie sind die Verbesserung mit der höchsten Hebelwirkung, die Sie vornehmen können.
+- Verwenden Sie die Server-Übersetzungssitzung, um zu verfolgen, welche Dateien übersetzt wurden,
+  übersprungen, oder fehlgeschlagen.
