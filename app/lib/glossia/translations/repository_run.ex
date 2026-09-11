@@ -30,9 +30,6 @@ defmodule Glossia.Translations.RepositoryRun do
   @assessment_progress_interval 25
   @completed_output_preview_length 2_000
   @completed_output_preview_bytes 8_000
-  # No fixed default: the fan-out follows the size of the planned work unless an
-  # operator caps it explicitly. See `translation_concurrency/2`.
-  @default_translation_concurrency 0
   @seq_key :translation_progress_seq
 
   @doc """
@@ -415,26 +412,18 @@ defmodule Glossia.Translations.RepositoryRun do
   # work", which is what makes a run take as long as its slowest file rather
   # than as long as the sum of every file divided by a guessed constant.
   #
-  # Precedence: the run's `:translation_concurrency` opt (currently sourced
-  # from the account's default LLM model at run start) beats the global env
-  # / application default. Whichever wins is still clamped to the HTTP pool
-  # and to the item count so we do not queue past what the connection pool
-  # can actually service.
+  # The cap comes from the resolved LLM model's `translation_concurrency`
+  # column — every inference provider has its own per-model quota, and that
+  # is where the operator declares it. Whichever value wins is still clamped
+  # to the HTTP pool and to the item count so we do not queue past what the
+  # connection pool can actually service.
   defp translation_concurrency(opts, item_count) do
-    configured =
-      case Keyword.get(opts, :translation_concurrency) do
-        value when is_integer(value) and value > 0 ->
-          value
-
-        _ ->
-          Application.get_env(:glossia, :translation_concurrency, @default_translation_concurrency)
-      end
-
     ceiling = min(max(item_count, 1), http_pool_size())
 
-    if is_integer(configured) and configured > 0,
-      do: min(configured, ceiling),
-      else: ceiling
+    case Keyword.get(opts, :translation_concurrency) do
+      value when is_integer(value) and value > 0 -> min(value, ceiling)
+      _ -> ceiling
+    end
   end
 
   # Every concurrent file holds one connection to the gateway for the length of
