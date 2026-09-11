@@ -3584,6 +3584,13 @@ defmodule GlossiaWeb.DashboardLive do
           )
         )
       end)
+      # Group by outcome so the panel resolves top-down as the run progresses:
+      # completed files stack up at the top (the person can scan what already
+      # landed), failures sit right after so they cannot be missed, and the
+      # rows still translating trail at the bottom. Each item promotes itself
+      # as it moves from :running to :done — the list re-orders on the next
+      # event, which is the "shuffle as translations complete" behavior.
+      |> Enum.sort_by(&translation_item_sort_key/1)
 
     assign(socket,
       translation_progress: progress,
@@ -8240,6 +8247,18 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
   defp translation_item_status_label(:cancelled), do: gettext("Cancelled")
+
+  # Sort priority for translation items. Done first, then attention-worthy
+  # states (failed/cancelled), then the ones still running. `index` breaks
+  # ties so a batch that landed in a cluster keeps its planned order.
+  defp translation_item_sort_key(%{status: status, index: index}),
+    do: {translation_item_status_rank(status), index}
+
+  defp translation_item_status_rank(:done), do: 0
+  defp translation_item_status_rank(:failed), do: 1
+  defp translation_item_status_rank(:cancelled), do: 2
+  defp translation_item_status_rank(:running), do: 3
+  defp translation_item_status_rank(_), do: 4
 
   defp translation_file_url(
          %{github_repo_full_name: repository},

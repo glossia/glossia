@@ -555,6 +555,12 @@ defmodule Glossia.TranslationSessions do
     case Repo.update_all(query, set: Map.to_list(Map.put(changes, :updated_at, now))) do
       {1, _} ->
         session = Repo.get!(TranslationSession, session_id)
+        # A session that reaches a terminal status without every item reaching
+        # one — a lost pod, an evicted Job, a crash between the last item event
+        # and the session-level finish — leaves those items shown as "Translating"
+        # forever in the panel's fold. Close them out with `item_cancelled` so
+        # the row's status ends where its parent session did.
+        cancel_in_flight_items(session, "session_#{status}")
         broadcast_session_status(session, status)
         {:ok, session}
 
