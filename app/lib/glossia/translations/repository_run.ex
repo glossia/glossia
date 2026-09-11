@@ -57,10 +57,23 @@ defmodule Glossia.Translations.RepositoryRun do
       context_node: progress_node,
       context_snapshot: context_snapshot,
       seq_start: seq_start,
-      after_item_completed: Keyword.get(run_opts, :after_item_completed)
+      after_item_completed: Keyword.get(run_opts, :after_item_completed),
+      # Cap the run's fan-out at whatever the account's default LLM model
+      # declares in its `translation_concurrency` column. This is what lets a
+      # person who brings a rate-limited inference provider dial the run
+      # down to something the provider will tolerate. `nil` means "no cap on
+      # this account", and the global env / default takes over.
+      translation_concurrency: account_translation_concurrency(account)
     ]
 
     run_here(session, account, repository, locales, opts)
+  end
+
+  defp account_translation_concurrency(account) do
+    case Glossia.Translations.Credentials.resolve(account, nil) do
+      {:ok, %{translation_concurrency: cap}} when is_integer(cap) and cap > 0 -> cap
+      _ -> nil
+    end
   end
 
   defp run_here(session, account, repository, locales, opts) do
@@ -401,13 +414,21 @@ defmodule Glossia.Translations.RepositoryRun do
   # A configured value caps the fan-out; anything else means "as wide as the
   # work", which is what makes a run take as long as its slowest file rather
   # than as long as the sum of every file divided by a guessed constant.
+  #
+  # Precedence: the run's `:translation_concurrency` opt (currently sourced
+  # from the account's default LLM model at run start) beats the global env
+  # / application default. Whichever wins is still clamped to the HTTP pool
+  # and to the item count so we do not queue past what the connection pool
+  # can actually service.
   defp translation_concurrency(opts, item_count) do
     configured =
-      Keyword.get(
-        opts,
-        :translation_concurrency,
-        Application.get_env(:glossia, :translation_concurrency, @default_translation_concurrency)
-      )
+      case Keyword.get(opts, :translation_concurrency) do
+        value when is_integer(value) and value > 0 ->
+          value
+
+        _ ->
+          Application.get_env(:glossia, :translation_concurrency, @default_translation_concurrency)
+      end
 
     ceiling = min(max(item_count, 1), http_pool_size())
 
