@@ -74,7 +74,6 @@ secrets:
 
 env:
   GLOSSIA_PHX_SERVER: "true"
-  GLOSSIA_SANDBOX_ADAPTER: "cluster"
 
 # Babel's short-lived workload identity for the internal read-only database
 # interface. Enable only in an environment where the corresponding Babel
