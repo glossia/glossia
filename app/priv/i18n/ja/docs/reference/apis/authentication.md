@@ -1,30 +1,30 @@
 %{
   title: "認証と認可",
-  summary: "Glossia がユーザーを認証し、API アクセスを認可する方法です。",
-  category: "参照",
+  summary: "Glossia がユーザーを認証し、API アクセスを認可する方法。",
+  category: "リファレンス",
   subcategory: "API",
   order: 1
 }
 ---
 ## 認証方法
 
-Glossia には、文脈に応じて 2 つの認証方法がサポートされています。
+Glossia はコンテキストに応じて 2 つの認証方法をサポートしています。
 
 ### ブラウザセッション
 
-Web インターフェース経由でサインインすると、Glossia はセッションベースの認証を使用します。第 3 者プロバイダー（GitHub または GitLab）を使用して認証を行います。 [Assent](https://github.com/pow-auth/assent) ライブラリです。サインインに成功すると、セッション Cookie が設定され、後続のリクエストに使用されます。
+Web インターフェースでのサインイン時に、Glossia はセッションベースの認証を使用します。サードパーティプロバイダー（GitHub または GitLab）を介して認証を行う際、使用する [Assent](https://github.com/pow-auth/assent) ライブラリです。サインインが成功した後、セッション Cookie が設定され、以降のリクエストに使用されます。
 
 ### Bearer トークン (OAuth 2.1)
 
-API へのアクセス（CLI や他のツールなど）には、Glossia は PKCE および認証コードフローを使用した OAuth 2.1 を実装しています。クライアントは Bearer トークンを取得して `Authorization` ヘッダー:
+API アクセス（CLI など他のツールから）の場合は、Glossia は認証コードフローおよび PKCE を採用した OAuth 2.1 を実装します。クライアントは Bearer トークンを取得し、これを `Authorization` ヘッダー：
 
     Authorization: Bearer <access_token>
 
 ## OAuth 2.1 フロー
 
-### 1\. 動的クライアント登録
+### 1\. ダイナミッククライアント登録
 
-クライアントは呼び出しによって自ら登録します `POST /oauth/register` それらのメタデータと共に。これは [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+クライアント自身が、呼び出しで登録します `POST /oauth/register` そのメタデータを用いて。これには～に従います [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)。
 
 ```json
 {
@@ -34,19 +34,19 @@ API へのアクセス（CLI や他のツールなど）には、Glossia は PKC
 }
 ```
 
-サーバーは返却します `client_id` と `client_secret`.
+サーバーは結果を返します。 `client_id` と `client_secret`.
 
 ### 2\. 認証リクエスト
 
-クライアントはユーザーを `/oauth/authorize` PKCE パラメータを伴って:
+クライアントはユーザーをリダイレクトします。 `/oauth/authorize` PKCE パラメータを伴います。
 
     GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
 
-**PKCE は すべてのクライアントで必須です。** Only the `S256` challenge method だけがサポートされています。
+**すべてのクライアントで PKCE が必要です。** 唯一の `S256` コード チャレンジ方法はサポートされています。
 
-### 3\. トークンの交換
+### 3\. トークン交換
 
-ユーザーが承認した後、クライアントはトークンを取得するための認証コードを `POST /oauth/token`:
+ユーザーが承認した後、クライアントは次の場所で認証コードをトークンに交換します `POST /oauth/token`:
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
@@ -55,9 +55,9 @@ API へのアクセス（CLI や他のツールなど）には、Glossia は PKC
 
 レスポンスにはアクセストークンが含まれ、オプションでリフレッシュトークンが含まれます。
 
-### 4\. トークンの更新
+### 4\. トークンリフレッシュ
 
-アクセストークンの有効期限が切れた場合、リフレッシュトークンを使用します。
+アクセストークンが期限切れの場合、リフレッシュトークンを使用してください：
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
@@ -66,38 +66,38 @@ API へのアクセス（CLI や他のツールなど）には、Glossia は PKC
 
 ## スコープ
 
-スコープはトークンが実行可能なアクションを制御します。それらは次の `object:action` パターン。
+スコープはトークンが実行できるアクションを制御します。それらは以下に従います。 `object:action` パターン。
 
-| 範囲 | 説明 |
+| スコープ | 説明 |
 |-------|-------------|
-| `user:read` | ユーザープロフィールの読み取り |
+| `user:read` | ユーザープロフィール情報の読み取り |
 | `user:write` | ユーザープロフィールの更新 |
-| `account:read` | アクセスできる組織アカウントを一覧表示 |
-| `organization:read` | 組織の詳細および組織の一覧を表示 |
-| `organization:write` | 組織を作成または更新 |
-| `organization:delete` | 組織を削除 |
-| `organization:admin` | 組織管理操作 |
+| `account:read` | アクセス可能な組織アカウントの一覧表示 |
+| `organization:read` | 組織詳細の閲覧（組織の一覧表示） |
+| `organization:write` | 組織の作成・更新 |
+| `organization:delete` | 組織の削除 |
+| `organization:admin` | 組織管理のアクション |
 | `members:read` | 組織メンバーと招待の読み取り |
 | `members:write` | 組織メンバーと招待の管理 |
 | `project:read` | プロジェクトの読み取り |
 | `project:write` | プロジェクトの作成または更新 |
-| `project:admin` | プロジェクトの管理操作 |
+| `project:admin` | プロジェクト管理操作 |
 | `project:delete` | プロジェクトの削除 |
 | `voice:read` | 音声設定の読み取り |
-| `voice:write` | ボイス設定の作成・更新 |
-| `voice:admin` | ボイス管理アクション |
-| `glossary:read` | 用語エントリの読み取り |
+| `voice:write` | 音声設定の作成・更新 |
+| `voice:admin` | 音声管理 |
+| `glossary:read` | 用語エントリの表示 |
 | `glossary:write` | 用語エントリの作成・更新 |
-| `glossary:admin` | 用語設定を管理する |
+| `glossary:admin` | 用語集設定の管理 |
 
-## 権限モデル
+## 認証モデル
 
-Glossia は適用する **2 つの層** の REST API および MCP サーバーに対して:
+Glossia は強制します **2 つの層** REST API および MCP サーバーに対しては：
 
-1. **スコープ確認**: アクセストークンには必要な `object:action` スコープ.
-2. **リソースレベルのポリシー**: 現在のユーザーは特定のリソースに対して、適切な方法によって権限が付与されている必要があります `Glossia.Policy`。
+1. **スコープチェック**: アクセストークンには必要な `object:action` スコープを含める必要があります。”
+2. **リソースレベルポリシー**: 特定のリソースに対して現在のユーザーは認証済みであり、 `Glossia.Policy`.
 
-スコープは *最大の* トークンの能力です。ポリシーシステムは実行する *実際の* 特定リソースに対する権限。
+スコープは *最大* トークンの機能。ポリシーシステムは適用する *実際の* 特定のリソースに対する権限。
 
 ### ロール
 
@@ -108,9 +108,9 @@ Glossia は適用する **2 つの層** の REST API および MCP サーバー�
 | `organization_admin` | リソースを所有する組織の管理者 |
 | `public_account` | アカウントは公開（読み取り専用） |
 
-### ロール権限
+### ロールの権限
 
-| スコープ | self | organization\_member | organization\_admin | public\_account |
+| スコープ | 自分 | 組織メンバー | 組織管理者 | 公開アカウント |
 |-------|------|----------------------|--------------------|----------------|
 | `user:read` | はい | はい | | |
 | `user:write` | はい | | | |
@@ -130,33 +130,33 @@ Glossia は適用する **2 つの層** の REST API および MCP サーバー�
 | `voice:admin` | | | はい | |
 | `glossary:read` | | はい | はい | |
 | `glossary:write` | | | はい | |
-| `glossary:admin` | | | あり | |
+| `glossary:admin` | | | はい | |
 
-## 発見用エンドポイント
+## 発見エンドポイント
 
-Glossia は標準的な URL でメタデータを公開し、クライアントが自動的にエンドポイントを見出すことができます。
+Glossia は、標準的な規定の URL でメタデータを公開し、クライアントが自動的にエンドポイントを検出できるようにします。
 
 ### OAuth 認証サーバーメタデータ (RFC 8414)
 
     GET /.well-known/oauth-authorization-server
 
-発行元、エンドポイント、サポートスコープ、許可タイプ、およびコード チャレンジ方法を返します。
+発行元、エンドポイント、サポートされるスコープ、グラントタイプ、コードチャレンジ方法を返します。
 
 ### 保護されたリソースメタデータ (RFC 9728)
 
     GET /.well-known/oauth-protected-resource
 
-リソース識別子、認証サーバー、サポートスコープ、および Bearer メソッドを返します。
+リソース識別子、認証サーバー、サポートされるスコープ、ベアラー方法を返します。
 
 ## レート制限
 
-OAuth エンドポイントは IP アドレスごとにレート制限されています：
+OAuth エンドポイントは IP アドレスごとにレート制限がかかります：
 
 | エンドポイント | 制限 |
 |----------|-------|
-| `POST /oauth/register` | 5 リクエスト/分 |
-| `POST /oauth/token` | 30 リクエスト/分 |
-| `POST /oauth/revoke` | 1 分あたり 30 リクエスト |
-| `POST /oauth/introspect` | 1 分あたり 30 リクエスト |
+| `POST /oauth/register` | 1 分あたり 5 リクエスト |
+| `POST /oauth/token` | 1 分あたり 30 リクエスト |
+| `POST /oauth/revoke` | 30 リクエスト/分 |
+| `POST /oauth/introspect` | 30 リクエスト/分 |
 
-レート制限がかかると、サーバーは HTTP 429 (Too Many Requests) を返します。
+レート制限された場合、サーバーは HTTP 429（要求过多）を返します。
