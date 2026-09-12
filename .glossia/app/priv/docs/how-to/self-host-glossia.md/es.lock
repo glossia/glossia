@@ -1,0 +1,116 @@
+{
+  "hash": "1cdea6898b65e725b6a3eeb9a449680aebb11ff7f0a2ed2336c34ff43720cd2f",
+  "hash_tree": {
+    "root": {
+      "children": [
+        {
+          "children": [],
+          "hash": "762c3b5ff48c591a1f71dff8567308b28b503095e962cadcf7a10b65859a08c2",
+          "kind": "source",
+          "label": "app/priv/docs/how-to/self-host-glossia.md",
+          "metadata": {
+            "content_hash": "09a5c2944d27cf665bfbddcda475f5fb4698d5926b203489488e5819b8dc521b"
+          }
+        },
+        {
+          "children": [],
+          "hash": "62169e871e15d378372287cb1891daf487a0de1cb8b0e55e41d2e92e37735439",
+          "kind": "translation_config",
+          "label": "generation",
+          "metadata": {
+            "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "format": "markdown",
+            "frontmatter_mode": "translate",
+            "language": "es",
+            "locale": "es",
+            "model": "",
+            "preserve": [],
+            "prompt_version": 8,
+            "provider": "",
+            "retries": 3,
+            "segmentation_version": 1,
+            "source_language": "en",
+            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "kind": "context",
+              "label": "project",
+              "metadata": {
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+              }
+            },
+            {
+              "children": [],
+              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "kind": "context",
+              "label": "locale",
+              "metadata": {
+                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "hash": "1ce1060bb675f8cc75ef107e56162abcff4ca3e6f9f3adcd41022326a1dff73e",
+                  "kind": "context",
+                  "label": "voice",
+                  "metadata": {
+                    "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126"
+                  }
+                },
+                {
+                  "children": [],
+                  "hash": "70a46d36422990ac658b3e9615b5a3ec8c9ab24e53c20ac6e06aaafb9ac57183",
+                  "kind": "context",
+                  "label": "terminology",
+                  "metadata": {
+                    "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+                  }
+                }
+              ],
+              "hash": "dcebe04e5b7d13287ceb7e484de7b00a697c7ae291f406ec32563e84ccfe7c11",
+              "kind": "server_context",
+              "label": "organization",
+              "metadata": {
+                "compiler_version": 3,
+                "selector_version": 2
+              }
+            }
+          ],
+          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "kind": "context_bundle",
+          "label": "context",
+          "metadata": {}
+        }
+      ],
+      "hash": "1cdea6898b65e725b6a3eeb9a449680aebb11ff7f0a2ed2336c34ff43720cd2f",
+      "kind": "translation_input",
+      "label": "app/priv/docs/how-to/self-host-glossia.md",
+      "metadata": {}
+    }
+  },
+  "model": "",
+  "output_hash": "76b28bded87ffe67b227ff377f72cc6e35a7d74eff6a3cbc91f3e6412e43706c",
+  "output_path": "app/priv/i18n/es/docs/how-to/self-host-glossia.md",
+  "provider": "",
+  "server_context": {
+    "compiler_version": 3,
+    "selector_version": 2,
+    "terminology": {
+      "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "glossary_version": null
+    },
+    "voice": {
+      "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+      "version": null
+    }
+  },
+  "source_path": "app/priv/docs/how-to/self-host-glossia.md",
+  "translated_at": "2026-09-12T09:40:27.849983Z"
+}

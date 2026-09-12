@@ -5,63 +5,63 @@
   order: 1
 }
 ---
-Este tutorial conecta um repositório do GitHub ao Glossia, escolhe seus primeiros idiomas de destino e prepara uma linha de base de localizações para sua equipe revisar.
+Este tutorial conecta um repositório GitHub ao Glossia, seleciona seus primeiros idiomas-alvo e prepara uma base de localização para sua equipe revisar.
 
 ## Antes de começar
 
-Você precisa de:
+O que você precisa:
 
-- Uma conta Glossia onde você possa gerenciar configurações e projetos.
-- Um repositório do GitHub para o qual você possa permitir que o App do GitHub do Glossia leia e atualize.
-- Uma chave de provedor para um [modelo de linguagem grande](https://en.wikipedia.org/wiki/Large_language_model) suportado.
+- Uma conta do Glossia onde você pode gerenciar configurações e projetos.
+- Um repositório GitHub onde você pode conceder permissão ao Glossia GitHub App para ler e atualizar.
+- Uma chave de provedor para um suportado [modelo de linguagem grande](https://en.wikipedia.org/wiki/Large_language_model).
 
 ## 1\. Configure um modelo de conta
 
-Abra **Configurações**, depois **Modelos**, e selecione **Novo modelo**.
+Abra **Configurações**, então **Modelos**, e selecione **Novo modelo**.
 
-1. Dê ao modelo um identificador curto, como `translation-default`.
-2. Abra o seletor de modelos e digite parte de um nome de provedor ou modelo para filtrar a lista.
-3. Selecione o modelo que deseja que o Glossia use.
-4. Insira a chave do provedor e salve o modelo.
+1. Dê ao modelo um nome curto, por exemplo `translation-default`.
+2. Abra o seletor de modelos e digite parte do nome de um provedor ou modelo para filtrar a lista.
+3. Selecione o modelo que você deseja que o Glossia utilize.
+4. Digite a chave do provedor e salve o modelo.
 
-O identificador permite que repositórios se refiram a este modelo de conta sem colocar credenciais do provedor no controle de versão. Consulte [Configurar um provedor de modelo](/docs/how-to/configure-a-model-provider) para mais detalhes.
+O identificador permite que os repositórios façam referência a este modelo de conta sem colocar credenciais do provedor no controle de versão. Veja [Configurar provedor de modelo](/docs/how-to/configure-a-model-provider) para mais detalhes.
 
-## 2\. Inicie um projeto
+## 2\. Iniciar um projeto
 
-Retorne a **Projetos** e selecione **Novo projeto**.
+Voltar para **Projetos** e selecione **Novo projeto**.
 
-Se o Glossia solicitar acesso ao repositório, siga o link para o GitHub e conceda o acesso do App do GitHub do Glossia ao repositório. Caso necessário, após retornar ao Glossia, abra **Novo projeto** novamente.
+Se o Glossia solicitar acesso ao repositório, siga o link para o GitHub e conceda ao Glossia GitHub App acesso ao repositório. Após retornar ao Glossia, reabra **Novo projeto** se necessário.
 
 ## 3\. Escolha um repositório
 
-Selecione o repositório que deseja localizar. O Glossia lista apenas os repositórios disponíveis por meio da instalação do App do GitHub da conta atual.
+Selecione o repositório que deseja localizar. O Glossia apresenta apenas repositórios disponíveis por meio da instalação do aplicativo GitHub da conta atual.
 
-Continue para a etapa de idioma.
+Continue para o passo de idioma.
 
 ## 4\. Escolha os idiomas de destino
 
-Selecione um ou mais idiomas que devem ser produzidos a partir do conteúdo de origem do repositório e, em seguida, inicie a configuração.
+Selecione um ou mais idiomas que devem ser gerados a partir do conteúdo de origem do repositório e, em seguida, inicie a configuração.
 
 ## 5\. Acompanhe o progresso da configuração
 
-Mantenha a página de configuração aberta enquanto o Glossia prepara o projeto. O cartão de progresso mostra o estado atual e suas atividades recentes, incluindo preparação do repositório, inspeção de arquivos, alterações, verificações e conclusão.
+Mantenha a página de configuração aberta enquanto o Glossia prepara o projeto. O cartão de progresso exibe o estado atual e as atividades recentes, incluindo preparação do repositório, inspeção de arquivos, alterações, verificações e conclusão.
 
-Você pode sair da página e retornar ao resumo do projeto sem perder o estado da configuração. Caso a configuração falhe, o mesmo cartão explique o que precisa de atenção e oferece **Reiniciar configuração**.
+Você pode sair da página e retornar à visão geral do projeto sem perder o estado da configuração. Se a configuração falhar, o mesmo cartão explica o que precisa de atenção e oferece **Retentar a configuração**,
 
-## 6\. Revise o resultado
+## 6\. Verificar o resultado
 
-Quando a configuração estiver concluída, abra o resumo do projeto e revise o pull request criado para o repositório. A linha de base proposta normalmente inclui:
+Quando a configuração termina, abra a visão geral do projeto e revise o pull request criado para o repositório. A base proposta normalmente inclui:
 
-- Um arquivo `GLOSSIA.md` raiz com idioma de origem, caminhos de origem e idiomas de destino.
-- As menores alterações de aplicação ou conteúdo necessárias para carregar arquivos localizados.
+- A raiz `L10N.md` arquivo com idioma de origem, caminhos de origem e idiomas de destino.
+- As menores alterações de aplicação ou de conteúdo necessárias para carregar os arquivos localizados.
 - Qualquer validação leve já disponível no repositório.
 
-Revise e consolide o pull request por meio do seu fluxo de trabalho normal do GitHub. As execuções futuras de tradução usam o contexto do `GLOSSIA.md` consolidado.
+Revise e mesclhe o pull request através do seu fluxo de trabalho normal do GitHub. As execuções futuras de tradução usam o mesclado `L10N.md` contexto.
 
-O resumo do projeto mantém o pull request de configuração visível até que seja consolidado. Se este for fechado sem ser consolidado, abra-o a partir do link no aviso de configuração.
+A visão geral do projeto mantém o pull request de configuração visível até que seja mesclado. Se for fechado sem ser mesclado, reabra-o pelo link no aviso de configuração.
 
 ## Próximas etapas
 
 - [Adicionar um novo idioma](/docs/how-to/add-a-new-language)
-- [Entender os estados de configuração do projeto](/docs/reference/project-setup)
-- [Aprender como os modelos de conta funcionam](/docs/explanation/account-models)
+- [Entenda os estados de configuração do projeto](/docs/reference/project-setup)
+- [Aprenda como os modelos de conta funcionam](/docs/explanation/account-models)

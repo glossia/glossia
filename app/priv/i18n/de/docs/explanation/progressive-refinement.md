@@ -1,29 +1,29 @@
 %{
-  title: "Progressive Verfeinerung",
+  title: "Schrittweise Verfeinerung",
   summary:
-    "Warum sich die Inhaltsqualität im Laufe der Zeit verbessert, nicht in einem einzigen Durchlauf.",
-  category: "Erläuterung",
+    "Warum sich die Qualität der Inhalte mit der Zeit verbessert und nicht in einem einzigen Durchlauf.",
+  category: "Erklärung",
   order: 1
 }
 ---
-Erste Entwürfe von[großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind zwar strukturell korrekt, können aber Nuancierungen, Ton oder domänenspezifische Formulierung verpassen. Das ist beabsichtigt. Glossia behandelt die Inhaltsgenerierung genauso wie Softwareteams Code: veröffentlichen Sie eine funktionierende Version, überprüfen Sie diese und verbessern Sie sie iterativ.
+Erste Entwürfe von [großsprachigen Modellen](https://en.wikipedia.org/wiki/Large_language_model) sind zwar strukturell korrekt, können aber Nuancen, Tonfall oder domänenspezifische Formulierung übersehen. Das ist gewollt. Glossia behandelt Inhaltsgenerierung genauso wie Softwareteams mit Code: eine funktionierende Version veröffentlichen, überprüfen und iterativ verbessern.
 
 ## Der Verfeinerungszyklus
 
-1. **Entwurf**: Glossia generiert einen ersten, strukturell gültigen Entwurf basierend auf Ihren Quelldateien und dem Kontext in `GLOSSIA.md`.
-2. **Überprüfung**: Ihr Team meldet Probleme über Pull Requests und Diffs, den Workflow, den Sie bereits für Code verwenden.
-3. **Verfeinern**: Aktualisierte Kontextdateien, Terminologiekorrekturen und Feedback aus der Überprüfung fließen in den nächsten Durchlauf ein.
-4. **Konvergenz**: Jeder Zyklus verringert die Distanz zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts aus dem bereitgestellten Kontext.
+1. **Entwurf**: Glossia erstellt eine strukturell korrekte Erstfassung auf Basis Ihrer Quelldateien und dem Kontext in `L10N.md`.
+2. **Überprüfung**: Ihr Team meldet Probleme über Pull-Requests und Diffs, denselben Workflow, den Sie bereits für Code verwenden.
+3. **Verfeinern**: Aktualisierte Kontextdateien, Terminologiekorrekturen und Review-Feedback fließen in den nächsten Durchlauf ein.
+4. **Konvergenz**: Jeder Durchlauf verringert den Abstand zur Produktionsqualität. Das System lernt den Tonfall Ihres Produkts durch den bereitgestellten Kontext.
 
-## Warum dies funktioniert
+## Warum das funktioniert
 
-Der Schlüssel liegt darin, dass sich Kontext ansammelt.`GLOSSIA.md` oder ein korrigierter Terminologieu verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Überprüfung ausgelöst hat.
+Der Schlüsselpunkt ist, dass sich Kontext ansammelt. Jeder Überprüfungskommentar, der zu einer Aktualisierung führt, `L10N.md` oder ein korrigierter Terminologie-Eintrag verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Überprüfung ausgelöst hat.
 
-Dies basiert auf demselben Prinzip von Kaizen in der Fertigung und successive approximation im Ingenieurwesen: Starten Sie mit einer ausreHow guten Basislinien und verbessern Sie diese systematisch durch menschliches Urteil im Loop.
+Dies folgt dem gleichen Prinzip wie Kaizen in der Fertigung und schrittweise Annäherung im Ingenieurwesen: Starten Sie mit einer auskömmlichen Basis und verbessern Sie sie systematisch mit menschlicher Einschätzung im laufenden Prozess.
 
-## Praktische Implikationen
+## Praktische Auswirkungen
 
-- Erwarten Sie im ersten Durchlauf keine Perfektion. Planen Sie einen oder zwei Prüfungszyklen ein.
-- Investieren Sie Zeit in das Erstellen klarer Kontextdateien. Dies ist die hebelstärkste Verbesserung, die Sie vornehmen können.
-- Verwenden Sie die Serverübersetzungssitzung, um zu verfolgen, welche Dateien übersetzt wurden,
-  übersprungen oder fehlgeschlagen.
+- Erwarten Sie keine Perfektion beim ersten Durchlauf. Planen Sie einen oder zwei Überprüfungszyklen ein.
+- Investieren Sie Zeit in das Schreiben klarer Kontextdateien. Sie stellen die Verbesserung mit der höchsten Hebelwirkung dar, die Sie vornehmen können.
+- Verwenden Sie die Server-Übersetzungssitzung, um zu verfolgen, welche Dateien übersetzt wurden,
+  übersprungen, oder fehlgeschlagen.

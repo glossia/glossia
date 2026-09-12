@@ -1,33 +1,33 @@
 %{
-  title: "Retentar configuração do projeto",
-  summary: "Recuperar um projeto após falha na configuração.",
+  title: "Retentar a configuração do projeto",
+  summary: "Recuperar um projeto após a configuração relatar uma falha.",
   category: "Como fazer",
   order: 4
 }
 ---
-Use **Retentar configuração** após corrigir a condição que provocou a falha na configuração do projeto.
+Utilize **Tentar novamente a configuração** após corrigir a condição que causou a falha na configuração do projeto.
 
 ## 1\. Ler a falha
 
-Abra a visão geral do projeto. O cartão de progresso da configuração exibe a falha e a última atividade de configuração.
+Abra a visão geral do projeto. O cartão de progresso da configuração mostra a falha e a última atividade da configuração.
 
-Causas comuns incluem:
+As causas comuns incluem:
 
-- A conta não possui nenhum modelo configurado.
-- A chave do provedor está ausente ou já não é mais válida.
-- O aplicativo Glossia GitHub não pode acessar o repositório.
-- O repositório não pôde ser preparado ou verificado.
+- A conta não tem um modelo configurado.
+- A chave do provedor está ausente ou não é mais válida.
+- O aplicativo GitHub do Glossia não consegue acessar o repositório.
+- Não foi possível preparar ou verificar o repositório.
 
-## 2\. Corrigir o pré-requisito
+## 2\. Corrija o pré-requisito
 
-Para problemas de modelo, abra **Configurações** e **Modelos**. Para problemas de acesso ao repositório, atualize a instalação do aplicativo Glossia GitHub no GitHub e conceda a ele acesso ao repositório.
+Para problemas de modelo, abra **Configurações** e **Modelos**. Para problemas de acesso ao repositório, atualize a instalação do aplicativo GitHub do Glossia no GitHub e conceda acesso ao repositório.
 
 ## 3\. Retentar
 
-Volte para a visão geral do projeto e selecione **Retentar configuração**.
+Voltar para a visão geral do projeto e selecionar **Retentar configuração**.
 
-O cartão volta para **Pendente**, depois **Em execução** e exibe novas atividades conforme o trabalho prossegue. Retentar está disponível apenas enquanto o projeto está no estado **Falhou**, o que impede que duas tentativas de configuração sejam executadas simultaneamente.
+O cartão retorna para **Pendente**, depois **Em andamento**e mostra novas atividades conforme o trabalho prossegue. Retentar está disponível apenas enquanto o projeto está em **Falho** , estado, o que impede duas tentativas de configuração de ocorrerem simultaneamente.
 
-## 4\. Revisar a conclusão
+## 4\. Revisar conclusão
 
-Quando o estado muda para **Concluído**, revise o pull request resultante no GitHub. Se ele falhar novamente, use a nova atividade no cartão em vez da tentativa anterior para identificar a próxima ação.
+Quando o estado muda para **Concluído**, revise o pull request resultante no GitHub. Se falhar novamente, use a nova atividade no cartão em vez da tentativa anterior para identificar a próxima ação.

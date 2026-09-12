@@ -1,15 +1,15 @@
 {
-  "hash": "7b819fff24eab083863b6c55752834d2c7003b4b1d1166ef093060ab9b83e51e",
+  "hash": "eb8f72d4d2e266306f8e394516e5dcf1146a465547cb9eb39326b9947645cf46",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "835b1fd64ed5fdf34ed2ecb1b7c9bf0ab8ff4862ae6176b791ef2474e197d62c",
+          "hash": "177ad3a7af960bfe9f7a99d386ca36f3d54ba9b6c32e4da6aedbd01e2b2035b5",
           "kind": "source",
           "label": "app/priv/features/content-revisioning.md",
           "metadata": {
-            "content_hash": "d769559522c90aeaf86626051fa5927336255b48815b1d2ec37f002754cb97b3"
+            "content_hash": "2f75504a305d7b844c4d0e9bb9e25c7a2d7704bfedb962943703b188b2d87a23"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "464364e28833a2f035959b4593288f9178e6d42c43f95a23844f20a870064884",
+          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "7b819fff24eab083863b6c55752834d2c7003b4b1d1166ef093060ab9b83e51e",
+      "hash": "eb8f72d4d2e266306f8e394516e5dcf1146a465547cb9eb39326b9947645cf46",
       "kind": "translation_input",
       "label": "app/priv/features/content-revisioning.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "2ab37682d5894f6bdb4c2016defc6fce92bc3e059cdcbfb4c55cba8e9d0e58bd",
+  "output_hash": "fde69f42bf3dae0675a559624eed08951db0f97acd193c1ab36a805e8260ecd1",
   "output_path": "app/priv/i18n/es/features/content-revisioning.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/features/content-revisioning.md",
-  "translated_at": "2026-09-01T12:20:29.718433Z"
+  "translated_at": "2026-09-12T09:52:19.801402Z"
 }

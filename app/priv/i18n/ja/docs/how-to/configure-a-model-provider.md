@@ -1,21 +1,26 @@
-%{title: "モデルプロバイダーを設定する", summary: "アカウントモデルを追加し、リポジトリから安全に参照します。", category: "使い方", order: 3}
+%{
+  title: "モデルプロバイダーを設定する",
+  summary: "リポジトリから安全にアカウントモデルを追加し、安全に参照します。",
+  category: "チュートリアル",
+  order: 3
+}
 ---
-Project setup and translation runs use models configured for the current Glossia account. Configure at least one model before creating a project.
+プロジェクトのセットアップおよび翻訳実行には、現在の Glossia アカウントに設定されたモデルが使用されます。プロジェクトを作成する前に少なくとも 1 つのモデルを設定してください。
 
-## Add a model
+## モデルを追加
 
-1. Open **Settings** and select **Models**.
-2. Select **New model**.
-3. Enter a unique handle, such as `translation-default`.
-4. Open the model picker and type part of a provider or model name to filter the list.
-5. Select a model and enter its provider key.
-6. Save the model.
+1. 開く **設定** および選択 **モデル**。
+2. 選択 **新しいモデル**.
+3. 一意のハンドルを入力してください（例 `translation-default`.
+4. モデル選択を開き、プロバイダー名またはモデル名の一部を入力してリストをフィルタリングします。
+5. モデルを選択し、そのプロバイダーキーを入力します。
+6. モデルを保存します。
 
-The handle is stable even when you later change the provider model behind it. The first model added to an account becomes its default.
+後でプロバイダーモデルを変更してもこのハンドルは変更されません。アカウントに最初に追加されたモデルがデフォルトとなります。
 
-## Reference the model from a repository
+## リポジトリからモデルを参照する
 
-Set `model` in the relevant `GLOSSIA.md` frontmatter:
+設定 `model` 該当する `L10N.md` frontmatter:
 
 ```yaml
 ---
@@ -23,20 +28,20 @@ model: translation-default
 ---
 ```
 
-The repository stores only the handle. The provider key remains in account settings.
+リポジトリにはハンドルのみが格納されます。プロバイダーキーはアカウント設定のままであります。
 
-## Choose which model is used by default
+## デフォルトで使用されるモデルを選択する
 
-When `GLOSSIA.md` omits `model`, Glossia uses the account's default model. To change it, open the model that should become the default and select **Make default**.
+時 `L10N.md` 省略する `model`、Glossia はアカウントのデフォルトモデルを使用しています。変更するには、デフォルトにするべきモデルを開き、選択してください **デフォルトにする**.
 
-For predictable behavior across several models, reference a handle explicitly in `GLOSSIA.md`.
+複数のモデルで予測可能な動作を実現するには、明示的にモデルハンドルを参照してください `L10N.md`.
 
-You can place a different `model` handle in a nested `GLOSSIA.md` for one content area, or in `GLOSSIA/<locale>.md` for one target locale. Glossia uses the closest applicable setting for each document and locale. It does not automatically split work among configured models.
+別の `model` ハンドルをネストされた `L10N.md` コンテンツ領域 1 つに設定するか、は `L10N/<locale>.md` 1 つのターゲットロケールに対して。Glossia は各文書およびロケールに対して最も適する設定を使用します。設定済みのモデル間で作業を自動的に分割することはありません。
 
-If an explicit handle does not exist in the account, the translation stops with an error. It does not fall back to another model.
+明確なハンドルがアカウントに存在しない場合、翻訳はエラーで停止します。別のモデルにフォールバックすることはありません。
 
-## Change or rotate a provider key
+## プロバイダーキーの変更または更新
 
-Open **Settings**, select **Models**, and open the model handle. Enter a new provider key and save. Leaving the key field blank keeps the current key.
+開く **設定**, 選択 **モデル**, モデルハンドルを開きます。新しいプロバイダーキーを入力して保存します。キーフィールドを空のままにすると、現在のキーが維持されます。
 
-Repositories that reference the handle do not need to change.
+ハンドルを参照しているリポジトリは変更する必要はありません。
