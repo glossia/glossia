@@ -1,67 +1,67 @@
 %{
-  title: "Primeros pasos",
+  title: "Empezar",
   summary: "Conectar un repositorio y preparar su primera configuración de localización.",
-  category: "tutoriales",
+  category: "Tutoriales",
   order: 1
 }
 ---
-Este tutorial conecta un repositorio de GitHub a Glossia, elige sus primeros idiomas objetivo y prepara una base de localización para que tu equipo la revise.
+Este tutorial conecta un repositorio de GitHub con Glossia, selecciona sus primeros idiomas objetivo y prepara una línea base de localización para que su equipo la revise.
 
 ## Antes de comenzar
 
-Necesitas:
+Necesita:
 
-- Una cuenta de Glossia donde puedas gestionar ajustes y proyectos.
-- Un repositorio de GitHub al que puedas conceder permisos a la aplicación GitHub de Glossia para lectura y actualización.
-- Una clave del proveedor para un [modelo de lenguaje grande](https://en.wikipedia.org/wiki/Large_language_model) compatible.
+- Una cuenta de Glossia donde puedas administrar configuraciones y proyectos.
+- Un repositorio de GitHub en el que puedas otorgar a la aplicación de GitHub de Glossia permisos de lectura y actualización.
+- Una clave de proveedor para un soportado [modelo de lenguaje grande](https://en.wikipedia.org/wiki/Large_language_model).
 
-## 1\. Configurar un modelo de cuenta
+## 1\. Configura un modelo de cuenta
 
-Abre **Ajustes**, luego **Modelos**, y selecciona **Nuevo modelo**.
+Abre **Configuración,**, luego **Modelos,**, y selecciona **Nuevo modelo,**.
 
-1. Asigna un nombre corto al modelo, como `translation-default`.
-2. Abre el selector de modelos y escribe parte del nombre de un proveedor o modelo para filtrar la lista.
-3. Selecciona el modelo que quieras que use Glossia.
-4. Introduce la clave del proveedor y guarda el modelo.
+1. Asigne un alias corto al modelo, por ejemplo `translation-default`.
+2. Abra el selector de modelos y escriba parte del nombre de un proveedor o modelo para filtrar la lista.
+3. Seleccione el modelo que desea que Glossia use.
+4. Ingrese la clave del proveedor y guarde el modelo.
 
-El nombre corto permite que los repositorios se refieran a este modelo de cuenta sin colocar credenciales del proveedor en control de versiones. Consulta [Configurar un proveedor de modelos](/docs/how-to/configure-a-model-provider) para más detalles.
+El alias corto permite a los repositorios referenciar este modelo de cuenta sin colocar las credenciales del proveedor en el control de versiones. Consulte [Configurar proveedor de modelos](/docs/how-to/configure-a-model-provider) para más detalles.
 
-## 2\. Iniciar un proyecto
+## 2\. Inicie un proyecto
 
-Vuelve a **Proyectos** y selecciona **Nuevo proyecto**.
+Volver a **Proyectos** y seleccione **Nuevo proyecto**.
 
-Si Glossia pregunta por el acceso al repositorio, sigue el enlace a GitHub y concede acceso de la aplicación GitHub de Glossia al repositorio. Después de volver a Glossia, reabre **Nuevo proyecto** si es necesario.
+Si Glossia solicita acceso al repositorio, siga el enlace a GitHub y conceda a la aplicación GitHub de Glossia el acceso al repositorio. Después de volver a Glossia, reabra **Nuevo proyecto** si es necesario.
 
-## 3\. Elegir un repositorio
+## 3\. Elige un repositorio
 
-Selecciona el repositorio que quieras localizar. Glossia solo lista los repositorios disponibles a través de la instalación de la aplicación GitHub de la cuenta actual.
+Selecciona el repositorio que deseas localizar. Glossia solo lista los repositorios disponibles a través de la instalación de la App de GitHub de la cuenta actual.
 
-Continúa al paso de idiomas.
+Continuar al paso de idioma.
 
-## 4\. Elegir idiomas objetivo
+## 4\. Elige idiomas objetivo
 
-Selecciona uno o más idiomas que deban producirse a partir del contenido de origen del repositorio, y inicia la configuración.
+Selecciona uno o más idiomas que deben generarse a partir del contenido de origen del repositorio y luego inicia la configuración.
 
-## 5\. Seguir el progreso de la configuración
+## 5\. Sigue el progreso de la configuración
 
-Mantén la página de configuración abierta mientras Glossia prepara el proyecto. La tarjeta de progreso muestra el estado actual y la actividad reciente, incluida la preparación del repositorio, la inspección de los archivos, los cambios, las comprobaciones y la finalización.
+Mantén la página de configuración abierta mientras Glossia prepara el proyecto. La tarjeta de progreso muestra el estado actual y la actividad reciente, incluida la preparación del repositorio, la inspección de archivos, cambios, verificaciones y finalización.
 
-Puedes salir de la página y volver a la vista general del proyecto sin perder el estado de configuración. Si la configuración falla, la misma tarjeta explica lo que requiere atención y ofrece **Reintentar configuración**.
+Puede dejar la página y volver a la vista general del proyecto sin perder el estado de configuración. Si la configuración falla, la misma tarjeta explica qué necesita atención y ofrece **Reintentar configuración**.
 
 ## 6\. Revisar el resultado
 
-Cuando la configuración finalice, abre la vista general del proyecto y revisa la solicitud de extracción creada para el repositorio. La base propuesta normalmente incluye:
+Cuando la configuración se completa, abra la vista general del proyecto y revise la solicitud de extracción creada para el repositorio. La línea base propuesta normalmente incluye:
 
-- Un archivo raíz `GLOSSIA.md` con el lenguaje de origen, las rutas de origen y los idiomas objetivo.
-- Los cambios de aplicación o contenido mínimos necesarios para cargar archivos localizados.
-- Cualquier validación ligera que ya estaba disponible en el repositorio.
+- Una raíz `L10N.md` archivo con el idioma fuente, las rutas de origen y los idiomas objetivo.
+- Los cambios más pequeños de aplicación o contenido necesarios para cargar los archivos localizados.
+- Cualquier validación ligera que ya estuviera disponible en el repositorio.
 
-Revisa y fusiona la solicitud de extracción a través de tu flujo de trabajo habitual de GitHub. Las ejecuciones futuras de traducción utilizan el contexto de `GLOSSIA.md` fusionado.
+Revisa y fusiona la solicitud de extracción a través de tu flujo normal de GitHub. Las futuras ejecuciones de traducción utilizan el fusionado `L10N.md` contexto.
 
-La vista general del proyecto mantiene visible la solicitud de extracción de configuración hasta que se fusiona. Si se cierra sin ser fusionada, vuélvela a abrir desde el enlace en el aviso de configuración.
+La vista general del proyecto mantiene la solicitud de extracción de configuración visible hasta que se fusione. Si se cierra sin fusionarse, reábrala desde el enlace en el aviso de configuración.
 
 ## Próximos pasos
 
 - [Añadir un nuevo idioma](/docs/how-to/add-a-new-language)
-- [Entender los estados de configuración del proyecto](/docs/reference/project-setup)
-- [Aprender cómo funcionan los modelos de cuenta](/docs/explanation/account-models)
+- [Comprende los estados de configuración del proyecto](/docs/reference/project-setup)
+- [Aprende cómo funcionan los modelos de cuenta](/docs/explanation/account-models)
