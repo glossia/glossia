@@ -5,32 +5,32 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: lib/glossia_web/live/dashboard_live.ex:13141
+#: lib/glossia_web/live/dashboard_live.ex:13198
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:13385
+#: lib/glossia_web/live/dashboard_live.ex:13442
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:13354
+#: lib/glossia_web/live/dashboard_live.ex:13411
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:13326
+#: lib/glossia_web/live/dashboard_live.ex:13383
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:13227
+#: lib/glossia_web/live/dashboard_live.ex:13284
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:13306
+#: lib/glossia_web/live/dashboard_live.ex:13363
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Traffic"
 msgstr ""
