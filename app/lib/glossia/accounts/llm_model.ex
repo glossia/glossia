@@ -17,6 +17,12 @@ defmodule Glossia.Accounts.LLMModel do
     field :api_key, Glossia.Encrypted.Binary
     field :base_url, :string
     field :default, :boolean, default: false
+    # Cap on concurrent translations that route to this model. `nil` means
+    # "no per-model cap" and the run falls back to the global default (env or
+    # HTTP pool size). Set this when a provider's per-model quota chokes on
+    # the full fan-out of a repository — the run will slow down but stop
+    # tripping the provider's rate limiter.
+    field :translation_concurrency, :integer
 
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :created_by, Glossia.Accounts.User
@@ -31,10 +37,12 @@ defmodule Glossia.Accounts.LLMModel do
         else: [:handle, :model]
 
     model_struct
-    |> cast(attrs, [:handle, :model, :api_key, :base_url, :default])
+    |> cast(attrs, [:handle, :model, :api_key, :base_url, :default, :translation_concurrency])
     |> update_change(:model, &ModelIdentifier.normalize/1)
     |> update_change(:base_url, &normalize_base_url/1)
+    |> update_change(:translation_concurrency, &normalize_translation_concurrency/1)
     |> validate_change(:base_url, &validate_base_url/2)
+    |> validate_number(:translation_concurrency, greater_than: 0)
     |> validate_required(required)
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
@@ -52,6 +60,14 @@ defmodule Glossia.Accounts.LLMModel do
       message: "another model is already the default for this account"
     )
   end
+
+  # A blank form value on an optional integer field should mean "clear the
+  # cap", not "0". `cast/3` gives us `nil` from an empty input, but a UI that
+  # submits `""` after a filled-then-emptied field can still reach here as a
+  # string via update_change, so normalize both.
+  defp normalize_translation_concurrency(nil), do: nil
+  defp normalize_translation_concurrency(""), do: nil
+  defp normalize_translation_concurrency(value), do: value
 
   # Treat blank base URLs as "use the provider default endpoint" and trim
   # surrounding whitespace. The resolver emits nil for these so Condukt routes

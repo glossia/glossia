@@ -41,7 +41,8 @@ defmodule Glossia.Translations.Credentials do
           model: String.t(),
           handle: String.t() | nil,
           auth: auth(),
-          source: atom()
+          source: atom(),
+          translation_concurrency: pos_integer() | nil
         }
 
   @spec resolve(Account.t(), String.t() | nil) ::
@@ -187,7 +188,8 @@ defmodule Glossia.Translations.Credentials do
           %{
             model: ModelIdentifier.normalize(model),
             auth: {:api_key, key, present_url(Map.get(configured_model, :base_url))},
-            source: :account_model
+            source: :account_model,
+            translation_concurrency: Map.get(configured_model, :translation_concurrency)
           }
 
         _ ->
