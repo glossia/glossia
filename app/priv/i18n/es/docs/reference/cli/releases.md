@@ -1,6 +1,6 @@
 %{
   title: "Lanzamientos",
-  summary: "Historial de lanzamientos CLI.",
+  summary: "Historial de lanzamientos de CLI.",
   category: "Referencia",
   subcategory: "CLI",
   order: 2
@@ -10,10 +10,10 @@
 
 *2026-02-14*
 
-#### Correcciones de errores
+#### Correcciones
 
-- Renombrar el binario dentro de los archivos de liberación del nombre específico de la plataforma a simplemente `glossia`glossia
-- Quitar el atributo de cuarentena de macOS de los binarios antes de empaquetar.
+- Renombrar el binario dentro de los archivos de lanzamiento desde el nombre específico de la plataforma a simplemente `glossia`.
+- Eliminar el xattr de cuarentena de macOS de los binarios antes de empaquetar.
 
 ## 0.14.0
 
@@ -21,7 +21,7 @@
 
 #### Características
 
-- Añadir script de liberación local y flujo de trabajo de registro de cambios mantenido manualmente.
+- Añadir script de lanzamiento local y flujo de registro de cambios mantenido manualmente.
 
 ## 0.2.0
 
@@ -29,14 +29,14 @@
 
 #### Correcciones de errores
 
-- Haz que la configuración del proveedor de OAuth sea opcional en producción. La aplicación debería arrancar incluso sin credenciales de OAuth de GitHub/GitLab configuradas. Configura solo los proveedores cuando las variables de entorno estén presentes.
-- Usa el puerto 4000 por defecto para producción y mantén 4050 para desarrollo. El proxy de producción espera la aplicación en el puerto 4000. El `runtime.exs`runtime.exs
+- Hacer opcional la configuración del proveedor de OAuth en producción. La aplicación debe arrancar incluso sin credenciales OAuth de GitHub/GitLab configuradas. Configurar los proveedores únicamente cuando estén presentes las variables de entorno.
+- Usar el puerto 4000 por defecto en producción y mantener 4050 en desarrollo. El proxy de producción espera la aplicación en el puerto 4000. El `runtime.exs` predeterminado era 4050, lo que provocó que las comprobaciones de salud fallaran durante el despliegue.
 
 #### Características
 
-- Añadir una aplicación Phoenix con inicio de sesión OAuth, mejoras para la documentación y mejoras de interfaz de usuario.
-- Usa el logo redondeado como favicon.
-- Migra el CLI a Bun y actualiza los ejecutables de la integración continua.
+- Añadir la aplicación Phoenix con inicio de sesión OAuth, mejoras de documentación y mejoras de la interfaz de usuario.
+- Usar el logotipo redondeado como favicon.
+- Migrar CLI a Bun y actualizar las compilaciones ejecutables de CI.
 
 ## 0.1.0
 
@@ -44,38 +44,38 @@
 
 #### Correcciones de errores
 
-- Prevenir el desbordamiento horizontal de fragmentos de código en dispositivos móviles.
-- Añade el margen derecho adecuado a los fragmentos de código en dispositivos móviles.
-- Mejora el diseño responsivo móvil para evitar el desbordamiento horizontal.
-- Aplica el formato Biome.
-- Añade encabezados de grupo para la plantilla de notas de liberación.
-- Actualiza el flujo de trabajo de traducción desde Bun hasta Rust.
-- Alinea el cuerpo de la publicación con el diseño del héroe y mejora el contenido de la publicación del blog.
-- Centra el contenido de la publicación horizontalmente.
-- Corrige el pánico al recortar resultados de herramientas de múltiples bytes UTF-8.
+- Prevenir el desbordamiento horizontal de los fragmentos de código en móviles.
+- Añadir el margen derecho adecuado a los fragmentos de código en móvil.
+- Mejorar la disposición responsiva móvil para evitar el desbordamiento horizontal.
+- Aplicar el formato Biome.
+- Añadir encabezados de grupo a la plantilla de notas de la versión.
+- Actualizar el flujo de traducción desde Bun hasta Rust.
+- Alinear el cuerpo de la entrada con el layout de héroe y mejorar el contenido de la entrada del blog.
+- Centrar horizontalmente el contenido de la entrada del blog.
+- Corregir el pánico al truncar resultados de herramientas de UTF-8 de múltiples bytes.
 
 #### Características
 
-- Añadir la sección de herramientas y del sitio web de primera parte.
-- Exponer los pasos de verificación de la herramienta.
-- Simplifica la salida de progreso.
-- Tinte las líneas de progreso.
-- Muestra la actividad de traducción y validación.
-- Formatea las líneas de la herramienta.
-- Haz que la web sea responsiva con menú móvil y diseño de varios puntos de ruptura.
-- Reimplementar el CLI en Bun/TypeScript.
-- Añadir flujo de trabajo CI y pruebas.
-- Añadir comprobación de formato con Biome.
-- Añade la sección de Refinamiento Progresivo a la página de inicio.
-- Añade la sección de blog con soporte SEO y la primera publicación del blog.
-- Unifica la salida CLI con formato de verbo alineado a la derecha.
-- Coloriza la salida CLI con un formato de mensaje más rico.
-- Añade la imagen OG cuadrada y las etiquetas meta de tarjeta Twitter.
-- Haz que el agente coordinador sea autónomo con el uso de herramientas.
-- Reescribir `glossia init` con el Protocolo de Cliente de Agente (ACP).
-- Añade soporte para Gemini, validación automática, seguimiento de tokens y mejoras de fiabilidad.
+- Añadir herramientas de primera parte y la sección del sitio web.
+- Mostrar los pasos de verificación de herramientas.
+- Simplificar la salida de progreso.
+- Colorar las líneas de progreso.
+- Mostrar la actividad de traducción y validación.
+- Formatear las líneas de herramientas.
+- Hacer el sitio web responsivo con menú móvil y diseño adaptable a múltiples puntos de quiebre.
+- Reimplementar CLI en Bun/TypeScript.
+- Añadir flujo de trabajo de CI y pruebas.
+- Añadir verificación de formato con Biome.
+- Añadir sección de Refinamiento Progresivo a la página principal.
+- Añadir sección de blog con soporte SEO y la primera publicación.
+- Unificar la salida de CLI con formato de verbo alineado a la derecha.
+- Colorizar la salida de CLI con formato de mensajes enriquecido.
+- Añadir imagen cuadrada de Open Graph y etiquetas meta de tarjeta de Twitter.
+- Haz que el agente coordinador sea agéntico con uso de herramientas.
+- Reescritura `glossia init` con el Protocolo de Cliente de Agente (ACP).
+- Agregar soporte para Gemini, validación automática, seguimiento de tokens y mejoras de fiabilidad.
 
-#### Refactorizaciones
+#### Refactorización
 
-- Divide la CI en tareas de formato, verificación de tipos, pruebas y construcción separadas.
-- Reescribir el CLI desde TypeScript/Bun a Rust.
+- Divide CI en tareas separadas de formato, verificación de tipos, pruebas y construcción.
+- Reescribe CLI desde TypeScript/Bun a Rust.
