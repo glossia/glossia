@@ -1,5 +1,5 @@
 {
-  "hash": "491415e8a4a710afa38c5d6bdfcd207da751af6dc6b5cc553ac135c6e7412ac9",
+  "hash": "0d4ee5f664393202b633d4ba12edd0d4c08e4b813cebc23f29047fa8f1fd2b19",
   "hash_tree": {
     "root": {
       "children": [
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "4ab8d51d1a1e225eb1ff457cd408c03891d4c8e7a6f530afdff9ee227c3766f2",
+              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "520dde75af81cb3e008c4d81f3258040ccc66c379791f3d845d1cc4cfbcc989e"
+                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
               }
             },
             {
@@ -83,28 +83,24 @@
               }
             }
           ],
-          "hash": "2e7c82be99482ca4aaa43ac06a6ce52d03a591e6057c49e34ea8715a4f2633f1",
+          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "491415e8a4a710afa38c5d6bdfcd207da751af6dc6b5cc553ac135c6e7412ac9",
+      "hash": "0d4ee5f664393202b633d4ba12edd0d4c08e4b813cebc23f29047fa8f1fd2b19",
       "kind": "translation_input",
       "label": "app/priv/features/language-memory.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "8f49de3517dec392b88d784902135b9c4b5619373f334cdba2bbf16d98bccd38",
+  "output_hash": "c35a8c35ccc75a8ee7c82a9caf00cd3f1cd9d324ea78777f053b7a827382e196",
   "output_path": "app/priv/i18n/ja/features/language-memory.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "project_context": {
-      "content_hash": null,
-      "version": null
-    },
     "selector_version": 2,
     "terminology": {
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -116,5 +112,5 @@
     }
   },
   "source_path": "app/priv/features/language-memory.md",
-  "translated_at": "2026-09-01T12:30:41.277585Z"
+  "translated_at": "2026-09-12T13:13:38.137509Z"
 }

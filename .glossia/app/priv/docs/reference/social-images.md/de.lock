@@ -1,28 +1,28 @@
 {
-  "hash": "21a674b4e37e324fd908387335962fa83419ced9d295a29a60c4a2339207239a",
+  "hash": "0d0083a0db0d7a5ff2ebe63f7e97a64c3a6afd81e6a698e71e6a8a32cee970bd",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "40bc8d7ce2d7b472cec60bb1ca3d3ee9b391ec1104060f252f885ed24116cec9",
+          "hash": "8e17e53c0a95513084b8dba0d4c9d34ad0eabbbaf48789a9d150e61a399d8907",
           "kind": "source",
-          "label": "app/priv/docs/how-to/login-with-glossia.md",
+          "label": "app/priv/docs/reference/social-images.md",
           "metadata": {
-            "content_hash": "f22e64de886ece498839ae173eebfa5480c5a54e9bb04ff797afda28e54e3f52"
+            "content_hash": "44cfc26662a4ef4fd45e23102b51a1a3e9a7f6cc450e540e1c25756130d50d8a"
           }
         },
         {
           "children": [],
-          "hash": "721fca88898d7c935026f366d013255ac8c3f94fa231fffee457edb49d965898",
+          "hash": "d19a584cdd5e20c9240c031c6a5510439a120fb4f32bb7fec62b18f42fb11538",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
             "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "format": "markdown",
             "frontmatter_mode": "translate",
-            "language": "fr",
-            "locale": "fr",
+            "language": "de",
+            "locale": "de",
             "model": "",
             "preserve": [],
             "prompt_version": 8,
@@ -89,15 +89,15 @@
           "metadata": {}
         }
       ],
-      "hash": "21a674b4e37e324fd908387335962fa83419ced9d295a29a60c4a2339207239a",
+      "hash": "0d0083a0db0d7a5ff2ebe63f7e97a64c3a6afd81e6a698e71e6a8a32cee970bd",
       "kind": "translation_input",
-      "label": "app/priv/docs/how-to/login-with-glossia.md",
+      "label": "app/priv/docs/reference/social-images.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "0c52007c70d1b6e9988ee755f70305aedab5d1909ba10b9c6781fe9c19891d33",
-  "output_path": "app/priv/i18n/fr/docs/how-to/login-with-glossia.md",
+  "output_hash": "1d604132932584ea4a022c569a2fc6677cf6e26ee0ad3c69dabdd13d5966e7e9",
+  "output_path": "app/priv/i18n/de/docs/reference/social-images.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
@@ -111,6 +111,6 @@
       "version": null
     }
   },
-  "source_path": "app/priv/docs/how-to/login-with-glossia.md",
-  "translated_at": "2026-09-12T12:27:14.538450Z"
+  "source_path": "app/priv/docs/reference/social-images.md",
+  "translated_at": "2026-09-12T12:51:11.854259Z"
 }
