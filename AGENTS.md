@@ -210,3 +210,38 @@ When touching styles, incrementally fix these gaps. Do not attempt a full rewrit
 
 - `app/priv/repo/seeds.exs` must stay **realistic and up to date**. When adding a new domain feature (schema/context/API surface), extend seeds with representative data so developers and agents can exercise it end-to-end.
 - Keep seeds idempotent (safe to run multiple times) and include data that covers: public accounts, organization memberships, invitations, projects, and voice/version history.
+
+## Downstream: enterprise wrapper
+
+This repository is consumed as a git dependency (`ref: "main"`, `sparse: "app"`)
+by the enterprise wrapper at [`../enterprise`](../enterprise). The wrapper
+adds the FLAME-managed runner pool, the detached translation Job launcher,
+project-setup harness, and Kata-scheduled sandbox — anything that is not
+appropriate for the community image lives there.
+
+Reconciliation between the two is automated. A scheduled workflow in
+`enterprise/.github/workflows/glossia-enterprise.yml` runs every 15 minutes,
+re-resolves this repository's `main` head, and, when the pinned SHA has
+moved, opens a `bot/glossia-enterprise` PR on the enterprise repository with
+the new `mix.lock`. The PR is gated by the wrapper's own `CI` (compile +
+formatter) and `Publish Image` (full release Docker build) workflows on its
+head; the same workflow squash-merges the PR on its next tick once every
+check goes green, and Flux picks up the resulting image on the cluster.
+
+Implications when editing this repository:
+
+- A merge to `main` here reaches production through the enterprise pipeline
+  described above, not from this repository directly. Expect a lag of one to
+  three cron ticks (up to ~45 min) plus the release Docker build and Flux
+  reconcile before a change lands in prod.
+- The wrapper compiles this app tree with `--warnings-as-errors` and runs
+  `mix format --check-formatted` against its own copy of the tree. A commit
+  that leaves stale gettext catalogs, non-formatted files, or unused deps
+  will fail the wrapper's gate and stall the bump PR — fix it here and
+  push again; the next tick picks it up.
+- Enterprise carries its own migrations and seams (see
+  `../enterprise/lib/glossia_enterprise/`). Do not add functionality that
+  assumes those seams exist in this repository — a seam is only real when it
+  goes through the `Application` MFA / `config :glossia, :<key>, module: …`
+  pattern documented in `lib/glossia/`.
+
