@@ -1718,7 +1718,7 @@ msgstr "Uma plataforma colaborativa para a sua identidade linguística"
 msgid "AI agents translate, adapt, and refine your content, guided by your linguistic preferences. When context changes, the system knows what is affected and revisits it automatically."
 msgstr "Agentes de IA traduzem, adaptam e refinam seu conteúdo, orientados por suas preferências linguísticas. Quando o contexto muda, o sistema sabe o que está afetado e o revisita automaticamente."
 
-#: lib/glossia/docs.ex:371
+#: lib/glossia/docs.ex:373
 #: lib/glossia_web/controllers/page_html/home.html.heex:161
 #, elixir-autogen, elixir-format
 msgid "APIs"
@@ -3995,17 +3995,17 @@ msgstr "Aplica-se ao dashboard. Qualquer coisa ainda não traduzida retorna para
 msgid "Apply"
 msgstr "Aplicar"
 
-#: lib/glossia/docs.ex:388
+#: lib/glossia/docs.ex:390
 #, elixir-autogen, elixir-format
 msgid "Authentication and REST interfaces."
 msgstr "Interfaces de autenticação e REST."
 
-#: lib/glossia/docs.ex:383
+#: lib/glossia/docs.ex:385
 #, elixir-autogen, elixir-format
 msgid "Background, design decisions, and concepts."
 msgstr "Contexto, decisões de design e conceitos."
 
-#: lib/glossia/docs.ex:370
+#: lib/glossia/docs.ex:372
 #, elixir-autogen, elixir-format
 msgid "CLI"
 msgstr "CLI"
@@ -4034,7 +4034,7 @@ msgstr "Escolha um domínio e instale o trecho do Glossia para começar a coleta
 msgid "Choose how Glossia behaves for your account."
 msgstr "Escolha como o Glossia se comporta para sua conta."
 
-#: lib/glossia/docs.ex:386
+#: lib/glossia/docs.ex:388
 #, elixir-autogen, elixir-format
 msgid "Command-line tool documentation and release history."
 msgstr "Documentação da ferramenta de linha de comando e histórico de lançamentos."
@@ -4090,7 +4090,7 @@ msgstr "Tolerância EN"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "A prioridade de cada par (país, idioma) é a de visitantes com uma lacuna de locale, ponderada por (1 - Tolerância em Inglês EF EPI) para aquele país. Maior = maior oportunidade perdida."
 
-#: lib/glossia/docs.ex:369
+#: lib/glossia/docs.ex:371
 #, elixir-autogen, elixir-format
 msgid "Explanation"
 msgstr "Explicação"
@@ -4115,7 +4115,7 @@ msgstr "Alta prioridade"
 msgid "How is this scored?"
 msgstr "Como isso é pontuado?"
 
-#: lib/glossia/docs.ex:367
+#: lib/glossia/docs.ex:369
 #, elixir-autogen, elixir-format
 msgid "How-to guides"
 msgstr "Guias de referência"
@@ -4166,12 +4166,12 @@ msgstr "Visitas com lacuna de locale"
 msgid "Low priority"
 msgstr "Baixa prioridade"
 
-#: lib/glossia/docs.ex:372
+#: lib/glossia/docs.ex:374
 #, elixir-autogen, elixir-format
 msgid "MCP"
 msgstr "MCP"
 
-#: lib/glossia/docs.ex:391
+#: lib/glossia/docs.ex:393
 #, elixir-autogen, elixir-format
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr "Servidor, ferramentas e prompts do Protocolo de Contexto de Modelo."
@@ -4237,7 +4237,7 @@ msgstr "Visualizações de página"
 msgid "Path"
 msgstr "Caminho"
 
-#: lib/glossia/docs.ex:377
+#: lib/glossia/docs.ex:379
 #, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr "Direções práticas para tarefas específicas."
@@ -4255,7 +4255,7 @@ msgstr "Preferências"
 msgid "Priority"
 msgstr "Prioridade"
 
-#: lib/glossia/docs.ex:368
+#: lib/glossia/docs.ex:370
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "Referência"
@@ -4291,12 +4291,12 @@ msgstr "Configurar análise web"
 msgid "Show translated output"
 msgstr "Mostrar saída traduzida"
 
-#: lib/glossia/docs.ex:375
+#: lib/glossia/docs.ex:377
 #, elixir-autogen, elixir-format
 msgid "Step-by-step lessons to get started with Glossia."
 msgstr "Lições passo a passo para começar com o Glossia."
 
-#: lib/glossia/docs.ex:380
+#: lib/glossia/docs.ex:382
 #, elixir-autogen, elixir-format
 msgid "Technical descriptions of configuration, CLI, and APIs."
 msgstr "Descrições técnicas de configuração, CLI e APIs."
@@ -4316,7 +4316,7 @@ msgstr "País principal"
 msgid "Translation cancelled."
 msgstr "Tradução cancelada."
 
-#: lib/glossia/docs.ex:366
+#: lib/glossia/docs.ex:368
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "Tutoriais"
