@@ -1,28 +1,28 @@
 {
-  "hash": "29191016f1735822ae05a3c8b46f2c139d10adf5433b5ca84e18411fa8e10e91",
+  "hash": "0d0083a0db0d7a5ff2ebe63f7e97a64c3a6afd81e6a698e71e6a8a32cee970bd",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "7a1cbd67c040feae22872612a73098e9b73da4f42c2707827e1b6c20c8778ebb",
+          "hash": "8e17e53c0a95513084b8dba0d4c9d34ad0eabbbaf48789a9d150e61a399d8907",
           "kind": "source",
-          "label": "app/priv/docs/reference/web-analytics.md",
+          "label": "app/priv/docs/reference/social-images.md",
           "metadata": {
-            "content_hash": "d3c8df08abe32a8d7f49a782a4b1ff4af7bc8ba4e13a844747e7a72f8bf40891"
+            "content_hash": "44cfc26662a4ef4fd45e23102b51a1a3e9a7f6cc450e540e1c25756130d50d8a"
           }
         },
         {
           "children": [],
-          "hash": "d25621d7e46513a03253f1f559a2b55b7842384469a895892b17f8366f17e37a",
+          "hash": "d19a584cdd5e20c9240c031c6a5510439a120fb4f32bb7fec62b18f42fb11538",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
             "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "format": "markdown",
             "frontmatter_mode": "translate",
-            "language": "ko",
-            "locale": "ko",
+            "language": "de",
+            "locale": "de",
             "model": "",
             "preserve": [],
             "prompt_version": 8,
@@ -89,15 +89,15 @@
           "metadata": {}
         }
       ],
-      "hash": "29191016f1735822ae05a3c8b46f2c139d10adf5433b5ca84e18411fa8e10e91",
+      "hash": "0d0083a0db0d7a5ff2ebe63f7e97a64c3a6afd81e6a698e71e6a8a32cee970bd",
       "kind": "translation_input",
-      "label": "app/priv/docs/reference/web-analytics.md",
+      "label": "app/priv/docs/reference/social-images.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "6eb1489ec83e6c67aebd4d171db75d424ea2f1286e61b7944bfb36d8cb6c5ee5",
-  "output_path": "app/priv/i18n/ko/docs/reference/web-analytics.md",
+  "output_hash": "e92d3dc9351a6602c8a0bdab114644afc198ca527d7dd4c78c9e17073568bcf1",
+  "output_path": "app/priv/i18n/de/docs/reference/social-images.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
@@ -111,6 +111,6 @@
       "version": null
     }
   },
-  "source_path": "app/priv/docs/reference/web-analytics.md",
-  "translated_at": "2026-09-14T12:00:51.198783Z"
+  "source_path": "app/priv/docs/reference/social-images.md",
+  "translated_at": "2026-09-14T11:08:11.882355Z"
 }

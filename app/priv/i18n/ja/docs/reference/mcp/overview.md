@@ -1,21 +1,21 @@
 %{
   title: "概要",
-  summary: "Model Context Protocol を介してコーディングエージェントを Glossia プロジェクトに接続できます。",
-  category: "リファレンス",
+  summary: "モデルコンテキストプロトコルを通じて、コーディングエージェントを Glossia プロジェクトに接続します。",
+  category: "参照",
   subcategory: "mcp",
   order: 1
 }
 ---
-Glossia は [Model Context Protocol](https://modelcontextprotocol.io) (MCP) サーバーはコーディングエージェントがローカライゼーションプロジェクトと対話できるようにします。このサーバーは OAuth 2.1、PKCE および動的クライアント登録 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), そのため、MCP 互換のクライアントは手動の認証設定なしで認証できます。
+Glossia は、 [Model Context Protocol](https://modelcontextprotocol.io) (MCP) サーバーが、翻訳プロジェクトとコーディングエージェントの連携を可能にし、このサーバーは OAuth 2.1 に PKCE および Dynamic Client Registration を実装しています。([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), したがって、MCP 互換クライアントは手動の資格情報設定なしで認証を実行できます。
 
 ## MCP サーバーが提供するもの
 
-接続後、コーディングエージェントは次のことができます：
+接続後、コーディングエージェントは以下のことができます：
 
-- 各プロジェクトの翻訳ステータスを照会する
-- 翻訳と改訂を開始
-- 設定とコンテンツエントリを確認
-- よりスマートなコードの提案のためにプロジェクトコンテキストにアクセス
+- プロジェクト全体の翻訳ステータスを照会します
+- 翻訳と改訂をトリガーする
+- 設定とコンテンツエントリを確認する
+- よりスマートなコード提案のため、プロジェクトコンテキストにアクセスする
 
 ## サーバー URL
 
@@ -26,25 +26,25 @@ Glossia は [Model Context Protocol](https://modelcontextprotocol.io) (MCP) サ�
 
 ## 認証フロー
 
-MCP サーバーは、PKCE を含む標準の OAuth 2.1 認証コードフローを使用します。手動で OAuth クライアントを作成する必要はありません。フローは以下の通りです:
+MCP サーバーは標準的な OAuth 2.1 認証コードフロー（PKCE）を使用します。手動で OAuth クライアントを作成する必要はありません。フローは以下の通りです：
 
-1. エージェントはあなたのサーバーを通じて検出します `/.well-known/oauth-authorization-server`
-2. エージェントはダイナミック登録エンドポイントを介して OAuth クライアントとして登録します
-3. エージェントは、ログインと同意のために、あなたのブラウザを開きます
-4. あなたが承認した後、エージェントはアクセストークンを取得し、すべての MCP リクエストに追加します
+1. エージェントはあなたのサーバーを発見します `/.well-known/oauth-authorization-server`
+2. 動的登録エンドポイントを介して、自身を OAuth クライアントとして登録します
+3. ログインおよび同意のためにブラウザを開きます
+4. あなたが承認すると、エージェントはアクセストークンを取得し、すべての MCP リクエストに添付します
 
 ## コーディングエージェントに Glossia を追加
 
 ### OpenAI Codex
 
-サーバーを Codex 設定ファイルに追加し、以下 `~/.codex/config.toml`:
+サーバーを Codex 設定ファイルに追加してください `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.glossia]
 url = "https://glossia.ai/mcp"
 ```
 
-次に OAuth ログインを実行してください:
+次に OAuth ログインを実行:
 
 ```bash
 codex mcp login glossia
@@ -58,7 +58,7 @@ codex mcp login glossia
 codex mcp list
 ```
 
-ローカル開発の場合、URL を置換してください:
+ローカル開発の場合は、URL を置換:
 
 ```toml
 [mcp_servers.glossia-local]
@@ -67,7 +67,7 @@ url = "http://localhost:4050/mcp"
 
 ### Claude Code
 
-サーバーを Claude Code MCP 設定に追加 (`.claude/settings.json` またはグローバル設定ファイル):
+Claude Code MCP 設定にサーバーを追加 (`.claude/settings.json` またはグローバル設定ファイル):
 
 ```json
 {
@@ -80,55 +80,55 @@ url = "http://localhost:4050/mcp"
 }
 ```
 
-Claude Code は最初に接続する際に OAuth フローを自動的に処理します。
+Claude Code は最初の接続時に OAuth フローを自動的に処理します。
 
 ### 他の MCP クライアント
 
-MCP 認証仕様に対応する [MCP authorization spec](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) 動作します。主な要件は次の通りです：
+MCP 認証仕様に対応する [MCP 認証仕様](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) 動作します。主な要件は:
 
-- **トランスポート**: ストリーム可能 HTTP
-- **ディスカバリー**: クライアントは OAuth 2.0 保護されたリソースメタデータをサポートする必要があります ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728))
-- **登録**: ダイナミック クライアント登録 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) または クライアント ID メタデータドキュメント
+- **トランスポート**: ストリーム対応 HTTP
+- **発見**: クライアントは OAuth 2.0 保護リソースメタデータをサポートする必要があります ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- **登録**: ダイナミッククライアント登録 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) または クライアント ID メタデータ ドキュメント
 - **認証フロー**: PKCE (S256) を使用した認証コード
 
-Glossia MCP サーバー URL にクライアントを指定し、発見と登録を自動的に処理します。
+Glossia MCP サーバー URL にクライアントを向け、発見と登録を自動的に処理させてください。
 
 ## 発見エンドポイント
 
-サーバーは二つのメタデータドキュメントを公開しており、MCP クライアントが OAuth フローを初期化するためにこれらを使用します。
+サーバーは、MCP クライアントが OAuth フローを開始するために使用する 2 つのメタデータドキュメントを公開します：
 
 | エンドポイント | 説明 |
 |---|---|
-| `/.well-known/oauth-authorization-server` | 認証サーバーメタデータ (エンドポイント、サポートされる 権限付与タイプ、PKCE メソッド) |
-| `/.well-known/oauth-protected-resource` | 保護リソースメタデータ (スコープ、認証サーバー) |
+| `/.well-known/oauth-authorization-server` | 認証サーバーメタデータ (エンドポイント、サポートされる権限付与タイプ、PKCE メソッド) |
+| `/.well-known/oauth-protected-resource` | 保護されたリソースメタデータ (スコープ、認証サーバー) |
 
 ## レート制限
 
-OAuth エンドポイントは、悪用防止のためにレート制限を適用します:
+OAuth エンドポイントは、濫用を防ぐためにレート制限を適用します：
 
 | エンドポイント | 制限 |
 |---|---|
 | `POST /oauth/register` | 5 リクエスト/分 |
 | `POST /oauth/token` | 30 リクエスト/分 |
 | `POST /oauth/introspect` | 30 リクエスト/分 |
-| `POST /oauth/revoke` | 1 分あたり 30 件のリクエスト |
+| `POST /oauth/revoke` | 1 分あたり 30 回のリクエスト |
 
-レート制限を超えると、サーバーは HTTP 429 を、 `Retry-After` ヘッダーを返します。
+レート制限を超過した場合、サーバーは HTTP 429 の `Retry-After` ヘッダーを返します。
 
 ## トラブルシューティング
 
-### 登録が "invalid\_client\_metadata" のエラーで失敗しました。
+### 登録に失敗し \\"invalid\_client\_metadata\\" です。
 
-動的登録エンドポイントでは、特定の `token_endpoint_auth_method` 値のみを受け付けます。パブリック クライアント（多くのコーディング エージェント）は送信し、 `"none"`, Glossia は自動的にデフォルト認証方式へのフォールバックを行い、PKCE 強制を適用します。
+動的登録エンドポイントでは特定の `token_endpoint_auth_method` 値のみを受け取ります。公開クライアント (主にコーディングエージェント) は送信し、 `"none"`Glossia は PKCE 強制を含むデフォルトの認証メソッドへのフォールバックで自動的に処理します。
 
-### 「無効な OAuth コールバック」 承認後
+### "無効な OAuth callback" 承認後
 
-設定した URL で Glossia サーバーが実行中かつアクセス可能であることを確認してください。コールバックは、コーディングエージェントが一時的に使用するローカルポートで発生します。ファイアウォールまたは VPN がこれをブロックすることがあります。
+構成済みの URL で Glossia サーバーが実行中でありアクセス可能であることを確認してください。コーディングエージェントが一時的に開くローカルポートでコールバックが発生します。ファイアウォールまたは VPN は場合によってはこれをブロックする可能性があります。
 
-### トークン交換が失敗
+### トークン交換に失敗
 
-認証サーバーのメタデータに `code_challenge_methods_supported` フィールドが存在しているか確認してください。PKCE が動作するには、サーバーは S256 サポートを明示している必要があります。Glossia はこれをデフォルトで提供しています。
+認証サーバーのメタデータに `code_challenge_methods_supported` フィールドが存在していることを確認してください。正常に動作するには、サーバーが PKCE の S256 サポートを公開している必要があります。Glossia はこれをデフォルトで用意しています。
 
-### エージェントがサーバーにアクセスできない
+### エージェントがサーバーに到達できません
 
-ローカル開発では、Phoenix サーバーが実行中 (`mix phx.server`) かつ指定されたポートでリスニングしていることを確認してください（デフォルト：4050）。MCP エンドポイントがエージェントプロセスからアクセス可能である必要があります。
+ローカル開発では、Phoenix サーバーが実行中（`mix phx.server`）で、予期されたポート（デフォルト：4050）でリスニングされていることを確認してください。エージェントプロセスから MCP エンドポイントにアクセス可能である必要があります。
