@@ -138,13 +138,16 @@ defmodule Glossia.Translations.MarkdownTest do
     assert {:error, message} =
              Markdown.rebuild_text_literals("Keep this sentence.", ["   "])
 
-    assert message =~ "emptied a source literal"
+    assert message =~ "empty translation"
   end
 
   test "requires whitespace-only literals to remain byte-for-byte unchanged" do
     assert {:error, message} =
-             Markdown.rebuild_text_literals("[guide](https://example.com) ", ["guide", "\n"])
+             Markdown.rebuild_text_literals(
+               "[guide](https://example.com) [next](https://example.com/next)",
+               ["guide", "\n", "next"]
+             )
 
-    assert message =~ "emptied a source literal"
+    assert message =~ "changed source whitespace"
   end
 end

@@ -26,6 +26,7 @@ defmodule Glossia.Translations.Engine do
 
   require Logger
 
+  alias Glossia.Translations.Checkpoints
   alias Glossia.Translations.ContentSegments
   alias Glossia.Translations.Context
   alias Glossia.Translations
@@ -534,6 +535,42 @@ defmodule Glossia.Translations.Engine do
          message,
          attempt \\ 1
        ) do
+    identity = {:markdown_literals, segment, entries}
+
+    case checkpoint(
+           state,
+           %{segment | kind: "markdown_text_literals"},
+           identity,
+           fn ->
+             case do_translate_markdown_text_literal_batch(
+                    state,
+                    segment,
+                    entries,
+                    index,
+                    count,
+                    message,
+                    attempt
+                  ) do
+               {:ok, literals, result} -> {:ok, JSON.encode!(literals), result}
+               other -> other
+             end
+           end,
+           false
+         ) do
+      {:ok, encoded, result} -> {:ok, JSON.decode!(encoded), result}
+      other -> other
+    end
+  end
+
+  defp do_translate_markdown_text_literal_batch(
+         state,
+         segment,
+         entries,
+         index,
+         count,
+         message,
+         attempt
+       ) do
     recovery_segment =
       Map.merge(segment, %{
         kind: "markdown_text_literals",
@@ -569,13 +606,6 @@ defmodule Glossia.Translations.Engine do
           {:error, reason} ->
             {:preservation_error, reason}
         end
-
-      {:error, _reason} when length(entries) > 1 ->
-        # Transient provider failures have already exhausted the request-level
-        # retry policy when they reach this point. A smaller request is the
-        # only remaining useful recovery, and is safer than falling through to
-        # a full-Markdown prompt that can alter the document's structure.
-        split_markdown_text_literal_batch(state, segment, entries, index, count, nil)
 
       other ->
         other
@@ -652,7 +682,29 @@ defmodule Glossia.Translations.Engine do
   # markers it lost, recovers far more cheaply than retranslating the document.
   # If that focused recovery runs out, stop there rather than repeatedly
   # translating segments whose output has already passed preservation checks.
-  defp translate_segment(
+  defp translate_segment(state, segment, index, count, attempt, last_error) do
+    if segment.kind in ["markdown_text_literals", "po_text_literals"] and
+         not Map.has_key?(segment, :po_source) do
+      do_translate_segment(state, segment, index, count, attempt, last_error)
+    else
+      checkpoint(state, segment, {index, count, attempt, last_error}, fn ->
+        do_translate_segment(state, segment, index, count, attempt, last_error)
+      end)
+    end
+  end
+
+  defp do_translate_segment(
+         state,
+         %{kind: "po_text_literals", po_source: _} = segment,
+         index,
+         count,
+         _attempt,
+         _error
+       ) do
+    translate_po_segment(state, segment, index, count)
+  end
+
+  defp do_translate_segment(
          state,
          %{kind: "content"} = segment,
          index,
@@ -664,13 +716,186 @@ defmodule Glossia.Translations.Engine do
       {:ok, %{segments: [%{text: text}], model: model, provider: provider}} ->
         {:ok, text, %{model: model, provider: provider}}
 
+      {:error, reason} ->
+        {:error, reason}
+
       _ ->
         translate_segment_with_model(state, segment, index, count, attempt, last_error)
     end
   end
 
-  defp translate_segment(state, segment, index, count, attempt, last_error) do
+  defp do_translate_segment(state, segment, index, count, attempt, last_error) do
     translate_segment_with_model(state, segment, index, count, attempt, last_error)
+  end
+
+  defp checkpoint(state, segment, identity, translate, emit \\ true) do
+    scope = Keyword.get(state.translation_opts, :checkpoint_scope)
+    storage = if scope, do: state.translation_opts
+    key = Checkpoints.key({1, scope, segment, identity, state.attempt, state.last_error})
+
+    case Checkpoints.fetch(storage, key) do
+      %{text: text, model: model, provider: provider} ->
+        if emit do
+          {index, count, _attempt, _last_error} = identity
+          emit_segment_event(state, segment, {:segment_start, index, count, segment.kind})
+          emit_segment_event(state, segment, {:segment_output, text})
+        end
+
+        {:ok, text, %{model: model, provider: provider}}
+
+      nil ->
+        case translate.() do
+          {:ok, text, result} = success ->
+            Checkpoints.put(storage, key, Map.put(result, :text, text))
+            success
+
+          other ->
+            other
+        end
+    end
+  end
+
+  defp translate_po_segment(state, segment, index, count) do
+    emit_segment_event(state, segment, {:segment_start, index, count, segment.kind})
+    units = Map.get(segment, :po_stale_units, segment.po_units)
+
+    {entries, headers, _offset} =
+      Enum.reduce(units, {[], %{}, 0}, fn unit, {entries, headers, offset} ->
+        if unit.header? do
+          header = Po.localized_header(hd(unit.sources), state.work_item.locale)
+          {entries, Map.put(headers, offset, header), offset + 1}
+        else
+          indexed = unit.sources |> Enum.with_index(offset)
+          {entries ++ indexed, headers, offset + length(unit.sources)}
+        end
+      end)
+
+    batches =
+      Enum.chunk_while(
+        entries,
+        {[], 0},
+        fn {text, _} = entry, {batch, bytes} ->
+          if batch != [] and (length(batch) == 8 or bytes + byte_size(text) > 8_000) do
+            {:cont, Enum.reverse(batch), {[entry], byte_size(text)}}
+          else
+            {:cont, {[entry | batch], bytes + byte_size(text)}}
+          end
+        end,
+        fn
+          {[], _} -> {:cont, []}
+          {batch, _} -> {:cont, Enum.reverse(batch), {[], 0}}
+        end
+      )
+
+    initial =
+      {:ok, headers,
+       %{model: state.work_item.model, provider: Map.get(state.work_item, :translation_provider)}}
+
+    result =
+      Enum.reduce_while(batches, initial, fn batch, {:ok, strings, _result} ->
+        case translate_po_batch(state, segment, batch, index, count) do
+          {:ok, translated, result} -> {:cont, {:ok, Map.merge(strings, translated), result}}
+          error -> {:halt, error}
+        end
+      end)
+
+    with {:ok, strings, result} <- result,
+         decoded <- strings |> Enum.sort_by(&elem(&1, 0)) |> Enum.map(&elem(&1, 1)),
+         {:ok, translations} <- assemble_po_translations(decoded, segment),
+         {:ok, rebuilt} <- Po.rebuild_text_literals(segment.po_source, translations) do
+      emit_segment_event(state, segment, {:segment_output, rebuilt})
+      {:ok, rebuilt, result}
+    else
+      {:error, message} when is_binary(message) -> {:preservation_error, message}
+      other -> other
+    end
+  end
+
+  defp translate_po_batch(state, segment, entries, index, count, attempt \\ 1, last_error \\ nil) do
+    sources = Enum.map(entries, &elem(&1, 0))
+
+    batch =
+      segment
+      |> Map.delete(:po_source)
+      |> Map.put(:content, JSON.encode!(sources))
+      |> Map.put(:suppress_progress, true)
+      |> Map.put(:suppress_stream_text, true)
+
+    response =
+      checkpoint(
+        state,
+        batch,
+        {:catalog_batch, entries},
+        fn ->
+          with {:ok, text, result} <-
+                 translate_segment_with_model(state, batch, index, count, 1, last_error),
+               {:ok, decoded} <- decode_po_batch(text, sources) do
+            {:ok, JSON.encode!(decoded), result}
+          end
+        end,
+        false
+      )
+
+    case response do
+      {:ok, text, result} ->
+        translations =
+          Enum.zip(entries, JSON.decode!(text))
+          |> Map.new(fn {{_source, offset}, translation} -> {offset, translation} end)
+
+        {:ok, translations, result}
+
+      {:error, message} when is_binary(message) and attempt < @segment_attempts ->
+        translate_po_batch(state, segment, entries, index, count, attempt + 1, message)
+
+      {:error, message} when is_binary(message) and length(entries) > 1 ->
+        {left, right} = Enum.split(entries, div(length(entries), 2))
+
+        with {:ok, left, _} <- translate_po_batch(state, segment, left, index, count),
+             {:ok, right, result} <- translate_po_batch(state, segment, right, index, count) do
+          {:ok, Map.merge(left, right), result}
+        end
+
+      {:error, message} when is_binary(message) ->
+        failure = Failure.from({:validation_failed, message})
+
+        Logger.warning(
+          "Translation catalog batch failed: #{JSON.encode!(%{event: "translation.catalog_batch_failed", translation_session_id: Map.get(state.work_item, :translation_session_id), output_path: state.work_item.output_path, literal_offset: entries |> hd() |> elem(1), literal_count: length(entries), validation_code: failure.validation_code})}"
+        )
+
+        {:preservation_error, message}
+
+      other ->
+        other
+    end
+  end
+
+  defp decode_po_batch(text, sources) do
+    with {:ok, decoded} <- JsonArray.decode(text) do
+      cond do
+        not Enum.all?(decoded, &is_binary/1) ->
+          {:error, "po text-literal response must be a JSON array of strings"}
+
+        length(decoded) != length(sources) ->
+          {:error, "po text-literal response length did not match source count"}
+
+        Enum.zip(sources, decoded)
+        |> Enum.any?(fn {source, output} ->
+          String.trim(source) != "" and String.trim(output) == ""
+        end) ->
+          {:error, "po text-literal response contained an empty translation"}
+
+        Enum.zip(sources, decoded)
+        |> Enum.any?(fn {source, output} ->
+          Glossia.Translations.Validate.Po.validate_literal(source, output) != :ok
+        end) ->
+          {:error, "po text-literal response changed a placeholder"}
+
+        true ->
+          {:ok, decoded}
+      end
+    else
+      _ -> {:error, "po text-literal response was not a valid JSON array"}
+    end
   end
 
   defp translate_segment_with_model(state, segment, index, count, attempt, last_error) do

@@ -79,9 +79,8 @@ defmodule Glossia.Translations.Together do
   defp response_text(_response), do: {:error, :invalid_together_response}
 
   defp retry_after_headers(resp) do
-    case Req.Response.get_header(resp, "retry-after") do
-      [value | _] -> [{"retry-after", value}]
-      _ -> []
-    end
+    Enum.flat_map(["retry-after", "x-ratelimit-reset", "x-request-id"], fn header ->
+      Enum.map(Req.Response.get_header(resp, header), &{header, &1})
+    end)
   end
 end

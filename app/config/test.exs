@@ -89,3 +89,6 @@ config :glossia, Glossia.Vault,
       iv_length: 12
     }
   ]
+
+# Provider admission is tested with explicit database calls and a controlled clock.
+config :glossia, :provider_pacing, false

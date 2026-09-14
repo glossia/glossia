@@ -63,6 +63,37 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     end)
   end
 
+  test "exhausted rate limits enqueue an automatic continuation through the launcher" do
+    {user, project} =
+      project_with_installation("translate-throttle@test.com", "translate-throttle")
+
+    session = session_for(user, project)
+    stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    stub(Glossia.Translations.RepositoryRun, :run, fn _, _, _, _, _ ->
+      {:error,
+       {:translation_items_failed,
+        [
+          %{
+            output_path: "es.po",
+            reason: %{kind: "provider-rate-limit", scope: "session", status: 429}
+          }
+        ]}}
+    end)
+
+    Oban.Testing.with_testing_mode(:manual, fn ->
+      capture_log(fn ->
+        assert {:error, {:translation_items_failed, _}} = Translate.run(session.id)
+      end)
+
+      continuation =
+        Repo.one!(from s in TranslationSession, where: s.continued_from_session_id == ^session.id)
+
+      assert continuation.status == "pending"
+      assert continuation.provider_retry_count == 1
+    end)
+  end
+
   test "opens one pull request after the full translated change list is ready" do
     {user, project} = project_with_installation("translate@test.com", "translate")
     session = session_for(user, project)

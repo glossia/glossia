@@ -3,6 +3,22 @@ defmodule Glossia.Translations.FailureTest do
 
   alias Glossia.Translations.Failure
 
+  test "catalog conversion diagnostics are classified without exposing response content" do
+    for {message, code} <- [
+          {"po text-literal response must be a JSON array of strings", "catalog-literal-shape"},
+          {"po text-literal response was not a valid JSON array", "catalog-literal-syntax"},
+          {"po text-literal response length 4 did not match stale-msgid literal count 5",
+           "catalog-literal-count"},
+          {"po text-literal rebuild expected 5 strings but got 4", "catalog-rebuild-count"},
+          {"po text-literal response contained an empty translation", "catalog-literal-empty"},
+          {"po text-literal response changed a placeholder", "catalog-literal-preservation"}
+        ] do
+      failure = Failure.from({:validation_failed, message <> ": private source text"})
+      assert failure.validation_code == code
+      refute failure.validation_message =~ "private source text"
+    end
+  end
+
   test "keeps only allowlisted provider diagnostics" do
     reason =
       {:llm_failed,

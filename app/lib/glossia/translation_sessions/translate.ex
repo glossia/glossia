@@ -687,7 +687,11 @@ defmodule Glossia.TranslationSessions.Translate do
     failure_metadata = failure_metadata(reason)
 
     case TranslationSessions.finish_session(session, "failed", error: error_msg) do
-      {:ok, _session} ->
+      {:ok, finished_session} ->
+        if Glossia.TranslationSessions.ProviderRecovery.rate_limited?(reason) do
+          Glossia.TranslationSessions.ProviderRecovery.schedule(finished_session)
+        end
+
         Logger.error(
           "Translation session failed: " <>
             JSON.encode!(
