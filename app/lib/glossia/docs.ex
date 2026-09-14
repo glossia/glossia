@@ -22,9 +22,11 @@ defmodule Glossia.Docs.Page do
     {body, toc} = Glossia.MarketingMarkdown.process(body, toc: true)
 
     attrs
-    |> Map.put_new(:category, category)
-    |> Map.put_new(:subcategory, subcategory)
-    |> Map.put_new(:slug, slug)
+    # Routing identifiers come from the source-relative path. Older translated
+    # frontmatter may contain localized category names or slugs.
+    |> Map.put(:category, category)
+    |> Map.put(:subcategory, subcategory)
+    |> Map.put(:slug, slug)
     |> Map.put_new(:kind, :doc)
     |> Map.merge(%{
       id: id,
