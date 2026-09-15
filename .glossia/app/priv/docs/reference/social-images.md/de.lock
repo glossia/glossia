@@ -1,28 +1,28 @@
 {
-  "hash": "bcb8687e057749e07625ad11567a09884588c94be283f23732fcdccffd6b0700",
+  "hash": "0d0083a0db0d7a5ff2ebe63f7e97a64c3a6afd81e6a698e71e6a8a32cee970bd",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "b76017e361de8b72821362283f3e5a79e74c7feb654e894cd50dce9ad29776dd",
+          "hash": "8e17e53c0a95513084b8dba0d4c9d34ad0eabbbaf48789a9d150e61a399d8907",
           "kind": "source",
-          "label": "app/priv/legal/cookies-2026-02-12.md",
+          "label": "app/priv/docs/reference/social-images.md",
           "metadata": {
-            "content_hash": "713ba275fb7ea27400ac81ed0c6df3719e358ced146e2efb14b086fe781b8c7f"
+            "content_hash": "44cfc26662a4ef4fd45e23102b51a1a3e9a7f6cc450e540e1c25756130d50d8a"
           }
         },
         {
           "children": [],
-          "hash": "c026d8712383029009d95e5a9b53588fc4d1d713b60dc020ea0f9880685052d1",
+          "hash": "d19a584cdd5e20c9240c031c6a5510439a120fb4f32bb7fec62b18f42fb11538",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
             "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "format": "markdown",
             "frontmatter_mode": "translate",
-            "language": "pt-BR",
-            "locale": "pt-BR",
+            "language": "de",
+            "locale": "de",
             "model": "",
             "preserve": [],
             "prompt_version": 8,
@@ -89,15 +89,15 @@
           "metadata": {}
         }
       ],
-      "hash": "bcb8687e057749e07625ad11567a09884588c94be283f23732fcdccffd6b0700",
+      "hash": "0d0083a0db0d7a5ff2ebe63f7e97a64c3a6afd81e6a698e71e6a8a32cee970bd",
       "kind": "translation_input",
-      "label": "app/priv/legal/cookies-2026-02-12.md",
+      "label": "app/priv/docs/reference/social-images.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "261909fe5f0770267e81d763870d947f3c8047063c3f1b2c4e21ca400df8e9e7",
-  "output_path": "app/priv/i18n/pt-BR/legal/cookies-2026-02-12.md",
+  "output_hash": "5964820a0db0f9a36fc0008a2f07462f83295be155dd6c078d26c6d389532edb",
+  "output_path": "app/priv/i18n/de/docs/reference/social-images.md",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
@@ -111,6 +111,6 @@
       "version": null
     }
   },
-  "source_path": "app/priv/legal/cookies-2026-02-12.md",
-  "translated_at": "2026-09-15T08:27:13.735031Z"
+  "source_path": "app/priv/docs/reference/social-images.md",
+  "translated_at": "2026-09-15T08:49:52.591525Z"
 }
