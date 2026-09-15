@@ -1,24 +1,20 @@
-msgid ""
-msgstr ""
-"Language: ja"
-"MIME-Version: 1.0"
-"Content-Type: text/plain; charset=UTF-8"
-"Content-Transfer-Encoding: 8bit"
-"Plural-Forms: nplurals=1; plural=0;"
-
-## 本ファイルは PO テンプレートファイルです。
+## This file is a PO Template file.
 ##
-## "msgid" は通常、ソースコードから抽出されます。
-## 動的で静的に抽出できないメッセージのみ手動で追加してください。
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
 ##
-## refresh 更新ツール "mix gettext.extract" を実行してこのファイルを
-## 最新の状態に保ってください。"msgstr" は変更しないままに放置してください。
-## または変更するとここに影響はないため、PO (.po) ファイルで直接編集してください。
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
 #
+msgid ""
+msgstr "Language: ja\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
+
 #: lib/glossia_web/live/dashboard_live.ex:13198
 #, elixir-autogen, elixir-format
 msgid "At a glance"
-msgstr "概要"
+msgstr "サマリー"
 
 #: lib/glossia_web/live/dashboard_live.ex:13442
 #, elixir-autogen, elixir-format
@@ -38,9 +34,9 @@ msgstr "上位ページ"
 #: lib/glossia_web/live/dashboard_live.ex:13284
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
-msgstr "次回の翻訳先"
+msgstr "次におすすめの翻訳箇所"
 
 #: lib/glossia_web/live/dashboard_live.ex:13363
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Traffic"
-msgstr "時間別トラフィック"
+msgstr "トラフィック"
