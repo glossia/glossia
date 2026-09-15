@@ -33,6 +33,7 @@ defmodule Glossia.Translations do
   alias Glossia.Translations.Credentials
   alias Glossia.Translations.Failure
   alias Glossia.Translations.LLM
+  alias Glossia.Translations.ProviderPacing
   alias Glossia.Translations.Prompt
 
   @type result :: %{
@@ -122,7 +123,7 @@ defmodule Glossia.Translations do
 
       backoff_ms = Keyword.get(opts, :retry_backoff_ms, @llm_retry_backoff_ms)
 
-      case with_retries(call, credential, notify_retry, backoff_ms, on_event) do
+      case with_retries(call, credential, notify_retry, backoff_ms, on_event, 1, opts) do
         {:ok, text} -> {:ok, build_result(credential, text)}
         {:error, reason} -> {:error, {:llm_failed, reason}}
       end
@@ -133,19 +134,45 @@ defmodule Glossia.Translations do
   # fail the whole item (and, in a repository run, the whole session), even
   # though the same call succeeds moments later. Non-transient failures - no
   # credit, bad credentials - are returned immediately.
-  defp with_retries(call, credential, notify_retry, backoff_ms, on_error \\ nil, attempt \\ 1) do
+  defp with_retries(
+         call,
+         credential,
+         notify_retry,
+         backoff_ms,
+         on_error \\ nil,
+         attempt \\ 1,
+         opts \\ []
+       ) do
+    pacing =
+      Keyword.get(opts, :provider_pacing, Application.get_env(:glossia, :provider_pacing, true))
+
+    key = ProviderPacing.key(credential)
+
+    if pacing,
+      do:
+        ProviderPacing.await(
+          key,
+          Keyword.put(opts, :on_wait, fn _ms -> notify_retry.(attempt) end)
+        )
+
     case call.() do
       {:ok, text} ->
+        if pacing, do: ProviderPacing.succeeded(key, opts)
         {:ok, text}
 
       {:error, reason} ->
         provider = ModelIdentifier.provider(credential.model)
         failure = Failure.from({:llm_failed, reason}, provider)
 
+        delay = retry_delay_ms(backoff_ms, attempt, failure)
+
+        if pacing and failure.kind == "provider-rate-limit",
+          do: ProviderPacing.limited(key, delay, opts)
+
         if attempt < @max_llm_attempts and Failure.retryable?(failure) do
-          Process.sleep(retry_delay_ms(backoff_ms, attempt, failure))
+          Process.sleep(delay)
           notify_retry.(attempt + 1)
-          with_retries(call, credential, notify_retry, backoff_ms, on_error, attempt + 1)
+          with_retries(call, credential, notify_retry, backoff_ms, on_error, attempt + 1, opts)
         else
           if on_error, do: on_error.({:error, reason})
           {:error, reason}
@@ -153,26 +180,11 @@ defmodule Glossia.Translations do
     end
   end
 
-  # A rate-limited provider states how long to wait, and that number beats any
-  # curve chosen here. Everything else backs off exponentially.
-  #
-  # Both are jittered. A run translates every planned file at once, so without
-  # jitter one rate-limit response would put every in-flight file on the same
-  # timer and they would return as a synchronised wave, re-trip the limit, and
-  # settle into lockstep. Spreading each wait over its own window is what turns
-  # that wave back into a stream.
-  defp retry_delay_ms(backoff_ms, attempt, failure) do
-    base =
-      case failure do
-        %{retry_after_ms: ms} when is_integer(ms) and ms > 0 ->
-          ms
-
-        _ ->
-          backoff_ms
-          |> Kernel.*(Integer.pow(2, attempt - 1))
-          |> min(@max_llm_retry_backoff_ms)
-      end
-
+  @doc false
+  def retry_delay_ms(backoff_ms, attempt, failure) do
+    exponential = min(backoff_ms * Integer.pow(2, attempt - 1), @max_llm_retry_backoff_ms)
+    hint = Map.get(failure, :retry_after_ms) || 0
+    base = max(exponential, hint)
     base + :rand.uniform(max(div(base, 2), 1))
   end
 
@@ -200,6 +212,13 @@ defmodule Glossia.Translations do
   end
 
   defp resolve_credential(account, model_handle, target_locale, opts) do
+    case Keyword.fetch(opts, :credential) do
+      {:ok, credential} -> {:ok, credential}
+      :error -> resolve_live_credential(account, model_handle, target_locale, opts)
+    end
+  end
+
+  defp resolve_live_credential(account, model_handle, target_locale, opts) do
     resolver_opts = [target_locale: target_locale]
 
     case Keyword.fetch(opts, :credential_node) do

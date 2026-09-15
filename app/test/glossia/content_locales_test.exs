@@ -32,6 +32,39 @@ defmodule Glossia.ContentLocalesTest do
     assert Changelog.all_entries("ja") == Changelog.all_entries()
   end
 
+  test "translated docs retain their source routing identifiers" do
+    source_routes = Map.new(Docs.all_pages(), &{&1.id, {&1.category, &1.subcategory, &1.slug}})
+
+    for locale <- I18n.locales() do
+      assert Map.new(Docs.all_pages(locale), &{&1.id, {&1.category, &1.subcategory, &1.slug}}) ==
+               source_routes
+    end
+  end
+
+  @tag :tmp_dir
+  test "doc paths override translated routing metadata", %{tmp_dir: dir} do
+    path = Path.join([dir, "docs", "reference", "cli", "commands.md"])
+    File.mkdir_p!(Path.dirname(path))
+    File.write!(path, "%{}\n---\nTranslated body.")
+
+    attrs = %{
+      title: "Comandos",
+      summary: "Referencia",
+      order: 1,
+      category: "Referencia",
+      subcategory: "Comandos",
+      slug: "comandos"
+    }
+
+    page = Docs.Page.build(path, attrs, "<p>Translated body.</p>")
+
+    assert page.title == "Comandos"
+    assert page.category == "reference"
+    assert page.subcategory == "cli"
+    assert page.slug == "commands"
+    assert Docs.path_for(page) == "/docs/reference/cli/commands"
+  end
+
   test "docs paths carry the locale prefix" do
     [item | _] = Docs.category_items("how-to", "es")
 

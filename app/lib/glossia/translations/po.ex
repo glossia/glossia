@@ -93,6 +93,7 @@ defmodule Glossia.Translations.Po do
 
           sources ->
             unit = %{
+              header?: entry.header?,
               key: unit_key(entry),
               source_hash: source_hash(sources),
               sources: sources,
@@ -185,6 +186,29 @@ defmodule Glossia.Translations.Po do
 
       {:ok, emit(rebuilt)}
     end
+  end
+
+  @doc "Builds locale metadata deterministically, preserving unrelated source headers."
+  def localized_header(source_header, locale) do
+    fields = [
+      {"Language", locale},
+      {"MIME-Version", "1.0"},
+      {"Content-Type", "text/plain; charset=UTF-8"},
+      {"Content-Transfer-Encoding", "8bit"},
+      {"Plural-Forms", Gettext.Plural.plural_forms_header(String.replace(locale, "-", "_"))}
+    ]
+
+    names = Enum.map(fields, fn {name, _} -> String.downcase(name) end)
+
+    kept =
+      source_header
+      |> String.split("\n", trim: true)
+      |> Enum.reject(fn line ->
+        name = line |> String.split(":", parts: 2) |> hd() |> String.downcase()
+        name in names
+      end)
+
+    Enum.join(kept ++ Enum.map(fields, fn {name, value} -> "#{name}: #{value}" end), "\n") <> "\n"
   end
 
   # ── parsing ────────────────────────────────────────────────────────────────

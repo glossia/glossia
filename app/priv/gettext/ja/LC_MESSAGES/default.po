@@ -1718,7 +1718,7 @@ msgstr "「あなたの言語的アイデンティティを形作るための協
 msgid "AI agents translate, adapt, and refine your content, guided by your linguistic preferences. When context changes, the system knows what is affected and revisits it automatically."
 msgstr "「AI エージェントはあなたの言語的嗜好に基づき、コンテンツを翻訳、適応させ、洗練させます。文脈が変化すると、システムは何が影響を受けるかを知り、自動的に再検証します。」"
 
-#: lib/glossia/docs.ex:371
+#: lib/glossia/docs.ex:373
 #: lib/glossia_web/controllers/page_html/home.html.heex:161
 #, elixir-autogen, elixir-format
 msgid "APIs"
@@ -3990,17 +3990,17 @@ msgstr "ダッシュボードに適用されます。まだ翻訳されていな
 msgid "Apply"
 msgstr "適用"
 
-#: lib/glossia/docs.ex:388
+#: lib/glossia/docs.ex:390
 #, elixir-autogen, elixir-format
 msgid "Authentication and REST interfaces."
 msgstr "認証および REST インターフェース。"
 
-#: lib/glossia/docs.ex:383
+#: lib/glossia/docs.ex:385
 #, elixir-autogen, elixir-format
 msgid "Background, design decisions, and concepts."
 msgstr "背景、設計方針、およびコンセプト。"
 
-#: lib/glossia/docs.ex:370
+#: lib/glossia/docs.ex:372
 #, elixir-autogen, elixir-format
 msgid "CLI"
 msgstr "CLI"
@@ -4029,7 +4029,7 @@ msgstr "ドメインを選択して Glossia スニペットをインストール
 msgid "Choose how Glossia behaves for your account."
 msgstr "アカウント向けの Glossia の動作を選択します。"
 
-#: lib/glossia/docs.ex:386
+#: lib/glossia/docs.ex:388
 #, elixir-autogen, elixir-format
 msgid "Command-line tool documentation and release history."
 msgstr "コマンドラインツールのドキュメントおよびリリース履歴。"
@@ -4085,7 +4085,7 @@ msgstr "英語許容率"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "各（国、言語）ペアの優先度は、ロケールギャップがある訪問者を指します。その国の (1 - EF EPI 英語許容率) で重み付けされます。優先度が高いほど、見逃された機会の量が大きくなります。"
 
-#: lib/glossia/docs.ex:369
+#: lib/glossia/docs.ex:371
 #, elixir-autogen, elixir-format
 msgid "Explanation"
 msgstr "説明"
@@ -4110,7 +4110,7 @@ msgstr "優先度：高い"
 msgid "How is this scored?"
 msgstr "このスコアリングはどのように行いますか？"
 
-#: lib/glossia/docs.ex:367
+#: lib/glossia/docs.ex:369
 #, elixir-autogen, elixir-format
 msgid "How-to guides"
 msgstr "ハウツーガイド"
@@ -4161,12 +4161,12 @@ msgstr "ロケールギャップの訪問"
 msgid "Low priority"
 msgstr "優先度：低い"
 
-#: lib/glossia/docs.ex:372
+#: lib/glossia/docs.ex:374
 #, elixir-autogen, elixir-format
 msgid "MCP"
 msgstr "MCP"
 
-#: lib/glossia/docs.ex:391
+#: lib/glossia/docs.ex:393
 #, elixir-autogen, elixir-format
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr "モデルコンテキストプロトコルサーバー、ツール、およびプロンプト。"
@@ -4232,7 +4232,7 @@ msgstr "ページビュー"
 msgid "Path"
 msgstr "パス"
 
-#: lib/glossia/docs.ex:377
+#: lib/glossia/docs.ex:379
 #, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr "特定のタスクに対する実用的な手順案内"
@@ -4250,7 +4250,7 @@ msgstr "設定"
 msgid "Priority"
 msgstr "優先順"
 
-#: lib/glossia/docs.ex:368
+#: lib/glossia/docs.ex:370
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "参考資料"
@@ -4286,12 +4286,12 @@ msgstr "Web 分析を設定"
 msgid "Show translated output"
 msgstr "翻訳された結果を表示"
 
-#: lib/glossia/docs.ex:375
+#: lib/glossia/docs.ex:377
 #, elixir-autogen, elixir-format
 msgid "Step-by-step lessons to get started with Glossia."
 msgstr "Glossia の使用を開始するための段階的なレッスン。"
 
-#: lib/glossia/docs.ex:380
+#: lib/glossia/docs.ex:382
 #, elixir-autogen, elixir-format
 msgid "Technical descriptions of configuration, CLI, and APIs."
 msgstr "設定、CLI、および API に関する技術説明。"
@@ -4311,7 +4311,7 @@ msgstr "上位の国"
 msgid "Translation cancelled."
 msgstr "翻訳がキャンセルされました。"
 
-#: lib/glossia/docs.ex:366
+#: lib/glossia/docs.ex:368
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "チュートリアル"

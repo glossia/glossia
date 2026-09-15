@@ -74,6 +74,27 @@ defmodule Glossia.TranslationsTest do
       :ok
     end
 
+    test "uses the credential captured for a checkpoint scope", %{account: account} do
+      credential = %{
+        model: "anthropic/claude-sonnet-4-20250514",
+        handle: "translator",
+        auth: {:api_key, "captured-key", nil},
+        source: :account
+      }
+
+      Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, opts ->
+        assert opts[:api_key] == "captured-key"
+        {:ok, :response}
+      end)
+
+      stub_response("Hola")
+
+      assert {:ok, %{text: "Hola"}} =
+               Translations.translate_stream(account, payload(%{}), fn _ -> :ok end,
+                 credential: credential
+               )
+    end
+
     test "retries a transient provider failure and succeeds", %{account: account} do
       {:ok, attempts} = Elixir.Agent.start_link(fn -> 0 end)
 

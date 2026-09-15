@@ -1718,7 +1718,7 @@ msgstr "您的语言身份协作平台"
 msgid "AI agents translate, adapt, and refine your content, guided by your linguistic preferences. When context changes, the system knows what is affected and revisits it automatically."
 msgstr "AI 智能体根据您的语言偏好翻译、适配并完善您的内容。当上下文变化时，系统知道受影响的范围并自动返回处理。"
 
-#: lib/glossia/docs.ex:371
+#: lib/glossia/docs.ex:373
 #: lib/glossia_web/controllers/page_html/home.html.heex:161
 #, elixir-autogen, elixir-format
 msgid "APIs"
@@ -3995,17 +3995,17 @@ msgstr "适用于仪表板。任何尚未翻译的内容默认回退到英文。
 msgid "Apply"
 msgstr "应用"
 
-#: lib/glossia/docs.ex:388
+#: lib/glossia/docs.ex:390
 #, elixir-autogen, elixir-format
 msgid "Authentication and REST interfaces."
 msgstr "身份验证和 REST 接口。"
 
-#: lib/glossia/docs.ex:383
+#: lib/glossia/docs.ex:385
 #, elixir-autogen, elixir-format
 msgid "Background, design decisions, and concepts."
 msgstr "背景、决策依据和概念。"
 
-#: lib/glossia/docs.ex:370
+#: lib/glossia/docs.ex:372
 #, elixir-autogen, elixir-format
 msgid "CLI"
 msgstr "CLI"
@@ -4034,7 +4034,7 @@ msgstr "选择一个域名并安装 Glossia 代码片段以开始收集分析数
 msgid "Choose how Glossia behaves for your account."
 msgstr "选择 Glossia 为您账户的行为方式。"
 
-#: lib/glossia/docs.ex:386
+#: lib/glossia/docs.ex:388
 #, elixir-autogen, elixir-format
 msgid "Command-line tool documentation and release history."
 msgstr "命令行工具文档和版本历史。"
@@ -4090,7 +4090,7 @@ msgstr "英文容忍度"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "每个 (国家，语言) 对的优先级是具有语言区域差异的访客，按该国的 (1 - EF EPI 英文容忍度) 加权。权重越高，错失的机会越大。"
 
-#: lib/glossia/docs.ex:369
+#: lib/glossia/docs.ex:371
 #, elixir-autogen, elixir-format
 msgid "Explanation"
 msgstr "说明"
@@ -4115,7 +4115,7 @@ msgstr "高优先级"
 msgid "How is this scored?"
 msgstr "该评分如何计算？"
 
-#: lib/glossia/docs.ex:367
+#: lib/glossia/docs.ex:369
 #, elixir-autogen, elixir-format
 msgid "How-to guides"
 msgstr "操作指南"
@@ -4166,12 +4166,12 @@ msgstr "语言区域差距访问"
 msgid "Low priority"
 msgstr "低优先级"
 
-#: lib/glossia/docs.ex:372
+#: lib/glossia/docs.ex:374
 #, elixir-autogen, elixir-format
 msgid "MCP"
 msgstr "MCP"
 
-#: lib/glossia/docs.ex:391
+#: lib/glossia/docs.ex:393
 #, elixir-autogen, elixir-format
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr "模型上下文协议服务器、工具和建议。"
@@ -4237,7 +4237,7 @@ msgstr "页面浏览量"
 msgid "Path"
 msgstr "路径"
 
-#: lib/glossia/docs.ex:377
+#: lib/glossia/docs.ex:379
 #, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr "针对特定任务的具体指南。"
@@ -4255,7 +4255,7 @@ msgstr "偏好设置"
 msgid "Priority"
 msgstr "优先级"
 
-#: lib/glossia/docs.ex:368
+#: lib/glossia/docs.ex:370
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "参考"
@@ -4291,12 +4291,12 @@ msgstr "设置网页分析"
 msgid "Show translated output"
 msgstr "显示翻译结果"
 
-#: lib/glossia/docs.ex:375
+#: lib/glossia/docs.ex:377
 #, elixir-autogen, elixir-format
 msgid "Step-by-step lessons to get started with Glossia."
 msgstr "学习如何使用 Glossia 的分步课程。"
 
-#: lib/glossia/docs.ex:380
+#: lib/glossia/docs.ex:382
 #, elixir-autogen, elixir-format
 msgid "Technical descriptions of configuration, CLI, and APIs."
 msgstr "关于配置、CLI 和 API 的技术描述。"
@@ -4316,7 +4316,7 @@ msgstr "主要国家"
 msgid "Translation cancelled."
 msgstr "翻译已取消。"
 
-#: lib/glossia/docs.ex:366
+#: lib/glossia/docs.ex:368
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "教程"

@@ -51,4 +51,25 @@ defmodule Glossia.Translations.TogetherTest do
                plug: {Req.Test, __MODULE__}
              )
   end
+
+  test "carries Together's reset interval through failure classification" do
+    Req.Test.expect(__MODULE__, fn conn ->
+      conn
+      |> Plug.Conn.put_resp_header("retry-after", "1")
+      |> Plug.Conn.put_resp_header("x-ratelimit-reset", "12.5")
+      |> Plug.Conn.put_resp_header("x-request-id", "request-123")
+      |> Plug.Conn.put_status(429)
+      |> Req.Test.json(%{"error" => %{"code" => "dynamic_rate_limit"}})
+    end)
+
+    assert {:error, error} =
+             Together.complete("Qwen/Qwen3.5-9B", "test-key", "http://together.test/v1", [],
+               plug: {Req.Test, __MODULE__}
+             )
+
+    failure = Glossia.Translations.Failure.from({:llm_failed, error})
+    assert failure.kind == "provider-rate-limit"
+    assert failure.retry_after_ms == 12_500
+    assert failure.request_id == "request-123"
+  end
 end

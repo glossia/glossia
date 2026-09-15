@@ -15,6 +15,19 @@ defmodule Glossia.Translations.PromptTest do
     )
   end
 
+  test "catalog literal requests agree on the array contract" do
+    prompt = Prompt.build_system_prompt(base(%{format: "po", segment_kind: "po_text_literals"}))
+    assert prompt =~ "Return ONLY a JSON array"
+    refute prompt =~ "Output ONLY a valid Gettext"
+
+    user =
+      Prompt.build_user_prompt("English", "es", "Spanish", ~s(["Hello"]), nil, %{
+        kind: "po_text_literals"
+      })
+
+    assert user =~ "identical length and order"
+  end
+
   describe "build_system_prompt/1 for prose formats" do
     test "emits the localization-engine preamble" do
       prompt = Prompt.build_system_prompt(base(%{}))

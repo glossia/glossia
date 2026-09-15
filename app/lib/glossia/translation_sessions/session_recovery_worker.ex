@@ -8,6 +8,7 @@ defmodule Glossia.TranslationSessions.SessionRecoveryWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{}) do
+    Glossia.Translations.Checkpoints.prune()
     Glossia.TranslationSessions.expire_stale_sessions()
     :ok
   end

@@ -11,6 +11,14 @@ defmodule Glossia.Translations.Failure do
   # the original message. Suffixes can contain source text, tokens, parser
   # excerpts, or arbitrary repository command output.
   @validation_reasons [
+    {"catalog-literal-shape", "po text-literal response must be a JSON array of strings"},
+    {"catalog-literal-syntax", "po text-literal response was not a valid JSON array"},
+    {"catalog-literal-count", "po text-literal response length"},
+    {"catalog-rebuild-count", "po text-literal rebuild expected"},
+    {"catalog-literal-missing", "po text-literal response was missing translations for msgid"},
+    {"catalog-literal-empty", "po text-literal response contained an empty translation"},
+    {"catalog-literal-preservation", "po text-literal response changed a placeholder"},
+    {"markdown-literal-whitespace", "Markdown text-node recovery changed source whitespace"},
     {"markdown-literal-array-shape",
      "Markdown text-literal recovery must return a JSON string array of matching length"},
     {"markdown-literal-array-syntax", "Markdown text-literal recovery returned invalid JSON"},
@@ -87,7 +95,7 @@ defmodule Glossia.Translations.Failure do
   @search_keys ~w(reason message error errors response_body cause code type status)
   @nested_error_keys ~w(reason error errors response_body cause headers)
   @request_id_keys ~w(x-request-id request-id openai-request-id)
-  @retry_after_keys ~w(retry-after x-ratelimit-reset-requests x-ratelimit-reset-tokens)
+  @retry_after_keys ~w(retry-after x-ratelimit-reset x-ratelimit-reset-requests x-ratelimit-reset-tokens)
 
   # A provider that states how long to wait knows better than any backoff curve
   # we could pick. Cap it so a malformed or hostile header cannot park a
@@ -530,16 +538,20 @@ defmodule Glossia.Translations.Failure do
   # legal and only the numeric one is worth honouring, so a date reads as absent
   # and the caller falls back to its own backoff.
   defp extract_retry_after_ms(reason) do
-    case seconds_value(find_header_value(reason, @retry_after_keys)) do
+    @retry_after_keys
+    |> Enum.map(&seconds_value(find_header_value(reason, [&1])))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.max(fn -> nil end)
+    |> case do
       nil -> nil
-      seconds -> cap_retry_after_ms(seconds * 1_000)
+      seconds -> cap_retry_after_ms(ceil(seconds * 1_000))
     end
   end
 
-  defp seconds_value(seconds) when is_integer(seconds) and seconds > 0, do: seconds
+  defp seconds_value(seconds) when is_number(seconds) and seconds > 0, do: seconds
 
   defp seconds_value(value) when is_binary(value) do
-    case Integer.parse(String.trim(value)) do
+    case Float.parse(String.trim(value)) do
       {seconds, rest} ->
         if String.trim(rest) == "", do: seconds_value(seconds), else: nil
 

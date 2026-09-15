@@ -91,6 +91,54 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
 
   @tag :tmp_dir
   @tag timeout: 2_000
+  test "does not schedule queued files after exhausted rate limits", %{tmp_dir: root} do
+    assert Mimic.mode() == :global
+    init_repo(root)
+    test_pid = self()
+
+    stub(TranslationSessions, :broadcast_session_event, fn _session, _event ->
+      :ok
+    end)
+
+    stub(TranslationSessions, :heartbeat_session, fn _session_id ->
+      :ok
+    end)
+
+    stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
+      source = payload["source_content"]
+      send(test_pid, {:model_request, source})
+
+      if String.contains?(source, "a-credit") do
+        {:error,
+         %{
+           reason: "Provider rate limit reached",
+           status: 429,
+           response_body: %{"type" => "dynamic_rate_limit"}
+         }}
+      else
+        Process.sleep(:infinity)
+      end
+    end)
+
+    assert {:error, {:translation_items_failed, [failure]}} =
+             RepositoryRun.translate_repository(
+               %TranslationSession{id: Ecto.UUID.generate()},
+               %Account{id: Ecto.UUID.generate()},
+               root,
+               ["es"],
+               context_snapshot: Context.empty_snapshot(),
+               credential_node: Node.self(),
+               translation_concurrency: 4
+             )
+
+    assert failure.output_path == "docs/i18n/es/a-credit.md"
+    assert failure.reason.kind == "provider-rate-limit"
+    assert_receive {:model_request, "# a-credit"}
+    refute_receive {:model_request, "# z-queued"}, 100
+  end
+
+  @tag :tmp_dir
+  @tag timeout: 2_000
   test "continues scheduling queued files after a transient provider failure", %{tmp_dir: root} do
     assert Mimic.mode() == :global
     init_repo(root)

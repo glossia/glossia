@@ -1718,7 +1718,7 @@ msgstr "귀하의 언어적 정체성을 위한 협업 플랫폼"
 msgid "AI agents translate, adapt, and refine your content, guided by your linguistic preferences. When context changes, the system knows what is affected and revisits it automatically."
 msgstr "AI 에이전트는 언어 선호도에 따라 콘텐츠를 번역, 적응 및 다듬으며 컨텍스트가 변경되면 시스템이 영향을 받는 부분을 파악하여 자동으로 재방문합니다."
 
-#: lib/glossia/docs.ex:371
+#: lib/glossia/docs.ex:373
 #: lib/glossia_web/controllers/page_html/home.html.heex:161
 #, elixir-autogen, elixir-format
 msgid "APIs"
@@ -3990,17 +3990,17 @@ msgstr "대시보드에 적용됩니다. 아직 번역되지 않은 항목은 �
 msgid "Apply"
 msgstr "적용"
 
-#: lib/glossia/docs.ex:388
+#: lib/glossia/docs.ex:390
 #, elixir-autogen, elixir-format
 msgid "Authentication and REST interfaces."
 msgstr "인증 및 REST 인터페이스."
 
-#: lib/glossia/docs.ex:383
+#: lib/glossia/docs.ex:385
 #, elixir-autogen, elixir-format
 msgid "Background, design decisions, and concepts."
 msgstr "배경, 디자인 결정 및 개념."
 
-#: lib/glossia/docs.ex:370
+#: lib/glossia/docs.ex:372
 #, elixir-autogen, elixir-format
 msgid "CLI"
 msgstr "CLI"
@@ -4029,7 +4029,7 @@ msgstr "분석 수집을 시작하려면 도메인을 선택하고 Glossia 스�
 msgid "Choose how Glossia behaves for your account."
 msgstr "Glossia 가 계정에서 어떻게 작동할지 선택하세요."
 
-#: lib/glossia/docs.ex:386
+#: lib/glossia/docs.ex:388
 #, elixir-autogen, elixir-format
 msgid "Command-line tool documentation and release history."
 msgstr "명령줄 도구 문서 및 배포 이력."
@@ -4085,7 +4085,7 @@ msgstr "영어 허용 범위"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "(국가, 언어) 쌍의 우선순위는 해당 국가의 로컬 언어 격차 방문자이며, (1 - EF EPI 영어 허용 범위) 로 가중됩니다. 더 높을수록 더 큰 놓친 기회입니다."
 
-#: lib/glossia/docs.ex:369
+#: lib/glossia/docs.ex:371
 #, elixir-autogen, elixir-format
 msgid "Explanation"
 msgstr "설명"
@@ -4110,7 +4110,7 @@ msgstr "고 우선순위"
 msgid "How is this scored?"
 msgstr "이것은 어떻게 점수부나요?"
 
-#: lib/glossia/docs.ex:367
+#: lib/glossia/docs.ex:369
 #, elixir-autogen, elixir-format
 msgid "How-to guides"
 msgstr "가이드"
@@ -4161,12 +4161,12 @@ msgstr "로컬 언어 격차 방문"
 msgid "Low priority"
 msgstr "낮은 우선순위"
 
-#: lib/glossia/docs.ex:372
+#: lib/glossia/docs.ex:374
 #, elixir-autogen, elixir-format
 msgid "MCP"
 msgstr "MCP"
 
-#: lib/glossia/docs.ex:391
+#: lib/glossia/docs.ex:393
 #, elixir-autogen, elixir-format
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr "모델 컨텍스트 프로토콜 서버, 도구 및 프롬프트."
@@ -4232,7 +4232,7 @@ msgstr "페이지 조회수"
 msgid "Path"
 msgstr "경로"
 
-#: lib/glossia/docs.ex:377
+#: lib/glossia/docs.ex:379
 #, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr "특정 작업에 대한 실용 지침."
@@ -4250,7 +4250,7 @@ msgstr "선호 사항"
 msgid "Priority"
 msgstr "우선순위"
 
-#: lib/glossia/docs.ex:368
+#: lib/glossia/docs.ex:370
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "참고"
@@ -4286,12 +4286,12 @@ msgstr "웹 분석 설정하기"
 msgid "Show translated output"
 msgstr "번역 결과 표시"
 
-#: lib/glossia/docs.ex:375
+#: lib/glossia/docs.ex:377
 #, elixir-autogen, elixir-format
 msgid "Step-by-step lessons to get started with Glossia."
 msgstr "Glossia 사용 시작을 위한 단계별 학습."
 
-#: lib/glossia/docs.ex:380
+#: lib/glossia/docs.ex:382
 #, elixir-autogen, elixir-format
 msgid "Technical descriptions of configuration, CLI, and APIs."
 msgstr "설정, CLI 및 API 의 기술 설명."
@@ -4311,7 +4311,7 @@ msgstr "상위 국가"
 msgid "Translation cancelled."
 msgstr "번역이 취소되었습니다."
 
-#: lib/glossia/docs.ex:366
+#: lib/glossia/docs.ex:368
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "튜토리얼"

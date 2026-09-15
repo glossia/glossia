@@ -211,7 +211,7 @@ defmodule Glossia.Translations.ValidateTest do
         ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello %{client_name}"\nmsgstr "Hola"\n)
 
       assert {:error, message} = Validate.validate_syntax("po", translated, source)
-      assert message =~ ~s(po format string "{client_name}")
+      assert message =~ ~s(po format string "%{client_name}")
 
       valid = String.replace(translated, ~s(msgstr "Hola"), ~s(msgstr "Hola %{client_name}"))
       assert :ok = Validate.validate_syntax("po", valid, source)

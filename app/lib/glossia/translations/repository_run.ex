@@ -18,6 +18,8 @@ defmodule Glossia.Translations.RepositoryRun do
   require Logger
 
   alias Glossia.Models.ModelIdentifier
+  alias Glossia.Translations.Checkpoints
+  alias Glossia.Translations.Credentials
   alias Glossia.Translations.Context
   alias Glossia.Translations.Engine
   alias Glossia.Translations.Failure
@@ -365,12 +367,14 @@ defmodule Glossia.Translations.RepositoryRun do
 
   # A provider can classify a failure as session-wide while still being
   # transient, such as a timeout or a 5xx response. Those are worth allowing
-  # other files to attempt. Credit exhaustion, invalid credentials, and other
-  # permanent provider responses are different: every queued item would fail
-  # identically, so stop the run as soon as the first one settles.
+  # other files to attempt. Exhausted rate limits pause the run for a delayed
+  # continuation; starting more queued work would immediately hit the same
+  # limit. Permanent provider failures also stop the run.
   defp stop_after_failure?(%{reason: reason}) do
     failure = Failure.normalize(reason)
-    Failure.session_level?(failure) and not Failure.retryable?(failure)
+
+    failure.kind == "provider-rate-limit" or
+      (Failure.session_level?(failure) and not Failure.retryable?(failure))
   end
 
   defp stop_after_failure?(_failure), do: false
@@ -694,6 +698,8 @@ defmodule Glossia.Translations.RepositoryRun do
     Process.put(model_calls_key, 0)
 
     on_event = fn event ->
+      if match?({:provider_retry, _, _}, event), do: heartbeat(session, progress_node)
+
       if event == :turn_start do
         Process.put(model_calls_key, Process.get(model_calls_key, 0) + 1)
         heartbeat(session, progress_node)
@@ -725,6 +731,8 @@ defmodule Glossia.Translations.RepositoryRun do
 
     engine_opts =
       if is_nil(credential_node), do: [], else: [credential_node: credential_node]
+
+    engine_opts = checkpoint_options(engine_opts, session, account, item, hash_state)
 
     try do
       case Engine.apply_item(item, account, on_event, validate, engine_opts) do
@@ -865,6 +873,26 @@ defmodule Glossia.Translations.RepositoryRun do
   defp write_output(item, text) do
     File.mkdir_p!(Path.dirname(item.output_abs))
     File.write!(item.output_abs, text)
+  end
+
+  defp checkpoint_options(opts, session, account, item, hash_state) do
+    target = Keyword.get(opts, :credential_node, node())
+
+    with project_id when is_binary(project_id) <- Map.get(session, :project_id),
+         {:ok, credential} <-
+           Credentials.resolve_on(target, account, item.model, target_locale: item.locale) do
+      scope =
+        Checkpoints.key(
+          {account.id, project_id, item.output_path, hash_state.hash, credential.model,
+           credential.auth}
+        )
+
+      opts
+      |> Keyword.put(:checkpoint_scope, scope)
+      |> Keyword.put(:credential, credential)
+    else
+      _ -> opts
+    end
   end
 
   defp write_lock(repo_path, item, provider, hash_state, text) do
@@ -1123,8 +1151,12 @@ defmodule Glossia.Translations.RepositoryRun do
   defp normalize_event({:segment_start, index, count, kind}),
     do: %{type: "segment_start", index: index, count: count, kind: to_string(kind)}
 
-  defp normalize_event({:segment_retry, index, _message}),
-    do: %{type: "segment_retry", index: index}
+  defp normalize_event({:segment_retry, index, message}),
+    do: %{
+      type: "segment_retry",
+      index: index,
+      reason: Failure.from({:validation_failed, message})
+    }
 
   defp normalize_event({:segment_output, text}), do: %{type: "segment_output", text: text}
   defp normalize_event({:translation_output, text}), do: %{type: "translation_output", text: text}

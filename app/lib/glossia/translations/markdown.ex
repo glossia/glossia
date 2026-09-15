@@ -92,14 +92,12 @@ defmodule Glossia.Translations.Markdown do
   def rebuild_text_literals(source, literals) when is_binary(source) and is_list(literals) do
     with {:ok, source_document} <- parse(source, "source"),
          source_literals <- text_node_literals(source_document),
-         true <- length(source_literals) == length(literals),
-         true <-
-           Enum.zip(source_literals, literals)
-           |> Enum.all?(fn {original, literal} -> valid_text_literal?(original, literal) end),
+         :ok <- validate_literal_count(source_literals, literals),
+         :ok <- validate_text_literals(source_literals, literals),
          {document, []} <- replace_text_nodes(source_document, literals) do
       {:ok, MDEx.to_markdown!(document)}
     else
-      false -> {:error, "Markdown text-node recovery changed or emptied a source literal"}
+      {:error, _} = error -> error
       _ -> {:error, "Markdown text-node recovery did not match the source text nodes"}
     end
   rescue
@@ -218,15 +216,30 @@ defmodule Glossia.Translations.Markdown do
       (String.trim(source_literal) == "" or String.trim(literal) != "")
   end
 
-  defp valid_text_literal?(source_literal, literal) when is_binary(literal) do
-    if String.trim(source_literal) == "" do
-      literal == source_literal
-    else
-      String.trim(literal) != ""
-    end
+  defp validate_literal_count(source, translated) do
+    if length(source) == length(translated),
+      do: :ok,
+      else: {:error, "Markdown text-node recovery did not match the source text nodes"}
   end
 
-  defp valid_text_literal?(_source_literal, _literal), do: false
+  defp validate_text_literals(source, translated) do
+    Enum.zip(source, translated)
+    |> Enum.reduce_while(:ok, fn {original, literal}, :ok ->
+      cond do
+        not is_binary(literal) ->
+          {:halt, {:error, "Markdown text-node recovery changed or emptied a source literal"}}
+
+        String.trim(original) == "" and literal != original ->
+          {:halt, {:error, "Markdown text-node recovery changed source whitespace"}}
+
+        String.trim(original) != "" and String.trim(literal) == "" ->
+          {:halt, {:error, "Markdown text-node recovery produced an empty translation"}}
+
+        true ->
+          {:cont, :ok}
+      end
+    end)
+  end
 
   defp replace_text_nodes(%MDEx.Text{} = node, [literal | rest]),
     do: {%{node | literal: literal}, rest}

@@ -5,7 +5,17 @@ defmodule Glossia.Translations.Validate.Po do
   preservation vs the source, and an untranslated-entry check.
   """
 
-  @format_regex ~r/%[sdfiu%]|%\([^)]+\)[sdfiu]|\{[0-9]+\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}/
+  @format_regex ~r/%\{[^{}]+\}|%[sdfiu%]|%\([^)]+\)[sdfiu]|\{[0-9]+\}|\{[a-zA-Z_][a-zA-Z0-9_]*\}/
+
+  @doc "Checks the interpolation contract before a translated catalog string is checkpointed."
+  def validate_literal(source, translated) do
+    source_tokens = Regex.scan(@format_regex, source) |> List.flatten() |> Enum.frequencies()
+    output_tokens = Regex.scan(@format_regex, translated) |> List.flatten() |> Enum.frequencies()
+
+    if source_tokens == output_tokens,
+      do: :ok,
+      else: {:error, "po text-literal response changed a placeholder"}
+  end
 
   def validate_po(content, source) do
     with :ok <- validate_structure(content) do

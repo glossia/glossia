@@ -34,6 +34,20 @@ defmodule Glossia.Translations.Prompt do
     * `:frontmatter_preserved` - whether frontmatter is re-attached client-side
     * `:custom_prompt` - optional per-document instructions
   """
+  def build_system_prompt(%{format: "po", segment_kind: "po_text_literals"} = input) do
+    [
+      "You are a professional software translator translating from #{input.source_language} to #{input.language} (#{input.locale}).",
+      "The input is a JSON array of strings. Return ONLY a JSON array of translated strings, in exactly the same order and with exactly the same number of elements.",
+      "Do not return Gettext entries, msgid, msgstr, keys, Markdown fences, or commentary.",
+      "Preserve interpolation variables, HTML tags, and protected markers byte-for-byte. Never empty a nonempty source string."
+    ]
+    |> append_block("Project context:", Map.get(input, :context_body))
+    |> append_block("Locale instructions:", Map.get(input, :locale_override_body))
+    |> append_block("Organization context:", Map.get(input, :server_context_body))
+    |> append_block("Document instructions:", Map.get(input, :custom_prompt))
+    |> Enum.join("\n")
+  end
+
   def build_system_prompt(%{format: "po"} = input), do: po_prompt(input)
 
   def build_system_prompt(input) do
@@ -165,6 +179,9 @@ defmodule Glossia.Translations.Prompt do
 
     instruction =
       cond do
+        segment_kind == "po_text_literals" ->
+          "Translate the strings in this JSON array. Return only an array of strings with identical length and order."
+
         segment_kind == "frontmatter" ->
           "Translate only the human-readable string values in this frontmatter from #{source_language} to #{language} (#{locale}). Return the complete frontmatter block. Preserve its syntax, keys, identifiers, dates, and delimiters exactly. Do not return an empty response."
 

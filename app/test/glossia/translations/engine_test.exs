@@ -466,7 +466,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "translates every msgid in a large catalog as a single JSON-array call",
+    test "translates large catalogs in bounded batches while preserving headers in code",
          %{tmp_dir: dir} do
       source = Path.join(dir, "default.pot")
 
@@ -493,15 +493,14 @@ defmodule Glossia.Translations.EngineTest do
       assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      # The `.po` path collapses to a single call carrying a JSON array of all
-      # translatable strings. The array's element count equals the number of
-      # source msgids plus the header msgstr entry.
-      assert length(calls) == 1
-      [payload] = calls
-      assert payload["segment_kind"] == "po_text_literals"
-      assert {:ok, literals} = JSON.decode(payload["source_content"])
-      # header msgstr literal + 400 message msgids = 401 strings
-      assert length(literals) == 401
+      assert length(calls) == 50
+      assert Enum.all?(calls, &(&1["segment_kind"] == "po_text_literals"))
+      batches = Enum.map(calls, &JSON.decode!(&1["source_content"]))
+      assert Enum.all?(batches, &(length(&1) <= 8))
+      literals = List.flatten(batches)
+      assert length(literals) == 400
+      refute Enum.any?(literals, &String.contains?(&1, "Content-Type:"))
+      assert result.text =~ "Language: es"
       assert Enum.any?(literals, &(&1 == "Message 1"))
       assert Enum.any?(literals, &(&1 == "Message 400"))
 
@@ -954,7 +953,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "splits a text-literal batch after its provider retries are exhausted", %{tmp_dir: dir} do
+    test "does not split or restart Markdown after exhausted provider retries", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.md")
 
       content =
@@ -990,19 +989,13 @@ defmodule Glossia.Translations.EngineTest do
         end
       end)
 
-      assert {:ok, result} =
+      assert {:error, {:llm_failed, :provider_unavailable}} =
                Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
                  :ok
                end)
 
-      assert result.text =~ "[translated guide 1](https://example.com/1)"
-      assert result.text =~ "[translated guide 12](https://example.com/12)"
-
       calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-
-      assert Enum.map(calls, fn payload ->
-               payload["source_content"] |> JSON.decode!() |> length()
-             end) == [8, 4, 4, 8, 8, 8, 4]
+      assert length(calls) == 1
     end
 
     @tag :tmp_dir

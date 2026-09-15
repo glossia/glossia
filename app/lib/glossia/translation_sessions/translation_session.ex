@@ -13,6 +13,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
   @outcomes ~w(translated content_hit superseded cancelled failed)
 
   schema "translation_sessions" do
+    field :provider_retry_count, :integer, default: 0
     field :commit_sha, :string
     field :commit_message, :string
     field :status, :string, default: "pending"
