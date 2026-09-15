@@ -669,6 +669,15 @@ defmodule Glossia.Translations.Engine do
 
   defp split_literal_whitespace(literal) do
     trimmed = String.trim(literal)
+
+    if trimmed == "" do
+      {literal, "", ""}
+    else
+      split_non_empty_literal_whitespace(literal, trimmed)
+    end
+  end
+
+  defp split_non_empty_literal_whitespace(literal, trimmed) do
     leading_size = byte_size(literal) - byte_size(String.trim_leading(literal))
     trailing_size = byte_size(literal) - byte_size(String.trim_trailing(literal))
     leading = binary_part(literal, 0, leading_size)

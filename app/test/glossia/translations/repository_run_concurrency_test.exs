@@ -152,11 +152,17 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
       :ok
     end)
 
+    {:ok, attempts} = Elixir.Agent.start_link(fn -> 0 end)
+
     stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
       source = payload["source_content"]
       send(test_pid, {:model_request, source})
 
-      if String.contains?(source, "a-credit") do
+      first_transient_attempt =
+        String.contains?(source, "a-credit") and
+          Elixir.Agent.get_and_update(attempts, fn attempt -> {attempt == 0, attempt + 1} end)
+
+      if first_transient_attempt do
         {:error, %{reason: "Provider unavailable", status: 503, response_body: %{}}}
       else
         {:ok,
@@ -169,7 +175,7 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
       end
     end)
 
-    assert {:error, {:translation_items_failed, [failure]}} =
+    assert {:ok, changes} =
              RepositoryRun.translate_repository(
                %TranslationSession{id: Ecto.UUID.generate()},
                %Account{id: Ecto.UUID.generate()},
@@ -180,9 +186,10 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
                translation_concurrency: 4
              )
 
-    assert failure.output_path == "docs/i18n/es/a-credit.md"
-    assert failure.reason.kind == "provider-error"
+    assert Enum.any?(changes, &(&1.path == "docs/i18n/es/a-credit.md"))
     assert_receive {:model_request, "# z-queued"}
+    assert_receive {:model_request, "# a-credit"}
+    assert_receive {:model_request, "# a-credit"}
   end
 
   # A barrier is the only honest way to assert fan-out: every file blocks until

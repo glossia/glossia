@@ -792,6 +792,35 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "preserves whitespace-only Markdown literals during text-literal recovery", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "[Guide](https://example.com/guide) [Next](https://example.com/next)")
+
+      stub_stream(fn _account, payload, _on_event ->
+        case payload["segment_kind"] do
+          "markdown_text_literals" ->
+            assert JSON.decode!(payload["source_content"]) == ["Guide", "Next"]
+            translated(JSON.encode!(["Guía", "Siguiente"]))
+
+          _ ->
+            translated("The links and their destinations were lost.")
+        end
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text ==
+               "[Guía](https://example.com/guide) [Siguiente](https://example.com/next)"
+    end
+
+    @tag :tmp_dir
     test "translates large Markdown segments as bounded text-literal batches", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.md")
 
