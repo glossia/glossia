@@ -125,7 +125,19 @@ defmodule Glossia.Translations.RepositoryRun do
       )
 
       result =
-        translate_prepared_items(
+        prepared_items
+        |> translate_prepared_items(
+          session,
+          account,
+          repo_path,
+          total,
+          progress_node,
+          credential_node,
+          after_item_completed,
+          seq_counter,
+          opts
+        )
+        |> retry_transient_failures(
           prepared_items,
           session,
           account,
@@ -150,6 +162,70 @@ defmodule Glossia.Translations.RepositoryRun do
       end
     end
   end
+
+  defp retry_transient_failures(
+         {:ok, failures},
+         prepared_items,
+         session,
+         account,
+         repo_path,
+         total,
+         progress_node,
+         credential_node,
+         after_item_completed,
+         seq_counter,
+         opts
+       ) do
+    retry_indexes =
+      failures
+      |> Enum.filter(&transient_provider_failure?/1)
+      |> MapSet.new(& &1.index)
+
+    retry_items = Enum.filter(prepared_items, &MapSet.member?(retry_indexes, &1.index))
+
+    if retry_items == [] or Enum.any?(failures, &stop_after_failure?/1) do
+      {:ok, failures}
+    else
+      retained_failures = Enum.reject(failures, &MapSet.member?(retry_indexes, &1.index))
+
+      case translate_prepared_items(
+             retry_items,
+             session,
+             account,
+             repo_path,
+             total,
+             progress_node,
+             credential_node,
+             after_item_completed,
+             seq_counter,
+             opts
+           ) do
+        {:ok, retry_failures} -> {:ok, retry_failures ++ retained_failures}
+        error -> error
+      end
+    end
+  end
+
+  defp retry_transient_failures(
+         error,
+         _prepared_items,
+         _session,
+         _account,
+         _repo_path,
+         _total,
+         _progress_node,
+         _credential_node,
+         _after_item_completed,
+         _seq_counter,
+         _opts
+       ),
+       do: error
+
+  defp transient_provider_failure?(%{reason: reason}) do
+    Failure.normalize(reason).kind in ["provider-error", "provider-timeout"]
+  end
+
+  defp transient_provider_failure?(_failure), do: false
 
   # Files are independent after planning: each writes a distinct localized
   # output and lockfile. Run several at once so a slow model response cannot
