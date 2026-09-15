@@ -1,0 +1,46 @@
+name: Cascade enterprise deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  dispatch:
+    name: Notify enterprise
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Load GitHub App credentials from Infisical
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: 5e5341af-be58-4839-a665-5d6355930102
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /flux-system
+          domain: https://eu.infisical.com
+
+      - name: Create enterprise access token
+        id: enterprise-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        with:
+          app-id: ${{ env.GITHUB_APP_ID }}
+          private-key: ${{ env.GITHUB_APP_PRIVATE_KEY }}
+          owner: glossia
+          repositories: enterprise
+
+      - name: Notify enterprise of the new Glossia revision
+        env:
+          GH_TOKEN: ${{ steps.enterprise-token.outputs.token }}
+          GLOSSIA_SHA: ${{ github.sha }}
+        run: |
+          gh api --method POST repos/glossia/enterprise/dispatches \
+            -f event_type=glossia-main-updated \
+            -f "client_payload[sha]=$GLOSSIA_SHA"
