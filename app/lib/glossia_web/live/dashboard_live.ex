@@ -8510,13 +8510,19 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp translation_failure_diagnostics(failure) do
+    # The category shown as the failure title (e.g. "Translated output has
+    # invalid syntax") groups many distinct validators. Surface the specific
+    # `validation_code` and its canonical `validation_message` so the actual
+    # cause is legible without opening a DB or a log.
     [
+      {gettext("Validation code"), Map.get(failure, :validation_code)},
+      {gettext("Validation message"), Map.get(failure, :validation_message)},
       {gettext("Provider"), failure.provider},
       {gettext("Provider response status"), failure.status && to_string(failure.status)},
       {gettext("Provider error code"), failure.code},
       {gettext("Provider request identifier"), failure.request_id}
     ]
-    |> Enum.reject(fn {_label, value} -> is_nil(value) end)
+    |> Enum.reject(fn {_label, value} -> is_nil(value) or value == "" end)
   end
 
   defp translation_failure_action_url(%{kind: "provider-credit", provider: provider})
