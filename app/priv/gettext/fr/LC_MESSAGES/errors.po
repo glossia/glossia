@@ -1,10 +1,5 @@
 msgid ""
-msgstr ""
-"Language: fr"
-"Content-Type: text/plain; charset=UTF-8"
-"Content-Transfer-Encoding: 8bit"
-"MIME-Version: 1.0"
-"Plural-Forms: nplurals=2; plural=n != 1;"
+msgstr "Language: fr\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n>1);\n"
 
 ## This is a PO Template file.
 ##
@@ -21,7 +16,7 @@ msgstr "ne peut pas être vide"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "a déjà été réservé"
+msgstr "a déjà été pris"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
@@ -33,11 +28,11 @@ msgstr "doit être accepté"
 
 ## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
-msgstr "présente un format invalide"
+msgstr "a un format invalide"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr "contient une entrée invalide"
+msgstr "a une entrée invalide"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
@@ -49,56 +44,56 @@ msgstr "ne correspond pas à la confirmation"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr "reste associé à cette entrée"
+msgstr "est toujours associée à cette entrée"
 
 msgid "are still associated with this entry"
-msgstr "restent associés à cette entrée"
+msgstr "sont toujours associés à cette entrée"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
-msgstr[0] "doit comporter %{count} élément"
-msgstr[1] "doit comporter %{count} éléments"
+msgstr[0] "doit comporter %{count} élément(s)"
+msgstr[1] "doivent comporter %{count} élément(s)"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] "doit faire %{count} caractère"
-msgstr[1] "doit faire %{count} caractères"
+msgstr[0] "doit comporter %{count} caractère(s)"
+msgstr[1] "doivent comporter %{count} caractère(s)"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
-msgstr[0] "doit faire %{count} octet"
-msgstr[1] "doit faire %{count} octets"
+msgstr[0] "doit faire %{count} octet(s)"
+msgstr[1] "doivent faire %{count} octet(s)"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "doit comporter au moins %{count} élément"
-msgstr[1] "doit comporter au moins %{count} éléments"
+msgstr[0] "doit comporter au moins %{count} élément(s)"
+msgstr[1] "doit comporter au moins %{count} élément(s)"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "doit faire au moins %{count} caractère"
-msgstr[1] "doit faire au moins %{count} caractères"
+msgstr[0] "doit comporter au moins %{count} caractère(s)"
+msgstr[1] "doit comporter au moins %{count} caractère(s)"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "doit faire au moins %{count} octet"
-msgstr[1] "doit faire au moins %{count} octets"
+msgstr[0] "doit comporter au moins %{count} octet(s)"
+msgstr[1] "doit comporter au moins %{count} octet(s)"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "doit comporter au plus %{count} élément"
-msgstr[1] "doit comporter au plus %{count} éléments"
+msgstr[0] "doit comporter au plus %{count} élément(s)"
+msgstr[1] "doit comporter au plus %{count} élément(s)"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "doit faire au plus %{count} caractère"
-msgstr[1] "doit faire au plus %{count} caractères"
+msgstr[0] "doit contenir au plus %{count} caractère(s)"
+msgstr[1] "doit contenir au plus %{count} caractère(s)"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "doit faire au plus %{count} octet"
-msgstr[1] "doit faire au plus %{count} octets"
+msgstr[0] "doit contenir au plus %{count} octet(s)"
+msgstr[1] "doit contenir au plus %{count} octet(s)"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
