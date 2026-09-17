@@ -218,6 +218,38 @@ defmodule Glossia.Translations.Po do
     |> String.split("\n")
     |> parse_blocks([], new_block(), false)
     |> assign_header_flag()
+    |> ensure_header_entry()
+  end
+
+  # A `.pot` template legitimately ships without a `msgid ""` header entry —
+  # `mix gettext.merge` is what adds one to the corresponding `.po`. When we
+  # translate a `.pot` directly the parsed entries have no header, the
+  # engine's `translate_po_segment` never routes a slot through
+  # `localized_header/2`, and the rebuilt output is a `.po` file the
+  # validator (correctly) rejects with "po file missing header entry". Slot
+  # in a synthetic header at the front of the entry list when one is
+  # missing so both the translation pipeline and the rebuild path get a
+  # header they can populate.
+  defp ensure_header_entry(entries) do
+    if Enum.any?(entries, & &1.header?) do
+      entries
+    else
+      # Mirror `finalize/1`'s shape so downstream consumers (emit, unit
+      # keying, output_translations) treat this entry identically to a
+      # parsed one.
+      header = %{
+        comments: [],
+        obsolete: false,
+        msgctxt: nil,
+        msgid: "",
+        msgid_plural: nil,
+        msgstr: "",
+        plural_msgstr: %{},
+        header?: true
+      }
+
+      [header | entries]
+    end
   end
 
   defp new_block do

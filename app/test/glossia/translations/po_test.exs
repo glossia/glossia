@@ -164,6 +164,36 @@ defmodule Glossia.Translations.PoTest do
       {:ok, output} = Po.rebuild_text_literals(source, ["", ~s(He said "hello"\n)])
       assert output =~ ~s(msgstr "He said \\"hello\\"\\n")
     end
+
+    test "synthesizes a header slot for a .pot source that has none" do
+      # `.pot` templates ship without a `msgid ""` header — `mix
+      # gettext.merge` is what inserts one when materializing a `.po`.
+      # `text_literals/1` must still surface a header slot so the
+      # engine's `translate_po_segment` can route a localized header
+      # into it, and the rebuilt `.po` must contain that header so the
+      # downstream validator does not reject the file.
+      source = """
+      ## From Ecto.Changeset.cast/4
+      msgid "can't be blank"
+      msgstr ""
+      """
+
+      assert {:ok, ["", "can't be blank"]} = Po.text_literals(source)
+
+      assert {:ok, output} =
+               Po.rebuild_text_literals(
+                 source,
+                 [
+                   "Language: de\nContent-Type: text/plain; charset=UTF-8\n",
+                   "kann nicht leer sein"
+                 ]
+               )
+
+      # Header block is present and precedes the translated entry.
+      assert output =~ ~s(msgid ""\n)
+      assert output =~ "Language: de"
+      assert output =~ ~s(msgstr "kann nicht leer sein")
+    end
   end
 
   describe "translation_units/1" do
