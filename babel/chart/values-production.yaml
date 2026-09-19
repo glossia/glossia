@@ -5,7 +5,7 @@ replicaCount: 2
 # The tag is updated by .github/workflows/publish.yml on every successful
 # CI run against main. Flux reconciles the HelmRelease when it changes.
 image:
-  tag: "86798c72803c50e33b918bdaf7f978b5d9374380"
+  tag: "6ccb77cbf0141c3de4572283d0391a1ca28750e8"
 
 
 env:
