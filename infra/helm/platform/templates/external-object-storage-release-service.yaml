@@ -1,0 +1,19 @@
+{{- if .Values.externalObjectStorage.releaseProxy.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.externalObjectStorage.releaseProxy.serviceName }}
+  namespace: {{ .Values.externalObjectStorage.releaseProxy.namespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ExternalName
+  externalName: {{ required "externalObjectStorage.releaseProxy.bucketHost is required when the release proxy is enabled" .Values.externalObjectStorage.releaseProxy.bucketHost }}
+  ports:
+    - name: https
+      port: {{ .Values.externalObjectStorage.releaseProxy.servicePort }}
+      targetPort: {{ .Values.externalObjectStorage.releaseProxy.servicePort }}
+      protocol: TCP
+{{- end }}

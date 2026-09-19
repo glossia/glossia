@@ -1,0 +1,37 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-manager
+rules:
+  - apiGroups: ["cloudflare.glossia.ai"]
+    resources: [cloudflareratelimits, cloudflarecustomrules, cloudflareturnstilewidgets]
+    verbs: [get, list, watch, update, patch]
+  - apiGroups: ["cloudflare.glossia.ai"]
+    resources:
+      - cloudflareratelimits/status
+      - cloudflarecustomrules/status
+      - cloudflareturnstilewidgets/status
+    verbs: [get, update, patch]
+  - apiGroups: ["cloudflare.glossia.ai"]
+    resources:
+      - cloudflareratelimits/finalizers
+      - cloudflarecustomrules/finalizers
+      - cloudflareturnstilewidgets/finalizers
+    verbs: [update]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: [leases]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [""]
+    resources: [events]
+    verbs: [create, patch]
+  # CloudflareTurnstileWidget materializes the sitekey (and, on
+  # first-create, the secret) into a Kubernetes Secret at
+  # spec.secretRef. Cluster-scoped because the target namespace is
+  # spec-controlled, not the operator's own. list + watch are
+  # required because controller-runtime's default client-cache
+  # installs a Secret informer that lists at cluster scope on
+  # startup; without them the widget reconciler emits a stream of
+  # "cannot list secrets" errors and never converges.
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, list, watch, create, update, patch]

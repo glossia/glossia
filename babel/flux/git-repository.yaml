@@ -1,0 +1,21 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: babel
+  namespace: flux-system
+  annotations:
+    # This resource is applied out-of-band on the mgmt cluster; keep the
+    # workload-apps Kustomization from clobbering it if it ever moves into a
+    # reconciled source tree.
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
+spec:
+  interval: 1m
+  provider: github
+  ref:
+    branch: main
+  # Reuses the shared `flux-system` GitHub App credentials that already have
+  # `all` repository access on the glossia org.
+  secretRef:
+    name: flux-system
+  timeout: 60s
+  url: https://github.com/glossia/babel.git

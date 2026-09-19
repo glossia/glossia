@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Apply with:
+#   KUBECONFIG=~/.kube/glossia-mgmt.yaml kubectl apply -k flux/
+# These manifests are not reconciled by any Kustomization — they live here
+# as the source of truth for the babel Flux setup and are applied by hand.
+resources:
+  - git-repository.yaml
+  - helm-release.yaml

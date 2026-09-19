@@ -1,0 +1,45 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cloudflare-operator
+  namespace: org-glossia
+spec:
+  maxHistory: 5
+  interval: 10m0s
+  releaseName: cloudflare-operator
+  targetNamespace: cloudflare-operator
+  storageNamespace: cloudflare-operator
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig
+  chart:
+    spec:
+      chart: ./helm/cloudflare-operator
+      interval: 5m0s
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: infra
+        namespace: flux-system
+      valuesFiles:
+        - helm/cloudflare-operator/values.yaml
+        - helm/cloudflare-operator/values-production.yaml
+  install:
+    createNamespace: true
+    crds: Create
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  upgrade:
+    # cleanupOnFail=false so the ExternalSecret the chart creates (and
+    # that ESO needs to sync in order for the operator pod to pull its
+    # image) is NOT removed when helm-controller declares the upgrade
+    # failed. Without this, the pod's own ImagePullBackOff triggers a
+    # cleanup that removes the pull-secret ES that would have unstuck
+    # the pull, and the release ends up in a fail-cleanup-fail loop.
+    cleanupOnFail: false
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  timeout: 15m0s

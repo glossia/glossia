@@ -1,0 +1,58 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: glossia
+  namespace: org-glossia
+spec:
+  dependsOn:
+    - name: platform
+  maxHistory: 5
+  interval: 10m0s
+  releaseName: glossia
+  targetNamespace: glossia
+  storageNamespace: glossia
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig
+  chart:
+    spec:
+      # The Glossia Helm chart owns the FLAME managed runner + detached
+      # translation-Job wiring. It lives in the same repository as the app
+      # itself (glossia/glossia at deploy/helm/glossia).
+      chart: ./deploy/helm/glossia
+      interval: 5m0s
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+      valuesFiles:
+        - deploy/helm/glossia/values.yaml
+  valuesFrom:
+    # Production overrides (moved out of the public glossia repo into
+    # infra/values/*.yaml and materialized here as ConfigMaps by the
+    # glossia-production Kustomization).
+    - kind: ConfigMap
+      name: glossia-values-production
+      valuesKey: values.yaml
+    - kind: ConfigMap
+      name: glossia-values-object-storage-hetzner
+      valuesKey: values.yaml
+  install:
+    createNamespace: true
+    crds: Create
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  timeout: 20m0s
+  values:
+    image:
+      repository: ghcr.io/glossia/glossia # {"$imagepolicy": "flux-system:glossia:name"}
+      tag: main # {"$imagepolicy": "flux-system:glossia:tag"}
+      digest: sha256:4315a894b0b836071c6fd38b6d74e81a5d34b973d5bd583a4d33a88878f9151e # {"$imagepolicy": "flux-system:glossia:digest"}

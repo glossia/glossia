@@ -168,9 +168,48 @@ config :glossia, Oban,
     {Oban.Met, reporter: [auto_migrate: false]},
     {Oban.Plugins.Cron,
      crontab: [
+       {"*/10 * * * *", GlossiaEnterprise.Projects.SetupPullRequestSyncWorker},
        {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker}
      ]}
   ]
+
+# Runner and translation-launcher seams point at the FLAME-managed / k8s-Job
+# implementations that used to live in the separate enterprise repository.
+# `dev.exs` and `test.exs` revert these to the in-process defaults since local
+# machines have no k8s cluster.
+config :glossia, :runners, module: GlossiaEnterprise.Runners.Managed
+config :glossia, :translation_launcher, module: GlossiaEnterprise.TranslationSessions.Launcher
+config :glossia, :project_setup, module: GlossiaEnterprise.ProjectSetup
+
+# Hand `Glossia.Application.start/2` a MFA that dispatches on the process role
+# (parent, runner child, translation-job pod). `GlossiaEnterprise.Application.children/0`
+# picks the right supervision tree.
+config :glossia, :application, children: {GlossiaEnterprise.Application, :children, []}
+
+# Sandbox context: the Kata-scheduled adapter and its knobs. Overridable at
+# runtime via `GLOSSIA_ENTERPRISE_SANDBOX_*` env vars.
+config :glossia_enterprise, GlossiaEnterprise.Sandbox,
+  adapter: GlossiaEnterprise.Sandbox.KataAdapter,
+  enabled: true,
+  max_active_per_account: 3,
+  default_ttl_seconds: 3600,
+  command_timeout_ms: 120_000,
+  output_limit_bytes: 256_000,
+  reaper_enabled: true,
+  reaper_interval_ms: 60_000,
+  delete_retry_after_ms: 60_000,
+  image: "ghcr.io/glossia/glossia:main",
+  runtime_class_name: "kata-qemu",
+  repo_path: "/tmp/glossia/repo"
+
+# Project setup harness configuration. `harness_timeout_ms` is the ceiling on
+# how long the agent can run inside the sandbox before we give up.
+config :glossia_enterprise, GlossiaEnterprise.Projects.Setup,
+  harness_timeout_ms: 660_000,
+  harness: "opencode",
+  harness_command: "opencode",
+  harness_pure: true,
+  harness_env: %{}
 
 # Oban.Met is brought in by the dashboard. Start it only through the configured
 # Oban plugin above, where automatic database schema changes are disabled.

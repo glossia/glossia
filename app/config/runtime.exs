@@ -98,6 +98,39 @@ project_setup_module =
 
 config :glossia, :project_setup, module: project_setup_module
 
+# Detached translation Job settings. Each translation session runs in its
+# own Job pod scheduled by `GlossiaEnterprise.TranslationSessions.Launcher`.
+config :glossia_enterprise, :translation_job,
+  ttl_seconds_after_finished:
+    integer_env.("GLOSSIA_ENTERPRISE_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED", 3_600),
+  active_deadline_seconds:
+    integer_env.("GLOSSIA_ENTERPRISE_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS", 86_400),
+  resources: json_env.("GLOSSIA_ENTERPRISE_TRANSLATION_JOB_RESOURCES_JSON", %{})
+
+# Managed runner pool. Every setting has an env-var override so the operator
+# can tune it without rebuilding the image.
+config :glossia_enterprise, :managed_runner,
+  min: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_MIN", 2),
+  max: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_MAX", 20),
+  max_concurrency: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_MAX_CONCURRENCY", 2),
+  idle_shutdown_after: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_IDLE_SHUTDOWN_MS", 300_000),
+  timeout: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_TIMEOUT_MS", 3_600_000),
+  boot_timeout: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_BOOT_TIMEOUT_MS", 180_000),
+  log: truthy?.(System.get_env("GLOSSIA_ENTERPRISE_MANAGED_LOG")),
+  k8s: [
+    app_container_name: System.get_env("GLOSSIA_ENTERPRISE_MANAGED_APP_CONTAINER_NAME") || "web",
+    runtime_class_name: System.get_env("GLOSSIA_ENTERPRISE_MANAGED_RUNTIME_CLASS_NAME"),
+    resources: json_env.("GLOSSIA_ENTERPRISE_MANAGED_RESOURCES_JSON", %{}),
+    node_selector:
+      json_env.("GLOSSIA_ENTERPRISE_MANAGED_NODE_SELECTOR_JSON", %{
+        "glossia.io/managed-runner" => "true"
+      }),
+    tolerations: json_env.("GLOSSIA_ENTERPRISE_MANAGED_TOLERATIONS_JSON", []),
+    affinity: json_env.("GLOSSIA_ENTERPRISE_MANAGED_AFFINITY_JSON", %{}),
+    env: json_env.("GLOSSIA_ENTERPRISE_MANAGED_ENV_JSON", %{}),
+    log: truthy?.(System.get_env("GLOSSIA_ENTERPRISE_MANAGED_K8S_LOG"))
+  ]
+
 # How many HTTP connections the node holds open per host. Translation is the
 # heaviest user: every concurrent file is one long-lived connection to the model
 # gateway, and asking for more concurrent translations than this only parks the

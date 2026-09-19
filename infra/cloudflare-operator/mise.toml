@@ -1,0 +1,7 @@
+# Local toolchain pin for cloudflare-operator. The rest of the repo
+# runs Go 1.22 (see the repo-root mise.toml), but this operator is
+# on 1.25 to match its go.mod. Scoped to this directory only so a
+# repo-wide `mise install` at the root does not pull down 1.25 for
+# every contributor who never touches this operator.
+[tools]
+go = "1.25"

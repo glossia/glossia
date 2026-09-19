@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tailscale-apiserver-proxy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tailscale-apiserver-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "tailscale-apiserver-proxy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tailscale-apiserver-proxy.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "tailscale-apiserver-proxy.serviceAccountName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: sysctler
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1
+          resources:
+            requests:
+              cpu: 1m
+              memory: 1Mi
+      containers:
+        - name: tailscale
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: TS_KUBE_SECRET
+              value: {{ .Values.proxy.stateSecretName | quote }}
+            - name: TS_USERSPACE
+              value: {{ ternary "true" "false" .Values.proxy.userspace | quote }}
+            - name: TS_DEBUG_FIREWALL_MODE
+              value: {{ .Values.proxy.firewallMode | quote }}
+            - name: TS_AUTHKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.proxy.authSecretName | quote }}
+                  key: {{ .Values.proxy.authSecretKey | quote }}
+            - name: TS_DEST_IP
+              value: {{ .Values.proxy.destinationIP | quote }}
+            - name: TS_AUTH_ONCE
+              value: {{ ternary "true" "false" .Values.proxy.authOnce | quote }}
+            - name: TS_HOSTNAME
+              value: {{ .Values.proxy.hostname | quote }}
+            - name: TS_EXTRA_ARGS
+              value: {{ printf "--advertise-tags=%s" .Values.proxy.tag | quote }}
+            {{- if .Values.proxy.health.enabled }}
+            - name: TS_ENABLE_HEALTH_CHECK
+              value: "true"
+            - name: TS_ENABLE_METRICS
+              value: {{ ternary "true" "false" .Values.proxy.metrics.enabled | quote }}
+            - name: TS_LOCAL_ADDR_PORT
+              value: {{ .Values.proxy.localAddrPort | quote }}
+            {{- end }}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+          {{- if .Values.proxy.health.enabled }}
+          ports:
+            - name: health
+              containerPort: {{ .Values.proxy.localPort }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- end }}
+          securityContext:
+            privileged: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

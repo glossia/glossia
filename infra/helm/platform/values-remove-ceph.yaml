@@ -1,0 +1,15 @@
+# Final cleanup overlay. Apply only after every object has been copied to
+# Hetzner Object Storage, all consumers have used it successfully through the
+# agreed verification window, and the retained Ceph data is no longer needed.
+
+rook-ceph:
+  enabled: false
+
+rook-ceph-cluster:
+  enabled: false
+
+rookObjectStorage:
+  enabled: false
+
+releaseObjectStorage:
+  enabled: false

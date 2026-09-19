@@ -1,0 +1,47 @@
+# Rate limit GET requests to publicly reachable pages. Excludes the
+# authenticated, programmatic, and internal surfaces by prefix, so
+# what's left is the marketing site + docs + blog + anything else
+# reachable without a session. countingExpression is intentionally
+# omitted because it's a Business+ Advanced Rate Limiting feature;
+# the basic-plan-friendly form here counts requests directly.
+#
+# 60 GET / 10s per IP+colo is generous enough that a real human
+# browsing a few pages per minute never trips it, and tight enough
+# that a scraper hitting page after page immediately does.
+apiVersion: cloudflare.glossia.ai/v1alpha1
+kind: CloudflareRateLimit
+metadata:
+  name: public-pages-anti-bombardment
+spec:
+  # Substituted at apply time by the cloudflare-config Kustomization
+  # from the cloudflare-ids Secret (populated by Infisical
+  # /cloudflare-operator/ZONE_ID).
+  zoneId: ${ZONE_ID}
+  description: "Public pages - anti-bombardment"
+  expression: |-
+    http.request.method eq "GET"
+    and not cf.client.bot
+    and not starts_with(http.request.uri.path, "/dashboard")
+    and not starts_with(http.request.uri.path, "/api")
+    and not starts_with(http.request.uri.path, "/oauth")
+    and not starts_with(http.request.uri.path, "/live")
+    and not starts_with(http.request.uri.path, "/admin")
+    and not starts_with(http.request.uri.path, "/ops")
+    and not starts_with(http.request.uri.path, "/mcp")
+    and not starts_with(http.request.uri.path, "/uploads")
+    and not starts_with(http.request.uri.path, "/webhooks")
+    and not starts_with(http.request.uri.path, "/callbacks")
+    and not starts_with(http.request.uri.path, "/v1")
+    and not starts_with(http.request.uri.path, "/.well-known")
+  action: managed_challenge
+  enabled: true
+  mode: active
+  createNewRule: true
+  retainOnDelete: false
+  ratelimit:
+    characteristics:
+      - "ip.src"
+      - "cf.colo.id"
+    requestsPerPeriod: 60
+    period: 10
+    mitigationTimeoutSeconds: 0

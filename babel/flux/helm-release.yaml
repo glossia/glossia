@@ -1,0 +1,48 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: babel
+  namespace: org-glossia
+  annotations:
+    # Prevents the workload-apps Kustomization on the mgmt cluster from
+    # reverting this resource. The active source of truth for the HelmRelease
+    # is this file, applied out-of-band with kubectl.
+    kustomize.toolkit.fluxcd.io/reconcile: disabled
+spec:
+  interval: 10m
+  timeout: 20m
+  releaseName: babel
+  storageNamespace: babel
+  targetNamespace: babel
+  maxHistory: 5
+  dependsOn:
+    - name: platform
+  # Runs the release on the workload cluster, not the mgmt cluster.
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig
+  chart:
+    spec:
+      chart: ./chart
+      version: "*"
+      interval: 5m
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: babel
+        namespace: flux-system
+      valuesFiles:
+        - ./chart/values.yaml
+        - ./chart/values-production.yaml
+  install:
+    crds: Create
+    createNamespace: true
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m
+  upgrade:
+    cleanupOnFail: false
+    crds: CreateReplace
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m

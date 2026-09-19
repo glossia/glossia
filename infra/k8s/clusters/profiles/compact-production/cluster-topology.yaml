@@ -1,0 +1,37 @@
+# Final profile. Apply only after the consolidation profile, the object-storage
+# migration, and the observability cutover have all been verified. It retains
+# the three combined workers and removes both old worker pools. The existing
+# control-plane server is deliberately left unchanged because the cluster's
+# bootstrap endpoint currently points at that server's address.
+- op: replace
+  path: /spec/topology/workers/machineDeployments
+  value:
+    - class: hcloud-worker
+      name: md-combined
+      replicas: 3
+      failureDomain: fsn1
+      metadata:
+        labels:
+          node.cluster.x-k8s.io/pool: stateful
+      variables:
+        overrides:
+          - name: hcloudWorkerMachineType
+            value: cpx32
+    # Dedicated pool for the enterprise managed FLAME runner. Kept off
+    # for now: the machineDeployment provisions HCloud servers that never
+    # join the cluster (MachineHealthCheck cycles them every ~10 min).
+    # Investigate the join failure before re-adding this block. In the
+    # meantime the enterprise runner falls back to the `md-combined` pool
+    # because `GLOSSIA_ENTERPRISE_MANAGED_NODE_SELECTOR_JSON` is left
+    # unset in values-production.yaml.
+    # - class: hcloud-worker
+    #   name: md-managed-runner
+    #   replicas: 1
+    #   failureDomain: fsn1
+    #   metadata:
+    #     labels:
+    #       node.cluster.x-k8s.io/pool: managed-runner
+    #   variables:
+    #     overrides:
+    #       - name: hcloudWorkerMachineType
+    #         value: cpx32

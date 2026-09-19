@@ -1,0 +1,26 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  provider: github
+  ref:
+    branch: main
+  secretRef:
+    name: flux-system
+  url: https://github.com/glossia/glossia.git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./k8s/mgmt/flux
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: infra

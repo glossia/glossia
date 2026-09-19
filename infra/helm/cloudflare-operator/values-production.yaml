@@ -1,0 +1,10 @@
+# Production overrides for cloudflare-operator. Cloudflare zone
+# configuration is global (glossia.ai only has one zone), so the
+# operator runs in the production workload cluster.
+
+image:
+  # Pin the human-readable tag and the immutable content digest
+  # together so reviewers can trace both the source and deployed
+  # bytes. Bump both together via CI when the operator image ships.
+  tag: latest
+  digest: ""

@@ -1,0 +1,26 @@
+# Social images are normal .jpg assets: Cloudflare caches successful responses
+# using the origin's public Cache-Control header. Keep the signed query string
+# in the default cache key. Never override no-store on errors or challenges.
+# All callers, including verified crawlers, share this image-specific policy.
+apiVersion: cloudflare.glossia.ai/v1alpha1
+kind: CloudflareRateLimit
+metadata:
+  name: social-images
+spec:
+  zoneId: ${ZONE_ID}
+  description: "Social images - bounded crawler requests"
+  expression: |-
+    starts_with(http.request.uri.path, "/og/")
+    and http.request.method in {"GET" "HEAD"}
+  action: block
+  enabled: true
+  mode: active
+  createNewRule: true
+  retainOnDelete: false
+  ratelimit:
+    characteristics:
+      - "ip.src"
+      - "cf.colo.id"
+    requestsPerPeriod: 20
+    period: 10
+    mitigationTimeoutSeconds: 10

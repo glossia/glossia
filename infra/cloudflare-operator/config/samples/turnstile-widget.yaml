@@ -1,0 +1,21 @@
+# Sample CloudflareTurnstileWidget. Replace the account id and
+# secretRef.namespace with real values before applying.
+apiVersion: cloudflare.glossia.ai/v1alpha1
+kind: CloudflareTurnstileWidget
+metadata:
+  name: signup
+spec:
+  accountId: REPLACE_WITH_ACCOUNT_ID
+  name: "example signup"
+  domains: [example.com]
+  mode: managed
+  region: world
+  clearanceLevel: interactive
+  crMode: read_only
+  createNewWidget: true
+  retainOnDelete: true
+  secretRef:
+    namespace: apps
+    name: turnstile-signup
+    siteKeyKey: TURNSTILE_SITE_KEY
+    secretKeyKey: TURNSTILE_SECRET_KEY

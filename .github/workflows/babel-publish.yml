@@ -1,0 +1,86 @@
+name: Publish babel
+
+on:
+  workflow_run:
+    workflows:
+      - Babel
+    branches:
+      - main
+    types:
+      - completed
+
+concurrency:
+  group: publish-babel
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and push image
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    outputs:
+      image_tag: ${{ steps.tags.outputs.sha_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          sha="${{ github.event.workflow_run.head_sha }}"
+          echo "sha_tag=$sha" >> "$GITHUB_OUTPUT"
+          echo "run_tag=main-${{ github.run_number }}-$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: ./babel
+          file: ./babel/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/glossia/babel:${{ steps.tags.outputs.sha_tag }}
+            ghcr.io/glossia/babel:main
+            ghcr.io/glossia/babel:${{ steps.tags.outputs.run_tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/glossia/glossia
+            org.opencontainers.image.description=Glossia internal operations platform
+            org.opencontainers.image.licenses=Proprietary
+
+      - name: Bump chart image tag for Flux
+        env:
+          NEW_TAG: ${{ steps.tags.outputs.sha_tag }}
+        run: |
+          set -eu
+          values=babel/chart/values-production.yaml
+          awk -v newtag="$NEW_TAG" '
+            BEGIN { in_image = 0 }
+            /^image:/ { in_image = 1; print; next }
+            in_image && /^[^ ]/ { in_image = 0 }
+            in_image && /^  tag:/ { print "  tag: \"" newtag "\""; next }
+            { print }
+          ' "$values" > "$values.new"
+          mv "$values.new" "$values"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- "$values"; then
+            echo "No tag change to commit."
+            exit 0
+          fi
+          git add "$values"
+          git commit -m "chore(deploy): update babel image to ${NEW_TAG:0:7}"
+          git push origin HEAD:main

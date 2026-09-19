@@ -1,0 +1,90 @@
+{{- if and .Values.releaseObjectStorage.enabled .Values.releaseObjectStorage.dnsCleanup.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-dns-cleanup" .Values.releaseObjectStorage.bucketClaim.name }}
+  namespace: {{ .Values.releaseObjectStorage.clusterNamespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.releaseObjectStorage.dnsCleanup.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.releaseObjectStorage.dnsCleanup.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.releaseObjectStorage.dnsCleanup.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: glossia-platform
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: release-dns-cleanup
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: dns-cleanup
+          image: {{ .Values.releaseObjectStorage.dnsCleanup.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - python3
+            - -c
+          args:
+            - |
+              import json
+              import os
+              import sys
+              import urllib.error
+              import urllib.parse
+              import urllib.request
+
+              api = "https://api.cloudflare.com/client/v4"
+              token = os.environ["CF_API_TOKEN"]
+              zone_name = os.environ["CF_ZONE_NAME"]
+              record_name = os.environ["CF_RECORD_NAME"]
+
+              def request(method, path):
+                  req = urllib.request.Request(api + path, method=method)
+                  req.add_header("Authorization", "Bearer " + token)
+                  req.add_header("Content-Type", "application/json")
+                  try:
+                      with urllib.request.urlopen(req, timeout=30) as response:
+                          return json.load(response)
+                  except urllib.error.HTTPError as error:
+                      sys.stderr.write(error.read().decode("utf-8"))
+                      raise
+
+              zones_query = urllib.parse.urlencode({"name": zone_name})
+              zones = request("GET", "/zones?" + zones_query)
+              if not zones.get("success") or not zones.get("result"):
+                  raise SystemExit(f"Could not find Cloudflare zone {zone_name}")
+
+              zone_id = zones["result"][0]["id"]
+              records_query = urllib.parse.urlencode({
+                  "name": record_name,
+                  "type": "CNAME",
+              })
+              records = request("GET", f"/zones/{zone_id}/dns_records?{records_query}")
+              stale_records = records.get("result", [])
+
+              if not stale_records:
+                  print(f"No stale CNAME records found for {record_name}")
+
+              for record in stale_records:
+                  print(f"Deleting stale CNAME {record['name']} -> {record.get('content', '')}")
+                  result = request("DELETE", f"/zones/{zone_id}/dns_records/{record['id']}")
+                  if not result.get("success"):
+                      raise SystemExit(f"Failed to delete {record['id']}")
+          env:
+            - name: CF_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.cloudflare.apiTokenSecret.name }}
+                  key: {{ .Values.cloudflare.apiTokenSecret.key }}
+            - name: CF_ZONE_NAME
+              value: {{ .Values.releaseObjectStorage.dnsCleanup.zoneName | quote }}
+            - name: CF_RECORD_NAME
+              value: {{ .Values.releaseObjectStorage.ingress.host | quote }}
+{{- end }}

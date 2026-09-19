@@ -33,9 +33,17 @@ FROM ${BUILDER_IMAGE} AS builder
 
 COPY --from=node_runtime /usr/local/ /usr/local/
 
-# install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
+# install build dependencies. curl + ca-certificates are needed to bootstrap
+# rustup below.
+RUN apt-get update -y && apt-get install -y build-essential git curl ca-certificates \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
+
+# Rust for building mdex_native from source (see MDEX_NATIVE_BUILD below).
+# rustup's stable is used instead of Debian apt's rustc because apt ships an
+# older version that cannot read the Cargo.lock v4 used by upstream crates.
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+    sh -s -- -y --default-toolchain stable --profile minimal
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # prepare build dir
 WORKDIR /app
@@ -46,6 +54,16 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
+# mdex_native's precompiled variant selector falls back to `legacy_cpu_lumis`
+# on CPUs that miss any of avx/fma, and that variant is not always published
+# as a precompiled artifact — the without-Lumis binary is what actually gets
+# downloaded, and every content page then fails at compile time with "Lumis
+# is not enabled". Force the source build instead.
+ENV MDEX_NATIVE_BUILD=true
+# Lumis is also a native dependency. Its precompiled release download can
+# fail independently of mdex_native, so use the Rust toolchain already here
+# rather than depending on that additional binary download during releases.
+ENV LUMIS_BUILD=true
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
@@ -92,10 +110,18 @@ FROM ${RUNNER_IMAGE}
 COPY --from=node_runtime /usr/local/ /usr/local/
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium git \
+  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium git curl \
   && npm install -g opencode-ai@1.17.15 @openai/codex@0.144.5 @anthropic-ai/claude-code@2.1.214 \
   && npm cache clean --force \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
+
+# kubectl for the Kata sandbox adapter's exec + cp operations. Pinned to
+# match the workload cluster's minor version so the API surface stays aligned;
+# nothing in the sandbox path depends on a newer subcommand.
+RUN ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/') \
+ && curl -fsSL "https://dl.k8s.io/release/v1.34.0/bin/linux/${ARCH}/kubectl" \
+    -o /usr/local/bin/kubectl \
+ && chmod +x /usr/local/bin/kubectl
 
 ENV XDG_CONFIG_HOME=/tmp/.chromium
 ENV XDG_CACHE_HOME=/tmp/.chromium

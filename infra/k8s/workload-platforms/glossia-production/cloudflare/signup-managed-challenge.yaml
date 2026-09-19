@@ -1,0 +1,29 @@
+# Cloudflare-side edge challenge on the account-creation surface. This
+# is the outer perimeter; the app also enforces server-side Turnstile
+# siteverify in AuthController via GlossiaWeb.SignupProtection so an
+# attacker bypassing Cloudflare (direct-to-origin, missing header, etc.)
+# still hits a gate.
+#
+# Excludes Cloudflare-verified crawlers so search engines can crawl the
+# signup landing page without solving a challenge, and excludes
+# /auth/*/callback so OAuth handshakes cannot be interrupted mid-flow.
+apiVersion: cloudflare.glossia.ai/v1alpha1
+kind: CloudflareCustomRule
+metadata:
+  name: signup-managed-challenge
+spec:
+  zoneId: ${ZONE_ID}
+  description: "Signup + OAuth start - managed challenge"
+  expression: |-
+    (
+      http.request.uri.path eq "/signup" or
+      http.request.uri.path eq "/auth/gate/github" or
+      http.request.uri.path eq "/auth/gate/gitlab" or
+      http.request.uri.path eq "/auth/github" or
+      http.request.uri.path eq "/auth/gitlab"
+    ) and not cf.client.bot
+  action: managed_challenge
+  enabled: true
+  mode: active
+  createNewRule: true
+  retainOnDelete: false

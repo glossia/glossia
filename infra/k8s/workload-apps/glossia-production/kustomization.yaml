@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: org-glossia
+resources:
+  - discourse-helmrelease.yaml
+  - glossia-helmrelease.yaml
+
+# Materialize the two glossia production overlays as ConfigMaps in the
+# HelmRelease's namespace. The chart source is the public glossia repo, so
+# these values cannot be referenced via chart.spec.valuesFiles; they are
+# pulled in via HelmRelease.spec.valuesFrom instead.
+configMapGenerator:
+  - name: glossia-values-production
+    files:
+      - values.yaml=values-production.yaml
+  - name: glossia-values-object-storage-hetzner
+    files:
+      - values.yaml=values-object-storage-hetzner.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -211,37 +211,39 @@ When touching styles, incrementally fix these gaps. Do not attempt a full rewrit
 - `app/priv/repo/seeds.exs` must stay **realistic and up to date**. When adding a new domain feature (schema/context/API surface), extend seeds with representative data so developers and agents can exercise it end-to-end.
 - Keep seeds idempotent (safe to run multiple times) and include data that covers: public accounts, organization memberships, invitations, projects, and voice/version history.
 
-## Downstream: enterprise wrapper
+## Repository layout
 
-This repository is consumed as a git dependency (`ref: "main"`, `sparse: "app"`)
-by the enterprise wrapper at [`../enterprise`](../enterprise). The wrapper
-adds the FLAME-managed runner pool, the detached translation Job launcher,
-project-setup harness, and Kata-scheduled sandbox — anything that is not
-appropriate for the community image lives there.
+Everything lives in a single repository:
 
-Reconciliation between the two is automated. A scheduled workflow in
-`enterprise/.github/workflows/glossia-enterprise.yml` runs every 15 minutes,
-re-resolves this repository's `main` head, and, when the pinned SHA has
-moved, opens a `bot/glossia-enterprise` PR on the enterprise repository with
-the new `mix.lock`. The PR is gated by the wrapper's own `CI` (compile +
-formatter) and `Publish Image` (full release Docker build) workflows on its
-head; the same workflow squash-merges the PR on its next tick once every
-check goes green, and Flux picks up the resulting image on the cluster.
+- `app/` — the Elixir/Phoenix application. Includes the FLAME-managed runner
+  pool, detached translation Job launcher, project-setup harness, and
+  Kata-scheduled sandbox under `app/lib/glossia_enterprise/`. These modules
+  are wired into the runner/launcher/project-setup seams
+  (`config :glossia, :runners, module: ...` etc.) at compile time; dev and
+  test revert them to the in-process defaults.
+- `babel/` — the internal operations platform (Phoenix app deployed at
+  `babel.glossia.ai`). Its own chart at `babel/chart/`, CI in
+  `.github/workflows/babel.yml`, image published as
+  `ghcr.io/glossia/babel`.
+- `cli/` — the Rust CLI. Cross-compiled and released from
+  `.github/workflows/release.yml`.
+- `sdk/` — the JS SDK. Released from `.github/workflows/release-sdk.yml`.
+- `deploy/helm/glossia/` — the Glossia app Helm chart. Deployed to
+  production by Flux from this same repository.
+- `infra/` — Kubernetes / Flux / Helm manifests for the mgmt cluster and
+  workload clusters, plus the `cloudflare-operator` Go controller.
 
-Implications when editing this repository:
+## Continuous deployment
 
-- A merge to `main` here reaches production through the enterprise pipeline
-  described above, not from this repository directly. Expect a lag of one to
-  three cron ticks (up to ~45 min) plus the release Docker build and Flux
-  reconcile before a change lands in prod.
-- The wrapper compiles this app tree with `--warnings-as-errors` and runs
-  `mix format --check-formatted` against its own copy of the tree. A commit
-  that leaves stale gettext catalogs, non-formatted files, or unused deps
-  will fail the wrapper's gate and stall the bump PR — fix it here and
-  push again; the next tick picks it up.
-- Enterprise carries its own migrations and seams (see
-  `../enterprise/lib/glossia_enterprise/`). Do not add functionality that
-  assumes those seams exist in this repository — a seam is only real when it
-  goes through the `Application` MFA / `config :glossia, :<key>, module: …`
-  pattern documented in `lib/glossia/`.
+Every push to `main` builds and publishes the production Docker image via
+`.github/workflows/deploy.yml`, tagging `ghcr.io/glossia/glossia:main` and
+the SHA. Flux, running in the mgmt cluster, watches that tag through the
+`ImageRepository`/`ImagePolicy`/`ImageUpdateAutomation` triple under
+`infra/k8s/mgmt/flux/glossia-image-automation.yaml`; a new SHA is committed
+back to `infra/k8s/workload-apps/glossia-production/glossia-helmrelease.yaml`
+and the HelmRelease reconciles the workload cluster.
+
+There is no downstream wrapper repository, no enterprise/OSS split, and no
+bump-PR indirection. A merge to `main` lands in production after one CI
+build plus one Flux tick.
 

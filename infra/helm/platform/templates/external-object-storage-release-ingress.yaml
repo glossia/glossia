@@ -1,0 +1,38 @@
+{{- if .Values.externalObjectStorage.releaseProxy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.externalObjectStorage.releaseProxy.serviceName }}
+  namespace: {{ .Values.externalObjectStorage.releaseProxy.namespace }}
+  labels:
+    app.kubernetes.io/name: glossia-platform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.externalObjectStorage.releaseProxy.ingress.clusterIssuer | quote }}
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.externalObjectStorage.releaseProxy.ingress.host | quote }}
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/upstream-vhost: {{ .Values.externalObjectStorage.releaseProxy.bucketHost | quote }}
+    nginx.ingress.kubernetes.io/proxy-ssl-name: {{ .Values.externalObjectStorage.releaseProxy.bucketHost | quote }}
+    nginx.ingress.kubernetes.io/proxy-ssl-server-name: "on"
+    {{- with .Values.externalObjectStorage.releaseProxy.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.externalObjectStorage.releaseProxy.ingress.className | quote }}
+  tls:
+    - hosts:
+        - {{ .Values.externalObjectStorage.releaseProxy.ingress.host | quote }}
+      secretName: {{ .Values.externalObjectStorage.releaseProxy.ingress.tlsSecretName | quote }}
+  rules:
+    - host: {{ .Values.externalObjectStorage.releaseProxy.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.externalObjectStorage.releaseProxy.serviceName }}
+                port:
+                  number: {{ .Values.externalObjectStorage.releaseProxy.servicePort }}
+{{- end }}

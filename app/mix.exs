@@ -22,6 +22,9 @@ defmodule Glossia.MixProject do
     [
       mod: {Glossia.Application, []},
       included_applications: [:fun_with_flags],
+      # `:lumis` must load before `:mdex` so mdex_native's NIF sees the Lumis
+      # feature at boot. Compile-time content publishing calls `MDEx.to_html`
+      # which errors with "Lumis is not enabled" otherwise.
       extra_applications: [
         :opentelemetry_exporter,
         :opentelemetry,
@@ -29,7 +32,9 @@ defmodule Glossia.MixProject do
         :ssl,
         :logger,
         :runtime_tools,
-        :os_mon
+        :os_mon,
+        :lumis,
+        :mdex
       ]
     ]
   end
@@ -112,7 +117,16 @@ defmodule Glossia.MixProject do
       {:fun_with_flags, "~> 1.13", app: false, override: true},
       {:fun_with_flags_ui, "~> 1.1", app: false},
       {:ua_inspector, "~> 3.0"},
-      {:cachex, "~> 4.1"}
+      {:cachex, "~> 4.1"},
+      # FLAME-managed runner pool and k8s backend for `GlossiaEnterprise.Runners.Managed`
+      # and `GlossiaEnterprise.TranslationSessions.Launcher`.
+      {:flame, "~> 0.5.3"},
+      {:flame_k8s_backend, "~> 0.6.0"},
+      # Rustler is required whenever `RUSTLER_PRECOMPILED_FORCE_BUILD_ALL=true`
+      # is set — the precompiled artifacts for mdex_native / lumis do not
+      # include the Lumis feature, so mix builds them from source and needs
+      # rustler to run the build.
+      {:rustler, ">= 0.0.0", optional: true}
     ]
   end
 

@@ -92,3 +92,9 @@ config :glossia, Glossia.Vault,
 
 # Provider admission is tested with explicit database calls and a controlled clock.
 config :glossia, :provider_pacing, false
+
+# Managed runner requires k8s. Tests use the in-process impl by default;
+# individual GlossiaEnterprise.Runners.Managed tests exercise the config
+# surface and behaviour compliance directly.
+config :glossia, :runners, module: Glossia.Runners.Default
+config :glossia, :application, children: nil

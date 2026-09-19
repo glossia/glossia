@@ -1,0 +1,107 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cloudflareturnstilewidgets.cloudflare.glossia.ai
+spec:
+  group: cloudflare.glossia.ai
+  scope: Cluster
+  names:
+    plural: cloudflareturnstilewidgets
+    singular: cloudflareturnstilewidget
+    kind: CloudflareTurnstileWidget
+    shortNames: [cfwidget]
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - {name: Account, type: string, jsonPath: .spec.accountId}
+        - {name: Mode, type: string, jsonPath: .spec.crMode}
+        - {name: Widget, type: string, jsonPath: .status.managedSitekey}
+        - {name: Message, type: string, jsonPath: .status.message}
+        - {name: Age, type: date, jsonPath: .metadata.creationTimestamp}
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: [spec]
+          properties:
+            apiVersion: {type: string}
+            kind: {type: string}
+            metadata: {type: object}
+            spec:
+              type: object
+              required: [accountId, name, domains, mode, secretRef]
+              x-kubernetes-validations:
+                - rule: "self.accountId == oldSelf.accountId"
+                  message: "spec.accountId is immutable"
+                - rule: "has(self.adopt) || self.createNewWidget == true"
+                  message: "either spec.adopt.sitekey or spec.createNewWidget=true must be set"
+                - rule: "!has(oldSelf.adopt) || (has(self.adopt) && self.adopt.sitekey == oldSelf.adopt.sitekey)"
+                  message: "spec.adopt is immutable once set"
+              properties:
+                accountId: {type: string}
+                name: {type: string}
+                domains:
+                  type: array
+                  minItems: 1
+                  items: {type: string}
+                mode:
+                  type: string
+                  enum: [managed, non-interactive, invisible]
+                region:
+                  type: string
+                  enum: [world, china]
+                  default: world
+                botFightMode: {type: boolean, default: false}
+                offlabel: {type: boolean, default: false}
+                clearanceLevel:
+                  type: string
+                  enum: [no_clearance, jschallenge, managed, interactive]
+                  default: interactive
+                crMode:
+                  type: string
+                  enum: [read_only, active]
+                  default: read_only
+                paused: {type: boolean, default: false}
+                createNewWidget: {type: boolean, default: false}
+                retainOnDelete: {type: boolean, default: true}
+                adopt:
+                  type: object
+                  required: [sitekey]
+                  properties:
+                    sitekey: {type: string}
+                secretRef:
+                  type: object
+                  required: [namespace, name]
+                  properties:
+                    namespace: {type: string}
+                    name: {type: string}
+                    siteKeyKey: {type: string, default: site-key}
+                    secretKeyKey: {type: string, default: secret-key}
+            status:
+              type: object
+              properties:
+                managedSitekey: {type: string}
+                managedAccountId: {type: string}
+                mode: {type: string}
+                proposedChanges: {type: string}
+                observedGeneration: {type: integer, format: int64}
+                message: {type: string}
+                lastReconciledAt: {type: string, format: date-time}
+                secretMaterialized: {type: boolean}
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required: [type, status, lastTransitionTime, reason]
+                    properties:
+                      type: {type: string, maxLength: 316}
+                      status:
+                        type: string
+                        enum: ["True", "False", "Unknown"]
+                      observedGeneration: {type: integer, format: int64, minimum: 0}
+                      lastTransitionTime: {type: string, format: date-time}
+                      reason: {type: string, maxLength: 1024}
+                      message: {type: string, maxLength: 32768}

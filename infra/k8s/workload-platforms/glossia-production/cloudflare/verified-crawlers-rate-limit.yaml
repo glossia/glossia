@@ -1,0 +1,40 @@
+# Cloudflare-verified crawlers can index public pages without solving
+# a browser challenge, but this bounds the database-backed requests
+# each crawler address can generate and returns HTTP 429 so compliant
+# crawlers back off. Same public-page path filter as
+# public-pages-rate-limit; countingExpression omitted for the same
+# reason (Business+ only).
+apiVersion: cloudflare.glossia.ai/v1alpha1
+kind: CloudflareRateLimit
+metadata:
+  name: verified-crawlers-public-pages
+spec:
+  zoneId: ${ZONE_ID}
+  description: "Verified crawlers - public pages"
+  expression: |-
+    http.request.method eq "GET"
+    and cf.client.bot
+    and not starts_with(http.request.uri.path, "/dashboard")
+    and not starts_with(http.request.uri.path, "/api")
+    and not starts_with(http.request.uri.path, "/oauth")
+    and not starts_with(http.request.uri.path, "/live")
+    and not starts_with(http.request.uri.path, "/admin")
+    and not starts_with(http.request.uri.path, "/ops")
+    and not starts_with(http.request.uri.path, "/mcp")
+    and not starts_with(http.request.uri.path, "/uploads")
+    and not starts_with(http.request.uri.path, "/webhooks")
+    and not starts_with(http.request.uri.path, "/callbacks")
+    and not starts_with(http.request.uri.path, "/v1")
+    and not starts_with(http.request.uri.path, "/.well-known")
+  action: block
+  enabled: true
+  mode: active
+  createNewRule: true
+  retainOnDelete: false
+  ratelimit:
+    characteristics:
+      - "ip.src"
+      - "cf.colo.id"
+    requestsPerPeriod: 60
+    period: 10
+    mitigationTimeoutSeconds: 10

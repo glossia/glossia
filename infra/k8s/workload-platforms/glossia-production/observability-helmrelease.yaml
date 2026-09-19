@@ -1,0 +1,43 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: observability
+  namespace: org-glossia
+spec:
+  dependsOn:
+    - name: platform
+  maxHistory: 5
+  interval: 10m0s
+  releaseName: observability
+  targetNamespace: observability
+  storageNamespace: observability
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig
+  chart:
+    spec:
+      chart: ./helm/observability
+      interval: 5m0s
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: infra
+        namespace: flux-system
+      valuesFiles:
+        - helm/observability/values.yaml
+        - helm/observability/values-hetzner.yaml
+        - helm/observability/values-object-storage-hetzner.yaml
+        - helm/observability/values-compact-hetzner.yaml
+  install:
+    createNamespace: true
+    crds: Skip
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  upgrade:
+    cleanupOnFail: true
+    crds: Skip
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m0s
+  timeout: 30m0s

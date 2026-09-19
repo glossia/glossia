@@ -1,0 +1,42 @@
+# Turnstile widget for the /signup + OAuth-gate surface. Reconciled by
+# cloudflare-operator against Cloudflare's /accounts/{id}/challenges/widgets
+# API, which materializes the resulting sitekey (and, on first-create
+# only, the secret) into the Secret at spec.secretRef. The app pod
+# consumes that Secret directly via envFrom - no Infisical round-trip,
+# because ESO's Infisical provider does not implement PushSecret
+# ("could not write remote ref TURNSTILE_SITE_KEY to target
+# secretstore infisical: not implemented").
+#
+# The materialized widget's site + secret keys are used by the app
+# only after `turnstile.enabled: true` is set in the production
+# values overlay, so this CR going active only provisions the
+# widget-side infrastructure; user-facing enforcement is a separate
+# app-chart flip.
+apiVersion: cloudflare.glossia.ai/v1alpha1
+kind: CloudflareTurnstileWidget
+metadata:
+  name: signup
+spec:
+  # Substituted at apply time by the cloudflare-config Kustomization
+  # from the cloudflare-ids Secret (populated by Infisical
+  # /cloudflare-operator/ACCOUNT_ID).
+  accountId: ${ACCOUNT_ID}
+  name: "glossia.ai signup"
+  domains:
+    - glossia.ai
+    - www.glossia.ai
+  # `managed` shows the adaptive Cloudflare challenge (invisible in
+  # the common case, JS/interactive when the heuristic sees a bot).
+  mode: managed
+  region: world
+  clearanceLevel: interactive
+  botFightMode: false
+  offlabel: false
+  crMode: active
+  createNewWidget: true
+  retainOnDelete: true
+  secretRef:
+    namespace: glossia
+    name: turnstile-signup
+    siteKeyKey: TURNSTILE_SITE_KEY
+    secretKeyKey: TURNSTILE_SECRET_KEY

@@ -1,0 +1,38 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cloudflare-config
+  namespace: org-glossia
+spec:
+  # Adopted CRs sit in read_only and report Ready=False by design, so
+  # gating this Kustomization on health would block the sync forever.
+  # The per-resource status is the rollout gate before flipping to
+  # active mode via a follow-up PR.
+  wait: false
+  interval: 10m0s
+  path: ./k8s/workload-platforms/glossia-production/cloudflare
+  prune: true
+  retryInterval: 2m0s
+  sourceRef:
+    kind: GitRepository
+    name: infra
+    namespace: flux-system
+  timeout: 5m0s
+  # No dependsOn: cloudflare-operator is a HelmRelease, not a
+  # Kustomization, and Flux's Kustomization.spec.dependsOn only
+  # references other Kustomizations. The apply here will fail while
+  # the CRDs do not exist yet on the workload cluster; Flux retries
+  # every retryInterval and the next attempt succeeds once the
+  # operator's Helm release has landed its CRDs.
+  # Expand ${ZONE_ID} and ${ACCOUNT_ID} in the CR YAMLs from the
+  # cloudflare-ids Secret on the mgmt cluster (populated by the
+  # sibling ExternalSecret from Infisical /cloudflare-operator).
+  # Keeps the non-secret-but-not-public identifiers out of git and
+  # makes a zone migration a Secret update, not a commit.
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cloudflare-ids
+  kubeConfig:
+    secretRef:
+      name: glossia-production-kubeconfig

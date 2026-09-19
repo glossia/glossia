@@ -1,0 +1,31 @@
+{{- if .Values.externalSecrets.enabled }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Values.secrets.envSecretName }}
+  labels:
+    {{- include "babel.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecrets.refreshInterval | quote }}
+  secretStoreRef:
+    {{- toYaml .Values.externalSecrets.secretStoreRef | nindent 4 }}
+  target:
+    name: {{ .Values.secrets.envSecretName }}
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        BABEL_DATABASE_URL: {{ printf "ecto://%s:{{ .%s | urlquery }}@%s/%s" .Values.postgres.user .Values.externalSecrets.postgres.passwordField (include "babel.postgresHost" .) .Values.postgres.database | quote }}
+        {{- range $key, $remoteKey := .Values.externalSecrets.appEnv.fields }}
+        {{ $key }}: {{ printf "{{ .%s }}" $remoteKey | quote }}
+        {{- end }}
+  data:
+    {{- range $remoteKey := values .Values.externalSecrets.appEnv.fields | uniq | sortAlpha }}
+    - secretKey: {{ $remoteKey }}
+      remoteRef:
+        key: {{ printf "%s/%s" $.Values.externalSecrets.appEnv.itemKey $remoteKey | quote }}
+    {{- end }}
+    - secretKey: {{ .Values.externalSecrets.postgres.passwordField }}
+      remoteRef:
+        key: {{ printf "%s/%s" .Values.externalSecrets.postgres.itemKey .Values.externalSecrets.postgres.passwordField | quote }}
+{{- end }}
