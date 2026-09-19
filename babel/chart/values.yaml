@@ -9,7 +9,10 @@ strategy:
     maxUnavailable: 1
 
 image:
-  repository: ghcr.io/glossia/babel
+  # The former ghcr.io/glossia/babel package is linked to the archived
+  # glossia/babel repo; ghcr.io/glossia/glossia-babel is the package that
+  # this consolidated repository can push to.
+  repository: ghcr.io/glossia/glossia-babel
   tag: main
   digest: ""
   pullPolicy: IfNotPresent
