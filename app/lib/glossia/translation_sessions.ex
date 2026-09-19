@@ -467,6 +467,10 @@ defmodule Glossia.TranslationSessions do
         if status == "running", do: start_progress_run(updated_session)
 
         broadcast_session_status(updated_session, status)
+
+        if status == "completed",
+          do: Glossia.TranslationSessions.CompletionHandler.on_completed(updated_session)
+
         {:ok, updated_session}
 
       error ->

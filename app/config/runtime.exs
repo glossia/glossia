@@ -98,6 +98,23 @@ project_setup_module =
 
 config :glossia, :project_setup, module: project_setup_module
 
+translation_session_completion_handler_module =
+  case System.get_env("GLOSSIA_TRANSLATION_SESSION_COMPLETION_HANDLER_MODULE") do
+    empty when empty in [nil, ""] ->
+      :glossia
+      |> Application.get_env(:translation_session_completion_handler, [])
+      |> Keyword.get(:module, Glossia.TranslationSessions.CompletionHandler.Default)
+
+    "Elixir." <> _rest = name ->
+      String.to_atom(name)
+
+    name ->
+      String.to_atom("Elixir." <> name)
+  end
+
+config :glossia, :translation_session_completion_handler,
+  module: translation_session_completion_handler_module
+
 # How many HTTP connections the node holds open per host. Translation is the
 # heaviest user: every concurrent file is one long-lived connection to the model
 # gateway, and asking for more concurrent translations than this only parks the
