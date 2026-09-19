@@ -53,6 +53,6 @@ spec:
   timeout: 20m0s
   values:
     image:
-      repository: ghcr.io/glossia/enterprise # {"$imagepolicy": "flux-system:glossia:name"}
+      repository: ghcr.io/glossia/glossia # {"$imagepolicy": "flux-system:glossia:name"}
       tag: main # {"$imagepolicy": "flux-system:glossia:tag"}
-      digest: sha256:cecf3989199e6fd37ad6eef493b900597e32846b283ebda927e996eef6caf690 # {"$imagepolicy": "flux-system:glossia:digest"}
+      digest: sha256:e2a758a7fd5360b15deea66a7019370c0a54c9abe44a601f03009e906a49e7f4 # {"$imagepolicy": "flux-system:glossia:digest"}
