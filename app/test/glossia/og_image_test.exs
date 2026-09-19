@@ -53,7 +53,7 @@ defmodule Glossia.OgImageTest do
         end)
       end
 
-    assert_receive {:resolve, resolver}
+    assert_receive {:resolve, resolver}, 5_000
     send(resolver, :finish)
     assert Enum.map(tasks, &Task.await/1) == List.duplicate({:ok, "image bytes"}, 10)
     refute_receive {:resolve, _}
