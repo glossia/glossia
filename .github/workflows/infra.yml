@@ -293,6 +293,7 @@ jobs:
 
           mise exec -- kubectl apply \
             -f infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
+            -f infra/k8s/mgmt/flux/infra-source.yaml \
             -f infra/k8s/mgmt/flux/workload-cluster-rbac.yaml \
             -f infra/k8s/mgmt/flux/workload-clusters.yaml
 
