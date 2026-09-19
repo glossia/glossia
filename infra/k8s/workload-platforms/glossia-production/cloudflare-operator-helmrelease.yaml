@@ -14,7 +14,7 @@ spec:
       name: glossia-production-kubeconfig
   chart:
     spec:
-      chart: ./helm/cloudflare-operator
+      chart: ./infra/helm/cloudflare-operator
       interval: 5m0s
       reconcileStrategy: Revision
       sourceRef:
@@ -22,8 +22,8 @@ spec:
         name: infra
         namespace: flux-system
       valuesFiles:
-        - helm/cloudflare-operator/values.yaml
-        - helm/cloudflare-operator/values-production.yaml
+        - infra/helm/cloudflare-operator/values.yaml
+        - infra/helm/cloudflare-operator/values-production.yaml
   install:
     createNamespace: true
     crds: Create

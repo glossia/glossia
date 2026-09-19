@@ -16,7 +16,7 @@ spec:
       name: glossia-production-kubeconfig
   chart:
     spec:
-      chart: ./helm/discourse
+      chart: ./infra/helm/discourse
       interval: 5m0s
       reconcileStrategy: Revision
       sourceRef:
@@ -24,8 +24,8 @@ spec:
         name: infra
         namespace: flux-system
       valuesFiles:
-        - helm/discourse/values.yaml
-        - helm/discourse/values-production.yaml
+        - infra/helm/discourse/values.yaml
+        - infra/helm/discourse/values-production.yaml
   install:
     createNamespace: true
     crds: Create

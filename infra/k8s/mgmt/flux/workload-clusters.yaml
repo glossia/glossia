@@ -10,7 +10,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: infra
-  path: ./k8s/clusters/profiles/compact-production
+  path: ./infra/k8s/clusters/profiles/compact-production
   prune: false
   deletionPolicy: Orphan
   serviceAccountName: workload-cluster-reconciler

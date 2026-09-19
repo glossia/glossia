@@ -10,7 +10,7 @@ spec:
   # active mode via a follow-up PR.
   wait: false
   interval: 10m0s
-  path: ./k8s/workload-platforms/glossia-production/cloudflare
+  path: ./infra/k8s/workload-platforms/glossia-production/cloudflare
   prune: true
   retryInterval: 2m0s
   sourceRef:

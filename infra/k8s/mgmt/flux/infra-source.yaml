@@ -11,4 +11,4 @@ spec:
   secretRef:
     name: flux-system
   timeout: 60s
-  url: https://github.com/glossia/infra.git
+  url: https://github.com/glossia/glossia.git
