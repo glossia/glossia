@@ -13,7 +13,7 @@ jobs:
   publish:
     name: Publish Image
     if: github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
+    runs-on: hetzner-docker
     permissions:
       contents: read
       packages: write
