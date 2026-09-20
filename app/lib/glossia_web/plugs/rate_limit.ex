@@ -63,6 +63,19 @@ defmodule GlossiaWeb.Plugs.RateLimit do
     |> halt()
   end
 
+  defp rate_limited(conn, retry_after_ms, :html) do
+    retry_after = ceil(retry_after_ms / 1_000)
+
+    conn
+    |> put_resp_header("retry-after", Integer.to_string(retry_after))
+    |> put_status(:too_many_requests)
+    |> Phoenix.Controller.put_view(GlossiaWeb.ErrorHTML)
+    |> Phoenix.Controller.put_root_layout(false)
+    |> Phoenix.Controller.put_layout(false)
+    |> Phoenix.Controller.render("429.html", retry_after: retry_after)
+    |> halt()
+  end
+
   defp rate_limited(conn, retry_after_ms, _format) do
     retry_after = ceil(retry_after_ms / 1_000)
 

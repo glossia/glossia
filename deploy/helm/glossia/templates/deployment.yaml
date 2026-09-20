@@ -212,6 +212,27 @@ spec:
                   name: {{ .Values.turnstile.secretName | default "turnstile-signup" }}
                   key: {{ .Values.turnstile.secretKeyKey | default "TURNSTILE_SECRET_KEY" }}
             {{- end }}
+            {{- if .Values.publicPageChallenge.enabled }}
+            - name: GLOSSIA_PUBLIC_PAGE_CHALLENGE_ENABLED
+              value: "1"
+            - name: GLOSSIA_PUBLIC_PAGE_CHALLENGE_FRESHNESS_SECONDS
+              value: {{ .Values.publicPageChallenge.freshnessSeconds | default 3600 | quote }}
+            # Same operator-materialized Secret pattern as the signup
+            # widget, but pointed at the public-page CR's Secret. Keys
+            # are TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY inside the
+            # Secret; the deployment projects them under the
+            # GLOSSIA_PUBLIC_PAGE_CHALLENGE_* names the app expects.
+            - name: GLOSSIA_PUBLIC_PAGE_CHALLENGE_SITE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.publicPageChallenge.secretName | default "turnstile-public-page" }}
+                  key: {{ .Values.publicPageChallenge.siteKeyKey | default "TURNSTILE_SITE_KEY" }}
+            - name: GLOSSIA_PUBLIC_PAGE_CHALLENGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.publicPageChallenge.secretName | default "turnstile-public-page" }}
+                  key: {{ .Values.publicPageChallenge.secretKeyKey | default "TURNSTILE_SECRET_KEY" }}
+            {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.envSecretName }}

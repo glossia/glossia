@@ -96,6 +96,22 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.OpsAuth
   end
 
+  # Applied to public-account browsing so a crawler cannot exhaust our
+  # translation gateway credits by walking a public project. Keyed by
+  # client IP with a generous per-minute ceiling.
+  pipeline :browse_rate_limit do
+    plug GlossiaWeb.Plugs.BrowseRateLimit
+  end
+
+  # Gates the dead-render entry to public-account browsing behind a
+  # Cloudflare Turnstile challenge. The paired LiveView on_mount hook
+  # (GlossiaWeb.LiveHooks.PublicPageChallenge) covers the connected
+  # mount path so a client that opens a LiveSocket directly cannot
+  # bypass this. Both no-op when the challenge is not required.
+  pipeline :public_page_challenge do
+    plug GlossiaWeb.Plugs.PublicPageChallengePlug
+  end
+
   get "/up", GlossiaWeb.HealthController, :index
 
   forward "/api/internal/babel", GlossiaWeb.Plugs.RejectInternalBabelPublicRoute
@@ -484,9 +500,23 @@ defmodule GlossiaWeb.Router do
     end
   end
 
-  # Public platform routes (access controlled by on_mount hooks)
+  # Turnstile challenge routes. Sit on the plain :browser pipeline so
+  # the challenge itself is not gated by the challenge plug (that would
+  # produce a redirect loop). Rate limiting for the verify endpoint
+  # lives inside the controller, keyed by client IP.
   scope "/", GlossiaWeb do
-    pipe_through [:browser, :platform]
+    pipe_through :browser
+
+    get "/turnstile-challenge", PublicPageChallengeController, :show
+    post "/turnstile-challenge/verify", PublicPageChallengeController, :verify
+  end
+
+  # Public platform routes (access controlled by on_mount hooks). The
+  # challenge plug runs BEFORE :browse_rate_limit so an unchallenged
+  # crawler is redirected off the pipeline before its request even hits
+  # the rate-limit bucket.
+  scope "/", GlossiaWeb do
+    pipe_through [:browser, :platform, :public_page_challenge, :browse_rate_limit]
 
     get "/:handle/-/discussions", RedirectController, :account
     get "/:handle/-/discussions/new", RedirectController, :account
@@ -498,6 +528,7 @@ defmodule GlossiaWeb.Router do
       layout: {GlossiaWeb.Layouts, :platform},
       session: {GlossiaWeb.LocaleHooks, :session, []},
       on_mount: [
+        {GlossiaWeb.LiveHooks.PublicPageChallenge, :default},
         {GlossiaWeb.PlatformHooks, :load_user},
         {GlossiaWeb.LocaleHooks, :put_locale},
         {GlossiaWeb.PlatformHooks, :load_account},

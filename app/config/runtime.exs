@@ -87,6 +87,18 @@ config :glossia, Glossia.Cloudflare.Turnstile,
   site_key: System.get_env("GLOSSIA_TURNSTILE_SITE_KEY"),
   secret_key: System.get_env("GLOSSIA_TURNSTILE_SECRET_KEY")
 
+# Cloudflare Turnstile enforcement for the public-page browse
+# interstitial. A separate widget from the signup one so telemetry,
+# rotation, and blast radius stay isolated. The FunWithFlags flag
+# `:public_page_challenge_kill_switch` can pull enforcement at runtime
+# without a deploy. Freshness is how long a solved challenge lets a
+# visitor browse without re-solving.
+config :glossia, Glossia.Cloudflare.Turnstile.PublicPage,
+  enabled?: truthy?.(System.get_env("GLOSSIA_PUBLIC_PAGE_CHALLENGE_ENABLED", "0")),
+  site_key: System.get_env("GLOSSIA_PUBLIC_PAGE_CHALLENGE_SITE_KEY"),
+  secret_key: System.get_env("GLOSSIA_PUBLIC_PAGE_CHALLENGE_SECRET_KEY"),
+  freshness_seconds: integer_env.("GLOSSIA_PUBLIC_PAGE_CHALLENGE_FRESHNESS_SECONDS", 3_600)
+
 # Translation LLM credential. Precedence at resolve time: the account's own model
 # key, then this globally configured inference provider (token + URL), then — in
 # dev only — the local Claude/Codex session.

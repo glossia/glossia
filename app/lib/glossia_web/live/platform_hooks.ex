@@ -49,6 +49,8 @@ defmodule GlossiaWeb.PlatformHooks do
 
       account ->
         if Glossia.Authz.authorize?(:project_read, user, account) do
+          account = Glossia.Repo.preload(account, [:user, :organization])
+
           accounts =
             if user do
               {:ok, {accounts, _meta}} = Accounts.list_user_accounts(user)

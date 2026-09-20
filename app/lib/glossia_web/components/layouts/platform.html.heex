@@ -25,6 +25,8 @@
         href={"/#{@handle}"}
         show_avatar={true}
         avatar_color={account_avatar_color(@account)}
+        badge_label={account_badge_label(@account)}
+        badge_color={account_badge_color(@account)}
       >
         <.breadcrumb_item
           :for={account <- assigns[:accounts] || []}

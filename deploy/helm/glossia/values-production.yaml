@@ -392,3 +392,13 @@ externalSecrets:
     itemKey: /kubernetes
     usernameField: GHCR_PULL_USERNAME
     passwordField: GHCR_PULL_TOKEN
+
+# Cloudflare Turnstile enforcement for the public-account browse
+# interstitial. On in prod immediately: anonymous visitors to a public
+# Glossia account (e.g. the Omarchy demo) get the challenge before
+# reaching the dashboard. The operator flip is the FunWithFlags flag
+# `:public_page_challenge_kill_switch`.
+publicPageChallenge:
+  enabled: true
+  secretName: turnstile-public-page
+  freshnessSeconds: 3600
