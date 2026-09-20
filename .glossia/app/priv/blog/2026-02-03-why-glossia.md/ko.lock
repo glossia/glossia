@@ -1,5 +1,5 @@
 {
-  "hash": "01a83a8321807890c02efa9f57f123336e8a9e85503d07ce1ea3f21e37b5d618",
+  "hash": "debe930c18cbc376d16f5c2bcc12d213125ff7da96555e4c7a4069cc22557778",
   "hash_tree": {
     "root": {
       "children": [
@@ -14,7 +14,7 @@
         },
         {
           "children": [],
-          "hash": "a7509511e8ee7585ea2c749d1b5e62df1cb55c4a9185b7518614e21d47226e16",
+          "hash": "d25621d7e46513a03253f1f559a2b55b7842384469a895892b17f8366f17e37a",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
@@ -30,7 +30,7 @@
             "retries": 3,
             "segmentation_version": 1,
             "source_language": "en",
-            "validation_hash": "ae3606ed9b1629c1a55145739b0db6174aa75ed71272a6af6089832cad7abbfc"
+            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
           }
         },
         {
@@ -89,14 +89,14 @@
           "metadata": {}
         }
       ],
-      "hash": "01a83a8321807890c02efa9f57f123336e8a9e85503d07ce1ea3f21e37b5d618",
+      "hash": "debe930c18cbc376d16f5c2bcc12d213125ff7da96555e4c7a4069cc22557778",
       "kind": "translation_input",
       "label": "app/priv/blog/2026-02-03-why-glossia.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "5cb0d2383b724dff954481dbf0ca2fa23d66372742c4dad113607af627111e15",
+  "output_hash": "1f79b55501ac3c2c636037a2f7b61f2c68b9fdb1e0cf82822ddcb282b9fd100c",
   "output_path": "app/priv/i18n/ko/blog/2026-02-03-why-glossia.md",
   "provider": "",
   "server_context": {
@@ -112,5 +112,5 @@
     }
   },
   "source_path": "app/priv/blog/2026-02-03-why-glossia.md",
-  "translated_at": "2026-09-20T10:08:51.139954Z"
+  "translated_at": "2026-09-20T10:30:23.893612Z"
 }
