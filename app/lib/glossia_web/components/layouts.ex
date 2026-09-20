@@ -378,11 +378,32 @@ defmodule GlossiaWeb.Layouts do
   end
 
   defp account_avatar_color(_account), do: "blue"
+
+  defp account_kind(%{organization: %Glossia.Accounts.Organization{}}), do: :organization
+  defp account_kind(%{user: %Glossia.Accounts.User{}}), do: :user
+  # Fallback for accounts whose associations were not preloaded (older render
+  # paths, tests). Historically these have been treated as organizations, so
+  # preserving that keeps existing surfaces stable.
+  defp account_kind(_account), do: :organization
+
   defp account_badge_label(%{visibility: "public"}), do: gettext("Public")
-  defp account_badge_label(_account), do: gettext("Organization")
+
+  defp account_badge_label(account) do
+    case account_kind(account) do
+      :user -> gettext("Personal")
+      :organization -> gettext("Organization")
+    end
+  end
+
   defp account_badge_color(%{visibility: "public"}), do: "success"
   defp account_badge_color(_account), do: "information"
-  defp account_management_label(_account), do: gettext("Organization")
+
+  defp account_management_label(account) do
+    case account_kind(account) do
+      :user -> gettext("Account")
+      :organization -> gettext("Organization")
+    end
+  end
 
   defp gravatar_url(email) do
     hash =
