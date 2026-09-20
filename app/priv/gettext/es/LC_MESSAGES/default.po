@@ -4516,11 +4516,6 @@ msgstr "Cada traducción utiliza un modelo configurado. L10N.md puede selecciona
 msgid "Front matter, segment %{index} of %{count}"
 msgstr "Metadatos, segmento %{index} de %{count}"
 
-#: lib/glossia_web/controllers/page_controller.ex:30
-#, elixir-autogen, elixir-format
-msgid "Glossia is an open source language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia es un sistema operativo de lenguajes de código abierto donde los traductores y los equipos definen cómo se comunica tu organización a través de cada idioma y superficie."
-
 #: lib/glossia_web/live/dashboard_live.ex:8435
 #, elixir-autogen, elixir-format
 msgid "Glossia rejected this empty translation and did not publish any changes. A model that reasons before answering can spend its whole output budget thinking and return nothing."
@@ -5035,3 +5030,8 @@ msgstr "Explora las guías de localización de Glossia, la documentación del pr
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Language OS"
 msgstr "Idioma"
+
+#: lib/glossia_web/controllers/page_controller.ex:30
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
+msgstr "Glossia es un sistema operativo de lenguajes de código abierto donde los traductores y los equipos definen cómo se comunica tu organización a través de cada idioma y superficie."

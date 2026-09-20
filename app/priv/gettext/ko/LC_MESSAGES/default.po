@@ -4511,11 +4511,6 @@ msgstr "각 번역은 하나의 구성된 모델을 사용합니다. L10N.md 에
 msgid "Front matter, segment %{index} of %{count}"
 msgstr "프론트 매터, %{count} 개 중 %{index} 번째 세그먼트"
 
-#: lib/glossia_web/controllers/page_controller.ex:30
-#, elixir-autogen, elixir-format
-msgid "Glossia is an open source language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia는 언어 전문가와 팀들이 조직의 모든 언어와 표면에서 소통 방식을 형성하는 오픈소스 언어 OS 입니다."
-
 #: lib/glossia_web/live/dashboard_live.ex:8435
 #, elixir-autogen, elixir-format
 msgid "Glossia rejected this empty translation and did not publish any changes. A model that reasons before answering can spend its whole output budget thinking and return nothing."
@@ -5028,3 +5023,8 @@ msgstr "언어 간 콘텐츠를 발행하는 팀을 위한 Glossia 현지화 가
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Language OS"
 msgstr "언어"
+
+#: lib/glossia_web/controllers/page_controller.ex:30
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
+msgstr "Glossia는 언어 전문가와 팀들이 조직의 모든 언어와 표면에서 소통 방식을 형성하는 오픈소스 언어 OS 입니다."
