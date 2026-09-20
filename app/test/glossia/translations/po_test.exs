@@ -324,4 +324,95 @@ defmodule Glossia.Translations.PoTest do
       assert output_translations[plural_unit.key] == ["%d archivo", "%d archivos"]
     end
   end
+
+  describe "align_translations/2" do
+    setup do
+      source = """
+      msgid ""
+      msgstr ""
+
+      msgid "Hello"
+      msgstr ""
+
+      msgid "%d file"
+      msgid_plural "%d files"
+      msgstr[0] ""
+      msgstr[1] ""
+      """
+
+      {:ok, [header, hello, plural]} = Po.translation_units(source)
+      %{header: header, hello: hello, plural: plural, units: [header, hello, plural]}
+    end
+
+    test "passes through when target and source shapes match", %{
+      units: units,
+      header: header,
+      hello: hello,
+      plural: plural
+    } do
+      file = %{
+        header.key => ["Language: es\n"],
+        hello.key => ["Hola"],
+        plural.key => ["%d archivo", "%d archivos"]
+      }
+
+      aligned = Po.align_translations(file, units)
+
+      assert aligned[header.key] == ["Language: es\n"]
+      assert aligned[hello.key] == ["Hola"]
+      assert aligned[plural.key] == ["%d archivo", "%d archivos"]
+    end
+
+    test "pads by duplicating the last translation when target has fewer plural forms",
+         %{units: units, plural: plural} do
+      # ja/ko/zh-Hans: nplurals=1, target catalog has only msgstr[0]
+      file = %{plural.key => ["%d 個のファイル"]}
+
+      aligned = Po.align_translations(file, units)
+
+      assert aligned[plural.key] == ["%d 個のファイル", "%d 個のファイル"]
+    end
+
+    test "truncates high indices when target has more plural forms than source", %{
+      units: units,
+      plural: plural
+    } do
+      # ru/pl/uk: nplurals=3, on-disk catalog carries msgstr[0..2]
+      file = %{plural.key => ["%d файл", "%d файла", "%d файлов"]}
+
+      aligned = Po.align_translations(file, units)
+
+      assert aligned[plural.key] == ["%d файл", "%d файла"]
+    end
+
+    test "drops units with no translation instead of preserving an unreshape-able value",
+         %{units: units, plural: plural} do
+      file = %{plural.key => []}
+
+      refute Map.has_key?(Po.align_translations(file, units), plural.key)
+    end
+
+    test "drops units absent from the file", %{units: units, plural: plural} do
+      aligned = Po.align_translations(%{}, units)
+      refute Map.has_key?(aligned, plural.key)
+    end
+
+    test "sum of aligned lengths equals the source's expected literal count",
+         %{units: units, header: header, hello: hello, plural: plural} do
+      # Aggregate invariant: this is the exact quantity `rebuild_text_literals/2`
+      # counts against, and the number the production `catalog-rebuild-count`
+      # error reported was off from source.
+      file = %{
+        header.key => ["Language: ja\n"],
+        hello.key => ["こんにちは"],
+        plural.key => ["%d 個のファイル"]
+      }
+
+      aligned = Po.align_translations(file, units)
+      aligned_total = aligned |> Map.values() |> Enum.map(&length/1) |> Enum.sum()
+
+      expected = units |> Enum.map(&length(&1.sources)) |> Enum.sum()
+      assert aligned_total == expected
+    end
+  end
 end

@@ -85,8 +85,12 @@ defmodule Glossia.Translations.Locks do
     with {:ok, units} <- Po.translation_units(source_content),
          true <- has_po_units?(lock),
          true <- is_binary(output_content),
-         {:ok, output_translations} <- Po.output_translations(output_content) do
+         {:ok, file_translations} <- Po.output_translations(output_content) do
       stored = Map.get(lock, "po_units") || %{}
+      # Reshape target-shape translations back to source shape so per-unit
+      # preservation lines up with the source's plural arity. See
+      # `Po.align_translations/2` for the exact inverse.
+      output_translations = Po.align_translations(file_translations, units)
 
       {stale, preserved} =
         Enum.reduce(units, {[], %{}}, fn unit, {stale, preserved} ->
@@ -124,12 +128,24 @@ defmodule Glossia.Translations.Locks do
   # is the empty string is treated as never translated. Otherwise a member
   # hand-clearing a msgstr in a review would stick because per-unit checks
   # would blindly preserve the empty string forever.
+  #
+  # `Enum.zip/2` silently truncates on length mismatch, which is exactly the
+  # class of bug that let a target-shape/source-shape length skew slip
+  # through preservation and only surface later as a `rebuild_text_literals`
+  # count mismatch. The invariant here (aligned translations are the same
+  # length as the source's `sources`) is guaranteed by
+  # `Po.align_translations/2`, but check it explicitly so any future misuse
+  # sends the unit through the stale path instead of down-counting.
   defp missing_output_translation?(unit, output_translations) do
     translations = Map.fetch!(output_translations, unit.key)
 
-    Enum.any?(Enum.zip(unit.sources, translations), fn {source, translation} ->
-      source != "" and translation == ""
-    end)
+    if length(translations) != length(unit.sources) do
+      true
+    else
+      unit.sources
+      |> Enum.zip(translations)
+      |> Enum.any?(fn {source, translation} -> source != "" and translation == "" end)
+    end
   end
 
   @doc """

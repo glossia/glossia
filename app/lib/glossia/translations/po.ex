@@ -146,6 +146,59 @@ defmodule Glossia.Translations.Po do
     |> Enum.map(&Map.fetch!(plurals, &1))
   end
 
+  @doc """
+  Aligns a `unit_key => file_shape_translations` map to source shape.
+
+  A `.po` on disk is written with the target locale's `nplurals` — plural
+  entries carry `msgstr[0..target_nplurals-1]` — while the translation
+  pipeline operates in source shape (one literal per source-language plural
+  form, English = 2). Reading a target catalog back for per-msgid
+  preservation therefore has to invert the arity change that
+  `normalize_plural_forms/2` applied on write.
+
+  For each source unit, this function looks up the file-shape translations
+  and reshapes them to `length(unit.sources)`. The transformation mirrors
+  `apply_plural_count/2` positionally:
+
+    * more translations than the source expects → truncate the high indices
+      (target has more plural forms than English, e.g. ru/pl/uk = 3, ar = 6);
+    * fewer translations → duplicate the last translation to fill the
+      missing slots (target collapsed English's two forms into one, e.g.
+      ja/ko/zh-Hans nplurals=1);
+    * exact match → passthrough.
+
+  Units whose translation list is empty are dropped from the result so the
+  preservation path treats them as absent and re-translates them, rather
+  than silently preserving a zero-length list a caller cannot reshape.
+  """
+  def align_translations(translations_by_key, source_units)
+      when is_map(translations_by_key) and is_list(source_units) do
+    Enum.reduce(source_units, %{}, fn unit, acc ->
+      case Map.fetch(translations_by_key, unit.key) do
+        {:ok, translations} when is_list(translations) ->
+          case reconcile_plural_arity(translations, length(unit.sources)) do
+            {:ok, aligned} -> Map.put(acc, unit.key, aligned)
+            :error -> acc
+          end
+
+        _ ->
+          acc
+      end
+    end)
+  end
+
+  defp reconcile_plural_arity([], _expected), do: :error
+
+  defp reconcile_plural_arity(translations, expected) do
+    have = length(translations)
+
+    cond do
+      have == expected -> {:ok, translations}
+      have > expected -> {:ok, Enum.take(translations, expected)}
+      true -> {:ok, translations ++ List.duplicate(List.last(translations), expected - have)}
+    end
+  end
+
   defp unit_key(entry) do
     canonical =
       JSON.encode!(%{

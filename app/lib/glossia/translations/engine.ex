@@ -1396,7 +1396,19 @@ defmodule Glossia.Translations.Engine do
     Enum.reduce_while(units, {:ok, []}, fn unit, {:ok, acc} ->
       case Map.fetch(translations_by_key, unit.key) do
         {:ok, translations} when is_list(translations) ->
-          {:cont, {:ok, acc ++ translations}}
+          # Preservation aligns the target-shape output back to source shape
+          # before it lands here, so a length skew at this point is a
+          # programming error, not a data one. Return a preservation-scoped
+          # error rather than raising: `{:preservation_error, _}` fails only
+          # the current file and stays inside the existing telemetry path,
+          # while a `raise` would take down the translation Job.
+          if length(translations) == length(unit.sources) do
+            {:cont, {:ok, acc ++ translations}}
+          else
+            {:halt,
+             {:error,
+              "po text-literal response length #{length(translations)} did not match source shape #{length(unit.sources)} for msgid #{unit.key}"}}
+          end
 
         _ ->
           {:halt,
