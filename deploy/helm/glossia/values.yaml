@@ -632,6 +632,21 @@ turnstile:
   enabled: false
   secretName: turnstile-signup
 
+# Cloudflare Turnstile enforcement for the public-account browse
+# interstitial. Independent widget from the signup one — its own site
+# key + secret projected from a separate `turnstile-public-page`
+# Secret (materialized by the CloudflareTurnstileWidget CR named
+# `public-page`). When enabled, the deployment sets
+# GLOSSIA_PUBLIC_PAGE_CHALLENGE_ENABLED=1 and valueFroms the two keys
+# below. The FunWithFlags flag `:public_page_challenge_kill_switch`
+# still gives operators a runtime kill switch without a redeploy.
+publicPageChallenge:
+  enabled: false
+  secretName: turnstile-public-page
+  # Seconds a solved challenge lets a visitor browse without re-solving.
+  # Defaults to one hour to match the app-side default.
+  freshnessSeconds: 3600
+
 externalSecrets:
   enabled: false
   refreshInterval: 1h

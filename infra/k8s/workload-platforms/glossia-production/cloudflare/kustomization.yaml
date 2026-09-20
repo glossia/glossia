@@ -5,3 +5,4 @@ resources:
   - verified-crawlers-rate-limit.yaml
   - signup-managed-challenge.yaml
   - turnstile-signup-widget.yaml
+  - turnstile-public-page-widget.yaml
