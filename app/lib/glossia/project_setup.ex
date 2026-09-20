@@ -10,7 +10,6 @@ defmodule Glossia.ProjectSetup do
   to enqueue; `retry/1` calls `retry_now/1` for a rescheduled run.
   """
 
-
   alias Glossia.Projects.SetupWorker
 
   def start(project) do

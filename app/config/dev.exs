@@ -147,4 +147,3 @@ config :glossia, Glossia.Vault,
 config :glossia, Glossia.Translations,
   allow_local_session: true,
   local_remotes_dir: Path.expand("tmp/dev-remotes")
-

@@ -18,7 +18,6 @@ defmodule Glossia.Runners do
   by `config/runtime.exs` from `GLOSSIA_MANAGED_*` env vars.
   """
 
-
   alias Glossia.Flame
 
   @pool_name Glossia.RunnerPool

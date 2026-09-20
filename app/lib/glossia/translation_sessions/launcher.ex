@@ -20,7 +20,6 @@ defmodule Glossia.TranslationSessions.Launcher do
   `config/runtime.exs` from `GLOSSIA_TRANSLATION_JOB_*` env vars.
   """
 
-
   require Logger
 
   alias Glossia.Kubernetes
