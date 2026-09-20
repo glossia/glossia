@@ -190,7 +190,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:157
+#: lib/glossia_web/components/layouts/platform.html.heex:159
 #, elixir-autogen, elixir-format
 msgid "Projects"
 msgstr ""
@@ -280,7 +280,7 @@ msgstr ""
 msgid "Create an organization"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:44
+#: lib/glossia_web/components/layouts/platform.html.heex:46
 #: lib/glossia_web/controllers/organization_html/new.html.heex:56
 #, elixir-autogen, elixir-format
 msgid "Create organization"
@@ -482,7 +482,7 @@ msgstr ""
 msgid "Version history"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:164
+#: lib/glossia_web/components/layouts/platform.html.heex:166
 #: lib/glossia_web/live/dashboard_live.ex:149
 #: lib/glossia_web/live/dashboard_live.ex:178
 #: lib/glossia_web/live/dashboard_live.ex:265
@@ -589,7 +589,7 @@ msgid "Accept or decline the invitation:"
 msgstr ""
 
 #: lib/glossia_web/components/layouts/admin.html.heex:32
-#: lib/glossia_web/components/layouts/platform.html.heex:74
+#: lib/glossia_web/components/layouts/platform.html.heex:76
 #: lib/glossia_web/components/layouts/user_profile.html.heex:39
 #: lib/glossia_web/live/dashboard_live.ex:5654
 #, elixir-autogen, elixir-format
@@ -674,7 +674,7 @@ msgstr ""
 msgid "Member removed."
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:196
+#: lib/glossia_web/components/layouts/platform.html.heex:198
 #: lib/glossia_web/live/dashboard_live.ex:538
 #: lib/glossia_web/live/dashboard_live.ex:557
 #: lib/glossia_web/live/dashboard_live.ex:5615
@@ -955,7 +955,7 @@ msgstr ""
 msgid "Translation"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:114
+#: lib/glossia_web/components/layouts/platform.html.heex:116
 #: lib/glossia_web/live/dashboard_live.ex:1219
 #: lib/glossia_web/live/dashboard_live.ex:1241
 #: lib/glossia_web/live/dashboard_live.ex:1246
@@ -1094,7 +1094,7 @@ msgstr ""
 #: lib/glossia_web/components/layouts/admin.html.heex:69
 #: lib/glossia_web/components/layouts/docs.html.heex:164
 #: lib/glossia_web/components/layouts/docs.html.heex:182
-#: lib/glossia_web/components/layouts/platform.html.heex:108
+#: lib/glossia_web/components/layouts/platform.html.heex:110
 #: lib/glossia_web/live/admin_live.ex:289
 #: lib/glossia_web/live/dashboard_live.ex:1097
 #, elixir-autogen, elixir-format
@@ -1472,13 +1472,13 @@ msgid "Reason for impersonation..."
 msgstr ""
 
 #: lib/glossia_web/components/layouts/admin.html.heex:59
-#: lib/glossia_web/components/layouts/platform.html.heex:96
+#: lib/glossia_web/components/layouts/platform.html.heex:98
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
 msgstr ""
 
 #: lib/glossia_web/components/layouts/admin.html.heex:54
-#: lib/glossia_web/components/layouts/platform.html.heex:91
+#: lib/glossia_web/components/layouts/platform.html.heex:93
 #, elixir-autogen, elixir-format
 msgid "You are impersonating %{email}"
 msgstr ""
@@ -1488,7 +1488,7 @@ msgstr ""
 msgid "You are now impersonating %{email}."
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:291
+#: lib/glossia_web/components/layouts/platform.html.heex:293
 #: lib/glossia_web/live/dashboard_live.ex:692
 #: lib/glossia_web/live/dashboard_live.ex:710
 #: lib/glossia_web/live/dashboard_live.ex:749
@@ -1496,6 +1496,7 @@ msgstr ""
 msgid "OAuth apps"
 msgstr ""
 
+#: lib/glossia_web/components/layouts.ex:403
 #: lib/glossia_web/live/admin_live.ex:689
 #: lib/glossia_web/live/profile_live.ex:433
 #, elixir-autogen, elixir-format
@@ -1806,6 +1807,7 @@ msgid "Context graph"
 msgstr ""
 
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex:20
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:142
 #, elixir-autogen, elixir-format
 msgid "Continue"
 msgstr ""
@@ -1974,8 +1976,8 @@ msgstr ""
 msgid "Opened by %{author} on %{date}"
 msgstr ""
 
-#: lib/glossia_web/components/layouts.ex:381
-#: lib/glossia_web/components/layouts.ex:383
+#: lib/glossia_web/components/layouts.ex:394
+#: lib/glossia_web/components/layouts.ex:404
 #: lib/glossia_web/controllers/page_html/home.html.heex:420
 #: lib/glossia_web/live/dashboard_live.ex:3965
 #, elixir-autogen, elixir-format
@@ -2023,9 +2025,9 @@ msgid "Search repositories..."
 msgstr ""
 
 #: lib/glossia_web/components/layouts/admin.html.heex:44
-#: lib/glossia_web/components/layouts/platform.html.heex:81
-#: lib/glossia_web/components/layouts/platform.html.heex:129
-#: lib/glossia_web/components/layouts/platform.html.heex:254
+#: lib/glossia_web/components/layouts/platform.html.heex:83
+#: lib/glossia_web/components/layouts/platform.html.heex:131
+#: lib/glossia_web/components/layouts/platform.html.heex:256
 #: lib/glossia_web/components/layouts/user_profile.html.heex:24
 #: lib/glossia_web/components/layouts/user_profile.html.heex:46
 #: lib/glossia_web/live/dashboard_live.ex:599
@@ -3168,7 +3170,7 @@ msgstr ""
 msgid "Suggest terminology changes"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:171
+#: lib/glossia_web/components/layouts/platform.html.heex:173
 #: lib/glossia_web/controllers/page_html/home.html.heex:423
 #: lib/glossia_web/live/dashboard_live.ex:317
 #: lib/glossia_web/live/dashboard_live.ex:341
@@ -3226,7 +3228,7 @@ msgstr ""
 msgid "This item is not a suggestion."
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:285
+#: lib/glossia_web/components/layouts/platform.html.heex:287
 #: lib/glossia_web/live/dashboard_live.ex:587
 #: lib/glossia_web/live/dashboard_live.ex:600
 #: lib/glossia_web/live/dashboard_live.ex:620
@@ -3539,7 +3541,7 @@ msgstr ""
 msgid "Localization setup"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:297
+#: lib/glossia_web/components/layouts/platform.html.heex:299
 #: lib/glossia_web/live/dashboard_live.ex:780
 #: lib/glossia_web/live/dashboard_live.ex:791
 #: lib/glossia_web/live/dashboard_live.ex:820
@@ -3964,8 +3966,8 @@ msgstr ""
 msgid "Segment %{index} of %{count}"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:121
-#: lib/glossia_web/components/layouts/platform.html.heex:147
+#: lib/glossia_web/components/layouts/platform.html.heex:123
+#: lib/glossia_web/components/layouts/platform.html.heex:149
 #: lib/glossia_web/live/dashboard_live.ex:1177
 #: lib/glossia_web/live/dashboard_live.ex:1313
 #: lib/glossia_web/live/dashboard_live.ex:1326
@@ -4216,7 +4218,7 @@ msgstr ""
 msgid "Open analytics settings"
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:66
+#: lib/glossia_web/components/layouts/platform.html.heex:68
 #, elixir-autogen, elixir-format
 msgid "Operations"
 msgstr ""
@@ -4932,7 +4934,7 @@ msgstr ""
 msgid "Route translations to different models based on the target locale. Rules run top to bottom; the first match wins. A translation that hits no rule uses the account default."
 msgstr ""
 
-#: lib/glossia_web/components/layouts/platform.html.heex:303
+#: lib/glossia_web/components/layouts/platform.html.heex:305
 #: lib/glossia_web/live/dashboard_live.ex:835
 #: lib/glossia_web/live/dashboard_live.ex:856
 #: lib/glossia_web/live/dashboard_live.ex:12938
@@ -5034,4 +5036,69 @@ msgstr ""
 #: lib/glossia_web/controllers/page_controller.ex:30
 #, elixir-autogen, elixir-format
 msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
+msgstr ""
+
+#: lib/glossia_web/controllers/error_html/429.html.heex:85
+#, elixir-autogen, elixir-format
+msgid "Back to Glossia"
+msgstr ""
+
+#: lib/glossia_web/controllers/error_html/429.html.heex:76
+#, elixir-autogen, elixir-format
+msgid "HTTP 429"
+msgstr ""
+
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:111
+#, elixir-autogen, elixir-format
+msgid "Just a quick check"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:393
+#, elixir-autogen, elixir-format
+msgid "Personal"
+msgstr ""
+
+#: lib/glossia_web/components/layouts.ex:389
+#, elixir-autogen, elixir-format
+msgid "Public"
+msgstr ""
+
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:113
+#, elixir-autogen, elixir-format
+msgid "Public dashboards are protected against automated scraping. Confirm you're human to continue."
+msgstr ""
+
+#: lib/glossia_web/controllers/error_html/429.html.heex:77
+#, elixir-autogen, elixir-format
+msgid "Slow down for a moment"
+msgstr ""
+
+#: lib/glossia_web/controllers/error_html/429.html.heex:79
+#, elixir-autogen, elixir-format
+msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
+msgstr ""
+
+#: lib/glossia_web/controllers/public_page_challenge_controller.ex:130
+#, elixir-autogen, elixir-format
+msgid "Too many attempts. Please wait a moment and try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/error_html/429.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Too many requests · Glossia"
+msgstr ""
+
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:136
+#, elixir-autogen, elixir-format
+msgid "Turnstile is unavailable. Please try again shortly."
+msgstr ""
+
+#: lib/glossia_web/controllers/public_page_challenge_controller.ex:145
+#, elixir-autogen, elixir-format
+msgid "Verification failed. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:23
+#, elixir-autogen, elixir-format
+msgid "Verify you're human"
 msgstr ""
