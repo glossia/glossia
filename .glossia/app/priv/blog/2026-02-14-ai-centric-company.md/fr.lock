@@ -1,15 +1,15 @@
 {
-  "hash": "84fe4ff7fcf2b65f06aa0de8d6125992b80468982721ccabed845301dc0f378f",
+  "hash": "dfbee72a02fd7e227975872efae7e788f62845fde9b7c9b8dc2d02d800283b4e",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "686d25bd8b27c174253ebed1505f46a3e66aabbc62589f07c4475eed14fe1958",
+          "hash": "b190121fad3d1320d7b64f6a37ecfc40851f022087cd2716fe48fbaf5ab3d9f2",
           "kind": "source",
           "label": "app/priv/blog/2026-02-14-ai-centric-company.md",
           "metadata": {
-            "content_hash": "a0d440a47d5e083e4d5fedc09abe78af4284e9f300268f44ac0756f2665a6bcd"
+            "content_hash": "88f695ead94dac0573378c269d143377e9f527764ad52737330c110ff10e2149"
           }
         },
         {
@@ -89,14 +89,14 @@
           "metadata": {}
         }
       ],
-      "hash": "84fe4ff7fcf2b65f06aa0de8d6125992b80468982721ccabed845301dc0f378f",
+      "hash": "dfbee72a02fd7e227975872efae7e788f62845fde9b7c9b8dc2d02d800283b4e",
       "kind": "translation_input",
       "label": "app/priv/blog/2026-02-14-ai-centric-company.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "ab5396ce6ef07e9076957e3ac7e43fd8e1b82580645af7b1638de35e23cf67ce",
+  "output_hash": "fad4950156e60b92a548d201cdbf08856f9ae5249551574f597fa2903f9c391e",
   "output_path": "app/priv/i18n/fr/blog/2026-02-14-ai-centric-company.md",
   "provider": "",
   "server_context": {
@@ -112,5 +112,5 @@
     }
   },
   "source_path": "app/priv/blog/2026-02-14-ai-centric-company.md",
-  "translated_at": "2026-09-12T09:25:21.085864Z"
+  "translated_at": "2026-09-20T12:24:59.023350Z"
 }
