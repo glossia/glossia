@@ -33,11 +33,6 @@ env:
 # so app pods can fall back onto it if the combined pool is under pressure;
 # the (currently commented-out) nodeSelector below would pin the managed
 # runner to it without forbidding the reverse.
-#
-# `GLOSSIA_RUNNERS_MODULE=GlossiaEnterprise.Runners.Managed` and
-# `GLOSSIA_TRANSLATION_LAUNCHER_MODULE=GlossiaEnterprise.TranslationSessions.Launcher`
-# are hardcoded by the enterprise chart's deployment template, so they are
-# no longer set here.
 managedRunner:
   # Rollout defaults stay conservative — `min: 0` so no runner is pre-warmed
   # until the first translation request lands. Bump to `min: 1` after

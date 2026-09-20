@@ -32,7 +32,7 @@ defmodule Glossia.TranslationSessions.Launcher do
     if Kubernetes.in_cluster?() do
       launch_job(session_id)
     else
-      # No cluster to schedule onto (dev, test). Behave like the OSS default:
+      # No cluster to schedule onto (dev, test). Behave like the in-cluster fallback:
       # run the translation inline in the calling process.
       TranslationSessions.Translate.run(session_id)
       :ok

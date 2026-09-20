@@ -54,7 +54,7 @@ We are very intentional about our stack because it directly affects how fast we 
 
 **For the server:** We chose [Elixir](https://elixir-lang.org) and the [Erlang](https://www.erlang.org) runtime. Elixir's functional nature makes it a great fit for agentic workloads. The Erlang VM is battle-tested for concurrency and fault tolerance. And here is a bonus: an AI agent can introspect the running Erlang system to understand what is happening, gather insights, and even fix issues in production.
 
-**For distribution:** Glossia is open source under the [O'Saasy License](https://github.com/glossia/glossia/blob/main/LICENSE.md). Teams that want to run it themselves can install the Helm chart in the repository on any Kubernetes cluster. The same code powers the hosted service at glossia.ai and any self-hosted deployment.
+**For distribution:** Glossia runs as a hosted service at [glossia.ai](https://glossia.ai). One code path, one deployment, one place to reason about — no split between an on-prem build and a hosted build, no per-tenant infrastructure to coordinate.
 
 > [!IMPORTANT]
 > We are deliberate about skipping technical complexity that engineers tend to reach for early when it isn't earned. Every dependency and every layer of infrastructure has to justify its weight.
@@ -63,7 +63,7 @@ We are very intentional about our stack because it directly affects how fast we 
 
 Running the company this way is not just an efficiency play. It changes what we can offer and how fast we can learn.
 
-**Accessible to more teams.** The localization industry has made its tools inaccessible through complex pricing, per-word fees, and enterprise sales cycles. If your translation workflow requires procurement, pricing negotiations, and a project manager, most small teams will just ship in English. By building an efficient organization and shipping the software open source so teams can self-host, we can make Glossia genuinely accessible.
+**Accessible to more teams.** The localization industry has made its tools inaccessible through complex pricing, per-word fees, and enterprise sales cycles. If your translation workflow requires procurement, pricing negotiations, and a project manager, most small teams will just ship in English. By building an efficient organization, we can price Glossia so that shipping in a second language is a decision anyone on the team can make, not a procurement project.
 
 **Faster innovation.** We want to explore a lot of ideas. New interfaces for the agent, better feedback loops, new ways to bring linguists into the workflow. A traditional company would need to staff up, align teams, and schedule roadmap reviews. We just try things. The distance between an idea and a deployed experiment is measured in hours, not quarters.
 

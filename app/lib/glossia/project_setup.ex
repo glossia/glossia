@@ -6,7 +6,7 @@ defmodule Glossia.ProjectSetup do
   `Glossia.Projects.Setup` into the seam glossia exposes. Everything the
   flow needs — the harness orchestrator, the sandbox schemas, and the
   Kata-scheduled `Glossia.Sandbox.KataAdapter` — is inside this
-  repository. `start/1` enqueues the same Oban worker the OSS build used
+  repository. `start/1` enqueues the same Oban worker the local dev/test path used
   to enqueue; `retry/1` calls `retry_now/1` for a rescheduled run.
   """
 

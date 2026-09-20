@@ -98,7 +98,7 @@ install means the cluster is broken, whatever the UI looks like.
 
 ## Translations
 
-The open-source build runs every translation in the web process that received
+The local dev/test path runs every translation in the web process that received
 the request. A session lives and dies with its host pod: a deploy, a crash, a
 node drain or an eviction ends the translation, and a member has to resubmit
 the session. That's the trade-off for a chart that doesn't need runner pods,

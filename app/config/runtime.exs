@@ -3,7 +3,7 @@ import Config
 truthy? = fn value -> value in ["true", "1"] end
 
 # Runtime roles the enterprise build distinguishes (FLAME runner children,
-# detached translation Job pods) collapse to `false` in the open-source build:
+# detached translation Job pods) collapse to `false` in the local dev/test path:
 # there is only one role, the parent process.
 runner_child? = false
 translation_job? = false

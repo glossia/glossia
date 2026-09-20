@@ -4511,11 +4511,6 @@ msgstr "Dokumentationsnavigation"
 msgid "Each translation uses one configured model. L10N.md can select a handle for a content scope; work without a handle uses the account default."
 msgstr "Jede Übersetzung verwendet ein konfiguriertes Modell. L10N.md kann ein Handle für einen Inhaltsbereich auswählen; Arbeit ohne Handle verwendet den Standardwert des Kontos."
 
-#: lib/glossia_web/components/layouts.ex:157
-#, elixir-autogen, elixir-format
-msgid "Explore Glossia's localization guides, product documentation, and open source language OS for teams publishing content across languages."
-msgstr "Entdecken Sie Glossia-Lokalisierungshilfen, Produktdokumentation und das Open-Source-Sprach-Betriebssystem für Teams, die Inhalte über Sprachen hinweg veröffentlichen."
-
 #: lib/glossia_web/live/dashboard_live.ex:8209
 #, elixir-autogen, elixir-format
 msgid "Front matter, segment %{index} of %{count}"
@@ -4555,11 +4550,6 @@ msgstr "Keine Dokumentation wurde für diese Suche gefunden."
 #, elixir-autogen, elixir-format
 msgid "O'Saasy License"
 msgstr "O'Saasy-Lizenz"
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:4
-#, elixir-autogen, elixir-format
-msgid "Open source language OS"
-msgstr "Open-Source-Sprach-OS"
 
 #: lib/glossia_web/components/layouts/docs.html.heex:86
 #, elixir-autogen, elixir-format
@@ -5035,3 +5025,13 @@ msgstr "Validierungscode"
 #, elixir-autogen, elixir-format
 msgid "Validation message"
 msgstr "Validierungsnachricht"
+
+#: lib/glossia_web/components/layouts.ex:157
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Explore Glossia's localization guides, product documentation, and language OS for teams publishing content across languages."
+msgstr "Entdecken Sie Glossia-Lokalisierungshilfen, Produktdokumentation und das Open-Source-Sprach-Betriebssystem für Teams, die Inhalte über Sprachen hinweg veröffentlichen."
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:4
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Language OS"
+msgstr "Sprache"

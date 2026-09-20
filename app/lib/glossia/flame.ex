@@ -3,7 +3,7 @@ defmodule Glossia.Flame do
   Enterprise-side FLAME wrapper.
 
   Ports the FLAME pool + Kubernetes runner-manifest builder that used to live
-  in `Glossia.Flame` on the open-source side. The OSS repo no longer knows
+  in `Glossia.Flame` on the earlier tree. The repository no longer knows
   what FLAME is; enterprise carries every reference here, and
   `Glossia.Runners` reaches these functions rather than
   calling `FLAME.*` inline. `runner_manifest/3` is what shapes the runner

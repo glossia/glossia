@@ -27,12 +27,7 @@ strategy:
     maxUnavailable: 0
 
 image:
-  # Enterprise wrapper image (this chart is the enterprise chart).
-  # `ghcr.io/glossia/enterprise` embeds glossia + the enterprise seams
-  # (`GlossiaEnterprise.Runners.Managed`, `GlossiaEnterprise.TranslationSessions.Launcher`,
-  # `GlossiaEnterprise.Application`). The community image
-  # `ghcr.io/glossia/glossia` is what the OSS chart deploys.
-  repository: ghcr.io/glossia/enterprise
+  repository: ghcr.io/glossia/glossia
   tag: main
   digest: ""
   pullPolicy: IfNotPresent
@@ -100,14 +95,14 @@ internalBabel:
     namespace: babel
     serviceAccount: babel
 
-# GlossiaEnterprise managed FLAME runner pool.
+# Managed FLAME runner pool.
 #
 # The pool schedules short-lived runner pods for translation fan-out. The
 # chart mints a ServiceAccount and a Role granting pod + `batch/jobs`
 # permissions so the parent pod can create both runner pods (FLAME) and
-# detached translation Jobs (the enterprise launcher).
+# detached translation Jobs (`Glossia.TranslationSessions.Launcher`).
 #
-# Every setting has a matching `GLOSSIA_ENTERPRISE_MANAGED_*` env var so the
+# Every setting has a matching `GLOSSIA_MANAGED_*` env var so the
 # operator can tune at runtime without rebuilding the image. Placement
 # (nodeSelector, tolerations, affinity, runtimeClassName) is shared with the
 # detached translation Job below — the two workloads land on the same nodes.

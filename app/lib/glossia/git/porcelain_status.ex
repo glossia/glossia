@@ -5,7 +5,7 @@ defmodule Glossia.Git.PorcelainStatus do
 
   Used by `Glossia.Translations.RepositoryRun` (and any downstream build that
   wants the same classification logic — the setup harness has moved out of the
-  open-source tree).
+  repository).
 
   A rename (`R  old -> new`) expands into two entries — the old path deleted and
   the new path added — so callers building a tree don't leave the original file

@@ -629,7 +629,7 @@ defmodule Glossia.TranslationSessions do
     with {:ok, _count} <- cancel_queued_jobs(session.id) do
       # Cancelling the Oban job only stops a launch that has not happened yet.
       # A translation already under way is signalled through Launcher.cancel/1,
-      # which the OSS build treats as a no-op — a downstream launcher plugs in
+      # which the local dev/test path treats as a no-op — a downstream launcher plugs in
       # a real cancellation path (a Kubernetes Job deletion, a queue tombstone,
       # whatever the swap points to).
       Glossia.TranslationSessions.Launcher.cancel(session.id)

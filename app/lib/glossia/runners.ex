@@ -3,7 +3,7 @@ defmodule Glossia.Runners do
   Managed runner pool with operator-controlled scaling.
 
   Implements `Glossia.Runners` on top of FLAME's Kubernetes backend. Distinct
-  from the OSS default (`Glossia.Runners.Default`, an in-process
+  from the in-cluster fallback (`Glossia.Runners.Default`, an in-process
   DynamicSupervisor) in three ways:
 
   1. Pre-warmed capacity — `min` defaults above zero so a translation never

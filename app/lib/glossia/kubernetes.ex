@@ -2,7 +2,7 @@ defmodule Glossia.Kubernetes do
   @moduledoc """
   Minimal in-cluster Kubernetes API client.
 
-  Ported from `Glossia.Kubernetes` on the open-source side. Only what
+  Ported from `Glossia.Kubernetes` on the earlier tree. Only what
   `Glossia.TranslationSessions.Launcher` needs to schedule a
   detached translation Job: read the pod we are running in, and create,
   read, and delete Jobs. Credentials are the projected service account

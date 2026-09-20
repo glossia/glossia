@@ -2,7 +2,7 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
   @moduledoc """
   Oban worker that starts a translation session.
 
-  In the open-source build the translation runs synchronously in this worker
+  In the local dev/test path the translation runs synchronously in this worker
   process — `Launcher.launch/1` is a straight call into
   `TranslationSessions.Translate.run/1`. `max_attempts: 1` still applies:
   a translation that already started is not something this worker should

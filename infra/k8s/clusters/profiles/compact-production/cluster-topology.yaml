@@ -22,7 +22,7 @@
     # join the cluster (MachineHealthCheck cycles them every ~10 min).
     # Investigate the join failure before re-adding this block. In the
     # meantime the enterprise runner falls back to the `md-combined` pool
-    # because `GLOSSIA_ENTERPRISE_MANAGED_NODE_SELECTOR_JSON` is left
+    # because `GLOSSIA_MANAGED_NODE_SELECTOR_JSON` is left
     # unset in values-production.yaml.
     # - class: hcloud-worker
     #   name: md-managed-runner

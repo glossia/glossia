@@ -2,7 +2,7 @@ defmodule Glossia.Translations.RepositoryRun do
   @moduledoc """
   Runs a repository translation natively in Elixir.
 
-  The open-source build runs every translation in the calling process. `run/5`
+  The local dev/test path runs every translation in the calling process. `run/5`
   clones the repo, plans the work with `Glossia.Translations.Planner`,
   translates each stale item with `Glossia.Translations.Engine` (streaming
   every LLM turn to the translation session's PubSub topic and validating

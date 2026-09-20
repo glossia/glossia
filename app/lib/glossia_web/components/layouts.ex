@@ -67,7 +67,7 @@ defmodule GlossiaWeb.Layouts do
   def social_description(assigns) do
     description =
       assigns[:page_description] ||
-        "Open source language OS for multi-lingual and mono-lingual content."
+        "Language OS for multi-lingual and mono-lingual content."
 
     description
     |> String.trim()
@@ -154,7 +154,7 @@ defmodule GlossiaWeb.Layouts do
     if String.length(description) >= 100 do
       description
     else
-      "#{description} #{gettext("Explore Glossia's localization guides, product documentation, and open source language OS for teams publishing content across languages.")}"
+      "#{description} #{gettext("Explore Glossia's localization guides, product documentation, and language OS for teams publishing content across languages.")}"
     end
   end
 

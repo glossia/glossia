@@ -62,51 +62,44 @@ spec:
             */}}
             - name: ERL_AFLAGS
               value: "-kernel inet_dist_listen_min {{ .Values.clustering.distributionPortMin }} inet_dist_listen_max {{ .Values.clustering.distributionPortMax }}"
-            # Point glossia at the enterprise seam impls. These override the
-            # OSS defaults (`Glossia.Runners.Default`, `Glossia.TranslationSessions.Launcher.Default`)
-            # at boot.
-            - name: GLOSSIA_RUNNERS_MODULE
-              value: "GlossiaEnterprise.Runners.Managed"
-            - name: GLOSSIA_TRANSLATION_LAUNCHER_MODULE
-              value: "GlossiaEnterprise.TranslationSessions.Launcher"
             # Managed FLAME runner pool.
-            - name: GLOSSIA_ENTERPRISE_MANAGED_MIN
+            - name: GLOSSIA_MANAGED_MIN
               value: {{ .Values.managedRunner.min | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_MAX
+            - name: GLOSSIA_MANAGED_MAX
               value: {{ .Values.managedRunner.max | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_MAX_CONCURRENCY
+            - name: GLOSSIA_MANAGED_MAX_CONCURRENCY
               value: {{ .Values.managedRunner.maxConcurrency | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_IDLE_SHUTDOWN_MS
+            - name: GLOSSIA_MANAGED_IDLE_SHUTDOWN_MS
               value: {{ .Values.managedRunner.idleShutdownAfterMs | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_TIMEOUT_MS
+            - name: GLOSSIA_MANAGED_TIMEOUT_MS
               value: {{ .Values.managedRunner.timeoutMs | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_BOOT_TIMEOUT_MS
+            - name: GLOSSIA_MANAGED_BOOT_TIMEOUT_MS
               value: {{ .Values.managedRunner.bootTimeoutMs | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_LOG
+            - name: GLOSSIA_MANAGED_LOG
               value: {{ .Values.managedRunner.log | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_APP_CONTAINER_NAME
+            - name: GLOSSIA_MANAGED_APP_CONTAINER_NAME
               value: {{ .Values.managedRunner.k8s.appContainerName | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_RUNTIME_CLASS_NAME
+            - name: GLOSSIA_MANAGED_RUNTIME_CLASS_NAME
               value: {{ .Values.managedRunner.k8s.runtimeClassName | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_RESOURCES_JSON
+            - name: GLOSSIA_MANAGED_RESOURCES_JSON
               value: {{ .Values.managedRunner.k8s.resources | toJson | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_NODE_SELECTOR_JSON
+            - name: GLOSSIA_MANAGED_NODE_SELECTOR_JSON
               value: {{ .Values.managedRunner.k8s.nodeSelector | toJson | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_TOLERATIONS_JSON
+            - name: GLOSSIA_MANAGED_TOLERATIONS_JSON
               value: {{ .Values.managedRunner.k8s.tolerations | toJson | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_AFFINITY_JSON
+            - name: GLOSSIA_MANAGED_AFFINITY_JSON
               value: {{ .Values.managedRunner.k8s.affinity | toJson | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_ENV_JSON
+            - name: GLOSSIA_MANAGED_ENV_JSON
               value: {{ .Values.managedRunner.k8s.env | toJson | quote }}
-            - name: GLOSSIA_ENTERPRISE_MANAGED_K8S_LOG
+            - name: GLOSSIA_MANAGED_K8S_LOG
               value: {{ .Values.managedRunner.k8s.log | quote }}
             # Detached translation Job settings. `resources` empty inherits
             # the managed runner block above, matching the values default.
-            - name: GLOSSIA_ENTERPRISE_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED
+            - name: GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED
               value: {{ .Values.translationJob.ttlSecondsAfterFinished | quote }}
-            - name: GLOSSIA_ENTERPRISE_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS
+            - name: GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS
               value: {{ .Values.translationJob.activeDeadlineSeconds | quote }}
-            - name: GLOSSIA_ENTERPRISE_TRANSLATION_JOB_RESOURCES_JSON
+            - name: GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON
               value: {{ (.Values.translationJob.resources | default .Values.managedRunner.k8s.resources) | toJson | quote }}
             {{- if .Values.internalBabel.enabled }}
             - name: GLOSSIA_BABEL_DATABASE_READONLY_ROLE
@@ -133,7 +126,7 @@ spec:
               override does not produce a duplicated env-var (Kubernetes takes
               the last one, which makes drift silent).
             */}}
-            {{- range $key, $value := omit .Values.env "ERL_AFLAGS" "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_RUNNERS_MODULE" "GLOSSIA_TRANSLATION_LAUNCHER_MODULE" "GLOSSIA_ENTERPRISE_MANAGED_MIN" "GLOSSIA_ENTERPRISE_MANAGED_MAX" "GLOSSIA_ENTERPRISE_MANAGED_MAX_CONCURRENCY" "GLOSSIA_ENTERPRISE_MANAGED_IDLE_SHUTDOWN_MS" "GLOSSIA_ENTERPRISE_MANAGED_TIMEOUT_MS" "GLOSSIA_ENTERPRISE_MANAGED_BOOT_TIMEOUT_MS" "GLOSSIA_ENTERPRISE_MANAGED_LOG" "GLOSSIA_ENTERPRISE_MANAGED_APP_CONTAINER_NAME" "GLOSSIA_ENTERPRISE_MANAGED_RUNTIME_CLASS_NAME" "GLOSSIA_ENTERPRISE_MANAGED_RESOURCES_JSON" "GLOSSIA_ENTERPRISE_MANAGED_NODE_SELECTOR_JSON" "GLOSSIA_ENTERPRISE_MANAGED_TOLERATIONS_JSON" "GLOSSIA_ENTERPRISE_MANAGED_AFFINITY_JSON" "GLOSSIA_ENTERPRISE_MANAGED_ENV_JSON" "GLOSSIA_ENTERPRISE_MANAGED_K8S_LOG" "GLOSSIA_ENTERPRISE_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED" "GLOSSIA_ENTERPRISE_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS" "GLOSSIA_ENTERPRISE_TRANSLATION_JOB_RESOURCES_JSON" }}
+            {{- range $key, $value := omit .Values.env "ERL_AFLAGS" "POD_NAME" "POD_NAMESPACE" "POD_IP" "RELEASE_DISTRIBUTION" "RELEASE_NODE" "GLOSSIA_MANAGED_MIN" "GLOSSIA_MANAGED_MAX" "GLOSSIA_MANAGED_MAX_CONCURRENCY" "GLOSSIA_MANAGED_IDLE_SHUTDOWN_MS" "GLOSSIA_MANAGED_TIMEOUT_MS" "GLOSSIA_MANAGED_BOOT_TIMEOUT_MS" "GLOSSIA_MANAGED_LOG" "GLOSSIA_MANAGED_APP_CONTAINER_NAME" "GLOSSIA_MANAGED_RUNTIME_CLASS_NAME" "GLOSSIA_MANAGED_RESOURCES_JSON" "GLOSSIA_MANAGED_NODE_SELECTOR_JSON" "GLOSSIA_MANAGED_TOLERATIONS_JSON" "GLOSSIA_MANAGED_AFFINITY_JSON" "GLOSSIA_MANAGED_ENV_JSON" "GLOSSIA_MANAGED_K8S_LOG" "GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED" "GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS" "GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON" }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
