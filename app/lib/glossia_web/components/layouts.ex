@@ -378,7 +378,9 @@ defmodule GlossiaWeb.Layouts do
   end
 
   defp account_avatar_color(_account), do: "blue"
+  defp account_badge_label(%{visibility: "public"}), do: gettext("Public")
   defp account_badge_label(_account), do: gettext("Organization")
+  defp account_badge_color(%{visibility: "public"}), do: "success"
   defp account_badge_color(_account), do: "information"
   defp account_management_label(_account), do: gettext("Organization")
 

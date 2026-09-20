@@ -96,6 +96,13 @@ defmodule GlossiaWeb.Router do
     plug GlossiaWeb.Plugs.OpsAuth
   end
 
+  # Applied to public-account browsing so a crawler cannot exhaust our
+  # translation gateway credits by walking a public project. Keyed by
+  # client IP with a generous per-minute ceiling.
+  pipeline :browse_rate_limit do
+    plug GlossiaWeb.Plugs.BrowseRateLimit
+  end
+
   get "/up", GlossiaWeb.HealthController, :index
 
   forward "/api/internal/babel", GlossiaWeb.Plugs.RejectInternalBabelPublicRoute
@@ -486,7 +493,7 @@ defmodule GlossiaWeb.Router do
 
   # Public platform routes (access controlled by on_mount hooks)
   scope "/", GlossiaWeb do
-    pipe_through [:browser, :platform]
+    pipe_through [:browser, :platform, :browse_rate_limit]
 
     get "/:handle/-/discussions", RedirectController, :account
     get "/:handle/-/discussions/new", RedirectController, :account
