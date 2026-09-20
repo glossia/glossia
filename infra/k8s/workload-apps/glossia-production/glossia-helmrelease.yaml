@@ -28,16 +28,8 @@ spec:
         namespace: flux-system
       valuesFiles:
         - deploy/helm/glossia/values.yaml
-  valuesFrom:
-    # Production overrides (moved out of the public glossia repo into
-    # infra/values/*.yaml and materialized here as ConfigMaps by the
-    # glossia-production Kustomization).
-    - kind: ConfigMap
-      name: glossia-values-production
-      valuesKey: values.yaml
-    - kind: ConfigMap
-      name: glossia-values-object-storage-hetzner
-      valuesKey: values.yaml
+        - deploy/helm/glossia/values-production.yaml
+        - deploy/helm/glossia/values-object-storage-hetzner.yaml
   install:
     createNamespace: true
     crds: Create

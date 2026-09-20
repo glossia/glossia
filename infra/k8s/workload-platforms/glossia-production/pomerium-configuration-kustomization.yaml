@@ -25,7 +25,7 @@ spec:
   retryInterval: 2m0s
   sourceRef:
     kind: GitRepository
-    name: infra
+    name: flux-system
     namespace: flux-system
   timeout: 20m0s
   kubeConfig:

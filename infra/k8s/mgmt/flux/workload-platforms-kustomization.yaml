@@ -30,6 +30,6 @@ spec:
   serviceAccountName: workload-platform-reconciler
   sourceRef:
     kind: GitRepository
-    name: infra
+    name: flux-system
   timeout: 45m0s
   wait: true

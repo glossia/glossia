@@ -119,8 +119,8 @@ jobs:
             --values babel/chart/values-production.yaml
 
           validate_chart glossia deploy/helm/glossia glossia \
-            --values infra/k8s/workload-apps/glossia-production/values-production.yaml \
-            --values infra/k8s/workload-apps/glossia-production/values-object-storage-hetzner.yaml
+            --values deploy/helm/glossia/values-production.yaml \
+            --values deploy/helm/glossia/values-object-storage-hetzner.yaml
 
           mise exec -- helm lint infra/helm/platform \
             --values infra/helm/platform/values-hetzner.yaml \
@@ -293,7 +293,6 @@ jobs:
 
           mise exec -- kubectl apply \
             -f infra/k8s/mgmt/flux/flux-system/gotk-sync.yaml \
-            -f infra/k8s/mgmt/flux/infra-source.yaml \
             -f infra/k8s/mgmt/flux/workload-cluster-rbac.yaml \
             -f infra/k8s/mgmt/flux/workload-clusters.yaml
 

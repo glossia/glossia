@@ -9,7 +9,7 @@ spec:
   timeout: 45m
   sourceRef:
     kind: GitRepository
-    name: infra
+    name: flux-system
   path: ./infra/k8s/clusters/profiles/compact-production
   prune: false
   deletionPolicy: Orphan

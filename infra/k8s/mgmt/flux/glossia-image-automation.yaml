@@ -36,7 +36,7 @@ spec:
   interval: 1m0s
   sourceRef:
     kind: GitRepository
-    name: infra
+    name: flux-system
   git:
     checkout:
       ref:

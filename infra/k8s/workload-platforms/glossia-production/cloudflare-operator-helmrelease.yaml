@@ -19,7 +19,7 @@ spec:
       reconcileStrategy: Revision
       sourceRef:
         kind: GitRepository
-        name: infra
+        name: flux-system
         namespace: flux-system
       valuesFiles:
         - infra/helm/cloudflare-operator/values.yaml

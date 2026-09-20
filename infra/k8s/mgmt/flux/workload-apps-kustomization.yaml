@@ -13,4 +13,4 @@ spec:
   serviceAccountName: workload-app-reconciler
   sourceRef:
     kind: GitRepository
-    name: infra
+    name: flux-system
