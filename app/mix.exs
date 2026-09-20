@@ -118,8 +118,8 @@ defmodule Glossia.MixProject do
       {:fun_with_flags_ui, "~> 1.1", app: false},
       {:ua_inspector, "~> 3.0"},
       {:cachex, "~> 4.1"},
-      # FLAME-managed runner pool and k8s backend for `GlossiaEnterprise.Runners.Managed`
-      # and `GlossiaEnterprise.TranslationSessions.Launcher`.
+      # FLAME-managed runner pool and k8s backend for `Glossia.Runners`
+      # and `Glossia.TranslationSessions.Launcher`.
       {:flame, "~> 0.5.3"},
       {:flame_k8s_backend, "~> 0.6.0"},
       # Rustler is required whenever `RUSTLER_PRECOMPILED_FORCE_BUILD_ALL=true`

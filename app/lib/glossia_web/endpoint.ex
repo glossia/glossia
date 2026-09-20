@@ -34,7 +34,7 @@ defmodule GlossiaWeb.Endpoint do
 
   plug Plug.Static,
     at: "/extension-assets",
-    from: :glossia_enterprise,
+    from: :glossia,
     gzip: not code_reloading?,
     only: ~w(js),
     raise_on_missing_only: code_reloading?

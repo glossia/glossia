@@ -5,6 +5,8 @@ defmodule Glossia.Application do
 
   use Application
 
+  alias Glossia.Ingestion
+
   require Logger
 
   @compile {:no_warn_undefined, [LLMDB]}
@@ -19,39 +21,38 @@ defmodule Glossia.Application do
 
     children = children()
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Glossia.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
-  # `Glossia.Application` starts the same `parent_children/0` tree in every
-  # environment. A downstream build that boots the same release into other
-  # roles (a detached translation-job pod, a runner child) provides a
-  # `children/0` override through:
+  # The release image boots into one of three roles, decided at start-up:
   #
-  #     config :glossia, :application, children: {MyApp.Boot, :children, []}
-  #
-  # The MFA returns the child list this process should start. The default
-  # points back at `parent_children/0`.
+  # * a FLAME runner child pod - nothing to start locally, FLAME owns
+  #   the child's supervision.
+  # * a detached translation-job pod - everything a translation touches
+  #   (DB, PubSub, ingestion buffers, GitHub tokens) but no HTTP endpoint,
+  #   no Oban queues, no runner pool.
+  # * everything else - the parent process running the full web tree plus
+  #   the managed runner pool.
   defp children do
-    case Application.get_env(:glossia, :application, [])[:children] do
-      {module, function, args} -> apply(module, function, args)
-      nil -> parent_children()
+    cond do
+      Glossia.Flame.child?() ->
+        Logger.info("Starting Glossia in the runner-child role")
+        []
+
+      Glossia.TranslationSessions.Job.current?() ->
+        Logger.info("Starting Glossia in the translation-job role")
+        translation_job_children()
+
+      true ->
+        Logger.info("Starting Glossia in the parent role")
+        parent_children()
     end
   end
 
-  # Stated rather than inherited from Finch's default, because the translation
-  # fan-out is derived from it: see `RepositoryRun.translation_concurrency/2`.
   defp http_pool_size, do: Application.get_env(:glossia, :http_pool_size, 50)
 
-  @doc """
-  The default supervision tree for the open-source parent process.
-
-  Public so a downstream `:application` `children:` override can start these
-  and add its own on top, keeping one description of the tree here.
-  """
-  def parent_children do
+  defp parent_children do
     children =
       [
         Glossia.Vault,
@@ -80,55 +81,103 @@ defmodule Glossia.Application do
             {Hermes.Server.Supervisor, :start_link,
              [Glossia.Admin.MCP.Server, [transport: :streamable_http]]}
         },
-        {Glossia.Ingestion.Buffer,
-         [name: Glossia.Ingestion.EventBuffer] ++
-           (Glossia.Ingestion.Event.buffer_opts()
+        {Ingestion.Buffer,
+         [name: Ingestion.EventBuffer] ++
+           (Ingestion.Event.buffer_opts()
             |> Map.take([:insert_sql, :insert_opts, :header])
             |> Map.to_list())},
         Supervisor.child_spec(
-          {Glossia.Ingestion.Buffer,
-           [name: Glossia.Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
-             (Glossia.Ingestion.TranslationSessionEvent.buffer_opts()
+          {Ingestion.Buffer,
+           [name: Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
+             (Ingestion.TranslationSessionEvent.buffer_opts()
               |> Map.take([:insert_sql, :insert_opts, :header])
               |> Map.to_list())},
-          id: Glossia.Ingestion.TranslationSessionEventBuffer
+          id: Ingestion.TranslationSessionEventBuffer
         ),
         Supervisor.child_spec(
-          {Glossia.Ingestion.Buffer,
+          {Ingestion.Buffer,
            [name: Glossia.Analytics.EventBuffer, flush_interval_ms: 1_000] ++
              (Glossia.Analytics.Event.buffer_opts()
               |> Map.take([:insert_sql, :insert_opts, :header])
               |> Map.to_list())},
           id: Glossia.Analytics.EventBuffer
         ),
+        Supervisor.child_spec(
+          {Ingestion.Buffer,
+           [name: Ingestion.SetupEventBuffer, flush_interval_ms: 1_000] ++
+             (Glossia.Ingestion.SetupEvent.buffer_opts()
+              |> Map.take([:insert_sql, :insert_opts, :header])
+              |> Map.to_list())},
+          id: Ingestion.SetupEventBuffer
+        ),
         Glossia.Analytics.SettingsCache,
         Glossia.OgImage.Cache,
         {Task.Supervisor, name: Glossia.OgImage.Tasks},
         Glossia.Analytics.Geolocation.Ipapi.Cache,
         Glossia.Github.InstallationTokens,
-        Glossia.Pomerium.JWKSCache
+        Glossia.Pomerium.JWKSCache,
+        Glossia.Sandbox.ProcessRegistry,
+        Glossia.Sandbox.Reaper,
+        Glossia.Projects.SetupRecovery
       ] ++
         [
           Glossia.Runners.pool_child_spec(),
-          # Start to serve requests, typically the last entry
           GlossiaWeb.Endpoint
         ] ++ internal_babel_endpoint_children()
 
-    children =
-      if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
-        List.insert_at(
-          children,
-          -2,
-          Browse.child_spec(Glossia.OgImage.BrowserPool,
-            implementation: BrowseChrome.Browser,
-            pool_size: 2
-          )
+    if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
+      List.insert_at(
+        children,
+        -2,
+        Browse.child_spec(Glossia.OgImage.BrowserPool,
+          implementation: BrowseChrome.Browser,
+          pool_size: 2
         )
-      else
-        children
-      end
+      )
+    else
+      children
+    end
+  end
 
-    children
+  # A detached translation Job pod runs the release image with
+  # `GLOSSIA_TRANSLATION_JOB=1`. It needs everything the translation itself
+  # touches - DB pools, PubSub, ingestion buffers, GitHub tokens - and nothing
+  # else. No HTTP endpoint, no Oban queues, and no runner pool: it is already
+  # the isolated compute.
+  defp translation_job_children do
+    oban_config =
+      :glossia
+      |> Application.fetch_env!(Oban)
+      |> Keyword.merge(queues: false, plugins: false)
+
+    [
+      Glossia.Vault,
+      {Finch, name: Glossia.Finch, pools: %{default: [size: http_pool_size()]}},
+      Glossia.Repo,
+      Glossia.ClickHouseRepo,
+      Glossia.IngestRepo,
+      {Oban, oban_config},
+      {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
+      {Phoenix.PubSub, name: Glossia.PubSub},
+      FunWithFlags.Supervisor,
+      Glossia.RateLimiter,
+      {Ingestion.Buffer,
+       [name: Ingestion.EventBuffer] ++
+         (Ingestion.Event.buffer_opts()
+          |> Map.take([:insert_sql, :insert_opts, :header])
+          |> Map.to_list())},
+      Supervisor.child_spec(
+        {Ingestion.Buffer,
+         [name: Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
+           (Ingestion.TranslationSessionEvent.buffer_opts()
+            |> Map.take([:insert_sql, :insert_opts, :header])
+            |> Map.to_list())},
+        id: Ingestion.TranslationSessionEventBuffer
+      ),
+      Glossia.Github.InstallationTokens,
+      # Last, so the translation only starts once everything it depends on is up.
+      Glossia.TranslationSessions.Job
+    ]
   end
 
   defp internal_babel_endpoint_children do

@@ -40,95 +40,37 @@ float_env = fn name, default ->
   end
 end
 
-# A downstream wrapper (for example, glossia_enterprise) can pin the runner
-# impl at compile time in its own config.exs. In that case an unset env var
-# should leave the compile-time value in place rather than silently reverting
-# to the OSS default at boot.
-runners_module =
-  case System.get_env("GLOSSIA_RUNNERS_MODULE") do
-    empty when empty in [nil, ""] ->
-      :glossia
-      |> Application.get_env(:runners, [])
-      |> Keyword.get(:module, Glossia.Runners.Default)
-
-    "Elixir." <> _rest = name ->
-      String.to_atom(name)
-
-    name ->
-      String.to_atom("Elixir." <> name)
-  end
-
-config :glossia, :runners, module: runners_module
-
-# Same swap shape as `:runners`: a downstream wrapper points this at its own
-# translation launcher (Kubernetes Job, external queue, whatever) so glossia's
-# `TranslationSessions.Launcher.launch/1` reaches the right implementation.
-translation_launcher_module =
-  case System.get_env("GLOSSIA_TRANSLATION_LAUNCHER_MODULE") do
-    empty when empty in [nil, ""] ->
-      :glossia
-      |> Application.get_env(:translation_launcher, [])
-      |> Keyword.get(:module, Glossia.TranslationSessions.Launcher.Default)
-
-    "Elixir." <> _rest = name ->
-      String.to_atom(name)
-
-    name ->
-      String.to_atom("Elixir." <> name)
-  end
-
-config :glossia, :translation_launcher, module: translation_launcher_module
-
-# Same swap shape: automated project setup (a downstream build's Kata-backed
-# adapter) is picked up here; the open-source default marks new projects as
-# ready without any agent-in-a-sandbox work.
-project_setup_module =
-  case System.get_env("GLOSSIA_PROJECT_SETUP_MODULE") do
-    empty when empty in [nil, ""] ->
-      :glossia
-      |> Application.get_env(:project_setup, [])
-      |> Keyword.get(:module, Glossia.ProjectSetup.Default)
-
-    "Elixir." <> _rest = name ->
-      String.to_atom(name)
-
-    name ->
-      String.to_atom("Elixir." <> name)
-  end
-
-config :glossia, :project_setup, module: project_setup_module
-
 # Detached translation Job settings. Each translation session runs in its
-# own Job pod scheduled by `GlossiaEnterprise.TranslationSessions.Launcher`.
-config :glossia_enterprise, :translation_job,
+# own Job pod scheduled by `Glossia.TranslationSessions.Launcher`.
+config :glossia, :translation_job,
   ttl_seconds_after_finished:
-    integer_env.("GLOSSIA_ENTERPRISE_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED", 3_600),
+    integer_env.("GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED", 3_600),
   active_deadline_seconds:
-    integer_env.("GLOSSIA_ENTERPRISE_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS", 86_400),
-  resources: json_env.("GLOSSIA_ENTERPRISE_TRANSLATION_JOB_RESOURCES_JSON", %{})
+    integer_env.("GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS", 86_400),
+  resources: json_env.("GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON", %{})
 
 # Managed runner pool. Every setting has an env-var override so the operator
 # can tune it without rebuilding the image.
-config :glossia_enterprise, :managed_runner,
-  min: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_MIN", 2),
-  max: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_MAX", 20),
-  max_concurrency: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_MAX_CONCURRENCY", 2),
-  idle_shutdown_after: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_IDLE_SHUTDOWN_MS", 300_000),
-  timeout: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_TIMEOUT_MS", 3_600_000),
-  boot_timeout: integer_env.("GLOSSIA_ENTERPRISE_MANAGED_BOOT_TIMEOUT_MS", 180_000),
-  log: truthy?.(System.get_env("GLOSSIA_ENTERPRISE_MANAGED_LOG")),
+config :glossia, :managed_runner,
+  min: integer_env.("GLOSSIA_MANAGED_MIN", 2),
+  max: integer_env.("GLOSSIA_MANAGED_MAX", 20),
+  max_concurrency: integer_env.("GLOSSIA_MANAGED_MAX_CONCURRENCY", 2),
+  idle_shutdown_after: integer_env.("GLOSSIA_MANAGED_IDLE_SHUTDOWN_MS", 300_000),
+  timeout: integer_env.("GLOSSIA_MANAGED_TIMEOUT_MS", 3_600_000),
+  boot_timeout: integer_env.("GLOSSIA_MANAGED_BOOT_TIMEOUT_MS", 180_000),
+  log: truthy?.(System.get_env("GLOSSIA_MANAGED_LOG")),
   k8s: [
-    app_container_name: System.get_env("GLOSSIA_ENTERPRISE_MANAGED_APP_CONTAINER_NAME") || "web",
-    runtime_class_name: System.get_env("GLOSSIA_ENTERPRISE_MANAGED_RUNTIME_CLASS_NAME"),
-    resources: json_env.("GLOSSIA_ENTERPRISE_MANAGED_RESOURCES_JSON", %{}),
+    app_container_name: System.get_env("GLOSSIA_MANAGED_APP_CONTAINER_NAME") || "web",
+    runtime_class_name: System.get_env("GLOSSIA_MANAGED_RUNTIME_CLASS_NAME"),
+    resources: json_env.("GLOSSIA_MANAGED_RESOURCES_JSON", %{}),
     node_selector:
-      json_env.("GLOSSIA_ENTERPRISE_MANAGED_NODE_SELECTOR_JSON", %{
+      json_env.("GLOSSIA_MANAGED_NODE_SELECTOR_JSON", %{
         "glossia.io/managed-runner" => "true"
       }),
-    tolerations: json_env.("GLOSSIA_ENTERPRISE_MANAGED_TOLERATIONS_JSON", []),
-    affinity: json_env.("GLOSSIA_ENTERPRISE_MANAGED_AFFINITY_JSON", %{}),
-    env: json_env.("GLOSSIA_ENTERPRISE_MANAGED_ENV_JSON", %{}),
-    log: truthy?.(System.get_env("GLOSSIA_ENTERPRISE_MANAGED_K8S_LOG"))
+    tolerations: json_env.("GLOSSIA_MANAGED_TOLERATIONS_JSON", []),
+    affinity: json_env.("GLOSSIA_MANAGED_AFFINITY_JSON", %{}),
+    env: json_env.("GLOSSIA_MANAGED_ENV_JSON", %{}),
+    log: truthy?.(System.get_env("GLOSSIA_MANAGED_K8S_LOG"))
   ]
 
 # How many HTTP connections the node holds open per host. Translation is the

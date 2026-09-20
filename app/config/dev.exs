@@ -148,8 +148,3 @@ config :glossia, Glossia.Translations,
   allow_local_session: true,
   local_remotes_dir: Path.expand("tmp/dev-remotes")
 
-# Dev machines have no k8s runner pool, so default to the in-process runner
-# impl. Set `GLOSSIA_RUNNERS_MODULE=GlossiaEnterprise.Runners.Managed` in an
-# environment that DOES have k8s to exercise the managed impl live.
-config :glossia, :runners, module: Glossia.Runners.Default
-config :glossia, :application, children: nil
