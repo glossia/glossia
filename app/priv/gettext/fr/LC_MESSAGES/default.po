@@ -5022,16 +5022,16 @@ msgid "Validation message"
 msgstr "Message de validation"
 
 #: lib/glossia_web/components/layouts.ex:157
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Explore Glossia's localization guides, product documentation, and language OS for teams publishing content across languages."
-msgstr "Explorez les guides de localisation de Glossia, sa documentation produit et son système d'exploitation linguistique open source pour les équipes qui publient du contenu dans plusieurs langues."
+msgstr "Explorez les guides de localisation de Glossia, la documentation produit et le Système d'exploitation linguistique pour les équipes publiant du contenu dans différentes langues."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Language OS"
-msgstr "Langue"
+msgstr "Système d'exploitation linguistique"
 
 #: lib/glossia_web/controllers/page_controller.ex:30
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia est un système d'exploitation linguistique open source où les linguistes et les équipes définissent comment votre organisation communique à travers toutes les langues et surfaces."
+msgstr "Glossia est un Système d'exploitation linguistique où les linguistes et les équipes définissent comment votre organisation communique dans chaque langue et sur chaque surface."
