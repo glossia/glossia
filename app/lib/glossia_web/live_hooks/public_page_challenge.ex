@@ -10,11 +10,26 @@ defmodule GlossiaWeb.LiveHooks.PublicPageChallenge do
   visitor who solved the challenge on a sibling page in the same
   browser continues without re-solving.
 
+  Only the initial connected mount is gated. Intra-session navigation
+  (`push_patch`) reuses the session captured at mount time, and LiveView
+  will not hand us a fresh session mid-connection; re-running the
+  freshness check on `handle_params` from a captured stale session was
+  what the earlier design tried and it produced a real bug: if a sibling
+  tab re-solved the challenge, the captured session in tab A would still
+  read old, and the redirect target's own conn saw the fresh session and
+  bounced the user back to `/` instead of the page they were trying to
+  navigate to. Freshness is bounded at one hour by default, so the
+  worst-case bypass is one session of one crawler for the freshness
+  window — accepted because every cost-bearing dashboard action is
+  guarded by write authorization anonymous visitors never satisfy.
+
   Wire this hook FIRST in the on_mount list of every live_session that
   serves anonymous readers of a public account or project, so no
-  downstream hook (account load, write-check) does expensive work
-  before the visitor has proven human.
+  downstream hook does expensive work before the visitor has proven
+  human.
   """
+  use GlossiaWeb, :verified_routes
+
   alias Phoenix.LiveView
   alias Glossia.Cloudflare.Turnstile.PublicPage
   alias GlossiaWeb.Plugs.PublicPageChallengePlug
@@ -24,61 +39,28 @@ defmodule GlossiaWeb.LiveHooks.PublicPageChallenge do
       not PublicPage.required?() ->
         {:cont, socket}
 
-      signed_in?(session) ->
+      PublicPageChallengePlug.signed_in?(session) ->
         {:cont, socket}
 
       PublicPageChallengePlug.verified_within_freshness?(session) ->
-        # Fresh at mount time is not fresh forever: patch navigation
-        # (`push_patch`) does not remount the LiveView, so the wall
-        # clock can drift past the freshness window inside the same
-        # LiveSocket. `handle_params` fires on every intra-session
-        # navigation, so re-running the freshness check there catches
-        # the stale case a scraper would otherwise ride out. The
-        # session map is closed over so the hook re-reads the same
-        # stored timestamp — LiveView will not hand us a fresh session
-        # mid-connection.
-        {:cont, maybe_attach_expiry_hook(socket, session)}
+        {:cont, socket}
 
       true ->
         {:halt, redirect_to_challenge(socket, nil)}
     end
   end
 
-  defp check_expiry(session, uri, socket) do
-    if PublicPageChallengePlug.verified_within_freshness?(session) do
-      {:cont, socket}
-    else
-      {:halt, redirect_to_challenge(socket, uri)}
-    end
-  end
-
-  # `attach_hook/4` requires the LiveView to be router-mounted (the
-  # macro sets `socket.router`). Bare `%Socket{}`s in unit tests do not
-  # carry one; skip the attach in that case rather than blowing up. In
-  # production the router always sets it, so the intra-session expiry
-  # re-check keeps running.
-  defp maybe_attach_expiry_hook(socket, session) do
-    if socket.router do
-      hook = fn _params, uri, s -> check_expiry(session, uri, s) end
-      LiveView.attach_hook(socket, :public_page_challenge_expiry, :handle_params, hook)
-    else
-      socket
-    end
-  end
-
-  # Preserves the URI the visitor was trying to reach when the mount (or
-  # a navigation) was rejected. The controller reads `return_to` from
-  # query string first, falling back to the session key the Plug
-  # populated on the dead-render path, so both entry vectors land the
-  # visitor back where they were after solving the challenge.
+  # Preserves the URI the visitor was trying to reach when the mount was
+  # rejected. The controller reads `return_to` from query string first,
+  # falling back to the session key the Plug populated on the dead-render
+  # path, so both entry vectors land the visitor back where they were
+  # after solving the challenge. The URL is built with `~p` so a rename
+  # of the challenge route surfaces at compile time.
   defp redirect_to_challenge(socket, uri) do
     to =
       case return_to_from(uri) do
-        nil ->
-          PublicPageChallengePlug.challenge_path()
-
-        path ->
-          PublicPageChallengePlug.challenge_path() <> "?return_to=" <> URI.encode_www_form(path)
+        nil -> ~p"/turnstile-challenge"
+        path -> ~p"/turnstile-challenge?return_to=#{path}"
       end
 
     LiveView.redirect(socket, to: to)
@@ -99,15 +81,6 @@ defmodule GlossiaWeb.LiveHooks.PublicPageChallenge do
           "" -> path
           qs -> path <> "?" <> qs
         end
-    end
-  end
-
-  # Glossia stores the signed-in user's id directly on the session; the
-  # plug uses the same predicate for the dead-render path.
-  defp signed_in?(session) do
-    case session["user_id"] do
-      id when not is_nil(id) -> true
-      _ -> false
     end
   end
 end

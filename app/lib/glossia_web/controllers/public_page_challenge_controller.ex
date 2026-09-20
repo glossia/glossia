@@ -38,69 +38,47 @@ defmodule GlossiaWeb.PublicPageChallengeController do
   require Logger
 
   # The challenge template is a full HTML document (its own <html>,
-  # <head>, and <body>), so the browser pipeline's default
-  # GlossiaWeb.Layouts :app / :root root layouts would wrap it in a
-  # second <html> and break rendering. Clear both layouts on this
-  # controller.
+  # <head>, and <body>), so the browser pipeline's default layouts would
+  # wrap it in a second <html> and break rendering. Clear both.
   plug :put_root_layout, false
   plug :put_layout, false
 
   @expected_action "public_page_challenge"
-  @verify_path "/turnstile-challenge/verify"
   # Bounds how many verify attempts one IP can burn per minute. Sized so
   # a real user with a fat-fingered Turnstile challenge (three or four
   # retries) never trips it, and so a scraper trying to grind tokens
   # against Cloudflare's siteverify from one IP burns out in seconds.
   @verify_rate_limit 30
 
+  @doc "URL of the verify endpoint. Resolved through `~p` so a rename or removal fails at compile time."
+  def verify_path, do: ~p"/turnstile-challenge/verify"
+
   def show(conn, params) do
-    conn = capture_return_to_from_query(conn, params)
+    conn = persist_return_to(conn, params["return_to"])
 
     cond do
       not PublicPage.required?() ->
         conn |> no_store() |> redirect(to: safe_return_to(conn))
 
-      authenticated?(conn) ->
+      PublicPageChallengePlug.signed_in?(conn) ->
         conn |> no_store() |> redirect(to: safe_return_to(conn))
 
       PublicPageChallengePlug.verified_within_freshness?(conn) ->
         conn |> no_store() |> redirect(to: safe_return_to(conn))
 
       true ->
-        conn
-        |> no_store()
-        |> render(:show,
-          turnstile_required?: PublicPage.required?(),
-          turnstile_site_key: PublicPage.site_key(),
-          expected_action: @expected_action,
-          verify_path: @verify_path,
-          return_to: get_session(conn, PublicPageChallengePlug.return_to_key()),
-          error: nil
-        )
-    end
-  end
-
-  # The Plug on the dashboard scopes stashes the return path in the
-  # signed Phoenix session; the LiveView on_mount hook cannot do that
-  # (no Plug.Conn) so it appends `?return_to=<encoded>` to the challenge
-  # URL instead. Prefer whatever the query string carries, persist it
-  # into the session so the verify handler treats both entry vectors
-  # identically, and drop it silently if it is not a safe local path.
-  defp capture_return_to_from_query(conn, params) do
-    case params["return_to"] do
-      raw when is_binary(raw) and raw != "" ->
-        if local_path?(raw) do
-          put_session(conn, PublicPageChallengePlug.return_to_key(), raw)
-        else
-          conn
-        end
-
-      _ ->
-        conn
+        conn |> no_store() |> render_challenge(nil)
     end
   end
 
   def verify(conn, params) do
+    # The failure re-render reads `return_to` from the session (populated
+    # either by the plug or by the show controller from a `?return_to=`
+    # query). A visitor whose only return_to source was the POSTed form
+    # field needs it persisted here too so the retry preserves the
+    # original destination.
+    conn = persist_return_to(conn, params["return_to"])
+
     # `required?: true` is passed explicitly so that flipping the signup
     # Turnstile config (or leaving the public-page enable flag unset) can
     # NEVER short-circuit `PublicPage.verify/2` into a bare `:ok`. This
@@ -121,14 +99,7 @@ defmodule GlossiaWeb.PublicPageChallengeController do
         conn
         |> put_status(:too_many_requests)
         |> no_store()
-        |> render(:show,
-          turnstile_required?: PublicPage.required?(),
-          turnstile_site_key: PublicPage.site_key(),
-          expected_action: @expected_action,
-          verify_path: @verify_path,
-          return_to: get_session(conn, PublicPageChallengePlug.return_to_key()),
-          error: gettext("Too many attempts. Please wait a moment and try again.")
-        )
+        |> render_challenge(gettext("Too many attempts. Please wait a moment and try again."))
 
       {:error, reason} ->
         Logger.info("public_page_challenge verification rejected", reason: inspect(reason))
@@ -136,15 +107,40 @@ defmodule GlossiaWeb.PublicPageChallengeController do
         conn
         |> put_status(:bad_request)
         |> no_store()
-        |> render(:show,
-          turnstile_required?: PublicPage.required?(),
-          turnstile_site_key: PublicPage.site_key(),
-          expected_action: @expected_action,
-          verify_path: @verify_path,
-          return_to: get_session(conn, PublicPageChallengePlug.return_to_key()),
-          error: gettext("Verification failed. Please try again.")
-        )
+        |> render_challenge(gettext("Verification failed. Please try again."))
     end
+  end
+
+  # The plug on the dashboard scopes stashes the return path in the
+  # signed Phoenix session; the LiveView on_mount hook cannot do that
+  # (no Plug.Conn) so it appends `?return_to=<encoded>` to the challenge
+  # URL instead. Both entry vectors — query string on GET, form field on
+  # POST — funnel through this helper so the session key is populated
+  # identically, and hostile inputs (non-local, protocol-relative,
+  # control-character-carrying) drop silently.
+  defp persist_return_to(conn, raw) when is_binary(raw) and raw != "" do
+    if local_path?(raw) do
+      put_session(conn, PublicPageChallengePlug.return_to_key(), raw)
+    else
+      conn
+    end
+  end
+
+  defp persist_return_to(conn, _), do: conn
+
+  # Common render payload for the show endpoint's initial render and both
+  # verify failure branches. Keeping the assigns in one place means a new
+  # widget field, an assign rename, or an added CSP hint changes one call
+  # instead of three.
+  defp render_challenge(conn, error) do
+    render(conn, :show,
+      turnstile_required?: PublicPage.required?(),
+      turnstile_site_key: PublicPage.site_key(),
+      expected_action: @expected_action,
+      verify_path: verify_path(),
+      return_to: get_session(conn, PublicPageChallengePlug.return_to_key()),
+      error: error
+    )
   end
 
   defp check_rate_limit(conn) do
@@ -163,13 +159,6 @@ defmodule GlossiaWeb.PublicPageChallengeController do
     |> put_session(PublicPageChallengePlug.session_key(), now)
     |> delete_session(PublicPageChallengePlug.return_to_key())
     |> configure_session(renew: true)
-  end
-
-  defp authenticated?(conn) do
-    case get_session(conn, "user_id") do
-      id when not is_nil(id) -> true
-      _ -> false
-    end
   end
 
   defp no_store(conn) do

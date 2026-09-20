@@ -26,6 +26,8 @@ defmodule GlossiaWeb.Plugs.PublicPageChallengePlug do
   `/turnstile-challenge`. The controller there validates the return
   target as a local path before honouring it.
   """
+  use GlossiaWeb, :verified_routes
+
   import Phoenix.Controller, only: [redirect: 2]
   import Plug.Conn
 
@@ -33,7 +35,6 @@ defmodule GlossiaWeb.Plugs.PublicPageChallengePlug do
 
   @session_key "public_page_challenge_verified_at"
   @return_to_key "public_page_return_to"
-  @challenge_path "/turnstile-challenge"
 
   @doc "Session key holding the last verification timestamp (unix seconds)."
   def session_key, do: @session_key
@@ -41,8 +42,12 @@ defmodule GlossiaWeb.Plugs.PublicPageChallengePlug do
   @doc "Session key holding the return path captured before the challenge."
   def return_to_key, do: @return_to_key
 
-  @doc "URL of the challenge page itself. Kept in one place so callers stay honest."
-  def challenge_path, do: @challenge_path
+  @doc """
+  URL of the challenge page itself. Resolved through `~p` so a rename or
+  removal of the route in `router.ex` fails at compile time instead of
+  quietly 404-ing at redirect time.
+  """
+  def challenge_path, do: ~p"/turnstile-challenge"
 
   def init(opts), do: opts
 
@@ -51,7 +56,7 @@ defmodule GlossiaWeb.Plugs.PublicPageChallengePlug do
       not PublicPage.required?() ->
         conn
 
-      authenticated?(conn) ->
+      signed_in?(conn) ->
         conn
 
       verified_within_freshness?(conn) ->
@@ -60,7 +65,8 @@ defmodule GlossiaWeb.Plugs.PublicPageChallengePlug do
       true ->
         conn
         |> put_session(@return_to_key, return_to(conn))
-        |> redirect(to: @challenge_path)
+        |> no_store()
+        |> redirect(to: challenge_path())
         |> halt()
     end
   end
@@ -79,6 +85,22 @@ defmodule GlossiaWeb.Plugs.PublicPageChallengePlug do
     session |> Map.get(@session_key) |> fresh?()
   end
 
+  @doc """
+  Signed-in predicate shared by the plug, controller, and LiveView
+  on_mount hook. Glossia stores the signed-in user's id directly on the
+  session (see `GlossiaWeb.PlatformHooks.on_mount(:load_user, ...)` and
+  `GlossiaWeb.Plugs.Auth`). Presence of a non-nil `user_id` is enough to
+  treat the visitor as authenticated for the purposes of skipping the
+  public-page gate — the dashboard's own authorization still runs after.
+  """
+  def signed_in?(%Plug.Conn{} = conn) do
+    conn |> get_session("user_id") |> present?()
+  end
+
+  def signed_in?(session) when is_map(session) do
+    session |> Map.get("user_id") |> present?()
+  end
+
   defp fresh?(nil), do: false
 
   defp fresh?(ts) when is_integer(ts) do
@@ -87,16 +109,17 @@ defmodule GlossiaWeb.Plugs.PublicPageChallengePlug do
 
   defp fresh?(_), do: false
 
-  # Glossia stores the signed-in user's id directly on the session, not a
-  # session token (see GlossiaWeb.PlatformHooks.on_mount(:load_user, ...)
-  # and GlossiaWeb.Plugs.Auth). Presence of a non-nil `user_id` is enough
-  # to treat the visitor as authenticated for the purposes of skipping the
-  # public-page gate — the dashboard's own authorization still runs after.
-  defp authenticated?(conn) do
-    case get_session(conn, "user_id") do
-      id when not is_nil(id) -> true
-      _ -> false
-    end
+  defp present?(nil), do: false
+  defp present?(_), do: true
+
+  # `no-store` on the redirect to keep browsers and intermediaries from
+  # caching the 302 target. Without this a Safari history-back or an
+  # intermediary that respects RFC 7234 heuristic staleness could serve a
+  # cached location after the underlying session was invalidated.
+  defp no_store(conn) do
+    conn
+    |> put_resp_header("cache-control", "no-store, no-cache, must-revalidate, max-age=0")
+    |> put_resp_header("pragma", "no-cache")
   end
 
   defp return_to(conn) do

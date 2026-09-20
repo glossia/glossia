@@ -2,109 +2,112 @@ defmodule GlossiaWeb.PublicPageChallengeHTML do
   @moduledoc ~S"""
   Renders the Turnstile challenge page shown at
   `GET /turnstile-challenge`. Kept intentionally self-contained: no
-  LiveView, no dashboard chrome. The page loads Cloudflare's `api.js`,
-  renders a widget bound to the `public_page_challenge` action, and
-  posts the token back to the controller inside a CSRF-protected form.
+  LiveView, no dashboard chrome. The page links the app's token
+  stylesheets (`styles.css`, `noora.css`) so its colors, typography, and
+  borders track the rest of the design system — a rebrand of
+  `--color-primary` / `--color-text` propagates here without a template
+  edit. It loads Cloudflare's `api.js`, renders a widget bound to the
+  `public_page_challenge` action, and posts the token back to the
+  controller inside a CSRF-protected form.
 
   The inline script mirrors the shape of Glossia's signup Turnstile
-  integration (`assets/js/turnstile.js`), reused here without the phx
-  hook since this page runs outside the LiveView bundle.
+  integration, reused here without the phx hook since this page runs
+  outside the LiveView bundle.
   """
   use GlossiaWeb, :html
 
   def render("show.html", assigns) do
     ~H"""
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang={assigns[:locale] || Glossia.I18n.default_locale()}>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex, nofollow" />
         <title>{gettext("Verify you're human")}</title>
+        <link
+          rel="stylesheet"
+          href={
+            Phoenix.VerifiedRoutes.static_path(
+              GlossiaWeb.Endpoint,
+              Application.get_env(:glossia, :asset_paths, %{})[:stylesheet] || "/assets/styles.css"
+            )
+          }
+        />
+        <link
+          rel="stylesheet"
+          href={
+            Phoenix.VerifiedRoutes.static_path(
+              GlossiaWeb.Endpoint,
+              Application.get_env(:glossia, :asset_paths, %{})[:noora_stylesheet] ||
+                "/assets/noora.css"
+            )
+          }
+        />
         <style>
-          :root {
-            color-scheme: light dark;
-            --bg: #f5f5f7;
-            --card: #ffffff;
-            --fg: #1d1d1f;
-            --muted: #4b4b4f;
-            --accent: #4338ca;
-            --error: #b3261e;
-            --disabled: #a0a0a0;
+          html, body {
+            margin: 0;
+            padding: 0;
+            background: var(--color-surface);
+            color: var(--color-text);
           }
-          :root[data-theme="dark"] {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --fg: #f1f5f9;
-            --muted: #94a3b8;
-            --accent: #a5b4fc;
-            --error: #f87171;
-            --disabled: #475569;
-          }
-          html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
           body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: var(--font-family-sans);
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 1rem;
+            padding: var(--space-3, 1rem);
             box-sizing: border-box;
           }
           .card {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 32px 28px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg, 16px);
+            padding: 2rem 1.75rem;
             width: min(420px, 92vw);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
             text-align: center;
           }
           .card h1 {
-            font-size: 20px;
-            margin: 0 0 8px 0;
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem;
+            color: var(--color-text);
           }
           .card p {
-            margin: 0 0 20px 0;
-            color: var(--muted);
-            font-size: 14px;
+            margin: 0 0 1.25rem;
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
           }
           .widget {
             display: flex;
             justify-content: center;
-            margin: 16px 0;
+            margin: 1rem 0;
           }
           .error {
-            color: var(--error);
-            font-size: 13px;
-            margin-top: 12px;
+            color: var(--color-error);
+            font-size: 0.8125rem;
+            margin-top: 0.75rem;
           }
           .fallback {
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 16px;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 1rem;
           }
           button {
             font: inherit;
             border: none;
-            background: var(--accent);
-            color: #ffffff;
-            padding: 10px 18px;
+            background: var(--color-primary);
+            color: var(--color-text-on-accent, #ffffff);
+            padding: 0.625rem 1.125rem;
             border-radius: 999px;
             cursor: pointer;
           }
+          button:hover:not([disabled]) { background: var(--color-primary-hover); }
           button[disabled] {
-            background: var(--disabled);
+            background: var(--color-border-strong);
             cursor: not-allowed;
           }
         </style>
-        <script>
-          (function () {
-            var dark =
-              window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-            document.documentElement.style.setProperty("color-scheme", dark ? "dark" : "light");
-            document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-          })();
-        </script>
       </head>
       <body>
         <div class="card">

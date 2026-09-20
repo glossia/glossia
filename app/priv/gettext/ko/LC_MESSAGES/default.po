@@ -1807,7 +1807,7 @@ msgid "Context graph"
 msgstr "맥락 그래프"
 
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex:20
-#: lib/glossia_web/controllers/public_page_challenge_html.ex:142
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:145
 #, elixir-autogen, elixir-format
 msgid "Continue"
 msgstr "계속"
@@ -5041,7 +5041,7 @@ msgstr "Glossia에 처음 오셨나요?"
 msgid "HTTP 429"
 msgstr ""
 
-#: lib/glossia_web/controllers/public_page_challenge_html.ex:111
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:114
 #, elixir-autogen, elixir-format
 msgid "Just a quick check"
 msgstr ""
@@ -5056,7 +5056,7 @@ msgstr ""
 msgid "Public"
 msgstr ""
 
-#: lib/glossia_web/controllers/public_page_challenge_html.ex:113
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:116
 #, elixir-autogen, elixir-format
 msgid "Public dashboards are protected against automated scraping. Confirm you're human to continue."
 msgstr ""
@@ -5071,7 +5071,7 @@ msgstr ""
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
 msgstr ""
 
-#: lib/glossia_web/controllers/public_page_challenge_controller.ex:130
+#: lib/glossia_web/controllers/public_page_challenge_controller.ex:102
 #, elixir-autogen, elixir-format
 msgid "Too many attempts. Please wait a moment and try again."
 msgstr ""
@@ -5081,17 +5081,17 @@ msgstr ""
 msgid "Too many requests · Glossia"
 msgstr ""
 
-#: lib/glossia_web/controllers/public_page_challenge_html.ex:136
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:139
 #, elixir-autogen, elixir-format
 msgid "Turnstile is unavailable. Please try again shortly."
 msgstr ""
 
-#: lib/glossia_web/controllers/public_page_challenge_controller.ex:145
+#: lib/glossia_web/controllers/public_page_challenge_controller.ex:110
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Verification failed. Please try again."
 msgstr "인증에 실패했습니다. 다시 시도해주세요."
 
-#: lib/glossia_web/controllers/public_page_challenge_html.ex:23
+#: lib/glossia_web/controllers/public_page_challenge_html.ex:27
 #, elixir-autogen, elixir-format
 msgid "Verify you're human"
 msgstr ""
