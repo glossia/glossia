@@ -224,7 +224,7 @@ Everything lives in a single repository:
 - `babel/` — the internal operations platform (Phoenix app deployed at
   `babel.glossia.ai`). Its own chart at `babel/chart/`, CI in
   `.github/workflows/babel.yml`, image published as
-  `ghcr.io/glossia/glossia-babel`.
+  `ghcr.io/glossia/babel`.
 - `cli/` — the Rust CLI. Cross-compiled and released from
   `.github/workflows/release.yml`.
 - `sdk/` — the JS SDK. Released from `.github/workflows/release-sdk.yml`.

@@ -52,9 +52,9 @@ jobs:
           file: ./babel/Dockerfile
           push: true
           tags: |
-            ghcr.io/glossia/glossia-babel:${{ steps.tags.outputs.sha_tag }}
-            ghcr.io/glossia/glossia-babel:main
-            ghcr.io/glossia/glossia-babel:${{ steps.tags.outputs.run_tag }}
+            ghcr.io/glossia/babel:${{ steps.tags.outputs.sha_tag }}
+            ghcr.io/glossia/babel:main
+            ghcr.io/glossia/babel:${{ steps.tags.outputs.run_tag }}
           labels: |
             org.opencontainers.image.source=https://github.com/glossia/glossia
             org.opencontainers.image.description=Glossia internal operations platform

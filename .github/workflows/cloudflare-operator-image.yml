@@ -25,10 +25,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  # The former ghcr.io/glossia/cloudflare-operator package is linked to the
-  # archived glossia/infra repository and refuses cross-repo writes; publish
-  # under glossia/glossia-cloudflare-operator, which is linked to this repo.
-  IMAGE_NAME: glossia/glossia-cloudflare-operator
+  IMAGE_NAME: glossia/cloudflare-operator
 
 jobs:
   test:
