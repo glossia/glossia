@@ -27,7 +27,12 @@ strategy:
     maxUnavailable: 0
 
 image:
-  repository: ghcr.io/glossia/glossia
+  # Enterprise wrapper image (this chart is the enterprise chart).
+  # `ghcr.io/glossia/enterprise` embeds glossia + the enterprise seams
+  # (`GlossiaEnterprise.Runners.Managed`, `GlossiaEnterprise.TranslationSessions.Launcher`,
+  # `GlossiaEnterprise.Application`). The community image
+  # `ghcr.io/glossia/glossia` is what the OSS chart deploys.
+  repository: ghcr.io/glossia/enterprise
   tag: main
   digest: ""
   pullPolicy: IfNotPresent
@@ -94,6 +99,68 @@ internalBabel:
     maxLifetimeSeconds: 3600
     namespace: babel
     serviceAccount: babel
+
+# GlossiaEnterprise managed FLAME runner pool.
+#
+# The pool schedules short-lived runner pods for translation fan-out. The
+# chart mints a ServiceAccount and a Role granting pod + `batch/jobs`
+# permissions so the parent pod can create both runner pods (FLAME) and
+# detached translation Jobs (the enterprise launcher).
+#
+# Every setting has a matching `GLOSSIA_ENTERPRISE_MANAGED_*` env var so the
+# operator can tune at runtime without rebuilding the image. Placement
+# (nodeSelector, tolerations, affinity, runtimeClassName) is shared with the
+# detached translation Job below — the two workloads land on the same nodes.
+managedRunner:
+  min: 0
+  max: 10
+  maxConcurrency: 1
+  idleShutdownAfterMs: 30000
+  timeoutMs: 300000
+  bootTimeoutMs: 120000
+  log: false
+  serviceAccount:
+    create: true
+    name: ""
+  rbac:
+    create: true
+  k8s:
+    appContainerName: web
+    runtimeClassName: ""
+    log: false
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    env: {}
+
+# Detached Kubernetes Jobs for translation sessions.
+#
+# A translation session lives an hour or more. The scheduler pod is
+# replaced on every deploy/eviction, and no shutdown grace period can
+# cover that. So each session is scheduled as a Job with no
+# `ownerReference` — nothing garbage-collects it when the pod that
+# scheduled it goes away, and a rolling update of the web tier leaves
+# a running translation alone.
+#
+# The Job pod inherits its image, environment, `envFrom` secrets, and
+# pull secrets from the scheduler manifest. Placement, sizing, and the
+# runtime class come from `managedRunner.k8s` — one placement
+# description covers both workloads.
+translationJob:
+  # How long a finished Job sticks around so its logs can be read.
+  ttlSecondsAfterFinished: 3600
+  # A ceiling on one translation so a run wedged against a model provider
+  # cannot hold a pod forever. A full day is enough for large repositories.
+  activeDeadlineSeconds: 86400
+  # Empty inherits managedRunner.k8s.resources.
+  resources: {}
 
 mailRelay:
   enabled: false

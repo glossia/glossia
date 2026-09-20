@@ -1,9 +1,14 @@
-# Glossia Helm chart
+# Glossia Enterprise Helm chart
 
-Self-installable Helm chart for [Glossia](https://glossia.ai). Bundles the
-web app, a Postgres cluster (CloudNativePG), and a ClickHouse cluster
-(Altinity Operator) in one release. Each datastore can be disabled if you
-prefer to bring your own.
+Helm chart for the enterprise build of [Glossia](https://glossia.ai). Deploys
+the `ghcr.io/glossia/enterprise` image and wires up the managed FLAME runner
+pool + detached translation-Job launcher that live in this repository. Bundles
+a Postgres cluster (CloudNativePG) and a ClickHouse cluster (official
+ClickHouse operator) alongside the web app; each datastore can be disabled if
+you prefer to bring your own.
+
+For the community deployment shape without FLAME/scale-out, use the OSS chart
+in [`glossia/deploy/helm/glossia`](https://github.com/glossia/glossia/tree/main/deploy/helm/glossia).
 
 ## Prerequisites
 

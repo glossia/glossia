@@ -125,6 +125,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "glossia.managedRunnerServiceAccountName" -}}
+{{- if .Values.managedRunner.serviceAccount.create -}}
+{{- default (include "glossia.fullname" .) .Values.managedRunner.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.managedRunner.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "glossia.mailRelayEnv" -}}
 {{- if .Values.mailRelay.enabled -}}
 - name: GLOSSIA_SMTP_HOST

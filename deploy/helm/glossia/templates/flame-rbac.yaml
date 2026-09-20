@@ -1,0 +1,39 @@
+{{- if .Values.managedRunner.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "glossia.fullname" . }}-managed-runner
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+rules:
+  # FLAME schedules runner pods; the Kata sandbox adapter schedules setup
+  # sandbox pods; and both are cleaned up in place.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "get", "list", "delete", "patch"]
+  # Kata sandbox exec + kubectl cp for file transfer.
+  - apiGroups: [""]
+    resources: ["pods/exec", "pods/log"]
+    verbs: ["create", "get"]
+  # Translation sessions run as Jobs that deliberately have no owner, so a
+  # rolling update cannot garbage-collect one mid-translation. The app creates
+  # them, reads them back, and deletes them when a session is cancelled.
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "glossia.fullname" . }}-managed-runner
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "glossia.managedRunnerServiceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "glossia.fullname" . }}-managed-runner
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
