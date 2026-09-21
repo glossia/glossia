@@ -5012,116 +5012,116 @@ msgid "Validation message"
 msgstr "Validierungsnachricht"
 
 #: lib/glossia_web/components/layouts.ex:157
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Explore Glossia's localization guides, product documentation, and language OS for teams publishing content across languages."
-msgstr "Entdecken Sie Glossia-Lokalisierungshilfen, Produktdokumentation und das Open-Source-Sprach-Betriebssystem für Teams, die Inhalte über Sprachen hinweg veröffentlichen."
+msgstr "Erkunden Sie Glossias Lokalisierungsguides, Produktdokumentation und Sprache-OS für Teams, die Inhalte auf mehreren Sprachen veröffentlichen."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Language OS"
-msgstr "Sprache"
+msgstr "Sprache-OS"
 
 #: lib/glossia_web/controllers/page_controller.ex:30
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia ist ein Open-Source-Sprach-Betriebssystem, in dem Linguisten und Teams gestalten, wie Ihre Organisation auf allen Sprachen und Oberflächen spricht."
+msgstr "Glossia ist ein Sprache-OS, in dem Sprachkräfte und Teams vorgeben, wie sich Ihre Organisation auf jeder Sprachrichtung und Plattform ausdrückt."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:85
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Back to Glossia"
-msgstr "Neu bei Glossia?"
+msgstr "Zurück zu Glossia"
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "HTTP 429"
-msgstr ""
+msgstr "HTTP 429"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:114
 #, elixir-autogen, elixir-format
 msgid "Just a quick check"
-msgstr ""
+msgstr "Nur eine kurze Überprüfung"
 
 #: lib/glossia_web/components/layouts.ex:393
 #, elixir-autogen, elixir-format
 msgid "Personal"
-msgstr ""
+msgstr "Privat"
 
 #: lib/glossia_web/components/layouts.ex:389
 #, elixir-autogen, elixir-format
 msgid "Public"
-msgstr ""
+msgstr "Öffentlich"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:116
 #, elixir-autogen, elixir-format
 msgid "Public dashboards are protected against automated scraping. Confirm you're human to continue."
-msgstr ""
+msgstr "Öffentliche Dashboards sind vor automatischem Scraping geschützt. Bestätigen Sie, dass Sie ein Mensch sind, um fortzufahren."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:77
 #, elixir-autogen, elixir-format
 msgid "Slow down for a moment"
-msgstr ""
+msgstr "Verlangsamen Sie sich kurz."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:79
 #, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
-msgstr ""
+msgstr "Diese Seite hat in kurzer Zeit viele Anfragen von Ihrem Netzwerk erhalten. Bitte versuchen Sie es in %{seconds} Sekunden erneut."
 
 #: lib/glossia_web/controllers/public_page_challenge_controller.ex:102
 #, elixir-autogen, elixir-format
 msgid "Too many attempts. Please wait a moment and try again."
-msgstr ""
+msgstr "Zu viele Versuche. Bitte warten Sie einen Moment und versuchen Sie es erneut."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:6
 #, elixir-autogen, elixir-format
 msgid "Too many requests · Glossia"
-msgstr ""
+msgstr "Zu viele Anfragen · Glossia"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:139
 #, elixir-autogen, elixir-format
 msgid "Turnstile is unavailable. Please try again shortly."
-msgstr ""
+msgstr "Turnstile ist nicht verfügbar. Bitte versuchen Sie es in Kürze erneut."
 
 #: lib/glossia_web/controllers/public_page_challenge_controller.ex:110
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Verification failed. Please try again."
-msgstr "Die Authentifizierung ist fehlgeschlagen. Bitte versuchen Sie es erneut."
+msgstr "Die Verifizierung ist fehlgeschlagen. Bitte versuchen Sie es erneut."
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:27
 #, elixir-autogen, elixir-format
 msgid "Verify you're human"
-msgstr ""
+msgstr "Verifizieren Sie, dass Sie ein Mensch sind."
 
 #: lib/glossia_web/live/dashboard_live.ex:7999
 #, elixir-autogen, elixir-format
 msgid "Activity"
-msgstr ""
+msgstr "Aktivität"
 
 #: lib/glossia_web/live/dashboard_live.ex:7907
 #, elixir-autogen, elixir-format
 msgid "Open %{sha} on GitHub"
-msgstr ""
+msgstr "Öffnen %{sha} auf GitHub"
 
 #: lib/glossia_web/live/dashboard_live.ex:7943
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Pull request"
-msgstr "Pull-Request erstellt"
+msgstr "Pull-Request"
 
 #: lib/glossia_web/live/dashboard_live.ex:7884
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Session details"
-msgstr "Sitzung"
+msgstr "Sitzungsdetails"
 
 #: lib/glossia_web/live/dashboard_live.ex:7925
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Started"
-msgstr "Gestartet um %{time}"
+msgstr "Gestartet"
 
 #: lib/glossia_web/live/dashboard_live.ex:7981
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Translated files"
-msgstr "Übersetzt"
+msgstr "Übersetzte Dateien"
 
 #: lib/glossia_web/live/dashboard_live.ex:7854
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Translation session · commit %{sha}"
-msgstr "Übersetzungssitzung"
+msgstr "Übersetzungssitzung · Commit %{sha}"
