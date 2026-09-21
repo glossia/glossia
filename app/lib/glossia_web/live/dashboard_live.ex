@@ -3577,6 +3577,9 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp assign_translation_progress(socket, progress) do
+    project = socket.assigns[:project]
+    session = socket.assigns[:session]
+
     items =
       progress
       |> Progress.items()
@@ -3591,9 +3594,9 @@ defmodule GlossiaWeb.DashboardLive do
         |> Map.put(
           :file_url,
           translation_file_url(
-            socket.assigns[:project],
+            project,
             item.status,
-            item.file_ref,
+            item.file_ref || translation_session_ref(session),
             item.output_path
           )
         )
@@ -7833,18 +7836,34 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_session_cancellable?(%{status: status}), do: status in ["pending", "running"]
 
+  # The commit's subject line reads as the natural page title; it tells a
+  # returning viewer what the run was about without opening the overview card.
+  # A commit-less session (rare, but possible for a manual run) falls back to
+  # the generic label so the page header never renders empty.
+  defp translation_session_page_title(%{commit_message: message}) when is_binary(message) do
+    case first_line(message) do
+      "" -> gettext("Translation session")
+      title -> title
+    end
+  end
+
+  defp translation_session_page_title(_session), do: gettext("Translation session")
+
+  defp translation_session_page_description(%{commit_sha: sha})
+       when is_binary(sha) and sha != "" do
+    gettext("Translation session · commit %{sha}", sha: String.slice(sha, 0, 7))
+  end
+
+  defp translation_session_page_description(_session), do: gettext("Translation session details")
+
   defp translation_session_in_flight?(%{status: status}), do: status in ["pending", "running"]
 
   defp session_detail_page(assigns) do
     ~H"""
     <div id="translation-session" class="dash-page">
       <.page_header
-        title={gettext("Translation session")}
-        description={
-          if @session.commit_sha,
-            do: gettext("Session for commit %{sha}", sha: String.slice(@session.commit_sha, 0, 7)),
-            else: gettext("Translation session details")
-        }
+        title={translation_session_page_title(@session)}
+        description={translation_session_page_description(@session)}
       >
         <:actions>
           <Noora.Button.button
@@ -7860,9 +7879,13 @@ defmodule GlossiaWeb.DashboardLive do
         </:actions>
       </.page_header>
 
-      <div class="card" data-part="overview">
-        <div data-part="overview-header">
-          <div data-part="overview-primary">
+      <Noora.Card.card
+        data-part="session-overview"
+        title={gettext("Session details")}
+        icon="chart_arcs"
+      >
+        <Noora.Card.card_section data-part="session-overview-section">
+          <div data-part="status-row">
             <Noora.Badge.status_badge
               data-part="status"
               status={translation_session_outcome_badge(@session)}
@@ -7873,76 +7896,178 @@ defmodule GlossiaWeb.DashboardLive do
                 {@session.source_language} &rarr; {Enum.join(@session.target_languages, ", ")}
               </span>
             <% end %>
-            <%= if @session.commit_sha && @project.github_repo_full_name do %>
-              <a
-                href={"https://github.com/#{@project.github_repo_full_name}/commit/#{@session.commit_sha}"}
-                target="_blank"
-                rel="noopener"
-                class="commit-sha"
-              >
-                {String.slice(@session.commit_sha, 0, 7)}
-              </a>
+            <%= if @session.commit_sha do %>
+              <%= if @project.github_repo_full_name do %>
+                <a
+                  data-part="commit-sha"
+                  href={"https://github.com/#{@project.github_repo_full_name}/commit/#{@session.commit_sha}"}
+                  target="_blank"
+                  rel="noopener"
+                  title={
+                    gettext("Open %{sha} on GitHub",
+                      sha: String.slice(@session.commit_sha, 0, 7)
+                    )
+                  }
+                >
+                  {String.slice(@session.commit_sha, 0, 7)}
+                  <span data-part="commit-sha-icon" aria-hidden="true">
+                    <Icon.external_link />
+                  </span>
+                </a>
+              <% else %>
+                <span data-part="commit-sha">{String.slice(@session.commit_sha, 0, 7)}</span>
+              <% end %>
             <% end %>
           </div>
-        </div>
-        <%= if @session.commit_message do %>
-          <p data-part="commit-message">{@session.commit_message}</p>
-        <% end %>
-        <div data-part="metadata">
-          <%= if @session.started_at do %>
-            <span>{gettext("Started %{time}", time: relative_time(@session.started_at))}</span>
-          <% end %>
-          <%= if @session.completed_at do %>
-            <span>{gettext("Completed %{time}", time: relative_time(@session.completed_at))}</span>
-          <% end %>
-          <%= if @session.summary do %>
-            <span>{@session.summary}</span>
-          <% end %>
-          <span :if={@session.outcome == "superseded"}>
-            {gettext("Stopped because newer content arrived.")}
-          </span>
-          <.link
-            :if={@session.continued_from_session_id}
-            navigate={
-              ~p"/#{@handle}/#{@project.handle}/-/sessions/#{@session.continued_from_session_id}"
+          <div data-part="metadata-grid">
+            <div data-part="metadata-row">
+              <div :if={@session.started_at} data-part="metadata">
+                <div data-part="title">{gettext("Started")}</div>
+                <span data-part="label">{relative_time(@session.started_at)}</span>
+              </div>
+              <div :if={@session.completed_at} data-part="metadata">
+                <div data-part="title">{gettext("Completed")}</div>
+                <span data-part="label">{relative_time(@session.completed_at)}</span>
+              </div>
+              <div
+                :if={
+                  (@session.translated_content_count || 0) > 0 or
+                    (@session.content_hit_count || 0) > 0
+                }
+                data-part="metadata"
+              >
+                <div data-part="title">{gettext("Content")}</div>
+                <span data-part="label">{translation_session_content_label(@session)}</span>
+              </div>
+              <div :if={@session.pull_request_url} data-part="metadata">
+                <div data-part="title">{gettext("Pull request")}</div>
+                <a
+                  data-part="label"
+                  href={@session.pull_request_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {gettext("Open pull request")}
+                </a>
+              </div>
+            </div>
+          </div>
+          <div
+            :if={
+              @session.summary || @session.outcome == "superseded" ||
+                @session.continued_from_session_id
             }
+            data-part="notes"
           >
-            {gettext("View the translation this run continued")}
-          </.link>
-          <span :if={
-            (@session.translated_content_count || 0) > 0 or (@session.content_hit_count || 0) > 0
-          }>
-            {translation_session_content_label(@session)}
-          </span>
-          <a
-            :if={@session.pull_request_url}
-            href={@session.pull_request_url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {gettext("Open pull request")}
-          </a>
-        </div>
-      </div>
+            <span :if={@session.summary}>{@session.summary}</span>
+            <span :if={@session.outcome == "superseded"}>
+              {gettext("Stopped because newer content arrived.")}
+            </span>
+            <.link
+              :if={@session.continued_from_session_id}
+              navigate={
+                ~p"/#{@handle}/#{@project.handle}/-/sessions/#{@session.continued_from_session_id}"
+              }
+            >
+              {gettext("View the translation this run continued")}
+            </.link>
+          </div>
+        </Noora.Card.card_section>
+      </Noora.Card.card>
 
-      <.translation_progress_panel
-        items={@translation_progress_items}
-        summary={@translation_progress_summary}
-        failures={@translation_progress_failures}
-      />
+      <Noora.Card.card
+        :if={@translation_progress_summary.total > 0}
+        data-part="translation-files-card"
+        title={gettext("Translated files")}
+        icon="file_text"
+      >
+        <:actions>
+          <.translation_progress_summary_row summary={@translation_progress_summary} />
+        </:actions>
+        <Noora.Card.card_section data-part="translation-files-section">
+          <.translation_progress_panel
+            items={@translation_progress_items}
+            summary={@translation_progress_summary}
+            failures={@translation_progress_failures}
+          />
+        </Noora.Card.card_section>
+      </Noora.Card.card>
 
       <%= if @session_events != [] do %>
-        <div class="session-event-feed" data-part="event-feed">
-          <%= for event <- @session_events do %>
-            <.session_event_item event={event} project={@project} />
-          <% end %>
-        </div>
+        <Noora.Card.card
+          data-part="session-events-card"
+          title={gettext("Activity")}
+          icon="history"
+        >
+          <Noora.Card.card_section data-part="session-events-section">
+            <div class="session-event-feed" data-part="event-feed">
+              <%= for event <- @session_events do %>
+                <.session_event_item event={event} project={@project} />
+              <% end %>
+            </div>
+          </Noora.Card.card_section>
+        </Noora.Card.card>
       <% else %>
-        <%= if @translation_progress_items == [] do %>
+        <%= if @translation_progress_items == [] and @translation_progress_summary.total == 0 do %>
           <div class="dash-empty-state">
             <p>{gettext("No events recorded yet.")}</p>
           </div>
         <% end %>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr(:summary, :map, required: true)
+
+  # Rendered in the Noora card's `<:actions>` slot so the run's headline
+  # counters sit at the top of the "Translated files" card without competing
+  # with the file rows underneath for space.
+  defp translation_progress_summary_row(assigns) do
+    assigns =
+      assigns
+      |> assign(:display_running, translation_progress_display_running(assigns.summary))
+      |> assign(:summary_state, translation_progress_summary_state(assigns.summary))
+
+    ~H"""
+    <div id="translation-progress-summary" data-part="summary">
+      <%= case @summary_state do %>
+        <% :up_to_date -> %>
+          <span id="translation-progress-summary-up-to-date" data-part="up-to-date">
+            {gettext("No translations needed")}
+          </span>
+        <% :checking -> %>
+          <span id="translation-progress-summary-checking" data-part="checking">
+            {ngettext(
+              "Checking %{checked} of %{total} file for updates",
+              "Checking %{checked} of %{total} files for updates",
+              @summary.total,
+              checked: @summary.checked,
+              total: @summary.total
+            )}
+          </span>
+        <% :translating -> %>
+          <span id="translation-progress-summary-translated" data-part="translated">
+            {gettext("%{done}/%{total} translated",
+              done: @summary.done,
+              total: @summary.needs_translation
+            )}
+          </span>
+      <% end %>
+      <%= if @display_running > 0 do %>
+        <span id="translation-progress-summary-running" data-part="running">
+          {gettext("%{n} in progress", n: @display_running)}
+        </span>
+      <% end %>
+      <%= if @summary.failed > 0 do %>
+        <span id="translation-progress-summary-failed" data-part="failed">
+          {gettext("%{n} failed", n: @summary.failed)}
+        </span>
+      <% end %>
+      <%= if @summary.skipped > 0 and @summary_state != :up_to_date do %>
+        <span id="translation-progress-summary-skipped" data-part="skipped">
+          {gettext("%{n} up to date", n: @summary.skipped)}
+        </span>
       <% end %>
     </div>
     """
@@ -7953,54 +8078,9 @@ defmodule GlossiaWeb.DashboardLive do
   attr(:failures, :list, required: true)
 
   defp translation_progress_panel(assigns) do
-    assigns =
-      assigns
-      |> assign(:display_running, translation_progress_display_running(assigns.summary))
-      |> assign(:summary_state, translation_progress_summary_state(assigns.summary))
-
     ~H"""
     <%= if @summary.total > 0 do %>
       <div id="translation-progress" class="translation-progress">
-        <div id="translation-progress-summary" data-part="summary">
-          <%= case @summary_state do %>
-            <% :up_to_date -> %>
-              <span id="translation-progress-summary-up-to-date" data-part="up-to-date">
-                {gettext("No translations needed")}
-              </span>
-            <% :checking -> %>
-              <span id="translation-progress-summary-checking" data-part="checking">
-                {ngettext(
-                  "Checking %{checked} of %{total} file for updates",
-                  "Checking %{checked} of %{total} files for updates",
-                  @summary.total,
-                  checked: @summary.checked,
-                  total: @summary.total
-                )}
-              </span>
-            <% :translating -> %>
-              <span id="translation-progress-summary-translated" data-part="translated">
-                {gettext("%{done}/%{total} translated",
-                  done: @summary.done,
-                  total: @summary.needs_translation
-                )}
-              </span>
-          <% end %>
-          <%= if @display_running > 0 do %>
-            <span id="translation-progress-summary-running" data-part="running">
-              {gettext("%{n} in progress", n: @display_running)}
-            </span>
-          <% end %>
-          <%= if @summary.failed > 0 do %>
-            <span id="translation-progress-summary-failed" data-part="failed">
-              {gettext("%{n} failed", n: @summary.failed)}
-            </span>
-          <% end %>
-          <%= if @summary.skipped > 0 and @summary_state != :up_to_date do %>
-            <span id="translation-progress-summary-skipped" data-part="skipped">
-              {gettext("%{n} up to date", n: @summary.skipped)}
-            </span>
-          <% end %>
-        </div>
         <div
           :if={@failures != []}
           id="translation-progress-failures"
@@ -8043,19 +8123,32 @@ defmodule GlossiaWeb.DashboardLive do
           <%= for item <- @items do %>
             <li
               id={"translation-progress-item-#{item.index}"}
-              class="card"
               data-part="item"
               data-status={item.status}
             >
               <div data-part="item-header">
-                <span data-part="status">
-                  <%= if item.status == :running do %>
-                    <span data-part="indicator" aria-hidden="true"></span>
+                <span data-part="status" title={translation_item_status_label(item.status)}>
+                  <%= case item.status do %>
+                    <% :running -> %>
+                      <span data-part="indicator" aria-hidden="true"></span>
+                    <% :failed -> %>
+                      <span data-part="status-icon" aria-hidden="true">
+                        <Icon.alert_circle />
+                      </span>
+                    <% :done -> %>
+                      <span data-part="status-icon" aria-hidden="true">
+                        <Icon.circle_check />
+                      </span>
+                    <% :cancelled -> %>
+                      <span data-part="status-icon" aria-hidden="true">
+                        <Icon.circle_x />
+                      </span>
+                    <% _ -> %>
+                      <span data-part="status-icon" aria-hidden="true">
+                        <Icon.circle_dashed />
+                      </span>
                   <% end %>
-                  <span :if={item.status == :failed} data-part="status-icon" aria-hidden="true">
-                    <Icon.alert_circle />
-                  </span>
-                  {translation_item_status_label(item.status)}
+                  <span class="sr-only">{translation_item_status_label(item.status)}</span>
                 </span>
                 <a
                   :if={item.file_url}
@@ -8067,8 +8160,11 @@ defmodule GlossiaWeb.DashboardLive do
                   {item.output_path}
                 </a>
                 <span :if={is_nil(item.file_url)} data-part="path">{item.output_path}</span>
-                <span data-part="locale">{item.locale}</span>
-                <span data-part="progress-meta">
+                <span :if={item.locale} data-part="locale">{item.locale}</span>
+                <span
+                  :if={item.turns > 0 or item.segment_kind}
+                  data-part="progress-meta"
+                >
                   <span :if={item.segment_kind}>
                     {translation_segment_label(%{
                       kind: item.segment_kind,
@@ -8293,6 +8389,17 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp translation_file_url(_project, _status, _file_ref, _output_path), do: nil
+
+  # A completed translation item may not carry its own git blob ref if the
+  # runner did not attach one. The session's publication commit is the right
+  # fallback for turning an output path into a browsable file URL. The branch
+  # name is intentionally not a fallback: our publication branches contain
+  # slashes (e.g. `glossia/translate-<sha>`) and GitHub's `/blob/<ref>/<path>`
+  # route mis-parses the first `/` as a ref boundary, producing 404 links.
+  defp translation_session_ref(%{publication_commit_sha: sha}) when is_binary(sha) and sha != "",
+    do: sha
+
+  defp translation_session_ref(_session), do: nil
 
   defp translation_failure_groups(items) do
     failures =

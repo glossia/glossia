@@ -1,24 +1,17 @@
 #translation-session {
   gap: var(--space-6);
 
-  & [data-part="overview"] {
+  & [data-part="session-overview-section"],
+  & [data-part="translation-files-section"],
+  & [data-part="session-events-section"] {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-4) var(--space-5);
+    gap: var(--space-4);
   }
 
-  & [data-part="overview-primary"] {
+  & [data-part="status-row"] {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
-
-  & [data-part="overview-header"] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: var(--space-3);
     flex-wrap: wrap;
   }
@@ -42,19 +35,105 @@
     font-weight: var(--weight-medium);
   }
 
-  & [data-part="commit-message"] {
-    margin: var(--space-0);
-    color: var(--color-text);
-    font-size: var(--text-sm);
+  & [data-part="commit-sha"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
+    font-family: var(--font-family-mono);
+    font-size: var(--text-xs);
+    text-decoration: none;
+  }
+
+  & a[data-part="commit-sha"] {
+    color: var(--color-primary);
+
+    &:hover,
+    &:focus-visible {
+      background: var(--color-primary-soft);
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      outline: var(--space-px) solid var(--color-primary);
+      outline-offset: var(--space-px);
+    }
+  }
+
+  & [data-part="commit-sha-icon"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  & [data-part="commit-sha-icon"] svg {
+    width: var(--space-3);
+    height: var(--space-3);
+  }
+
+  & [data-part="metadata-grid"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  & [data-part="metadata-row"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(calc(var(--space-16) * 2), 1fr));
+    gap: var(--space-4);
+    align-items: start;
   }
 
   & [data-part="metadata"] {
     display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: var(--space-0);
+  }
+
+  & [data-part="metadata"] [data-part="title"] {
     color: var(--color-text-muted);
     font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: var(--noora-font-weight-semibold);
+  }
+
+  & [data-part="metadata"] [data-part="label"] {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+  }
+
+  & [data-part="metadata"] a[data-part="label"] {
+    color: var(--color-primary);
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+
+  & [data-part="notes"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  & [data-part="notes"] a {
+    color: var(--color-primary);
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
   }
 
   & [data-part="event-feed"] {

@@ -1,23 +1,14 @@
 /* Translation session live progress panel.
  * Rendered by GlossiaWeb dashboard_live's translation_progress_panel/1. */
-#translation-progress {
-  --translation-progress-spinner-duration: 1s;
-  --translation-progress-status-width: calc(var(--space-16) + var(--space-8));
-
+#translation-progress-summary {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--space-3);
-
-  & [data-part="summary"] {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    align-items: center;
-    font-family: var(--font-family-sans);
-    font-size: var(--text-sm);
-    font-weight: var(--noora-font-weight-semibold);
-    color: var(--color-text);
-  }
+  align-items: center;
+  font-family: var(--font-family-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--noora-font-weight-semibold);
+  color: var(--color-text);
 
   & [data-part="running"] {
     color: var(--color-primary);
@@ -32,39 +23,57 @@
   & [data-part="up-to-date"] {
     color: var(--color-text-muted);
   }
+}
+
+#translation-progress {
+  --translation-progress-spinner-duration: 1s;
+  --translation-progress-item-indent: calc(var(--space-4) + var(--space-3));
+  --translation-progress-locale-col: calc(var(--space-8) + var(--space-4));
+  --translation-progress-meta-col: calc(var(--space-16) + var(--space-8));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 
   & [data-part="items"] {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
     list-style: none;
     margin: var(--space-0);
     padding: var(--space-0);
   }
 
   & [data-part="item"] {
-    padding: var(--space-3) var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-0);
+    border-bottom: var(--space-px) solid var(--color-border);
 
-    &[data-status="running"] {
-      border-color: var(--color-primary);
+    &:last-child {
+      border-bottom: 0;
     }
 
-    &[data-status="done"] [data-part="status"] {
+    &[data-status="done"] [data-part="status-icon"] {
       color: var(--color-success);
     }
 
-    &[data-status="failed"] [data-part="status"] {
+    &[data-status="failed"] [data-part="status-icon"] {
       color: var(--color-error);
+    }
+
+    &[data-status="cancelled"] [data-part="status-icon"] {
+      color: var(--color-text-muted);
     }
   }
 
   & [data-part="item-header"] {
     display: grid;
     grid-template-columns:
-      var(--translation-progress-status-width)
+      var(--space-4)
       minmax(var(--space-0), 1fr)
-      max-content
-      max-content;
+      var(--translation-progress-locale-col)
+      var(--translation-progress-meta-col);
     gap: var(--space-3);
     align-items: center;
     font-size: var(--text-sm);
@@ -72,15 +81,16 @@
 
   & [data-part="status"] {
     display: inline-flex;
-    gap: var(--space-2);
+    gap: var(--space-1);
     align-items: center;
-    font-weight: var(--noora-font-weight-semibold);
-    color: var(--color-text);
+    justify-content: center;
+    color: var(--color-text-muted);
   }
 
   & [data-part="indicator"] {
     display: inline-block;
     flex: 0 0 auto;
+    box-sizing: border-box;
     width: var(--space-4);
     height: var(--space-4);
     border: var(--space-0-5) solid currentColor;
@@ -100,6 +110,20 @@
   & [data-part="failure-icon"] svg {
     width: var(--space-4);
     height: var(--space-4);
+  }
+
+  /* Visually hidden but exposed to screen readers so a status conveys meaning
+   * through both the icon (sighted users) and text (assistive tech). */
+  & .sr-only {
+    position: absolute;
+    width: var(--space-px);
+    height: var(--space-px);
+    padding: var(--space-0);
+    margin: calc(-1 * var(--space-px));
+    overflow: hidden;
+    clip: rect(var(--space-0), var(--space-0), var(--space-0), var(--space-0));
+    white-space: nowrap;
+    border-width: var(--space-0);
   }
 
   & [data-part="path"] {
@@ -122,19 +146,24 @@
   }
 
   & [data-part="locale"] {
+    justify-self: end;
+    padding: var(--space-0-5) var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--color-bg-subtle);
     color: var(--color-text-muted);
     text-transform: uppercase;
     font-size: var(--text-xs);
     letter-spacing: 0.04em;
+    font-weight: var(--noora-font-weight-semibold);
   }
 
   & [data-part="progress-meta"] {
+    justify-self: start;
     display: inline-flex;
     gap: var(--space-2);
     align-items: center;
     color: var(--color-text-muted);
     font-size: var(--text-xs);
-    text-align: end;
 
     & > span + span::before {
       content: "·";
@@ -251,10 +280,11 @@
   }
 
   & [data-part="item-failure"] {
-    margin-top: var(--space-3);
-    padding-top: var(--space-3);
-    padding-inline-start: calc(var(--translation-progress-status-width) + var(--space-3));
-    border-top: var(--space-px) solid var(--color-error-mid);
+    margin-top: var(--space-1);
+    padding: var(--space-3);
+    padding-inline-start: var(--translation-progress-item-indent);
+    border-radius: var(--radius-md);
+    background: var(--color-error-soft);
   }
 
   & [data-part="item-failure-content"] {
@@ -284,21 +314,24 @@
   & [data-part="completed-output"],
   & [data-part="completed-segments"] {
     min-width: var(--space-0);
-    margin-top: var(--space-2);
-    /* Logical, so this lines up with the failure block's padding-inline-start
-     * in a right-to-left dashboard locale instead of indenting the other way. */
-    margin-inline-start: calc(var(--translation-progress-status-width) + var(--space-3));
+    /* Logical, so this lines up under the path column in a right-to-left
+     * dashboard locale instead of indenting the other way. */
+    margin-inline-start: var(--translation-progress-item-indent);
   }
 
   & [data-part="partial-output"],
   & [data-part="completed-output"] {
-    color: var(--color-text-muted);
+    color: var(--color-primary);
     font-size: var(--text-xs);
 
     & summary {
       width: max-content;
       cursor: pointer;
-      font-weight: var(--noora-font-weight-semibold);
+      font-weight: var(--noora-font-weight-medium);
+
+      &:hover {
+        color: var(--color-primary-hover);
+      }
     }
   }
 
@@ -365,30 +398,21 @@
 
 @media (width < 768px) {
   #translation-progress {
-    --translation-progress-status-width: auto;
+    --translation-progress-item-indent: calc(var(--space-4) + var(--space-2));
 
     & [data-part="item-header"] {
-      grid-template-columns: minmax(var(--space-0), 1fr) max-content;
-    }
-
-    & [data-part="path"] {
-      grid-column: 1 / -1;
-      grid-row: 2;
+      grid-template-columns: var(--space-4) minmax(var(--space-0), 1fr) max-content;
+      row-gap: var(--space-1);
     }
 
     & [data-part="locale"] {
-      grid-column: 1;
-      grid-row: 3;
+      justify-self: end;
     }
 
     & [data-part="progress-meta"] {
-      grid-column: 2;
-      grid-row: 3;
-    }
-
-    & [data-part="item-failure"] {
-      grid-template-columns: max-content minmax(var(--space-0), 1fr);
-      gap: var(--space-2);
+      grid-column: 2 / -1;
+      grid-row: 2;
+      justify-self: start;
     }
 
     & [data-part="item-diagnostics"] dl {
