@@ -7849,7 +7849,8 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_session_page_title(_session), do: gettext("Translation session")
 
-  defp translation_session_page_description(%{commit_sha: sha}) when is_binary(sha) and sha != "" do
+  defp translation_session_page_description(%{commit_sha: sha})
+       when is_binary(sha) and sha != "" do
     gettext("Translation session · commit %{sha}", sha: String.slice(sha, 0, 7))
   end
 
