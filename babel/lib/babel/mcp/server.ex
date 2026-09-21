@@ -27,4 +27,14 @@ defmodule Babel.MCP.Server do
 
   component(Babel.MCP.CreateOrganizationInteractionTool, name: "create_organization_interaction")
   component(Babel.MCP.DiscoverGoToMarketProspectsTool, name: "discover_go_to_market_prospects")
+
+  component(Babel.MCP.ListErrorIssuesTool, name: "list_error_issues")
+  component(Babel.MCP.GetErrorIssueTool, name: "get_error_issue")
+  component(Babel.MCP.ListErrorEventsTool, name: "list_error_events")
+  component(Babel.MCP.GetErrorEventTool, name: "get_error_event")
+  component(Babel.MCP.ResolveErrorIssueTool, name: "resolve_error_issue")
+  component(Babel.MCP.UnresolveErrorIssueTool, name: "unresolve_error_issue")
+  component(Babel.MCP.IgnoreErrorIssueTool, name: "ignore_error_issue")
+  component(Babel.MCP.GetOrganizationErrorDsnTool, name: "get_organization_error_dsn")
+  component(Babel.MCP.RotateOrganizationErrorDsnTool, name: "rotate_organization_error_dsn")
 end

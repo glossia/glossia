@@ -21,7 +21,20 @@ defmodule BabelWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Sentry-compatible envelope ingest: public (auth is the DSN),
+  # never CSRF-protected, and never bound to a session.
+  pipeline :errors_ingest do
+    plug :accepts, ["json"]
+  end
+
   get "/up", BabelWeb.HealthController, :index
+
+  scope "/api", BabelWeb.Errors do
+    pipe_through :errors_ingest
+
+    post "/:project_id/envelope/", EnvelopeController, :ingest
+    options "/:project_id/envelope/", EnvelopeController, :options
+  end
 
   scope "/.well-known", BabelWeb do
     pipe_through :api
@@ -58,6 +71,10 @@ defmodule BabelWeb.Router do
     live "/growth", OperationsLive, :go_to_market
     live "/organizations", OperationsLive, :organizations
     live "/organizations/:id", OperationsLive, :organization
+
+    live "/errors", ErrorsLive.Index, :index
+    live "/errors/:id", ErrorsLive.Show, :show
+    live "/errors/:id/events/:event_id", ErrorsLive.Event, :show
   end
 
   if Application.compile_env(:babel, :dev_routes) do
