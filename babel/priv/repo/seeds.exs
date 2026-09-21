@@ -1,4 +1,10 @@
+import Ecto.Query
+
 alias Babel.Accounts.Account
+alias Babel.Errors
+alias Babel.Errors.Issue
+alias Babel.Errors.IssueCoalescer
+alias Babel.Errors.SentryEvent
 alias Babel.GoToMarket
 alias Babel.GoToMarket.Prospect
 alias Babel.Organizations.Interaction
@@ -309,3 +315,155 @@ for %{organization_name: organization_name} = attributes <- interactions do
     interaction -> Repo.update!(Interaction.changeset(interaction, attributes))
   end
 end
+
+# Errors: a default DSN plus a handful of realistic issues so /errors
+# renders something on a fresh dev database. Uses the real ingest path
+# (SentryEvent.parse -> record_event) so grouping, fingerprinting, and
+# status transitions match production behavior.
+
+errors_org = Map.fetch!(organizations_by_name, "Northstar Learning")
+:ok = Errors.ensure_default_key(errors_org.id)
+
+errors_seed_payloads = [
+  %{
+    "event_id" => "0198b3ce6f007b2f9bc7345e34201001",
+    "timestamp" => DateTime.to_iso8601(DateTime.add(now, -3600, :second)),
+    "platform" => "elixir",
+    "level" => "error",
+    "environment" => "production",
+    "release" => "glossia@2026.09.20",
+    "server_name" => "glossia-web-6d8b7f-abc12",
+    "transaction" => "GET /projects/:handle/-/translations",
+    "exception" => %{
+      "values" => [
+        %{
+          "type" => "Ecto.ConstraintError",
+          "value" => "constraint error when attempting to insert struct: translations_project_id_locale_index",
+          "stacktrace" => %{
+            "frames" => [
+              %{
+                "filename" => "lib/glossia/translations.ex",
+                "function" => "Glossia.Translations.upsert_translation/2",
+                "lineno" => 187,
+                "in_app" => true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "user" => %{"id" => "u_142", "email" => "pierre@northstarlearning.example.com"},
+    "request" => %{"url" => "https://glossia.ai/northstar-learning/tutorials/-/translations"},
+    "tags" => %{"locale" => "fr", "runtime" => "otp-27.1"},
+    "sdk" => %{"name" => "sentry.elixir", "version" => "10.2.0"}
+  },
+  %{
+    "event_id" => "0198b3ce6f007b2f9bc7345e34201002",
+    "timestamp" => DateTime.to_iso8601(DateTime.add(now, -900, :second)),
+    "platform" => "javascript",
+    "level" => "warning",
+    "environment" => "production",
+    "release" => "glossia-web@2026.09.20",
+    "transaction" => "TranslationsDashboard",
+    "exception" => %{
+      "values" => [
+        %{
+          "type" => "TypeError",
+          "value" => "Cannot read properties of undefined (reading 'segments')",
+          "stacktrace" => %{
+            "frames" => [
+              %{
+                "filename" => "app://dashboard/translations.tsx",
+                "function" => "renderSegmentGrid",
+                "lineno" => 214,
+                "in_app" => true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "user" => %{"id" => "u_318"},
+    "request" => %{"url" => "https://glossia.ai/paper-kite-publishing/help/-/translations/es"},
+    "tags" => %{"browser" => "chrome/128", "locale" => "es"},
+    "sdk" => %{"name" => "sentry.javascript.browser", "version" => "8.31.0"}
+  },
+  %{
+    "event_id" => "0198b3ce6f007b2f9bc7345e34201003",
+    "timestamp" => DateTime.to_iso8601(DateTime.add(now, -180, :second)),
+    "platform" => "elixir",
+    "level" => "fatal",
+    "environment" => "production",
+    "release" => "glossia@2026.09.20",
+    "server_name" => "glossia-flame-runner-72c1a",
+    "transaction" => "Glossia.Sandbox.Runner",
+    "exception" => %{
+      "values" => [
+        %{
+          "type" => "MuonTrap.TimeoutError",
+          "value" => "external command timed out after 60s",
+          "stacktrace" => %{
+            "frames" => [
+              %{
+                "filename" => "lib/glossia/sandbox/runner.ex",
+                "function" => "Glossia.Sandbox.Runner.run/2",
+                "lineno" => 94,
+                "in_app" => true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "tags" => %{"runner_pool" => "flame-lg", "job_kind" => "translate"},
+    "sdk" => %{"name" => "sentry.elixir", "version" => "10.2.0"}
+  },
+  %{
+    "event_id" => "0198b3ce6f007b2f9bc7345e34201004",
+    "timestamp" => DateTime.to_iso8601(DateTime.add(now, -30, :second)),
+    "platform" => "elixir",
+    "level" => "info",
+    "environment" => "production",
+    "release" => "glossia@2026.09.20",
+    "message" => %{"formatted" => "Cachex miss stampede on translations_settings; capping observed at 42 concurrent resolvers"},
+    "tags" => %{"cache" => "translations_settings"},
+    "sdk" => %{"name" => "sentry.elixir", "version" => "10.2.0"}
+  }
+]
+
+# Second occurrence of the constraint error, from a different user +
+# timestamp, so the first issue rolls up to event_count = 2.
+duplicate_payload =
+  errors_seed_payloads
+  |> List.first()
+  |> Map.merge(%{
+    "event_id" => "0198b3ce6f007b2f9bc7345e34201005",
+    "timestamp" => DateTime.to_iso8601(DateTime.add(now, -1200, :second)),
+    "user" => %{"id" => "u_204", "email" => "mika@paperkite.example.com"}
+  })
+
+for payload <- errors_seed_payloads ++ [duplicate_payload] do
+  event = SentryEvent.parse(payload)
+  :ok = Errors.record_event(errors_org.id, event)
+end
+
+# The coalescer batches rollups on a 5s tick; flush synchronously so
+# seeded issues show accurate counts and last_seen the moment the
+# server boots against a fresh database.
+:ok = IssueCoalescer.flush()
+
+# Demonstrate the resolved and ignored states on two of the issues.
+issue_where_title_like = fn prefix ->
+  Repo.one(
+    from(i in Issue,
+      where: i.organization_id == ^errors_org.id and like(i.title, ^"#{prefix}%"),
+      limit: 1
+    )
+  )
+end
+
+if constraint_issue = issue_where_title_like.("Ecto.ConstraintError"),
+  do: Errors.resolve_issue(constraint_issue)
+
+if cachex_issue = issue_where_title_like.("Cachex miss stampede"),
+  do: Errors.ignore_issue(cachex_issue)
