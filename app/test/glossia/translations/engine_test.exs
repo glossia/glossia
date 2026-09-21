@@ -512,6 +512,52 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    @tag :tmp_dir
+    test "surfaces a per-file preservation error when preserved translations skew from source shape",
+         %{tmp_dir: dir} do
+      # Defensive guard: `Locks.po_status/3` aligns preserved translations to
+      # source shape via `Po.align_translations/2` before they reach the
+      # engine, so a length skew here would be a programming error, not a
+      # data one. Verifying the guard turns that skew into a per-file
+      # preservation failure — routed through the existing telemetry — and
+      # never a bare-length list that quietly under-counts the rebuild.
+      source_path = Path.join(dir, "default.pot")
+
+      content =
+        ~s(msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Hello"\nmsgstr ""\n\nmsgid "%d file"\nmsgid_plural "%d files"\nmsgstr[0] ""\nmsgstr[1] ""\n)
+
+      File.write!(source_path, content)
+
+      {:ok, [header_unit, hello_unit, plural_unit]} =
+        Glossia.Translations.Po.translation_units(content)
+
+      # Stub echoes the batch back so the stale msgid's translation matches
+      # the expected count and clears `distribute_po_translations`; the only
+      # skew is the hand-forged preserved plural list, which reaches
+      # `units_translations_in_order` and trips its length guard.
+      stub_stream(fn _account, payload, _on_event ->
+        translated(payload["source_content"])
+      end)
+
+      po_diff = %{
+        stale_keys: [hello_unit.key],
+        preserved: %{
+          header_unit.key => ["Language: es\n"],
+          plural_unit.key => ["only-one"]
+        }
+      }
+
+      item = work_item(%{source_abs: source_path, format: "po", po_diff: po_diff})
+
+      assert {:error, {:validation_failed, message}} =
+               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      assert message =~ "po text-literal response length"
+      assert message =~ "did not match source shape"
+      assert message =~ plural_unit.key
+    end
+
+    @tag :tmp_dir
     test "ships only stale msgids to the model when a po_diff is present",
          %{tmp_dir: dir} do
       source_path = Path.join(dir, "default.pot")
