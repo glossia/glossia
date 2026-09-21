@@ -26,6 +26,7 @@ defmodule BabelWeb.Errors.EnvelopeController do
   require Logger
 
   alias Babel.Errors
+  alias Babel.Errors.Envelope
   alias Babel.Errors.Key
 
   @max_body_bytes 20 * 1024 * 1024
@@ -257,31 +258,30 @@ defmodule BabelWeb.Errors.EnvelopeController do
   ## event id extraction (best-effort — used only for the response body)
 
   defp extract_event_id(body) do
-    case Babel.Errors.Envelope.parse(body) do
+    case Envelope.parse(body) do
       {:ok, %{header: %{"event_id" => id}}} when is_binary(id) ->
         normalize_event_id(id)
 
       {:ok, %{items: items}} ->
-        items
-        |> Enum.find_value(fn
-          %{type: "event", payload: payload} ->
-            case Jason.decode(payload) do
-              {:ok, %{"event_id" => id}} when is_binary(id) -> normalize_event_id(id)
-              _ -> nil
-            end
-
-          _ ->
-            nil
-        end)
-        |> case do
-          nil -> random_event_id()
-          id -> id
-        end
+        find_event_id_in_items(items) || random_event_id()
 
       _ ->
         random_event_id()
     end
   end
+
+  defp find_event_id_in_items(items) do
+    Enum.find_value(items, &event_id_from_item/1)
+  end
+
+  defp event_id_from_item(%{type: "event", payload: payload}) do
+    case Jason.decode(payload) do
+      {:ok, %{"event_id" => id}} when is_binary(id) -> normalize_event_id(id)
+      _ -> nil
+    end
+  end
+
+  defp event_id_from_item(_), do: nil
 
   defp normalize_event_id(id), do: String.replace(id, "-", "") |> String.downcase()
 
