@@ -24,6 +24,7 @@ defmodule Glossia.Seeds do
   }
 
   alias Glossia.AccountTokens
+  alias Glossia.Ingestion
   alias Glossia.LLMModels
   alias Glossia.TranslationRouting
   alias Glossia.Github.Installations
@@ -1320,8 +1321,11 @@ defmodule Glossia.Seeds do
     now = DateTime.utc_now()
     two_hours_ago = DateTime.add(now, -7200, :second)
     one_hour_ago = DateTime.add(now, -3600, :second)
+    fifteen_min_ago = DateTime.add(now, -900, :second)
 
-    # Session 1: completed translation (en -> es, fr)
+    # Session 1: completed translation (en -> es, fr). Production emits a single
+    # `status` event summarising the run; the file-by-file view is rebuilt from
+    # the durable progress events RepositoryRun broadcasts.
     {:ok, session1} =
       TranslationSessions.create_session(user.account, project, %{
         commit_sha: "a1b2c3d",
@@ -1334,73 +1338,70 @@ defmodule Glossia.Seeds do
         target_languages: ["es", "fr"],
         publication_branch: "glossia/translate-a1b2c3d",
         publication_commit_sha: "f6e5d4c3b2a1",
-        pull_request_url: "https://github.com/glossia/demo/pull/12",
-        summary:
-          "Translated 3 files into Spanish and French. All translations verified against terminology.",
+        pull_request_url: "https://github.com/dev-user/blog/pull/12",
+        pull_request_number: 12,
+        summary: "Translated 3 files into Spanish and French. 2 files were already up to date.",
         started_at: two_hours_ago,
         completed_at: DateTime.add(two_hours_ago, 342, :second)
       })
 
-    session1_events = [
-      {0, "message", "Starting translation session for commit a1b2c3d.", "{}"},
-      {1, "thought",
-       "This commit modifies a blog post. I need to check which languages are configured and translate the changed files.",
-       "{}"},
-      {2, "tool_call", "glossia status",
-       ~s({"tool_name":"glossia-cli","command":"glossia status"})},
-      {3, "tool_result",
-       "Source language: en\nTarget languages: es, fr\nStale files: 3\n  - content/blog/getting-started.md (es, fr)\n  - content/blog/getting-started-meta.json (es, fr)",
-       ~s({"tool_name":"glossia-cli"})},
-      {4, "plan", "Translation plan for 3 files",
-       ~s({"entries":[{"label":"Read voice and terminology configuration","status":"completed"},{"label":"Translate getting-started.md to Spanish","status":"completed"},{"label":"Translate getting-started.md to French","status":"completed"},{"label":"Translate getting-started-meta.json to Spanish","status":"completed"},{"label":"Translate getting-started-meta.json to French","status":"completed"},{"label":"Run terminology validation","status":"completed"}]})},
-      {5, "tool_call", "glossia voice show",
-       ~s({"tool_name":"glossia-cli","command":"glossia voice show"})},
-      {6, "tool_result",
-       "Tone: casual\nFormality: neutral\nTarget audience: Developers evaluating Glossia\nGuidelines: Write in short, concrete sentences. Prefer active voice. Use American English.",
-       ~s({"tool_name":"glossia-cli"})},
-      {7, "message",
-       "Voice loaded. Translating content/blog/getting-started.md to Spanish with casual tone and developer-focused language.",
-       "{}"},
-      {8, "tool_call", "glossia translate content/blog/getting-started.md --lang es",
-       ~s({"tool_name":"glossia-cli","command":"glossia translate content/blog/getting-started.md --lang es"})},
-      {9, "tool_result",
-       "Translated content/blog/getting-started.md -> content/es/blog/getting-started.md",
-       ~s({"tool_name":"glossia-cli"})},
-      {10, "message", "Spanish translation complete. Now translating to French.", "{}"},
-      {11, "tool_call", "glossia translate content/blog/getting-started.md --lang fr",
-       ~s({"tool_name":"glossia-cli","command":"glossia translate content/blog/getting-started.md --lang fr"})},
-      {12, "tool_result",
-       "Translated content/blog/getting-started.md -> content/fr/blog/getting-started.md",
-       ~s({"tool_name":"glossia-cli"})},
-      {13, "thought",
-       "Both language translations for the main blog post are done. Now I need to handle the meta JSON file and run terminology validation.",
-       "{}"},
-      {14, "tool_call", "glossia translate content/blog/getting-started-meta.json --lang es,fr",
-       ~s({"tool_name":"glossia-cli","command":"glossia translate content/blog/getting-started-meta.json --lang es,fr"})},
-      {15, "tool_result",
-       "Translated content/blog/getting-started-meta.json -> content/es/blog/getting-started-meta.json\nTranslated content/blog/getting-started-meta.json -> content/fr/blog/getting-started-meta.json",
-       ~s({"tool_name":"glossia-cli"})},
-      {16, "tool_call", "glossia validate --terminology",
-       ~s({"tool_name":"glossia-cli","command":"glossia validate --terminology"})},
-      {17, "tool_result",
-       "Terminology validation passed. All terms consistent across translations.",
-       ~s({"tool_name":"glossia-cli"})},
-      {18, "message",
-       "All translations completed and validated. 3 files translated into Spanish and French. Terminology terms are consistent.",
-       "{}"}
-    ]
+    seed_progress_events!(session1, [
+      %{type: "run_started"},
+      %{type: "plan", total: 5},
+      %{type: "plan_assessed", total: 5, needs_translation: 3, up_to_date: 2},
+      %{
+        type: "item_started",
+        index: 0,
+        total: 5,
+        output_path: "content/es/blog/getting-started.md",
+        locale: "es"
+      },
+      %{
+        type: "item_completed",
+        index: 0,
+        output_path: "content/es/blog/getting-started.md",
+        output_preview: seed_translation_preview(:es_getting_started),
+        model_calls: 2
+      },
+      %{
+        type: "item_started",
+        index: 1,
+        total: 5,
+        output_path: "content/fr/blog/getting-started.md",
+        locale: "fr"
+      },
+      %{
+        type: "item_completed",
+        index: 1,
+        output_path: "content/fr/blog/getting-started.md",
+        output_preview: seed_translation_preview(:fr_getting_started),
+        model_calls: 2
+      },
+      %{
+        type: "item_started",
+        index: 2,
+        total: 5,
+        output_path: "content/es/blog/getting-started-meta.json",
+        locale: "es"
+      },
+      %{
+        type: "item_completed",
+        index: 2,
+        output_path: "content/es/blog/getting-started-meta.json",
+        output_preview: seed_translation_preview(:es_meta),
+        model_calls: 1
+      }
+    ])
 
-    for {seq, type, content, metadata} <- session1_events do
-      Glossia.Ingestion.record_translation_session_event(
-        session1.id,
-        seq,
-        type,
-        content,
-        metadata
-      )
-    end
+    record_translation_status!(
+      session1,
+      "Translated 3 files into Spanish and French. 2 files were already up to date."
+    )
 
-    # Session 2: a checkpointed run superseded by a newer default-branch commit
+    # Session 2: a run superseded by a newer default-branch commit. Production
+    # records no dedicated superseded event — the session is cancelled and the
+    # replacement run's outcome tells the story. Items in flight are closed out
+    # with `item_cancelled` so the panel does not leave them spinning.
     {:ok, superseded_session} =
       TranslationSessions.create_session(user.account, project, %{
         commit_sha: "d3e4f5a",
@@ -1408,17 +1409,54 @@ defmodule Glossia.Seeds do
         status: "cancelled",
         outcome: "superseded",
         translated_content_count: 1,
+        content_hit_count: 0,
         source_language: "en",
         target_languages: ["ja", "de"],
         publication_branch: "glossia/translate-d3e4f5a",
         publication_commit_sha: "b4c5d6e7f8a9",
-        pull_request_url: "https://github.com/glossia/demo/pull/13",
+        pull_request_url: "https://github.com/dev-user/blog/pull/13",
         pull_request_number: 13,
         started_at: one_hour_ago,
         completed_at: DateTime.add(one_hour_ago, 180, :second)
       })
 
-    # Session 3: the replacement reusing session 2's completed translation work
+    seed_progress_events!(superseded_session, [
+      %{type: "run_started"},
+      %{type: "plan", total: 4},
+      %{type: "plan_assessed", total: 4, needs_translation: 4, up_to_date: 0},
+      %{
+        type: "item_started",
+        index: 0,
+        total: 4,
+        output_path: "content/ja/blog/advanced-localization.md",
+        locale: "ja"
+      },
+      %{
+        type: "item_completed",
+        index: 0,
+        output_path: "content/ja/blog/advanced-localization.md",
+        output_preview: seed_translation_preview(:ja_advanced),
+        model_calls: 3
+      },
+      %{
+        type: "item_started",
+        index: 1,
+        total: 4,
+        output_path: "content/de/blog/advanced-localization.md",
+        locale: "de"
+      },
+      %{
+        type: "item_cancelled",
+        index: 1,
+        output_path: "content/de/blog/advanced-localization.md",
+        locale: "de",
+        reason: %{"kind" => "session_superseded"}
+      }
+    ])
+
+    # Session 3: the replacement session, still in flight. Its first file is
+    # done, the second is in the middle of translating. Because it is still
+    # `running`, no completion status event has been recorded yet.
     {:ok, session2} =
       TranslationSessions.create_session(user.account, project, %{
         commit_sha: "e4f5g6h",
@@ -1431,45 +1469,98 @@ defmodule Glossia.Seeds do
         publication_commit_sha: superseded_session.publication_commit_sha,
         pull_request_url: superseded_session.pull_request_url,
         pull_request_number: superseded_session.pull_request_number,
-        started_at: one_hour_ago
+        started_at: fifteen_min_ago
       })
 
-    session2_events = [
-      {0, "message", "Starting translation session for commit e4f5g6h.", "{}"},
-      {1, "thought",
-       "New blog post added. I need to translate it into Japanese and German. Japanese requires careful handling of honorifics and sentence structure.",
-       "{}"},
-      {2, "tool_call", "glossia status",
-       ~s({"tool_name":"glossia-cli","command":"glossia status"})},
-      {3, "tool_result",
-       "Source language: en\nTarget languages: ja, de\nStale files: 2\n  - content/blog/advanced-localization.md (ja, de)\n  - content/blog/advanced-localization-meta.json (ja, de)",
-       ~s({"tool_name":"glossia-cli"})},
-      {4, "plan", "Translation plan for 2 files",
-       ~s({"entries":[{"label":"Read voice and terminology configuration","status":"completed"},{"label":"Translate advanced-localization.md to Japanese","status":"in_progress"},{"label":"Translate advanced-localization.md to German","status":"pending"},{"label":"Translate advanced-localization-meta.json to Japanese and German","status":"pending"},{"label":"Run terminology validation","status":"pending"}]})},
-      {5, "tool_call", "glossia voice show",
-       ~s({"tool_name":"glossia-cli","command":"glossia voice show"})},
-      {6, "tool_result",
-       "Tone: casual\nFormality: neutral\nTarget audience: Developers evaluating Glossia\nCultural notes (JP): Japanese communication style values politeness and indirectness.",
-       ~s({"tool_name":"glossia-cli"})},
-      {7, "thought",
-       "The cultural notes for Japan emphasize politeness. I should adjust the tone to be more formal for the Japanese translation while keeping the technical content accurate.",
-       "{}"},
-      {8, "message",
-       "Translating advanced-localization.md to Japanese with adjusted formality level.", "{}"}
-    ]
+    seed_progress_events!(session2, [
+      %{type: "run_started"},
+      %{type: "plan", total: 4},
+      %{type: "plan_assessed", total: 4, needs_translation: 4, up_to_date: 0},
+      %{
+        type: "item_started",
+        index: 0,
+        total: 4,
+        output_path: "content/ja/blog/advanced-localization.md",
+        locale: "ja"
+      },
+      %{
+        type: "item_completed",
+        index: 0,
+        output_path: "content/ja/blog/advanced-localization.md",
+        output_preview: seed_translation_preview(:ja_advanced),
+        model_calls: 3
+      },
+      %{
+        type: "item_started",
+        index: 1,
+        total: 4,
+        output_path: "content/de/blog/advanced-localization.md",
+        locale: "de"
+      }
+    ])
 
-    for {seq, type, content, metadata} <- session2_events do
-      Glossia.Ingestion.record_translation_session_event(
-        session2.id,
-        seq,
-        type,
-        content,
-        metadata
-      )
-    end
-
-    # Wait for buffer flush
+    # ClickHouse buffer flush for the session1 status event.
     Process.sleep(2_000)
+  end
+
+  # Broadcasts durable progress events through the same seam production uses,
+  # so each event is written to `translation_session_progress_events` and folds
+  # into the same panel state a live viewer would see.
+  defp seed_progress_events!(%TranslationSession{} = session, events) do
+    Enum.each(events, &TranslationSessions.broadcast_session_event(session, &1))
+  end
+
+  defp record_translation_status!(%TranslationSession{} = session, content) do
+    Ingestion.record_translation_session_event(session.id, 0, "status", content, "{}")
+  end
+
+  # Short, realistic translated excerpts so the "Show translated output"
+  # disclosures on the file rows contain actual content rather than lorem ipsum.
+  defp seed_translation_preview(:es_getting_started) do
+    """
+    # Primeros pasos con Glossia
+
+    Glossia mantiene la localización de tu proyecto sincronizada con tu código.
+    En esta guía configurarás Glossia en tu repositorio en menos de cinco minutos.
+
+    ## Requisitos previos
+
+    - Una cuenta de Glossia
+    - Un repositorio de GitHub con contenido en inglés
+    """
+  end
+
+  defp seed_translation_preview(:fr_getting_started) do
+    """
+    # Prise en main de Glossia
+
+    Glossia maintient la localisation de votre projet synchronisée avec votre code.
+    Dans ce guide, vous allez configurer Glossia dans votre dépôt en moins de cinq minutes.
+
+    ## Prérequis
+
+    - Un compte Glossia
+    - Un dépôt GitHub avec du contenu en anglais
+    """
+  end
+
+  defp seed_translation_preview(:es_meta) do
+    ~s({\n  "title": "Primeros pasos con Glossia",\n  "description": "Configura Glossia en tu proyecto en cinco minutos.",\n  "tags": ["guía", "localización", "inicio rápido"]\n})
+  end
+
+  defp seed_translation_preview(:ja_advanced) do
+    """
+    # 高度なローカライゼーションのパターン
+
+    このガイドでは、Glossia を使って大規模な多言語プロジェクトを管理するための
+    実践的なパターンを紹介します。翻訳の一貫性を保ちながら、レビューのオーバーヘッドを
+    最小限に抑える方法を学びます。
+
+    ## 前提条件
+
+    - Glossia を設定済みのリポジトリ
+    - ソース言語で書かれたコンテンツ
+    """
   end
 
   defp refresh_seeded_translation_outcomes!(%Project{} = project) do
