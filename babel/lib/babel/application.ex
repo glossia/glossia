@@ -12,6 +12,7 @@ defmodule Babel.Application do
       Babel.Pomerium.JWKSCache,
       Babel.Organizations.DirectoryCache,
       Babel.Organizations.UsageCache,
+      Babel.Errors.IssueCoalescer,
       {Phoenix.PubSub, name: Babel.PubSub},
       BabelWeb.Telemetry,
       Hermes.Server.Registry,

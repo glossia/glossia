@@ -44,22 +44,38 @@ defmodule BabelWeb.Layouts do
               label="Overview"
               icon="smart_home"
               navigate={~p"/"}
-              selected={@live_action == :overview}
+              selected={@current_path == "/"}
             />
             <.sidebar_item
-            id="babel-growth-navigation"
-            label="Growth"
-            icon="chart_donut_4"
-            navigate={~p"/growth"}
-              selected={@live_action == :go_to_market}
+              id="babel-growth-navigation"
+              label="Growth"
+              icon="chart_donut_4"
+              navigate={~p"/growth"}
+              selected={String.starts_with?(@current_path, "/growth")}
             />
             <.sidebar_item
               id="babel-organizations-navigation"
               label="Organizations"
               icon="building"
               navigate={~p"/organizations"}
-              selected={@live_action in [:organizations, :organization]}
+              selected={String.starts_with?(@current_path, "/organizations")}
             />
+            <.sidebar_group
+              id="babel-observability-navigation"
+              label="Observability"
+              icon="alert_triangle"
+              navigate={~p"/errors"}
+              selected={String.starts_with?(@current_path, "/errors")}
+              default_open={String.starts_with?(@current_path, "/errors")}
+            >
+              <.sidebar_item
+                id="babel-errors-navigation"
+                label="Errors"
+                icon="alert_circle"
+                navigate={~p"/errors"}
+                selected={String.starts_with?(@current_path, "/errors")}
+              />
+            </.sidebar_group>
           </.sidebar>
         </aside>
 

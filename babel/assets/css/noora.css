@@ -6,6 +6,7 @@
 @import "./routes/organizations.css";
 @import "./routes/organization.css";
 @import "./routes/overview.css";
+@import "./routes/errors.css";
 
 html,
 body {
