@@ -74,17 +74,13 @@ defmodule Babel.Errors do
   end
 
   defp ingest_event_item(organization_id, item) do
-    with {:ok, decoded} <- Jason.decode(item.payload),
+    with {:ok, decoded} <- JSON.decode(item.payload),
          event = SentryEvent.parse(decoded),
          :ok <- record_event(organization_id, event) do
       :ok
     else
-      {:error, %Jason.DecodeError{}} ->
-        # Malformed SDK input. Not our fault, not worth alerting on.
-        :ok
-
       {:error, reason} ->
-        Logger.warning("errors: dropping event: #{inspect(reason)}")
+        Logger.debug("errors: dropping event: #{inspect(reason)}")
         :ok
     end
   end
@@ -176,7 +172,7 @@ defmodule Babel.Errors do
     |> Map.merge(actor_columns(event))
     |> Map.merge(sdk_columns(event))
     |> Map.put(:tags, event.tags)
-    |> Map.put(:payload, Jason.encode!(event.payload))
+    |> Map.put(:payload, JSON.encode!(event.payload))
   end
 
   defp core_columns(organization_id, issue_id, event, fingerprint) do

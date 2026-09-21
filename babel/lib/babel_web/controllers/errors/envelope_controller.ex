@@ -249,7 +249,7 @@ defmodule BabelWeb.Errors.EnvelopeController do
     conn
     |> put_cors_headers()
     |> put_resp_content_type("application/json")
-    |> send_resp(status, Jason.encode!(body))
+    |> send_resp(status, JSON.encode!(body))
   end
 
   defp to_string_reason(reason) when is_binary(reason), do: reason
@@ -275,7 +275,7 @@ defmodule BabelWeb.Errors.EnvelopeController do
   end
 
   defp event_id_from_item(%{type: "event", payload: payload}) do
-    case Jason.decode(payload) do
+    case JSON.decode(payload) do
       {:ok, %{"event_id" => id}} when is_binary(id) -> normalize_event_id(id)
       _ -> nil
     end

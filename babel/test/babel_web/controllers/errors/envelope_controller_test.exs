@@ -44,7 +44,7 @@ defmodule BabelWeb.Errors.EnvelopeControllerTest do
         |> post("/api/#{key.dsn_project_id}/envelope/", body)
 
       assert conn.status == 200
-      response = Jason.decode!(conn.resp_body)
+      response = JSON.decode!(conn.resp_body)
       assert response["id"] == event_id
 
       # Coalescer flushes asynchronously; the event row is written
@@ -104,7 +104,7 @@ defmodule BabelWeb.Errors.EnvelopeControllerTest do
         |> post("/api/#{key.dsn_project_id}/envelope/", body)
 
       assert conn.status == 401
-      assert Jason.decode!(conn.resp_body) == %{"detail" => "invalid_dsn"}
+      assert JSON.decode!(conn.resp_body) == %{"detail" => "invalid_dsn"}
     end
 
     test "rejects mismatched project id with 401", %{conn: conn, key: key} do
@@ -119,7 +119,7 @@ defmodule BabelWeb.Errors.EnvelopeControllerTest do
         |> post("/api/999999/envelope/", body)
 
       assert conn.status == 401
-      assert Jason.decode!(conn.resp_body) == %{"detail" => "invalid_dsn"}
+      assert JSON.decode!(conn.resp_body) == %{"detail" => "invalid_dsn"}
     end
 
     test "responds to CORS preflight with permissive headers", %{conn: conn, key: key} do
@@ -172,7 +172,7 @@ defmodule BabelWeb.Errors.EnvelopeControllerTest do
     }
 
     Enum.join(
-      [Jason.encode!(envelope_header), Jason.encode!(item_header), Jason.encode!(payload)],
+      [JSON.encode!(envelope_header), JSON.encode!(item_header), JSON.encode!(payload)],
       "\n"
     ) <> "\n"
   end

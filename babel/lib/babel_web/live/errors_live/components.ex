@@ -248,11 +248,11 @@ defmodule BabelWeb.ErrorsLive.Components do
     if Enum.all?(map, fn {_, v} -> is_binary(v) or is_number(v) or is_boolean(v) end) do
       Enum.map_join(map, ", ", fn {k, v} -> "#{k}: #{v}" end)
     else
-      Jason.encode!(map, pretty: true)
+      inspect(map, pretty: true, limit: :infinity)
     end
   end
 
-  def format_context_value(v), do: Jason.encode!(v, pretty: true)
+  def format_context_value(v), do: inspect(v, pretty: true, limit: :infinity)
 
   ## Frame rendering
 

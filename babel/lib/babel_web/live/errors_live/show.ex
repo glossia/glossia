@@ -183,7 +183,7 @@ defmodule BabelWeb.ErrorsLive.Show do
         payload
 
       payload when is_binary(payload) ->
-        case Jason.decode(payload) do
+        case JSON.decode(payload) do
           {:ok, %{} = decoded} -> decoded
           _ -> %{}
         end

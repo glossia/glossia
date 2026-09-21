@@ -89,7 +89,7 @@ defmodule Babel.Errors.Envelope do
   defp decode_json("", _rest), do: :error
 
   defp decode_json(line, rest) do
-    case Jason.decode(line) do
+    case JSON.decode(line) do
       {:ok, decoded} when is_map(decoded) -> {:ok, decoded, rest}
       _ -> :error
     end

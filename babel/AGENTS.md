@@ -11,6 +11,7 @@
 - Do not write `@type` or `@spec` module attributes. Keep intent clear through module documentation, function names, signatures, and tests.
 - Use `MuonTrap.cmd/3` for external commands. It ensures child operating-system processes are supervised and shut down correctly.
 - Use `Req` for Hypertext Transfer Protocol requests. Do not add another client without a specific reason.
+- Use the built-in `JSON` module (Elixir 1.18+/OTP 27+) for JavaScript Object Notation encoding and decoding. Do not add or call `Jason`. `JSON` returns `{:error, reason}` tuples (not `%Jason.DecodeError{}`); pattern-match on `{:error, _}` in `with` chains. `JSON` has no `pretty: true` option, so use `inspect(value, pretty: true, limit: :infinity)` for display formatting.
 - Do not use `String.to_atom/1` with user input.
 - Predicate function names should end in `?`; reserve `is_` prefixes for guards.
 - Give `DynamicSupervisor` and `Registry` processes a name in their child specification.
