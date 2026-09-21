@@ -128,30 +128,28 @@ defmodule BabelWeb.ErrorsLive.Show do
           icon="list_tree"
           id="error-events-card"
         >
-          <.card_section>
-            <.table id="error-events-table" rows={@events}>
-              <:col :let={event} label="Time">
-                <.link
-                  navigate={~p"/errors/#{@issue.id}/events/#{normalize_event_id(event.event_id)}"}
-                  data-part="event-link"
-                >
-                  <span title={format_datetime(event.timestamp)}>
-                    {relative_time(event.timestamp)}
-                  </span>
-                </.link>
-              </:col>
-              <:col :let={event} label="Level"><.issue_level_badge level={event.level} /></:col>
-              <:col :let={event} label="Environment">{event.environment || "-"}</:col>
-              <:col :let={event} label="Release">{event.release || "-"}</:col>
-              <:empty_state>
-                <.table_empty_state
-                  icon="list_tree"
-                  title="No recent events"
-                  subtitle="Events for this issue will appear here."
-                />
-              </:empty_state>
-            </.table>
-          </.card_section>
+          <.table id="error-events-table" rows={@events}>
+            <:col :let={event} label="Time">
+              <.link
+                navigate={~p"/errors/#{@issue.id}/events/#{normalize_event_id(event.event_id)}"}
+                data-part="event-link"
+              >
+                <span title={format_datetime(event.timestamp)}>
+                  {relative_time(event.timestamp)}
+                </span>
+              </.link>
+            </:col>
+            <:col :let={event} label="Level"><.issue_level_badge level={event.level} /></:col>
+            <:col :let={event} label="Environment">{event.environment || "-"}</:col>
+            <:col :let={event} label="Release">{event.release || "-"}</:col>
+            <:empty_state>
+              <.table_empty_state
+                icon="list_tree"
+                title="No recent events"
+                subtitle="Events for this issue will appear here."
+              />
+            </:empty_state>
+          </.table>
         </.card>
       </section>
     </Layouts.app>

@@ -39,34 +39,48 @@ defmodule BabelWeb.Layouts do
       <div data-part="main">
         <aside id="babel-navigation" data-part="sidebar">
           <.sidebar id="babel-sidebar">
-            <.sidebar_item
-              id="babel-overview-navigation"
+            <.sidebar_group
+              id="babel-overview-section"
               label="Overview"
               icon="smart_home"
-              navigate={~p"/"}
-              selected={@current_path == "/"}
-            />
-            <.sidebar_item
-              id="babel-growth-navigation"
-              label="Growth"
-              icon="chart_donut_4"
-              navigate={~p"/growth"}
-              selected={String.starts_with?(@current_path, "/growth")}
-            />
-            <.sidebar_item
-              id="babel-organizations-navigation"
-              label="Organizations"
-              icon="building"
-              navigate={~p"/organizations"}
-              selected={String.starts_with?(@current_path, "/organizations")}
-            />
+              collapsible={false}
+            >
+              <.sidebar_item
+                id="babel-overview-navigation"
+                label="Home"
+                icon="smart_home"
+                navigate={~p"/"}
+                selected={@current_path == "/"}
+              />
+            </.sidebar_group>
+
             <.sidebar_group
-              id="babel-observability-navigation"
-              label="Observability"
+              id="babel-commercial-section"
+              label="Commercial"
+              icon="chart_donut_4"
+              collapsible={false}
+            >
+              <.sidebar_item
+                id="babel-growth-navigation"
+                label="Growth"
+                icon="chart_donut_4"
+                navigate={~p"/growth"}
+                selected={String.starts_with?(@current_path, "/growth")}
+              />
+              <.sidebar_item
+                id="babel-organizations-navigation"
+                label="Organizations"
+                icon="building"
+                navigate={~p"/organizations"}
+                selected={String.starts_with?(@current_path, "/organizations")}
+              />
+            </.sidebar_group>
+
+            <.sidebar_group
+              id="babel-engineering-section"
+              label="Engineering"
               icon="alert_triangle"
-              navigate={~p"/errors"}
-              selected={String.starts_with?(@current_path, "/errors")}
-              default_open={String.starts_with?(@current_path, "/errors")}
+              collapsible={false}
             >
               <.sidebar_item
                 id="babel-errors-navigation"
