@@ -1313,6 +1313,13 @@ defmodule Glossia.Seeds do
     if existing == 0, do: seed_translation_sessions!(project, user)
 
     refresh_seeded_translation_outcomes!(project)
+    # A developer whose local database predates the durable progress events
+    # keeps the three demo session rows but has no progress rows to fold into
+    # the "Translated files" panel. Replay them here, guarded per-session, so
+    # the panel populates without needing an ecto reset. `broadcast_session_event`
+    # writes with `on_conflict: :nothing` on `(session_id, seq)`, so replay is a
+    # no-op when the rows already exist.
+    backfill_seeded_translation_progress!(project)
     ensure_translation_dashboard_history!(project, user)
     ensure_translation_pagination_history!(project, user)
   end
@@ -1345,7 +1352,95 @@ defmodule Glossia.Seeds do
         completed_at: DateTime.add(two_hours_ago, 342, :second)
       })
 
-    seed_progress_events!(session1, [
+    seed_progress_events!(session1, session1_progress_events())
+
+    record_translation_status!(
+      session1,
+      "Translated 3 files into Spanish and French. 2 files were already up to date."
+    )
+
+    # Session 2: a run superseded by a newer default-branch commit. Production
+    # records no dedicated superseded event — the session is cancelled and the
+    # replacement run's outcome tells the story. Items in flight are closed out
+    # with `item_cancelled` so the panel does not leave them spinning.
+    {:ok, superseded_session} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "d3e4f5a",
+        commit_message: "Add new blog post: Advanced localization patterns",
+        status: "cancelled",
+        outcome: "superseded",
+        translated_content_count: 1,
+        content_hit_count: 0,
+        source_language: "en",
+        target_languages: ["ja", "de"],
+        publication_branch: "glossia/translate-d3e4f5a",
+        publication_commit_sha: "b4c5d6e7f8a9",
+        pull_request_url: "https://github.com/dev-user/blog/pull/13",
+        pull_request_number: 13,
+        started_at: one_hour_ago,
+        completed_at: DateTime.add(one_hour_ago, 180, :second)
+      })
+
+    seed_progress_events!(superseded_session, superseded_session_progress_events())
+
+    # Session 3: the replacement session, still in flight. Its first file is
+    # done, the second is in the middle of translating. Because it is still
+    # `running`, no completion status event has been recorded yet.
+    {:ok, session2} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "e4f5g6h",
+        commit_message: "Polish advanced localization examples",
+        status: "running",
+        source_language: "en",
+        target_languages: ["ja", "de"],
+        continued_from_session_id: superseded_session.id,
+        publication_branch: superseded_session.publication_branch,
+        publication_commit_sha: superseded_session.publication_commit_sha,
+        pull_request_url: superseded_session.pull_request_url,
+        pull_request_number: superseded_session.pull_request_number,
+        started_at: fifteen_min_ago
+      })
+
+    seed_progress_events!(session2, session2_progress_events())
+
+    # ClickHouse buffer flush for the session1 status event.
+    Process.sleep(2_000)
+  end
+
+  # Broadcasts durable progress events through the same seam production uses,
+  # so each event is written to `translation_session_progress_events` and folds
+  # into the same panel state a live viewer would see.
+  defp seed_progress_events!(%TranslationSession{} = session, events) do
+    Enum.each(events, &TranslationSessions.broadcast_session_event(session, &1))
+  end
+
+  # Replays each demo session's durable progress events on top of whatever the
+  # database already has. `broadcast_session_event` inserts with
+  # `on_conflict: :nothing` on `(session_id, seq)`, so this is a no-op on a
+  # freshly seeded database and backfills the missing rows on an older one.
+  defp backfill_seeded_translation_progress!(%Project{} = project) do
+    events_by_sha = %{
+      "a1b2c3d" => session1_progress_events(),
+      "d3e4f5a" => superseded_session_progress_events(),
+      "e4f5g6h" => session2_progress_events()
+    }
+
+    sessions =
+      Repo.all(
+        from s in TranslationSession,
+          where: s.project_id == ^project.id and s.commit_sha in ["a1b2c3d", "d3e4f5a", "e4f5g6h"]
+      )
+
+    Enum.each(sessions, fn session ->
+      case Map.get(events_by_sha, session.commit_sha) do
+        nil -> :ok
+        events -> seed_progress_events!(session, events)
+      end
+    end)
+  end
+
+  defp session1_progress_events do
+    [
       %{type: "run_started"},
       %{type: "plan", total: 5},
       %{type: "plan_assessed", total: 5, needs_translation: 3, up_to_date: 2},
@@ -1391,36 +1486,11 @@ defmodule Glossia.Seeds do
         output_preview: seed_translation_preview(:es_meta),
         model_calls: 1
       }
-    ])
+    ]
+  end
 
-    record_translation_status!(
-      session1,
-      "Translated 3 files into Spanish and French. 2 files were already up to date."
-    )
-
-    # Session 2: a run superseded by a newer default-branch commit. Production
-    # records no dedicated superseded event — the session is cancelled and the
-    # replacement run's outcome tells the story. Items in flight are closed out
-    # with `item_cancelled` so the panel does not leave them spinning.
-    {:ok, superseded_session} =
-      TranslationSessions.create_session(user.account, project, %{
-        commit_sha: "d3e4f5a",
-        commit_message: "Add new blog post: Advanced localization patterns",
-        status: "cancelled",
-        outcome: "superseded",
-        translated_content_count: 1,
-        content_hit_count: 0,
-        source_language: "en",
-        target_languages: ["ja", "de"],
-        publication_branch: "glossia/translate-d3e4f5a",
-        publication_commit_sha: "b4c5d6e7f8a9",
-        pull_request_url: "https://github.com/dev-user/blog/pull/13",
-        pull_request_number: 13,
-        started_at: one_hour_ago,
-        completed_at: DateTime.add(one_hour_ago, 180, :second)
-      })
-
-    seed_progress_events!(superseded_session, [
+  defp superseded_session_progress_events do
+    [
       %{type: "run_started"},
       %{type: "plan", total: 4},
       %{type: "plan_assessed", total: 4, needs_translation: 4, up_to_date: 0},
@@ -1452,27 +1522,11 @@ defmodule Glossia.Seeds do
         locale: "de",
         reason: %{"kind" => "session_superseded"}
       }
-    ])
+    ]
+  end
 
-    # Session 3: the replacement session, still in flight. Its first file is
-    # done, the second is in the middle of translating. Because it is still
-    # `running`, no completion status event has been recorded yet.
-    {:ok, session2} =
-      TranslationSessions.create_session(user.account, project, %{
-        commit_sha: "e4f5g6h",
-        commit_message: "Polish advanced localization examples",
-        status: "running",
-        source_language: "en",
-        target_languages: ["ja", "de"],
-        continued_from_session_id: superseded_session.id,
-        publication_branch: superseded_session.publication_branch,
-        publication_commit_sha: superseded_session.publication_commit_sha,
-        pull_request_url: superseded_session.pull_request_url,
-        pull_request_number: superseded_session.pull_request_number,
-        started_at: fifteen_min_ago
-      })
-
-    seed_progress_events!(session2, [
+  defp session2_progress_events do
+    [
       %{type: "run_started"},
       %{type: "plan", total: 4},
       %{type: "plan_assessed", total: 4, needs_translation: 4, up_to_date: 0},
@@ -1497,17 +1551,7 @@ defmodule Glossia.Seeds do
         output_path: "content/de/blog/advanced-localization.md",
         locale: "de"
       }
-    ])
-
-    # ClickHouse buffer flush for the session1 status event.
-    Process.sleep(2_000)
-  end
-
-  # Broadcasts durable progress events through the same seam production uses,
-  # so each event is written to `translation_session_progress_events` and folds
-  # into the same panel state a live viewer would see.
-  defp seed_progress_events!(%TranslationSession{} = session, events) do
-    Enum.each(events, &TranslationSessions.broadcast_session_event(session, &1))
+    ]
   end
 
   defp record_translation_status!(%TranslationSession{} = session, content) do

@@ -8390,15 +8390,13 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_file_url(_project, _status, _file_ref, _output_path), do: nil
 
   # A completed translation item may not carry its own git blob ref if the
-  # runner did not attach one. The session's publication commit (or branch)
-  # points at the ref that holds every translated file for the run, so it is
-  # the right fallback for turning an output path into a browsable file URL.
+  # runner did not attach one. The session's publication commit is the right
+  # fallback for turning an output path into a browsable file URL. The branch
+  # name is intentionally not a fallback: our publication branches contain
+  # slashes (e.g. `glossia/translate-<sha>`) and GitHub's `/blob/<ref>/<path>`
+  # route mis-parses the first `/` as a ref boundary, producing 404 links.
   defp translation_session_ref(%{publication_commit_sha: sha}) when is_binary(sha) and sha != "",
     do: sha
-
-  defp translation_session_ref(%{publication_branch: branch})
-       when is_binary(branch) and branch != "",
-       do: branch
 
   defp translation_session_ref(_session), do: nil
 
