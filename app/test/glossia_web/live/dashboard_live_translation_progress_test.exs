@@ -281,19 +281,19 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     refute has_element?(
              view,
-             "#translation-progress-item-0 [data-part='live-output'] [data-part='stream']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='live-output'] [data-part='stream']",
              "Der Titel"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='completed-segment'] summary",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='completed-segment'] summary",
              "Front matter, segment 1 of 3"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='completed-segment'] [data-part='stream']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='completed-segment'] [data-part='stream']",
              "Der Titel"
            )
 
@@ -367,13 +367,13 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='item-failure'][data-kind='validation-empty-output']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='item-failure'][data-kind='validation-empty-output']",
              "The model returned empty output"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='item-failure-description']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='item-failure-description']",
              "can spend its whole output budget thinking and return nothing"
            )
   end
@@ -426,8 +426,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       |> element("#translation-progress-item-0-completed-output")
       |> render()
 
-    assert rendered =~ "phx-mounted"
-    assert rendered =~ "ignore_attrs"
+    assert rendered =~ "Translated output"
 
     # The id is derived from the planned item index, which is also what
     # `Progress.items/1` sorts by, so it survives later items arriving.
@@ -497,7 +496,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              reconnected_view,
-             "#translation-progress-item-0 [data-part='completed-output'] [data-part='stream']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='completed-output'] [data-part='stream']",
              "Übersetzter Inhalt"
            )
 
@@ -508,7 +507,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
            )
   end
 
-  test "running translation items show an active progress indicator", %{conn: conn} do
+  test "running translation items show their status in the progress table", %{conn: conn} do
     user = TestHelpers.create_user("translation-progress@test.com", "translation-progress")
 
     {:ok, project} =
@@ -560,12 +559,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress [data-status='running'] [data-part='indicator']"
-           )
-
-    assert has_element?(
-             view,
-             "#translation-progress [data-status='running'] [data-part='status']",
+             "#translation-progress-items .noora-status-badge[data-status='in_progress']",
              "Translating"
            )
 
@@ -644,7 +638,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='stream']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='stream']",
              "translated front matter"
            )
 
@@ -656,13 +650,13 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='stream']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='stream']",
              "translated front matter"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='stream']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='stream']",
              "translated body"
            )
 
@@ -677,8 +671,11 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       model_calls: 2
     })
 
-    refute has_element?(view, "#translation-progress [data-part='indicator']")
-    assert has_element?(view, "#translation-progress [data-status='done']", "Done")
+    assert has_element?(
+             view,
+             "#translation-progress-items .noora-status-badge[data-status='success']",
+             "Done"
+           )
 
     assert has_element?(
              view,
@@ -688,13 +685,13 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='completed-output'] summary",
-             "Show translated output"
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='completed-output'] [data-part='output-title']",
+             "Translated output"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='completed-output'] [data-part='stream']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='completed-output'] [data-part='stream']",
              "translated body"
            )
 
@@ -762,7 +759,8 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='status-icon'] svg.icon-tabler-alert-circle"
+             "#translation-progress-items .noora-status-badge[data-status='error']",
+             "Failed"
            )
 
     refute has_element?(view, "#translation-progress-item-0 [data-part='item-failure-icon']")
@@ -822,7 +820,11 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
       reason: "Previous attempt failed"
     })
 
-    assert has_element?(view, "#translation-progress [data-status='failed']")
+    assert has_element?(
+             view,
+             "#translation-progress-items .noora-status-badge[data-status='error']",
+             "Failed"
+           )
 
     {:ok, _session} = TranslationSessions.update_session_status(session, "running")
 
@@ -906,24 +908,24 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     Enum.each(0..1, fn index ->
       assert has_element?(
                view,
-               "#translation-progress-item-#{index} [data-part='item-failure'][data-kind='provider-credit']",
+               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded [data-part='item-failure'][data-kind='provider-credit']",
                "This file could not be translated because the model provider account has no remaining credit."
              )
 
       assert has_element?(
                view,
-               "#translation-progress-item-#{index} [data-part='item-diagnostics'] summary",
+               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded [data-part='item-diagnostics'] summary",
                "Diagnostic details"
              )
 
       assert has_element?(
                view,
-               "#translation-progress-item-#{index} [data-part='item-diagnostics'][id][phx-mounted]"
+               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded [data-part='item-diagnostics'][id][phx-mounted]"
              )
 
       assert has_element?(
                view,
-               "#translation-progress-item-#{index} [data-part='item-diagnostics']",
+               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded [data-part='item-diagnostics']",
                "request_#{index}"
              )
     end)
@@ -1062,14 +1064,14 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='item-failure'][data-kind='validation-command']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='item-failure'][data-kind='validation-command']",
              "The validation command rejected the translated output for this file."
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='partial-output'] summary",
-             "Show incomplete output"
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='partial-output'] [data-part='output-title']",
+             "Incomplete output"
            )
 
     refute has_element?(view, "#translation-progress [data-part='failure-summary']")
@@ -1107,7 +1109,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='item-failure'][data-kind='validation-empty-output']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='item-failure'][data-kind='validation-empty-output']",
              "Glossia rejected this empty translation and did not publish any changes."
            )
   end

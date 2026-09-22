@@ -8123,144 +8123,154 @@ defmodule GlossiaWeb.DashboardLive do
             </div>
           </section>
         </div>
-        <ul id="translation-progress-items" data-part="items">
-          <%= for item <- @items do %>
-            <li
-              id={"translation-progress-item-#{item.index}"}
-              data-part="item"
-              data-status={item.status}
-            >
-              <div data-part="item-header">
-                <span data-part="status" title={translation_item_status_label(item.status)}>
-                  <%= case item.status do %>
-                    <% :running -> %>
-                      <span data-part="indicator" aria-hidden="true"></span>
-                    <% :failed -> %>
-                      <span data-part="status-icon" aria-hidden="true">
-                        <Icon.alert_circle />
-                      </span>
-                    <% :done -> %>
-                      <span data-part="status-icon" aria-hidden="true">
-                        <Icon.circle_check />
-                      </span>
-                    <% :cancelled -> %>
-                      <span data-part="status-icon" aria-hidden="true">
-                        <Icon.circle_x />
-                      </span>
-                    <% _ -> %>
-                      <span data-part="status-icon" aria-hidden="true">
-                        <Icon.circle_dashed />
-                      </span>
-                  <% end %>
-                  <span class="sr-only">{translation_item_status_label(item.status)}</span>
-                </span>
-                <a
-                  :if={item.file_url}
-                  data-part="path"
-                  href={item.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {item.output_path}
-                </a>
-                <span :if={is_nil(item.file_url)} data-part="path">{item.output_path}</span>
-                <span :if={item.locale} data-part="locale">{item.locale}</span>
-                <span
-                  :if={item.turns > 0 or item.segment_kind}
-                  data-part="progress-meta"
-                >
-                  <span :if={item.segment_kind}>
-                    {translation_segment_label(%{
-                      kind: item.segment_kind,
-                      index: item.segment_index,
-                      count: item.segment_count
-                    })}
-                  </span>
-                  <span :if={item.turns > 0}>
-                    {ngettext(
-                      "%{n} model call",
-                      "%{n} model calls",
-                      item.turns,
-                      n: item.turns
-                    )}
-                  </span>
-                </span>
-              </div>
-              <div
-                :if={item.failure}
-                data-part="item-failure"
-                data-kind={item.failure.kind}
+        <Noora.Table.table
+          id="translation-progress-items"
+          rows={@items}
+          row_key={fn item -> "translation-progress-item-#{item.index}" end}
+          row_expandable={&translation_item_expandable?/1}
+          expand_label={gettext("Show translation details")}
+        >
+          <:col :let={item} label={gettext("File")}>
+            <div data-part="file-cell">
+              <a
+                :if={item.file_url}
+                data-part="path"
+                href={item.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                <div data-part="item-failure-content">
-                  <p data-part="item-failure-title">{item.failure.title}</p>
-                  <p data-part="item-failure-description">{item.failure.item_description}</p>
-                  <details
-                    :if={item.failure.diagnostics != []}
-                    id={"translation-progress-item-#{item.index}-diagnostics"}
-                    data-part="item-diagnostics"
-                    phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-                  >
-                    <summary>{gettext("Diagnostic details")}</summary>
-                    <dl>
-                      <div :for={{label, value} <- item.failure.diagnostics}>
-                        <dt>{label}</dt>
-                        <dd>{value}</dd>
-                      </div>
-                    </dl>
-                  </details>
-                </div>
-              </div>
-              <div
-                :if={item.status == :running and item.completed_segments != []}
-                data-part="completed-segments"
-              >
-                <details
-                  :for={segment <- item.completed_segments}
-                  id={"translation-progress-item-#{item.index}-segment-#{segment.index}"}
-                  data-part="completed-segment"
-                  phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-                >
-                  <summary>
-                    <span data-part="completed-segment-icon" aria-hidden="true">
-                      <Icon.circle_check />
-                    </span>
-                    {translation_segment_label(segment)}
-                  </summary>
-                  <pre data-part="stream">{stream_tail(segment.text)}</pre>
-                </details>
-              </div>
-              <%= cond do %>
-                <% item.status == :running and live_translation_text(item) != "" -> %>
-                  <div data-part="live-output">
-                    <pre data-part="stream">{stream_tail(live_translation_text(item))}</pre>
-                  </div>
-                <% item.status == :failed and item.text != "" -> %>
-                  <details
-                    id={"translation-progress-item-#{item.index}-partial-output"}
-                    data-part="partial-output"
-                    phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-                  >
-                    <summary>{gettext("Show incomplete output")}</summary>
-                    <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
-                  </details>
-                <% item.status == :done and item.text != "" -> %>
-                  <details
-                    id={"translation-progress-item-#{item.index}-completed-output"}
-                    data-part="completed-output"
-                    phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-                  >
-                    <summary>{gettext("Show translated output")}</summary>
-                    <pre data-part="stream">{String.slice(item.text, 0, 2000)}</pre>
-                  </details>
-                <% true -> %>
-              <% end %>
-            </li>
-          <% end %>
-        </ul>
+                {item.output_path}
+              </a>
+              <span :if={is_nil(item.file_url)} data-part="path">{item.output_path}</span>
+            </div>
+          </:col>
+          <:col :let={item} label={gettext("Language")}>
+            <Noora.Table.tag_cell label={item.locale} />
+          </:col>
+          <:col :let={item} label={gettext("Status")}>
+            <Noora.Table.status_badge_cell
+              status={translation_item_noora_status(item.status)}
+              label={translation_item_status_label(item.status)}
+            />
+          </:col>
+          <:col :let={item} label={gettext("Progress")}>
+            <.translation_progress_metadata item={item} />
+          </:col>
+          <:expanded_content :let={item}>
+            <.translation_progress_item_details item={item} />
+          </:expanded_content>
+        </Noora.Table.table>
       </div>
     <% end %>
     """
   end
+
+  attr(:item, :map, required: true)
+
+  defp translation_progress_metadata(assigns) do
+    ~H"""
+    <span :if={@item.turns > 0 or @item.segment_kind} data-part="progress-meta">
+      <span :if={@item.segment_kind}>
+        {translation_segment_label(%{
+          kind: @item.segment_kind,
+          index: @item.segment_index,
+          count: @item.segment_count
+        })}
+      </span>
+      <span :if={@item.turns > 0}>
+        {ngettext(
+          "%{n} model call",
+          "%{n} model calls",
+          @item.turns,
+          n: @item.turns
+        )}
+      </span>
+    </span>
+    """
+  end
+
+  attr(:item, :map, required: true)
+
+  defp translation_progress_item_details(assigns) do
+    ~H"""
+    <div data-part="item-details">
+      <div :if={@item.failure} data-part="item-failure" data-kind={@item.failure.kind}>
+        <div data-part="item-failure-content">
+          <p data-part="item-failure-title">{@item.failure.title}</p>
+          <p data-part="item-failure-description">{@item.failure.item_description}</p>
+          <details
+            :if={@item.failure.diagnostics != []}
+            id={"translation-progress-item-#{@item.index}-diagnostics"}
+            data-part="item-diagnostics"
+            phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
+          >
+            <summary>{gettext("Diagnostic details")}</summary>
+            <dl>
+              <div :for={{label, value} <- @item.failure.diagnostics}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            </dl>
+          </details>
+        </div>
+      </div>
+      <div
+        :if={@item.status == :running and @item.completed_segments != []}
+        data-part="completed-segments"
+      >
+        <details
+          :for={segment <- @item.completed_segments}
+          id={"translation-progress-item-#{@item.index}-segment-#{segment.index}"}
+          data-part="completed-segment"
+          phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
+        >
+          <summary>
+            <span data-part="completed-segment-icon" aria-hidden="true">
+              <Icon.circle_check />
+            </span>
+            {translation_segment_label(segment)}
+          </summary>
+          <pre data-part="stream">{stream_tail(segment.text)}</pre>
+        </details>
+      </div>
+      <%= cond do %>
+        <% @item.status == :running and live_translation_text(@item) != "" -> %>
+          <div data-part="live-output">
+            <p data-part="output-title">{gettext("Current output")}</p>
+            <pre data-part="stream">{stream_tail(live_translation_text(@item))}</pre>
+          </div>
+        <% @item.status == :failed and @item.text != "" -> %>
+          <div
+            id={"translation-progress-item-#{@item.index}-partial-output"}
+            data-part="partial-output"
+          >
+            <p data-part="output-title">{gettext("Incomplete output")}</p>
+            <pre data-part="stream">{String.slice(@item.text, 0, 2000)}</pre>
+          </div>
+        <% @item.status == :done and @item.text != "" -> %>
+          <div
+            id={"translation-progress-item-#{@item.index}-completed-output"}
+            data-part="completed-output"
+          >
+            <p data-part="output-title">{gettext("Translated output")}</p>
+            <pre data-part="stream">{String.slice(@item.text, 0, 2000)}</pre>
+          </div>
+        <% true -> %>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp translation_item_expandable?(item) do
+    not is_nil(item.failure) || item.completed_segments != [] ||
+      (item.status == :running && live_translation_text(item) != "") ||
+      (item.status in [:failed, :done] && item.text != "")
+  end
+
+  defp translation_item_noora_status(:running), do: "in_progress"
+  defp translation_item_noora_status(:done), do: "success"
+  defp translation_item_noora_status(:failed), do: "error"
+  defp translation_item_noora_status(:cancelled), do: "disabled"
 
   defp translation_progress_display_running(%{running: running}) when running > 0, do: running
 

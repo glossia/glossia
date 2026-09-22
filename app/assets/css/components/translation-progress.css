@@ -26,104 +26,15 @@
 }
 
 #translation-progress {
-  --translation-progress-spinner-duration: 1s;
-  --translation-progress-item-indent: calc(var(--space-4) + var(--space-3));
-  --translation-progress-locale-col: calc(var(--space-8) + var(--space-4));
-  --translation-progress-meta-col: calc(var(--space-16) + var(--space-8));
-
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 
-  & [data-part="items"] {
+  & [data-part="file-cell"] {
     display: flex;
-    flex-direction: column;
-    list-style: none;
-    margin: var(--space-0);
-    padding: var(--space-0);
-  }
-
-  & [data-part="item"] {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-0);
-    border-bottom: var(--space-px) solid var(--color-border);
-
-    &:last-child {
-      border-bottom: 0;
-    }
-
-    &[data-status="done"] [data-part="status-icon"] {
-      color: var(--color-success);
-    }
-
-    &[data-status="failed"] [data-part="status-icon"] {
-      color: var(--color-error);
-    }
-
-    &[data-status="cancelled"] [data-part="status-icon"] {
-      color: var(--color-text-muted);
-    }
-  }
-
-  & [data-part="item-header"] {
-    display: grid;
-    grid-template-columns:
-      var(--space-4)
-      minmax(var(--space-0), 1fr)
-      var(--translation-progress-locale-col)
-      var(--translation-progress-meta-col);
-    gap: var(--space-3);
     align-items: center;
-    font-size: var(--text-sm);
-  }
-
-  & [data-part="status"] {
-    display: inline-flex;
-    gap: var(--space-1);
-    align-items: center;
-    justify-content: center;
-    color: var(--color-text-muted);
-  }
-
-  & [data-part="indicator"] {
-    display: inline-block;
-    flex: 0 0 auto;
-    box-sizing: border-box;
-    width: var(--space-4);
-    height: var(--space-4);
-    border: var(--space-0-5) solid currentColor;
-    border-right-color: transparent;
-    border-radius: var(--radius-full);
-    color: var(--color-primary);
-    transform-origin: center;
-    animation: translation-progress-spin var(--translation-progress-spinner-duration) linear infinite;
-  }
-
-  & [data-part="status-icon"] {
-    display: inline-flex;
-    flex: 0 0 auto;
-  }
-
-  & [data-part="status-icon"] svg,
-  & [data-part="failure-icon"] svg {
-    width: var(--space-4);
-    height: var(--space-4);
-  }
-
-  /* Visually hidden but exposed to screen readers so a status conveys meaning
-   * through both the icon (sighted users) and text (assistive tech). */
-  & .sr-only {
-    position: absolute;
-    width: var(--space-px);
-    height: var(--space-px);
-    padding: var(--space-0);
-    margin: calc(-1 * var(--space-px));
-    overflow: hidden;
-    clip: rect(var(--space-0), var(--space-0), var(--space-0), var(--space-0));
-    white-space: nowrap;
-    border-width: var(--space-0);
+    min-width: var(--space-0);
+    padding: var(--noora-spacing-7);
   }
 
   & [data-part="path"] {
@@ -145,23 +56,11 @@
     }
   }
 
-  & [data-part="locale"] {
-    justify-self: end;
-    padding: var(--space-0-5) var(--space-2);
-    border-radius: var(--radius-full);
-    background: var(--color-bg-subtle);
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    font-size: var(--text-xs);
-    letter-spacing: 0.04em;
-    font-weight: var(--noora-font-weight-semibold);
-  }
-
   & [data-part="progress-meta"] {
-    justify-self: start;
     display: inline-flex;
     gap: var(--space-2);
     align-items: center;
+    padding: var(--noora-spacing-7);
     color: var(--color-text-muted);
     font-size: var(--text-xs);
 
@@ -280,11 +179,16 @@
   }
 
   & [data-part="item-failure"] {
-    margin-top: var(--space-1);
     padding: var(--space-3);
-    padding-inline-start: var(--translation-progress-item-indent);
     border-radius: var(--radius-md);
     background: var(--color-error-soft);
+  }
+
+  & [data-part="item-details"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-0);
   }
 
   & [data-part="item-failure-content"] {
@@ -314,25 +218,18 @@
   & [data-part="completed-output"],
   & [data-part="completed-segments"] {
     min-width: var(--space-0);
-    /* Logical, so this lines up under the path column in a right-to-left
-     * dashboard locale instead of indenting the other way. */
-    margin-inline-start: var(--translation-progress-item-indent);
   }
 
   & [data-part="partial-output"],
-  & [data-part="completed-output"] {
+  & [data-part="completed-output"],
+  & [data-part="live-output"] {
     color: var(--color-primary);
     font-size: var(--text-xs);
+  }
 
-    & summary {
-      width: max-content;
-      cursor: pointer;
-      font-weight: var(--noora-font-weight-medium);
-
-      &:hover {
-        color: var(--color-primary-hover);
-      }
-    }
+  & [data-part="output-title"] {
+    margin: var(--space-0);
+    font-weight: var(--noora-font-weight-medium);
   }
 
   & [data-part="completed-segments"] {
@@ -384,46 +281,10 @@
   }
 }
 
-@keyframes translation-progress-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #translation-progress [data-part="indicator"] {
-    animation: none;
-  }
-}
-
 @media (width < 768px) {
   #translation-progress {
-    --translation-progress-item-indent: calc(var(--space-4) + var(--space-2));
-
-    & [data-part="item-header"] {
-      grid-template-columns: var(--space-4) minmax(var(--space-0), 1fr) max-content;
-      row-gap: var(--space-1);
-    }
-
-    & [data-part="locale"] {
-      justify-self: end;
-    }
-
-    & [data-part="progress-meta"] {
-      grid-column: 2 / -1;
-      grid-row: 2;
-      justify-self: start;
-    }
-
     & [data-part="item-diagnostics"] dl {
       grid-template-columns: minmax(var(--space-0), 1fr);
-    }
-
-    & [data-part="live-output"],
-    & [data-part="partial-output"],
-    & [data-part="completed-output"],
-    & [data-part="completed-segments"] {
-      margin-inline-start: var(--space-4);
     }
   }
 }
