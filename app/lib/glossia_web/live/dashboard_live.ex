@@ -7588,6 +7588,14 @@ defmodule GlossiaWeb.DashboardLive do
             end
           }
         >
+          <:col :let={session} label={gettext("Commit")}>
+            <Noora.Table.text_and_description_cell
+              label={first_line(session.commit_message || gettext("Manual translation"))}
+              description={
+                if(session.commit_sha, do: String.slice(session.commit_sha, 0, 7), else: nil)
+              }
+            />
+          </:col>
           <:col
             :let={session}
             label={gettext("Outcome")}
@@ -7636,13 +7644,6 @@ defmodule GlossiaWeb.DashboardLive do
               icon="language"
               label={translation_session_languages_label(session)}
             />
-          </:col>
-          <:col :let={session} label={gettext("Commit")}>
-            <%= if session.commit_sha do %>
-              <Noora.Table.tag_cell label={String.slice(session.commit_sha, 0, 7)} />
-            <% else %>
-              <Noora.Table.text_cell label={gettext("No commit")} />
-            <% end %>
           </:col>
           <:col
             :let={session}
