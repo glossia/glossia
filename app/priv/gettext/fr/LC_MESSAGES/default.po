@@ -5003,132 +5003,132 @@ msgid "Validation message"
 msgstr "Message de validation"
 
 #: lib/glossia_web/components/layouts.ex:157
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Explore Glossia's localization guides, product documentation, and language OS for teams publishing content across languages."
-msgstr "Explorez les guides de localisation de Glossia, sa documentation produit et son système d'exploitation linguistique open source pour les équipes qui publient du contenu dans plusieurs langues."
+msgstr "Explorez les guides de localisation de Glossia, la documentation produit et l'OS de langue pour les équipes publiant du contenu dans différentes langues."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Language OS"
-msgstr "Langue"
+msgstr "OS de langue"
 
 #: lib/glossia_web/controllers/page_controller.ex:30
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia est un système d'exploitation linguistique open source où les linguistes et les équipes définissent comment votre organisation communique à travers toutes les langues et surfaces."
+msgstr "Glossia est un OS de langue où les linguistes et les équipes façonnent la façon dont votre organisation s'exprime dans chaque langue et interface."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:85
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Back to Glossia"
-msgstr "Nouveau sur Glossia ?"
+msgstr "Retour à Glossia"
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "HTTP 429"
-msgstr ""
+msgstr "HTTP 429"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:114
 #, elixir-autogen, elixir-format
 msgid "Just a quick check"
-msgstr ""
+msgstr "Vérification rapide"
 
 #: lib/glossia_web/components/layouts.ex:393
 #, elixir-autogen, elixir-format
 msgid "Personal"
-msgstr ""
+msgstr "Personnel"
 
 #: lib/glossia_web/components/layouts.ex:389
 #, elixir-autogen, elixir-format
 msgid "Public"
-msgstr ""
+msgstr "Public"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:116
 #, elixir-autogen, elixir-format
 msgid "Public dashboards are protected against automated scraping. Confirm you're human to continue."
-msgstr ""
+msgstr "Les tableaux de bord publics sont protégés contre le scraping automatisé. Confirmez que vous êtes humain pour continuer."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:77
 #, elixir-autogen, elixir-format
 msgid "Slow down for a moment"
-msgstr ""
+msgstr "Ralentissez un instant"
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:79
 #, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
-msgstr ""
+msgstr "Cette page a reçu beaucoup de requêtes en peu de temps depuis votre réseau. Réessayez dans %{seconds} secondes."
 
 #: lib/glossia_web/controllers/public_page_challenge_controller.ex:102
 #, elixir-autogen, elixir-format
 msgid "Too many attempts. Please wait a moment and try again."
-msgstr ""
+msgstr "Trop de tentatives. Veuillez patienter un instant et réessayer."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:6
 #, elixir-autogen, elixir-format
 msgid "Too many requests · Glossia"
-msgstr ""
+msgstr "Trop de requêtes · Glossia"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:139
 #, elixir-autogen, elixir-format
 msgid "Turnstile is unavailable. Please try again shortly."
-msgstr ""
+msgstr "Turnstile n'est pas disponible. Veuillez réessayer bientôt."
 
 #: lib/glossia_web/controllers/public_page_challenge_controller.ex:110
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Verification failed. Please try again."
-msgstr "Échec de l'authentification. Veuillez réessayer."
+msgstr "La vérification a échoué. Veuillez réessayer."
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:27
 #, elixir-autogen, elixir-format
 msgid "Verify you're human"
-msgstr ""
+msgstr "Vérifier que vous êtes humain"
 
 #: lib/glossia_web/live/dashboard_live.ex:8003
 #, elixir-autogen, elixir-format
 msgid "Activity"
-msgstr ""
+msgstr "Activité"
 
 #: lib/glossia_web/live/dashboard_live.ex:7911
 #, elixir-autogen, elixir-format
 msgid "Open %{sha} on GitHub"
-msgstr ""
+msgstr "Ouvrir %{sha} sur GitHub"
 
 #: lib/glossia_web/live/dashboard_live.ex:7947
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Pull request"
-msgstr "Pull request créée"
+msgstr "Demande de fusion"
 
 #: lib/glossia_web/live/dashboard_live.ex:7888
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Session details"
-msgstr "Séance"
+msgstr "Détails de la session"
 
 #: lib/glossia_web/live/dashboard_live.ex:7929
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Started"
-msgstr "Démarré %{time}"
+msgstr "Démarré"
 
 #: lib/glossia_web/live/dashboard_live.ex:7985
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Translated files"
-msgstr "Traduit"
+msgstr "Fichiers traduits"
 
 #: lib/glossia_web/live/dashboard_live.ex:7858
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Translation session · commit %{sha}"
-msgstr "Session de traduction"
+msgstr "Session de traduction · commit %{sha}"
 
 #: lib/glossia_web/live/dashboard_live.ex:12766
 #: lib/glossia_web/live/dashboard_live.ex:12861
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
-msgstr ""
+msgstr "Effacer la sélection"
 
 #: lib/glossia_web/live/dashboard_live.ex:12851
 #, elixir-autogen, elixir-format
 msgid "Leave blank when routing through a gateway that pins the model."
-msgstr ""
+msgstr "Laissez vide lors du routage via un gateway qui fixe le modèle."
 
 #: lib/glossia_web/live/dashboard_live.ex:12754
 #, elixir-autogen, elixir-format
 msgid "The model to use, sourced from models.dev. Leave blank when routing through a gateway that pins the model (e.g. Atlas)."
-msgstr ""
+msgstr "Le modèle à utiliser, issu de models.dev. Laissez vide lors du routage via un gateway qui fixe le modèle (ex. Atlas)."
