@@ -5005,116 +5005,116 @@ msgid "Validation message"
 msgstr "검증 메시지"
 
 #: lib/glossia_web/components/layouts.ex:157
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Explore Glossia's localization guides, product documentation, and language OS for teams publishing content across languages."
-msgstr "언어 간 콘텐츠를 발행하는 팀을 위한 Glossia 현지화 가이드, 제품 문서 및 오픈소스 언어 OS 를 탐색하세요."
+msgstr "여러 언어로 콘텐츠를 발행하는 팀을 위한 Glossia 현지화 가이드, 제품 문서, 및 언어 OS 를 찾아보세요."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:4
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Language OS"
-msgstr "언어"
+msgstr "Language OS"
 
 #: lib/glossia_web/controllers/page_controller.ex:30
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia는 언어 전문가와 팀들이 조직의 모든 언어와 표면에서 소통 방식을 형성하는 오픈소스 언어 OS 입니다."
+msgstr "Glossia 는 언어 전문가와 팀이 조직이 모든 언어와 표면에서 어떻게 소통할지 형성하는 언어 OS 입니다."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:85
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Back to Glossia"
-msgstr "Glossia에 처음 오셨나요?"
+msgstr "Glossia 로 돌아가기"
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "HTTP 429"
-msgstr ""
+msgstr "HTTP 429"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:114
 #, elixir-autogen, elixir-format
 msgid "Just a quick check"
-msgstr ""
+msgstr "잠시만 확인합니다"
 
 #: lib/glossia_web/components/layouts.ex:393
 #, elixir-autogen, elixir-format
 msgid "Personal"
-msgstr ""
+msgstr "개인"
 
 #: lib/glossia_web/components/layouts.ex:389
 #, elixir-autogen, elixir-format
 msgid "Public"
-msgstr ""
+msgstr "공개"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:116
 #, elixir-autogen, elixir-format
 msgid "Public dashboards are protected against automated scraping. Confirm you're human to continue."
-msgstr ""
+msgstr "퍼블릭 대시보드는 자동 스크래핑으로부터 보호됩니다. 계속하려면 인간임을 확인하세요."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:77
 #, elixir-autogen, elixir-format
 msgid "Slow down for a moment"
-msgstr ""
+msgstr "잠시 속도를 늦춰주세요"
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:79
 #, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
-msgstr ""
+msgstr "이 페이지는 짧은 시간 동안 네트워크에서 많은 요청을 받았습니다. %{seconds} 초 후 다시 시도하세요."
 
 #: lib/glossia_web/controllers/public_page_challenge_controller.ex:102
 #, elixir-autogen, elixir-format
 msgid "Too many attempts. Please wait a moment and try again."
-msgstr ""
+msgstr "시도가 너무 많습니다. 잠시 후 다시 시도해주세요."
 
 #: lib/glossia_web/controllers/error_html/429.html.heex:6
 #, elixir-autogen, elixir-format
 msgid "Too many requests · Glossia"
-msgstr ""
+msgstr "too many requests · Glossia"
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:139
 #, elixir-autogen, elixir-format
 msgid "Turnstile is unavailable. Please try again shortly."
-msgstr ""
+msgstr "Turnstile 에서 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
 
 #: lib/glossia_web/controllers/public_page_challenge_controller.ex:110
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Verification failed. Please try again."
-msgstr "인증에 실패했습니다. 다시 시도해주세요."
+msgstr "검증이 실패했습니다. 다시 시도해주세요."
 
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:27
 #, elixir-autogen, elixir-format
 msgid "Verify you're human"
-msgstr ""
+msgstr "인간임을 확인하세요"
 
 #: lib/glossia_web/live/dashboard_live.ex:7999
 #, elixir-autogen, elixir-format
 msgid "Activity"
-msgstr ""
+msgstr "활동"
 
 #: lib/glossia_web/live/dashboard_live.ex:7907
 #, elixir-autogen, elixir-format
 msgid "Open %{sha} on GitHub"
-msgstr ""
+msgstr "GitHub 에서 %{sha} 열기"
 
 #: lib/glossia_web/live/dashboard_live.ex:7943
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Pull request"
-msgstr "풀 리퀘스트가 생성됨"
+msgstr "Pull request"
 
 #: lib/glossia_web/live/dashboard_live.ex:7884
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Session details"
-msgstr "세션"
+msgstr "세션 정보"
 
 #: lib/glossia_web/live/dashboard_live.ex:7925
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Started"
-msgstr "시작됨 %{time}"
+msgstr "시작됨"
 
 #: lib/glossia_web/live/dashboard_live.ex:7981
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Translated files"
-msgstr "번역됨"
+msgstr "번역된 파일"
 
 #: lib/glossia_web/live/dashboard_live.ex:7854
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Translation session · commit %{sha}"
-msgstr "번역 세션"
+msgstr "번역 세션 · %{sha} 커밋"
