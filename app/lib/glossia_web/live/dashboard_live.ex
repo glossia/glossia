@@ -3185,6 +3185,9 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp present_value?(value) when is_binary(value), do: String.trim(value) != ""
+  defp present_value?(_), do: false
+
   defp changed_model_form?(params, original) do
     String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
       String.trim(params["model"] || "") != String.trim(original["model"] || "") or
@@ -12740,15 +12743,28 @@ defmodule GlossiaWeb.DashboardLive do
                     show_required
                   />
                   <div class="voice-field model-select">
-                    <Noora.Label.label label={gettext("Model")} required />
+                    <Noora.Label.label label={gettext("Model")} />
                     <.model_picker
                       id="model-model"
                       name="model[model]"
                       value={@model_form[:model].value}
                       options_json={@model_picker_options_json}
                       option_count={@model_picker_option_count}
-                      hint={gettext("The model to use, sourced from models.dev.")}
+                      hint={
+                        gettext(
+                          "The model to use, sourced from models.dev. Leave blank when routing through a gateway that pins the model (e.g. Atlas)."
+                        )
+                      }
                     />
+                    <button
+                      :if={present_value?(@model_form[:model].value)}
+                      type="button"
+                      class="voice-field-clear"
+                      phx-click="select_model"
+                      phx-value-value=""
+                    >
+                      {gettext("Clear selection")}
+                    </button>
                   </div>
                   <Noora.TextInput.text_input
                     id="model-api-key"
@@ -12791,7 +12807,7 @@ defmodule GlossiaWeb.DashboardLive do
 
             <.form_save_bar
               id="model-save-bar"
-              visible={@model_form_valid?}
+              visible={true}
               cancel_path={~p"/#{@handle}/-/settings/models"}
             />
           </.form>
@@ -12823,7 +12839,7 @@ defmodule GlossiaWeb.DashboardLive do
                     show_required
                   />
                   <div class="voice-field model-select">
-                    <Noora.Label.label label={gettext("Model")} required />
+                    <Noora.Label.label label={gettext("Model")} />
                     <.model_picker
                       id="edit-model-model"
                       name="model[model]"
@@ -12831,7 +12847,21 @@ defmodule GlossiaWeb.DashboardLive do
                       options_json={@model_picker_options_json}
                       option_count={@model_picker_option_count}
                       selected_label={@model_picker_selected_label}
+                      hint={
+                        gettext(
+                          "Leave blank when routing through a gateway that pins the model."
+                        )
+                      }
                     />
+                    <button
+                      :if={present_value?(@model_edit_form[:model].value)}
+                      type="button"
+                      class="voice-field-clear"
+                      phx-click="select_model_edit"
+                      phx-value-value=""
+                    >
+                      {gettext("Clear selection")}
+                    </button>
                   </div>
                   <Noora.TextInput.text_input
                     id="edit-model-api-key"

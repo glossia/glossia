@@ -92,5 +92,19 @@ defmodule Glossia.MCP.CreateLLMModelToolTest do
       result = JSON.decode!(content["text"])
       refute Map.has_key?(result, "api_key")
     end
+
+    test "creates a gateway-only model without a model identifier", %{user: user, account: account} do
+      params =
+        account
+        |> valid_params()
+        |> Map.delete("model")
+        |> Map.put("base_url", "https://atlas.tuist.dev/inference/v1")
+
+      assert {:reply, _response, _frame} = CreateLLMModelTool.execute(params, frame_for(user))
+
+      assert model = LLMModels.get_model_by_handle(params["model_handle"], account.id)
+      assert model.model == nil
+      assert model.base_url == "https://atlas.tuist.dev/inference/v1"
+    end
   end
 end

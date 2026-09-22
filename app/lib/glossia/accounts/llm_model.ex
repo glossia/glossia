@@ -31,26 +31,26 @@ defmodule Glossia.Accounts.LLMModel do
   end
 
   def changeset(model_struct, attrs, opts \\ []) do
-    required =
+    base_required =
       if Keyword.get(opts, :require_api_key, true),
-        do: [:handle, :model, :api_key],
-        else: [:handle, :model]
+        do: [:handle, :api_key],
+        else: [:handle]
 
     model_struct
     |> cast(attrs, [:handle, :model, :api_key, :base_url, :default, :translation_concurrency])
     |> update_change(:model, &ModelIdentifier.normalize/1)
+    |> update_change(:model, &blank_to_nil/1)
     |> update_change(:base_url, &normalize_base_url/1)
     |> update_change(:translation_concurrency, &normalize_translation_concurrency/1)
     |> validate_change(:base_url, &validate_base_url/2)
     |> validate_number(:translation_concurrency, greater_than: 0)
-    |> validate_required(required)
+    |> validate_required(base_required)
+    |> maybe_require_model()
+    |> maybe_validate_model_format()
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
       message: "must start with a letter and contain only lowercase letters, numbers, and hyphens"
     )
     |> validate_length(:handle, min: 2, max: 64)
-    |> validate_format(:model, ~r/^[a-z0-9_-]+\/.+$/,
-      message: "must be in provider/model format (e.g. anthropic/claude-sonnet-4-20250514)"
-    )
     |> unique_constraint([:account_id, :handle],
       error_key: :handle,
       message: "has already been taken"
@@ -60,6 +60,50 @@ defmodule Glossia.Accounts.LLMModel do
       message: "another model is already the default for this account"
     )
   end
+
+  # A base URL means the request routes through a fixed-profile gateway
+  # (Atlas, an in-cluster bifrost, etc.) that pins its own upstream model, so
+  # the per-model field here becomes decorative. Skip the requirement in that
+  # case; the credential resolver substitutes a passthrough identifier so
+  # ReqLLM still has something to route on.
+  defp maybe_require_model(changeset) do
+    if gateway_configured?(changeset) do
+      changeset
+    else
+      validate_required(changeset, [:model])
+    end
+  end
+
+  defp maybe_validate_model_format(changeset) do
+    case fetch_field(changeset, :model) do
+      {_, model} when is_binary(model) and model != "" ->
+        validate_format(changeset, :model, ~r/^[a-z0-9_-]+\/.+$/,
+          message: "must be in provider/model format (e.g. anthropic/claude-sonnet-4-20250514)"
+        )
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp gateway_configured?(changeset) do
+    case fetch_field(changeset, :base_url) do
+      {_, url} when is_binary(url) and url != "" -> true
+      _ -> false
+    end
+  end
+
+  defp blank_to_nil(nil), do: nil
+  defp blank_to_nil(""), do: nil
+
+  defp blank_to_nil(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      _ -> value
+    end
+  end
+
+  defp blank_to_nil(value), do: value
 
   # A blank form value on an optional integer field should mean "clear the
   # cap", not "0". `cast/3` gives us `nil` from an empty input, but a UI that
