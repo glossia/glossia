@@ -50,6 +50,25 @@ defmodule Glossia.Translations.CredentialsTest do
               "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"}
   end
 
+  test "substitutes a passthrough model when only a base_url is configured", %{
+    user: user,
+    account: account
+  } do
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "atlas",
+        "api_key" => "sk-atlas",
+        "base_url" => "https://atlas.tuist.dev/inference/v1"
+      })
+
+    put_config([])
+
+    assert {:ok, cred} = Credentials.resolve(account, "atlas")
+    assert cred.source == :account_model
+    assert cred.model == "openai/gateway"
+    assert cred.auth == {:api_key, "sk-atlas", "https://atlas.tuist.dev/inference/v1"}
+  end
+
   test "resolves credentials on the designated database node", %{
     user: user,
     account: account

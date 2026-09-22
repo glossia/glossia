@@ -99,7 +99,10 @@ defmodule GlossiaWeb.DashboardLiveModelsTest do
 
     assert render(view) =~ error
     assert has_element?(view, ".noora-hint-text[data-variant='destructive']", error)
-    refute has_element?(view, "#model-save-bar.visible")
+    # The save bar stays visible on the new-model form so users always have a
+    # Save affordance; submitting with an invalid handle still fails via the
+    # changeset and leaves the model uncreated.
+    assert has_element?(view, "#model-save-bar.visible")
 
     render_submit(view, "create_model", %{
       "model" => Map.put(params["model"], "model", model_value)

@@ -13,9 +13,9 @@ defmodule Glossia.MCP.CreateLLMModelTool do
     field :model_handle, {:required, :string},
       description: "Unique handle for the model within the account"
 
-    field :model, {:required, :string},
+    field :model, :string,
       description:
-        "Model identifier in provider/model format (e.g. anthropic/claude-sonnet-4-20250514). Browse available models at https://models.dev"
+        "Model identifier in provider/model format (e.g. anthropic/claude-sonnet-4-20250514). Browse available models at https://models.dev. Optional when base_url points to a gateway that pins the upstream model."
 
     field :api_key, {:required, :string}, description: "Provider API key"
 
@@ -32,7 +32,6 @@ defmodule Glossia.MCP.CreateLLMModelTool do
         %{
           "handle" => handle,
           "model_handle" => model_handle,
-          "model" => model,
           "api_key" => api_key
         } = params,
         frame
@@ -41,7 +40,7 @@ defmodule Glossia.MCP.CreateLLMModelTool do
          :ok <- Auth.authorize(frame, :llm_model_write, user, account) do
       attrs = %{
         "handle" => model_handle,
-        "model" => model,
+        "model" => params["model"],
         "api_key" => api_key,
         "base_url" => params["base_url"],
         "default" => params["default"]

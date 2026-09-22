@@ -22,8 +22,33 @@ defmodule Glossia.Accounts.LLMModelTest do
       assert errors_on(changeset) |> Map.has_key?(:handle)
     end
 
-    test "invalid without model" do
+    test "invalid without model when no base_url is set" do
       changeset = LLMModel.changeset(%LLMModel{}, %{"handle" => "test", "api_key" => "sk"})
+      assert errors_on(changeset) |> Map.has_key?(:model)
+    end
+
+    test "valid without model when a base_url is set" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "gateway",
+          "api_key" => "sk",
+          "base_url" => "https://atlas.example.com/inference/v1"
+        })
+
+      assert changeset.valid?
+      refute errors_on(changeset) |> Map.has_key?(:model)
+    end
+
+    test "still validates model format when a value is provided alongside a base_url" do
+      changeset =
+        LLMModel.changeset(%LLMModel{}, %{
+          "handle" => "gateway",
+          "api_key" => "sk",
+          "model" => "no-slash-here",
+          "base_url" => "https://atlas.example.com/inference/v1"
+        })
+
+      refute changeset.valid?
       assert errors_on(changeset) |> Map.has_key?(:model)
     end
 

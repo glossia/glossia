@@ -30,6 +30,11 @@ defmodule Glossia.Translations.Credentials do
 
   @default_local_model "anthropic/claude-haiku-4-5"
   @default_pi_model "openrouter/anthropic/claude-sonnet-4.6"
+  # When a model is configured with only a base URL (a fixed-profile gateway
+  # such as Atlas), the gateway pins its own upstream model and ignores the
+  # `model` field in the request body. ReqLLM still needs a spec to pick a
+  # client, so substitute an OpenAI-compatible passthrough identifier.
+  @gateway_passthrough_model "openai/gateway"
   @development_session_keys %{
     claude: "development-session:claude",
     codex: "development-session:codex",
@@ -184,19 +189,34 @@ defmodule Glossia.Translations.Credentials do
              ] ->
           development_account_session(key, model)
 
-        %{model: model, api_key: key} when is_binary(key) and key != "" ->
-          %{
-            model: ModelIdentifier.normalize(model),
-            auth: {:api_key, key, present_url(Map.get(configured_model, :base_url))},
-            source: :account_model,
-            translation_concurrency: Map.get(configured_model, :translation_concurrency)
-          }
+        %{api_key: key} when is_binary(key) and key != "" ->
+          base_url = Map.get(configured_model, :base_url)
+          effective_model = effective_account_model(configured_model.model, base_url)
+
+          if effective_model do
+            %{
+              model: effective_model,
+              auth: {:api_key, key, present_url(base_url)},
+              source: :account_model,
+              translation_concurrency: Map.get(configured_model, :translation_concurrency)
+            }
+          end
 
         _ ->
           nil
       end
 
     if credential, do: Map.put(credential, :handle, configured_model.handle)
+  end
+
+  defp effective_account_model(model, base_url) do
+    case ModelIdentifier.normalize(model) do
+      normalized when is_binary(normalized) and normalized != "" ->
+        normalized
+
+      _ ->
+        if present?(base_url), do: @gateway_passthrough_model
+    end
   end
 
   defp normalized_handle(handle) when is_binary(handle) do
