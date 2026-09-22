@@ -93,7 +93,10 @@ defmodule Glossia.MCP.CreateLLMModelToolTest do
       refute Map.has_key?(result, "api_key")
     end
 
-    test "creates a gateway-only model without a model identifier", %{user: user, account: account} do
+    test "creates a gateway-only model without a model identifier", %{
+      user: user,
+      account: account
+    } do
       params =
         account
         |> valid_params()

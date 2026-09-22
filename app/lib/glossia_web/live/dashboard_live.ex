@@ -12848,9 +12848,7 @@ defmodule GlossiaWeb.DashboardLive do
                       option_count={@model_picker_option_count}
                       selected_label={@model_picker_selected_label}
                       hint={
-                        gettext(
-                          "Leave blank when routing through a gateway that pins the model."
-                        )
+                        gettext("Leave blank when routing through a gateway that pins the model.")
                       }
                     />
                     <button
