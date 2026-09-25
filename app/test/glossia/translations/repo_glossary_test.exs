@@ -18,7 +18,8 @@ defmodule Glossia.Translations.RepoGlossaryTest do
           ]
         })
 
-      assert [%{logical_key: "version-control-commit", source: "Version-control commit"}] = entries
+      assert [%{logical_key: "version-control-commit", source: "Version-control commit"}] =
+               entries
     end
 
     test "keeps caller-provided identifiers verbatim" do
@@ -81,10 +82,13 @@ defmodule Glossia.Translations.RepoGlossaryTest do
     test "namespaces repo entry ids so they never collide with account entry ids" do
       {:ok, entries} =
         RepoGlossary.parse(%{
-          "entries" => [%{"id" => "commit", "source" => "commit", "targets" => %{"es" => "confirmación"}}]
+          "entries" => [
+            %{"id" => "commit", "source" => "commit", "targets" => %{"es" => "confirmación"}}
+          ]
         })
 
-      assert [%{id: "repo:commit", origin: :repo}] = RepoGlossary.resolve_for_locale(entries, "es")
+      assert [%{id: "repo:commit", origin: :repo}] =
+               RepoGlossary.resolve_for_locale(entries, "es")
     end
   end
 
@@ -126,7 +130,10 @@ defmodule Glossia.Translations.RepoGlossaryTest do
 
   describe "load/1" do
     test "returns an empty list when the file is absent" do
-      dir = System.tmp_dir!() |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
+      dir =
+        System.tmp_dir!()
+        |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(dir)
       on_exit(fn -> File.rm_rf!(dir) end)
 
@@ -134,7 +141,10 @@ defmodule Glossia.Translations.RepoGlossaryTest do
     end
 
     test "reads .glossia/glossary.yaml from the checkout root" do
-      dir = System.tmp_dir!() |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
+      dir =
+        System.tmp_dir!()
+        |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(Path.join(dir, ".glossia"))
       on_exit(fn -> File.rm_rf!(dir) end)
 

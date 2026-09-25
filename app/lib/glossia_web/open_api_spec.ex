@@ -974,12 +974,12 @@ defmodule GlossiaWeb.OpenApiSpec do
       },
       "/api/{handle}/glossary" => %{
         "get" => %{
-          "summary" => "Get terminology",
+          "summary" => "Get glossary",
           "description" =>
-            "Get the latest terminology for an account. " <>
+            "Get the latest glossary for an account. " <>
               "Optionally specify a locale to get entries with translations for that locale, or a version number.",
           "operationId" => "getGlossary",
-          "tags" => ["Terminology"],
+          "tags" => ["Glossary"],
           "security" => oauth_security(["glossary:read"]),
           "parameters" => [
             %{
@@ -1003,21 +1003,21 @@ defmodule GlossiaWeb.OpenApiSpec do
           ],
           "responses" => %{
             "200" => %{
-              "description" => "Terminology with entries and translations",
+              "description" => "Glossary with entries and translations",
               "content" => %{
                 "application/json" => %{
                   "schema" => %{"$ref" => "#/components/schemas/GlossaryResponse"}
                 }
               }
             },
-            "404" => %{"description" => "Account or terminology not found"}
+            "404" => %{"description" => "Account or glossary not found"}
           }
         },
         "post" => %{
-          "summary" => "Create new terminology version",
-          "description" => "Create a new terminology version for an account.",
+          "summary" => "Create new glossary version",
+          "description" => "Create a new glossary version for an account.",
           "operationId" => "createGlossary",
-          "tags" => ["Terminology"],
+          "tags" => ["Glossary"],
           "security" => oauth_security(["glossary:write"]),
           "parameters" => [
             %{
@@ -1037,7 +1037,7 @@ defmodule GlossiaWeb.OpenApiSpec do
           },
           "responses" => %{
             "201" => %{
-              "description" => "Terminology version created",
+              "description" => "Glossary version created",
               "content" => %{
                 "application/json" => %{
                   "schema" => %{"$ref" => "#/components/schemas/GlossaryResponse"}
@@ -1060,12 +1060,12 @@ defmodule GlossiaWeb.OpenApiSpec do
       },
       "/api/{handle}/glossary/history" => %{
         "get" => %{
-          "summary" => "List terminology version history",
+          "summary" => "List glossary version history",
           "description" =>
-            "Returns a paginated list of all terminology versions for an account. " <>
+            "Returns a paginated list of all glossary versions for an account. " <>
               "Supports pagination, filtering, and sorting via query parameters.",
           "operationId" => "getGlossaryHistory",
-          "tags" => ["Terminology"],
+          "tags" => ["Glossary"],
           "security" => oauth_security(["glossary:read"]),
           "parameters" =>
             [
@@ -1084,7 +1084,7 @@ defmodule GlossiaWeb.OpenApiSpec do
               ],
           "responses" => %{
             "200" => %{
-              "description" => "Paginated terminology version history",
+              "description" => "Paginated glossary version history",
               "content" => %{
                 "application/json" => %{
                   "schema" => %{

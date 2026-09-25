@@ -275,7 +275,7 @@ defmodule Glossia.Seeds do
 
           - Be precise and unambiguous.
           - Avoid hype and filler.
-          - Prefer terminology that maps to UI labels.
+          - Prefer glossary that maps to UI labels.
 
           ## Formatting
 
@@ -301,7 +301,7 @@ defmodule Glossia.Seeds do
           - Avoid slang and sarcasm.
           - Use plain language over legalese.
 
-          ## Terminology
+          ## Glossary
 
           - Prefer \"organization\" over \"org\" in user-facing text.
           - Prefer \"members\" for access control.
@@ -318,7 +318,7 @@ defmodule Glossia.Seeds do
       ]
     )
 
-    # Terminology: seed entries with per-language translations.
+    # Glossary: seed entries with per-language translations.
     ensure_glossary_versions!(
       dev.account,
       dev,
@@ -346,7 +346,7 @@ defmodule Glossia.Seeds do
               ]
             },
             %{
-              term: "terminology",
+              term: "glossary",
               definition: "A curated list of terms with approved translations per language.",
               case_sensitive: false,
               translations: [
@@ -366,7 +366,7 @@ defmodule Glossia.Seeds do
               ]
             }
           ],
-          change_note: "Initial terminology"
+          change_note: "Initial glossary"
         },
         %{
           entries: [
@@ -393,7 +393,7 @@ defmodule Glossia.Seeds do
               ]
             },
             %{
-              term: "terminology",
+              term: "glossary",
               definition: "A curated list of terms with approved translations per language.",
               case_sensitive: false,
               translations: [
@@ -456,7 +456,7 @@ defmodule Glossia.Seeds do
               ]
             }
           ],
-          change_note: "Initial org terminology"
+          change_note: "Initial org glossary"
         }
       ]
     )
@@ -490,9 +490,9 @@ defmodule Glossia.Seeds do
 
     _ticket2 =
       ensure_discussion!(alex.account, alex,
-        title: "Add support for Portuguese (Brazil) terminology",
+        title: "Add support for Portuguese (Brazil) glossary",
         body:
-          "We need pt-BR as a supported language in the terminology section. Right now only pt-PT is available.",
+          "We need pt-BR as a supported language in the glossary section. Right now only pt-PT is available.",
         status: "open"
       )
 
@@ -529,16 +529,16 @@ defmodule Glossia.Seeds do
         }
       )
 
-    _terminology_request =
+    _glossary_request =
       ensure_discussion!(acme.account, maria,
-        title: "Terminology suggestion: Add billing terms",
+        title: "Glossary suggestion: Add billing terms",
         body:
-          "Proposed terminology update with billing terminology for support and onboarding content.",
+          "Proposed glossary update with billing glossary for support and onboarding content.",
         status: "open",
         kind: "glossary_suggestion",
         metadata: %{
           "resource" => "glossary",
-          "change_note" => "Add billing and invoice terminology",
+          "change_note" => "Add billing and invoice glossary",
           "base_version" => 1,
           "payload" => %{
             "entries" => [
@@ -1139,7 +1139,7 @@ defmodule Glossia.Seeds do
   end
 
   # ----------------------------------------------------------------------------
-  # Terminology
+  # Glossary
   # ----------------------------------------------------------------------------
 
   defp ensure_glossary_versions!(%Account{} = account, %User{} = user, versions)
@@ -1729,7 +1729,7 @@ defmodule Glossia.Seeds do
       "Refresh the pricing page",
       "Ship the winter blog series",
       "Localize the onboarding wizard",
-      "Update the terminology handbook",
+      "Update the glossary handbook",
       "Publish the release notes",
       "Rework the getting started guide",
       "Localize the settings screens",

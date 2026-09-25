@@ -11,32 +11,32 @@
 msgid ""
 msgstr "Language: ko\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
 
-#: lib/glossia_web/live/dashboard_live.ex:13340
+#: lib/glossia_web/live/dashboard_live.ex:13372
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr "개요"
 
-#: lib/glossia_web/live/dashboard_live.ex:13584
+#: lib/glossia_web/live/dashboard_live.ex:13616
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr "브라우저 언어"
 
-#: lib/glossia_web/live/dashboard_live.ex:13553
+#: lib/glossia_web/live/dashboard_live.ex:13585
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr "상위 국가"
 
-#: lib/glossia_web/live/dashboard_live.ex:13525
+#: lib/glossia_web/live/dashboard_live.ex:13557
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr "상위 페이지"
 
-#: lib/glossia_web/live/dashboard_live.ex:13426
+#: lib/glossia_web/live/dashboard_live.ex:13458
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr "다음 번역할 곳"
 
-#: lib/glossia_web/live/dashboard_live.ex:13505
+#: lib/glossia_web/live/dashboard_live.ex:13537
 #, elixir-autogen, elixir-format
 msgid "Traffic"
 msgstr "트래픽"

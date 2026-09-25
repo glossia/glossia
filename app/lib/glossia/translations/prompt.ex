@@ -30,7 +30,7 @@ defmodule Glossia.Translations.Prompt do
     * `:format` - `"markdown" | "json" | "yaml" | "po" | "text"`
     * `:source_language`, `:language`, `:locale` - display strings
     * `:context_body`, `:locale_override_body` - optional project/locale guidance
-    * `:server_context_body` - resolved voice and source-relevant terminology
+    * `:server_context_body` - resolved voice and source-relevant glossary
     * `:frontmatter_preserved` - whether frontmatter is re-attached client-side
     * `:custom_prompt` - optional per-document instructions
   """

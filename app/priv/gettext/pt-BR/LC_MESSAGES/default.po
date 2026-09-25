@@ -136,10 +136,11 @@ msgstr "Entre em contato"
 #: lib/glossia_web/components/layouts/app.html.heex:23
 #: lib/glossia_web/live/dashboard_live.ex:4545
 #: lib/glossia_web/live/dashboard_live.ex:5380
-#: lib/glossia_web/live/dashboard_live.ex:9350
-#: lib/glossia_web/live/dashboard_live.ex:9513
-#: lib/glossia_web/live/dashboard_live.ex:13478
-#: lib/glossia_web/live/dashboard_live.ex:13595
+#: lib/glossia_web/live/dashboard_live.ex:8169
+#: lib/glossia_web/live/dashboard_live.ex:9382
+#: lib/glossia_web/live/dashboard_live.ex:9545
+#: lib/glossia_web/live/dashboard_live.ex:13510
+#: lib/glossia_web/live/dashboard_live.ex:13627
 #: lib/glossia_web/live/profile_live.ex:376
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -168,7 +169,7 @@ msgstr "Menu"
 #: lib/glossia_web/live/dashboard_live.ex:980
 #: lib/glossia_web/live/dashboard_live.ex:991
 #: lib/glossia_web/live/dashboard_live.ex:4002
-#: lib/glossia_web/live/dashboard_live.ex:9255
+#: lib/glossia_web/live/dashboard_live.ex:9287
 #, elixir-autogen, elixir-format
 msgid "New project"
 msgstr "Novo projeto"
@@ -265,7 +266,7 @@ msgid "Add language override"
 msgstr "Adicionar sobrescrita de idioma"
 
 #: lib/glossia_web/live/dashboard_live.ex:4947
-#: lib/glossia_web/live/dashboard_live.ex:10099
+#: lib/glossia_web/live/dashboard_live.ex:10131
 #, elixir-autogen, elixir-format
 msgid "Added"
 msgstr "Adicionado"
@@ -305,7 +306,7 @@ msgstr "Descartar"
 #: lib/glossia_web/live/dashboard_live.ex:4583
 #: lib/glossia_web/live/dashboard_live.ex:4859
 #: lib/glossia_web/live/dashboard_live.ex:4964
-#: lib/glossia_web/live/dashboard_live.ex:9710
+#: lib/glossia_web/live/dashboard_live.ex:9742
 #, elixir-autogen, elixir-format
 msgid "Formality"
 msgstr "Formalidade"
@@ -313,7 +314,7 @@ msgstr "Formalidade"
 #: lib/glossia_web/live/dashboard_live.ex:4451
 #: lib/glossia_web/live/dashboard_live.ex:4616
 #: lib/glossia_web/live/dashboard_live.ex:4878
-#: lib/glossia_web/live/dashboard_live.ex:9724
+#: lib/glossia_web/live/dashboard_live.ex:9756
 #, elixir-autogen, elixir-format
 msgid "Guidelines"
 msgstr "Diretrizes"
@@ -321,10 +322,10 @@ msgstr "Diretrizes"
 #: lib/glossia_web/controllers/organization_html/new.html.heex:15
 #: lib/glossia_web/live/admin_live.ex:429
 #: lib/glossia_web/live/dashboard_live.ex:4054
-#: lib/glossia_web/live/dashboard_live.ex:11408
-#: lib/glossia_web/live/dashboard_live.ex:12733
-#: lib/glossia_web/live/dashboard_live.ex:12834
-#: lib/glossia_web/live/dashboard_live.ex:13000
+#: lib/glossia_web/live/dashboard_live.ex:11440
+#: lib/glossia_web/live/dashboard_live.ex:12765
+#: lib/glossia_web/live/dashboard_live.ex:12866
+#: lib/glossia_web/live/dashboard_live.ex:13032
 #, elixir-autogen, elixir-format
 msgid "Handle"
 msgstr "Gerenciar"
@@ -336,7 +337,7 @@ msgstr "Quão casual ou formal o idioma deve ser."
 
 #: lib/glossia_web/live/dashboard_live.ex:4487
 #: lib/glossia_web/live/dashboard_live.ex:4916
-#: lib/glossia_web/live/dashboard_live.ex:9744
+#: lib/glossia_web/live/dashboard_live.ex:9776
 #, elixir-autogen, elixir-format
 msgid "Language overrides"
 msgstr "Sobrescritas de idioma"
@@ -403,13 +404,13 @@ msgstr "Versões anteriores da sua configuração de voz."
 #: lib/glossia_web/live/dashboard_live.ex:5420
 #: lib/glossia_web/live/dashboard_live.ex:5811
 #: lib/glossia_web/live/dashboard_live.ex:6962
-#: lib/glossia_web/live/dashboard_live.ex:9540
+#: lib/glossia_web/live/dashboard_live.ex:9572
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr "Remover"
 
 #: lib/glossia_web/live/dashboard_live.ex:4951
-#: lib/glossia_web/live/dashboard_live.ex:10100
+#: lib/glossia_web/live/dashboard_live.ex:10132
 #, elixir-autogen, elixir-format
 msgid "Removed"
 msgstr "Removido"
@@ -438,7 +439,7 @@ msgstr "Configure o nível geral de personalidade e formalidade para o seu conte
 #: lib/glossia_web/live/dashboard_live.ex:4435
 #: lib/glossia_web/live/dashboard_live.ex:4606
 #: lib/glossia_web/live/dashboard_live.ex:4866
-#: lib/glossia_web/live/dashboard_live.ex:9717
+#: lib/glossia_web/live/dashboard_live.ex:9749
 #, elixir-autogen, elixir-format
 msgid "Target audience"
 msgstr "Público-alvo"
@@ -452,7 +453,7 @@ msgstr "O caráter geral da sua escrita."
 #: lib/glossia_web/live/dashboard_live.ex:4564
 #: lib/glossia_web/live/dashboard_live.ex:4854
 #: lib/glossia_web/live/dashboard_live.ex:4959
-#: lib/glossia_web/live/dashboard_live.ex:9703
+#: lib/glossia_web/live/dashboard_live.ex:9735
 #, elixir-autogen, elixir-format
 msgid "Tone"
 msgstr "Tom"
@@ -689,8 +690,8 @@ msgstr "Membros"
 #: lib/glossia_web/live/dashboard_live.ex:6344
 #: lib/glossia_web/live/dashboard_live.ex:6811
 #: lib/glossia_web/live/dashboard_live.ex:7038
-#: lib/glossia_web/live/dashboard_live.ex:11382
-#: lib/glossia_web/live/dashboard_live.ex:11395
+#: lib/glossia_web/live/dashboard_live.ex:11414
+#: lib/glossia_web/live/dashboard_live.ex:11427
 #: lib/glossia_web/live/profile_live.ex:237
 #, elixir-autogen, elixir-format
 msgid "Name"
@@ -799,8 +800,8 @@ msgstr "Você já é um membro desta organização."
 #: lib/glossia_web/live/dashboard_live.ex:2819
 #: lib/glossia_web/live/dashboard_live.ex:3048
 #: lib/glossia_web/live/dashboard_live.ex:3091
-#: lib/glossia_web/live/dashboard_live.ex:10425
-#: lib/glossia_web/live/dashboard_live.ex:10494
+#: lib/glossia_web/live/dashboard_live.ex:10457
+#: lib/glossia_web/live/dashboard_live.ex:10526
 #, elixir-autogen, elixir-format
 msgid "You don't have permission."
 msgstr "Você não tem permissão."
@@ -878,7 +879,7 @@ msgstr "Não é possível remover o único administrador da organização."
 #: lib/glossia_web/live/dashboard_live.ex:5141
 #: lib/glossia_web/live/dashboard_live.ex:5333
 #: lib/glossia_web/live/dashboard_live.ex:5555
-#: lib/glossia_web/live/dashboard_live.ex:9800
+#: lib/glossia_web/live/dashboard_live.ex:9832
 #, elixir-autogen, elixir-format
 msgid "Case sensitive"
 msgstr "Diferenciar maiúsculas e minúsculas"
@@ -910,7 +911,7 @@ msgstr "Convite não encontrado."
 #: lib/glossia_web/live/dashboard_live.ex:372
 #: lib/glossia_web/live/dashboard_live.ex:379
 #: lib/glossia_web/live/dashboard_live.ex:5287
-#: lib/glossia_web/live/dashboard_live.ex:10899
+#: lib/glossia_web/live/dashboard_live.ex:10931
 #, elixir-autogen, elixir-format
 msgid "New term"
 msgstr "Novo termo"
@@ -939,7 +940,7 @@ msgstr "Pesquisar idioma..."
 #: lib/glossia_web/live/dashboard_live.ex:5325
 #: lib/glossia_web/live/dashboard_live.ex:5328
 #: lib/glossia_web/live/dashboard_live.ex:5538
-#: lib/glossia_web/live/dashboard_live.ex:9782
+#: lib/glossia_web/live/dashboard_live.ex:9814
 #, elixir-autogen, elixir-format
 msgid "Term"
 msgstr "Termo"
@@ -964,7 +965,7 @@ msgstr "Tradução"
 #: lib/glossia_web/live/dashboard_live.ex:5545
 #: lib/glossia_web/live/dashboard_live.ex:7291
 #: lib/glossia_web/live/dashboard_live.ex:7558
-#: lib/glossia_web/live/dashboard_live.ex:9790
+#: lib/glossia_web/live/dashboard_live.ex:9822
 #, elixir-autogen, elixir-format
 msgid "Translations"
 msgstr "Traduções"
@@ -1207,9 +1208,9 @@ msgstr "URL de callback de autorização"
 #: lib/glossia_web/live/dashboard_live.ex:4744
 #: lib/glossia_web/live/dashboard_live.ex:5090
 #: lib/glossia_web/live/dashboard_live.ex:5671
-#: lib/glossia_web/live/dashboard_live.ex:12454
-#: lib/glossia_web/live/dashboard_live.ex:13298
-#: lib/glossia_web/live/dashboard_live.ex:13356
+#: lib/glossia_web/live/dashboard_live.ex:12486
+#: lib/glossia_web/live/dashboard_live.ex:13330
+#: lib/glossia_web/live/dashboard_live.ex:13388
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr "Cancelar"
@@ -1290,7 +1291,7 @@ msgstr "Excluir este aplicativo revogará todos os tokens emitidos através dele
 #: lib/glossia_web/live/dashboard_live.ex:6632
 #: lib/glossia_web/live/dashboard_live.ex:6645
 #: lib/glossia_web/live/dashboard_live.ex:7046
-#: lib/glossia_web/live/dashboard_live.ex:9696
+#: lib/glossia_web/live/dashboard_live.ex:9728
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr "Descrição"
@@ -1525,7 +1526,7 @@ msgid "New token"
 msgstr "Novo token"
 
 #: lib/glossia_web/live/admin_live.ex:803
-#: lib/glossia_web/live/dashboard_live.ex:12470
+#: lib/glossia_web/live/dashboard_live.ex:12502
 #, elixir-autogen, elixir-format
 msgid "Open"
 msgstr "Abrir"
@@ -1546,7 +1547,8 @@ msgid "Search by title..."
 msgstr "Pesquisar por título..."
 
 #: lib/glossia_web/live/admin_live.ex:692
-#: lib/glossia_web/live/dashboard_live.ex:11429
+#: lib/glossia_web/live/dashboard_live.ex:8172
+#: lib/glossia_web/live/dashboard_live.ex:11461
 #, elixir-autogen, elixir-format
 msgid "Status"
 msgstr "Status"
@@ -1646,7 +1648,7 @@ msgid "Briefly describe what you do and who you serve..."
 msgstr "Descreva brevemente o que você faz e a quem atende..."
 
 #: lib/glossia_web/live/dashboard_live.ex:4331
-#: lib/glossia_web/live/dashboard_live.ex:9737
+#: lib/glossia_web/live/dashboard_live.ex:9769
 #, elixir-autogen, elixir-format
 msgid "Cultural notes"
 msgstr "Notas culturais"
@@ -1672,9 +1674,9 @@ msgid "Generating cultural notes..."
 msgstr "Gerando notas culturais..."
 
 #: lib/glossia_web/live/dashboard_live.ex:4828
-#: lib/glossia_web/live/dashboard_live.ex:9999
-#: lib/glossia_web/live/dashboard_live.ex:10010
-#: lib/glossia_web/live/dashboard_live.ex:13600
+#: lib/glossia_web/live/dashboard_live.ex:10031
+#: lib/glossia_web/live/dashboard_live.ex:10042
+#: lib/glossia_web/live/dashboard_live.ex:13632
 #, elixir-autogen, elixir-format
 msgid "None"
 msgstr "Nenhum"
@@ -1688,7 +1690,7 @@ msgstr "Pesquisar país..."
 #: lib/glossia_web/live/dashboard_live.ex:4284
 #: lib/glossia_web/live/dashboard_live.ex:4294
 #: lib/glossia_web/live/dashboard_live.ex:4820
-#: lib/glossia_web/live/dashboard_live.ex:9731
+#: lib/glossia_web/live/dashboard_live.ex:9763
 #, elixir-autogen, elixir-format
 msgid "Target countries"
 msgstr "Países de destino"
@@ -1735,7 +1737,7 @@ msgstr "Localização autônoma e revisão de conteúdo"
 msgid "All of your linguistic preferences live in one place. Every team draws from the same foundation, so your organization sounds consistent whether it is a product screen, a marketing campaign, or a support reply."
 msgstr "Todas as suas preferências linguísticas estão em um só lugar. Cada equipe se baseia na mesma fundação, então sua organização soa consistente, seja em uma tela de produto, uma campanha de marketing ou uma resposta de suporte."
 
-#: lib/glossia_web/live/dashboard_live.ex:8901
+#: lib/glossia_web/live/dashboard_live.ex:8933
 #, elixir-autogen, elixir-format
 msgid "An error occurred during setup."
 msgstr "Ocorreu um erro durante a configuração."
@@ -1781,12 +1783,12 @@ msgid "Built on the foundation, ready for your use cases"
 msgstr "Construído sobre a base, pronto para seus casos de uso"
 
 #: lib/glossia_web/live/admin_live.ex:804
-#: lib/glossia_web/live/dashboard_live.ex:12471
+#: lib/glossia_web/live/dashboard_live.ex:12503
 #, elixir-autogen, elixir-format
 msgid "Closed"
 msgstr "Fechado"
 
-#: lib/glossia_web/live/dashboard_live.ex:12457
+#: lib/glossia_web/live/dashboard_live.ex:12489
 #, elixir-autogen, elixir-format
 msgid "Comment"
 msgstr "Comentar"
@@ -1915,7 +1917,7 @@ msgstr "Código de usuário inválido."
 msgid "Language managers"
 msgstr "Gerentes de idioma"
 
-#: lib/glossia_web/live/dashboard_live.ex:12447
+#: lib/glossia_web/live/dashboard_live.ex:12479
 #, elixir-autogen, elixir-format
 msgid "Leave a comment..."
 msgstr "Deixe um comentário..."
@@ -1971,7 +1973,7 @@ msgstr "A única fonte da verdade sobre como sua organização se expressa."
 msgid "Open integrations"
 msgstr "Integrações abertas"
 
-#: lib/glossia_web/live/dashboard_live.ex:12350
+#: lib/glossia_web/live/dashboard_live.ex:12382
 #, elixir-autogen, elixir-format
 msgid "Opened by %{author} on %{date}"
 msgstr "Aberto por %{author} em %{date}"
@@ -2019,7 +2021,7 @@ msgstr "Contexto do projeto (exemplo de repositório)"
 msgid "REST APIs"
 msgstr "APIs REST"
 
-#: lib/glossia_web/live/dashboard_live.ex:9331
+#: lib/glossia_web/live/dashboard_live.ex:9363
 #, elixir-autogen, elixir-format
 msgid "Search repositories..."
 msgstr "Pesquisar repositórios..."
@@ -2047,7 +2049,7 @@ msgstr "Pesquisar repositórios..."
 msgid "Settings"
 msgstr "Configurações"
 
-#: lib/glossia_web/live/dashboard_live.ex:8900
+#: lib/glossia_web/live/dashboard_live.ex:8932
 #, elixir-autogen, elixir-format
 msgid "Setup failed"
 msgstr "Configuração falhou"
@@ -2056,11 +2058,6 @@ msgstr "Configuração falhou"
 #, elixir-autogen, elixir-format
 msgid "Speak new languages, reach new markets"
 msgstr "Fale novos idiomas, alcance novos mercados"
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:499
-#, elixir-autogen, elixir-format
-msgid "Stop gluing tools together. Glossia is the system you have been looking for: one place to maintain terminology, enforce consistency, and coordinate across teams and projects."
-msgstr "Pare de colar ferramentas juntas. O Glossia é o sistema que você estava procurando: um lugar para manter terminologia, garantir consistência e coordenar entre equipes e projetos."
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:371
 #, elixir-autogen, elixir-format
@@ -2170,7 +2167,7 @@ msgstr "Suas ferramentas de escrita, plataformas de conteúdo e assistentes de I
 msgid "and open standards like"
 msgstr "e padrões abertos como"
 
-#: lib/glossia_web/live/dashboard_live.ex:12385
+#: lib/glossia_web/live/dashboard_live.ex:12417
 #, elixir-autogen, elixir-format
 msgid "Comments (%{count})"
 msgstr "Comentários (%{count})"
@@ -2186,7 +2183,7 @@ msgstr "Arraste a imagem para enviar"
 msgid "Filter"
 msgstr "Filtrar"
 
-#: lib/glossia_web/live/dashboard_live.ex:9376
+#: lib/glossia_web/live/dashboard_live.ex:9408
 #, elixir-autogen, elixir-format
 msgid "No matching repositories"
 msgstr "Nenhum repositório correspondente"
@@ -2196,14 +2193,14 @@ msgstr "Nenhum repositório correspondente"
 msgid "Preview"
 msgstr "Prévia"
 
-#: lib/glossia_web/live/dashboard_live.ex:12414
+#: lib/glossia_web/live/dashboard_live.ex:12446
 #, elixir-autogen, elixir-format
 msgid "Quote reply"
 msgstr "Resposta com citação"
 
 #: lib/glossia_web/live/dashboard_live.ex:4069
-#: lib/glossia_web/live/dashboard_live.ex:9312
-#: lib/glossia_web/live/dashboard_live.ex:9343
+#: lib/glossia_web/live/dashboard_live.ex:9344
+#: lib/glossia_web/live/dashboard_live.ex:9375
 #, elixir-autogen, elixir-format
 msgid "Repository"
 msgstr "Repositório"
@@ -2218,8 +2215,8 @@ msgstr "Buscar projetos..."
 msgid "Sign in to continue."
 msgstr "Faça login para continuar."
 
-#: lib/glossia_web/live/dashboard_live.ex:9377
-#: lib/glossia_web/live/dashboard_live.ex:9556
+#: lib/glossia_web/live/dashboard_live.ex:9409
+#: lib/glossia_web/live/dashboard_live.ex:9588
 #, elixir-autogen, elixir-format
 msgid "Try adjusting your search query."
 msgstr "Tente ajustar sua consulta de pesquisa."
@@ -2230,7 +2227,7 @@ msgid "Write"
 msgstr "Escrever"
 
 #: lib/glossia_web/live/dashboard_live.ex:7030
-#: lib/glossia_web/live/dashboard_live.ex:12480
+#: lib/glossia_web/live/dashboard_live.ex:12512
 #, elixir-autogen, elixir-format
 msgid "General"
 msgstr "Geral"
@@ -2253,34 +2250,34 @@ msgid "Provide a clear title, full context, and a concise summary of intent."
 msgstr "Forneça um título claro, contexto completo e um resumo conciso do objetivo."
 
 #: lib/glossia_web/live/dashboard_live.ex:4524
-#: lib/glossia_web/live/dashboard_live.ex:10102
+#: lib/glossia_web/live/dashboard_live.ex:10134
 #, elixir-autogen, elixir-format
 msgid "Changed"
 msgstr "Alterado"
 
-#: lib/glossia_web/live/dashboard_live.ex:9750
+#: lib/glossia_web/live/dashboard_live.ex:9782
 #, elixir-autogen, elixir-format
 msgid "No proposed changes detected."
 msgstr "Nenhuma alteração proposta detectada."
 
-#: lib/glossia_web/live/dashboard_live.ex:9688
-#: lib/glossia_web/live/dashboard_live.ex:9773
+#: lib/glossia_web/live/dashboard_live.ex:9720
+#: lib/glossia_web/live/dashboard_live.ex:9805
 #, elixir-autogen, elixir-format
 msgid "Proposed changes"
 msgstr "Alterações propostas"
 
-#: lib/glossia_web/live/dashboard_live.ex:9689
-#: lib/glossia_web/live/dashboard_live.ex:9774
+#: lib/glossia_web/live/dashboard_live.ex:9721
+#: lib/glossia_web/live/dashboard_live.ex:9806
 #, elixir-autogen, elixir-format
 msgid "This review is read-only. Go back to continue editing your draft."
 msgstr "Esta revisão é apenas para leitura. Volte para continuar editando seu rascunho."
 
-#: lib/glossia_web/live/dashboard_live.ex:10101
+#: lib/glossia_web/live/dashboard_live.ex:10133
 #, elixir-autogen, elixir-format
 msgid "Updated"
 msgstr "Atualizado"
 
-#: lib/glossia_web/live/dashboard_live.ex:9739
+#: lib/glossia_web/live/dashboard_live.ex:9771
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
 msgstr "Atualizado para: %{countries}"
@@ -2311,7 +2308,7 @@ msgstr "Não foi possível atualizar as configurações do projeto."
 msgid "Create a suggestion with title, description, and proposed voice updates."
 msgstr "Crie uma sugestão com título, descrição e atualizações de voz propostas."
 
-#: lib/glossia_web/live/dashboard_live.ex:11089
+#: lib/glossia_web/live/dashboard_live.ex:11121
 #, elixir-autogen, elixir-format
 msgid "Failed to submit voice suggestion."
 msgstr "Falha ao enviar sugestão de voz."
@@ -2398,27 +2395,27 @@ msgstr "Faça upload de uma imagem para representar este projeto."
 msgid "Upload error"
 msgstr "Erro de upload"
 
-#: lib/glossia_web/live/dashboard_live.ex:12478
+#: lib/glossia_web/live/dashboard_live.ex:12510
 #, elixir-autogen, elixir-format
 msgid "Voice suggestion"
 msgstr "Sugestão de voz"
 
-#: lib/glossia_web/live/dashboard_live.ex:11216
+#: lib/glossia_web/live/dashboard_live.ex:11248
 #, elixir-autogen, elixir-format
 msgid "suggestion"
 msgstr "sugestão"
 
-#: lib/glossia_web/live/dashboard_live.ex:8822
+#: lib/glossia_web/live/dashboard_live.ex:8854
 #, elixir-autogen, elixir-format
 msgid "%{count}d ago"
 msgstr "%{count}d atrás"
 
-#: lib/glossia_web/live/dashboard_live.ex:8821
+#: lib/glossia_web/live/dashboard_live.ex:8853
 #, elixir-autogen, elixir-format
 msgid "%{count}h ago"
 msgstr "%{count}h atrás"
 
-#: lib/glossia_web/live/dashboard_live.ex:8820
+#: lib/glossia_web/live/dashboard_live.ex:8852
 #, elixir-autogen, elixir-format
 msgid "%{count}m ago"
 msgstr "%{count}m atrás"
@@ -2435,12 +2432,12 @@ msgstr "Uma descrição de sugestão é obrigatória."
 msgid "A suggestion title is required."
 msgstr "Um título de sugestão é obrigatório."
 
-#: lib/glossia_web/live/dashboard_live.ex:11264
+#: lib/glossia_web/live/dashboard_live.ex:11296
 #, elixir-autogen, elixir-format
 msgid "Applied voice suggestion as version #%{version}."
 msgstr "Sugestão de voz aplicada como versão #%{version}."
 
-#: lib/glossia_web/live/dashboard_live.ex:12362
+#: lib/glossia_web/live/dashboard_live.ex:12394
 #, elixir-autogen, elixir-format
 msgid "Apply suggestion"
 msgstr "Aplicar sugestão"
@@ -2457,7 +2454,7 @@ msgstr "Resumo breve da mudança sugerida"
 msgid "Suggestion"
 msgstr "Sugestão"
 
-#: lib/glossia_web/live/dashboard_live.ex:8819
+#: lib/glossia_web/live/dashboard_live.ex:8851
 #, elixir-autogen, elixir-format
 msgid "just now"
 msgstr "agora"
@@ -2553,14 +2550,14 @@ msgstr "Detalhes da sessão de tradução"
 msgid "Translation sessions for this project."
 msgstr "Sessões de tradução para este projeto."
 
-#: lib/glossia_web/live/dashboard_live.ex:9461
+#: lib/glossia_web/live/dashboard_live.ex:9493
 #, elixir-autogen, elixir-format
 msgid "%{count} language selected"
 msgid_plural "%{count} languages selected"
 msgstr[0] "%{count} idioma selecionado"
 msgstr[1] "%{count} idiomas selecionados"
 
-#: lib/glossia_web/live/dashboard_live.ex:9472
+#: lib/glossia_web/live/dashboard_live.ex:9504
 #, elixir-autogen, elixir-format
 msgid "Back"
 msgstr "Voltar"
@@ -2568,7 +2565,7 @@ msgstr "Voltar"
 #: lib/glossia_web/live/dashboard_live.ex:4148
 #: lib/glossia_web/live/dashboard_live.ex:7834
 #: lib/glossia_web/live/dashboard_live.ex:7933
-#: lib/glossia_web/live/dashboard_live.ex:11435
+#: lib/glossia_web/live/dashboard_live.ex:11467
 #, elixir-autogen, elixir-format
 msgid "Completed"
 msgstr "Concluído"
@@ -2576,24 +2573,24 @@ msgstr "Concluído"
 #: lib/glossia_web/live/dashboard_live.ex:4149
 #: lib/glossia_web/live/dashboard_live.ex:7784
 #: lib/glossia_web/live/dashboard_live.ex:7835
-#: lib/glossia_web/live/dashboard_live.ex:8362
-#: lib/glossia_web/live/dashboard_live.ex:11436
-#: lib/glossia_web/live/dashboard_live.ex:11453
+#: lib/glossia_web/live/dashboard_live.ex:8394
+#: lib/glossia_web/live/dashboard_live.ex:11468
+#: lib/glossia_web/live/dashboard_live.ex:11485
 #, elixir-autogen, elixir-format
 msgid "Failed"
 msgstr "Falha"
 
-#: lib/glossia_web/live/dashboard_live.ex:9611
+#: lib/glossia_web/live/dashboard_live.ex:9643
 #, elixir-autogen, elixir-format
 msgid "Go to project"
 msgstr "Ir para o projeto"
 
-#: lib/glossia_web/live/dashboard_live.ex:9256
+#: lib/glossia_web/live/dashboard_live.ex:9288
 #, elixir-autogen, elixir-format
 msgid "Import a GitHub repository and set up localization."
 msgstr "Importe um repositório GitHub e configure a localização."
 
-#: lib/glossia_web/live/dashboard_live.ex:9434
+#: lib/glossia_web/live/dashboard_live.ex:9466
 #, elixir-autogen, elixir-format
 msgid "Install GitHub App"
 msgstr "Instalar aplicativo do GitHub"
@@ -2601,7 +2598,7 @@ msgstr "Instalar aplicativo do GitHub"
 #: lib/glossia_web/live/dashboard_live.ex:4151
 #: lib/glossia_web/live/dashboard_live.ex:7778
 #: lib/glossia_web/live/dashboard_live.ex:7837
-#: lib/glossia_web/live/dashboard_live.ex:11433
+#: lib/glossia_web/live/dashboard_live.ex:11465
 #, elixir-autogen, elixir-format
 msgid "Pending"
 msgstr "Pendente"
@@ -2609,49 +2606,49 @@ msgstr "Pendente"
 #: lib/glossia_web/live/dashboard_live.ex:4150
 #: lib/glossia_web/live/dashboard_live.ex:7779
 #: lib/glossia_web/live/dashboard_live.ex:7836
-#: lib/glossia_web/live/dashboard_live.ex:11434
+#: lib/glossia_web/live/dashboard_live.ex:11466
 #, elixir-autogen, elixir-format
 msgid "Running"
 msgstr "Executando"
 
-#: lib/glossia_web/live/dashboard_live.ex:9501
+#: lib/glossia_web/live/dashboard_live.ex:9533
 #, elixir-autogen, elixir-format
 msgid "Search languages..."
 msgstr "Buscar idiomas..."
 
-#: lib/glossia_web/live/dashboard_live.ex:9358
-#: lib/glossia_web/live/dashboard_live.ex:9541
+#: lib/glossia_web/live/dashboard_live.ex:9390
+#: lib/glossia_web/live/dashboard_live.ex:9573
 #, elixir-autogen, elixir-format
 msgid "Select"
 msgstr "Selecionar"
 
-#: lib/glossia_web/live/dashboard_live.ex:9480
+#: lib/glossia_web/live/dashboard_live.ex:9512
 #, elixir-autogen, elixir-format
 msgid "Set up project"
 msgstr "Configurar projeto"
 
-#: lib/glossia_web/live/dashboard_live.ex:8918
+#: lib/glossia_web/live/dashboard_live.ex:8950
 #, elixir-autogen, elixir-format
 msgid "Setup complete"
 msgstr "Configuração concluída"
 
-#: lib/glossia_web/live/dashboard_live.ex:9520
+#: lib/glossia_web/live/dashboard_live.ex:9552
 #, elixir-autogen, elixir-format
 msgid "Code"
 msgstr "Código"
 
-#: lib/glossia_web/live/dashboard_live.ex:9393
-#: lib/glossia_web/live/dashboard_live.ex:9416
+#: lib/glossia_web/live/dashboard_live.ex:9425
+#: lib/glossia_web/live/dashboard_live.ex:9448
 #, elixir-autogen, elixir-format
 msgid "Configure repository access"
 msgstr "Configurar acesso ao repositório"
 
-#: lib/glossia_web/live/dashboard_live.ex:9426
+#: lib/glossia_web/live/dashboard_live.ex:9458
 #, elixir-autogen, elixir-format
 msgid "Connect a Git provider"
 msgstr "Conectar um provedor Git"
 
-#: lib/glossia_web/live/dashboard_live.ex:9387
+#: lib/glossia_web/live/dashboard_live.ex:9419
 #, elixir-autogen, elixir-format
 msgid "Don't see your repository?"
 msgstr "Não vê o seu repositório?"
@@ -2661,7 +2658,7 @@ msgstr "Não vê o seu repositório?"
 msgid "GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and GITHUB_APP_SLUG."
 msgstr "O aplicativo GitHub não está configurado. Defina GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY e GITHUB_APP_SLUG."
 
-#: lib/glossia_web/live/dashboard_live.ex:9428
+#: lib/glossia_web/live/dashboard_live.ex:9460
 #, elixir-autogen, elixir-format
 msgid "Install the Glossia GitHub App to import repositories and set up localization."
 msgstr "Instale o aplicativo Glossia GitHub para importar repositórios e configurar a localização."
@@ -2676,12 +2673,12 @@ msgstr "Gerenciar serviços de terceiros conectados à sua conta da Glossia."
 msgid "Manage your personal profile and account information."
 msgstr "Gerenciar seu perfil pessoal e informações de conta."
 
-#: lib/glossia_web/live/dashboard_live.ex:9555
+#: lib/glossia_web/live/dashboard_live.ex:9587
 #, elixir-autogen, elixir-format
 msgid "No matching languages"
 msgstr "Nenhuma linguagem correspondente"
 
-#: lib/glossia_web/live/dashboard_live.ex:9406
+#: lib/glossia_web/live/dashboard_live.ex:9438
 #, elixir-autogen, elixir-format
 msgid "No repositories accessible"
 msgstr "Nenhum repositório acessível"
@@ -2700,7 +2697,7 @@ msgstr "Perfil"
 msgid "Ready to suggest changes"
 msgstr "Pronto para sugerir alterações"
 
-#: lib/glossia_web/live/dashboard_live.ex:9408
+#: lib/glossia_web/live/dashboard_live.ex:9440
 #, elixir-autogen, elixir-format
 msgid "The GitHub App is installed but has no accessible repositories. Configure the installation to grant access to the repositories you want to import."
 msgstr "O aplicativo GitHub está instalado, mas não possui repositórios acessíveis. Configure a instalação para conceder acesso aos repositórios que deseja importar."
@@ -2784,30 +2781,30 @@ msgstr "Conexões"
 
 #: lib/glossia_web/live/dashboard_live.ex:7198
 #: lib/glossia_web/live/dashboard_live.ex:7954
-#: lib/glossia_web/live/dashboard_live.ex:8864
-#: lib/glossia_web/live/dashboard_live.ex:8924
+#: lib/glossia_web/live/dashboard_live.ex:8896
+#: lib/glossia_web/live/dashboard_live.ex:8956
 #, elixir-autogen, elixir-format
 msgid "Open pull request"
 msgstr "Abrir pull request"
 
-#: lib/glossia_web/live/dashboard_live.ex:8631
+#: lib/glossia_web/live/dashboard_live.ex:8663
 #: lib/glossia_web/live/profile_live.ex:430
 #, elixir-autogen, elixir-format
 msgid "Provider"
 msgstr "Provedor"
 
-#: lib/glossia_web/live/dashboard_live.ex:8919
+#: lib/glossia_web/live/dashboard_live.ex:8951
 #, elixir-autogen, elixir-format
 msgid "Your localization baseline is ready for review."
 msgstr "Sua linha de base de localização está pronta para revisão."
 
-#: lib/glossia_web/live/dashboard_live.ex:12774
-#: lib/glossia_web/live/dashboard_live.ex:12869
+#: lib/glossia_web/live/dashboard_live.ex:12806
+#: lib/glossia_web/live/dashboard_live.ex:12901
 #, elixir-autogen, elixir-format
 msgid "API key"
 msgstr "Chave API"
 
-#: lib/glossia_web/live/dashboard_live.ex:12949
+#: lib/glossia_web/live/dashboard_live.ex:12981
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to delete this model?"
 msgstr "Tem certeza de que deseja excluir este modelo?"
@@ -2827,8 +2824,8 @@ msgstr "Não foi possível excluir o modelo."
 msgid "Could not update model."
 msgstr "Não foi possível atualizar o modelo."
 
-#: lib/glossia_web/live/dashboard_live.ex:12936
-#: lib/glossia_web/live/dashboard_live.ex:12944
+#: lib/glossia_web/live/dashboard_live.ex:12968
+#: lib/glossia_web/live/dashboard_live.ex:12976
 #, elixir-autogen, elixir-format
 msgid "Delete model"
 msgstr "Excluir modelo"
@@ -2838,23 +2835,23 @@ msgstr "Excluir modelo"
 msgid "Glossia captures your linguistic preferences in one place so linguists and teams can shape how your organization speaks across every language and surface."
 msgstr "A Glossia captura suas preferências linguísticas em um único lugar para que linguistas e equipes moldem como sua organização se expressa em todos os idiomas e superfícies."
 
-#: lib/glossia_web/live/dashboard_live.ex:12870
+#: lib/glossia_web/live/dashboard_live.ex:12902
 #, elixir-autogen, elixir-format
 msgid "Leave blank to keep current key"
 msgstr "Deixe em branco para manter a chave atual"
 
-#: lib/glossia_web/live/dashboard_live.ex:11416
-#: lib/glossia_web/live/dashboard_live.ex:12746
-#: lib/glossia_web/live/dashboard_live.ex:12842
-#: lib/glossia_web/live/dashboard_live.ex:13019
-#: lib/glossia_web/live/dashboard_live.ex:13144
-#: lib/glossia_web/live/dashboard_live.ex:13277
+#: lib/glossia_web/live/dashboard_live.ex:11448
+#: lib/glossia_web/live/dashboard_live.ex:12778
+#: lib/glossia_web/live/dashboard_live.ex:12874
+#: lib/glossia_web/live/dashboard_live.ex:13051
+#: lib/glossia_web/live/dashboard_live.ex:13176
+#: lib/glossia_web/live/dashboard_live.ex:13309
 #, elixir-autogen, elixir-format
 msgid "Model"
 msgstr "Modelo"
 
-#: lib/glossia_web/live/dashboard_live.ex:12720
-#: lib/glossia_web/live/dashboard_live.ex:12826
+#: lib/glossia_web/live/dashboard_live.ex:12752
+#: lib/glossia_web/live/dashboard_live.ex:12858
 #, elixir-autogen, elixir-format
 msgid "Model configuration"
 msgstr "Configuração do modelo"
@@ -2882,52 +2879,42 @@ msgstr "Modelo atualizado."
 
 #: lib/glossia_web/live/dashboard_live.ex:802
 #: lib/glossia_web/live/dashboard_live.ex:821
-#: lib/glossia_web/live/dashboard_live.ex:12709
-#: lib/glossia_web/live/dashboard_live.ex:12974
+#: lib/glossia_web/live/dashboard_live.ex:12741
+#: lib/glossia_web/live/dashboard_live.ex:13006
 #, elixir-autogen, elixir-format
 msgid "New model"
 msgstr "Novo modelo"
 
-#: lib/glossia_web/live/dashboard_live.ex:12938
+#: lib/glossia_web/live/dashboard_live.ex:12970
 #, elixir-autogen, elixir-format
 msgid "Permanently remove this model configuration. This cannot be undone."
 msgstr "Remova permanentemente esta configuração de modelo. Isso não pode ser desfeito."
 
-#: lib/glossia_web/live/dashboard_live.ex:12776
+#: lib/glossia_web/live/dashboard_live.ex:12808
 #, elixir-autogen, elixir-format
 msgid "Your provider API key. This will be encrypted at rest."
 msgstr "Sua chave de API do provedor. Será criptografada em repouso."
 
-#: lib/glossia_web/live/dashboard_live.ex:12734
+#: lib/glossia_web/live/dashboard_live.ex:12766
 #, elixir-autogen, elixir-format
 msgid "e.g. my-claude-model"
 msgstr "ex: my-claude-model"
 
-#: lib/glossia_web/live/dashboard_live.ex:12775
+#: lib/glossia_web/live/dashboard_live.ex:12807
 #, elixir-autogen, elixir-format
 msgid "sk-..."
 msgstr "sk-..."
 
-#: lib/glossia_web/live/dashboard_live.ex:12623
-#: lib/glossia_web/live/dashboard_live.ex:12645
+#: lib/glossia_web/live/dashboard_live.ex:12655
+#: lib/glossia_web/live/dashboard_live.ex:12677
 #, elixir-autogen, elixir-format
 msgid "Select a model..."
 msgstr "Selecionar um modelo..."
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:224
-#, elixir-autogen, elixir-format
-msgid "A queryable map that connects your voices, terminology, audiences, and rules. Agents and integrations query it at runtime, so every decision a linguist makes flows through to every piece of content it touches."
-msgstr "Um mapa consultável que conecta suas vozes, terminologia, públicos e regras. Agentes e integrações consultam-no em tempo de execução, então toda decisão que um linguista toma flui para todos os conteúdos que ele toca."
 
 #: lib/glossia_web/live/dashboard_live.ex:5366
 #, elixir-autogen, elixir-format
 msgid "Add translation"
 msgstr "Adicionar tradução"
-
-#: lib/glossia_web/live/dashboard_live.ex:11298
-#, elixir-autogen, elixir-format
-msgid "Applied terminology suggestion as version #%{version}."
-msgstr "Sugestão de terminologia aplicada como versão #%{version}."
 
 #: lib/glossia_web/live/dashboard_live.ex:5411
 #, elixir-autogen, elixir-format
@@ -2946,17 +2933,17 @@ msgstr "Ao continuar, você concorda com os termos da Glossia"
 
 #: lib/glossia_web/live/dashboard_live.ex:5142
 #: lib/glossia_web/live/dashboard_live.ex:5556
-#: lib/glossia_web/live/dashboard_live.ex:9801
+#: lib/glossia_web/live/dashboard_live.ex:9833
 #, elixir-autogen, elixir-format
 msgid "Case insensitive"
 msgstr "Sem distinção de caixa"
 
-#: lib/glossia_web/live/dashboard_live.ex:12486
+#: lib/glossia_web/live/dashboard_live.ex:12518
 #, elixir-autogen, elixir-format
 msgid "Close"
 msgstr "Fechar"
 
-#: lib/glossia_web/live/dashboard_live.ex:12484
+#: lib/glossia_web/live/dashboard_live.ex:12516
 #, elixir-autogen, elixir-format
 msgid "Close suggestion"
 msgstr "Fechar sugestão"
@@ -2983,16 +2970,6 @@ msgstr "Não foi possível fechar a sugestão."
 msgid "Could not reopen suggestion."
 msgstr "Não foi possível reabrir a sugestão."
 
-#: lib/glossia_web/live/dashboard_live.ex:4999
-#, elixir-autogen, elixir-format
-msgid "Create a suggestion with title, description, and proposed terminology updates."
-msgstr "Crie uma sugestão com título, descrição e atualizações de terminologia propostas."
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:316
-#, elixir-autogen, elixir-format
-msgid "Create an organization, invite your team, and organize work into projects. Each project has its own voices, terminology, and rules that linguists iterate on together."
-msgstr "Crie uma organização, convide sua equipe e organize o trabalho em projetos. Cada projeto tem suas próprias vozes, terminologia e regras que os tradutores refinam juntos."
-
 #: lib/glossia_web/controllers/changelog_html/index.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Details"
@@ -3003,25 +2980,10 @@ msgstr "Detalhes"
 msgid "Discussion"
 msgstr "Discussão"
 
-#: lib/glossia_web/live/dashboard_live.ex:5290
-#, elixir-autogen, elixir-format
-msgid "Edit one terminology term and its approved translations."
-msgstr "Edite um termo de terminologia e suas traduções aprovadas."
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:338
-#, elixir-autogen, elixir-format
-msgid "Every change to a voice, terminology entry, or rule is versioned. See what changed, who changed it, and why. Roll back when needed."
-msgstr "Toda alteração em uma voz, entrada de terminologia ou regra é versionada. Veja o que mudou, quem alterou e por quê. Reverta quando necessário."
-
 #: lib/glossia_web/controllers/feature_controller.ex:11
 #, elixir-autogen, elixir-format
 msgid "Explore Glossia's language memory, localization, API, and MCP capabilities."
 msgstr "Explore as capacidades de memória de linguagem, localização, API e MCP do Glossia."
-
-#: lib/glossia_web/live/dashboard_live.ex:11143
-#, elixir-autogen, elixir-format
-msgid "Failed to submit terminology suggestion."
-msgstr "Não foi possível submeter a sugestão de terminologia."
 
 #: lib/glossia_web/components/layouts/root.html.heex:19
 #, elixir-autogen, elixir-format
@@ -3050,7 +3012,7 @@ msgstr "Gerenciar quem tem acesso a esta organização."
 
 #: lib/glossia_web/live/dashboard_live.ex:5132
 #: lib/glossia_web/live/dashboard_live.ex:5548
-#: lib/glossia_web/live/dashboard_live.ex:9794
+#: lib/glossia_web/live/dashboard_live.ex:9826
 #, elixir-autogen, elixir-format
 msgid "Matching"
 msgstr "Correspondências"
@@ -3070,7 +3032,7 @@ msgstr "Sem escopos"
 msgid "No terms yet"
 msgstr "Ainda não há termos"
 
-#: lib/glossia_web/live/dashboard_live.ex:10916
+#: lib/glossia_web/live/dashboard_live.ex:10948
 #, elixir-autogen, elixir-format
 msgid "No translations"
 msgstr "Sem traduções"
@@ -3096,27 +3058,22 @@ msgstr "Notas sobre localização, sistemas de idioma e fluxos de trabalho de ag
 msgid "Projects connected to this organization."
 msgstr "Projetos conectados a esta organização."
 
-#: lib/glossia_web/live/dashboard_live.ex:11220
+#: lib/glossia_web/live/dashboard_live.ex:11252
 #, elixir-autogen, elixir-format
 msgid "Proposed %{resource} update.\n\nChange note: %{note}\n\nUse the suggestion action to apply this when ready."
 msgstr "Atualização proposta do %{resource}.\n\nObservação de alteração: %{note}\n\nUse a ação de sugestão para aplicar isso quando estiver pronto."
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:471
-#, elixir-autogen, elixir-format
-msgid "Refine voice definitions, update terminology, and review content directly. Your expertise becomes the foundation that agents and integrations draw from across every project."
-msgstr "Refina definições de voz, atualize terminologia e revise conteúdo diretamente. Seu conhecimento se torna a base da qual agentes e integrações extraem dados em todos os projetos."
 
 #: lib/glossia_web/live/dashboard_live.ex:6856
 #, elixir-autogen, elixir-format
 msgid "Register an OAuth application to let external services access your account."
 msgstr "Registre uma aplicação OAuth para permitir que serviços externos acessem sua conta."
 
-#: lib/glossia_web/live/dashboard_live.ex:12492
+#: lib/glossia_web/live/dashboard_live.ex:12524
 #, elixir-autogen, elixir-format
 msgid "Reopen"
 msgstr "Reabrir"
 
-#: lib/glossia_web/live/dashboard_live.ex:12490
+#: lib/glossia_web/live/dashboard_live.ex:12522
 #, elixir-autogen, elixir-format
 msgid "Reopen suggestion"
 msgstr "Reabrir sugestão"
@@ -3150,48 +3107,6 @@ msgstr "Selecionar idioma"
 #, elixir-autogen, elixir-format
 msgid "Sign in as test user"
 msgstr "Entrar como usuário de teste"
-
-#: lib/glossia_web/live/dashboard_live.ex:465
-#: lib/glossia_web/live/dashboard_live.ex:4994
-#, elixir-autogen, elixir-format
-msgid "Suggest terminology changes"
-msgstr "Sugerir alterações de terminologia"
-
-#: lib/glossia_web/components/layouts/platform.html.heex:173
-#: lib/glossia_web/controllers/page_html/home.html.heex:423
-#: lib/glossia_web/live/dashboard_live.ex:317
-#: lib/glossia_web/live/dashboard_live.ex:341
-#: lib/glossia_web/live/dashboard_live.ex:378
-#: lib/glossia_web/live/dashboard_live.ex:416
-#: lib/glossia_web/live/dashboard_live.ex:487
-#: lib/glossia_web/live/dashboard_live.ex:513
-#: lib/glossia_web/live/dashboard_live.ex:1396
-#: lib/glossia_web/live/dashboard_live.ex:4995
-#: lib/glossia_web/live/dashboard_live.ex:11108
-#, elixir-autogen, elixir-format
-msgid "Terminology"
-msgstr "Terminologia"
-
-#: lib/glossia_web/live/dashboard_live.ex:508
-#, elixir-autogen, elixir-format
-msgid "Terminology #%{version}"
-msgstr "Terminologia #%{version}"
-
-#: lib/glossia_web/live/dashboard_live.ex:5530
-#, elixir-autogen, elixir-format
-msgid "Terminology entries in this version."
-msgstr "Entradas de terminologia nesta versão."
-
-#: lib/glossia_web/live/dashboard_live.ex:11156
-#: lib/glossia_web/live/dashboard_live.ex:12479
-#, elixir-autogen, elixir-format
-msgid "Terminology suggestion"
-msgstr "Sugestão de terminologia"
-
-#: lib/glossia_web/live/dashboard_live.ex:11136
-#, elixir-autogen, elixir-format
-msgid "Terminology suggestion submitted as suggestion #%{number}."
-msgstr "Sugestão de terminologia submetida como sugestão #%{number}."
 
 #: lib/glossia_web/live/dashboard_live.ex:5151
 #, elixir-autogen, elixir-format
@@ -3235,20 +3150,10 @@ msgstr "Tokens permitem que ferramentas automatizadas se autentiquem com Glossia
 msgid "Tokens you have generated that can be used to access Glossia programmatically."
 msgstr "Tokens que você gerou que podem ser usados para acessar o Glossia programaticamente."
 
-#: lib/glossia_web/live/dashboard_live.ex:11084
+#: lib/glossia_web/live/dashboard_live.ex:11116
 #, elixir-autogen, elixir-format
 msgid "Voice suggestion submitted as suggestion #%{number}."
 msgstr "Sugestão de voz submetida como sugestão #%{number}."
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:413
-#, elixir-autogen, elixir-format
-msgid "Voices, terminology, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
-msgstr "Vozes, terminologia, perfis de público-alvo e regras de estilo estão na plataforma. São compartilhados em todos os projetos da sua organização e controlados em versão para que nada se perca."
-
-#: lib/glossia_web/controllers/page_html/home.html.heex:553
-#, elixir-autogen, elixir-format
-msgid "We are building experiences where humans take part in the agentic loops through interfaces that run in the browser or on the go. Implementation details like tools, models, and environments are abstracted away so reviewers can focus on the content itself. We are also designing agentic experiences for linguists to contribute directly to the system, refining voice, terminology, and quality standards without needing to touch config files or code."
-msgstr "Estamos criando experiências em que pessoas participam dos loops agênticos por meio de interfaces que funcionam no navegador ou em movimento. Detalhes de implementação, como ferramentas, modelos e ambientes, são abstraídos para que revisores foquem apenas no conteúdo. Também estamos desenvolvendo experiências agênticas para que linguistas contribuam diretamente no sistema, refinando voz, terminologia e padrões de qualidade sem precisar tocar em arquivos de configuração ou código."
 
 #: lib/glossia_web/controllers/auth_controller.ex:44
 #, elixir-autogen, elixir-format
@@ -3259,11 +3164,6 @@ msgstr "Bem-vindo de volta. Escolha um método de login para continuar."
 #, elixir-autogen, elixir-format
 msgid "What this term means"
 msgstr "O que este termo significa"
-
-#: lib/glossia_web/live/dashboard_live.ex:11113
-#, elixir-autogen, elixir-format
-msgid "terminology"
-msgstr "terminologia"
 
 #: lib/glossia_web/live/dashboard_live.ex:8045
 #, elixir-autogen, elixir-format
@@ -3318,13 +3218,8 @@ msgstr "Já possui uma conta?"
 msgid "Application registered"
 msgstr "Aplicativo registrado"
 
-#: lib/glossia_web/live/dashboard_live.ex:5107
-#, elixir-autogen, elixir-format
-msgid "Canonical terms and their approved translations. Terms are matched during content processing to keep terminology consistent."
-msgstr "Termos canônicos e suas traduções aprovadas. Os termos são correspondidos durante o processamento de conteúdo para manter a terminologia consistente."
-
 #: lib/glossia_web/live/dashboard_live.ex:5560
-#: lib/glossia_web/live/dashboard_live.ex:9805
+#: lib/glossia_web/live/dashboard_live.ex:9837
 #, elixir-autogen, elixir-format
 msgid "Change"
 msgstr "Alterar"
@@ -3359,8 +3254,8 @@ msgstr "Copie seu segredo do cliente agora. Você não conseguirá vê-lo novame
 msgid "Copy your new client secret now. You will not be able to see it again."
 msgstr "Copie seu novo segredo do cliente agora. Você não conseguirá vê-lo novamente."
 
-#: lib/glossia_web/live/dashboard_live.ex:8361
-#: lib/glossia_web/live/dashboard_live.ex:9110
+#: lib/glossia_web/live/dashboard_live.ex:8393
+#: lib/glossia_web/live/dashboard_live.ex:9142
 #, elixir-autogen, elixir-format
 msgid "Done"
 msgstr "Concluído"
@@ -3371,7 +3266,7 @@ msgstr "Concluído"
 msgid "Explain what the application does and who owns it."
 msgstr "Explique o que a aplicação faz e quem a possui."
 
-#: lib/glossia_web/live/dashboard_live.ex:9817
+#: lib/glossia_web/live/dashboard_live.ex:9849
 #, elixir-autogen, elixir-format
 msgid "Go back to edit your draft before creating a suggestion."
 msgstr "Volte para editar o rascunho antes de criar uma sugestão."
@@ -3395,11 +3290,6 @@ msgstr "Novo no Glossia?"
 #, elixir-autogen, elixir-format
 msgid "No connections yet"
 msgstr "Nenhuma conexão ainda"
-
-#: lib/glossia_web/live/dashboard_live.ex:9816
-#, elixir-autogen, elixir-format
-msgid "No proposed terminology changes"
-msgstr "Nenhuma alteração de terminologia proposta"
 
 #: lib/glossia_web/live/dashboard_live.ex:5575
 #, elixir-autogen, elixir-format
@@ -3464,12 +3354,7 @@ msgstr "A página inicial pública do aplicativo, caso ele tenha uma."
 msgid "The stable identifier integrations use to start authorization."
 msgstr "O identificador estável que as integrações usam para iniciar a autorização."
 
-#: lib/glossia_web/live/dashboard_live.ex:5576
-#, elixir-autogen, elixir-format
-msgid "This revision does not contain terminology entries."
-msgstr "Esta revisão não contém entradas de terminologia."
-
-#: lib/glossia_web/live/dashboard_live.ex:8360
+#: lib/glossia_web/live/dashboard_live.ex:8392
 #, elixir-autogen, elixir-format
 msgid "Translating"
 msgstr "Traduzindo"
@@ -3489,18 +3374,18 @@ msgstr "Inalterado"
 msgid "Used by the internal content dashboard."
 msgstr "Usado pelo painel de conteúdo interno."
 
-#: lib/glossia_web/live/dashboard_live.ex:12661
+#: lib/glossia_web/live/dashboard_live.ex:12693
 #, elixir-autogen, elixir-format
 msgid "Search models"
 msgstr "Pesquisar modelos"
 
-#: lib/glossia_web/live/dashboard_live.ex:12624
-#: lib/glossia_web/live/dashboard_live.ex:12660
+#: lib/glossia_web/live/dashboard_live.ex:12656
+#: lib/glossia_web/live/dashboard_live.ex:12692
 #, elixir-autogen, elixir-format
 msgid "Search models..."
 msgstr "Pesquisar modelos..."
 
-#: lib/glossia_web/live/dashboard_live.ex:9318
+#: lib/glossia_web/live/dashboard_live.ex:9350
 #, elixir-autogen, elixir-format
 msgid "%{count} repository"
 msgid_plural "%{count} repositories"
@@ -3513,12 +3398,12 @@ msgstr[1] "%{count} repositórios"
 msgid "Could not retry project setup."
 msgstr "Não foi possível retentar a configuração do projeto."
 
-#: lib/glossia_web/live/dashboard_live.ex:9035
+#: lib/glossia_web/live/dashboard_live.ex:9067
 #, elixir-autogen, elixir-format
 msgid "Finished %{step}"
 msgstr "Concluído %{step}"
 
-#: lib/glossia_web/live/dashboard_live.ex:8887
+#: lib/glossia_web/live/dashboard_live.ex:8919
 #, elixir-autogen, elixir-format
 msgid "Localization setup"
 msgstr "Configuração de localização"
@@ -3529,108 +3414,108 @@ msgstr "Configuração de localização"
 #: lib/glossia_web/live/dashboard_live.ex:820
 #: lib/glossia_web/live/dashboard_live.ex:855
 #: lib/glossia_web/live/dashboard_live.ex:899
-#: lib/glossia_web/live/dashboard_live.ex:12964
+#: lib/glossia_web/live/dashboard_live.ex:12996
 #, elixir-autogen, elixir-format
 msgid "Models"
 msgstr "Modelos"
 
-#: lib/glossia_web/live/dashboard_live.ex:13049
+#: lib/glossia_web/live/dashboard_live.ex:13081
 #, elixir-autogen, elixir-format
 msgid "Models will show up here once you configure one."
 msgstr "Os modelos aparecerão aqui assim que você configurar um."
 
-#: lib/glossia_web/live/dashboard_live.ex:13048
+#: lib/glossia_web/live/dashboard_live.ex:13080
 #, elixir-autogen, elixir-format
 msgid "No models yet"
 msgstr "Ainda sem modelos"
 
-#: lib/glossia_web/live/dashboard_live.ex:9351
+#: lib/glossia_web/live/dashboard_live.ex:9383
 #, elixir-autogen, elixir-format
 msgid "Not detected"
 msgstr "Não detectado"
 
-#: lib/glossia_web/live/dashboard_live.ex:9529
+#: lib/glossia_web/live/dashboard_live.ex:9561
 #, elixir-autogen, elixir-format
 msgid "Not selected"
 msgstr "Não selecionado"
 
-#: lib/glossia_web/live/dashboard_live.ex:9029
+#: lib/glossia_web/live/dashboard_live.ex:9061
 #, elixir-autogen, elixir-format
 msgid "Pull request created"
 msgstr "Pull request criada"
 
-#: lib/glossia_web/live/dashboard_live.ex:8906
+#: lib/glossia_web/live/dashboard_live.ex:8938
 #, elixir-autogen, elixir-format
 msgid "Retry setup"
 msgstr "Retentar configuração"
 
-#: lib/glossia_web/live/dashboard_live.ex:9504
+#: lib/glossia_web/live/dashboard_live.ex:9536
 #, elixir-autogen, elixir-format
 msgid "Search languages"
 msgstr "Pesquisar idiomas"
 
-#: lib/glossia_web/live/dashboard_live.ex:9334
+#: lib/glossia_web/live/dashboard_live.ex:9366
 #, elixir-autogen, elixir-format
 msgid "Search repositories"
 msgstr "Pesquisar repositórios"
 
-#: lib/glossia_web/live/dashboard_live.ex:9528
+#: lib/glossia_web/live/dashboard_live.ex:9560
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr "Selecionado"
 
-#: lib/glossia_web/live/dashboard_live.ex:9523
+#: lib/glossia_web/live/dashboard_live.ex:9555
 #, elixir-autogen, elixir-format
 msgid "Selection"
 msgstr "Seleção"
 
-#: lib/glossia_web/live/dashboard_live.ex:9041
+#: lib/glossia_web/live/dashboard_live.ex:9073
 #, elixir-autogen, elixir-format
 msgid "Setup assistant update"
 msgstr "Atualização do assistente de configuração"
 
-#: lib/glossia_web/live/dashboard_live.ex:9023
+#: lib/glossia_web/live/dashboard_live.ex:9055
 #, elixir-autogen, elixir-format
 msgid "Setup error"
 msgstr "Erro de configuração"
 
-#: lib/glossia_web/live/dashboard_live.ex:9026
+#: lib/glossia_web/live/dashboard_live.ex:9058
 #, elixir-autogen, elixir-format
 msgid "Setup instructions prepared"
 msgstr "Instruções de configuração preparadas"
 
-#: lib/glossia_web/live/dashboard_live.ex:9038
-#: lib/glossia_web/live/dashboard_live.ex:9044
+#: lib/glossia_web/live/dashboard_live.ex:9070
+#: lib/glossia_web/live/dashboard_live.ex:9076
 #, elixir-autogen, elixir-format
 msgid "Setup update"
 msgstr "Atualização de configuração"
 
-#: lib/glossia_web/live/dashboard_live.ex:9468
+#: lib/glossia_web/live/dashboard_live.ex:9500
 #, elixir-autogen, elixir-format
 msgid "Target languages"
 msgstr "Idiomas-alvo"
 
-#: lib/glossia_web/live/dashboard_live.ex:9056
+#: lib/glossia_web/live/dashboard_live.ex:9088
 #, elixir-autogen, elixir-format
 msgid "The localization baseline is ready for review and merge."
 msgstr "A base de localização está pronta para revisão e fusão."
 
-#: lib/glossia_web/live/dashboard_live.ex:9053
+#: lib/glossia_web/live/dashboard_live.ex:9085
 #, elixir-autogen, elixir-format
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "As escolhas de repositório e idiomas estão prontas para o assistente de configuração."
 
-#: lib/glossia_web/live/dashboard_live.ex:9060
+#: lib/glossia_web/live/dashboard_live.ex:9092
 #, elixir-autogen, elixir-format
 msgid "The setup assistant is applying the next repository change."
 msgstr "O assistente de configuração está aplicando a próxima alteração no repositório."
 
-#: lib/glossia_web/live/dashboard_live.ex:9388
+#: lib/glossia_web/live/dashboard_live.ex:9420
 #, elixir-autogen, elixir-format
 msgid "Update the GitHub App installation to change repository access."
 msgstr "Atualize a instalação do GitHub App para alterar o acesso ao repositório."
 
-#: lib/glossia_web/live/dashboard_live.ex:9032
+#: lib/glossia_web/live/dashboard_live.ex:9064
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
 msgstr "Trabalhando em %{step}"
@@ -3640,7 +3525,7 @@ msgstr "Trabalhando em %{step}"
 msgid "You cannot retry this project setup."
 msgstr "Não é possível repetir a configuração do projeto."
 
-#: lib/glossia_web/live/dashboard_live.ex:9151
+#: lib/glossia_web/live/dashboard_live.ex:9183
 #, elixir-autogen, elixir-format
 msgid "repository setup"
 msgstr "Configuração de repositório"
@@ -3655,24 +3540,24 @@ msgstr "Modelo padrão atualizado."
 msgid "Could not update the default model."
 msgstr "Não foi possível atualizar o modelo padrão."
 
-#: lib/glossia_web/live/dashboard_live.ex:12835
+#: lib/glossia_web/live/dashboard_live.ex:12867
 #, elixir-autogen, elixir-format
 msgid "Use lowercase letters, numbers, and hyphens."
 msgstr "Use letras minúsculas, números e hífens."
 
-#: lib/glossia_web/live/dashboard_live.ex:12902
+#: lib/glossia_web/live/dashboard_live.ex:12934
 #, elixir-autogen, elixir-format
 msgid "Account default"
 msgstr "Conta padrão"
 
-#: lib/glossia_web/live/dashboard_live.ex:12918
-#: lib/glossia_web/live/dashboard_live.ex:13036
-#: lib/glossia_web/live/dashboard_live.ex:13039
+#: lib/glossia_web/live/dashboard_live.ex:12950
+#: lib/glossia_web/live/dashboard_live.ex:13068
+#: lib/glossia_web/live/dashboard_live.ex:13071
 #, elixir-autogen, elixir-format
 msgid "Default"
 msgstr "Padrão"
 
-#: lib/glossia_web/live/dashboard_live.ex:12925
+#: lib/glossia_web/live/dashboard_live.ex:12957
 #, elixir-autogen, elixir-format
 msgid "Make default"
 msgstr "Definir como padrão"
@@ -3702,105 +3587,105 @@ msgstr "Finalizar a configuração do Glossia"
 msgid "Merge pull request #%{number} to activate this project's localization baseline."
 msgstr "Mesclar o pull request #%{number} para ativar a base de localização deste projeto."
 
-#: lib/glossia_web/live/dashboard_live.ex:8107
+#: lib/glossia_web/live/dashboard_live.ex:8129
 #, elixir-autogen, elixir-format
 msgid "%{count} file was affected."
 msgid_plural "%{count} files were affected."
 msgstr[0] "%{count} arquivo foi afetado."
 msgstr[1] "%{count} arquivos foram afetados."
 
-#: lib/glossia_web/live/dashboard_live.ex:8471
+#: lib/glossia_web/live/dashboard_live.ex:8503
 #, elixir-autogen, elixir-format
 msgid "Model provider credit limit reached"
 msgstr "Limite de crédito do provedor de modelo atingido"
 
-#: lib/glossia_web/live/dashboard_live.ex:8473
+#: lib/glossia_web/live/dashboard_live.ex:8505
 #, elixir-autogen, elixir-format
 msgid "Add credits to your model provider account, then retry this translation session."
 msgstr "Adicione créditos à sua conta do provedor de modelo e, em seguida, tente novamente esta sessão de tradução."
 
-#: lib/glossia_web/live/dashboard_live.ex:8480
+#: lib/glossia_web/live/dashboard_live.ex:8512
 #, elixir-autogen, elixir-format
 msgid "Review provider billing"
 msgstr "Revisar faturamento do provedor"
 
-#: lib/glossia_web/live/dashboard_live.ex:8486
+#: lib/glossia_web/live/dashboard_live.ex:8518
 #, elixir-autogen, elixir-format
 msgid "Model provider rate limit reached"
 msgstr "Limite de requisições do provedor atingido"
 
-#: lib/glossia_web/live/dashboard_live.ex:8487
+#: lib/glossia_web/live/dashboard_live.ex:8519
 #, elixir-autogen, elixir-format
 msgid "Wait a moment, then retry this translation session."
 msgstr "Espere um momento e tente novamente esta sessão de tradução."
 
-#: lib/glossia_web/live/dashboard_live.ex:8498
+#: lib/glossia_web/live/dashboard_live.ex:8530
 #, elixir-autogen, elixir-format
 msgid "Model provider credentials were rejected"
 msgstr "As credenciais do provedor de modelos foram rejeitadas"
 
-#: lib/glossia_web/live/dashboard_live.ex:8500
+#: lib/glossia_web/live/dashboard_live.ex:8532
 #, elixir-autogen, elixir-format
 msgid "Check the model provider credentials, then retry this translation session."
 msgstr "Verifique as credenciais do provedor de modelos e tente novamente a sessão de tradução."
 
-#: lib/glossia_web/live/dashboard_live.ex:8511
+#: lib/glossia_web/live/dashboard_live.ex:8543
 #, elixir-autogen, elixir-format
 msgid "The model provider did not respond in time"
 msgstr "O provedor de modelos não respondeu a tempo"
 
-#: lib/glossia_web/live/dashboard_live.ex:8513
-#: lib/glossia_web/live/dashboard_live.ex:8524
+#: lib/glossia_web/live/dashboard_live.ex:8545
+#: lib/glossia_web/live/dashboard_live.ex:8556
 #, elixir-autogen, elixir-format
 msgid "Retry this translation session. If the problem continues, check the provider."
 msgstr "Tente novamente esta sessão de tradução. Se o problema persistir, verifique o provedor."
 
-#: lib/glossia_web/live/dashboard_live.ex:8615
+#: lib/glossia_web/live/dashboard_live.ex:8647
 #, elixir-autogen, elixir-format
 msgid "Translation failed"
 msgstr "Falha na tradução"
 
-#: lib/glossia_web/live/dashboard_live.ex:8203
+#: lib/glossia_web/live/dashboard_live.ex:8229
 #, elixir-autogen, elixir-format
 msgid "Diagnostic details"
 msgstr "Detalhes do diagnóstico"
 
-#: lib/glossia_web/live/dashboard_live.ex:9111
+#: lib/glossia_web/live/dashboard_live.ex:9143
 #, elixir-autogen, elixir-format
 msgid "Error"
 msgstr "Erro"
 
-#: lib/glossia_web/live/dashboard_live.ex:8570
+#: lib/glossia_web/live/dashboard_live.ex:8602
 #, elixir-autogen, elixir-format
 msgid "Glossia could not preserve every required token in this file after retrying."
 msgstr "O Glossia não conseguiu preservar todos os tokens necessários neste arquivo após tentar novamente."
 
-#: lib/glossia_web/live/dashboard_live.ex:8590
+#: lib/glossia_web/live/dashboard_live.ex:8622
 #, elixir-autogen, elixir-format
 msgid "Glossia could not produce output that passed this file's validation rules."
 msgstr "O Glossia não conseguiu gerar uma saída que atendesse às regras de validação deste arquivo."
 
-#: lib/glossia_web/live/dashboard_live.ex:8536
+#: lib/glossia_web/live/dashboard_live.ex:8568
 #, elixir-autogen, elixir-format
 msgid "Glossia could not produce well-formed output for this file after retrying."
 msgstr "O Glossia não conseguiu gerar uma saída bem-formada para este arquivo após tentar novamente."
 
-#: lib/glossia_web/live/dashboard_live.ex:8599
+#: lib/glossia_web/live/dashboard_live.ex:8631
 #, elixir-autogen, elixir-format
 msgid "Glossia could not read this file as text."
 msgstr "O Glossia não conseguiu ler este arquivo como texto."
 
-#: lib/glossia_web/live/dashboard_live.ex:8608
+#: lib/glossia_web/live/dashboard_live.ex:8640
 #, elixir-autogen, elixir-format
 msgid "Glossia could not read this source file."
 msgstr "O Glossia não conseguiu ler este arquivo de origem."
 
-#: lib/glossia_web/live/dashboard_live.ex:8618
+#: lib/glossia_web/live/dashboard_live.ex:8650
 #, elixir-autogen, elixir-format
 msgid "Glossia could not translate this file. Retry the translation session."
 msgstr "O Glossia não conseguiu traduzir este arquivo. Tente novamente a sessão de tradução."
 
-#: lib/glossia_web/live/dashboard_live.ex:12625
+#: lib/glossia_web/live/dashboard_live.ex:12657
 #, elixir-autogen, elixir-format
 msgid "No models found."
 msgstr "Nenhum modelo encontrado."
@@ -3810,135 +3695,130 @@ msgstr "Nenhum modelo encontrado."
 msgid "Project setup failed, so the project was not created. %{reason}"
 msgstr "A configuração do projeto falhou, portanto, o projeto não foi criado. %{reason}"
 
-#: lib/glossia_web/live/dashboard_live.ex:8633
+#: lib/glossia_web/live/dashboard_live.ex:8665
 #, elixir-autogen, elixir-format
 msgid "Provider error code"
 msgstr "Código de erro do provedor"
 
-#: lib/glossia_web/live/dashboard_live.ex:8634
+#: lib/glossia_web/live/dashboard_live.ex:8666
 #, elixir-autogen, elixir-format
 msgid "Provider request identifier"
 msgstr "Identificador de solicitação do provedor"
 
-#: lib/glossia_web/live/dashboard_live.ex:8632
+#: lib/glossia_web/live/dashboard_live.ex:8664
 #, elixir-autogen, elixir-format
 msgid "Provider response status"
 msgstr "Status de resposta do provedor"
 
-#: lib/glossia_web/live/dashboard_live.ex:8243
-#, elixir-autogen, elixir-format
-msgid "Show incomplete output"
-msgstr "Exibir saída incompleta"
-
-#: lib/glossia_web/live/dashboard_live.ex:12627
+#: lib/glossia_web/live/dashboard_live.ex:12659
 #, elixir-autogen, elixir-format
 msgid "Showing the first %{limit} matches. Keep typing to narrow the results."
 msgstr "Mostrando os primeiros %{limit} resultados. Continue digitando para restringir os resultados."
 
-#: lib/glossia_web/live/dashboard_live.ex:8606
+#: lib/glossia_web/live/dashboard_live.ex:8638
 #, elixir-autogen, elixir-format
 msgid "Source file could not be read"
 msgstr "O arquivo de origem não pôde ser lido."
 
-#: lib/glossia_web/live/dashboard_live.ex:8597
+#: lib/glossia_web/live/dashboard_live.ex:8629
 #, elixir-autogen, elixir-format
 msgid "Source file is not valid text"
 msgstr "O arquivo de origem não é texto válido"
 
-#: lib/glossia_web/live/dashboard_live.ex:8522
+#: lib/glossia_web/live/dashboard_live.ex:8554
 #, elixir-autogen, elixir-format
 msgid "The model provider request failed"
 msgstr "Solicitação ao provedor de modelo falhou"
 
-#: lib/glossia_web/live/dashboard_live.ex:9075
+#: lib/glossia_web/live/dashboard_live.ex:9107
 #, elixir-autogen, elixir-format
 msgid "The setup assistant completed this step."
 msgstr "O assistente de configuração concluiu essa etapa."
 
-#: lib/glossia_web/live/dashboard_live.ex:9074
+#: lib/glossia_web/live/dashboard_live.ex:9106
 #, elixir-autogen, elixir-format
 msgid "The setup assistant could not complete this step."
 msgstr "O assistente de configuração não conseguiu concluir essa etapa."
 
-#: lib/glossia_web/live/dashboard_live.ex:9064
-#: lib/glossia_web/live/dashboard_live.ex:9067
+#: lib/glossia_web/live/dashboard_live.ex:9096
+#: lib/glossia_web/live/dashboard_live.ex:9099
 #, elixir-autogen, elixir-format
 msgid "The setup assistant is continuing with the repository setup."
 msgstr "O assistente de configuração está prosseguindo com a configuração do repositório."
 
-#: lib/glossia_web/live/dashboard_live.ex:8580
+#: lib/glossia_web/live/dashboard_live.ex:8612
 #, elixir-autogen, elixir-format
 msgid "The validation command rejected the translated output for this file."
 msgstr "O comando de validação rejeitou a saída traduzida para este arquivo."
 
-#: lib/glossia_web/live/dashboard_live.ex:8477
+#: lib/glossia_web/live/dashboard_live.ex:8509
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the model provider account has no remaining credit."
 msgstr "Este arquivo não pôde ser traduzido porque o provedor de modelo não tem saldo restante."
 
-#: lib/glossia_web/live/dashboard_live.ex:8526
+#: lib/glossia_web/live/dashboard_live.ex:8558
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the model provider request failed."
 msgstr "Este arquivo não pôde ser traduzido porque a solicitação ao provedor de modelo falhou."
 
-#: lib/glossia_web/live/dashboard_live.ex:8515
+#: lib/glossia_web/live/dashboard_live.ex:8547
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the provider did not respond in time."
 msgstr "Este arquivo não pôde ser traduzido porque o provedor não respondeu a tempo."
 
-#: lib/glossia_web/live/dashboard_live.ex:8489
+#: lib/glossia_web/live/dashboard_live.ex:8521
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the provider is temporarily limiting requests."
 msgstr "Este arquivo não pôde ser traduzido porque o provedor está temporariamente limitando solicitações."
 
-#: lib/glossia_web/live/dashboard_live.ex:8502
+#: lib/glossia_web/live/dashboard_live.ex:8534
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the provider rejected the configured credentials."
 msgstr "Este arquivo não pôde ser traduzido porque o provedor rejeitou as credenciais configuradas."
 
-#: lib/glossia_web/live/dashboard_live.ex:8567
+#: lib/glossia_web/live/dashboard_live.ex:8599
 #, elixir-autogen, elixir-format
 msgid "Translated output changed protected content"
 msgstr "Saída traduzida alterou conteúdo protegido"
 
-#: lib/glossia_web/live/dashboard_live.ex:8577
+#: lib/glossia_web/live/dashboard_live.ex:8609
 #, elixir-autogen, elixir-format
 msgid "Translated output did not pass the project check"
 msgstr "Saída traduzida não passou na verificação do projeto"
 
-#: lib/glossia_web/live/dashboard_live.ex:8587
+#: lib/glossia_web/live/dashboard_live.ex:8619
 #, elixir-autogen, elixir-format
 msgid "Translated output did not pass validation"
 msgstr "Saída traduzida não passou na validação"
 
-#: lib/glossia_web/live/dashboard_live.ex:8533
+#: lib/glossia_web/live/dashboard_live.ex:8565
 #, elixir-autogen, elixir-format
 msgid "Translated output has invalid syntax"
 msgstr "Saída traduzida tem sintaxe inválida"
 
-#: lib/glossia_web/live/dashboard_live.ex:9113
+#: lib/glossia_web/live/dashboard_live.ex:9145
 #, elixir-autogen, elixir-format
 msgid "Update"
 msgstr "Atualizar"
 
-#: lib/glossia_web/live/dashboard_live.ex:9112
+#: lib/glossia_web/live/dashboard_live.ex:9144
 #, elixir-autogen, elixir-format
 msgid "Warning"
 msgstr "Aviso"
 
-#: lib/glossia_web/live/dashboard_live.ex:8180
+#: lib/glossia_web/live/dashboard_live.ex:8203
 #, elixir-autogen, elixir-format
 msgid "%{n} model call"
 msgid_plural "%{n} model calls"
 msgstr[0] "%{n} chamada de modelo"
 msgstr[1] "%{n} chamadas de modelo"
 
-#: lib/glossia_web/live/dashboard_live.ex:8311
+#: lib/glossia_web/live/dashboard_live.ex:8343
 #, elixir-autogen, elixir-format
 msgid "Front matter"
 msgstr "Front-matter"
 
-#: lib/glossia_web/live/dashboard_live.ex:8321
+#: lib/glossia_web/live/dashboard_live.ex:8353
 #, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "Segmento %{index} de %{count}"
@@ -3948,7 +3828,7 @@ msgstr "Segmento %{index} de %{count}"
 #: lib/glossia_web/live/dashboard_live.ex:1177
 #: lib/glossia_web/live/dashboard_live.ex:1313
 #: lib/glossia_web/live/dashboard_live.ex:1326
-#: lib/glossia_web/live/dashboard_live.ex:13336
+#: lib/glossia_web/live/dashboard_live.ex:13368
 #, elixir-autogen, elixir-format
 msgid "Analytics"
 msgstr "Analítica"
@@ -3964,7 +3844,7 @@ msgstr "Configurações de analítica"
 msgid "Applies to the dashboard. Anything not translated yet falls back to English."
 msgstr "Aplica-se ao painel. Qualquer conteúdo não traduzido ainda será exibido em inglês."
 
-#: lib/glossia_web/live/dashboard_live.ex:13365
+#: lib/glossia_web/live/dashboard_live.ex:13397
 #, elixir-autogen, elixir-format
 msgid "Apply"
 msgstr "Aplicar"
@@ -3991,14 +3871,14 @@ msgstr "Cancelar tradução"
 
 #: lib/glossia_web/live/dashboard_live.ex:7783
 #: lib/glossia_web/live/dashboard_live.ex:7838
-#: lib/glossia_web/live/dashboard_live.ex:8363
-#: lib/glossia_web/live/dashboard_live.ex:11437
-#: lib/glossia_web/live/dashboard_live.ex:11452
+#: lib/glossia_web/live/dashboard_live.ex:8395
+#: lib/glossia_web/live/dashboard_live.ex:11469
+#: lib/glossia_web/live/dashboard_live.ex:11484
 #, elixir-autogen, elixir-format
 msgid "Cancelled"
 msgstr "Cancelado"
 
-#: lib/glossia_web/live/dashboard_live.ex:13650
+#: lib/glossia_web/live/dashboard_live.ex:13682
 #, elixir-autogen, elixir-format
 msgid "Choose a domain and install the Glossia snippet to start collecting analytics."
 msgstr "Escolha um domínio e instale o snippet da Glossia para começar a coletar análises."
@@ -4033,13 +3913,13 @@ msgstr "Não foi possível salvar a análise web. Digite um domínio válido com
 msgid "Could not update your language."
 msgstr "Não foi possível atualizar o idioma."
 
-#: lib/glossia_web/live/dashboard_live.ex:13475
-#: lib/glossia_web/live/dashboard_live.ex:13563
+#: lib/glossia_web/live/dashboard_live.ex:13507
+#: lib/glossia_web/live/dashboard_live.ex:13595
 #, elixir-autogen, elixir-format
 msgid "Country"
 msgstr "País"
 
-#: lib/glossia_web/live/dashboard_live.ex:13721
+#: lib/glossia_web/live/dashboard_live.ex:13753
 #, elixir-autogen, elixir-format
 msgid "Custom"
 msgstr "Personalizado"
@@ -4054,12 +3934,12 @@ msgstr "Idioma do Painel"
 msgid "Domain"
 msgstr "Domínio"
 
-#: lib/glossia_web/live/dashboard_live.ex:13484
+#: lib/glossia_web/live/dashboard_live.ex:13516
 #, elixir-autogen, elixir-format
 msgid "EN tolerance"
 msgstr "Tolerância ao inglês"
 
-#: lib/glossia_web/live/dashboard_live.ex:13435
+#: lib/glossia_web/live/dashboard_live.ex:13467
 #, elixir-autogen, elixir-format
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "A prioridade de cada par (país, idioma) é o volume de visitantes com lacuna de localização, ponderada por (1 - EF EPI tolerância ao inglês) para aquele país. Maior = maior oportunidade perdida."
@@ -4069,22 +3949,22 @@ msgstr "A prioridade de cada par (país, idioma) é o volume de visitantes com l
 msgid "Explanation"
 msgstr "Explicação"
 
-#: lib/glossia_web/live/dashboard_live.ex:13606
+#: lib/glossia_web/live/dashboard_live.ex:13638
 #, elixir-autogen, elixir-format
 msgid "Gap"
 msgstr "Lacuna"
 
-#: lib/glossia_web/live/dashboard_live.ex:13603
+#: lib/glossia_web/live/dashboard_live.ex:13635
 #, elixir-autogen, elixir-format
 msgid "Gap?"
 msgstr "Lacuna?"
 
-#: lib/glossia_web/live/dashboard_live.ex:13465
+#: lib/glossia_web/live/dashboard_live.ex:13497
 #, elixir-autogen, elixir-format
 msgid "High priority"
 msgstr "Alta prioridade"
 
-#: lib/glossia_web/live/dashboard_live.ex:13433
+#: lib/glossia_web/live/dashboard_live.ex:13465
 #, elixir-autogen, elixir-format
 msgid "How is this scored?"
 msgstr "Como é pontuado?"
@@ -4099,7 +3979,7 @@ msgstr "Guias de uso"
 msgid "Install snippet"
 msgstr "Instalar snippet"
 
-#: lib/glossia_web/live/dashboard_live.ex:13645
+#: lib/glossia_web/live/dashboard_live.ex:13677
 #, elixir-autogen, elixir-format
 msgid "Install the snippet on %{domain}, then return here once the domain has been verified."
 msgstr "Instale o snippet no %{domain}, em seguida retorne aqui assim que o domínio for verificado."
@@ -4109,33 +3989,33 @@ msgstr "Instale o snippet no %{domain}, em seguida retorne aqui assim que o dom�
 msgid "Language updated."
 msgstr "Idioma atualizado."
 
-#: lib/glossia_web/live/dashboard_live.ex:13720
+#: lib/glossia_web/live/dashboard_live.ex:13752
 #, elixir-autogen, elixir-format
 msgid "Last 12 months"
 msgstr "Últimos 12 meses"
 
-#: lib/glossia_web/live/dashboard_live.ex:13717
+#: lib/glossia_web/live/dashboard_live.ex:13749
 #, elixir-autogen, elixir-format
 msgid "Last 24 hours"
 msgstr "Últimas 24 horas"
 
-#: lib/glossia_web/live/dashboard_live.ex:13719
+#: lib/glossia_web/live/dashboard_live.ex:13751
 #, elixir-autogen, elixir-format
 msgid "Last 30 days"
 msgstr "Últimos 30 dias"
 
-#: lib/glossia_web/live/dashboard_live.ex:13718
+#: lib/glossia_web/live/dashboard_live.ex:13750
 #, elixir-autogen, elixir-format
 msgid "Last 7 days"
 msgstr "Últimos 7 dias"
 
-#: lib/glossia_web/live/dashboard_live.ex:13395
-#: lib/glossia_web/live/dashboard_live.ex:13398
+#: lib/glossia_web/live/dashboard_live.ex:13427
+#: lib/glossia_web/live/dashboard_live.ex:13430
 #, elixir-autogen, elixir-format
 msgid "Locale-gap visits"
 msgstr "Visitas de lacuna de localidade"
 
-#: lib/glossia_web/live/dashboard_live.ex:13461
+#: lib/glossia_web/live/dashboard_live.ex:13493
 #, elixir-autogen, elixir-format
 msgid "Low priority"
 msgstr "Baixa prioridade"
@@ -4150,47 +4030,47 @@ msgstr "MCP"
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr "Servidor, ferramentas e prompts do Protocolo de Contexto do Modelo."
 
-#: lib/glossia_web/live/dashboard_live.ex:13572
+#: lib/glossia_web/live/dashboard_live.ex:13604
 #, elixir-autogen, elixir-format
 msgid "No country data yet"
 msgstr "Ainda não há dados de país."
 
-#: lib/glossia_web/live/dashboard_live.ex:13621
+#: lib/glossia_web/live/dashboard_live.ex:13653
 #, elixir-autogen, elixir-format
 msgid "No language data yet"
 msgstr "Ainda não há dados de idioma."
 
-#: lib/glossia_web/live/dashboard_live.ex:13492
+#: lib/glossia_web/live/dashboard_live.ex:13524
 #, elixir-autogen, elixir-format
 msgid "No locale-gap visits"
 msgstr "Nenhuma visita de lacuna de localidade."
 
-#: lib/glossia_web/live/dashboard_live.ex:13544
+#: lib/glossia_web/live/dashboard_live.ex:13576
 #, elixir-autogen, elixir-format
 msgid "No pageviews yet"
 msgstr "Ainda não há visualizações de página."
 
-#: lib/glossia_web/live/dashboard_live.ex:13545
+#: lib/glossia_web/live/dashboard_live.ex:13577
 #, elixir-autogen, elixir-format
 msgid "Once the snippet is live, pageviews will appear here."
 msgstr "Assim que o trecho estiver ativo, as visualizações de página aparecerão aqui."
 
-#: lib/glossia_web/live/dashboard_live.ex:13574
+#: lib/glossia_web/live/dashboard_live.ex:13606
 #, elixir-autogen, elixir-format
 msgid "Once the snippet is live, visitor countries will appear here."
 msgstr "Assim que o trecho estiver ativo, os países dos visitantes aparecerão aqui."
 
-#: lib/glossia_web/live/dashboard_live.ex:13622
+#: lib/glossia_web/live/dashboard_live.ex:13654
 #, elixir-autogen, elixir-format
 msgid "Once the snippet is live, visitor languages will appear here."
 msgstr "Assim que o trecho estiver ativo, os idiomas dos visitantes aparecerão aqui."
 
-#: lib/glossia_web/live/dashboard_live.ex:13494
+#: lib/glossia_web/live/dashboard_live.ex:13526
 #, elixir-autogen, elixir-format
 msgid "Once visitors land in a language the project does not serve, they will appear here."
 msgstr "Assim que os visitantes chegarem a um idioma que o projeto não atende, eles aparecerão aqui."
 
-#: lib/glossia_web/live/dashboard_live.ex:13657
+#: lib/glossia_web/live/dashboard_live.ex:13689
 #, elixir-autogen, elixir-format
 msgid "Open analytics settings"
 msgstr "Abrir configurações de análise"
@@ -4200,13 +4080,13 @@ msgstr "Abrir configurações de análise"
 msgid "Operations"
 msgstr "Operações"
 
-#: lib/glossia_web/live/dashboard_live.ex:13379
-#: lib/glossia_web/live/dashboard_live.ex:13538
+#: lib/glossia_web/live/dashboard_live.ex:13411
+#: lib/glossia_web/live/dashboard_live.ex:13570
 #, elixir-autogen, elixir-format
 msgid "Pageviews"
 msgstr "Visualizações de página"
 
-#: lib/glossia_web/live/dashboard_live.ex:13535
+#: lib/glossia_web/live/dashboard_live.ex:13567
 #, elixir-autogen, elixir-format
 msgid "Path"
 msgstr "Caminho"
@@ -4224,7 +4104,7 @@ msgstr "Instruções práticas para tarefas específicas."
 msgid "Preferences"
 msgstr "Preferências"
 
-#: lib/glossia_web/live/dashboard_live.ex:13487
+#: lib/glossia_web/live/dashboard_live.ex:13519
 #, elixir-autogen, elixir-format
 msgid "Priority"
 msgstr "Prioridade"
@@ -4239,12 +4119,12 @@ msgstr "Referência"
 msgid "Save analytics settings"
 msgstr "Salvar configurações de análise"
 
-#: lib/glossia_web/live/dashboard_live.ex:13611
+#: lib/glossia_web/live/dashboard_live.ex:13643
 #, elixir-autogen, elixir-format
 msgid "Served"
 msgstr "Servido"
 
-#: lib/glossia_web/live/dashboard_live.ex:13598
+#: lib/glossia_web/live/dashboard_live.ex:13630
 #, elixir-autogen, elixir-format
 msgid "Served as"
 msgstr "Servido como"
@@ -4254,13 +4134,12 @@ msgstr "Servido como"
 msgid "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
 msgstr "Defina o domínio do site que deseja medir e adicione o trecho de código abaixo em cada página. O Glossia identifica o tráfego por este domínio, portanto não há chave ou segredo para gerenciar."
 
-#: lib/glossia_web/live/dashboard_live.ex:13640
+#: lib/glossia_web/live/dashboard_live.ex:13672
 #, elixir-autogen, elixir-format
 msgid "Set up web analytics"
 msgstr "Configurar Web Analytics"
 
-#: lib/glossia_web/live/dashboard_live.ex:8252
-#: lib/glossia_web/live/dashboard_live.ex:8323
+#: lib/glossia_web/live/dashboard_live.ex:8355
 #, elixir-autogen, elixir-format
 msgid "Show translated output"
 msgstr "Exibir saída traduzida"
@@ -4280,7 +4159,7 @@ msgstr "Descrições técnicas de configuração, CLI e APIs."
 msgid "This translation can no longer be cancelled."
 msgstr "Esta tradução não pode mais ser cancelada."
 
-#: lib/glossia_web/live/dashboard_live.ex:13416
+#: lib/glossia_web/live/dashboard_live.ex:13448
 #, elixir-autogen, elixir-format
 msgid "Top country"
 msgstr "País principal"
@@ -4295,34 +4174,34 @@ msgstr "Tradução cancelada."
 msgid "Tutorials"
 msgstr "Tutoriais"
 
-#: lib/glossia_web/live/dashboard_live.ex:13386
+#: lib/glossia_web/live/dashboard_live.ex:13418
 #, elixir-autogen, elixir-format
 msgid "Unique visitors"
 msgstr "Visitantes únicos"
 
-#: lib/glossia_web/live/dashboard_live.ex:13639
+#: lib/glossia_web/live/dashboard_live.ex:13671
 #, elixir-autogen, elixir-format
 msgid "Verify web analytics"
 msgstr "Verificar análises web"
 
-#: lib/glossia_web/live/dashboard_live.ex:13481
+#: lib/glossia_web/live/dashboard_live.ex:13513
 #, elixir-autogen, elixir-format
 msgid "Visitors"
 msgstr "Visitantes"
 
-#: lib/glossia_web/live/dashboard_live.ex:13399
+#: lib/glossia_web/live/dashboard_live.ex:13431
 #, elixir-autogen, elixir-format
 msgid "Visitors whose language the project does not serve."
 msgstr "Visitantes cujos idiomas o projeto não suporta."
 
-#: lib/glossia_web/live/dashboard_live.ex:13566
-#: lib/glossia_web/live/dashboard_live.ex:13615
+#: lib/glossia_web/live/dashboard_live.ex:13598
+#: lib/glossia_web/live/dashboard_live.ex:13647
 #, elixir-autogen, elixir-format
 msgid "Visits"
 msgstr "Visitas"
 
 #: lib/glossia_web/live/dashboard_live.ex:7090
-#: lib/glossia_web/live/dashboard_live.ex:13630
+#: lib/glossia_web/live/dashboard_live.ex:13662
 #, elixir-autogen, elixir-format
 msgid "Web analytics"
 msgstr "Análises web"
@@ -4353,8 +4232,8 @@ msgstr "Todos os papéis"
 msgid "Are you sure you want to revoke this invitation?"
 msgstr "Tem certeza de que deseja revogar este convite?"
 
-#: lib/glossia_web/live/dashboard_live.ex:12784
-#: lib/glossia_web/live/dashboard_live.ex:12876
+#: lib/glossia_web/live/dashboard_live.ex:12816
+#: lib/glossia_web/live/dashboard_live.ex:12908
 #, elixir-autogen, elixir-format
 msgid "Base URL"
 msgstr "URL Base"
@@ -4395,12 +4274,12 @@ msgstr "Nenhum membro encontrado"
 msgid "No pending invitations"
 msgstr "Nenhum convite pendente"
 
-#: lib/glossia_web/live/dashboard_live.ex:12787
+#: lib/glossia_web/live/dashboard_live.ex:12819
 #, elixir-autogen, elixir-format
 msgid "Optional. Route this model through a custom gateway endpoint. Leave empty to use the provider default."
 msgstr "Opcional. Roteie este modelo por meio de um endpoint de gateway personalizado. Deixe em branco para usar o padrão do provedor."
 
-#: lib/glossia_web/live/dashboard_live.ex:12879
+#: lib/glossia_web/live/dashboard_live.ex:12911
 #, elixir-autogen, elixir-format
 msgid "Route this model through a custom gateway endpoint. Leave empty to use the provider default."
 msgstr "Roteie este modelo por meio de um endpoint de gateway personalizado. Deixe em branco para usar o padrão do provedor."
@@ -4420,13 +4299,13 @@ msgstr "Experimente alterar o termo de pesquisa."
 msgid "Unknown"
 msgstr "Desconhecido"
 
-#: lib/glossia_web/live/dashboard_live.ex:12785
-#: lib/glossia_web/live/dashboard_live.ex:12877
+#: lib/glossia_web/live/dashboard_live.ex:12817
+#: lib/glossia_web/live/dashboard_live.ex:12909
 #, elixir-autogen, elixir-format
 msgid "e.g. https://api.together.ai/v1"
 msgstr "por exemplo, https://api.together.ai/v1"
 
-#: lib/glossia_web/live/dashboard_live.ex:12722
+#: lib/glossia_web/live/dashboard_live.ex:12754
 #, elixir-autogen, elixir-format
 msgid "Add a named model configuration. Each translation uses one model handle from the nearest applicable L10N.md file, or the account default when no handle is set."
 msgstr "Adicione uma configuração de modelo nomeada. Cada tradução usa uma handle de modelo do arquivo L10N.md mais próximo aplicável ou o padrão da conta quando nenhuma handle está definida."
@@ -4444,12 +4323,12 @@ msgstr "Reivindicar organização"
 #: lib/glossia_web/live/dashboard_live.ex:7395
 #: lib/glossia_web/live/dashboard_live.ex:7625
 #: lib/glossia_web/live/dashboard_live.ex:7943
-#: lib/glossia_web/live/dashboard_live.ex:8317
+#: lib/glossia_web/live/dashboard_live.ex:8349
 #, elixir-autogen, elixir-format
 msgid "Content"
 msgstr "Conteúdo"
 
-#: lib/glossia_web/live/dashboard_live.ex:8315
+#: lib/glossia_web/live/dashboard_live.ex:8347
 #, elixir-autogen, elixir-format
 msgid "Content, segment %{index} of %{count}"
 msgstr "Conteúdo, segmento %{index} de %{count}"
@@ -4486,22 +4365,22 @@ msgstr "Painel"
 msgid "Documentation navigation"
 msgstr "Navegação da documentação"
 
-#: lib/glossia_web/live/dashboard_live.ex:12966
+#: lib/glossia_web/live/dashboard_live.ex:12998
 #, elixir-autogen, elixir-format
 msgid "Each translation uses one configured model. L10N.md can select a handle for a content scope; work without a handle uses the account default."
 msgstr "Cada tradução usa um modelo configurado. O L10N.md pode selecionar um identificador para um escopo de conteúdo; o trabalho sem um identificador usa o padrão da conta."
 
-#: lib/glossia_web/live/dashboard_live.ex:8309
+#: lib/glossia_web/live/dashboard_live.ex:8341
 #, elixir-autogen, elixir-format
 msgid "Front matter, segment %{index} of %{count}"
 msgstr "Metadados, segmento %{index} de %{count}"
 
-#: lib/glossia_web/live/dashboard_live.ex:8546
+#: lib/glossia_web/live/dashboard_live.ex:8578
 #, elixir-autogen, elixir-format
 msgid "Glossia rejected this empty translation and did not publish any changes. A model that reasons before answering can spend its whole output budget thinking and return nothing."
 msgstr "A Glossia rejeitou esta tradução vazia e não publicou nenhuma alteração. Um modelo que raciocina antes de responder pode gastar todo o orçamento de saída pensando e retornar nada."
 
-#: lib/glossia_web/live/dashboard_live.ex:8558
+#: lib/glossia_web/live/dashboard_live.ex:8590
 #, elixir-autogen, elixir-format
 msgid "Glossia rejected this translation because it did not retain the source document layout."
 msgstr "O Glossia rejeitou esta tradução porque ela não mantive o layout do documento origem."
@@ -4511,7 +4390,7 @@ msgstr "O Glossia rejeitou esta tradução porque ela não mantive o layout do d
 msgid "L10N.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
 msgstr "Arquivos L10N.md ficam ao lado do seu conteúdo. Eles carregam instruções, diretrizes de tom e sobrescritas por idioma que restringem o contexto exatamente onde é necessário."
 
-#: lib/glossia_web/live/dashboard_live.ex:12909
+#: lib/glossia_web/live/dashboard_live.ex:12941
 #, elixir-autogen, elixir-format
 msgid "Make this the fallback for project setup and translations whose L10N.md configuration does not name a model handle."
 msgstr "Use isso como fallback para configuração de projetos e traduções cuja configuração L10N.md não nomeia um handle de modelo."
@@ -4565,12 +4444,12 @@ msgstr "Fonte"
 msgid "Table of contents"
 msgstr "Tabela de conteúdos"
 
-#: lib/glossia_web/live/dashboard_live.ex:8543
+#: lib/glossia_web/live/dashboard_live.ex:8575
 #, elixir-autogen, elixir-format
 msgid "The model returned empty output"
 msgstr "O modelo retornou uma saída vazia"
 
-#: lib/glossia_web/live/dashboard_live.ex:12905
+#: lib/glossia_web/live/dashboard_live.ex:12937
 #, elixir-autogen, elixir-format
 msgid "This model is used for project setup and translations whose L10N.md configuration does not name a model handle."
 msgstr "Este modelo é usado para configuração de projetos e traduções cuja configuração L10N.md não especifica um handle de modelo."
@@ -4590,7 +4469,7 @@ msgstr "Esta organização não está mais disponível para reivindicar."
 msgid "Toggle documentation navigation"
 msgstr "Alternar navegação da documentação"
 
-#: lib/glossia_web/live/dashboard_live.ex:8555
+#: lib/glossia_web/live/dashboard_live.ex:8587
 #, elixir-autogen, elixir-format
 msgid "Translated output changed document structure"
 msgstr "Saída traduzida alterou a estrutura do documento"
@@ -4600,7 +4479,7 @@ msgstr "Saída traduzida alterou a estrutura do documento"
 msgid "Type at least two characters to search the documentation."
 msgstr "Digite pelo menos dois caracteres para pesquisar na documentação."
 
-#: lib/glossia_web/live/dashboard_live.ex:12736
+#: lib/glossia_web/live/dashboard_live.ex:12768
 #, elixir-autogen, elixir-format
 msgid "Use lowercase letters, numbers, and hyphens. Reference this handle from L10N.md to choose the model for a content scope."
 msgstr "Use letras minúsculas, números e hífens. Consulte este identificador em L10N.md para escolher o modelo para um escopo de conteúdo."
@@ -4636,7 +4515,7 @@ msgid ", "
 msgstr ", "
 
 #: lib/glossia_web/live/dashboard_live.ex:7781
-#: lib/glossia_web/live/dashboard_live.ex:11450
+#: lib/glossia_web/live/dashboard_live.ex:11482
 #, elixir-autogen, elixir-format
 msgid "Content hit"
 msgstr "Acerto de conteúdo"
@@ -4698,7 +4577,7 @@ msgstr "Sem traduções ainda"
 
 #: lib/glossia_web/live/dashboard_live.ex:7373
 #: lib/glossia_web/live/dashboard_live.ex:7604
-#: lib/glossia_web/live/dashboard_live.ex:11445
+#: lib/glossia_web/live/dashboard_live.ex:11477
 #, elixir-autogen, elixir-format
 msgid "Outcome"
 msgstr "Resultado"
@@ -4739,7 +4618,7 @@ msgid "Stopped because newer content arrived."
 msgstr "Parado porque conteúdo mais recente chegou."
 
 #: lib/glossia_web/live/dashboard_live.ex:7782
-#: lib/glossia_web/live/dashboard_live.ex:11451
+#: lib/glossia_web/live/dashboard_live.ex:11483
 #, elixir-autogen, elixir-format
 msgid "Superseded"
 msgstr "Substituído"
@@ -4760,7 +4639,7 @@ msgid "Too many sign-up attempts from this session. Please wait a few minutes an
 msgstr "Demasiadas tentativas de cadastro nesta sessão. Por favor, aguarde alguns minutos e tente novamente."
 
 #: lib/glossia_web/live/dashboard_live.ex:7780
-#: lib/glossia_web/live/dashboard_live.ex:11449
+#: lib/glossia_web/live/dashboard_live.ex:11481
 #, elixir-autogen, elixir-format
 msgid "Translated"
 msgstr "Traduzido"
@@ -4795,35 +4674,35 @@ msgstr "Sua sessão expirou. Por favor, recarregue a página e tente novamente."
 msgid "Add a model before adding routing rules."
 msgstr "Adicione um modelo antes de adicionar regras de roteamento."
 
-#: lib/glossia_web/live/dashboard_live.ex:13118
+#: lib/glossia_web/live/dashboard_live.ex:13150
 #, elixir-autogen, elixir-format
 msgid "Add a model first"
 msgstr "Adicione um modelo primeiro"
 
-#: lib/glossia_web/live/dashboard_live.ex:13208
+#: lib/glossia_web/live/dashboard_live.ex:13240
 #, elixir-autogen, elixir-format
 msgid "Add a rule below to route certain locales to a specific model."
 msgstr "Adicione uma regra abaixo para rotear certas localizações para um modelo específico."
 
-#: lib/glossia_web/live/dashboard_live.ex:13096
+#: lib/glossia_web/live/dashboard_live.ex:13128
 #, elixir-autogen, elixir-format
 msgid "Add catch-all rule"
 msgstr "Adicione uma regra catch-all"
 
-#: lib/glossia_web/live/dashboard_live.ex:13244
+#: lib/glossia_web/live/dashboard_live.ex:13276
 #, elixir-autogen, elixir-format
 msgid "Add routing rule"
 msgstr "Adicione uma regra de roteamento."
 
-#: lib/glossia_web/live/dashboard_live.ex:13084
-#: lib/glossia_web/live/dashboard_live.ex:13309
+#: lib/glossia_web/live/dashboard_live.ex:13116
+#: lib/glossia_web/live/dashboard_live.ex:13341
 #, elixir-autogen, elixir-format
 msgid "Add rule"
 msgstr "Adicione uma regra"
 
-#: lib/glossia_web/live/dashboard_live.ex:13139
-#: lib/glossia_web/live/dashboard_live.ex:13258
-#: lib/glossia_web/live/dashboard_live.ex:13266
+#: lib/glossia_web/live/dashboard_live.ex:13171
+#: lib/glossia_web/live/dashboard_live.ex:13290
+#: lib/glossia_web/live/dashboard_live.ex:13298
 #, elixir-autogen, elixir-format
 msgid "Any locale"
 msgstr "Qualquer localização"
@@ -4833,7 +4712,7 @@ msgstr "Qualquer localização"
 msgid "Catch-all rule added."
 msgstr "Regra catch-all adicionada."
 
-#: lib/glossia_web/live/dashboard_live.ex:13281
+#: lib/glossia_web/live/dashboard_live.ex:13313
 #, elixir-autogen, elixir-format
 msgid "Choose a model"
 msgstr "Escolha um modelo"
@@ -4858,57 +4737,57 @@ msgstr "Não foi possível remover regra de roteamento."
 msgid "Could not update routing rule."
 msgstr "Não foi possível atualizar regra de roteamento."
 
-#: lib/glossia_web/live/dashboard_live.ex:13191
+#: lib/glossia_web/live/dashboard_live.ex:13223
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr "Excluir"
 
-#: lib/glossia_web/live/dashboard_live.ex:13161
+#: lib/glossia_web/live/dashboard_live.ex:13193
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "Editar"
 
-#: lib/glossia_web/live/dashboard_live.ex:13243
+#: lib/glossia_web/live/dashboard_live.ex:13275
 #, elixir-autogen, elixir-format
 msgid "Edit routing rule"
 msgstr "Editar regra de roteamento"
 
-#: lib/glossia_web/live/dashboard_live.ex:13274
+#: lib/glossia_web/live/dashboard_live.ex:13306
 #, elixir-autogen, elixir-format
 msgid "Leave unset to make this a catch-all rule."
 msgstr "Deixe não definido para tornar esta uma regra padrão."
 
-#: lib/glossia_web/live/dashboard_live.ex:13181
+#: lib/glossia_web/live/dashboard_live.ex:13213
 #, elixir-autogen, elixir-format
 msgid "Move down"
 msgstr "Mover para baixo"
 
-#: lib/glossia_web/live/dashboard_live.ex:13171
+#: lib/glossia_web/live/dashboard_live.ex:13203
 #, elixir-autogen, elixir-format
 msgid "Move up"
 msgstr "Mover para cima"
 
-#: lib/glossia_web/live/dashboard_live.ex:13206
+#: lib/glossia_web/live/dashboard_live.ex:13238
 #, elixir-autogen, elixir-format
 msgid "No routing rules yet"
 msgstr "Ainda não há regras de roteamento."
 
-#: lib/glossia_web/live/dashboard_live.ex:13134
+#: lib/glossia_web/live/dashboard_live.ex:13166
 #, elixir-autogen, elixir-format
 msgid "Order"
 msgstr "Ordem"
 
-#: lib/glossia_web/live/dashboard_live.ex:13147
+#: lib/glossia_web/live/dashboard_live.ex:13179
 #, elixir-autogen, elixir-format
 msgid "Provider model"
 msgstr "Modelo do provedor"
 
-#: lib/glossia_web/live/dashboard_live.ex:13194
+#: lib/glossia_web/live/dashboard_live.ex:13226
 #, elixir-autogen, elixir-format
 msgid "Remove this routing rule?"
 msgstr "Remover esta regra de roteamento?"
 
-#: lib/glossia_web/live/dashboard_live.ex:13076
+#: lib/glossia_web/live/dashboard_live.ex:13108
 #, elixir-autogen, elixir-format
 msgid "Route translations to different models based on the target locale. Rules run top to bottom; the first match wins. A translation that hits no rule uses the account default."
 msgstr "As traduções são roteadas para modelos diferentes com base na localização de destino. As regras são executadas de cima para baixo; a primeira correspondência vence. Uma tradução que não corresponda a nenhuma regra usa o padrão da conta."
@@ -4916,7 +4795,7 @@ msgstr "As traduções são roteadas para modelos diferentes com base na localiz
 #: lib/glossia_web/components/layouts/platform.html.heex:305
 #: lib/glossia_web/live/dashboard_live.ex:835
 #: lib/glossia_web/live/dashboard_live.ex:856
-#: lib/glossia_web/live/dashboard_live.ex:13074
+#: lib/glossia_web/live/dashboard_live.ex:13106
 #, elixir-autogen, elixir-format
 msgid "Routing"
 msgstr "Roteamento"
@@ -4936,7 +4815,7 @@ msgstr "Regra de roteamento removida."
 msgid "Routing rule updated."
 msgstr "Regra de roteamento atualizada."
 
-#: lib/glossia_web/live/dashboard_live.ex:13120
+#: lib/glossia_web/live/dashboard_live.ex:13152
 #, elixir-autogen, elixir-format
 msgid "Routing rules point at configured models. Add one under Models to get started."
 msgstr "As regras de roteamento apontam para modelos configurados. Adicione um em Modelos para começar."
@@ -4949,7 +4828,7 @@ msgstr "As regras de roteamento apontam para modelos configurados. Adicione um e
 msgid "Rule not found."
 msgstr "Regra não encontrada."
 
-#: lib/glossia_web/live/dashboard_live.ex:13308
+#: lib/glossia_web/live/dashboard_live.ex:13340
 #, elixir-autogen, elixir-format
 msgid "Save changes"
 msgstr "Salvar alterações."
@@ -4959,8 +4838,8 @@ msgstr "Salvar alterações."
 msgid "Select a model before adding a rule."
 msgstr "Selecione um modelo antes de adicionar uma regra."
 
-#: lib/glossia_web/live/dashboard_live.ex:13137
-#: lib/glossia_web/live/dashboard_live.ex:13254
+#: lib/glossia_web/live/dashboard_live.ex:13169
+#: lib/glossia_web/live/dashboard_live.ex:13286
 #, elixir-autogen, elixir-format
 msgid "Target locale"
 msgstr "Localização de destino"
@@ -4970,34 +4849,34 @@ msgstr "Localização de destino"
 msgid "Project setup could not be started."
 msgstr "Não foi possível iniciar a configuração do projeto."
 
-#: lib/glossia_web/live/dashboard_live.ex:12891
+#: lib/glossia_web/live/dashboard_live.ex:12923
 #, elixir-autogen, elixir-format
 msgid "Cap on concurrent translations sent to this model in a run. Leave empty to fan out as wide as the repository. Lower this if the provider's per-model rate limit rejects a large parallel run."
 msgstr "Limite de traduções concorrentes enviadas a este modelo em uma execução. Deixe vazio para expandir tão amplamente quanto o repositório. Reduza este valor se o limite de taxa por modelo do provedor rejeitar uma execução paralela grande."
 
-#: lib/glossia_web/live/dashboard_live.ex:12799
+#: lib/glossia_web/live/dashboard_live.ex:12831
 #, elixir-autogen, elixir-format
 msgid "Optional. Cap on concurrent translations sent to this model in a run. Leave empty to fan out as wide as the repository. Lower this if the provider's per-model rate limit rejects a large parallel run."
 msgstr "Opcional. Limite de traduções concorrentes enviadas a este modelo em uma execução. Deixe vazio para expandir tão amplamente quanto o repositório. Reduza este valor se o limite de taxa por modelo do provedor rejeitar uma execução paralela grande."
 
-#: lib/glossia_web/live/dashboard_live.ex:12796
-#: lib/glossia_web/live/dashboard_live.ex:12888
+#: lib/glossia_web/live/dashboard_live.ex:12828
+#: lib/glossia_web/live/dashboard_live.ex:12920
 #, elixir-autogen, elixir-format
 msgid "Translation concurrency"
 msgstr "Concorrência de tradução"
 
-#: lib/glossia_web/live/dashboard_live.ex:12797
-#: lib/glossia_web/live/dashboard_live.ex:12889
+#: lib/glossia_web/live/dashboard_live.ex:12829
+#: lib/glossia_web/live/dashboard_live.ex:12921
 #, elixir-autogen, elixir-format
 msgid "e.g. 5"
 msgstr "ex. 5"
 
-#: lib/glossia_web/live/dashboard_live.ex:8629
+#: lib/glossia_web/live/dashboard_live.ex:8661
 #, elixir-autogen, elixir-format
 msgid "Validation code"
 msgstr "Código de validação"
 
-#: lib/glossia_web/live/dashboard_live.ex:8630
+#: lib/glossia_web/live/dashboard_live.ex:8662
 #, elixir-autogen, elixir-format
 msgid "Validation message"
 msgstr "Mensagem de validação"
@@ -5117,18 +4996,175 @@ msgstr "Traduzido"
 msgid "Translation session · commit %{sha}"
 msgstr "Sessão de tradução"
 
-#: lib/glossia_web/live/dashboard_live.ex:12766
-#: lib/glossia_web/live/dashboard_live.ex:12861
+#: lib/glossia_web/live/dashboard_live.ex:12798
+#: lib/glossia_web/live/dashboard_live.ex:12893
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12851
+#: lib/glossia_web/live/dashboard_live.ex:12883
 #, elixir-autogen, elixir-format
 msgid "Leave blank when routing through a gateway that pins the model."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:12754
+#: lib/glossia_web/live/dashboard_live.ex:12786
 #, elixir-autogen, elixir-format
 msgid "The model to use, sourced from models.dev. Leave blank when routing through a gateway that pins the model (e.g. Atlas)."
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:224
+#, elixir-autogen, elixir-format, fuzzy
+msgid "A queryable map that connects your voices, glossary, audiences, and rules. Agents and integrations query it at runtime, so every decision a linguist makes flows through to every piece of content it touches."
+msgstr "Um mapa consultável que conecta suas vozes, terminologia, públicos e regras. Agentes e integrações consultam-no em tempo de execução, então toda decisão que um linguista toma flui para todos os conteúdos que ele toca."
+
+#: lib/glossia_web/live/dashboard_live.ex:11330
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Applied glossary suggestion as version #%{version}."
+msgstr "Sugestão de voz aplicada como versão #%{version}."
+
+#: lib/glossia_web/live/dashboard_live.ex:5107
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Canonical terms and their approved translations. Terms are matched during content processing to keep glossary consistent."
+msgstr "Termos canônicos e suas traduções aprovadas. Os termos são correspondidos durante o processamento de conteúdo para manter a terminologia consistente."
+
+#: lib/glossia_web/live/dashboard_live.ex:4999
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Create a suggestion with title, description, and proposed glossary updates."
+msgstr "Crie uma sugestão com título, descrição e atualizações de terminologia propostas."
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:316
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Create an organization, invite your team, and organize work into projects. Each project has its own voices, glossary, and rules that linguists iterate on together."
+msgstr "Crie uma organização, convide sua equipe e organize o trabalho em projetos. Cada projeto tem suas próprias vozes, terminologia e regras que os tradutores refinam juntos."
+
+#: lib/glossia_web/live/dashboard_live.ex:8261
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Current output"
+msgstr "Atual"
+
+#: lib/glossia_web/live/dashboard_live.ex:5290
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Edit one glossary term and its approved translations."
+msgstr "Edite um termo de terminologia e suas traduções aprovadas."
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:338
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Every change to a voice, glossary entry, or rule is versioned. See what changed, who changed it, and why. Roll back when needed."
+msgstr "Toda alteração em uma voz, entrada de terminologia ou regra é versionada. Veja o que mudou, quem alterou e por quê. Reverta quando necessário."
+
+#: lib/glossia_web/live/dashboard_live.ex:11175
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to submit glossary suggestion."
+msgstr "Falha ao enviar sugestão de voz."
+
+#: lib/glossia_web/live/dashboard_live.ex:8155
+#, elixir-autogen, elixir-format, fuzzy
+msgid "File"
+msgstr "Filtrar"
+
+#: lib/glossia_web/components/layouts/platform.html.heex:173
+#: lib/glossia_web/controllers/page_html/home.html.heex:423
+#: lib/glossia_web/live/dashboard_live.ex:317
+#: lib/glossia_web/live/dashboard_live.ex:341
+#: lib/glossia_web/live/dashboard_live.ex:378
+#: lib/glossia_web/live/dashboard_live.ex:416
+#: lib/glossia_web/live/dashboard_live.ex:487
+#: lib/glossia_web/live/dashboard_live.ex:513
+#: lib/glossia_web/live/dashboard_live.ex:1396
+#: lib/glossia_web/live/dashboard_live.ex:4995
+#: lib/glossia_web/live/dashboard_live.ex:11140
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Glossary"
+msgstr "Glossia"
+
+#: lib/glossia_web/live/dashboard_live.ex:508
+#, elixir-autogen, elixir-format
+msgid "Glossary #%{version}"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:5530
+#, elixir-autogen, elixir-format
+msgid "Glossary entries in this version."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:11188
+#: lib/glossia_web/live/dashboard_live.ex:12511
+#, elixir-autogen, elixir-format
+msgid "Glossary suggestion"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:11168
+#, elixir-autogen, elixir-format
+msgid "Glossary suggestion submitted as suggestion #%{number}."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:8269
+#, elixir-autogen, elixir-format
+msgid "Incomplete output"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:9848
+#, elixir-autogen, elixir-format, fuzzy
+msgid "No proposed glossary changes"
+msgstr "Nenhuma alteração de terminologia proposta"
+
+#: lib/glossia_web/live/dashboard_live.ex:8178
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Progress"
+msgstr "Em andamento"
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:471
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Refine voice definitions, update glossary, and review content directly. Your expertise becomes the foundation that agents and integrations draw from across every project."
+msgstr "Refina definições de voz, atualize terminologia e revise conteúdo diretamente. Seu conhecimento se torna a base da qual agentes e integrações extraem dados em todos os projetos."
+
+#: lib/glossia_web/live/dashboard_live.ex:8153
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Show translation details"
+msgstr "Sem traduções"
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:499
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Stop gluing tools together. Glossia is the system you have been looking for: one place to maintain glossary, enforce consistency, and coordinate across teams and projects."
+msgstr "Pare de colar ferramentas juntas. O Glossia é o sistema que você estava procurando: um lugar para manter terminologia, garantir consistência e coordenar entre equipes e projetos."
+
+#: lib/glossia_web/live/dashboard_live.ex:465
+#: lib/glossia_web/live/dashboard_live.ex:4994
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Suggest glossary changes"
+msgstr "Sugerir alterações de terminologia"
+
+#: lib/glossia_web/live/dashboard_live.ex:5576
+#, elixir-autogen, elixir-format, fuzzy
+msgid "This revision does not contain glossary entries."
+msgstr "Esta revisão não contém entradas de terminologia."
+
+#: lib/glossia_web/live/dashboard_live.ex:8277
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Translated output"
+msgstr "Traduzido"
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:413
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Voices, glossary, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
+msgstr "Vozes, terminologia, perfis de público-alvo e regras de estilo estão na plataforma. São compartilhados em todos os projetos da sua organização e controlados em versão para que nada se perca."
+
+#: lib/glossia_web/controllers/page_html/home.html.heex:553
+#, elixir-autogen, elixir-format, fuzzy
+msgid "We are building experiences where humans take part in the agentic loops through interfaces that run in the browser or on the go. Implementation details like tools, models, and environments are abstracted away so reviewers can focus on the content itself. We are also designing agentic experiences for linguists to contribute directly to the system, refining voice, glossary, and quality standards without needing to touch config files or code."
+msgstr "Estamos criando experiências em que pessoas participam dos loops agênticos por meio de interfaces que funcionam no navegador ou em movimento. Detalhes de implementação, como ferramentas, modelos e ambientes, são abstraídos para que revisores foquem apenas no conteúdo. Também estamos desenvolvendo experiências agênticas para que linguistas contribuam diretamente no sistema, refinando voz, terminologia e padrões de qualidade sem precisar tocar em arquivos de configuração ou código."
+
+#: lib/glossia_web/live/dashboard_live.ex:11145
+#, elixir-autogen, elixir-format
+msgid "glossary"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:8078
+#, elixir-autogen, elixir-format
+msgid "%{n} glossary terms applied"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex:8085
+#, elixir-autogen, elixir-format
+msgid "%{n} platform terms overridden by repo glossary"
 msgstr ""

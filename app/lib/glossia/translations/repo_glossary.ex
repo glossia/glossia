@@ -128,7 +128,12 @@ defmodule Glossia.Translations.RepoGlossary do
 
       true ->
         raw_key = item["id"] || item[:id]
-        logical_key = if is_binary(raw_key) and raw_key != "", do: raw_key, else: GlossaryEntry.slugify(source)
+
+        logical_key =
+          if is_binary(raw_key) and raw_key != "",
+            do: raw_key,
+            else: GlossaryEntry.slugify(source)
+
         targets = parse_targets(item["targets"] || item[:targets] || %{})
 
         with :ok <- validate_targets(source, targets) do
@@ -160,8 +165,11 @@ defmodule Glossia.Translations.RepoGlossary do
     empty = for {locale, translation} <- targets, String.trim(translation) == "", do: locale
 
     case empty do
-      [] -> :ok
-      [locale | _] -> {:error, "glossary entry `#{source}` has an empty translation for `#{locale}`"}
+      [] ->
+        :ok
+
+      [locale | _] ->
+        {:error, "glossary entry `#{source}` has an empty translation for `#{locale}`"}
     end
   end
 
@@ -191,8 +199,11 @@ defmodule Glossia.Translations.RepoGlossary do
       |> String.split("-", trim: true)
 
     case parts do
-      [] -> [locale]
-      parts -> Enum.map(length(parts)..1//-1, fn count -> parts |> Enum.take(count) |> Enum.join("-") end)
+      [] ->
+        [locale]
+
+      parts ->
+        Enum.map(length(parts)..1//-1, fn count -> parts |> Enum.take(count) |> Enum.join("-") end)
     end
   end
 

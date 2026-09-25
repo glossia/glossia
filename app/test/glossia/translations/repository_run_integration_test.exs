@@ -93,7 +93,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
              lock["hash_tree"]
 
     assert Enum.map(children, & &1["kind"]) == ["source", "translation_config", "context_bundle"]
-    refute Map.has_key?(lock["server_context"]["terminology"], "term_keys")
+    refute Map.has_key?(lock["server_context"]["glossary"], "term_keys")
 
     # Change list ready for the PR builder.
     paths = changes |> Enum.map(& &1.path) |> Enum.sort()

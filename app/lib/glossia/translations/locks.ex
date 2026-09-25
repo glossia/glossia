@@ -273,10 +273,13 @@ defmodule Glossia.Translations.Locks do
             %{"content_hash" => server_hash_input["voice_content_hash"]},
             []
           ),
+          # The label reads "terminology" for lockfile hash-tree backward
+          # compatibility. Renaming it would flip every existing lockfile
+          # stale for one deploy because it flows into the node hash.
           hash_node(
             "context",
             "terminology",
-            %{"content_hash" => server_hash_input["terminology_content_hash"]},
+            %{"content_hash" => server_hash_input["glossary_content_hash"]},
             []
           )
         ]

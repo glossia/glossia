@@ -546,7 +546,7 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/glossary/terms/:entry_index", DashboardLive, :glossary_entry
       live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
 
-      # Deprecated `terminology` URLs kept as redirects so bookmarks and
+      # Deprecated `glossary` URLs kept as redirects so bookmarks and
       # inbound links from before the rename continue to resolve.
       get "/:handle/-/terminology", RedirectController, :terminology_to_glossary
       get "/:handle/-/terminology/*rest", RedirectController, :terminology_to_glossary

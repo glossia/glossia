@@ -874,7 +874,7 @@
   overflow-y: auto;
 }
 
-.noora-shell .voice-form .terminology-translation-locale .noora-dropdown-content {
+.noora-shell .voice-form .glossary-translation-locale .noora-dropdown-content {
   max-height: min(calc(100vh - var(--noora-spacing-16)), calc(var(--noora-spacing-16) * 3));
   overscroll-behavior: contain;
   overflow-y: auto;
@@ -886,18 +886,18 @@
   overflow-y: auto;
 }
 
-.noora-shell .terminology-revision-actions {
+.noora-shell .glossary-revision-actions {
   display: flex;
   align-items: center;
   gap: var(--noora-spacing-4);
 }
 
-.noora-shell .terminology-revision-actions .noora-dropdown {
+.noora-shell .glossary-revision-actions .noora-dropdown {
   min-width: calc(var(--noora-spacing-16) * 2);
 }
 
-.noora-shell .terminology-revision-actions .noora-button,
-.noora-shell .terminology-revision-actions .noora-dropdown > [data-part="trigger"] {
+.noora-shell .glossary-revision-actions .noora-button,
+.noora-shell .glossary-revision-actions .noora-dropdown > [data-part="trigger"] {
   min-height: var(--noora-spacing-10);
 }
 
@@ -929,31 +929,31 @@
 }
 
 .noora-shell .voice-form .voice-overrides-list,
-.noora-shell .voice-form .terminology-entries-list {
+.noora-shell .voice-form .glossary-entries-list {
   display: flex;
   flex-direction: column;
   gap: var(--noora-spacing-4);
 }
 
 .noora-shell .voice-form .voice-overrides-list:empty,
-.noora-shell .voice-form .terminology-entries-list:empty {
+.noora-shell .voice-form .glossary-entries-list:empty {
   display: none;
 }
 
 .noora-shell .voice-form .voice-override-panel,
-.noora-shell .voice-form .terminology-entry-panel {
+.noora-shell .voice-form .glossary-entry-panel {
   gap: var(--noora-spacing-0);
   overflow: hidden;
   padding: var(--noora-spacing-0);
 }
 
 .noora-shell .voice-form .voice-override-panel[data-changed="true"],
-.noora-shell .voice-form .terminology-entry-panel[data-changed="true"] {
+.noora-shell .voice-form .glossary-entry-panel[data-changed="true"] {
   box-shadow: var(--noora-border-light-focus);
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"],
-.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] {
+.noora-shell .voice-form .glossary-entry-panel > [data-part="header"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -964,7 +964,7 @@
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title-group"],
-.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title-group"] {
+.noora-shell .voice-form .glossary-entry-panel > [data-part="header"] [data-part="title-group"] {
   display: flex;
   align-items: center;
   gap: var(--noora-spacing-3);
@@ -972,47 +972,47 @@
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="title"],
-.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="title"] {
+.noora-shell .voice-form .glossary-entry-panel > [data-part="header"] [data-part="title"] {
   color: var(--noora-surface-label-primary);
   font: var(--noora-font-weight-medium) var(--noora-font-body-small);
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="header"] [data-part="actions"],
-.noora-shell .voice-form .terminology-entry-panel > [data-part="header"] [data-part="actions"] {
+.noora-shell .voice-form .glossary-entry-panel > [data-part="header"] [data-part="actions"] {
   display: flex;
   flex-shrink: 0;
 }
 
 .noora-shell .voice-form .voice-override-panel > [data-part="content"],
-.noora-shell .voice-form .terminology-entry-panel > [data-part="content"] {
+.noora-shell .voice-form .glossary-entry-panel > [data-part="content"] {
   padding: var(--noora-spacing-5);
 }
 
 .noora-shell .voice-form .voice-override-panel .voice-override-fields,
-.noora-shell .voice-form .terminology-entry-panel .voice-override-fields {
+.noora-shell .voice-form .glossary-entry-panel .voice-override-fields {
   padding: var(--noora-spacing-0);
 }
 
-.noora-shell .voice-form .terminology-translations-section {
+.noora-shell .voice-form .glossary-translations-section {
   display: flex;
   flex-direction: column;
   gap: var(--noora-spacing-4);
 }
 
-.noora-shell .voice-form .terminology-translations-header {
+.noora-shell .voice-form .glossary-translations-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--noora-spacing-4);
 }
 
-.noora-shell .voice-form .terminology-translations-list {
+.noora-shell .voice-form .glossary-translations-list {
   display: flex;
   flex-direction: column;
   gap: var(--noora-spacing-3);
 }
 
-.noora-shell .voice-form .terminology-translations-columns {
+.noora-shell .voice-form .glossary-translations-columns {
   display: grid;
   grid-template-columns:
     minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 2 + var(--noora-spacing-8)))
@@ -1024,12 +1024,12 @@
   font: var(--noora-font-weight-medium) var(--noora-font-body-small);
 }
 
-.noora-shell .voice-form .terminology-translations-columns span:last-child {
+.noora-shell .voice-form .glossary-translations-columns span:last-child {
   min-width: calc(var(--noora-spacing-16) + var(--noora-spacing-4));
   text-align: right;
 }
 
-.noora-shell .voice-form .terminology-translation-row {
+.noora-shell .voice-form .glossary-translation-row {
   display: grid;
   grid-template-columns:
     minmax(var(--noora-spacing-0), calc(var(--noora-spacing-16) * 2 + var(--noora-spacing-8)))
@@ -1039,13 +1039,13 @@
   gap: var(--noora-spacing-4);
 }
 
-.noora-shell .voice-form .terminology-translation-row[data-changed="true"] {
+.noora-shell .voice-form .glossary-translation-row[data-changed="true"] {
   border-radius: var(--noora-radius-4);
   background: var(--noora-icon-primary-background);
   padding: var(--noora-spacing-3);
 }
 
-.noora-shell .voice-form .terminology-translation-actions {
+.noora-shell .voice-form .glossary-translation-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -1053,29 +1053,29 @@
   min-width: calc(var(--noora-spacing-16) + var(--noora-spacing-4));
 }
 
-.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] {
+.noora-shell .voice-form .glossary-suggestion-panel[data-change-kind="added"] {
   box-shadow: var(--noora-border-light-default);
 }
 
-.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="added"] > [data-part="header"] {
+.noora-shell .voice-form .glossary-suggestion-panel[data-change-kind="added"] > [data-part="header"] {
   background: var(--noora-badge-light-fill-success-background);
 }
 
-.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] {
+.noora-shell .voice-form .glossary-suggestion-panel[data-change-kind="removed"] {
   box-shadow: var(--noora-border-light-default);
 }
 
-.noora-shell .voice-form .terminology-suggestion-panel[data-change-kind="removed"] > [data-part="header"] {
+.noora-shell .voice-form .glossary-suggestion-panel[data-change-kind="removed"] > [data-part="header"] {
   background: var(--noora-badge-light-fill-destructive-background);
 }
 
-.noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="added"] {
+.noora-shell .voice-form .glossary-suggestion-translation-row[data-change-kind="added"] {
   border-radius: var(--noora-radius-4);
   background: var(--noora-badge-light-fill-success-background);
   padding: var(--noora-spacing-3);
 }
 
-.noora-shell .voice-form .terminology-suggestion-translation-row[data-change-kind="removed"] {
+.noora-shell .voice-form .glossary-suggestion-translation-row[data-change-kind="removed"] {
   border-radius: var(--noora-radius-4);
   background: var(--noora-badge-light-fill-destructive-background);
   padding: var(--noora-spacing-3);
@@ -1175,24 +1175,24 @@
     width: 100%;
   }
 
-  .noora-shell .voice-form .terminology-translations-header {
+  .noora-shell .voice-form .glossary-translations-header {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .noora-shell .voice-form .terminology-translation-row {
+  .noora-shell .voice-form .glossary-translation-row {
     grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
   }
 
-  .noora-shell .voice-form .terminology-translations-columns {
+  .noora-shell .voice-form .glossary-translations-columns {
     display: none;
   }
 
-  .noora-shell .voice-form .terminology-translation-actions {
+  .noora-shell .voice-form .glossary-translation-actions {
     padding-bottom: var(--noora-spacing-0);
   }
 
-  .noora-shell .voice-form .terminology-translation-actions .noora-button {
+  .noora-shell .voice-form .glossary-translation-actions .noora-button {
     width: 100%;
   }
 

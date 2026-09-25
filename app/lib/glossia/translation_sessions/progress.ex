@@ -55,6 +55,8 @@ defmodule Glossia.TranslationSessions.Progress do
         output_preview
         model_calls
         reason
+        glossary_applied
+        glossary_shadowed
       )a,
       %{},
       fn key, acc ->
@@ -146,7 +148,9 @@ defmodule Glossia.TranslationSessions.Progress do
           text: output_preview,
           completed_text: output_preview,
           current_segment_text: "",
-          turns: model_calls
+          turns: model_calls,
+          glossary_applied: event[:glossary_applied] || item.glossary_applied,
+          glossary_shadowed: event[:glossary_shadowed] || item.glossary_shadowed
       }
     end)
   end
@@ -200,9 +204,61 @@ defmodule Glossia.TranslationSessions.Progress do
       done: Enum.count(items, &(&1.status == :done)),
       failed: Enum.count(items, &(&1.status == :failed)),
       cancelled: Enum.count(items, &(&1.status == :cancelled)),
-      running: Enum.count(items, &(&1.status == :running))
+      running: Enum.count(items, &(&1.status == :running)),
+      glossary: glossary_summary(items)
     }
   end
+
+  @doc """
+  Aggregates applied and shadowed glossary usage across all completed items.
+
+  Returns:
+
+    * `applied_ids` — namespaced entry ids that reached at least one file's
+      prompt candidate pool (deduplicated, sorted).
+    * `shadowed_ids` — platform entry ids the repo glossary displaced in at
+      least one file (deduplicated, sorted).
+    * `files_with_applied` / `files_with_shadowed` — count of files that hit
+      each state, useful for a one-line summary in the session panel.
+  """
+  def glossary_summary(items) do
+    completed =
+      items
+      |> Enum.filter(&(&1.status == :done))
+      |> Enum.map(fn item ->
+        %{
+          applied: Map.get(item, :glossary_applied, []) || [],
+          shadowed: Map.get(item, :glossary_shadowed, []) || []
+        }
+      end)
+
+    applied_ids =
+      completed
+      |> Enum.flat_map(& &1.applied)
+      |> Enum.map(&entry_id/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    shadowed_ids =
+      completed
+      |> Enum.flat_map(& &1.shadowed)
+      |> Enum.map(&entry_id/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    %{
+      applied_ids: applied_ids,
+      shadowed_ids: shadowed_ids,
+      files_with_applied: Enum.count(completed, &(&1.applied != [])),
+      files_with_shadowed: Enum.count(completed, &(&1.shadowed != []))
+    }
+  end
+
+  defp entry_id(%{id: id}) when is_binary(id), do: id
+  defp entry_id(%{"id" => id}) when is_binary(id), do: id
+  defp entry_id(_), do: nil
 
   defp apply_turn(item, %{type: "text", text: text}) do
     text = to_string(text)
@@ -333,7 +389,9 @@ defmodule Glossia.TranslationSessions.Progress do
       segment_count: nil,
       segment_kind: nil,
       file_ref: nil,
-      reason: nil
+      reason: nil,
+      glossary_applied: [],
+      glossary_shadowed: []
     }
 
     %{

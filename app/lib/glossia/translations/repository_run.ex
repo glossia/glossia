@@ -836,6 +836,8 @@ defmodule Glossia.Translations.RepositoryRun do
 
           case publish_completed_item(after_item_completed, repo_path, item) do
             :ok ->
+              glossary_summary = glossary_summary_for(item)
+
               broadcast(
                 session,
                 %{
@@ -843,7 +845,9 @@ defmodule Glossia.Translations.RepositoryRun do
                   index: index,
                   output_path: item.output_path,
                   output_preview: completed_output_preview(result.text),
-                  model_calls: Process.get(model_calls_key, 0)
+                  model_calls: Process.get(model_calls_key, 0),
+                  glossary_applied: glossary_summary.applied,
+                  glossary_shadowed: glossary_summary.shadowed
                 },
                 progress_node
               )
@@ -1270,4 +1274,24 @@ defmodule Glossia.Translations.RepositoryRun do
     do: %{type: "error", reason: Failure.from({:llm_failed, reason})}
 
   defp normalize_event(_other), do: %{type: "unknown"}
+
+  # Snapshot of the glossary entries that shaped this file's translation, sent
+  # alongside item_completed so the session view can render "N terms applied,
+  # M platform terms shadowed by the repo glossary" without loading lockfiles.
+  # The lockfile still carries the full namespaced ids in `context_provenance`.
+  defp glossary_summary_for(item) do
+    context = Map.get(item, :server_context) || %{}
+    applied = Map.get(context, :glossary, []) |> Enum.map(&entry_summary/1)
+    shadowed = Map.get(context, :shadowed_glossary, []) |> Enum.map(&entry_summary/1)
+    %{applied: applied, shadowed: shadowed}
+  end
+
+  defp entry_summary(entry) do
+    %{
+      id:
+        Map.get(entry, :namespaced_id) ||
+          "account:" <> to_string(Map.get(entry, :logical_key, Map.get(entry, :id, ""))),
+      origin: Map.get(entry, :origin, :account)
+    }
+  end
 end

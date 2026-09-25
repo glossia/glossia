@@ -796,7 +796,7 @@ defmodule GlossiaWeb.DashboardComponents do
 
   ## Examples
 
-      <.page_header title="Terminology" description="Define approved terms and translations.">
+      <.page_header title="Glossary" description="Define approved terms and translations.">
         <:actions>
           <button class="dash-btn dash-btn-primary">Save</button>
         </:actions>

@@ -244,7 +244,7 @@ defmodule Glossia.Translations.ValidateTest do
         |> Map.put(:custom_prompt, "Use a formal register.")
         |> Locks.build_hash_state()
 
-      changed_terminology =
+      changed_glossary =
         base
         |> Map.put(:server_context, server_context("Cuenta"))
         |> Locks.build_hash_state()
@@ -255,7 +255,7 @@ defmodule Glossia.Translations.ValidateTest do
         |> Locks.build_hash_state()
 
       assert original.hash != changed_prompt.hash
-      assert original.hash != changed_terminology.hash
+      assert original.hash != changed_glossary.hash
       assert original.hash != changed_validation.hash
 
       [_, config_node, _] = get_in(original.tree, ["root", "children"])
@@ -491,7 +491,7 @@ defmodule Glossia.Translations.ValidateTest do
           | voice_version: voice_version,
             glossary_version: glossary_version
         },
-        terminology: [
+        glossary: [
           %{
             id: "account",
             term: "Account",

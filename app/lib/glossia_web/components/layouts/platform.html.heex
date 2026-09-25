@@ -170,7 +170,7 @@
           />
           <.sidebar_item
             :if={@can_glossary_read or @can_glossary_write or @can_glossary_propose}
-            label={gettext("Terminology")}
+            label={gettext("Glossary")}
             icon="file_text"
             navigate={assigns[:glossary_back_path] || "/#{@handle}/-/glossary"}
             selected={

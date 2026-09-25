@@ -106,11 +106,11 @@ defmodule Glossia.Translations.PromptTest do
     test "appends resolved organization context" do
       prompt =
         Prompt.build_system_prompt(
-          base(%{server_context_body: "Required terminology:\n- Account → Cuenta"})
+          base(%{server_context_body: "Required glossary:\n- Account → Cuenta"})
         )
 
       assert prompt =~
-               "\n\nOrganization context for Spanish:\nRequired terminology:\n- Account → Cuenta"
+               "\n\nOrganization context for Spanish:\nRequired glossary:\n- Account → Cuenta"
     end
 
     test "omits empty context blocks" do
