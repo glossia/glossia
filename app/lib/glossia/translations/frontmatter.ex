@@ -33,11 +33,13 @@ defmodule Glossia.Translations.Frontmatter do
             prompt: nil,
             check_cmd: nil,
             check_cmds: nil,
-            retries: nil
+            retries: nil,
+            glossary: nil
 
   # Fields propagated by `merge/2` (matches the Rust merge macro; `locale` is not merged).
   @merge_fields ~w(source_language model validation sources targets target_path output
-                   translate exclude preserve frontmatter prompt check_cmd check_cmds retries)a
+                   translate exclude preserve frontmatter prompt check_cmd check_cmds retries
+                   glossary)a
 
   @default_retries 3
 
@@ -398,7 +400,8 @@ defmodule Glossia.Translations.Frontmatter do
       prompt: string_field(map["prompt"]),
       check_cmd: string_field(map["check_cmd"]),
       check_cmds: string_map(map["check_cmds"]),
-      retries: int_field(map["retries"])
+      retries: int_field(map["retries"]),
+      glossary: string_field(map["glossary"])
     }
   end
 

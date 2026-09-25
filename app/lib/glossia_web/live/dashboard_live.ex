@@ -332,13 +332,13 @@ defmodule GlossiaWeb.DashboardLive do
       terminology_entry_index: nil,
       pending_glossary_suggestion_redirect:
         socket.assigns[:pending_glossary_suggestion_redirect] || false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", existing_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", existing_token),
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
       summary_timer_ref: nil,
       summary_task_ref: nil,
-      breadcrumb_items: [{gettext("Terminology"), "/" <> handle <> "/-/terminology"}]
+      breadcrumb_items: [{gettext("Terminology"), "/" <> handle <> "/-/glossary"}]
     )
   end
 
@@ -375,7 +375,7 @@ defmodule GlossiaWeb.DashboardLive do
       can_glossary_propose: can_glossary_propose,
       can_discussion_write: can_discussion_write,
       breadcrumb_items: [
-        {gettext("Terminology"), "/" <> handle <> "/-/terminology"},
+        {gettext("Terminology"), "/" <> handle <> "/-/glossary"},
         {gettext("New term"), nil}
       ]
     )
@@ -413,7 +413,7 @@ defmodule GlossiaWeb.DashboardLive do
       can_glossary_propose: can_glossary_propose,
       can_discussion_write: can_discussion_write,
       breadcrumb_items: [
-        {gettext("Terminology"), "/" <> handle <> "/-/terminology"},
+        {gettext("Terminology"), "/" <> handle <> "/-/glossary"},
         {terminology_term_label(entry), nil}
       ]
     )
@@ -477,7 +477,7 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_form_params: glossary_form_params,
       glossary_draft_token: draft_token,
       pending_glossary_suggestion_redirect: false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", draft_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token),
       change_summary: change_summary,
       generating_summary?: false,
       summary_generation: 0,
@@ -485,7 +485,7 @@ defmodule GlossiaWeb.DashboardLive do
       summary_task_ref: nil,
       breadcrumb_items: [
         {gettext("Terminology"),
-         maybe_with_draft_param("/" <> handle <> "/-/terminology", draft_token)},
+         maybe_with_draft_param("/" <> handle <> "/-/glossary", draft_token)},
         {gettext("Suggest changes"), nil}
       ]
     )
@@ -510,7 +510,7 @@ defmodule GlossiaWeb.DashboardLive do
       previous_glossary: previous,
       can_glossary_write: socket.assigns[:can_glossary_write] || false,
       breadcrumb_items: [
-        {gettext("Terminology"), "/" <> handle <> "/-/terminology"},
+        {gettext("Terminology"), "/" <> handle <> "/-/glossary"},
         {"##{version}", nil}
       ]
     )
@@ -1354,7 +1354,7 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_draft_token: existing_token,
       pending_glossary_suggestion_redirect:
         socket.assigns[:pending_glossary_suggestion_redirect] || false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", existing_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", existing_token),
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
@@ -2150,7 +2150,7 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, socket}
 
       version ->
-        {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/terminology/#{version}")}
+        {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/glossary/#{version}")}
     end
   end
 
@@ -2167,7 +2167,7 @@ defmodule GlossiaWeb.DashboardLive do
       )
 
     if socket.assigns.live_action == :glossary_entry_new do
-      {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/terminology")}
+      {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/glossary")}
     else
       {:noreply, socket}
     end
@@ -5007,7 +5007,7 @@ defmodule GlossiaWeb.DashboardLive do
         <div :if={not @suggestion_mode?} data-part="actions" class="terminology-revision-actions">
           <Noora.Button.button
             :if={@can_glossary_submit?}
-            patch={"/" <> @handle <> "/-/terminology/terms/new"}
+            patch={"/" <> @handle <> "/-/glossary/terms/new"}
             label={gettext("Add term")}
             variant="secondary"
             size="medium"
@@ -5086,7 +5086,7 @@ defmodule GlossiaWeb.DashboardLive do
 
           <div class="ticket-form-actions">
             <Noora.Button.button
-              patch={@glossary_back_path || "/" <> @handle <> "/-/terminology"}
+              patch={@glossary_back_path || "/" <> @handle <> "/-/glossary"}
               label={gettext("Cancel")}
               variant="secondary"
             >
@@ -5115,7 +5115,7 @@ defmodule GlossiaWeb.DashboardLive do
                 row_key={fn row -> "terminology-term-#{row.index}" end}
                 row_navigate={
                   fn row ->
-                    "/" <> @handle <> "/-/terminology/terms/" <> to_string(row.index)
+                    "/" <> @handle <> "/-/glossary/terms/" <> to_string(row.index)
                   end
                 }
               >
@@ -5169,7 +5169,7 @@ defmodule GlossiaWeb.DashboardLive do
                   row_key={fn version -> "glossary-version-#{version.id}" end}
                   row_navigate={
                     fn version ->
-                      "/" <> @handle <> "/-/terminology/" <> to_string(version.version)
+                      "/" <> @handle <> "/-/glossary/" <> to_string(version.version)
                     end
                   }
                 >
@@ -5292,7 +5292,7 @@ defmodule GlossiaWeb.DashboardLive do
         </div>
         <div data-part="actions">
           <Noora.Button.button
-            patch={"/" <> @handle <> "/-/terminology"}
+            patch={"/" <> @handle <> "/-/glossary"}
             label={gettext("Back to terms")}
             variant="secondary"
             size="medium"
@@ -10339,7 +10339,7 @@ defmodule GlossiaWeb.DashboardLive do
           socket
           |> assign(pending_glossary_suggestion_redirect: false)
           |> push_patch(
-            to: maybe_with_draft_param("/#{handle}/-/terminology/suggestion/new", token)
+            to: maybe_with_draft_param("/#{handle}/-/glossary/suggestion/new", token)
           )
         else
           assign(socket, pending_glossary_suggestion_redirect: false)
@@ -10528,7 +10528,7 @@ defmodule GlossiaWeb.DashboardLive do
         })
 
       handle = socket.assigns.handle
-      glossary_draft_path = maybe_with_draft_param("/#{handle}/-/terminology", draft_token)
+      glossary_draft_path = maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
 
       {:noreply,
        socket
@@ -10545,7 +10545,7 @@ defmodule GlossiaWeb.DashboardLive do
          },
          glossary_draft_token: draft_token,
          pending_glossary_suggestion_redirect: true,
-         glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", draft_token)
+         glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
        )
        |> push_patch(to: glossary_draft_path)}
     end
@@ -11139,7 +11139,7 @@ defmodule GlossiaWeb.DashboardLive do
            glossary_suggestion_draft: nil,
            glossary_draft_token: nil,
            pending_glossary_suggestion_redirect: false,
-           glossary_back_path: "/#{handle}/-/terminology"
+           glossary_back_path: "/#{handle}/-/glossary"
          )
          |> put_flash(
            :info,
@@ -12149,7 +12149,7 @@ defmodule GlossiaWeb.DashboardLive do
           glossary_changed?: changed?,
           change_summary: to_string(decoded["change_summary"] || ""),
           glossary_draft_token: token,
-          glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", token)
+          glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", token)
         )
 
       _ ->
@@ -12173,13 +12173,13 @@ defmodule GlossiaWeb.DashboardLive do
               change_summary: draft[:change_summary] || "",
               glossary_draft_token: fallback_token,
               glossary_back_path:
-                maybe_with_draft_param("/#{handle}/-/terminology", fallback_token)
+                maybe_with_draft_param("/#{handle}/-/glossary", fallback_token)
             )
 
           _ ->
             assign(socket,
               glossary_draft_token: nil,
-              glossary_back_path: "/#{handle}/-/terminology"
+              glossary_back_path: "/#{handle}/-/glossary"
             )
         end
     end
@@ -12502,7 +12502,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_reopen_label(_ticket), do: gettext("Reopen")
 
   defp ticket_back_path(handle, %{kind: "voice_suggestion"}), do: "/#{handle}/-/voice"
-  defp ticket_back_path(handle, %{kind: "glossary_suggestion"}), do: "/#{handle}/-/terminology"
+  defp ticket_back_path(handle, %{kind: "glossary_suggestion"}), do: "/#{handle}/-/glossary"
   defp ticket_back_path(handle, _ticket), do: "/#{handle}"
 
   defp suggestion_path(handle, ticket), do: "/#{handle}/-/suggestions/#{ticket.number}"

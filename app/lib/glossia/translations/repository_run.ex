@@ -25,6 +25,7 @@ defmodule Glossia.Translations.RepositoryRun do
   alias Glossia.Translations.Failure
   alias Glossia.Translations.Locks
   alias Glossia.Translations.Planner
+  alias Glossia.Translations.RepoGlossary
   alias Glossia.Translations.Validate
   alias Glossia.TranslationSessions
 
@@ -104,7 +105,7 @@ defmodule Glossia.Translations.RepositoryRun do
     with {:ok, context_snapshot} <- context_snapshot(account, context_node, opts),
          {:ok, items} <- build_items(repo_path, locales),
          {:ok, locale_contexts} <-
-           resolve_locale_contexts(items, account, context_node, context_snapshot) do
+           resolve_locale_contexts(items, account, context_node, context_snapshot, repo_path) do
       total = length(items)
       broadcast(session, %{type: "plan", total: total}, progress_node)
 
@@ -525,12 +526,24 @@ defmodule Glossia.Translations.RepositoryRun do
   defp filter_locales(items, []), do: items
   defp filter_locales(items, locales), do: Enum.filter(items, &(&1.locale in locales))
 
-  defp resolve_locale_contexts(items, account, context_node, context_snapshot) do
+  defp resolve_locale_contexts(items, account, context_node, context_snapshot, repo_path) do
     locales = items |> Enum.map(& &1.locale) |> Enum.uniq()
 
     with {:ok, locale_contexts} <-
-           Context.resolve_locales_on(context_node, account, context_snapshot, locales) do
-      {:ok, Context.prepare_locale_contexts(locale_contexts)}
+           Context.resolve_locales_on(context_node, account, context_snapshot, locales),
+         {:ok, repo_entries} <- load_repo_glossary(repo_path) do
+      {:ok, Context.prepare_locale_contexts(locale_contexts, repo_entries)}
+    end
+  end
+
+  defp load_repo_glossary(repo_path) do
+    case RepoGlossary.load(repo_path) do
+      {:ok, entries} ->
+        {:ok, entries}
+
+      {:error, reason} ->
+        Logger.warning("repo glossary at #{repo_path} failed to load: #{inspect(reason)}")
+        {:ok, []}
     end
   end
 
@@ -635,17 +648,22 @@ defmodule Glossia.Translations.RepositoryRun do
       item = attach_po_diff(item, po_status)
 
       cond do
-        po_status == :fresh ->
-          %{index: index, status: :up_to_date}
-
+        # A change in glossary, voice, model, provider, prompt, or any other
+        # dependency in the hash tree invalidates every translation in the
+        # file — preserving a msgstr that was produced against a different
+        # glossary version would silently keep an outdated term in place.
+        # Strip the po_diff so the engine retranslates the whole catalog.
         Locks.stale?(lock, hash_state, item.output_path, current_output_hash) ->
           %{
             index: index,
-            item: item,
+            item: Map.delete(item, :po_diff),
             provider: provider,
             hash_state: hash_state,
             status: :translation_needed
           }
+
+        po_status == :fresh ->
+          %{index: index, status: :up_to_date}
 
         true ->
           # Only the count is read for an up-to-date file, so its context bundle

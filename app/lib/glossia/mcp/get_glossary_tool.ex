@@ -72,6 +72,7 @@ defmodule Glossia.MCP.GetGlossaryTool do
       entries:
         Enum.map(glossary.entries, fn entry ->
           %{
+            id: entry.logical_key,
             term: entry.term,
             definition: entry.definition,
             case_sensitive: entry.case_sensitive,

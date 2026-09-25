@@ -110,8 +110,8 @@ defmodule Glossia.Glossaries do
             Events.emit("glossary.created", account, user,
               resource_type: "glossary",
               resource_id: to_string(glossary.version),
-              resource_path: "/#{account.handle}/-/terminology/#{glossary.version}",
-              summary: glossary.change_note || "Updated terminology.",
+              resource_path: "/#{account.handle}/-/glossary/#{glossary.version}",
+              summary: glossary.change_note || "Updated glossary.",
               via: Keyword.get(opts, :via)
             )
           end
@@ -162,6 +162,7 @@ defmodule Glossia.Glossaries do
           order_by: [asc: entry.term],
           select: %{
             id: entry.id,
+            logical_key: entry.logical_key,
             term: entry.term,
             definition: entry.definition,
             case_sensitive: entry.case_sensitive,
@@ -174,7 +175,14 @@ defmodule Glossia.Glossaries do
           {entry.term, Map.fetch!(locale_ranks, entry.translation_locale)}
         end)
         |> Enum.uniq_by(& &1.id)
-        |> Enum.map(&Map.delete(&1, :translation_locale))
+        |> Enum.map(fn entry ->
+          entry
+          |> Map.delete(:translation_locale)
+          |> Map.merge(%{
+            origin: :account,
+            namespaced_id: "account:" <> to_string(entry.logical_key)
+          })
+        end)
 
       %{
         version: version,

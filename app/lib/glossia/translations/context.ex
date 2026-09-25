@@ -18,6 +18,7 @@ defmodule Glossia.Translations.Context do
   alias Glossia.Accounts.{Account, Voice}
   alias Glossia.Glossaries
   alias Glossia.Translations.PreservedTokens
+  alias Glossia.Translations.RepoGlossary
   alias Glossia.Voices
 
   @compiler_version 3
@@ -58,7 +59,8 @@ defmodule Glossia.Translations.Context do
       locale: locale,
       snapshot: empty_snapshot(),
       voice: nil,
-      terminology: []
+      terminology: [],
+      shadowed_glossary: []
     }
   end
 
@@ -145,14 +147,53 @@ defmodule Glossia.Translations.Context do
   @doc """
   Compiles term matchers once after locale context reaches the repository runner.
 
-  Compiled matchers remain process-local and are excluded from prompts, hashes,
-  and lockfile provenance.
+  Optionally merges repo-declared glossary entries into the resolved platform
+  glossary. For an identical source term (case-insensitively equal), the repo
+  entry wins for that target locale and the platform entry is recorded as
+  shadowed so the run can surface the resolution to reviewers. A repo entry
+  with no translation for the requested locale silently yields to the platform
+  entry — it never blocks the platform's translation.
+
+  Compiled matchers remain process-local and are excluded from prompts,
+  hashes, and lockfile provenance.
   """
-  def prepare_locale_contexts(locale_contexts) when is_map(locale_contexts) do
+  def prepare_locale_contexts(locale_contexts, repo_entries \\ [])
+      when is_map(locale_contexts) and is_list(repo_entries) do
     Map.new(locale_contexts, fn {locale, context} ->
-      {locale, Map.update!(context, :terminology, &prepare_entries/1)}
+      platform = context.terminology || []
+      repo = RepoGlossary.resolve_for_locale(repo_entries, locale)
+      merged = merge_glossaries(platform, repo)
+
+      prepared_context =
+        context
+        |> Map.put(:terminology, prepare_entries(merged.entries))
+        |> Map.put(:shadowed_glossary, merged.shadowed)
+
+      {locale, prepared_context}
     end)
   end
+
+  @doc """
+  Merges platform and repo entries for a single target locale.
+
+  Repo entries take precedence when the source term matches case-insensitively.
+  The displaced platform entries are returned as `shadowed` so callers can
+  surface the resolution in the UI and the lockfile provenance.
+  """
+  def merge_glossaries(platform_entries, repo_entries)
+      when is_list(platform_entries) and is_list(repo_entries) do
+    repo_terms = MapSet.new(repo_entries, &normalized_term/1)
+
+    {kept, shadowed} =
+      Enum.split_with(platform_entries, fn entry ->
+        not MapSet.member?(repo_terms, normalized_term(entry))
+      end)
+
+    %{entries: repo_entries ++ kept, shadowed: shadowed}
+  end
+
+  defp normalized_term(%{term: term}) when is_binary(term), do: :string.casefold(term)
+  defp normalized_term(_), do: ""
 
   @doc "Builds one file-level bundle from already resolved locale context."
   def build_bundle(snapshot, locale_contexts, locale, source, preserve)
@@ -166,7 +207,8 @@ defmodule Glossia.Translations.Context do
       locale: locale,
       snapshot: snapshot,
       voice: context.voice,
-      terminology: select_entries(context.terminology, source, preserve)
+      terminology: select_entries(context.terminology, source, preserve),
+      shadowed_glossary: Map.get(context, :shadowed_glossary, [])
     }
   end
 
@@ -252,11 +294,18 @@ defmodule Glossia.Translations.Context do
   @doc """
   Returns raw-free provenance for the lockfile.
 
-  The effective voice and terminology are represented by hashes. Raw server
+  The effective voice and glossary are represented by hashes. Raw server
   guidance and translated terms never need to be committed to the repository.
+  The `glossary.applied` list records the namespaced ids that reached the
+  file's prompt candidate pool, and `glossary.shadowed` records platform
+  entries the repo displaced. Both are namespaced (`repo:<key>` or
+  `account:<key>`) so consumers can render them without back-referencing the
+  server.
   """
   def provenance(bundle) when is_map(bundle) do
     snapshot = bundle.snapshot || empty_snapshot()
+    applied = bundle.terminology || []
+    shadowed = Map.get(bundle, :shadowed_glossary, [])
 
     %{
       "compiler_version" => bundle.compiler_version || @compiler_version,
@@ -267,9 +316,18 @@ defmodule Glossia.Translations.Context do
       },
       "terminology" => %{
         "glossary_version" => snapshot.glossary_version,
-        "content_hash" => content_hash(normalized_terminology(bundle.terminology || []))
+        "content_hash" => content_hash(normalized_terminology(applied)),
+        "applied" => Enum.map(applied, &namespaced_id_of/1) |> Enum.sort() |> Enum.uniq(),
+        "shadowed" => Enum.map(shadowed, &namespaced_id_of/1) |> Enum.sort() |> Enum.uniq()
       }
     }
+  end
+
+  defp namespaced_id_of(entry) do
+    case Map.get(entry, :namespaced_id) do
+      value when is_binary(value) -> value
+      _ -> "account:" <> to_string(Map.get(entry, :logical_key, Map.get(entry, :id, "")))
+    end
   end
 
   @doc "Returns the effective content fingerprints that affect generated output."
