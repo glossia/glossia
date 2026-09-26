@@ -44,7 +44,7 @@ defmodule GlossiaWeb.Api.GlossaryApiController do
                 conn |> json(serialize_glossary(g))
 
               {:ok, %{} = resolved} ->
-                conn |> json(resolved)
+                conn |> json(serialize_resolved(resolved))
             end
 
           {:error, conn} ->
@@ -122,6 +122,30 @@ defmodule GlossiaWeb.Api.GlossaryApiController do
         end
     end
   end
+
+  # A locale-resolved read returns rows straight from the database (row id,
+  # logical_key, term, definition, case_sensitive, translation). The public
+  # `id` on the entry must be the stable logical key, not the row id, so
+  # payloads round-trip when fed back into save. Internal row ids stay out
+  # of the response.
+  defp serialize_resolved(%{entries: entries} = resolved) do
+    %{
+      version: resolved[:version],
+      locale: resolved[:locale],
+      entries:
+        Enum.map(entries, fn entry ->
+          %{
+            id: entry[:logical_key] || to_string(entry[:id] || ""),
+            term: entry[:term],
+            definition: entry[:definition],
+            case_sensitive: entry[:case_sensitive],
+            translation: entry[:translation]
+          }
+        end)
+    }
+  end
+
+  defp serialize_resolved(other), do: other
 
   defp serialize_glossary(glossary) do
     %{

@@ -55,7 +55,7 @@ defmodule Glossia.MCP.GetGlossaryTool do
         %{} = resolved ->
           response =
             Response.tool()
-            |> Response.text(JSON.encode!(resolved))
+            |> Response.text(JSON.encode!(serialize_resolved(resolved)))
 
           {:reply, response, frame}
       end
@@ -63,6 +63,27 @@ defmodule Glossia.MCP.GetGlossaryTool do
       {:error, error} -> {:error, error, frame}
     end
   end
+
+  # See the sibling REST controller for why we strip row ids and expose the
+  # logical key as `id` from locale-resolved reads.
+  defp serialize_resolved(%{entries: entries} = resolved) do
+    %{
+      version: resolved[:version],
+      locale: resolved[:locale],
+      entries:
+        Enum.map(entries, fn entry ->
+          %{
+            id: entry[:logical_key] || to_string(entry[:id] || ""),
+            term: entry[:term],
+            definition: entry[:definition],
+            case_sensitive: entry[:case_sensitive],
+            translation: entry[:translation]
+          }
+        end)
+    }
+  end
+
+  defp serialize_resolved(other), do: other
 
   defp serialize_glossary(glossary) do
     %{

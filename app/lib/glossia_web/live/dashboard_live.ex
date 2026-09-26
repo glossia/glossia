@@ -10857,6 +10857,7 @@ defmodule GlossiaWeb.DashboardLive do
     |> Map.new(fn {entry, idx} ->
       {to_string(idx),
        %{
+         "id" => glossary_entry_value(entry, :logical_key),
          "term" => glossary_entry_value(entry, :term),
          "definition" => glossary_entry_value(entry, :definition),
          "case_sensitive" => glossary_case_sensitive_value(entry),
@@ -11229,6 +11230,7 @@ defmodule GlossiaWeb.DashboardLive do
           end)
 
         %{
+          id: non_empty(e["id"]),
           term: e["term"],
           definition: non_empty(e["definition"]),
           case_sensitive: e["case_sensitive"] == "true",

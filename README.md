@@ -1,6 +1,6 @@
 # Glossia 🌍
 
-Glossia is a language OS. It brings your voice, terminology, and
+Glossia is a language OS. It brings your voice, glossary, and
 tone together so linguists and product teams can shape how your organization
 communicates across every language and surface.
 

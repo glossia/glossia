@@ -192,7 +192,14 @@ defmodule Glossia.Translations.Context do
     %{entries: repo_entries ++ kept, shadowed: shadowed}
   end
 
-  defp normalized_term(%{term: term}) when is_binary(term), do: :string.casefold(term)
+  # The merge equivalence must match the source-matching equivalence in
+  # `select_entries` (which uses regex `iu` — simple case-insensitive
+  # comparison, not full Unicode case folding). `:string.casefold/1` folds
+  # `ß` -> `ss` which the matcher does not, so a repository entry `STRASSE`
+  # would silently shadow a platform entry `straße` that could then never
+  # be matched. `String.downcase/1` behaves the same as the regex `iu`
+  # flag for our purposes.
+  defp normalized_term(%{term: term}) when is_binary(term), do: String.downcase(term)
   defp normalized_term(_), do: ""
 
   @doc "Builds one file-level bundle from already resolved locale context."
@@ -208,8 +215,22 @@ defmodule Glossia.Translations.Context do
       snapshot: snapshot,
       voice: context.voice,
       glossary: select_entries(context.glossary, source, preserve),
-      shadowed_glossary: Map.get(context, :shadowed_glossary, [])
+      shadowed_glossary:
+        select_shadowed(Map.get(context, :shadowed_glossary, []), source, preserve)
     }
+  end
+
+  # A shadowed entry is only relevant to a file if the shadowing repo term
+  # actually occurs in the file's source. Otherwise the file's provenance
+  # would list every locale-level conflict, most of them unrelated. Reuses
+  # the file-level matcher without the file's active-entry claim tracking.
+  defp select_shadowed(entries, source, preserve) do
+    text = translatable_text(source, preserve)
+    casefolded_text = :string.casefold(text)
+
+    Enum.filter(entries, fn entry ->
+      valid_entry?(entry) and likely_present?(entry, text, casefolded_text)
+    end)
   end
 
   @doc """

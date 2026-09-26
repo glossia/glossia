@@ -30,20 +30,51 @@ defmodule Glossia.Translations.RepoGlossary do
   @doc "Returns the conventional file path inside a repository checkout."
   def default_relative_path, do: @filename
 
-  @doc "Loads the repo glossary from a checkout root, or `{:ok, []}` when absent."
-  def load(repo_path) when is_binary(repo_path) do
-    path = Path.join(repo_path, @filename)
+  @doc """
+  Loads the repo glossary from a checkout root, or `{:ok, []}` when absent.
 
+  A relative `override_path` (from the L10N.md `glossary` field) may point
+  to a location other than the default. The path is validated to stay
+  inside the checkout to avoid resolver-directed reads outside the repo.
+  """
+  def load(repo_path, override_path \\ nil) when is_binary(repo_path) do
+    with {:ok, relative} <- resolve_relative(override_path),
+         {:ok, absolute} <- resolve_absolute(repo_path, relative) do
+      cond do
+        not File.exists?(absolute) ->
+          {:ok, []}
+
+        true ->
+          with {:ok, raw} <- File.read(absolute),
+               {:ok, data} <- YamlElixir.read_from_string(raw),
+               {:ok, entries} <- parse(data) do
+            {:ok, entries}
+          end
+      end
+    end
+  end
+
+  defp resolve_relative(nil), do: {:ok, @filename}
+
+  defp resolve_relative(path) when is_binary(path) do
     cond do
-      not File.exists?(path) ->
-        {:ok, []}
+      Path.type(path) != :relative ->
+        {:error, "glossary path must be relative to the repository root"}
 
       true ->
-        with {:ok, raw} <- File.read(path),
-             {:ok, data} <- YamlElixir.read_from_string(raw),
-             {:ok, entries} <- parse(data) do
-          {:ok, entries}
-        end
+        {:ok, path}
+    end
+  end
+
+  defp resolve_absolute(repo_path, relative) do
+    joined = Path.join(repo_path, relative)
+    expanded = Path.expand(joined)
+    root = Path.expand(repo_path)
+
+    if String.starts_with?(expanded <> "/", root <> "/") do
+      {:ok, expanded}
+    else
+      {:error, "glossary path escapes the repository root"}
     end
   end
 
@@ -87,9 +118,12 @@ defmodule Glossia.Translations.RepoGlossary do
           []
 
         {_rank, target_locale, translation} ->
+          namespaced = namespaced_id(entry.logical_key)
+
           [
             %{
-              id: namespaced_id(entry.logical_key),
+              id: namespaced,
+              namespaced_id: namespaced,
               logical_key: entry.logical_key,
               origin: :repo,
               term: entry.source,
@@ -127,21 +161,15 @@ defmodule Glossia.Translations.RepoGlossary do
         {:halt, {:error, "glossary entry is missing `source`"}}
 
       true ->
-        raw_key = item["id"] || item[:id]
-
-        logical_key =
-          if is_binary(raw_key) and raw_key != "",
-            do: raw_key,
-            else: GlossaryEntry.slugify(source)
-
-        targets = parse_targets(item["targets"] || item[:targets] || %{})
-
-        with :ok <- validate_targets(source, targets) do
+        with {:ok, logical_key} <- parse_logical_key(item, source),
+             {:ok, case_sensitive} <- parse_boolean(item, "case_sensitive", false),
+             {:ok, definition} <- parse_optional_string(item, "definition"),
+             {:ok, targets} <- parse_targets(source, item["targets"] || item[:targets]) do
           entry = %{
             logical_key: logical_key,
             source: source,
-            case_sensitive: item["case_sensitive"] || item[:case_sensitive] || false,
-            definition: item["definition"] || item[:definition],
+            case_sensitive: case_sensitive,
+            definition: definition,
             targets: targets
           }
 
@@ -155,23 +183,75 @@ defmodule Glossia.Translations.RepoGlossary do
   defp parse_entry(_item, {:ok, _acc}),
     do: {:halt, {:error, "glossary entry must be a mapping"}}
 
-  defp parse_targets(map) when is_map(map) do
-    Map.new(map, fn {k, v} -> {to_string(k), to_string(v)} end)
-  end
+  defp parse_logical_key(item, source) do
+    case item["id"] || item[:id] do
+      nil ->
+        {:ok, GlossaryEntry.slugify(source)}
 
-  defp parse_targets(_), do: %{}
+      value when is_binary(value) ->
+        if String.trim(value) == "",
+          do: {:ok, GlossaryEntry.slugify(source)},
+          else: {:ok, value}
 
-  defp validate_targets(source, targets) do
-    empty = for {locale, translation} <- targets, String.trim(translation) == "", do: locale
-
-    case empty do
-      [] ->
-        :ok
-
-      [locale | _] ->
-        {:error, "glossary entry `#{source}` has an empty translation for `#{locale}`"}
+      other ->
+        {:error, "glossary entry `#{source}` has a non-string `id`: #{inspect(other)}"}
     end
   end
+
+  defp parse_boolean(item, key, default) do
+    case Map.get(item, key, Map.get(item, String.to_existing_atom(key), default)) do
+      true -> {:ok, true}
+      false -> {:ok, false}
+      nil -> {:ok, default}
+      other -> {:error, "glossary field `#{key}` must be a boolean, got: #{inspect(other)}"}
+    end
+  rescue
+    ArgumentError -> {:ok, default}
+  end
+
+  defp parse_optional_string(item, key) do
+    case Map.get(item, key, Map.get(item, safe_to_atom(key))) do
+      nil -> {:ok, nil}
+      value when is_binary(value) -> {:ok, value}
+      other -> {:error, "glossary field `#{key}` must be a string, got: #{inspect(other)}"}
+    end
+  end
+
+  defp safe_to_atom(str) do
+    String.to_existing_atom(str)
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp parse_targets(_source, nil), do: {:ok, %{}}
+
+  defp parse_targets(source, targets) when is_map(targets) do
+    Enum.reduce_while(targets, {:ok, %{}}, fn {locale, translation}, {:ok, acc} ->
+      cond do
+        not is_binary(locale) ->
+          {:halt,
+           {:error,
+            "glossary entry `#{source}` has a non-string locale key: #{inspect(locale)}"}}
+
+        not is_binary(translation) ->
+          {:halt,
+           {:error,
+            "glossary entry `#{source}` has a non-string translation for `#{locale}`: #{inspect(translation)}"}}
+
+        String.trim(translation) == "" ->
+          {:halt,
+           {:error, "glossary entry `#{source}` has an empty translation for `#{locale}`"}}
+
+        true ->
+          {:cont, {:ok, Map.put(acc, locale, translation)}}
+      end
+    end)
+  end
+
+  defp parse_targets(source, other),
+    do:
+      {:error,
+       "glossary entry `#{source}` has a `targets` that is not a mapping: #{inspect(other)}"}
 
   defp validate_unique_keys(entries) do
     entries

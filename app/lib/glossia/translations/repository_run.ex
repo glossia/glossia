@@ -537,13 +537,43 @@ defmodule Glossia.Translations.RepositoryRun do
   end
 
   defp load_repo_glossary(repo_path) do
-    case RepoGlossary.load(repo_path) do
-      {:ok, entries} ->
-        {:ok, entries}
+    override_path = root_glossary_override(repo_path)
 
-      {:error, reason} ->
-        Logger.warning("repo glossary at #{repo_path} failed to load: #{inspect(reason)}")
+    try do
+      case RepoGlossary.load(repo_path, override_path) do
+        {:ok, entries} ->
+          {:ok, entries}
+
+        {:error, reason} ->
+          Logger.warning("repo glossary at #{repo_path} failed to load: #{inspect(reason)}")
+          {:ok, []}
+      end
+    rescue
+      error ->
+        Logger.warning(
+          "repo glossary at #{repo_path} raised while parsing: #{Exception.message(error)}"
+        )
+
         {:ok, []}
+    end
+  end
+
+  # Reads the `glossary` field from the repository root's L10N.md, if any.
+  # Nested L10N.md documents cannot override this: the repo glossary is
+  # loaded once per run, at repository scope, so it is the root document
+  # (or nothing) that names its path. A nested L10N.md that also names
+  # `glossary` is silently ignored here — the field only takes effect at
+  # the root.
+  defp root_glossary_override(repo_path) do
+    root_doc = Path.join(repo_path, "L10N.md")
+
+    with true <- File.exists?(root_doc),
+         {:ok, raw} <- File.read(root_doc),
+         {:ok, %{frontmatter: %{glossary: path}}} when is_binary(path) <-
+           Glossia.Translations.Frontmatter.parse_content(raw) do
+      path
+    else
+      _ -> nil
     end
   end
 
@@ -648,12 +678,12 @@ defmodule Glossia.Translations.RepositoryRun do
       item = attach_po_diff(item, po_status)
 
       cond do
-        # A change in glossary, voice, model, provider, prompt, or any other
-        # dependency in the hash tree invalidates every translation in the
-        # file — preserving a msgstr that was produced against a different
-        # glossary version would silently keep an outdated term in place.
-        # Strip the po_diff so the engine retranslates the whole catalog.
-        Locks.stale?(lock, hash_state, item.output_path, current_output_hash) ->
+        # Context change (glossary, voice, model, prompt, config) invalidates
+        # every translation in the file, even msgstrs whose per-message
+        # source hash still matches — preserving them would keep an outdated
+        # translation under the new context. Drop the po_diff so the engine
+        # retranslates the whole catalog.
+        Locks.context_stale?(lock, hash_state) ->
           %{
             index: index,
             item: Map.delete(item, :po_diff),
@@ -664,6 +694,19 @@ defmodule Glossia.Translations.RepositoryRun do
 
         po_status == :fresh ->
           %{index: index, status: :up_to_date}
+
+        # A pure source change (added / modified msgid) with stable context
+        # follows the per-message diff path when one exists — every unchanged
+        # msgstr is preserved from the previous run and only the changed
+        # msgids reach the model.
+        Locks.stale?(lock, hash_state, item.output_path, current_output_hash) ->
+          %{
+            index: index,
+            item: item,
+            provider: provider,
+            hash_state: hash_state,
+            status: :translation_needed
+          }
 
         true ->
           # Only the count is read for an up-to-date file, so its context bundle

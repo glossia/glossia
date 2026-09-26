@@ -350,4 +350,35 @@ defmodule Glossia.Translations.ContextTest do
                ["es"]
              )
   end
+
+  describe "merge_glossaries/2" do
+    test "keeps every platform entry when no repo entries collide" do
+      platform = [entry("account:a", "commit", "confirmación")]
+      repo = [entry("repo:api", "API", "API")]
+      merged = Context.merge_glossaries(platform, repo)
+      terms = Enum.map(merged.entries, & &1.term) |> Enum.sort()
+      assert terms == ["API", "commit"]
+      assert merged.shadowed == []
+    end
+
+    test "repo entry wins over platform entry with an equivalent source" do
+      platform = [entry("account:commit", "commit", "cometer")]
+      repo = [entry("repo:commit", "COMMIT", "confirmación")]
+      merged = Context.merge_glossaries(platform, repo)
+      assert Enum.map(merged.entries, & &1.term) == ["COMMIT"]
+      assert Enum.map(merged.shadowed, & &1.id) == ["account:commit"]
+    end
+
+    test "does not use full Unicode case folding, matching the source matcher" do
+      # Regex `iu` treats `straße` and `STRASSE` as different — the merge
+      # must not shadow the platform entry with a repo entry the matcher
+      # would never touch.
+      platform = [entry("account:street", "straße", "calle")]
+      repo = [entry("repo:street", "STRASSE", "Straße")]
+      merged = Context.merge_glossaries(platform, repo)
+      terms = merged.entries |> Enum.map(& &1.term) |> Enum.sort()
+      assert "straße" in terms
+      assert merged.shadowed == []
+    end
+  end
 end

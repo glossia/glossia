@@ -56,6 +56,46 @@ defmodule Glossia.Translations.RepoGlossaryTest do
 
       assert message =~ "empty translation for `es`"
     end
+
+    test "rejects a non-string translation instead of raising Protocol.UndefinedError" do
+      assert {:error, message} =
+               RepoGlossary.parse(%{
+                 "entries" => [
+                   %{"source" => "commit", "targets" => %{"es" => %{"nested" => "bad"}}}
+                 ]
+               })
+
+      assert message =~ "non-string translation for `es`"
+    end
+
+    test "rejects a non-mapping targets value" do
+      assert {:error, message} =
+               RepoGlossary.parse(%{
+                 "entries" => [%{"source" => "commit", "targets" => ["es", "confirmación"]}]
+               })
+
+      assert message =~ "not a mapping"
+    end
+
+    test "rejects a non-boolean case_sensitive" do
+      assert {:error, message} =
+               RepoGlossary.parse(%{
+                 "entries" => [
+                   %{"source" => "commit", "case_sensitive" => "true", "targets" => %{"es" => "c"}}
+                 ]
+               })
+
+      assert message =~ "case_sensitive"
+    end
+
+    test "rejects a non-string entry id" do
+      assert {:error, message} =
+               RepoGlossary.parse(%{
+                 "entries" => [%{"id" => 42, "source" => "commit", "targets" => %{"es" => "c"}}]
+               })
+
+      assert message =~ "non-string `id`"
+    end
   end
 
   describe "resolve_for_locale/2" do
@@ -87,8 +127,40 @@ defmodule Glossia.Translations.RepoGlossaryTest do
           ]
         })
 
-      assert [%{id: "repo:commit", origin: :repo}] =
+      assert [%{id: "repo:commit", namespaced_id: "repo:commit", origin: :repo}] =
                RepoGlossary.resolve_for_locale(entries, "es")
+    end
+  end
+
+  describe "load/2 with an override path" do
+    test "reads the override path when it is inside the repository root" do
+      dir =
+        System.tmp_dir!()
+        |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
+
+      File.mkdir_p!(Path.join(dir, "config"))
+      on_exit(fn -> File.rm_rf!(dir) end)
+
+      File.write!(Path.join(dir, "config/glossary.yaml"), """
+      entries:
+        - id: commit
+          source: commit
+          targets:
+            es: confirmación
+      """)
+
+      assert {:ok, [%{logical_key: "commit"}]} =
+               RepoGlossary.load(dir, "config/glossary.yaml")
+    end
+
+    test "rejects an absolute override path" do
+      assert {:error, message} = RepoGlossary.load("/tmp", "/etc/passwd")
+      assert message =~ "must be relative"
+    end
+
+    test "rejects an override path that escapes the repository root" do
+      assert {:error, message} = RepoGlossary.load("/tmp/repo", "../../etc/passwd")
+      assert message =~ "escapes"
     end
   end
 
