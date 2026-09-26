@@ -361,6 +361,7 @@ defmodule GlossiaWeb.Router do
   scope "/mcp" do
     pipe_through [
       :api,
+      GlossiaWeb.Plugs.EnforceMcpOrigin,
       GlossiaWeb.Plugs.BearerAuth,
       GlossiaWeb.Plugs.RequireApiAuth,
       GlossiaWeb.Plugs.McpRateLimit,
@@ -374,6 +375,7 @@ defmodule GlossiaWeb.Router do
   scope "/admin/mcp" do
     pipe_through [
       :api,
+      GlossiaWeb.Plugs.EnforceMcpOrigin,
       GlossiaWeb.Plugs.BearerAuth,
       GlossiaWeb.Plugs.RequireApiAuth,
       GlossiaWeb.Plugs.McpRateLimit,
