@@ -1436,6 +1436,13 @@ defmodule GlossiaWeb.OpenApiSpec do
         "type" => "object",
         "required" => ["term"],
         "properties" => %{
+          "id" => %{
+            "type" => "string",
+            "description" =>
+              "Stable identifier for the entry across glossary versions. " <>
+                "Optional — derived from `term` (slugified) if omitted. " <>
+                "Reuse the same id in future versions to keep lockfile references stable."
+          },
           "term" => %{"type" => "string", "description" => "The canonical source term"},
           "definition" => %{
             "type" => "string",
@@ -1477,6 +1484,12 @@ defmodule GlossiaWeb.OpenApiSpec do
             "items" => %{
               "type" => "object",
               "properties" => %{
+                "id" => %{
+                  "type" => "string",
+                  "description" =>
+                    "Stable identifier that survives version bumps. " <>
+                      "Namespaced references in lockfile provenance are `account:<id>`."
+                },
                 "term" => %{"type" => "string"},
                 "definition" => %{"type" => "string"},
                 "case_sensitive" => %{"type" => "boolean"},

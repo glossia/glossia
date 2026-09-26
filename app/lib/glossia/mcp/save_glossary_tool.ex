@@ -17,7 +17,7 @@ defmodule Glossia.MCP.SaveGlossaryTool do
 
     field :entries, {:required, {:array, :map}},
       description:
-        "List of glossary entries. Each entry is an object with: term (required), definition (optional), case_sensitive (boolean, default false), translations (array of {locale, translation} objects)."
+        "List of glossary entries. Each entry is an object with: id (optional stable slug reused across versions; derived from `term` if omitted), term (required), definition (optional), case_sensitive (boolean, default false), translations (array of {locale, translation} objects)."
   end
 
   @impl true

@@ -118,7 +118,30 @@ defmodule GlossiaWeb.Api.GlossaryApiControllerTest do
 
       assert %{"version" => 2, "entries" => [entry]} = json_response(conn, 201)
       assert entry["term"] == "workspace"
+      assert entry["id"] == "workspace"
       assert length(entry["translations"]) == 1
+    end
+
+    test "accepts an explicit `id` and keeps it stable across versions", %{
+      conn: conn,
+      owner: owner
+    } do
+      conn =
+        conn
+        |> TestHelpers.authenticate(owner, @write_scopes)
+        |> post("/api/#{owner.account.handle}/glossary", %{
+          change_note: "Introduce workspace with a fixed id",
+          entries: [
+            %{
+              id: "vcs-workspace",
+              term: "workspace",
+              translations: [%{locale: "de", translation: "Arbeitsbereich"}]
+            }
+          ]
+        })
+
+      assert %{"entries" => [entry]} = json_response(conn, 201)
+      assert entry["id"] == "vcs-workspace"
     end
   end
 

@@ -16,12 +16,35 @@ defmodule Glossia.Accounts.GlossaryEntry do
 
   def changeset(entry, attrs) do
     entry
-    |> cast(attrs, [:term, :logical_key, :definition, :case_sensitive])
+    |> cast(normalize_public_id(attrs), [:term, :logical_key, :definition, :case_sensitive])
     |> validate_required([:term])
     |> put_logical_key()
     |> unique_constraint([:glossary_id, :term])
     |> unique_constraint([:glossary_id, :logical_key])
   end
+
+  # The public API surface (REST, MCP, repo glossary YAML) uses `id` for the
+  # entry's stable identifier because that reads better in an API payload
+  # than `logical_key`. Internally the column stays `logical_key` to leave
+  # room for a future opaque row id without ambiguity, so map at the
+  # boundary. An explicit `logical_key` still wins for internal callers.
+  defp normalize_public_id(%{} = attrs) do
+    cond do
+      Map.has_key?(attrs, "logical_key") or Map.has_key?(attrs, :logical_key) ->
+        attrs
+
+      is_binary(attrs["id"]) ->
+        Map.put(attrs, "logical_key", attrs["id"])
+
+      is_binary(attrs[:id]) ->
+        Map.put(attrs, :logical_key, attrs[:id])
+
+      true ->
+        attrs
+    end
+  end
+
+  defp normalize_public_id(attrs), do: attrs
 
   # Logical keys stay stable across versions of the same glossary so the
   # lockfile can reference an entry by concept rather than by row id (row ids
