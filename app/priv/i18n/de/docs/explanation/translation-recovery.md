@@ -1,61 +1,62 @@
 %{
-  title: "Übersetzungswiederherstellung",
+  title: "Wiederherstellung von Übersetzungen",
   summary:
-    "Wie Glossia sich von der Anbieter-Drosselung und unterbrochenen Übersetzungen erholt.",
+    "Wie Glossia von Anbieter-Drosselung und unterbrochenen Übersetzungen wiederhergestellt wird.",
   category: "Erklärung",
+  section: "Übersetzung",
   order: 8
 }
 ---
-Glossia validiert übersetzten Inhalt vor der Veröffentlichung. Wiederherstellung bewahrt
-diese Anforderung: auch eine Wiederholung muss die Quellstruktur und erforderlichen
-Platzhalter, und jede zusammengesetzte Datei erfüllt ihre konfigurierten Validierungsbefehle.
+Glossia validiert übersetzten Inhalt, bevor es veröffentlicht wird. Wiederherstellung bewahrt
+diese Anforderung: ein Wiederholungsversuch muss die Quellstruktur und erforderlichen
+Platzhalter, und jede zusammengebaute Datei erfüllt ihre konfigurierten Validierungsbefehle.
 
 ## Katalogübersetzung
 
-Gettext-Kataloge werden vor der Übersetzung in Strings zerlegt. Anfragen enthalten
-höchstens acht Strings, mit einem 8.000-Byte-Batching-Ziel. Ein einzelner größerer String
-bleibt unversehrt. Das Modell gibt ein Array zurück mit der gleichen Anzahl von Strings in der
-gleichen Reihenfolge. Glossia prüft Interpolationsvariablen und lehnt leere Übersetzungen ab.
+Gettext-Kataloge werden vor der Übersetzung in Strings zerlegt. Anfragen beinhalten bis
+höchstens acht Strings, wobei das Batching-Ziel 8.000 Bytes beträgt. Eine einzelne längere Zeichenkette
+bleibt erhalten. Das Modell gibt ein Array mit derselben Anzahl von Strings in der
+Reihenfolge. Glossia prüft Interpolationsvariablen und lehnt leere Übersetzungen ab.
 
-Überschriften werden im Code mit den Pluralregeln des Ziellokals erstellt. Quellnachricht
-Identifizierer, Kommentare und Katalogstruktur stammen aus der verarbeiteten Quelle. Wenn ein
-Batch enthält fehlerhafte Inhalte. Glossia führt es einmal erneut aus und teilt es in
-kleinere Batches. Erfolgreiche, benachbarte Batches müssen nicht erneut übersetzt werden.
+Die Header werden im Code mit den Pluralregeln der Zielsprache erstellt. Quellnachricht
+Identifikatoren, Kommentare und Katalogstruktur stammen aus der geparsten Quelle. Wenn
+ein Batch fehlerhafte Inhalte zurückgibt, versucht Glossia dies einmal neu, teilt es dann
+in kleinere Batches auf. Erfolgreiche benachbarte Batches müssen nicht erneut übersetzt werden.
 
-## Anbieterdrosselung
+## Anbieter-Drosselung
 
-Worker, die dieselben Zugangsdaten und das Modell nutzen, teilen sich die Zulassung durch die
-Datenbank, einschließlich Worker auf verschiedenen Anwendungsrepliken. Ein Rate-Limit
+Worker, die dieselben Zugangsdaten und das Modell verwenden, teilen sich die Anfragezulassung über die
+Datenbank, einschließlich Worker auf verschiedenen Anwendungskopien. Eine Ratenbegrenzung
 Antwort verlängert ihre gemeinsame Abkühlzeit und vergrößert den Abstand zwischen neuen Anfragen.
-Erfolgreicher Verkehr reduziert diesen Abstand nach einer Minute allmählich, ohne Throttling.
-Bereits laufende Anfragen dürfen bis zum Abschluss laufen.
+Erfolgreicher Traffic reduziert schrittweise diesen Abstand nach einer Minute ohne Drosselung.
+Bereits laufende Anfragen dürfen abgeschlossen werden.
 
 Provider-Retry-Hinweise sind minimale Verzögerungen. Wiederholte Fehler erhöhen ebenfalls den
-Backoff, bis zu einer Basisverzögerung von 30 Sekunden plus Jitter; ein längerer Provider-Hinweis nimmt
-Vorrang, maximal auf fünf Minuten begrenzt. Gemeinsamen `x-ratelimit-reset` Header ist
-anerkannt zusammen mit `retry-after`.
+Backoff, bis zu einer Basisverzögerung von 30 Sekunden plus Jitter; ein längerer Anbieter-Hint nimmt
+Vorrang, begrenzt auf fünf Minuten. Gemeinsamen `x-ratelimit-reset` Header ist
+erkannt neben `retry-after`.
 
-Nach acht fehlgeschlagenen Anfrageversuchen stellt die Repository-Ausführung das Starten neuer
-Dateien. Eine verzögerte Fortsetzung übernimmt den Übersetzungs-Zweig und setzt seine
-unvollendete Arbeit. Der vorherige Versuch bleibt im Sitzungsverlauf sichtbar und verknüpft
-durch die Fortsetzung. Verzögerungen steigen von einer auf fünf Minuten an, mit
-höchstens sechs automatische Fortsetzungen. Neuere aktive Sitzungen haben Vorrang, und
-abgebrochene Sitzungen werden nie wiederbelebt. Validierungsfehler allein planen nicht
+Nach acht fehlgeschlagenen Anfrageversuchen stoppt der Repository-Lauf das Starten neuer
+Dateien. Eine verzögerte Fortsetzung übernimmt den Übersetzungsast und setzt seine
+unvollendete Arbeit. Der vorherige Versuch bleibt im Sitzungsverlauf sichtbar, verknüpft
+durch die Fortsetzung. Die Verzögerungen steigen von einer Minute auf fünf Minuten, mit
+höchstens sechs automatischen Fortsetzungen. Neuere aktive Sitzungen haben Priorität, und
+abgebrochene Sitzungen werden niemals wiederbelebt. Validierungsfehler allein planen keine
 Provider-Wiederherstellung.
 
 ## Dauerhafter Fortschritt
 
-Erledigte Dateien und deren Sperrdateien werden im Übersetzungs-Branch als
-davor. In unvollendeten Dateien werden lokal validierte Segmente und Wiederherstellungs-Batches
-sie werden zusätzlich in der Datenbank für sieben Tage gespeichert. Diese Prüfpunkte überstehen einen Worker-Prozess-Stopp.
-Stopp. Sie beziehen sich auf Konto, Projekt, Dokumenteneingabe,
-gültigen Credential und Modell, Kontext und Segment oder Reparaturversuch.
+Abgeschlossene Dateien und ihre Sperrdateien werden im Übersetzungszweig veröffentlicht wie
+zuvor. Bei unvollendeten Dateien werden lokal validierte Segmente und Wiederherstellungsbatches
+ebenfalls in der Datenbank für sieben Tage gespeichert. Die Sicherungsstellen überstehen einen
+Prozess stoppen. Sie beziehen sich auf das Konto, das Projekt, die Dokumenteneingabe,
+gültige Berechtigung und Modell-, Kontext- und Segment- oder Reparaturversuch.
 
-Eine wiederaufgenommene Ausführung kann ein Segment nur erneut verwenden, wenn dessen Eingaben noch übereinstimmen. Es validiert immer
-das fertige Dokument erneut. Abgelehnte Modellantworten sind keine
-Prüfpunkte. Eine fehlerhafte Validierung auf Dokumentenebene startet einen separaten Reparaturversuch.
-weil der Validator möglicherweise kein einzelnes verantwortliches Segment identifizieren kann.
+Eine Wiederaufnahme kann ein Segment nur wiederverwenden, wenn seine Eingaben weiterhin übereinstimmen. Es validiert
+immer das final zusammengestellte Dokument erneut. Abgelehnte Modellantworten sind keine
+Sicherungsstellen. Ein Dokumenten-Validierungsfehler startet einen separaten Reparaturversuch
+weil der Validator möglicherweise nicht ein einzelnes, dafür zuständiges Segment identifizieren kann.
 
-Abgelaufene Checkpoints und inaktive Provider-Pacing-Aufzeichnungen werden vom
-geplanten Sitzungs-Wiederherstellungs-Worker entfernt. Dies sind Betriebsaufzeichnungen; Benutzer müssen nicht
-müssen sie zu ihrem Repository hinzufügen oder sie in `L10N.md`.
+Abgelaufene Checkpoints und inaktive Provider-Pacing-Aufzeichnungen werden von dem
+geplanten Sitzungs-Wiederherstellungsworker. Dies sind operative Datensätze; Benutzer müssen
+nicht diese zu ihrem Repository hinzufügen oder sie in `L10N.md`.
