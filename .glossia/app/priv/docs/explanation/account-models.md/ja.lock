@@ -1,15 +1,15 @@
 {
-  "hash": "0077653ade361e126ee9a05f2ced06c5ba7fd8552ce988ebaac68dd45178a109",
+  "hash": "1a5586703fc19c8a88f870a79738b81a0daf7b2f2c42f0c206bc26d7d63eeb7e",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "60672108883bed1b7e7195f6c5a86223ae5d5e95fd480d9ee3d1d08780ef5adc",
+          "hash": "83f6694b186f0ac49611ccf4e1ced663c6f3abea74c1b07fafeda8b49c2ef7bf",
           "kind": "source",
           "label": "app/priv/docs/explanation/account-models.md",
           "metadata": {
-            "content_hash": "031c530883942913439c4ceef16b55a3ebff091d40aef70b94781ad434b6ef42"
+            "content_hash": "87b5b28317ad2c6d339f8aa49e46d314956398f0c734d49f1c5cf784efe9df67"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,20 +83,20 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "0077653ade361e126ee9a05f2ced06c5ba7fd8552ce988ebaac68dd45178a109",
+      "hash": "1a5586703fc19c8a88f870a79738b81a0daf7b2f2c42f0c206bc26d7d63eeb7e",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/account-models.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "f051ec416edb5268c343fcf1ff82d34004926215dc794db6a1694e5f8e81bc71",
+  "output_hash": "9da17c71f2c595d2b011fb75be45d2b8c79166eb3ddbcdeba0a694a5427b9827",
   "output_path": "app/priv/i18n/ja/docs/explanation/account-models.md",
   "provider": "",
   "server_context": {
@@ -112,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/explanation/account-models.md",
-  "translated_at": "2026-09-12T09:37:37.900668Z"
+  "translated_at": "2026-09-27T13:13:41.373895Z"
 }
