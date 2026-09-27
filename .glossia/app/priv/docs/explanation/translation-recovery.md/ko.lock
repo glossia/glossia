@@ -1,15 +1,15 @@
 {
-  "hash": "492f09bc46afab914adabd3a9ecca7df82fd1650e3ff75dd687b12c582e8af5f",
+  "hash": "1bf0b6eadc43a164a18b621cf63ce532e07742c94537d50ec739b0256382640f",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "6deb629ece2e893164fb7fc2aa9a0249f5cc2bcd639e7432746c3bb80a4be72f",
+          "hash": "f3a9a65116622c3883f2e20580a1d3ea2df0590b3b0dbfbba15505e31025d399",
           "kind": "source",
           "label": "app/priv/docs/explanation/translation-recovery.md",
           "metadata": {
-            "content_hash": "f8212f0cfa9934bf8b2202c673cf189599e9c92cc84d0cbe06271197b5e21973"
+            "content_hash": "83c51e3d7cd3a0ac128410fe4d6045fce7658334585ad5c1b4dd1a5c9f98b38c"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,20 +83,20 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "492f09bc46afab914adabd3a9ecca7df82fd1650e3ff75dd687b12c582e8af5f",
+      "hash": "1bf0b6eadc43a164a18b621cf63ce532e07742c94537d50ec739b0256382640f",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/translation-recovery.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "4363f7d7f71d4e12faadc814c8c34be8dbbc8207c546af2e580eb4f0b1c270c6",
+  "output_hash": "ff74fcf97a0d187c0f41a86c9454e1f8c545d85885092cf5ccd68f8d0e1c3da4",
   "output_path": "app/priv/i18n/ko/docs/explanation/translation-recovery.md",
   "provider": "",
   "server_context": {
@@ -112,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/explanation/translation-recovery.md",
-  "translated_at": "2026-09-17T11:53:44.235720Z"
+  "translated_at": "2026-09-27T14:20:07.730626Z"
 }
