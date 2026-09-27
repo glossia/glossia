@@ -31,6 +31,47 @@ defmodule Glossia.Translations.PlannerTest do
   end
 
   @tag :tmp_dir
+  test "carries glossary terms and the locale's translations into each item", %{tmp_dir: root} do
+    File.write!(Path.join(root, "L10N.md"), """
+    ---
+    source_language: en
+    sources:
+      "docs/*.md": "docs/i18n/{locale}/*.md"
+    target_path: docs/i18n/{locale}
+    targets:
+      - es
+      - ja
+    glossary:
+      - source: commit
+        definition: The version-control action.
+    ---
+    """)
+
+    File.mkdir_p!(Path.join(root, "L10N"))
+
+    File.write!(Path.join([root, "L10N", "es.md"]), """
+    ---
+    locale: es
+    glossary:
+      commit: commit
+    ---
+    """)
+
+    File.mkdir_p!(Path.join(root, "docs"))
+    File.write!(Path.join([root, "docs", "guide.md"]), "Make a commit.\n")
+
+    assert {:ok, items} = Planner.build_plan(root)
+    by_locale = Map.new(items, &{&1.locale, &1})
+
+    assert by_locale["es"].glossary == [
+             %{"source" => "commit", "definition" => "The version-control action."}
+           ]
+
+    assert by_locale["es"].glossary_translations == %{"commit" => "commit"}
+    assert by_locale["ja"].glossary_translations == nil
+  end
+
+  @tag :tmp_dir
   test "resolves context and model per matched source directory", %{tmp_dir: root} do
     File.write!(Path.join(root, "L10N.md"), """
     ---

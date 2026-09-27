@@ -1,5 +1,7 @@
 ---
 locale: "es"
+glossary:
+  lockfile: archivo de bloqueo
 ---
 
 # Spanish Translation Context

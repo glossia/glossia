@@ -132,6 +132,30 @@ defmodule Glossia.Translations.ChainTest do
   end
 
   @tag :tmp_dir
+  test "merges glossary translations across overlays, deeper overlays winning", %{
+    tmp_dir: root
+  } do
+    File.write!(Path.join(root, "L10N.md"), "---\nsource_language: en\n---\nglobal")
+    File.mkdir_p!(Path.join(root, "L10N"))
+    File.mkdir_p!(Path.join([root, "marketing", "L10N"]))
+
+    File.write!(
+      Path.join([root, "L10N", "es.md"]),
+      "---\nlocale: es\nglossary:\n  commit: commit\n  branch: rama\n---\n"
+    )
+
+    File.write!(
+      Path.join([root, "marketing", "L10N", "es.md"]),
+      "---\nlocale: es\nglossary:\n  commit: compromiso\n---\n"
+    )
+
+    assert {:ok, override} =
+             Chain.load_locale_override(Path.join(root, "marketing"), root, "es")
+
+    assert override.glossary == %{"commit" => "compromiso", "branch" => "rama"}
+  end
+
+  @tag :tmp_dir
   test "rejects a locale overlay that declares a mismatched locale", %{tmp_dir: root} do
     File.write!(
       Path.join(root, "L10N.md"),

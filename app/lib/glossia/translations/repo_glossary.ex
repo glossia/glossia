@@ -1,190 +1,158 @@
 defmodule Glossia.Translations.RepoGlossary do
   @moduledoc """
-  Parses `.glossia/glossary.yaml` at the repository root into a normalized set
-  of entries the resolver can merge with the platform glossary.
+  Resolves the glossary declared in a repository's `L10N.md` documents for one
+  target locale.
 
-  File shape:
+  Terms are language-neutral and live in `L10N.md`; translations are
+  language-specific and live in the `L10N/<locale>.md` overlays:
 
-      entries:
-        - id: commit           # optional; defaults to slugified source
-          source: commit       # required
-          case_sensitive: false  # optional (default false)
-          definition: ...      # optional
-          targets:
-            es: confirmación
-            zh-Hans: 提交
+      # L10N.md
+      ---
+      glossary:
+        - source: commit
+          definition: The version-control action.
+        - id: vcs-branch          # optional; defaults to the slugified source
+          source: branch
+          case_sensitive: false   # optional
+      ---
 
-  Repository entries take precedence over platform entries for the same
-  (source, target locale) after normalization. A repository entry that omits a
-  target for a locale means "no repository opinion for this locale" — the
-  platform's translation still applies. It is never an implicit block.
+      # L10N/es.md
+      ---
+      glossary:
+        commit: commit            # keyed by a term's source ...
+        vcs-branch: rama          # ... or by its id
+        pull request: pull request   # a term only this locale declares
+      ---
 
-  Entry identifiers are namespaced (`repo:<logical-key>`) so the lockfile can
-  distinguish them from platform entries without ambiguity.
+  Only terms with a translation for the locale produce an entry; the rest fall
+  back to the server glossary. Entry identifiers are namespaced
+  (`repo:<logical-key>`) so the lockfile can tell them apart from server
+  entries.
   """
 
   alias Glossia.Accounts.GlossaryEntry
 
-  @filename ".glossia/glossary.yaml"
-
-  @doc "Returns the conventional file path inside a repository checkout."
-  def default_relative_path, do: @filename
-
   @doc """
-  Loads the repo glossary from a checkout root, or `{:ok, []}` when absent.
-
-  A relative `override_path` (from the L10N.md `glossary` field) may point
-  to a location other than the default. The path is validated to stay
-  inside the checkout to avoid resolver-directed reads outside the repo.
+  Validates the merged `L10N.md` terms and the locale overlay's translations,
+  and returns the locale-resolved entries in the shape the resolver merges
+  with the server glossary.
   """
-  def load(repo_path, override_path \\ nil) when is_binary(repo_path) do
-    with {:ok, relative} <- resolve_relative(override_path),
-         {:ok, absolute} <- resolve_absolute(repo_path, relative) do
-      cond do
-        not File.exists?(absolute) ->
-          {:ok, []}
-
-        true ->
-          with {:ok, raw} <- File.read(absolute),
-               {:ok, data} <- YamlElixir.read_from_string(raw),
-               {:ok, entries} <- parse(data) do
-            {:ok, entries}
-          end
-      end
+  def resolve(terms, translations, locale) when is_binary(locale) do
+    with {:ok, terms} <- parse_terms(terms),
+         {:ok, translations} <- parse_translations(translations) do
+      {:ok, build_entries(terms, translations, locale)}
     end
   end
 
-  defp resolve_relative(nil), do: {:ok, @filename}
-
-  defp resolve_relative(path) when is_binary(path) do
-    cond do
-      Path.type(path) != :relative ->
-        {:error, "glossary path must be relative to the repository root"}
-
-      true ->
-        {:ok, path}
-    end
-  end
-
-  defp resolve_absolute(repo_path, relative) do
-    joined = Path.join(repo_path, relative)
-    expanded = Path.expand(joined)
-    root = Path.expand(repo_path)
-
-    if String.starts_with?(expanded <> "/", root <> "/") do
-      {:ok, expanded}
-    else
-      {:error, "glossary path escapes the repository root"}
-    end
-  end
-
-  @doc "Parses an already-decoded YAML document into normalized entries."
-  def parse(nil), do: {:ok, []}
-
-  def parse(data) when is_map(data) do
-    raw = data["entries"] || data[:entries] || []
-
-    cond do
-      not is_list(raw) ->
-        {:error, "glossary `entries` must be a list"}
-
-      true ->
-        with {:ok, entries} <- Enum.reduce_while(raw, {:ok, []}, &parse_entry/2),
-             :ok <- validate_unique_keys(entries) do
-          {:ok, entries}
-        end
-    end
-  end
-
-  def parse(_other), do: {:error, "glossary file must be a mapping"}
-
-  @doc """
-  Projects the parsed entries into locale-resolved shape matching what
-  `Glossia.Glossaries.get_resolved_glossary_version/3` returns for the
-  platform: `%{id, logical_key, term, definition, case_sensitive, translation}`.
-
-  Locale fallback follows the same rule the platform uses (region → language),
-  so `zh-Hans-CN` falls back to `zh-Hans` and then `zh`. Entries without any
-  matching target for the requested locale (after fallback) are omitted.
-  """
-  def resolve_for_locale(entries, locale) when is_list(entries) and is_binary(locale) do
-    locale_candidates = locale_candidates(locale)
-    ranks = locale_candidates |> Enum.with_index() |> Map.new()
-
-    entries
-    |> Enum.flat_map(fn entry ->
-      case pick_target(entry.targets, ranks) do
-        nil ->
-          []
-
-        {_rank, target_locale, translation} ->
-          namespaced = namespaced_id(entry.logical_key)
-
-          [
-            %{
-              id: namespaced,
-              namespaced_id: namespaced,
-              logical_key: entry.logical_key,
-              origin: :repo,
-              term: entry.source,
-              definition: entry.definition,
-              case_sensitive: entry.case_sensitive,
-              translation: translation,
-              translation_locale: target_locale
-            }
-          ]
-      end
-    end)
-  end
-
-  @doc "Builds the namespaced id for a repo entry key."
+  @doc "Builds the namespaced id for a repository entry key."
   def namespaced_id(logical_key) when is_binary(logical_key), do: "repo:" <> logical_key
 
-  @doc """
-  A stable content hash of the parsed entries, independent of file whitespace,
-  comment reformatting, or entry order.
-  """
-  def content_hash(entries) when is_list(entries) do
-    entries
-    |> Enum.map(&normalize_for_hash/1)
-    |> Enum.sort_by(& &1.logical_key)
-    |> JSON.encode!()
-    |> then(&:crypto.hash(:sha256, &1))
-    |> Base.encode16(case: :lower)
+  defp build_entries(terms, translations, locale) do
+    by_id = Map.new(terms, &{&1.logical_key, &1})
+    by_source = Map.new(terms, &{&1.source, &1})
+
+    translations
+    |> Enum.sort_by(fn {key, _translation} -> key end)
+    |> Enum.map(fn {key, translation} ->
+      term = by_id[key] || by_source[key] || implicit_term(key)
+      namespaced = namespaced_id(term.logical_key)
+
+      %{
+        id: namespaced,
+        namespaced_id: namespaced,
+        logical_key: term.logical_key,
+        origin: :repo,
+        term: term.source,
+        definition: term.definition,
+        case_sensitive: term.case_sensitive,
+        translation: translation,
+        translation_locale: locale
+      }
+    end)
+    |> Enum.uniq_by(& &1.logical_key)
   end
 
-  defp parse_entry(item, {:ok, acc}) when is_map(item) do
-    source = item["source"] || item[:source]
+  defp implicit_term(source) do
+    %{
+      logical_key: GlossaryEntry.slugify(source),
+      source: source,
+      case_sensitive: false,
+      definition: nil
+    }
+  end
+
+  defp parse_terms(nil), do: {:ok, []}
+
+  defp parse_terms(raw) when is_list(raw) do
+    with {:ok, terms} <- Enum.reduce_while(raw, {:ok, []}, &parse_term/2),
+         :ok <- validate_unique_keys(terms) do
+      {:ok, Enum.reverse(terms)}
+    end
+  end
+
+  defp parse_terms(_other),
+    do: {:error, "`glossary` in L10N.md must be a list of terms"}
+
+  defp parse_term(item, {:ok, acc}) when is_map(item) do
+    source = item["source"]
 
     cond do
-      not is_binary(source) or source == "" ->
-        {:halt, {:error, "glossary entry is missing `source`"}}
+      not is_binary(source) or String.trim(source) == "" ->
+        {:halt, {:error, "glossary term is missing `source`"}}
+
+      Map.has_key?(item, "targets") ->
+        {:halt,
+         {:error,
+          "glossary term `#{source}` declares `targets`; translations belong in L10N/<locale>.md"}}
 
       true ->
         with {:ok, logical_key} <- parse_logical_key(item, source),
              {:ok, case_sensitive} <- parse_boolean(item, "case_sensitive", false),
-             {:ok, definition} <- parse_optional_string(item, "definition"),
-             {:ok, targets} <- parse_targets(source, item["targets"] || item[:targets]) do
-          entry = %{
+             {:ok, definition} <- parse_optional_string(item, "definition") do
+          term = %{
             logical_key: logical_key,
             source: source,
             case_sensitive: case_sensitive,
-            definition: definition,
-            targets: targets
+            definition: definition
           }
 
-          {:cont, {:ok, [entry | acc]}}
+          {:cont, {:ok, [term | acc]}}
         else
           {:error, _} = error -> {:halt, error}
         end
     end
   end
 
-  defp parse_entry(_item, {:ok, _acc}),
-    do: {:halt, {:error, "glossary entry must be a mapping"}}
+  defp parse_term(_item, {:ok, _acc}),
+    do: {:halt, {:error, "glossary term must be a mapping"}}
+
+  defp parse_translations(nil), do: {:ok, %{}}
+
+  defp parse_translations(raw) when is_map(raw) do
+    Enum.reduce_while(raw, {:ok, %{}}, fn {key, translation}, {:ok, acc} ->
+      cond do
+        not is_binary(key) or String.trim(key) == "" ->
+          {:halt, {:error, "glossary keys in L10N/<locale>.md must be non-empty terms"}}
+
+        not is_binary(translation) ->
+          {:halt,
+           {:error,
+            "glossary translation for `#{key}` must be a string, got: #{inspect(translation)}"}}
+
+        String.trim(translation) == "" ->
+          {:halt, {:error, "glossary translation for `#{key}` is empty"}}
+
+        true ->
+          {:cont, {:ok, Map.put(acc, key, translation)}}
+      end
+    end)
+  end
+
+  defp parse_translations(_other),
+    do: {:error, "`glossary` in L10N/<locale>.md must map terms to translations"}
 
   defp parse_logical_key(item, source) do
-    case item["id"] || item[:id] do
+    case item["id"] do
       nil ->
         {:ok, GlossaryEntry.slugify(source)}
 
@@ -194,111 +162,33 @@ defmodule Glossia.Translations.RepoGlossary do
           else: {:ok, value}
 
       other ->
-        {:error, "glossary entry `#{source}` has a non-string `id`: #{inspect(other)}"}
+        {:error, "glossary term `#{source}` has a non-string `id`: #{inspect(other)}"}
     end
   end
 
   defp parse_boolean(item, key, default) do
-    case Map.get(item, key, Map.get(item, String.to_existing_atom(key), default)) do
-      true -> {:ok, true}
-      false -> {:ok, false}
+    case Map.get(item, key) do
       nil -> {:ok, default}
+      value when is_boolean(value) -> {:ok, value}
       other -> {:error, "glossary field `#{key}` must be a boolean, got: #{inspect(other)}"}
     end
-  rescue
-    ArgumentError -> {:ok, default}
   end
 
   defp parse_optional_string(item, key) do
-    case Map.get(item, key, Map.get(item, safe_to_atom(key))) do
+    case Map.get(item, key) do
       nil -> {:ok, nil}
       value when is_binary(value) -> {:ok, value}
       other -> {:error, "glossary field `#{key}` must be a string, got: #{inspect(other)}"}
     end
   end
 
-  defp safe_to_atom(str) do
-    String.to_existing_atom(str)
-  rescue
-    ArgumentError -> nil
-  end
-
-  defp parse_targets(_source, nil), do: {:ok, %{}}
-
-  defp parse_targets(source, targets) when is_map(targets) do
-    Enum.reduce_while(targets, {:ok, %{}}, fn {locale, translation}, {:ok, acc} ->
-      cond do
-        not is_binary(locale) ->
-          {:halt,
-           {:error,
-            "glossary entry `#{source}` has a non-string locale key: #{inspect(locale)}"}}
-
-        not is_binary(translation) ->
-          {:halt,
-           {:error,
-            "glossary entry `#{source}` has a non-string translation for `#{locale}`: #{inspect(translation)}"}}
-
-        String.trim(translation) == "" ->
-          {:halt,
-           {:error, "glossary entry `#{source}` has an empty translation for `#{locale}`"}}
-
-        true ->
-          {:cont, {:ok, Map.put(acc, locale, translation)}}
-      end
-    end)
-  end
-
-  defp parse_targets(source, other),
-    do:
-      {:error,
-       "glossary entry `#{source}` has a `targets` that is not a mapping: #{inspect(other)}"}
-
-  defp validate_unique_keys(entries) do
-    entries
+  defp validate_unique_keys(terms) do
+    terms
     |> Enum.frequencies_by(& &1.logical_key)
     |> Enum.find(fn {_key, count} -> count > 1 end)
     |> case do
       nil -> :ok
-      {key, _} -> {:error, "glossary has duplicate entry id `#{key}`"}
+      {key, _} -> {:error, "glossary has duplicate term id `#{key}`"}
     end
-  end
-
-  defp pick_target(targets, ranks) when is_map(targets) do
-    targets
-    |> Enum.map(fn {locale, translation} -> {Map.get(ranks, locale), locale, translation} end)
-    |> Enum.filter(fn {rank, _, _} -> is_integer(rank) end)
-    |> Enum.min_by(fn {rank, _, _} -> rank end, fn -> nil end)
-  end
-
-  defp pick_target(_targets, _ranks), do: nil
-
-  defp locale_candidates(locale) do
-    parts =
-      locale
-      |> String.replace("_", "-")
-      |> String.split("-", trim: true)
-
-    case parts do
-      [] ->
-        [locale]
-
-      parts ->
-        Enum.map(length(parts)..1//-1, fn count -> parts |> Enum.take(count) |> Enum.join("-") end)
-    end
-  end
-
-  defp normalize_for_hash(entry) do
-    targets =
-      entry.targets
-      |> Enum.sort_by(fn {locale, _} -> locale end)
-      |> Enum.map(fn {locale, translation} -> [locale, translation] end)
-
-    %{
-      logical_key: entry.logical_key,
-      source: entry.source,
-      case_sensitive: !!entry.case_sensitive,
-      definition: entry.definition || "",
-      targets: targets
-    }
   end
 end

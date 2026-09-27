@@ -351,6 +351,71 @@ defmodule Glossia.Translations.ContextTest do
              )
   end
 
+  describe "build_bundle/6 with L10N.md glossary entries" do
+    setup do
+      locale_contexts =
+        Context.prepare_locale_contexts(%{
+          "es" => %{
+            voice: nil,
+            glossary: [
+              entry("row-1", "commit", "cometer", %{
+                namespaced_id: "account:commit",
+                logical_key: "commit"
+              }),
+              entry("row-2", "branch", "rama", %{
+                namespaced_id: "account:branch",
+                logical_key: "branch"
+              })
+            ]
+          }
+        })
+
+      {:ok, repo} =
+        Glossia.Translations.RepoGlossary.resolve(
+          [%{"source" => "commit"}],
+          %{"commit" => "commit"},
+          "es"
+        )
+
+      %{locale_contexts: locale_contexts, repo: repo}
+    end
+
+    test "the repository entry wins and the platform entry is shadowed", ctx do
+      bundle =
+        Context.build_bundle(
+          Context.empty_snapshot(),
+          ctx.locale_contexts,
+          "es",
+          "Make a commit on this branch.",
+          [],
+          ctx.repo
+        )
+
+      assert Enum.map(bundle.glossary, &{&1.term, &1.translation}) |> Enum.sort() ==
+               [{"branch", "rama"}, {"commit", "commit"}]
+
+      assert Enum.map(bundle.shadowed_glossary, & &1.namespaced_id) == ["account:commit"]
+
+      provenance = Context.provenance(bundle)
+      assert provenance["glossary"]["applied"] == ["account:branch", "repo:commit"]
+      assert provenance["glossary"]["shadowed"] == ["account:commit"]
+    end
+
+    test "shadowed entries are omitted when the file does not use the term", ctx do
+      bundle =
+        Context.build_bundle(
+          Context.empty_snapshot(),
+          ctx.locale_contexts,
+          "es",
+          "Switch to another branch.",
+          [],
+          ctx.repo
+        )
+
+      assert bundle.shadowed_glossary == []
+    end
+  end
+
   describe "merge_glossaries/2" do
     test "keeps every platform entry when no repo entries collide" do
       platform = [entry("account:a", "commit", "confirmación")]

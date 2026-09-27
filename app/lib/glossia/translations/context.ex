@@ -18,7 +18,6 @@ defmodule Glossia.Translations.Context do
   alias Glossia.Accounts.{Account, Voice}
   alias Glossia.Glossaries
   alias Glossia.Translations.PreservedTokens
-  alias Glossia.Translations.RepoGlossary
   alias Glossia.Voices
 
   @compiler_version 3
@@ -147,29 +146,12 @@ defmodule Glossia.Translations.Context do
   @doc """
   Compiles term matchers once after locale context reaches the repository runner.
 
-  Optionally merges repo-declared glossary entries into the resolved platform
-  glossary. For an identical source term (case-insensitively equal), the repo
-  entry wins for that target locale and the platform entry is recorded as
-  shadowed so the run can surface the resolution to reviewers. A repo entry
-  with no translation for the requested locale silently yields to the platform
-  entry — it never blocks the platform's translation.
-
   Compiled matchers remain process-local and are excluded from prompts,
   hashes, and lockfile provenance.
   """
-  def prepare_locale_contexts(locale_contexts, repo_entries \\ [])
-      when is_map(locale_contexts) and is_list(repo_entries) do
+  def prepare_locale_contexts(locale_contexts) when is_map(locale_contexts) do
     Map.new(locale_contexts, fn {locale, context} ->
-      platform = context.glossary || []
-      repo = RepoGlossary.resolve_for_locale(repo_entries, locale)
-      merged = merge_glossaries(platform, repo)
-
-      prepared_context =
-        context
-        |> Map.put(:glossary, prepare_entries(merged.entries))
-        |> Map.put(:shadowed_glossary, merged.shadowed)
-
-      {locale, prepared_context}
+      {locale, Map.update!(context, :glossary, &prepare_entries(&1 || []))}
     end)
   end
 
@@ -202,11 +184,23 @@ defmodule Glossia.Translations.Context do
   defp normalized_term(%{term: term}) when is_binary(term), do: String.downcase(term)
   defp normalized_term(_), do: ""
 
-  @doc "Builds one file-level bundle from already resolved locale context."
-  def build_bundle(snapshot, locale_contexts, locale, source, preserve)
+  @doc """
+  Builds one file-level bundle from already resolved locale context.
+
+  `repo_entries` are the file's `L10N.md` glossary entries for this locale,
+  already resolved by `RepoGlossary.resolve/3`. They are merged with the
+  server glossary for this locale: for an identical source term (case-insensitively equal) the
+  repository entry wins and the platform entry is recorded as shadowed. A
+  repository entry with no translation for the locale yields to the platform.
+  """
+  def build_bundle(snapshot, locale_contexts, locale, source, preserve, repo_entries \\ [])
       when is_map(snapshot) and is_map(locale_contexts) and is_binary(locale) and
-             is_binary(source) and is_list(preserve) do
+             is_binary(source) and is_list(preserve) and is_list(repo_entries) do
     context = Map.fetch!(locale_contexts, locale)
+
+    repo = prepare_entries(repo_entries)
+
+    merged = merge_glossaries(context.glossary || [], repo)
 
     %{
       compiler_version: @compiler_version,
@@ -214,9 +208,8 @@ defmodule Glossia.Translations.Context do
       locale: locale,
       snapshot: snapshot,
       voice: context.voice,
-      glossary: select_entries(context.glossary, source, preserve),
-      shadowed_glossary:
-        select_shadowed(Map.get(context, :shadowed_glossary, []), source, preserve)
+      glossary: select_entries(merged.entries, source, preserve),
+      shadowed_glossary: select_shadowed(merged.shadowed, source, preserve)
     }
   end
 

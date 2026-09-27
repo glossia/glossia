@@ -3,233 +3,92 @@ defmodule Glossia.Translations.RepoGlossaryTest do
 
   alias Glossia.Translations.RepoGlossary
 
-  describe "parse/1" do
-    test "returns an empty list when the document is nil or empty" do
-      assert {:ok, []} = RepoGlossary.parse(nil)
-      assert {:ok, []} = RepoGlossary.parse(%{})
-      assert {:ok, []} = RepoGlossary.parse(%{"entries" => []})
+  describe "resolve/3" do
+    test "returns no entries when neither terms nor translations are declared" do
+      assert {:ok, []} = RepoGlossary.resolve(nil, nil, "es")
     end
 
-    test "derives logical keys from source when none is given" do
-      {:ok, entries} =
-        RepoGlossary.parse(%{
-          "entries" => [
-            %{"source" => "Version-control commit", "targets" => %{"es" => "confirmación"}}
-          ]
-        })
-
-      assert [%{logical_key: "version-control-commit", source: "Version-control commit"}] =
-               entries
+    test "a term without a translation for the locale produces no entry" do
+      assert {:ok, []} = RepoGlossary.resolve([%{"source" => "commit"}], nil, "es")
     end
 
-    test "keeps caller-provided identifiers verbatim" do
-      {:ok, entries} =
-        RepoGlossary.parse(%{
-          "entries" => [
-            %{"id" => "vcs-commit", "source" => "commit", "targets" => %{"es" => "confirmación"}}
-          ]
-        })
+    test "joins a term with its translation keyed by source" do
+      terms = [%{"source" => "commit", "definition" => "The version-control action."}]
 
-      assert [%{logical_key: "vcs-commit"}] = entries
+      assert {:ok, [entry]} = RepoGlossary.resolve(terms, %{"commit" => "commit"}, "es")
+
+      assert entry == %{
+               id: "repo:commit",
+               namespaced_id: "repo:commit",
+               logical_key: "commit",
+               origin: :repo,
+               term: "commit",
+               definition: "The version-control action.",
+               case_sensitive: false,
+               translation: "commit",
+               translation_locale: "es"
+             }
     end
 
-    test "rejects duplicate identifiers" do
-      assert {:error, "glossary has duplicate entry id `commit`"} =
-               RepoGlossary.parse(%{
-                 "entries" => [
-                   %{"id" => "commit", "source" => "commit"},
-                   %{"id" => "commit", "source" => "commit-noun"}
-                 ]
-               })
+    test "joins a term with its translation keyed by id" do
+      terms = [%{"id" => "vcs-branch", "source" => "branch", "case_sensitive" => true}]
+
+      assert {:ok, [entry]} = RepoGlossary.resolve(terms, %{"vcs-branch" => "rama"}, "es")
+      assert %{term: "branch", translation: "rama", case_sensitive: true} = entry
+      assert entry.namespaced_id == "repo:vcs-branch"
     end
 
-    test "rejects entries with missing source" do
-      assert {:error, "glossary entry is missing `source`"} =
-               RepoGlossary.parse(%{"entries" => [%{"targets" => %{}}]})
+    test "a locale can declare a term the base L10N.md does not" do
+      assert {:ok, [entry]} = RepoGlossary.resolve(nil, %{"pull request" => "pull request"}, "es")
+      assert %{term: "pull request", logical_key: "pull-request", definition: nil} = entry
     end
 
-    test "rejects entries with an empty translation" do
+    test "rejects a term that declares targets" do
       assert {:error, message} =
-               RepoGlossary.parse(%{
-                 "entries" => [%{"source" => "commit", "targets" => %{"es" => "   "}}]
-               })
+               RepoGlossary.resolve(
+                 [%{"source" => "commit", "targets" => %{"es" => "c"}}],
+                 nil,
+                 "es"
+               )
 
-      assert message =~ "empty translation for `es`"
+      assert message =~ "translations belong in L10N/<locale>.md"
     end
 
-    test "rejects a non-string translation instead of raising Protocol.UndefinedError" do
-      assert {:error, message} =
-               RepoGlossary.parse(%{
-                 "entries" => [
-                   %{"source" => "commit", "targets" => %{"es" => %{"nested" => "bad"}}}
-                 ]
-               })
-
-      assert message =~ "non-string translation for `es`"
+    test "rejects a term without a source" do
+      assert {:error, "glossary term is missing `source`"} =
+               RepoGlossary.resolve([%{"definition" => "x"}], nil, "es")
     end
 
-    test "rejects a non-mapping targets value" do
-      assert {:error, message} =
-               RepoGlossary.parse(%{
-                 "entries" => [%{"source" => "commit", "targets" => ["es", "confirmación"]}]
-               })
-
-      assert message =~ "not a mapping"
+    test "rejects duplicate term ids" do
+      assert {:error, "glossary has duplicate term id `commit`"} =
+               RepoGlossary.resolve(
+                 [%{"source" => "commit"}, %{"id" => "commit", "source" => "commit-noun"}],
+                 nil,
+                 "es"
+               )
     end
 
-    test "rejects a non-boolean case_sensitive" do
+    test "rejects wrongly typed term fields" do
       assert {:error, message} =
-               RepoGlossary.parse(%{
-                 "entries" => [
-                   %{"source" => "commit", "case_sensitive" => "true", "targets" => %{"es" => "c"}}
-                 ]
-               })
+               RepoGlossary.resolve([%{"source" => "API", "case_sensitive" => "true"}], nil, "es")
 
       assert message =~ "case_sensitive"
-    end
 
-    test "rejects a non-string entry id" do
-      assert {:error, message} =
-               RepoGlossary.parse(%{
-                 "entries" => [%{"id" => 42, "source" => "commit", "targets" => %{"es" => "c"}}]
-               })
-
+      assert {:error, message} = RepoGlossary.resolve([%{"id" => 42, "source" => "x"}], nil, "es")
       assert message =~ "non-string `id`"
     end
-  end
 
-  describe "resolve_for_locale/2" do
-    test "picks the most specific target locale" do
-      {:ok, entries} =
-        RepoGlossary.parse(%{
-          "entries" => [
-            %{
-              "source" => "commit",
-              "targets" => %{"zh" => "提交", "zh-Hans" => "提交", "es" => "confirmación"}
-            }
-          ]
-        })
-
-      assert [%{translation: "提交", translation_locale: "zh-Hans"}] =
-               RepoGlossary.resolve_for_locale(entries, "zh-Hans-CN")
-
-      assert [%{translation: "confirmación", translation_locale: "es"}] =
-               RepoGlossary.resolve_for_locale(entries, "es")
-
-      assert [] = RepoGlossary.resolve_for_locale(entries, "ja")
+    test "rejects terms that are not a list and translations that are not a map" do
+      assert {:error, _} = RepoGlossary.resolve(%{"commit" => "commit"}, nil, "es")
+      assert {:error, _} = RepoGlossary.resolve(nil, [%{"source" => "commit"}], "es")
     end
 
-    test "namespaces repo entry ids so they never collide with account entry ids" do
-      {:ok, entries} =
-        RepoGlossary.parse(%{
-          "entries" => [
-            %{"id" => "commit", "source" => "commit", "targets" => %{"es" => "confirmación"}}
-          ]
-        })
+    test "rejects empty or non-string translations" do
+      assert {:error, message} = RepoGlossary.resolve(nil, %{"commit" => "  "}, "es")
+      assert message =~ "is empty"
 
-      assert [%{id: "repo:commit", namespaced_id: "repo:commit", origin: :repo}] =
-               RepoGlossary.resolve_for_locale(entries, "es")
-    end
-  end
-
-  describe "load/2 with an override path" do
-    test "reads the override path when it is inside the repository root" do
-      dir =
-        System.tmp_dir!()
-        |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
-
-      File.mkdir_p!(Path.join(dir, "config"))
-      on_exit(fn -> File.rm_rf!(dir) end)
-
-      File.write!(Path.join(dir, "config/glossary.yaml"), """
-      entries:
-        - id: commit
-          source: commit
-          targets:
-            es: confirmación
-      """)
-
-      assert {:ok, [%{logical_key: "commit"}]} =
-               RepoGlossary.load(dir, "config/glossary.yaml")
-    end
-
-    test "rejects an absolute override path" do
-      assert {:error, message} = RepoGlossary.load("/tmp", "/etc/passwd")
-      assert message =~ "must be relative"
-    end
-
-    test "rejects an override path that escapes the repository root" do
-      assert {:error, message} = RepoGlossary.load("/tmp/repo", "../../etc/passwd")
-      assert message =~ "escapes"
-    end
-  end
-
-  describe "content_hash/1" do
-    test "is stable across entry order and target-map ordering" do
-      {:ok, entries_a} =
-        RepoGlossary.parse(%{
-          "entries" => [
-            %{"id" => "a", "source" => "a", "targets" => %{"es" => "eA", "fr" => "fA"}},
-            %{"id" => "b", "source" => "b", "targets" => %{"fr" => "fB", "es" => "eB"}}
-          ]
-        })
-
-      {:ok, entries_b} =
-        RepoGlossary.parse(%{
-          "entries" => [
-            %{"id" => "b", "source" => "b", "targets" => %{"es" => "eB", "fr" => "fB"}},
-            %{"id" => "a", "source" => "a", "targets" => %{"fr" => "fA", "es" => "eA"}}
-          ]
-        })
-
-      assert RepoGlossary.content_hash(entries_a) == RepoGlossary.content_hash(entries_b)
-    end
-
-    test "changes when a translation changes" do
-      {:ok, entries_a} =
-        RepoGlossary.parse(%{
-          "entries" => [%{"id" => "a", "source" => "a", "targets" => %{"es" => "one"}}]
-        })
-
-      {:ok, entries_b} =
-        RepoGlossary.parse(%{
-          "entries" => [%{"id" => "a", "source" => "a", "targets" => %{"es" => "two"}}]
-        })
-
-      refute RepoGlossary.content_hash(entries_a) == RepoGlossary.content_hash(entries_b)
-    end
-  end
-
-  describe "load/1" do
-    test "returns an empty list when the file is absent" do
-      dir =
-        System.tmp_dir!()
-        |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
-
-      File.mkdir_p!(dir)
-      on_exit(fn -> File.rm_rf!(dir) end)
-
-      assert {:ok, []} = RepoGlossary.load(dir)
-    end
-
-    test "reads .glossia/glossary.yaml from the checkout root" do
-      dir =
-        System.tmp_dir!()
-        |> Path.join("glossia_repo_glossary_#{System.unique_integer([:positive])}")
-
-      File.mkdir_p!(Path.join(dir, ".glossia"))
-      on_exit(fn -> File.rm_rf!(dir) end)
-
-      File.write!(Path.join(dir, ".glossia/glossary.yaml"), """
-      entries:
-        - id: commit
-          source: commit
-          targets:
-            es: confirmación
-      """)
-
-      assert {:ok, [%{logical_key: "commit", targets: %{"es" => "confirmación"}}]} =
-               RepoGlossary.load(dir)
+      assert {:error, message} = RepoGlossary.resolve(nil, %{"commit" => %{"a" => "b"}}, "es")
+      assert message =~ "must be a string"
     end
   end
 end

@@ -105,7 +105,7 @@ defmodule Glossia.Translations.RepositoryRun do
     with {:ok, context_snapshot} <- context_snapshot(account, context_node, opts),
          {:ok, items} <- build_items(repo_path, locales),
          {:ok, locale_contexts} <-
-           resolve_locale_contexts(items, account, context_node, context_snapshot, repo_path) do
+           resolve_locale_contexts(items, account, context_node, context_snapshot) do
       total = length(items)
       broadcast(session, %{type: "plan", total: total}, progress_node)
 
@@ -526,54 +526,28 @@ defmodule Glossia.Translations.RepositoryRun do
   defp filter_locales(items, []), do: items
   defp filter_locales(items, locales), do: Enum.filter(items, &(&1.locale in locales))
 
-  defp resolve_locale_contexts(items, account, context_node, context_snapshot, repo_path) do
+  defp resolve_locale_contexts(items, account, context_node, context_snapshot) do
     locales = items |> Enum.map(& &1.locale) |> Enum.uniq()
 
     with {:ok, locale_contexts} <-
-           Context.resolve_locales_on(context_node, account, context_snapshot, locales),
-         {:ok, repo_entries} <- load_repo_glossary(repo_path) do
-      {:ok, Context.prepare_locale_contexts(locale_contexts, repo_entries)}
+           Context.resolve_locales_on(context_node, account, context_snapshot, locales) do
+      {:ok, Context.prepare_locale_contexts(locale_contexts)}
     end
   end
 
-  defp load_repo_glossary(repo_path) do
-    override_path = root_glossary_override(repo_path)
+  # An invalid `glossary` in L10N.md must not block translation: the file is
+  # translated with the platform glossary only and the problem is logged.
+  defp repo_glossary_for(item) do
+    case RepoGlossary.resolve(item[:glossary], item[:glossary_translations], item.locale) do
+      {:ok, entries} ->
+        entries
 
-    try do
-      case RepoGlossary.load(repo_path, override_path) do
-        {:ok, entries} ->
-          {:ok, entries}
-
-        {:error, reason} ->
-          Logger.warning("repo glossary at #{repo_path} failed to load: #{inspect(reason)}")
-          {:ok, []}
-      end
-    rescue
-      error ->
+      {:error, reason} ->
         Logger.warning(
-          "repo glossary at #{repo_path} raised while parsing: #{Exception.message(error)}"
+          "ignoring invalid L10N.md glossary for #{item.source_path}: #{inspect(reason)}"
         )
 
-        {:ok, []}
-    end
-  end
-
-  # Reads the `glossary` field from the repository root's L10N.md, if any.
-  # Nested L10N.md documents cannot override this: the repo glossary is
-  # loaded once per run, at repository scope, so it is the root document
-  # (or nothing) that names its path. A nested L10N.md that also names
-  # `glossary` is silently ignored here — the field only takes effect at
-  # the root.
-  defp root_glossary_override(repo_path) do
-    root_doc = Path.join(repo_path, "L10N.md")
-
-    with true <- File.exists?(root_doc),
-         {:ok, raw} <- File.read(root_doc),
-         {:ok, %{frontmatter: %{glossary: path}}} when is_binary(path) <-
-           Glossia.Translations.Frontmatter.parse_content(raw) do
-      path
-    else
-      _ -> nil
+        []
     end
   end
 
@@ -639,7 +613,8 @@ defmodule Glossia.Translations.RepositoryRun do
           locale_contexts,
           item.locale,
           translatable_source,
-          item.preserve || []
+          item.preserve || [],
+          repo_glossary_for(item)
         )
 
       item = Map.put(item, :server_context, server_context)
